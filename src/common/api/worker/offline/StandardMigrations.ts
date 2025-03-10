@@ -1,5 +1,5 @@
 import { OfflineStorage } from "./OfflineStorage.js"
-import { modelInfos } from "../../common/EntityFunctions.js"
+import { globalClientModelInfo } from "../../common/EntityFunctions.js"
 import { typedKeys, TypeRef } from "@tutao/tutanota-utils"
 import { ElementEntity, ListElementEntity, SomeEntity } from "../../common/EntityTypes.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -99,9 +99,8 @@ export function deleteInstancesOfType<T extends SomeEntity>(storage: OfflineStor
 }
 
 async function writeModelVersions(storage: OfflineStorage) {
-	for (const app of typedKeys(modelInfos)) {
-		const key = `${app}-version` as const
-		let version = modelInfos[app].version
+	for (const app of typedKeys(globalClientModelInfo.modelInfos)) {
+		let version = globalClientModelInfo.modelInfos[app].version
 		await storage.setStoredModelVersion(app, version)
 	}
 }

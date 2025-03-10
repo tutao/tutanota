@@ -15,6 +15,7 @@ import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import type { TypeModel } from "../../common/EntityTypes"
 import { isTest } from "../../common/Env"
 import { aes256EncryptSearchIndexEntry, Aes256Key, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { ContactTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
@@ -117,39 +118,49 @@ export type TypeInfo = {
 	typeId: number
 	attributeIds: number[]
 }
-const typeInfos = {
-	tutanota: {
-		Mail: {
-			appId: 1,
-			typeId: tutanotaTypeModels.Mail.id,
-			attributeIds: getAttributeIds(tutanotaTypeModels.Mail),
-		},
-		Contact: {
-			appId: 1,
-			typeId: tutanotaTypeModels.Contact.id,
-			attributeIds: getAttributeIds(tutanotaTypeModels.Contact),
-		},
-	},
-}
+
+const MailTypeId = MailTypeRef.typeId
+const ContactTypeId = ContactTypeRef.typeId
+const typeInfos: Map<string, Map<number, any>> = new Map([
+	[
+		"tutanota",
+		new Map([
+			[
+				MailTypeRef.typeId,
+				{
+					appId: 1,
+					typeId: MailTypeId,
+					attributeIds: getAttributeIds(tutanotaTypeModels[MailTypeId]),
+				},
+			],
+			[
+				ContactTypeRef.typeId,
+				{
+					appId: 1,
+					typeId: ContactTypeId,
+					attributeIds: getAttributeIds(tutanotaTypeModels[ContactTypeId]),
+				},
+			],
+		]),
+	],
+])
 
 export function getAttributeIds(model: TypeModel) {
-	return Object.keys(model.values)
-		.map((name) => model.values[name].id)
-		.concat(Object.keys(model.associations).map((name) => model.associations[name].id))
+	return Object.keys(model.values).map(Number).concat(Object.keys(model.associations).map(Number))
 }
 
 export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
 	// @ts-ignore
-	const app = typeInfos[typeRef.app]
+	const app = typeInfos.get(typeRef.app)
 
 	if (!app) {
-		throw new Error("No TypeInfo for app: " + app)
+		throw new Error("No TypeInfo for app: " + typeRef.app)
 	}
 
-	const typeInfo = app[typeRef.type]
+	const typeInfo = app.get(typeRef.typeId)
 
 	if (!typeInfo) {
-		throw new Error(`No TypeInfo for TypeRef ${typeRef.app} : ${typeRef.type}`)
+		throw new Error(`No TypeInfo for TypeRef ${typeRef.toString()}`)
 	}
 
 	return typeInfo

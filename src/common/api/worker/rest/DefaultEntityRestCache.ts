@@ -8,7 +8,7 @@ import {
 	getCacheModeBehavior,
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
-import { resolveTypeReference } from "../../common/EntityFunctions"
+import { resolveClientTypeReference, resolveTypeRefFromAppAndTypeNameLegacy } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
 import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
@@ -32,15 +32,24 @@ import {
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils"
+import {
+	CUSTOM_MAX_ID,
+	CUSTOM_MIN_ID,
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	get_IdValue,
+	getElementId,
+} from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, entityUpdateToUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 
 assertWorkerOrNode()
 
@@ -290,7 +299,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return await this._loadMultiple(typeRef, listId, ids, ownerEncSessionKeyProvider, opts)
 	}
 
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
+	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null> {
 		return this.entityRestClient.setup(listId, instance, extraHeaders, options)
 	}
 
@@ -407,7 +416,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			return await customHandler.loadRange(this.storage, listId, start, count, reverse)
 		}
 
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveClientTypeReference(typeRef)
 		const useCache = (await this.shouldUseCache(typeRef, opts)) && isCachedRangeType(typeModel, typeRef)
 
 		if (!useCache) {
@@ -601,7 +610,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		wasReverseRequest: boolean,
 		receivedEntities: T[],
 	) {
-		const isCustomId = isCustomIdType(await resolveTypeReference(typeRef))
+		const isCustomId = isCustomIdType(await resolveClientTypeReference(typeRef))
 		let elementsToAdd = receivedEntities
 		if (wasReverseRequest) {
 			// Ensure that elements are cached in ascending (not reverse) order
@@ -649,7 +658,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const { lower, upper } = range
 		let indexOfStart = allRangeList.indexOf(start)
 
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveClientTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
 		if (
 			(!reverse && (isCustomId ? upper === CUSTOM_MAX_ID : upper === GENERATED_MAX_ID)) ||
@@ -707,16 +716,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const regularUpdates: EntityUpdate[] = [] // all updates not resulting from post multiple requests
 		const updatesArray = batch.events
 		for (const update of updatesArray) {
-			const typeRef = new TypeRef(update.application, update.type)
-
 			// monitor application is ignored
 			if (update.application === "monitor") continue
 			// mailSetEntries are ignored because move operations are handled as a special event (and no post multiple is possible)
 			if (
 				update.operation === OperationType.CREATE &&
 				getUpdateInstanceId(update).instanceListId != null &&
-				!isSameTypeRef(typeRef, MailTypeRef) &&
-				!isSameTypeRef(typeRef, MailSetEntryTypeRef)
+				!isUpdateForTypeRef(MailTypeRef, update) &&
+				!isUpdateForTypeRef(MailSetEntryTypeRef, update)
 			) {
 				createUpdatesForLETs.push(update)
 			} else {
@@ -730,7 +737,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// we first handle potential post multiple updates in get multiple requests
 		for (let [instanceListId, updates] of createUpdatesForLETsPerList) {
 			const firstUpdate = updates[0]
-			const typeRef = new TypeRef<ListElementEntity>(firstUpdate.application, firstUpdate.type)
+			const typeRef = firstUpdate.typeId
+				? new TypeRef<SomeEntity>(firstUpdate.application as AppName, parseInt(firstUpdate.typeId))
+				: resolveTypeRefFromAppAndTypeNameLegacy(firstUpdate.application as AppName, firstUpdate.type)
 			const ids = updates.map((update) => update.instanceId)
 
 			// We only want to load the instances that are in cache range
@@ -768,10 +777,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 
 		const otherEventUpdates: EntityUpdate[] = []
+		// we need an array of UpdateEntityData
 		for (let update of regularUpdates) {
-			const { operation, type, application } = update
+			const { operation, typeId, application, type } = update
 			const { instanceListId, instanceId } = getUpdateInstanceId(update)
-			const typeRef = new TypeRef<SomeEntity>(application, type)
+			const typeRef = typeId
+				? new TypeRef<SomeEntity>(application as AppName, parseInt(typeId))
+				: resolveTypeRefFromAppAndTypeNameLegacy(application as AppName, type)
 
 			switch (operation) {
 				case OperationType.UPDATE: {
@@ -784,7 +796,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				case OperationType.DELETE: {
 					if (
 						isSameTypeRef(MailSetEntryTypeRef, typeRef) &&
-						containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)
+						containsEventOfType(
+							updatesArray.map((e) => entityUpdateToUpdateData(e)),
+							OperationType.CREATE,
+							instanceId,
+						)
 					) {
 						// move for mail is handled in create event.
 					} else if (isSameTypeRef(MailTypeRef, typeRef)) {
@@ -1045,5 +1061,6 @@ function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boo
 }
 
 function isGeneratedIdType(typeModel: TypeModel): boolean {
-	return typeModel.values._id.type === ValueType.GeneratedId
+	const _idValue = get_IdValue(typeModel)
+	return _idValue !== undefined && _idValue.type === ValueType.GeneratedId
 }

@@ -410,7 +410,7 @@ export class CustomerFacade {
 		let customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getLoggedInUser().customer))
 		let customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-		let accountingInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(accountingInfo)
+		let accountingInfoSessionKey = await this.cryptoFacade.resolveSessionKey(accountingInfo)
 		const service = createPaymentDataServicePutData({
 			paymentInterval: paymentInterval.toString(),
 			invoiceName: "",

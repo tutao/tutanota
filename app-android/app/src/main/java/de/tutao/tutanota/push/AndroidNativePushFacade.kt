@@ -3,13 +3,15 @@ package de.tutao.tutanota.push
 import android.util.Log
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.DataWrapper
-import de.tutao.tutashared.ipc.EncryptedAlarmNotification
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.ipc.NativePushFacade
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 
 class AndroidNativePushFacade(
 	private val activity: MainActivity,
@@ -17,6 +19,8 @@ class AndroidNativePushFacade(
 	private val alarmNotificationsManager: AlarmNotificationsManager,
 	private val localNotificationsFacade: LocalNotificationsFacade,
 ) : NativePushFacade {
+
+	private val json = Json { ignoreUnknownKeys = true }
 
 	override suspend fun getPushIdentifier(): String? {
 		return sseStorage.getPushIdentifier()
@@ -43,8 +47,9 @@ class AndroidNativePushFacade(
 		localNotificationsFacade.dismissNotifications(addressesArray)
 	}
 
-	override suspend fun scheduleAlarms(alarms: List<EncryptedAlarmNotification>) {
-		alarmNotificationsManager.scheduleNewAlarms(alarms)
+	override suspend fun scheduleAlarms(alarmNotificationsWireFormat: String, newDeviceSessionKey: String) {
+		val alarmNotifications = json.decodeFromString<List<EncryptedAlarmNotification>>(alarmNotificationsWireFormat)
+		alarmNotificationsManager.scheduleNewAlarms(alarmNotifications, newDeviceSessionKey.base64ToBytes())
 	}
 
 	override suspend fun invalidateAlarmsForUser(userId: String) {

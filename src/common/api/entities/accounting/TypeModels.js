@@ -6,142 +6,132 @@
 
 /** @type {any} */
 export const typeModels = {
-	"CustomerAccountPosting": {
+	"79": {
 		"name": "CustomerAccountPosting",
+		"app": "accounting",
+		"version": 8,
 		"since": 3,
 		"type": "AGGREGATED_TYPE",
 		"id": 79,
 		"rootId": "CmFjY291bnRpbmcATw",
 		"versioned": false,
 		"encrypted": false,
+		"isPublic": true,
 		"values": {
-			"_id": {
+			"80": {
 				"final": true,
 				"name": "_id",
 				"id": 80,
-				"since": 3,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"amount": {
+			"81": {
 				"final": true,
-				"name": "amount",
-				"id": 84,
-				"since": 3,
+				"name": "type",
+				"id": 81,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"invoiceNumber": {
+			"82": {
+				"final": true,
+				"name": "valueDate",
+				"id": 82,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"83": {
 				"final": true,
 				"name": "invoiceNumber",
 				"id": 83,
-				"since": 3,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true
 			},
-			"type": {
+			"84": {
 				"final": true,
-				"name": "type",
-				"id": 81,
-				"since": 3,
+				"name": "amount",
+				"id": 84,
 				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"valueDate": {
-				"final": true,
-				"name": "valueDate",
-				"id": 82,
-				"since": 3,
-				"type": "Date",
 				"cardinality": "One",
 				"encrypted": true
 			}
 		},
-		"associations": {},
-		"app": "accounting",
-		"version": "7"
+		"associations": {}
 	},
-	"CustomerAccountReturn": {
+	"86": {
 		"name": "CustomerAccountReturn",
+		"app": "accounting",
+		"version": 8,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 86,
 		"rootId": "CmFjY291bnRpbmcAVg",
 		"versioned": false,
 		"encrypted": true,
+		"isPublic": true,
 		"values": {
-			"_format": {
+			"87": {
 				"final": false,
 				"name": "_format",
 				"id": 87,
-				"since": 3,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"_ownerGroup": {
+			"88": {
 				"final": true,
 				"name": "_ownerGroup",
 				"id": 88,
-				"since": 3,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"_ownerPublicEncSessionKey": {
+			"89": {
 				"final": true,
 				"name": "_ownerPublicEncSessionKey",
 				"id": 89,
-				"since": 3,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"_publicCryptoProtocolVersion": {
-				"final": true,
-				"name": "_publicCryptoProtocolVersion",
-				"id": 96,
-				"since": 7,
+			"92": {
+				"final": false,
+				"name": "outstandingBookingsPrice",
+				"id": 92,
 				"type": "Number",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": false
 			},
-			"balance": {
+			"94": {
 				"final": true,
 				"name": "balance",
 				"id": 94,
-				"since": 5,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"outstandingBookingsPrice": {
-				"final": false,
-				"name": "outstandingBookingsPrice",
-				"id": 92,
-				"since": 4,
+			"96": {
+				"final": true,
+				"name": "_publicCryptoProtocolVersion",
+				"id": 96,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"postings": {
+			"90": {
 				"final": false,
 				"name": "postings",
 				"id": 90,
-				"since": 3,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "CustomerAccountPosting",
+				"refTypeId": 79,
 				"dependency": null
 			}
-		},
-		"app": "accounting",
-		"version": "7"
+		}
 	}
 }

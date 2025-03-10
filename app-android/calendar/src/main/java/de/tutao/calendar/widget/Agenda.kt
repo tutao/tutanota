@@ -76,6 +76,7 @@ import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.tutasdk.IdTupleCustom
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
@@ -152,7 +153,7 @@ class Agenda : GlanceAppWidget() {
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
 
 		val sdk = try {
-			Sdk(remoteStorage.getRemoteUrl()!!, SdkRestClient())
+			Sdk(remoteStorage.getRemoteUrl()!!, SdkRestClient(), SdkFileClient(context.filesDir))
 		} catch (e: Exception) {
 			Log.e(TAG, "Failed to initialize SDK, falling back to cached events if available. $e")
 			null

@@ -1,5 +1,5 @@
 use crate::bindings::rest_client::{
-	encode_query_params, HttpMethod, RestClient, RestClientOptions,
+	encode_query_params, HttpMethod, RestClient, RestClientOptions, RestResponse,
 };
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
@@ -16,8 +16,9 @@ use crate::services::{
 };
 use crate::type_model_provider::TypeModelProvider;
 use crate::{ApiCallError, HeadersProvider};
-use serde::Deserialize;
+use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::borrow::Borrow;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -137,6 +138,24 @@ impl ServiceExecutor {
 	{
 		S::DELETE(self, data, params).await
 	}
+
+	async fn ensure_latest_server_model(
+		&self,
+		response: &RestResponse,
+	) -> Result<(), ApiCallError> {
+		let current_model_hash = response
+			.headers
+			.get("app-types-hash")
+			.map(|a| a.as_str())
+			// if server did not put hash in response header,
+			// always fetch application types again just to be safe
+			.unwrap_or("non-existant-hash");
+
+		self.type_model_provider
+			.clone()
+			.ensure_latest_server_model(current_model_hash)
+			.await
+	}
 }
 
 // Needed because ResolvingServiceExecutor relies on Deref and doesn't have ServiceExecutor
@@ -207,7 +226,7 @@ impl Executor for ServiceExecutor {
 			},
 			S::PATH,
 		);
-		let model_version: u32 = S::VERSION;
+		let model_version: u64 = S::VERSION;
 		let mut query_params = extra_service_params.query_params.unwrap_or_default();
 
 		let parsed_input_data: Option<RawEntity> = if let Some(input_entity) = data {
@@ -220,7 +239,7 @@ impl Executor for ServiceExecutor {
 			let input_type_ref = I::type_ref();
 			let type_model = self
 				.type_model_provider
-				.get_type_model(input_type_ref.app, input_type_ref.type_)
+				.resolve_client_type_ref(&input_type_ref)
 				.ok_or(ApiCallError::internal(format!(
 					"type {:?} does not exist",
 					input_type_ref
@@ -296,6 +315,9 @@ impl Executor for ServiceExecutor {
 				},
 			)
 			.await?;
+
+		self.ensure_latest_server_model(&response).await?;
+
 		let precondition = response.headers.get("precondition");
 		match response.status {
 			200 | 201 => Ok(response.body),
@@ -310,7 +332,7 @@ impl Executor for ServiceExecutor {
 		body: Option<Vec<u8>>,
 	) -> Result<OutputType, ApiCallError>
 	where
-		OutputType: Entity + Deserialize<'static>,
+		OutputType: Entity + DeserializeOwned,
 	{
 		let response_bytes = body.expect("no body");
 		let response_entity = serde_json::from_slice::<RawEntity>(response_bytes.as_slice())
@@ -319,10 +341,11 @@ impl Executor for ServiceExecutor {
 		let parsed_entity = self
 			.json_serializer
 			.parse(output_type_ref, response_entity)?;
-		let type_model: &TypeModel = self
+		let type_model = self
 			.type_model_provider
-			.get_type_model(output_type_ref.app, output_type_ref.type_)
+			.resolve_server_type_ref(output_type_ref)
 			.expect("invalid type ref!");
+		let type_model: &TypeModel = type_model.borrow();
 
 		if type_model.marked_encrypted() {
 			let session_key = self
@@ -385,16 +408,14 @@ mod tests {
 	use crate::date::DateTime;
 	use crate::element_value::ElementValue;
 	use crate::entities::entity_facade::MockEntityFacade;
+	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::json_element::RawEntity;
 	use crate::json_serializer::JsonSerializer;
+	use crate::metamodel::AppName;
 	use crate::services::service_executor::ResolvingServiceExecutor;
-	use crate::services::test_services::{
-		HelloEncInput, HelloEncOutput, HelloEncryptedService, HelloUnEncInput, HelloUnEncOutput,
-		HelloUnEncryptedService, APP_VERSION_STR,
-	};
-	use crate::services::{test_services, ExtraServiceParams};
-	use crate::type_model_provider::TypeModelProvider;
+	use crate::services::ExtraServiceParams;
+	use crate::util::test_utils::*;
 	use crate::{HeadersProvider, CLIENT_VERSION};
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
@@ -405,6 +426,7 @@ mod tests {
 	pub async fn post_should_map_unencrypted_data_and_response() {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
+			_errors: Default::default(),
 		};
 		let executor = maps_unencrypted_data_and_response(HttpMethod::POST);
 		let result = executor
@@ -424,6 +446,7 @@ mod tests {
 	pub async fn put_should_map_unencrypted_data_and_response() {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
+			_errors: Default::default(),
 		};
 		let executor = maps_unencrypted_data_and_response(HttpMethod::PUT);
 		let result = executor
@@ -443,6 +466,7 @@ mod tests {
 	pub async fn get_should_map_unencrypted_data_and_response() {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
+			_errors: Default::default(),
 		};
 		let executor = maps_unencrypted_data_and_response(HttpMethod::GET);
 		let result = executor
@@ -462,6 +486,7 @@ mod tests {
 	pub async fn delete_should_map_unencrypted_data_and_response() {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
+			_errors: Default::default(),
 		};
 		let executor = maps_unencrypted_data_and_response(HttpMethod::DELETE);
 		let result = executor
@@ -587,16 +612,13 @@ mod tests {
 	}
 
 	fn setup() -> ResolvingServiceExecutor {
-		let mut model_provider_map = HashMap::new();
-		test_services::extend_model_resolver(&mut model_provider_map);
-		let type_model_provider: Arc<TypeModelProvider> =
-			Arc::new(TypeModelProvider::new(model_provider_map));
+		let type_model_provider = Arc::new(mock_type_model_provider());
 
 		let crypto_facade = Arc::new(CryptoFacade::default());
 		let entity_facade = Arc::new(MockEntityFacade::default());
 		let auth_headers_provider =
 			Arc::new(HeadersProvider::new(Some("access_token".to_string())));
-		let instance_mapper = Arc::new(InstanceMapper::new());
+		let instance_mapper = Arc::new(InstanceMapper::new(type_model_provider.clone()));
 		let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
 		let rest_client = Arc::new(MockRestClient::new());
 
@@ -635,7 +657,7 @@ mod tests {
             .return_once(move |url, method, opts| {
                 if method == HttpMethod::GET {
                     assert_eq!(
-                        "http://api.tuta.com/rest/test/unencrypted-hello?_body=%7B%22message%22%3A%22Something%22%7D",
+                        "http://api.tuta.com/rest/test/unencrypted-hello?_body=%7B%22149%22%3A%22Something%22%7D",
                         url.as_str()
                     );
                     assert_eq!(None, opts.body);
@@ -645,7 +667,7 @@ mod tests {
                         url.as_str()
                     );
                     let expected_body =
-                        serde_json::from_str::<RawEntity>(r#"{"message":"Something"}"#).unwrap();
+                        serde_json::from_str::<RawEntity>(r#"{"149":"Something"}"#).unwrap();
                     let body =
                         serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
                     assert_eq!(expected_body, body);
@@ -669,10 +691,10 @@ mod tests {
 
                 Ok(RestResponse {
                     status: 200,
-                    headers: HashMap::new(),
-                    body: Some(
-                        br#"{"answer":"Response to some request","timestamp":"3000"}"#.to_vec(),
-                    ),
+                    headers: server_types_hash_header(),
+					body: Some(
+						br#"{"159":"Response to some request","160":"3000"}"#.to_vec(),
+					),
                 })
             });
 
@@ -713,7 +735,7 @@ mod tests {
             .return_once(move |url, method, opts| {
                 if method == HttpMethod::GET {
                     assert_eq!(
-                        "http://api.tuta.com/rest/test/encrypted-hello?_body=%7B%22message%22%3A%22my+encrypted+request%22%7D",
+                        "http://api.tuta.com/rest/test/encrypted-hello?_body=%7B%22359%22%3A%22my+encrypted+request%22%7D",
                         url.as_str()
                     );
                     assert_eq!(None, opts.body);
@@ -722,16 +744,18 @@ mod tests {
                         "http://api.tuta.com/rest/test/encrypted-hello",
                         url.as_str()
                     );
+				    assert_eq!(http_method, method);
+
                     let expected_body =
-                        serde_json::from_str::<RawEntity>(r#"{"message": "my encrypted request"}"#)
-                            .unwrap();
+					serde_json::from_str::<RawEntity>(r#"{"359": "my encrypted request"}"#)
+						.unwrap();
                     let body =
                         serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
                     assert_eq!(expected_body, body);
                 }
                 assert_eq!(http_method, method);
 
-                let mut headers = vec![
+				let mut headers = vec![
                     ("accessToken", "access_token"),
                     ("cv", CLIENT_VERSION),
                     ("v", APP_VERSION_STR),
@@ -745,12 +769,13 @@ mod tests {
                     .map(|(a, b)| (a.to_string(), b.to_string()))
                     .collect::<HashMap<_, _>>();
                 assert_eq!(expected_headers, opts.headers);
+
                 Ok(RestResponse {
                     status: 200,
-                    headers: HashMap::new(),
+                    headers: server_types_hash_header(),
                     body: Some(
-                        br#"{ "answer":"bXkgc2VjcmV0IHJlc3BvbnNl","timestamp":"MzAwMA==" }"#
-                            .to_vec(),
+						br#"{ "459":"bXkgc2VjcmV0IHJlc3BvbnNl","460":"MzAwMA==" }"#
+							.to_vec(),
                     ),
                 })
             });
@@ -759,7 +784,10 @@ mod tests {
 		crypto_facade
 			.expect_resolve_session_key()
 			.returning(move |_entity, model| {
-				assert_eq!(("test", "HelloEncOutput"), (model.app, model.name));
+				assert_eq!(
+					(AppName::Test, "HelloEncOutput"),
+					(model.app, model.name.as_str())
+				);
 				assert!(model.marked_encrypted());
 
 				Ok(Some(ResolvedSessionKey {
@@ -778,13 +806,23 @@ mod tests {
 				Ok(instance.clone())
 			});
 
+		let provider = mock_type_model_provider();
 		let session_key_clone = session_key.clone();
 		entity_facade.expect_decrypt_and_map().return_once(
 			move |_, mut entity, resolved_session_key| {
+				let type_model = provider
+					.resolve_server_type_ref(&HelloEncOutput::type_ref())
+					.expect("missing type");
 				assert_eq!(session_key_clone, resolved_session_key.session_key);
+				let timestamp_attribute_id = &type_model
+					.get_attribute_id_by_attribute_name("timestamp")
+					.unwrap();
+				let answer_attribute_id = &type_model
+					.get_attribute_id_by_attribute_name("answer")
+					.unwrap();
 				assert_eq!(
 					&ElementValue::Bytes(BASE64_STANDARD.decode(r#"MzAwMA=="#).unwrap()),
-					entity.get("timestamp").unwrap()
+					entity.get(timestamp_attribute_id).unwrap()
 				);
 				assert_eq!(
 					&ElementValue::Bytes(
@@ -792,15 +830,15 @@ mod tests {
 							.decode(r#"bXkgc2VjcmV0IHJlc3BvbnNl"#)
 							.unwrap()
 					),
-					entity.get("answer").unwrap()
+					entity.get(answer_attribute_id).unwrap()
 				);
 
 				entity.insert(
-					"answer".to_string(),
+					answer_attribute_id.to_owned(),
 					ElementValue::String(String::from("my secret response")),
 				);
 				entity.insert(
-					"timestamp".to_string(),
+					timestamp_attribute_id.to_owned(),
 					ElementValue::Date(DateTime::from_millis(3000)),
 				);
 				entity.insert("_finalIvs".to_string(), ElementValue::Dict(HashMap::new()));

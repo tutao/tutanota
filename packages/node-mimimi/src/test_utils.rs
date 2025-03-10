@@ -3,6 +3,7 @@ use crate::importer::Importer;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
+use tutasdk::bindings::test_file_client::TestFileClient;
 use tutasdk::entities::generated::tutanota::MailFolder;
 use tutasdk::folder_system::MailSetKind;
 use tutasdk::net::native_rest_client::NativeRestClient;
@@ -48,6 +49,7 @@ pub async fn init_file_importer(source_paths: Vec<&str>) -> Importer {
 	let logged_in_sdk = Sdk::new(
 		"http://localhost:9000".to_string(),
 		Arc::new(NativeRestClient::try_new().unwrap()),
+		Arc::new(TestFileClient::default()),
 	)
 	.create_session(IMPORTED_MAIL_ADDRESS, IMPORTED_MAIL_ADDRESS_PASSKEY)
 	.await

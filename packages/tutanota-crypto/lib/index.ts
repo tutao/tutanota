@@ -13,6 +13,7 @@ export {
 	unauthenticatedAesDecrypt,
 	KEY_LENGTH_BYTES_AES_256,
 	getKeyLengthBytes,
+	extractIvFromCipherText,
 } from "./encryption/Aes.js"
 export {
 	X25519PrivateKey,

@@ -195,17 +195,19 @@ export class MailAddressFacade {
 			mailAddressProperties: [],
 		})
 		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
-		return this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, { ownerKey: groupKey }).catch(
-			ofClass(PreconditionFailedError, (e) => {
-				// in admin case it is much harder to run into it because we use non-caching entityClient but it is still possible
-				if (e.data && e.data.startsWith("exists:")) {
-					const existingId = e.data.substring("exists:".length)
-					console.log("mailboxProperties already exists", existingId)
-					return existingId
-				} else {
-					throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
-				}
-			}),
+		return assertNotNull(
+			await this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, { ownerKey: groupKey }).catch(
+				ofClass(PreconditionFailedError, (e) => {
+					// in admin case it is much harder to run into it because we use non-caching entityClient but it is still possible
+					if (e.data && e.data.startsWith("exists:")) {
+						const existingId = e.data.substring("exists:".length)
+						console.log("mailboxProperties already exists", existingId)
+						return existingId
+					} else {
+						throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
+					}
+				}),
+			),
 		)
 	}
 

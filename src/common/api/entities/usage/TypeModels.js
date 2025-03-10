@@ -6,405 +6,382 @@
 
 /** @type {any} */
 export const typeModels = {
-	"UsageTestAssignment": {
-		"name": "UsageTestAssignment",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 56,
-		"rootId": "BXVzYWdlADg",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 57,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"name": {
-				"final": false,
-				"name": "name",
-				"id": 59,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sendPings": {
-				"final": false,
-				"name": "sendPings",
-				"id": 61,
-				"since": 1,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"testId": {
-				"final": true,
-				"name": "testId",
-				"id": 58,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"variant": {
-				"final": true,
-				"name": "variant",
-				"id": 60,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"stages": {
-				"final": false,
-				"name": "stages",
-				"id": 62,
-				"since": 1,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "UsageTestStage",
-				"dependency": null
-			}
-		},
-		"app": "usage",
-		"version": "2"
-	},
-	"UsageTestAssignmentIn": {
-		"name": "UsageTestAssignmentIn",
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 53,
-		"rootId": "BXVzYWdlADU",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 54,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"testDeviceId": {
-				"final": false,
-				"name": "testDeviceId",
-				"id": 55,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "usage",
-		"version": "2"
-	},
-	"UsageTestAssignmentOut": {
-		"name": "UsageTestAssignmentOut",
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 63,
-		"rootId": "BXVzYWdlAD8",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 64,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"testDeviceId": {
-				"final": false,
-				"name": "testDeviceId",
-				"id": 65,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"assignments": {
-				"final": false,
-				"name": "assignments",
-				"id": 66,
-				"since": 1,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "UsageTestAssignment",
-				"dependency": null
-			}
-		},
-		"app": "usage",
-		"version": "2"
-	},
-	"UsageTestMetricConfig": {
-		"name": "UsageTestMetricConfig",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 12,
-		"rootId": "BXVzYWdlAAw",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 13,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"name": {
-				"final": true,
-				"name": "name",
-				"id": 14,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"type": {
-				"final": true,
-				"name": "type",
-				"id": 15,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"configValues": {
-				"final": false,
-				"name": "configValues",
-				"id": 16,
-				"since": 1,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "UsageTestMetricConfigValue",
-				"dependency": null
-			}
-		},
-		"app": "usage",
-		"version": "2"
-	},
-	"UsageTestMetricConfigValue": {
+	"8": {
 		"name": "UsageTestMetricConfigValue",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 8,
 		"rootId": "BXVzYWdlAAg",
 		"versioned": false,
 		"encrypted": false,
+		"isPublic": true,
 		"values": {
-			"_id": {
+			"9": {
 				"final": true,
 				"name": "_id",
 				"id": 9,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"key": {
+			"10": {
 				"final": false,
 				"name": "key",
 				"id": 10,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"value": {
+			"11": {
 				"final": false,
 				"name": "value",
 				"id": 11,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "usage",
-		"version": "2"
+		"associations": {}
 	},
-	"UsageTestMetricData": {
+	"12": {
+		"name": "UsageTestMetricConfig",
+		"app": "usage",
+		"version": 3,
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 12,
+		"rootId": "BXVzYWdlAAw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"13": {
+				"final": true,
+				"name": "_id",
+				"id": 13,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"14": {
+				"final": true,
+				"name": "name",
+				"id": 14,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"15": {
+				"final": true,
+				"name": "type",
+				"id": 15,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"16": {
+				"final": false,
+				"name": "configValues",
+				"id": 16,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 8,
+				"dependency": null
+			}
+		}
+	},
+	"17": {
 		"name": "UsageTestMetricData",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 17,
 		"rootId": "BXVzYWdlABE",
 		"versioned": false,
 		"encrypted": false,
+		"isPublic": true,
 		"values": {
-			"_id": {
+			"18": {
 				"final": true,
 				"name": "_id",
 				"id": 18,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"name": {
+			"19": {
 				"final": true,
 				"name": "name",
 				"id": 19,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"value": {
+			"20": {
 				"final": true,
 				"name": "value",
 				"id": 20,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "usage",
-		"version": "2"
+		"associations": {}
 	},
-	"UsageTestParticipationIn": {
-		"name": "UsageTestParticipationIn",
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 80,
-		"rootId": "BXVzYWdlAFA",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 81,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"stage": {
-				"final": false,
-				"name": "stage",
-				"id": 83,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"testDeviceId": {
-				"final": false,
-				"name": "testDeviceId",
-				"id": 84,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"testId": {
-				"final": false,
-				"name": "testId",
-				"id": 82,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"metrics": {
-				"final": false,
-				"name": "metrics",
-				"id": 85,
-				"since": 1,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "UsageTestMetricData",
-				"dependency": null
-			}
-		},
-		"app": "usage",
-		"version": "2"
-	},
-	"UsageTestStage": {
+	"35": {
 		"name": "UsageTestStage",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 35,
 		"rootId": "BXVzYWdlACM",
 		"versioned": false,
 		"encrypted": false,
+		"isPublic": true,
 		"values": {
-			"_id": {
+			"36": {
 				"final": true,
 				"name": "_id",
 				"id": 36,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"maxPings": {
-				"final": false,
-				"name": "maxPings",
-				"id": 88,
-				"since": 2,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"minPings": {
-				"final": false,
-				"name": "minPings",
-				"id": 87,
-				"since": 2,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"name": {
+			"37": {
 				"final": false,
 				"name": "name",
 				"id": 37,
-				"since": 1,
 				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"87": {
+				"final": false,
+				"name": "minPings",
+				"id": 87,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"88": {
+				"final": false,
+				"name": "maxPings",
+				"id": 88,
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"metrics": {
+			"38": {
 				"final": false,
 				"name": "metrics",
 				"id": 38,
-				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "UsageTestMetricConfig",
+				"refTypeId": 12,
 				"dependency": null
 			}
-		},
+		}
+	},
+	"53": {
+		"name": "UsageTestAssignmentIn",
 		"app": "usage",
-		"version": "2"
+		"version": 3,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 53,
+		"rootId": "BXVzYWdlADU",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"54": {
+				"final": false,
+				"name": "_format",
+				"id": 54,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"55": {
+				"final": false,
+				"name": "testDeviceId",
+				"id": 55,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"56": {
+		"name": "UsageTestAssignment",
+		"app": "usage",
+		"version": 3,
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 56,
+		"rootId": "BXVzYWdlADg",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"57": {
+				"final": true,
+				"name": "_id",
+				"id": 57,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"58": {
+				"final": true,
+				"name": "testId",
+				"id": 58,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"59": {
+				"final": false,
+				"name": "name",
+				"id": 59,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"60": {
+				"final": true,
+				"name": "variant",
+				"id": 60,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"61": {
+				"final": false,
+				"name": "sendPings",
+				"id": 61,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"62": {
+				"final": false,
+				"name": "stages",
+				"id": 62,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 35,
+				"dependency": null
+			}
+		}
+	},
+	"63": {
+		"name": "UsageTestAssignmentOut",
+		"app": "usage",
+		"version": 3,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 63,
+		"rootId": "BXVzYWdlAD8",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"64": {
+				"final": false,
+				"name": "_format",
+				"id": 64,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"65": {
+				"final": false,
+				"name": "testDeviceId",
+				"id": 65,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"66": {
+				"final": false,
+				"name": "assignments",
+				"id": 66,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 56,
+				"dependency": null
+			}
+		}
+	},
+	"80": {
+		"name": "UsageTestParticipationIn",
+		"app": "usage",
+		"version": 3,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 80,
+		"rootId": "BXVzYWdlAFA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"81": {
+				"final": false,
+				"name": "_format",
+				"id": 81,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"82": {
+				"final": false,
+				"name": "testId",
+				"id": 82,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"83": {
+				"final": false,
+				"name": "stage",
+				"id": 83,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"84": {
+				"final": false,
+				"name": "testDeviceId",
+				"id": 84,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"85": {
+				"final": false,
+				"name": "metrics",
+				"id": 85,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 17,
+				"dependency": null
+			}
+		}
 	}
 }

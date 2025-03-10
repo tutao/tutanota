@@ -86,7 +86,7 @@ export class NativeFileApp {
 	}
 
 	async writeDataFile(data: DataFile): Promise<FileReference> {
-		const fileUri = await this.fileFacade.writeDataFile(data)
+		const fileUri = await this.fileFacade.writeTempDataFile(data)
 		return {
 			_type: "FileReference",
 			name: data.name,

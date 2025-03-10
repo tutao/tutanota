@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:calendar/CalendarApp11Years.storekit">
+   </FileRef>
+   <FileRef
       location = "group:../tuta-sdk/ios/tutasdk.xcodeproj">
    </FileRef>
    <FileRef

@@ -208,6 +208,7 @@ impl KeyLoadErrorSubtype for ApiCallError {}
 pub type VersionedAesKey = Versioned<GenericAesKey>;
 
 impl Versioned<GenericAesKey> {
+	#[must_use]
 	pub fn encrypt_key(&self, key_to_encrypt: &GenericAesKey, iv: Iv) -> Versioned<Vec<u8>> {
 		let encrypted_key = self.object.encrypt_key(key_to_encrypt, iv);
 		// todo: this looks like the vec<u8> has the version which is not true

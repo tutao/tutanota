@@ -7,7 +7,7 @@ import {
 	UsageTestAssignmentTypeRef,
 } from "../api/entities/usage/TypeRefs.js"
 import { PingAdapter, Stage, UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
-import { assertNotNull, filterInt, lazy, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { BadRequestError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError"
 import { UsageTestMetricType } from "../api/common/TutanotaConstants"
 import { SuspensionError } from "../api/common/error/SuspensionError"
@@ -15,7 +15,7 @@ import { SuspensionBehavior } from "../api/worker/rest/RestClient"
 import { DateProvider } from "../api/common/DateProvider.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest"
 import { UsageTestAssignmentService, UsageTestParticipationService } from "../api/entities/usage/Services.js"
-import { resolveTypeReference } from "../api/common/EntityFunctions"
+import { resolveClientTypeReference } from "../api/common/EntityFunctions"
 import { lang, TranslationKey } from "./LanguageViewModel"
 import stream from "mithril/stream"
 import { Dialog, DialogType } from "../gui/base/Dialog"
@@ -149,10 +149,10 @@ export const ASSIGNMENT_UPDATE_INTERVAL_MS = 1000 * 60 * 60 // 1h
 
 export const enum StorageBehavior {
 	/* Store usage test assignments in the "persistent" storage. Currently, this is the client's instance of DeviceConfig, which uses the browser's local storage.
-	Use if the user is logged in and has opted in to sending usage data. */
+    Use if the user is logged in and has opted in to sending usage data. */
 	Persist,
 	/* Store usage test assignments in the "ephemeral" storage. Currently, this is an instance of EphemeralUsageTestStorage.
-	Use if the user is not logged in. */
+    Use if the user is not logged in. */
 	Ephemeral,
 }
 
@@ -304,8 +304,8 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	private async modelVersion(): Promise<number> {
-		const model = await resolveTypeReference(UsageTestAssignmentTypeRef)
-		return filterInt(model.version)
+		const model = await resolveClientTypeReference(UsageTestAssignmentTypeRef)
+		return model.version
 	}
 
 	private async loadAssignments(): Promise<UsageTestAssignment[]> {

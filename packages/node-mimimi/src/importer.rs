@@ -19,6 +19,7 @@ use crate::importer::messages::{
 	ImportErrorKind, ImportOkKind, MailImportErrorMessage, PreparationError,
 };
 use crate::importer_api::TutaCredentials;
+use tutasdk::bindings::native_file_client::NativeFileClient;
 use tutasdk::entities::generated::tutanota::{
 	ImportMailGetIn, ImportMailPostIn, ImportMailPostOut, ImportMailState,
 };
@@ -234,7 +235,7 @@ impl ImportEssential {
 			ownerKeyVersion: owner_enc_sk_for_import_state_get.version as i64,
 			totalMails: total_importable_mails,
 			targetMailFolder: target_mailset,
-			_errors: None,
+			_errors: Default::default(),
 			_finalIvs: Default::default(),
 		};
 
@@ -308,6 +309,7 @@ impl Importer {
 	}
 
 	pub(super) async fn create_sdk(
+		config_directory: &str,
 		tuta_credentials: TutaCredentials,
 	) -> Result<Arc<LoggedInSdk>, PreparationError> {
 		let base_url = tuta_credentials.api_url.clone();
@@ -315,14 +317,19 @@ impl Importer {
 			log::error!("Can not create new native rest client: {e:?}");
 			PreparationError::NoNativeRestClient
 		})?;
+		let file_client = NativeFileClient::try_new(config_directory.into()).map_err(|e| {
+			log::error!("Can not create new native rest client: {e:?}");
+			PreparationError::NoNativeRestClient
+		})?;
 
-		let logged_in_sdk = tutasdk::Sdk::new(base_url, Arc::new(rest_client))
-			.login(tuta_credentials.into())
-			.await
-			.map_err(|e| {
-				log::error!("Can not login to sdk: {e:?}");
-				PreparationError::LoginError
-			})?;
+		let logged_in_sdk =
+			tutasdk::Sdk::new(base_url, Arc::new(rest_client), Arc::new(file_client))
+				.login(tuta_credentials.into())
+				.await
+				.map_err(|e| {
+					log::error!("Can not login to sdk: {e:?}");
+					PreparationError::LoginError
+				})?;
 
 		Ok(logged_in_sdk)
 	}
@@ -366,7 +373,7 @@ impl Importer {
 			fs_email_client: FileImport::new(eml_files_to_import),
 		};
 
-		let logged_in_sdk = Self::create_sdk(tuta_credentials).await?;
+		let logged_in_sdk = Self::create_sdk(&config_directory, tuta_credentials).await?;
 		let remote_import_state = logged_in_sdk
 			.mail_facade()
 			.get_crypto_entity_client()

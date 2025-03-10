@@ -53,7 +53,7 @@ pub trait RestClient: Send + Sync + 'static {
 }
 
 /// HTTP(S) data contained within a response from the backend
-#[derive(uniffi::Record, Clone)]
+#[derive(uniffi::Record, Clone, Debug)]
 pub struct RestResponse {
 	pub status: u32,
 	pub headers: HashMap<String, String>,

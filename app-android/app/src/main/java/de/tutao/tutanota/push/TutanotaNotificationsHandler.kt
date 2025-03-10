@@ -6,9 +6,8 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import de.tutao.tutanota.R
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutasdk.Sdk
-import de.tutao.tutasdk.serializeMail
+import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
-import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
@@ -18,6 +17,7 @@ import de.tutao.tutashared.offline.sqlTagged
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.push.toSdkCredentials
 import de.tutao.tutashared.toBase64
+import de.tutao.tutashared.toSdkIdTupleGenerated
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -25,6 +25,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.apache.commons.io.IOUtils
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.MalformedURLException
@@ -41,6 +42,7 @@ class TutanotaNotificationsHandler(
 	private val defaultClient: OkHttpClient,
 	private val lifecycleScope: LifecycleCoroutineScope,
 	private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
+	private val appDir: File
 ) {
 
 	private val json = Json { ignoreUnknownKeys = true }
@@ -51,10 +53,11 @@ class TutanotaNotificationsHandler(
 			Log.d(TAG, "No stored SSE info")
 			return
 		}
-		val missedNotification = downloadMissedNotification(sseInfo)
-		if (missedNotification != null) {
+		val missedNotificationSerialized: String? = downloadMissedNotification(sseInfo)
+		if (missedNotificationSerialized != null) {
+			val missedNotification = json.decodeFromString<MissedNotification>(missedNotificationSerialized)
 			handleNotificationInfos(sseInfo, missedNotification.notificationInfos)
-			handleAlarmNotifications(missedNotification.alarmNotifications)
+			alarmNotificationsManager.scheduleNewAlarms(missedNotification.alarmNotifications, null)
 			sseStorage.setLastProcessedNotificationId(missedNotification.lastProcessedNotificationId)
 			sseStorage.setLastMissedNotificationCheckTime(Date())
 		}
@@ -73,7 +76,7 @@ class TutanotaNotificationsHandler(
 		return true
 	}
 
-	private fun downloadMissedNotification(sseInfo: SseInfo): MissedNotification? {
+	private fun downloadMissedNotification(sseInfo: SseInfo): String? {
 		var triesLeft = 3
 		// We try to download limited number of times. If it fails then  we are probably offline
 		var userId: String?
@@ -137,12 +140,11 @@ class TutanotaNotificationsHandler(
 	}
 
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
-	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): MissedNotification? {
+	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): String? {
 		val url = makeAlarmNotificationUrl(sseInfo)
 		val request = Request.Builder()
 			.url(url)
 			.method("GET", null)
-			.header("Content-Type", "application/json")
 			.header("userIds", userId ?: "")
 			.addSysVersionHeaders()
 			.apply {
@@ -169,7 +171,7 @@ class TutanotaNotificationsHandler(
 		response.body?.byteStream().use { inputStream ->
 			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
 			Log.d(TAG, "Loaded Missed notifications response")
-			return json.decodeFromString(responseString)
+			return responseString
 		}
 	}
 
@@ -250,15 +252,17 @@ class TutanotaNotificationsHandler(
 			return null
 		}
 
-		val sdk = Sdk(sseInfo.sseOrigin, SdkRestClient()).login(unencryptedCredentials.toSdkCredentials())
+
+		val sdk = Sdk(sseInfo.sseOrigin, SdkRestClient(), SdkFileClient(this.appDir))
+		val loggedInSdk = sdk.login(unencryptedCredentials.toSdkCredentials())
 
 		val mailId = notificationInfo.mailId?.toSdkIdTupleGenerated()
 			?: throw IllegalArgumentException("Missing mailId for notification ${sseInfo.pushIdentifier}")
 
-		val mail = sdk.mailFacade().loadEmailByIdEncrypted(mailId)
+		val mail = loggedInSdk.mailFacade().loadEmailByIdEncrypted(mailId)
 		if (unencryptedCredentials.databaseKey != null) {
 			Log.d(TAG, "Inserting mail $mailId into offline db")
-			val serializedMail = serializeMail(mail)
+			val serializedMail = sdk.serializeMail(mail)
 			val sqlCipherFacade = this.getSqlCipherFacade()
 			try {
 				sqlCipherFacade.openDb(
@@ -292,10 +296,6 @@ class TutanotaNotificationsHandler(
 		val recipient = SenderRecipient(recipientAddress, recipientName, null)
 
 		return MailMetadata(recipient, sender, mail.subject)
-	}
-
-	private fun handleAlarmNotifications(alarmNotifications: List<EncryptedAlarmNotification>) {
-		alarmNotificationsManager.scheduleNewAlarms(alarmNotifications)
 	}
 
 	/**

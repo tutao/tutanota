@@ -9,11 +9,13 @@ import androidx.core.content.ContextCompat
 import de.tutao.tutasdk.LoggedInSdk
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.toSdkIdTupleGenerated
 import de.tutao.tutashared.push.toSdkCredentials
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -42,7 +44,7 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 				val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
 				val credentials = nativeCredentialsFacade.loadByUserId(notificationInfo.userId)!!.toSdkCredentials()
 
-				val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()).login(credentials)
+				val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient(), SdkFileClient(context.filesDir)).login(credentials)
 
 				when (action) {
 					TRASH_ACTION -> sendMailToTrash(sdk, notificationInfo)

@@ -54,7 +54,7 @@ struct NotificationsHandlerTest {
 		verify(notificationStorage.lastMissedNotificationCheckTime).wasCalled()
 
 		verify(await httpClient.fetch(url: any(), method: .get, headers: any(), body: nil)).wasCalled()
-		verify(alarmManager.processNewAlarms([])).wasCalled()
+		verify(alarmManager.processNewAlarms([], nil)).wasCalled()
 		verify(notificationStorage.lastProcessedNotificationId = newLastProcessedNotificationId).wasCalled()
 		verify(notificationStorage.lastMissedNotificationCheckTime = secondDate).wasCalled()
 	}
@@ -79,7 +79,7 @@ struct NotificationsHandlerTest {
 
 		await notificationsHandler.fetchMissedNotifications()
 
-		verify(alarmManager.processNewAlarms([alarm])).wasCalled()
+		verify(alarmManager.processNewAlarms([alarm], nil)).wasCalled()
 	}
 
 	@Test func downloadsAndProcessesAlarms_skipsAlreadyFetched() async throws {

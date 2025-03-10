@@ -6,45 +6,43 @@
 
 /** @type {any} */
 export const typeModels = {
-	"PersistenceResourcePostReturn": {
+	"0": {
 		"name": "PersistenceResourcePostReturn",
+		"app": "base",
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 0,
 		"rootId": "BGJhc2UAAA",
 		"versioned": false,
 		"encrypted": false,
+		"isPublic": true,
 		"values": {
-			"_format": {
+			"1": {
 				"final": false,
 				"name": "_format",
 				"id": 1,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"generatedId": {
+			"2": {
 				"final": false,
 				"name": "generatedId",
 				"id": 2,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"permissionListId": {
+			"3": {
 				"final": false,
 				"name": "permissionListId",
 				"id": 3,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "base",
-		"version": "1"
+		"associations": {}
 	}
 }

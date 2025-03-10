@@ -1,15 +1,5 @@
 import o from "@tutao/otest"
-import {
-	arrayEquals,
-	assertNotNull,
-	hexToUint8Array,
-	KeyVersion,
-	neverNull,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString,
-	Versioned,
-} from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, utf8Uint8ArrayToString, Versioned } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import {
 	asCryptoProtoocolVersion,
@@ -24,9 +14,12 @@ import {
 import {
 	BirthdayTypeRef,
 	ContactTypeRef,
+	createMail,
+	createMailAddress,
 	FileTypeRef,
 	InternalRecipientKeyData,
 	Mail,
+	MailAddressTypeRef,
 	MailDetailsBlobTypeRef,
 	MailTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -68,37 +61,39 @@ import {
 	AesKey,
 	bitArrayToUint8Array,
 	decryptKey,
-	ENABLE_MAC,
 	encryptKey,
 	encryptRsaKey,
 	generateX25519KeyPair,
-	IV_BYTE_LENGTH,
 	KeyPairType,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
-	random,
 	RsaKeyPair,
 	RsaPublicKey,
 	rsaPublicKeyToHex,
 	X25519KeyPair,
 	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
-import type { TypeModel } from "../../../../../src/common/api/common/EntityTypes.js"
+import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
 import { UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
-import { getListId, isSameId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { HttpMethod, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { elementIdPart, getListId, isSameId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import {
+	globalClientModelInfo,
+	globalServerModelInfo,
+	HttpMethod,
+	resolveClientTypeReference,
+	resolveServerTypeReference,
+} from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../../src/common/api/worker/facades/PQMessage.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
@@ -108,6 +103,9 @@ import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
 
 const { captor, anything, argThat } = matchers
 
@@ -136,14 +134,13 @@ async function prepareBucketKeyInstance(
 	bk: AesKey,
 	pubEncBucketKey: Uint8Array,
 	recipientUser: TestUser,
-	instanceMapper: InstanceMapper,
-	mailLiteral: Record<string, any>,
+	mail: Mail,
 	senderPubEccKey: Versioned<X25519PublicKey> | undefined,
 	recipientKeyVersion: NumberString,
 	protocolVersion: CryptoProtocolVersion,
 	asymmetricCryptoFacade: AsymmetricCryptoFacade,
 ) {
-	const MailTypeModel = await resolveTypeReference(MailTypeRef)
+	const MailTypeModel = await resolveClientTypeReference(MailTypeRef)
 
 	const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
 		typeInfo: createTestEntity(TypeInfoTypeRef, {
@@ -154,7 +151,7 @@ async function prepareBucketKeyInstance(
 		instanceList: "mailListId",
 		instanceId: "mailId",
 	})
-	const FileTypeModel = await resolveTypeReference(FileTypeRef)
+	const FileTypeModel = await resolveClientTypeReference(FileTypeRef)
 	const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
 		return createTestEntity(InstanceSessionKeyTypeRef, {
 			typeInfo: createTestEntity(TypeInfoTypeRef, {
@@ -187,16 +184,14 @@ async function prepareBucketKeyInstance(
 		),
 	).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderPubEccKey?.object ?? null })
 
-	const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
-	const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
-	Object.assign(mailLiteral, { bucketKey: bucketKeyLiteral })
-	return { MailTypeModel, bucketKey }
+	mail.bucketKey = bucketKey
 }
 
 o.spec("CryptoFacadeTest", function () {
 	let restClient: RestClient
 
-	let instanceMapper = new InstanceMapper()
+	let instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+
 	let serviceExecutor: IServiceExecutor
 	let entityClient: EntityClient
 	let ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue
@@ -229,7 +224,7 @@ o.spec("CryptoFacadeTest", function () {
 			entityClient,
 			restClient,
 			serviceExecutor,
-			instanceMapper,
+			instancePipeline,
 			ownerEncSessionKeysUpdateQueue,
 			cache,
 			keyLoaderFacade,
@@ -238,52 +233,42 @@ o.spec("CryptoFacadeTest", function () {
 			publicKeyProvider,
 			() => keyRotationFacade,
 		)
+		clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
 	})
 
 	o("resolve session key: unencrypted instance", async function () {
-		const dummyDate = new Date().getTime().toString()
-		const customerAccountTerminationRequestLiteral = {
-			_format: 0,
-			terminationDate: dummyDate,
-			terminationRequestDate: dummyDate,
-			customer: "customerId",
-		}
-		const CustomerAccountTerminationTypeModel = await resolveTypeReference(CustomerAccountTerminationRequestTypeRef)
-		o(await crypto.resolveSessionKey(CustomerAccountTerminationTypeModel, customerAccountTerminationRequestLiteral)).equals(null)
+		const customerAccountTerminationRequest = createTestEntity(CustomerAccountTerminationRequestTypeRef)
+
+		o(await crypto.resolveSessionKey(customerAccountTerminationRequest)).equals(null)
 	})
 
 	o("resolve session key: _ownerEncSessionKey instance.", async function () {
 		const recipientUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientUser, userFacade, keyLoaderFacade)
-		let subject = "this is our subject"
-		let confidential = true
-		let senderName = "TutanotaTeam"
 		const sk = aes256RandomKey()
-
-		const mail = createMailLiteral(recipientUser.mailGroupKey, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
-
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
-
+		const mail = createTestEntity(MailTypeRef, {
+			_ownerEncSessionKey: recipientUser.mailGroupKey ? encryptKey(recipientUser.mailGroupKey, sk) : null,
+			_ownerGroup: recipientUser.mailGroup._id,
+			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
+		})
+		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(mail))
 		o(sessionKey).deepEquals(sk)
 	})
 
 	o("resolve session key: _ownerEncSessionKey instance, fetches correct version.", async function () {
 		const recipientUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientUser, userFacade, keyLoaderFacade)
-		let subject = "this is our subject"
-		let confidential = true
-		let senderName = "TutanotaTeam"
-		const sk = aes256RandomKey()
 
+		const sk = aes256RandomKey()
 		const groupKey_v1 = aes256RandomKey()
 		when(keyLoaderFacade.loadSymGroupKey(recipientUser.mailGroup._id, 1)).thenResolve(groupKey_v1)
-		const mail = createMailLiteral(groupKey_v1, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
-		mail._ownerKeyVersion = "1"
 
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
-
+		const mail = createTestEntity(MailTypeRef, {
+			_ownerGroup: recipientUser.mailGroup._id,
+			_ownerEncSessionKey: encryptKey(groupKey_v1, sk),
+			_ownerKeyVersion: "1",
+		})
+		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(mail))
 		o(sessionKey).deepEquals(sk)
 	})
 
@@ -293,9 +278,7 @@ o.spec("CryptoFacadeTest", function () {
 		const recipientUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientUser, userFacade, keyLoaderFacade)
 
-		let subject = "this is our subject"
 		let confidential = true
-		let senderName = "TutanotaTeam"
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 		let privateKey = RSA_TEST_KEYPAIR.privateKey
@@ -307,7 +290,11 @@ o.spec("CryptoFacadeTest", function () {
 		})
 		recipientUser.userGroup.currentKeys = keyPair
 
-		const mail = createMailLiteral(null, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
+		const mail = createTestEntity(MailTypeRef, {
+			confidential,
+			_ownerGroup: recipientUser.mailGroup._id,
+			_permissions: "permissionListId",
+		})
 
 		const bucket = createTestEntity(BucketTypeRef, {
 			bucketPermissions: "bucketPermissionListId",
@@ -350,18 +337,13 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(undefined)
 
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		const sessionKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
 		o(sessionKey).deepEquals(sk)
 	})
 
 	o("resolve session key: pq public key decryption of session key.", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
-
-		let subject = "this is our subject"
-		let confidential = true
-		let senderName = "TutanotaTeam"
 
 		const recipientTestUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientTestUser, userFacade, keyLoaderFacade)
@@ -374,7 +356,11 @@ o.spec("CryptoFacadeTest", function () {
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mail = createMailLiteral(null, sk, subject, confidential, senderName, recipientTestUser.name, recipientTestUser.mailGroup._id)
+		const mail = createTestEntity(MailTypeRef, {
+			_permissions: "permissionListId",
+			_ownerGroup: recipientTestUser.mailGroup._id,
+			confidential: true,
+		})
 		const bucket = createBucket({
 			bucketPermissions: "bucketPermissionListId",
 		})
@@ -434,18 +420,13 @@ o.spec("CryptoFacadeTest", function () {
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
 		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		const sessionKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
 		o(sessionKey).deepEquals(sk)
 	})
 
 	o("resolve session key: pq public key decryption of session key, fetches correct recipient key version", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
-
-		let subject = "this is our subject"
-		let confidential = true
-		let senderName = "TutanotaTeam"
 
 		const recipientTestUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientTestUser, userFacade, keyLoaderFacade)
@@ -458,7 +439,11 @@ o.spec("CryptoFacadeTest", function () {
 		const sk = aes256RandomKey()
 		const bk = aes256RandomKey()
 
-		const mail = createMailLiteral(null, sk, subject, confidential, senderName, recipientTestUser.name, recipientTestUser.mailGroup._id)
+		const mail = createTestEntity(MailTypeRef, {
+			_ownerGroup: recipientTestUser.mailGroup._id,
+			confidential: true,
+			_permissions: "permissionListId",
+		})
 		const bucket = createBucket({
 			bucketPermissions: "bucketPermissionListId",
 		})
@@ -517,8 +502,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
 		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		const sessionKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
 		o(sessionKey).deepEquals(sk)
 	})
@@ -526,9 +510,7 @@ o.spec("CryptoFacadeTest", function () {
 	o("resolve session key: pq public key decryption of session key using bucketKey", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 
-		let subject = "this is our subject"
 		let confidential = true
-		let senderName = "TutanotaTeam"
 
 		const recipientTestUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientTestUser, userFacade, keyLoaderFacade)
@@ -541,7 +523,17 @@ o.spec("CryptoFacadeTest", function () {
 		const sk = aes256RandomKey()
 		const bk = aes256RandomKey()
 
-		const mail = createMailLiteral(null, sk, subject, confidential, senderName, recipientTestUser.name, recipientTestUser.mailGroup._id)
+		let mail = createTestEntity(MailTypeRef, {
+			_id: ["mailListId", "mailId"],
+			_ownerGroup: recipientTestUser.mailGroup._id,
+			confidential,
+			mailDetails: ["mailDetailsArchiveId", "mailDetailsId"],
+			sender: createTestEntity(MailAddressTypeRef, {
+				address: senderAddress,
+				name: "sender name",
+			}),
+		})
+
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
@@ -550,8 +542,6 @@ o.spec("CryptoFacadeTest", function () {
 			bitArrayToUint8Array(bk),
 		)
 
-		Object.assign(mail, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
-
 		const senderKeyVersion = 1
 		await prepareBucketKeyInstance(
 			bucketEncMailSessionKey,
@@ -559,7 +549,6 @@ o.spec("CryptoFacadeTest", function () {
 			bk,
 			pubEncBucketKey,
 			recipientTestUser,
-			instanceMapper,
 			mail,
 			{
 				object: senderIdentityKeyPair.publicKey,
@@ -594,15 +583,17 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		const sessionKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
 		o(sessionKey).deepEquals(sk)
 	})
 
 	o("enforceSessionKeyUpdateIfNeeded: _ownerEncSessionKey already defined", async function () {
 		const files = [createTestEntity(FileTypeRef, { _ownerEncSessionKey: new Uint8Array() })]
-		await crypto.enforceSessionKeyUpdateIfNeeded({}, files)
+		const mail = createTestEntity(MailTypeRef, { bucketKey: null })
+
+		await crypto.enforceSessionKeyUpdateIfNeeded(mail, files)
+
 		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 0 })
 		verify(cache.deleteFromCacheIfExists(anything(), anything(), anything()), { times: 0 })
 	})
@@ -615,11 +606,9 @@ o.spec("CryptoFacadeTest", function () {
 		]
 
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
-		const mail = createTestEntity(MailTypeRef, testData.mailLiteral)
+		const bucketKey = assertNotNull(testData.mail.bucketKey)
 
-		// const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
-		const updatedFiles = await crypto.enforceSessionKeyUpdateIfNeeded(mail, files)
+		await crypto.enforceSessionKeyUpdateIfNeeded(testData.mail, files)
 		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 1 })
 		verify(cache.deleteFromCacheIfExists(FileTypeRef, "listId", "2"))
 	})
@@ -908,7 +897,6 @@ o.spec("CryptoFacadeTest", function () {
 	o("authenticateSender | sender is authenticated for correct SenderIdentityKey", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
 
 		const senderKeyVersion = "0"
 		when(
@@ -922,16 +910,16 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
 		o(sessionKey).deepEquals(testData.sk)
 
 		const updatedInstanceSessionKeysCaptor = captor()
 		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
 		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
-		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
-			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
@@ -941,7 +929,6 @@ o.spec("CryptoFacadeTest", function () {
 	o("authenticateSender | sender is authenticated for correct SenderIdentityKey from system@tutanota.de", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest([], false)
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
 
 		const senderKeyVersion = "0"
 		const senderIdentifier = "system@tutanota.de"
@@ -956,26 +943,27 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
 		o(sessionKey).deepEquals(testData.sk)
 
 		const updatedInstanceSessionKeysCaptor = captor()
 		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
 		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
-		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
-		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
-			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
+		const mailInstanceSessionKey = assertNotNull(
+			updatedInstanceSessionKeys.find((instanceSessionKey) =>
+				isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
+			),
 		)
 
-		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
+		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, mailInstanceSessionKey.encryptionAuthStatus!))
 		o(actualAutStatus).deepEquals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 	})
 
 	o("authenticateSender | sender is not authenticated for incorrect SenderIdentityKey", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
 
 		const senderKeyVersion = "0"
 		when(
@@ -989,16 +977,16 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
 
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
 		o(sessionKey).deepEquals(testData.sk)
 
 		const updatedInstanceSessionKeysCaptor = captor()
 		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
 		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
-		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
-			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
@@ -1008,27 +996,25 @@ o.spec("CryptoFacadeTest", function () {
 	o("authenticateSender | no authentication needed for sender with RSAKeypair", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
 
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey = assertNotNull(await crypto.resolveSessionKey(testData.mail))
 		o(sessionKey).deepEquals(testData.sk)
 
 		const updatedInstanceSessionKeysCaptor = captor()
 		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
 		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
-		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
-			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
 
-		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
-		o(actualAutStatus).deepEquals(EncryptionAuthStatus.RSA_NO_AUTHENTICATION)
+		const actualAuthStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, assertNotNull(mailInstanceSessionKey).encryptionAuthStatus!))
+		o(actualAuthStatus).deepEquals(EncryptionAuthStatus.RSA_NO_AUTHENTICATION)
 	})
 
 	o("authenticateSender | RSA was used despite recipient having tutacrypt", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
 
 		when(keyLoaderFacade.loadCurrentKeyPair(anything())).thenResolve({
 			version: 1,
@@ -1041,15 +1027,15 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([])
 
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 		o(sessionKey).deepEquals(testData.sk)
 
 		const updatedInstanceSessionKeysCaptor = captor()
 		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
 		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
-		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		o(updatedInstanceSessionKeys.length).equals(testData.mail.bucketKey!.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
-			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
@@ -1059,7 +1045,6 @@ o.spec("CryptoFacadeTest", function () {
 	o("authenticateSender | RSA was used right after a key rotation", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
 
 		when(keyLoaderFacade.loadCurrentKeyPair(anything())).thenResolve({
 			version: 1,
@@ -1072,15 +1057,16 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([testData.userGroupId])
 
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
+		const bucketKey = assertNotNull(testData.mail.bucketKey)
 		o(sessionKey).deepEquals(testData.sk)
 
 		const updatedInstanceSessionKeysCaptor = captor()
 		verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()), { times: 1 })
 		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
-		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
+		o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
-			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mail._id),
 		)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
@@ -1092,9 +1078,8 @@ o.spec("CryptoFacadeTest", function () {
 		const file1SessionKey = aes256RandomKey()
 		const file2SessionKey = aes256RandomKey()
 		const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey])
-		Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
-		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
 		o(mailSessionKey).deepEquals(testData.sk)
 
 		const updatedInstanceSessionKeysCaptor = captor()
@@ -1102,7 +1087,7 @@ o.spec("CryptoFacadeTest", function () {
 		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
 		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
-			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.entityAdapter._id),
 		)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
@@ -1114,7 +1099,7 @@ o.spec("CryptoFacadeTest", function () {
 		const testData = await prepareConfidentialReplyFromExternalUser()
 		const externalUser = testData.externalUser
 
-		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
 		o(mailSessionKey).deepEquals(testData.sk)
 
 		const mailCaptor = matchers.captor()
@@ -1129,7 +1114,7 @@ o.spec("CryptoFacadeTest", function () {
 		const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value as Array<InstanceSessionKey>
 		o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
 		const mailInstanceSessionKey = updatedInstanceSessionKeys.find((instanceSessionKey) =>
-			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.mailLiteral._id),
+			isSameId([instanceSessionKey.instanceList, instanceSessionKey.instanceId], testData.entityAdapter._id),
 		)
 
 		const actualAutStatus = utf8Uint8ArrayToString(aesDecrypt(testData.sk, neverNull(mailInstanceSessionKey).encryptionAuthStatus!))
@@ -1249,22 +1234,10 @@ o.spec("CryptoFacadeTest", function () {
 		})
 	})
 
-	o("resolve session key: rsa public key decryption of mail session key using BucketKey aggregated type - Mail referencing MailBody", async function () {
+	o("resolve session key: rsa public key decryption of session key using BucketKey aggregated type", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
-
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
-
-		o(sessionKey).deepEquals(testData.sk)
-	})
-
-	o("resolve session key: rsa public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsDraft", async function () {
-		o.timeout(500) // in CI or with debugging it can take a while
-		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { mailDetailsDraft: ["draftDetailsListId", "draftDetailsId"] })
-
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
 		o(sessionKey).deepEquals(testData.sk)
 	})
@@ -1274,19 +1247,12 @@ o.spec("CryptoFacadeTest", function () {
 		async function () {
 			o.timeout(500) // in CI or with debugging it can take a while
 			const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
-			Object.assign(testData.mailLiteral, {
-				mailDetailsDraft: ["draftDetailsListId", "draftDetailsId"],
-			})
-
-			const mailInstance = await instanceMapper.decryptAndMapToInstance<Mail>(testData.MailTypeModel, testData.mailLiteral, testData.sk)
 
 			// do not use testdouble here because it's hard to not break the function itself and then verify invocations
-			const decryptAndMapToInstance = (instanceMapper.decryptAndMapToInstance = spy(instanceMapper.decryptAndMapToInstance))
-			const convertBucketKeyToInstanceIfNecessary = (crypto.convertBucketKeyToInstanceIfNecessary = spy(crypto.convertBucketKeyToInstanceIfNecessary))
+			const decryptAndMapToInstance = (instancePipeline.cryptoMapper.decryptParsedInstance = spy(instancePipeline.cryptoMapper.decryptParsedInstance))
 
-			const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, mailInstance))
+			const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 			o(decryptAndMapToInstance.invocations.length).equals(0)
-			o(convertBucketKeyToInstanceIfNecessary.invocations.length).equals(1)
 
 			o(sessionKey).deepEquals(testData.sk)
 		},
@@ -1295,9 +1261,8 @@ o.spec("CryptoFacadeTest", function () {
 	o("resolve session key: rsa public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
 		o(sessionKey).deepEquals(testData.sk)
 	})
@@ -1309,17 +1274,18 @@ o.spec("CryptoFacadeTest", function () {
 			const file1SessionKey = aes256RandomKey()
 			const file2SessionKey = aes256RandomKey()
 			const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
-			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
-			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+			const mailSessionKey = assertNotNull(await crypto.resolveSessionKey(testData.mail))
 			o(mailSessionKey).deepEquals(testData.sk)
 
-			o(testData.bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
+			const bucketKey = assertNotNull(testData.mail.bucketKey)
+
+			o(bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
 			const updatedInstanceSessionKeysCaptor = captor()
 			verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
 			const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
-			o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
-			for (const isk of testData.bucketKey.bucketEncSessionKeys) {
+			o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
+			for (const isk of bucketKey.bucketEncSessionKeys) {
 				const expectedSessionKey = decryptKey(testData.bk, isk.symEncSessionKey)
 				o(
 					updatedInstanceSessionKeys.some((updatedKey) => {
@@ -1339,22 +1305,11 @@ o.spec("CryptoFacadeTest", function () {
 
 	// ------------
 
-	o("resolve session key: pq public key decryption of mail session key using BucketKey aggregated type - Mail referencing MailBody", async function () {
+	o("resolve session key: pq public key decryption of mail session key using BucketKey aggregated type - Mail", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { body: "bodyId" })
 
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
-
-		o(sessionKey).deepEquals(testData.sk)
-	})
-
-	o("resolve session key: pq public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsDraft", async function () {
-		o.timeout(500) // in CI or with debugging it can take a while
-		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { mailDetailsDraft: ["draftDetailsListId", "draftDetailsId"] })
-
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
 		o(sessionKey).deepEquals(testData.sk)
 	})
@@ -1363,35 +1318,18 @@ o.spec("CryptoFacadeTest", function () {
 		"resolve session key: pq public key decryption of mail session key using BucketKey aggregated type - already decoded/decrypted Mail referencing MailDetailsDraft",
 		async function () {
 			o.timeout(500) // in CI or with debugging it can take a while
-			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
-			Object.assign(testData.mailLiteral, {
-				mailDetailsDraft: ["draftDetailsListId", "draftDetailsId"],
-			})
 
-			const mailInstance = await instanceMapper.decryptAndMapToInstance<Mail>(testData.MailTypeModel, testData.mailLiteral, testData.sk)
+			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
 
 			// do not use testdouble here because it's hard to not break the function itself and then verify invocations
-			const decryptAndMapToInstance = (instanceMapper.decryptAndMapToInstance = spy(instanceMapper.decryptAndMapToInstance))
-			const convertBucketKeyToInstanceIfNecessary = (crypto.convertBucketKeyToInstanceIfNecessary = spy(crypto.convertBucketKeyToInstanceIfNecessary))
+			const decryptAndMapToInstance = (instancePipeline.cryptoMapper.decryptParsedInstance = spy(instancePipeline.cryptoMapper.decryptParsedInstance))
 
-			const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, mailInstance))
-			// TODO is it ok to remove this: decryptAndMapToInstance is now called when resolving the session key
-			// o(decryptAndMapToInstance.invocations.length).equals(0)
-			o(convertBucketKeyToInstanceIfNecessary.invocations.length).equals(1)
+			const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
+			o(decryptAndMapToInstance.invocations.length).equals(0)
 
 			o(sessionKey).deepEquals(testData.sk)
 		},
 	)
-
-	o("resolve session key: pq public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob", async function () {
-		o.timeout(500) // in CI or with debugging it can take a while
-		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
-		Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
-
-		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
-
-		o(sessionKey).deepEquals(testData.sk)
-	})
 
 	o(
 		"resolve session key: pq public key decryption of session key using BucketKey aggregated type - Mail referencing MailDetailsBlob with attachments",
@@ -1400,17 +1338,17 @@ o.spec("CryptoFacadeTest", function () {
 			const file1SessionKey = aes256RandomKey()
 			const file2SessionKey = aes256RandomKey()
 			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
-			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
-			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
+			const bucketKey = assertNotNull(testData.mail.bucketKey)
 			o(mailSessionKey).deepEquals(testData.sk)
 
-			o(testData.bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
+			o(bucketKey.bucketEncSessionKeys.length).equals(3) //mail, file1, file2
 			const updatedInstanceSessionKeysCaptor = captor()
 			verify(ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatedInstanceSessionKeysCaptor.capture(), anything()))
 			const updatedInstanceSessionKeys = updatedInstanceSessionKeysCaptor.value
-			o(updatedInstanceSessionKeys.length).equals(testData.bucketKey.bucketEncSessionKeys.length)
-			for (const isk of testData.bucketKey.bucketEncSessionKeys) {
+			o(updatedInstanceSessionKeys.length).equals(bucketKey.bucketEncSessionKeys.length)
+			for (const isk of bucketKey.bucketEncSessionKeys) {
 				const expectedSessionKey = decryptKey(testData.bk, isk.symEncSessionKey)
 				if (
 					!updatedInstanceSessionKeys.some((updatedKey) => {
@@ -1459,9 +1397,8 @@ o.spec("CryptoFacadeTest", function () {
 			const file1SessionKey = aes256RandomKey()
 			const file2SessionKey = aes256RandomKey()
 			const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey])
-			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
-			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
 			o(mailSessionKey).deepEquals(testData.sk)
 		},
 	)
@@ -1473,9 +1410,8 @@ o.spec("CryptoFacadeTest", function () {
 			const file1SessionKey = aes256RandomKey()
 			const file2SessionKey = aes256RandomKey()
 			const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey], true)
-			Object.assign(testData.mailLiteral, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
-			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
+			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
 
 			o(mailSessionKey).deepEquals(testData.sk)
 		},
@@ -1489,28 +1425,27 @@ o.spec("CryptoFacadeTest", function () {
 		when(userFacade.hasGroup(ownerGroup)).thenReturn(true)
 		when(userFacade.isFullyLoggedIn()).thenReturn(true)
 
-		const MailDetailsBlobTypeModel = await resolveTypeReference(MailDetailsBlobTypeRef)
-		const mailDetailsBlobLiteral = {
+		const MailDetailsBlobTypeModel = await resolveClientTypeReference(MailDetailsBlobTypeRef)
+		const mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 			_id: ["mailDetailsArchiveId", "mailDetailsId"],
 			_ownerGroup: ownerGroup,
 			_ownerEncSessionKey: encryptKey(gk, sk),
-		}
+		})
 		when(keyLoaderFacade.loadSymGroupKey(ownerGroup, 0)).thenResolve(gk)
 
-		const mailDetailsBlobSessionKey = neverNull(await crypto.resolveSessionKey(MailDetailsBlobTypeModel, mailDetailsBlobLiteral))
+		const mailDetailsBlobSessionKey = neverNull(await crypto.resolveSessionKey(mailDetailsBlob))
 		o(mailDetailsBlobSessionKey).deepEquals(sk)
 	})
 
 	o("resolve session key: MailDetailsBlob - session key not found", async function () {
-		const MailDetailsBlobTypeModel = await resolveTypeReference(MailDetailsBlobTypeRef)
-		const mailDetailsBlobLiteral = {
+		const mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 			_id: ["mailDetailsArchiveId", "mailDetailsId"],
 			_permissions: "permissionListId",
-		}
+		})
 		when(entityClient.loadAll(PermissionTypeRef, "permissionListId")).thenResolve([])
 
 		try {
-			await crypto.resolveSessionKey(MailDetailsBlobTypeModel, mailDetailsBlobLiteral)
+			await crypto.resolveSessionKey(mailDetailsBlob)
 			o(true).equals(false) // let the test fails if there is no exception
 		} catch (error) {
 			o(error.constructor).equals(SessionKeyNotFoundError)
@@ -1527,12 +1462,10 @@ o.spec("CryptoFacadeTest", function () {
 	 * @param fileSessionKeys List of session keys for the attachments. When the list is empty there are no attachments
 	 */
 	async function prepareRsaPubEncBucketKeyResolveSessionKeyTest(fileSessionKeys: Array<Aes256Key> = []): Promise<{
-		mailLiteral: Record<string, any>
-		bucketKey: BucketKey
+		mail: Mail
 		sk: Aes256Key
 		bk: Aes256Key
 		mailGroupKey: Aes256Key
-		MailTypeModel: TypeModel
 		userGroupId: Id
 	}> {
 		// configure test user
@@ -1548,33 +1481,32 @@ o.spec("CryptoFacadeTest", function () {
 		})
 		recipientUser.userGroup.currentKeys = keyPair
 
-		// configure mail
-		let subject = "this is our subject"
-		let confidential = true
-		let senderName = "TutanotaTeam"
-
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mailLiteral = createMailLiteral(null, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
+		const mail = createTestEntity(MailTypeRef, {
+			_id: ["mailListId", "mailId"],
+			_permissions: "permissionListId",
+			_ownerGroup: recipientUser.mailGroup._id,
+			confidential: true,
+			subject: "oh no is this a subject",
+		})
 
 		const pubEncBucketKey = new Uint8Array([1, 2, 3, 4])
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-
 		const mailInstanceSessionKey = createInstanceSessionKey({
 			typeInfo: createTypeInfo({
-				application: MailTypeModel.app,
-				typeId: String(MailTypeModel.id),
+				application: MailTypeRef.app,
+				typeId: MailTypeRef.typeId.toString(),
 			}),
 			symEncSessionKey: bucketEncMailSessionKey,
-			instanceList: "mailListId",
-			instanceId: "mailId",
+			instanceList: listIdPart(mail._id),
+			instanceId: elementIdPart(mail._id),
 			encryptionAuthStatus: null,
 			symKeyVersion: "0",
 		})
-		const FileTypeModel = await resolveTypeReference(FileTypeRef)
+		const FileTypeModel = await resolveClientTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
 			return createInstanceSessionKey({
 				typeInfo: createTypeInfo({
@@ -1609,10 +1541,6 @@ o.spec("CryptoFacadeTest", function () {
 			version: 0,
 		})
 
-		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
-		const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
-		Object.assign(mailLiteral, { bucketKey: bucketKeyLiteral })
-
 		when(
 			asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
 				assertNotNull(bucketKey.keyGroup),
@@ -1623,13 +1551,12 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: null })
 
+		mail.bucketKey = bucketKey
 		return {
-			mailLiteral,
-			bucketKey,
+			mail,
 			sk,
 			bk,
 			mailGroupKey: recipientUser.mailGroupKey,
-			MailTypeModel,
 			userGroupId: recipientUser.userGroup._id,
 		}
 	}
@@ -1647,12 +1574,10 @@ o.spec("CryptoFacadeTest", function () {
 		fileSessionKeys: Array<AesKey> = [],
 		confidential: boolean = true,
 	): Promise<{
-		mailLiteral: Record<string, any>
-		bucketKey: BucketKey
+		mail: Mail
 		sk: AesKey
 		bk: AesKey
 		mailGroupKey: AesKey
-		MailTypeModel: TypeModel
 		senderIdentityKeyPair: X25519KeyPair
 	}> {
 		// create test user
@@ -1675,24 +1600,20 @@ o.spec("CryptoFacadeTest", function () {
 
 		const senderIdentityKeyPair = generateX25519KeyPair()
 
-		// create test mail
-		let subject = "this is our subject"
-		let senderName = "TutanotaTeam"
-
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mailLiteral = createMailLiteral(
-			recipientUser.mailGroupKey,
-			sk,
-			subject,
+		const mail = createTestEntity(MailTypeRef, {
 			confidential,
-			senderName,
-			recipientUser.name,
-			recipientUser.mailGroup._id,
-		)
-		// @ts-ignore
-		mailLiteral._ownerEncSessionKey = null
+			_ownerGroup: recipientUser.mailGroup._id,
+			_ownerEncSessionKey: null, // enforce asymmetric crypto to resolve session key
+			_id: ["mailListId", "mailId"],
+			_permissions: "permissionListId",
+			sender: createTestEntity(MailAddressTypeRef, {
+				address: senderAddress,
+				name: "sender name",
+			}),
+		})
 
 		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
@@ -1700,15 +1621,15 @@ o.spec("CryptoFacadeTest", function () {
 			pqKeyPairsToPublicKeys(pqKeyPairs),
 			bitArrayToUint8Array(bk),
 		)
+
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
-		const { MailTypeModel, bucketKey } = await prepareBucketKeyInstance(
+		await prepareBucketKeyInstance(
 			bucketEncMailSessionKey,
 			fileSessionKeys,
 			bk,
 			pubEncBucketKey,
 			recipientUser,
-			instanceMapper,
-			mailLiteral,
+			mail,
 			undefined,
 			"0",
 			CryptoProtocolVersion.TUTA_CRYPT,
@@ -1729,21 +1650,19 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(
 			asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
-				assertNotNull(bucketKey.keyGroup),
-				parseKeyVersion(bucketKey.recipientKeyVersion),
-				asCryptoProtoocolVersion(bucketKey.protocolVersion),
+				assertNotNull(mail.bucketKey?.keyGroup),
+				parseKeyVersion(assertNotNull(mail.bucketKey?.recipientKeyVersion)),
+				asCryptoProtoocolVersion(assertNotNull(mail.bucketKey?.protocolVersion)),
 				pubEncBucketKey,
 				anything(),
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
 
 		return {
-			mailLiteral,
-			bucketKey,
+			mail,
 			sk,
 			bk,
 			mailGroupKey: recipientUser.mailGroupKey,
-			MailTypeModel,
 			senderIdentityKeyPair,
 		}
 	}
@@ -1761,7 +1680,7 @@ o.spec("CryptoFacadeTest", function () {
 		fileSessionKeys: Array<AesKey> = [],
 		externalUserGroupEncBucketKey = false,
 	): Promise<{
-		mailLiteral: Record<string, any>
+		entityAdapter: EntityAdapter
 		bucketKey: BucketKey
 		sk: AesKey
 		bk: AesKey
@@ -1772,19 +1691,17 @@ o.spec("CryptoFacadeTest", function () {
 		configureLoggedInUser(externalUser, userFacade, keyLoaderFacade)
 
 		// create test mail
-		let subject = "this is our subject"
 		let confidential = true
-		let senderName = "TutanotaTeam"
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mailLiteral = createMailLiteral(null, sk, subject, confidential, senderName, externalUser.name, externalUser.mailGroup._id)
+		const mailUntypedInstance = await createUntypedMailInstance(null, sk, confidential, externalUser.mailGroup._id)
 
 		const groupKeyToEncryptBucketKey = externalUserGroupEncBucketKey ? externalUser.userGroupKey : externalUser.mailGroupKey
 		const groupEncBucketKey = encryptKey(groupKeyToEncryptBucketKey, bk)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
+		const MailTypeModel = await resolveServerTypeReference(MailTypeRef)
 
 		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
 			typeInfo: createTestEntity(TypeInfoTypeRef, {
@@ -1795,7 +1712,7 @@ o.spec("CryptoFacadeTest", function () {
 			instanceList: "mailListId",
 			instanceId: "mailId",
 		})
-		const FileTypeModel = await resolveTypeReference(FileTypeRef)
+		const FileTypeModel = await resolveServerTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
 			return createTestEntity(InstanceSessionKeyTypeRef, {
 				typeInfo: createTestEntity(TypeInfoTypeRef, {
@@ -1816,12 +1733,13 @@ o.spec("CryptoFacadeTest", function () {
 			bucketEncSessionKeys: bucketEncSessionKeys,
 		})
 
-		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
-		const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
-		Object.assign(mailLiteral, { bucketKey: bucketKeyLiteral })
+		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapAndEncrypt(BucketKeyTypeRef, bucketKey, null)
+
+		mailUntypedInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
+		const mailEncryptedParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, mailUntypedInstance)
 
 		return {
-			mailLiteral,
+			entityAdapter: await EntityAdapter.from(MailTypeModel, mailEncryptedParsedInstance, instancePipeline),
 			bucketKey,
 			sk,
 			bk,
@@ -1838,7 +1756,7 @@ o.spec("CryptoFacadeTest", function () {
 	 * @param fileSessionKeys List of session keys for the attachments. When the list is empty there are no attachments
 	 */
 	async function prepareConfidentialReplyFromExternalUser(): Promise<{
-		mailLiteral: Record<string, any>
+		entityAdapter: EntityAdapter
 		bucketKey: BucketKey
 		sk: AesKey
 		bk: AesKey
@@ -1872,18 +1790,16 @@ o.spec("CryptoFacadeTest", function () {
 		)
 
 		// setup test mail (confidential reply from external)
-
-		let subject = "this is our subject"
 		let confidential = true
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
-		const mailLiteral = createMailLiteral(null, sk, subject, confidential, externalUser.name, internalUser.name, internalUser.mailGroup._id)
+		const untypedMailInstance = await createUntypedMailInstance(null, sk, confidential, internalUser.mailGroup._id)
 
 		const keyGroup = externalUser.mailGroup._id
 		const groupEncBucketKey = encryptKey(externalUser.mailGroupKey, bk)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
+		const MailTypeModel = await resolveServerTypeReference(MailTypeRef)
 		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
 			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,
@@ -1907,12 +1823,15 @@ o.spec("CryptoFacadeTest", function () {
 			senderKeyVersion: null,
 		})
 
-		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
-		const bucketKeyLiteral = await instanceMapper.encryptAndMapToLiteral(BucketKeyModel, bucketKey, null)
-		Object.assign(mailLiteral, { bucketKey: bucketKeyLiteral })
+		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapAndEncrypt(BucketKeyTypeRef, bucketKey, null)
+
+		untypedMailInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
+
+		const encryptedMailParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, untypedMailInstance)
+		const entityAdapter = await EntityAdapter.from(MailTypeModel, encryptedMailParsedInstance, instancePipeline)
 
 		return {
-			mailLiteral,
+			entityAdapter: entityAdapter,
 			bucketKey,
 			sk,
 			bk,
@@ -1922,61 +1841,53 @@ o.spec("CryptoFacadeTest", function () {
 			recipientKeyVersion: parseKeyVersion(recipientKeyVersion),
 		}
 	}
-})
 
-export function createMailLiteral(
-	ownerGroupKey: AesKey | null,
-	sessionKey,
-	subject,
-	confidential,
-	senderName,
-	recipientName,
-	ownerGroupId: string,
-): Record<string, any> {
-	return {
-		_format: "0",
-		_area: "0",
-		_owner: "ownerId",
-		_ownerGroup: ownerGroupId,
-		_ownerEncSessionKey: ownerGroupKey ? encryptKey(ownerGroupKey, sessionKey) : null,
-		_id: ["mailListId", "mailId"],
-		_permissions: "permissionListId",
-		receivedDate: new Date(1470039025474).getTime().toString(),
-		sentDate: new Date(1470039021474).getTime().toString(),
-		state: "",
-		trashed: false,
-		unread: true,
-		subject: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(subject), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
-		replyType: "",
-		confidential: uint8ArrayToBase64(
-			aesEncrypt(sessionKey, stringToUtf8Uint8Array(confidential ? "1" : "0"), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
-		),
-		sender: {
-			_id: "senderId",
-			address: senderAddress,
-			name: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(senderName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
-		},
-		bccRecipients: [],
-		ccRecipients: [],
-		toRecipients: [
-			{
-				_id: "recipientId",
-				address: "support@yahoo.com",
-				name: uint8ArrayToBase64(
-					aesEncrypt(sessionKey, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
-				),
-			},
-		],
-		replyTos: [],
-		bucketKey: null,
-		attachmentCount: "0",
-		authStatus: "0",
-		listUnsubscribe: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
-		method: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
-		phishingStatus: "0",
-		recipientCount: "0",
+	async function createUntypedMailInstance(
+		ownerGroupKey: AesKey | null,
+		sessionKey: AesKey,
+		confidential: boolean,
+		ownerGroupId: string,
+	): Promise<ServerModelUntypedInstance> {
+		const mail = createMail({
+			_format: "0",
+			_ownerGroup: ownerGroupId,
+			_ownerEncSessionKey: ownerGroupKey ? encryptKey(ownerGroupKey, sessionKey) : null,
+			_permissions: "permissionListId",
+			_id: ["mailListId", "mailId"],
+			receivedDate: new Date(1470039025474),
+			state: "",
+			unread: true,
+			subject: "any subject",
+			replyType: "",
+			confidential: confidential,
+			sender: createMailAddress({
+				address: senderAddress,
+				name: "any sender",
+				contact: null,
+			}),
+			bucketKey: null,
+			authStatus: "0",
+			listUnsubscribe: false,
+			method: "",
+			phishingStatus: "0",
+			recipientCount: "0",
+			differentEnvelopeSender: null,
+			movedTime: null,
+			encryptionAuthStatus: null,
+			_ownerKeyVersion: null,
+
+			attachments: [],
+			conversationEntry: ["entryListId", "entryId"],
+			firstRecipient: null,
+			mailDetails: null,
+			mailDetailsDraft: null,
+			sets: [],
+		})
+
+		// casting here is fine, since we just want to mimic server response data
+		return (await instancePipeline.mapAndEncrypt(MailTypeRef, mail, sessionKey)) as unknown as ServerModelUntypedInstance
 	}
-}
+})
 
 export function createTestUser(name: string, entityClient: EntityClient): TestUser {
 	const userGroupKey = aes256RandomKey()

@@ -16,7 +16,7 @@ pub mod test_services;
 /// plus four traits for the different methods, since each method has its own input and output types.
 pub trait Service: 'static {
 	const PATH: &'static str;
-	const VERSION: u32;
+	const VERSION: u64;
 }
 
 #[async_trait::async_trait]
@@ -86,7 +86,8 @@ mod hidden {
 	use crate::entities::Entity;
 	use crate::services::{ExtraServiceParams, Service};
 	use crate::{ApiCallError, TypeRef};
-	use serde::{Deserialize, Serialize, Serializer};
+	use serde::de::DeserializeOwned;
+	use serde::{Serialize, Serializer};
 
 	/// Type that allows us to call the executor even
 	/// if the service doesn't have an input or output.
@@ -130,6 +131,6 @@ mod hidden {
 
 		async fn handle_response<O>(&self, body: Option<Vec<u8>>) -> Result<O, ApiCallError>
 		where
-			O: Entity + Deserialize<'static>;
+			O: Entity + DeserializeOwned;
 	}
 }

@@ -25,6 +25,7 @@ import {
 	GroupInfoTypeRef,
 	GroupMembership,
 	PlanConfiguration,
+	SessionTypeRef,
 	User,
 	UserTypeRef,
 	WhitelabelConfig,
@@ -290,7 +291,7 @@ export class UserController {
 				xhr.open("DELETE", apiUrl, false) // sync requests increase reliability when invoked in onunload
 
 				xhr.setRequestHeader("accessToken", this.accessToken)
-				xhr.setRequestHeader("v", sysTypeModels.Session.version)
+				xhr.setRequestHeader("v", sysTypeModels[SessionTypeRef.typeId].version)
 
 				xhr.onload = function () {
 					// XMLHttpRequestProgressEvent, but not needed

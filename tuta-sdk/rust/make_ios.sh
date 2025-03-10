@@ -14,8 +14,8 @@ PATH="$(bash -l -c 'echo $PATH')"
 export IPHONEOS_DEPLOYMENT_TARGET="17.2"
 
 for target in "${TARGETS[@]}"; do
-  OUT_DIR="out/${target}"
-  RELEASE_DIR="../../target/${target}/release"
+  export OUT_DIR="out/${target}"
+  export RELEASE_DIR="../../target/${target}/release"
 
   SWIFTC_TARGET=""
   case "${target}" in

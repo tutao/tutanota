@@ -140,7 +140,7 @@ class IosFileFacade: FileFacade {
 		try await BlobUtil().splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
 	}
 
-	func writeDataFile(_ file: DataFile) async throws -> String {
+	func writeTempDataFile(_ file: DataFile) async throws -> String {
 		let decryptedFolder = try FileUtils.getDecryptedFolder()
 		let filePath = (decryptedFolder as NSString).appendingPathComponent(file.name)
 		try await self.writeFile(filePath, file.data)
@@ -150,6 +150,17 @@ class IosFileFacade: FileFacade {
 	func readDataFile(_ filePath: String) async throws -> DataFile? {
 		let data = try readFile(filePath)
 		return DataFile(name: try await getName(filePath), mimeType: try await getMimeType(filePath), size: try await getSize(filePath), data: data)
+	}
+	func writeToAppDir(_ content: TutanotaSharedFramework.DataWrapper, _ name: String) async throws {
+		let supportDir = try FileUtils.getApplicationSupportFolder()
+		let filePath = supportDir.appendingPathComponent(name)
+		try await self.writeFile(filePath.path, content)
+	}
+
+	func readFromAppDir(_ name: String) throws -> TutanotaSharedFramework.DataWrapper {
+		let supportDir = try FileUtils.getApplicationSupportFolder()
+		let filePath = supportDir.appendingPathComponent(name)
+		return try self.readFile(filePath.path)
 	}
 
 	private func clearDirectory(folderPath: String) async throws {

@@ -8,7 +8,7 @@ import { UpdateSessionKeysService } from "../../../../../src/common/api/entities
 import { delay } from "@tutao/tutanota-utils"
 import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { TypeModel } from "../../../../../src/common/api/common/EntityTypes.js"
 
@@ -21,7 +21,7 @@ o.spec("OwnerEncSessionKeysUpdateQueueTest", function () {
 	let mailTypeModel: TypeModel
 
 	o.beforeEach(async function () {
-		mailTypeModel = await resolveTypeReference(MailTypeRef)
+		mailTypeModel = await resolveClientTypeReference(MailTypeRef)
 		userFacade = object()
 		when(userFacade.isLeader()).thenReturn(true)
 		serviceExecutor = object()
@@ -60,7 +60,7 @@ o.spec("OwnerEncSessionKeysUpdateQueueTest", function () {
 		})
 
 		o("no updates sent for GroupKeyUpdate type", async function () {
-			const groupKeyUpdateTypeModel = await resolveTypeReference(GroupKeyUpdateTypeRef)
+			const groupKeyUpdateTypeModel = await resolveClientTypeReference(GroupKeyUpdateTypeRef)
 			const updatableInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef)]
 			await ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatableInstanceSessionKeys, groupKeyUpdateTypeModel)
 			await delay(0)

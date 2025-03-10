@@ -34,7 +34,19 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param [disableMinify] {boolean} whether to disible code minified
  * @returns {Promise<void>}
  */
-export async function buildDesktop({ dirname, version, platform, architecture, updateUrl, nameSuffix, notarize, outDir, unpacked, disableMinify }) {
+export async function buildDesktop({
+	dirname,
+	version,
+	platform,
+	architecture,
+	updateUrl,
+	nameSuffix,
+	notarize,
+	outDir,
+	unpacked,
+	disableMinify,
+	networkDebugging,
+}) {
 	// The idea is that we
 	// - build desktop code into build/desktop
 	// - package the whole dist directory into the app
@@ -80,7 +92,7 @@ export async function buildDesktop({ dirname, version, platform, architecture, u
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify, networkDebugging)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -117,7 +129,7 @@ export async function buildDesktop({ dirname, version, platform, architecture, u
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify) {
+async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
 	platform = getCanonicalPlatformName(platform)
 	const mainBundle = await rollup({
 		input: [path.join(dirname, "src/common/desktop/DesktopMain.ts"), path.join(dirname, "src/common/desktop/sqlworker.ts")],
@@ -153,7 +165,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			}),
 			commonjs(),
 			disableMinify ? undefined : terser(),
-			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs })),
+			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging })),
 		],
 	})
 	await mainBundle.write({ sourcemap: true, format: "esm", dir: outDir })

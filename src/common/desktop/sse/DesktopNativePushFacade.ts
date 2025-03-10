@@ -1,17 +1,22 @@
 import { NativePushFacade } from "../../native/common/generatedipc/NativePushFacade.js"
-import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
-import { NativeAlarmScheduler } from "./DesktopAlarmScheduler.js"
+import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode.js"
 import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
+import { AlarmNotificationTypeRef } from "../../api/entities/sys/TypeRefs"
+import { ServerModelUntypedInstance, UntypedInstance } from "../../api/common/EntityTypes"
+import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
+import { Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
+import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
 		private readonly sse: TutaSseFacade,
-		private readonly alarmScheduler: NativeAlarmScheduler,
+		private readonly alarmScheduler: DesktopAlarmScheduler,
 		private readonly alarmStorage: DesktopAlarmStorage,
 		private readonly sseStorage: SseStorage,
+		private readonly instancePipeline: InstancePipeline,
 	) {}
 
 	setReceiveCalendarNotificationConfig(userId: string, value: boolean): Promise<void> {
@@ -45,9 +50,12 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		await this.sse.connect()
 	}
 
-	async scheduleAlarms(alarms: ReadonlyArray<EncryptedAlarmNotification>): Promise<void> {
+	async scheduleAlarms(alarmNotificationWireFormat: string, newDeviceSessionKey: Base64): Promise<void> {
+		const alarms: ServerModelUntypedInstance[] = JSON.parse(alarmNotificationWireFormat)
 		for (const alarm of alarms) {
-			await this.alarmScheduler.handleAlarmNotification(alarm)
+			const sk = uint8ArrayToBitArray(base64ToUint8Array(newDeviceSessionKey))
+			const alarmNotification = await this.instancePipeline.decryptAndMap(AlarmNotificationTypeRef, alarm, sk)
+			await this.alarmScheduler.handleCreateAlarm(alarmNotification, sk)
 		}
 	}
 

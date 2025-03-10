@@ -1,10 +1,10 @@
-import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import { EntityRestClient, typeRefToPath } from "./EntityRestClient.js"
+import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../common/EntityTypes.js"
+import { EntityRestClient } from "./EntityRestClient.js"
 import { firstBiggerThanSecond } from "../../common/utils/EntityUtils.js"
-import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
-import { assertNotNull, clone, getFromMap, remove, TypeRef } from "@tutao/tutanota-utils"
+import { CacheStorage, expandId, LastUpdateTime } from "./DefaultEntityRestCache.js"
+import { assertNotNull, clone, getFromMap, getTypeId, remove, TypeRef } from "@tutao/tutanota-utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { resolveTypeReference } from "../../common/EntityFunctions.js"
+import { resolveServerTypeReference } from "../../common/EntityFunctions.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { customIdToBase64Url, ensureBase64Ext } from "../offline/OfflineStorage.js"
@@ -62,32 +62,31 @@ export class EphemeralCacheStorage implements CacheStorage {
 	 */
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<T | null> {
 		// We downcast because we can't prove that map has correct entity on the type level
-		const path = typeRefToPath(typeRef)
-		const typeModel = await resolveTypeReference(typeRef)
+		const type = getTypeId(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		elementId = ensureBase64Ext(typeModel, elementId)
 		switch (typeModel.type) {
 			case TypeId.Element:
-				return clone((this.entities.get(path)?.get(elementId) as T | undefined) ?? null)
+				return clone((this.entities.get(type)?.get(elementId) as T | undefined) ?? null)
 			case TypeId.ListElement:
-				return clone((this.lists.get(path)?.get(assertNotNull(listId))?.elements.get(elementId) as T | undefined) ?? null)
+				return clone((this.lists.get(type)?.get(assertNotNull(listId))?.elements.get(elementId) as T | undefined) ?? null)
 			case TypeId.BlobElement:
-				return clone((this.blobEntities.get(path)?.get(assertNotNull(listId))?.elements.get(elementId) as T | undefined) ?? null)
+				return clone((this.blobEntities.get(type)?.get(assertNotNull(listId))?.elements.get(elementId) as T | undefined) ?? null)
 			default:
 				throw new ProgrammingError("must be a persistent type")
 		}
 	}
 
 	async deleteIfExists<T>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
-		const path = typeRefToPath(typeRef)
-		let typeModel: TypeModel
-		typeModel = await resolveTypeReference(typeRef)
+		const type = getTypeId(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		elementId = ensureBase64Ext(typeModel, elementId)
 		switch (typeModel.type) {
 			case TypeId.Element:
-				this.entities.get(path)?.delete(elementId)
+				this.entities.get(type)?.delete(elementId)
 				break
 			case TypeId.ListElement: {
-				const cache = this.lists.get(path)?.get(assertNotNull(listId))
+				const cache = this.lists.get(type)?.get(assertNotNull(listId))
 				if (cache != null) {
 					cache.elements.delete(elementId)
 					remove(cache.allRange, elementId)
@@ -95,7 +94,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 				break
 			}
 			case TypeId.BlobElement:
-				this.blobEntities.get(path)?.get(assertNotNull(listId))?.elements.delete(elementId)
+				this.blobEntities.get(type)?.get(assertNotNull(listId))?.elements.delete(elementId)
 				break
 			default:
 				throw new ProgrammingError("must be a persistent type")
@@ -103,21 +102,21 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	private addElementEntity<T extends ElementEntity>(typeRef: TypeRef<T>, id: Id, entity: T) {
-		getFromMap(this.entities, typeRefToPath(typeRef), () => new Map()).set(id, entity)
+		getFromMap(this.entities, getTypeId(typeRef), () => new Map()).set(id, entity)
 	}
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<boolean> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		elementId = ensureBase64Ext(typeModel, elementId)
 
-		const cache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+		const cache = this.lists.get(getTypeId(typeRef))?.get(listId)
 		return cache != null && !firstBiggerThanSecond(elementId, cache.upperRangeId) && !firstBiggerThanSecond(cache.lowerRangeId, elementId)
 	}
 
 	async put(originalEntity: SomeEntity): Promise<void> {
 		const entity = clone(originalEntity)
 		const typeRef = entity._type
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		let { listId, elementId } = expandId(originalEntity._id)
 		elementId = ensureBase64Ext(typeModel, elementId)
 		switch (typeModel.type) {
@@ -146,13 +145,13 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	private async putBlobElement(typeRef: TypeRef<BlobElementEntity>, listId: Id, elementId: Id, entity: BlobElementEntity) {
-		const cache = this.blobEntities.get(typeRefToPath(typeRef))?.get(listId)
+		const cache = this.blobEntities.get(getTypeId(typeRef))?.get(listId)
 		if (cache == null) {
 			// first element in this list
 			const newCache = {
 				elements: new Map([[elementId, entity]]),
 			}
-			getFromMap(this.blobEntities, typeRefToPath(typeRef), () => new Map()).set(listId, newCache)
+			getFromMap(this.blobEntities, getTypeId(typeRef), () => new Map()).set(listId, newCache)
 		} else {
 			// if the element already exists in the cache, overwrite it
 			cache.elements.set(elementId, entity)
@@ -161,7 +160,8 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	/** prcondition: elementId is converted to base64ext if necessary */
 	private async putListElement(typeRef: TypeRef<ListElementEntity>, listId: Id, elementId: Id, entity: ListElementEntity) {
-		const cache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+		const typeId = getTypeId(typeRef)
+		const cache = this.lists.get(typeId)?.get(listId)
 		if (cache == null) {
 			// first element in this list
 			const newCache = {
@@ -170,12 +170,12 @@ export class EphemeralCacheStorage implements CacheStorage {
 				upperRangeId: elementId,
 				elements: new Map([[elementId, entity]]),
 			}
-			getFromMap(this.lists, typeRefToPath(typeRef), () => new Map()).set(listId, newCache)
+			getFromMap(this.lists, typeId, () => new Map()).set(listId, newCache)
 		} else {
 			// if the element already exists in the cache, overwrite it
 			// add new element to existing list if necessary
 			cache.elements.set(elementId, entity)
-			const typeModel = await resolveTypeReference(typeRef)
+			const typeModel = await resolveServerTypeReference(typeRef)
 			if (await this.isElementIdInCacheRange(typeRef, listId, customIdToBase64Url(typeModel, elementId))) {
 				this.insertIntoRange(cache.allRange, elementId)
 			}
@@ -198,10 +198,10 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, startElementId: Id, count: number, reverse: boolean): Promise<T[]> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		startElementId = ensureBase64Ext(typeModel, startElementId)
 
-		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+		const listCache = this.lists.get(getTypeId(typeRef))?.get(listId)
 
 		if (listCache == null) {
 			return []
@@ -239,9 +239,9 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>> {
-		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+		const listCache = this.lists.get(getTypeId(typeRef))?.get(listId)
 
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		elementIds = elementIds.map((el) => ensureBase64Ext(typeModel, el))
 
 		if (listCache == null) {
@@ -254,14 +254,20 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return result
 	}
 
-	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<{ lower: Id; upper: Id } | null> {
-		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+	async getRangeForList<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+	): Promise<{
+		lower: Id
+		upper: Id
+	} | null> {
+		const listCache = this.lists.get(getTypeId(typeRef))?.get(listId)
 
 		if (listCache == null) {
 			return null
 		}
 
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		return {
 			lower: customIdToBase64Url(typeModel, listCache.lowerRangeId),
 			upper: customIdToBase64Url(typeModel, listCache.upperRangeId),
@@ -269,9 +275,9 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, upperId: Id): Promise<void> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		upperId = ensureBase64Ext(typeModel, upperId)
-		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+		const listCache = this.lists.get(getTypeId(typeRef))?.get(listId)
 		if (listCache == null) {
 			throw new Error("list does not exist")
 		}
@@ -279,9 +285,9 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		lowerId = ensureBase64Ext(typeModel, lowerId)
-		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+		const listCache = this.lists.get(getTypeId(typeRef))?.get(listId)
 		if (listCache == null) {
 			throw new Error("list does not exist")
 		}
@@ -296,13 +302,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 	 * @param upper
 	 */
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		lower = ensureBase64Ext(typeModel, lower)
 		upper = ensureBase64Ext(typeModel, upper)
 
-		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+		const typeId = getTypeId(typeRef)
+		const listCache = this.lists.get(typeId)?.get(listId)
 		if (listCache == null) {
-			getFromMap(this.lists, typeRefToPath(typeRef), () => new Map()).set(listId, {
+			getFromMap(this.lists, typeId, () => new Map()).set(listId, {
 				allRange: [],
 				lowerRangeId: lower,
 				upperRangeId: upper,
@@ -316,10 +323,10 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveServerTypeReference(typeRef)
 		return (
 			this.lists
-				.get(typeRefToPath(typeRef))
+				.get(getTypeId(typeRef))
 				?.get(listId)
 				?.allRange.map((elementId) => {
 					return customIdToBase64Url(typeModel, elementId)
@@ -348,7 +355,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
-		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+		const listCache = this.lists.get(getTypeId(typeRef))?.get(listId)
 
 		if (listCache == null) {
 			return []
@@ -383,7 +390,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
-		this.lists.get(typeRef.type)?.delete(listId)
+		this.lists.get(getTypeId(typeRef))?.delete(listId)
 	}
 
 	private deleteAllOwnedByFromCache(cacheForType: Map<Id, ListCache | BlobElementCache>, owner: string) {

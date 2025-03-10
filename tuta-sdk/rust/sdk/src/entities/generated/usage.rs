@@ -6,53 +6,20 @@ use serde::{Deserialize, Serialize};
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct UsageTestAssignment {
+pub struct UsageTestMetricConfigValue {
+	#[serde(rename = "9")]
 	pub _id: Option<CustomId>,
-	pub name: String,
-	pub sendPings: bool,
-	pub testId: GeneratedId,
-	pub variant: Option<i64>,
-	pub stages: Vec<UsageTestStage>,
+	#[serde(rename = "10")]
+	pub key: String,
+	#[serde(rename = "11")]
+	pub value: String,
 }
 
-impl Entity for UsageTestAssignment {
+impl Entity for UsageTestMetricConfigValue {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "usage",
-			type_: "UsageTestAssignment",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct UsageTestAssignmentIn {
-	pub _format: i64,
-	pub testDeviceId: Option<GeneratedId>,
-}
-
-impl Entity for UsageTestAssignmentIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "usage",
-			type_: "UsageTestAssignmentIn",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct UsageTestAssignmentOut {
-	pub _format: i64,
-	pub testDeviceId: GeneratedId,
-	pub assignments: Vec<UsageTestAssignment>,
-}
-
-impl Entity for UsageTestAssignmentOut {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "usage",
-			type_: "UsageTestAssignmentOut",
+			app: AppName::Usage,
+			type_id: TypeId::from(8),
 		}
 	}
 }
@@ -60,35 +27,21 @@ impl Entity for UsageTestAssignmentOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UsageTestMetricConfig {
+	#[serde(rename = "13")]
 	pub _id: Option<CustomId>,
+	#[serde(rename = "14")]
 	pub name: String,
-	#[serde(rename = "type")]
+	#[serde(rename = "15")]
 	pub r#type: i64,
+	#[serde(rename = "16")]
 	pub configValues: Vec<UsageTestMetricConfigValue>,
 }
 
 impl Entity for UsageTestMetricConfig {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "usage",
-			type_: "UsageTestMetricConfig",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct UsageTestMetricConfigValue {
-	pub _id: Option<CustomId>,
-	pub key: String,
-	pub value: String,
-}
-
-impl Entity for UsageTestMetricConfigValue {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "usage",
-			type_: "UsageTestMetricConfigValue",
+			app: AppName::Usage,
+			type_id: TypeId::from(12),
 		}
 	}
 }
@@ -96,35 +49,19 @@ impl Entity for UsageTestMetricConfigValue {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UsageTestMetricData {
+	#[serde(rename = "18")]
 	pub _id: Option<CustomId>,
+	#[serde(rename = "19")]
 	pub name: String,
+	#[serde(rename = "20")]
 	pub value: String,
 }
 
 impl Entity for UsageTestMetricData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "usage",
-			type_: "UsageTestMetricData",
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct UsageTestParticipationIn {
-	pub _format: i64,
-	pub stage: i64,
-	pub testDeviceId: GeneratedId,
-	pub testId: GeneratedId,
-	pub metrics: Vec<UsageTestMetricData>,
-}
-
-impl Entity for UsageTestParticipationIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "usage",
-			type_: "UsageTestParticipationIn",
+			app: AppName::Usage,
+			type_id: TypeId::from(17),
 		}
 	}
 }
@@ -132,18 +69,111 @@ impl Entity for UsageTestParticipationIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UsageTestStage {
+	#[serde(rename = "36")]
 	pub _id: Option<CustomId>,
-	pub maxPings: i64,
-	pub minPings: i64,
+	#[serde(rename = "37")]
 	pub name: String,
+	#[serde(rename = "87")]
+	pub minPings: i64,
+	#[serde(rename = "88")]
+	pub maxPings: i64,
+	#[serde(rename = "38")]
 	pub metrics: Vec<UsageTestMetricConfig>,
 }
 
 impl Entity for UsageTestStage {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "usage",
-			type_: "UsageTestStage",
+			app: AppName::Usage,
+			type_id: TypeId::from(35),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UsageTestAssignmentIn {
+	#[serde(rename = "54")]
+	pub _format: i64,
+	#[serde(rename = "55")]
+	pub testDeviceId: Option<GeneratedId>,
+}
+
+impl Entity for UsageTestAssignmentIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Usage,
+			type_id: TypeId::from(53),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UsageTestAssignment {
+	#[serde(rename = "57")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "58")]
+	pub testId: GeneratedId,
+	#[serde(rename = "59")]
+	pub name: String,
+	#[serde(rename = "60")]
+	pub variant: Option<i64>,
+	#[serde(rename = "61")]
+	pub sendPings: bool,
+	#[serde(rename = "62")]
+	pub stages: Vec<UsageTestStage>,
+}
+
+impl Entity for UsageTestAssignment {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Usage,
+			type_id: TypeId::from(56),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UsageTestAssignmentOut {
+	#[serde(rename = "64")]
+	pub _format: i64,
+	#[serde(rename = "65")]
+	pub testDeviceId: GeneratedId,
+	#[serde(rename = "66")]
+	pub assignments: Vec<UsageTestAssignment>,
+}
+
+impl Entity for UsageTestAssignmentOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Usage,
+			type_id: TypeId::from(63),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UsageTestParticipationIn {
+	#[serde(rename = "81")]
+	pub _format: i64,
+	#[serde(rename = "82")]
+	pub testId: GeneratedId,
+	#[serde(rename = "83")]
+	pub stage: i64,
+	#[serde(rename = "84")]
+	pub testDeviceId: GeneratedId,
+	#[serde(rename = "85")]
+	pub metrics: Vec<UsageTestMetricData>,
+}
+
+impl Entity for UsageTestParticipationIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Usage,
+			type_id: TypeId::from(80),
 		}
 	}
 }

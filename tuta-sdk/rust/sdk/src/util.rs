@@ -36,10 +36,12 @@ impl<T> Versioned<T> {
 	}
 }
 
+#[must_use]
 pub fn convert_version_to_u64(version: i64) -> u64 {
 	version.try_into().expect("got an invalid version number")
 }
 
+#[must_use]
 pub fn convert_version_to_i64(version: u64) -> i64 {
 	version.try_into().expect("got an invalid version number")
 }
@@ -209,6 +211,7 @@ pub fn downcast_mut<F: 'static, T: 'static>(of: &mut F) -> Option<&mut T> {
 	a.downcast_mut()
 }
 
+#[must_use]
 pub fn first_bigger_than_second_custom_id(first_id: &CustomId, second_id: &CustomId) -> bool {
 	first_id.to_custom_string() > second_id.to_custom_string()
 }
@@ -313,9 +316,6 @@ mod test {
 		let first_id = CustomId::from_custom_string("1abcc");
 		let second_id = CustomId::from_custom_string("1abcd");
 
-		assert_eq!(
-			first_bigger_than_second_custom_id(&first_id, &second_id),
-			false
-		)
+		assert!(!first_bigger_than_second_custom_id(&first_id, &second_id))
 	}
 }

@@ -147,7 +147,15 @@ export function getStartOfDayWithZone(date: Date, zone: string): Date {
  * @param zone the time zone for which to calculate the calendar date that {@param date} represents
  * @returns a date object representing the start of the next calendar date (2nd of May 2023 00:00) in {@param zone} */
 export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
-	return DateTime.fromJSDate(date, { zone }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).plus({ day: 1 }).toJSDate()
+	return DateTime.fromJSDate(date, { zone })
+		.set({
+			hour: 0,
+			minute: 0,
+			second: 0,
+			millisecond: 0,
+		})
+		.plus({ day: 1 })
+		.toJSDate()
 }
 
 export function getEndOfDayWithZone(date: Date, zone: string): Date {
@@ -834,7 +842,15 @@ export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: s
 /** @param date encodes some calendar date in {@param zone} (like the 1st of May 2023)
  * @returns {Date} encodes the same calendar date in UTC */
 export function getAllDayDateUTCFromZone(date: Date, zone: string): Date {
-	return DateTime.fromJSDate(date, { zone }).setZone("utc", { keepLocalTime: true }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toJSDate()
+	return DateTime.fromJSDate(date, { zone })
+		.setZone("utc", { keepLocalTime: true })
+		.set({
+			hour: 0,
+			minute: 0,
+			second: 0,
+			millisecond: 0,
+		})
+		.toJSDate()
 }
 
 export function isLongEvent(event: CalendarEvent, zone: string): boolean {
@@ -1177,7 +1193,14 @@ export function getRepeatEndTimeForDisplay(repeatRule: RepeatRule, isAllDay: boo
  * @param timeZone
  * @param maxDate
  */
-function* eventOccurencesGenerator(event: CalendarEvent, timeZone: string, maxDate: Date): Generator<{ startTime: Date; endTime: Date }> {
+function* eventOccurencesGenerator(
+	event: CalendarEvent,
+	timeZone: string,
+	maxDate: Date,
+): Generator<{
+	startTime: Date
+	endTime: Date
+}> {
 	const { repeatRule } = event
 
 	if (repeatRule == null) {

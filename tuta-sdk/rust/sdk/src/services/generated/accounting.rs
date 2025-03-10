@@ -8,5 +8,5 @@ use crate::services::hidden::Nothing;
 use crate::entities::generated::accounting::CustomerAccountReturn;
 pub struct CustomerAccountService;
 
-crate::service_impl!(declare, CustomerAccountService, "accounting/customeraccountservice", 7);
+crate::service_impl!(declare, CustomerAccountService, "accounting/customeraccountservice", 8);
 crate::service_impl!(GET, CustomerAccountService, (), CustomerAccountReturn);

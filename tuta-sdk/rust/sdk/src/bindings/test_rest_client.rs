@@ -3,9 +3,39 @@ use crate::bindings::rest_client::{
 };
 use std::collections::HashMap;
 
-#[derive(Default)]
 pub struct TestRestClient {
 	responses: HashMap<TestRestRequest, RestResponse>,
+}
+
+impl TestRestClient {
+	#[must_use]
+	pub fn new(base_url: &str) -> Self {
+		let mut client = TestRestClient {
+			responses: Default::default(),
+		};
+
+		let application_get_out = crate::type_model_provider::ApplicationTypesGetOut {
+			model_types_as_string: serde_json::to_string(
+				&crate::type_model_provider::CLIENT_TYPE_MODEL.apps,
+			)
+			.unwrap(),
+			current_application_hash: "latest-applications-hash".to_string(),
+		};
+		let serialized_json = serde_json::to_string(&application_get_out).unwrap();
+		let compressed_response = lz4_flex::compress(serialized_json.as_bytes());
+		let response = RestResponse {
+			status: 200,
+			headers: Default::default(),
+			body: Some(compressed_response),
+		};
+		let mocked_request = TestRestRequest {
+			url: format!("{base_url}/rest/base/applicationtypesservice"),
+			method: HttpMethod::GET,
+		};
+		client.responses.insert(mocked_request, response);
+
+		client
+	}
 }
 
 impl TestRestClient {
@@ -14,9 +44,17 @@ impl TestRestClient {
 		url: &str,
 		method: HttpMethod,
 		status: u32,
-		headers: Option<HashMap<String, String>>,
+		headers: HashMap<String, String>,
 		response_body: Option<&[u8]>,
 	) {
+		let headers = [(
+			"app-types-hash".to_string(),
+			"latest-applications-hash".to_string(),
+		)]
+		.into_iter()
+		.chain(headers)
+		.collect();
+
 		self.responses.insert(
 			TestRestRequest {
 				url: url.to_owned(),
@@ -24,7 +62,7 @@ impl TestRestClient {
 			},
 			RestResponse {
 				status,
-				headers: headers.unwrap_or_default(),
+				headers,
 				body: response_body.map(|v| v.to_vec()),
 			},
 		);

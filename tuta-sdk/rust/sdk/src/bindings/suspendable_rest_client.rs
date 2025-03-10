@@ -257,20 +257,17 @@ mod tests {
 	#[tokio::test]
 	async fn respects_too_many_requests_with_retry_after() {
 		let now = DateTime::from_millis(0);
-		let mut test_rest_client = TestRestClient::default();
+		let mut test_rest_client = TestRestClient::new("http://localhost:9000");
 		let suspend_url = "/suspend";
 		let test_url = "/test";
 		test_rest_client.insert_response(
 			suspend_url,
 			HttpMethod::POST,
 			429,
-			Some(HashMap::from([(
-				String::from(RETRY_AFTER_HEADER),
-				String::from("1"),
-			)])),
+			HashMap::from([(String::from(RETRY_AFTER_HEADER), String::from("1"))]),
 			None,
 		);
-		test_rest_client.insert_response(test_url, HttpMethod::POST, 200, None, None);
+		test_rest_client.insert_response(test_url, HttpMethod::POST, 200, HashMap::new(), None);
 		let date_provider = DateProviderStub::new(0);
 		let suspendable_client =
 			SuspendableRestClient::new(Arc::new(test_rest_client), Arc::new(date_provider));
@@ -315,20 +312,17 @@ mod tests {
 	#[tokio::test]
 	async fn respects_service_unavailable_error_with_retry_after() {
 		let now = DateTime::from_millis(0);
-		let mut test_rest_client = TestRestClient::default();
+		let mut test_rest_client = TestRestClient::new("http://localhost:9000");
 		let suspend_url = "/suspend";
 		let test_url = "/test";
 		test_rest_client.insert_response(
 			suspend_url,
 			HttpMethod::POST,
 			503,
-			Some(HashMap::from([(
-				String::from(RETRY_AFTER_HEADER),
-				String::from("1"),
-			)])),
+			HashMap::from([(String::from(RETRY_AFTER_HEADER), String::from("1"))]),
 			None,
 		);
-		test_rest_client.insert_response(test_url, HttpMethod::POST, 200, None, None);
+		test_rest_client.insert_response(test_url, HttpMethod::POST, 200, HashMap::new(), None);
 		let date_provider = DateProviderStub::new(0);
 		let suspendable_client =
 			SuspendableRestClient::new(Arc::new(test_rest_client), Arc::new(date_provider));
@@ -373,20 +367,17 @@ mod tests {
 
 	#[tokio::test]
 	async fn respects_service_unavailable_error_with_retry_after_throws() {
-		let mut test_rest_client = TestRestClient::default();
+		let mut test_rest_client = TestRestClient::new("http://localhost:9000");
 		let suspend_url = "/suspend";
 		let test_url = "/test";
 		test_rest_client.insert_response(
 			suspend_url,
 			HttpMethod::POST,
 			503,
-			Some(HashMap::from([(
-				String::from(RETRY_AFTER_HEADER),
-				String::from("1"),
-			)])),
+			HashMap::from([(String::from(RETRY_AFTER_HEADER), String::from("1"))]),
 			None,
 		);
-		test_rest_client.insert_response(test_url, HttpMethod::POST, 200, None, None);
+		test_rest_client.insert_response(test_url, HttpMethod::POST, 200, HashMap::new(), None);
 		let date_provider = DateProviderStub::new(0);
 		let suspendable_client =
 			SuspendableRestClient::new(Arc::new(test_rest_client), Arc::new(date_provider));
