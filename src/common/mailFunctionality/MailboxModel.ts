@@ -197,7 +197,7 @@ export class MailboxModel {
 					}),
 				)
 		}
-		const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties)
+		const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, assertNotNull(mailboxGroupRoot.mailboxProperties))
 		if (mailboxProperties.mailAddressProperties.length === 0) {
 			await this.migrateFromOldSenderName(mailboxGroupRoot, mailboxProperties)
 		}

@@ -374,7 +374,7 @@ export class ContactEditor {
 			locator.logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact),
 			"did not find contact group membership",
 		).group
-		const contactId = await this.entityClient.setup(this.listId, this.contact)
+		const contactId = assertNotNull(await this.entityClient.setup(this.listId, this.contact))
 		if (this.newContactIdReceiver) {
 			this.newContactIdReceiver(contactId)
 		}

@@ -1,4 +1,4 @@
-import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
+import { HttpMethod, MediaType, resolveClientTypeReference } from "../../common/EntityFunctions"
 import {
 	DeleteService,
 	ExtraServiceParams,
@@ -10,15 +10,16 @@ import {
 	PutService,
 	ReturnTypeFromRef,
 } from "../../common/ServiceRequest.js"
-import { Entity } from "../../common/EntityTypes"
+import { Entity, ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/tutanota-utils"
 import { RestClient } from "./RestClient"
-import { InstanceMapper } from "../crypto/InstanceMapper"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { assertWorkerOrNode } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
+import { InstancePipeline } from "../crypto/InstancePipeline"
+import { EntityAdapter } from "../crypto/EntityAdapter"
 
 assertWorkerOrNode()
 
@@ -28,7 +29,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	constructor(
 		private readonly restClient: RestClient,
 		private readonly authDataProvider: AuthDataProvider,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: lazy<CryptoFacade>,
 	) {}
 
@@ -74,7 +75,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		if (
 			methodDefinition.return &&
 			params?.sessionKey == null &&
-			(await resolveTypeReference(methodDefinition.return)).encrypted &&
+			(await resolveClientTypeReference(methodDefinition.return)).encrypted &&
 			!this.authDataProvider.isFullyLoggedIn()
 		) {
 			// Short-circuit before we do an actual request which we can't decrypt
@@ -123,7 +124,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		if (someTypeRef == null) {
 			throw new ProgrammingError("Need either data or return for the service method!")
 		}
-		const model = await resolveTypeReference(someTypeRef)
+		const model = await resolveClientTypeReference(someTypeRef)
 		return model.version
 	}
 
@@ -139,23 +140,27 @@ export class ServiceExecutor implements IServiceExecutor {
 				throw new ProgrammingError(`Invalid service data! ${service.name} ${method}`)
 			}
 
-			const requestTypeModel = await resolveTypeReference(methodDefinition.data)
+			const requestTypeModel = await resolveClientTypeReference(methodDefinition.data)
 			if (requestTypeModel.encrypted && params?.sessionKey == null) {
 				throw new ProgrammingError("Must provide a session key for an encrypted data transfer type!: " + service)
 			}
 
-			const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(requestTypeModel, requestEntity, params?.sessionKey ?? null)
-			return JSON.stringify(encryptedEntity)
+			const encryptedUntypedInstance = await this.instancePipeline.mapAndEncrypt(requestEntity._type, requestEntity, params?.sessionKey ?? null)
+
+			return JSON.stringify(encryptedUntypedInstance)
 		} else {
 			return null
 		}
 	}
 
 	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | undefined): Promise<T> {
-		const responseTypeModel = await resolveTypeReference(typeRef)
 		// Filter out __proto__ to avoid prototype pollution.
-		const instance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
-		const resolvedSessionKey = await this.cryptoFacade().resolveServiceSessionKey(instance)
-		return this.instanceMapper.decryptAndMapToInstance(responseTypeModel, instance, resolvedSessionKey ?? params?.sessionKey ?? null)
+		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
+		const typeModel = await resolveClientTypeReference(typeRef)
+		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, instance)
+		const entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
+		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
+
+		return await this.instancePipeline.decryptAndMap(typeRef, instance, sessionKey)
 	}
 }

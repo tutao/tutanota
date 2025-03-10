@@ -1,5 +1,5 @@
 {
-	"PersistenceResourcePostReturn": {
+	"0": {
 		"name": "PersistenceResourcePostReturn",
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
@@ -7,30 +7,28 @@
 		"rootId": "BGJhc2UAAA",
 		"versioned": false,
 		"encrypted": false,
+		"isPublic": true,
 		"values": {
-			"_format": {
+			"1": {
 				"final": false,
 				"name": "_format",
 				"id": 1,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"generatedId": {
+			"2": {
 				"final": false,
 				"name": "generatedId",
 				"id": 2,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"permissionListId": {
+			"3": {
 				"final": false,
 				"name": "permissionListId",
 				"id": 3,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -38,6 +36,53 @@
 		},
 		"associations": {},
 		"app": "base",
-		"version": "1"
+		"version": "2"
+	},
+	"4": {
+		"name": "ApplicationTypesGetOut",
+		"since": 2,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 4,
+		"rootId": "BGJhc2UABA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"5": {
+				"final": false,
+				"name": "_format",
+				"id": 5,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"6": {
+				"final": false,
+				"name": "applicationTypesJson",
+				"id": 6,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"7": {
+				"final": false,
+				"name": "applicationVersionSum",
+				"id": 7,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"8": {
+				"final": false,
+				"name": "applicationTypesHash",
+				"id": 8,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "base",
+		"version": "2"
 	}
 }

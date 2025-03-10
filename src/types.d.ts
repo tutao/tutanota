@@ -73,6 +73,7 @@ declare var env: {
 	versionNumber: string
 	timeout: number
 	domainConfigs: DomainConfigMap
+	networkDebugging: boolean
 }
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }

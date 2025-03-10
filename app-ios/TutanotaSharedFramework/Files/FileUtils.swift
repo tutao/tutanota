@@ -33,6 +33,14 @@ public class FileUtils {
 		try FileManager.default.removeItem(atPath: dirToDelete.path)
 		TUTSLog("deleted shared storage at \(sharedDir)")
 	}
+	public static func getApplicationSupportFolder() throws -> URL {
+		let appSupportDirURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).last
+		guard let appSupportDirURL else {
+			throw TUTErrorFactory.createError(withDomain: FILES_ERROR_DOMAIN, message: "could not get application support directory URL")
+		}
+		try FileManager.default.createDirectory(at: appSupportDirURL, withIntermediateDirectories: true, attributes: nil)
+		return appSupportDirURL
+	}
 
 	/// returns a path to a newly created (if nonexsistent) subdirectory in
 	/// the shared storage for the app group, shared with the share extension

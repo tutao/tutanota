@@ -2,7 +2,7 @@ import { ListElementEntity } from "../../common/EntityTypes.js"
 import { CalendarEvent, CalendarEventTypeRef, Mail } from "../../entities/tutanota/TypeRefs.js"
 import { freezeMap, getTypeId, TypeRef } from "@tutao/tutanota-utils"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils.js"
-import { resolveTypeReference } from "../../common/EntityFunctions.js"
+import { resolveClientTypeReference } from "../../common/EntityFunctions.js"
 import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCache.js"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -95,7 +95,7 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 			rawList = await storage.getWholeList(CalendarEventTypeRef, listId)
 			console.log(`CalendarEvent list ${listId} has ${rawList.length} events`)
 		}
-		const typeModel = await resolveTypeReference(CalendarEventTypeRef)
+		const typeModel = await resolveClientTypeReference(CalendarEventTypeRef)
 		const sortedList = reverse
 			? rawList
 					.filter((calendarEvent) => firstBiggerThanSecond(start, getElementId(calendarEvent), typeModel))

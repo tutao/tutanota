@@ -18,6 +18,7 @@ import de.tutao.tutashared.offline.sqlTagged
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.push.toSdkCredentials
 import de.tutao.tutashared.toBase64
+import de.tutao.tutashared.toSdkIdTupleGenerated
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -51,10 +52,10 @@ class TutanotaNotificationsHandler(
 			Log.d(TAG, "No stored SSE info")
 			return
 		}
-		val missedNotification = downloadMissedNotification(sseInfo)
-		if (missedNotification != null) {
-			handleNotificationInfos(sseInfo, missedNotification.notificationInfos)
-			handleAlarmNotifications(missedNotification.alarmNotifications)
+		val missedNotificationSerialized: String? = downloadMissedNotification(sseInfo)
+		if (missedNotificationSerialized != null) {
+			val missedNotification = json.decodeFromString<MissedNotification>(missedNotificationSerialized)
+			alarmNotificationsManager.scheduleNewAlarms(missedNotification.alarmNotifications, null)
 			sseStorage.setLastProcessedNotificationId(missedNotification.lastProcessedNotificationId)
 			sseStorage.setLastMissedNotificationCheckTime(Date())
 		}
@@ -73,7 +74,7 @@ class TutanotaNotificationsHandler(
 		return true
 	}
 
-	private fun downloadMissedNotification(sseInfo: SseInfo): MissedNotification? {
+	private fun downloadMissedNotification(sseInfo: SseInfo): String? {
 		var triesLeft = 3
 		// We try to download limited number of times. If it fails then  we are probably offline
 		var userId: String?
@@ -137,12 +138,11 @@ class TutanotaNotificationsHandler(
 	}
 
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
-	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): MissedNotification? {
+	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): String? {
 		val url = makeAlarmNotificationUrl(sseInfo)
 		val request = Request.Builder()
 			.url(url)
 			.method("GET", null)
-			.header("Content-Type", "application/json")
 			.header("userIds", userId ?: "")
 			.addSysVersionHeaders()
 			.apply {
@@ -169,7 +169,7 @@ class TutanotaNotificationsHandler(
 		response.body?.byteStream().use { inputStream ->
 			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
 			Log.d(TAG, "Loaded Missed notifications response")
-			return json.decodeFromString(responseString)
+			return responseString
 		}
 	}
 
@@ -292,10 +292,6 @@ class TutanotaNotificationsHandler(
 		val recipient = SenderRecipient(recipientAddress, recipientName, null)
 
 		return MailMetadata(recipient, sender, mail.subject)
-	}
-
-	private fun handleAlarmNotifications(alarmNotifications: List<EncryptedAlarmNotification>) {
-		alarmNotificationsManager.scheduleNewAlarms(alarmNotifications)
 	}
 
 	/**

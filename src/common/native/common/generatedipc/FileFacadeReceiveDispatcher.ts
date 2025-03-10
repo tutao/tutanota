@@ -73,9 +73,18 @@ export class FileFacadeReceiveDispatcher {
 				const maxChunkSizeBytes: number = arg[1]
 				return this.facade.splitFile(fileUri, maxChunkSizeBytes)
 			}
-			case "writeDataFile": {
+			case "writeTempDataFile": {
 				const file: DataFile = arg[0]
-				return this.facade.writeDataFile(file)
+				return this.facade.writeTempDataFile(file)
+			}
+			case "writeToAppDir": {
+				const content: Uint8Array = arg[0]
+				const path: string = arg[1]
+				return this.facade.writeToAppDir(content, path)
+			}
+			case "readFromAppDir": {
+				const path: string = arg[0]
+				return this.facade.readFromAppDir(path)
 			}
 			case "readDataFile": {
 				const filePath: string = arg[0]

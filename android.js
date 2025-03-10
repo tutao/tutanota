@@ -15,7 +15,6 @@ import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import path from "node:path"
 import { $, cd } from "zx"
-import { checkOfflineDatabaseMigrations } from "./buildSrc/checkOfflineDbMigratons.js"
 
 const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "\n")
 
@@ -129,6 +128,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 				clean: false,
 				watch: false,
 				serve: false,
+				networkDebugging: false,
 				app,
 			})
 		} else {

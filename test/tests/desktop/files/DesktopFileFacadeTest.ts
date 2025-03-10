@@ -3,7 +3,7 @@ import { createDataFile } from "../../../../src/common/api/common/DataFile.js"
 import { DesktopFileFacade } from "../../../../src/common/desktop/files/DesktopFileFacade.js"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { func, matchers, object, verify, when } from "testdouble"
-import { ElectronExports, FsExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
+import { ElectronExports, FsExports, PathExports } from "../../../../src/common/desktop/ElectronExportTypes.js"
 import { NotFoundError, PreconditionFailedError, TooManyRequestsError } from "../../../../src/common/api/common/error/RestError.js"
 import type fs from "node:fs"
 import { assertThrows } from "@tutao/tutanota-test-utils"
@@ -29,12 +29,14 @@ o.spec("DesktopFileFacade", function () {
 	let fs: FsExports
 	let tfs: TempFs
 	let ff: DesktopFileFacade
+	let path: PathExports
 
 	o.beforeEach(function () {
 		win = object()
 		fetch = func() as FetchImpl
 		fs = object()
 		tfs = object()
+		path = object()
 		fs.promises = object()
 		when(fs.promises.stat(matchers.anything())).thenResolve({ size: 42 })
 		electron = object()
@@ -47,7 +49,7 @@ o.spec("DesktopFileFacade", function () {
 		du = object()
 		dp = object()
 
-		ff = new DesktopFileFacade(win, conf, dp, fetch, electron, tfs, fs)
+		ff = new DesktopFileFacade(win, conf, dp, fetch, electron, tfs, fs, path)
 	})
 	o.spec("saveDataFile", function () {
 		o("when there's no existing file it will be simply written", async function () {
@@ -55,7 +57,7 @@ o.spec("DesktopFileFacade", function () {
 			when(fs.promises.readdir(matchers.anything())).thenResolve(["somethingelse"])
 			when(fs.promises.mkdir("/tutanota/tmp/path/download", { recursive: true })).thenResolve(undefined)
 			when(fs.promises.writeFile("/tutanota/tmp/path/download/blob", dataFile.data)).thenResolve()
-			await ff.writeDataFile(dataFile)
+			await ff.writeTempDataFile(dataFile)
 		})
 
 		o("with default download path but file exists -> nonclobbering name is chosen", async function () {
@@ -66,7 +68,7 @@ o.spec("DesktopFileFacade", function () {
 			when(fs.promises.readdir(matchers.anything())).thenResolve(["blob"])
 			when(fs.promises.mkdir("/tutanota/tmp/path/download", { recursive: true })).thenResolve(undefined)
 			when(fs.promises.writeFile("/tutanota/tmp/path/download/blob-1", dataFile.data)).thenResolve()
-			await ff.writeDataFile(dataFile)
+			await ff.writeTempDataFile(dataFile)
 		})
 	})
 

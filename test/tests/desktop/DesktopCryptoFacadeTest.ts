@@ -51,8 +51,6 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		when(cryptoFnsMock.decryptKey(aes128Key, aes256EncryptedKey)).thenReturn(uint8ArrayToBitArray(aes256DecryptedKey))
 		when(cryptoFnsMock.bytesToKey(someKey)).thenReturn(aes128Key)
 		when(cryptoFnsMock.randomBytes(matchers.anything())).thenReturn(Buffer.alloc(10, 4))
-		const instanceCaptor = matchers.captor()
-		when(cryptoFnsMock.decryptAndMapToInstance(matchers.anything(), instanceCaptor.capture(), matchers.anything())).thenResolve(instanceCaptor.value)
 		when(cryptoFnsMock.aes256RandomKey()).thenReturn(uint8ArrayToBitArray(Buffer.alloc(32, 1)))
 
 		const fsPromises: typeof import("fs").promises = object()
@@ -98,26 +96,5 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		const { desktopCrypto, cryptoFnsMock } = setupSubject()
 		desktopCrypto.aes256EncryptKey(aes256Key, aes256DecryptedKey)
 		verify(cryptoFnsMock.aesEncrypt(aes256Key, aes256DecryptedKey, undefined, false), { times: 1 })
-	})
-	o("decryptAndMapToInstance", async function () {
-		const { desktopCrypto, cryptoFnsMock } = setupSubject()
-		const instance = {
-			a: "property_a",
-			b: true,
-			c: 42,
-		}
-		when(
-			cryptoFnsMock.decryptAndMapToInstance(
-				downcast("somemodel"),
-				{
-					a: "property_a",
-					b: true,
-					c: 42,
-				},
-				uint8ArrayToBitArray(aes256DecryptedKey),
-			),
-		).thenResolve(instance)
-		await desktopCrypto.decryptAndMapToInstance(downcast("somemodel"), instance, keyToUint8Array(aes128Key), aes256EncryptedKey)
-		verify(cryptoFnsMock.decryptKey(aes128Key, aes256EncryptedKey), { times: 1 })
 	})
 })

@@ -98,7 +98,7 @@ export class GiftCardFacade {
 	}
 
 	async encodeGiftCardToken(giftCard: GiftCard): Promise<string> {
-		const key = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstance(giftCard))
+		const key = assertNotNull(await this.cryptoFacade.resolveSessionKey(giftCard))
 		return this.encodeToken(elementIdPart(giftCard._id), bitArrayToUint8Array(key))
 	}
 

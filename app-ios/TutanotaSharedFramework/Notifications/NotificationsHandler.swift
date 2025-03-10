@@ -86,6 +86,7 @@ public class NotificationsHandler {
 		let userId = sseInfo.userIds[0]
 		var headers: [String: String] = ["userIds": userId]
 		addSystemModelHeaders(to: &headers)
+		addClientVersionHeaders(to: &headers)
 		if let lastNotificationId = self.notificationStorage.lastProcessedNotificationId { headers["lastProcessedNotificationId"] = lastNotificationId }
 
 		printLog("Downloading missed notification with userId \(userId)")
@@ -108,10 +109,10 @@ public class NotificationsHandler {
 			self.notificationStorage.lastMissedNotificationCheckTime = requestTime
 			let missedNotification: MissedNotification
 			do { missedNotification = try JSONDecoder().decode(MissedNotification.self, from: data) } catch {
-				throw TUTErrorFactory.createError("Failed to parse response for the missed notificaiton, \(error)")
+				throw TUTErrorFactory.createError("Failed to parse response for the missed notification, \(error)")
 			}
 			self.notificationStorage.lastProcessedNotificationId = missedNotification.lastProcessedNotificationId
-			try alarmManager.processNewAlarms(missedNotification.alarmNotifications)
+			try alarmManager.processNewAlarms(missedNotification.alarmNotifications, nil)
 		default:
 			let errorId = httpResponse.allHeaderFields["Error-Id"]
 			let error = NSError(

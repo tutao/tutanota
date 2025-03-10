@@ -6,20 +6,22 @@
 import { AssociationType, Type, ValueType } from "../src/common/api/common/EntityConstants.js"
 
 /**
- * @param p {object}
- * @param p.type {import("../src/common/api/common/EntityTypes.js").TypeModel}
- * @param p.modelName {string}
+ * @param models {object}
+ * @param typeModel {import("../src/common/api/common/EntityTypes.js").TypeModel}
+ * @param modelName {string}
  * @return {string}
  */
-export function generateRustType({ type, modelName }) {
-	let typeName = mapTypeName(type.name, modelName)
+export function generateRustType(models, typeModel, modelName) {
+	let typeName = mapTypeName(typeModel.name, modelName)
+	let typeId = typeModel.id
 	let buf = `#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ${typeName} {\n`
-	for (let [valueName, valueProperties] of Object.entries(type.values)) {
-		const rustType = rustValueType(valueName, type, valueProperties)
+	for (let [valueId, valueProperties] of Object.entries(typeModel.values)) {
+		const valueName = valueProperties.name
+		const rustType = rustValueType(valueName, typeModel, valueProperties)
+		buf += `\t#[serde(rename = "${valueId}")]\n`
 		if (valueName === "type") {
-			buf += `\t#[serde(rename = "type")]\n`
 			buf += `\tpub r#type: ${rustType},\n`
 		} else if (valueProperties.type === "Bytes") {
 			buf += `\t#[serde(with = "serde_bytes")]\n`
@@ -29,8 +31,9 @@ pub struct ${typeName} {\n`
 		}
 	}
 
-	for (let [associationName, associationProperties] of Object.entries(type.associations)) {
-		const innerRustType = rustAssociationType(associationProperties)
+	for (let [associationId, associationProperties] of Object.entries(typeModel.associations)) {
+		const associationName = associationProperties.name
+		const innerRustType = rustAssociationType(associationProperties, modelName, models)
 		let rustType
 		switch (associationProperties.cardinality) {
 			case "ZeroOrOne":
@@ -44,20 +47,20 @@ pub struct ${typeName} {\n`
 				break
 		}
 
+		buf += `\t#[serde(rename = "${associationId}")]\n`
 		if (associationName === "type") {
-			buf += `\t#[serde(rename = "type")]\n`
 			buf += `\tpub r#type: ${rustType},\n`
 		} else {
 			buf += `\tpub ${associationName}: ${rustType},\n`
 		}
 	}
 
-	if (type.encrypted) {
+	if (typeModel.encrypted) {
 		buf += `\tpub _errors: Option<Errors>,\n`
 	}
 
 	// aggregates do not say whether they are encrypted or not. For some reason!
-	if (type.encrypted || Object.values(type.values).some((v) => v.encrypted)) {
+	if (typeModel.encrypted || Object.values(typeModel.values).some((v) => v.encrypted)) {
 		buf += `\tpub _finalIvs: HashMap<String, FinalIv>,\n`
 	}
 
@@ -68,7 +71,7 @@ impl Entity for ${typeName} {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: "${modelName}",
-			type_: "${typeName}",
+			type_id: ${typeId},
 		}
 	}
 }`
@@ -128,7 +131,7 @@ crate::service_impl!(declare, ${s.name}, "${appName}/${s.name.toLowerCase()}", $
 			}
 
 			if (s.bodyTypes.DELETE_IN || s.bodyTypes.DELETE_OUT) {
-				serviceDefinition += makeImpl("DELETE", s.bodyTypes.DELETE_IN, s.bodyTypes.DELETE_OUt)
+				serviceDefinition += makeImpl("DELETE", s.bodyTypes.DELETE_IN, s.bodyTypes.DELETE_OUT)
 			}
 
 			return serviceDefinition
@@ -166,11 +169,11 @@ function mapTypeName(name, modelName) {
 
 /**
  * @param valueName {string}
- * @param type {import("../src/common/api/common/EntityTypes.js").TypeModel}
+ * @param typeModel {import("../src/common/api/common/EntityTypes.js").TypeModel}
  * @param value {import("../src/common/api/common/EntityTypes.js").ModelValue}
  * @return {string}
  */
-function rustValueType(valueName, type, value) {
+function rustValueType(valueName, typeModel, value) {
 	const ValueToRustTypes = Object.freeze({
 		String: "String",
 		Number: "i64",
@@ -183,7 +186,7 @@ function rustValueType(valueName, type, value) {
 	})
 
 	let innerType
-	if (valueName === "_id" && (type.type === Type.ListElement || type.type === Type.BlobElement)) {
+	if (valueName === "_id" && (typeModel.type === Type.ListElement || typeModel.type === Type.BlobElement)) {
 		if (value.type === ValueType.CustomId) {
 			innerType = "Option<IdTupleCustom>"
 		} else {
@@ -205,12 +208,16 @@ function rustValueType(valueName, type, value) {
  * @param association {import("../src/common/api/common/EntityTypes.js").ModelAssociation}
  * @return {string}
  */
-function rustAssociationType(association) {
+function rustAssociationType(association, modelName, models) {
 	if (association.type === AssociationType.Aggregation) {
+		const dependentApp = association.dependency ?? modelName
+		const dependentType = models[dependentApp].types[association.refTypeId].name
+		const refTypeName = mapTypeName(dependentType, dependentApp)
+
 		if (association.dependency) {
-			return `super::${association.dependency}::${association.refType}`
+			return `super::${association.dependency}::${refTypeName}`
 		} else {
-			return association.refType
+			return refTypeName
 		}
 	} else if (association.type === AssociationType.ListElementAssociationCustom) {
 		return "IdTupleCustom"

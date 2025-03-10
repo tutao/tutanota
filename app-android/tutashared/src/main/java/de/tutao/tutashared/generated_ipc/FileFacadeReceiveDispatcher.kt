@@ -130,10 +130,26 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"writeDataFile" -> {
+			"writeTempDataFile" -> {
 				val file: DataFile = json.decodeFromString(arg[0])
-				val result: String = this.facade.writeDataFile(
+				val result: String = this.facade.writeTempDataFile(
 					file,
+				)
+				return json.encodeToString(result)
+			}
+			"writeToAppDir" -> {
+				val content: DataWrapper = json.decodeFromString(arg[0])
+				val path: String = json.decodeFromString(arg[1])
+				val result: Unit = this.facade.writeToAppDir(
+					content,
+					path,
+				)
+				return json.encodeToString(result)
+			}
+			"readFromAppDir" -> {
+				val path: String = json.decodeFromString(arg[0])
+				val result: DataWrapper = this.facade.readFromAppDir(
+					path,
 				)
 				return json.encodeToString(result)
 			}

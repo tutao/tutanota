@@ -21,11 +21,14 @@ import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, Mai
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
+	ATTACHMENTS_ID,
 	getElementId,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
+	SENDER_ID,
+	SUBJECT_ID,
 } from "../../../common/api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
@@ -73,7 +76,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "subject_label",
 		field: "subject",
-		attributeIds: [typeModels.Mail.values["subject"].id as number],
+		attributeIds: [typeModels[MailTypeRef.typeId].values[SUBJECT_ID] as number],
 	},
 	{
 		textId: "mailBody_label",
@@ -83,7 +86,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "from_label",
 		field: "from",
-		attributeIds: [typeModels.Mail.associations["sender"].id as number],
+		attributeIds: [typeModels[MailTypeRef.typeId].associations[SENDER_ID].id as number],
 	},
 	{
 		textId: "to_label",
@@ -97,7 +100,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "attachmentName_label",
 		field: "attachment",
-		attributeIds: [typeModels.Mail.associations["attachments"].id as number],
+		attributeIds: [typeModels[MailTypeRef.typeId].associations[ATTACHMENTS_ID].id as number],
 	},
 ]
 
@@ -205,13 +208,13 @@ export function createRestriction(
 		if (field === "recipient") {
 			r.field = field
 			r.attributeIds = [
-				typeModels.Contact.values["firstName"].id,
-				typeModels.Contact.values["lastName"].id,
-				typeModels.Contact.associations["mailAddresses"].id,
+				typeModels[ContactTypeRef.typeId].values["firstName"].id,
+				typeModels[ContactTypeRef.typeId].values["lastName"].id,
+				typeModels[ContactTypeRef.typeId].associations["mailAddresses"].id,
 			]
 		} else if (field === "mailAddress") {
 			r.field = field
-			r.attributeIds = [typeModels.Contact.associations["mailAddresses"].id]
+			r.attributeIds = [typeModels[ContactTypeRef.typeId].associations["mailAddresses"].id]
 		}
 	}
 

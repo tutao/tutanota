@@ -52,10 +52,10 @@ import {
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
+import { HttpMethod, MediaType, resolveClientTypeReference } from "../../common/EntityFunctions"
 import { assertWorkerOrNode, isAdminClient } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
-import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
+import { EntityRestClient, typeRefToRestPath } from "../rest/EntityRestClient"
 import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
 import { CancelledError } from "../../common/error/CancelledError"
 import { RestClient } from "../rest/RestClient"
@@ -83,7 +83,6 @@ import {
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { InstanceMapper } from "../crypto/InstanceMapper"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
@@ -100,6 +99,8 @@ import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 import { encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
+import { InstancePipeline } from "../crypto/InstancePipeline"
+import { AttributeModel } from "../../common/AttributeModel"
 
 assertWorkerOrNode()
 
@@ -134,8 +135,16 @@ export type InitCacheOptions = {
 	forceNewDatabase: boolean
 }
 
-type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData }
-type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason }
+type ResumeSessionSuccess = {
+	type: "success"
+	data: ResumeSessionResultData
+	asyncResumeCompleted: Promise<void> | null
+}
+type ResumeSessionFailure = {
+	type: "error"
+	reason: ResumeSessionErrorReason
+	asyncResumeCompleted: Promise<void> | null
+}
 type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
 type AsyncLoginState =
@@ -192,7 +201,7 @@ export class LoginFacade {
 		private readonly restClient: RestClient,
 		private readonly entityClient: EntityClient,
 		private readonly loginListener: LoginListener,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly keyRotationFacade: KeyRotationFacade,
 		/**
@@ -580,7 +589,11 @@ export class LoginFacade {
 					return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo).catch(
 						ofClass(ConnectionError, async () => {
 							await this.resetSession()
-							return { type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree }
+							return {
+								type: "error",
+								reason: ResumeSessionErrorReason.OfflineNotAvailableForFree,
+								asyncResumeCompleted: null,
+							}
 						}),
 					)
 				}
@@ -605,13 +618,13 @@ export class LoginFacade {
 				}
 
 				// Start full login async
-				Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
+				const asyncResumeSession = Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
 				const data = {
 					user,
 					userGroupInfo,
 					sessionId,
 				}
-				return { type: "success", data }
+				return { type: "success", data, asyncResumeCompleted: env.mode === "Test" ? asyncResumeSession : null }
 			} else {
 				// await before return to catch errors here
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
@@ -705,7 +718,7 @@ export class LoginFacade {
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
 		}
 
-		return { type: "success", data }
+		return { type: "success", data, asyncResumeCompleted: null }
 	}
 
 	private async initSession(
@@ -850,8 +863,8 @@ export class LoginFacade {
 	 * @param pushIdentifier identifier associated with this device, if any, to delete PushIdentifier on the server
 	 */
 	async deleteSession(accessToken: Base64Url, pushIdentifier: string | null = null): Promise<void> {
-		let path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
-		const sessionTypeModel = await resolveTypeReference(SessionTypeRef)
+		let path = (await typeRefToRestPath(SessionTypeRef)) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
+		const sessionTypeModel = await resolveClientTypeReference(SessionTypeRef)
 
 		const headers = {
 			accessToken: neverNull(accessToken),
@@ -890,8 +903,8 @@ export class LoginFacade {
 		userId: Id
 		accessKey: AesKey | null
 	}> {
-		const path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
-		const SessionTypeModel = await resolveTypeReference(SessionTypeRef)
+		const path = (await typeRefToRestPath(SessionTypeRef)) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
+		const SessionTypeModel = await resolveClientTypeReference(SessionTypeRef)
 
 		let headers = {
 			accessToken: accessToken,
@@ -904,10 +917,13 @@ export class LoginFacade {
 				responseType: MediaType.Json,
 			})
 			.then((instance) => {
-				let session = JSON.parse(instance)
+				let untypedSession = AttributeModel.removeNetworkDebuggingInfoIfNeeded(JSON.parse(instance))
+				// Intentionally passing an UntypedInstance to AttributeModel to circumvent sessionkey resolution during login.
+				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
+				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]
 				return {
-					userId: session.user,
-					accessKey: session.accessKey ? base64ToKey(session.accessKey) : null,
+					userId,
+					accessKey: accessKey ? base64ToKey(accessKey) : null,
 				}
 			})
 	}
@@ -1005,11 +1021,12 @@ export class LoginFacade {
 			recoverCodeVerifier: recoverCodeVerifierBase64,
 			user: null,
 		})
-		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change. the web socket is not connected because we
-		// don't do a normal login, and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled,
-		// and therefore we would not be able to read the updated user
-		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
-		// when logging in normally after resetting the password
+		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change.
+		// the web socket is not connected because we don't do a normal login, and therefore we would not get any user update events.
+		// we can not use permanentLogin=false with initSession because caching would be enabled,
+		// and therefore we would not be able to read the updated user.
+		// additionally, we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling)
+		// because we do not want to have any race conditions when logging in normally after resetting the password.
 		const tempAuthDataProvider: AuthDataProvider = {
 			createAuthHeaders(): Dict {
 				return {}
@@ -1022,7 +1039,7 @@ export class LoginFacade {
 			tempAuthDataProvider,
 			this.restClient,
 			() => this.cryptoFacade,
-			this.instanceMapper,
+			this.instancePipeline,
 			this.blobAccessTokenFacade,
 		)
 		const entityClient = new EntityClient(eventRestClient)

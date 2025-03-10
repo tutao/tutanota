@@ -6,7 +6,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { UpdateSessionKeysService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
 import { TypeModel } from "../../common/EntityTypes.js"
-import { resolveTypeReference } from "../../common/EntityFunctions.js"
+import { resolveClientTypeReference } from "../../common/EntityFunctions.js"
 
 assertWorkerOrNode()
 
@@ -41,7 +41,7 @@ export class OwnerEncSessionKeysUpdateQueue {
 	 */
 	async updateInstanceSessionKeys(instanceSessionKeys: Array<InstanceSessionKey>, typeModel: TypeModel) {
 		if (this.userFacade.isLeader()) {
-			const groupKeyUpdateTypeModel = await resolveTypeReference(GroupKeyUpdateTypeRef)
+			const groupKeyUpdateTypeModel = await resolveClientTypeReference(GroupKeyUpdateTypeRef)
 			if (groupKeyUpdateTypeModel.id !== typeModel.id) {
 				this.updateInstanceSessionKeyQueue.push(...instanceSessionKeys)
 				this.invokeUpdateSessionKeyService()

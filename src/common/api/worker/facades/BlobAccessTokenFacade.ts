@@ -4,7 +4,7 @@ import { BlobAccessTokenService } from "../../entities/storage/Services"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, createBlobWriteData, createInstanceId } from "../../entities/storage/TypeRefs"
 import { DateProvider } from "../../common/DateProvider.js"
-import { resolveTypeReference } from "../../common/EntityFunctions.js"
+import { resolveClientTypeReference } from "../../common/EntityFunctions.js"
 import { AuthDataProvider } from "./UserFacade.js"
 import { deduplicate, first, isEmpty, lazyMemoized, TypeRef } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -220,7 +220,7 @@ export class BlobAccessTokenFacade {
 	 * @param typeRef the typeRef that shall be used to determine the correct model version
 	 */
 	public async createQueryParams(blobServerAccessInfo: BlobServerAccessInfo, additionalRequestParams: Dict, typeRef: TypeRef<any>): Promise<Dict> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveClientTypeReference(typeRef)
 		return Object.assign(
 			additionalRequestParams,
 			{

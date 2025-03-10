@@ -146,17 +146,23 @@ import "./${builtWorkerFile}"`,
 	)
 
 	let restUrl
+	let networkDebugging
 	if (stage === "test") {
 		restUrl = "https://app.test.tuta.com"
+		networkDebugging = true
 	} else if (stage === "prod") {
 		restUrl = "https://app.tuta.com"
+		networkDebugging = false
 	} else if (stage === "local") {
 		restUrl = "http://" + os.hostname() + ":9000"
+		networkDebugging = true
 	} else if (stage === "release") {
 		restUrl = undefined
+		networkDebugging = false
 	} else {
 		// host
 		restUrl = host
+		networkDebugging = true
 	}
 	await createHtml(
 		env.create({
@@ -165,11 +171,12 @@ import "./${builtWorkerFile}"`,
 			mode: "Browser",
 			dist: true,
 			domainConfigs,
+			networkDebugging,
 		}),
 		app,
 	)
 	if (stage !== "release") {
-		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs }), app)
+		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs, networkDebugging }), app)
 	}
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)

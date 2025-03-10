@@ -6,34 +6,51 @@ import {
 	NotAuthorizedError,
 	PayloadTooLargeError,
 } from "../../../../../src/common/api/common/error/RestError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows, mock } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
-import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { CustomerServerPropertiesTypeRef, CustomerTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { HttpMethod, MediaType, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { AccountingInfoTypeRef, CustomerTypeRef, GroupMemberTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
-import type { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import tutanotaModelInfo from "../../../../../src/common/api/entities/tutanota/ModelInfo.js"
 import sysModelInfo from "../../../../../src/common/api/entities/sys/ModelInfo.js"
-import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
+import { AuthDataProvider, UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
 import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
-import { freshVersioned, Mapper, ofClass } from "@tutao/tutanota-utils"
+import { Base64, base64ToUint8Array, deepEqual, downcast, KeyVersion, Mapper, ofClass, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import {
+	BodyTypeRef,
 	CalendarEventTypeRef,
-	Contact,
 	ContactTypeRef,
-	InternalRecipientKeyDataTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
+	MailDetailsTypeRef,
+	RecipientsTypeRef,
+	SupportDataTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { DefaultDateProvider } from "../../../../../src/common/calendar/date/CalendarUtils.js"
+import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { type Entity, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { PersistenceResourcePostReturnTypeRef } from "../../../../../src/common/api/entities/base/TypeRefs"
+import { aes256RandomKey, AesKey, decryptKey } from "@tutao/tutanota-crypto"
+import { encryptKeyWithVersionedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
+import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
+import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue"
+import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
+import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
+import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
+import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
+import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
 const { anything, argThat } = matchers
 
@@ -53,51 +70,64 @@ function createArrayOf<T>(count: number, factory: (index: number) => T): Array<T
 
 const countFrom = (start, count) => createArrayOf(count, (idx) => String(idx + start))
 
-function contacts(count) {
-	const contactFactory = (idx) =>
-		createTestEntity(ContactTypeRef, {
-			firstName: `Contact${idx}`,
+function groupMembers(count) {
+	const groupMemberFactory = (idx) =>
+		createTestEntity(GroupMemberTypeRef, {
+			_id: ["listid", `id${idx}`],
+			_permissions: "permissionsId",
+			_ownerGroup: "ownerGroupId",
+			userGroupInfo: ["someList", "someId"],
+			group: "someGroup",
+			user: "someUser",
 		})
 
-	return createArrayOf(count, contactFactory)
+	return createArrayOf(count, groupMemberFactory)
 }
 
 o.spec("EntityRestClient", function () {
 	let entityRestClient: EntityRestClient
 	let restClient: RestClient
-	let instanceMapperMock: InstanceMapper
-	let cryptoFacadeMock: CryptoFacade
+	let instancePipeline: InstancePipeline
+	let cryptoFacadePartialStub: CryptoFacade
 	let fullyLoggedIn: boolean
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let dateProvider: DateProvider
+	const keyLoaderFacadeMock = instance(KeyLoaderFacade)
+	const ownerGroupId = "ownerGroupId"
+	let sk: AesKey
+	let ownerGroupKey: VersionedKey
+	let encryptedSessionKey
 
 	o.beforeEach(function () {
-		cryptoFacadeMock = object()
-		when(cryptoFacadeMock.applyMigrations(anything(), anything())).thenDo(async (typeRef, data) => {
-			return Promise.resolve({ ...data, migrated: true })
-		})
-		when(cryptoFacadeMock.applyMigrationsForInstance(anything())).thenDo((decryptedInstance) => {
-			return Promise.resolve({ ...decryptedInstance, migratedForInstance: true })
-		})
-		when(cryptoFacadeMock.setNewOwnerEncSessionKey(anything(), anything())).thenResolve([])
-		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything(), anything(), anything())).thenResolve(
-			createTestEntity(InternalRecipientKeyDataTypeRef),
-		)
-		when(cryptoFacadeMock.resolveSessionKey(anything(), anything())).thenResolve([])
-
-		instanceMapperMock = object()
-		when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenDo((typeModel, instance, sessionKey) => {
-			return Promise.resolve({ ...instance, encrypted: true })
-		})
-		when(instanceMapperMock.decryptAndMapToInstance(anything(), anything(), anything())).thenDo((typeModel, migratedEntity, sessionKey) => {
-			return Promise.resolve({ ...migratedEntity, decrypted: true })
-		})
-
+		instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+		// instead of mocking the instance pipeline itself, mock it's internal mapper.
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
 
 		restClient = object()
 
+		sk = aes256RandomKey()
+		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
+		encryptedSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, sk)
+		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, 0)).thenResolve(ownerGroupKey.object)
+
 		fullyLoggedIn = true
+		cryptoFacadePartialStub = new CryptoFacade(
+			instance(UserFacade),
+			instance(EntityClient),
+			restClient,
+			instance(ServiceExecutor),
+			instancePipeline,
+			instance(OwnerEncSessionKeysUpdateQueue),
+			instance(DefaultEntityRestCache),
+			keyLoaderFacadeMock,
+			instance(AsymmetricCryptoFacade),
+			async () => instance(KeyVerificationFacade),
+			instance(PublicKeyProvider),
+			() => instance(KeyRotationFacade),
+		)
+		cryptoFacadePartialStub.resolveSessionKey = async (instance: Entity): Promise<Nullable<AesKey>> => {
+			return sk
+		}
 
 		const authDataProvider: AuthDataProvider = {
 			createAuthHeaders(): Dict {
@@ -109,7 +139,7 @@ o.spec("EntityRestClient", function () {
 		}
 
 		dateProvider = instance(DefaultDateProvider)
-		entityRestClient = new EntityRestClient(authDataProvider, restClient, () => cryptoFacadeMock, instanceMapperMock, blobAccessTokenFacade)
+		entityRestClient = new EntityRestClient(authDataProvider, restClient, () => cryptoFacadePartialStub, instancePipeline, blobAccessTokenFacade)
 	})
 
 	function assertThatNoRequestsWereMade() {
@@ -120,60 +150,79 @@ o.spec("EntityRestClient", function () {
 		o("loading a list element", async function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
+			const calendar = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id1],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sk)
 			when(
-				restClient.request(`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
 					baseUrl: undefined,
 				}),
-			).thenResolve(JSON.stringify({ instance: "calendar" }))
+			).thenResolve(JSON.stringify(untypedCalendarInstance))
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1])
-			o(result as any).deepEquals({
-				instance: "calendar",
-				decrypted: true,
-				migrated: true,
-				migratedForInstance: true,
-			})
+			delete downcast(result)._finalIvs
+			o(result as any).deepEquals(calendar)
 		})
 
-		o("loading an element ", async function () {
+		o("loading an element", async function () {
 			const id1 = "id1"
+			const accountingInfo = createTestEntity(AccountingInfoTypeRef, {
+				_id: id1,
+				_permissions: "permissionsId",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const untypedAccountingInfo = await instancePipeline.mapAndEncrypt(AccountingInfoTypeRef, accountingInfo, sk)
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}/${id1}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
 					baseUrl: undefined,
 				}),
-			).thenResolve(JSON.stringify({ instance: "customer" }))
+			).thenResolve(JSON.stringify(untypedAccountingInfo))
 
-			const result = await entityRestClient.load(CustomerTypeRef, id1)
-			o(result as any).deepEquals({
-				instance: "customer",
-				decrypted: true,
-				migrated: true,
-				migratedForInstance: true,
-			})
+			const result = await entityRestClient.load(AccountingInfoTypeRef, id1)
+
+			delete downcast(result)._finalIvs
+
+			o(result as any).deepEquals(accountingInfo)
 		})
 
 		o("query parameters and additional headers + access token and version are always passed to the rest client", async function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
-			when(
-				restClient.request(`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
-					headers: { ...authHeader, v: String(tutanotaModelInfo.version), baz: "quux" },
-					responseType: MediaType.Json,
-					queryParams: { foo: "bar" },
-					baseUrl: undefined,
-				}),
-			).thenResolve(JSON.stringify({ instance: "calendar" }))
+			const calendar = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id1],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sk)
+			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify(untypedCalendarInstance))
 
 			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
 				queryParams: { foo: "bar" },
 				extraHeaders: { baz: "quux" },
 			})
+			verify(
+				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+					headers: { ...authHeader, v: String(tutanotaModelInfo.version), baz: "quux" },
+					responseType: MediaType.Json,
+					queryParams: { foo: "bar" },
+					baseUrl: undefined,
+				}),
+			)
 		})
 
 		o("when loading encrypted instance and not being logged in it throws an error", async function () {
@@ -185,30 +234,33 @@ o.spec("EntityRestClient", function () {
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
+			const ownerKeyProviderSk = aes256RandomKey()
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerKeyProviderEncryptedSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
+			const calendar = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id1],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: ownerKeyProviderEncryptedSessionKey.key,
+				_ownerKeyVersion: ownerKeyProviderEncryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, ownerKeyProviderSk)
+
 			when(
-				restClient.request(`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
 					baseUrl: undefined,
 				}),
-			).thenResolve(JSON.stringify({ _ownerEncSessionKey: "some key" }))
+			).thenResolve(JSON.stringify(untypedCalendarInstance))
 
-			const ownerKey = [1, 2, 3]
-			const sessionKey = [3, 2, 1]
-			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey)).thenReturn(sessionKey)
-
-			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], { ownerKeyProvider: async (_) => ownerKey })
-
-			const typeModel = await resolveTypeReference(CalendarEventTypeRef)
-			verify(instanceMapperMock.decryptAndMapToInstance(typeModel, anything(), sessionKey))
-			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), { times: 0 })
-			o(result as any).deepEquals({
-				_ownerEncSessionKey: "some key",
-				decrypted: true,
-				migrated: true,
-				migratedForInstance: true,
+			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
+				ownerKeyProvider: async (_: KeyVersion) => ownerGroupKey.object,
 			})
+
+			delete downcast(result)._finalIvs
+			o(result as any).deepEquals(calendar)
 		})
 	})
 
@@ -218,23 +270,41 @@ o.spec("EntityRestClient", function () {
 			const count = 5
 			const listId = "listId"
 
+			const calendarListId = "calendarListId"
+			const id1 = "42"
+			const id2 = "43"
+			const calendar1 = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id1],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const calendar2 = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id2],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const untypedCal1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sk)
+			const untypedCal2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sk)
 			when(
-				restClient.request(`${typeRefToPath(CalendarEventTypeRef)}/${listId}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${listId}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { start: startId, count: String(count), reverse: String(false) },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
 					suspensionBehavior: undefined,
 				}),
-			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
+			).thenResolve(JSON.stringify([untypedCal1, untypedCal2]))
 
 			const result = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
-			o(result as any).deepEquals([
-				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-			])
+			delete downcast(result[0])._finalIvs
+			delete downcast(result[1])._finalIvs
+			o(result as any).deepEquals([calendar1, calendar2])
 		})
 
 		o("when loading encrypted instance list and not being logged in it throws an error", async function () {
@@ -247,124 +317,171 @@ o.spec("EntityRestClient", function () {
 	o.spec("Load multiple", function () {
 		o("Less than 100 entities requested should result in a single rest request", async function () {
 			const ids = countFrom(0, 5)
-
+			const supportData1 = createTestEntity(SupportDataTypeRef, {
+				_id: "1",
+				_permissions: "some id",
+			})
+			const supportData2 = createTestEntity(SupportDataTypeRef, {
+				_id: "2",
+				_permissions: "another id",
+			})
+			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const untypedSupportData2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}`, HttpMethod.GET, {
-					headers: { ...authHeader, v: String(sysModelInfo.version) },
+				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
+					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: "0,1,2,3,4" },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
 					suspensionBehavior: undefined,
 				}),
-			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
+			).thenResolve(JSON.stringify([untypedSupportData1, untypedSupportData2]))
 
-			const result = await entityRestClient.loadMultiple(CustomerTypeRef, null, ids)
+			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
+
+			delete downcast(result[0])._finalIvs
+			delete downcast(result[1])._finalIvs
 
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
-			o(result as any).deepEquals([
-				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-			])
+			o(result as any).deepEquals([supportData1, supportData2])
 		})
 
 		o("Exactly 100 entities requested should result in a single rest request", async function () {
 			const ids = countFrom(0, 100)
+			const supportData1 = createTestEntity(SupportDataTypeRef, {
+				_id: "1",
+				_permissions: "some id",
+			})
+			const supportData2 = createTestEntity(SupportDataTypeRef, {
+				_id: "2",
+				_permissions: "another id",
+			})
+			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const untypedSupportData2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
+			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify([untypedSupportData1, untypedSupportData2]))
 
-			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}`, HttpMethod.GET, {
-					headers: { ...authHeader, v: String(sysModelInfo.version) },
+			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
+
+			verify(
+				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
+					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: ids.join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
 					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
+			)
 
-			const result = await entityRestClient.loadMultiple(CustomerTypeRef, null, ids)
-			// There's some weird optimization for list requests where the types to migrate
-			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
-			o(result as any).deepEquals([
-				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-			])
+			delete downcast(result[0])._finalIvs
+			delete downcast(result[1])._finalIvs
+			o(result as any).deepEquals([supportData1, supportData2])
 		})
 
 		o("More than 100 entities requested results in 2 rest requests", async function () {
 			const ids = countFrom(0, 101)
-
+			const supportData1 = createTestEntity(SupportDataTypeRef, {
+				_id: "1",
+				_permissions: "some id",
+			})
+			const supportData2 = createTestEntity(SupportDataTypeRef, {
+				_id: "100",
+				_permissions: "another id",
+			})
+			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const untypedSupportData2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}`, HttpMethod.GET, {
-					headers: { ...authHeader, v: String(sysModelInfo.version) },
+				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
+					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
 					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([{ instance: 1 }]))
+			).thenResolve(JSON.stringify([untypedSupportData1]))
 
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}`, HttpMethod.GET, {
-					headers: { ...authHeader, v: String(sysModelInfo.version) },
+				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
+					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: "100" },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
 					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([{ instance: 2 }]))
+			).thenResolve(JSON.stringify([untypedSupportData2]))
 
-			const result = await entityRestClient.loadMultiple(CustomerTypeRef, null, ids)
-			o(result as any).deepEquals([
-				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-			])
+			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
+
+			delete downcast(result[0])._finalIvs
+			delete downcast(result[1])._finalIvs
+
+			o(result as any).deepEquals([supportData1, supportData2])
 		})
 
 		o("More than 200 entities requested results in 3 rest requests", async function () {
 			const ids = countFrom(0, 211)
 
+			const supportData1 = createTestEntity(SupportDataTypeRef, {
+				_id: "1",
+				_permissions: "some id",
+			})
+
+			const supportData2 = createTestEntity(SupportDataTypeRef, {
+				_id: "100",
+				_permissions: "another id",
+			})
+
+			const supportData3 = createTestEntity(SupportDataTypeRef, {
+				_id: "200",
+				_permissions: "third id",
+			})
+			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const untypedSupportData2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
+			const untypedSupportData3 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData3, null)
+
 			when(
-				restClient.request(typeRefToPath(CustomerTypeRef), HttpMethod.GET, {
-					headers: { ...authHeader, v: String(sysModelInfo.version) },
+				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
+					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
 					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([{ instance: 1 }]))
+			).thenResolve(JSON.stringify([untypedSupportData1]))
 
 			when(
-				restClient.request(typeRefToPath(CustomerTypeRef), HttpMethod.GET, {
-					headers: { ...authHeader, v: String(sysModelInfo.version) },
+				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
+					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: countFrom(100, 100).join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
 					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([{ instance: 2 }]))
+			).thenResolve(JSON.stringify([untypedSupportData2]))
 
 			when(
-				restClient.request(typeRefToPath(CustomerTypeRef), HttpMethod.GET, {
-					headers: { ...authHeader, v: String(sysModelInfo.version) },
+				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
+					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { ids: countFrom(200, 11).join(",") },
 					responseType: MediaType.Json,
 					baseUrl: undefined,
 					suspensionBehavior: undefined,
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([{ instance: 3 }]))
+			).thenResolve(JSON.stringify([untypedSupportData3]))
 
-			const result = await entityRestClient.loadMultiple(CustomerTypeRef, null, ids)
-			o(result as any).deepEquals([
-				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-				{ instance: 3, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-			])
+			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
+
+			delete downcast(result[0])._finalIvs
+			delete downcast(result[1])._finalIvs
+			delete downcast(result[2])._finalIvs
+
+			o(result as any).deepEquals([supportData1, supportData2, supportData3])
 		})
 
 		o("when loading encrypted instance list and not being logged in it throws an error", async function () {
@@ -378,6 +495,35 @@ o.spec("EntityRestClient", function () {
 			const archiveId = "archiveId"
 			const firstServer = "firstServer"
 
+			const blob1 = createTestEntity(MailDetailsBlobTypeRef, {
+				_id: ["list", "element1"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+				details: createTestEntity(MailDetailsTypeRef, {
+					_id: "detailsId1",
+					recipients: createTestEntity(RecipientsTypeRef, { _id: "recipeintsId1" }),
+					body: createTestEntity(BodyTypeRef, { _id: "bodyId1" }),
+				}),
+			})
+
+			const blob2 = createTestEntity(MailDetailsBlobTypeRef, {
+				_id: ["list", "element2"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+				details: createTestEntity(MailDetailsTypeRef, {
+					_id: "detailsId2",
+					recipients: createTestEntity(RecipientsTypeRef, { _id: "recipeintsId2" }),
+					body: createTestEntity(BodyTypeRef, { _id: "bodyId2" }),
+				}),
+			})
+
+			const untypedBlob1 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob1, sk)
+			const untypedBlob2 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob2, sk)
+
 			const blobAccessToken = "123"
 			let blobServerAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken,
@@ -389,9 +535,18 @@ o.spec("EntityRestClient", function () {
 				return Object.assign({ blobAccessToken: blobServerAccessInfo.blobAccessToken }, authHeaders)
 			})
 
-			when(restClient.request(anything(), HttpMethod.GET, anything())).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
+			when(restClient.request(anything(), HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
+
+			delete downcast(result[0])._finalIvs
+			delete downcast(result[0].details)._finalIvs
+			delete downcast(result[0].details.body)._finalIvs
+			delete downcast(result[0].details.recipients)._finalIvs
+			delete downcast(result[1])._finalIvs
+			delete downcast(result[1].details)._finalIvs
+			delete downcast(result[1].details.body)._finalIvs
+			delete downcast(result[1].details.recipients)._finalIvs
 
 			let expectedOptions = {
 				headers: {},
@@ -402,7 +557,7 @@ o.spec("EntityRestClient", function () {
 			}
 			verify(
 				restClient.request(
-					`${typeRefToPath(MailDetailsBlobTypeRef)}/${archiveId}`,
+					`${await typeRefToRestPath(MailDetailsBlobTypeRef)}/${archiveId}`,
 					HttpMethod.GET,
 					argThat((optionsArg) => {
 						o(optionsArg.headers).deepEquals(expectedOptions.headers)("headers")
@@ -422,16 +577,42 @@ o.spec("EntityRestClient", function () {
 
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
-			o(result as any).deepEquals([
-				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-			])
+			o(result as any).deepEquals([blob1, blob2])
 		})
 
 		o("when loading blob elements request is retried with another server url if it failed", async function () {
 			const ids = countFrom(0, 5)
 			const archiveId = "archiveId"
 			const firstServer = "firstServer"
+
+			const blob1 = createTestEntity(MailDetailsBlobTypeRef, {
+				_id: ["list", "element1"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+				details: createTestEntity(MailDetailsTypeRef, {
+					_id: "detailsId1",
+					recipients: createTestEntity(RecipientsTypeRef, { _id: "recipeintsId1" }),
+					body: createTestEntity(BodyTypeRef, { _id: "bodyId1" }),
+				}),
+			})
+
+			const blob2 = createTestEntity(MailDetailsBlobTypeRef, {
+				_id: ["list", "element2"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+				details: createTestEntity(MailDetailsTypeRef, {
+					_id: "detailsId2",
+					recipients: createTestEntity(RecipientsTypeRef, { _id: "recipeintsId2" }),
+					body: createTestEntity(BodyTypeRef, { _id: "bodyId2" }),
+				}),
+			})
+
+			const untypedBlob1 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob1, sk)
+			const untypedBlob2 = await instancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, blob2, sk)
 
 			const blobAccessToken = "123"
 			const otherServer = "otherServer"
@@ -474,18 +655,24 @@ o.spec("EntityRestClient", function () {
 					baseUrl: otherServer,
 					suspensionBehavior: undefined,
 				}),
-			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
+			).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
 
-			verify(restClient.request(`${typeRefToPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, anything()), { times: 2 })
+			delete downcast(result[0])._finalIvs
+			delete downcast(result[0].details)._finalIvs
+			delete downcast(result[0].details.body)._finalIvs
+			delete downcast(result[0].details.recipients)._finalIvs
+			delete downcast(result[1])._finalIvs
+			delete downcast(result[1].details)._finalIvs
+			delete downcast(result[1].details.body)._finalIvs
+			delete downcast(result[1].details.recipients)._finalIvs
+
+			verify(restClient.request(`${await typeRefToRestPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, anything()), { times: 2 })
 
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
-			o(result as any).deepEquals([
-				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
-			])
+			o(result as any).deepEquals([blob1, blob2])
 		})
 
 		o("when loading blob elements without an archiveId it throws", async function () {
@@ -509,21 +696,46 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Setup", function () {
 		o("Setup list entity", async function () {
-			const v = (await resolveTypeReference(ContactTypeRef)).version
-			const newContact = createTestEntity(ContactTypeRef)
-			const resultId = "id"
+			const v = (await resolveClientTypeReference(CalendarEventTypeRef)).version
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const newCalendar = createTestEntity(CalendarEventTypeRef, {
+				_id: ["listId", "element"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+			})
+			const resultId = "resultId"
+
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(
-				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
+				restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, {
 					baseUrl: undefined,
 					headers: { ...authHeader, v },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: JSON.stringify({ ...newContact, encrypted: true }),
+					body: argThat(async (json) => {
+						const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(JSON.parse(json))
+						const ownerEncSk = base64ToUint8Array(
+							AttributeModel.getAttribute<Base64>(
+								untypedInstance,
+								"_ownerEncSessionKey",
+								await resolveClientTypeReference(AccountingInfoTypeRef),
+							),
+						)
+						const sk = decryptKey(ownerGroupKey.object, ownerEncSk)
+						const calendarInstance = await instancePipeline.decryptAndMap(CalendarEventTypeRef, untypedInstance, sk)
+						return deepEqual(newCalendar, calendarInstance)
+					}),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify({ generatedId: resultId }))
+			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
 
-			const result = await entityRestClient.setup("listId", newContact)
+			const result = await entityRestClient.setup("listId", newCalendar, undefined, { ownerKey: ownerGroupKey })
+
 			o(result).equals(resultId)
 		})
 
@@ -534,21 +746,33 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("Setup entity", async function () {
-			const v = (await resolveTypeReference(CustomerTypeRef)).version
-			const newCustomer = createTestEntity(CustomerTypeRef)
-			const resultId = "id"
+			const v = (await resolveClientTypeReference(SupportDataTypeRef)).version
+			const newSupportData = createTestEntity(SupportDataTypeRef, {
+				_id: "1",
+				_permissions: "another id",
+				_ownerGroup: "ownerGroupId",
+			})
+			const untypedSupportData = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, newSupportData, null)
+			const resultId = "resultId"
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
+
 			when(
-				restClient.request(`/rest/sys/customer`, HttpMethod.POST, {
+				restClient.request(`/rest/tutanota/supportdata`, HttpMethod.POST, {
 					baseUrl: undefined,
 					headers: { ...authHeader, v },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: JSON.stringify({ ...newCustomer, encrypted: true }),
+					body: JSON.stringify(untypedSupportData),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify({ generatedId: resultId }))
+			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
 
-			const result = await entityRestClient.setup(null, newCustomer)
+			const result = await entityRestClient.setup(null, newSupportData)
 			o(result).equals(resultId)
 		})
 
@@ -559,8 +783,25 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("Base URL option is passed to the rest client", async function () {
-			when(restClient.request(anything(), anything(), anything()), { times: 1 }).thenResolve(JSON.stringify({ generatedId: null }))
-			await entityRestClient.setup("listId", createTestEntity(ContactTypeRef), undefined, { baseUrl: "some url" })
+			const resultId = "resultId"
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			const newCalendar = createTestEntity(CalendarEventTypeRef, {
+				_id: ["listId", "element"],
+				_permissions: "permissions",
+				_ownerGroup: ownerGroupId,
+			})
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
+
+			when(restClient.request(anything(), anything(), anything()), { times: 1 }).thenResolve(JSON.stringify(untypedPersistentPostReturn))
+			await entityRestClient.setup("listId", newCalendar, undefined, {
+				baseUrl: "some url",
+				ownerKey: ownerGroupKey,
+			})
 			verify(
 				restClient.request(
 					anything(),
@@ -571,31 +812,48 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
-			const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
+			const typeModel = await resolveClientTypeReference(AccountingInfoTypeRef)
 			const v = typeModel.version
-			const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
-				_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const newAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
+				_id: "id1",
+				_permissions: "permissionsId",
+				_ownerGroup: ownerGroupId,
 			})
-			const resultId = "id"
+
+			const resultId = "resultId"
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
+
 			when(
-				restClient.request(`/rest/sys/customerserverproperties`, HttpMethod.POST, {
+				restClient.request(`/rest/sys/accountinginfo`, HttpMethod.POST, {
 					baseUrl: undefined,
 					headers: { ...authHeader, v },
 					queryParams: undefined,
 					responseType: MediaType.Json,
-					body: JSON.stringify({ ...newCustomerServerProperties, encrypted: true }),
+					body: argThat(async (json) => {
+						const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(JSON.parse(json))
+						const ownerEncSk = base64ToUint8Array(
+							AttributeModel.getAttribute<Base64>(
+								untypedInstance,
+								"_ownerEncSessionKey",
+								await resolveClientTypeReference(AccountingInfoTypeRef),
+							),
+						)
+						const sk = decryptKey(ownerGroupKey.object, ownerEncSk)
+						const actualAccountingInfo = await instancePipeline.decryptAndMap(AccountingInfoTypeRef, untypedInstance, sk)
+						return deepEqual(newAccountingInfo, actualAccountingInfo)
+					}),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify({ generatedId: resultId }))
+			).thenResolve(JSON.stringify(untypedPersistentPostReturn))
 
-			const ownerKey = freshVersioned([1, 2, 3])
-			const sessionKey = [3, 2, 1]
-			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), ownerKey)).thenResolve(sessionKey)
-
-			const result = await entityRestClient.setup(null, newCustomerServerProperties, undefined, { ownerKey })
-
-			verify(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
-			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), { times: 0 })
+			const result = await entityRestClient.setup(null, newAccountingInfo, undefined, { ownerKey: ownerGroupKey })
+			verify(cryptoFacadePartialStub.resolveSessionKey(anything()), { times: 0 })
 
 			o(result).equals(resultId)
 		})
@@ -603,175 +861,109 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Setup multiple", function () {
 		o("Less than 100 entities created should result in a single rest request", async function () {
-			const newContacts = contacts(1)
-			const resultId = "id1"
-			const { version } = await resolveTypeReference(ContactTypeRef)
+			const newGroupMembers = groupMembers(1)
+			const { version } = await resolveClientTypeReference(GroupMemberTypeRef)
+			const resultId = "resultId"
+
+			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
+				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
+			})
+
+			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+				generatedId: resultId,
+				permissionListId: "permissionListId",
+			})
+			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 
 			when(
-				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
+				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
 					headers: { ...authHeader, v: version },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
-					body: JSON.stringify([{ ...newContacts[0], encrypted: true }]),
+					body: JSON.stringify(untypedGroupMembers),
 				}),
 				{ times: 1 },
-			).thenResolve(JSON.stringify([{ generatedId: resultId }]))
+			).thenResolve(JSON.stringify([untypedPersistentPostReturn]))
 
-			const result = await entityRestClient.setupMultiple("listId", newContacts)
+			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
+
 			o(result).deepEquals([resultId])
 		})
 
 		o("Exactly 100 entities created should result in a single rest request", async function () {
-			const newContacts = contacts(100)
+			const newGroupMembers = groupMembers(100)
 			const resultIds = countFrom(0, 100).map(String)
-			const { version } = await resolveTypeReference(ContactTypeRef)
+			const { version } = await resolveClientTypeReference(GroupMemberTypeRef)
+			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
+				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
+			})
+
+			const untypedPostReturns = await promiseMap(resultIds, async (id) => {
+				const instance = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+					generatedId: id,
+					permissionListId: "permissionListId",
+				})
+				return await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
+			})
 
 			when(
-				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
+				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
 					headers: { ...authHeader, v: version },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
-					body: JSON.stringify(
-						newContacts.map((c) => {
-							return { ...c, encrypted: true }
-						}),
-					),
+					body: JSON.stringify(untypedGroupMembers),
 				}),
 				{ times: 1 },
-			).thenResolve(
-				JSON.stringify(
-					resultIds.map((id) => {
-						return { generatedId: id }
-					}),
-				),
-			)
+			).thenResolve(JSON.stringify(untypedPostReturns))
 
-			const result = await entityRestClient.setupMultiple("listId", newContacts)
+			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
 			o(result).deepEquals(resultIds)
 		})
 
 		o("More than 100 entities created should result in 2 rest requests", async function () {
-			const newContacts = contacts(101)
+			const newGroupMembers = groupMembers(101)
 			const resultIds = countFrom(0, 101).map(String)
-			const { version } = await resolveTypeReference(ContactTypeRef)
+			const { version } = await resolveClientTypeReference(GroupMemberTypeRef)
+			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
+				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
+			})
+
+			const untypedPostReturns = await promiseMap(resultIds, async (id) => {
+				const instance = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+					generatedId: id,
+					permissionListId: "permissionListId",
+				})
+				return await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
+			})
 
 			when(
-				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
+				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
 					headers: { ...authHeader, v: version },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
-					body: JSON.stringify(
-						newContacts.slice(0, 100).map((c) => {
-							return { ...c, encrypted: true }
-						}),
-					),
+					body: JSON.stringify(untypedGroupMembers.slice(0, 100)),
 				}),
 				{ times: 1 },
-			).thenResolve(
-				JSON.stringify(
-					resultIds.slice(0, 100).map((id) => {
-						return { generatedId: id }
-					}),
-				),
-			)
+			).thenResolve(JSON.stringify(untypedPostReturns.slice(0, 100)))
 
 			when(
-				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
+				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
 					headers: { ...authHeader, v: version },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
-					body: JSON.stringify(
-						newContacts.slice(100).map((c) => {
-							return { ...c, encrypted: true }
-						}),
-					),
+					body: JSON.stringify(untypedGroupMembers.slice(100)),
 				}),
 				{ times: 1 },
-			).thenResolve(
-				JSON.stringify(
-					resultIds.slice(100).map((id) => {
-						return { generatedId: id }
-					}),
-				),
-			)
+			).thenResolve(JSON.stringify(untypedPostReturns.slice(100)))
 
-			const result = await entityRestClient.setupMultiple("listId", newContacts)
-			o(result).deepEquals(resultIds)
-		})
-
-		o("More than 200 entities created should result in 3 rest requests", async function () {
-			const newContacts = contacts(211)
-			const resultIds = countFrom(0, 211).map(String)
-			const { version } = await resolveTypeReference(ContactTypeRef)
-
-			when(
-				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
-					headers: { ...authHeader, v: version },
-					queryParams: { count: "100" },
-					responseType: MediaType.Json,
-					body: JSON.stringify(
-						newContacts.slice(0, 100).map((c) => {
-							return { ...c, encrypted: true }
-						}),
-					),
-				}),
-				{ times: 1 },
-			).thenResolve(
-				JSON.stringify(
-					resultIds.slice(0, 100).map((id) => {
-						return { generatedId: id }
-					}),
-				),
-			)
-
-			when(
-				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
-					headers: { ...authHeader, v: version },
-					queryParams: { count: "100" },
-					responseType: MediaType.Json,
-					body: JSON.stringify(
-						newContacts.slice(100, 200).map((c) => {
-							return { ...c, encrypted: true }
-						}),
-					),
-				}),
-				{ times: 1 },
-			).thenResolve(
-				JSON.stringify(
-					resultIds.slice(100, 200).map((id) => {
-						return { generatedId: id }
-					}),
-				),
-			)
-
-			when(
-				restClient.request(`/rest/tutanota/contact/listId`, HttpMethod.POST, {
-					headers: { ...authHeader, v: version },
-					queryParams: { count: "11" },
-					responseType: MediaType.Json,
-					body: JSON.stringify(
-						newContacts.slice(200).map((c) => {
-							return { ...c, encrypted: true }
-						}),
-					),
-				}),
-				{ times: 1 },
-			).thenResolve(
-				JSON.stringify(
-					resultIds.slice(200).map((id) => {
-						return { generatedId: id }
-					}),
-				),
-			)
-
-			const result = await entityRestClient.setupMultiple("listId", newContacts)
+			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
 			o(result).deepEquals(resultIds)
 		})
 
 		o("A single request is made and an error occurs, all entities should be returned as failedInstances", async function () {
 			when(restClient.request(anything(), anything(), anything())).thenReject(new BadRequestError("canny do et"))
 
-			const newContacts = contacts(100)
+			const newContacts = groupMembers(100)
 			const result = await assertThrows(SetupMultipleError, () => entityRestClient.setupMultiple("listId", newContacts))
 			o(result.failedInstances.length).equals(newContacts.length)
 			o(result.errors.length).equals(1)
@@ -780,40 +972,52 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("Post multiple: An error is encountered for part of the request, only failed entities are returned in the result", async function () {
+			const newGroupMembers = groupMembers(400)
+			const resultIds = countFrom(0, 400).map(String)
+			const { version } = await resolveClientTypeReference(GroupMemberTypeRef)
+			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
+				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
+			})
+
+			const untypedPostReturns = await promiseMap(resultIds, async (id) => {
+				const instance = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+					generatedId: id,
+					permissionListId: "permissionListId",
+				})
+				return await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
+			})
 			let requestCounter = 0
 			when(restClient.request(anything(), anything(), anything())).thenDo(() => {
 				requestCounter += 1
 
 				if (requestCounter % 2 === 0) {
 					// Second and Fourth requests are success
-					return JSON.stringify(
-						countFrom(0, 100).map((c) => {
-							return { generatedId: c }
-						}),
-					)
+					return JSON.stringify(untypedPostReturns.slice((requestCounter - 1) * 100, requestCounter * 100))
 				} else {
 					// First and Third requests are failure
 					throw new BadRequestError("It was a bad request")
 				}
 			})
 
-			const newContacts = contacts(400)
-			const result = await assertThrows(SetupMultipleError, () => entityRestClient.setupMultiple("listId", newContacts))
+			const result = await assertThrows(SetupMultipleError, () => entityRestClient.setupMultiple("listId", newGroupMembers))
 			verify(restClient.request(anything(), anything()), { times: 4, ignoreExtraArgs: true })
-			o(result.failedInstances).deepEquals(newContacts.slice(0, 100).concat(newContacts.slice(200, 300)))
+			o(result.failedInstances).deepEquals(newGroupMembers.slice(0, 100).concat(newGroupMembers.slice(200, 300)))
 			o(result.errors.length).equals(2)
 			o(result.errors.every((e) => e instanceof BadRequestError)).equals(true)
 		})
 
 		o("Post multiple: When a PayloadTooLarge error occurs individual instances are posted", async function () {
 			const listId = "listId"
+			const instances = groupMembers(3)
 			const idArray = ["0", null, "2"] // GET fails for id 1
 
-			let instances: Contact[] = []
-
-			for (let i = 0; i < idArray.length; i++) {
-				instances.push(createTestEntity(ContactTypeRef))
-			}
+			const untypedPostReturns = await promiseMap(idArray, async (id) => {
+				const instance = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+					generatedId: id,
+					permissionListId: "permissionListId",
+				})
+				return await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
+			})
 
 			let step = 0
 			when(restClient.request(anything(), anything(), anything())).thenDo((path: string, method: HttpMethod, { body }) => {
@@ -824,7 +1028,7 @@ o.spec("EntityRestClient", function () {
 					step += 1
 					throw new InternalServerError("might happen")
 				} else {
-					return JSON.stringify(idArray[step++])
+					return JSON.stringify(untypedPostReturns[step++])
 				}
 			})
 			const result = await assertThrows(SetupMultipleError, async () => {
@@ -842,18 +1046,19 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Update", function () {
 		o("Update entity", async function () {
-			const { version } = await resolveTypeReference(CustomerTypeRef)
-			const newCustomer = createTestEntity(CustomerTypeRef, {
+			const { version } = await resolveClientTypeReference(SupportDataTypeRef)
+			const newSupportData = createTestEntity(SupportDataTypeRef, {
 				_id: "id",
 			})
+			const untypedSupportData = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, newSupportData, null)
 			when(
-				restClient.request("/rest/sys/customer/id", HttpMethod.PUT, {
+				restClient.request("/rest/tutanota/supportdata/id", HttpMethod.PUT, {
 					headers: { ...authHeader, v: version },
-					body: JSON.stringify({ ...newCustomer, encrypted: true }),
+					body: JSON.stringify(untypedSupportData),
 				}),
 			)
 
-			await entityRestClient.update(newCustomer)
+			await entityRestClient.update(newSupportData)
 		})
 
 		o("Update entity throws if entity does not have an id", async function () {
@@ -863,40 +1068,49 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
-			const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
+			const typeModel = await resolveClientTypeReference(AccountingInfoTypeRef)
 			const version = typeModel.version
-			const ownerKeyVersion = 2
-			const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
-				_id: "id",
-				_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
-				_ownerKeyVersion: String(ownerKeyVersion),
+			const ownerKeyProviderSk = aes256RandomKey()
+			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerEncSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
+			const newAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
+				_id: "id1",
+				_permissions: "permissionsId",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: ownerEncSessionKey.key,
+				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			})
-			when(
-				restClient.request("/rest/sys/customerserverproperties/id", HttpMethod.PUT, {
-					headers: { ...authHeader, v: version },
-					body: JSON.stringify({ ...newCustomerServerProperties, encrypted: true }),
-				}),
-			)
 
-			const ownerKey = freshVersioned([1, 2, 3])
-			const sessionKey = [3, 2, 1]
-			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
-
-			await entityRestClient.update(newCustomerServerProperties, {
-				ownerKeyProvider: async (version) => {
-					o(version).equals(ownerKeyVersion)
-					return ownerKey.object
+			when(restClient.request(anything(), anything(), anything())).thenResolve(null)
+			await entityRestClient.update(newAccountingInfo, {
+				ownerKeyProvider: async (version: KeyVersion) => {
+					o(version).equals(ownerGroupKey.version)
+					return ownerGroupKey.object
 				},
 			})
 
-			verify(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
-			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), { times: 0 })
+			verify(
+				restClient.request(
+					"/rest/sys/accountinginfo/id1",
+					HttpMethod.PUT,
+					argThat(async (options) => {
+						const untypedInstance = JSON.parse(options.body)
+						const updatedAccountingInfo = await instancePipeline.decryptAndMap(AccountingInfoTypeRef, untypedInstance, ownerKeyProviderSk)
+						return (
+							deepEqual(options.headers, {
+								...authHeader,
+								v: version,
+							}) && deepEqual(newAccountingInfo, updatedAccountingInfo)
+						)
+					}),
+				),
+			)
 		})
 	})
 
 	o.spec("Delete", function () {
 		o("Delete entity", async function () {
-			const { version } = await resolveTypeReference(CustomerTypeRef)
+			const { version } = await resolveClientTypeReference(CustomerTypeRef)
 			const id = "id"
 			const newCustomer = createTestEntity(CustomerTypeRef, {
 				_id: id,
@@ -995,3 +1209,7 @@ o.spec("EntityRestClient", function () {
 		})
 	})
 })
+
+function typeRefOfModel(model: TypeModel): TypeRef<unknown> {
+	return new TypeRef(model.app, model.id)
+}

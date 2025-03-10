@@ -1,5 +1,5 @@
 import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
-import { assertNotNull, concat, downcast, isSameTypeRefByAttr, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, downcast, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule, OperationType } from "../../../common/TutanotaConstants.js"
 import {
@@ -19,6 +19,7 @@ import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import type { QueuedBatch } from "../../EventQueue.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 
 const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -130,7 +131,7 @@ export class ConfigurationDatabase {
 	async onEntityEventsReceived(batch: QueuedBatch): Promise<any> {
 		const { events, groupId, batchId } = batch
 		for (const event of events) {
-			if (!(event.operation === OperationType.UPDATE && isSameTypeRefByAttr(UserTypeRef, event.application, event.type))) {
+			if (!(event.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, event))) {
 				continue
 			}
 			const configDb = await this.db.getAsync()

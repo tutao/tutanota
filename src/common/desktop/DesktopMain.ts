@@ -76,6 +76,8 @@ import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
+import { ClientModelInfo, ServerModelInfo } from "../api/common/EntityFunctions"
 
 mp()
 
@@ -163,7 +165,10 @@ async function createComponents(): Promise<Components> {
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DefaultDateProvider()
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
+	const clientModelInfo = new ClientModelInfo()
+	const instancePipeline = new InstancePipeline(clientModelInfo.resolveTypeReference, new ServerModelInfo(clientModelInfo).resolveTypeReference)
+	const sseStorage = new SseStorage(conf)
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, instancePipeline)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, makeDbPath("credentials"), app)
@@ -217,7 +222,7 @@ async function createComponents(): Promise<Components> {
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const schedulerImpl = new SchedulerImpl(dateProvider, global, global)
 	const alarmScheduler = new AlarmScheduler(dateProvider, schedulerImpl)
-	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
+	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, alarmScheduler)
 	desktopAlarmScheduler.rescheduleAll().catch((e) => {
 		log.error("Could not reschedule alarms", e)
 		return pushFacade.resetStoredState()
@@ -236,7 +241,6 @@ async function createComponents(): Promise<Components> {
 
 	tray.setWindowManager(wm)
 
-	const sseStorage = new SseStorage(conf)
 	const notificationHandler = new TutaNotificationHandler(
 		wm,
 		nativeCredentialsFacade,
@@ -249,7 +253,16 @@ async function createComponents(): Promise<Components> {
 		app.getVersion(),
 	)
 	const sseClient = new SseClient(desktopNet, new DesktopSseDelay(), schedulerImpl)
-	const sse = new TutaSseFacade(sseStorage, notificationHandler, sseClient, desktopCrypto, app.getVersion(), suspensionAwareFetch, dateProvider)
+	const sse = new TutaSseFacade(
+		sseStorage,
+		notificationHandler,
+		sseClient,
+		alarmStorage,
+		desktopAlarmScheduler,
+		app.getVersion(),
+		suspensionAwareFetch,
+		dateProvider,
+	)
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
 
@@ -257,7 +270,7 @@ async function createComponents(): Promise<Components> {
 		eml: desktopUtils.getIconByName("eml.png"),
 		msg: desktopUtils.getIconByName("msg.png"),
 	}
-	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage)
+	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage, instancePipeline)
 	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
 	const desktopImportFacade = new DesktopMailImportFacade(electron, notifier, lang)
 
@@ -279,7 +292,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
 			new DesktopExternalCalendarFacade(),
-			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs),
+			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs, path),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,

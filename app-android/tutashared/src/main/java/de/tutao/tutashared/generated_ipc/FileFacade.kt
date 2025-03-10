@@ -91,9 +91,22 @@ interface FileFacade {
 	/**
 	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
 	 */
-	suspend fun writeDataFile(
+	suspend fun writeTempDataFile(
 		file: DataFile,
 	): String
+	/**
+	 * Save given file in given path relative to app data folder
+	 */
+	suspend fun writeToAppDir(
+		content: DataWrapper,
+		path: String,
+	): Unit
+	/**
+	 * Read file from given path relative to app data folder
+	 */
+	suspend fun readFromAppDir(
+		path: String,
+	): DataWrapper
 	/**
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
 	 */

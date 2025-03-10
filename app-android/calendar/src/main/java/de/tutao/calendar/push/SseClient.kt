@@ -171,14 +171,14 @@ class SseClient internal constructor(
 	private fun requestJson(pushIdentifier: String, userId: String?): String {
 		val jsonObject = JSONObject()
 		return try {
-			jsonObject.put("_format", "0")
-			jsonObject.put("identifier", pushIdentifier)
+			jsonObject.put("1353", "0") // SsoConnectData._format
+			jsonObject.put("1354", pushIdentifier) // SsoConnectData._id
 			val jsonArray = JSONArray()
 			val userIdObject = JSONObject()
-			userIdObject.put("_id", generateId())
-			userIdObject.put("value", userId)
+			userIdObject.put("1350", generateId()) // GeneratedIdWrapper._id
+			userIdObject.put("1351", userId) // GeneratedIdWrapper.value
 			jsonArray.put(userIdObject)
-			jsonObject.put("userIds", jsonArray)
+			jsonObject.put("1355", jsonArray) // SsoConnectData.userIds
 			URLEncoder.encode(jsonObject.toString(), "UTF-8")
 		} catch (e: JSONException) {
 			throw RuntimeException(e)
@@ -206,7 +206,6 @@ class SseClient internal constructor(
 		val request = Request.Builder()
 			.url(connectionData.url)
 			.method("GET", null)
-			.header("Content-Type", "application/json")
 			.header("Connection", "Keep-Alive")
 			.header("Accept", "text/event-stream")
 			.addSysVersionHeaders()

@@ -48,6 +48,7 @@ import { tutanota83 } from "./migrations/tutanota-v83.js"
 import { sys121 } from "./migrations/sys-v121.js"
 import { tutanota84 } from "./migrations/tutanota-v84"
 import { offline4 } from "./migrations/offline4.js"
+import { sys126 } from "./migrations/sys-v126.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -108,6 +109,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys121,
 	tutanota84,
 	offline4,
+	sys126,
 ]
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)
@@ -152,21 +154,6 @@ export class OfflineStorageMigrator {
 		}
 
 		await this.runMigrations(meta, storage, sqlCipherFacade)
-		await this.checkStateAfterMigrations(storage)
-	}
-
-	private async checkStateAfterMigrations(storage: OfflineStorage) {
-		// Check that all the necessary migrations have been run, at least to the point where we are compatible.
-		const meta = await storage.dumpMetadata()
-		for (const app of typedKeys(this.modelInfos)) {
-			const compatibleSince = this.modelInfos[app].compatibleSince
-			let metaVersion = meta[`${app}-version`]!
-			if (metaVersion < compatibleSince) {
-				throw new ProgrammingError(
-					`You forgot to migrate your databases! ${app}.version should be >= ${this.modelInfos[app].compatibleSince} but in db it is ${metaVersion}`,
-				)
-			}
-		}
 	}
 
 	private async runMigrations(meta: Partial<OfflineDbMeta>, storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {

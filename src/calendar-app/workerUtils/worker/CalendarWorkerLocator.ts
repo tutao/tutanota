@@ -26,7 +26,6 @@ import { AesApp } from "../../../common/native/worker/AesApp.js"
 import type { RsaImplementation } from "../../../common/api/worker/crypto/RsaImplementation.js"
 import { createRsaImplementation } from "../../../common/api/worker/crypto/RsaImplementation.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
-import { InstanceMapper } from "../../../common/api/worker/crypto/InstanceMapper.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
 import { NoZoneDateProvider } from "../../../common/api/common/utils/NoZoneDateProvider.js"
@@ -38,7 +37,7 @@ import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFac
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
-import { modelInfos } from "../../../common/api/common/EntityFunctions.js"
+import { ClientModelInfo, modelInfos, ServerModelInfo } from "../../../common/api/common/EntityFunctions.js"
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
@@ -76,6 +75,8 @@ import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.j
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
+import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
+import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 
 assertWorkerOrNode()
 
@@ -84,7 +85,8 @@ export type CalendarWorkerLocatorType = {
 	restClient: RestClient
 	serviceExecutor: IServiceExecutor
 	crypto: CryptoFacade
-	instanceMapper: InstanceMapper
+	instancePipeline: InstancePipeline
+	applicationTypesFacade: ApplicationTypesFacade
 	cacheStorage: CacheStorage
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
@@ -151,22 +153,33 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const mainInterface = worker.getMainInterface()
 
 	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
-	locator.instanceMapper = new InstanceMapper()
+	const clientModelInfo = new ClientModelInfo()
+	const serverModelInfo = new ServerModelInfo(clientModelInfo)
+
+	locator.instancePipeline = new InstancePipeline(clientModelInfo.resolveTypeReference, serverModelInfo.resolveTypeReference)
+	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto)
+
 	locator.rsa = await createRsaImplementation(worker)
-
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
-
-	locator.restClient = new RestClient(suspensionHandler, domainConfig)
-	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instanceMapper, () => locator.crypto)
+	locator.restClient = new RestClient(suspensionHandler, domainConfig, () => locator.applicationTypesFacade)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider)
-	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instanceMapper, locator.blobAccessToken)
+	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instancePipeline, locator.blobAccessToken)
 
 	locator.native = worker
 	locator.booking = lazyMemoized(async () => {
 		const { BookingFacade } = await import("../../../common/api/worker/facades/lazy/BookingFacade.js")
 		return new BookingFacade(locator.serviceExecutor)
 	})
+
+	const fileFacadeSendDispatcher = new FileFacadeSendDispatcher(worker)
+	const fileApp = new NativeFileApp(fileFacadeSendDispatcher, new ExportFacadeSendDispatcher(worker))
+	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(
+		locator.serviceExecutor,
+		fileFacadeSendDispatcher,
+		new ServerModelInfo(clientModelInfo),
+		clientModelInfo,
+	)
 
 	let offlineStorageProvider
 	if (isOfflineStorageAvailable()) {
@@ -178,6 +191,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				dateProvider,
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
 				new CalendarOfflineCleaner(),
+				locator.instancePipeline.modelMapper,
 			)
 		}
 	} else {
@@ -193,8 +207,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	}, offlineStorageProvider)
 
 	locator.cacheStorage = maybeUninitializedStorage
-
-	const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(worker), new ExportFacadeSendDispatcher(worker))
 
 	locator.cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage)
 
@@ -238,7 +250,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cachingEntityClient,
 		locator.restClient,
 		locator.serviceExecutor,
-		locator.instanceMapper,
+		locator.instancePipeline,
 		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
 		locator.cache as DefaultEntityRestCache,
 		locator.keyLoader,
@@ -323,7 +335,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		 */
 		new EntityClient(locator.cache),
 		loginListener,
-		locator.instanceMapper,
+		locator.instancePipeline,
 		locator.crypto,
 		locator.keyRotation,
 		maybeUninitializedStorage,
@@ -379,7 +391,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
-		return new BlobFacade(locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.crypto, locator.blobAccessToken)
+		return new BlobFacade(locator.restClient, suspensionHandler, fileApp, aesApp, locator.instancePipeline, locator.crypto, locator.blobAccessToken)
 	})
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("../../../common/api/worker/facades/lazy/MailFacade.js")
@@ -405,10 +417,10 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			nonCachingEntityClient, // without cache
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
-			locator.instanceMapper,
 			locator.serviceExecutor,
 			locator.crypto,
 			mainInterface.infoMessageHandler,
+			locator.instancePipeline,
 		)
 	})
 
@@ -448,11 +460,12 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cache as EntityRestCache,
 		locator.user,
 		locator.cachingEntityClient,
-		locator.instanceMapper,
+		locator.instancePipeline,
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
 		mainInterface.syncTracker,
+		locator.applicationTypesFacade,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

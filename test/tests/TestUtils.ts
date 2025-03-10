@@ -11,7 +11,7 @@ import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/co
 import { matchers, object, when } from "testdouble"
 import { Entity, ModelValue, TypeModel } from "../../src/common/api/common/EntityTypes.js"
 import { create } from "../../src/common/api/common/utils/EntityUtils.js"
-import { typeModels } from "../../src/common/api/common/EntityFunctions.js"
+import { ClientModelInfo } from "../../src/common/api/common/EntityFunctions.js"
 import { type fetch as undiciFetch, type Response } from "undici"
 import { Cardinality, ValueType } from "../../src/common/api/common/EntityConstants.js"
 
@@ -143,10 +143,9 @@ export const domainConfigStub: DomainConfig = {
 
 // non-async copy of the function
 function resolveTypeReference(typeRef: TypeRef<any>): TypeModel {
-	// @ts-ignore
-	const modelMap = typeModels[typeRef.app]
+	const modelMap = new ClientModelInfo().typeModels[typeRef.app]
+	const typeModel = modelMap[typeRef.typeId]
 
-	const typeModel = modelMap[typeRef.type]
 	if (typeModel == null) {
 		throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
 	} else {
@@ -239,4 +238,30 @@ export function equalToArray<A extends any[]>(
 The first expected item is ${JSON.stringify(expectedArray[0])} but got ${JSON.stringify(value[0])}.
 The last expected item is ${JSON.stringify(expectedArray.at(-1))} but got ${JSON.stringify(value.at(-1))}`,
 			  }
+}
+
+export function removeFinalIvs(instance: Entity): Entity {
+	delete instance["_finalIvs"]
+	const keys = Object.keys(instance)
+	for (const key of keys) {
+		const maybeAggregate = instance[key]
+		if (maybeAggregate instanceof Object) {
+			removeFinalIvs(maybeAggregate)
+		}
+	}
+	return instance
+}
+
+export function removeAggregateIds(instance: Entity, aggregate: boolean = false): Entity {
+	if (aggregate && instance["_id"]) {
+		instance["_id"] = null
+	}
+	const keys = Object.keys(instance)
+	for (const key of keys) {
+		const maybeAggregate = instance[key]
+		if (maybeAggregate instanceof Object) {
+			removeAggregateIds(maybeAggregate, true)
+		}
+	}
+	return instance
 }

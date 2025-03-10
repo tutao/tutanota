@@ -11,16 +11,17 @@ await program
 	.option("-c, --clean", "Clean build directory")
 	.option("-d, --start-desktop", "Assemble & start desktop client")
 	.option("--desktop-build-only", "Assemble desktop client without starting")
-	.option("-v, --verbose", "activate verbose loggin in desktop client")
+	.option("-v, --verbose", "activate verbose logging in desktop client")
 	.option("-s, --serve", "Start a local server to serve the website")
 	.option("--ignore-migrations", "Dont check offline database migrations.")
+	.option("--network-debugging", "activate network debugging, sending attributeNames and attributeIds in the json request/response payloads", false)
 	.action(async (stage, host, options) => {
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
 			program.outputHelp()
 			process.exit(1)
 		}
 
-		const { clean, watch, serve, startDesktop, desktopBuildOnly, ignoreMigrations, app } = options
+		const { clean, watch, serve, startDesktop, desktopBuildOnly, ignoreMigrations, app, networkDebugging } = options
 
 		if (serve) {
 			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
@@ -35,6 +36,7 @@ await program
 				serve,
 				desktop: startDesktop || desktopBuildOnly,
 				ignoreMigrations,
+				networkDebugging,
 				app,
 			})
 

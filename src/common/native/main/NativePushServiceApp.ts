@@ -124,9 +124,8 @@ export class NativePushServiceApp {
 
 	private async storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = this.logins.getUserController().user._id
-
-		const sk = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier))
 		const origin = assertNotNull(env.staticUrl)
+		const sk = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier))
 		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, userId, origin, getElementId(pushIdentifier), sk)
 	}
 
@@ -151,7 +150,7 @@ export class NativePushServiceApp {
 			lastNotificationDate: null,
 			app: this.app,
 		})
-		const id = await this.entityClient.setup(list, pushIdentifier)
+		const id = assertNotNull(await this.entityClient.setup(list, pushIdentifier))
 		return this.entityClient.load(PushIdentifierTypeRef, [list, id])
 	}
 
