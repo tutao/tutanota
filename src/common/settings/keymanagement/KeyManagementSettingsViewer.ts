@@ -150,14 +150,17 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 							qrCodeGraphic,
 					  ),
 			),
+			// mail address
+			m(".b.center.mt-s.mb-s", selfMailAddress),
 			// text
+			// specifying chunksPerLine: 8 is possible, but breaks on very narrow display sizes, so we don't
 			m(MonospaceTextDisplay, {
 				text: renderFingerprintAsText(selfFingerprint),
 				chunkSize: 4,
 				classes: ".center.lh",
 				border: false,
 			}),
-			m(".mb-s"),
+			m(".mb"),
 		])
 	}
 }
