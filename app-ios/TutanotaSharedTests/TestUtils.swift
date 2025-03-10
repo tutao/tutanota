@@ -3,6 +3,8 @@ import Mockingbird
 import Testing
 import XCTest
 
+/// Make Mockingbird work with Testing framework.
+/// Note: it will stop reporting failures for XCTests so you shoudln't mix XCTest and Testing tests in one test target!
 func initMockingbird() {
 	struct SwiftTestFailer: TestFailer {
 		func fail(message: String, isFatal: Bool, file: StaticString, line: UInt) {
@@ -19,23 +21,6 @@ func initMockingbird() {
 
 	// FIXME: we need to fix up all the other tests
 	swizzleTestFailer(SwiftTestFailer())
-}
-
-extension XCTest {
-	func initMockingbird() {
-		class StandardTestFailer: TestFailer {
-			func fail(message: String, isFatal: Bool, file: StaticString, line: UInt) {
-				guard isFatal else { return XCTFail(message, file: file, line: line) }
-
-				// we don't do this
-				// Raise an Objective-C exception to stop the test runner.
-				//			MKBStopTest(message)
-
-				// Test execution should usually be stopped by this point.
-				fatalError(message)
-			}
-		}
-	}
 }
 
 struct ResolvableFuture {
