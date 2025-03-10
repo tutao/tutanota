@@ -48,16 +48,15 @@ import { getIds } from "../../../common/api/common/utils/EntityUtils"
  */
 export type LazyMailIdResolver = () => $Promisable<readonly IdTuple[]>
 
-export enum DeleteConfirmationResult {
-	Cancel,
-	TrashOnly,
-	FinallyDelete,
-}
-
 /**
  * @return whether emails were deleted
  */
-export async function promptAndDeleteMails(mailModel: MailModel, mailIds: readonly IdTuple[], onConfirm: () => void): Promise<boolean> {
+export async function promptAndDeleteMails(
+	mailModel: MailModel,
+	mailIds: readonly IdTuple[],
+	filterMailSet: IdTuple | null,
+	onConfirm: () => void,
+): Promise<boolean> {
 	const shouldDeletePermanently = await Dialog.confirm("finallyDeleteSelectedEmails_msg", "ok_action")
 	if (!shouldDeletePermanently) {
 		return false
@@ -66,7 +65,7 @@ export async function promptAndDeleteMails(mailModel: MailModel, mailIds: readon
 	onConfirm()
 
 	try {
-		await mailModel.finallyDeleteMails(mailIds)
+		await mailModel.finallyDeleteMails(mailIds, filterMailSet)
 		return true
 	} catch (e) {
 		return handleMoveError(e)

@@ -332,10 +332,12 @@ export class MailModel {
 	}
 
 	/**
-	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder and the folder must allow final delete operation.
+	 * Finally deletes all given mails. Caller must ensure that all mails are in folders that allows final delete operation.
+	 * @param mailIds mails to delete
+	 * @param filterMailSet when set, only mails in the filterMailSet would be deleted
 	 */
-	async finallyDeleteMails(mailIds: readonly IdTuple[]): Promise<void> {
-		await this.mailFacade.deleteMails(mailIds)
+	async finallyDeleteMails(mailIds: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
+		await this.mailFacade.deleteMails(mailIds, filterMailSet)
 	}
 
 	/**
