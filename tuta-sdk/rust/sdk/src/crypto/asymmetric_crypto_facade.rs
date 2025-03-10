@@ -89,19 +89,19 @@ impl AsymmetricCryptoFacade {
 	/// @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
 	/// @param sender_identity_pub_key the sender_identity_pub_key that was used to encrypt/authenticate the data.
 	/// @param sender_key_version the version of the sender_identity_pub_key.
-	pub async fn authenticate_sender(
+	#[allow(clippy::needless_lifetimes)] // explicit lifetime needed for automock
+	pub async fn authenticate_sender<'a>(
 		&self,
 		identifier: PublicKeyIdentifier,
-		sender_identity_pub_key: &[u8],
-		sender_key_version: u64,
+		sender_identity_pub_key: Versioned<&'a EccPublicKey>,
 	) -> Result<EncryptionAuthStatus, AsymmetricCryptoError> {
 		let pub_keys = self
 			.public_key_provider
-			.load_versioned_pub_key(&identifier, sender_key_version)
+			.load_versioned_pub_key(&identifier, sender_identity_pub_key.version)
 			.await?;
 
 		if Option::is_some(&pub_keys.pub_ecc_key)
-			&& pub_keys.pub_ecc_key.unwrap() == sender_identity_pub_key
+			&& pub_keys.pub_ecc_key.unwrap().as_slice() == sender_identity_pub_key.object.as_bytes()
 		{
 			Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded)
 		} else {
@@ -132,13 +132,14 @@ impl AsymmetricCryptoFacade {
 			let sender_identity_pub_key_from_pq_message = decapsulated_aes_key
 				.sender_identity_pub_key
 				.as_ref()
-				.unwrap()
-				.as_bytes();
+				.unwrap();
 			let encryption_auth_status = self
 				.authenticate_sender(
 					sender_identifier,
-					sender_identity_pub_key_from_pq_message,
-					convert_version_to_u64(pub_enc_key_data.senderKeyVersion.unwrap()),
+					Versioned {
+						object: sender_identity_pub_key_from_pq_message,
+						version: convert_version_to_u64(pub_enc_key_data.senderKeyVersion.unwrap()),
+					},
 				)
 				.await?;
 			if encryption_auth_status != EncryptionAuthStatus::TutacryptAuthenticationSucceeded {
@@ -445,8 +446,10 @@ mod tests {
 			make_asymmetric_crypto_facade, setup_authentication_test,
 		};
 		use crate::crypto::public_key_provider::PublicKeys;
+		use crate::crypto::EccPublicKey;
 		use crate::services::generated::sys::PublicKeyService;
 		use crate::tutanota_constants::EncryptionAuthStatus;
+		use crate::util::Versioned;
 		use mockall::predicate::eq;
 
 		#[tokio::test]
@@ -457,9 +460,8 @@ mod tests {
 				mut service_executor,
 				mut public_key_provider,
 			) = setup_authentication_test();
-			let sender_identity_pub_key = vec![9, 8, 7];
-
-			let pub_key = sender_identity_pub_key.clone();
+			let pub_key = vec![2; 32];
+			let sender_identity_pub_key = EccPublicKey::from_bytes(pub_key.as_slice()).unwrap();
 
 			service_executor.expect_get::<PublicKeyService>().never();
 			service_executor.expect_put::<PublicKeyService>().never();
@@ -480,8 +482,10 @@ mod tests {
 			let result = asymmetric_crypto_facade
 				.authenticate_sender(
 					public_key_identifier,
-					&sender_identity_pub_key,
-					sender_key_version,
+					Versioned {
+						object: &sender_identity_pub_key,
+						version: sender_key_version,
+					},
 				)
 				.await
 				.unwrap();
@@ -500,9 +504,8 @@ mod tests {
 				mut service_executor,
 				mut public_key_provider,
 			) = setup_authentication_test();
-			let sender_identity_pub_key = vec![9, 8, 7];
-
-			let pub_key = sender_identity_pub_key.clone();
+			let pub_key = vec![2; 32];
+			let sender_identity_pub_key = EccPublicKey::from_bytes(pub_key.as_slice()).unwrap();
 
 			service_executor.expect_get::<PublicKeyService>().never();
 			service_executor.expect_put::<PublicKeyService>().never();
@@ -522,8 +525,10 @@ mod tests {
 			let result = asymmetric_crypto_facade
 				.authenticate_sender(
 					public_key_identifier,
-					&sender_identity_pub_key,
-					sender_key_version,
+					Versioned {
+						object: &sender_identity_pub_key,
+						version: sender_key_version,
+					},
 				)
 				.await
 				.unwrap();
@@ -539,7 +544,8 @@ mod tests {
 				mut service_executor,
 				mut public_key_provider,
 			) = setup_authentication_test();
-			let sender_identity_pub_key = vec![9, 8, 7];
+			let pub_key = vec![5; 32];
+			let sender_identity_pub_key = EccPublicKey::from_bytes(pub_key.as_slice()).unwrap();
 
 			service_executor.expect_get::<PublicKeyService>().never();
 			service_executor.expect_put::<PublicKeyService>().never();
@@ -560,8 +566,10 @@ mod tests {
 			let result = asymmetric_crypto_facade
 				.authenticate_sender(
 					public_key_identifier,
-					&sender_identity_pub_key,
-					sender_key_version,
+					Versioned {
+						object: &sender_identity_pub_key,
+						version: sender_key_version,
+					},
 				)
 				.await
 				.unwrap();

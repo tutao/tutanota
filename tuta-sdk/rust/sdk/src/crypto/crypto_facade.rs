@@ -2,6 +2,7 @@ use crate::crypto::aes::Iv;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 use crate::crypto::asymmetric_crypto_facade::{AsymmetricCryptoError, DecapsulatedAesKey};
+use crate::crypto::ecc::EccPublicKey;
 use crate::crypto::key::{GenericAesKey, KeyLoadError};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::RSAEncryptionError;
@@ -40,6 +41,7 @@ pub struct ResolvedSessionKey {
 	pub session_key: GenericAesKey,
 	pub owner_enc_session_key: Vec<u8>,
 	pub owner_key_version: u64,
+	pub sender_identity_pub_key: Option<EccPublicKey>, // the sender's ecc key that was used to decrypt the PQ message, in case TutaCrypt was used.
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -113,6 +115,7 @@ impl CryptoFacade {
 			session_key,
 			owner_enc_session_key: owner_enc_session_key.clone(),
 			owner_key_version,
+			sender_identity_pub_key: None,
 		}))
 	}
 
@@ -148,7 +151,7 @@ impl CryptoFacade {
 		let mut _auth_status: Option<EncryptionAuthStatus> = None; // TODO: implement
 		let DecapsulatedAesKey {
 			decrypted_aes_key: decrypted_bucket_key,
-			sender_identity_pub_key: _sender_identity_key,
+			sender_identity_pub_key,
 		} = if let (Some(key_group), Some(pub_enc_bucket_key)) =
 			(&bucket_key.keyGroup, &bucket_key.pubEncBucketKey)
 		{
@@ -206,6 +209,7 @@ impl CryptoFacade {
 			session_key,
 			owner_enc_session_key,
 			owner_key_version: versioned_owner_group_key.version,
+			sender_identity_pub_key,
 		})
 	}
 }
