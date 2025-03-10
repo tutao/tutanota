@@ -1,13 +1,11 @@
-import m, { Children, Vnode } from "mithril";
+import m, { Children } from "mithril";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
-import { Keys } from "../../../common/api/common/TutanotaConstants"; // ✅ Import Keys enum
-import { animations, opacity } from "../../../common/gui/animation/Animations.js";
+import { Keys } from "../../../common/api/common/TutanotaConstants";
 
 export class MobyPhishModal implements ModalComponent {
     private message: string;
     private focusedBeforeShown: HTMLElement | null = null;
-    private domDialog: HTMLElement | null = null; // Store reference to modal element
 
     constructor(message: string, callingElement?: HTMLElement) {
         this.message = message;
@@ -16,36 +14,27 @@ export class MobyPhishModal implements ModalComponent {
 
     view(): Children {
         return m(
-            ".dialog.elevated-bg.border-radius",
-            {
+            ".dialog-container", // ✅ Use existing modal styles
+            m(".dialog.elevated-bg.flex-center.border-radius", {
                 role: "dialog",
                 "aria-modal": "true",
-                onclick: (e: MouseEvent) => e.stopPropagation(), // Prevent clicks from closing modal
-                oncreate: (vnode) => {
-                    this.domDialog = vnode.dom as HTMLElement;
-                    animations.add(this.domDialog, opacity(0, 1, true));
-                },
-            },
-            [
+                onclick: (e: MouseEvent) => e.stopPropagation(), // Prevent background clicks
+            }, [
                 m("h3", "Action Confirmation"),
                 m("p", this.message),
-                m("button", {
-                    onclick: () => this.onClose(),
-                }, "Close")
-            ]
+                m("button", { onclick: () => this.onClose() }, "Close")
+            ])
         );
     }
 
     hideAnimation(): Promise<void> {
-        return this.domDialog
-            ? animations.add(this.domDialog, opacity(1, 0, true)).then(() => {})
-            : Promise.resolve();
+        return Promise.resolve();
     }
 
     onClose(): void {
         modal.remove(this);
         if (this.focusedBeforeShown) {
-            this.focusedBeforeShown.focus(); // Return focus to previous element
+            this.focusedBeforeShown.focus(); // Return focus
         }
     }
 
@@ -61,10 +50,10 @@ export class MobyPhishModal implements ModalComponent {
     shortcuts(): Shortcut[] {
         return [
             {
-                key: Keys.ESC, // ✅ FIXED: Use `Keys.ESC` instead of string "Escape"
+                key: Keys.ESC,
                 shift: false,
                 exec: () => this.onClose(),
-                help: "close_alt", // ✅ FIXED: "close_modal" → "close_alt"
+                help: "close_alt",
             },
         ];
     }
