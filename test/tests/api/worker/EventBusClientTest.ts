@@ -23,13 +23,12 @@ import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/D
 import { EventQueue, QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { Captor, matchers, object, verify, when } from "testdouble"
-import { create, getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
+import { getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDetector.js"
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { TypeModel } from "../../../../src/common/api/common/EntityTypes.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 
 o.spec("EventBusClientTest", function () {
@@ -387,30 +386,6 @@ o.spec("EventBusClientTest", function () {
 			verify(listenerMock.onWebsocketStateChanged(WsConnectionState.connected))
 		})
 	})
-
-	type UnknownType = {
-		_type: TypeRef<UnknownType>
-
-		_id: Id
-	}
-
-	function createUnknownEntity(): UnknownType {
-		const unknownTypeModel: TypeModel = {
-			id: Number.MAX_SAFE_INTEGER,
-			since: 1,
-			app: "sys",
-			version: "1",
-			name: "Unknown",
-			type: "LIST_ELEMENT_TYPE",
-			versioned: false,
-			encrypted: false,
-			rootId: "someId",
-			values: {},
-			associations: {},
-		}
-		const unknownTypeRef: TypeRef<UnknownType> = new TypeRef("sys", 99999999)
-		return create(unknownTypeModel, unknownTypeRef)
-	}
 
 	function createEntityMessageWithUnknownEntity(eventBatchId: number): string {
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {

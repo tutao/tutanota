@@ -160,12 +160,8 @@ export class CryptoFacade {
 	}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
-	resolveSessionKeyWithOwnerKey(instance: Record<string, any>, ownerKey: AesKey): AesKey {
-		let key: Uint8Array | string = instance._ownerEncSessionKey
-		if (typeof key === "string") {
-			key = base64ToUint8Array(key)
-		}
-
+	resolveSessionKeyWithOwnerKey(ownerEncSessionKey: Uint8Array | string, ownerKey: AesKey): AesKey {
+		const key = typeof ownerEncSessionKey === "string" ? base64ToUint8Array(ownerEncSessionKey) : ownerEncSessionKey
 		return decryptKey(ownerKey, key)
 	}
 
@@ -186,44 +182,62 @@ export class CryptoFacade {
 	// fixme: should we have two version for this method . one that takes SomeEntity and one that takes Record<number, any>
 	// previously SomeEntity was compatible to Record<string, any>
 	async resolveSessionKey(typeModel: TypeModel, instance: Record<number, any>): Promise<AesKey | null> {
-		if (!typeModel.encrypted) {
-			return null
-		}
-
 		const typeRef: TypeRef<SomeEntity> = new TypeRef(typeModel.app, typeModel.id)
-		const bucketKey = instance[assertNotNull(await getAttributeId(typeRef, "bucketKey"))]
-		// FIXME this name is stupid
-		const underScoredOwnerEncSessionKey = instance[assertNotNull(await getAttributeId(typeRef, "_ownerEncSessionKey"))]
-		const ownerEncSessionKey = instance[assertNotNull(await getAttributeId(typeRef, "ownerEncSessionKey"))]
-		const underScoredOwnerKeyVersion = instance[assertNotNull(await getAttributeId(typeRef, "_ownerKeyVersion"))]
-		const ownerKeyVersion = instance[assertNotNull(await getAttributeId(typeRef, "ownerKeyVersion"))]
-		const ownerGroup = instance[assertNotNull(await getAttributeId(typeRef, "_ownerGroup"))]
-		const underScoredPermissions = instance[assertNotNull(await getAttributeId(typeRef, "_permissions"))]
-		const underScoredId = instance[assertNotNull(await getAttributeId(typeRef, "_id"))]
 
 		try {
-			if (bucketKey) {
+			if (!typeModel.encrypted) {
+				return null
+			}
+
+			const bucketKeyAttrId = await getAttributeId(typeRef, "bucketKey")
+			const instanceBucketKey = bucketKeyAttrId ? instance[bucketKeyAttrId] : null
+
+			const underscoredOwnerEncSessionKeyAttrId = await getAttributeId(typeRef, "_ownerEncSessionKey")
+			const instanceUnderscoredOwnerEncSessionKey = underscoredOwnerEncSessionKeyAttrId ? instance[underscoredOwnerEncSessionKeyAttrId] : null
+
+			const ownerEncSessionKeyAttrId = await getAttributeId(typeRef, "ownerEncSessionKey")
+			const instanceOwnerEncSessionKey = ownerEncSessionKeyAttrId ? instance[ownerEncSessionKeyAttrId] : null
+
+			const underscoredOwnerGroupAttrId = await getAttributeId(typeRef, "_ownerGroup")
+			const underscoredOwnerGroup = underscoredOwnerGroupAttrId ? instance[underscoredOwnerGroupAttrId] : null
+
+			if (instanceBucketKey) {
 				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 				// we need to do this BEFORE we check the owner enc session key
-				const decodedBucketKey = await this.convertBucketKeyToInstanceIfNecessary(bucketKey)
-				const resolvedSessionKeys = await this.resolveWithBucketKey(decodedBucketKey, instance, typeModel)
+				const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(instanceBucketKey)
+				const resolvedSessionKeys = await this.resolveWithBucketKey(bucketKey, instance, typeModel)
 				return resolvedSessionKeys.resolvedSessionKeyForInstance
-			} else if (underScoredOwnerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(ownerGroup)) {
-				const gk = await this.keyLoaderFacade.loadSymGroupKey(ownerGroup, parseKeyVersion(underScoredOwnerKeyVersion ?? "0"))
-				return this.resolveSessionKeyWithOwnerKey(instance, gk)
-			} else if (ownerEncSessionKey) {
+			} else if (
+				instanceUnderscoredOwnerEncSessionKey &&
+				this.userFacade.isFullyLoggedIn() &&
+				this.userFacade.hasGroup(assertNotNull(underscoredOwnerGroup))
+			) {
+				// fixme: should evereyting here not have keyVersion?
+				const instanceUnderscoredOwnerKeyVersionAttrId = await getAttributeId(typeRef, "_ownerKeyVersion")
+				const instanceUnderscoredOwnerKeyVersion = instanceUnderscoredOwnerKeyVersionAttrId ? instance[instanceUnderscoredOwnerKeyVersionAttrId] : "0"
+
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(underscoredOwnerGroup, parseKeyVersion(instanceUnderscoredOwnerKeyVersion))
+				return this.resolveSessionKeyWithOwnerKey(instanceUnderscoredOwnerEncSessionKey, gk)
+			} else if (instanceOwnerEncSessionKey) {
+				// fixme: should evereyting here not have keyVersion?
+				const instanceOwnerKeyVersionAttrId = await getAttributeId(typeRef, "ownerKeyVersion")
+				const instanceOwnerKeyVersion = instanceOwnerKeyVersionAttrId ? instance[instanceOwnerKeyVersionAttrId] : "0"
+
 				// Likely a DataTransferType, so this is a service.
-				const gk = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getGroupId(GroupType.Mail), parseKeyVersion(ownerKeyVersion ?? "0"))
-				return this.resolveSessionKeyWithOwnerKey(instance, gk)
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getGroupId(GroupType.Mail), parseKeyVersion(instanceOwnerKeyVersion))
+				return this.resolveSessionKeyWithOwnerKey(instanceUnderscoredOwnerEncSessionKey, gk)
 			} else {
 				// See PermissionType jsdoc for more info on permissions
-				const permissions = await this.entityClient.loadAll(PermissionTypeRef, underScoredPermissions)
+				const instancePermission = instance[assertNotNull(await getAttributeId(typeRef, "_permissions"))]
+				const permissions = await this.entityClient.loadAll(PermissionTypeRef, instancePermission)
 				return (await this.trySymmetricPermission(permissions)) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
 			}
 		} catch (e) {
+			const instanceId = instance[assertNotNull(await getAttributeId(typeRef, "_id"))]
+
 			if (e instanceof CryptoError) {
 				console.log("failed to resolve session key", e)
-				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + underScoredId)
+				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instanceId)
 			} else {
 				throw e
 			}

@@ -224,7 +224,7 @@ export class EntityRestClient implements EntityRestInterface {
 		try {
 			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
 				const ownerKey = await ownerKeyProvider(parseKeyVersion(migratedEntity._ownerKeyVersion ?? 0))
-				return this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity, ownerKey)
+				return this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
 			} else {
 				return await this._crypto.resolveSessionKey(typeModel, migratedEntity)
 			}

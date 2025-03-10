@@ -249,10 +249,22 @@ o.spec("CryptoFacadeTest", function () {
 		let senderName = "TutanotaTeam"
 		const sk = aes256RandomKey()
 
-		const mail = createMailLiteral(recipientUser.mailGroupKey, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
+		/*
+		recipientUser.mailGroupKey, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id
+		 */
+		const mail = createTestEntity(MailTypeRef, {
+			_ownerEncSessionKey: recipientUser.mailGroupKey ? encryptKey(recipientUser.mailGroupKey, sk) : null,
+			subject: uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(subject), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
+			confidential,
+			sender: createMailAddress({ name: senderName, address: senderAddress, contact: null }),
+			firstRecipient: createMailAddress({ name: recipientUser.name, address: "support@yahoo.com", contact: null }),
+			_ownerGroup: recipientUser.mailGroup._id,
+			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
+		})
+		const mailLiteral = await new InstanceMapper().mapToLiteral(mail)
 
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
+		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mailLiteral))
 
 		o(sessionKey).deepEquals(sk)
 	})

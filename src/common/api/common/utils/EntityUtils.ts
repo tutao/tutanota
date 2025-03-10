@@ -273,7 +273,6 @@ export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>, createDefau
 	}
 
 	for (const [valueIdStr, value] of Object.entries(typeModel.values)) {
-		const valueId = parseInt(valueIdStr)
 		i[value.name] = createDefaultValue(value.name, value)
 	}
 
