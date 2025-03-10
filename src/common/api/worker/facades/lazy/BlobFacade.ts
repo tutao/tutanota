@@ -29,16 +29,14 @@ import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from
 import { FileReference } from "../../../common/utils/FileUtils.js"
 import { handleRestError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
-import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn, createBlobId } from "../../../entities/storage/TypeRefs.js"
-import { AuthDataProvider } from "../UserFacade.js"
 import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.js"
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
-import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { SomeEntity } from "../../../common/EntityTypes.js"
 import { encryptBytes } from "../../crypto/CryptoWrapper.js"
 import { BlobReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -332,7 +330,12 @@ export class BlobFacade {
 		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, { blobHash }, BlobGetInTypeRef)
 		const serviceUrl = new URL(BLOB_SERVICE_REST_PATH, serverUrl)
 		const fullUrl = addParamsToUrl(serviceUrl, queryParams)
-		const { suspensionTime, responseBody, statusCode, errorId, precondition } = await this.fileApp.upload(location, fullUrl.toString(), HttpMethod.POST, {}) // blobReferenceToken in the response body
+		const { suspensionTime, responseBody, statusCode, errorId, precondition } = await this.fileApp.upload(
+			location,
+			fullUrl.toString(),
+			HttpMethod.POST,
+			this.createStorageAppHeaders(),
+		) // blobReferenceToken in the response body
 
 		if (statusCode === 201 && responseBody != null) {
 			return this.parseBlobPostOutResponse(uint8ArrayToString("utf-8", responseBody))
@@ -448,7 +451,11 @@ export class BlobFacade {
 		}
 		const serviceUrl = new URL(BLOB_SERVICE_REST_PATH, serverUrl)
 		const url = addParamsToUrl(serviceUrl, await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, additionalParams, BlobGetInTypeRef))
-		const { statusCode, encryptedFileUri, suspensionTime, errorId, precondition } = await this.fileApp.download(url.toString(), fileName, {})
+		const { statusCode, encryptedFileUri, suspensionTime, errorId, precondition } = await this.fileApp.download(
+			url.toString(),
+			fileName,
+			this.createStorageAppHeaders(),
+		)
 		if (statusCode == 200 && encryptedFileUri != null) {
 			const decryptedFileUrl = await this.aesApp.aesDecryptFile(sessionKey, encryptedFileUri)
 			try {
@@ -463,6 +470,10 @@ export class BlobFacade {
 		} else {
 			throw handleRestError(statusCode, ` | ${HttpMethod.GET} failed to natively download attachment`, errorId, precondition)
 		}
+	}
+
+	private createStorageAppHeaders() {
+		return { v: storageTypeModels[BlobGetInTypeRef.typeId].version, cv: env.versionNumber }
 	}
 }
 

@@ -206,7 +206,6 @@ class SseClient internal constructor(
 		val request = Request.Builder()
 			.url(connectionData.url)
 			.method("GET", null)
-			.header("Content-Type", "application/json")
 			.header("Connection", "Keep-Alive")
 			.header("Accept", "text/event-stream")
 			.addSysVersionHeaders()

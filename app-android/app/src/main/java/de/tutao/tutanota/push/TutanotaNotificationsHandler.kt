@@ -141,7 +141,6 @@ class TutanotaNotificationsHandler(
 		val request = Request.Builder()
 			.url(url)
 			.method("GET", null)
-			.header("Content-Type", "application/json")
 			.header("userIds", userId ?: "")
 			.addSysVersionHeaders()
 			.apply {
