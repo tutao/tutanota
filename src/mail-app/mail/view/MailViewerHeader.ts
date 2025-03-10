@@ -34,7 +34,8 @@ import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
-import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
+
+
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -55,7 +56,6 @@ export interface MailViewerHeaderAttrs {
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private detailsExpanded = false
 	private filesExpanded = false
-	private isSenderConfirmed: boolean = false
 
 	view({ attrs }: Vnode<MailViewerHeaderAttrs>): Children {
 		const { viewModel } = attrs
@@ -766,39 +766,30 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	//
 	//
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
-		if (this.isSenderConfirmed) {
-			return m(InfoBanner, {
-				message: "mobyPhish_sender_confirmed",
-				type: BannerType.Info,
-			});
-		}
+		const confirmButton: BannerButtonAttrs = {
+			label: "mobyPhish_confirm",
+			click: (event: MouseEvent) => {
+				console.log("Moby Phish Confirm Button Clicked!");
+				modal.display(new MobyPhishModal("This sender has been marked as trusted.", event.currentTarget as HTMLElement));
+			}
+		};
 	
-
-		const handleDenyClick = () => {
-			modal.display(new MobyPhishDenyModal());
+		const denyButton: BannerButtonAttrs = {
+			label: "mobyPhish_deny",
+			click: (event: MouseEvent) => {
+				console.log("Moby Phish Deny Button Clicked!");
+				modal.display(new MobyPhishModal("This sender has been marked as untrusted.", event.currentTarget as HTMLElement));
+			}
 		};
 	
 		return m(InfoBanner, {
 			message: "mobyPhish_is_trusted",
+			icon: Icons.Warning,
 			type: BannerType.Warning,
-			buttons: [
-				{
-					label: "Confirm",
-					click: () => {
-						console.log("Sender Confirmed");
-						this.isSenderConfirmed = true;
-						m.redraw();
-					},
-				},
-				{
-					label: "Deny",
-					click: handleDenyClick,
-				},
-			],
+			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+			buttons: [confirmButton, denyButton],
 		});
 	}
-
-	
 	
 	
 
