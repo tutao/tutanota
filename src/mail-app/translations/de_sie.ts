@@ -1954,6 +1954,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"promotion.birthday_msg": "Birthday Deal: Save 62% on our top-tier plan!"
 	}
 }

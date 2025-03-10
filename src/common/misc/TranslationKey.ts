@@ -1935,3 +1935,4 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "promotion.birthday_msg"

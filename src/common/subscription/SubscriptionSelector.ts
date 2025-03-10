@@ -118,7 +118,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (isCampaign && !isBusiness) {
-			return wrapInDiv(lang.get("pricing.cyber_monday_msg"), { width: "230px", margin: "1em auto 0 auto" })
+			return wrapInDiv(lang.get("promotion.birthday_msg"), { width: "230px", margin: "1em auto 0 auto" })
 		}
 	}
 
