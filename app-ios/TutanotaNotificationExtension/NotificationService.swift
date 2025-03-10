@@ -5,6 +5,7 @@ import tutasdk
 class NotificationService: UNNotificationServiceExtension {
 	var contentHandler: ((UNNotificationContent) -> Void)?
 	var bestAttemptContent: UNMutableNotificationContent?
+	let urlSession: URLSession = makeUrlSession()
 
 	override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
 		self.contentHandler = contentHandler
@@ -47,7 +48,7 @@ class NotificationService: UNNotificationServiceExtension {
 			encryptedPassphraseKey: encryptedPassphraseKey.data,
 			credentialType: tutasdk.CredentialType.internal
 		)
-		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient()).login(credentials: credentials)
+		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession)).login(credentials: credentials)
 		return try await sdk.mailFacade().loadEmailByIdEncrypted(idTuple: tutasdk.IdTupleGenerated(listId: mailId[0], elementId: mailId[1]))
 	}
 	private func getSenderOfMail(_ mail: tutasdk.Mail) -> String {

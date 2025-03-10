@@ -1,14 +1,10 @@
-//
-//  ExternalCaledarFacade.swift
-//  calendar
-//
-//  Created by Tutao GmbH on 15.08.24.
-//
-
 import Foundation
 
 public class ExternalCalendarFacadeImpl: ExternalCalendarFacade {
-	public init() {}
+	private let urlSession: URLSession
+	public init(urlSession: URLSession) {
+		self.urlSession = urlSession
+	}
 
 	public func fetchExternalCalendar(_ url: String) async throws -> String {
 		enum FetchExternalError: Error {
