@@ -12,6 +12,7 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 	private var alarmManager: AlarmManager!
 	private var notificationsHandler: NotificationsHandler!
 	private var viewController: ViewController!
+	private let urlSession: URLSession = makeUrlSession()
 
 	func registerForPushNotifications() async throws -> String {
 		#if targetEnvironment(simulator)
@@ -40,15 +41,22 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 		let notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
+		let dateProvider: SystemDateProvider = SystemDateProvider()
 
-		let alarmModel = AlarmModel(dateProvider: SystemDateProvider())
+		let alarmModel = AlarmModel(dateProvider: dateProvider)
 		self.alarmManager = AlarmManager(
 			alarmPersistor: AlarmPreferencePersistor(notificationsStorage: notificationStorage, keychainManager: keychainManager),
 			alarmCryptor: KeychainAlarmCryptor(keychainManager: keychainManager),
 			alarmScheduler: SystemAlarmScheduler(),
 			alarmCalculator: alarmModel
 		)
-		self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: notificationStorage)
+		let httpClient = URLSessionHttpClient(session: self.urlSession)
+		self.notificationsHandler = NotificationsHandler(
+			alarmManager: self.alarmManager,
+			notificationStorage: notificationStorage,
+			httpClient: httpClient,
+			dateProvider: dateProvider
+		)
 		self.window = UIWindow(frame: UIScreen.main.bounds)
 
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
@@ -68,7 +76,8 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 			credentialsEncryption: credentialsEncryption,
 			blobUtils: BlobUtil(),
 			contactsSynchronization: IosMobileContactsFacade(userDefault: UserDefaults.standard),
-			userPreferencesProvider: userPreferencesProvider
+			userPreferencesProvider: userPreferencesProvider,
+			urlSession: self.urlSession
 		)
 		self.window!.rootViewController = viewController
 
@@ -131,6 +140,7 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 		let apsDict = userInfo["aps"] as! [String: Any]
 
 		let contentAvailable = apsDict["content-available"]
+		TUTSLog("Received background notification, content-available: \(String(describing: contentAvailable))")
 		if contentAvailable as? Int == 1 {
 			self.notificationsHandler.fetchMissedNotifications { result in
 				TUTSLog("Fetched missed notification after notification \(String(describing: result))")
@@ -177,7 +187,7 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 			encryptedPassphraseKey: encryptedPassphraseKey.data,
 			credentialType: tutasdk.CredentialType.internal
 		)
-		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient()).login(credentials: credentials)
+		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession)).login(credentials: credentials)
 		let mail = IdTupleGenerated(listId: mailId[0], elementId: mailId[1])
 		switch actionIdentifier {
 		case MAIL_TRASH_ACTION: try await sdk.mailFacade().trashMails(mails: [mail])

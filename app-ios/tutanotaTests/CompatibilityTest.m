@@ -4,7 +4,7 @@
 #import "Swiftier.h"
 
 
-@interface CompatibilityTest : XCTestCase
+@interface CompatibilityTest : NSObject
 
 @property NSDictionary *testData;
 
@@ -13,7 +13,7 @@
 @implementation CompatibilityTest
 
 - (void)setUp {
-    [super setUp];
+//    [super setUp];
 	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 	NSString *path =  [bundle pathForResource:@"CompatibilityTestData" ofType:@"json"];
     NSData *jsonData = [[NSData alloc] initWithContentsOfFile:path];

@@ -1,4 +1,5 @@
 {
+  "originHash" : "caec9ec7383dcdd08a9fd2a3eb27eaf1dcb31c13e289c9e707eabbb788eb2ea1",
   "pins" : [
     {
       "identity" : "dictionarycoding",
@@ -28,5 +29,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

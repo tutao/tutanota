@@ -12,12 +12,10 @@ class ApiSchemeHandler: NSObject, WKURLSchemeHandler {
 	private let dictLock = UnfairLock()
 	private var taskDict = [URLRequest: URLSessionDataTask]()
 
-	override init() {
+	init(urlSession: URLSession) {
 		// docs say that schemes are case insensitive
 		self.regex = try! NSRegularExpression(pattern: "^api", options: .caseInsensitive)
-		let configuration = URLSessionConfiguration.ephemeral
-		configuration.timeoutIntervalForRequest = 20
-		self.urlSession = URLSession(configuration: configuration)
+		self.urlSession = urlSession
 		super.init()
 	}
 

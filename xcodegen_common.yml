@@ -7,7 +7,7 @@ options:
   usesTabs: true
   tabWidth: 4 # Keep this in sync with the `.swift-format.json`
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "16.0"
   groupSortPosition: "top"
   transitivelyLinkDependencies: false
   localPackagesGroup: ""

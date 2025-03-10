@@ -1,9 +1,9 @@
 import Foundation
-import XCTest
+import Testing
 
 @testable import TutanotaSharedFramework
 
-class SharingUtilsTest: XCTestCase {
+struct SharingUtilsTest {
 
 	private func generateVcardTemplate(fn: String) -> String {
 		"""
@@ -17,7 +17,7 @@ class SharingUtilsTest: XCTestCase {
 		"""
 	}
 
-	func testExtractFNfromVCard() {
+	@Test func testExtractFNfromVCard() {
 		let testCases = ["", "test", "h ello", "armfortest@test.tutanota.de"]
 
 		let generatedNames = testCases.map { extractFNfrom(vcard: generateVcardTemplate(fn: $0)) }
@@ -48,9 +48,9 @@ class SharingUtilsTest: XCTestCase {
 				"""
 		)
 
-		XCTAssertEqual(generatedNames, expected)
-		XCTAssertNotEqual(generatedNames, testCases)
-		XCTAssertEqual(defaultResult, "contact")
-		XCTAssertEqual(dummyResult, "_another_name")
+		#expect(generatedNames == expected)
+		#expect(generatedNames != testCases)
+		#expect(defaultResult == "contact")
+		#expect(dummyResult == "_another_name")
 	}
 }
