@@ -34,8 +34,7 @@ import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
-
-
+import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -56,6 +55,7 @@ export interface MailViewerHeaderAttrs {
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private detailsExpanded = false
 	private filesExpanded = false
+	private isSenderConfirmed: boolean = false
 
 	view({ attrs }: Vnode<MailViewerHeaderAttrs>): Children {
 		const { viewModel } = attrs
@@ -766,30 +766,42 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	//
 	//
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
-		const confirmButton: BannerButtonAttrs = {
-			label: "mobyPhish_confirm",
-			click: (event: MouseEvent) => {
-				console.log("Moby Phish Confirm Button Clicked!");
-				modal.display(new MobyPhishModal("This sender has been marked as trusted.", event.currentTarget as HTMLElement));
-			}
-		};
+		// State to track if the sender is confirmed
+		if (this.isSenderConfirmed) {
+			return m(InfoBanner, {
+				message: m("span", [ "Sender confirmed as known ", m("span.green-check", "✅") ]),
+				icon: Icons.Checkmark,  // Assuming there's a checkmark icon
+				type: BannerType.Info
+			});
+		}
 	
-		const denyButton: BannerButtonAttrs = {
-			label: "mobyPhish_deny",
-			click: (event: MouseEvent) => {
-				console.log("Moby Phish Deny Button Clicked!");
-				modal.display(new MobyPhishModal("This sender has been marked as untrusted.", event.currentTarget as HTMLElement));
-			}
+		// Function to handle the deny button click
+		const handleDenyClick = () => {
+			modal.display(new MobyPhishDenyModal()); // Show the deny options modal
 		};
 	
 		return m(InfoBanner, {
-			message: "mobyPhish_is_trusted",
+			message: "Is this a sender you know?",
 			icon: Icons.Warning,
 			type: BannerType.Warning,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-			buttons: [confirmButton, denyButton],
+			buttons: [
+				{
+					label: "Confirm",
+					click: () => {
+						console.log("Sender Confirmed");
+						this.isSenderConfirmed = true; // Update state
+						m.redraw(); // Force re-render
+					}
+				},
+				{
+					label: "Deny",
+					click: handleDenyClick
+				}
+			],
 		});
 	}
+	
 	
 	
 
