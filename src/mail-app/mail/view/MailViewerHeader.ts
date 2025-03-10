@@ -769,12 +769,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	//
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		if (this.isSenderConfirmed) {			
-			return (() => m(InfoBanner, {
+			return m(InfoBanner as any, {
 				message: "mobyPhish_sender_confirmed",
 				icon: Icons.Warning,
 				type: BannerType.Warning,
 				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-			}))();
+				buttons: [],
+			});
 		}
 
 		const confirmButton: BannerButtonAttrs = {
