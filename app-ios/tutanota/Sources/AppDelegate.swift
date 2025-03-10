@@ -12,6 +12,7 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 	private var alarmManager: AlarmManager!
 	private var notificationsHandler: NotificationsHandler!
 	private var viewController: ViewController!
+	private let urlSession: URLSession = makeUrlSession()
 
 	func registerForPushNotifications() async throws -> String {
 		#if targetEnvironment(simulator)
@@ -49,8 +50,7 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 			alarmScheduler: SystemAlarmScheduler(),
 			alarmCalculator: alarmModel
 		)
-		// FIXME
-		let httpClient = URLSessionHttpClient(session: observableUrlSession())
+		let httpClient = URLSessionHttpClient(session: self.urlSession)
 		self.notificationsHandler = NotificationsHandler(
 			alarmManager: self.alarmManager,
 			notificationStorage: notificationStorage,
@@ -76,7 +76,8 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 			credentialsEncryption: credentialsEncryption,
 			blobUtils: BlobUtil(),
 			contactsSynchronization: IosMobileContactsFacade(userDefault: UserDefaults.standard),
-			userPreferencesProvider: userPreferencesProvider
+			userPreferencesProvider: userPreferencesProvider,
+			urlSession: self.urlSession
 		)
 		self.window!.rootViewController = viewController
 
@@ -186,7 +187,7 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 			encryptedPassphraseKey: encryptedPassphraseKey.data,
 			credentialType: tutasdk.CredentialType.internal
 		)
-		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient()).login(credentials: credentials)
+		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession)).login(credentials: credentials)
 		let mail = IdTupleGenerated(listId: mailId[0], elementId: mailId[1])
 		switch actionIdentifier {
 		case MAIL_TRASH_ACTION: try await sdk.mailFacade().trashMails(mails: [mail])
