@@ -770,7 +770,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return m(InfoBanner, {
 				message: "Sender confirmed as known",
 				icon: "✅",
-				type: BannerType.Success,
+				type: BannerType.Info,
 			});
 		}
 	
