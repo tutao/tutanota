@@ -6,155 +6,7 @@
 
 /** @type {any} */
 export const typeModels = {
-	"BlobAccessTokenPostIn": {
-		"name": "BlobAccessTokenPostIn",
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 77,
-		"rootId": "B3N0b3JhZ2UATQ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 78,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"archiveDataType": {
-				"final": false,
-				"name": "archiveDataType",
-				"id": 180,
-				"since": 4,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"read": {
-				"final": true,
-				"name": "read",
-				"id": 181,
-				"since": 4,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "BlobReadData",
-				"dependency": null
-			},
-			"write": {
-				"final": false,
-				"name": "write",
-				"id": 80,
-				"since": 1,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "BlobWriteData",
-				"dependency": null
-			}
-		},
-		"app": "storage",
-		"version": "11"
-	},
-	"BlobAccessTokenPostOut": {
-		"name": "BlobAccessTokenPostOut",
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 81,
-		"rootId": "B3N0b3JhZ2UAUQ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 82,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"blobAccessInfo": {
-				"final": false,
-				"name": "blobAccessInfo",
-				"id": 161,
-				"since": 4,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "BlobServerAccessInfo",
-				"dependency": null
-			}
-		},
-		"app": "storage",
-		"version": "11"
-	},
-	"BlobArchiveRef": {
-		"name": "BlobArchiveRef",
-		"since": 4,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 129,
-		"rootId": "B3N0b3JhZ2UAAIE",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 133,
-				"since": 4,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 131,
-				"since": 4,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 134,
-				"since": 4,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 132,
-				"since": 4,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"archive": {
-				"final": false,
-				"name": "archive",
-				"id": 135,
-				"since": 4,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Archive",
-				"dependency": null
-			}
-		},
-		"app": "storage",
-		"version": "11"
-	},
-	"BlobGetIn": {
+	"50": {
 		"name": "BlobGetIn",
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
@@ -199,36 +51,36 @@ export const typeModels = {
 				"since": 8,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "BlobId",
+				"refTypeId": 144,
 				"dependency": null
 			}
 		},
 		"app": "storage",
 		"version": "11"
 	},
-	"BlobId": {
-		"name": "BlobId",
-		"since": 4,
+	"73": {
+		"name": "BlobWriteData",
+		"since": 1,
 		"type": "AGGREGATED_TYPE",
-		"id": 144,
-		"rootId": "B3N0b3JhZ2UAAJA",
+		"id": 73,
+		"rootId": "B3N0b3JhZ2UASQ",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 145,
-				"since": 4,
+				"id": 74,
+				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"blobId": {
+			"archiveOwnerGroup": {
 				"final": false,
-				"name": "blobId",
-				"id": 146,
-				"since": 4,
+				"name": "archiveOwnerGroup",
+				"id": 75,
+				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -238,114 +90,19 @@ export const typeModels = {
 		"app": "storage",
 		"version": "11"
 	},
-	"BlobPostOut": {
-		"name": "BlobPostOut",
-		"since": 4,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 125,
-		"rootId": "B3N0b3JhZ2UAfQ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 126,
-				"since": 4,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"blobReferenceToken": {
-				"final": false,
-				"name": "blobReferenceToken",
-				"id": 127,
-				"since": 4,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"blobReferenceTokens": {
-				"final": true,
-				"name": "blobReferenceTokens",
-				"id": 208,
-				"since": 10,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "BlobReferenceTokenWrapper",
-				"dependency": "sys"
-			}
-		},
-		"app": "storage",
-		"version": "11"
-	},
-	"BlobReadData": {
-		"name": "BlobReadData",
-		"since": 4,
-		"type": "AGGREGATED_TYPE",
-		"id": 175,
-		"rootId": "B3N0b3JhZ2UAAK8",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 176,
-				"since": 4,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"archiveId": {
-				"final": false,
-				"name": "archiveId",
-				"id": 177,
-				"since": 4,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"instanceListId": {
-				"final": true,
-				"name": "instanceListId",
-				"id": 178,
-				"since": 4,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"instanceIds": {
-				"final": true,
-				"name": "instanceIds",
-				"id": 179,
-				"since": 4,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "InstanceId",
-				"dependency": null
-			}
-		},
-		"app": "storage",
-		"version": "11"
-	},
-	"BlobReferenceDeleteIn": {
-		"name": "BlobReferenceDeleteIn",
+	"77": {
+		"name": "BlobAccessTokenPostIn",
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 100,
-		"rootId": "B3N0b3JhZ2UAZA",
+		"id": 77,
+		"rootId": "B3N0b3JhZ2UATQ",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 101,
+				"id": 78,
 				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
@@ -354,47 +111,73 @@ export const typeModels = {
 			"archiveDataType": {
 				"final": false,
 				"name": "archiveDataType",
-				"id": 124,
+				"id": 180,
 				"since": 4,
 				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"instanceId": {
-				"final": false,
-				"name": "instanceId",
-				"id": 103,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"instanceListId": {
-				"final": false,
-				"name": "instanceListId",
-				"id": 102,
-				"since": 1,
-				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"blobs": {
+			"read": {
 				"final": true,
-				"name": "blobs",
-				"id": 105,
+				"name": "read",
+				"id": 181,
+				"since": 4,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 175,
+				"dependency": null
+			},
+			"write": {
+				"final": false,
+				"name": "write",
+				"id": 80,
 				"since": 1,
 				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "Blob",
-				"dependency": "sys"
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 73,
+				"dependency": null
 			}
 		},
 		"app": "storage",
 		"version": "11"
 	},
-	"BlobReferencePutIn": {
+	"81": {
+		"name": "BlobAccessTokenPostOut",
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 81,
+		"rootId": "B3N0b3JhZ2UAUQ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 82,
+				"since": 1,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"blobAccessInfo": {
+				"final": false,
+				"name": "blobAccessInfo",
+				"id": 161,
+				"since": 4,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 157,
+				"dependency": null
+			}
+		},
+		"app": "storage",
+		"version": "11"
+	},
+	"94": {
 		"name": "BlobReferencePutIn",
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
@@ -448,14 +231,243 @@ export const typeModels = {
 				"since": 4,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "BlobReferenceTokenWrapper",
+				"refTypeId": 1990,
 				"dependency": "sys"
 			}
 		},
 		"app": "storage",
 		"version": "11"
 	},
-	"BlobServerAccessInfo": {
+	"100": {
+		"name": "BlobReferenceDeleteIn",
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 100,
+		"rootId": "B3N0b3JhZ2UAZA",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 101,
+				"since": 1,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"archiveDataType": {
+				"final": false,
+				"name": "archiveDataType",
+				"id": 124,
+				"since": 4,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"instanceId": {
+				"final": false,
+				"name": "instanceId",
+				"id": 103,
+				"since": 1,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"instanceListId": {
+				"final": false,
+				"name": "instanceListId",
+				"id": 102,
+				"since": 1,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"blobs": {
+				"final": true,
+				"name": "blobs",
+				"id": 105,
+				"since": 1,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1882,
+				"dependency": "sys"
+			}
+		},
+		"app": "storage",
+		"version": "11"
+	},
+	"125": {
+		"name": "BlobPostOut",
+		"since": 4,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 125,
+		"rootId": "B3N0b3JhZ2UAfQ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 126,
+				"since": 4,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"blobReferenceToken": {
+				"final": false,
+				"name": "blobReferenceToken",
+				"id": 127,
+				"since": 4,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"blobReferenceTokens": {
+				"final": true,
+				"name": "blobReferenceTokens",
+				"id": 208,
+				"since": 10,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1990,
+				"dependency": "sys"
+			}
+		},
+		"app": "storage",
+		"version": "11"
+	},
+	"129": {
+		"name": "BlobArchiveRef",
+		"since": 4,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 129,
+		"rootId": "B3N0b3JhZ2UAAIE",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 133,
+				"since": 4,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 131,
+				"since": 4,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 134,
+				"since": 4,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 132,
+				"since": 4,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"archive": {
+				"final": false,
+				"name": "archive",
+				"id": 135,
+				"since": 4,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 22,
+				"dependency": null
+			}
+		},
+		"app": "storage",
+		"version": "11"
+	},
+	"144": {
+		"name": "BlobId",
+		"since": 4,
+		"type": "AGGREGATED_TYPE",
+		"id": 144,
+		"rootId": "B3N0b3JhZ2UAAJA",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 145,
+				"since": 4,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"blobId": {
+				"final": false,
+				"name": "blobId",
+				"id": 146,
+				"since": 4,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "storage",
+		"version": "11"
+	},
+	"154": {
+		"name": "BlobServerUrl",
+		"since": 4,
+		"type": "AGGREGATED_TYPE",
+		"id": 154,
+		"rootId": "B3N0b3JhZ2UAAJo",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 155,
+				"since": 4,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"url": {
+				"final": false,
+				"name": "url",
+				"id": 156,
+				"since": 4,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "storage",
+		"version": "11"
+	},
+	"157": {
 		"name": "BlobServerAccessInfo",
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
@@ -509,78 +521,14 @@ export const typeModels = {
 				"since": 4,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "BlobServerUrl",
+				"refTypeId": 154,
 				"dependency": null
 			}
 		},
 		"app": "storage",
 		"version": "11"
 	},
-	"BlobServerUrl": {
-		"name": "BlobServerUrl",
-		"since": 4,
-		"type": "AGGREGATED_TYPE",
-		"id": 154,
-		"rootId": "B3N0b3JhZ2UAAJo",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 155,
-				"since": 4,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"url": {
-				"final": false,
-				"name": "url",
-				"id": 156,
-				"since": 4,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "storage",
-		"version": "11"
-	},
-	"BlobWriteData": {
-		"name": "BlobWriteData",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 73,
-		"rootId": "B3N0b3JhZ2UASQ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 74,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"archiveOwnerGroup": {
-				"final": false,
-				"name": "archiveOwnerGroup",
-				"id": 75,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "storage",
-		"version": "11"
-	},
-	"InstanceId": {
+	"172": {
 		"name": "InstanceId",
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
@@ -609,6 +557,58 @@ export const typeModels = {
 			}
 		},
 		"associations": {},
+		"app": "storage",
+		"version": "11"
+	},
+	"175": {
+		"name": "BlobReadData",
+		"since": 4,
+		"type": "AGGREGATED_TYPE",
+		"id": 175,
+		"rootId": "B3N0b3JhZ2UAAK8",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 176,
+				"since": 4,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"archiveId": {
+				"final": false,
+				"name": "archiveId",
+				"id": 177,
+				"since": 4,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"instanceListId": {
+				"final": true,
+				"name": "instanceListId",
+				"id": 178,
+				"since": 4,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"instanceIds": {
+				"final": true,
+				"name": "instanceIds",
+				"id": 179,
+				"since": 4,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 172,
+				"dependency": null
+			}
+		},
 		"app": "storage",
 		"version": "11"
 	}

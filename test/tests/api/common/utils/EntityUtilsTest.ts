@@ -54,7 +54,7 @@ o.spec("EntityUtils", function () {
 	})
 
 	o("create new entity without error object ", function () {
-		const mailEntity = create(typeModels.Mail, MailTypeRef)
+		const mailEntity = create(typeModels[MailTypeRef.typeId], MailTypeRef)
 		o(mailEntity._errors).equals(undefined)
 		o(hasError(mailEntity)).equals(false)
 
@@ -64,7 +64,7 @@ o.spec("EntityUtils", function () {
 	})
 
 	o.spec("removeTechnicalFields", function () {
-		const typeRef = { app: "testapp", type: "testentity" } as TypeRef<unknown>
+		const typeRef = { app: "testapp", typeId: 9999999 } as TypeRef<unknown>
 
 		function makeEntity() {
 			return {

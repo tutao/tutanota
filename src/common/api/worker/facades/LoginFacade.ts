@@ -55,7 +55,7 @@ import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { assertWorkerOrNode, isAdminClient } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
-import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
+import { EntityRestClient, typeRefToRestPath } from "../rest/EntityRestClient"
 import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
 import { CancelledError } from "../../common/error/CancelledError"
 import { RestClient } from "../rest/RestClient"
@@ -134,8 +134,8 @@ export type InitCacheOptions = {
 	forceNewDatabase: boolean
 }
 
-type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData }
-type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason }
+type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData; asyncResumeSession?: Promise<void> }
+type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason; asyncResumeSession?: Promise<void> }
 type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
 type AsyncLoginState =
@@ -605,13 +605,13 @@ export class LoginFacade {
 				}
 
 				// Start full login async
-				Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
+				const asyncResumeSession = Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
 				const data = {
 					user,
 					userGroupInfo,
 					sessionId,
 				}
-				return { type: "success", data }
+				return { type: "success", data, asyncResumeSession }
 			} else {
 				// await before return to catch errors here
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
@@ -850,7 +850,7 @@ export class LoginFacade {
 	 * @param pushIdentifier identifier associated with this device, if any, to delete PushIdentifier on the server
 	 */
 	async deleteSession(accessToken: Base64Url, pushIdentifier: string | null = null): Promise<void> {
-		let path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
+		let path = (await typeRefToRestPath(SessionTypeRef)) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const sessionTypeModel = await resolveTypeReference(SessionTypeRef)
 
 		const headers = {
@@ -890,7 +890,7 @@ export class LoginFacade {
 		userId: Id
 		accessKey: AesKey | null
 	}> {
-		const path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
+		const path = (await typeRefToRestPath(SessionTypeRef)) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const SessionTypeModel = await resolveTypeReference(SessionTypeRef)
 
 		let headers = {

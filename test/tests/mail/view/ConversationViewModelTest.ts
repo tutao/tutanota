@@ -14,7 +14,7 @@ import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailView
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../../api/worker/rest/EntityRestClientMock.js"
 import { EntityEventsListener, EventController } from "../../../../src/common/api/main/EventController.js"
-import { defer, DeferredObject, delay, noOp } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, delay, isSameTypeRef, noOp } from "@tutao/tutanota-utils"
 import { matchers, object, when } from "testdouble"
 import { MailSetKind, MailState, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { isSameId } from "../../../../src/common/api/common/utils/EntityUtils.js"
@@ -147,7 +147,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
 			o(numMailsDisplayed).equals(conversation.length)(
 				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
 			)
@@ -158,7 +158,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
 			o(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 
@@ -168,7 +168,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
 			o(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 	})
@@ -181,7 +181,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
 			o(numMailsDisplayed).equals(conversation.length)(
 				`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be ${conversation.length}`,
 			)
@@ -206,7 +206,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
 			o(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
@@ -231,7 +231,7 @@ o.spec("ConversationViewModel", function () {
 			viewModel.init(Promise.resolve())
 			await loadingDefer.promise
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
 			o(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
@@ -249,7 +249,7 @@ o.spec("ConversationViewModel", function () {
 				[
 					{
 						application: "tutanota",
-						type: "ConversationEntry",
+						typeId: ConversationEntryTypeRef.typeId,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
@@ -258,7 +258,7 @@ o.spec("ConversationViewModel", function () {
 				"mailGroupId",
 			)
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
 			o(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => `[${ci.entryId[0]}, ${ci.entryId[1]}]`).join(", ")}, should be ${conversation
 					.map((ce) => `[${ce._id[0]}, ${ce._id[1]}]`)
@@ -287,7 +287,7 @@ o.spec("ConversationViewModel", function () {
 				[
 					{
 						application: "tutanota",
-						type: "ConversationEntry",
+						typeId: ConversationEntryTypeRef.typeId,
 						operation: OperationType.UPDATE,
 						instanceListId: listId,
 						instanceId: anotherMail.conversationEntry[1],
@@ -296,7 +296,7 @@ o.spec("ConversationViewModel", function () {
 				"mailGroupId",
 			)
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
 			o(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)
@@ -314,7 +314,7 @@ o.spec("ConversationViewModel", function () {
 				[
 					{
 						application: "tutanota",
-						type: "ConversationEntry",
+						typeId: ConversationEntryTypeRef.typeId,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
@@ -323,7 +323,7 @@ o.spec("ConversationViewModel", function () {
 				"mailGroupId",
 			)
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
 			o(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 
@@ -339,7 +339,7 @@ o.spec("ConversationViewModel", function () {
 				[
 					{
 						application: "tutanota",
-						type: "ConversationEntry",
+						typeId: ConversationEntryTypeRef.typeId,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
@@ -348,7 +348,7 @@ o.spec("ConversationViewModel", function () {
 				"mailGroupId",
 			)
 
-			const numMailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail").length
+			const numMailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef)).length
 			o(numMailsDisplayed).equals(1)(`Wrong number of mails in conversationItems, got ${numMailsDisplayed} should be 1`)
 		})
 
@@ -379,7 +379,7 @@ o.spec("ConversationViewModel", function () {
 				[
 					{
 						application: "tutanota",
-						type: "ConversationEntry",
+						typeId: ConversationEntryTypeRef.typeId,
 						operation: OperationType.UPDATE,
 						instanceListId: listId,
 						instanceId: trashDraftMail.conversationEntry[1],
@@ -388,7 +388,7 @@ o.spec("ConversationViewModel", function () {
 				"mailGroupId",
 			)
 
-			const mailsDisplayed = viewModel.conversationItems().filter((i) => i.type === "mail")
+			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
 			o(sameAsConversation(mailsDisplayed)).equals(true)(
 				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => ci.entryId)}, should be ${conversation.map((ce) => ce._id)}`,
 			)

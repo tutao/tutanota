@@ -20,7 +20,7 @@ impl Entity for CustomerAccountPosting {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: "accounting",
-			type_: "CustomerAccountPosting",
+			type_id: 79,
 		}
 	}
 }
@@ -44,7 +44,7 @@ impl Entity for CustomerAccountReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: "accounting",
-			type_: "CustomerAccountReturn",
+			type_id: 86,
 		}
 	}
 }

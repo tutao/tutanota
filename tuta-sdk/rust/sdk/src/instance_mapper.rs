@@ -1482,7 +1482,7 @@ mod tests {
 		let type_ref = T::type_ref();
 		let mut parsed_entity = json_serializer.parse(&type_ref, raw_entity).unwrap();
 		let type_model = type_model_provider
-			.get_type_model(type_ref.app, type_ref.type_)
+			.get_type_model(type_ref.app, type_ref.type_id)
 			.unwrap();
 		if type_model.is_encrypted() {
 			parsed_entity.insert(

@@ -28,7 +28,7 @@ import {
 	RootInstanceTypeRef,
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CacheMode, EntityRestClient, typeRefToPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { CacheMode, EntityRestClient, typeRefToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import {
 	CacheStorage,
@@ -61,6 +61,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { entityUpateToUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const { anything } = matchers
 
@@ -114,7 +115,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 		let createUpdate = function (typeRef: TypeRef<any>, listId: Id, id: Id, operation: OperationType): EntityUpdate {
 			let eu = createTestEntity(EntityUpdateTypeRef)
 			eu.application = typeRef.app
-			eu.type = typeRef.type
+			eu.type = typeRef.typeId.toString()
+			eu.typeId = typeRef.typeId.toString()
 			eu.instanceListId = listId
 			eu.instanceId = id
 			eu.operation = operation
@@ -170,7 +172,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 		})
 
 		o.spec("entityEventsReceived", function () {
-			const path = typeRefToPath(ContactTypeRef)
+			const path = typeRefToRestPath(ContactTypeRef)
 			const contactListId1 = "contactListId1"
 			const contactListId2 = "contactListId2"
 			const id1 = "id1"

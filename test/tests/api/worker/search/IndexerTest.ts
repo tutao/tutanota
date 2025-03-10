@@ -1028,7 +1028,7 @@ o.spec("IndexerTest", () => {
 		function newUpdate<T>(typeRef: TypeRef<T>) {
 			let u = createTestEntity(EntityUpdateTypeRef)
 			u.application = typeRef.app
-			u.type = typeRef.type
+			u.typeId = typeRef.typeId.toString()
 			return u
 		}
 
@@ -1075,7 +1075,7 @@ o.spec("IndexerTest", () => {
 		function update(typeRef: TypeRef<any>) {
 			let u = createTestEntity(EntityUpdateTypeRef)
 			u.application = typeRef.app
-			u.type = typeRef.type
+			u.typeId = typeRef.typeId.toString()
 			return u
 		}
 
@@ -1131,7 +1131,7 @@ o.spec("IndexerTest", () => {
 		const events1 = [
 			createTestEntity(EntityUpdateTypeRef, {
 				application: MailTypeRef.app,
-				type: MailTypeRef.type,
+				typeId: MailTypeRef.typeId.toString(),
 				operation: OperationType.CREATE,
 				instanceId: "id-1",
 			}),
@@ -1145,7 +1145,7 @@ o.spec("IndexerTest", () => {
 		const events2 = [
 			createTestEntity(EntityUpdateTypeRef, {
 				application: MailTypeRef.app,
-				type: MailTypeRef.type,
+				typeId: MailTypeRef.typeId.toString(),
 				operation: OperationType.CREATE,
 				instanceId: "id-2",
 			}),

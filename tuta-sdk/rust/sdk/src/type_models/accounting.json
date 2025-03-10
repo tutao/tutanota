@@ -1,5 +1,5 @@
 {
-	"CustomerAccountPosting": {
+	"79": {
 		"name": "CustomerAccountPosting",
 		"since": 3,
 		"type": "AGGREGATED_TYPE",
@@ -58,7 +58,7 @@
 		"app": "accounting",
 		"version": "7"
 	},
-	"CustomerAccountReturn": {
+	"86": {
 		"name": "CustomerAccountReturn",
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
@@ -130,7 +130,7 @@
 				"since": 3,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "CustomerAccountPosting",
+				"refTypeId": 79,
 				"dependency": null
 			}
 		},

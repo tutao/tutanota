@@ -198,7 +198,8 @@ export class IndexerCore {
 	async _processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
 		const encInstanceIdPlain = encryptIndexKeyUint8Array(this.db.key, event.instanceId, this.db.iv)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceIdPlain)
-		const { appId, typeId } = typeRefToTypeInfo(new TypeRef(event.application, event.type))
+		const typeRef = new TypeRef(event.application, parseInt(event.typeId))
+		const { appId, typeId } = typeRefToTypeInfo(typeRef)
 		const transaction = await this.db.dbFacade.createTransaction(true, [ElementDataOS])
 		const elementData = await transaction.get(ElementDataOS, encInstanceIdB64)
 		if (!elementData) {

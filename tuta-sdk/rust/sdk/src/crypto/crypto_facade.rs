@@ -469,7 +469,7 @@ mod test {
 		let provider = init_type_model_provider();
 		let mail_type_ref = Mail::type_ref();
 		provider
-			.get_type_model(mail_type_ref.app, mail_type_ref.type_)
+			.resolve_type_ref(&mail_type_ref)
 			.unwrap()
 			.to_owned()
 	}

@@ -31,7 +31,7 @@ export class InstanceMapper {
 	 */
 	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T> {
 		let decrypted: any = {
-			_type: new TypeRef(model.app, model.name),
+			_type: new TypeRef(model.app, model.id),
 		}
 
 		for (let key of Object.keys(model.values)) {
@@ -63,7 +63,7 @@ export class InstanceMapper {
 		return promiseMap(Object.keys(model.associations), async (associationName) => {
 			if (model.associations[associationName].type === AssociationType.Aggregation) {
 				const dependency = model.associations[associationName].dependency
-				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refType))
+				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refTypeId))
 				let aggregation = model.associations[associationName]
 
 				if (aggregation.cardinality === Cardinality.ZeroOrOne && instance[associationName] == null) {
@@ -128,7 +128,7 @@ export class InstanceMapper {
 		return promiseMap(Object.keys(model.associations), async (associationName) => {
 			if (model.associations[associationName].type === AssociationType.Aggregation) {
 				const dependency = model.associations[associationName].dependency
-				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refType))
+				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refTypeId))
 				let aggregation = model.associations[associationName]
 				if (aggregation.cardinality === Cardinality.ZeroOrOne && i[associationName] == null) {
 					encrypted[associationName] = null

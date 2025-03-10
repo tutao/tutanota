@@ -20,7 +20,7 @@ import {
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import { binarySearch, delay, getTypeId, identity, lastThrow, ofClass, promiseFilter, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
+import { binarySearch, delay, identity, lastThrow, ofClass, promiseFilter, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
@@ -339,12 +339,12 @@ export class EventBusClient {
 	 */
 	private async removeUnknownTypes(eventBatch: EntityUpdate[]): Promise<EntityUpdate[]> {
 		return promiseFilter(eventBatch, async (entityUpdate) => {
-			const typeRef = new TypeRef(entityUpdate.application, entityUpdate.type)
+			const typeRef = new TypeRef(entityUpdate.application, parseInt(entityUpdate.typeId))
 			try {
 				await resolveTypeReference(typeRef)
 				return true
 			} catch (_error) {
-				console.warn("ignoring entityEventUpdate for unknown type with typeId", getTypeId(typeRef))
+				console.warn("ignoring entityEventUpdate for unknown type with typeId", typeRef.toString())
 				return false
 			}
 		})
