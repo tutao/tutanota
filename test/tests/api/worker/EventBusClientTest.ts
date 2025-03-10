@@ -215,8 +215,8 @@ o.spec("EventBusClientTest", function () {
 		ebc.connect(ConnectMode.Initial)
 		await socket.onopen?.(new Event("open"))
 
-		const messageData1 = createEntityMessage(1)
-		const messageData2 = createEntityMessage(2)
+		const messageData1 = await createEntityMessage(1)
+		const messageData2 = await createEntityMessage(2)
 
 		// Casting ot object here because promise stubber doesn't allow you to just return the promise
 		// We never resolve the promise
@@ -438,7 +438,8 @@ o.spec("EventBusClientTest", function () {
 		return "entityUpdate;" + JSON.stringify(event)
 	}
 
-	function createEntityMessage(eventBatchId: number): string {
+	async function createEntityMessage(eventBatchId: number): Promise<string> {
+		const instanceMapper = new InstanceMapper()
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
@@ -453,7 +454,9 @@ o.spec("EventBusClientTest", function () {
 				}),
 			],
 		})
-		return "entityUpdate;" + JSON.stringify(event)
+		const value = await instanceMapper.mapToLiteral(event as any)
+		const eventAsJson = JSON.stringify(value)
+		return "entityUpdate;" + eventAsJson
 	}
 
 	type CounterMessageParams = { mailGroupId: Id; counterValue: number; counterId: Id }

@@ -24,7 +24,7 @@ import {
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
-import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
+import { getAttributeId, HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
 import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketKeyTypeRef,
@@ -75,7 +75,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId, listIdPart } from "../../common/utils/EntityUtils.js"
 import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
@@ -149,7 +149,8 @@ export class CryptoFacade {
 
 	async resolveSessionKeyForInstance(instance: SomeEntity): Promise<AesKey | null> {
 		const typeModel = await resolveTypeReference(instance._type)
-		return this.resolveSessionKey(typeModel, instance)
+		const mappedInstance = await new InstanceMapper().mapToLiteral(instance)
+		return this.resolveSessionKey(typeModel, mappedInstance)
 	}
 
 	/** Helper for the rare cases when we needed it on the client side. */
@@ -168,8 +169,8 @@ export class CryptoFacade {
 		return decryptKey(ownerKey, key)
 	}
 
-	async decryptSessionKey(instance: Record<string, any>, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey> {
-		const gk = await this.keyLoaderFacade.loadSymGroupKey(instance._ownerGroup, ownerEncSessionKey.encryptingKeyVersion)
+	async decryptSessionKey(underScoredOwnerGroup: Id, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey> {
+		const gk = await this.keyLoaderFacade.loadSymGroupKey(underScoredOwnerGroup, ownerEncSessionKey.encryptingKeyVersion)
 		return decryptKey(gk, ownerEncSessionKey.key)
 	}
 
@@ -182,36 +183,47 @@ export class CryptoFacade {
 	 * @param typeModel the type model of the instance
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
-	async resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<AesKey | null> {
+	// fixme: should we have two version for this method . one that takes SomeEntity and one that takes Record<number, any>
+	// previously SomeEntity was compatible to Record<string, any>
+	async resolveSessionKey(typeModel: TypeModel, instance: Record<number, any>): Promise<AesKey | null> {
+		if (!typeModel.encrypted) {
+			return null
+		}
+
+		const typeRef: TypeRef<SomeEntity> = new TypeRef(typeModel.app, typeModel.id)
+		const bucketKey = instance[assertNotNull(await getAttributeId(typeRef, "bucketKey"))]
+		// FIXME this name is stupid
+		const underScoredOwnerEncSessionKey = instance[assertNotNull(await getAttributeId(typeRef, "_ownerEncSessionKey"))]
+		const ownerEncSessionKey = instance[assertNotNull(await getAttributeId(typeRef, "ownerEncSessionKey"))]
+		const underScoredOwnerKeyVersion = instance[assertNotNull(await getAttributeId(typeRef, "_ownerKeyVersion"))]
+		const ownerKeyVersion = instance[assertNotNull(await getAttributeId(typeRef, "ownerKeyVersion"))]
+		const ownerGroup = instance[assertNotNull(await getAttributeId(typeRef, "_ownerGroup"))]
+		const underScoredPermissions = instance[assertNotNull(await getAttributeId(typeRef, "_permissions"))]
+		const underScoredId = instance[assertNotNull(await getAttributeId(typeRef, "_id"))]
+
 		try {
-			if (!typeModel.encrypted) {
-				return null
-			}
-			if (instance.bucketKey) {
+			if (bucketKey) {
 				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 				// we need to do this BEFORE we check the owner enc session key
-				const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(instance.bucketKey)
-				const resolvedSessionKeys = await this.resolveWithBucketKey(bucketKey, instance, typeModel)
+				const decodedBucketKey = await this.convertBucketKeyToInstanceIfNecessary(bucketKey)
+				const resolvedSessionKeys = await this.resolveWithBucketKey(decodedBucketKey, instance, typeModel)
 				return resolvedSessionKeys.resolvedSessionKeyForInstance
-			} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
-				const gk = await this.keyLoaderFacade.loadSymGroupKey(instance._ownerGroup, parseKeyVersion(instance._ownerKeyVersion ?? "0"))
+			} else if (underScoredOwnerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(ownerGroup)) {
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(ownerGroup, parseKeyVersion(underScoredOwnerKeyVersion ?? "0"))
 				return this.resolveSessionKeyWithOwnerKey(instance, gk)
-			} else if (instance.ownerEncSessionKey) {
+			} else if (ownerEncSessionKey) {
 				// Likely a DataTransferType, so this is a service.
-				const gk = await this.keyLoaderFacade.loadSymGroupKey(
-					this.userFacade.getGroupId(GroupType.Mail),
-					parseKeyVersion(instance.ownerKeyVersion ?? "0"),
-				)
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getGroupId(GroupType.Mail), parseKeyVersion(ownerKeyVersion ?? "0"))
 				return this.resolveSessionKeyWithOwnerKey(instance, gk)
 			} else {
 				// See PermissionType jsdoc for more info on permissions
-				const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
+				const permissions = await this.entityClient.loadAll(PermissionTypeRef, underScoredPermissions)
 				return (await this.trySymmetricPermission(permissions)) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
 			}
 		} catch (e) {
 			if (e instanceof CryptoError) {
 				console.log("failed to resolve session key", e)
-				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
+				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + underScoredId)
 			} else {
 				throw e
 			}
@@ -224,12 +236,16 @@ export class CryptoFacade {
 	 * @param data
 	 * @return the unmapped and still encrypted instance
 	 */
-	async applyMigrations<T extends SomeEntity>(typeRef: TypeRef<T>, data: Record<string, any>): Promise<Record<string, any>> {
-		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
+	async applyMigrations<T extends SomeEntity>(typeRef: TypeRef<T>, data: Record<number, any>): Promise<Record<number, any>> {
+		// FIXME: TEST NOTE:
+		// test if migration work when changing field & type from encrypted -> non encrypted and vice versa
+		const noUnderscoredOwnerGroup = (await getAttributeId(typeRef, "_ownerGroup")) == null
+		const noUnderscoredOwnerEncSessionKey = (await getAttributeId(typeRef, "_ownerGroup")) == null
+		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && noUnderscoredOwnerGroup) {
 			return this.applyCustomerGroupOwnershipToGroupInfo(data)
-		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
+		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && noUnderscoredOwnerEncSessionKey) {
 			return this.encryptTutanotaProperties(data)
-		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
+		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && noUnderscoredOwnerEncSessionKey) {
 			return this.addSessionKeyToPushIdentifier(data)
 		} else {
 			return data
@@ -367,7 +383,7 @@ export class CryptoFacade {
 		}
 	}
 
-	private async addSessionKeyToPushIdentifier(data: Record<string, any>): Promise<Record<string, any>> {
+	private async addSessionKeyToPushIdentifier(data: Record<number, any>): Promise<Record<number, any>> {
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
@@ -376,14 +392,15 @@ export class CryptoFacade {
 		return data
 	}
 
-	private async encryptTutanotaProperties(data: Record<string, any>): Promise<Record<string, any>> {
+	private async encryptTutanotaProperties(data: Record<number, any>): Promise<Record<number, any>> {
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
+		const underscoredId = data[assertNotNull(await getAttributeId(TutanotaPropertiesTypeRef, "_id"))]
 
 		// EncryptTutanotaPropertiesService could be removed and replaced with a Migration that writes the key
 		const groupEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, aes256RandomKey())
 		this.setOwnerEncSessionKeyUnmapped(data as UnmappedOwnerGroupInstance, groupEncSessionKey, this.userFacade.getUserGroupId())
 		const migrationData = createEncryptTutanotaPropertiesData({
-			properties: data._id,
+			properties: underscoredId,
 			symKeyVersion: String(groupEncSessionKey.encryptingKeyVersion),
 			symEncSessionKey: groupEncSessionKey.key,
 		})
@@ -391,11 +408,14 @@ export class CryptoFacade {
 		return data
 	}
 
-	private async applyCustomerGroupOwnershipToGroupInfo(data: Record<string, any>): Promise<Record<string, any>> {
+	private async applyCustomerGroupOwnershipToGroupInfo(data: Record<number, any>): Promise<Record<number, any>> {
+		const underscoredId = data[assertNotNull(await getAttributeId(GroupInfoTypeRef, "_id"))]
+		const underscoredListEncSessionKey = data[assertNotNull(await getAttributeId(GroupInfoTypeRef, "_listEncSessionKey"))]
+
 		const customerGroupMembership = assertNotNull(
 			this.userFacade.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer),
 		)
-		const listPermissions = await this.entityClient.loadAll(PermissionTypeRef, data._id[0])
+		const listPermissions = await this.entityClient.loadAll(PermissionTypeRef, listIdPart(underscoredId))
 		const customerGroupPermission = listPermissions.find((p) => p.group === customerGroupMembership.group)
 
 		if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
@@ -403,7 +423,7 @@ export class CryptoFacade {
 		const customerGroupKey = await this.keyLoaderFacade.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion)
 		const versionedCustomerGroupKey = { object: customerGroupKey, version: customerGroupKeyVersion }
 		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
-		const groupInfoSk = decryptKey(listKey, base64ToUint8Array(data._listEncSessionKey))
+		const groupInfoSk = decryptKey(listKey, base64ToUint8Array(underscoredListEncSessionKey))
 
 		this.setOwnerEncSessionKeyUnmapped(
 			data as UnmappedOwnerGroupInstance,
@@ -842,14 +862,17 @@ export class CryptoFacade {
 
 	private async updateOwnerEncSessionKey(
 		typeModel: TypeModel,
-		instance: Record<string, any>,
+		instance: Record<number, any>,
 		ownerGroupKey: VersionedKey,
 		sessionKey: AesKey,
 	): Promise<void> {
-		this.setOwnerEncSessionKeyUnmapped(instance as UnmappedOwnerGroupInstance, encryptKeyWithVersionedKey(ownerGroupKey, sessionKey))
+		const typeRef: TypeRef<SomeEntity> = new TypeRef(typeModel.app, typeModel.id)
+		const underscoredId = instance[assertNotNull(await getAttributeId(typeRef, "_id"))]
 		// we have to call the rest client directly because instance is still the encrypted server-side version
-		const typePath = await typeRefToRestPath(new TypeRef(typeModel.app, typeModel.id))
-		const path = typePath + "/" + (instance._id instanceof Array ? instance._id.join("/") : instance._id)
+		const typePath = await typeRefToRestPath(typeRef)
+
+		this.setOwnerEncSessionKeyUnmapped(instance as UnmappedOwnerGroupInstance, encryptKeyWithVersionedKey(ownerGroupKey, sessionKey))
+		const path = typePath + "/" + (underscoredId instanceof Array ? underscoredId.join("/") : underscoredId)
 		const headers = this.userFacade.createAuthHeaders()
 		headers.v = typeModel.version
 		return this.restClient

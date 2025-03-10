@@ -507,6 +507,8 @@ o.spec("LoginFacadeTest", function () {
 				// wait for async resume session
 				await result.asyncResumeSession
 
+				console.log("after resolve " + calls.toString())
+
 				o(result.type).equals("success")
 				o(calls).deepEquals(["setUser", "sessionService"])
 

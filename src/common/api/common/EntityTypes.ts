@@ -12,12 +12,13 @@ export type TypeModel = {
 	versioned: boolean
 	encrypted: boolean
 	rootId: Id
-	values: Record<string, ModelValue>
-	associations: Record<string, ModelAssociation>
+	values: Record<number, ModelValue>
+	associations: Record<number, ModelAssociation>
 }
 
 export type ModelValue = {
 	id: number
+	name: string
 	type: Values<typeof ValueType>
 	cardinality: Values<typeof Cardinality>
 	final: boolean
@@ -29,6 +30,7 @@ export type ModelValue = {
  */
 export type ModelAssociation = {
 	id: number
+	name: string
 	type: Values<typeof AssociationType>
 	cardinality: Values<typeof Cardinality>
 	refTypeId: number

@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ReadCounterData {
 	pub _format: i64,
+	pub rowName: String,
 	pub columnName: Option<GeneratedId>,
 	pub counterType: i64,
-	pub rowName: String,
 }
 
 impl Entity for ReadCounterData {
@@ -43,10 +43,10 @@ impl Entity for ReadCounterReturn {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct WriteCounterData {
 	pub _format: i64,
-	pub column: GeneratedId,
-	pub counterType: Option<i64>,
 	pub row: String,
+	pub column: GeneratedId,
 	pub value: i64,
+	pub counterType: Option<i64>,
 }
 
 impl Entity for WriteCounterData {
@@ -61,12 +61,12 @@ impl Entity for WriteCounterData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ApprovalMail {
-	pub _format: i64,
 	pub _id: Option<IdTupleCustom>,
-	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
-	pub date: Option<DateTime>,
+	pub _format: i64,
+	pub _ownerGroup: Option<GeneratedId>,
 	pub range: Option<String>,
+	pub date: Option<DateTime>,
 	pub text: String,
 	pub customer: Option<GeneratedId>,
 }
@@ -101,8 +101,8 @@ impl Entity for CounterValue {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ErrorReportFile {
 	pub _id: Option<CustomId>,
-	pub content: String,
 	pub name: String,
+	pub content: String,
 }
 
 impl Entity for ErrorReportFile {
@@ -118,15 +118,15 @@ impl Entity for ErrorReportFile {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ErrorReportData {
 	pub _id: Option<CustomId>,
-	pub additionalInfo: String,
+	pub time: DateTime,
 	pub appVersion: String,
 	pub clientType: i64,
+	pub userId: Option<String>,
 	pub errorClass: String,
 	pub errorMessage: Option<String>,
 	pub stackTrace: String,
-	pub time: DateTime,
-	pub userId: Option<String>,
 	pub userMessage: Option<String>,
+	pub additionalInfo: String,
 }
 
 impl Entity for ErrorReportData {

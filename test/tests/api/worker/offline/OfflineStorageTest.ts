@@ -39,7 +39,6 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/
 import * as fs from "node:fs"
 import { untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
 import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
@@ -121,80 +120,25 @@ o.spec("OfflineStorageDb", function () {
 	})
 
 	o.spec("Unit test", function () {
-		/**
-		 * inserts an entity into the offline test database, and ensures
-		 * that all customIds are **base64Ext** encoded before inserting.
-		 * @param entity
-		 */
-		async function insertEntity(entity: SomeEntity) {
-			const typeModel = await resolveTypeReference(entity._type)
-			const type = getTypeId(entity._type)
-			let preparedQuery
-			switch (typeModel.type) {
-				case TypeId.Element.valueOf(): {
-					const elementId = (entity as ElementEntity)._id
-					const encodedElementId = ensureBase64Ext(typeModel, elementId)
-					preparedQuery = sql`insert into element_entities
-                                        values (${type}, ${encodedElementId}, ${entity._ownerGroup},
-                                                ${encode(entity)})`
-					break
-				}
-				case TypeId.ListElement.valueOf(): {
-					const [listId, elementId] = (entity as ListElementEntity)._id
-					const encodedElementId = ensureBase64Ext(typeModel, elementId)
-					preparedQuery = sql`INSERT INTO list_entities
-                                        VALUES (${type}, ${listId}, ${encodedElementId}, ${entity._ownerGroup},
-                                                ${encode(entity)})`
-					break
-				}
-				case TypeId.BlobElement.valueOf(): {
-					const [archiveId, blobElementId] = (entity as BlobElementEntity)._id
-					preparedQuery = sql`INSERT INTO blob_element_entities
-                                        VALUES (${type}, ${archiveId}, ${blobElementId}, ${entity._ownerGroup},
-                                                ${encode(entity)})`
-					break
-				}
-				default:
-					throw new Error("must be a persistent type")
-			}
-			await dbFacade.run(preparedQuery.query, preparedQuery.params)
-		}
-
-		/**
-		 * inserts a range (lower - upper) into the offline "ranges" test database, and ensures
-		 * that all customId elementIds (used for lower and upper) are **base64Ext** encoded before inserting.
-		 * @param typeRef
-		 * @param listId
-		 * @param lower
-		 * @param upper
-		 */
-		async function insertRange(typeRef: TypeRef<unknown>, listId: string, lower: string, upper: string) {
-			const typeModel = await resolveTypeReference(typeRef)
-			const encodedLower = ensureBase64Ext(typeModel, lower)
-			const encodedUpper = ensureBase64Ext(typeModel, upper)
-			const { query, params } = sql`INSERT INTO ranges
-                                        VALUES (${getTypeId(typeRef)}, ${listId}, ${encodedLower}, ${encodedUpper})`
-			await dbFacade.run(query, params)
-		}
-
+		// fixme: can we use function from OfflineStorage:: itself?
 		async function getAllIdsForType(typeRef: TypeRef<unknown>): Promise<Id[]> {
 			const typeModel = await resolveTypeReference(typeRef)
 			let preparedQuery
 			switch (typeModel.type) {
 				case TypeId.Element.valueOf():
 					preparedQuery = sql`select *
-                                        from element_entities
-                                        where type = ${getTypeId(typeRef)}`
+										from element_entities
+										where type = ${getTypeId(typeRef)}`
 					break
 				case TypeId.ListElement.valueOf():
 					preparedQuery = sql`select *
-                                        from list_entities
-                                        where type = ${getTypeId(typeRef)}`
+										from list_entities
+										where type = ${getTypeId(typeRef)}`
 					break
 				case TypeId.BlobElement.valueOf():
 					preparedQuery = sql`select *
-                                        from blob_element_entities
-                                        where type = ${getTypeId(typeRef)}`
+										from blob_element_entities
+										where type = ${getTypeId(typeRef)}`
 					break
 				default:
 					throw new Error("must be a persistent type")
@@ -417,21 +361,21 @@ o.spec("OfflineStorageDb", function () {
 			o.beforeEach(async function () {
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailBoxTypeRef, {
 						_id: "mailboxId",
 						currentMailBag: createTestEntity(MailBagTypeRef, { _id: "mailBagId", mails: mailBagMailListId }),
 						folders: createMailFolderRef({ folders: "mailFolderList" }),
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", spamFolderId],
 						entries: spamFolderEntriesId,
 						folderType: MailSetKind.SPAM,
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", trashFolderId],
 						entries: trashFolderEntriesId,
@@ -449,21 +393,21 @@ o.spec("OfflineStorageDb", function () {
 				const mailSetEntryId: IdTuple = ["mailSetEntriesListId", mailSetEntryElementId]
 				const mailDetailsBlobId: IdTuple = ["mailDetailsList", "mailDetailsBlobId"]
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", "mailFolderId"],
 						entries: listIdPart(mailSetEntryId),
 					}),
 				)
-				await insertEntity(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
-				await insertEntity(
+				await storage.put(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
+				await storage.put(
 					createTestEntity(MailTypeRef, {
 						_id: mailId,
 						mailDetails: mailDetailsBlobId,
 						sets: [mailSetEntryId],
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: mailDetailsBlobId,
 						details: createTestEntity(MailDetailsTypeRef),
@@ -472,10 +416,10 @@ o.spec("OfflineStorageDb", function () {
 
 				const lowerMailSetEntryIdForRange = offsetMailSetEntryId(twoDaysBeforeTimeRangeDays, GENERATED_MIN_ID)
 				const upperMailSetEntryIdForRange = offsetMailSetEntryId(oneDayBeforeTimeRangeDays, GENERATED_MAX_ID)
-				await insertRange(MailSetEntryTypeRef, listIdPart(mailSetEntryId), lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
+				await storage.setNewRangeForList(MailSetEntryTypeRef, listIdPart(mailSetEntryId), lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 				const upperBeforeTimeRangeDays = offsetId(oneDayBeforeTimeRangeDays) // negative number == mail newer than timeRangeDays
 				const lowerBeforeTimeRangeDays = offsetId(twoDaysBeforeTimeRangeDays)
-				await insertRange(MailTypeRef, mailBagMailListId, lowerBeforeTimeRangeDays, upperBeforeTimeRangeDays)
+				await storage.setNewRangeForList(MailTypeRef, mailBagMailListId, lowerBeforeTimeRangeDays, upperBeforeTimeRangeDays)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -496,7 +440,7 @@ o.spec("OfflineStorageDb", function () {
 				const entriesListId = "mailSetEntriesListIdRanges"
 				const lowerMailSetEntryIdForRange = offsetMailSetEntryId(twoDaysBeforeTimeRangeDays, GENERATED_MIN_ID)
 				const upperMailSetEntryIdForRange = offsetMailSetEntryId(twoDaysAfterTimeRangeDays, GENERATED_MAX_ID)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", "mailFolderId"],
 						entries: entriesListId,
@@ -504,7 +448,7 @@ o.spec("OfflineStorageDb", function () {
 					}),
 				)
 
-				await insertRange(MailSetEntryTypeRef, entriesListId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
+				await storage.setNewRangeForList(MailSetEntryTypeRef, entriesListId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -526,14 +470,14 @@ o.spec("OfflineStorageDb", function () {
 				const entriesListId = "mailSetEntriesListIdRanges"
 				const lowerMailSetEntryIdForRange = offsetMailSetEntryId(oneDayAfterTimeRangeDays, GENERATED_MIN_ID)
 				const upperMailSetEntryIdForRange = offsetMailSetEntryId(twoDaysAfterTimeRangeDays, GENERATED_MAX_ID)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", "mailFolderId"],
 						entries: entriesListId,
 						folderType: MailSetKind.CUSTOM,
 					}),
 				)
-				await insertRange(MailSetEntryTypeRef, entriesListId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
+				await storage.setNewRangeForList(MailSetEntryTypeRef, entriesListId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -559,10 +503,10 @@ o.spec("OfflineStorageDb", function () {
 				const lowerMailSetEntryIdForRange = CUSTOM_MIN_ID
 				const upperMailSetEntryIdForRange = CUSTOM_MAX_ID
 
-				await insertRange(MailSetEntryTypeRef, listIdPart(mailSetEntryId), lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
+				await storage.setNewRangeForList(MailSetEntryTypeRef, listIdPart(mailSetEntryId), lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 				const upper = offsetId(twoDaysAfterTimeRangeDays)
 				const lower = GENERATED_MIN_ID
-				await insertRange(MailTypeRef, mailBagMailListId, lower, upper)
+				await storage.setNewRangeForList(MailTypeRef, mailBagMailListId, lower, upper)
 
 				const mail = createTestEntity(MailTypeRef, {
 					_id: mailId,
@@ -574,10 +518,10 @@ o.spec("OfflineStorageDb", function () {
 					entries: listIdPart(mailSetEntryId),
 				})
 
-				await insertEntity(mailFolder)
-				await insertEntity(mail)
-				await insertEntity(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
-				await insertEntity(
+				await storage.put(mailFolder)
+				await storage.put(mail)
+				await storage.put(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
+				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: mailDetailsBlobId,
 						details: createTestEntity(MailDetailsTypeRef),
@@ -618,10 +562,10 @@ o.spec("OfflineStorageDb", function () {
 				const lowerMailSetEntryIdForRange = CUSTOM_MIN_ID
 				const upperMailSetEntryIdForRange = CUSTOM_MAX_ID
 
-				await insertRange(MailSetEntryTypeRef, listIdPart(mailSetEntryId), lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
+				await storage.setNewRangeForList(MailSetEntryTypeRef, listIdPart(mailSetEntryId), lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 				const upper = offsetId(twoDaysBeforeTimeRangeDays)
 				const lower = GENERATED_MIN_ID
-				await insertRange(MailTypeRef, mailBagMailListId, lower, upper)
+				await storage.setNewRangeForList(MailTypeRef, mailBagMailListId, lower, upper)
 
 				const mail = createTestEntity(MailTypeRef, {
 					_id: mailId,
@@ -633,10 +577,10 @@ o.spec("OfflineStorageDb", function () {
 					entries: listIdPart(mailSetEntryId),
 				})
 
-				await insertEntity(mailFolder)
-				await insertEntity(mail)
-				await insertEntity(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
-				await insertEntity(
+				await storage.put(mailFolder)
+				await storage.put(mail)
+				await storage.put(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
+				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: mailDetailsBlobId,
 						details: createTestEntity(MailDetailsTypeRef),
@@ -701,7 +645,7 @@ o.spec("OfflineStorageDb", function () {
 				const trashMailSetEntryId: IdTuple = [trashFolderEntriesId, trashMailSetEntryElementId]
 				const trashSubfolderMailSetEntryId: IdTuple = [trashSubfolderEntriesId, trashSubfolderMailSetEntryElementId]
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", trashSubfolderId],
 						parentFolder: ["mailFolderList", trashFolderId],
@@ -710,42 +654,42 @@ o.spec("OfflineStorageDb", function () {
 					}),
 				)
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: spamMailSetEntryId,
 						mail: spamMail._id,
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: trashMailSetEntryId,
 						mail: trashMail._id,
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: trashSubfolderMailSetEntryId,
 						mail: trashSubfolderMail._id,
 					}),
 				)
 
-				await insertEntity(spamMail)
-				await insertEntity(trashMail)
-				await insertEntity(trashSubfolderMail)
+				await storage.put(spamMail)
+				await storage.put(trashMail)
+				await storage.put(trashSubfolderMail)
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: spamDetailsId,
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: trashDetailsId,
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: trashSubfolderDetailsId,
 						details: createTestEntity(MailDetailsTypeRef),
@@ -793,13 +737,13 @@ o.spec("OfflineStorageDb", function () {
 				const spamMailSetEntryId: IdTuple = [spamFolderEntriesId, spamMailSetEntryElementId]
 				const trashMailSetEntryId: IdTuple = [trashFolderEntriesId, trashMailSetEntryElementId]
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: spamMailSetEntryId,
 						mail: spamMail._id,
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: trashMailSetEntryId,
 						mail: trashMail._id,
@@ -808,15 +752,15 @@ o.spec("OfflineStorageDb", function () {
 
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
-				await insertEntity(spamMail)
-				await insertEntity(trashMail)
-				await insertEntity(
+				await storage.put(spamMail)
+				await storage.put(trashMail)
+				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: spamDetailsId,
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: trashDetailsId,
 						details: createTestEntity(MailDetailsTypeRef),
@@ -886,19 +830,19 @@ o.spec("OfflineStorageDb", function () {
 
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", inboxFolderId],
 						folderType: MailSetKind.INBOX,
 						entries: inboxFolderEntriesId,
 					}),
 				)
-				await insertEntity(mailBefore)
-				await insertEntity(mailAfter)
-				await insertEntity(mailSetEntryBefore)
-				await insertEntity(mailSetEntryAfter)
-				await insertEntity(beforeMailDetails)
-				await insertEntity(afterMailDetails)
+				await storage.put(mailBefore)
+				await storage.put(mailAfter)
+				await storage.put(mailSetEntryBefore)
+				await storage.put(mailSetEntryAfter)
+				await storage.put(beforeMailDetails)
+				await storage.put(afterMailDetails)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -958,19 +902,19 @@ o.spec("OfflineStorageDb", function () {
 
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", inboxFolderId],
 						folderType: MailSetKind.INBOX,
 						entries: inboxFolderEntriesId,
 					}),
 				)
-				await insertEntity(mailOneDayBefore)
-				await insertEntity(mailTwoDaysBefore)
-				await insertEntity(mailSetEntryTwoDaysBefore)
-				await insertEntity(mailSetEntryOneDayBefore)
-				await insertEntity(oneDayBeforeMailDetails)
-				await insertEntity(twoDaysBeforeMailDetails)
+				await storage.put(mailOneDayBefore)
+				await storage.put(mailTwoDaysBefore)
+				await storage.put(mailSetEntryTwoDaysBefore)
+				await storage.put(mailSetEntryOneDayBefore)
+				await storage.put(oneDayBeforeMailDetails)
+				await storage.put(twoDaysBeforeMailDetails)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
@@ -1034,20 +978,20 @@ o.spec("OfflineStorageDb", function () {
 
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
-				await insertEntity(
+				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", inboxFolderId],
 						folderType: MailSetKind.INBOX,
 					}),
 				)
-				await insertEntity(mailSetEntryBefore)
-				await insertEntity(mailSetEntryAfter)
-				await insertEntity(mailBefore)
-				await insertEntity(mailAfter)
-				await insertEntity(fileBefore)
-				await insertEntity(fileAfter)
-				await insertEntity(beforeMailDetails)
-				await insertEntity(afterMailDetails)
+				await storage.put(mailSetEntryBefore)
+				await storage.put(mailSetEntryAfter)
+				await storage.put(mailBefore)
+				await storage.put(mailAfter)
+				await storage.put(fileBefore)
+				await storage.put(fileAfter)
+				await storage.put(beforeMailDetails)
+				await storage.put(afterMailDetails)
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)

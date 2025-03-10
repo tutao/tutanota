@@ -596,6 +596,7 @@ export class LoginFacade {
 				} catch (e) {
 					console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
 					if (e instanceof LoginIncompleteError) {
+						console.log("calling finishResumeSession 2")
 						// await before return to catch the errors here
 						return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 					} else {

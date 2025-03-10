@@ -43,8 +43,8 @@ export type BlobAccessTokenPostIn = {
 	_format: NumberString;
 	archiveDataType: null | NumberString;
 
-	read: null | BlobReadData;
 	write: null | BlobWriteData;
+	read: null | BlobReadData;
 }
 export const BlobAccessTokenPostOutTypeRef: TypeRef<BlobAccessTokenPostOut> = new TypeRef("storage", 81)
 
@@ -69,9 +69,9 @@ export type BlobReferencePutIn = {
 	_type: TypeRef<BlobReferencePutIn>;
 
 	_format: NumberString;
-	archiveDataType: NumberString;
-	instanceId: Id;
 	instanceListId: null | Id;
+	instanceId: Id;
+	archiveDataType: NumberString;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
@@ -85,9 +85,9 @@ export type BlobReferenceDeleteIn = {
 	_type: TypeRef<BlobReferenceDeleteIn>;
 
 	_format: NumberString;
-	archiveDataType: NumberString;
-	instanceId: Id;
 	instanceListId: null | Id;
+	instanceId: Id;
+	archiveDataType: NumberString;
 
 	blobs: Blob[];
 }
@@ -114,10 +114,10 @@ export function createBlobArchiveRef(values: StrippedEntity<BlobArchiveRef>): Bl
 export type BlobArchiveRef = {
 	_type: TypeRef<BlobArchiveRef>;
 
-	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: null | Id;
 	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
 
 	archive: Id;
 }

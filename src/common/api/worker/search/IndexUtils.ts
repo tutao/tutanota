@@ -146,9 +146,7 @@ const typeInfos: Map<string, Map<number, any>> = new Map([
 ])
 
 export function getAttributeIds(model: TypeModel) {
-	return Object.keys(model.values)
-		.map((name) => model.values[name].id)
-		.concat(Object.keys(model.associations).map((name) => model.associations[name].id))
+	return Object.keys(model.values).map(Number).concat(Object.keys(model.associations).map(Number))
 }
 
 export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {

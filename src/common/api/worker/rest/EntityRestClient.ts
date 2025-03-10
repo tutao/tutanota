@@ -1,6 +1,6 @@
 import { RestClient, SuspensionBehavior } from "./RestClient"
 import type { CryptoFacade } from "../crypto/CryptoFacade"
-import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
+import { _verifyType, getAttributeId, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { PushIdentifierTypeRef } from "../../entities/sys/TypeRefs.js"
@@ -12,11 +12,10 @@ import {
 	NotFoundError,
 	PayloadTooLargeError,
 } from "../../common/error/RestError"
-import type { KeyVersion, lazy } from "@tutao/tutanota-utils"
-import { isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, isSameTypeRef, KeyVersion, lazy, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { getElementId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
+import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
@@ -269,7 +268,8 @@ export class EntityRestClient implements EntityRestInterface {
 			baseUrl: opts.baseUrl,
 			suspensionBehavior: opts.suspensionBehavior,
 		})
-		return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
+		const parsedResponse: Array<Record<number, any>> = JSON.parse(json)
+		return this._handleLoadMultipleResult(typeRef, parsedResponse)
 	}
 
 	async loadMultiple<T extends SomeEntity>(
@@ -344,7 +344,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 	async _handleLoadMultipleResult<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
-		loadedEntities: Array<any>,
+		loadedEntities: Array<Record<number, any>>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<Array<T>> {
 		const model = await resolveTypeReference(typeRef)
@@ -366,10 +366,13 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
-	async _decryptMapAndMigrate<T>(instance: any, model: TypeModel, ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider): Promise<T> {
+	async _decryptMapAndMigrate<T>(instance: Record<number, any>, model: TypeModel, ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider): Promise<T> {
 		let sessionKey: AesKey | null
 		if (ownerEncSessionKeyProvider) {
-			sessionKey = await this._crypto.decryptSessionKey(instance, await ownerEncSessionKeyProvider(getElementId(instance)))
+			const underScoredOwnerGroup = instance[assertNotNull(await getAttributeId(new TypeRef(model.app, model.id), "_ownerGroup"))]
+			// Fixme: why are we not checking ListElement before getting listElementId
+			const elementId = elementIdPart(instance[assertNotNull(await getAttributeId(new TypeRef(model.app, model.id), "_id"))])
+			sessionKey = await this._crypto.decryptSessionKey(underScoredOwnerGroup, await ownerEncSessionKeyProvider(elementId))
 		} else {
 			try {
 				sessionKey = await this._crypto.resolveSessionKey(model, instance)

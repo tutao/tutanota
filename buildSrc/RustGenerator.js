@@ -7,18 +7,19 @@ import { AssociationType, Type, ValueType } from "../src/common/api/common/Entit
 
 /**
  * @param models {object}
- * @param type {import("../src/common/api/common/EntityTypes.js").TypeModel}
+ * @param typeModel {import("../src/common/api/common/EntityTypes.js").TypeModel}
  * @param modelName {string}
  * @return {string}
  */
-export function generateRustType(models, type, modelName) {
-	let typeName = mapTypeName(type.name, modelName)
-	let typeId = type.id
+export function generateRustType(models, typeModel, modelName) {
+	let typeName = mapTypeName(typeModel.name, modelName)
+	let typeId = typeModel.id
 	let buf = `#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ${typeName} {\n`
-	for (let [valueName, valueProperties] of Object.entries(type.values)) {
-		const rustType = rustValueType(valueName, type, valueProperties)
+	for (let [valueId, valueProperties] of Object.entries(typeModel.values)) {
+		const valueName = valueProperties.name
+		const rustType = rustValueType(valueName, typeModel, valueProperties)
 		if (valueName === "type") {
 			buf += `\t#[serde(rename = "type")]\n`
 			buf += `\tpub r#type: ${rustType},\n`
@@ -30,7 +31,8 @@ pub struct ${typeName} {\n`
 		}
 	}
 
-	for (let [associationName, associationProperties] of Object.entries(type.associations)) {
+	for (let [associationId, associationProperties] of Object.entries(typeModel.associations)) {
+		const associationName = associationProperties.name
 		const innerRustType = rustAssociationType(associationProperties, modelName, models)
 		let rustType
 		switch (associationProperties.cardinality) {
@@ -53,12 +55,12 @@ pub struct ${typeName} {\n`
 		}
 	}
 
-	if (type.encrypted) {
+	if (typeModel.encrypted) {
 		buf += `\tpub _errors: Option<Errors>,\n`
 	}
 
 	// aggregates do not say whether they are encrypted or not. For some reason!
-	if (type.encrypted || Object.values(type.values).some((v) => v.encrypted)) {
+	if (typeModel.encrypted || Object.values(typeModel.values).some((v) => v.encrypted)) {
 		buf += `\tpub _finalIvs: HashMap<String, FinalIv>,\n`
 	}
 
@@ -167,11 +169,11 @@ function mapTypeName(name, modelName) {
 
 /**
  * @param valueName {string}
- * @param type {import("../src/common/api/common/EntityTypes.js").TypeModel}
+ * @param typeModel {import("../src/common/api/common/EntityTypes.js").TypeModel}
  * @param value {import("../src/common/api/common/EntityTypes.js").ModelValue}
  * @return {string}
  */
-function rustValueType(valueName, type, value) {
+function rustValueType(valueName, typeModel, value) {
 	const ValueToRustTypes = Object.freeze({
 		String: "String",
 		Number: "i64",
@@ -184,7 +186,7 @@ function rustValueType(valueName, type, value) {
 	})
 
 	let innerType
-	if (valueName === "_id" && (type.type === Type.ListElement || type.type === Type.BlobElement)) {
+	if (valueName === "_id" && (typeModel.type === Type.ListElement || typeModel.type === Type.BlobElement)) {
 		if (value.type === ValueType.CustomId) {
 			innerType = "Option<IdTupleCustom>"
 		} else {

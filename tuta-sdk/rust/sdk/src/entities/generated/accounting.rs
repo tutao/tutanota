@@ -8,11 +8,11 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CustomerAccountPosting {
 	pub _id: Option<CustomId>,
-	pub amount: i64,
-	pub invoiceNumber: Option<String>,
 	#[serde(rename = "type")]
 	pub r#type: i64,
 	pub valueDate: DateTime,
+	pub invoiceNumber: Option<String>,
+	pub amount: i64,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
@@ -32,9 +32,9 @@ pub struct CustomerAccountReturn {
 	pub _ownerGroup: Option<GeneratedId>,
 	#[serde(with = "serde_bytes")]
 	pub _ownerPublicEncSessionKey: Option<Vec<u8>>,
-	pub _publicCryptoProtocolVersion: Option<i64>,
-	pub balance: i64,
 	pub outstandingBookingsPrice: i64,
+	pub balance: i64,
+	pub _publicCryptoProtocolVersion: Option<i64>,
 	pub postings: Vec<CustomerAccountPosting>,
 	pub _errors: Option<Errors>,
 	pub _finalIvs: HashMap<String, FinalIv>,

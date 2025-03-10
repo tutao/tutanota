@@ -15,7 +15,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_id": {
+			"9": {
 				"final": true,
 				"name": "_id",
 				"id": 9,
@@ -24,7 +24,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"key": {
+			"10": {
 				"final": false,
 				"name": "key",
 				"id": 10,
@@ -33,7 +33,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"value": {
+			"11": {
 				"final": false,
 				"name": "value",
 				"id": 11,
@@ -56,7 +56,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_id": {
+			"13": {
 				"final": true,
 				"name": "_id",
 				"id": 13,
@@ -65,7 +65,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"name": {
+			"14": {
 				"final": true,
 				"name": "name",
 				"id": 14,
@@ -74,7 +74,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"type": {
+			"15": {
 				"final": true,
 				"name": "type",
 				"id": 15,
@@ -85,7 +85,7 @@ export const typeModels = {
 			}
 		},
 		"associations": {
-			"configValues": {
+			"16": {
 				"final": false,
 				"name": "configValues",
 				"id": 16,
@@ -108,7 +108,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_id": {
+			"18": {
 				"final": true,
 				"name": "_id",
 				"id": 18,
@@ -117,7 +117,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"name": {
+			"19": {
 				"final": true,
 				"name": "name",
 				"id": 19,
@@ -126,7 +126,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"value": {
+			"20": {
 				"final": true,
 				"name": "value",
 				"id": 20,
@@ -149,7 +149,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_id": {
+			"36": {
 				"final": true,
 				"name": "_id",
 				"id": 36,
@@ -158,16 +158,16 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"maxPings": {
+			"37": {
 				"final": false,
-				"name": "maxPings",
-				"id": 88,
-				"since": 2,
-				"type": "Number",
+				"name": "name",
+				"id": 37,
+				"since": 1,
+				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"minPings": {
+			"87": {
 				"final": false,
 				"name": "minPings",
 				"id": 87,
@@ -176,18 +176,18 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"name": {
+			"88": {
 				"final": false,
-				"name": "name",
-				"id": 37,
-				"since": 1,
-				"type": "String",
+				"name": "maxPings",
+				"id": 88,
+				"since": 2,
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"metrics": {
+			"38": {
 				"final": false,
 				"name": "metrics",
 				"id": 38,
@@ -210,7 +210,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_format": {
+			"54": {
 				"final": false,
 				"name": "_format",
 				"id": 54,
@@ -219,7 +219,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"testDeviceId": {
+			"55": {
 				"final": false,
 				"name": "testDeviceId",
 				"id": 55,
@@ -242,7 +242,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_id": {
+			"57": {
 				"final": true,
 				"name": "_id",
 				"id": 57,
@@ -251,25 +251,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"name": {
-				"final": false,
-				"name": "name",
-				"id": 59,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sendPings": {
-				"final": false,
-				"name": "sendPings",
-				"id": 61,
-				"since": 1,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"testId": {
+			"58": {
 				"final": true,
 				"name": "testId",
 				"id": 58,
@@ -278,7 +260,16 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"variant": {
+			"59": {
+				"final": false,
+				"name": "name",
+				"id": 59,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"60": {
 				"final": true,
 				"name": "variant",
 				"id": 60,
@@ -286,10 +277,19 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"61": {
+				"final": false,
+				"name": "sendPings",
+				"id": 61,
+				"since": 1,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
-			"stages": {
+			"62": {
 				"final": false,
 				"name": "stages",
 				"id": 62,
@@ -312,7 +312,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_format": {
+			"64": {
 				"final": false,
 				"name": "_format",
 				"id": 64,
@@ -321,7 +321,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"testDeviceId": {
+			"65": {
 				"final": false,
 				"name": "testDeviceId",
 				"id": 65,
@@ -332,7 +332,7 @@ export const typeModels = {
 			}
 		},
 		"associations": {
-			"assignments": {
+			"66": {
 				"final": false,
 				"name": "assignments",
 				"id": 66,
@@ -355,7 +355,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_format": {
+			"81": {
 				"final": false,
 				"name": "_format",
 				"id": 81,
@@ -364,7 +364,16 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"stage": {
+			"82": {
+				"final": false,
+				"name": "testId",
+				"id": 82,
+				"since": 1,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"83": {
 				"final": false,
 				"name": "stage",
 				"id": 83,
@@ -373,7 +382,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"testDeviceId": {
+			"84": {
 				"final": false,
 				"name": "testDeviceId",
 				"id": 84,
@@ -381,19 +390,10 @@ export const typeModels = {
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
-			},
-			"testId": {
-				"final": false,
-				"name": "testId",
-				"id": 82,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
 			}
 		},
 		"associations": {
-			"metrics": {
+			"85": {
 				"final": false,
 				"name": "metrics",
 				"id": 85,

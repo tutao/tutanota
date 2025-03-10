@@ -29,7 +29,7 @@ o.spec("InstanceMapper", function () {
 		entityClient = object()
 	})
 
-	function createValueType(type, encrypted, cardinality): ModelValue & { name: string; since: number } {
+	function createValueType(type, encrypted, cardinality): ModelValue & { id: number; since: number } {
 		return {
 			name: "test",
 			id: 426,
@@ -286,6 +286,7 @@ o.spec("InstanceMapper", function () {
 		})
 		o("accept null _id and _permissions value during encryption", function () {
 			let vt: ModelValue = {
+				name: "test",
 				id: 426,
 				type: ValueType.GeneratedId,
 				cardinality: Cardinality.One,

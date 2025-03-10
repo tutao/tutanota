@@ -1,8 +1,8 @@
-import { resolveTypeReference } from "../../common/EntityFunctions"
+import { getAttributeId, resolveTypeReference } from "../../common/EntityFunctions"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import type { Base64 } from "@tutao/tutanota-utils"
 import {
 	assertNotNull,
+	Base64,
 	base64ToBase64Url,
 	base64ToUint8Array,
 	downcast,
@@ -14,7 +14,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import type { ModelValue, TypeModel } from "../../common/EntityTypes"
+import { ModelValue, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -24,129 +24,230 @@ assertWorkerOrNode()
 export class InstanceMapper {
 	/**
 	 * Decrypts an object literal as received from the DB and maps it to an entity class (e.g. Mail)
-	 * @param model The TypeModel of the instance
-	 * @param instance The object literal as received from the DB
-	 * @param sk The session key, must be provided for encrypted instances
+	 * @param typeModel The TypeModel of the instance
+	 * @param encryptedInstance The object literal as received from the DB
+	 * @param sk The session key, must be provided for instance instances
 	 * @returns The decrypted and mapped instance
 	 */
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T> {
-		let decrypted: any = {
-			_type: new TypeRef(model.app, model.id),
+	decryptAndMapToInstance<T>(typeModel: TypeModel, encryptedInstance: Record<number, any>, sk: AesKey | null): Promise<T> {
+		let decrypted: Record<string, any> = {
+			_type: new TypeRef(typeModel.app, typeModel.id),
 		}
 
-		for (let key of Object.keys(model.values)) {
-			let valueType = model.values[key]
-			let value = instance[key]
+		for (const [valueIdStr, valueInfo] of Object.entries(typeModel.values)) {
+			const valueId = parseInt(valueIdStr)
+			const valueName = valueInfo.name
+			const value = encryptedInstance[valueId]
 
 			try {
-				decrypted[key] = decryptValue(key, valueType, value, sk)
+				decrypted[valueName] = decryptValue(valueName, valueInfo, value, sk)
 			} catch (e) {
 				if (decrypted._errors == null) {
 					decrypted._errors = {}
 				}
 
-				decrypted._errors[key] = JSON.stringify(e)
-				console.log("error when decrypting value on type:", `[${model.app},${model.name}]`, "key:", key, e)
+				decrypted._errors[valueName] = JSON.stringify(e)
+				console.log("error when decrypting value on type:", `[${typeModel.app},${typeModel.name}]`, "valueName:", valueName, e)
 			} finally {
-				if (valueType.encrypted) {
-					if (valueType.final) {
+				if (valueInfo.encrypted) {
+					if (valueInfo.final) {
 						// we have to store the encrypted value to be able to restore it when updating the instance. this is not needed for data transfer types, but it does not hurt
-						decrypted["_finalEncrypted_" + key] = value
+						decrypted["_finalEncrypted_" + valueName] = value
 					} else if (value === "") {
 						// we have to store the default value to make sure that updates do not cause more storage use
-						decrypted["_defaultEncrypted_" + key] = decrypted[key]
+						decrypted["_defaultEncrypted_" + valueName] = decrypted[valueName]
 					}
 				}
 			}
 		}
 
-		return promiseMap(Object.keys(model.associations), async (associationName) => {
-			if (model.associations[associationName].type === AssociationType.Aggregation) {
-				const dependency = model.associations[associationName].dependency
-				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refTypeId))
-				let aggregation = model.associations[associationName]
+		return promiseMap(Object.keys(typeModel.associations).map(Number), async (associationId: number) => {
+			let associationType = typeModel.associations[associationId]
+			let associationName = associationType.name
 
-				if (aggregation.cardinality === Cardinality.ZeroOrOne && instance[associationName] == null) {
+			if (associationType.type === AssociationType.Aggregation) {
+				const dependency = associationType.dependency
+				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || typeModel.app, associationType.refTypeId))
+				let aggregationType = associationType
+
+				if (aggregationType.cardinality === Cardinality.ZeroOrOne && encryptedInstance[associationId] == null) {
 					decrypted[associationName] = null
-				} else if (instance[associationName] == null) {
-					throw new ProgrammingError(`Undefined aggregation ${model.name}:${associationName}`)
-				} else if (aggregation.cardinality === Cardinality.Any) {
-					return promiseMap(instance[associationName], (aggregate) => {
+				} else if (encryptedInstance[associationId] == null) {
+					throw new ProgrammingError(`Undefined aggregation ${typeModel.name}:${associationName}`)
+				} else if (aggregationType.cardinality === Cardinality.Any) {
+					return promiseMap(encryptedInstance[associationId], (aggregate) => {
 						return this.decryptAndMapToInstance(aggregateTypeModel, downcast<Record<string, any>>(aggregate), sk)
 					}).then((decryptedAggregates) => {
 						decrypted[associationName] = decryptedAggregates
 					})
 				} else {
-					return this.decryptAndMapToInstance(aggregateTypeModel, instance[associationName], sk).then((decryptedAggregate) => {
+					return this.decryptAndMapToInstance(aggregateTypeModel, encryptedInstance[associationId], sk).then((decryptedAggregate) => {
 						decrypted[associationName] = decryptedAggregate
 					})
 				}
 			} else {
-				decrypted[associationName] = instance[associationName]
+				decrypted[associationName] = encryptedInstance[associationId]
 			}
 		}).then(() => {
-			return decrypted
+			return decrypted as T
 		})
 	}
 
-	encryptAndMapToLiteral<T>(model: TypeModel, instance: T, sk: AesKey | null): Promise<Record<string, unknown>> {
-		if (model.encrypted && sk == null) {
-			throw new ProgrammingError(`Encrypting ${model.app}/${model.name} requires a session key!`)
-		}
-		let encrypted: Record<string, unknown> = {}
-		let i = instance as any
+	/// Sit rnce entity have fieldName, CBORG will just use fieldName while serializing,
+	/// we should create a new object that map fieldName to filedId before putting it
+	/// into storage
+	// object 1: { field1: value1, field2: value2 }
+	// object 2: Map  { "field1Id" -> "value1", "field2" -> "value2" }
+	async mapToLiteral(instance: SomeEntity): Promise<Record<number, any>> {
+		const typemodel = await resolveTypeReference(instance._type)
 
-		for (let key of Object.keys(model.values)) {
-			let valueType = model.values[key]
-			let value = i[key]
+		let result: Record<number, any> = {}
+		for (const [fieldName, attributeValue] of Object.entries(instance)) {
+			if (fieldName === "_type") {
+				continue
+			}
+			const attributeId = await getAttributeId(instance._type, fieldName)
+			if (!attributeId) {
+				throw new Error("could not find attributeid for value: " + fieldName)
+			}
+
+			const association = typemodel.associations[attributeId]
+			if (association && association.type === AssociationType.Aggregation) {
+				const aggregatedEntity = {
+					_type: new TypeRef(association.dependency || instance._type.app, association.refTypeId),
+				}
+
+				switch (association.cardinality) {
+					case Cardinality.ZeroOrOne: {
+						result[attributeId] = attributeValue ? await this.mapToLiteral(aggregatedEntity as SomeEntity) : null
+						break
+					}
+					case Cardinality.Any: {
+						const agg = assertNotNull(attributeValue) as Array<SomeEntity>
+						result[attributeId] = await promiseMap(agg, (e) => this.mapToLiteral(e))
+						break
+					}
+					case Cardinality.One: {
+						const agg = assertNotNull(attributeValue) as SomeEntity
+						Object.assign(aggregatedEntity, agg)
+						result[attributeId] = await this.mapToLiteral(agg)
+						break
+					}
+				}
+			} else {
+				result[attributeId] = attributeValue
+			}
+		}
+		return result
+	}
+
+	async mapFromLiteral(instance: Record<number, any>, typeModel: TypeModel): Promise<Record<string, unknown>> {
+		let nameMappedAttribute: Record<string, unknown> = {
+			_type: new TypeRef(typeModel.app, typeModel.id),
+		}
+
+		for (const [attributeIdStr, attributeValue] of Object.entries(instance)) {
+			const attributeId = parseInt(attributeIdStr)
+			const vAttribute = typeModel.values[attributeId]
+			const aAttribute = typeModel.associations[attributeId]
+
+			if (aAttribute && aAttribute.type === AssociationType.Aggregation) {
+				switch (aAttribute.cardinality) {
+					case Cardinality.ZeroOrOne: {
+						const refTypeModel = await resolveTypeReference(new TypeRef(aAttribute.dependency || typeModel.app, aAttribute.refTypeId))
+						nameMappedAttribute[aAttribute.name] = attributeValue ? this.mapFromLiteral(attributeValue, refTypeModel) : null
+						break
+					}
+					case Cardinality.Any: {
+						const refTypeModel = await resolveTypeReference(new TypeRef(aAttribute.dependency || typeModel.app, aAttribute.refTypeId))
+						const agg = assertNotNull(attributeValue) as Array<Record<string, any>>
+						nameMappedAttribute[aAttribute.name] = await promiseMap(agg, (e) => this.mapFromLiteral(e, refTypeModel))
+						break
+					}
+					case Cardinality.One: {
+						nameMappedAttribute[aAttribute.name] = assertNotNull(attributeValue)
+						break
+					}
+				}
+			} else if (aAttribute) {
+				nameMappedAttribute[aAttribute.name] = attributeValue
+			} else if (vAttribute) {
+				nameMappedAttribute[vAttribute.name] = attributeValue
+			} else {
+				// something new we dont know yet
+			}
+		}
+		return nameMappedAttribute
+	}
+
+	encryptAndMapToLiteral<T>(typeModel: TypeModel, instance: T, sk: AesKey | null): Promise<Record<number, unknown>> {
+		let decrypted = instance as any
+		let encrypted: Record<string, unknown> = {}
+
+		if (typeModel.encrypted && sk == null) {
+			throw new ProgrammingError(`Encrypting ${typeModel.app}/${typeModel.name} requires a session key!`)
+		}
+
+		for (let valueId of Object.keys(typeModel.values).map(Number)) {
+			let valueType = typeModel.values[valueId]
+			let valueName = valueType.name
+			let value = decrypted[valueName]
 
 			let encryptedValue
-			// restore the original encrypted value if it exists. it does not exist if this is a data transfer type or a newly created entity. check against null explicitely because "" is allowed
-			if (valueType.encrypted && valueType.final && i["_finalEncrypted_" + key] != null) {
-				encryptedValue = i["_finalEncrypted_" + key]
-			} else if (valueType.encrypted && (i["_finalIvs"]?.[key] as Uint8Array | null)?.length === 0 && isDefaultValue(valueType.type, value)) {
+			// restore the original encrypted value if it exists. it does not exist if this is a data transfer type or a newly created entity. check against null explicitly because "" is allowed
+			if (valueType.encrypted && valueType.final && decrypted["_finalEncrypted_" + valueName] != null) {
+				encryptedValue = decrypted["_finalEncrypted_" + valueName]
+			} else if (
+				valueType.encrypted &&
+				(decrypted["_finalIvs"]?.[valueName] as Uint8Array | null)?.length === 0 &&
+				isDefaultValue(valueType.type, value)
+			) {
 				// restore the default encrypted value because it has not changed
 				// note: this brunch must be checked *before* the one which reuses IVs as this one checks
 				// the length.
 				encryptedValue = ""
-			} else if (valueType.encrypted && valueType.final && i["_finalIvs"]?.[key] != null) {
-				const finalIv = i["_finalIvs"][key]
-				encryptedValue = encryptValue(key, valueType, value, sk, finalIv)
-			} else if (valueType.encrypted && i["_defaultEncrypted_" + key] === value) {
+			} else if (valueType.encrypted && valueType.final && decrypted["_finalIvs"]?.[valueName] != null) {
+				const finalIv = decrypted["_finalIvs"][valueName]
+				encryptedValue = encryptValue(valueName, valueType, value, sk, finalIv)
+			} else if (valueType.encrypted && decrypted["_defaultEncrypted_" + valueName] === value) {
 				// restore the default encrypted value because it has not changed
 				encryptedValue = ""
 			} else {
-				encryptedValue = encryptValue(key, valueType, value, sk)
+				encryptedValue = encryptValue(valueName, valueType, value, sk)
 			}
-			encrypted[key] = encryptedValue
+
+			if (typeModel.type === Type.Aggregated && valueName === "_id" && !encryptedValue) {
+				encrypted[valueId] = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
+			} else {
+				encrypted[valueId] = encryptedValue
+			}
 		}
 
-		if (model.type === Type.Aggregated && !encrypted._id) {
-			encrypted._id = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
-		}
+		return promiseMap(Object.keys(typeModel.associations).map(Number), async (associationId) => {
+			let associationType = typeModel.associations[associationId]
+			let associationName = associationType.name
 
-		return promiseMap(Object.keys(model.associations), async (associationName) => {
-			if (model.associations[associationName].type === AssociationType.Aggregation) {
-				const dependency = model.associations[associationName].dependency
-				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || model.app, model.associations[associationName].refTypeId))
-				let aggregation = model.associations[associationName]
-				if (aggregation.cardinality === Cardinality.ZeroOrOne && i[associationName] == null) {
-					encrypted[associationName] = null
-				} else if (i[associationName] == null) {
-					throw new ProgrammingError(`Undefined attribute ${model.name}:${associationName}`)
-				} else if (aggregation.cardinality === Cardinality.Any) {
-					return promiseMap(i[associationName], (aggregate) => {
+			if (associationType.type === AssociationType.Aggregation) {
+				const dependency = associationType.dependency
+				const aggregateTypeModel = await resolveTypeReference(new TypeRef(dependency || typeModel.app, associationType.refTypeId))
+				let aggregationType = associationType
+				if (aggregationType.cardinality === Cardinality.ZeroOrOne && decrypted[associationName] == null) {
+					encrypted[associationId] = null
+				} else if (decrypted[associationName] == null) {
+					throw new ProgrammingError(`Undefined attribute ${typeModel.name}:${associationName}`)
+				} else if (aggregationType.cardinality === Cardinality.Any) {
+					return promiseMap(decrypted[associationName], (aggregate) => {
 						return this.encryptAndMapToLiteral(aggregateTypeModel, aggregate, sk)
 					}).then((encryptedAggregates) => {
-						encrypted[associationName] = encryptedAggregates
+						encrypted[associationId] = encryptedAggregates
 					})
 				} else {
-					return this.encryptAndMapToLiteral(aggregateTypeModel, i[associationName], sk).then((encryptedAggregate) => {
-						encrypted[associationName] = encryptedAggregate
+					return this.encryptAndMapToLiteral(aggregateTypeModel, decrypted[associationName], sk).then((encryptedAggregate) => {
+						encrypted[associationId] = encryptedAggregate
 					})
 				}
 			} else {
-				encrypted[associationName] = i[associationName]
+				encrypted[associationId] = decrypted[associationName]
 			}
 		}).then(() => {
 			return encrypted

@@ -23,6 +23,7 @@ import {
 import {
 	BirthdayTypeRef,
 	ContactTypeRef,
+	createMailAddress,
 	FileTypeRef,
 	InternalRecipientKeyData,
 	Mail,
@@ -87,7 +88,7 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { matchers, object, verify, when } from "testdouble"
 import { UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { getListId, isSameId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { HttpMethod, resolveTypeReference, typeModels } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
@@ -526,7 +527,10 @@ o.spec("CryptoFacadeTest", function () {
 		const sk = aes256RandomKey()
 		const bk = aes256RandomKey()
 
-		const mail = createMailLiteral(null, sk, subject, confidential, senderName, recipientTestUser.name, recipientTestUser.mailGroup._id)
+		const mail = await createMailLiteralPart2(null, sk, subject, confidential, senderName, recipientTestUser.name, recipientTestUser.mailGroup._id, [
+			"mailDetailsArchiveId",
+			"mailDetailsId",
+		])
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
@@ -534,8 +538,6 @@ o.spec("CryptoFacadeTest", function () {
 			pqKeyPairsToPublicKeys(pqKeyPairs_v1),
 			bitArrayToUint8Array(bk),
 		)
-
-		Object.assign(mail, { mailDetails: ["mailDetailsArchiveId", "mailDetailsId"] })
 
 		const senderKeyVersion = 1
 		await prepareBucketKeyInstance(
@@ -1849,6 +1851,48 @@ o.spec("CryptoFacadeTest", function () {
 		}
 	}
 })
+
+export async function createMailLiteralPart2(
+	ownerGroupKey: AesKey | null,
+	sessionKey,
+	subject,
+	confidential: boolean,
+	senderName,
+	recipientName,
+	ownerGroupId: string,
+	mailDetailsId: IdTuple | null = null,
+): Promise<Record<string, any>> {
+	const mail: Mail = createTestEntity(MailTypeRef, {
+		_format: "0",
+		_ownerGroup: ownerGroupId,
+		_ownerEncSessionKey: ownerGroupKey ? encryptKey(ownerGroupKey, sessionKey) : null,
+		_id: ["mailListId", "mailId"],
+		_permissions: "permissionListId",
+		receivedDate: new Date(1470039025474),
+		movedTime: new Date(1470039021474),
+		state: "",
+		unread: true,
+		subject: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(subject), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
+		replyType: "",
+		confidential,
+		sender: createMailAddress({
+			name: senderName,
+			address: senderAddress,
+			contact: null,
+		}),
+		firstRecipient: createMailAddress({
+			address: "support@yahoo.com",
+			name: uint8ArrayToBase64(
+				aesEncrypt(sessionKey, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
+			),
+			contact: null,
+		}),
+		method: uint8ArrayToBase64(aesEncrypt(sessionKey, stringToUtf8Uint8Array(""), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
+		mailDetails: mailDetailsId,
+	})
+
+	return Object.entries(mail)
+}
 
 export function createMailLiteral(
 	ownerGroupKey: AesKey | null,

@@ -1,5 +1,5 @@
 import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils.js"
+import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, get_IdValue, getElementId } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
@@ -13,6 +13,7 @@ import {
 	getTypeId,
 	groupByAndMapUniquely,
 	mapNullable,
+	promiseMap,
 	splitInChunks,
 	TypeRef,
 } from "@tutao/tutanota-utils"
@@ -30,6 +31,7 @@ import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlV
 import { AssociationType, Cardinality, Type as TypeId, ValueType } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
+import { InstanceMapper } from "../crypto/InstanceMapper"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -361,7 +363,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	async put(originalEntity: SomeEntity): Promise<void> {
-		const serializedEntity = this.serialize(originalEntity)
+		const serializedEntity = await this.serialize(originalEntity)
 		const { listId, elementId } = expandId(originalEntity._id)
 		const type = getTypeId(originalEntity._type)
 		const ownerGroup = originalEntity._ownerGroup
@@ -489,7 +491,12 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 									  from list_entities
 									  WHERE type = ${getTypeId(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
-		return items.map((item) => this.decodeCborEntity(item.entity.value as Uint8Array) as Record<string, unknown> & ListElementEntity)
+
+		const typeModel = await resolveTypeReference(typeRef)
+		return promiseMap(
+			items,
+			async (item) => (await this.decodeCborEntity(item.entity.value as Uint8Array, typeModel)) as Record<string, unknown> & ListElementEntity,
+		)
 	}
 
 	async getRawElementsOfType(typeRef: TypeRef<ElementEntity>): Promise<Array<ElementEntity>> {
@@ -497,7 +504,11 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 									  from element_entities
 									  WHERE type = ${getTypeId(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
-		return items.map((item) => this.decodeCborEntity(item.entity.value as Uint8Array) as Record<string, unknown> & ElementEntity)
+		const typeModel = await resolveTypeReference(typeRef)
+		return promiseMap(
+			items,
+			async (item) => (await this.decodeCborEntity(item.entity.value as Uint8Array, typeModel)) as Record<string, unknown> & ElementEntity,
+		)
 	}
 
 	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
@@ -770,11 +781,12 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		}
 	}
 
-	private serialize(originalEntity: SomeEntity): Uint8Array {
+	private async serialize(originalEntity: SomeEntity): Promise<Uint8Array> {
+		const idMappedInstance: Record<number, any> = await new InstanceMapper().mapToLiteral(originalEntity)
 		try {
-			return cborg.encode(originalEntity, { typeEncoders: customTypeEncoders })
+			return cborg.encode(idMappedInstance, { typeEncoders: customTypeEncoders })
 		} catch (e) {
-			console.log("[OfflineStorage] failed to encode entity of type", originalEntity._type, "with id", originalEntity._id)
+			console.log("[OfflineStorage] failed to encode entity of typeRef: " + originalEntity._type.toString())
 			throw e
 		}
 	}
@@ -783,21 +795,22 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	 * Convert the type from CBOR representation to the runtime type
 	 */
 	private async deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): Promise<T | null> {
+		const typeModel = await resolveTypeReference(typeRef)
+
 		let deserialized
 		try {
-			deserialized = this.decodeCborEntity(loaded)
+			deserialized = await this.decodeCborEntity(loaded, typeModel)
 		} catch (e) {
-			console.log(e)
 			console.log(`Error with CBOR decode. Trying to decode (of type: ${typeof loaded}): ${loaded}`)
 			return null
 		}
 
-		const typeModel = await resolveTypeReference(typeRef)
 		return (await this.fixupTypeRefs(typeModel, deserialized)) as T
 	}
 
-	private decodeCborEntity(loaded: Uint8Array): Record<string, unknown> {
-		return cborg.decode(loaded, { tags: customTypeDecoders })
+	private decodeCborEntity(loaded: Uint8Array, typeModel: TypeModel): Promise<Record<string, unknown>> {
+		const idMappedEntity: Record<number, unknown> = cborg.decode(loaded, { tags: customTypeDecoders })
+		return new InstanceMapper().mapFromLiteral(idMappedEntity, typeModel)
 	}
 
 	private async fixupTypeRefs(typeModel: TypeModel, deserialized: any): Promise<unknown> {
@@ -805,7 +818,8 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		// Some places rely on TypeRef being a class and not a plain object.
 		// We also have to update all aggregates, recursively.
 		deserialized._type = new TypeRef(typeModel.app, typeModel.id)
-		for (const [associationName, associationModel] of Object.entries(typeModel.associations)) {
+		for (const [associationId, associationModel] of Object.entries(typeModel.associations)) {
+			const associationName = associationModel.name
 			if (associationModel.type === AssociationType.Aggregation) {
 				const aggregateTypeRef = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refTypeId)
 				const aggregateTypeModel = await resolveTypeReference(aggregateTypeRef)
@@ -904,7 +918,8 @@ function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): 
 }
 
 export function isCustomIdType(typeModel: TypeModel): boolean {
-	return typeModel.values._id.type === ValueType.CustomId
+	const _idValue = get_IdValue(typeModel)
+	return _idValue !== undefined && _idValue.type === ValueType.CustomId
 }
 
 /**

@@ -61,9 +61,9 @@ impl Entity for UsageTestMetricData {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UsageTestStage {
 	pub _id: Option<CustomId>,
-	pub maxPings: i64,
-	pub minPings: i64,
 	pub name: String,
+	pub minPings: i64,
+	pub maxPings: i64,
 	pub metrics: Vec<UsageTestMetricConfig>,
 }
 
@@ -96,10 +96,10 @@ impl Entity for UsageTestAssignmentIn {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UsageTestAssignment {
 	pub _id: Option<CustomId>,
-	pub name: String,
-	pub sendPings: bool,
 	pub testId: GeneratedId,
+	pub name: String,
 	pub variant: Option<i64>,
+	pub sendPings: bool,
 	pub stages: Vec<UsageTestStage>,
 }
 
@@ -133,9 +133,9 @@ impl Entity for UsageTestAssignmentOut {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UsageTestParticipationIn {
 	pub _format: i64,
+	pub testId: GeneratedId,
 	pub stage: i64,
 	pub testDeviceId: GeneratedId,
-	pub testId: GeneratedId,
 	pub metrics: Vec<UsageTestMetricData>,
 }
 

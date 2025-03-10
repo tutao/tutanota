@@ -847,6 +847,7 @@ export function assignEventId(event: CalendarEvent, zone: string, groupRoot: Cal
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
 
+// FIXME "
 /** predicate that tells us if two CalendarEvent objects refer to the same instance or different ones.*/
 export function isSameEventInstance(left: Pick<CalendarEvent, "_id" | "startTime">, right: Pick<CalendarEvent, "_id" | "startTime">): boolean {
 	// in addition to the id we compare the start time equality to be able to distinguish repeating events. They have the same id but different start time.

@@ -43,8 +43,8 @@ impl Entity for BlobWriteData {
 pub struct BlobAccessTokenPostIn {
 	pub _format: i64,
 	pub archiveDataType: Option<i64>,
-	pub read: Option<BlobReadData>,
 	pub write: Option<BlobWriteData>,
+	pub read: Option<BlobReadData>,
 }
 
 impl Entity for BlobAccessTokenPostIn {
@@ -76,9 +76,9 @@ impl Entity for BlobAccessTokenPostOut {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobReferencePutIn {
 	pub _format: i64,
-	pub archiveDataType: i64,
-	pub instanceId: GeneratedId,
 	pub instanceListId: Option<GeneratedId>,
+	pub instanceId: GeneratedId,
+	pub archiveDataType: i64,
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
 }
 
@@ -95,9 +95,9 @@ impl Entity for BlobReferencePutIn {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobReferenceDeleteIn {
 	pub _format: i64,
-	pub archiveDataType: i64,
-	pub instanceId: GeneratedId,
 	pub instanceListId: Option<GeneratedId>,
+	pub instanceId: GeneratedId,
+	pub archiveDataType: i64,
 	pub blobs: Vec<super::sys::Blob>,
 }
 
@@ -130,10 +130,10 @@ impl Entity for BlobPostOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobArchiveRef {
-	pub _format: i64,
 	pub _id: Option<IdTupleGenerated>,
-	pub _ownerGroup: Option<GeneratedId>,
 	pub _permissions: GeneratedId,
+	pub _format: i64,
+	pub _ownerGroup: Option<GeneratedId>,
 	pub archive: GeneratedId,
 }
 
