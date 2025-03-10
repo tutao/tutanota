@@ -1008,6 +1008,7 @@ export type TranslationKeyType =
 	| "mobyPhish_confirm"
 	| "mobyPhish_deny"
 	| "mobyPhish_is_trusted"
+	| "mobyPhish_sender_confirmed"
 	| "modified_label"
 	| "months_label"
 	| "month_label"
