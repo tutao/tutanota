@@ -610,6 +610,16 @@
 					"info": "RemoveAssociation CustomerServerProperties/whitelabelRegistrationDomains."
 				}
 			]
+		},
+		{
+			"version": 124,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "EntityUpdate",
+					"info": "AddValue EntityUpdate/typeId/2554."
+				}
+			]
 		}
 	]
 }

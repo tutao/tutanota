@@ -1125,6 +1125,7 @@ export type EntityUpdate = {
 	instanceListId: string;
 	operation: NumberString;
 	type: string;
+	typeId: NumberString;
 }
 export const ExceptionTypeRef: TypeRef<Exception> = new TypeRef("sys", "Exception")
 
