@@ -19,17 +19,6 @@ class CompatibilityTest {
 		testData = try JSONDecoder().decode(TestData.self, from: jsonData)
 	}
 
-	@Test func testUnicodeEncoding() {
-		for td in self.testData.encodingTests {
-			let encoded = TUTEncodingConverter.string(toBytes: td.string)
-			#expect(TUTEncodingConverter.base64(toBytes: td.encodedString) == encoded)
-			#expect(TUTEncodingConverter.bytes(toBase64: encoded) == td.encodedString)
-
-			let decoded = TUTEncodingConverter.bytes(toString: encoded)
-			#expect(decoded == td.string)
-		}
-	}
-
 	@Test func testUnicodeEncodingSwift() {
 		for td in self.testData.encodingTests {
 			let encoded = td.string.data(using: .utf8)!
@@ -43,9 +32,36 @@ class CompatibilityTest {
 
 	// FIXME the rest?
 
-	//	@Test func testEncodingSimple() {
-	//		let data = TUTEncodingConverter.string(toBytes: "abc")
-	//		let b64Data = TUTEncodingConverter.base64(toBytes: "YWJj")
-	//	}
-	//}
+	@Test func testStringToData() {
+		let data = "abc".data(using: .utf8)!
+		#expect(data == Data([97, 98, 99]))
+	}
+
+	@Test func testBaseToData() {
+		let data = Data(base64Encoded: "YWJj")!
+		#expect(data == Data([97, 98, 99]))
+	}
+
+	@Test func testHexToData() {
+		let data = Data(hexEncoded: "616263")!
+		#expect(data == Data([97, 98, 99]))
+	}
+
+	@Test func testEncodingSimple() {
+		let data = "abc".data(using: .utf8)!
+		let b64Data = Data(base64Encoded: "YWJj")!
+		let hexData = Data(hexEncoded: "616263")!
+
+		#expect(String(data: data, encoding: .utf8)! == "abc")
+		#expect(String(data: b64Data, encoding: .utf8)! == "abc")
+		#expect(String(data: hexData, encoding: .utf8)! == "abc")
+
+		#expect(data.base64EncodedString() == "YWJj")
+		#expect(b64Data.base64EncodedString() == "YWJj")
+		#expect(hexData.base64EncodedString() == "YWJj")
+
+		#expect(data.hexEncodedString() == "616263")
+		#expect(hexData.hexEncodedString() == "616263")
+		#expect(hexData.hexEncodedString() == "616263")
+	}
 }

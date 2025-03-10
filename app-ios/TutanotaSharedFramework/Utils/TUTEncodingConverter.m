@@ -30,22 +30,4 @@
     return [NSString stringWithString:hexString];
 }
 
-
-+ (NSData*)base64ToBytes:(NSString*)base64String {
-	return [[NSData alloc] initWithBase64EncodedString:base64String options: 0];
-}
-
-+ (NSString*)bytesToBase64:(NSData*)bytes {
-	return [bytes base64EncodedStringWithOptions:0];
-}
-
-
-+ (NSData*)stringToBytes:(NSString*)string {
-	return [string dataUsingEncoding:NSUTF8StringEncoding];
-}
-
-+ (NSString*)bytesToString:(NSData*)bytes {
-   return [[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding];
-}
-
 @end
