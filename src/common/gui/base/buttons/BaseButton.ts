@@ -3,7 +3,7 @@ import { ClickHandler } from "../GuiUtils.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { TabIndex } from "../../../api/common/TutanotaConstants.js"
 import { AriaRole } from "../../AriaUtils.js"
-import { lang, Translation, TranslationKey, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 
 // `staticRightText` to be passed as a child
 export interface BaseButtonAttrs {
@@ -40,7 +40,12 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 				pressed,
 				"aria-pressed": pressed,
 				"aria-selected": selected,
-				onclick: (event: MouseEvent) => attrs.onclick(event, assertNotNull(this.dom)),
+				onclick: (event: MouseEvent) => {
+					let p: any = attrs.onclick(event, assertNotNull(this.dom))
+					if (p instanceof Promise) {
+						p.then(() => m.redraw())
+					}
+				},
 				onkeydown: attrs.onkeydown,
 				class: attrs.class,
 				style: attrs.style,
