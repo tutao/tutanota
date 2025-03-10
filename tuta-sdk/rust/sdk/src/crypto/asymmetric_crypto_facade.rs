@@ -89,7 +89,7 @@ impl AsymmetricCryptoFacade {
 	/// @param identifier the identifier to load the public key to verify that it matches the one used in the protocol run.
 	/// @param sender_identity_pub_key the sender_identity_pub_key that was used to encrypt/authenticate the data.
 	/// @param sender_key_version the version of the sender_identity_pub_key.
-	#[allow(clippy::needless_lifetimes)]
+	#[allow(clippy::needless_lifetimes)] // explicit lifetime needed for automock
 	pub async fn authenticate_sender<'a>(
 		&self,
 		identifier: PublicKeyIdentifier,

@@ -80,6 +80,12 @@ impl EccPublicKey {
 	pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
 		Ok(Self(array_cast_slice(bytes, "EccPublicKey")?))
 	}
+
+	/// Convert an array of bytes into an ECC key.
+	#[cfg(test)]
+	pub const fn from_array(bytes: [u8; ECC_KEY_SIZE]) -> Self {
+		Self(bytes)
+	}
 }
 
 #[derive(Zeroize, ZeroizeOnDrop)]

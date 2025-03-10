@@ -24,7 +24,6 @@ use crate::util::{convert_version_to_u64, Versioned};
 use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
 use serde::{Deserialize, Serialize};
-use std::any::Any;
 use std::sync::Arc;
 
 // A high level interface to manipulate encrypted entities/instances via the REST API
@@ -219,14 +218,10 @@ impl CryptoEntityClient {
 		typed_entity: &mut T,
 		sender_identity_pub_key: Option<EccPublicKey>,
 	) {
-		if T::type_ref() != Mail::type_ref() {
+		let Some(mail): Option<&mut Mail> = crate::util::downcast_mut(typed_entity) else {
 			// we only authenticate mail instances currently
 			return;
-		}
-		// what is the proper way to coerce this to mail
-		let mail: &mut Mail = (typed_entity as &mut (dyn Any + 'static))
-			.downcast_mut::<Mail>()
-			.expect("downcast to mail should work if type ref is mail");
+		};
 
 		mail.encryptionAuthStatus =
 			match &mail.bucketKey {
@@ -517,7 +512,9 @@ mod tests {
 		const SUBJECT: &str = "Subject";
 		const SENDER_NAME: &str = "Sender";
 		const RECIPIENT_NAME: &str = "Recipient";
-		let sender_key_version = 3u64;
+		const SENDER_KEY_VERSION: u64 = 3u64;
+		const SENDER_IDENTIFIER_EMAIL: &str = "sender@tutao.de";
+		const PUB_SENDER_KEY: EccPublicKey = EccPublicKey::from_array([0xAC; 32]);
 		let bucket_key = BucketKey {
 			// only some fields are relevant because crypto_facade is mocked away
 			_id: None,
@@ -525,7 +522,7 @@ mod tests {
 			protocolVersion: CryptoProtocolVersion::TutaCrypt as i64,
 			pubEncBucketKey: Some(vec![9, 8, 7]),
 			recipientKeyVersion: 2,
-			senderKeyVersion: Some(sender_key_version as i64),
+			senderKeyVersion: Some(SENDER_KEY_VERSION as i64),
 			bucketEncSessionKeys: vec![],
 			keyGroup: Some(GeneratedId::test_random()),
 		};
@@ -538,12 +535,6 @@ mod tests {
 			RECIPIENT_NAME.to_owned(),
 			Some(bucket_key),
 		);
-		let sender_identitfier = PublicKeyIdentifier {
-			identifier: "sender@tutao.de".to_owned(), // hard_coded in generate_email_entity()
-			identifier_type: PublicKeyIdentifierType::MailAddress,
-		};
-		let pub_sender_key = EccPublicKey::from_bytes([0xac; 32].as_slice()).unwrap();
-		let sender_key = pub_sender_key.clone();
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
@@ -576,10 +567,11 @@ mod tests {
 
 		asymmetric_crypto_facade
 			.expect_authenticate_sender()
-			.withf(move |sender, versioned_key| {
-				sender == &sender_identitfier
-					&& versioned_key.version == sender_key_version
-					&& versioned_key.object == &pub_sender_key
+			.withf(|sender, versioned_key| {
+				sender.identifier == SENDER_IDENTIFIER_EMAIL
+					&& sender.identifier_type == PublicKeyIdentifierType::MailAddress
+					&& versioned_key.version == SENDER_KEY_VERSION
+					&& versioned_key.object == &PUB_SENDER_KEY
 			})
 			.returning(move |_, _| Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded));
 
@@ -592,7 +584,7 @@ mod tests {
 					session_key: sk.clone(),
 					owner_enc_session_key: vec![1, 2, 3],
 					owner_key_version: 0u64,
-					sender_identity_pub_key: Some(sender_key.clone()),
+					sender_identity_pub_key: Some(PUB_SENDER_KEY.clone()),
 				}))
 			});
 

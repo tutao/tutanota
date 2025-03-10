@@ -200,6 +200,13 @@ pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(
 	}
 }
 
+/// Returns `T` if type `F` is the same type.
+#[must_use]
+pub fn downcast_mut<F: 'static, T: 'static>(of: &mut F) -> Option<&mut T> {
+	let a = of as &mut dyn std::any::Any;
+	a.downcast_mut()
+}
+
 #[cfg(test)]
 mod test {
 	use super::*;
