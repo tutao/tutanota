@@ -56,6 +56,8 @@
 				<action android:name="android.intent.action.MAIN"/>
 				<category android:name="android.intent.category.LAUNCHER"/>
 			</intent-filter>
+			<!--Shortcuts for home screen icons-->
+			<meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
 			<!--Handler for "share" event or when another app wants to send an email-->
 			<intent-filter>
 				<action android:name="android.intent.action.SEND"/>

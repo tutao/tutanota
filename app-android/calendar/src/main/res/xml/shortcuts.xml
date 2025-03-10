@@ -1,0 +1,36 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+  <shortcut
+    android:shortcutId="newevent"
+    android:enabled="true"
+    <!-- TODO use '+' icon used in main app, set up strings -->
+    android:icon="@drawable/newevent_icon"
+    android:shortcutShortLabel="@string/newevent_shortcut_short_label1"
+    android:shortcutLongLabel="@string/newevent_shortcut_long_label1"
+    android:shortcutDisabledMessage="@string/newevent_disabled_message1">
+    <intent
+      android:action="android.intent.action.VIEW"
+      <!-- TODO Fill in tuta calendar's targetpackage, confirm action intent is correct, and use correct capability-binding and category -->
+      android:targetPackage="com.example.myapplication"
+      android:targetClass="com.example.myapplication.ComposeActivity" />
+    <categories android:name="android.shortcut.calendar" />
+    <capability-binding android:key="actions.intent.CREATE_MESSAGE" />
+  </shortcut>
+  <!--<shortcut
+    android:shortcutId="search"
+    android:enabled="true"
+    <!-- TODO use search icon used in main app, set up strings -- >
+    android:icon="@drawable/search_icon"
+    android:shortcutShortLabel="@string/search_shortcut_short_label1"
+    android:shortcutLongLabel="@string/search_shortcut_long_label1"
+    android:shortcutDisabledMessage="@string/search_disabled_message1">
+    <intent
+      <!-- TODO Set up search intent, fill in tuta calendar's targetpackage, confirm action intent is correct, and use correct capability-binding and category -- >
+      android:action="android.intent.action.SEARCH"
+      android:targetPackage="com.example.myapplication"
+      android:targetClass="com.example.myapplication.ComposeActivity" />
+    <categories android:name="android.shortcut.search" />
+    <capability-binding android:key="actions.intent.SEARCH" />
+  </shortcut>-->
+  <!-- Specify more shortcuts here. -->
+</shortcuts>
+
