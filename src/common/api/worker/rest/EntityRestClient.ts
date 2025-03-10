@@ -33,8 +33,9 @@ import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
-export function typeRefToPath(typeRef: TypeRef<any>): string {
-	return `/rest/${typeRef.app}/${typeRef.type.toLowerCase()}`
+export async function typeRefToRestPath(typeRef: TypeRef<any>): Promise<string> {
+	const typeModel = await resolveTypeReference(typeRef)
+	return `/rest/${typeRef.app}/${typeModel.name.toLowerCase()}`
 }
 
 export interface EntityRestClientSetupOptions {
@@ -541,7 +542,7 @@ export class EntityRestClient implements EntityRestInterface {
 			throw new LoginIncompleteError(`Trying to do a network request with encrypted entity but is not fully logged in yet, type: ${typeModel.name}`)
 		}
 
-		let path = typeRefToPath(typeRef)
+		let path = await typeRefToRestPath(typeRef)
 
 		if (listId) {
 			path += "/" + listId

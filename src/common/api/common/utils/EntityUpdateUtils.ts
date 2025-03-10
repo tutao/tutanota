@@ -6,14 +6,25 @@ import { isSameId } from "./EntityUtils.js"
 
 export type EntityUpdateData = {
 	application: string
-	type: string
+	typeId: number
 	instanceListId: string
 	instanceId: string
 	operation: OperationType
 }
 
-export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData): boolean {
-	return isSameTypeRefByAttr(typeRef, update.application, update.type)
+export function entityUpateToUpdateData(update: EntityUpdate): EntityUpdateData {
+	return {
+		typeId: parseInt(update.typeId),
+		application: update.application,
+		instanceId: update.instanceId,
+		instanceListId: update.instanceListId,
+		operation: update.operation as OperationType,
+	}
+}
+
+export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData | EntityUpdate): boolean {
+	const typeId = typeof update.typeId === "number" ? update.typeId : parseInt(update.typeId)
+	return isSameTypeRefByAttr(typeRef, update.application, typeId)
 }
 
 export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdateData): boolean {

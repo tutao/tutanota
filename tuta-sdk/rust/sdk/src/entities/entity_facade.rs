@@ -256,11 +256,11 @@ impl EntityFacadeImpl {
 		let dependency = association.dependency.unwrap_or(type_model.app);
 		let aggregated_type_model = self
 			.type_model_provider
-			.get_type_model(dependency, association.ref_type)
+			.get_type_model(dependency, association.ref_type_id)
 			.ok_or_else(|| {
 				ApiCallError::internal(format!(
 					"unknown type model: {:?}",
-					(dependency, association.ref_type)
+					(dependency, association.ref_type_id)
 				))
 			})?;
 		let instance_association = instance.get(&association_name.to_string()).unwrap();
@@ -368,8 +368,10 @@ impl EntityFacadeImpl {
 		if let AssociationType::Aggregation = association_model.association_type {
 			let aggregate_type_model = self
 				.type_model_provider
-				.get_type_model(dependency, association_model.ref_type)
-				.unwrap_or_else(|| panic!("Undefined type_model {}", association_model.ref_type));
+				.get_type_model(dependency, association_model.ref_type_id)
+				.unwrap_or_else(|| {
+					panic!("Undefined type_model {}", association_model.ref_type_id)
+				});
 
 			match (association_data, association_model.cardinality.borrow()) {
 				(ElementValue::Null, Cardinality::ZeroOrOne) => Ok((ElementValue::Null, errors)),
@@ -790,7 +792,7 @@ mod tests {
 		);
 		let type_ref = Mail::type_ref();
 		let type_model = type_model_provider
-			.get_type_model(type_ref.app, type_ref.type_)
+			.get_type_model(type_ref.app, type_ref.type_id)
 			.unwrap();
 
 		let decrypted_mail = entity_facade
@@ -1117,7 +1119,7 @@ mod tests {
 
 		let type_ref = Mail::type_ref();
 		let type_model = type_model_provider
-			.get_type_model(type_ref.app, type_ref.type_)
+			.get_type_model(type_ref.app, type_ref.type_id)
 			.unwrap();
 
 		let entity_facade = EntityFacadeImpl::new(
@@ -1251,7 +1253,7 @@ mod tests {
 		);
 		let type_ref = CustomerAccountTerminationRequest::type_ref();
 		let type_model = type_model_provider
-			.get_type_model(type_ref.app, type_ref.type_)
+			.get_type_model(type_ref.app, type_ref.type_id)
 			.unwrap();
 		let sk = GenericAesKey::from_bytes(rand::random::<[u8; 32]>().as_slice()).unwrap();
 
@@ -1284,7 +1286,7 @@ mod tests {
 		);
 		let type_ref = Mail::type_ref();
 		let type_model = type_model_provider
-			.get_type_model(type_ref.app, type_ref.type_)
+			.get_type_model(type_ref.app, type_ref.type_id)
 			.unwrap();
 		let sk = GenericAesKey::from_bytes(rand::random::<[u8; 32]>().as_slice()).unwrap();
 		let new_iv = Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap();
@@ -1354,7 +1356,7 @@ mod tests {
 		);
 		let type_ref = Mail::type_ref();
 		let type_model = type_model_provider
-			.get_type_model(type_ref.app, type_ref.type_)
+			.get_type_model(type_ref.app, type_ref.type_id)
 			.unwrap();
 		let sk = GenericAesKey::from_bytes(rand::random::<[u8; 32]>().as_slice()).unwrap();
 		let iv = Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap();

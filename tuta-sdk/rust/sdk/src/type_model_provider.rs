@@ -6,27 +6,27 @@ use crate::TypeRef;
 // TODO: Change `AppName` into an enum of strings that is generated from the model
 /// The name of an app in the backend
 pub type AppName = &'static str;
-/// The name of an entity/instance type in the backend
-pub type TypeName = &'static str;
+pub type TypeId = u64;
 
 /// Contains a map between backend apps and entity/instance types within them
 pub struct TypeModelProvider {
-	app_models: HashMap<AppName, HashMap<TypeName, TypeModel>>,
+	pub app_models: HashMap<AppName, HashMap<TypeId, TypeModel>>,
 }
 
 impl TypeModelProvider {
-	pub fn new(app_models: HashMap<AppName, HashMap<TypeName, TypeModel>>) -> TypeModelProvider {
+	pub fn new(app_models: HashMap<AppName, HashMap<TypeId, TypeModel>>) -> TypeModelProvider {
 		TypeModelProvider { app_models }
 	}
 
 	/// Gets an entity/instance type with a specified name in a backend app
-	pub fn get_type_model(&self, app_name: &str, entity_name: &str) -> Option<&TypeModel> {
+	// FIXME: make this private and outside this file always use .resolve_type_ref instead
+	pub fn get_type_model(&self, app_name: &str, entity_id: TypeId) -> Option<&TypeModel> {
 		let app_map = self.app_models.get(app_name)?;
-		app_map.get(entity_name)
+		app_map.get(&entity_id)
 	}
 
 	pub fn resolve_type_ref(&self, type_ref: &TypeRef) -> Option<&TypeModel> {
-		self.get_type_model(type_ref.app, type_ref.type_)
+		self.get_type_model(type_ref.app, type_ref.type_id)
 	}
 }
 
@@ -40,7 +40,7 @@ macro_rules! read_type_models {
 
         $(
             let json = include_str!(concat!("type_models/", $app_name, ".json"));
-            let model = ::serde_json::from_str::<HashMap<TypeName, TypeModel>>(&json)
+            let model = ::serde_json::from_str::<HashMap<TypeId, TypeModel>>(&json)
                 .expect(concat!("Could not parse type model ", $app_name));
             map.insert($app_name, model);
         )*
@@ -61,6 +61,5 @@ pub fn init_type_model_provider() -> TypeModelProvider {
 		"tutanota",
 		"usage"
 	];
-	let type_model_provider = TypeModelProvider::new(type_model_map);
-	type_model_provider
+	TypeModelProvider::new(type_model_map)
 }

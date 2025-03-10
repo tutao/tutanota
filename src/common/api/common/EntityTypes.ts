@@ -31,7 +31,7 @@ export type ModelAssociation = {
 	id: number
 	type: Values<typeof AssociationType>
 	cardinality: Values<typeof Cardinality>
-	refType: string
+	refTypeId: number
 	final: boolean
 	/**
 	 * From which model we import this association from. Currently, the field only exists for aggregates because they are only ones

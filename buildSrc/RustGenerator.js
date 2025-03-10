@@ -6,13 +6,14 @@
 import { AssociationType, Type, ValueType } from "../src/common/api/common/EntityConstants.js"
 
 /**
- * @param p {object}
- * @param p.type {import("../src/common/api/common/EntityTypes.js").TypeModel}
- * @param p.modelName {string}
+ * @param models {object}
+ * @param type {import("../src/common/api/common/EntityTypes.js").TypeModel}
+ * @param modelName {string}
  * @return {string}
  */
-export function generateRustType({ type, modelName }) {
+export function generateRustType(models, type, modelName) {
 	let typeName = mapTypeName(type.name, modelName)
+	let typeId = type.id
 	let buf = `#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ${typeName} {\n`
@@ -30,7 +31,7 @@ pub struct ${typeName} {\n`
 	}
 
 	for (let [associationName, associationProperties] of Object.entries(type.associations)) {
-		const innerRustType = rustAssociationType(associationProperties)
+		const innerRustType = rustAssociationType(associationProperties, modelName, models)
 		let rustType
 		switch (associationProperties.cardinality) {
 			case "ZeroOrOne":
@@ -68,7 +69,7 @@ impl Entity for ${typeName} {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: "${modelName}",
-			type_: "${typeName}",
+			type_id: ${typeId},
 		}
 	}
 }`
@@ -205,12 +206,16 @@ function rustValueType(valueName, type, value) {
  * @param association {import("../src/common/api/common/EntityTypes.js").ModelAssociation}
  * @return {string}
  */
-function rustAssociationType(association) {
+function rustAssociationType(association, modelName, models) {
 	if (association.type === AssociationType.Aggregation) {
+		const dependentApp = association.dependency ?? modelName
+		const dependentType = models[dependentApp].types[association.refTypeId].name
+		const refTypeName = mapTypeName(dependentType, dependentApp)
+
 		if (association.dependency) {
-			return `super::${association.dependency}::${association.refType}`
+			return `super::${association.dependency}::${refTypeName}`
 		} else {
-			return association.refType
+			return refTypeName
 		}
 	} else if (association.type === AssociationType.ListElementAssociationCustom) {
 		return "IdTupleCustom"

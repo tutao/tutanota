@@ -20,9 +20,7 @@ async fn sdk_can_get_default_folders() -> Result<(), Box<dyn Error>> {
 	let mailbox = mail_facade.load_user_mailbox().await?;
 
 	let folders = mail_facade.load_folders_for_mailbox(&mailbox).await?;
-	let inbox = folders
-		.system_folder_by_type(MailSetKind::Inbox)
-		.expect("inbox exists");
+	assert_ne!(None, folders.system_folder_by_type(MailSetKind::Inbox));
 
 	println!("Inbox exists");
 	Ok(())
