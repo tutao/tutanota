@@ -94,8 +94,8 @@ export function init(domainConfig: DomainConfig) {
 							console.error("Got strange message from sw", event.data)
 							return
 						}
-
-						if (event.data.type === "error") {
+						// FIXME should be type?
+						if (event.data.typeId === "error") {
 							const unserializedError = objToError(event.data.value)
 							handleUncaughtError(unserializedError)
 						}

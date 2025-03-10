@@ -3,7 +3,6 @@ import {
 	base64ToUint8Array,
 	downcast,
 	isSameTypeRef,
-	isSameTypeRefByAttr,
 	lazy,
 	lazyAsync,
 	neverNull,
@@ -53,7 +52,7 @@ import {
 	SymEncInternalRecipientKeyData,
 	TutanotaPropertiesTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
-import { typeRefToPath } from "../rest/EntityRestClient"
+import { typeRefToRestPath } from "../rest/EntityRestClient"
 import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
@@ -521,7 +520,7 @@ export class CryptoFacade {
 		keyGroup: Id | null,
 	) {
 		// we only authenticate mail instances
-		const isMailInstance = isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)
+		const isMailInstance = isSameTypeRef(MailTypeRef, new TypeRef(typeModel.app, typeModel.id))
 		if (isMailInstance) {
 			if (!encryptionAuthStatus) {
 				if (!pqMessageSenderKey) {
@@ -855,10 +854,16 @@ export class CryptoFacade {
 		)
 	}
 
-	private updateOwnerEncSessionKey(typeModel: TypeModel, instance: Record<string, any>, ownerGroupKey: VersionedKey, sessionKey: AesKey): Promise<void> {
+	private async updateOwnerEncSessionKey(
+		typeModel: TypeModel,
+		instance: Record<string, any>,
+		ownerGroupKey: VersionedKey,
+		sessionKey: AesKey,
+	): Promise<void> {
 		this.setOwnerEncSessionKeyUnmapped(instance as UnmappedOwnerGroupInstance, encryptKeyWithVersionedKey(ownerGroupKey, sessionKey))
 		// we have to call the rest client directly because instance is still the encrypted server-side version
-		const path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + "/" + (instance._id instanceof Array ? instance._id.join("/") : instance._id)
+		const typePath = await typeRefToRestPath(new TypeRef(typeModel.app, typeModel.id))
+		const path = typePath + "/" + (instance._id instanceof Array ? instance._id.join("/") : instance._id)
 		const headers = this.userFacade.createAuthHeaders()
 		headers.v = typeModel.version
 		return this.restClient

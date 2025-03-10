@@ -38,7 +38,7 @@ import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/Enti
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, entityUpateToUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
 
 assertWorkerOrNode()
@@ -706,16 +706,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const regularUpdates: EntityUpdate[] = [] // all updates not resulting from post multiple requests
 		const updatesArray = batch.events
 		for (const update of updatesArray) {
-			const typeRef = new TypeRef(update.application, update.type)
-
 			// monitor application is ignored
 			if (update.application === "monitor") continue
 			// mailSetEntries are ignored because move operations are handled as a special event (and no post multiple is possible)
 			if (
 				update.operation === OperationType.CREATE &&
 				getUpdateInstanceId(update).instanceListId != null &&
-				!isSameTypeRef(typeRef, MailTypeRef) &&
-				!isSameTypeRef(typeRef, MailSetEntryTypeRef)
+				!isUpdateForTypeRef(MailTypeRef, update) &&
+				!isUpdateForTypeRef(MailSetEntryTypeRef, update)
 			) {
 				createUpdatesForLETs.push(update)
 			} else {
@@ -729,7 +727,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// we first handle potential post multiple updates in get multiple requests
 		for (let [instanceListId, updates] of createUpdatesForLETsPerList) {
 			const firstUpdate = updates[0]
-			const typeRef = new TypeRef<ListElementEntity>(firstUpdate.application, firstUpdate.type)
+			const typeRef = new TypeRef<ListElementEntity>(firstUpdate.application, parseInt(firstUpdate.typeId))
 			const ids = updates.map((update) => update.instanceId)
 
 			// We only want to load the instances that are in cache range
@@ -767,10 +765,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 
 		const otherEventUpdates: EntityUpdate[] = []
+		// we need an array of UpdateEntityData
 		for (let update of regularUpdates) {
-			const { operation, type, application } = update
+			const { operation, typeId, application } = update
 			const { instanceListId, instanceId } = getUpdateInstanceId(update)
-			const typeRef = new TypeRef<SomeEntity>(application, type)
+			const typeRef = new TypeRef<SomeEntity>(application, parseInt(typeId))
 
 			switch (operation) {
 				case OperationType.UPDATE: {
@@ -783,7 +782,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				case OperationType.DELETE: {
 					if (
 						isSameTypeRef(MailSetEntryTypeRef, typeRef) &&
-						containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)
+						containsEventOfType(
+							updatesArray.map((e) => entityUpateToUpdateData(e)),
+							OperationType.CREATE,
+							instanceId,
+						)
 					) {
 						// move for mail is handled in create event.
 					} else if (isSameTypeRef(MailTypeRef, typeRef)) {

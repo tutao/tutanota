@@ -5,7 +5,7 @@ import { makeTaggedLogger } from "../DesktopLog.js"
 import { typeModels } from "../../api/entities/sys/TypeModels.js"
 import { assertNotNull, base64ToBase64Url, filterInt, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { handleRestError } from "../../api/common/error/RestError.js"
-import { MissedNotification } from "../../api/entities/sys/TypeRefs.js"
+import { MissedNotification, MissedNotificationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import { SseStorage } from "./SseStorage.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
@@ -48,7 +48,7 @@ export class TutaSseFacade implements SseEventHandler {
 		}
 		const url = this.getSseUrl(sseInfo, sseInfo.userIds[0])
 		const headers = {
-			v: typeModels.MissedNotification.version,
+			v: typeModels[MissedNotificationTypeRef.typeId].version,
 			cv: this.appVersion,
 		}
 		const timeout = await this.sseStorage.getHeartbeatTimeoutSec()
@@ -130,7 +130,7 @@ export class TutaSseFacade implements SseEventHandler {
 		log.debug("downloading missed notification")
 		const headers: Record<string, string> = {
 			userIds: sseInfo.userIds[0],
-			v: typeModels.MissedNotification.version,
+			v: typeModels[MissedNotificationTypeRef.typeId].version,
 			cv: this.appVersion,
 		}
 		const lastProcessedId = await this.sseStorage.getLastProcessedNotificationId()

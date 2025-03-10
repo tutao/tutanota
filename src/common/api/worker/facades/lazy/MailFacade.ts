@@ -154,6 +154,7 @@ import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
+import { isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -893,7 +894,7 @@ export class MailFacade {
 				this.deferredDraftUpdate != null &&
 				this.deferredDraftId != null &&
 				update.operation === OperationType.UPDATE &&
-				isSameTypeRefByAttr(MailTypeRef, update.application, update.type) &&
+				isUpdateForTypeRef(MailTypeRef, update) &&
 				isSameId(this.deferredDraftId, [update.instanceListId, update.instanceId])
 			) {
 				return this.entityClient

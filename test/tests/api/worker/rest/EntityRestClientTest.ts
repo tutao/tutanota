@@ -10,7 +10,7 @@ import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { CustomerServerPropertiesTypeRef, CustomerTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import type { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
@@ -121,7 +121,7 @@ o.spec("EntityRestClient", function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
 			when(
-				restClient.request(`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
@@ -141,7 +141,7 @@ o.spec("EntityRestClient", function () {
 		o("loading an element ", async function () {
 			const id1 = "id1"
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}/${id1}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CustomerTypeRef)}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
@@ -162,7 +162,7 @@ o.spec("EntityRestClient", function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
 			when(
-				restClient.request(`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version), baz: "quux" },
 					responseType: MediaType.Json,
 					queryParams: { foo: "bar" },
@@ -186,7 +186,7 @@ o.spec("EntityRestClient", function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
 			when(
-				restClient.request(`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
@@ -219,7 +219,7 @@ o.spec("EntityRestClient", function () {
 			const listId = "listId"
 
 			when(
-				restClient.request(`${typeRefToPath(CalendarEventTypeRef)}/${listId}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${listId}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					queryParams: { start: startId, count: String(count), reverse: String(false) },
 					responseType: MediaType.Json,
@@ -249,7 +249,7 @@ o.spec("EntityRestClient", function () {
 			const ids = countFrom(0, 5)
 
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CustomerTypeRef)}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: "0,1,2,3,4" },
 					responseType: MediaType.Json,
@@ -272,7 +272,7 @@ o.spec("EntityRestClient", function () {
 			const ids = countFrom(0, 100)
 
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CustomerTypeRef)}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: ids.join(",") },
 					responseType: MediaType.Json,
@@ -295,7 +295,7 @@ o.spec("EntityRestClient", function () {
 			const ids = countFrom(0, 101)
 
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CustomerTypeRef)}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
@@ -306,7 +306,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([{ instance: 1 }]))
 
 			when(
-				restClient.request(`${typeRefToPath(CustomerTypeRef)}`, HttpMethod.GET, {
+				restClient.request(`${await typeRefToRestPath(CustomerTypeRef)}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: "100" },
 					responseType: MediaType.Json,
@@ -327,7 +327,7 @@ o.spec("EntityRestClient", function () {
 			const ids = countFrom(0, 211)
 
 			when(
-				restClient.request(typeRefToPath(CustomerTypeRef), HttpMethod.GET, {
+				restClient.request(await typeRefToRestPath(CustomerTypeRef), HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: countFrom(0, 100).join(",") },
 					responseType: MediaType.Json,
@@ -338,7 +338,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([{ instance: 1 }]))
 
 			when(
-				restClient.request(typeRefToPath(CustomerTypeRef), HttpMethod.GET, {
+				restClient.request(await typeRefToRestPath(CustomerTypeRef), HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: countFrom(100, 100).join(",") },
 					responseType: MediaType.Json,
@@ -349,7 +349,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([{ instance: 2 }]))
 
 			when(
-				restClient.request(typeRefToPath(CustomerTypeRef), HttpMethod.GET, {
+				restClient.request(await typeRefToRestPath(CustomerTypeRef), HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
 					queryParams: { ids: countFrom(200, 11).join(",") },
 					responseType: MediaType.Json,
@@ -402,7 +402,7 @@ o.spec("EntityRestClient", function () {
 			}
 			verify(
 				restClient.request(
-					`${typeRefToPath(MailDetailsBlobTypeRef)}/${archiveId}`,
+					`${await typeRefToRestPath(MailDetailsBlobTypeRef)}/${archiveId}`,
 					HttpMethod.GET,
 					argThat((optionsArg) => {
 						o(optionsArg.headers).deepEquals(expectedOptions.headers)("headers")
@@ -478,7 +478,7 @@ o.spec("EntityRestClient", function () {
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
 
-			verify(restClient.request(`${typeRefToPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, anything()), { times: 2 })
+			verify(restClient.request(`${await typeRefToRestPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, anything()), { times: 2 })
 
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.

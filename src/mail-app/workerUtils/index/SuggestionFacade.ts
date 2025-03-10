@@ -19,7 +19,7 @@ export class SuggestionFacade<T> {
 	load(): Promise<void> {
 		return this._db.initialized.then(() => {
 			return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then((t) => {
-				return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then((encSuggestions) => {
+				return t.get(SearchTermSuggestionsOS, this.type.typeId).then((encSuggestions) => {
 					if (encSuggestions) {
 						this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(this._db.key, encSuggestions, true)))
 					} else {
@@ -68,7 +68,7 @@ export class SuggestionFacade<T> {
 		return this._db.initialized.then(() => {
 			return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then((t) => {
 				let encSuggestions = aes256EncryptSearchIndexEntry(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
-				t.put(SearchTermSuggestionsOS, this.type.type.toLowerCase(), encSuggestions)
+				t.put(SearchTermSuggestionsOS, this.type.typeId, encSuggestions)
 				return t.wait()
 			})
 		})

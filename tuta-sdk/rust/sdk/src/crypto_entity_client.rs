@@ -368,6 +368,7 @@ mod tests {
 	use crate::entities::entity_facade::{EntityFacadeImpl, MockEntityFacade, ID_FIELD};
 	use crate::entities::generated::sys::{AccountingInfo, BucketKey};
 	use crate::entities::generated::tutanota::Mail;
+	use crate::entities::Entity;
 	use crate::entity_client::MockEntityClient;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::key_loader_facade::MockKeyLoaderFacade;
@@ -676,12 +677,8 @@ mod tests {
 			.assert_tuple_id_generated();
 		let mail_id =
 			IdTupleGenerated::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
-		let mail_type_ref = TypeRef {
-			app: "tutanota",
-			type_: "Mail",
-		};
 		let mail_type_model: &'static TypeModel = my_favorite_leak
-			.get_type_model(mail_type_ref.app, mail_type_ref.type_)
+			.resolve_type_ref(&Mail::type_ref())
 			.expect("Error in type_model_provider");
 
 		// Set up the mock of the plain unencrypted entity client

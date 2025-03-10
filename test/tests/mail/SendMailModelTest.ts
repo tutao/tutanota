@@ -49,6 +49,7 @@ import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionali
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
+import { PartialRecipient } from "../../../src/common/api/common/recipients/Recipient"
 
 const { anything, argThat } = matchers
 
@@ -577,7 +578,7 @@ o.spec("SendMailModel", function () {
 		})
 
 		o("contact updated email kept", async function () {
-			const { app, type } = ContactTypeRef
+			const { app, typeId } = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
 			const contactForUpdate = {
 				firstName: "newfirstname",
@@ -600,7 +601,7 @@ o.spec("SendMailModel", function () {
 			await model.initWithTemplate({ to: recipients }, "somb", "", [], true, "a@b.c", false)
 			await model.handleEntityEvent({
 				application: app,
-				type,
+				typeId: typeId,
 				operation: OperationType.UPDATE,
 				instanceListId,
 				instanceId,
@@ -610,7 +611,7 @@ o.spec("SendMailModel", function () {
 			o(updatedRecipient && updatedRecipient.name).equals(getContactDisplayName(downcast(contactForUpdate)))
 		})
 		o("contact updated email removed or changed", async function () {
-			const { app, type } = ContactTypeRef
+			const { app, typeId } = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
 			const contactForUpdate = {
 				firstName: "james",
@@ -635,7 +636,7 @@ o.spec("SendMailModel", function () {
 			await model.initWithTemplate({ to: recipients }, "b", "c", [], true, "", false)
 			await model.handleEntityEvent({
 				application: app,
-				type,
+				typeId: typeId,
 				operation: OperationType.UPDATE,
 				instanceListId,
 				instanceId,
@@ -645,12 +646,12 @@ o.spec("SendMailModel", function () {
 			o(updatedContact ?? null).equals(null)
 		})
 		o("contact removed", async function () {
-			const { app, type } = ContactTypeRef
+			const { app, typeId } = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
 			await model.initWithTemplate({ to: recipients }, "subj", "", [], true, "a@b.c", false)
 			await model.handleEntityEvent({
 				application: app,
-				type,
+				typeId: typeId,
 				operation: OperationType.DELETE,
 				instanceListId,
 				instanceId,
