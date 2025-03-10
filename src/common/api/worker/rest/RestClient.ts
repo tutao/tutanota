@@ -1,10 +1,11 @@
 import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
 import { ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError } from "../../common/error/RestError"
-import { HttpMethod, MediaType } from "../../common/EntityFunctions"
-import { assertNotNull, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
+import { HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
+import { assertNotNull, lazy, lazyAsync, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
 import { SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
+import { ApplicationTypesFacade } from "../facades/ApplicationTypesFacade"
 
 assertWorkerOrNode()
 
@@ -46,7 +47,11 @@ export class RestClient {
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
 
-	constructor(private readonly suspensionHandler: SuspensionHandler, private readonly domainConfig: DomainConfig) {
+	constructor(
+		private readonly suspensionHandler: SuspensionHandler,
+		private readonly domainConfig: DomainConfig,
+		private readonly applicationTypesFacade: lazy<ApplicationTypesFacade>,
+	) {
 		this.id = 0
 	}
 
@@ -105,7 +110,7 @@ export class RestClient {
 					console.log(TAG, `${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
 				}
 
-				xhr.onload = () => {
+				xhr.onload = async () => {
 					// XMLHttpRequestProgressEvent, but not needed
 					if (verbose) {
 						console.log(TAG, `${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
@@ -114,6 +119,11 @@ export class RestClient {
 					clearTimeout(timeout)
 
 					this.saveServerTimeOffsetFromRequest(xhr)
+
+					// handle new server model and update the applicationTypesJson file if applicable
+					if (xhr.getResponseHeader("app-types-hash") !== this.applicationTypesFacade().getApplicationTypesHash()) {
+						await this.applicationTypesFacade().getServerApplicationTypesJson()
+					}
 
 					if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
 						if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
@@ -295,6 +305,13 @@ export class RestClient {
 			} else if (typeof body === "string") {
 				headers["Content-Type"] = MediaType.Json
 			}
+		}
+
+		// add networkDebugging header iff network debugging is activated
+		// network debugging can be activated by building with --network-debugging,
+		// and essentially activates both attributeNames and attributeIds in the request/response payload
+		if (env.networkDebugging) {
+			headers["Network-Debugging"] = "enable-network-debugging"
 		}
 
 		if (responseType) {

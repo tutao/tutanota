@@ -15,7 +15,7 @@ pub enum JsonElement {
 	Bool(bool),
 }
 
-/// A JSON object containing an entity/instance
+/// Encrypted raw entity/instance (JSON object) using attributeIds as keys.
 pub type RawEntity = HashMap<String, JsonElement>;
 
 struct JsonElementVisitor;
@@ -118,14 +118,13 @@ impl<'de> Deserialize<'de> for JsonElement {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::json_element;
 
 	#[test]
 	fn can_deserialize_null() {
 		let json = "null";
 		assert_eq!(
-			serde_json::from_str::<json_element::JsonElement>(json).unwrap(),
-			json_element::JsonElement::Null
+			serde_json::from_str::<JsonElement>(json).unwrap(),
+			JsonElement::Null
 		);
 	}
 
@@ -133,8 +132,8 @@ mod tests {
 	fn can_deserialize_number() {
 		let json = "42";
 		assert_eq!(
-			serde_json::from_str::<json_element::JsonElement>(json).unwrap(),
-			json_element::JsonElement::Number(42)
+			serde_json::from_str::<JsonElement>(json).unwrap(),
+			JsonElement::Number(42)
 		);
 	}
 
@@ -143,18 +142,23 @@ mod tests {
 		let json = r#"{"number": 42}"#;
 		assert_eq!(
 			serde_json::from_str::<HashMap<String, JsonElement>>(json).unwrap(),
-			HashMap::from([("number".to_owned(), json_element::JsonElement::Number(42))])
+			HashMap::from([("number".to_owned(), JsonElement::Number(42))])
 		);
 	}
 
 	#[test]
 	fn can_deserialize_email() {
 		let json = include_str!("../test_data/email_response.json");
-		let parsed = serde_json::from_str::<HashMap<String, JsonElement>>(json).unwrap();
-		let JsonElement::Dict(address_map) = parsed.get("firstRecipient").unwrap() else {
-			panic!("Not a map!")
+		let raw_entity = serde_json::from_str::<RawEntity>(json).unwrap();
+
+		let JsonElement::Array(first_recipient) = raw_entity.get("1306").unwrap() else {
+			panic!("first recipient association should be an array at this stage")
 		};
-		let JsonElement::String(address) = address_map.get("address").unwrap() else {
+
+		let JsonElement::Dict(ref first_recipient_value) = first_recipient[0] else {
+			panic!("there is no first recipient association")
+		};
+		let JsonElement::String(address) = first_recipient_value.get("95").unwrap() else {
 			panic!("Not a string")
 		};
 		assert_eq!("bed-free@tutanota.de", address);

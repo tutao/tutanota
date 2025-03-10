@@ -54,8 +54,8 @@ export class ShareFacade {
 		shareCapability: ShareCapability,
 	): Promise<GroupInvitationPostData> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
-		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(userGroupInfo)
-		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(sharedGroupInfo)
+		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
+		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(sharedGroupInfo)
 		const bucketKey = aes256RandomKey()
 		const invitationSessionKey = aes256RandomKey()
 		const sharedGroupEncInviterGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
@@ -104,7 +104,7 @@ export class ShareFacade {
 
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
-		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(userGroupInfo)
+		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
 		const sharedGroupKey = { object: uint8ArrayToBitArray(invitation.sharedGroupKey), version: parseKeyVersion(invitation.sharedGroupKeyVersion) }
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const userGroupEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)

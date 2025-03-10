@@ -3,7 +3,7 @@ import type { CalendarEventAlteredInstance, EventWithUserAlarmInfos } from "../.
 import { CalendarFacade, sortByRecurrenceId } from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { clone, downcast, isSameTypeRef, neverNull, noOp } from "@tutao/tutanota-utils"
+import { clone, downcast, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
 import type { AlarmInfo, User, UserAlarmInfo } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
 	AlarmInfoTypeRef,
@@ -17,11 +17,9 @@ import {
 import { getElementId, getLetId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import type { CalendarEvent } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor.js"
 import { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { ImportError } from "../../../../../src/common/api/common/error/ImportError.js"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { object } from "testdouble"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
@@ -32,6 +30,8 @@ import { ConnectionError } from "../../../../../src/common/api/common/error/Rest
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
+import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
@@ -41,7 +41,6 @@ o.spec("CalendarFacadeTest", function () {
 	let restClientMock: EntityRestClientMock
 	let entityRestCache: DefaultEntityRestCache
 	let calendarFacade: CalendarFacade
-	let progressMonitor: ProgressMonitor
 	let entityRequest: EntityRestClient["setupMultiple"]
 	let requestSpy: any
 	let sendAlarmNotificationsMock
@@ -50,10 +49,10 @@ o.spec("CalendarFacadeTest", function () {
 	let entityRequestMock
 	let workerMock
 	let nativeMock
-	let instanceMapper
 	let serviceExecutor: IServiceExecutor
 	let cryptoFacade: CryptoFacade
 	let infoMessageHandler: InfoMessageHandler
+	let instancePipeline: InstancePipeline
 
 	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithUserAlarmInfos>) {
 		const idCompare = (el1, el2) => getLetId(el1).join("").localeCompare(getLetId(el2).join(""))
@@ -119,10 +118,10 @@ o.spec("CalendarFacadeTest", function () {
 		nativeMock = downcast({
 			invokeNative: spy(() => Promise.resolve()),
 		})
-		instanceMapper = new InstanceMapper()
 		serviceExecutor = object()
 		cryptoFacade = object()
 		infoMessageHandler = object()
+		instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
 		calendarFacade = new CalendarFacade(
 			userFacade,
 			groupManagementFacade,
@@ -130,19 +129,15 @@ o.spec("CalendarFacadeTest", function () {
 			new EntityClient(entityRestCache),
 			nativeMock,
 			workerMock,
-			instanceMapper,
 			serviceExecutor,
 			cryptoFacade,
 			infoMessageHandler,
+			instancePipeline,
 		)
 	})
 
 	o.spec("saveCalendarEvents", function () {
 		o.beforeEach(async function () {
-			progressMonitor = downcast({
-				workDone: noOp,
-			})
-
 			loadAllMock = function (typeRef, listId, start) {
 				if (isSameTypeRef(typeRef, PushIdentifierTypeRef)) {
 					return Promise.resolve(neverNull(user.pushIdentifierList).list)

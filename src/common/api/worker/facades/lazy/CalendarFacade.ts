@@ -1,7 +1,8 @@
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import type { AlarmInfo, AlarmNotification, Group, PushIdentifier, RepeatRule, User, UserAlarmInfo } from "../../../entities/sys/TypeRefs.js"
 import {
-	AlarmServicePostTypeRef,
+	AlarmInfo,
+	AlarmNotification,
+	AlarmNotificationTypeRef,
 	createAlarmInfo,
 	createAlarmNotification,
 	createAlarmServicePost,
@@ -10,13 +11,17 @@ import {
 	createNotificationSessionKey,
 	createRepeatRule,
 	createUserAlarmInfo,
+	Group,
+	PushIdentifier,
 	PushIdentifierTypeRef,
+	RepeatRule,
+	User,
+	UserAlarmInfo,
 	UserAlarmInfoTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
 import {
 	assertNotNull,
 	DAY_IN_MILLIS,
-	downcast,
 	flatMap,
 	getFromMap,
 	groupBy,
@@ -28,6 +33,7 @@ import {
 	promiseMap,
 	Require,
 	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
@@ -40,13 +46,11 @@ import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToC
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
-import { aes256RandomKey, AesKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
-import { InstanceMapper } from "../../crypto/InstanceMapper.js"
+import { aes256RandomKey, AesKey, bitArrayToUint8Array, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { AlarmService } from "../../../entities/sys/Services.js"
 import { CalendarService } from "../../../entities/tutanota/Services.js"
-import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { UserFacade } from "../UserFacade.js"
 import { EncryptedAlarmNotification } from "../../../../native/common/EncryptedAlarmNotification.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
@@ -65,6 +69,7 @@ import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils.js"
+import { InstancePipeline } from "../../crypto/InstancePipeline"
 
 assertWorkerOrNode()
 
@@ -98,10 +103,10 @@ export class CalendarFacade {
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly nativePushFacade: NativePushFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
-		private readonly instanceMapper: InstanceMapper,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly infoMessageHandler: InfoMessageHandler,
+		private readonly instancePipeline: InstancePipeline,
 	) {
 		this.cachingEntityClient = new EntityClient(this.entityRestCache)
 	}
@@ -347,17 +352,19 @@ export class CalendarFacade {
 		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({ event, userAlarmInfos }) =>
 			userAlarmInfos.map((userAlarmInfo) => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)),
 		)
-		// Theoretically we don't need to encrypt anything if we are sending things locally but we use already encrypted data on the client
-		// to store alarms securely.
-		const notificationKey = aes256RandomKey()
-		await this.encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
-		const requestEntity = createAlarmServicePost({
-			alarmNotifications,
-		})
-		const AlarmServicePostTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
-		const encEntity = await this.instanceMapper.encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
-		const encryptedAlarms: EncryptedAlarmNotification[] = downcast(encEntity).alarmNotifications
-		await this.nativePushFacade.scheduleAlarms(encryptedAlarms)
+
+		const sessionKey = aes256RandomKey()
+		await this.encryptNotificationKeyForDevices(sessionKey, alarmNotifications, [pushIdentifier])
+
+		const encryptedNotificationsWireFormat = JSON.stringify(
+			await Promise.all(
+				alarmNotifications.map(async (an) => {
+					return await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKey)
+				}),
+			),
+		)
+
+		await this.nativePushFacade.scheduleAlarms(encryptedNotificationsWireFormat, uint8ArrayToBase64(bitArrayToUint8Array(sessionKey)))
 	}
 
 	/**
@@ -426,7 +433,11 @@ export class CalendarFacade {
 
 				const progenitor: CalendarEventProgenitor | null = await loadProgenitorFromIndexEntry(entityClient, indexEntry)
 				const alteredInstances: Array<CalendarEventAlteredInstance> = await loadAlteredInstancesFromIndexEntry(entityClient, indexEntry)
-				return { progenitor, alteredInstances, ownerGroup: assertNotNull(indexEntry._ownerGroup, "ownergroup on index entry was null!") }
+				return {
+					progenitor,
+					alteredInstances,
+					ownerGroup: assertNotNull(indexEntry._ownerGroup, "ownergroup on index entry was null!"),
+				}
 			} catch (e) {
 				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 					continue
@@ -466,7 +477,7 @@ export class CalendarFacade {
 	): Promise<void> {
 		// PushID SK ->* Notification SK -> alarm fields
 		const maybeEncSessionKeys = await promiseMap(pushIdentifierList, async (identifier) => {
-			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKeyForInstance(identifier)
+			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKey(identifier)
 			if (pushIdentifierSk) {
 				const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
 				return {

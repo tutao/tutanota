@@ -10,8 +10,8 @@ import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmModel
 import de.tutao.tutashared.alarms.AlarmNotification
-import de.tutao.tutashared.alarms.AlarmNotificationEntity
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.alarms.decrypt
 import de.tutao.tutashared.alarms.toEntity
 import de.tutao.tutashared.base64ToBytes
@@ -52,7 +52,7 @@ class AlarmNotificationsManager(
 	}
 
 	private fun resolveNotificationSessionKey(
-		notification: AlarmNotificationEntity,
+		notification: EncryptedAlarmNotificationEntity,
 		pushKeyResolver: PushKeyResolver
 	): ByteArray? {
 		val encNotificationSessionKey = notification.notificationSessionKey ?: return null
@@ -77,11 +77,12 @@ class AlarmNotificationsManager(
 		return null
 	}
 
-	fun scheduleNewAlarms(alarmNotifications: List<EncryptedAlarmNotification>) {
+	fun scheduleNewAlarms(alarmNotifications: List<EncryptedAlarmNotification>, newDeviceSessionKey: ByteArray?) {
 		for (alarmNotification in alarmNotifications) {
 			if (alarmNotification.operation == OperationType.CREATE) {
 				val alarmNotificationEntity = alarmNotification.toEntity()
-				val sessionKey = resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
+				val sessionKey =
+					newDeviceSessionKey ?: resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
 				if (sessionKey == null) {
 					Log.d(TAG, "Failed to resolve session key for alarm notification")
 					return
@@ -204,7 +205,10 @@ class AlarmNotificationsManager(
 		}
 	}
 
-	private fun cancelSavedAlarm(savedAlarmNotification: AlarmNotificationEntity, pushKeyResolver: PushKeyResolver) {
+	private fun cancelSavedAlarm(
+		savedAlarmNotification: EncryptedAlarmNotificationEntity,
+		pushKeyResolver: PushKeyResolver
+	) {
 		if (savedAlarmNotification.repeatRule != null) {
 			val sessionKey = resolveNotificationSessionKey(savedAlarmNotification, pushKeyResolver)
 			if (sessionKey == null) {

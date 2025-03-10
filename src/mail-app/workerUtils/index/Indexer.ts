@@ -20,7 +20,6 @@ import {
 	getFromMap,
 	isNotNull,
 	isSameTypeRef,
-	isSameTypeRefByAttr,
 	millisToDays,
 	neverNull,
 	noOp,
@@ -53,7 +52,6 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError.
 import { MembershipRemovedError } from "../../../common/api/common/error/MembershipRemovedError.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
-import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
 import {
@@ -80,10 +78,10 @@ import {
 	SearchIndexWordsIndex,
 	SearchTermSuggestionsOS,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 
 export type InitParams = {
 	user: User
@@ -678,13 +676,13 @@ export class Indexer {
 				const groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = new Map() // define map first because Webstorm has problems with type annotations
 
 				events.reduce((all, update) => {
-					if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
+					if (isUpdateForTypeRef(MailTypeRef, update)) {
 						getFromMap(all, MailTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
+					} else if (isUpdateForTypeRef(ContactTypeRef, update)) {
 						getFromMap(all, ContactTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
+					} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 						getFromMap(all, UserTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(ImportMailStateTypeRef, update.application, update.type)) {
+					} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
 						getFromMap(all, ImportMailStateTypeRef, () => []).push(update)
 					}
 

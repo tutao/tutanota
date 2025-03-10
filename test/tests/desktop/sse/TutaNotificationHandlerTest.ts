@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailMetadata, TutaNotificationHandler } from "../../../../src/common/desktop/sse/TutaNotificationHandler.js"
+import { TutaNotificationHandler } from "../../../../src/common/desktop/sse/TutaNotificationHandler.js"
 import { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
 import { NativeCredentialsFacade } from "../../../../src/common/native/common/generatedipc/NativeCredentialsFacade.js"
 import { DesktopNotifier, NotificationResult } from "../../../../src/common/desktop/DesktopNotifier.js"
@@ -15,14 +15,20 @@ import { createTestEntity, mockFetchRequest } from "../../TestUtils.js"
 import tutanotaModelInfo from "../../../../src/common/api/entities/tutanota/ModelInfo.js"
 import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
-import { MailAddressTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailAddressTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification.js"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
+import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
+import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
+import { resolveClientTypeReference, resolveServerTypeReference } from "../../../../src/common/api/common/EntityFunctions"
+import { aes256RandomKey } from "@tutao/tutanota-crypto"
 
 type UndiciFetch = typeof undiciFetch
+
+const mapper = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
 
 o.spec("TutaNotificationHandler", () => {
 	let wm: WindowManager
@@ -149,7 +155,7 @@ o.spec("TutaNotificationHandler", () => {
 			const notificationInfo = createNotificationInfo({
 				_id: "id",
 				_ownerGroup: "ownerGroupId",
-				mailId,
+				mailId: mailId,
 				mailAddress: "recipient@example.com",
 				userId: "user1",
 			})
@@ -166,7 +172,7 @@ o.spec("TutaNotificationHandler", () => {
 				encryptedPassword: "",
 			}
 			when(nativeCredentialsFacade.loadByUserId("user1")).thenResolve(credentials)
-			const mailMetadata: MailMetadata = {
+			const mailMetadata: Mail = createSystemMail({
 				_id: [mailId.listId, mailId.listElementId],
 				sender: createTestEntity(MailAddressTypeRef, {
 					address: "sender@example.com",
@@ -174,7 +180,10 @@ o.spec("TutaNotificationHandler", () => {
 				firstRecipient: createTestEntity(MailAddressTypeRef, {
 					address: "recipient@example.com",
 				}),
-			}
+			})
+
+			const sk = aes256RandomKey()
+			const mailLiteral = await mapper.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
 
 			const requestDefer = mockFetchRequest(
 				fetch,
@@ -185,7 +194,7 @@ o.spec("TutaNotificationHandler", () => {
 					accessToken: "accessToken",
 				},
 				200,
-				mailMetadata,
+				mailLiteral,
 			)
 
 			await handler.onMailNotification(sseInfo, notificationInfo)
@@ -204,21 +213,6 @@ o.spec("TutaNotificationHandler", () => {
 					"?mail=mailListId%2CmailElementId",
 				),
 			)
-		})
-	})
-
-	o.spec("onAlarmNotification", () => {
-		o.test("passes it to alarmScheduler", async () => {
-			const alarmNotification: EncryptedAlarmNotification = {
-				operation: OperationType.CREATE,
-				notificationSessionKeys: [],
-				alarmInfo: {
-					alarmIdentifier: "alarmIdentifier",
-				},
-				user: "user1",
-			}
-			await handler.onAlarmNotification(alarmNotification)
-			verify(alarmScheduler.handleAlarmNotification(alarmNotification))
 		})
 	})
 

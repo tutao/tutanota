@@ -21,14 +21,23 @@ import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.bytes
 import de.tutao.tutashared.getFileInfo
 import de.tutao.tutashared.getNonClobberingFileName
-import de.tutao.tutashared.ipc.*
+import de.tutao.tutashared.ipc.DataFile
+import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.DownloadTaskResponse
+import de.tutao.tutashared.ipc.FileFacade
+import de.tutao.tutashared.ipc.IpcClientRect
+import de.tutao.tutashared.ipc.UploadTaskResponse
+import de.tutao.tutashared.ipc.wrap
 import de.tutao.tutashared.toBase64
 import de.tutao.tutashared.toHexString
 import de.tutao.tutashared.writeBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.buffer
 import okio.source
@@ -37,11 +46,18 @@ import org.apache.commons.io.input.BoundedInputStream
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.SequenceInputStream
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 
 class AndroidFileFacade(
@@ -332,10 +348,24 @@ class AndroidFileFacade(
 		}
 
 	@Throws(IOException::class)
-	override suspend fun writeDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
+	override suspend fun writeTempDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
 		val fileHandle = File(tempDir.decrypt, file.name)
 		fileHandle.writeBytes(file.data.data)
 		fileHandle.toUri().toString()
+	}
+
+	@Throws(IOException::class)
+	override suspend fun writeToAppDir(content: DataWrapper, name: String) {
+		val fileHandle = activity.openFileOutput(name, Context.MODE_PRIVATE);
+		fileHandle.write(content.data)
+	}
+
+	@Throws(IOException::class)
+	override suspend fun readFromAppDir(name: String): DataWrapper {
+		val fileHandle = activity.openFileInput(name)
+		val data = DataWrapper(fileHandle.readBytes())
+		fileHandle.close()
+		return data
 	}
 
 	@Throws(IOException::class)

@@ -4,6 +4,6 @@ import { TutanotaError } from "@tutao/tutanota-error"
 
 export class ProgrammingError extends TutanotaError {
 	constructor(m?: string) {
-		super("ProgrammingError", m ?? "Unkown programming error")
+		super("ProgrammingError", m ?? "Unknown programming error")
 	}
 }

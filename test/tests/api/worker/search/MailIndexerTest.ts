@@ -59,7 +59,7 @@ import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import type { DateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
 import { LocalTimeDateProvider } from "../../../../../src/common/api/worker/DateProvider.js"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
-import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { matchers, object, verify, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata as MetaData, MetaDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
@@ -69,6 +69,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -201,11 +202,11 @@ o.spec("MailIndexer test", () => {
 				value: h.value(),
 			}
 		})
-		const MailModel = await resolveTypeReference(MailTypeRef)
+		const MailModel = await resolveClientTypeReference(MailTypeRef)
 		o(JSON.stringify(attributes)).equals(
 			JSON.stringify([
 				{
-					attribute: MailModel.values["subject"].id,
+					attribute: AttributeModel.getModelValue(MailModel, "subject").id,
 					value: "Su",
 				},
 				{
@@ -221,7 +222,7 @@ o.spec("MailIndexer test", () => {
 					value: "bccr0N <bccr0A>,bccr1N <bccr1A>",
 				},
 				{
-					attribute: MailModel.associations["sender"].id,
+					attribute: AttributeModel.getModelAssociation(MailModel, "sender").id,
 					value: "SN <SA>",
 				},
 				{
@@ -229,7 +230,7 @@ o.spec("MailIndexer test", () => {
 					value: "BT",
 				},
 				{
-					attribute: MailModel.associations["attachments"].id,
+					attribute: AttributeModel.getModelAssociation(MailModel, "attachments").id,
 					value: "FN",
 				},
 			]),
@@ -864,28 +865,32 @@ o.spec("MailIndexer test", () => {
 		// if this test fails, you need to think about migrating (or dropping)
 		// so old mail indexes use the new attribute ids.
 		o("mail does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
 		})
 		o("recipients does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.Recipients.associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[RecipientsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
 		})
 		o("mail does not have an attribute with id LEGACY_BODY_ID", function () {
-			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
 		})
 		o("maildetails does not have an attribute with id LEGACY_BODY_ID", function () {
-			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
 		})
 		o("mail does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
 		})
 		o("maildetails does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailDetailsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(
+				0,
+			)
 		})
 		o("mail does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
 		})
 		o("maildetails does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailDetailsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(
+				0,
+			)
 		})
 	})
 

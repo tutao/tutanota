@@ -90,9 +90,10 @@ o.spec("MailModelTest", function () {
 		return Object.assign(
 			{},
 			{
-				type: MailTypeRef.type,
+				typeId: MailTypeRef.typeId,
 				application: MailTypeRef.app,
 				instanceId: "instanceId",
+				type: "Mail",
 			},
 			arg,
 		)

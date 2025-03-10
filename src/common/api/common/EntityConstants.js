@@ -9,8 +9,11 @@ export const Type = Object.freeze({
 })
 
 export const Cardinality = Object.freeze({
+	// nullable values
 	ZeroOrOne: "ZeroOrOne",
+	// an array of zero or more values, never null
 	Any: "Any",
+	// exactly one non-null value
 	One: "One",
 })
 

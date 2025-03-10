@@ -4,11 +4,13 @@ import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.decryptString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 
 @Serializable
 class EncryptedAlarmInfo(
+	@SerialName("1538")
 	val trigger: String,
-	@SerialName("alarmIdentifier")
+	@SerialName("1539")
 	val identifier: String,
 ) {
 

@@ -27,24 +27,37 @@ public class AlarmManager {
 	}
 
 	/// Process new alarms into the app. Will persist the changes and reschedule as appropriate
-	public func processNewAlarms(_ alarms: [EncryptedAlarmNotification]) throws {
+	public func processNewAlarms(_ encryptedAlarmNotifications: [EncryptedAlarmNotification], _ newDeviceSessionKey: String?) throws {
 		log("processNewAlarms")
 		// We will modify this list and the overwrite persisted alarms with what is inside this list
 		var savedNotifications = self.alarmPersistor.alarms
 		var resultError: Error?
-		for alarmNotification in alarms {
+		for alarmNotification in encryptedAlarmNotifications {
+			try self.storeNewKeyIfNeeded(alarmNotification, newDeviceSessionKey)
+
 			do { try self.handleAlarmNotification(alarmNotification, existingAlarms: &savedNotifications) } catch {
 				log("Error while handling alarm \(error)")
 				resultError = error
 			}
 		}
 
-		log("Finished processing \(alarms.count) alarms")
+		log("Finished processing \(encryptedAlarmNotifications.count) alarms")
 		self.alarmPersistor.store(alarms: savedNotifications)
 
 		self.rescheduleAlarms()
 		log("Finished processNewAlarms")
 		if let error = resultError { throw error }
+	}
+	private func storeNewKeyIfNeeded(_ alarmNotification: EncryptedAlarmNotification, _ newDeviceSessionKey: String?) throws {
+		guard let newDeviceSessionKey else {
+			// nothing to do, the caller did not provide it because we're expected to already have it stored.
+			return
+		}
+		guard let pushIdentifierId = alarmNotification.notificationSessionKeys.first?.getPushIdentifier().elementId else {
+			throw TUTErrorFactory.createError("pushIdentifierId is nil, expected exactly one notificationSessionKey!")
+		}
+		guard let sessionKeyData = Data(base64Encoded: newDeviceSessionKey) else { throw TUTErrorFactory.createError("newDeviceSessionKey is invalid b64!") }
+		try self.alarmCryptor.storeNewDeviceSessionKey(pushIdentifierId: pushIdentifierId, sessionKey: sessionKeyData)
 	}
 
 	/// Remove everything persisted and unschedule all alarms
@@ -119,7 +132,7 @@ public class AlarmManager {
 		let alarms = self.alarmPersistor.alarms
 		var alarmsToKeep: [EncryptedAlarmNotification] = []
 		for alarm in alarms {
-			if userId != nil && userId != alarm.user {
+			if userId != nil && userId != alarm.getUser() {
 				alarmsToKeep.append(alarm)
 				continue
 			}
@@ -130,13 +143,11 @@ public class AlarmManager {
 
 	private func unschedule(alarm encAlarmNotification: EncryptedAlarmNotification) throws {
 		let alarmNotification = try alarmCryptor.decrypt(alarm: encAlarmNotification)
-
 		let occurrenceIds = prefix(alarmCalculator.futureOccurrences(ofAlarm: alarmNotification), EVENTS_SCHEDULED_AHEAD)
 			.map { ocurrenceIdentifier(alarmIdentifier: $0.alarm.identifier, occurrence: $0.occurrenceNumber) }
 		log("Cancelling alarm \(alarmNotification.identifier)")
 		self.alarmScheduler.unscheduleAll(occurrenceIds: occurrenceIds)
 	}
-
 	private func schedule(alarmOccurrence: AlarmOccurence, trigger: AlarmInterval, summary: String, alarmIdentifier: String) {
 		let alarmTime = AlarmModel.alarmTime(trigger: trigger, eventTime: alarmOccurrence.eventOccurrenceTime)
 

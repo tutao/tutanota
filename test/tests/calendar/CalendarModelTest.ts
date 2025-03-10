@@ -674,10 +674,11 @@ o.spec("CalendarModel", function () {
 			// calendar update create event
 			await eventControllerMock.sendEvent({
 				application: CalendarEventUpdateTypeRef.app,
-				type: CalendarEventUpdateTypeRef.type,
+				typeId: CalendarEventUpdateTypeRef.typeId,
 				instanceListId: listIdPart(eventUpdate._id),
 				instanceId: elementIdPart(eventUpdate._id),
 				operation: OperationType.CREATE,
+				type: "CalendarEventUpdate",
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile))!).deepEquals(eventUpdate)
@@ -690,10 +691,11 @@ o.spec("CalendarModel", function () {
 			calendarFile._ownerEncSessionKey = hexToUint8Array("01")
 			await eventControllerMock.sendEvent({
 				application: FileTypeRef.app,
-				type: FileTypeRef.type,
+				typeId: FileTypeRef.typeId,
 				instanceListId: listIdPart(calendarFile._id),
 				instanceId: elementIdPart(calendarFile._id),
 				operation: OperationType.UPDATE,
+				type: "File",
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)

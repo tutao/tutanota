@@ -1,6 +1,6 @@
 import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
-import { resolveTypeReference } from "../../../common/api/common/EntityFunctions.js"
+import { resolveClientTypeReference } from "../../../common/api/common/EntityFunctions.js"
 import {
 	arrayHash,
 	asyncFind,
@@ -157,7 +157,7 @@ export class SearchFacade {
 
 	async _loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {
 		if (result.results.length > 0) {
-			const model = await resolveTypeReference(restriction.type)
+			const model = await resolveClientTypeReference(restriction.type)
 			// if we want the exact search order we try to find the complete sequence of words in an attribute of the instance.
 			// for other cases we only check that an attribute contains a word that starts with suggestion word
 			const suggestionQuery = result.matchWordOrder ? normalizeQuery(result.query) : suggestionToken
@@ -204,35 +204,31 @@ export class SearchFacade {
 		suggestionToken: string,
 		matchWordOrder: boolean,
 	): Promise<boolean> {
-		let attributeNames: string[]
-
 		if (!attributeIds) {
-			attributeNames = Object.keys(model.values).concat(Object.keys(model.associations))
-		} else {
-			attributeNames = attributeIds.map((id) =>
-				neverNull(
-					Object.keys(model.values).find((valueName) => model.values[valueName].id === id) ||
-						Object.keys(model.associations).find((associationName) => model.associations[associationName].id === id),
-				),
-			)
+			attributeIds = Object.keys(model.values).map(Number).concat(Object.keys(model.associations).map(Number))
 		}
 
-		return asyncFind(attributeNames, async (attributeName) => {
-			if (model.values[attributeName] && model.values[attributeName].type === ValueType.String && entity[attributeName]) {
+		return asyncFind(attributeIds, async (attributeId) => {
+			const modelValue = model.values[attributeId]
+			if (modelValue && modelValue.type === ValueType.String && entity[modelValue.name]) {
+				const attributeValue = entity[modelValue.name]
 				if (matchWordOrder) {
-					return Promise.resolve(normalizeQuery(entity[attributeName]).indexOf(suggestionToken) !== -1)
+					return Promise.resolve(normalizeQuery(attributeValue).indexOf(suggestionToken) !== -1)
 				} else {
-					let words = tokenize(entity[attributeName])
+					let words = tokenize(attributeValue)
 					return Promise.resolve(words.some((w) => w.startsWith(suggestionToken)))
 				}
-			} else if (model.associations[attributeName] && model.associations[attributeName].type === AssociationType.Aggregation && entity[attributeName]) {
-				let aggregates = model.associations[attributeName].cardinality === Cardinality.Any ? entity[attributeName] : [entity[attributeName]]
-				const refModel = await resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType))
-				return asyncFind(aggregates, (aggregate) => {
-					return this._containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)
-				}).then((found) => found != null)
 			} else {
-				return Promise.resolve(false)
+				const modelAssociation = model.associations[attributeId]
+				if (modelAssociation && modelAssociation.type === AssociationType.Aggregation && entity[modelAssociation.name]) {
+					let aggregates = modelAssociation.cardinality === Cardinality.Any ? entity[modelAssociation.name] : [entity[modelAssociation.name]]
+					const refModel = await resolveClientTypeReference(new TypeRef(model.app, modelAssociation.refTypeId))
+					return asyncFind(aggregates, (aggregate) => {
+						return this._containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)
+					}).then((found) => found != null)
+				} else {
+					return Promise.resolve(false)
+				}
 			}
 		}).then((found) => found != null)
 	}

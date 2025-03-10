@@ -171,6 +171,11 @@ class AlarmCryptorStub: AlarmCryptor {
 			throw TutanotaError(message: "Failed to 'decrypt' alarm \(alarm.alarmInfo.alarmIdentifier)")
 		}
 	}
+
+	public func storeNewDeviceSessionKey(pushIdentifierId: String, sessionKey: Key) throws {
+		// do nothing
+		return
+	}
 }
 
 class AlarmSchedulerStub: AlarmScheduler {

@@ -5,7 +5,7 @@ import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import de.tutao.tutashared.alarms.AlarmNotificationEntity
+import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.credentials.CredentialsDao
 import de.tutao.tutashared.credentials.PersistedCredentialsEntity
 
@@ -14,7 +14,7 @@ import de.tutao.tutashared.credentials.PersistedCredentialsEntity
 		KeyValue::class,
 		KeyBinary::class,
 		PushIdentifierKey::class,
-		AlarmNotificationEntity::class,
+		EncryptedAlarmNotificationEntity::class,
 		PersistedCredentialsEntity::class,
 		User::class
 	], autoMigrations = [

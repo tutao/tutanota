@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url"
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
 
-export async function runTestBuild({ clean, fast = false }) {
+export async function runTestBuild({ networkDebugging = false, clean, fast = false }) {
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
@@ -33,7 +33,14 @@ export async function runTestBuild({ clean, fast = false }) {
 	}
 
 	const version = await getTutanotaAppVersion()
-	const localEnv = env.create({ staticUrl: "http://localhost:9000", version, mode: "Test", dist: false, domainConfigs })
+	const localEnv = env.create({
+		staticUrl: "http://localhost:9000",
+		version,
+		mode: "Test",
+		dist: false,
+		domainConfigs,
+		networkDebugging,
+	})
 
 	await runStep("Assets", async () => {
 		const pjPath = path.join("..", "package.json")

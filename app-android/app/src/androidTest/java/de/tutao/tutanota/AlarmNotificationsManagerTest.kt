@@ -10,7 +10,7 @@ import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmIntervalUnit
 import de.tutao.tutashared.alarms.AlarmModel.calculateAlarmTime
-import de.tutao.tutashared.alarms.AlarmNotificationEntity
+import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.alarms.EncryptedAlarmInfo
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import de.tutao.tutashared.alarms.EncryptedRepeatRule
@@ -83,7 +83,7 @@ class AlarmNotificationsManagerTest {
 			userId, repeatingAlarmIdentifier, null, repeatRule
 		)
 		val anotherUserAlarm = createEncryptedAlarmNotification("anotherUserId", "someIdentifeir", null, null)
-		val alarms = ArrayList<AlarmNotificationEntity>()
+		val alarms = ArrayList<EncryptedAlarmNotificationEntity>()
 		alarms.add(alarmNotification.toEntity())
 		alarms.add(repeatingAlarmNotification.toEntity())
 		alarms.add(anotherUserAlarm.toEntity())
@@ -173,7 +173,7 @@ class AlarmNotificationsManagerTest {
 		} catch (cryptoError: CryptoError) {
 			throw RuntimeException(cryptoError)
 		}
-		val notificationSessionKey = AlarmNotificationEntity.NotificationSessionKey(
+		val notificationSessionKey = EncryptedAlarmNotificationEntity.NotificationSessionKey(
 			IdTuple("listId", pushIdentifierElementId),
 			encSessionKey.toBase64()
 		)

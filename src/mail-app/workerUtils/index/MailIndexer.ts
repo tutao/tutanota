@@ -18,11 +18,13 @@ import {
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
+	MailDetailsTypeRef,
 	MailFolder,
 	MailFolderTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailTypeRef,
+	RecipientsTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
@@ -70,13 +72,14 @@ import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonito
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { containsEventOfType, EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, EntityUpdateData, entityUpdateToUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { b64UserIdHash } from "../../../common/api/worker/search/DbFacade.js"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
+import { AttributeModel } from "../../../common/api/common/AttributeModel"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -132,40 +135,40 @@ export class MailIndexer {
 		const hasSender = mail.sender != null
 		if (hasSender) senderToIndex = getDisplayedSender(mail)
 
-		const MailModel = typeModels.Mail
-		const MailDetailsModel = typeModels.MailDetails
-		const RecipientModel = typeModels.Recipients
+		const MailModel = typeModels[MailTypeRef.typeId.toString()]
+		const MailDetailsModel = typeModels[MailDetailsTypeRef.typeId.toString()]
+		const RecipientModel = typeModels[RecipientsTypeRef.typeId.toString()]
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(mail, [
 			{
-				attribute: MailModel.values["subject"],
+				attribute: AttributeModel.getModelValue(MailModel, "subject"),
 				value: () => mail.subject,
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["toRecipients"], { id: LEGACY_TO_RECIPIENTS_ID }),
+				attribute: Object.assign({}, AttributeModel.getModelAssociation(RecipientModel, "toRecipients"), { id: LEGACY_TO_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.toRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["ccRecipients"], { id: LEGACY_CC_RECIPIENTS_ID }),
+				attribute: Object.assign({}, AttributeModel.getModelAssociation(RecipientModel, "ccRecipients"), { id: LEGACY_CC_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.ccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["bccRecipients"], { id: LEGACY_BCC_RECIPIENTS_ID }),
+				attribute: Object.assign({}, AttributeModel.getModelAssociation(RecipientModel, "bccRecipients"), { id: LEGACY_BCC_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.bccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
-				attribute: MailModel.associations["sender"],
+				attribute: AttributeModel.getModelAssociation(MailModel, "sender"),
 				value: () => (hasSender ? senderToIndex.name + " <" + senderToIndex.address + ">" : ""),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, MailDetailsModel.associations["body"], { id: LEGACY_BODY_ID }),
+				attribute: Object.assign({}, AttributeModel.getModelAssociation(MailDetailsModel, "body"), { id: LEGACY_BODY_ID }),
 				value: () => htmlToText(getMailBodyText(mailDetails.body)),
 			},
 			{
-				attribute: MailModel.associations["attachments"],
+				attribute: AttributeModel.getModelAssociation(MailModel, "attachments"),
 				value: () => files.map((file) => file.name).join(" "),
 			},
 		])
@@ -717,7 +720,13 @@ export class MailIndexer {
 					})
 					.catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
 			} else if (event.operation === OperationType.DELETE) {
-				if (!containsEventOfType(events as readonly EntityUpdateData[], OperationType.CREATE, event.instanceId)) {
+				if (
+					!containsEventOfType(
+						events.map((e) => entityUpdateToUpdateData(e)),
+						OperationType.CREATE,
+						event.instanceId,
+					)
+				) {
 					// Check that this is *not* a move event. Move events are handled separately.
 					return this._core._processDeleted(event, indexUpdate)
 				}

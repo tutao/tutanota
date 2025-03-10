@@ -227,6 +227,9 @@ export class UserFacade implements AuthDataProvider {
 		this.keyCache.reset()
 		this.leaderStatus = createWebsocketLeaderStatus({
 			leaderStatus: false,
+			// a valid applicationVersionSum and applicationTypesHash can only be provided by the server
+			applicationVersionSum: null,
+			applicationTypesHash: null,
 		})
 	}
 

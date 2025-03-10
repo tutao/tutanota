@@ -88,9 +88,22 @@ public protocol FileFacade {
 	/**
 	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
 	 */
-	func writeDataFile(
+	func writeTempDataFile(
 		_ file: DataFile
 	) async throws -> String
+	/**
+	 * Save given file in given path relative to app data folder
+	 */
+	func writeToAppDir(
+		_ content: DataWrapper,
+		_ path: String
+	) async throws -> Void
+	/**
+	 * Read file from given path relative to app data folder
+	 */
+	func readFromAppDir(
+		_ path: String
+	) async throws -> DataWrapper
 	/**
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
 	 */

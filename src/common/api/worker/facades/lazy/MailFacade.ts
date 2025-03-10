@@ -108,7 +108,6 @@ import {
 	isEmpty,
 	isNotNull,
 	isSameTypeRef,
-	isSameTypeRefByAttr,
 	noOp,
 	ofClass,
 	promiseFilter,
@@ -150,11 +149,11 @@ import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
-import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
+import { isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -418,7 +417,7 @@ export class MailFacade {
 	}
 
 	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {
-		const mailSessionKey: Aes128Key = assertNotNull(await this.crypto.resolveSessionKeyForInstance(mail))
+		const mailSessionKey: Aes128Key = assertNotNull(await this.crypto.resolveSessionKey(mail))
 		const postData = createReportMailPostData({
 			mailId: mail._id,
 			mailSessionKey: bitArrayToUint8Array(mailSessionKey),
@@ -508,7 +507,7 @@ export class MailFacade {
 				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
 			} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 				// forwarded attachment which was not in the draft before
-				return this.crypto.resolveSessionKeyForInstance(providedFile).then((fileSessionKey) => {
+				return this.crypto.resolveSessionKey(providedFile).then((fileSessionKey) => {
 					const sessionKey = assertNotNull(fileSessionKey, "filesessionkey was not resolved")
 					const ownerEncFileSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 					const attachment = createDraftAttachment({
@@ -575,7 +574,7 @@ export class MailFacade {
 		const attachments = await this.getAttachmentIds(draft)
 		for (const fileId of attachments) {
 			const file = await this.entityClient.load(FileTypeRef, fileId)
-			const fileSessionKey = assertNotNull(await this.crypto.resolveSessionKeyForInstance(file), "fileSessionKey was null")
+			const fileSessionKey = assertNotNull(await this.crypto.resolveSessionKey(file), "fileSessionKey was null")
 			const data = createAttachmentKeyData({
 				file: fileId,
 				fileSessionKey: null,
@@ -595,7 +594,7 @@ export class MailFacade {
 			this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
 				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
-			this.crypto.resolveSessionKeyForInstance(draft).then(async (mailSessionkey) => {
+			this.crypto.resolveSessionKey(draft).then(async (mailSessionkey) => {
 				const sk = assertNotNull(mailSessionkey, "mailSessionKey was null")
 				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
 
@@ -899,7 +898,7 @@ export class MailFacade {
 				this.deferredDraftUpdate != null &&
 				this.deferredDraftId != null &&
 				update.operation === OperationType.UPDATE &&
-				isSameTypeRefByAttr(MailTypeRef, update.application, update.type) &&
+				isUpdateForTypeRef(MailTypeRef, update) &&
 				isSameId(this.deferredDraftId, [update.instanceListId, update.instanceId])
 			) {
 				return this.entityClient
@@ -1037,8 +1036,7 @@ export class MailFacade {
 		const bucketKey = mail.bucketKey
 		let ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | undefined
 		if (bucketKey) {
-			const typeModel = await resolveTypeReference(FileTypeRef)
-			const resolvedSessionKeys = await this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel)
+			const resolvedSessionKeys = await this.crypto.resolveWithBucketKey(mail)
 			ownerEncSessionKeyProvider = async (instanceElementId: Id): Promise<VersionedEncryptedKey> => {
 				const instanceSessionKey = assertNotNull(
 					resolvedSessionKeys.instanceSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),

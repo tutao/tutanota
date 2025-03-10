@@ -1,7 +1,7 @@
 import { FileFacade } from "../../native/common/generatedipc/FileFacade.js"
 import { DownloadTaskResponse } from "../../native/common/generatedipc/DownloadTaskResponse.js"
 import { IpcClientRect } from "../../native/common/generatedipc/IpcClientRect.js"
-import { ElectronExports, FsExports } from "../ElectronExportTypes.js"
+import { ElectronExports, FsExports, PathExports } from "../ElectronExportTypes.js"
 import { UploadTaskResponse } from "../../native/common/generatedipc/UploadTaskResponse.js"
 import { DataFile } from "../../api/common/DataFile.js"
 import { FileUri } from "../../native/common/FileApp.js"
@@ -42,6 +42,7 @@ export class DesktopFileFacade implements FileFacade {
 		private readonly electron: ElectronExports,
 		private readonly tfs: TempFs,
 		private readonly fs: FsExports,
+		private readonly path: PathExports,
 	) {
 		this.lastOpenedFileManagerAt = null
 	}
@@ -235,14 +236,19 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	// this is only used to write decrypted data into our tmp
-	async writeDataFile(file: DataFile): Promise<string> {
+	async writeTempDataFile(file: DataFile): Promise<string> {
 		return await this.tfs.writeToDisk(file.data, "decrypted")
 	}
 
-	async writeDataFileToDirectory(file: DataFile, directory: string): Promise<string> {
-		const filePath = path.join(directory, file.name)
-		await this.fs.promises.writeFile(filePath, file.data)
-		return filePath
+	// This write data to app dir and return full path
+	async writeToAppDir(fileConent: Uint8Array, fileName: string): Promise<void> {
+		const fullPath = this.path.join(this.electron.app.getPath("userData"), fileName)
+		this.fs.writeFileSync(fullPath, fileConent)
+	}
+
+	async readFromAppDir(fileName: string): Promise<Buffer> {
+		const fullPath = this.path.join(this.electron.app.getPath("userData"), fileName)
+		return this.fs.readFileSync(fullPath)
 	}
 
 	// this is used to read unencrypted data from arbitrary locations

@@ -9,6 +9,8 @@ import express from "express"
 import bodyParser from "body-parser"
 import type { AddressInfo } from "node:net"
 import { domainConfigStub } from "../../../TestUtils.js"
+import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
+import { object, reset, verify, when } from "testdouble"
 
 // only runs in node, it spins up a local server and connects to it
 
@@ -21,7 +23,9 @@ o.spec("RestClient", function () {
 		isSuspended: () => false,
 		deferRequest: (request) => request(),
 	}
-	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub)
+	const applicationTypesFacadeMock: ApplicationTypesFacade = object()
+
+	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, () => applicationTypesFacadeMock)
 	o.spec("integration tests", function () {
 		let app = express()
 		let server: http.Server
@@ -207,6 +211,75 @@ o.spec("RestClient", function () {
 			const timestamp = restClient.getServerTimestampMs()
 			// Adjust for possible variance in date times
 			o(Math.abs(timestamp - SERVER_TIMESTAMP) < 10).equals(true)("Timestamp on the server was too different")
+		})
+
+		o("verify ApplicationTypesService is called when the applicationTypesHash is different in the response header, has been null", async () => {
+			o.timeout(400)
+			let responseText = '{"msg":"Hello Client"}'
+
+			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenReturn(Promise.resolve())
+			app.get("/get/json", (req, res) => {
+				o(req.method).equals("GET")
+				o(req.headers["content-type"]).equals(undefined)
+				o(req.headers["accept"]).equals("application/json")
+				res.setHeader("sv", "271")
+				res.setHeader("app-types-hash", "newApplicationTypesHash")
+				res.send(responseText)
+			})
+			const res = await restClient.request("/get/json", HttpMethod.GET, {
+				responseType: MediaType.Json,
+				baseUrl,
+			})
+			verify(applicationTypesFacadeMock.getServerApplicationTypesJson())
+			o(res).equals(responseText)
+		})
+
+		o("verify ApplicationTypesService is called when the applicationTypesHash is different in the response header", async () => {
+			o.timeout(400)
+			let responseText = '{"msg":"Hello Client"}'
+
+			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash")
+
+			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenReturn(Promise.resolve())
+			app.get("/get/json", (req, res) => {
+				o(req.method).equals("GET")
+				o(req.headers["content-type"]).equals(undefined)
+				o(req.headers["accept"]).equals("application/json")
+				res.setHeader("sv", "271")
+				res.setHeader("app-types-hash", "newApplicationTypesHash")
+				res.send(responseText)
+			})
+			const res = await restClient.request("/get/json", HttpMethod.GET, {
+				responseType: MediaType.Json,
+				baseUrl,
+			})
+			verify(applicationTypesFacadeMock.getServerApplicationTypesJson())
+			o(res).equals(responseText)
+		})
+
+		o("verify ApplicationTypesService is NOT called when the applicationTypesHash is same in the response header", async () => {
+			reset()
+			o.timeout(400)
+
+			let responseText = '{"msg":"Hello Client"}'
+
+			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash")
+
+			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenDo(() => Promise.resolve())
+			app.get("/get/jsonn", (req, res) => {
+				o(req.method).equals("GET")
+				o(req.headers["content-type"]).equals(undefined)
+				o(req.headers["accept"]).equals("application/json")
+				res.setHeader("sv", "270")
+				res.setHeader("app-types-hash", "existingApplicationTypesHash")
+				res.send(responseText)
+			})
+			const res = await restClient.request("/get/jsonn", HttpMethod.GET, {
+				responseType: MediaType.Json,
+				baseUrl,
+			})
+			verify(applicationTypesFacadeMock.getServerApplicationTypesJson(), { times: 0 })
+			o(res).equals(responseText)
 		})
 	})
 	o("isSuspensionResponse", () => {

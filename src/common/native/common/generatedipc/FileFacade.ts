@@ -66,7 +66,17 @@ export interface FileFacade {
 	/**
 	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
 	 */
-	writeDataFile(file: DataFile): Promise<string>
+	writeTempDataFile(file: DataFile): Promise<string>
+
+	/**
+	 * Save given file in given path relative to app data folder
+	 */
+	writeToAppDir(content: Uint8Array, path: string): Promise<void>
+
+	/**
+	 * Read file from given path relative to app data folder
+	 */
+	readFromAppDir(path: string): Promise<Uint8Array>
 
 	/**
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.

@@ -23,7 +23,7 @@ use crate::rest_error::HttpError;
 use crate::tutanota_constants::{
 	ArchiveDataType, MAX_BLOB_SERVICE_BYTES, MAX_UNENCRYPTED_BLOB_SIZE_BYTES,
 };
-use crate::type_model_provider::init_type_model_provider;
+use crate::type_model_provider::TypeModelProvider;
 use crate::GeneratedId;
 use crate::{crypto, ApiCallError, HeadersProvider};
 use base64::Engine;
@@ -284,7 +284,8 @@ impl BlobFacade {
 		&self,
 		blob_access_token: String,
 	) -> Vec<(String, String)> {
-		let model_version = init_type_model_provider()
+		let type_model_provider = TypeModelProvider::new();
+		let model_version = type_model_provider
 			.resolve_type_ref(&BlobGetIn::type_ref())
 			.expect("no type model for BlobGetIn?")
 			.version;
@@ -460,7 +461,8 @@ impl BlobFacade {
 	) -> Vec<(String, String)> {
 		let short_hash: Vec<u8> = sha256(encrypted_blob).into_iter().take(6).collect();
 		let blob_hash_b64 = base64::prelude::BASE64_STANDARD.encode(short_hash.as_slice());
-		let model_version = init_type_model_provider()
+		let type_model_provider = TypeModelProvider::new();
+		let model_version = type_model_provider
 			.resolve_type_ref(&BlobGetIn::type_ref())
 			.expect("no type model for BlobGetIn?")
 			.version;
@@ -505,7 +507,7 @@ mod tests {
 	use crate::entities::generated::storage::{BlobServerAccessInfo, BlobServerUrl};
 	use crate::entities::generated::sys::BlobReferenceTokenWrapper;
 	use crate::tutanota_constants::ArchiveDataType;
-	use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
+	use crate::type_model_provider::TypeModelProvider;
 	use crate::util::test_utils::create_test_entity;
 	use crate::CustomId;
 	use crate::GeneratedId;
@@ -632,7 +634,7 @@ mod tests {
 			fourth_attachment_token.clone(),
 		];
 
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let response_binary =
 			make_blob_service_response(expected_reference_tokens, &type_model_provider);
 
@@ -765,7 +767,7 @@ mod tests {
 			fourth_attachment_token.clone(),
 		];
 
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let binary1: Vec<u8> =
 			make_blob_service_response(expected_reference_tokens1, &type_model_provider);
 		let binary2: Vec<u8> =
@@ -908,7 +910,7 @@ mod tests {
 		let expected_reference_tokens3 = vec![second_attachment_token.clone()];
 		let expected_reference_tokens4 = vec![third_attachment_token.clone()];
 
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let binary1: Vec<u8> =
 			make_blob_service_response(expected_reference_tokens1, &type_model_provider);
 		let binary2: Vec<u8> =
@@ -1051,7 +1053,7 @@ mod tests {
 			_id: Some(CustomId("hello_aggregate".to_owned())),
 		}];
 
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let blob_service_response = BlobPostOut {
 			blobReferenceToken: Some(expected_reference_tokens[0].blobReferenceToken.clone()),
 			..create_test_entity()

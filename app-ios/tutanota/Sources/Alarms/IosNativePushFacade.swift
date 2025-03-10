@@ -2,6 +2,7 @@ import Foundation
 import TutanotaSharedFramework
 
 class IosNativePushFacade: NativePushFacade {
+
 	func setReceiveCalendarNotificationConfig(_ pushIdentifier: String, _ value: Bool) {
 		self.notificationStorage.setReceiveCalendarNotificationConfig(pushIdentifier, value)
 	}
@@ -54,9 +55,16 @@ class IosNativePushFacade: NativePushFacade {
 	}
 
 	func closePushNotifications(_ addressesArray: [String]) async throws { await MainActor.run { UIApplication.shared.applicationIconBadgeNumber = 0 } }
-
-	func scheduleAlarms(_ alarms: [EncryptedAlarmNotification]) async throws { try self.alarmManager.processNewAlarms(alarms) }
-
+	func scheduleAlarms(_ alarmNotificationsWireFormat: String, _ newDeviceSessionKey: String) async throws {
+		guard let alarmsData = alarmNotificationsWireFormat.data(using: .utf8) else {
+			throw TUTErrorFactory.createError("Failed to convert string to data for new alarms")
+		}
+		let encryptedAlarmNotifications: [EncryptedAlarmNotification]
+		do { encryptedAlarmNotifications = try JSONDecoder().decode([EncryptedAlarmNotification].self, from: alarmsData) } catch {
+			throw TUTErrorFactory.createError("Failed to parse new alarms, \(error)")
+		}
+		try self.alarmManager.processNewAlarms(encryptedAlarmNotifications, newDeviceSessionKey)
+	}
 	func invalidateAlarmsForUser(_ userId: String) async throws { alarmManager.unscheduleAllAlarms(userId: userId) }
 
 	func removeUser(_ userId: String) async throws { self.notificationStorage.removeUser(userId) }

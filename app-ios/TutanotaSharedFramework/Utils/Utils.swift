@@ -5,7 +5,7 @@ public func translate(_ key: String, default defaultValue: String) -> String {
 }
 
 // // keep in sync with src/native/main/NativePushServiceApp.ts
-public let SYS_MODEL_VERSION = 118
+public let SYS_MODEL_VERSION = 119
 
 // api/entities/tutanota/ModelInfo.ts
 // FIXME there are at least 5 places needs manual sync for these version numbers.
@@ -18,6 +18,7 @@ public extension URLRequest {
 }
 
 public func addSystemModelHeaders(to headers: inout [String: String]) { headers["v"] = String(SYS_MODEL_VERSION) }
+public func addClientVersionHeaders(to headers: inout [String: String]) { headers["cv"] = appVersion() }
 public func addTutanotaModelHeaders(to headers: inout [String: String]) { headers["v"] = String(TUTANOTA_MODEL_VERSION) }
 
 public func makeDbPath(fileName: String) -> URL {

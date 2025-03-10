@@ -15,12 +15,13 @@ import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from 
 import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 import { isSameId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { fixedIv } from "@tutao/tutanota-crypto"
-import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { GroupDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 const dbMock: any = { iv: fixedIv }
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
@@ -71,18 +72,19 @@ o.spec("ContactIndexer test", () => {
 		socialIds[0].socialId = "S0"
 		socialIds[1].socialId = "S1"
 
-		let c = createTestEntity(ContactTypeRef)
-		c.firstName = "FN"
-		c.lastName = "LN"
-		c.nickname = "NN"
-		c.role = "R"
-		c.title = "T"
-		c.comment = "C"
-		c.company = "co"
-		c.addresses = addresses
-		c.mailAddresses = mailAddresses
-		c.phoneNumbers = phoneNumbers
-		c.socialIds = []
+		let c = createTestEntity(ContactTypeRef, {
+			firstName: "FN",
+			lastName: "LN",
+			nickname: "NN",
+			role: "R",
+			title: "T",
+			comment: "C",
+			company: "co",
+			addresses: addresses,
+			mailAddresses: mailAddresses,
+			phoneNumbers: phoneNumbers,
+			socialIds: [],
+		})
 
 		contactIndexer.createContactIndexEntries(c)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("fn,ln,ma0,ma1")
@@ -92,19 +94,19 @@ o.spec("ContactIndexer test", () => {
 		let attributes = attributeHandlers.map((h) => {
 			return { attribute: h.attribute.id, value: h.value() }
 		})
-		const ContactModel = await resolveTypeReference(ContactTypeRef)
+		const ContactModel = await resolveClientTypeReference(ContactTypeRef)
 		o(attributes).deepEquals([
-			{ attribute: ContactModel.values["firstName"].id, value: "FN" },
-			{ attribute: ContactModel.values["lastName"].id, value: "LN" },
-			{ attribute: ContactModel.values["nickname"].id, value: "NN" },
-			{ attribute: ContactModel.values["role"].id, value: "R" },
-			{ attribute: ContactModel.values["title"].id, value: "T" },
-			{ attribute: ContactModel.values["comment"].id, value: "C" },
-			{ attribute: ContactModel.values["company"].id, value: "co" },
-			{ attribute: ContactModel.associations["addresses"].id, value: "A0,A1" },
-			{ attribute: ContactModel.associations["mailAddresses"].id, value: "MA0,MA1" },
-			{ attribute: ContactModel.associations["phoneNumbers"].id, value: "PN0,PN1" },
-			{ attribute: ContactModel.associations["socialIds"].id, value: "" },
+			{ attribute: AttributeModel.getModelValue(ContactModel, "firstName").id, value: "FN" },
+			{ attribute: AttributeModel.getModelValue(ContactModel, "lastName").id, value: "LN" },
+			{ attribute: AttributeModel.getModelValue(ContactModel, "nickname").id, value: "NN" },
+			{ attribute: AttributeModel.getModelValue(ContactModel, "role").id, value: "R" },
+			{ attribute: AttributeModel.getModelValue(ContactModel, "title").id, value: "T" },
+			{ attribute: AttributeModel.getModelValue(ContactModel, "comment").id, value: "C" },
+			{ attribute: AttributeModel.getModelValue(ContactModel, "company").id, value: "co" },
+			{ attribute: AttributeModel.getModelAssociation(ContactModel, "addresses").id, value: "A0,A1" },
+			{ attribute: AttributeModel.getModelAssociation(ContactModel, "mailAddresses").id, value: "MA0,MA1" },
+			{ attribute: AttributeModel.getModelAssociation(ContactModel, "phoneNumbers").id, value: "PN0,PN1" },
+			{ attribute: AttributeModel.getModelAssociation(ContactModel, "socialIds").id, value: "" },
 		])
 	})
 

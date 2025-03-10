@@ -116,6 +116,27 @@ class AndroidFileFacade(
 		error("not implemented for this platform")
 	}
 
+	@Throws(IOException::class)
+	override suspend fun writeTempDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
+		val fileHandle = File(tempDir.decrypt, file.name)
+		fileHandle.writeBytes(file.data.data)
+		fileHandle.toUri().toString()
+	}
+
+	@Throws(IOException::class)
+	override suspend fun writeToAppDir(content: DataWrapper, name: String) {
+		val fileHandle = activity.openFileOutput(name, Context.MODE_PRIVATE);
+		fileHandle.write(content.data)
+	}
+
+	@Throws(IOException::class)
+	override suspend fun readFromAppDir(name: String): DataWrapper {
+		val fileHandle = activity.openFileInput(name)
+		val data = DataWrapper(fileHandle.readBytes())
+		fileHandle.close()
+		return data
+	}
+
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
 	override suspend fun open(location: String, mimeType: String) {
 		val file = location.toUri().let { uri ->
@@ -330,13 +351,6 @@ class AndroidFileFacade(
 				)
 			}
 		}
-
-	@Throws(IOException::class)
-	override suspend fun writeDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
-		val fileHandle = File(tempDir.decrypt, file.name)
-		fileHandle.writeBytes(file.data.data)
-		fileHandle.toUri().toString()
-	}
 
 	@Throws(IOException::class)
 	override suspend fun readDataFile(filePath: String): DataFile? {

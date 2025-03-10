@@ -20,9 +20,10 @@ import {
 } from "./utils/EntityUtils"
 import { Type, ValueType } from "./EntityConstants.js"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
-import { resolveTypeReference } from "./EntityFunctions"
+import { resolveClientTypeReference } from "./EntityFunctions"
 import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
 import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
+import { ProgrammingError } from "./error/ProgrammingError"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -39,10 +40,15 @@ export class EntityClient {
 	}
 
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveClientTypeReference(typeRef)
 
 		if (!start) {
-			start = typeModel.values["_id"].type === ValueType.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
+			const _idValueId = Object.values(typeModel.values).find((valueType) => valueType.name === "_id")?.id
+			if (_idValueId) {
+				start = typeModel.values[_idValueId].type === ValueType.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
+			} else {
+				throw new ProgrammingError(`could not load, _id field not set for ${typeModel.name}`)
+			}
 		}
 
 		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false)
@@ -65,7 +71,7 @@ export class EntityClient {
 		elements: T[]
 		loadedCompletely: boolean
 	}> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveClientTypeReference(typeRef)
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
 		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, typeModel))
@@ -109,7 +115,7 @@ export class EntityClient {
 		return this._target.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider, opts)
 	}
 
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
+	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null> {
 		return this._target.setup(listId, instance, extraHeaders, options)
 	}
 
@@ -126,7 +132,7 @@ export class EntityClient {
 	}
 
 	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {
-		const typeModel = await resolveTypeReference(typeRef)
+		const typeModel = await resolveClientTypeReference(typeRef)
 		const rootId = [groupId, typeModel.rootId] as const
 		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId, opts)
 		return this.load<T>(typeRef, downcast(root.reference), opts)

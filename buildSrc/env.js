@@ -1,10 +1,10 @@
-/** @param {{staticUrl: string | null, version: string, mode: EnvMode | null, dist: boolean, domainConfigs: DomainConfigMap}} params
+/** @param {{staticUrl: string | null, version: string, mode: EnvMode | null, dist: boolean, domainConfigs: DomainConfigMap, networkDebugging:boolean}} params
  *  @return {env}
  */
 export function create(params) {
-	const { staticUrl, version, mode, dist, domainConfigs } = params
+	const { staticUrl, version, mode, dist, domainConfigs, networkDebugging } = params
 
-	if (version == null || mode == null || dist == null) {
+	if (version == null || mode == null || dist == null || networkDebugging == null) {
 		throw new Error(`Invalid env parameters: ${JSON.stringify(params)}`)
 	}
 	return {
@@ -15,6 +15,7 @@ export function create(params) {
 		timeout: 20000,
 		domainConfigs,
 		platformId: null,
+		networkDebugging,
 	}
 }
 

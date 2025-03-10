@@ -1,19 +1,34 @@
 import { OperationType } from "../TutanotaConstants.js"
 import { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { SomeEntity } from "../EntityTypes.js"
-import { isSameTypeRefByAttr, TypeRef } from "@tutao/tutanota-utils"
+import { AppName, isSameTypeRefByAttr, TypeRef } from "@tutao/tutanota-utils"
 import { isSameId } from "./EntityUtils.js"
+import { resolveTypeRefFromAppAndTypeNameLegacy } from "../EntityFunctions"
 
 export type EntityUpdateData = {
 	application: string
+	typeId: number | null
 	type: string
 	instanceListId: string
 	instanceId: string
 	operation: OperationType
 }
 
-export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData): boolean {
-	return isSameTypeRefByAttr(typeRef, update.application, update.type)
+export function entityUpdateToUpdateData(update: EntityUpdate): EntityUpdateData {
+	return {
+		application: update.application,
+		typeId: update.typeId ? parseInt(update.typeId) : null,
+		type: update.type,
+		instanceListId: update.instanceListId,
+		instanceId: update.instanceId,
+		operation: update.operation as OperationType,
+	}
+}
+
+export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData | EntityUpdate): boolean {
+	const typeId = typeof update.typeId === "number" ? update.typeId : update.typeId ? parseInt(update.typeId) : null
+	const typeIdOfEntityUpdateType = typeId ? typeId : resolveTypeRefFromAppAndTypeNameLegacy(update.application as AppName, update.type).typeId
+	return isSameTypeRefByAttr(typeRef, update.application, typeIdOfEntityUpdateType)
 }
 
 export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdateData): boolean {
@@ -24,8 +39,8 @@ export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdat
 	)
 }
 
-export function containsEventOfType(events: ReadonlyArray<EntityUpdateData>, type: OperationType, elementId: Id): boolean {
-	return events.some((event) => event.operation === type && event.instanceId === elementId)
+export function containsEventOfType(events: ReadonlyArray<EntityUpdateData>, operationType: OperationType, elementId: Id): boolean {
+	return events.some((event) => event.operation === operationType && event.instanceId === elementId)
 }
 
 export function getEventOfType<T extends EntityUpdateData | EntityUpdate>(events: ReadonlyArray<T>, type: OperationType, elementId: Id): T | null {

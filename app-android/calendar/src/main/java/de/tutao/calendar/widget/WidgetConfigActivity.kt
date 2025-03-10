@@ -101,6 +101,7 @@ import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
+import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -133,7 +134,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 				if (serverURL == null) {
 					null
 				} else {
-					Sdk(serverURL, SdkRestClient())
+					Sdk(serverURL, SdkRestClient(), SdkFileClient(baseContext.filesDir))
 				}
 
 			val credentialsFacade = CredentialsEncryptionFactory.create(baseContext, crypto, db)
