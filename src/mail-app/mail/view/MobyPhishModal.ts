@@ -13,19 +13,21 @@ export class MobyPhishModal implements ModalComponent {
     }
 
     view(): Children {
-        return m(
-            ".dialog-container", // ✅ Use existing modal styles
-            m(".dialog.elevated-bg.flex-center.border-radius", {
-                role: "dialog",
-                "aria-modal": "true",
-                onclick: (e: MouseEvent) => e.stopPropagation(), // Prevent background clicks
+        return m(".dialog-container", [
+            m(".dialog.elevated-bg.border-radius", {
+                style: {
+                    position: "fixed",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                }
             }, [
                 m("h3", "Action Confirmation"),
                 m("p", this.message),
-                m("button", { onclick: () => this.onClose() }, "Close")
+                m("button", { onclick: () => modal.remove(this) }, "Close")
             ])
-        );
-    }
+        ]);
+    }    
 
     hideAnimation(): Promise<void> {
         return Promise.resolve();
