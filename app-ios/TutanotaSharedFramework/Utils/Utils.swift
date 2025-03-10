@@ -55,20 +55,10 @@ public func stringToCustomId(customId: String) -> String {
 		.replacingOccurrences(of: "=", with: "")
 }
 
-public func observableUrlSession() -> URLSession {
-	class Metrics: NSObject, URLSessionDataDelegate {
-		var requestNum = 0
-		func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
-			for metric in metrics.transactionMetrics {
-				print("\(requestNum). protocol: \(metric.networkProtocolName!), reused: \(metric.isReusedConnection)")
-				requestNum += 1
-			}
-		}
-	}
-	let metrics = Metrics()
-
-	let configuration = URLSessionConfiguration.ephemeral
-	return URLSession(configuration: configuration, delegate: metrics, delegateQueue: nil)
+public func makeUrlSession() -> URLSession {
+	var urlSession = URLSession(configuration: .ephemeral)
+	urlSession.configuration.timeoutIntervalForRequest = 20
+	return urlSession
 }
 
 public func printLog(_ message: String, _ file: StaticString = #fileID) {

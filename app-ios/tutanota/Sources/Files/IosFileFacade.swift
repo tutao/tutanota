@@ -7,11 +7,13 @@ class IosFileFacade: FileFacade {
 	let chooser: TUTFileChooser
 	let viewer: FileViewer
 	let schemeHandler: ApiSchemeHandler
+	let urlSession: URLSession
 
-	init(chooser: TUTFileChooser, viewer: FileViewer, schemeHandler: ApiSchemeHandler) {
+	init(chooser: TUTFileChooser, viewer: FileViewer, schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
 		self.chooser = chooser
 		self.viewer = viewer
 		self.schemeHandler = schemeHandler
+		self.urlSession = urlSession
 	}
 
 	func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
@@ -72,67 +74,31 @@ class IosFileFacade: FileFacade {
 	func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String { fatalError("not implemented on this platform") }
 
 	func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String: String]) async throws -> UploadTaskResponse {
-		// async upload is iOS 15+
-		try await withCheckedThrowingContinuation { continuation in
-			var request = URLRequest(url: URL(string: remoteUrl)!)
-			request.httpMethod = method
-			request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
-			request.allHTTPHeaderFields = headers
+		var request = URLRequest(url: URL(string: remoteUrl)!)
+		request.httpMethod = method
+		request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+		request.allHTTPHeaderFields = headers
 
-			// session has a default request timeout of 60 seconds for new data (configuration.timeoutIntervalForRequest)
-			// the overall timeout for the task (w retries) is 7 days (configuration.timeoutIntervalForResource)
-			let session = URLSession(configuration: .ephemeral)
-
-			let task = session.uploadTask(with: self.schemeHandler.rewriteRequest(request), fromFile: URL(fileURLWithPath: sourceFileUrl)) {
-				data,
-				response,
-				error in
-				if let error {
-					continuation.resume(with: .failure(error))
-					return
-				}
-				let httpResponse = response as! HTTPURLResponse
-				let apiResponse = UploadTaskResponse(httpResponse: httpResponse, responseBody: data!)
-
-				continuation.resume(with: .success(apiResponse))
-			}
-			task.resume()
-		}
+		let (data, response) = try await self.urlSession.upload(for: self.schemeHandler.rewriteRequest(request), fromFile: URL(fileURLWithPath: sourceFileUrl))
+		let httpResponse = response as! HTTPURLResponse
+		return UploadTaskResponse(httpResponse: httpResponse, responseBody: data)
 	}
 
 	func download(_ sourceUrl: String, _ filename: String, _ headers: [String: String]) async throws -> DownloadTaskResponse {
-		try await withCheckedThrowingContinuation { continuation in
-			DispatchQueue.global(qos: .default)
-				.async {
-					let urlStruct = URL(string: sourceUrl)!
-					var request = URLRequest(url: urlStruct)
-					request.httpMethod = "GET"
-					request.allHTTPHeaderFields = headers
+		let urlStruct = URL(string: sourceUrl)!
+		var request = URLRequest(url: urlStruct)
+		request.httpMethod = "GET"
+		request.allHTTPHeaderFields = headers
 
-					let configuration = URLSessionConfiguration.ephemeral
-					configuration.timeoutIntervalForRequest = 20
-					let session = URLSession(configuration: configuration)
-					let task = session.dataTask(with: self.schemeHandler.rewriteRequest(request)) { data, response, error in
-						if let error {
-							continuation.resume(with: .failure(error))
-							return
-						}
-						let httpResponse = response as! HTTPURLResponse
-						let encryptedFileUri: String?
-						if httpResponse.statusCode == 200 {
-							do { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data!) } catch {
-								continuation.resume(with: .failure(error))
-								return
-							}
-						} else {
-							encryptedFileUri = nil
-						}
-						let responseDict = DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
-						continuation.resume(with: .success(responseDict))
-					}
-					task.resume()
-				}
+		let (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request))
+		let httpResponse = response as! HTTPURLResponse
+		let encryptedFileUri: String?
+		if httpResponse.statusCode == 200 {
+			encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data)
+		} else {
+			encryptedFileUri = nil
 		}
+		return DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
 	}
 
 	private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
@@ -237,4 +203,4 @@ func getFileMIMEType(path: String) -> String? {
 /// Reading header fields from HTTPURLResponse.allHeaderFields is case-sensitive, it is a bug: https://bugs.swift.org/browse/SR-2429
 /// From iOS13 we have a method to read headers case-insensitively: HTTPURLResponse.value(forHTTPHeaderField:)
 /// For older iOS we use this NSDictionary cast workaround as suggested by a commenter in the bug report.
-public extension HTTPURLResponse { func valueForHeaderField(_ headerField: String) -> String? { value(forHTTPHeaderField: headerField) } }
+extension HTTPURLResponse { public func valueForHeaderField(_ headerField: String) -> String? { value(forHTTPHeaderField: headerField) } }
