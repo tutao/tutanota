@@ -21,7 +21,7 @@ impl From<&TypeModel> for TypeRef {
 	fn from(value: &TypeModel) -> Self {
 		TypeRef {
 			app: value.app,
-			type_: value.name,
+			type_id: value.id,
 		}
 	}
 }
@@ -109,7 +109,7 @@ impl JsonSerializer {
 					})?;
 			let association_type_ref = TypeRef {
 				app: association_type.dependency.unwrap_or(type_ref.app),
-				type_: association_type.ref_type,
+				type_id: association_type.ref_type_id,
 			};
 			match (
 				&association_type.association_type,
@@ -338,7 +338,7 @@ impl JsonSerializer {
 			let association_type_ref = TypeRef {
 				// aggregates can be imported across app (e.g. SystemModel, etc.)
 				app: association_type.dependency.unwrap_or(type_ref.app),
-				type_: association_type.ref_type,
+				type_id: association_type.ref_type_id,
 			};
 			let serialized_association = match (
 				&association_type.association_type,
@@ -459,7 +459,7 @@ impl JsonSerializer {
 	/// from the `InstanceMapper`'s `TypeModelProvider`
 	fn get_type_model(&self, type_ref: &TypeRef) -> Result<&TypeModel, InstanceMapperError> {
 		self.type_model_provider
-			.get_type_model(type_ref.app, type_ref.type_)
+			.get_type_model(type_ref.app, type_ref.type_id)
 			.ok_or_else(|| InstanceMapperError::TypeNotFound {
 				type_ref: type_ref.clone(),
 			})
@@ -712,10 +712,11 @@ mod tests {
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::generated::sys::User;
+	use crate::entities::generated::tutanota;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::services::test_services::HelloEncOutput;
-	use crate::type_model_provider::{init_type_model_provider, AppName, TypeName};
+	use crate::type_model_provider::{init_type_model_provider, AppName, TypeId};
 
 	#[test]
 	fn test_parse_mail() {
@@ -726,11 +727,9 @@ mod tests {
 		// TODO: Expand this test to cover bucket keys in mail
 		let email_json = include_str!("../test_data/email_response.json");
 		let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
-		let type_ref = TypeRef {
-			app: "tutanota",
-			type_: "Mail",
-		};
-		mapper.parse(&type_ref, raw_entity).unwrap();
+		mapper
+			.parse(&tutanota::Mail::type_ref(), raw_entity)
+			.unwrap();
 	}
 
 	#[test]
@@ -741,10 +740,7 @@ mod tests {
 		};
 		let email_json = include_str!("../test_data/email_response_attachments.json");
 		let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
-		let type_ref = TypeRef {
-			app: "tutanota",
-			type_: "Mail",
-		};
+		let type_ref = tutanota::Mail::type_ref();
 		let parsed = mapper.parse(&type_ref, raw_entity).unwrap();
 		assert_eq!(
 			&ElementValue::Array(vec![ElementValue::IdTupleGeneratedElementId(
@@ -785,7 +781,7 @@ mod tests {
 	fn serialization_for_encrypted_works() {
 		use crate::entities::entity_facade::EntityFacade;
 
-		let mut type_provider: HashMap<AppName, HashMap<TypeName, TypeModel>> = HashMap::new();
+		let mut type_provider: HashMap<AppName, HashMap<TypeId, TypeModel>> = HashMap::new();
 		crate::services::test_services::extend_model_resolver(&mut type_provider);
 		let type_provider = Arc::new(TypeModelProvider::new(type_provider));
 
@@ -806,7 +802,7 @@ mod tests {
 		let type_model = type_provider
 			.get_type_model(
 				HelloEncOutput::type_ref().app,
-				HelloEncOutput::type_ref().type_,
+				HelloEncOutput::type_ref().type_id,
 			)
 			.unwrap();
 		let session_key = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();

@@ -47,9 +47,11 @@ impl EntityClient {
 		type_ref: &TypeRef,
 		id: &Id,
 	) -> Result<ParsedEntity, ApiCallError> {
+		let type_name = self.get_type_model(type_ref)?.name;
+
 		let url = format!(
 			"{}/rest/{}/{}/{}",
-			self.base_url, type_ref.app, type_ref.type_, id
+			self.base_url, type_ref.app, type_name, id
 		);
 		let response_bytes = self
 			.prepare_and_fire(type_ref, url)
@@ -64,11 +66,11 @@ impl EntityClient {
 	/// Returns the definition of an entity/instance type using the internal `TypeModelProvider`
 	pub fn get_type_model(&self, type_ref: &TypeRef) -> Result<&TypeModel, ApiCallError> {
 		self.type_model_provider
-			.get_type_model(type_ref.app, type_ref.type_)
+			.resolve_type_ref(type_ref)
 			.ok_or_else(|| {
 				ApiCallError::internal(format!(
 					"Model {} not found in app {}",
-					type_ref.type_, type_ref.app
+					type_ref.type_id, type_ref.app
 				))
 			})
 	}
@@ -104,7 +106,7 @@ impl EntityClient {
 		let reverse = direction == ListLoadDirection::DESC;
 		let url = format!(
 			"{}/rest/{}/{}/{}?start={start_id}&count={count}&reverse={reverse}",
-			self.base_url, type_ref.app, type_ref.type_, list_id
+			self.base_url, type_ref.app, type_model.name, list_id
 		);
 		let response_bytes = self
 			.prepare_and_fire(type_ref, url)
@@ -125,11 +127,12 @@ impl EntityClient {
 		type_ref: &TypeRef,
 		request_type: HttpMethod,
 	) -> Result<RestResponse, ApiCallError> {
+		let type_model = self.get_type_model(type_ref)?;
+
 		let mut request_url = format!(
 			"{}/rest/{}/{}/",
-			self.base_url, type_ref.app, type_ref.type_
+			self.base_url, type_ref.app, type_model.name
 		);
-		let type_model = self.get_type_model(type_ref)?;
 		let model_version_str = type_model.version;
 		let model_version = model_version_str.parse::<u32>().map_err(|_e| {
 			ApiCallError::internal(format!(
@@ -388,7 +391,7 @@ mod tests {
 		fn type_ref() -> TypeRef {
 			TypeRef {
 				app: "test",
-				type_: "TestListGeneratedElementIdEntity",
+				type_id: 10,
 			}
 		}
 	}
@@ -397,7 +400,7 @@ mod tests {
 		fn type_ref() -> TypeRef {
 			TypeRef {
 				app: "test",
-				type_: "TestListCustomElementIdEntity",
+				type_id: 20,
 			}
 		}
 	}
@@ -604,7 +607,7 @@ mod tests {
 
 	fn mock_type_model_provider() -> Arc<TypeModelProvider> {
 		let list_entity_generated_type_model: TypeModel = TypeModel {
-			id: 1,
+			id: 10,
 			since: 1,
 			app: "test",
 			version: "1",
@@ -615,7 +618,7 @@ mod tests {
 			root_id: "",
 			values: str_map! {
 				ID_FIELD => ModelValue {
-						id: 1,
+						id: 101,
 						value_type: ValueType::GeneratedId,
 						cardinality: Cardinality::One,
 						is_final: true,
@@ -623,7 +626,7 @@ mod tests {
 					},
 				"field" =>
 					ModelValue {
-						id: 2,
+						id: 102,
 						value_type: ValueType::String,
 						cardinality: Cardinality::One,
 						is_final: false,
@@ -634,7 +637,7 @@ mod tests {
 		};
 
 		let list_entity_custom_type_model: TypeModel = TypeModel {
-			id: 1,
+			id: 20,
 			since: 1,
 			app: "test",
 			version: "1",
@@ -645,7 +648,7 @@ mod tests {
 			root_id: "",
 			values: str_map! {
 				ID_FIELD => ModelValue {
-						id: 1,
+						id: 201,
 						value_type: ValueType::CustomId,
 						cardinality: Cardinality::One,
 						is_final: true,
@@ -653,7 +656,7 @@ mod tests {
 					},
 				"field" =>
 					ModelValue {
-						id: 2,
+						id: 202,
 						value_type: ValueType::String,
 						cardinality: Cardinality::One,
 						is_final: false,
@@ -665,8 +668,8 @@ mod tests {
 
 		let type_model_provider = Arc::new(TypeModelProvider::new(str_map! {
 			"test" => str_map! {
-				"TestListGeneratedElementIdEntity" => list_entity_generated_type_model,
-				"TestListCustomElementIdEntity" => list_entity_custom_type_model,
+				10 => list_entity_generated_type_model,
+				20 => list_entity_custom_type_model,
 			}
 		}));
 		type_model_provider

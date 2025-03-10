@@ -1025,7 +1025,7 @@ o.spec("IndexerCore test", () => {
 		const instanceIdTimestamp = generatedIdToTimestamp(instanceId)
 		const event = createTestEntity(EntityUpdateTypeRef)
 		event.application = MailTypeRef.app
-		event.type = MailTypeRef.type
+		event.typeId = MailTypeRef.typeId.toString()
 		const metaRowId = 3
 		const anotherMetaRowId = 4
 		event.instanceId = instanceId
@@ -1089,7 +1089,7 @@ o.spec("IndexerCore test", () => {
 		let event = createTestEntity(EntityUpdateTypeRef)
 		event.instanceId = instanceId
 		event.application = MailTypeRef.app
-		event.type = MailTypeRef.type
+		event.typeId = MailTypeRef.typeId.toString()
 		let transaction: any = {
 			get: (os, key) => {
 				o(os).equals(ElementDataOS)

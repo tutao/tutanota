@@ -6,7 +6,7 @@
 
 /** @type {any} */
 export const typeModels = {
-	"PersistenceResourcePostReturn": {
+	"0": {
 		"name": "PersistenceResourcePostReturn",
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",

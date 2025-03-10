@@ -46,7 +46,7 @@ use crate::services::generated::sys::{SaltService, SessionService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::{ResolvingServiceExecutor, ServiceExecutor};
 use crate::services::ExtraServiceParams;
-use crate::type_model_provider::{init_type_model_provider, AppName, TypeModelProvider, TypeName};
+use crate::type_model_provider::{init_type_model_provider, AppName, TypeId, TypeModelProvider};
 #[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
@@ -102,27 +102,42 @@ uniffi::setup_scaffolding!();
 
 /// A type for an instance/entity from the backend
 /// Definitions for them can be found inside the type model JSON files under `/test_data`
-#[derive(Debug, PartialEq, Clone)]
+#[derive(PartialEq, Clone)]
 pub struct TypeRef {
 	pub app: AppName,
-	pub type_: TypeName,
+	pub type_id: TypeId,
+}
+
+// Print type name as well when we debug print TypeRef
+impl Debug for TypeRef {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		let type_name = init_type_model_provider()
+			.get_type_model(&self.app, self.type_id)
+			.map(|model| model.name)
+			.unwrap_or_default();
+		f.debug_struct("TypeRef")
+			.field("app", &self.app)
+			.field("type_id", &self.type_id)
+			.field("<type_name>", &type_name)
+			.finish()
+	}
 }
 
 // Option 1:
 // metamodel -> Rust struct -> Kotlin/Swift classes
 // need to be able to covert from ParsedEntity -> Rust struct
-// will generate a bit more code but we need to write the conversion only once
+// will generate a bit more code, but we need to write the conversion only once
 // might or might not work for WASM
 
 // Option 2:
 // metamodel -> Kotlin/Swift classes
 // need to be able to covert from ParsedEntity -> Kotlin/Swift class
-// will generate a bit less code but we need to write the conversion for every platform
+// will generate a bit less code, but we need to write the conversion for every platform
 // will work for WASM for sure
 
 impl Display for TypeRef {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		write!(f, "TypeRef({}, {})", self.app, self.type_)
+		write!(f, "TypeRef({}, {})", self.app, self.type_id)
 	}
 }
 

@@ -18,11 +18,13 @@ import {
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
+	MailDetailsTypeRef,
 	MailFolder,
 	MailFolderTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailTypeRef,
+	RecipientsTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels.js"
@@ -70,7 +72,7 @@ import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonito
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { containsEventOfType, EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, entityUpateToUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { b64UserIdHash } from "../../../common/api/worker/search/DbFacade.js"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
@@ -132,9 +134,9 @@ export class MailIndexer {
 		const hasSender = mail.sender != null
 		if (hasSender) senderToIndex = getDisplayedSender(mail)
 
-		const MailModel = typeModels.Mail
-		const MailDetailsModel = typeModels.MailDetails
-		const RecipientModel = typeModels.Recipients
+		const MailModel = typeModels[MailTypeRef.typeId.toString()]
+		const MailDetailsModel = typeModels[MailDetailsTypeRef.typeId.toString()]
+		const RecipientModel = typeModels[RecipientsTypeRef.typeId.toString()]
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(mail, [
 			{
 				attribute: MailModel.values["subject"],
@@ -685,7 +687,15 @@ export class MailIndexer {
 		return promiseMap(events, (event) => {
 			const mailId: IdTuple = [event.instanceListId, event.instanceId]
 			if (event.operation === OperationType.CREATE) {
-				if (containsEventOfType(events as readonly EntityUpdateData[], OperationType.DELETE, event.instanceId)) {
+				if (
+					containsEventOfType(
+						// FIXME: before merging to master: currently we loop and map in quite some places,
+						// is this ok?
+						events.map((e) => entityUpateToUpdateData(e)),
+						OperationType.DELETE,
+						event.instanceId,
+					)
+				) {
 					// do not execute move operation if there is a delete event or another move event.
 					return this.processMovedMail(event, indexUpdate)
 				} else {
@@ -717,7 +727,13 @@ export class MailIndexer {
 					})
 					.catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
 			} else if (event.operation === OperationType.DELETE) {
-				if (!containsEventOfType(events as readonly EntityUpdateData[], OperationType.CREATE, event.instanceId)) {
+				if (
+					!containsEventOfType(
+						events.map((e) => entityUpateToUpdateData(e)),
+						OperationType.CREATE,
+						event.instanceId,
+					)
+				) {
 					// Check that this is *not* a move event. Move events are handled separately.
 					return this._core._processDeleted(event, indexUpdate)
 				}

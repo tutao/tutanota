@@ -30,7 +30,7 @@ export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entity
 			entityUpdate.instanceId === batchEvent.instanceId &&
 			entityUpdate.instanceListId === batchEvent.instanceListId &&
 			entityUpdate.application === batchEvent.application &&
-			entityUpdate.type === batchEvent.type
+			entityUpdate.typeId === batchEvent.typeId
 		) {
 			switch (batchEvent.operation) {
 				case OperationType.CREATE:
@@ -49,7 +49,7 @@ export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entity
 	}
 
 	throw new ProgrammingError(
-		`Batch does not have events for ${entityUpdate.application}/${entityUpdate.type} ${lastOperationKey(entityUpdate)}, batchId: ${batchId}`,
+		`Batch does not have events for ${entityUpdate.application}/${entityUpdate.typeId} ${lastOperationKey(entityUpdate)}, batchId: ${batchId}`,
 	)
 }
 
@@ -59,7 +59,7 @@ export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entity
 type LastOperationKey = string & { __brand: "lastOpeKey" }
 
 function lastOperationKey(update: EntityUpdate): LastOperationKey {
-	const typeIdentifier = `${update.application}/${update.type}`
+	const typeIdentifier = `${update.application}/${update.typeId}`
 	if (update.instanceListId) {
 		return `${typeIdentifier}/${update.instanceListId}/${update.instanceId}` as LastOperationKey
 	} else {
@@ -157,7 +157,7 @@ export class EventQueue {
 
 						case EntityModificationType.DELETE:
 							throw new ProgrammingError(
-								`UPDATE not allowed after DELETE. Last batch: ${lastBatchForEntity.batchId}, new batch: ${batchId}, ${newEvent.type} ${lastOpKey}`,
+								`UPDATE not allowed after DELETE. Last batch: ${lastBatchForEntity.batchId}, new batch: ${batchId}, ${newEvent.typeId} ${lastOpKey}`,
 							)
 					}
 				} else if (newEntityModification === EntityModificationType.DELETE) {

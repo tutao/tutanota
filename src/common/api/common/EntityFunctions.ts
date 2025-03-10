@@ -70,7 +70,7 @@ export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeM
 	// @ts-ignore
 	const modelMap = typeModels[typeRef.app]
 
-	const typeModel = modelMap[typeRef.type]
+	const typeModel = modelMap[typeRef.typeId]
 	if (typeModel == null) {
 		throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
 	} else {

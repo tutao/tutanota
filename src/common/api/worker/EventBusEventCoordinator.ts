@@ -15,13 +15,14 @@ import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
 import { AccountType, OperationType } from "../common/TutanotaConstants.js"
-import { isSameTypeRefByAttr, lazyAsync } from "@tutao/tutanota-utils"
+import { isSameTypeRef, isSameTypeRefByAttr, lazyAsync } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
 import type { QueuedBatch } from "./EventQueue.js"
+import { isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -89,19 +90,15 @@ export class EventBusEventCoordinator implements EventBusListener {
 		const user = this.userFacade.getUser()
 		if (user == null) return
 		for (const update of data) {
-			if (
-				update.operation === OperationType.UPDATE &&
-				isSameTypeRefByAttr(UserTypeRef, update.application, update.type) &&
-				isSameId(user._id, update.instanceId)
-			) {
+			if (update.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update) && isSameId(user._id, update.instanceId)) {
 				await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
 			} else if (
 				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
-				isSameTypeRefByAttr(UserGroupKeyDistributionTypeRef, update.application, update.type) &&
+				isUpdateForTypeRef(UserGroupKeyDistributionTypeRef, update) &&
 				isSameId(user.userGroup.group, update.instanceId)
 			) {
 				await (await this.cacheManagementFacade()).tryUpdatingUserGroupKey()
-			} else if (update.operation === OperationType.CREATE && isSameTypeRefByAttr(GroupKeyUpdateTypeRef, update.application, update.type)) {
+			} else if (update.operation === OperationType.CREATE && isUpdateForTypeRef(GroupKeyUpdateTypeRef, update)) {
 				groupKeyUpdates.push([update.instanceListId, update.instanceId])
 			}
 		}

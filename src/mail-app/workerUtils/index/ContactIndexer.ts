@@ -4,11 +4,10 @@ import { ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.j
 import { typeModels as tutanotaModels } from "../../../common/api/entities/tutanota/TypeModels.js"
 import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes.js"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils.js"
-import { neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { neverNull, noOp, ofClass, promiseMap, tokenize } from "@tutao/tutanota-utils"
 import { FULL_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
-import { tokenize } from "@tutao/tutanota-utils"
 import type { EntityUpdate } from "../../../common/api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupDataOS, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
@@ -27,7 +26,7 @@ export class ContactIndexer {
 	}
 
 	createContactIndexEntries(contact: Contact): Map<string, SearchIndexEntry[]> {
-		const ContactModel = tutanotaModels.Contact
+		const ContactModel = tutanotaModels[ContactTypeRef.typeId.toString()]
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(contact, [
 			{
 				attribute: ContactModel.values["firstName"],

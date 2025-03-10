@@ -59,7 +59,10 @@ fn typed_entity_to_encrypted_entity<T: Entity + serde::Serialize>(
 ) -> ParsedEntity {
 	let provider = init_type_model_provider();
 	let mut parsed = typed_entity_to_parsed_entity(entity);
-	let TypeRef { app, type_ } = T::type_ref();
+	let TypeRef {
+		app,
+		type_id: type_,
+	} = T::type_ref();
 	encrypt_test_entity_dict_with_provider(&mut parsed, &provider, app, type_, session_key, iv);
 	parsed
 }
@@ -68,12 +71,12 @@ fn encrypt_test_entity_dict_with_provider(
 	entity: &mut ParsedEntity,
 	provider: &TypeModelProvider,
 	app: &str,
-	type_: &str,
+	type_id: u64,
 	session_key: &GenericAesKey,
 	iv: &Iv,
 ) {
-	let Some(model) = provider.get_type_model(app, type_) else {
-		panic!("Failed to create test entity {app}/{type_}: not in model")
+	let Some(model) = provider.get_type_model(app, type_id) else {
+		panic!("Failed to create test entity {app}/{type_id}: not in model")
 	};
 
 	for (&name, value) in &model.values {
@@ -111,7 +114,7 @@ fn encrypt_test_entity_dict_with_provider(
 				)
 			},
 			_ => unimplemented!(
-				"can't encrypt {app}/{type_}.{name} => {:?}/{}",
+				"can't encrypt {app}/{type_id}.{name} => {:?}/{}",
 				value.value_type,
 				value_to_encrypt.type_variant_name()
 			),
@@ -138,7 +141,7 @@ fn encrypt_test_entity_dict_with_provider(
 					d,
 					provider,
 					association.dependency.unwrap_or(app),
-					association.ref_type,
+					association.ref_type_id,
 					session_key,
 					iv,
 				);
@@ -152,7 +155,7 @@ fn encrypt_test_entity_dict_with_provider(
 						d,
 						provider,
 						association.dependency.unwrap_or(app),
-						association.ref_type,
+						association.ref_type_id,
 						session_key,
 						iv,
 					);

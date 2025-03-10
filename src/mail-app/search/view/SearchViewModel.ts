@@ -765,7 +765,7 @@ export class SearchViewModel {
 
 		const { instanceListId, instanceId, operation } = update
 		const id = [neverNull(instanceListId), instanceId] as const
-		const typeRef = new TypeRef<SomeEntity>(update.application, update.type)
+		const typeRef = new TypeRef<SomeEntity>(update.application, update.typeId)
 
 		if (!this.isInSearchResult(typeRef, id) && !isPossibleABirthdayContactUpdate) {
 			return

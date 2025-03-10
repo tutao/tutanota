@@ -864,28 +864,32 @@ o.spec("MailIndexer test", () => {
 		// if this test fails, you need to think about migrating (or dropping)
 		// so old mail indexes use the new attribute ids.
 		o("mail does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
 		})
 		o("recipients does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.Recipients.associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[RecipientsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length).equals(0)
 		})
 		o("mail does not have an attribute with id LEGACY_BODY_ID", function () {
-			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
 		})
 		o("maildetails does not have an attribute with id LEGACY_BODY_ID", function () {
-			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
 		})
 		o("mail does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
 		})
 		o("maildetails does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailDetailsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length).equals(
+				0,
+			)
 		})
 		o("mail does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.Mail.associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
 		})
 		o("maildetails does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
-			o(Object.values(typeModels.MailDetails.associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(0)
+			o(Object.values(typeModels[MailDetailsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length).equals(
+				0,
+			)
 		})
 	})
 
