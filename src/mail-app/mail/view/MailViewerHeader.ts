@@ -34,6 +34,7 @@ import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
+import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
 
 
 
@@ -56,6 +57,7 @@ export interface MailViewerHeaderAttrs {
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private detailsExpanded = false
 	private filesExpanded = false
+	isSenderConfirmed: any
 
 	view({ attrs }: Vnode<MailViewerHeaderAttrs>): Children {
 		const { viewModel } = attrs
@@ -766,11 +768,23 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	//
 	//
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
+		if (this.isSenderConfirmed) {			
+			return m(InfoBanner, {
+				message: "mobyPhish_sender_confirmed",
+				icon: Icons.Warning,
+				type: BannerType.Warning,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+				//buttons: [confirmButton, denyButton],
+			});
+		}
+
 		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
 			click: (event: MouseEvent) => {
 				console.log("Moby Phish Confirm Button Clicked!");
-				modal.display(new MobyPhishModal("This sender has been marked as trusted.", event.currentTarget as HTMLElement));
+				this.isSenderConfirmed = true;
+				m.redraw();
+				//modal.display(new MobyPhishModal("This sender has been marked as trusted.", event.currentTarget as HTMLElement));
 			}
 		};
 	
@@ -778,7 +792,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			label: "mobyPhish_deny",
 			click: (event: MouseEvent) => {
 				console.log("Moby Phish Deny Button Clicked!");
-				modal.display(new MobyPhishModal("This sender has been marked as untrusted.", event.currentTarget as HTMLElement));
+				//modal.display(new MobyPhishModal("This sender has been marked as untrusted.", event.currentTarget as HTMLElement));
+				modal.display(new MobyPhishDenyModal());
 			}
 		};
 	
