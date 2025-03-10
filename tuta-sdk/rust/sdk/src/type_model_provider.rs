@@ -7,28 +7,7 @@ use crate::TypeRef;
 /// The name of an app in the backend
 pub type AppName = &'static str;
 pub type TypeId = u64;
-
-/// Contains a map between backend apps and entity/instance types within them
-pub struct TypeModelProvider {
-	pub app_models: HashMap<AppName, HashMap<TypeId, TypeModel>>,
-}
-
-impl TypeModelProvider {
-	pub fn new(app_models: HashMap<AppName, HashMap<TypeId, TypeModel>>) -> TypeModelProvider {
-		TypeModelProvider { app_models }
-	}
-
-	/// Gets an entity/instance type with a specified name in a backend app
-	// FIXME: make this private and outside this file always use .resolve_type_ref instead
-	pub fn get_type_model(&self, app_name: &str, entity_id: TypeId) -> Option<&TypeModel> {
-		let app_map = self.app_models.get(app_name)?;
-		app_map.get(&entity_id)
-	}
-
-	pub fn resolve_type_ref(&self, type_ref: &TypeRef) -> Option<&TypeModel> {
-		self.get_type_model(type_ref.app, type_ref.type_id)
-	}
-}
+pub type AttributeId = u64;
 
 // Reads all provided type models into a map.
 // Should be able to do it without a provided list, but it's much more work.
@@ -49,17 +28,56 @@ macro_rules! read_type_models {
     }}
 }
 
-/// Creates a new `TypeModelProvider` populated with the type models from the JSON type model files
-pub fn init_type_model_provider() -> TypeModelProvider {
-	let type_model_map = read_type_models![
-		"accounting",
-		"base",
-		"gossip",
-		"monitor",
-		"storage",
-		"sys",
-		"tutanota",
-		"usage"
-	];
-	TypeModelProvider::new(type_model_map)
+static CLIENT_TYPE_MODEL: std::sync::LazyLock<HashMap<AppName, HashMap<TypeId, TypeModel>>> =
+	std::sync::LazyLock::new(|| {
+		read_type_models![
+			"accounting",
+			"base",
+			"gossip",
+			"monitor",
+			"storage",
+			"sys",
+			"tutanota",
+			"usage"
+		]
+	});
+
+/// Contains a map between backend apps and entity/instance types within them
+pub struct TypeModelProvider {
+	pub app_models: &'static HashMap<AppName, HashMap<TypeId, TypeModel>>,
+}
+
+impl TypeModelProvider {
+	pub fn new() -> TypeModelProvider {
+		TypeModelProvider {
+			app_models: &CLIENT_TYPE_MODEL,
+		}
+	}
+
+	/// Gets an entity/instance type with a specified name in a backend app
+	// FIXME: make this private and outside this file always use .resolve_type_ref instead
+	pub fn get_type_model(&self, app_name: &str, entity_id: TypeId) -> Option<&TypeModel> {
+		let app_map = self.app_models.get(app_name)?;
+		app_map.get(&entity_id)
+	}
+
+	pub fn resolve_type_ref(&self, type_ref: &TypeRef) -> Option<&TypeModel> {
+		self.get_type_model(type_ref.app, type_ref.type_id)
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::type_model_provider::TypeModelProvider;
+
+	#[test]
+	fn read_type_model_only_once() {
+		let first_type_model = TypeModelProvider::new();
+		let second_type_model = TypeModelProvider::new();
+
+		assert!(std::ptr::eq(
+			first_type_model.app_models,
+			second_type_model.app_models
+		));
+	}
 }

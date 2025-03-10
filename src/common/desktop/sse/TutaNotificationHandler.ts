@@ -9,17 +9,27 @@ import { assertNotNull, base64ToBase64Url, neverNull } from "@tutao/tutanota-uti
 import { log } from "../DesktopLog"
 import tutanotaModelInfo from "../../api/entities/tutanota/ModelInfo"
 import { handleRestError } from "../../api/common/error/RestError"
-import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
-import { Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { NativeAlarmScheduler } from "./DesktopAlarmScheduler.js"
+import { MailAddressTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
+import { resolveTypeReference } from "../../api/common/EntityFunctions"
+import { StrippedEntity } from "../../api/common/utils/EntityUtils"
+import { TypeMapper } from "../../api/worker/crypto/TypeMapper"
+import { EncryptedParsedInstance, TypeModel, UntypedInstance } from "../../api/common/EntityTypes"
+import { AttributeModel } from "../../api/common/AttributeModel"
 
 const TAG = "[notifications]"
 
-export type MailMetadata = Pick<Mail, "sender" | "firstRecipient" | "_id">
+export type MailMetadata = {
+	senderAddress: string
+	firstRecipientAddress: string | null
+	id: IdTuple
+}
+
+const typeMapper = new TypeMapper(resolveTypeReference)
 
 export class TutaNotificationHandler {
 	constructor(
@@ -27,14 +37,14 @@ export class TutaNotificationHandler {
 		private readonly nativeCredentialFacade: NativeCredentialsFacade,
 		private readonly sseStorage: SseStorage,
 		private readonly notifier: DesktopNotifier,
-		private readonly alarmScheduler: NativeAlarmScheduler,
+		private readonly alarmScheduler: DesktopAlarmScheduler,
 		private readonly alarmStorage: DesktopAlarmStorage,
 		private readonly lang: LanguageViewModel,
 		private readonly fetch: FetchImpl,
 		private readonly appVersion: string,
 	) {}
 
-	async onMailNotification(sseInfo: SseInfo, notificationInfo: NotificationInfo) {
+	async onMailNotification(sseInfo: SseInfo, notificationInfo: StrippedEntity<NotificationInfo>) {
 		const appWindow = this.windowManager.getAll().find((window) => window.getUserId() === notificationInfo.userId)
 
 		if (appWindow && appWindow.isFocused()) {
@@ -57,12 +67,12 @@ export class TutaNotificationHandler {
 		}
 		const mailMetadata = await this.downloadMailMetadata(sseInfo, notificationInfo)
 		if (mailMetadata == null) return
-		this.notifier.submitGroupedNotification(mailMetadata.sender.address, mailMetadata.firstRecipient?.address ?? "", mailMetadata._id.join(","), (res) =>
+		this.notifier.submitGroupedNotification(mailMetadata.senderAddress, mailMetadata.firstRecipientAddress ?? "", mailMetadata.id.join(","), (res) =>
 			this.onMailNotificationClick(res, notificationInfo),
 		)
 	}
 
-	private onMailNotificationClick(res: NotificationResult, notificationInfo: NotificationInfo) {
+	private onMailNotificationClick(res: NotificationResult, notificationInfo: StrippedEntity<NotificationInfo>) {
 		if (res === NotificationResult.Click) {
 			let requestedPath: string | null
 			if (notificationInfo.mailId) {
@@ -81,7 +91,7 @@ export class TutaNotificationHandler {
 		}
 	}
 
-	private async downloadMailMetadata(sseInfo: SseInfo, ni: NotificationInfo): Promise<MailMetadata | null> {
+	private async downloadMailMetadata(sseInfo: SseInfo, ni: StrippedEntity<NotificationInfo>): Promise<MailMetadata | null> {
 		const url = this.makeMailMetadataUrl(sseInfo, assertNotNull(ni.mailId))
 
 		// decrypt access token
@@ -104,11 +114,29 @@ export class TutaNotificationHandler {
 				throw handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
 			}
 
-			const parsedResponse = await response.json()
-			return parsedResponse as MailMetadata
+			const parsedResponse = (await response.json()) as UntypedInstance
+
+			const mailModel = await resolveTypeReference(MailTypeRef)
+			const mailAddressModel = await resolveTypeReference(MailAddressTypeRef)
+			const mailEncryptedParsedInstance: EncryptedParsedInstance = await typeMapper.applyJsTypes(mailModel, parsedResponse)
+			return this.encryptedMailToMailMetaData(mailModel, mailAddressModel, mailEncryptedParsedInstance)
 		} catch (e) {
 			log.debug(TAG, "Error fetching mail metadata, " + (e as Error).message)
 			return null
+		}
+	}
+
+	private encryptedMailToMailMetaData(mailModel: TypeModel, mailAddressModel: TypeModel, mi: EncryptedParsedInstance): MailMetadata {
+		const mailId = AttributeModel.getAttribute<IdTuple>(mi, "_id", mailModel)
+
+		const firstRecipient = AttributeModel.getAttributeorNull<EncryptedParsedInstance[] | null>(mi, "firstRecipient", mailModel)
+		const sender = AttributeModel.getAttribute<EncryptedParsedInstance[]>(mi, "sender", mailModel)[0]
+
+		const senderAddress = AttributeModel.getAttribute<string>(sender, "address", mailAddressModel)
+		return {
+			id: mailId,
+			senderAddress: senderAddress,
+			firstRecipientAddress: firstRecipient ? AttributeModel.getAttribute(firstRecipient[0], "address", mailAddressModel) : null,
 		}
 	}
 
@@ -116,10 +144,6 @@ export class TutaNotificationHandler {
 		const url = new URL(sseInfo.sseOrigin)
 		url.pathname = `rest/tutanota/mail/${base64ToBase64Url(mailId.listId)}/${base64ToBase64Url(mailId.listElementId)}`
 		return url
-	}
-
-	async onAlarmNotification(alarmNotification: EncryptedAlarmNotification) {
-		await this.alarmScheduler.handleAlarmNotification(alarmNotification)
 	}
 
 	async onUserRemoved(userId: Id) {

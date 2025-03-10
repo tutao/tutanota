@@ -1,7 +1,7 @@
 import sjcl from "../internal/sjcl.js"
 import { random } from "../random/Randomizer.js"
 import { BitArray, bitArrayToUint8Array, uint8ArrayToBitArray } from "../misc/Utils.js"
-import { assertNotNull, concat, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, Base64, base64ToUint8Array, concat, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha512Hash } from "../hashes/Sha512.js"
@@ -218,4 +218,14 @@ export function getAesSubKeys(
 			mKey: null,
 		}
 	}
+}
+
+export function extractIvFromCipherText(encrypted: Base64): Uint8Array {
+	const encryptedBytes = base64ToUint8Array(encrypted)
+	const hasMac = encryptedBytes.length % 2 === 1
+	const cipherTextWithoutMac = hasMac ? encryptedBytes.subarray(1, encryptedBytes.length - MAC_LENGTH_BYTES) : encryptedBytes
+	if (cipherTextWithoutMac.length < IV_BYTE_LENGTH) {
+		throw new CryptoError(`insufficient bytes in cipherTextWithoutMac to extract iv: ${cipherTextWithoutMac.length}`)
+	}
+	return cipherTextWithoutMac.slice(0, IV_BYTE_LENGTH)
 }

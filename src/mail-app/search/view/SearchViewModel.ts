@@ -81,6 +81,7 @@ import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/Calen
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -765,7 +766,7 @@ export class SearchViewModel {
 
 		const { instanceListId, instanceId, operation } = update
 		const id = [neverNull(instanceListId), instanceId] as const
-		const typeRef = new TypeRef<SomeEntity>(update.application, update.typeId)
+		const typeRef = new TypeRef<SomeEntity>(update.application as AppName, update.typeId)
 
 		if (!this.isInSearchResult(typeRef, id) && !isPossibleABirthdayContactUpdate) {
 			return

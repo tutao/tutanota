@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-
 use crate::date::DateTime;
 use crate::element_value::ElementValue;
-use crate::type_model_provider::TypeId;
+use crate::type_model_provider::{AttributeId, TypeId};
 use crate::TypeRef;
 use serde::Deserialize;
+use std::collections::HashMap;
+use thiserror::Error;
 
 /// A kind of element that can appear in the model
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -55,8 +55,7 @@ impl ValueType {
 
 /// Associations (references and aggregations) have two dimensions: the type they reference and
 /// their cardinality.
-#[derive(Deserialize, PartialEq, Clone)]
-#[cfg_attr(test, derive(Debug))]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub enum Cardinality {
 	/// Optional
 	ZeroOrOne,
@@ -67,7 +66,7 @@ pub enum Cardinality {
 }
 
 /// Relationships between elements are described as association
-#[derive(Deserialize, Clone, Eq, PartialEq)]
+#[derive(Deserialize, Clone, Eq, PartialEq, Debug)]
 pub enum AssociationType {
 	/// References [ElementType] by id
 	#[serde(rename = "ELEMENT_ASSOCIATION")]
@@ -92,7 +91,8 @@ pub enum AssociationType {
 #[derive(Deserialize, Clone)]
 #[cfg_attr(test, derive(Debug))]
 pub struct ModelValue {
-	pub id: u64,
+	pub id: AttributeId,
+	pub name: String,
 	#[serde(rename = "type")]
 	pub value_type: ValueType,
 	pub cardinality: Cardinality,
@@ -106,7 +106,8 @@ pub struct ModelValue {
 #[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelAssociation {
-	pub id: u64,
+	pub id: AttributeId,
+	pub name: String,
 	#[serde(rename = "type")]
 	pub association_type: AssociationType,
 	pub cardinality: Cardinality,
@@ -124,7 +125,7 @@ pub struct ModelAssociation {
 #[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TypeModel {
-	pub id: u64,
+	pub id: TypeId,
 	/// Since which model version was it introduced
 	pub since: u64,
 	/// App/model it belongs to
@@ -139,9 +140,13 @@ pub struct TypeModel {
 	pub versioned: bool,
 	pub encrypted: bool,
 	pub root_id: &'static str,
-	pub values: HashMap<&'static str, ModelValue>,
-	pub associations: HashMap<&'static str, ModelAssociation>,
+	pub values: HashMap<AttributeId, ModelValue>,
+	pub associations: HashMap<AttributeId, ModelAssociation>,
 }
+
+#[derive(Error, Debug)]
+#[error("Error when accessing type model: {0}")]
+pub struct TypeModelError(String);
 
 impl TypeModel {
 	/// Whether entity is marked as encrypted in the metamodel.
@@ -159,11 +164,74 @@ impl TypeModel {
 		}
 	}
 
-	pub fn is_same_type(&self, type_ref: &TypeRef) -> bool {
-		self.app == type_ref.app && self.name == type_ref.type_
+	pub fn is_attribute_id_association(&self, attribute_id: String) -> bool {
+		self.associations
+			.contains_key(&(attribute_id.parse::<AttributeId>().unwrap()))
 	}
 
-	pub fn is_same_type_by_attr(&self, app: &str, name: &str) -> bool {
+	pub fn get_attribute_id_cardinality(
+		&self,
+		attribute_id: String,
+	) -> Result<&Cardinality, TypeModelError> {
+		self.associations
+			.get(&(attribute_id.parse::<AttributeId>().unwrap()))
+			.map(|a| &a.cardinality)
+			.ok_or(TypeModelError(format!(
+				"did not find association with attributeId {attribute_id}"
+			)))
+	}
+
+	pub fn get_association_by_attribute_id(
+		&self,
+		attribute_id: &str,
+	) -> Result<&ModelAssociation, TypeModelError> {
+		// to skip in case of _finalIvs
+		let parsed_id = attribute_id.parse::<AttributeId>().map_err(|_| {
+			TypeModelError(format!(
+				"invalid attribute_id format: '{}' (expected a number)",
+				attribute_id
+			))
+		})?;
+
+		self.associations.get(&parsed_id).ok_or_else(|| {
+			TypeModelError(format!(
+				"no association found with attribute_id '{}'",
+				attribute_id
+			))
+		})
+	}
+
+	pub fn get_attribute_id_by_attribute_name(
+		&self,
+		attribute_name: &str,
+	) -> Result<String, TypeModelError> {
+		if let Some((attr_id, _model_value)) = self
+			.values
+			.iter()
+			.find(|(_, value)| value.name == attribute_name)
+		{
+			return Ok(attr_id.to_string());
+		}
+
+		if let Some((attr_id, _model_association)) = self
+			.associations
+			.iter()
+			.find(|(_, association)| association.name == attribute_name)
+		{
+			return Ok(attr_id.to_string());
+		}
+
+		Err(TypeModelError(format!(
+			"did not find attribute with name '{}' in values or associations",
+			attribute_name
+		)))
+	}
+
+	pub fn is_same_type(&self, type_ref: &TypeRef) -> bool {
+		self.app == type_ref.app && self.id == type_ref.type_id
+	}
+
+	pub fn is_same_type_by_attr_name(&self, app: &str, name: &str) -> bool {
 		self.app == app && self.name == name
 	}
 }

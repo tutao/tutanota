@@ -4,7 +4,6 @@ import android.util.Log
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.ipc.DataWrapper
-import de.tutao.tutashared.ipc.EncryptedAlarmNotification
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.ipc.NativePushFacade
 import de.tutao.tutashared.push.SseStorage
@@ -43,8 +42,8 @@ class AndroidNativePushFacade(
 		localNotificationsFacade.dismissNotifications(addressesArray)
 	}
 
-	override suspend fun scheduleAlarms(alarms: List<EncryptedAlarmNotification>) {
-		alarmNotificationsManager.scheduleNewAlarms(alarms)
+	override suspend fun scheduleAlarms(alarmNotificationsWireFormat: String, newDeviceSessionKey: String) {
+		// FIXME
 	}
 
 	override suspend fun invalidateAlarmsForUser(userId: String) {

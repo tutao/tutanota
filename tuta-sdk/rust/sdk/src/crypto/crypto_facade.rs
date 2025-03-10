@@ -37,6 +37,7 @@ pub struct CryptoFacade {
 /// Session key that encrypts an entity and the same key encrypted with the owner group.
 /// owner_enc_session_key is stored on entities to avoid public key encryption on subsequent loads.
 #[derive(Clone)]
+#[cfg_attr(test, derive(Debug))]
 pub struct ResolvedSessionKey {
 	pub session_key: GenericAesKey,
 	pub owner_enc_session_key: Vec<u8>,
@@ -79,26 +80,31 @@ impl CryptoFacade {
 		}
 
 		// Derive the session key from the bucket key
-		if let Some(bucket_key_value) = entity.get(BUCKET_KEY_FIELD) {
-			match bucket_key_value {
-				ElementValue::Dict(_) => {
-					let resolved_key = self.resolve_bucket_key(entity, model).await?;
-					return Ok(Some(resolved_key));
-				},
-				ElementValue::Null => {},
-				_ => {
-					return Err(SessionKeyResolutionError {
-						reason: "bucketKey is invalid!".to_string(),
-					})
-				},
+		if let Ok(bucket_key_attribute_id) =
+			model.get_attribute_id_by_attribute_name(BUCKET_KEY_FIELD)
+		{
+			if let Some(bucket_key_value) = entity.get(&bucket_key_attribute_id) {
+				match bucket_key_value {
+					ElementValue::Array(array) if array.is_empty() => {},
+					ElementValue::Array(_) => {
+						let resolved_key = self.resolve_bucket_key(entity, model).await?;
+						return Ok(Some(resolved_key));
+					},
+					_ => {
+						return Err(SessionKeyResolutionError {
+							reason: "bucketKey is invalid!".to_string(),
+						})
+					},
+				}
 			}
 		}
+
 		// Extract the session key data from the owner group of the entity
 		let EntityOwnerKeyData {
 			owner_enc_session_key: Some(owner_enc_session_key),
 			owner_key_version: Some(owner_key_version),
 			owner_group: Some(owner_group),
-		} = EntityOwnerKeyData::extract_owner_key_data(entity)?
+		} = EntityOwnerKeyData::extract_owner_key_data(entity, model)?
 		else {
 			return Err(SessionKeyResolutionError {
 				reason: "instance missing owner key/group data".to_string(),
@@ -124,13 +130,32 @@ impl CryptoFacade {
 	async fn resolve_bucket_key(
 		&self,
 		entity: &ParsedEntity,
-		model: &TypeModel,
+		type_model: &TypeModel,
 	) -> Result<ResolvedSessionKey, SessionKeyResolutionError> {
-		let Some(ElementValue::Dict(bucket_key_map)) = entity.get(BUCKET_KEY_FIELD) else {
-			return Err(SessionKeyResolutionError {
-				reason: format!("{BUCKET_KEY_FIELD} is not a dictionary type"),
-			});
-		};
+		let bucket_key_attribute_id = type_model
+			.get_attribute_id_by_attribute_name(BUCKET_KEY_FIELD)
+			.map_err(|err| SessionKeyResolutionError {
+				reason: format!(
+					"{BUCKET_KEY_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+					type_model.id,
+					err
+				),
+			})?;
+
+		let bucket_key_map =
+			if let Some(ElementValue::Array(bucket_keys)) = entity.get(&bucket_key_attribute_id) {
+				if let Some(ElementValue::Dict(bucket_key_map)) = bucket_keys.first() {
+					bucket_key_map
+				} else {
+					return Err(SessionKeyResolutionError {
+						reason: format!("{BUCKET_KEY_FIELD} is empty"),
+					});
+				}
+			} else {
+				return Err(SessionKeyResolutionError {
+					reason: format!("{BUCKET_KEY_FIELD} is not a array type"),
+				});
+			};
 
 		let bucket_key: BucketKey =
 			match self.instance_mapper.parse_entity(bucket_key_map.to_owned()) {
@@ -142,7 +167,7 @@ impl CryptoFacade {
 				},
 			};
 
-		let owner_key_data = EntityOwnerKeyData::extract_owner_key_data(entity)?;
+		let owner_key_data = EntityOwnerKeyData::extract_owner_key_data(entity, type_model)?;
 		let Some(owner_group) = owner_key_data.owner_group else {
 			return Err(SessionKeyResolutionError {
 				reason: "entity has no ownerGroup".to_owned(),
@@ -173,7 +198,7 @@ impl CryptoFacade {
 			return Err(SessionKeyResolutionError {
 				reason: format!(
 					"encrypted bucket key not set on instance {}/{}",
-					model.app, model.name
+					type_model.app, type_model.name
 				),
 			});
 		};
@@ -184,7 +209,17 @@ impl CryptoFacade {
 			let decrypted_session_key = decrypted_bucket_key
 				.decrypt_aes_key(instance_session_key.symEncSessionKey.as_slice())?;
 
-			let instance_id = parse_generated_id_field(entity.get(ID_FIELD))?;
+			let id_attribute_id = type_model
+				.get_attribute_id_by_attribute_name(ID_FIELD)
+				.map_err(|err| SessionKeyResolutionError {
+					reason: format!(
+							"{ID_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+							type_model.id,
+							err
+						),
+				})?;
+
+			let instance_id = parse_generated_id_field(entity.get(&id_attribute_id))?;
 
 			if &instance_session_key.instanceId == instance_id {
 				session_key_for_this_instance = Some(decrypted_session_key.clone());
@@ -245,6 +280,7 @@ struct EntityOwnerKeyData<'a> {
 impl<'a> EntityOwnerKeyData<'a> {
 	fn extract_owner_key_data(
 		entity: &'a ParsedEntity,
+		type_model: &TypeModel,
 	) -> Result<EntityOwnerKeyData<'a>, SessionKeyResolutionError> {
 		macro_rules! get_nullable_field {
 			($entity:expr, $field:expr, $type:tt) => {
@@ -256,13 +292,45 @@ impl<'a> EntityOwnerKeyData<'a> {
 			};
 		}
 
+		let owner_enc_session_key_attribute_id = type_model
+			.get_attribute_id_by_attribute_name(OWNER_ENC_SESSION_KEY_FIELD)
+			.map_err(|err| SessionKeyResolutionError {
+				reason: format!(
+					"{OWNER_ENC_SESSION_KEY_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+					type_model.id,
+					err
+				),
+			})?;
+
 		let owner_enc_session_key =
-			get_nullable_field!(entity, OWNER_ENC_SESSION_KEY_FIELD, Bytes)?;
+			get_nullable_field!(entity, &owner_enc_session_key_attribute_id, Bytes)?;
+
+		let owner_key_version_attribute_id = type_model
+			.get_attribute_id_by_attribute_name(OWNER_KEY_VERSION_FIELD)
+			.map_err(|err| SessionKeyResolutionError {
+				reason: format!(
+					"{OWNER_KEY_VERSION_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+					type_model.id,
+					err
+				),
+			})?;
 
 		let owner_key_version_i64 =
-			get_nullable_field!(entity, OWNER_KEY_VERSION_FIELD, Number)?.copied();
+			get_nullable_field!(entity, &owner_key_version_attribute_id, Number)?.copied();
+
+		let owner_key_version_attribute_id = type_model
+			.get_attribute_id_by_attribute_name(OWNER_GROUP_FIELD)
+			.map_err(|err| SessionKeyResolutionError {
+				reason: format!(
+					"{OWNER_GROUP_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+					type_model.id,
+					err
+				),
+			})?;
+
 		let owner_key_version: Option<u64> = owner_key_version_i64.map(convert_version_to_u64);
-		let owner_group = get_nullable_field!(entity, OWNER_GROUP_FIELD, IdGeneratedId)?;
+		let owner_group =
+			get_nullable_field!(entity, &owner_key_version_attribute_id, IdGeneratedId)?;
 
 		Ok(EntityOwnerKeyData {
 			owner_enc_session_key,
@@ -321,10 +389,10 @@ mod test {
 	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::metamodel::TypeModel;
 	use crate::tutanota_constants::CryptoProtocolVersion;
-	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
 	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
+	use crate::TypeModelProvider;
 	use mockall::predicate::eq;
 	use std::sync::Arc;
 
@@ -471,7 +539,7 @@ mod test {
 	}
 
 	fn get_mail_type_model() -> TypeModel {
-		let provider = init_type_model_provider();
+		let provider = TypeModelProvider::new();
 		let mail_type_ref = Mail::type_ref();
 		provider
 			.resolve_type_ref(&mail_type_ref)

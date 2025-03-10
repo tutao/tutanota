@@ -7,11 +7,16 @@ import androidx.room.TypeConverters
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleOneAssociationSerializer
+import de.tutao.tutashared.OneAssociationSerializer
 import de.tutao.tutashared.OperationType
-import de.tutao.tutashared.alarms.AlarmNotificationEntity.OperationTypeConverter
+import de.tutao.tutashared.ZeroOrOneAssociationSerializer
+import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity.OperationTypeConverter
 import de.tutao.tutashared.decryptDate
 import de.tutao.tutashared.decryptString
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.serializer
 import java.util.Date
 import java.util.TimeZone
 
@@ -43,19 +48,36 @@ class AlarmNotification(
 )
 
 /**
- * this is passed over IPC or downloaded from the server
+ * this is an UntypedInstance passed over IPC or downloaded from the server
  */
 @Serializable
 class EncryptedAlarmNotification(
+	@SerialName("1566")
 	val operation: OperationType,
+	@SerialName("1567")
 	val summary: String,
+	@SerialName("1568")
 	val eventStart: String,
+	@SerialName("1569")
 	val eventEnd: String,
+	@SerialName("1570")
+	@Serializable(with = EncryptedAlarmInfoOneAssociationSerializer::class)
 	val alarmInfo: EncryptedAlarmInfo,
+	@SerialName("1571")
+	@Serializable(with = EncryptedRepeatRuleZeroOrOneAssociationSerializer::class)
 	val repeatRule: EncryptedRepeatRule?,
-	val notificationSessionKeys: List<AlarmNotificationEntity.NotificationSessionKey>,
+	@SerialName("1572")
+	val notificationSessionKeys: List<EncryptedAlarmNotificationEntity.NotificationSessionKey>,
+	@SerialName("1573")
+	@Serializable(with = UserOneAssociationSerializer::class)
 	val user: String,
 )
+
+object EncryptedAlarmInfoOneAssociationSerializer : OneAssociationSerializer<EncryptedAlarmInfo>(serializer())
+object EncryptedRepeatRuleZeroOrOneAssociationSerializer :
+	ZeroOrOneAssociationSerializer<EncryptedRepeatRule>(serializer())
+
+object UserOneAssociationSerializer : OneAssociationSerializer<String>(serializer())
 
 
 /**
@@ -63,7 +85,7 @@ class EncryptedAlarmNotification(
  */
 @Entity(primaryKeys = ["identifier"], tableName = "AlarmNotification")
 @TypeConverters(OperationTypeConverter::class)
-class AlarmNotificationEntity(
+class EncryptedAlarmNotificationEntity(
 	val operation: OperationType?,
 	val summary: String?,
 	val eventStart: String?,
@@ -78,7 +100,7 @@ class AlarmNotificationEntity(
 		if (this === other) return true
 		if (javaClass != other?.javaClass) return false
 
-		other as AlarmNotificationEntity
+		other as EncryptedAlarmNotificationEntity
 
 		if (alarmInfo != other.alarmInfo) return false
 
@@ -91,7 +113,10 @@ class AlarmNotificationEntity(
 
 	@Serializable
 	class NotificationSessionKey(
+		@SerialName("1555")
+		@Serializable(with = IdTupleOneAssociationSerializer::class)
 		@field:Embedded val pushIdentifier: IdTuple,
+		@SerialName("1556")
 		val pushIdentifierSessionEncSessionKey: String,
 	)
 
@@ -108,14 +133,14 @@ class AlarmNotificationEntity(
 	}
 }
 
-fun EncryptedAlarmNotification.toEntity(): AlarmNotificationEntity {
+fun EncryptedAlarmNotification.toEntity(): EncryptedAlarmNotificationEntity {
 	// Server aggregate still has an array but it is always a single element (they are filtered before we get them
 	// here)
 	require(notificationSessionKeys.size == 1) {
 		"Invalid notificationSessionKeys, must have exactly one key, has ${notificationSessionKeys.size}"
 	}
 	val notificationSessionKey = notificationSessionKeys.first()
-	return AlarmNotificationEntity(
+	return EncryptedAlarmNotificationEntity(
 		operation = operation,
 		summary = summary,
 		eventStart = eventStart,
@@ -127,7 +152,10 @@ fun EncryptedAlarmNotification.toEntity(): AlarmNotificationEntity {
 	)
 }
 
-fun AlarmNotificationEntity.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: ByteArray): AlarmNotification {
+fun EncryptedAlarmNotificationEntity.decrypt(
+	crypto: AndroidNativeCryptoFacade,
+	sessionKey: ByteArray
+): AlarmNotification {
 	return AlarmNotification(
 		summary = crypto.decryptString(summary!!, sessionKey),
 		eventStart = crypto.decryptDate(eventStart!!, sessionKey),

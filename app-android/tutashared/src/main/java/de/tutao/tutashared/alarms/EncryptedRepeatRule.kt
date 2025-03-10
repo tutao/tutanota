@@ -8,17 +8,21 @@ import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.decryptDate
 import de.tutao.tutashared.decryptNumber
 import de.tutao.tutashared.decryptString
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.TimeZone
 
 @Serializable
 class EncryptedDateWrapper(
+	@SerialName("2075")
 	val date: String
 )
 
 @Serializable
 class EncryptedByRuleWrapper(
+	@SerialName("2524")
 	val interval: String,
+	@SerialName("2523")
 	val ruleType: String
 )
 
@@ -28,12 +32,19 @@ class EncryptedByRuleWrapper(
 	EncryptedRepeatRule.ByRuleWrapperConverter::class
 )
 class EncryptedRepeatRule(
+	@SerialName("1559")
 	val frequency: String,
+	@SerialName("1562")
 	val interval: String,
+	@SerialName("1563")
 	val timeZone: String,
+	@SerialName("1560")
 	val endType: String,
+	@SerialName("1561")
 	val endValue: String?,
+	@SerialName("2076")
 	val excludedDates: List<EncryptedDateWrapper>,
+	@SerialName("2525")
 	val advancedRules: List<EncryptedByRuleWrapper>
 ) {
 	internal class ExcludedDateWrapperConverter {

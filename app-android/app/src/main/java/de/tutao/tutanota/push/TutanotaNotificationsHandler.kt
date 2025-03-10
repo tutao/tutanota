@@ -17,6 +17,7 @@ import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.offline.sqlTagged
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
+import de.tutao.tutashared.toSdkIdTupleGenerated
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -141,7 +142,6 @@ class TutanotaNotificationsHandler(
 		val request = Request.Builder()
 			.url(url)
 			.method("GET", null)
-			.header("Content-Type", "application/json")
 			.header("userIds", userId ?: "")
 			.addSysVersionHeaders()
 			.apply {
@@ -168,7 +168,7 @@ class TutanotaNotificationsHandler(
 		response.body?.byteStream().use { inputStream ->
 			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
 			Log.d(TAG, "Loaded Missed notifications response")
-			return json.decodeFromString(responseString)
+			return json.decodeFromString<MissedNotification>(responseString)
 		}
 	}
 

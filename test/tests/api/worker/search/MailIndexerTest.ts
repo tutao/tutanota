@@ -69,6 +69,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -205,7 +206,7 @@ o.spec("MailIndexer test", () => {
 		o(JSON.stringify(attributes)).equals(
 			JSON.stringify([
 				{
-					attribute: MailModel.values["subject"].id,
+					attribute: AttributeModel.getModelValue(MailModel, "subject").id,
 					value: "Su",
 				},
 				{
@@ -221,7 +222,7 @@ o.spec("MailIndexer test", () => {
 					value: "bccr0N <bccr0A>,bccr1N <bccr1A>",
 				},
 				{
-					attribute: MailModel.associations["sender"].id,
+					attribute: AttributeModel.getModelAssociation(MailModel, "sender").id,
 					value: "SN <SA>",
 				},
 				{
@@ -229,7 +230,7 @@ o.spec("MailIndexer test", () => {
 					value: "BT",
 				},
 				{
-					attribute: MailModel.associations["attachments"].id,
+					attribute: AttributeModel.getModelAssociation(MailModel, "attachments").id,
 					value: "FN",
 				},
 			]),

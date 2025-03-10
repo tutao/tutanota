@@ -53,7 +53,10 @@
 		"scheduleAlarms": {
 			"arg": [
 				{
-					"alarms": "List<EncryptedAlarmNotification>"
+					"alarmNotificationsWireFormat": "string"
+				},
+				{
+					"newDeviceSessionKey": "string"
 				}
 			],
 			"ret": "void"

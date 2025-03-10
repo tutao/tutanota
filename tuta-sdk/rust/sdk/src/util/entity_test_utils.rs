@@ -5,7 +5,7 @@ use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::generated::sys::BucketKey;
 use crate::entities::generated::tutanota::{Mail, MailAddress};
 use crate::entities::Entity;
-use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
+use crate::type_model_provider::TypeModelProvider;
 use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
 use crate::GeneratedId;
 use crate::{IdTupleGenerated, TypeRef};
@@ -60,7 +60,7 @@ fn typed_entity_to_encrypted_entity<T: Entity + serde::Serialize>(
 	session_key: &GenericAesKey,
 	iv: &Iv,
 ) -> ParsedEntity {
-	let provider = init_type_model_provider();
+	let provider = TypeModelProvider::new();
 	let mut parsed = typed_entity_to_parsed_entity(entity);
 	let TypeRef {
 		app,
@@ -82,11 +82,13 @@ fn encrypt_test_entity_dict_with_provider(
 		panic!("Failed to create test entity {app}/{type_id}: not in model")
 	};
 
-	for (&name, value) in &model.values {
-		if !value.encrypted {
+	for (&value_id, value_type) in &model.values {
+		let value_id_string = &value_id.to_string();
+		let value_name = &value_type.name;
+		if !value_type.encrypted {
 			continue;
 		}
-		let Some(data) = entity.get_mut(name) else {
+		let Some(data) = entity.get_mut(value_id_string) else {
 			continue;
 		};
 		let encrypt_element_value = |value_to_encrypt: &mut ElementValue| match value_to_encrypt {
@@ -117,8 +119,8 @@ fn encrypt_test_entity_dict_with_provider(
 				)
 			},
 			_ => unimplemented!(
-				"can't encrypt {app}/{type_id}.{name} => {:?}/{}",
-				value.value_type,
+				"can't encrypt {app}/{type_id}.{value_name} => {:?}/{}",
+				value_type.value_type,
 				value_to_encrypt.type_variant_name()
 			),
 		};
@@ -133,38 +135,23 @@ fn encrypt_test_entity_dict_with_provider(
 		}
 	}
 
-	for (&name, association) in &model.associations {
-		let Some(data) = entity.get_mut(name) else {
+	for (&association_id, association_type) in &model.associations {
+		let association_id_string = &association_id.to_string();
+		let Some(ElementValue::Array(data)) = entity.get_mut(association_id_string) else {
 			continue;
 		};
-		match data {
-			ElementValue::Null => {},
-			ElementValue::Dict(d) => {
-				encrypt_test_entity_dict_with_provider(
-					d,
-					provider,
-					association.dependency.unwrap_or(app),
-					association.ref_type_id,
-					session_key,
-					iv,
-				);
-			},
-			ElementValue::Array(a) => {
-				for i in a {
-					let ElementValue::Dict(d) = i else {
-						break;
-					};
-					encrypt_test_entity_dict_with_provider(
-						d,
-						provider,
-						association.dependency.unwrap_or(app),
-						association.ref_type_id,
-						session_key,
-						iv,
-					);
-				}
-			},
-			_ => (),
+		for i in data {
+			let ElementValue::Dict(ref mut d) = i else {
+				break;
+			};
+			encrypt_test_entity_dict_with_provider(
+				d,
+				provider,
+				association_type.dependency.unwrap_or(app),
+				association_type.ref_type_id,
+				session_key,
+				iv,
+			);
 		}
 	}
 }

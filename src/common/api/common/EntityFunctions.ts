@@ -59,6 +59,8 @@ export const modelInfos = {
 } as const
 export type ModelInfos = typeof modelInfos
 
+export type TypeReferenceResolver = typeof resolveTypeReference
+
 /**
  * Convert a {@link TypeRef} to a {@link TypeModel} that it refers to.
  *

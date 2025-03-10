@@ -46,7 +46,7 @@ use crate::services::generated::sys::{SaltService, SessionService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::{ResolvingServiceExecutor, ServiceExecutor};
 use crate::services::ExtraServiceParams;
-use crate::type_model_provider::{init_type_model_provider, AppName, TypeId, TypeModelProvider};
+use crate::type_model_provider::{AppName, TypeId, TypeModelProvider};
 #[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
@@ -111,8 +111,8 @@ pub struct TypeRef {
 // Print type name as well when we debug print TypeRef
 impl Debug for TypeRef {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		let type_name = init_type_model_provider()
-			.get_type_model(&self.app, self.type_id)
+		let type_name = TypeModelProvider::new()
+			.get_type_model(self.app, self.type_id)
 			.map(|model| model.name)
 			.unwrap_or_default();
 		f.debug_struct("TypeRef")
@@ -182,7 +182,7 @@ impl Sdk {
 		logging::init_logger();
 		log::info!("Initializing SDK...");
 
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		// TODO validate parameters
 		let instance_mapper = Arc::new(InstanceMapper::new());
 		let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));

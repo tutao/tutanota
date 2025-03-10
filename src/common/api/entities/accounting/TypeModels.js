@@ -15,7 +15,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_id": {
+			"80": {
 				"final": true,
 				"name": "_id",
 				"id": 80,
@@ -24,25 +24,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"amount": {
-				"final": true,
-				"name": "amount",
-				"id": 84,
-				"since": 3,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"invoiceNumber": {
-				"final": true,
-				"name": "invoiceNumber",
-				"id": 83,
-				"since": 3,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"type": {
+			"81": {
 				"final": true,
 				"name": "type",
 				"id": 81,
@@ -51,12 +33,30 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"valueDate": {
+			"82": {
 				"final": true,
 				"name": "valueDate",
 				"id": 82,
 				"since": 3,
 				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"83": {
+				"final": true,
+				"name": "invoiceNumber",
+				"id": 83,
+				"since": 3,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"84": {
+				"final": true,
+				"name": "amount",
+				"id": 84,
+				"since": 3,
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
 			}
@@ -74,7 +74,7 @@ export const typeModels = {
 		"versioned": false,
 		"encrypted": true,
 		"values": {
-			"_format": {
+			"87": {
 				"final": false,
 				"name": "_format",
 				"id": 87,
@@ -83,7 +83,7 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"_ownerGroup": {
+			"88": {
 				"final": true,
 				"name": "_ownerGroup",
 				"id": 88,
@@ -92,7 +92,7 @@ export const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"_ownerPublicEncSessionKey": {
+			"89": {
 				"final": true,
 				"name": "_ownerPublicEncSessionKey",
 				"id": 89,
@@ -101,16 +101,16 @@ export const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"_publicCryptoProtocolVersion": {
-				"final": true,
-				"name": "_publicCryptoProtocolVersion",
-				"id": 96,
-				"since": 7,
+			"92": {
+				"final": false,
+				"name": "outstandingBookingsPrice",
+				"id": 92,
+				"since": 4,
 				"type": "Number",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": false
 			},
-			"balance": {
+			"94": {
 				"final": true,
 				"name": "balance",
 				"id": 94,
@@ -119,18 +119,18 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"outstandingBookingsPrice": {
-				"final": false,
-				"name": "outstandingBookingsPrice",
-				"id": 92,
-				"since": 4,
+			"96": {
+				"final": true,
+				"name": "_publicCryptoProtocolVersion",
+				"id": 96,
+				"since": 7,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"postings": {
+			"90": {
 				"final": false,
 				"name": "postings",
 				"id": 90,

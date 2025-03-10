@@ -54,9 +54,9 @@ export type UsageTestStage = {
 	_type: TypeRef<UsageTestStage>;
 
 	_id: Id;
-	maxPings: NumberString;
-	minPings: NumberString;
 	name: string;
+	minPings: NumberString;
+	maxPings: NumberString;
 
 	metrics: UsageTestMetricConfig[];
 }
@@ -82,10 +82,10 @@ export type UsageTestAssignment = {
 	_type: TypeRef<UsageTestAssignment>;
 
 	_id: Id;
-	name: string;
-	sendPings: boolean;
 	testId: Id;
+	name: string;
 	variant: null | NumberString;
+	sendPings: boolean;
 
 	stages: UsageTestStage[];
 }
@@ -113,9 +113,9 @@ export type UsageTestParticipationIn = {
 	_type: TypeRef<UsageTestParticipationIn>;
 
 	_format: NumberString;
+	testId: Id;
 	stage: NumberString;
 	testDeviceId: Id;
-	testId: Id;
 
 	metrics: UsageTestMetricData[];
 }

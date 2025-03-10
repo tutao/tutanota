@@ -83,7 +83,6 @@ import {
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { InstanceMapper } from "../crypto/InstanceMapper"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
@@ -100,6 +99,8 @@ import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 import { encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
+import { InstancePipeline } from "../crypto/InstancePipeline"
+import { AttributeModel } from "../../common/AttributeModel"
 
 assertWorkerOrNode()
 
@@ -134,8 +135,16 @@ export type InitCacheOptions = {
 	forceNewDatabase: boolean
 }
 
-type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData; asyncResumeSession?: Promise<void> }
-type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason; asyncResumeSession?: Promise<void> }
+type ResumeSessionSuccess = {
+	type: "success"
+	data: ResumeSessionResultData
+	asyncResumeCompleted: Promise<void> | null
+}
+type ResumeSessionFailure = {
+	type: "error"
+	reason: ResumeSessionErrorReason
+	asyncResumeCompleted: Promise<void> | null
+}
 type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
 type AsyncLoginState =
@@ -192,7 +201,7 @@ export class LoginFacade {
 		private readonly restClient: RestClient,
 		private readonly entityClient: EntityClient,
 		private readonly loginListener: LoginListener,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly keyRotationFacade: KeyRotationFacade,
 		/**
@@ -580,7 +589,7 @@ export class LoginFacade {
 					return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo).catch(
 						ofClass(ConnectionError, async () => {
 							await this.resetSession()
-							return { type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree }
+							return { type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree, asyncResumeCompleted: null }
 						}),
 					)
 				}
@@ -611,7 +620,7 @@ export class LoginFacade {
 					userGroupInfo,
 					sessionId,
 				}
-				return { type: "success", data, asyncResumeSession }
+				return { type: "success", data, asyncResumeCompleted: env.mode === "Test" ? asyncResumeSession : null }
 			} else {
 				// await before return to catch errors here
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
@@ -705,7 +714,7 @@ export class LoginFacade {
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
 		}
 
-		return { type: "success", data }
+		return { type: "success", data, asyncResumeCompleted: null }
 	}
 
 	private async initSession(
@@ -904,10 +913,13 @@ export class LoginFacade {
 				responseType: MediaType.Json,
 			})
 			.then((instance) => {
-				let session = JSON.parse(instance)
+				let untypedSession = JSON.parse(instance)
+				// Intentionally passing an UntypedInstance to AttributeModel to circumvent sessionkey resolution during login.
+				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
+				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]
 				return {
-					userId: session.user,
-					accessKey: session.accessKey ? base64ToKey(session.accessKey) : null,
+					userId,
+					accessKey: accessKey ? base64ToKey(accessKey) : null,
 				}
 			})
 	}
@@ -1005,11 +1017,12 @@ export class LoginFacade {
 			recoverCodeVerifier: recoverCodeVerifierBase64,
 			user: null,
 		})
-		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change. the web socket is not connected because we
-		// don't do a normal login, and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled,
-		// and therefore we would not be able to read the updated user
-		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
-		// when logging in normally after resetting the password
+		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change.
+		// the web socket is not connected because we don't do a normal login, and therefore we would not get any user update events.
+		// we can not use permanentLogin=false with initSession because caching would be enabled,
+		// and therefore we would not be able to read the updated user.
+		// additionally, we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling)
+		// because we do not want to have any race conditions when logging in normally after resetting the password.
 		const tempAuthDataProvider: AuthDataProvider = {
 			createAuthHeaders(): Dict {
 				return {}
@@ -1022,7 +1035,7 @@ export class LoginFacade {
 			tempAuthDataProvider,
 			this.restClient,
 			() => this.cryptoFacade,
-			this.instanceMapper,
+			this.instancePipeline,
 			this.blobAccessTokenFacade,
 		)
 		const entityClient = new EntityClient(eventRestClient)

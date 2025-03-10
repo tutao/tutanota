@@ -1,8 +1,7 @@
 import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { CryptoFunctions } from "./CryptoFns.js"
-import type { TypeModel } from "../api/common/EntityTypes.js"
 import type * as FsModule from "node:fs"
-import { Aes256Key, Argon2IDExports, bitArrayToUint8Array, generateKeyFromPassphraseArgon2id, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, AesKey, Argon2IDExports, bitArrayToUint8Array, generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
 import { FileUri } from "../native/common/FileApp.js"
 import path from "node:path"
 import { NativeCryptoFacade } from "../native/common/generatedipc/NativeCryptoFacade.js"
@@ -95,11 +94,6 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return this.cryptoFns.aesEncrypt(encryptionKey, data, undefined, true, true)
 	}
 
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, piSessionKey: Uint8Array, piSessionKeyEncSessionKey: Uint8Array): Promise<T> {
-		const sk = this.cryptoFns.decryptKey(uint8ArrayToKey(piSessionKey), piSessionKeyEncSessionKey)
-		return this.cryptoFns.decryptAndMapToInstance(model, instance, sk)
-	}
-
 	generateId(byteLength: number): string {
 		return base64ToBase64Url(uint8ArrayToBase64(this.cryptoFns.randomBytes(byteLength)))
 	}
@@ -139,5 +133,9 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 	kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array> {
 		throw new Error("not implemented for this platform")
+	}
+
+	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey {
+		return this.cryptoFns.decryptKey(encryptionKey, key)
 	}
 }

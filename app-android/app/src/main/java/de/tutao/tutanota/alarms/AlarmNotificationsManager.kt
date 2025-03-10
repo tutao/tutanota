@@ -10,7 +10,7 @@ import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmModel
 import de.tutao.tutashared.alarms.AlarmNotification
-import de.tutao.tutashared.alarms.AlarmNotificationEntity
+import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import de.tutao.tutashared.alarms.decrypt
 import de.tutao.tutashared.alarms.toEntity
@@ -52,7 +52,7 @@ class AlarmNotificationsManager(
 	}
 
 	private fun resolveNotificationSessionKey(
-		notification: AlarmNotificationEntity,
+		notification: EncryptedAlarmNotificationEntity,
 		pushKeyResolver: PushKeyResolver
 	): ByteArray? {
 		val encNotificationSessionKey = notification.notificationSessionKey ?: return null
@@ -204,7 +204,7 @@ class AlarmNotificationsManager(
 		}
 	}
 
-	private fun cancelSavedAlarm(savedAlarmNotification: AlarmNotificationEntity, pushKeyResolver: PushKeyResolver) {
+	private fun cancelSavedAlarm(savedAlarmNotification: EncryptedAlarmNotificationEntity, pushKeyResolver: PushKeyResolver) {
 		if (savedAlarmNotification.repeatRule != null) {
 			val sessionKey = resolveNotificationSessionKey(savedAlarmNotification, pushKeyResolver)
 			if (sessionKey == null) {

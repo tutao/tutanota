@@ -17,7 +17,7 @@ use crate::login::credentials::Credentials;
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::util::{array_cast_slice, BASE64_EXT};
+use crate::util::{array_cast_slice, get_attribute_id_by_attribute_name, BASE64_EXT};
 use crate::ApiCallError::InternalSdkError;
 use crate::CustomId;
 use crate::GeneratedId;
@@ -149,8 +149,16 @@ impl LoginFacade {
 
 	/// Get access key from session
 	fn get_access_key(&self, session: &ParsedEntity) -> Result<GenericAesKey, LoginError> {
+		let access_key_attribute_id =
+			&get_attribute_id_by_attribute_name(Session::type_ref(), "accessKey").map_err(
+				|_| LoginError::ApiCall {
+					source: InternalSdkError {
+						error_message: "no access key attribute on the session entity!".to_owned(),
+					},
+				},
+			)?;
 		let access_key_raw = session
-			.get("accessKey")
+			.get(access_key_attribute_id)
 			.ok_or_else(|| LoginError::ApiCall {
 				source: InternalSdkError {
 					error_message: "no access key on session!".to_owned(),

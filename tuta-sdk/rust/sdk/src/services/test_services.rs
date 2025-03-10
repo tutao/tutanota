@@ -1,7 +1,7 @@
 use crate::date::DateTime;
 use crate::entities::{Entity, FinalIv};
 use crate::metamodel::TypeModel;
-use crate::type_model_provider::{AppName, TypeId};
+use crate::type_model_provider::TypeModelProvider;
 use crate::{service_impl, TypeRef};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -19,7 +19,7 @@ pub const HELLO_OUTPUT_ENCRYPTED: &str = r#"{
 		"versioned": false,
 		"encrypted": true,
 		"values": {
-			"answer": {
+			"459": {
 				"final": false,
 				"name": "answer",
 				"id": 459,
@@ -28,7 +28,7 @@ pub const HELLO_OUTPUT_ENCRYPTED: &str = r#"{
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"timestamp": {
+			"460": {
 				"final": false,
 				"name": "timestamp",
 				"id": 460,
@@ -59,7 +59,7 @@ pub const HELLO_INPUT_ENCRYPTED: &str = r#"{
 		"versioned": false,
 		"encrypted": true,
 		"values": {
-			"message": {
+			"359": {
 				"final": false,
 				"name": "message",
 				"id": 359,
@@ -91,7 +91,7 @@ pub const HELLO_OUTPUT_UNENCRYPTED: &str = r#"{
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"answer": {
+			"159": {
 				"final": false,
 				"name": "answer",
 				"id": 159,
@@ -100,7 +100,7 @@ pub const HELLO_OUTPUT_UNENCRYPTED: &str = r#"{
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"timestamp": {
+			"160": {
 				"final": false,
 				"name": "timestamp",
 				"id": 160,
@@ -132,7 +132,7 @@ pub const HELLO_INPUT_UNENCRYPTED: &str = r#"{
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"message": {
+			"149": {
 				"final": false,
 				"name": "message",
 				"id": 149,
@@ -156,9 +156,8 @@ impl Entity for HelloUnEncInput {
 	}
 }
 
-pub fn extend_model_resolver(model_resolver: &mut HashMap<AppName, HashMap<TypeId, TypeModel>>) {
-	assert!(model_resolver.get("test").is_none());
-
+#[must_use]
+pub fn extend_model_resolver(type_model_provider: &mut TypeModelProvider) -> bool {
 	let enc_input_type_model = serde_json::from_str::<TypeModel>(HELLO_INPUT_ENCRYPTED).unwrap();
 	let enc_output_type_model = serde_json::from_str::<TypeModel>(HELLO_OUTPUT_ENCRYPTED).unwrap();
 	let unenc_input_type_model =
@@ -177,7 +176,15 @@ pub fn extend_model_resolver(model_resolver: &mut HashMap<AppName, HashMap<TypeI
 	]
 	.into_iter()
 	.collect();
-	model_resolver.insert("test", test_types);
+
+	unsafe {
+		let app_models_mut = std::ptr::from_ref(type_model_provider.app_models)
+			.cast_mut()
+			.as_mut()
+			.expect("Should be Not null");
+
+		app_models_mut.insert("test", test_types).is_some()
+	}
 }
 
 pub struct HelloEncryptedService;
@@ -185,23 +192,29 @@ pub struct HelloUnEncryptedService;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct HelloEncInput {
+	#[serde(rename = "359")]
 	pub message: String,
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[allow(non_snake_case)]
 pub struct HelloEncOutput {
+	#[serde(rename = "459")]
 	pub answer: String,
+	#[serde(rename = "460")]
 	pub timestamp: DateTime,
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct HelloUnEncInput {
+	#[serde(rename = "149")]
 	pub message: String,
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct HelloUnEncOutput {
+	#[serde(rename = "159")]
 	pub answer: String,
+	#[serde(rename = "160")]
 	pub timestamp: DateTime,
 }
 

@@ -47,6 +47,7 @@ import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository"
 import { getClientOnlyCalendars } from "../../gui/CalendarGuiUtils"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -496,7 +497,7 @@ export class CalendarSearchViewModel {
 
 		const { instanceListId, instanceId, operation } = update
 		const id = [neverNull(instanceListId), instanceId] as const
-		const typeRef = new TypeRef<SomeEntity>(update.application, update.typeId)
+		const typeRef = new TypeRef<SomeEntity>(update.application as AppName, update.typeId)
 		if (!this.isInSearchResult(typeRef, id) && isPossibleABirthdayContactUpdate) {
 			return
 		}

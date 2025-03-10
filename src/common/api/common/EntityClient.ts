@@ -23,6 +23,7 @@ import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutan
 import { resolveTypeReference } from "./EntityFunctions"
 import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
 import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
+import { ProgrammingError } from "./error/ProgrammingError"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -42,7 +43,12 @@ export class EntityClient {
 		const typeModel = await resolveTypeReference(typeRef)
 
 		if (!start) {
-			start = typeModel.values["_id"].type === ValueType.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
+			const _idValueId = Object.values(typeModel.values).find((valueType) => valueType.name === "_id")?.id
+			if (_idValueId) {
+				start = typeModel.values[_idValueId].type === ValueType.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
+			} else {
+				throw new ProgrammingError(`could not load, _id field not set for ${typeModel.name}`)
+			}
 		}
 
 		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false)

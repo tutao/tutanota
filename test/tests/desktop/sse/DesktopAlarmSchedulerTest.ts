@@ -2,19 +2,25 @@ import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler.js"
-import { downcast, lastThrow } from "@tutao/tutanota-utils"
+import { downcast, lastThrow, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
 import { DesktopNotifier, NotificationResult } from "../../../../src/common/desktop/DesktopNotifier.js"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { assertThrows, spy } from "@tutao/tutanota-test-utils"
-import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification.js"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { spy } from "@tutao/tutanota-test-utils"
 import { makeAlarmScheduler } from "../../calendar/CalendarTestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AlarmInfoTypeRef, AlarmNotificationTypeRef, CalendarEventRefTypeRef, RepeatRuleTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import {
+	AlarmInfoTypeRef,
+	AlarmNotification,
+	AlarmNotificationTypeRef,
+	CalendarEventRefTypeRef,
+	NotificationSessionKeyTypeRef,
+	RepeatRuleTypeRef,
+} from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { AlarmScheduler } from "../../../../src/common/calendar/date/AlarmScheduler.js"
 import { formatNotificationForDisplay } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
+import { createTestEntity } from "../../TestUtils"
 
 const oldTimezone = process.env.TZ
 
@@ -77,7 +83,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		o("no alarms", async function () {
 			const { wmMock, notifierMock, cryptoMock, alarmStorageMock } = standardMocks()
 			const alarmScheduler = makeAlarmScheduler()
-			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
+			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, alarmScheduler)
 
 			await scheduler.rescheduleAll()
 
@@ -89,7 +95,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		o("some alarms", async function () {
 			const { wmMock, notifierMock, cryptoMock, alarmStorageMock } = standardMocks()
 			const alarmScheduler = makeAlarmScheduler()
-			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
+			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, alarmScheduler)
 
 			const an = createAlarmNotification({
 				startTime: new Date(2019, 9, 20, 10),
@@ -101,7 +107,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 				interval: "1",
 			})
 			// crypto is a stub which just returns things back
-			alarmStorageMock.getScheduledAlarms = () => Promise.resolve([downcast<EncryptedAlarmNotification>(an)])
+			alarmStorageMock.getScheduledAlarms = () => Promise.resolve([downcast<AlarmNotification>(an)])
 
 			await scheduler.rescheduleAll()
 
@@ -129,10 +135,10 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			const { wmMock, notifierMock, alarmStorageMock, cryptoMock } = standardMocks()
 
 			const alarmScheduler = makeAlarmScheduler()
-			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
+			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, alarmScheduler)
 
 			// Summary 2
-			const an1 = createAlarmNotification({
+			const an1: AlarmNotification = createAlarmNotification({
 				startTime: new Date(2019, 9, 20, 10),
 				endTime: new Date(2019, 9, 20, 12),
 				trigger: "5M",
@@ -155,10 +161,8 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 
 			const an3 = createDeleteAlarmNotification(an1.alarmInfo.alarmIdentifier)
 
-			// @ts-ignore
-			await scheduler.handleAlarmNotification(an1)
-			// @ts-ignore
-			await scheduler.handleAlarmNotification(an2)
+			await scheduler.handleCreateAlarm(an1, null)
+			await scheduler.handleCreateAlarm(an2, null)
 
 			// We don't want the callback argument
 			verify(
@@ -188,8 +192,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 				{ times: 1 },
 			)
 
-			// @ts-ignore
-			await scheduler.handleAlarmNotification(an3)
+			await scheduler.handleDeleteAlarm(an3.alarmInfo.alarmIdentifier)
 			verify(alarmScheduler.cancelAlarm(an3.alarmInfo.alarmIdentifier), { times: 1 })
 		})
 
@@ -197,7 +200,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			const { wmMock, notifierMock, alarmStorageMock, cryptoMock } = standardMocks()
 
 			const alarmScheduler: AlarmScheduler = object()
-			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
+			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, alarmScheduler)
 
 			const an1 = createAlarmNotification({
 				startTime: new Date(2019, 9, 20, 10),
@@ -211,8 +214,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 
 			const cbCaptor = matchers.captor()
 			when(alarmScheduler.scheduleAlarm(matchers.anything(), matchers.anything(), matchers.anything(), cbCaptor.capture())).thenResolve(undefined)
-			// @ts-ignore
-			await scheduler.handleAlarmNotification(an1)
+			await scheduler.handleCreateAlarm(an1, null)
 			o(notifierMock.submitGroupedNotification.callCount).equals(0)
 			const cb = cbCaptor.value
 			cb(an1.eventStart, "title")
@@ -224,64 +226,6 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			onClick(NotificationResult.Click)
 			o(wmMock.openCalendar.callCount).equals(1)
 		})
-
-		o("alarmnotification with unavailable pushIdentifierSessionKey", async function () {
-			const { wmMock, notifierMock, cryptoMock } = standardMocks()
-			const alarmStorageMock = n
-				.mock<DesktopAlarmStorage>("__alarmStorage", {
-					storeAlarm: spy(() => Promise.resolve()),
-					deleteAlarm: spy(() => Promise.resolve()),
-					getPushIdentifierSessionKey: () => null,
-					getScheduledAlarms: () => [],
-				})
-				.set()
-			const alarmScheduler = makeAlarmScheduler()
-			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
-
-			const an1 = createAlarmNotification({
-				startTime: new Date(2019, 9, 20, 10),
-				endTime: new Date(2019, 9, 20, 12),
-				trigger: "5M",
-				endType: EndType.Never,
-				endValue: null,
-				frequency: RepeatPeriod.ANNUALLY,
-				interval: "1",
-			})
-
-			an1.notificationSessionKeys.push({
-				_id: `notificationSessionKeysIdFoo`,
-				pushIdentifierSessionEncSessionKey: `pushIdentifierSessionEncSessionKeyFoo`,
-				pushIdentifier: [`pushIdentifierFooPart1`, `pushIdentifierFooPart2`],
-			})
-
-			await assertThrows(CryptoError, () => scheduler.handleAlarmNotification(an1 as unknown as EncryptedAlarmNotification))
-			o(alarmStorageMock.getPushIdentifierSessionKey.callCount).equals(2)
-		})
-
-		o("alarmnotification with corrupt fields", async function () {
-			const { wmMock, notifierMock, alarmStorageMock } = standardMocks()
-			const cryptoMock = n
-				.mock<DesktopNativeCryptoFacade>("__crypto", crypto)
-				.with({
-					decryptAndMapToInstance: (tm, an) => Promise.resolve(Object.assign({ _errors: {} }, an)),
-				})
-				.set()
-			const alarmScheduler = makeAlarmScheduler()
-			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, cryptoMock, alarmScheduler)
-
-			const an1 = createAlarmNotification({
-				startTime: new Date(2019, 9, 20, 10),
-				endTime: new Date(2019, 9, 20, 12),
-				trigger: "5M",
-				endType: EndType.Never,
-				endValue: null,
-				frequency: RepeatPeriod.ANNUALLY,
-				interval: "1",
-			})
-			// @ts-ignore
-			await assertThrows(CryptoError, () => scheduler.handleAlarmNotification(an1))
-			o(alarmStorageMock.removePushIdentifierKey.callCount).equals(1)
-		})
 	})
 })
 
@@ -289,7 +233,7 @@ let alarmIdCounter = 0
 
 function createAlarmNotification({ startTime, endTime, trigger, endType, endValue, frequency, interval }: any) {
 	alarmIdCounter++
-	return {
+	return createTestEntity(AlarmNotificationTypeRef, {
 		_id: `scheduledAlarmId${alarmIdCounter}`,
 		_type: AlarmNotificationTypeRef,
 		eventStart: startTime,
@@ -309,11 +253,11 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 			},
 		},
 		notificationSessionKeys: [
-			{
+			createTestEntity(NotificationSessionKeyTypeRef, {
 				_id: `notificationSessionKeysId${alarmIdCounter}`,
-				pushIdentifierSessionEncSessionKey: `pushIdentifierSessionEncSessionKey${alarmIdCounter}=`,
+				pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array(`pushIdentifierSessionEncSessionKey${alarmIdCounter}`),
 				pushIdentifier: [`pushIdentifier${alarmIdCounter}Part1`, `pushIdentifier${alarmIdCounter}Part2`],
-			},
+			}),
 		],
 		repeatRule: endType
 			? {
@@ -329,7 +273,7 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 			  }
 			: null,
 		user: "userId1",
-	}
+	})
 }
 
 function createDeleteAlarmNotification(alarmIdentifier: string) {

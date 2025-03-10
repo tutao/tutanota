@@ -171,7 +171,17 @@ impl CryptoEntityClient {
 			.resolve_session_key(&parsed_entity, type_model)
 			.await
 			.map_err(|error| {
-				let id = parsed_entity.get(ID_FIELD);
+				let Ok(id_field_attribute_id) =
+					type_model.get_attribute_id_by_attribute_name(ID_FIELD)
+				else {
+					return ApiCallError::InternalSdkError {
+						error_message: format!(
+							"Failed to retrieve the id field for entity '{}' {}",
+							type_model.name, error
+						),
+					};
+				};
+				let id = parsed_entity.get(&id_field_attribute_id);
 				ApiCallError::InternalSdkError {
 					error_message: format!(
 						"Failed to resolve session key for entity '{}' with ID: {:?}; {}",
@@ -376,11 +386,12 @@ mod tests {
 	use crate::tutanota_constants::{
 		CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType,
 	};
-	use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
+	use crate::type_model_provider::TypeModelProvider;
 	use crate::util::entity_test_utils::generate_email_entity;
+	use crate::util::get_attribute_id_by_attribute_name;
 	use crate::util::test_utils::{create_test_entity, leak};
 	use crate::util::Versioned;
-	use crate::{GeneratedId, IdTupleGenerated, TypeRef};
+	use crate::{GeneratedId, IdTupleGenerated};
 	use mockall::predicate::eq;
 	use rand::random;
 	use std::sync::Arc;
@@ -427,21 +438,21 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
+		let my_favorite_leak: &'static TypeModelProvider = leak(TypeModelProvider::new());
 
+		let mail_type_model: &'static TypeModel = my_favorite_leak
+			.resolve_type_ref(&Mail::type_ref())
+			.expect("Error in type_model_provider");
 		let raw_mail_id = encrypted_mail
-			.get(ID_FIELD)
+			.get(
+				&mail_type_model
+					.get_attribute_id_by_attribute_name(ID_FIELD)
+					.unwrap(),
+			)
 			.unwrap()
 			.assert_tuple_id_generated();
 		let mail_id =
 			IdTupleGenerated::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
-		let mail_type_ref = TypeRef {
-			app: "tutanota",
-			type_: "Mail",
-		};
-		let mail_type_model: &'static TypeModel = my_favorite_leak
-			.get_type_model(mail_type_ref.app, mail_type_ref.type_)
-			.expect("Error in type_model_provider");
 
 		// Set up the mock of the plain unencrypted entity client
 		let mut mock_entity_client = MockEntityClient::default();
@@ -466,7 +477,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
 		let entity_facade = EntityFacadeImpl::new(
@@ -539,21 +550,21 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
+		let my_favorite_leak: &'static TypeModelProvider = leak(TypeModelProvider::new());
 
+		let mail_type_model: &'static TypeModel = my_favorite_leak
+			.resolve_type_ref(&Mail::type_ref())
+			.expect("Error in type_model_provider");
 		let raw_mail_id = encrypted_mail
-			.get(ID_FIELD)
+			.get(
+				&mail_type_model
+					.get_attribute_id_by_attribute_name(ID_FIELD)
+					.unwrap(),
+			)
 			.unwrap()
 			.assert_tuple_id_generated();
 		let mail_id =
 			IdTupleGenerated::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
-		let mail_type_ref = TypeRef {
-			app: "tutanota",
-			type_: "Mail",
-		};
-		let mail_type_model: &'static TypeModel = my_favorite_leak
-			.get_type_model(mail_type_ref.app, mail_type_ref.type_)
-			.expect("Error in type_model_provider");
 
 		// Set up the mock of the plain unencrypted entity client
 		let mut mock_entity_client = MockEntityClient::default();
@@ -590,7 +601,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
 		let entity_facade = EntityFacadeImpl::new(
@@ -669,10 +680,10 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
+		let my_favorite_leak: &'static TypeModelProvider = leak(TypeModelProvider::new());
 
 		let raw_mail_id = encrypted_mail
-			.get(ID_FIELD)
+			.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), ID_FIELD).unwrap())
 			.unwrap()
 			.assert_tuple_id_generated();
 		let mail_id =
@@ -715,7 +726,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
 		let entity_facade = EntityFacadeImpl::new(
@@ -794,21 +805,21 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
+		let my_favorite_leak: &'static TypeModelProvider = leak(TypeModelProvider::new());
 
+		let mail_type_model: &'static TypeModel = my_favorite_leak
+			.resolve_type_ref(&Mail::type_ref())
+			.expect("Error in type_model_provider");
 		let raw_mail_id = encrypted_mail
-			.get(ID_FIELD)
+			.get(
+				&mail_type_model
+					.get_attribute_id_by_attribute_name(ID_FIELD)
+					.unwrap(),
+			)
 			.unwrap()
 			.assert_tuple_id_generated();
 		let mail_id =
 			IdTupleGenerated::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
-		let mail_type_ref = TypeRef {
-			app: "tutanota",
-			type_: "Mail",
-		};
-		let mail_type_model: &'static TypeModel = my_favorite_leak
-			.get_type_model(mail_type_ref.app, mail_type_ref.type_)
-			.expect("Error in type_model_provider");
 
 		// Set up the mock of the plain unencrypted entity client
 		let mut mock_entity_client = MockEntityClient::default();
@@ -844,7 +855,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
 		let entity_facade = EntityFacadeImpl::new(
@@ -918,21 +929,21 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
+		let my_favorite_leak: &'static TypeModelProvider = leak(TypeModelProvider::new());
 
+		let mail_type_model: &'static TypeModel = my_favorite_leak
+			.resolve_type_ref(&Mail::type_ref())
+			.expect("Error in type_model_provider");
 		let raw_mail_id = encrypted_mail
-			.get(ID_FIELD)
+			.get(
+				&mail_type_model
+					.get_attribute_id_by_attribute_name(ID_FIELD)
+					.unwrap(),
+			)
 			.unwrap()
 			.assert_tuple_id_generated();
 		let mail_id =
 			IdTupleGenerated::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
-		let mail_type_ref = TypeRef {
-			app: "tutanota",
-			type_: "Mail",
-		};
-		let mail_type_model: &'static TypeModel = my_favorite_leak
-			.get_type_model(mail_type_ref.app, mail_type_ref.type_)
-			.expect("Error in type_model_provider");
 
 		// Set up the mock of the plain unencrypted entity client
 		let mut mock_entity_client = MockEntityClient::default();
@@ -959,7 +970,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
 		let entity_facade = EntityFacadeImpl::new(
@@ -1045,21 +1056,21 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let my_favorite_leak: &'static TypeModelProvider = leak(init_type_model_provider());
+		let my_favorite_leak: &'static TypeModelProvider = leak(TypeModelProvider::new());
 
+		let mail_type_model: &'static TypeModel = my_favorite_leak
+			.resolve_type_ref(&Mail::type_ref())
+			.expect("Error in type_model_provider");
 		let raw_mail_id = encrypted_mail
-			.get(ID_FIELD)
+			.get(
+				&mail_type_model
+					.get_attribute_id_by_attribute_name(ID_FIELD)
+					.unwrap(),
+			)
 			.unwrap()
 			.assert_tuple_id_generated();
 		let mail_id =
 			IdTupleGenerated::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
-		let mail_type_ref = TypeRef {
-			app: "tutanota",
-			type_: "Mail",
-		};
-		let mail_type_model: &'static TypeModel = my_favorite_leak
-			.get_type_model(mail_type_ref.app, mail_type_ref.type_)
-			.expect("Error in type_model_provider");
 
 		// Set up the mock of the plain unencrypted entity client
 		let mut mock_entity_client = MockEntityClient::default();
@@ -1086,7 +1097,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 
 		// Use the real `EntityFacade` as it contains the actual decryption logic
 		let entity_facade = EntityFacadeImpl::new(

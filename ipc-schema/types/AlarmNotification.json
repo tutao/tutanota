@@ -1,0 +1,8 @@
+{
+	"name": "AlarmNotification",
+	"type": "typeref",
+	"location": {
+		"typescript": "../src/common/api/entities/sys/TypeRefs.js",
+		"kotlin": "de.tutao.tutashared.alarms.EncryptedAlarmNotification"
+	}
+}

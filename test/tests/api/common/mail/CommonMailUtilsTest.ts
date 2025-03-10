@@ -9,51 +9,59 @@ import { getConfidentialIcon, isTutanotaTeamAddress, isTutanotaTeamMail } from "
 
 import { isSystemNotification } from "../../../../../src/mail-app/mail/view/MailViewerUtils.js"
 
-o.spec("MailUtilsTest", function () {
-	function createSystemMail(overrides: Partial<Mail> = {}): Mail {
-		return createTestEntity(MailTypeRef, {
-			...{
-				sender: createTestEntity(MailAddressTypeRef, { address: "system@tutanota.de", name: "System" }),
-				replyTos: [],
-				state: MailState.RECEIVED,
-				authStatus: null,
-				_errors: {},
-				_id: ["", ""],
-				_ownerEncSessionKey: null,
-				_ownerGroup: "",
-				_permissions: "",
-				attachments: [],
-				bccRecipients: [],
-				body: null,
-				bucketKey: null,
-				ccRecipients: [],
-				confidential: true,
-				conversationEntry: ["", ""],
-				differentEnvelopeSender: null,
-				encryptionAuthStatus: null,
-				firstRecipient: null,
-				headers: null,
-				listUnsubscribe: false,
-				mailDetails: null,
-				mailDetailsDraft: null,
-				method: "",
-				movedTime: null,
-				phishingStatus: "",
-				receivedDate: new Date(),
-				recipientCount: "",
-				replyType: "",
-				subject: "",
-				toRecipients: [],
-				unread: false,
-			},
-			...overrides,
-		})
-	}
+export function createSystemMail(overrides: Partial<Mail> = {}): Mail {
+	return createTestEntity(MailTypeRef, {
+		...{
+			sender: createTestEntity(MailAddressTypeRef, { address: "system@tutanota.de", name: "System" }),
+			state: MailState.RECEIVED,
+			authStatus: null,
+			_id: ["", ""],
+			_ownerEncSessionKey: null,
+			_ownerGroup: "",
+			_permissions: "",
+			attachments: [],
+			bucketKey: null,
+			confidential: true,
+			conversationEntry: ["", ""],
+			differentEnvelopeSender: null,
+			encryptionAuthStatus: null,
+			firstRecipient: null,
+			listUnsubscribe: false,
+			mailDetails: null,
+			mailDetailsDraft: null,
+			method: "",
+			movedTime: null,
+			phishingStatus: "",
+			receivedDate: new Date(),
+			recipientCount: "",
+			replyType: "",
+			subject: "",
+			unread: false,
+		},
+		...overrides,
+	})
+}
 
-	const tutanotaSender = () => createMailAddress({ address: "sender@tutanota.de", name: "Tutanota sender", contact: null })
+o.spec("MailUtilsTest", function () {
+	const tutanotaSender = () =>
+		createMailAddress({
+			address: "sender@tutanota.de",
+			name: "Tutanota sender",
+			contact: null,
+		})
 	const tutaoSender = () => createMailAddress({ address: "sender@tutao.de", name: "Tutao sender", contact: null })
-	const tutanotaNoReplySender = () => createMailAddress({ address: "no-reply@tutanota.de", name: "Tutanota no-reply", contact: null })
-	const tutaoNoReplySender = () => createMailAddress({ address: "no-reply@tutao.de", name: "Tutao no-reply", contact: null })
+	const tutanotaNoReplySender = () =>
+		createMailAddress({
+			address: "no-reply@tutanota.de",
+			name: "Tutanota no-reply",
+			contact: null,
+		})
+	const tutaoNoReplySender = () =>
+		createMailAddress({
+			address: "no-reply@tutao.de",
+			name: "Tutao no-reply",
+			contact: null,
+		})
 
 	o("getDisplayedSender", function () {
 		const mail = createSystemMail()
@@ -70,7 +78,10 @@ o.spec("MailUtilsTest", function () {
 	})
 
 	o("getConfidentialIcon", function () {
-		const mail: Mail = createTestEntity(MailTypeRef, { confidential: true, encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED })
+		const mail: Mail = createTestEntity(MailTypeRef, {
+			confidential: true,
+			encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+		})
 		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED

@@ -179,7 +179,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		b.nameSuffix = "Esq."
 		b.nickname = neverNull(null)
 		b.birthdayIso = "2016-09-09"
-		o(JSON.stringify(contacts[0])).equals(JSON.stringify(b))
+		o(contacts[0]).deepEquals(b)
 	})
 	o("testEmptyAddressElements", function () {
 		let a = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;; ;;Basche"]
@@ -204,7 +204,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		b.title = "Mr."
 		b.nickname = neverNull(null)
 		b.birthdayIso = "2016-09-09"
-		o(JSON.stringify(contacts[0])).equals(JSON.stringify(b))
+		o(contacts[0]).deepEquals(b)
 	})
 	o("testTooManySpaceElements", function () {
 		let a = ["N:Public\\\\; John\\; Quinlan;;Mr.    ;Esq.\nBDAY: 2016-09-09\nADR: Die Heide 81;;;; Basche"]
@@ -229,7 +229,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		b.nameSuffix = "Esq."
 		b.nickname = neverNull(null)
 		b.birthdayIso = "2016-09-09"
-		o(JSON.stringify(contacts[0])).equals(JSON.stringify(b))
+		o(contacts[0]).deepEquals(b)
 	})
 	o("testVCard4", function () {
 		let aContent = "VERSION:4.0\nN:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;Basche\nNOTE:Hello World\\nHier ist ein Umbruch"
@@ -268,7 +268,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 			type: "1",
 		}
 		b.comment = ""
-		o(JSON.stringify(contacts[0])).equals(JSON.stringify(b))
+		o(contacts[0]).deepEquals(b)
 	})
 	o("test vcard 4.0 date format", function () {
 		let vcards = `BEGIN:VCARD

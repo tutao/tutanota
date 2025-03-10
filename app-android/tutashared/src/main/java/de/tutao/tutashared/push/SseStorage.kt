@@ -3,7 +3,7 @@ package de.tutao.tutashared.push
 import androidx.annotation.WorkerThread
 import de.tutao.tutashared.AndroidKeyStoreFacade
 import de.tutao.tutashared.CryptoError
-import de.tutao.tutashared.alarms.AlarmNotificationEntity
+import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.PushIdentifierKey
 import de.tutao.tutashared.data.User
@@ -58,11 +58,11 @@ class SseStorage(
 		return db.userInfoDao().observeUsers()
 	}
 
-	fun readAlarmNotifications(): List<AlarmNotificationEntity> {
+	fun readAlarmNotifications(): List<EncryptedAlarmNotificationEntity> {
 		return db.alarmInfoDao().alarmNotifications()
 	}
 
-	fun insertAlarmNotification(alarmNotification: AlarmNotificationEntity) {
+	fun insertAlarmNotification(alarmNotification: EncryptedAlarmNotificationEntity) {
 		db.alarmInfoDao().insertAlarmNotification(alarmNotification)
 	}
 

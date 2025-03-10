@@ -240,3 +240,29 @@ The first expected item is ${JSON.stringify(expectedArray[0])} but got ${JSON.st
 The last expected item is ${JSON.stringify(expectedArray.at(-1))} but got ${JSON.stringify(value.at(-1))}`,
 			  }
 }
+
+export function removeFinalIvs(instance: Entity): Entity {
+	delete instance["_finalIvs"]
+	const keys = Object.keys(instance)
+	for (const key of keys) {
+		const maybeAggregate = instance[key]
+		if (maybeAggregate instanceof Object) {
+			removeFinalIvs(maybeAggregate)
+		}
+	}
+	return instance
+}
+
+export function removeAggregateIds(instance: Entity, aggregate: boolean = false): Entity {
+	if (aggregate && instance["_id"]) {
+		instance["_id"] = null
+	}
+	const keys = Object.keys(instance)
+	for (const key of keys) {
+		const maybeAggregate = instance[key]
+		if (maybeAggregate instanceof Object) {
+			removeAggregateIds(maybeAggregate, true)
+		}
+	}
+	return instance
+}

@@ -385,6 +385,7 @@ mod tests {
 	use crate::date::DateTime;
 	use crate::element_value::ElementValue;
 	use crate::entities::entity_facade::MockEntityFacade;
+	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::json_element::RawEntity;
 	use crate::json_serializer::JsonSerializer;
@@ -395,6 +396,7 @@ mod tests {
 	};
 	use crate::services::{test_services, ExtraServiceParams};
 	use crate::type_model_provider::TypeModelProvider;
+	use crate::util::get_attribute_id_by_attribute_name;
 	use crate::{HeadersProvider, CLIENT_VERSION};
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
@@ -587,10 +589,9 @@ mod tests {
 	}
 
 	fn setup() -> ResolvingServiceExecutor {
-		let mut model_provider_map = HashMap::new();
-		test_services::extend_model_resolver(&mut model_provider_map);
-		let type_model_provider: Arc<TypeModelProvider> =
-			Arc::new(TypeModelProvider::new(model_provider_map));
+		let mut type_model_provider: TypeModelProvider = TypeModelProvider::new();
+		let _ok_if_overwritten = test_services::extend_model_resolver(&mut type_model_provider);
+		let type_model_provider = Arc::new(type_model_provider);
 
 		let crypto_facade = Arc::new(CryptoFacade::default());
 		let entity_facade = Arc::new(MockEntityFacade::default());
@@ -635,7 +636,7 @@ mod tests {
             .return_once(move |url, method, opts| {
                 if method == HttpMethod::GET {
                     assert_eq!(
-                        "http://api.tuta.com/rest/test/unencrypted-hello?_body=%7B%22message%22%3A%22Something%22%7D",
+                        "http://api.tuta.com/rest/test/unencrypted-hello?_body=%7B%22149%22%3A%22Something%22%7D",
                         url.as_str()
                     );
                     assert_eq!(None, opts.body);
@@ -645,7 +646,7 @@ mod tests {
                         url.as_str()
                     );
                     let expected_body =
-                        serde_json::from_str::<RawEntity>(r#"{"message":"Something"}"#).unwrap();
+                        serde_json::from_str::<RawEntity>(r#"{"149":"Something"}"#).unwrap();
                     let body =
                         serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
                     assert_eq!(expected_body, body);
@@ -670,9 +671,9 @@ mod tests {
                 Ok(RestResponse {
                     status: 200,
                     headers: HashMap::new(),
-                    body: Some(
-                        br#"{"answer":"Response to some request","timestamp":"3000"}"#.to_vec(),
-                    ),
+					body: Some(
+						br#"{"159":"Response to some request","160":"3000"}"#.to_vec(),
+					),
                 })
             });
 
@@ -713,7 +714,7 @@ mod tests {
             .return_once(move |url, method, opts| {
                 if method == HttpMethod::GET {
                     assert_eq!(
-                        "http://api.tuta.com/rest/test/encrypted-hello?_body=%7B%22message%22%3A%22my+encrypted+request%22%7D",
+                        "http://api.tuta.com/rest/test/encrypted-hello?_body=%7B%22359%22%3A%22my+encrypted+request%22%7D",
                         url.as_str()
                     );
                     assert_eq!(None, opts.body);
@@ -722,9 +723,11 @@ mod tests {
                         "http://api.tuta.com/rest/test/encrypted-hello",
                         url.as_str()
                     );
+				    assert_eq!(http_method, method);
+
                     let expected_body =
-                        serde_json::from_str::<RawEntity>(r#"{"message": "my encrypted request"}"#)
-                            .unwrap();
+					serde_json::from_str::<RawEntity>(r#"{"359": "my encrypted request"}"#)
+						.unwrap();
                     let body =
                         serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
                     assert_eq!(expected_body, body);
@@ -745,12 +748,13 @@ mod tests {
                     .map(|(a, b)| (a.to_string(), b.to_string()))
                     .collect::<HashMap<_, _>>();
                 assert_eq!(expected_headers, opts.headers);
+
                 Ok(RestResponse {
                     status: 200,
                     headers: HashMap::new(),
                     body: Some(
-                        br#"{ "answer":"bXkgc2VjcmV0IHJlc3BvbnNl","timestamp":"MzAwMA==" }"#
-                            .to_vec(),
+						br#"{ "459":"bXkgc2VjcmV0IHJlc3BvbnNl","460":"MzAwMA==" }"#
+							.to_vec(),
                     ),
                 })
             });
@@ -782,9 +786,15 @@ mod tests {
 		entity_facade.expect_decrypt_and_map().return_once(
 			move |_, mut entity, resolved_session_key| {
 				assert_eq!(session_key_clone, resolved_session_key.session_key);
+				let timestamp_attribute_id =
+					&get_attribute_id_by_attribute_name(HelloEncOutput::type_ref(), "timestamp")
+						.unwrap();
+				let answer_attribute_id =
+					&get_attribute_id_by_attribute_name(HelloEncOutput::type_ref(), "answer")
+						.unwrap();
 				assert_eq!(
 					&ElementValue::Bytes(BASE64_STANDARD.decode(r#"MzAwMA=="#).unwrap()),
-					entity.get("timestamp").unwrap()
+					entity.get(timestamp_attribute_id).unwrap()
 				);
 				assert_eq!(
 					&ElementValue::Bytes(
@@ -792,15 +802,15 @@ mod tests {
 							.decode(r#"bXkgc2VjcmV0IHJlc3BvbnNl"#)
 							.unwrap()
 					),
-					entity.get("answer").unwrap()
+					entity.get(answer_attribute_id).unwrap()
 				);
 
 				entity.insert(
-					"answer".to_string(),
+					answer_attribute_id.to_owned(),
 					ElementValue::String(String::from("my secret response")),
 				);
 				entity.insert(
-					"timestamp".to_string(),
+					timestamp_attribute_id.to_owned(),
 					ElementValue::Date(DateTime::from_millis(3000)),
 				);
 				entity.insert("_finalIvs".to_string(), ElementValue::Dict(HashMap::new()));

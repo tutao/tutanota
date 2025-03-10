@@ -13,9 +13,9 @@ export type ReadCounterData = {
 	_type: TypeRef<ReadCounterData>;
 
 	_format: NumberString;
+	rowName: string;
 	columnName: null | Id;
 	counterType: NumberString;
-	rowName: string;
 }
 export const ReadCounterReturnTypeRef: TypeRef<ReadCounterReturn> = new TypeRef("monitor", 16)
 
@@ -41,10 +41,10 @@ export type WriteCounterData = {
 	_type: TypeRef<WriteCounterData>;
 
 	_format: NumberString;
-	column: Id;
-	counterType: null | NumberString;
 	row: string;
+	column: Id;
 	value: NumberString;
+	counterType: null | NumberString;
 }
 export const ApprovalMailTypeRef: TypeRef<ApprovalMail> = new TypeRef("monitor", 221)
 
@@ -55,12 +55,12 @@ export function createApprovalMail(values: StrippedEntity<ApprovalMail>): Approv
 export type ApprovalMail = {
 	_type: TypeRef<ApprovalMail>;
 
-	_format: NumberString;
 	_id: IdTuple;
-	_ownerGroup: null | Id;
 	_permissions: Id;
-	date: null | Date;
+	_format: NumberString;
+	_ownerGroup: null | Id;
 	range: null | string;
+	date: null | Date;
 	text: string;
 
 	customer: null | Id;
@@ -88,8 +88,8 @@ export type ErrorReportFile = {
 	_type: TypeRef<ErrorReportFile>;
 
 	_id: Id;
-	content: string;
 	name: string;
+	content: string;
 }
 export const ErrorReportDataTypeRef: TypeRef<ErrorReportData> = new TypeRef("monitor", 316)
 
@@ -101,15 +101,15 @@ export type ErrorReportData = {
 	_type: TypeRef<ErrorReportData>;
 
 	_id: Id;
-	additionalInfo: string;
+	time: Date;
 	appVersion: string;
 	clientType: NumberString;
+	userId: null | string;
 	errorClass: string;
 	errorMessage: null | string;
 	stackTrace: string;
-	time: Date;
-	userId: null | string;
 	userMessage: null | string;
+	additionalInfo: string;
 }
 export const ReportErrorInTypeRef: TypeRef<ReportErrorIn> = new TypeRef("monitor", 335)
 

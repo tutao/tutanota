@@ -28,7 +28,8 @@ public protocol NativePushFacade {
 		_ addressesArray: [String]
 	) async throws -> Void
 	func scheduleAlarms(
-		_ alarms: [EncryptedAlarmNotification]
+		_ alarmNotificationsWireFormat: String,
+		_ newDeviceSessionKey: String
 	) async throws -> Void
 	/**
 	 * Unschedule and remove alarms belonging to a specific user from the persistent storage

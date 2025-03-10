@@ -31,7 +31,15 @@ import {
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils"
+import {
+	CUSTOM_MAX_ID,
+	CUSTOM_MIN_ID,
+	firstBiggerThanSecond,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	get_IdValue,
+	getElementId,
+} from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
@@ -40,6 +48,7 @@ import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { containsEventOfType, entityUpateToUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 
 assertWorkerOrNode()
 
@@ -727,7 +736,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// we first handle potential post multiple updates in get multiple requests
 		for (let [instanceListId, updates] of createUpdatesForLETsPerList) {
 			const firstUpdate = updates[0]
-			const typeRef = new TypeRef<ListElementEntity>(firstUpdate.application, parseInt(firstUpdate.typeId))
+			const typeRef = new TypeRef<ListElementEntity>(firstUpdate.application as AppName, parseInt(firstUpdate.typeId))
 			const ids = updates.map((update) => update.instanceId)
 
 			// We only want to load the instances that are in cache range
@@ -769,7 +778,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		for (let update of regularUpdates) {
 			const { operation, typeId, application } = update
 			const { instanceListId, instanceId } = getUpdateInstanceId(update)
-			const typeRef = new TypeRef<SomeEntity>(application, parseInt(typeId))
+			const typeRef = new TypeRef<SomeEntity>(application as AppName, parseInt(typeId))
 
 			switch (operation) {
 				case OperationType.UPDATE: {
@@ -1043,5 +1052,6 @@ function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boo
 }
 
 function isGeneratedIdType(typeModel: TypeModel): boolean {
-	return typeModel.values._id.type === ValueType.GeneratedId
+	const _idValue = get_IdValue(typeModel)
+	return _idValue !== undefined && _idValue.type === ValueType.GeneratedId
 }

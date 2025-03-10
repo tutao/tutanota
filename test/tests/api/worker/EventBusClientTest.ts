@@ -17,20 +17,22 @@ import {
 import { MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
-import { defer, noOp, TypeRef } from "@tutao/tutanota-utils"
-import { InstanceMapper } from "../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { defer, noOp } from "@tutao/tutanota-utils"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { EventQueue, QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { Captor, matchers, object, verify, when } from "testdouble"
-import { create, getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
+import { getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
 import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDetector.js"
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { TypeModel } from "../../../../src/common/api/common/EntityTypes.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
+import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
+import { resolveTypeReference } from "../../../../src/common/api/common/EntityFunctions"
+
+const { anything } = matchers
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
@@ -43,17 +45,19 @@ o.spec("EventBusClientTest", function () {
 	let listenerMock: EventBusListener
 	let progressTrackerMock: ExposedProgressTracker
 	let syncTrackerMock: SyncTracker
+	let instancePipeline: InstancePipeline
 	let socketFactory
 
 	function initEventBus() {
 		const entityClient = new EntityClient(restClient)
-		const instanceMapper = new InstanceMapper()
+		instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
+
 		ebc = new EventBusClient(
 			listenerMock,
 			cacheMock,
 			userMock,
 			entityClient,
-			instanceMapper,
+			instancePipeline,
 			socketFactory,
 			sleepDetector,
 			progressTrackerMock,
@@ -215,8 +219,8 @@ o.spec("EventBusClientTest", function () {
 		ebc.connect(ConnectMode.Initial)
 		await socket.onopen?.(new Event("open"))
 
-		const messageData1 = createEntityMessage(1)
-		const messageData2 = createEntityMessage(2)
+		const messageData1 = await createEntityMessage(1)
+		const messageData2 = await createEntityMessage(2)
 
 		// Casting ot object here because promise stubber doesn't allow you to just return the promise
 		// We never resolve the promise
@@ -242,7 +246,7 @@ o.spec("EventBusClientTest", function () {
 		ebc.connect(ConnectMode.Initial)
 		await socket.onopen?.(new Event("open"))
 
-		const messageData = createEntityMessageWithUnknownEntity(1)
+		const messageData = await createEntityMessageWithUnknownEntity(1)
 
 		const updateCaptor: Captor = matchers.captor()
 		// Is waiting for cache to process the first event.
@@ -254,16 +258,15 @@ o.spec("EventBusClientTest", function () {
 		} as MessageEvent<string>)
 
 		o(updateCaptor.values?.length).equals(1)
-		o(updateCaptor.value.events).deepEquals([
-			createTestEntity(EntityUpdateTypeRef, {
-				_id: "eventBatchId",
-				application: "tutanota",
-				typeId: MailTypeRef.typeId.toString(),
-				instanceListId: "listId1",
-				instanceId: "id1",
-				operation: OperationType.UPDATE,
-			}),
-		])
+		const expectedUpdateInstance = createTestEntity(EntityUpdateTypeRef, {
+			_id: "eventBatchId",
+			application: "tutanota",
+			typeId: MailTypeRef.typeId.toString(),
+			instanceListId: "listId1",
+			instanceId: "id1",
+			operation: OperationType.UPDATE,
+		})
+		o(updateCaptor.value.events).deepEquals([{ _finalIvs: {}, ...expectedUpdateInstance }])
 	})
 
 	o("missed entity events are processed in order", async function () {
@@ -342,12 +345,21 @@ o.spec("EventBusClientTest", function () {
 
 	o("on counter update it send message to the main thread", async function () {
 		const counterUpdate = createCounterData({ mailGroupId: "group1", counterValue: 4, counterId: "list1" })
+
 		await ebc.connect(ConnectMode.Initial)
 
 		await socket.onmessage?.({
-			data: createCounterMessage(counterUpdate),
+			data: await createCounterMessage(counterUpdate),
 		} as MessageEvent)
-		verify(listenerMock.onCounterChanged(counterUpdate))
+
+		const updateCaptor = matchers.captor()
+		verify(listenerMock.onCounterChanged(updateCaptor.capture()))
+
+		// same counterUpdate defined above with added _finalIvs field
+		const expectedCounterUpdate = { ...counterUpdate }
+		Object.assign(expectedCounterUpdate, { _finalIvs: {} })
+		Object.assign(expectedCounterUpdate.counterValues[0], { _finalIvs: {} })
+		o(updateCaptor.values).deepEquals([expectedCounterUpdate])
 	})
 
 	o.spec("sleep detection", function () {
@@ -388,31 +400,7 @@ o.spec("EventBusClientTest", function () {
 		})
 	})
 
-	type UnknownType = {
-		_type: TypeRef<UnknownType>
-
-		_id: Id
-	}
-
-	function createUnknownEntity(): UnknownType {
-		const unknownTypeModel: TypeModel = {
-			id: Number.MAX_SAFE_INTEGER,
-			since: 1,
-			app: "sys",
-			version: "1",
-			name: "Unknown",
-			type: "LIST_ELEMENT_TYPE",
-			versioned: false,
-			encrypted: false,
-			rootId: "someId",
-			values: {},
-			associations: {},
-		}
-		const unknownTypeRef: TypeRef<UnknownType> = new TypeRef("sys", 99999999)
-		return create(unknownTypeModel, unknownTypeRef)
-	}
-
-	function createEntityMessageWithUnknownEntity(eventBatchId: number): string {
+	async function createEntityMessageWithUnknownEntity(eventBatchId: number): Promise<string> {
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
@@ -435,10 +423,11 @@ o.spec("EventBusClientTest", function () {
 				}),
 			],
 		})
-		return "entityUpdate;" + JSON.stringify(event)
+		const eventData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		return "entityUpdate;" + JSON.stringify(eventData)
 	}
 
-	function createEntityMessage(eventBatchId: number): string {
+	async function createEntityMessage(eventBatchId: number): Promise<string> {
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
@@ -453,7 +442,8 @@ o.spec("EventBusClientTest", function () {
 				}),
 			],
 		})
-		return "entityUpdate;" + JSON.stringify(event)
+		const instanceAsData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		return "entityUpdate;" + JSON.stringify(instanceAsData)
 	}
 
 	type CounterMessageParams = { mailGroupId: Id; counterValue: number; counterId: Id }
@@ -472,7 +462,8 @@ o.spec("EventBusClientTest", function () {
 		})
 	}
 
-	function createCounterMessage(event: WebsocketCounterData): string {
-		return "unreadCounterUpdate;" + JSON.stringify(event)
+	async function createCounterMessage(event: WebsocketCounterData): Promise<string> {
+		const instanceAsData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		return "unreadCounterUpdate;" + JSON.stringify(instanceAsData)
 	}
 })

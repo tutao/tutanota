@@ -2,8 +2,7 @@
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
 import crypto from "node:crypto"
-import { InstanceMapper } from "../api/worker/crypto/InstanceMapper"
-import type { TypeModel } from "../api/common/EntityTypes"
+import type { TypeModel, UntypedInstance } from "../api/common/EntityTypes"
 import type { Base64 } from "@tutao/tutanota-utils"
 import {
 	Aes256Key,
@@ -56,11 +55,8 @@ export interface CryptoFunctions {
 	randomBytes(nbrOfBytes: number): Uint8Array
 
 	aes256RandomKey(): Aes256Key
-
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T>
 }
 
-const mapper = new InstanceMapper()
 export const cryptoFns: CryptoFunctions = {
 	aesEncrypt(key: AesKey, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array {
 		return aesEncrypt(key, bytes, iv, usePadding, useMac)
@@ -105,9 +101,5 @@ export const cryptoFns: CryptoFunctions = {
 
 	aes256RandomKey(): Aes256Key {
 		return aes256RandomKey()
-	},
-
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T> {
-		return mapper.decryptAndMapToInstance(model, instance, sk)
 	},
 }

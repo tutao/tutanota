@@ -25,6 +25,7 @@ pub enum ElementValue {
 	IdTupleCustomElementId(IdTupleCustom),
 }
 
+/// Encrypted/Unencrypted parsed entity/instance using attributeIds as keys.
 pub type ParsedEntity = HashMap<String, ElementValue>;
 
 impl ElementValue {
@@ -64,6 +65,13 @@ impl ElementValue {
 	}
 
 	pub fn assert_array_ref(&self) -> &Vec<ElementValue> {
+		match self {
+			ElementValue::Array(value) => value,
+			_ => panic!("Invalid type"),
+		}
+	}
+
+	pub fn assert_array_mut_ref(&mut self) -> &mut Vec<ElementValue> {
 		match self {
 			ElementValue::Array(value) => value,
 			_ => panic!("Invalid type"),
