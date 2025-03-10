@@ -767,31 +767,39 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	//
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		if (this.isSenderConfirmed) {
-			return m(InfoBanner, {}, [
-				m("span", [
-					"Sender confirmed as known ", 
-					m("span.green-check", "✅")
-				])
-			]);
+			return m(InfoBanner, {
+				message: "Sender confirmed as known",
+				icon: "✅",
+				type: BannerType.Success,
+			});
 		}
 	
 		const handleDenyClick = () => {
 			modal.display(new MobyPhishDenyModal());
 		};
 	
-		return m(InfoBanner, {}, [
-			m("span", "Is this a sender you know?"),
-			m("div", [
-				m("button", { onclick: () => {
-					console.log("Sender Confirmed");
-					this.isSenderConfirmed = true;
-					m.redraw();
-				}}, "Confirm"),
-				m("button", { onclick: handleDenyClick }, "Deny")
-			])
-		]);
+		return m(InfoBanner, {
+			message: "Is this a sender you know?",
+			icon: Icons.Warning,
+			type: BannerType.Warning,
+			buttons: [
+				{
+					label: "Confirm",
+					click: () => {
+						console.log("Sender Confirmed");
+						this.isSenderConfirmed = true;
+						m.redraw();
+					},
+				},
+				{
+					label: "Deny",
+					click: handleDenyClick,
+				},
+			],
+		});
 	}
 	
+
 	
 	
 	
