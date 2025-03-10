@@ -29,7 +29,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		credentialsEncryption: IosNativeCredentialsFacade,
 		blobUtils: BlobUtil,
 		contactsSynchronization: IosMobileContactsFacade,
-		userPreferencesProvider: UserPreferencesProvider
+		userPreferencesProvider: UserPreferencesProvider,
+		urlSession: URLSession
 	) {
 
 		self.themeManager = themeManager
@@ -42,7 +43,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		let webViewConfig = WKWebViewConfiguration()
 		let folderPath: String = (self.appUrl() as NSURL).deletingLastPathComponent!.path
 		webViewConfig.preferences.setValue(false, forKey: "allowFileAccessFromFileURLs")
-		let apiSchemeHandler = ApiSchemeHandler()
+		let apiSchemeHandler = ApiSchemeHandler(urlSession: urlSession)
 		webViewConfig.setURLSchemeHandler(apiSchemeHandler, forURLScheme: "api")
 		webViewConfig.setURLSchemeHandler(apiSchemeHandler, forURLScheme: "apis")
 		webViewConfig.setURLSchemeHandler(AssetSchemeHandler(folderPath: folderPath), forURLScheme: "asset")
@@ -64,7 +65,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			webView: self.webView,
 			viewController: self,
 			commonSystemFacade: commonSystemFacade,
-			fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self), schemeHandler: apiSchemeHandler),
+			fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self), schemeHandler: apiSchemeHandler, urlSession: urlSession),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
 			themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self),
@@ -76,7 +77,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			sqlCipherFacade: self.sqlCipherFacade,
 			contactsSynchronization: contactsSynchronization,
 			userPreferencesProvider: userPreferencesProvider,
-			externalCalendarFacade: ExternalCalendarFacadeImpl()
+			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession)
 		)
 
 	}
