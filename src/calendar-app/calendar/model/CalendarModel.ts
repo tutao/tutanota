@@ -431,22 +431,24 @@ export class CalendarModel {
 			 * - Remove rest
 			 */
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedExternalEvents, existingEventList, currentCalendarGroupRoot, getTimeZone())
-			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
+			// FIXME
+			// const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
 
 			// Replacing duplicates with changes
-			for (const duplicatedEvent of duplicates) {
-				const existingEvent = existingEventList.find((event) => event.uid === duplicatedEvent.uid)
-				if (!existingEvent) {
-					console.warn("Found a duplicate without an existing event!")
-					continue
-				}
-				if (this.eventHasSameFields(duplicatedEvent, existingEvent)) {
-					operationsLog.skipped.push(duplicatedEvent)
-					continue
-				}
-				await this.updateEventWithExternal(existingEvent, duplicatedEvent)
-				operationsLog.updated.push(duplicatedEvent)
-			}
+			// for (const duplicatedEvent of duplicates) {
+			// 	const existingEvent = existingEventList.find((event) => event.uid === duplicatedEvent.uid)
+			// 	if (!existingEvent) {
+			// 		console.warn("Found a duplicate without an existing event!")
+			// 		continue
+			// 	}
+			// 	// FIXME
+			// 	// if (this.eventHasSameFields(duplicatedEvent, existingEvent)) {
+			// 	// 	operationsLog.skipped.push(duplicatedEvent)
+			// 	// 	continue
+			// 	// }
+			// 	await this.updateEventWithExternal(existingEvent, duplicatedEvent)
+			// 	operationsLog.updated.push(duplicatedEvent)
+			// }
 			console.log(TAG, `${operationsLog.skipped.length} events skipped (duplication without changes)`)
 			console.log(TAG, `${operationsLog.updated.length} events updated (duplication with changes)`)
 
@@ -469,9 +471,7 @@ export class CalendarModel {
 			console.log(TAG, `${operationsLog.created.length} events created`)
 
 			// Remove rest
-			const eventsToRemove = existingEventList.filter(
-				(existingEvent) => !parsedExternalEvents.some((externalEvent) => externalEvent.event.uid === existingEvent.uid),
-			)
+			const eventsToRemove = existingEventList
 			for (const event of eventsToRemove) {
 				await this.deleteEvent(event).catch((err) => {
 					if (err instanceof NotFoundError) {
