@@ -1,4 +1,5 @@
 import m, { Children } from "mithril";
+import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 
@@ -46,7 +47,8 @@ export class MobyPhishDenyModal implements ModalComponent {
     shortcuts(): Shortcut[] {
         return [
             {
-                key: "Escape", // Close modal when Escape key is pressed
+                
+                key: Keys.ESC, // Close modal when Escape key is pressed
                 exec: () => {
                     modal.remove(this);
                     return true;
