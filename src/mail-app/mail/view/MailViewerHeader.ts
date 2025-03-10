@@ -769,19 +769,17 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (this.isSenderConfirmed) {
 			return m(InfoBanner, {
 				message: "mobyPhish_sender_confirmed",
-				icon: "✅",
 				type: BannerType.Info,
 			});
 		}
 	
-		
+
 		const handleDenyClick = () => {
 			modal.display(new MobyPhishDenyModal());
 		};
 	
 		return m(InfoBanner, {
 			message: "mobyPhish_is_trusted",
-			icon: Icons.Warning,
 			type: BannerType.Warning,
 			buttons: [
 				{
