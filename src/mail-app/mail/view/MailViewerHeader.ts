@@ -766,41 +766,32 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	//
 	//
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
-		// State to track if the sender is confirmed
 		if (this.isSenderConfirmed) {
-			return m(InfoBanner, {
-				message: m("span", [ "Sender confirmed as known ", m("span.green-check", "✅") ]),
-				icon: Icons.Checkmark,  // Assuming there's a checkmark icon
-				type: BannerType.Info
-			});
+			return m(InfoBanner, {}, [
+				m("span", [
+					"Sender confirmed as known ", 
+					m("span.green-check", "✅")
+				])
+			]);
 		}
 	
-		// Function to handle the deny button click
 		const handleDenyClick = () => {
-			modal.display(new MobyPhishDenyModal()); // Show the deny options modal
+			modal.display(new MobyPhishDenyModal());
 		};
 	
-		return m(InfoBanner, {
-			message: "Is this a sender you know?",
-			icon: Icons.Warning,
-			type: BannerType.Warning,
-			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-			buttons: [
-				{
-					label: "Confirm",
-					click: () => {
-						console.log("Sender Confirmed");
-						this.isSenderConfirmed = true; // Update state
-						m.redraw(); // Force re-render
-					}
-				},
-				{
-					label: "Deny",
-					click: handleDenyClick
-				}
-			],
-		});
+		return m(InfoBanner, {}, [
+			m("span", "Is this a sender you know?"),
+			m("div", [
+				m("button", { onclick: () => {
+					console.log("Sender Confirmed");
+					this.isSenderConfirmed = true;
+					m.redraw();
+				}}, "Confirm"),
+				m("button", { onclick: handleDenyClick }, "Deny")
+			])
+		]);
 	}
+	
 	
 	
 	
