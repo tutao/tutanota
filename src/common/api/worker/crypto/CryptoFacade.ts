@@ -333,9 +333,9 @@ export class CryptoFacade {
 
 	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<number, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
 		const typeRef: TypeRef<SomeEntity> = new TypeRef(typeModel.app, typeModel.id)
+		console.log(`Logging ${typeRef.toString()}`)
+
 		const underscoredOwnerGroup = instance[assertNotNull(await getAttributeId(typeRef, "_ownerGroup"))]
-		const underscoredOwnerKeyVersion = instance[assertNotNull(await getAttributeId(typeRef, "_ownerKeyVersion"))]
-		const underscoredOwnerEncSessionKey = instance[assertNotNull(await getAttributeId(typeRef, "_ownerEncSessionKey"))]
 		const instanceId = instance[assertNotNull(await getAttributeId(typeRef, "_id"))]
 
 		let senderAdress = SYSTEM_GROUP_MAIL_ADDRESS
@@ -891,7 +891,7 @@ export class CryptoFacade {
 		const outOfSyncInstances = childInstances.filter((f) => f._ownerEncSessionKey == null)
 		if (mainInstance.bucketKey) {
 			// invoke updateSessionKeys service in case a bucket key is still available
-			const resolvedSessionKeys = await this.resolveWithBucketKey(mainInstance.bucketKey, mainInstance, typeModel)
+			const resolvedSessionKeys = await this.resolveWithBucketKeyForMail(mainInstance.bucketKey, mainInstance)
 			await this.ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)
 		} else {
 			console.warn("files are out of sync refreshing", outOfSyncInstances.map((f) => f._id).join(", "))

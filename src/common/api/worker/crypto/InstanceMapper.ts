@@ -174,7 +174,18 @@ export class InstanceMapper {
 				nameMappedAttribute[aAttribute.name] = attributeValue
 			} else if (vAttribute) {
 				const valueType = typeModel.values[attributeId].type
-				nameMappedAttribute[vAttribute.name] = convertDbToJsType(valueType, attributeValue)
+				switch (vAttribute.cardinality) {
+					case Cardinality.ZeroOrOne:
+						nameMappedAttribute[vAttribute.name] = attributeValue ? convertDbToJsType(valueType, attributeValue) : null
+						break
+					case Cardinality.One:
+						console.log(`${typeModel.name}::${vAttribute.name}`)
+						nameMappedAttribute[vAttribute.name] = convertDbToJsType(valueType, assertNotNull(attributeValue))
+						break
+					case Cardinality.Any:
+						nameMappedAttribute[vAttribute.name] = await promiseMap(attributeValue, (v: string | Base64) => convertDbToJsType(valueType, v))
+						break
+				}
 			} else {
 				// something new we dont know yet
 			}
