@@ -2,6 +2,8 @@ use base64::alphabet::Alphabet;
 use base64::engine::GeneralPurpose;
 use std::fmt::Debug;
 
+use crate::CustomId;
+
 #[cfg(test)]
 pub mod entity_test_utils;
 #[cfg(test)]
@@ -207,6 +209,10 @@ pub fn downcast_mut<F: 'static, T: 'static>(of: &mut F) -> Option<&mut T> {
 	a.downcast_mut()
 }
 
+pub fn first_bigger_than_second_custom_id(first_id: &CustomId, second_id: &CustomId) -> bool {
+	first_id.to_custom_string() > second_id.to_custom_string()
+}
+
 #[cfg(test)]
 mod test {
 	use super::*;
@@ -292,5 +298,24 @@ mod test {
 	async fn good_version_to_i64() {
 		let version = 0;
 		convert_version_to_i64(version);
+	}
+
+	#[test]
+	fn is_first_custom_id_bigger() {
+		let first_id = CustomId::from_custom_string("1abcd");
+		let second_id = CustomId::from_custom_string("1abcc");
+
+		assert!(first_bigger_than_second_custom_id(&first_id, &second_id))
+	}
+
+	#[test]
+	fn is_first_custom_id_smaller() {
+		let first_id = CustomId::from_custom_string("1abcc");
+		let second_id = CustomId::from_custom_string("1abcd");
+
+		assert_eq!(
+			first_bigger_than_second_custom_id(&first_id, &second_id),
+			false
+		)
 	}
 }

@@ -3,6 +3,9 @@ package de.tutao.calendar.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +33,8 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
+import androidx.glance.state.GlanceStateDefinition
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -50,11 +55,16 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
 
 class VerticalWidget : GlanceAppWidget() {
+	override var stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
+
 		// Load data needed to render the AppWidget.
 		// Use `withContext` to switch to another thread for long running
 		// operations.
@@ -70,8 +80,11 @@ class VerticalWidget : GlanceAppWidget() {
 
 		val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()).login(credentials)
 		val calendars = sdk.calendarFacade().getCalendarsRenderData()
+
+		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
+
 		val events = sdk.calendarFacade()
-			.getCalendarEvents(calendars.keys.first())
+			.getCalendarEvents(calendars.keys.first(), systemCalendar.timeInMillis.toULong())
 
 		val allEvents: List<CalendarEvent> = events.shortEvents.plus(events.longEvents)
 
@@ -82,6 +95,19 @@ class VerticalWidget : GlanceAppWidget() {
 		val allDayEvents: MutableList<Event> = mutableListOf()
 		val normalEvents: MutableList<Event> = mutableListOf()
 
+		val todayMidnight = Calendar.getInstance()
+		todayMidnight.set(Calendar.HOUR_OF_DAY, 0)
+		todayMidnight.set(Calendar.MINUTE, 0)
+		todayMidnight.set(Calendar.SECOND, 0)
+		todayMidnight.set(Calendar.MILLISECOND, 0)
+
+		val tomorrowMidnight = Calendar.getInstance()
+		tomorrowMidnight.add(Calendar.DAY_OF_YEAR, 1)
+		tomorrowMidnight.set(Calendar.HOUR_OF_DAY, 0)
+		tomorrowMidnight.set(Calendar.MINUTE, 0)
+		tomorrowMidnight.set(Calendar.SECOND, 0)
+		tomorrowMidnight.set(Calendar.MILLISECOND, 0)
+
 		allEvents.forEach { ev ->
 			val zoneId = ZoneId.systemDefault()
 			val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(ev.startTime.toLong()), zoneId)
@@ -90,7 +116,7 @@ class VerticalWidget : GlanceAppWidget() {
 			val isAllDay = isAllDayEventByTimes(
 				Date.from(Instant.ofEpochMilli(ev.startTime.toLong())),
 				Date.from(Instant.ofEpochMilli(ev.endTime.toLong()))
-			)
+			) || (ev.startTime.toLong() < todayMidnight.timeInMillis && ev.endTime.toLong() >= tomorrowMidnight.timeInMillis)
 
 			val event = Event(
 				ev.summary,
@@ -153,7 +179,7 @@ data class Event(
 	val summary: String,
 	val startTime: String,
 	val endTime: String,
-	val isAllDay: Boolean
+	val isAllDay: Boolean,
 )
 
 data class WidgetData(
@@ -163,7 +189,8 @@ data class WidgetData(
 )
 
 @Composable
-fun WidgetBody(data: WidgetData, headerCallback: () -> Unit, newEventCallback: () -> Unit) {
+fun WidgetBody(_data: WidgetData, headerCallback: () -> Unit, newEventCallback: () -> Unit) {
+	val data by rememberSaveable { mutableStateOf(_data) };
 	Scaffold(
 		modifier = GlanceModifier
 			.padding(horizontal = 20.dp),

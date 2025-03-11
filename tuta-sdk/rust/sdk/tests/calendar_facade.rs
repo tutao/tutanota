@@ -1,8 +1,11 @@
 use std::sync::Arc;
+use time::macros::datetime;
+use time::Date;
 use tutasdk::date::calendar_facade::{
 	CalendarFacade, DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME, DEFAULT_LONG_EVENT_NAME,
 	DEFAULT_SORT_EVENT_NAME,
 };
+use tutasdk::date::DateTime;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::Sdk;
 
@@ -37,8 +40,14 @@ async fn load_calendar_events() {
 	let calendar_facade = create_calendar_facade().await;
 	let calendars = calendar_facade.get_calendars_render_data().await;
 	let default_private_calendar_id = calendars.keys().next().unwrap();
+
+	let date_time = datetime!(2025-01-31 07:00:00).assume_utc().unix_timestamp() as u64;
+
 	let events = calendar_facade
-		.get_calendar_events(default_private_calendar_id)
+		.get_calendar_events(
+			default_private_calendar_id,
+			DateTime::from_millis(date_time * 1000),
+		)
 		.await;
 
 	assert_eq!(events.short_events.len(), 1);
