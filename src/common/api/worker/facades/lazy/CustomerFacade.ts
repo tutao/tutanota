@@ -376,34 +376,6 @@ export class CustomerFacade {
 		return recoverData.hexCode
 	}
 
-	async switchFreeToPremiumGroup(): Promise<void> {
-		try {
-			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-			await this.switchAccountGroup(neverNull(keyData.freeGroup), neverNull(keyData.premiumGroup), {
-				object: uint8ArrayToBitArray(keyData.premiumGroupKey),
-				version: parseKeyVersion(keyData.premiumGroupKeyVersion),
-			})
-		} catch (e) {
-			e.message = e.message + " error switching free to premium group"
-			console.log(e)
-			throw e
-		}
-	}
-
-	async switchPremiumToFreeGroup(): Promise<void> {
-		try {
-			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
-			await this.switchAccountGroup(neverNull(keyData.premiumGroup), neverNull(keyData.freeGroup), {
-				object: uint8ArrayToBitArray(keyData.freeGroupKey),
-				version: parseKeyVersion(keyData.freeGroupKeyVersion),
-			})
-		} catch (e) {
-			e.message = e.message + " error switching premium to free group"
-			console.log(e)
-			throw e
-		}
-	}
-
 	async updatePaymentData(
 		paymentInterval: PaymentInterval,
 		invoiceData: InvoiceData,
@@ -486,23 +458,5 @@ export class CustomerFacade {
 		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-	}
-
-	private async switchAccountGroup(oldGroup: Id, newGroup: Id, newGroupKey: VersionedKey): Promise<void> {
-		const loggedInUser = this.userFacade.getLoggedInUser()
-		const symEncGKey = encryptKeyWithVersionedKey(this.userFacade.getCurrentUserGroupKey(), newGroupKey.object)
-		const membershipAddData = createMembershipAddData({
-			user: loggedInUser._id,
-			group: newGroup,
-			symEncGKey: symEncGKey.key,
-			groupKeyVersion: newGroupKey.version.toString(),
-			symKeyVersion: symEncGKey.encryptingKeyVersion.toString(),
-		})
-		await this.serviceExecutor.post(MembershipService, membershipAddData)
-		const membershipRemoveData = createMembershipRemoveData({
-			user: loggedInUser._id,
-			group: oldGroup,
-		})
-		return this.serviceExecutor.delete(MembershipService, membershipRemoveData)
 	}
 }

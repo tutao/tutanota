@@ -411,7 +411,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			await locator.groupManagement(),
 			await locator.counters(),
-			locator.cachingEntityClient,
 			locator.serviceExecutor,
 			mainInterface.operationProgressTracker,
 			locator.login,
