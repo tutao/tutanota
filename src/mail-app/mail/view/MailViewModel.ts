@@ -162,7 +162,14 @@ export class MailViewModel {
 
 	private async showMail(folder?: MailFolder | null, mailId?: Id) {
 		// an optimization to not open an email that we already display
-		if (folder != null && mailId != null && this.conversationViewModel && isSameId(elementIdPart(this.conversationViewModel.primaryMail._id), mailId)) {
+		if (
+			folder != null &&
+			mailId != null &&
+			this._folder &&
+			isSameId(folder._id, this._folder._id) &&
+			this.conversationViewModel &&
+			isSameId(elementIdPart(this.conversationViewModel.primaryMail._id), mailId)
+		) {
 			return
 		}
 		// If we are already loading towards the email that is passed to us in the URL then we don't need to do anything. We already updated URL on the
