@@ -5,17 +5,29 @@ import { makeTaggedLogger } from "../DesktopLog.js"
 import { typeModels } from "../../api/entities/sys/TypeModels.js"
 import { assertNotNull, base64ToBase64Url, filterInt, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { handleRestError } from "../../api/common/error/RestError.js"
-import { MissedNotification, MissedNotificationTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import {
+	createGeneratedIdWrapper,
+	createMissedNotification,
+	createSseConnectData,
+	MissedNotification,
+	MissedNotificationTypeRef,
+} from "../../api/entities/sys/TypeRefs.js"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import { SseStorage } from "./SseStorage.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { SseInfo } from "./SseInfo.js"
 import { FetchImpl } from "../net/NetAgent"
+import { InstanceMapper } from "../../api/worker/crypto/InstanceMapper"
+import { Entity } from "../../api/common/EntityTypes"
+import { resolveTypeReference } from "../../api/common/EntityFunctions"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
 export const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
-export type EncryptedMissedNotification = MissedNotification & { alarmNotifications: readonly EncryptedAlarmNotification[] }
+export type EncryptedMissedNotification = MissedNotification & {
+	alarmNotifications: readonly EncryptedAlarmNotification[]
+}
+const mapper = new InstanceMapper()
 
 export class TutaSseFacade implements SseEventHandler {
 	private currentSseInfo: SseInfo | null = null
@@ -46,7 +58,7 @@ export class TutaSseFacade implements SseEventHandler {
 			log.debug("No SSE info")
 			return
 		}
-		const url = this.getSseUrl(sseInfo, sseInfo.userIds[0])
+		const url = await this.getSseUrl(sseInfo, sseInfo.userIds[0])
 		const headers = {
 			v: typeModels[MissedNotificationTypeRef.typeId].version,
 			cv: this.appVersion,
@@ -73,24 +85,26 @@ export class TutaSseFacade implements SseEventHandler {
 		return lastMissedNotificationCheckTime != null && this.date.now() - lastMissedNotificationCheckTime > MISSED_NOTIFICATION_TTL
 	}
 
-	private getSseUrl(sseInfo: SseInfo, userId: string): URL {
+	private async getSseUrl(sseInfo: SseInfo, userId: string): Promise<URL> {
 		const url = new URL(sseInfo.sseOrigin)
 		url.pathname = "sse"
-		url.searchParams.append("_body", this.requestJson(sseInfo.identifier, userId))
+		url.searchParams.append("_body", await this.requestJson(sseInfo.identifier, userId))
 		return url
 	}
 
-	private requestJson(identifier: string, userId: string): string {
-		return JSON.stringify({
-			_format: "0",
-			identifier: identifier,
-			userIds: [
-				{
-					_id: this.crypto.generateId(4),
-					value: userId,
-				},
-			],
-		})
+	private async requestJson(identifier: string, userId: string): Promise<string> {
+		const literal = await mapper.mapToLiteral(
+			createSseConnectData({
+				identifier: identifier,
+				userIds: [
+					createGeneratedIdWrapper({
+						_id: this.crypto.generateId(4),
+						value: userId,
+					}),
+				],
+			}) as Entity,
+		)
+		return JSON.stringify(literal)
 	}
 
 	private async onNotification() {
@@ -144,9 +158,11 @@ export class TutaSseFacade implements SseEventHandler {
 		if (!res.ok) {
 			throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
 		} else {
-			const json = await res.json()
+			const literal = (await res.json()) as Record<number, unknown>
+			const typeModel = await resolveTypeReference(MissedNotificationTypeRef)
+			const missedNotification = (await mapper.mapFromLiteral(literal, typeModel)) as EncryptedMissedNotification
 			log.debug("downloaded missed notification")
-			return json as EncryptedMissedNotification
+			return missedNotification
 		}
 	}
 

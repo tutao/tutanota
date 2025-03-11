@@ -10,16 +10,20 @@ import { log } from "../DesktopLog"
 import tutanotaModelInfo from "../../api/entities/tutanota/ModelInfo"
 import { handleRestError } from "../../api/common/error/RestError"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
-import { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { Mail, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { NativeAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
+import { InstanceMapper } from "../../api/worker/crypto/InstanceMapper"
+import { resolveTypeReference } from "../../api/common/EntityFunctions"
 
 const TAG = "[notifications]"
 
 export type MailMetadata = Pick<Mail, "sender" | "firstRecipient" | "_id">
+
+const mapper = new InstanceMapper()
 
 export class TutaNotificationHandler {
 	constructor(
@@ -104,8 +108,9 @@ export class TutaNotificationHandler {
 				throw handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
 			}
 
-			const parsedResponse = await response.json()
-			return parsedResponse as MailMetadata
+			const parsedResponse = (await response.json()) as Record<number, any>
+			const mail = await mapper.mapFromLiteral(parsedResponse, await resolveTypeReference(MailTypeRef))
+			return mail as MailMetadata
 		} catch (e) {
 			log.debug(TAG, "Error fetching mail metadata, " + (e as Error).message)
 			return null
