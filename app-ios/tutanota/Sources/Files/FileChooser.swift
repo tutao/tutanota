@@ -305,7 +305,8 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 			UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!, options: [:], completionHandler: nil)
 		}
 		alertController.addAction(settingsAction)
-		UIApplication.shared.keyWindow?.rootViewController?.present(alertController, animated: true, completion: nil)
+		let keyWindow = UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.last
+		keyWindow?.rootViewController?.present(alertController, animated: true, completion: nil)
 		sendResult(filePath: nil)
 	}
 
@@ -315,9 +316,7 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
 	private func changeExtensionToJpeg(filename: URL) -> URL { filename.deletingPathExtension().appendingPathExtension("jpg") }
 }
 
-/**
-    Extending TUTFileChooser on iOS14 to conform to  ickerViewControllerDelegate
- */
+/// Extending TUTFileChooser on iOS14 to conform to  ickerViewControllerDelegate
 @available(iOS 14.0, *) extension TUTFileChooser: PHPickerViewControllerDelegate {
 	/**
         Invoked when user finished picking the files.

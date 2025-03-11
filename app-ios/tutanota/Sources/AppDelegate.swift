@@ -8,28 +8,20 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
 
-	private var pushTokenCallback: ResponseCallback<String>?
+	private var remoteNotificationsContinuation: CheckedContinuation<String, Error>?
 	private var alarmManager: AlarmManager!
 	private var notificationsHandler: NotificationsHandler!
 	private var viewController: ViewController!
 	private let urlSession: URLSession = makeUrlSession()
 
-	func registerForPushNotifications() async throws -> String {
+	@MainActor func registerForPushNotifications() async throws -> String {
 		#if targetEnvironment(simulator)
 			return ""
 		#else
+			try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
 			return try await withCheckedThrowingContinuation { continuation in
-				UNUserNotificationCenter.current()
-					.requestAuthorization(options: [.alert, .badge, .sound]) { _, error in
-						if error == nil {
-							DispatchQueue.main.async {
-								self.pushTokenCallback = continuation.resume(with:)
-								UIApplication.shared.registerForRemoteNotifications()
-							}
-						} else {
-							continuation.resume(with: .failure(error!))
-						}
-					}
+				self.remoteNotificationsContinuation = continuation
+				UIApplication.shared.registerForRemoteNotifications()
 			}
 		#endif
 	}
@@ -101,16 +93,14 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 	func applicationWillEnterForeground(_ application: UIApplication) { UIApplication.shared.applicationIconBadgeNumber = 0 }
 
 	func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-		if let callback = self.pushTokenCallback {
-			let stringToken = deviceTokenAsString(deviceToken: deviceToken)
-			callback(.success(stringToken!))
-			self.pushTokenCallback = nil
-		}
+		let stringToken = deviceTokenAsString(deviceToken: deviceToken)
+		self.remoteNotificationsContinuation?.resume(with: .success(stringToken!))
+		self.remoteNotificationsContinuation = nil
 	}
 
 	func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-		self.pushTokenCallback?(.failure(error))
-		self.pushTokenCallback = nil
+		self.remoteNotificationsContinuation?.resume(with: .failure(error))
+		self.remoteNotificationsContinuation = nil
 	}
 
 	/// handles tutanota deep links:

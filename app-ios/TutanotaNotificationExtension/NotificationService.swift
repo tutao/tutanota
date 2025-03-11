@@ -87,9 +87,6 @@ class NotificationService: UNNotificationServiceExtension {
 	///
 	private func populateNotification(content: UNMutableNotificationContent, mail: tutasdk.Mail, credentials: UnencryptedCredentials) async throws {
 		// Init
-		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
-		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
-		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
 		let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
 
 		let userId = content.userInfo["userId"] as? String
