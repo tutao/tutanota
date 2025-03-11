@@ -153,6 +153,7 @@ import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider, PublicKeys } from "../PublicKeyProvider.js"
 import { isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
+import { InstanceMapper } from "../../crypto/InstanceMapper"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>

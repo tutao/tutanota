@@ -173,7 +173,8 @@ export class InstanceMapper {
 			} else if (aAttribute) {
 				nameMappedAttribute[aAttribute.name] = attributeValue
 			} else if (vAttribute) {
-				nameMappedAttribute[vAttribute.name] = attributeValue
+				const valueType = typeModel.values[attributeId].type
+				nameMappedAttribute[vAttribute.name] = convertDbToJsType(valueType, attributeValue)
 			} else {
 				// something new we dont know yet
 			}
@@ -181,6 +182,13 @@ export class InstanceMapper {
 		return nameMappedAttribute
 	}
 
+	// FIXME: now we have following pattern in bunch of places:
+	// 1) mapToLiteral(instance)
+	// 2) -- do something with mapped literal
+	// 3) get sessionKey
+	// 4) encryptAndMapToLiteral(instance, sessionKey)
+	// does it make sense to make this function take instanceLietral instead of instance ?
+	// if so, we can just call .mapToLiteral for all unencrypted type and make sk non-nullable here
 	encryptAndMapToLiteral<T>(typeModel: TypeModel, instance: T, sk: AesKey | null): Promise<Record<number, unknown>> {
 		let decrypted = instance as any
 		let encrypted: Record<string, unknown> = {}

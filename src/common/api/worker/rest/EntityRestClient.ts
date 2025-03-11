@@ -220,11 +220,15 @@ export class EntityRestClient implements EntityRestInterface {
 		return this._crypto.applyMigrationsForInstance(instance)
 	}
 
-	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Record<string, any>, typeModel: TypeModel) {
+	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Record<number, any>, typeModel: TypeModel) {
+		const typeRef = new TypeRef<SomeEntity>(typeModel.app, typeModel.id)
+		const ownerEncSessionKeyId = await getAttributeId(typeRef, "_ownerEncSessionKey")
 		try {
-			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const ownerKey = await ownerKeyProvider(parseKeyVersion(migratedEntity._ownerKeyVersion ?? 0))
-				return this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
+			if (ownerKeyProvider && ownerEncSessionKeyId) {
+				// FIXME: we have the field _ownerEncSessionKey => we have _ownerKeyVersion ?
+				const ownerKeyVersion = migratedEntity[assertNotNull(await getAttributeId(typeRef, "_ownerKeyVersion"))]
+				const ownerKey = await ownerKeyProvider(parseKeyVersion(ownerKeyVersion ?? 0))
+				return this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity[ownerEncSessionKeyId], ownerKey)
 			} else {
 				return await this._crypto.resolveSessionKey(typeModel, migratedEntity)
 			}
@@ -496,7 +500,8 @@ export class EntityRestClient implements EntityRestInterface {
 			undefined,
 			options?.ownerKeyProvider,
 		)
-		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instance, typeModel)
+		const instanceLiteral = await this.instanceMapper.mapToLiteral(instance)
+		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instanceLiteral, typeModel)
 		const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
 		await this.restClient.request(path, HttpMethod.PUT, {
 			baseUrl: options?.baseUrl,
