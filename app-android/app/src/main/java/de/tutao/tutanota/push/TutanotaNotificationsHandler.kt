@@ -167,7 +167,7 @@ class TutanotaNotificationsHandler(
 		response.body?.byteStream().use { inputStream ->
 			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
 			Log.d(TAG, "Loaded Missed notifications response")
-			return json.decodeFromString(responseString)
+			return json.decodeFromString<MissedNotification>(responseString)
 		}
 	}
 

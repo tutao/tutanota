@@ -11,7 +11,9 @@ import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmNotificationEntity.OperationTypeConverter
 import de.tutao.tutashared.decryptDate
 import de.tutao.tutashared.decryptString
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 import java.util.Date
 import java.util.TimeZone
 
@@ -47,13 +49,21 @@ class AlarmNotification(
  */
 @Serializable
 class EncryptedAlarmNotification(
+	@SerialName("1566")
 	val operation: OperationType,
+	@SerialName("1567")
 	val summary: String,
+	@SerialName("1568")
 	val eventStart: String,
+	@SerialName("1569")
 	val eventEnd: String,
+	@SerialName("1570")
 	val alarmInfo: EncryptedAlarmInfo,
+	@SerialName("1571")
 	val repeatRule: EncryptedRepeatRule?,
+	@SerialName("1572")
 	val notificationSessionKeys: List<AlarmNotificationEntity.NotificationSessionKey>,
+	@SerialName("1573")
 	val user: String,
 )
 
@@ -91,7 +101,9 @@ class AlarmNotificationEntity(
 
 	@Serializable
 	class NotificationSessionKey(
+		@SerialName("1555")
 		@field:Embedded val pushIdentifier: IdTuple,
+		@SerialName("1556")
 		val pushIdentifierSessionEncSessionKey: String,
 	)
 
