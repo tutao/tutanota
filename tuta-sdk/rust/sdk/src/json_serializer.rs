@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
+use http_body_util::BodyExt;
 use thiserror::Error;
 
 use crate::date::DateTime;
@@ -56,14 +57,15 @@ impl JsonSerializer {
 	) -> Result<ParsedEntity, InstanceMapperError> {
 		let type_model = self.get_type_model(type_ref)?;
 		let mut mapped: ParsedEntity = HashMap::new();
-		for (&value_name, value_type) in &type_model.values {
-			// reuse the name
-			let (value_name, value) =
+		for (&value_id, value_type) in &type_model.values {
+			let value_id_string = &value_id.to_string();
+			let value_name = &value_type.name;
+			let (_value_id_string, value) =
 				raw_entity
-					.remove_entry(value_name)
+					.remove_entry(value_id_string)
 					.ok_or_else(|| InvalidValue {
 						type_ref: type_ref.clone(),
-						field: value_name.to_owned(),
+						field: value_name.clone(),
 					})?;
 
 			let mapped_value = match (&value_type.cardinality, value) {
@@ -80,13 +82,13 @@ impl JsonSerializer {
 				(Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s))
 					if value_type.encrypted =>
 				{
-					ElementValue::Bytes(BASE64_STANDARD.decode(s).map_err(|_| InvalidValue {
+					ElementValue::Bytes(BASE64_STANDARD.decode(&s).map_err(|_| InvalidValue {
 						type_ref: type_ref.clone(),
 						field: value_name.clone(),
 					})?)
 				},
 				(_, value) if !value_type.encrypted => {
-					self.parse_value(type_model, &value_name, value_type, value)?
+					self.parse_value(type_model, &value_name, value_type, value.to_owned())?
 				},
 				_ => {
 					return Err(InvalidValue {
@@ -95,18 +97,19 @@ impl JsonSerializer {
 					})
 				},
 			};
-			mapped.insert(value_name, mapped_value);
+			mapped.insert(value_name.to_owned(), mapped_value);
 		}
 
-		for (&association_name, association_type) in &type_model.associations {
-			// reuse the name
-			let (association_name, value) =
-				raw_entity
-					.remove_entry(association_name)
-					.ok_or_else(|| InvalidValue {
-						type_ref: type_ref.clone(),
-						field: association_name.to_owned(),
-					})?;
+		for (&association_id, association_type) in &type_model.associations {
+			let association_id_string = &association_id.to_string();
+			let association_name = &association_type.name;
+			let (_association_id_string, value) = raw_entity
+				.remove_entry(association_id_string)
+				.ok_or_else(|| InvalidValue {
+					type_ref: type_ref.clone(),
+					field: association_name.to_owned(),
+				})?;
+
 			let association_type_ref = TypeRef {
 				app: association_type.dependency.unwrap_or(type_ref.app),
 				type_id: association_type.ref_type_id,
@@ -122,7 +125,7 @@ impl JsonSerializer {
 					JsonElement::Dict(dict),
 				) => {
 					let parsed = self.parse(&association_type_ref, dict)?;
-					mapped.insert(association_name, ElementValue::Dict(parsed));
+					mapped.insert(association_name.to_owned(), ElementValue::Dict(parsed));
 				},
 				(AssociationType::Aggregation, Cardinality::Any, JsonElement::Array(elements)) => {
 					let parsed_aggregates = self.parse_aggregated_array(
@@ -130,19 +133,22 @@ impl JsonSerializer {
 						&association_type_ref,
 						elements,
 					)?;
-					mapped.insert(association_name, ElementValue::Array(parsed_aggregates));
+					mapped.insert(
+						association_name.to_owned(),
+						ElementValue::Array(parsed_aggregates),
+					);
 				},
 				(_, Cardinality::ZeroOrOne, JsonElement::Null) => {
-					mapped.insert(association_name, ElementValue::Null);
+					mapped.insert(association_name.to_owned(), ElementValue::Null);
 				},
 				(
 					AssociationType::ElementAssociation | AssociationType::ListAssociation,
 					Cardinality::One | Cardinality::ZeroOrOne,
 					JsonElement::String(id),
 				) => {
-					// NOTE: it's not always generated id but it's fine probably
+					// NOTE: it's not always generated id, but it's fine probably
 					mapped.insert(
-						association_name,
+						association_name.to_owned(),
 						ElementValue::IdGeneratedId(GeneratedId(id)),
 					);
 				},
@@ -155,13 +161,13 @@ impl JsonSerializer {
 						None => {
 							return Err(InvalidValue {
 								type_ref: association_type_ref,
-								field: association_name,
+								field: association_name.to_owned(),
 							});
 						},
 						Some(id_tuple) => id_tuple,
 					};
 					mapped.insert(
-						association_name,
+						association_name.to_owned(),
 						ElementValue::IdTupleGeneratedElementId(id_tuple),
 					);
 				},
@@ -174,13 +180,13 @@ impl JsonSerializer {
 						None => {
 							return Err(InvalidValue {
 								type_ref: association_type_ref,
-								field: association_name,
+								field: association_name.to_owned(),
 							});
 						},
 						Some(id_tuple) => id_tuple,
 					};
 					mapped.insert(
-						association_name,
+						association_name.to_owned(),
 						ElementValue::IdTupleCustomElementId(id_tuple),
 					);
 				},
@@ -192,7 +198,7 @@ impl JsonSerializer {
 					let ids =
 						self.parse_id_tuple_list_generated(type_ref, &association_name, vec)?;
 
-					mapped.insert(association_name, ElementValue::Array(ids));
+					mapped.insert(association_name.to_owned(), ElementValue::Array(ids));
 				},
 				(
 					AssociationType::ListElementAssociationCustom,
@@ -201,7 +207,7 @@ impl JsonSerializer {
 				) => {
 					let ids = self.parse_id_tuple_list_custom(type_ref, &association_name, vec)?;
 
-					mapped.insert(association_name, ElementValue::Array(ids));
+					mapped.insert(association_name.to_owned(), ElementValue::Array(ids));
 				},
 				(
 					AssociationType::BlobElementAssociation,
@@ -212,13 +218,13 @@ impl JsonSerializer {
 						None => {
 							return Err(InvalidValue {
 								type_ref: association_type_ref,
-								field: association_name,
+								field: association_name.to_owned(),
 							});
 						},
 						Some(id_tuple) => id_tuple,
 					};
 					mapped.insert(
-						association_name,
+						association_name.to_owned(),
 						ElementValue::IdTupleGeneratedElementId(id_tuple),
 					);
 				},
@@ -228,6 +234,12 @@ impl JsonSerializer {
 
 		Ok(mapped)
 	}
+	/**
+	 JSON -> String
+	 RawEntity -> attributeId : String => attributes : JsonElement
+	 ParsedEntity -> attributeNames: String => attributes : ElementValue
+	 Instance -> StructName {attributeName:ElementValue}
+	*/
 
 	/// Parses an aggregated array from a value of a JSON object containing an entity/instance
 	fn parse_aggregated_array(
@@ -239,8 +251,8 @@ impl JsonSerializer {
 		let mut parsed_aggregates = Vec::new();
 		for element in elements {
 			match element {
-				JsonElement::Dict(a) => {
-					let parsed = self.parse(association_type_ref, a)?;
+				JsonElement::Dict(dict) => {
+					let parsed = self.parse(association_type_ref, dict)?;
 					parsed_aggregates.push(ElementValue::Dict(parsed));
 				},
 				_ => {
@@ -311,8 +323,9 @@ impl JsonSerializer {
 	) -> Result<RawEntity, InstanceMapperError> {
 		let type_model = self.get_type_model(type_ref)?;
 		let mut mapped: RawEntity = HashMap::new();
-		for (&value_name, value_type) in &type_model.values {
-			// we take out of the map to reuse the names/values
+		for (&value_id, value_type) in &type_model.values {
+			let value_name = &value_type.name;
+			// we take out of the map to reuse the values
 			let (value_name, value) =
 				entity
 					.remove_entry(value_name)
@@ -323,17 +336,17 @@ impl JsonSerializer {
 
 			let serialized_value =
 				self.serialize_value(type_model, &value_name, value_type, value)?;
-			mapped.insert(value_name, serialized_value);
+			mapped.insert(format!("{value_id}"), serialized_value);
 		}
 
-		for (&association_name, association_type) in &type_model.associations {
-			let (association_name, value) =
-				entity
-					.remove_entry(association_name)
-					.ok_or_else(|| InvalidValue {
-						type_ref: type_ref.clone(),
-						field: association_name.to_owned(),
-					})?;
+		for (&association_id, association_type) in &type_model.associations {
+			let association_name = &association_type.name;
+			let (association_name, association) = entity
+				.remove_entry(association_name)
+				.ok_or_else(|| InvalidValue {
+					type_ref: type_ref.clone(),
+					field: association_name.to_owned(),
+				})?;
 
 			let association_type_ref = TypeRef {
 				// aggregates can be imported across app (e.g. SystemModel, etc.)
@@ -343,7 +356,7 @@ impl JsonSerializer {
 			let serialized_association = match (
 				&association_type.association_type,
 				&association_type.cardinality,
-				value,
+				association,
 			) {
 				(
 					AssociationType::Aggregation,
@@ -373,7 +386,7 @@ impl JsonSerializer {
 					Cardinality::One | Cardinality::ZeroOrOne,
 					ElementValue::IdGeneratedId(id),
 				) => {
-					// Note: it's not always generated id but it's fine probably
+					// Note: it's not always generated id, but it's fine probably
 					JsonElement::String(id.into())
 				},
 				(
@@ -409,7 +422,7 @@ impl JsonSerializer {
 				},
 			};
 
-			mapped.insert(association_name, serialized_association);
+			mapped.insert(format!("{association_id}"), serialized_association);
 		}
 
 		Ok(mapped)
@@ -541,9 +554,9 @@ impl JsonSerializer {
 		match (&model_value.value_type, element_value) {
 			(_, ElementValue::String(v))
 				if model_value.encrypted
-						// the model value is not a string - this field was added as the default value marker for
-						// some other model type
-					&& v.is_empty() && !matches!(model_value.value_type, ValueType::String) =>
+                // the model value is not a string - this field was added as the default value marker for
+                // some other model type
+                && v.is_empty() && !matches!(model_value.value_type, ValueType::String) =>
 			{
 				Some(JsonElement::String(v))
 			},
@@ -726,7 +739,14 @@ mod tests {
 		};
 		// TODO: Expand this test to cover bucket keys in mail
 		let email_json = include_str!("../test_data/email_response.json");
-		let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
+		let parsedEntity = serde_json::from_str::<RawEntity>(email_json).unwrap();
+		// FIXME:
+		// temporary change code to parse using attributeNames
+		// then serialize parsed_entity to raw_entity with attributeIds
+		// put output in email_response.json file
+		let raw_entity = mapper
+			.serialize(&tutanota::Mail::type_ref(), parsedEntity)
+			.unwrap();
 		mapper
 			.parse(&tutanota::Mail::type_ref(), raw_entity)
 			.unwrap();

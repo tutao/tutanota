@@ -173,38 +173,47 @@ impl EntityFacadeImpl {
 	) -> Result<ParsedEntity, ApiCallError> {
 		let mut encrypted = ParsedEntity::new();
 
-		for (key, model_value) in &type_model.values {
-			let instance_value = instance.get(&key.to_string()).ok_or_else(|| {
-				ApiCallError::internal(format!("Can not find key: {key} in instance: {instance:?}"))
+		for (&_value_id, value_type) in &type_model.values {
+			let value_name = &value_type.name;
+			let instance_value = instance.get(&value_name.to_string()).ok_or_else(|| {
+				ApiCallError::internal(format!(
+					"Can not find key: {value_name} in instance: {instance:?}"
+				))
 			})?;
 
-			let encrypted_value = if !model_value.encrypted {
+			let encrypted_value = if !value_type.encrypted {
 				instance_value.clone()
-			} else if Self::should_restore_default_value(model_value, instance_value, instance, key)
-			{
+			} else if Self::should_restore_default_value(
+				value_type,
+				instance_value,
+				instance,
+				value_name,
+			) {
 				// restore the default encrypted value because it has not changed
 				// note: this branch must be checked *before* the one which reuses IVs as this one checks
 				// the length.
 				ElementValue::String(String::new())
-			} else if model_value.is_final && Self::get_final_iv_for_key(instance, key).is_some() {
+			} else if value_type.is_final
+				&& Self::get_final_iv_for_key(instance, value_name).is_some()
+			{
 				let final_iv = Iv::from_bytes(
-					Self::get_final_iv_for_key(instance, key)
+					Self::get_final_iv_for_key(instance, value_name)
 						.unwrap()
 						.assert_bytes()
 						.as_slice(),
 				)
 				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {:?}", err)))?;
 
-				Self::encrypt_value(model_value, instance_value, sk, final_iv)?
+				Self::encrypt_value(value_type, instance_value, sk, final_iv)?
 			} else {
 				Self::encrypt_value(
-					model_value,
+					value_type,
 					instance_value,
 					sk,
 					Iv::generate(&self.randomizer_facade),
 				)?
 			};
-			encrypted.insert(key.to_string(), encrypted_value);
+			encrypted.insert(value_name.to_owned(), encrypted_value);
 		}
 
 		if type_model.element_type == ElementType::Aggregated {
@@ -222,11 +231,16 @@ impl EntityFacadeImpl {
 			}
 		}
 
-		for (association_name, association) in &type_model.associations {
-			let encrypted_association = match association.association_type {
-				AssociationType::Aggregation => {
-					self.encrypt_aggregate(type_model, association_name, association, instance, sk)?
-				},
+		for (&_association_id, association_type) in &type_model.associations {
+			let association_name = &association_type.name;
+			let encrypted_association = match association_type.association_type {
+				AssociationType::Aggregation => self.encrypt_aggregate(
+					type_model,
+					association_name,
+					association_type,
+					instance,
+					sk,
+				)?,
 				AssociationType::ElementAssociation
 				| AssociationType::ListAssociation
 				| AssociationType::ListElementAssociationCustom
@@ -239,7 +253,7 @@ impl EntityFacadeImpl {
 						type_model.name
 					)))?,
 			};
-			encrypted.insert(association_name.to_string(), encrypted_association);
+			encrypted.insert(association_name.to_owned(), encrypted_association);
 		}
 
 		Ok(encrypted)
@@ -309,21 +323,23 @@ impl EntityFacadeImpl {
 		let mut mapped_errors: Errors = Default::default();
 		let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
 
-		for (&key, model_value) in &type_model.values {
-			let stored_element = entity.remove(key).unwrap_or(ElementValue::Null);
+		for (&_value_id, value_type) in &type_model.values {
+			let value_name = &value_type.name;
+			let stored_element = entity.remove(value_name).unwrap_or(ElementValue::Null);
 			let MappedValue { value, iv, error } =
-				Self::decrypt_and_parse_value(stored_element, session_key, key, model_value)?;
+				Self::decrypt_and_parse_value(stored_element, session_key, value_name, value_type)?;
 
-			mapped_decrypted.insert(key.to_string(), value);
+			mapped_decrypted.insert(value_name.to_string(), value);
 			if let Some(error) = error {
-				mapped_errors.insert(key.to_string(), ElementValue::String(error));
+				mapped_errors.insert(value_name.to_string(), ElementValue::String(error));
 			}
 			if let Some(iv) = iv {
-				mapped_ivs.insert(key.to_string(), ElementValue::Bytes(iv.clone()));
+				mapped_ivs.insert(value_name.to_string(), ElementValue::Bytes(iv.clone()));
 			}
 		}
 
-		for (&association_name, association_model) in &type_model.associations {
+		for (&_association_id, association_type) in &type_model.associations {
+			let association_name = &association_type.name;
 			let association_entry = entity
 				.remove(association_name)
 				.unwrap_or(ElementValue::Null);
@@ -332,7 +348,7 @@ impl EntityFacadeImpl {
 				association_entry,
 				session_key,
 				association_name,
-				association_model,
+				association_type,
 			)?;
 
 			mapped_decrypted.insert(association_name.to_string(), mapped_association);
@@ -1543,6 +1559,7 @@ mod tests {
 	) -> ModelValue {
 		ModelValue {
 			id: 426,
+			name: "test".to_string(),
 			value_type,
 			cardinality,
 			is_final: true,

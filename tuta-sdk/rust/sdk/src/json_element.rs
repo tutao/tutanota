@@ -118,14 +118,13 @@ impl<'de> Deserialize<'de> for JsonElement {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::json_element;
 
 	#[test]
 	fn can_deserialize_null() {
 		let json = "null";
 		assert_eq!(
-			serde_json::from_str::<json_element::JsonElement>(json).unwrap(),
-			json_element::JsonElement::Null
+			serde_json::from_str::<JsonElement>(json).unwrap(),
+			JsonElement::Null
 		);
 	}
 
@@ -133,8 +132,8 @@ mod tests {
 	fn can_deserialize_number() {
 		let json = "42";
 		assert_eq!(
-			serde_json::from_str::<json_element::JsonElement>(json).unwrap(),
-			json_element::JsonElement::Number(42)
+			serde_json::from_str::<JsonElement>(json).unwrap(),
+			JsonElement::Number(42)
 		);
 	}
 
@@ -143,7 +142,7 @@ mod tests {
 		let json = r#"{"number": 42}"#;
 		assert_eq!(
 			serde_json::from_str::<HashMap<String, JsonElement>>(json).unwrap(),
-			HashMap::from([("number".to_owned(), json_element::JsonElement::Number(42))])
+			HashMap::from([("number".to_owned(), JsonElement::Number(42))])
 		);
 	}
 

@@ -20,8 +20,8 @@ pub struct ${typeName} {\n`
 	for (let [valueId, valueProperties] of Object.entries(typeModel.values)) {
 		const valueName = valueProperties.name
 		const rustType = rustValueType(valueName, typeModel, valueProperties)
+		buf += `\t#[serde(rename = "${valueId}")]\n`
 		if (valueName === "type") {
-			buf += `\t#[serde(rename = "type")]\n`
 			buf += `\tpub r#type: ${rustType},\n`
 		} else if (valueProperties.type === "Bytes") {
 			buf += `\t#[serde(with = "serde_bytes")]\n`
@@ -47,8 +47,8 @@ pub struct ${typeName} {\n`
 				break
 		}
 
+		buf += `\t#[serde(rename = "${associationId}")]\n`
 		if (associationName === "type") {
-			buf += `\t#[serde(rename = "type")]\n`
 			buf += `\tpub r#type: ${rustType},\n`
 		} else {
 			buf += `\tpub ${associationName}: ${rustType},\n`

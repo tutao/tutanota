@@ -7,6 +7,7 @@ use crate::TypeRef;
 /// The name of an app in the backend
 pub type AppName = &'static str;
 pub type TypeId = u64;
+pub type AttributeId = u64;
 
 /// Contains a map between backend apps and entity/instance types within them
 pub struct TypeModelProvider {

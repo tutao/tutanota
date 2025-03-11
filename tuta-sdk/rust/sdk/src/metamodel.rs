@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::date::DateTime;
 use crate::element_value::ElementValue;
-use crate::type_model_provider::TypeId;
+use crate::type_model_provider::{AttributeId, TypeId};
 use serde::Deserialize;
 
 /// A kind of element that can appear in the model
@@ -91,7 +91,8 @@ pub enum AssociationType {
 #[derive(Deserialize, Clone)]
 #[cfg_attr(test, derive(Debug))]
 pub struct ModelValue {
-	pub id: u64,
+	pub id: AttributeId,
+	pub name: String,
 	#[serde(rename = "type")]
 	pub value_type: ValueType,
 	pub cardinality: Cardinality,
@@ -105,7 +106,8 @@ pub struct ModelValue {
 #[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelAssociation {
-	pub id: u64,
+	pub id: AttributeId,
+	pub name: String,
 	#[serde(rename = "type")]
 	pub association_type: AssociationType,
 	pub cardinality: Cardinality,
@@ -123,7 +125,7 @@ pub struct ModelAssociation {
 #[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TypeModel {
-	pub id: u64,
+	pub id: TypeId,
 	/// Since which model version was it introduced
 	pub since: u64,
 	/// App/model it belongs to
@@ -138,8 +140,8 @@ pub struct TypeModel {
 	pub versioned: bool,
 	pub encrypted: bool,
 	pub root_id: &'static str,
-	pub values: HashMap<&'static str, ModelValue>,
-	pub associations: HashMap<&'static str, ModelAssociation>,
+	pub values: HashMap<AttributeId, ModelValue>,
+	pub associations: HashMap<AttributeId, ModelAssociation>,
 }
 
 impl TypeModel {

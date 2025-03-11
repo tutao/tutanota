@@ -617,16 +617,18 @@ mod tests {
 			encrypted: true,
 			root_id: "",
 			values: str_map! {
-				ID_FIELD => ModelValue {
+				101 => ModelValue {
 						id: 101,
+						name: "_id".to_string(),
 						value_type: ValueType::GeneratedId,
 						cardinality: Cardinality::One,
 						is_final: true,
 						encrypted: false,
 					},
-				"field" =>
+				102 =>
 					ModelValue {
 						id: 102,
+						name: "field".to_string(),
 						value_type: ValueType::String,
 						cardinality: Cardinality::One,
 						is_final: false,
@@ -647,16 +649,18 @@ mod tests {
 			encrypted: true,
 			root_id: "",
 			values: str_map! {
-				ID_FIELD => ModelValue {
+				201 => ModelValue {
 						id: 201,
+						name: "_id".to_string(),
 						value_type: ValueType::CustomId,
 						cardinality: Cardinality::One,
 						is_final: true,
 						encrypted: false,
 					},
-				"field" =>
+				202 =>
 					ModelValue {
 						id: 202,
+						name: "field".to_string(),
 						value_type: ValueType::String,
 						cardinality: Cardinality::One,
 						is_final: false,

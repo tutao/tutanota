@@ -19,7 +19,7 @@ pub const HELLO_OUTPUT_ENCRYPTED: &str = r#"{
 		"versioned": false,
 		"encrypted": true,
 		"values": {
-			"answer": {
+			"459": {
 				"final": false,
 				"name": "answer",
 				"id": 459,
@@ -28,7 +28,7 @@ pub const HELLO_OUTPUT_ENCRYPTED: &str = r#"{
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"timestamp": {
+			"460": {
 				"final": false,
 				"name": "timestamp",
 				"id": 460,
@@ -59,7 +59,7 @@ pub const HELLO_INPUT_ENCRYPTED: &str = r#"{
 		"versioned": false,
 		"encrypted": true,
 		"values": {
-			"message": {
+			"359": {
 				"final": false,
 				"name": "message",
 				"id": 359,
@@ -91,7 +91,7 @@ pub const HELLO_OUTPUT_UNENCRYPTED: &str = r#"{
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"answer": {
+			"159": {
 				"final": false,
 				"name": "answer",
 				"id": 159,
@@ -100,7 +100,7 @@ pub const HELLO_OUTPUT_UNENCRYPTED: &str = r#"{
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"timestamp": {
+			"160": {
 				"final": false,
 				"name": "timestamp",
 				"id": 160,
@@ -132,7 +132,7 @@ pub const HELLO_INPUT_UNENCRYPTED: &str = r#"{
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"message": {
+			"149": {
 				"final": false,
 				"name": "message",
 				"id": 149,
