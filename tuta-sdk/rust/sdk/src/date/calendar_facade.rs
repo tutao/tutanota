@@ -1,5 +1,13 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+
+use base64::prelude::BASE64_URL_SAFE_NO_PAD;
+use base64::Engine;
+use time::{OffsetDateTime, Time};
+
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
+use crate::date::DateTime;
 use crate::entities::generated::sys::{GroupInfo, GroupMembership};
 use crate::entities::generated::tutanota::{
 	CalendarEvent, CalendarGroupRoot, GroupSettings, UserSettingsGroupRoot,
@@ -7,12 +15,8 @@ use crate::entities::generated::tutanota::{
 use crate::groups::GroupType;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::{ApiCallError, GeneratedId, ListLoadDirection};
-use base64::prelude::BASE64_URL_SAFE_NO_PAD;
-use base64::Engine;
-use std::collections::HashMap;
-use std::sync::Arc;
-use time::OffsetDateTime;
+use crate::util::first_bigger_than_second_custom_id;
+use crate::{ApiCallError, CustomId, GeneratedId, ListLoadDirection};
 
 #[derive(uniffi::Record)]
 pub struct CalendarData {
@@ -98,11 +102,13 @@ impl CalendarFacade {
 	}
 
 	/**
-		* Fetches calendar events of the current month for a specified calendar
-		*/
-	async fn fetch_calendar_events(
+	 * Fetches calendar events from a given calendar starting on a given Date and Time
+	 * until the end of the same day
+	 */
+	async fn fetch_calendar_events_from_date_until_end_of_day(
 		&self,
 		calendar_id: &GeneratedId,
+		date: DateTime,
 	) -> Result<CalendarEventsList, ApiCallError> {
 		let id: GeneratedId = calendar_id.to_owned();
 		let user = self.user_facade.get_user();
@@ -119,40 +125,172 @@ impl CalendarFacade {
 			));
 		}
 
-		//FIXME Gracefully handle this unwrap
-		let membership: &GroupMembership = memberships
-			.iter()
-			.find(|membership| membership.group == id)
-			.unwrap();
+		let membership = match memberships.iter().find(|membership| membership.group == id) {
+			Some(membership) => *membership,
+			_ => {
+				return Err(ApiCallError::internal(format!(
+					"Missing membership for id {}",
+					id
+				)))
+			},
+		};
+
+		let date_in_seconds = (date.as_millis() / 1000) as i64;
+
+		let parsed_date = match OffsetDateTime::from_unix_timestamp(date_in_seconds) {
+			Ok(date) => date.date().midnight().assume_utc(),
+			Err(e) => return Err(ApiCallError::internal_with_err(e, "Invalid date")),
+		};
+
+		let Some(next_day) = parsed_date.date().next_day() else {
+			return Err(ApiCallError::internal("Invalid next day".to_string()));
+		};
+
+		let timestamp_start = (parsed_date.unix_timestamp() * 1000) as u64; // x1000 to get the timestamp in milliseconds
+		let timestamp_end = (OffsetDateTime::new_utc(next_day, Time::from_hms(0, 0, 0).unwrap())
+			.unix_timestamp()
+			* 1000) as u64; // x1000 to get the timestamp in milliseconds
+
+		let mut short_events: Vec<CalendarEvent> = Vec::new();
+		let mut long_events: Vec<CalendarEvent> = Vec::new();
+
+		let mut has_short_events_finished = false;
+		let mut has_long_events_finished = false;
+
+		let mut start_short_id = get_event_element_min_id(timestamp_start);
+		let max_short_id = get_event_element_max_id(timestamp_end);
+		let mut start_long_id = CustomId("".to_owned());
+		let max_long_id = get_max_timestamp_id();
+
 		let group_root: CalendarGroupRoot =
 			self.crypto_entity_client.load(&membership.group).await?;
 
-		let local = OffsetDateTime::now_utc();
-		let beginning_of_month = local.date().replace_day(1).unwrap().midnight();
-		let timestamp = beginning_of_month.assume_utc().unix_timestamp() * 1000; // x1000 to get the timestamp in milliseconds
+		while !has_short_events_finished && !has_long_events_finished {
+			let (loaded_short_events, loaded_long_events): (
+				Result<Vec<CalendarEvent>, ApiCallError>,
+				Result<Vec<CalendarEvent>, ApiCallError>,
+			) = tokio::join!(
+				self.call_load_events(
+					has_short_events_finished,
+					&start_short_id,
+					&group_root.shortEvents
+				),
+				self.call_load_events(
+					has_long_events_finished,
+					&start_long_id,
+					&group_root.longEvents
+				),
+			);
 
-		let short_events = self
-			.crypto_entity_client
-			.load_range(
-				&group_root.shortEvents,
-				&get_event_element_min_id(timestamp),
-				200,
-				ListLoadDirection::ASC,
-			)
-			.await?;
-		let long_events = self
-			.crypto_entity_client
-			.load_range(
-				&group_root.longEvents,
-				&get_event_element_min_id(timestamp),
-				200,
-				ListLoadDirection::ASC,
-			)
-			.await?;
+			if loaded_short_events.is_err() {
+				return Err(loaded_short_events
+					.err()
+					.expect("Failed to load short calendar events"));
+			}
+			let mut unwraped_short_events = loaded_short_events?;
+			match self.is_list_load_done(&max_short_id, &mut unwraped_short_events) {
+				Ok((is_done, new_start)) => {
+					has_short_events_finished = is_done;
+					start_short_id = new_start;
+				},
+				Err(e) => return Err(e),
+			};
+			let mut filtered_short_events = self.filter_events_in_range(
+				date.as_millis(),
+				timestamp_end,
+				&mut unwraped_short_events,
+			);
+			short_events.append(&mut filtered_short_events);
+
+			if loaded_long_events.is_err() {
+				return Err(loaded_long_events
+					.err()
+					.expect("Failed to load long calendar events"));
+			}
+			let mut unwraped_long_events = loaded_long_events?;
+			match self.is_list_load_done(&max_long_id, &mut unwraped_long_events) {
+				Ok((is_done, new_start)) => {
+					has_long_events_finished = is_done;
+					start_long_id = new_start;
+				},
+				Err(e) => return Err(e),
+			};
+			let mut filtered_long_events = self.filter_events_in_range(
+				date.as_millis(),
+				timestamp_end,
+				&mut unwraped_long_events,
+			);
+			long_events.append(&mut filtered_long_events);
+		}
+
+		// We use i128 because 0 - u64::MAX overflows i64::MIN
+		short_events.sort_by(|a, b| {
+			((a.startTime.as_millis() as i128) - (b.startTime.as_millis() as i128))
+				.cmp(&(a.startTime.as_millis() as i128))
+		});
+		long_events.sort_by(|a, b| {
+			((a.startTime.as_millis() as i128) - (b.startTime.as_millis() as i128))
+				.cmp(&(a.startTime.as_millis() as i128))
+		});
+
 		Ok(CalendarEventsList {
 			short_events,
 			long_events,
 		})
+	}
+
+	fn filter_events_in_range(
+		&self,
+		timestamp_start: u64,
+		timestamp_end: u64,
+		events: &mut Vec<CalendarEvent>,
+	) -> Vec<CalendarEvent> {
+		events
+			.iter()
+			.filter(|&event| {
+				(event.startTime.as_millis() >= timestamp_start
+					|| event.endTime.as_millis() > timestamp_start)
+					&& event.startTime.as_millis() < timestamp_end
+			})
+			.map(|event| event.to_owned())
+			.collect()
+	}
+
+	fn is_list_load_done(
+		&self,
+		max_id: &CustomId,
+		events: &mut Vec<CalendarEvent>,
+	) -> Result<(bool, CustomId), ApiCallError> {
+		if events.last().is_none() {
+			return Ok((true, max_id.to_owned()));
+		}
+
+		let last_event = events.last().unwrap().to_owned();
+		let Some(last_event_id) = last_event._id else {
+			return Err(ApiCallError::internal("Event without id?".to_string()));
+		};
+
+		if first_bigger_than_second_custom_id(&last_event_id.element_id, max_id) {
+			return Ok((true, last_event_id.element_id));
+		}
+
+		Ok((false, last_event_id.element_id))
+	}
+
+	async fn call_load_events(
+		&self,
+		has_finished: bool,
+		start_id: &CustomId,
+		event_list: &GeneratedId,
+	) -> Result<Vec<CalendarEvent>, ApiCallError> {
+		if !has_finished {
+			return self
+				.crypto_entity_client
+				.load_range(event_list, start_id, 200, ListLoadDirection::ASC)
+				.await;
+		}
+
+		Ok([].to_vec())
 	}
 }
 
@@ -191,49 +329,43 @@ impl CalendarFacade {
 		calendars_render_data
 	}
 
-	pub async fn get_calendar_events(&self, calendar_id: &GeneratedId) -> CalendarEventsList {
-		self.fetch_calendar_events(calendar_id).await.unwrap()
+	pub async fn get_calendar_events(
+		&self,
+		calendar_id: &GeneratedId,
+		date: DateTime,
+	) -> CalendarEventsList {
+		self.fetch_calendar_events_from_date_until_end_of_day(calendar_id, date)
+			.await
+			.unwrap()
 	}
 }
 
-pub const DAY_IN_MILLIS: i64 = 1000 * 60 * 60 * 24;
+pub const DAY_IN_MILLIS: u64 = 1000 * 60 * 60 * 24;
 /**
  * The time in ms that element ids for calendar events and alarms  get randomized by
  */
-pub const DAYS_SHIFTED_MS: i64 = 15 * DAY_IN_MILLIS;
+pub const DAYS_SHIFTED_MS: u64 = 15 * DAY_IN_MILLIS;
 // To keep the SDK decoupled and dependency free we decided to handle translations on native side
 pub const DEFAULT_CALENDAR_NAME: &str = "";
 pub const DEFAULT_CALENDAR_COLOR: &str = "2196f3";
 pub const DEFAULT_SORT_EVENT_NAME: &str = "Short Event"; // Used only in tests
 pub const DEFAULT_LONG_EVENT_NAME: &str = "Long Event"; // Used only in tests
 
-fn get_event_element_min_id(timestamp: i64) -> GeneratedId {
-	GeneratedId(create_event_element_id(timestamp, -DAYS_SHIFTED_MS))
+fn get_event_element_min_id(timestamp: u64) -> CustomId {
+	CustomId::from_custom_string(&format!("{}", timestamp - DAYS_SHIFTED_MS))
 }
 
-fn create_event_element_id(timestamp: i64, shift_days: i64) -> String {
-	string_to_custom_id(format!("{}{}", timestamp, shift_days))
+fn get_event_element_max_id(timestamp: u64) -> CustomId {
+	CustomId::from_custom_string(&format!("{}", timestamp + DAYS_SHIFTED_MS))
 }
-
-/**
- * Converts a string to a custom id. Attention: the custom id must be intended to be derived from a string.
- */
-fn string_to_custom_id(string: String) -> String {
-	base64_to_base64url(&BASE64_URL_SAFE_NO_PAD.encode(string.as_bytes()))
-}
-
-/**
- * Converts a base64 string to a url-conform base64 string. This is used for
- * base64 coded url parameters.
- */
-fn base64_to_base64url(base64: &str) -> String {
-	let base64url = base64.replace('+', "-").replace('/', "_").replace('=', "");
-	base64url
+fn get_max_timestamp_id() -> CustomId {
+	CustomId::from_custom_string(&(u64::MAX.to_string()))
 }
 
 #[cfg(test)]
 mod calendar_facade_unit_tests {
-	use super::{CalendarFacade, DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME};
+	use std::sync::Arc;
+
 	use crate::crypto_entity_client::MockCryptoEntityClient;
 	use crate::entities::generated::sys::{GroupInfo, GroupMembership, User};
 	use crate::entities::generated::tutanota::{GroupSettings, UserSettingsGroupRoot};
@@ -241,7 +373,8 @@ mod calendar_facade_unit_tests {
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::create_test_entity;
 	use crate::{GeneratedId, IdTupleGenerated};
-	use std::sync::Arc;
+
+	use super::{CalendarFacade, DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME};
 
 	fn create_mock_user(user_group: &GeneratedId, calendar_id: &GeneratedId) -> User {
 		User {

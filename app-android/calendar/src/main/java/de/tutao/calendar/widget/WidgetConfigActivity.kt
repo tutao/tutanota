@@ -63,8 +63,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
+import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.tutao.calendar.widget.data.WidgetConfigViewModel
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -73,7 +77,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 	val rippleConfiguration =
 		RippleConfiguration(color = Color(0xFF8B8B8B), rippleAlpha = RippleAlpha(0.38f, 0.38f, .38f, .38f))
 
-	@OptIn(ExperimentalMaterial3Api::class)
+	@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
@@ -114,6 +118,11 @@ class WidgetConfigActivity : AppCompatActivity() {
 							try {
 								viewModel.storeSettings(appWidgetId)
 								setResult(Activity.RESULT_OK, resultValue)
+								val curContext = this
+								GlobalScope.launch { //FIXME handle coroutine properly
+									println("Inside GlobalScope coroutine")
+									VerticalWidget().updateAll(curContext)
+								}
 							} catch (ex: Exception) {
 								Toast.makeText(
 									applicationContext,
