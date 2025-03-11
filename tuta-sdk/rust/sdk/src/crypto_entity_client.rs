@@ -1,3 +1,7 @@
+use std::sync::Arc;
+
+use serde::{Deserialize, Serialize};
+
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::GenericAesKey;
@@ -7,13 +11,11 @@ use crate::entities::generated::base::PersistenceResourcePostReturn;
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
-use crate::id::id_tuple::IdType;
+use crate::id::id_tuple::{BaseIdType, IdType};
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::TypeModel;
 use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 // A high level interface to manipulate encrypted entities/instances via the REST API
 pub struct CryptoEntityClient {
@@ -187,10 +189,10 @@ impl CryptoEntityClient {
 	}
 
 	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
-	pub async fn load_range<T: Entity + Deserialize<'static>>(
+	pub async fn load_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
 		&self,
 		list_id: &GeneratedId,
-		start_id: &GeneratedId,
+		start_id: &Id,
 		count: usize,
 		direction: ListLoadDirection,
 	) -> Result<Vec<T>, ApiCallError> {
@@ -227,6 +229,10 @@ impl CryptoEntityClient {
 
 #[cfg(test)]
 mod tests {
+	use std::sync::Arc;
+
+	use rand::random;
+
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
@@ -242,8 +248,6 @@ mod tests {
 	use crate::util::entity_test_utils::generate_email_entity;
 	use crate::util::test_utils::leak;
 	use crate::{IdTupleGenerated, TypeRef};
-	use rand::random;
-	use std::sync::Arc;
 
 	#[tokio::test]
 	async fn can_load_mail() {

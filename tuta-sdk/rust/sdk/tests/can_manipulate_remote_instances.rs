@@ -117,7 +117,7 @@ async fn can_update_remote_instance() {
 		.mails
 		.clone();
 	let mut sample_mail = crypto_entity_client
-		.load_range::<Mail>(
+		.load_range::<Mail, GeneratedId>(
 			&current_mailbag_mail_list,
 			&GeneratedId::max_id(),
 			1,
