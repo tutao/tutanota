@@ -46,8 +46,8 @@ import { sys119 } from "./migrations/sys-v119.js"
 import { sys120 } from "./migrations/sys-v120.js"
 import { tutanota83 } from "./migrations/tutanota-v83.js"
 import { sys121 } from "./migrations/sys-v121.js"
-import { sys124 } from "./migrations/sys-v124"
-import { tutanota84 } from "./migrations/tutanota-v84"
+import { sys124 } from "./migrations/sys-v124.js"
+import { tutanota84 } from "./migrations/tutanota-v84.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
