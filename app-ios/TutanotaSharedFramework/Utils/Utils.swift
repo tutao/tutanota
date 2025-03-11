@@ -56,10 +56,15 @@ public func stringToCustomId(customId: String) -> String {
 }
 
 public func makeUrlSession() -> URLSession {
-	var urlSession = URLSession(configuration: .ephemeral)
+	let urlSession = URLSession(configuration: .ephemeral)
 	urlSession.configuration.timeoutIntervalForRequest = 20
+
+	urlSession.configuration.httpAdditionalHeaders = ["cv": appVersion()]
+
 	return urlSession
 }
+
+func appVersion() -> String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String }
 
 public func printLog(_ message: String, _ file: StaticString = #fileID) {
 	let filename = file
