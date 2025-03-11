@@ -14,7 +14,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import { ModelValue, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import { Entity, ModelValue, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -93,12 +93,12 @@ export class InstanceMapper {
 		})
 	}
 
-	/// Sit rnce entity have fieldName, CBORG will just use fieldName while serializing,
+	/// Since entity have fieldName, CBORG will just use fieldName while serializing,
 	/// we should create a new object that map fieldName to filedId before putting it
 	/// into storage
 	// object 1: { field1: value1, field2: value2 }
 	// object 2: Map  { "field1Id" -> "value1", "field2" -> "value2" }
-	async mapToLiteral(instance: SomeEntity): Promise<Record<number, any>> {
+	async mapToLiteral(instance: Entity): Promise<Record<number, any>> {
 		const typemodel = await resolveTypeReference(instance._type)
 
 		let result: Record<number, any> = {}
@@ -108,7 +108,7 @@ export class InstanceMapper {
 			}
 			const attributeId = await getAttributeId(instance._type, fieldName)
 			if (!attributeId) {
-				throw new Error("could not find attributeid for value: " + fieldName)
+				throw new Error("could not find attributeid for value " + fieldName + " and type: " + typemodel.name)
 			}
 
 			const association = typemodel.associations[attributeId]
@@ -119,16 +119,16 @@ export class InstanceMapper {
 
 				switch (association.cardinality) {
 					case Cardinality.ZeroOrOne: {
-						result[attributeId] = attributeValue ? await this.mapToLiteral(aggregatedEntity as SomeEntity) : null
+						result[attributeId] = attributeValue ? await this.mapToLiteral(attributeValue as Entity) : null
 						break
 					}
 					case Cardinality.Any: {
-						const agg = assertNotNull(attributeValue) as Array<SomeEntity>
+						const agg = assertNotNull(attributeValue) as Array<Entity>
 						result[attributeId] = await promiseMap(agg, (e) => this.mapToLiteral(e))
 						break
 					}
 					case Cardinality.One: {
-						const agg = assertNotNull(attributeValue) as SomeEntity
+						const agg = assertNotNull(attributeValue) as Entity
 						Object.assign(aggregatedEntity, agg)
 						result[attributeId] = await this.mapToLiteral(agg)
 						break
@@ -155,7 +155,7 @@ export class InstanceMapper {
 				switch (aAttribute.cardinality) {
 					case Cardinality.ZeroOrOne: {
 						const refTypeModel = await resolveTypeReference(new TypeRef(aAttribute.dependency || typeModel.app, aAttribute.refTypeId))
-						nameMappedAttribute[aAttribute.name] = attributeValue ? this.mapFromLiteral(attributeValue, refTypeModel) : null
+						nameMappedAttribute[aAttribute.name] = attributeValue ? await this.mapFromLiteral(attributeValue, refTypeModel) : null
 						break
 					}
 					case Cardinality.Any: {
@@ -165,7 +165,8 @@ export class InstanceMapper {
 						break
 					}
 					case Cardinality.One: {
-						nameMappedAttribute[aAttribute.name] = assertNotNull(attributeValue)
+						const refTypeModel = await resolveTypeReference(new TypeRef(aAttribute.dependency || typeModel.app, aAttribute.refTypeId))
+						nameMappedAttribute[aAttribute.name] = await this.mapFromLiteral(assertNotNull(attributeValue), refTypeModel)
 						break
 					}
 				}

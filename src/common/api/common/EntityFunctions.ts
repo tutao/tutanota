@@ -1,6 +1,6 @@
 import { Type } from "./EntityConstants.js"
 import { TypeRef } from "@tutao/tutanota-utils"
-import type { SomeEntity, TypeModel } from "./EntityTypes"
+import type { Entity, TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
 import { typeModels as tutanotaTypeModels } from "../entities/tutanota/TypeModels.js"
@@ -61,7 +61,7 @@ let typeIdToAttributeNameMap: Record<string, Map<number, Map<string, number>>> =
 	usage: new Map<number, Map<string, number>>(),
 }
 
-export async function getAttributeId(typeRef: TypeRef<SomeEntity>, attributeName: string): Promise<number | null> {
+export async function getAttributeId(typeRef: TypeRef<Entity>, attributeName: string): Promise<number | null> {
 	const typeIdMap = typeIdToAttributeNameMap[typeRef.app].get(typeRef.typeId) ?? null
 	if (typeIdMap) {
 		return typeIdMap.get(attributeName) ?? null
