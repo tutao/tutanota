@@ -1,6 +1,7 @@
 package de.tutao.calendar.widget.data
 
 import android.content.Context
+import de.tutao.tutasdk.CalendarEventsList
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.Sdk
@@ -24,6 +25,8 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.Json
+import java.util.Calendar
+import java.util.TimeZone
 
 @Serializable
 data class SettingsDao(
@@ -94,6 +97,26 @@ class WidgetRepository(context: Context) {
 		val calendarFacade = loggedInSdk.calendarFacade()
 
 		return calendarFacade.getCalendarsRenderData()
+	}
+
+	suspend fun loadEvents(
+		credential: PersistedCredentials,
+		calendars: List<GeneratedId>
+	): Map<GeneratedId, CalendarEventsList> {
+		val loadedCredentials = credentialsFacade.loadByUserId(credential.credentialInfo.userId)!!.toSdkCredentials()
+		val loggedInSdk = sdk.login(loadedCredentials)
+
+		val calendarFacade = loggedInSdk.calendarFacade()
+		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
+
+		val calendarEventsList: Map<GeneratedId, CalendarEventsList> = HashMap()
+
+		calendars.forEach { calendarId ->
+			val events = calendarFacade.getCalendarEvents(calendarId, (systemCalendar.timeInMillis / 1000).toULong())
+			calendarEventsList.plus(calendarId to events)
+		}
+
+		return calendarEventsList
 	}
 
 	fun loadSettings(widgetId: Int): SettingsDao? {
