@@ -27,7 +27,6 @@ export class UserManagementFacade {
 		private readonly userFacade: UserFacade,
 		private readonly groupManagement: GroupManagementFacade,
 		private readonly counters: CounterFacade,
-		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
 		private readonly loginFacade: LoginFacade,
@@ -56,54 +55,11 @@ export class UserManagementFacade {
 
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
 		const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
-		const userGroup = await this.entityClient.load(GroupTypeRef, user.userGroup.group)
-		const userGroupKey = await this.groupManagement.getCurrentGroupKeyViaAdminEncGKey(userGroup._id)
 
 		if (admin) {
 			await this.groupManagement.addUserToGroup(user, adminGroupId)
-
-			if (user.accountType !== AccountType.SYSTEM) {
-				const keyData = await this._getAccountKeyData()
-				const userEncAccountGroupKey = encryptKeyWithVersionedKey(userGroupKey, keyData.accountGroupKey)
-
-				// we can not use addUserToGroup here because the admin is not admin of the account group
-				const addAccountGroup = createMembershipAddData({
-					user: user._id,
-					group: keyData.accountGroup,
-					symEncGKey: userEncAccountGroupKey.key,
-					symKeyVersion: userEncAccountGroupKey.encryptingKeyVersion.toString(),
-					groupKeyVersion: keyData.accountGroupKeyVersion,
-				})
-				await this.serviceExecutor.post(MembershipService, addAccountGroup)
-			}
 		} else {
 			await this.groupManagement.removeUserFromGroup(user._id, adminGroupId)
-
-			if (user.accountType !== AccountType.SYSTEM) {
-				const keyData = await this._getAccountKeyData()
-				return this.groupManagement.removeUserFromGroup(user._id, keyData.accountGroup)
-			}
-		}
-	}
-
-	/**
-	 * Get key and id of premium group.
-	 * @throws Error if account type is not paid
-	 *
-	 * @private
-	 */
-	async _getAccountKeyData(): Promise<{ accountGroup: Id; accountGroupKeyVersion: string; accountGroupKey: AesKey }> {
-		const keysReturn = await this.serviceExecutor.get(SystemKeysService, null)
-		const user = this.userFacade.getLoggedInUser()
-
-		if (user.accountType === AccountType.PAID) {
-			return {
-				accountGroup: neverNull(keysReturn.premiumGroup),
-				accountGroupKey: uint8ArrayToKey(keysReturn.premiumGroupKey),
-				accountGroupKeyVersion: keysReturn.premiumGroupKeyVersion,
-			}
-		} else {
-			throw new Error(`Trying to get keyData for user with account type ${user.accountType}`)
 		}
 	}
 
