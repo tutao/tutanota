@@ -343,7 +343,7 @@ o.spec("InstanceMapper", function () {
 		let senderName = "TutanotaTeam"
 		const user = createTestUser("Alice", entityClient)
 		const sk = aes256RandomKey()
-		let mail = createMailLiteral(user.mailGroupKey, sk, subject, confidential, senderName, user.name, user.mailGroup._id)
+		let mail = await createMailLiteral(user.mailGroupKey, sk, subject, confidential, senderName, user.name, user.mailGroup._id, "1")
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then((decrypted) => {
 			o(isSameTypeRef(decrypted._type, MailTypeRef)).equals(true)
@@ -468,8 +468,8 @@ o.spec("InstanceMapper", function () {
 		let confidential = true
 		let senderName = "TutanotaTeam"
 		let sk = aes256RandomKey()
-		let mail = createMailLiteral(testUser.mailGroupKey, sk, subject, confidential, senderName, testUser.name, testUser.mailGroup._id)
-		mail.subject = "asdf"
+		let mail = await createMailLiteral(testUser.mailGroupKey, sk, subject, confidential, senderName, testUser.name, testUser.mailGroup._id, "0")
+		// mail.subject = "asdf"
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		const instance: Mail = await instanceMapper.decryptAndMapToInstance(MailTypeModel, mail, sk)
 		o(typeof instance._errors["subject"]).equals("string")

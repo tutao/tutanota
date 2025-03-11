@@ -284,11 +284,14 @@ export class CryptoFacade {
 		}
 	}
 
-	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
-		const instanceElementId = this.getElementIdFromInstance(instance)
+	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<number, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
+		const instanceElementId = await this.getElementIdFromInstance(typeModel, instance)
 		let decryptedBucketKey: AesKey
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
 		let pqMessageSenderKey: EccPublicKey | null = null
+
+		const underscoredGroupKey = instance[assertNotNull(await getAttributeId(new TypeRef(typeModel.app, typeModel.id), "_ownerGroup"))]
+
 		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
 			// bucket key is encrypted with public key for internal recipient
 			const { decryptedAesKey, senderIdentityPubKey } = await this.asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
@@ -309,7 +312,7 @@ export class CryptoFacade {
 				keyGroup = bucketKey.keyGroup
 			} else {
 				// by default, we try to decrypt the bucket key with the ownerGroupKey (e.g. secure external recipient)
-				keyGroup = neverNull(instance._ownerGroup)
+				keyGroup = neverNull(underscoredGroupKey)
 			}
 
 			decryptedBucketKey = await this.resolveWithGroupReference(keyGroup, groupKeyVersion, bucketKey.groupEncBucketKey)
@@ -331,7 +334,7 @@ export class CryptoFacade {
 
 		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
 		// in this case it is not yet and we need to set it because the rest of the app expects it.
-		const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(instance._ownerGroup) // get current key for encrypting
+		const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(underscoredGroupKey) // get current key for encrypting
 		this.setOwnerEncSessionKeyUnmapped(
 			instance as UnmappedOwnerGroupInstance,
 			encryptKeyWithVersionedKey(groupKey, resolvedSessionKeys.resolvedSessionKeyForInstance),
@@ -495,15 +498,18 @@ export class CryptoFacade {
 		bucketKey: BucketKey,
 		decBucketKey: number[],
 		instanceElementId: string,
-		instance: Record<string, any>,
+		instance: Record<number, any>,
 		typeModel: TypeModel,
 		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: EccPublicKey | null,
 	): Promise<ResolvedSessionKeys> {
+		const typeRef: TypeRef<SomeEntity> = new TypeRef(typeModel.app, typeModel.id)
+		const instanceUnderscoredOwnerGroup = instance[assertNotNull(await getAttributeId(typeRef, "_ownerGroup"))]
+
 		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
-			const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(instance._ownerGroup)
+			const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(instanceUnderscoredOwnerGroup)
 			const ownerEncSessionKey = encryptKeyWithVersionedKey(groupKey, decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
 			if (instanceElementId == instanceSessionKey.instanceId) {
@@ -531,7 +537,8 @@ export class CryptoFacade {
 		if (resolvedSessionKeyForInstance) {
 			return { resolvedSessionKeyForInstance, instanceSessionKeys }
 		} else {
-			throw new SessionKeyNotFoundError("no session key for instance " + instance._id)
+			const instanceId = instance[assertNotNull(await getAttributeId(typeRef, "_id"))]
+			throw new SessionKeyNotFoundError("no session key for instance " + instanceId)
 		}
 	}
 
@@ -600,12 +607,17 @@ export class CryptoFacade {
 		}
 	}
 
-	private async resolveWithPublicOrExternalPermission(listPermissions: Permission[], instance: Record<string, any>, typeModel: TypeModel): Promise<AesKey> {
+	private async resolveWithPublicOrExternalPermission(
+		listPermissions: Permission[],
+		instance: Record<string | number, any>,
+		typeModel: TypeModel,
+	): Promise<AesKey> {
 		const pubOrExtPermission = listPermissions.find((p) => p.type === PermissionType.Public || p.type === PermissionType.External) ?? null
 
 		if (pubOrExtPermission == null) {
 			const typeName = `${typeModel.app}/${typeModel.name}`
-			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${this.getElementIdFromInstance(instance)}`)
+			const id = await this.getElementIdFromInstance(typeModel, instance)
+			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${id}`)
 		}
 
 		const bucketPermissions = await this.entityClient.loadAll(BucketPermissionTypeRef, assertNotNull(pubOrExtPermission.bucket).bucketPermissions)
@@ -902,13 +914,9 @@ export class CryptoFacade {
 			)
 	}
 
-	private getElementIdFromInstance(instance: Record<string, any>): Id {
-		if (typeof instance._id === "string") {
-			return instance._id
-		} else {
-			const idTuple = instance._id as IdTuple
-			return elementIdPart(idTuple)
-		}
+	private async getElementIdFromInstance(typeModel: TypeModel, instance: Record<number, any>): Promise<Id> {
+		const instanceId = instance[assertNotNull(await getAttributeId(new TypeRef(typeModel.app, typeModel.id), "_id"))]
+		return typeof instanceId === "string" ? instanceId : elementIdPart(instanceId)
 	}
 }
 

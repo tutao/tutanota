@@ -108,7 +108,6 @@ import {
 	isEmpty,
 	isNotNull,
 	isSameTypeRef,
-	isSameTypeRefByAttr,
 	noOp,
 	ofClass,
 	promiseFilter,
@@ -1032,6 +1031,8 @@ export class MailFacade {
 		let ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | undefined
 		if (bucketKey) {
 			const typeModel = await resolveTypeReference(FileTypeRef)
+			// FIXME: .resolveWithBucketKey no longer takes: Record<string, _> but record of <number>
+			// hence we can not pass an mapped instance directly
 			const resolvedSessionKeys = await this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel)
 			ownerEncSessionKeyProvider = async (instanceElementId: Id): Promise<VersionedEncryptedKey> => {
 				const instanceSessionKey = assertNotNull(
