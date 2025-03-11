@@ -1,7 +1,6 @@
 import Combine
 import Mockingbird
 import Testing
-import XCTest
 
 /// Make Mockingbird work with Testing framework.
 /// Note: it will stop reporting failures for XCTests so you shoudln't mix XCTest and Testing tests in one test target!
@@ -19,7 +18,6 @@ func initMockingbird() {
 		}
 	}
 
-	// FIXME: we need to fix up all the other tests
 	swizzleTestFailer(SwiftTestFailer())
 }
 

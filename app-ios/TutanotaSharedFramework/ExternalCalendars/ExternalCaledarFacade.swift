@@ -2,9 +2,7 @@ import Foundation
 
 public class ExternalCalendarFacadeImpl: ExternalCalendarFacade {
 	private let urlSession: URLSession
-	public init(urlSession: URLSession) {
-		self.urlSession = urlSession
-	}
+	public init(urlSession: URLSession) { self.urlSession = urlSession }
 
 	public func fetchExternalCalendar(_ url: String) async throws -> String {
 		enum FetchExternalError: Error {

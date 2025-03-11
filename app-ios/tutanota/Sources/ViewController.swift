@@ -66,7 +66,12 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			webView: self.webView,
 			viewController: self,
 			commonSystemFacade: commonSystemFacade,
-			fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self), schemeHandler: apiSchemeHandler, urlSession: urlSession),
+			fileFacade: IosFileFacade(
+				chooser: TUTFileChooser(viewController: self),
+				viewer: FileViewer(viewController: self),
+				schemeHandler: apiSchemeHandler,
+				urlSession: urlSession
+			),
 			nativeCredentialsFacade: credentialsEncryption,
 			nativeCryptoFacade: crypto,
 			themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self),

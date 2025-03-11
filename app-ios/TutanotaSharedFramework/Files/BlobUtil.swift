@@ -50,7 +50,7 @@ public class BlobUtil {
 			}
 
 			let hash = Data(CryptoKit.SHA256.hash(data: chunk))
-			let outputFileName = "\(TUTEncodingConverter.bytes(toHex: hash.subdata(in: 0..<6))).blob"
+			let outputFileName = "\(hash.subdata(in: 0..<6).hexEncodedString()).blob"
 			let decryptedDir = try! FileUtils.getDecryptedFolder() as NSString
 			let outputPath = decryptedDir.appendingPathComponent(outputFileName)
 			let outputUrl = URL(fileURLWithPath: outputPath)

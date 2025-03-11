@@ -124,7 +124,7 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 			return MobilePaymentResult(
 				result: MobilePaymentResultType.success,
 				transactionID: String(id),
-				transactionHash: TUTEncodingConverter.bytes(toHex: transaction.deviceVerification)
+				transactionHash: transaction.deviceVerification.hexEncodedString()
 			)
 		case .userCancelled: return MobilePaymentResult(result: MobilePaymentResultType.cancelled, transactionID: nil, transactionHash: nil)
 		case .pending: return MobilePaymentResult(result: MobilePaymentResultType.pending, transactionID: nil, transactionHash: nil)

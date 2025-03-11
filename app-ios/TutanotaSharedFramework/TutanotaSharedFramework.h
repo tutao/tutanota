@@ -5,7 +5,6 @@
 #import <TutanotaSharedFramework/sqlite3.h>
 #import <TutanotaSharedFramework/TUTErrorFactory.h>
 #import <TutanotaSharedFramework/TUTLog.h>
-#import <TutanotaSharedFramework/TUTEncodingConverter.h>
 #import <TutanotaSharedFramework/PSPDFFastEnumeration.h>
 #include <TutanotaSharedFramework/Swiftier.h>
 #include <TutanotaSharedFramework/TUTIcons.h>
