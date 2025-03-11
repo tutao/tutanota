@@ -3,14 +3,14 @@ import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { DROPDOWN_MARGIN, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
-import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
+import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
 
 export interface MobileMailMultiselectionActionBarAttrs {
 	selectNone: () => unknown
 	deleteMailsAction: (() => void) | null
 	trashMailsAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
-	applyLabelsAction: ((dom: HTMLElement) => void) | null
+	applyLabelsAction: ((dom: HTMLElement, opts?: LabelsPopupOpts) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
 }
 
@@ -31,6 +31,10 @@ export class MobileMailMultiselectionActionBar {
 				this.renderUnreadButton(attrs),
 			],
 		)
+	}
+
+	private dropdownWidth(dom: HTMLElement): number {
+		return dom.offsetWidth - DROPDOWN_MARGIN * 2
 	}
 
 	private renderUnreadButton({ setUnreadStateAction }: MobileMailMultiselectionActionBarAttrs) {
@@ -57,7 +61,8 @@ export class MobileMailMultiselectionActionBar {
 				icon: Icons.Label,
 				title: "assignLabel_action",
 				click: (e, dom) => {
-					applyLabelsAction(dom)
+					const referenceDom = this.dom ?? dom
+					applyLabelsAction(referenceDom, { width: this.dropdownWidth(referenceDom) })
 				},
 			})
 		)
@@ -73,7 +78,7 @@ export class MobileMailMultiselectionActionBar {
 					const referenceDom = this.dom ?? dom
 					moveMailsAction(referenceDom.getBoundingClientRect(), {
 						onSelected: selectNone,
-						width: referenceDom.offsetWidth - DROPDOWN_MARGIN * 2,
+						width: this.dropdownWidth(referenceDom),
 					})
 				},
 			})
