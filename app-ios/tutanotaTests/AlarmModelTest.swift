@@ -1,16 +1,16 @@
 import Foundation
-import XCTest
+import Testing
 
 @testable import TutanotaSharedFramework
 
-class AlarmModelTest: XCTestCase {
+struct AlarmModelTest {
 	private let perAlarmLimit = 5
 	private let overallAlarmLimit = 10
 
 	private var dateProvider: DateProviderStub!
 	private var alarmModel: AlarmModel!
 
-	override func setUp() {
+	init() {
 		dateProvider = DateProviderStub()
 		alarmModel = AlarmModel(dateProvider: dateProvider)
 	}
@@ -37,24 +37,24 @@ class AlarmModelTest: XCTestCase {
 		return wrapInArray(alarmModel.futureOccurrences(acrossAlarms: alarms, upToForEach: perAlarmLimit, upToOverall: overallAlarmLimit))
 	}
 
-	func testPlanWhenSingleInRecentFutureItIsPlanned() {
+	@Test func testPlanWhenSingleInRecentFutureItIsPlanned() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
 		let alarm = makeAlarm(at: start, trigger: "5M")
 
 		let result = plan(alarms: [alarm])
 		let expectedAlarmOccurence = AlarmOccurence(occurrenceNumber: 0, eventOccurrenceTime: start, alarm: alarm)
-		XCTAssertEqual(result, [expectedAlarmOccurence])
+		#expect(result == [expectedAlarmOccurence])
 	}
 
-	func testPlanWhenSingleInThePastItIsNotPlanned() {
+	@Test func testPlanWhenSingleInThePastItIsNotPlanned() {
 		let start = dateProvider.now.advanced(by: 2, .minutes)
 		let alarm = makeAlarm(at: start, trigger: "5M")
 
 		let result = plan(alarms: [alarm])
-		XCTAssertEqual(result, [])
+		#expect(result.isEmpty)
 	}
 
-	func testPlanWhenRepeatedAlarmStartsAfterNowAllOcurrencesArePlanned() {
+	@Test func testPlanWhenRepeatedAlarmStartsAfterNowAllOcurrencesArePlanned() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
 		let alarm = makeAlarm(
 			at: start,
@@ -71,11 +71,11 @@ class AlarmModelTest: XCTestCase {
 
 		let result = plan(alarms: [alarm])
 
-		XCTAssertEqual(result.count, 3)
-		XCTAssertEqual(result[2].occurrenceNumber, 3)
+		#expect(result.count == 3)
+		#expect(result[2].occurrenceNumber == 3)
 	}
 
-	func testWhenRepeatedAlarmStartsBeforeNowOnlyFutureOcurrencesArePlanned() {
+	@Test func testWhenRepeatedAlarmStartsBeforeNowOnlyFutureOcurrencesArePlanned() {
 		let start = dateProvider.now.advanced(by: -10, .minutes)
 		let alarm = makeAlarm(
 			at: start,
@@ -92,11 +92,11 @@ class AlarmModelTest: XCTestCase {
 
 		let result = plan(alarms: [alarm])
 
-		XCTAssertEqual(result.count, 2)
-		XCTAssertEqual(result[1].occurrenceNumber, 3)
+		#expect(result.count == 2)
+		#expect(result[1].occurrenceNumber == 3)
 	}
 
-	func testWhenMultipleAlarmsArePresentOnlyTheNewestOccurrencesArePlanned() {
+	@Test func testWhenMultipleAlarmsArePresentOnlyTheNewestOccurrencesArePlanned() {
 		let repeatRule = RepeatRule(frequency: .daily, interval: 1, timeZone: "Europe/Berlin", endCondition: .never, excludedDates: [], advancedRules: [])
 
 		let alarm1 = makeAlarm(at: dateProvider.now.advanced(by: 10, .minutes), trigger: "5M", repeatRule: repeatRule, identifier: "alarm1")
@@ -105,13 +105,13 @@ class AlarmModelTest: XCTestCase {
 
 		let result = plan(alarms: [alarm1, alarm2, alarm3])
 
-		XCTAssertEqual(result.count, overallAlarmLimit)
+		#expect(result.count == overallAlarmLimit)
 		let identifiers = result.map { $0.alarm.identifier }
 		let expectedIdentifiers = ["alarm1", "alarm2", "alarm3", "alarm1", "alarm2", "alarm3", "alarm1", "alarm2", "alarm3", "alarm1"]
-		XCTAssertEqual(identifiers, expectedIdentifiers)
+		#expect(identifiers == expectedIdentifiers)
 	}
 
-	func testIteratedRepeatAlarm() {
+	@Test func testIteratedRepeatAlarm() {
 		let timeZone = "Europe/Berlin"
 		dateProvider.timeZone = TimeZone(identifier: timeZone)!
 		dateProvider.now = date(2019, 6, 1, 10, timeZone)
@@ -135,10 +135,10 @@ class AlarmModelTest: XCTestCase {
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
 		let expected = [date(2019, 6, 2, 12, timeZone), date(2019, 6, 9, 12, timeZone), date(2019, 6, 16, 12, timeZone), date(2019, 6, 23, 12, timeZone)]
-		XCTAssertEqual(occurrences, expected)
+		#expect(occurrences == expected)
 	}
 
-	func testIteratedRepeatAlarmWithByRule() {
+	@Test func testIteratedRepeatAlarmWithByRule() {
 		let timeZone = "Europe/Berlin"
 		dateProvider.timeZone = TimeZone(identifier: timeZone)!
 		dateProvider.now = date(2025, 2, 1, 10, timeZone)
@@ -172,10 +172,10 @@ class AlarmModelTest: XCTestCase {
 			date(2025, 2, 2, 12, timeZone), date(2025, 2, 3, 12, timeZone), date(2025, 2, 4, 12, timeZone), date(2025, 2, 10, 12, timeZone),
 			date(2025, 2, 11, 12, timeZone),
 		]
-		XCTAssertEqual(occurrences, expected)
+		#expect(occurrences == expected)
 	}
 
-	func testIteratedRepeatAlarmWithExclusions() {
+	@Test func testIteratedRepeatAlarmWithExclusions() {
 		let timeZone = "Europe/Berlin"
 		dateProvider.timeZone = TimeZone(identifier: timeZone)!
 		dateProvider.now = date(2019, 6, 1, 10, timeZone)
@@ -206,10 +206,10 @@ class AlarmModelTest: XCTestCase {
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
 		let expected = [date(2019, 6, 2, 12, timeZone), date(2019, 6, 16, 12, timeZone), date(2019, 6, 23, 12, timeZone), date(2019, 6, 30, 12, timeZone)]
-		XCTAssertEqual(occurrences, expected)
+		#expect(occurrences == expected)
 	}
 
-	func testIteratesAllDayEventWithEnd() {
+	@Test func testIteratesAllDayEventWithEnd() {
 		let timeZone = "Europe/Berlin"
 		dateProvider.timeZone = TimeZone(identifier: "Europe/Berlin")!
 		dateProvider.now = date(2019, 4, 20, 0, timeZone)
@@ -242,7 +242,7 @@ class AlarmModelTest: XCTestCase {
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
 		let expected = [date(2019, 5, 1, 0, timeZone), date(2019, 5, 2, 0, timeZone)]
-		XCTAssertEqual(occurrences, expected)
+		#expect(occurrences == expected)
 	}
 }
 

@@ -93,11 +93,7 @@ class IosFileFacade: FileFacade {
 		let (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request))
 		let httpResponse = response as! HTTPURLResponse
 		let encryptedFileUri: String?
-		if httpResponse.statusCode == 200 {
-			encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data)
-		} else {
-			encryptedFileUri = nil
-		}
+		if httpResponse.statusCode == 200 { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data) } else { encryptedFileUri = nil }
 		return DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
 	}
 

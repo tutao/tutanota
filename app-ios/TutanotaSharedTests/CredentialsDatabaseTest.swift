@@ -77,6 +77,6 @@ struct CredentialsDatabaseTest {
 
 	@Test func test_credentials_doesnt_return_after_deleteAll() throws {
 		try storage.deleteAllCredentials()
-		try #expect(storage.getAll() == [])
+		try #expect(storage.getAll().isEmpty)
 	}
 }

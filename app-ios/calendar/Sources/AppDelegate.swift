@@ -40,7 +40,7 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 		let notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
-		let dateProvider =  SystemDateProvider()
+		let dateProvider = SystemDateProvider()
 
 		let alarmModel = AlarmModel(dateProvider: dateProvider)
 		self.alarmManager = AlarmManager(
@@ -50,7 +50,12 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 			alarmCalculator: alarmModel
 		)
 		let httpClient = URLSessionHttpClient(session: self.urlSession)
-		self.notificationsHandler = NotificationsHandler(alarmManager: self.alarmManager, notificationStorage: notificationStorage, httpClient: httpClient, dateProvider: dateProvider)
+		self.notificationsHandler = NotificationsHandler(
+			alarmManager: self.alarmManager,
+			notificationStorage: notificationStorage,
+			httpClient: httpClient,
+			dateProvider: dateProvider
+		)
 		self.window = UIWindow(frame: UIScreen.main.bounds)
 
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
