@@ -1,6 +1,7 @@
 import Foundation
 import MobileCoreServices
 import TutanotaSharedFramework
+import UniformTypeIdentifiers
 
 class IosFileFacade: FileFacade {
 
@@ -186,14 +187,8 @@ extension DownloadTaskResponse {
 func getFileMIMETypeWithDefault(path: String) -> String { getFileMIMEType(path: path) ?? "application/octet-stream" }
 
 func getFileMIMEType(path: String) -> String? {
-	// UTType is only available since iOS 15.
-	// We take retainedValue because both functions create new object and we
-	// are responsible for deallocating them.
-	// see https://developer.apple.com/documentation/swift/imported_c_and_objective-c_apis/working_with_core_foundation_types
-	// see https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFMemoryMgmt/Concepts/Ownership.html#//apple_ref/doc/uid/20001148
-	let UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (path as NSString).pathExtension as CFString, nil)!.takeRetainedValue()
-	let MIMEUTI = UTTypeCopyPreferredTagWithClass(UTI, kUTTagClassMIMEType)?.takeRetainedValue()
-	return MIMEUTI as String?
+	let fileExtension = URL(fileURLWithPath: path).pathExtension
+	return UTType(filenameExtension: fileExtension)?.preferredMIMEType
 }
 
 /// Reading header fields from HTTPURLResponse.allHeaderFields is case-sensitive, it is a bug: https://bugs.swift.org/browse/SR-2429

@@ -1,15 +1,14 @@
 import UIKit
 
-public extension UIColor {
+extension UIColor {
 
 	/// Convenience constructor to initialize from a hex color string.
 	/// Supported formats:
 	/// #RGB
 	/// #RRGGBB
 	/// #RRGGBBAA
-	convenience init?(hex: String) {
-		var color: UInt32 = 0
-		if parseColorCode(hex, &color) {
+	public convenience init?(hex: String) {
+		if let color = parseColorCode(hex) {
 			let r = CGFloat(redPart(color)) / 255.0
 			let g = CGFloat(greenPart(color)) / 255.0
 			let b = CGFloat(bluePart(color)) / 255.0
@@ -22,7 +21,7 @@ public extension UIColor {
 		return nil
 	}
 
-	func isLight() -> Bool {
+	public func isLight() -> Bool {
 		var r: CGFloat = 0
 		var g: CGFloat = 0
 		var b: CGFloat = 0
@@ -39,9 +38,9 @@ public extension UIColor {
 	}
 }
 
-/** Parse a #RGB or #RRGGBB #RRGGBBAA color code into an 0xRRGGBBAA int */
-private func parseColorCode(_ code: String, _ rrggbbaa: UnsafeMutablePointer<UInt32>?) -> Bool {
-	if code.first != "#" || (code.count != 4 && code.count != 7 && code.count != 9) { return false }
+/// Parse a #RGB or #RRGGBB #RRGGBBAA color code into an 0xRRGGBBAA int
+private func parseColorCode(_ code: String) -> UInt64? {
+	if code.first != "#" || (code.count != 4 && code.count != 7 && code.count != 9) { return nil }
 
 	let start = code.index(code.startIndex, offsetBy: 1)
 	var hexString = String(code[start...]).uppercased()
@@ -49,10 +48,12 @@ private func parseColorCode(_ code: String, _ rrggbbaa: UnsafeMutablePointer<UIn
 	// input was #RGB
 	if hexString.count == 3 { hexString = expandShortHex(hex: hexString) }
 
-	// input was #RGB or #RRGGBB, set alpha channel to max
-	if hexString.count != 8 { hexString += "FF" }
+	var result: UInt64 = 0
+	guard Scanner(string: hexString).scanHexInt64(&result) else { return nil }
 
-	return Scanner(string: hexString).scanHexInt32(rrggbbaa)
+	// input was #RGB or #RRGGBB, set alpha channel to max
+	if hexString.count != 8 { result = (result << 8) | 0x000000FF }
+	return result
 }
 
 private func expandShortHex(hex: String) -> String {
@@ -63,10 +64,10 @@ private func expandShortHex(hex: String) -> String {
 	return hexCode
 }
 
-private func redPart(_ rrggbbaa: UInt32) -> UInt8 { UInt8((rrggbbaa >> 24) & 0xff) }
+private func redPart(_ rrggbbaa: UInt64) -> UInt8 { UInt8((rrggbbaa & 0xFF00_0000) >> 24) }
 
-private func greenPart(_ rrggbbaa: UInt32) -> UInt8 { UInt8((rrggbbaa >> 16) & 0xff) }
+private func greenPart(_ rrggbbaa: UInt64) -> UInt8 { UInt8((rrggbbaa & 0x00FF_0000) >> 16) }
 
-private func bluePart(_ rrggbbaa: UInt32) -> UInt8 { UInt8((rrggbbaa >> 8) & 0xff) }
+private func bluePart(_ rrggbbaa: UInt64) -> UInt8 { UInt8((rrggbbaa & 0x0000_FF00) >> 8) }
 
-private func alphaPart(_ rrggbbaa: UInt32) -> UInt8 { UInt8(rrggbbaa & 0xff) }
+private func alphaPart(_ rrggbbaa: UInt64) -> UInt8 { UInt8(rrggbbaa & 0x0000_00FF) }

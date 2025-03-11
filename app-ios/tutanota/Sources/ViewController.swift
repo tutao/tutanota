@@ -108,7 +108,11 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 	/// Implementation of WKNavigationDelegate
 	/// Handles links being clicked inside the webview
-	func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+	func webView(
+		_ webView: WKWebView,
+		decidePolicyFor navigationAction: WKNavigationAction,
+		decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
+	) {
 		guard let requestUrl = navigationAction.request.url else {
 			decisionHandler(.cancel)
 			return
@@ -280,15 +284,6 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 	}
 
 	override var preferredStatusBarStyle: UIStatusBarStyle { if self.isDarkTheme { return .lightContent } else { return .darkContent } }
-}
-
-// Remove when webView config migration is removed
-private class LittleNavigationDelegate: NSObject, WKNavigationDelegate {
-	var action: (() -> Void)?
-
-	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { if let action = self.action { action() } }
-
-	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { TUTSLog("FAILED NAVIGATION >{") }
 }
 
 extension ViewController: ASWebAuthenticationPresentationContextProviding {

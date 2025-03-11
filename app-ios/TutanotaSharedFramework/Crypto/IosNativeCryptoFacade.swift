@@ -1,4 +1,3 @@
-import TutanotaSharedFramework
 import tutasdk
 
 /// High-level cryptographic operations API

@@ -8,7 +8,7 @@ public func acquireContactsPermission() async throws {
 private func requestContactsPermission() async -> Bool {
 	let status = CNContactStore.authorizationStatus(for: .contacts)
 	switch status {
-	case .authorized: return true
+	case .authorized, .limited: return true
 	case .denied, .restricted: return false
 	case .notDetermined:
 		do {
