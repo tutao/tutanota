@@ -98,7 +98,6 @@ class TutaContactFacade {
 		// And in that case we want to delete them or move them to our list and update
 		let contactLists = self.getContactLists()
 
-		var contacts = [StructuredContact]()
 		return try self.nativeContactStoreFacade.getAllContacts(inGroup: nil, withSorting: nil)
 			.filter { contact in
 				let isSynced = contactLists.contains { $0.contains(nativeContactId: contact.identifier) }

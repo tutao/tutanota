@@ -14,4 +14,13 @@ public struct DataFile: Codable {
 		self.size = size
 		self.data = data
 	}
+
+	// make it shut up about the _type
+	enum CodingKeys: String, CodingKey {
+		case name
+		case mimeType
+		case size
+		case data
+		case _type
+	}
 }
