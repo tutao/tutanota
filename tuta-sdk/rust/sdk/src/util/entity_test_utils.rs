@@ -79,11 +79,12 @@ fn encrypt_test_entity_dict_with_provider(
 		panic!("Failed to create test entity {app}/{type_id}: not in model")
 	};
 
-	for (&name, value) in &model.values {
-		if !value.encrypted {
+	for (&_value_id, value_type) in &model.values {
+		let value_name = &value_type.name;
+		if !value_type.encrypted {
 			continue;
 		}
-		let Some(data) = entity.get_mut(name) else {
+		let Some(data) = entity.get_mut(value_name) else {
 			continue;
 		};
 		let encrypt_element_value = |value_to_encrypt: &mut ElementValue| match value_to_encrypt {
@@ -114,8 +115,8 @@ fn encrypt_test_entity_dict_with_provider(
 				)
 			},
 			_ => unimplemented!(
-				"can't encrypt {app}/{type_id}.{name} => {:?}/{}",
-				value.value_type,
+				"can't encrypt {app}/{type_id}.{value_name} => {:?}/{}",
+				value_type.value_type,
 				value_to_encrypt.type_variant_name()
 			),
 		};
@@ -130,8 +131,9 @@ fn encrypt_test_entity_dict_with_provider(
 		}
 	}
 
-	for (&name, association) in &model.associations {
-		let Some(data) = entity.get_mut(name) else {
+	for (&_association_id, association_type) in &model.associations {
+		let association_name = &association_type.name;
+		let Some(data) = entity.get_mut(association_name) else {
 			continue;
 		};
 		match data {
@@ -140,8 +142,8 @@ fn encrypt_test_entity_dict_with_provider(
 				encrypt_test_entity_dict_with_provider(
 					d,
 					provider,
-					association.dependency.unwrap_or(app),
-					association.ref_type_id,
+					association_type.dependency.unwrap_or(app),
+					association_type.ref_type_id,
 					session_key,
 					iv,
 				);
@@ -154,8 +156,8 @@ fn encrypt_test_entity_dict_with_provider(
 					encrypt_test_entity_dict_with_provider(
 						d,
 						provider,
-						association.dependency.unwrap_or(app),
-						association.ref_type_id,
+						association_type.dependency.unwrap_or(app),
+						association_type.ref_type_id,
 						session_key,
 						iv,
 					);

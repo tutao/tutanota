@@ -624,8 +624,10 @@ mod tests {
 				.map(|(a, b)| (a.to_string(), b.to_string()))
 				.collect::<HashMap<_, _>>();
 				assert_eq!(expected_headers, opts.headers);
+
 				let expected_body =
-					serde_json::from_str::<RawEntity>(r#"{"message":"Something"}"#).unwrap();
+					serde_json::from_str::<RawEntity>(r#"{"149":"Something"}"#).unwrap();
+
 				let body =
 					serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
 				assert_eq!(expected_body, body);
@@ -633,9 +635,7 @@ mod tests {
 				Ok(RestResponse {
 					status: 200,
 					headers: HashMap::new(),
-					body: Some(
-						br#"{"answer":"Response to some request","timestamp":"3000"}"#.to_vec(),
-					),
+					body: Some(br#"{"159":"Response to some request","160":"3000"}"#.to_vec()),
 				})
 			});
 
@@ -679,9 +679,9 @@ mod tests {
 					url.as_str()
 				);
 				assert_eq!(http_method, method);
+
 				let expected_body =
-					serde_json::from_str::<RawEntity>(r#"{"message": "my encrypted request"}"#)
-						.unwrap();
+					serde_json::from_str::<RawEntity>(r#"{"359":"my encrypted request"}"#).unwrap();
 				let body =
 					serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
 				assert_eq!(expected_body, body);
@@ -695,12 +695,12 @@ mod tests {
 				.map(|(a, b)| (a.to_string(), b.to_string()))
 				.collect::<HashMap<_, _>>();
 				assert_eq!(expected_headers, opts.headers);
+
 				Ok(RestResponse {
 					status: 200,
 					headers: HashMap::new(),
 					body: Some(
-						br#"{ "answer":"bXkgc2VjcmV0IHJlc3BvbnNl","timestamp":"MzAwMA==" }"#
-							.to_vec(),
+						br#"{ "459":"bXkgc2VjcmV0IHJlc3BvbnNl","460":"MzAwMA==" }"#.to_vec(),
 					),
 				})
 			});

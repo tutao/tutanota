@@ -1,5 +1,6 @@
 //! General purpose functions for testing various objects
 
+use mockall::Any;
 use rand::random;
 
 use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
@@ -122,7 +123,7 @@ pub fn create_test_entity<'a, T: Entity + serde::Deserialize<'a>>() -> T {
 		Err(e) => panic!(
 			"Failed to create test entity {app}/{type_}: parse error {e}",
 			app = type_ref.app,
-			type_ = type_ref.type_id
+			type_ = type_ref.type_name()
 		),
 	}
 }
@@ -191,7 +192,8 @@ fn create_test_entity_dict_with_provider(
 	};
 	let mut object = ParsedEntity::new();
 
-	for (&name, value) in &model.values {
+	for (value_id, value) in &model.values {
+		let value_name = &value.name;
 		let element_value = match value.cardinality {
 			Cardinality::ZeroOrOne => ElementValue::Null,
 			Cardinality::Any => ElementValue::Array(Vec::new()),
@@ -204,7 +206,7 @@ fn create_test_entity_dict_with_provider(
 				ValueType::Date => ElementValue::Date(Default::default()),
 				ValueType::Boolean => ElementValue::Bool(Default::default()),
 				ValueType::GeneratedId => {
-					if name == ID_FIELD
+					if value_name == ID_FIELD
 						&& (model.element_type == ElementType::ListElement
 							|| model.element_type == ElementType::BlobElement)
 					{
@@ -217,12 +219,12 @@ fn create_test_entity_dict_with_provider(
 					}
 				},
 				ValueType::CustomId => {
-					if name == ID_FIELD && (model.element_type == ElementType::ListElement) {
+					if value_name == ID_FIELD && (model.element_type == ElementType::ListElement) {
 						ElementValue::IdTupleCustomElementId(IdTupleCustom::new(
 							GeneratedId::test_random(),
 							CustomId::test_random(),
 						))
-					} else if name == ID_FIELD && model.element_type == Aggregated {
+					} else if value_name == ID_FIELD && model.element_type == Aggregated {
 						ElementValue::IdCustomId(CustomId::test_random_aggregate())
 					} else {
 						ElementValue::IdCustomId(CustomId::test_random())
@@ -231,14 +233,14 @@ fn create_test_entity_dict_with_provider(
 			},
 		};
 
-		object.insert(name.to_owned(), element_value);
+		object.insert(format!("{value_id}"), element_value);
 	}
 
-	for (&name, value) in &model.associations {
-		let association_value = match value.cardinality {
+	for (&association_id, association) in &model.associations {
+		let association_value = match association.cardinality {
 			Cardinality::ZeroOrOne => ElementValue::Null,
 			Cardinality::Any => ElementValue::Array(Vec::new()),
-			Cardinality::One => match value.association_type {
+			Cardinality::One => match association.association_type {
 				AssociationType::ElementAssociation => {
 					ElementValue::IdGeneratedId(GeneratedId::test_random())
 				},
@@ -260,8 +262,8 @@ fn create_test_entity_dict_with_provider(
 				AssociationType::Aggregation => {
 					ElementValue::Dict(create_test_entity_dict_with_provider(
 						provider,
-						value.dependency.unwrap_or(app),
-						value.ref_type_id,
+						association.dependency.unwrap_or(app),
+						association.ref_type_id,
 					))
 				},
 				AssociationType::BlobElementAssociation => ElementValue::IdTupleGeneratedElementId(
@@ -269,7 +271,7 @@ fn create_test_entity_dict_with_provider(
 				),
 			},
 		};
-		object.insert(name.to_owned(), association_value);
+		object.insert(format!("{association_id}"), association_value);
 	}
 
 	if model.is_encrypted() {
@@ -292,7 +294,8 @@ fn create_encrypted_test_entity_dict_with_provider(
 	};
 	let mut object = ParsedEntity::new();
 
-	for (&name, value) in &model.values {
+	for (&value_Id, value) in &model.values {
+		let value_name = &value.name;
 		let element_value = match value.cardinality {
 			Cardinality::ZeroOrOne => ElementValue::Null,
 			Cardinality::Any => ElementValue::Array(Vec::new()),
@@ -309,7 +312,7 @@ fn create_encrypted_test_entity_dict_with_provider(
 						ValueType::Date => ElementValue::Date(Default::default()),
 						ValueType::Boolean => ElementValue::Bool(Default::default()),
 						ValueType::GeneratedId => {
-							if name == ID_FIELD
+							if value_name == ID_FIELD
 								&& (model.element_type == ElementType::ListElement
 									|| model.element_type == ElementType::BlobElement)
 							{
@@ -322,7 +325,7 @@ fn create_encrypted_test_entity_dict_with_provider(
 							}
 						},
 						ValueType::CustomId => {
-							if name == ID_FIELD
+							if value_name == ID_FIELD
 								&& (model.element_type == ElementType::ListElement
 									|| model.element_type == ElementType::BlobElement)
 							{
@@ -339,14 +342,14 @@ fn create_encrypted_test_entity_dict_with_provider(
 			},
 		};
 
-		object.insert(name.to_owned(), element_value);
+		object.insert(format!("{value_Id}"), element_value);
 	}
 
-	for (&name, value) in &model.associations {
-		let association_value = match value.cardinality {
+	for (&association_id, association) in &model.associations {
+		let association_value = match association.cardinality {
 			Cardinality::ZeroOrOne => ElementValue::Null,
 			Cardinality::Any => ElementValue::Array(Vec::new()),
-			Cardinality::One => match value.association_type {
+			Cardinality::One => match association.association_type {
 				AssociationType::ElementAssociation => {
 					ElementValue::IdGeneratedId(GeneratedId::test_random())
 				},
@@ -368,8 +371,8 @@ fn create_encrypted_test_entity_dict_with_provider(
 				AssociationType::Aggregation => {
 					ElementValue::Dict(create_encrypted_test_entity_dict_with_provider(
 						provider,
-						value.dependency.unwrap_or(app),
-						value.ref_type_id,
+						association.dependency.unwrap_or(app),
+						association.ref_type_id,
 					))
 				},
 				AssociationType::BlobElementAssociation => ElementValue::IdTupleGeneratedElementId(
@@ -377,7 +380,7 @@ fn create_encrypted_test_entity_dict_with_provider(
 				),
 			},
 		};
-		object.insert(name.to_owned(), association_value);
+		object.insert(format!("{association_id}"), association_value);
 	}
 
 	object
