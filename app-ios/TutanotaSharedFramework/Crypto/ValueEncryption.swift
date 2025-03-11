@@ -12,10 +12,16 @@ public protocol SimpleStringDecodable: AesDecryptable { init?(string: String) }
 
 extension SimpleStringDecodable {
 	public static func aesDecrypt(base64: Base64, key: Key) throws -> Self {
-		let decoded = TUTEncodingConverter.base64(toBytes: base64)
+		guard let decoded = Data(base64Encoded: base64) else { throw TutanotaError(message: "Could not convert BASE64 value to data for \(Self.self)") }
 		let decrypted = try aesDecryptData(decoded, withKey: key)
-		let decValue = TUTEncodingConverter.bytes(toString: decrypted)
-		if let value = Self.init(string: decValue) { return value } else { throw TUTErrorFactory.createError("Invalid string representation: \(decValue)") }
+		guard let decValue = String(data: decrypted, encoding: .utf8) else {
+			throw TutanotaError(message: "Cound not convert decrypted data to string for \(Self.self)")
+		}
+		if let value = Self.init(string: decValue) {
+			return value
+		} else {
+			throw TutanotaError(message: "Invalid string representation for \(Self.self): \(decValue)")
+		}
 	}
 }
 

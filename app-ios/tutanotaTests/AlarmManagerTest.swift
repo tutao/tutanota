@@ -1,9 +1,9 @@
 import Foundation
-import XCTest
+import Testing
 
 @testable import TutanotaSharedFramework
 
-class AlarmManagerTest: XCTestCase {
+struct AlarmManagerTest {
 	private var persistor: AlarmPersistorStub!
 	private var cryptor: AlarmCryptorStub!
 	private var scheduler: AlarmSchedulerStub!
@@ -14,7 +14,7 @@ class AlarmManagerTest: XCTestCase {
 
 	private let userID = "user"
 
-	override func setUp() {
+	init() {
 		dateProvider = DateProviderStub()
 
 		persistor = AlarmPersistorStub()
@@ -56,7 +56,7 @@ class AlarmManagerTest: XCTestCase {
 		cryptor.alarms[alarm.identifier] = alarm
 	}
 
-	func testProcessNewAlarmsSchedulesAndSavedNewAlarm() {
+	@Test func testProcessNewAlarmsSchedulesAndSavedNewAlarm() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
 		let alarm = makeAlarm(at: start, trigger: "5M")
 		// processNewAlarms will add alarm to the persister but who would think about the poor cryptor?
@@ -64,11 +64,11 @@ class AlarmManagerTest: XCTestCase {
 
 		try! alarmManager.processNewAlarms([encryptAlarm(alarm: alarm)])
 
-		XCTAssertEqual(persistor.alarms.count, 1)
-		XCTAssertEqual(scheduler.scheduled.map { $0.identifier }, [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
+		#expect(persistor.alarms.count == 1)
+		#expect(scheduler.scheduled.map { $0.identifier } == [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
 	}
 
-	func testProcessNewAlarmsUnschedulesAndDeletesAlarm() {
+	@Test func testProcessNewAlarmsUnschedulesAndDeletesAlarm() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
 		let alarm = makeAlarm(at: start, trigger: "5M")
 		add(alarm: alarm)
@@ -85,21 +85,21 @@ class AlarmManagerTest: XCTestCase {
 
 		try! alarmManager.processNewAlarms([deleteAlarm])
 
-		XCTAssertEqual(persistor.alarms.count, 0)
-		XCTAssertEqual(scheduler.unscheduled, [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
+		#expect(persistor.alarms.count == 0)
+		#expect(scheduler.unscheduled == [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
 	}
 
-	func testUnscheduleAllAlarms() {
+	@Test func testUnscheduleAllAlarms() {
 		let start = dateProvider.now.advanced(by: 10, .minutes)
 		let alarm = makeAlarm(at: start, trigger: "5M")
 		add(alarm: alarm)
 
 		alarmManager.unscheduleAllAlarms(userId: userID)
 
-		XCTAssertEqual(scheduler.unscheduled, [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
+		#expect(scheduler.unscheduled == [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
 	}
 
-	func testRescheduleAlarmsReschedulesAlarms() {
+	@Test func testRescheduleAlarmsReschedulesAlarms() {
 		let start1 = dateProvider.now.advanced(by: 10, .minutes)
 		let alarm1 = makeAlarm(at: start1, trigger: "5M", identifier: "alarm1")
 		let start2 = dateProvider.now.advanced(by: 30, .minutes)
@@ -121,9 +121,8 @@ class AlarmManagerTest: XCTestCase {
 
 		alarmManager.rescheduleAlarms()
 
-		XCTAssertEqual(
-			scheduler.scheduled,
-			[
+		#expect(
+			scheduler.scheduled == [
 				ScheduledAlarmInfo(
 					alarmTime: start2.advanced(by: 24, .hours).advanced(by: -10, .minutes),
 					occurrence: 2,

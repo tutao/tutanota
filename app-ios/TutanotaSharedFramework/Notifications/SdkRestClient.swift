@@ -2,9 +2,7 @@ import tutasdk
 
 public class SdkRestClient: RestClient {
 	private let urlSession: URLSession
-	public init(urlSession: URLSession) {
-		self.urlSession = urlSession
-	}
+	public init(urlSession: URLSession) { self.urlSession = urlSession }
 	public func requestBinary(url: String, method: tutasdk.HttpMethod, options: tutasdk.RestClientOptions) async throws -> tutasdk.RestResponse {
 		var request = URLRequest(url: URL(string: url)!)
 		request.httpMethod =

@@ -3,7 +3,6 @@
 //
 
 #import <TutanotaSharedFramework/TUTIcons.h>
-#import <TutanotaSharedFramework/TUTEncodingConverter.h>
 #import <TutanotaSharedFramework/TUTLog.h>
 #import <TutanotaSharedFramework/TUTErrorFactory.h>
 #import <TutanotaSharedFramework/WebviewHacks.h>
