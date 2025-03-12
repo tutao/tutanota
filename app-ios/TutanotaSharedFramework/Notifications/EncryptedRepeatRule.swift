@@ -57,10 +57,21 @@ public enum ByRuleType: String, Codable, Equatable, SimpleStringDecodable {
 	}
 }
 
-public struct EncryptedDateWrapper: Codable, Hashable { public let date: Base64 }
+public struct EncryptedDateWrapper: Codable, Hashable {
+    public let date: Base64
+
+    enum CodingKeys: String, CodingKey {
+        case date = "2075"
+    }
+}
 public struct EncryptedAdvancedRuleWrapper: Codable, Hashable {
 	public let ruleType: String
 	public let interval: String
+
+	enum CodingKeys: String, CodingKey {
+        case interval = "2524"
+        case ruleType = "2523"
+    }
 }
 public struct AdvancedRule: Codable, Hashable {
 	public let ruleType: ByRuleType
@@ -115,4 +126,15 @@ public struct EncryptedRepeatRule: Codable, Hashable {
 
 		if let endValue = try container.decodeIfPresent((Base64?).self, forKey: .endValue) { self.endValue = endValue } else { self.endValue = nil }
 	}
+
+
+    enum CodingKeys: String, CodingKey {
+        case frequency = "1559"
+        case interval = "1562"
+        case timeZone = "1563"
+        case endType = "1560"
+        case endValue = "1561"
+        case excludedDates = "2076"
+        case advancedRules = "2525"
+    }
 }
