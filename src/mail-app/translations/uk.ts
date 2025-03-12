@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-03-07T19:35:15Z",
+	"updated_at": "2025-03-11T19:21:09Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1322,7 +1322,7 @@ export default {
 		"pricing.currentPlan_label": "Поточна підписка",
 		"pricing.custom_title": "Власний брендинг",
 		"pricing.custom_tooltip": "Надайте Tuta власний фірмовий стиль, визначивши логотипи та кольори веб-, мобільних і настільних клієнтів Tuta.",
-		"pricing.cyberMonday_label": "Заощаджуйте 62%",
+		"pricing.cyberMonday_label": "ЕКОНОМІЯ НА 62%",
 		"pricing.cyber_monday_msg": "Отримайте тарифний план найвищого рівня на перший рік за меншу ціну!",
 		"pricing.cyber_monday_select_action": "Домовились!",
 		"pricing.encryptedCalendar_label": "Повністю зашифрований календар",

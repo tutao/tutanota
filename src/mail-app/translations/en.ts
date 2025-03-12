@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-03-06T09:28:56Z",
+	"updated_at": "2025-03-10T12:56:37Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1320,7 +1320,7 @@ export default {
 		"pricing.currentPlan_label": "Current plan",
 		"pricing.custom_title": "Custom branding",
 		"pricing.custom_tooltip": "Whitelabel Tuta with your own branding by defining the logos and colors of the Tuta web, mobile and desktop clients.",
-		"pricing.cyberMonday_label": "Save 62%",
+		"pricing.cyberMonday_label": "SAVE 62%",
 		"pricing.cyber_monday_msg": "Get the top-tier plan for the first year for less!",
 		"pricing.cyber_monday_select_action": "Get The Deal!",
 		"pricing.encryptedCalendar_label": "Fully encrypted calendar",

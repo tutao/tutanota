@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-03-05T12:45:16Z",
+	"updated_at": "2025-03-11T07:30:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1320,7 +1320,7 @@ export default {
 		"pricing.currentPlan_label": "Jelenlegi előfizetés",
 		"pricing.custom_title": "Egyedi márkaépítés",
 		"pricing.custom_tooltip": "A Tuta fehércímkézése saját márkajelzéssel a Tuta webes, mobil és asztali kliensek logóinak és színeinek meghatározásával.",
-		"pricing.cyberMonday_label": "Mentés-megtakarítás 62%",
+		"pricing.cyberMonday_label": "Takarítson meg 62%-t!",
 		"pricing.cyber_monday_msg": "Szerezze be a legjobb csomagot az első évre olcsóbban!",
 		"pricing.cyber_monday_select_action": "Szerezze meg az ajánlatot!",
 		"pricing.encryptedCalendar_label": "Teljesen titkosított naptár",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-03-06T12:16:18Z",
+	"updated_at": "2025-03-10T14:13:40Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1320,7 +1320,7 @@ export default {
 		"pricing.currentPlan_label": "Nuvarande abonnemang",
 		"pricing.custom_title": "Anpassad varumärkesprofil",
 		"pricing.custom_tooltip": "Whitelabel Tuta med ditt eget varumärke genom att definiera logotyper och färger för Tuta klienterna på webben, mobilen och datorn.",
-		"pricing.cyberMonday_label": "Spara 62%",
+		"pricing.cyberMonday_label": "SPARA 62%",
 		"pricing.cyber_monday_msg": "Skaffa det bästa abonnemanget till ett lägre pris första året!",
 		"pricing.cyber_monday_select_action": "Ta del av erbjudandet!",
 		"pricing.encryptedCalendar_label": "Helt krypterad kalender",

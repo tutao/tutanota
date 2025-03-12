@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2025-03-04T13:30:06Z",
+	"updated_at": "2025-03-10T12:56:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
