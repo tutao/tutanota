@@ -500,7 +500,7 @@ export class EntityRestClient implements EntityRestInterface {
 			undefined,
 			options?.ownerKeyProvider,
 		)
-		const instanceLiteral = await this.instanceMapper.mapToLiteral(instance)
+		const instanceLiteral = await this.instanceMapper.mapToLiteral(instance, instance._type)
 		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instanceLiteral, typeModel)
 		const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
 		await this.restClient.request(path, HttpMethod.PUT, {

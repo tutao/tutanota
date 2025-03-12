@@ -782,7 +782,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	private async serialize(originalEntity: SomeEntity): Promise<Uint8Array> {
-		const idMappedInstance: Record<number, any> = await new InstanceMapper().mapToLiteral(originalEntity)
+		const idMappedInstance: Record<number, any> = await new InstanceMapper().mapToLiteral(originalEntity, originalEntity._type)
 		try {
 			return cborg.encode(idMappedInstance, { typeEncoders: customTypeEncoders })
 		} catch (e) {

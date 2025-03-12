@@ -11,6 +11,7 @@ import {
 	createSseConnectData,
 	MissedNotification,
 	MissedNotificationTypeRef,
+	SseConnectDataTypeRef,
 } from "../../api/entities/sys/TypeRefs.js"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import { SseStorage } from "./SseStorage.js"
@@ -103,6 +104,7 @@ export class TutaSseFacade implements SseEventHandler {
 					}),
 				],
 			}) as Entity,
+			SseConnectDataTypeRef,
 		)
 		return JSON.stringify(literal)
 	}

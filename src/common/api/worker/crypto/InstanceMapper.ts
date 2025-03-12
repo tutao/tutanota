@@ -14,7 +14,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import { Entity, ModelValue, TypeModel } from "../../common/EntityTypes"
+import { Entity, ModelValue, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -98,39 +98,37 @@ export class InstanceMapper {
 	/// into storage
 	// object 1: { field1: value1, field2: value2 }
 	// object 2: Map  { "field1Id" -> "value1", "field2" -> "value2" }
-	async mapToLiteral(instance: Entity): Promise<Record<number, any>> {
-		const typemodel = await resolveTypeReference(instance._type)
+	async mapToLiteral<T extends Entity>(instance: T, typeRef: TypeRef<T>): Promise<Record<number, any>> {
+		const typemodel = await resolveTypeReference(typeRef)
 
 		let result: Record<number, any> = {}
 		for (const [fieldName, attributeValue] of Object.entries(instance)) {
-			if (fieldName === "_type") {
+			if (fieldName === "_type" || fieldName === "_errors") {
 				continue
 			}
-			const attributeId = await getAttributeId(instance._type, fieldName)
+			const attributeId = await getAttributeId(typeRef, fieldName)
 			if (!attributeId) {
-				throw new Error("could not find attributeid for value " + fieldName + " and type: " + typemodel.name)
+				throw new Error("could not find attributeid for value " + fieldName + " and type: " + typeRef.app + "::" + typemodel.name)
 			}
 
 			const association = typemodel.associations[attributeId]
 			if (association && association.type === AssociationType.Aggregation) {
-				const aggregatedEntity = {
-					_type: new TypeRef(association.dependency || instance._type.app, association.refTypeId),
-				}
+				const aggregationTypeRef = new TypeRef<SomeEntity>(association.dependency ?? typeRef.app, association.refTypeId)
 
 				switch (association.cardinality) {
 					case Cardinality.ZeroOrOne: {
-						result[attributeId] = attributeValue ? await this.mapToLiteral(attributeValue as Entity) : null
+						result[attributeId] = attributeValue ? await this.mapToLiteral(assertNotNull(attributeValue), aggregationTypeRef) : null
 						break
 					}
 					case Cardinality.Any: {
-						const agg = assertNotNull(attributeValue) as Array<Entity>
-						result[attributeId] = await promiseMap(agg, (e) => this.mapToLiteral(e))
+						const agg = assertNotNull(attributeValue) as Array<any>
+						result[attributeId] = await promiseMap(agg, (e) => {
+							return this.mapToLiteral(e, aggregationTypeRef)
+						})
 						break
 					}
 					case Cardinality.One: {
-						const agg = assertNotNull(attributeValue) as Entity
-						Object.assign(aggregatedEntity, agg)
-						result[attributeId] = await this.mapToLiteral(agg)
+						result[attributeId] = await this.mapToLiteral(assertNotNull(attributeValue), aggregationTypeRef)
 						break
 					}
 				}
