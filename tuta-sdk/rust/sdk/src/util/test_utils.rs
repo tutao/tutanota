@@ -192,7 +192,7 @@ fn create_test_entity_dict_with_provider(
 	};
 	let mut object = ParsedEntity::new();
 
-	for (value_id, value) in &model.values {
+	for (&_value_id, value) in &model.values {
 		let value_name = &value.name;
 		let element_value = match value.cardinality {
 			Cardinality::ZeroOrOne => ElementValue::Null,
@@ -233,10 +233,11 @@ fn create_test_entity_dict_with_provider(
 			},
 		};
 
-		object.insert(format!("{value_id}"), element_value);
+		object.insert(value_name.to_string(), element_value);
 	}
 
-	for (&association_id, association) in &model.associations {
+	for (&_association_id, association) in &model.associations {
+		let association_name = &association.name;
 		let association_value = match association.cardinality {
 			Cardinality::ZeroOrOne => ElementValue::Null,
 			Cardinality::Any => ElementValue::Array(Vec::new()),
@@ -271,7 +272,7 @@ fn create_test_entity_dict_with_provider(
 				),
 			},
 		};
-		object.insert(format!("{association_id}"), association_value);
+		object.insert(association_name.to_string(), association_value);
 	}
 
 	if model.is_encrypted() {
@@ -294,7 +295,7 @@ fn create_encrypted_test_entity_dict_with_provider(
 	};
 	let mut object = ParsedEntity::new();
 
-	for (&value_Id, value) in &model.values {
+	for (&value_id, value) in &model.values {
 		let value_name = &value.name;
 		let element_value = match value.cardinality {
 			Cardinality::ZeroOrOne => ElementValue::Null,
@@ -342,7 +343,7 @@ fn create_encrypted_test_entity_dict_with_provider(
 			},
 		};
 
-		object.insert(format!("{value_Id}"), element_value);
+		object.insert(format!("{value_id}"), element_value);
 	}
 
 	for (&association_id, association) in &model.associations {

@@ -25,6 +25,7 @@ mod tests {
 		};
 		let sdk = Sdk::new("http://localhost:9000".to_string(), rest_client);
 		let logged_in_sdk = sdk.login(credentials).await.unwrap();
+		//TODO refactor tuta-sdk/rust/sdk/tests/download_mail_test to use attributeIds instead of attributeName
 		let mail_facade = logged_in_sdk.mail_facade();
 		let mail = mail_facade
 			.load_email_by_id_encrypted(&IdTupleGenerated {
