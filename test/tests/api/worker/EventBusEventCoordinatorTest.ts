@@ -66,13 +66,13 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		const updates: Array<EntityUpdate> = [
 			createTestEntity(EntityUpdateTypeRef, {
 				application: UserTypeRef.app,
-				type: UserTypeRef.type,
+				typeId: UserTypeRef.typeId.toString(),
 				instanceId: userId,
 				operation: OperationType.UPDATE,
 			}),
 			createTestEntity(EntityUpdateTypeRef, {
 				application: UserGroupKeyDistributionTypeRef.app,
-				type: UserGroupKeyDistributionTypeRef.type,
+				typeId: UserGroupKeyDistributionTypeRef.typeId.toString(),
 				instanceId: userGroupId,
 				operation: OperationType.CREATE,
 			}),
@@ -90,7 +90,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		const updates: Array<EntityUpdate> = [
 			createTestEntity(EntityUpdateTypeRef, {
 				application: UserTypeRef.app,
-				type: UserTypeRef.type,
+				typeId: UserTypeRef.typeId.toString(),
 				instanceId: userId,
 				operation: OperationType.UPDATE,
 			}),
@@ -110,7 +110,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		const updates: Array<EntityUpdate> = [
 			createTestEntity(EntityUpdateTypeRef, {
 				application: GroupKeyUpdateTypeRef.app,
-				type: GroupKeyUpdateTypeRef.type,
+				typeId: GroupKeyUpdateTypeRef.typeId.toString(),
 				instanceListId,
 				instanceId,
 				operation: OperationType.CREATE,

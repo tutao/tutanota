@@ -63,12 +63,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
-		showProgressDialog(
-			"pleaseWait_msg",
-			locator.serviceExecutor.post(SwitchAccountTypeService, serviceData).then(() => {
-				return locator.customerFacade.switchFreeToPremiumGroup()
-			}),
-		)
+		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
 			.then(() => {
 				// Order confirmation (click on Buy), send selected payment method as an enum
 				const orderConfirmationStage = this.__signupPaidTest?.getStage(5)

@@ -216,7 +216,7 @@ impl Executor for ServiceExecutor {
 			let input_type_ref = I::type_ref();
 			let type_model = self
 				.type_model_provider
-				.get_type_model(input_type_ref.app, input_type_ref.type_)
+				.get_type_model(input_type_ref.app, input_type_ref.type_id)
 				.ok_or(ApiCallError::internal(format!(
 					"type {:?} does not exist",
 					input_type_ref
@@ -296,7 +296,7 @@ impl Executor for ServiceExecutor {
 			.parse(output_type_ref, response_entity)?;
 		let type_model: &TypeModel = self
 			.type_model_provider
-			.get_type_model(output_type_ref.app, output_type_ref.type_)
+			.get_type_model(output_type_ref.app, output_type_ref.type_id)
 			.expect("invalid type ref!");
 
 		if type_model.marked_encrypted() {

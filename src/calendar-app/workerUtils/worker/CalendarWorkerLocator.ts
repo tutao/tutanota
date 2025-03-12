@@ -336,7 +336,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.user,
 			await locator.groupManagement(),
 			await locator.counters(),
-			locator.cachingEntityClient,
 			locator.serviceExecutor,
 			mainInterface.operationProgressTracker,
 			locator.login,

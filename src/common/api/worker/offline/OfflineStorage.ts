@@ -804,10 +804,10 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		// TypeRef cannot be deserialized back automatically. We could write a codec for it but we don't actually need to store it so we just "patch" it.
 		// Some places rely on TypeRef being a class and not a plain object.
 		// We also have to update all aggregates, recursively.
-		deserialized._type = new TypeRef(typeModel.app, typeModel.name)
+		deserialized._type = new TypeRef(typeModel.app, typeModel.id)
 		for (const [associationName, associationModel] of Object.entries(typeModel.associations)) {
 			if (associationModel.type === AssociationType.Aggregation) {
-				const aggregateTypeRef = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refType)
+				const aggregateTypeRef = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refTypeId)
 				const aggregateTypeModel = await resolveTypeReference(aggregateTypeRef)
 				switch (associationModel.cardinality) {
 					case Cardinality.One:

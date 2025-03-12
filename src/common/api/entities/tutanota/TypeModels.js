@@ -6,292 +6,54 @@
 
 /** @type {any} */
 export const typeModels = {
-	"AdvancedRepeatRule": {
-		"name": "AdvancedRepeatRule",
-		"since": 80,
+	"11": {
+		"name": "Subfiles",
+		"since": 1,
 		"type": "AGGREGATED_TYPE",
-		"id": 1586,
-		"rootId": "CHR1dGFub3RhAAYy",
+		"id": 11,
+		"rootId": "CHR1dGFub3RhAAs",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 1587,
-				"since": 80,
+				"id": 12,
+				"since": 1,
 				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"interval": {
-				"final": false,
-				"name": "interval",
-				"id": 1589,
-				"since": 80,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"ruleType": {
-				"final": false,
-				"name": "ruleType",
-				"id": 1588,
-				"since": 80,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ApplyLabelServicePostIn": {
-		"name": "ApplyLabelServicePostIn",
-		"since": 77,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1504,
-		"rootId": "CHR1dGFub3RhAAXg",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1505,
-				"since": 77,
-				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"addedLabels": {
-				"final": false,
-				"name": "addedLabels",
-				"id": 1507,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "MailFolder",
-				"dependency": null
-			},
-			"mails": {
-				"final": false,
-				"name": "mails",
-				"id": 1506,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "Mail",
-				"dependency": null
-			},
-			"removedLabels": {
-				"final": false,
-				"name": "removedLabels",
-				"id": 1508,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "MailFolder",
+			"files": {
+				"final": true,
+				"name": "files",
+				"id": 27,
+				"since": 1,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 13,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"AttachmentKeyData": {
-		"name": "AttachmentKeyData",
-		"since": 11,
-		"type": "AGGREGATED_TYPE",
-		"id": 542,
-		"rootId": "CHR1dGFub3RhAAIe",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 543,
-				"since": 11,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"bucketEncFileSessionKey": {
-				"final": true,
-				"name": "bucketEncFileSessionKey",
-				"id": 544,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"fileSessionKey": {
-				"final": true,
-				"name": "fileSessionKey",
-				"id": 545,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"file": {
-				"final": true,
-				"name": "file",
-				"id": 546,
-				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "File",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"Birthday": {
-		"name": "Birthday",
-		"since": 23,
-		"type": "AGGREGATED_TYPE",
-		"id": 844,
-		"rootId": "CHR1dGFub3RhAANM",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 845,
-				"since": 23,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"day": {
-				"final": false,
-				"name": "day",
-				"id": 846,
-				"since": 23,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"month": {
-				"final": false,
-				"name": "month",
-				"id": 847,
-				"since": 23,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"year": {
-				"final": false,
-				"name": "year",
-				"id": 848,
-				"since": 23,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"Body": {
-		"name": "Body",
-		"since": 58,
-		"type": "AGGREGATED_TYPE",
-		"id": 1273,
-		"rootId": "CHR1dGFub3RhAAT5",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1274,
-				"since": 58,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"compressedText": {
-				"final": true,
-				"name": "compressedText",
-				"id": 1276,
-				"since": 58,
-				"type": "CompressedString",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"text": {
-				"final": true,
-				"name": "text",
-				"id": 1275,
-				"since": 58,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarDeleteData": {
-		"name": "CalendarDeleteData",
-		"since": 34,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 982,
-		"rootId": "CHR1dGFub3RhAAPW",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 983,
-				"since": 34,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"groupRootId": {
-				"final": false,
-				"name": "groupRootId",
-				"id": 984,
-				"since": 34,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "CalendarGroupRoot",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarEvent": {
-		"name": "CalendarEvent",
-		"since": 33,
+	"13": {
+		"name": "File",
+		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
-		"id": 933,
-		"rootId": "CHR1dGFub3RhAAOl",
+		"id": 13,
+		"rootId": "CHR1dGFub3RhAA0",
 		"versioned": false,
 		"encrypted": true,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 937,
-				"since": 33,
+				"id": 17,
+				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -299,17 +61,17 @@ export const typeModels = {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 935,
-				"since": 33,
-				"type": "CustomId",
+				"id": 15,
+				"since": 1,
+				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"_ownerEncSessionKey": {
 				"final": true,
 				"name": "_ownerEncSessionKey",
-				"id": 939,
-				"since": 33,
+				"id": 18,
+				"since": 1,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -317,8 +79,8 @@ export const typeModels = {
 			"_ownerGroup": {
 				"final": true,
 				"name": "_ownerGroup",
-				"id": 938,
-				"since": 33,
+				"id": 580,
+				"since": 13,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -326,7 +88,7 @@ export const typeModels = {
 			"_ownerKeyVersion": {
 				"final": true,
 				"name": "_ownerKeyVersion",
-				"id": 1401,
+				"id": 1391,
 				"since": 69,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
@@ -335,607 +97,364 @@ export const typeModels = {
 			"_permissions": {
 				"final": true,
 				"name": "_permissions",
-				"id": 936,
-				"since": 33,
+				"id": 16,
+				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"description": {
+			"cid": {
+				"final": true,
+				"name": "cid",
+				"id": 924,
+				"since": 32,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"mimeType": {
+				"final": true,
+				"name": "mimeType",
+				"id": 23,
+				"since": 1,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"name": {
 				"final": false,
-				"name": "description",
-				"id": 941,
-				"since": 33,
+				"name": "name",
+				"id": 21,
+				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"endTime": {
-				"final": false,
-				"name": "endTime",
-				"id": 943,
-				"since": 33,
-				"type": "Date",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"hashedUid": {
-				"final": false,
-				"name": "hashedUid",
-				"id": 1088,
-				"since": 42,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"invitedConfidentially": {
-				"final": false,
-				"name": "invitedConfidentially",
-				"id": 1090,
-				"since": 42,
-				"type": "Boolean",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"location": {
-				"final": false,
-				"name": "location",
-				"id": 944,
-				"since": 33,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"recurrenceId": {
-				"final": false,
-				"name": "recurrenceId",
-				"id": 1320,
-				"since": 62,
-				"type": "Date",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"sequence": {
-				"final": false,
-				"name": "sequence",
-				"id": 1089,
-				"since": 42,
+			"size": {
+				"final": true,
+				"name": "size",
+				"id": 22,
+				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": true
-			},
-			"startTime": {
-				"final": false,
-				"name": "startTime",
-				"id": 942,
-				"since": 33,
-				"type": "Date",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"summary": {
-				"final": false,
-				"name": "summary",
-				"id": 940,
-				"since": 33,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"uid": {
-				"final": false,
-				"name": "uid",
-				"id": 988,
-				"since": 35,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
+				"encrypted": false
 			}
 		},
 		"associations": {
-			"alarmInfos": {
-				"final": false,
-				"name": "alarmInfos",
-				"id": 946,
-				"since": 33,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "UserAlarmInfo",
-				"dependency": null
-			},
-			"attendees": {
-				"final": false,
-				"name": "attendees",
-				"id": 1091,
-				"since": 42,
+			"blobs": {
+				"final": true,
+				"name": "blobs",
+				"id": 1225,
+				"since": 52,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "CalendarEventAttendee",
-				"dependency": null
-			},
-			"organizer": {
-				"final": false,
-				"name": "organizer",
-				"id": 1092,
-				"since": 42,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "EncryptedMailAddress",
-				"dependency": null
-			},
-			"repeatRule": {
-				"final": false,
-				"name": "repeatRule",
-				"id": 945,
-				"since": 33,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "CalendarRepeatRule",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarEventAttendee": {
-		"name": "CalendarEventAttendee",
-		"since": 42,
-		"type": "AGGREGATED_TYPE",
-		"id": 1084,
-		"rootId": "CHR1dGFub3RhAAQ8",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1085,
-				"since": 42,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"status": {
-				"final": false,
-				"name": "status",
-				"id": 1086,
-				"since": 42,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"address": {
-				"final": true,
-				"name": "address",
-				"id": 1087,
-				"since": 42,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "EncryptedMailAddress",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarEventIndexRef": {
-		"name": "CalendarEventIndexRef",
-		"since": 42,
-		"type": "AGGREGATED_TYPE",
-		"id": 1100,
-		"rootId": "CHR1dGFub3RhAARM",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1101,
-				"since": 42,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"list": {
-				"final": true,
-				"name": "list",
-				"id": 1102,
-				"since": 42,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "CalendarEventUidIndex",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarEventUidIndex": {
-		"name": "CalendarEventUidIndex",
-		"since": 42,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1093,
-		"rootId": "CHR1dGFub3RhAARF",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1097,
-				"since": 42,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1095,
-				"since": 42,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1098,
-				"since": 42,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1096,
-				"since": 42,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"alteredInstances": {
-				"final": false,
-				"name": "alteredInstances",
-				"id": 1321,
-				"since": 62,
-				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
-				"cardinality": "Any",
-				"refType": "CalendarEvent",
-				"dependency": null
-			},
-			"progenitor": {
-				"final": true,
-				"name": "progenitor",
-				"id": 1099,
-				"since": 42,
-				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
-				"cardinality": "ZeroOrOne",
-				"refType": "CalendarEvent",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarEventUpdate": {
-		"name": "CalendarEventUpdate",
-		"since": 42,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1104,
-		"rootId": "CHR1dGFub3RhAARQ",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1108,
-				"since": 42,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1106,
-				"since": 42,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1110,
-				"since": 42,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1109,
-				"since": 42,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1405,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1107,
-				"since": 42,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sender": {
-				"final": true,
-				"name": "sender",
-				"id": 1111,
-				"since": 42,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"file": {
-				"final": true,
-				"name": "file",
-				"id": 1112,
-				"since": 42,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "File",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarEventUpdateList": {
-		"name": "CalendarEventUpdateList",
-		"since": 42,
-		"type": "AGGREGATED_TYPE",
-		"id": 1113,
-		"rootId": "CHR1dGFub3RhAARZ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1114,
-				"since": 42,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"list": {
-				"final": true,
-				"name": "list",
-				"id": 1115,
-				"since": 42,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "CalendarEventUpdate",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarGroupRoot": {
-		"name": "CalendarGroupRoot",
-		"since": 33,
-		"type": "ELEMENT_TYPE",
-		"id": 947,
-		"rootId": "CHR1dGFub3RhAAOz",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 951,
-				"since": 33,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 949,
-				"since": 33,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 953,
-				"since": 33,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 952,
-				"since": 33,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1402,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 950,
-				"since": 33,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"index": {
-				"final": true,
-				"name": "index",
-				"id": 1103,
-				"since": 42,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "CalendarEventIndexRef",
-				"dependency": null
-			},
-			"longEvents": {
-				"final": true,
-				"name": "longEvents",
-				"id": 955,
-				"since": 33,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "CalendarEvent",
-				"dependency": null
-			},
-			"shortEvents": {
-				"final": true,
-				"name": "shortEvents",
-				"id": 954,
-				"since": 33,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "CalendarEvent",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CalendarRepeatRule": {
-		"name": "CalendarRepeatRule",
-		"since": 33,
-		"type": "AGGREGATED_TYPE",
-		"id": 926,
-		"rootId": "CHR1dGFub3RhAAOe",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 927,
-				"since": 33,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"endType": {
-				"final": false,
-				"name": "endType",
-				"id": 929,
-				"since": 33,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"endValue": {
-				"final": false,
-				"name": "endValue",
-				"id": 930,
-				"since": 33,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"frequency": {
-				"final": false,
-				"name": "frequency",
-				"id": 928,
-				"since": 33,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"interval": {
-				"final": false,
-				"name": "interval",
-				"id": 931,
-				"since": 33,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"timeZone": {
-				"final": false,
-				"name": "timeZone",
-				"id": 932,
-				"since": 33,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"advancedRules": {
-				"final": false,
-				"name": "advancedRules",
-				"id": 1590,
-				"since": 80,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "AdvancedRepeatRule",
-				"dependency": null
-			},
-			"excludedDates": {
-				"final": true,
-				"name": "excludedDates",
-				"id": 1319,
-				"since": 61,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "DateWrapper",
+				"refTypeId": 1882,
 				"dependency": "sys"
+			},
+			"parent": {
+				"final": true,
+				"name": "parent",
+				"id": 25,
+				"since": 1,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 13,
+				"dependency": null
+			},
+			"subFiles": {
+				"final": true,
+				"name": "subFiles",
+				"id": 26,
+				"since": 1,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 11,
+				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"Contact": {
+	"28": {
+		"name": "FileSystem",
+		"since": 1,
+		"type": "ELEMENT_TYPE",
+		"id": 28,
+		"rootId": "CHR1dGFub3RhABw",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 32,
+				"since": 1,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 30,
+				"since": 1,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 582,
+				"since": 13,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 581,
+				"since": 13,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1392,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 31,
+				"since": 1,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"files": {
+				"final": true,
+				"name": "files",
+				"id": 35,
+				"since": 1,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 13,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"44": {
+		"name": "ContactMailAddress",
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 44,
+		"rootId": "CHR1dGFub3RhACw",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 45,
+				"since": 1,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"address": {
+				"final": false,
+				"name": "address",
+				"id": 47,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"customTypeName": {
+				"final": false,
+				"name": "customTypeName",
+				"id": 48,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 46,
+				"since": 1,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"49": {
+		"name": "ContactPhoneNumber",
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 49,
+		"rootId": "CHR1dGFub3RhADE",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 50,
+				"since": 1,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"customTypeName": {
+				"final": false,
+				"name": "customTypeName",
+				"id": 53,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"number": {
+				"final": false,
+				"name": "number",
+				"id": 52,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 51,
+				"since": 1,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"54": {
+		"name": "ContactAddress",
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 54,
+		"rootId": "CHR1dGFub3RhADY",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 55,
+				"since": 1,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"address": {
+				"final": false,
+				"name": "address",
+				"id": 57,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"customTypeName": {
+				"final": false,
+				"name": "customTypeName",
+				"id": 58,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 56,
+				"since": 1,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"59": {
+		"name": "ContactSocialId",
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 59,
+		"rootId": "CHR1dGFub3RhADs",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 60,
+				"since": 1,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"customTypeName": {
+				"final": false,
+				"name": "customTypeName",
+				"id": 63,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"socialId": {
+				"final": false,
+				"name": "socialId",
+				"id": 62,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 61,
+				"since": 1,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"64": {
 		"name": "Contact",
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
@@ -1151,7 +670,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactAddress",
+				"refTypeId": 54,
 				"dependency": null
 			},
 			"customDate": {
@@ -1161,7 +680,7 @@ export const typeModels = {
 				"since": 67,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactCustomDate",
+				"refTypeId": 1356,
 				"dependency": null
 			},
 			"mailAddresses": {
@@ -1171,7 +690,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactMailAddress",
+				"refTypeId": 44,
 				"dependency": null
 			},
 			"messengerHandles": {
@@ -1181,7 +700,7 @@ export const typeModels = {
 				"since": 67,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactMessengerHandle",
+				"refTypeId": 1371,
 				"dependency": null
 			},
 			"oldBirthdayAggregate": {
@@ -1191,7 +710,7 @@ export const typeModels = {
 				"since": 23,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "Birthday",
+				"refTypeId": 844,
 				"dependency": null
 			},
 			"phoneNumbers": {
@@ -1201,7 +720,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactPhoneNumber",
+				"refTypeId": 49,
 				"dependency": null
 			},
 			"photo": {
@@ -1211,7 +730,7 @@ export const typeModels = {
 				"since": 23,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
-				"refType": "File",
+				"refTypeId": 13,
 				"dependency": null
 			},
 			"pronouns": {
@@ -1221,7 +740,7 @@ export const typeModels = {
 				"since": 67,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactPronouns",
+				"refTypeId": 1376,
 				"dependency": null
 			},
 			"relationships": {
@@ -1231,7 +750,7 @@ export const typeModels = {
 				"since": 67,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactRelationship",
+				"refTypeId": 1366,
 				"dependency": null
 			},
 			"socialIds": {
@@ -1241,7 +760,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactSocialId",
+				"refTypeId": 59,
 				"dependency": null
 			},
 			"websites": {
@@ -1251,700 +770,14 @@ export const typeModels = {
 				"since": 67,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ContactWebsite",
+				"refTypeId": 1361,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"ContactAddress": {
-		"name": "ContactAddress",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 54,
-		"rootId": "CHR1dGFub3RhADY",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 55,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"address": {
-				"final": false,
-				"name": "address",
-				"id": 57,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"customTypeName": {
-				"final": false,
-				"name": "customTypeName",
-				"id": 58,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 56,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactCustomDate": {
-		"name": "ContactCustomDate",
-		"since": 67,
-		"type": "AGGREGATED_TYPE",
-		"id": 1356,
-		"rootId": "CHR1dGFub3RhAAVM",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1357,
-				"since": 67,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"customTypeName": {
-				"final": false,
-				"name": "customTypeName",
-				"id": 1359,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"dateIso": {
-				"final": false,
-				"name": "dateIso",
-				"id": 1360,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 1358,
-				"since": 67,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactList": {
-		"name": "ContactList",
-		"since": 1,
-		"type": "ELEMENT_TYPE",
-		"id": 153,
-		"rootId": "CHR1dGFub3RhAACZ",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 157,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 155,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 593,
-				"since": 13,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 592,
-				"since": 13,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1397,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 156,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"contacts": {
-				"final": true,
-				"name": "contacts",
-				"id": 160,
-				"since": 1,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Contact",
-				"dependency": null
-			},
-			"photos": {
-				"final": false,
-				"name": "photos",
-				"id": 856,
-				"since": 23,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "PhotosRef",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactListEntry": {
-		"name": "ContactListEntry",
-		"since": 64,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1325,
-		"rootId": "CHR1dGFub3RhAAUt",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1329,
-				"since": 64,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1327,
-				"since": 64,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1331,
-				"since": 64,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1330,
-				"since": 64,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1409,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1328,
-				"since": 64,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"emailAddress": {
-				"final": false,
-				"name": "emailAddress",
-				"id": 1332,
-				"since": 64,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactListGroupRoot": {
-		"name": "ContactListGroupRoot",
-		"since": 64,
-		"type": "ELEMENT_TYPE",
-		"id": 1333,
-		"rootId": "CHR1dGFub3RhAAU1",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1337,
-				"since": 64,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1335,
-				"since": 64,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1339,
-				"since": 64,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1338,
-				"since": 64,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1410,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1336,
-				"since": 64,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"entries": {
-				"final": true,
-				"name": "entries",
-				"id": 1340,
-				"since": 64,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "ContactListEntry",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactMailAddress": {
-		"name": "ContactMailAddress",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 44,
-		"rootId": "CHR1dGFub3RhACw",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 45,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"address": {
-				"final": false,
-				"name": "address",
-				"id": 47,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"customTypeName": {
-				"final": false,
-				"name": "customTypeName",
-				"id": 48,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 46,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactMessengerHandle": {
-		"name": "ContactMessengerHandle",
-		"since": 67,
-		"type": "AGGREGATED_TYPE",
-		"id": 1371,
-		"rootId": "CHR1dGFub3RhAAVb",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1372,
-				"since": 67,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"customTypeName": {
-				"final": false,
-				"name": "customTypeName",
-				"id": 1374,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"handle": {
-				"final": false,
-				"name": "handle",
-				"id": 1375,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 1373,
-				"since": 67,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactPhoneNumber": {
-		"name": "ContactPhoneNumber",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 49,
-		"rootId": "CHR1dGFub3RhADE",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 50,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"customTypeName": {
-				"final": false,
-				"name": "customTypeName",
-				"id": 53,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"number": {
-				"final": false,
-				"name": "number",
-				"id": 52,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 51,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactPronouns": {
-		"name": "ContactPronouns",
-		"since": 67,
-		"type": "AGGREGATED_TYPE",
-		"id": 1376,
-		"rootId": "CHR1dGFub3RhAAVg",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1377,
-				"since": 67,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"language": {
-				"final": false,
-				"name": "language",
-				"id": 1378,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"pronouns": {
-				"final": false,
-				"name": "pronouns",
-				"id": 1379,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactRelationship": {
-		"name": "ContactRelationship",
-		"since": 67,
-		"type": "AGGREGATED_TYPE",
-		"id": 1366,
-		"rootId": "CHR1dGFub3RhAAVW",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1367,
-				"since": 67,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"customTypeName": {
-				"final": false,
-				"name": "customTypeName",
-				"id": 1369,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"person": {
-				"final": false,
-				"name": "person",
-				"id": 1370,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 1368,
-				"since": 67,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactSocialId": {
-		"name": "ContactSocialId",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 59,
-		"rootId": "CHR1dGFub3RhADs",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 60,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"customTypeName": {
-				"final": false,
-				"name": "customTypeName",
-				"id": 63,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"socialId": {
-				"final": false,
-				"name": "socialId",
-				"id": 62,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 61,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ContactWebsite": {
-		"name": "ContactWebsite",
-		"since": 67,
-		"type": "AGGREGATED_TYPE",
-		"id": 1361,
-		"rootId": "CHR1dGFub3RhAAVR",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1362,
-				"since": 67,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"customTypeName": {
-				"final": false,
-				"name": "customTypeName",
-				"id": 1364,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 1363,
-				"since": 67,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"url": {
-				"final": false,
-				"name": "url",
-				"id": 1365,
-				"since": 67,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ConversationEntry": {
+	"84": {
 		"name": "ConversationEntry",
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
@@ -2016,7 +849,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
-				"refType": "Mail",
+				"refTypeId": 97,
 				"dependency": null
 			},
 			"previous": {
@@ -2026,1241 +859,27 @@ export const typeModels = {
 				"since": 1,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
-				"refType": "ConversationEntry",
+				"refTypeId": 84,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"CreateExternalUserGroupData": {
-		"name": "CreateExternalUserGroupData",
+	"92": {
+		"name": "MailAddress",
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
-		"id": 138,
-		"rootId": "CHR1dGFub3RhAACK",
+		"id": 92,
+		"rootId": "CHR1dGFub3RhAFw",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 139,
+				"id": 93,
 				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"externalPwEncUserGroupKey": {
-				"final": false,
-				"name": "externalPwEncUserGroupKey",
-				"id": 142,
-				"since": 1,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"internalUserEncUserGroupKey": {
-				"final": false,
-				"name": "internalUserEncUserGroupKey",
-				"id": 143,
-				"since": 1,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"internalUserGroupKeyVersion": {
-				"final": false,
-				"name": "internalUserGroupKeyVersion",
-				"id": 1433,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailAddress": {
-				"final": false,
-				"name": "mailAddress",
-				"id": 141,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CreateGroupPostReturn": {
-		"name": "CreateGroupPostReturn",
-		"since": 34,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 985,
-		"rootId": "CHR1dGFub3RhAAPZ",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 986,
-				"since": 34,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"group": {
-				"final": true,
-				"name": "group",
-				"id": 987,
-				"since": 34,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CreateMailFolderData": {
-		"name": "CreateMailFolderData",
-		"since": 7,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 450,
-		"rootId": "CHR1dGFub3RhAAHC",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 451,
-				"since": 7,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"folderName": {
-				"final": true,
-				"name": "folderName",
-				"id": 453,
-				"since": 7,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"ownerEncSessionKey": {
-				"final": true,
-				"name": "ownerEncSessionKey",
-				"id": 454,
-				"since": 7,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerGroup": {
-				"final": true,
-				"name": "ownerGroup",
-				"id": 1268,
-				"since": 57,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": true,
-				"name": "ownerKeyVersion",
-				"id": 1414,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"parentFolder": {
-				"final": true,
-				"name": "parentFolder",
-				"id": 452,
-				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CreateMailFolderReturn": {
-		"name": "CreateMailFolderReturn",
-		"since": 7,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 455,
-		"rootId": "CHR1dGFub3RhAAHH",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 456,
-				"since": 7,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"newFolder": {
-				"final": false,
-				"name": "newFolder",
-				"id": 457,
-				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CreateMailGroupData": {
-		"name": "CreateMailGroupData",
-		"since": 19,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 707,
-		"rootId": "CHR1dGFub3RhAALD",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 708,
-				"since": 19,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"encryptedName": {
-				"final": false,
-				"name": "encryptedName",
-				"id": 710,
-				"since": 19,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailAddress": {
-				"final": false,
-				"name": "mailAddress",
-				"id": 709,
-				"since": 19,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailEncMailboxSessionKey": {
-				"final": false,
-				"name": "mailEncMailboxSessionKey",
-				"id": 711,
-				"since": 19,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"groupData": {
-				"final": false,
-				"name": "groupData",
-				"id": 712,
-				"since": 19,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "InternalGroupData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"CustomerAccountCreateData": {
-		"name": "CustomerAccountCreateData",
-		"since": 16,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 648,
-		"rootId": "CHR1dGFub3RhAAKI",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 649,
-				"since": 16,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"accountGroupKeyVersion": {
-				"final": false,
-				"name": "accountGroupKeyVersion",
-				"id": 1421,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"adminEncAccountingInfoSessionKey": {
-				"final": false,
-				"name": "adminEncAccountingInfoSessionKey",
-				"id": 659,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"adminEncCustomerServerPropertiesSessionKey": {
-				"final": false,
-				"name": "adminEncCustomerServerPropertiesSessionKey",
-				"id": 661,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"app": {
-				"final": false,
-				"name": "app",
-				"id": 1511,
-				"since": 78,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"authToken": {
-				"final": false,
-				"name": "authToken",
-				"id": 650,
-				"since": 16,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"code": {
-				"final": false,
-				"name": "code",
-				"id": 873,
-				"since": 24,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"date": {
-				"final": false,
-				"name": "date",
-				"id": 651,
-				"since": 16,
-				"type": "Date",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"lang": {
-				"final": false,
-				"name": "lang",
-				"id": 652,
-				"since": 16,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"systemAdminPubEncAccountingInfoSessionKey": {
-				"final": false,
-				"name": "systemAdminPubEncAccountingInfoSessionKey",
-				"id": 660,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"systemAdminPubKeyVersion": {
-				"final": false,
-				"name": "systemAdminPubKeyVersion",
-				"id": 1422,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"systemAdminPublicProtocolVersion": {
-				"final": true,
-				"name": "systemAdminPublicProtocolVersion",
-				"id": 1355,
-				"since": 66,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"userEncAccountGroupKey": {
-				"final": false,
-				"name": "userEncAccountGroupKey",
-				"id": 655,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"userEncAdminGroupKey": {
-				"final": false,
-				"name": "userEncAdminGroupKey",
-				"id": 654,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"adminGroupData": {
-				"final": false,
-				"name": "adminGroupData",
-				"id": 657,
-				"since": 16,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "InternalGroupData",
-				"dependency": null
-			},
-			"customerGroupData": {
-				"final": false,
-				"name": "customerGroupData",
-				"id": 658,
-				"since": 16,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "InternalGroupData",
-				"dependency": null
-			},
-			"userData": {
-				"final": false,
-				"name": "userData",
-				"id": 653,
-				"since": 16,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "UserAccountUserData",
-				"dependency": null
-			},
-			"userGroupData": {
-				"final": false,
-				"name": "userGroupData",
-				"id": 656,
-				"since": 16,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "InternalGroupData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DefaultAlarmInfo": {
-		"name": "DefaultAlarmInfo",
-		"since": 74,
-		"type": "AGGREGATED_TYPE",
-		"id": 1446,
-		"rootId": "CHR1dGFub3RhAAWm",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1447,
-				"since": 74,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"trigger": {
-				"final": true,
-				"name": "trigger",
-				"id": 1448,
-				"since": 74,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DeleteGroupData": {
-		"name": "DeleteGroupData",
-		"since": 19,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 713,
-		"rootId": "CHR1dGFub3RhAALJ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 714,
-				"since": 19,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"restore": {
-				"final": false,
-				"name": "restore",
-				"id": 715,
-				"since": 19,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"group": {
-				"final": true,
-				"name": "group",
-				"id": 716,
-				"since": 19,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DeleteMailData": {
-		"name": "DeleteMailData",
-		"since": 5,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 419,
-		"rootId": "CHR1dGFub3RhAAGj",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 420,
-				"since": 5,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"folder": {
-				"final": true,
-				"name": "folder",
-				"id": 724,
-				"since": 19,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refType": "MailFolder",
-				"dependency": null
-			},
-			"mails": {
-				"final": false,
-				"name": "mails",
-				"id": 421,
-				"since": 5,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DeleteMailFolderData": {
-		"name": "DeleteMailFolderData",
-		"since": 7,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 458,
-		"rootId": "CHR1dGFub3RhAAHK",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 459,
-				"since": 7,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"folders": {
-				"final": false,
-				"name": "folders",
-				"id": 460,
-				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DraftAttachment": {
-		"name": "DraftAttachment",
-		"since": 11,
-		"type": "AGGREGATED_TYPE",
-		"id": 491,
-		"rootId": "CHR1dGFub3RhAAHr",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 492,
-				"since": 11,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerEncFileSessionKey": {
-				"final": true,
-				"name": "ownerEncFileSessionKey",
-				"id": 493,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": true,
-				"name": "ownerKeyVersion",
-				"id": 1430,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"existingFile": {
-				"final": true,
-				"name": "existingFile",
-				"id": 495,
-				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refType": "File",
-				"dependency": null
-			},
-			"newFile": {
-				"final": true,
-				"name": "newFile",
-				"id": 494,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "NewDraftAttachment",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DraftCreateData": {
-		"name": "DraftCreateData",
-		"since": 11,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 508,
-		"rootId": "CHR1dGFub3RhAAH8",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 509,
-				"since": 11,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"conversationType": {
-				"final": true,
-				"name": "conversationType",
-				"id": 511,
-				"since": 11,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerEncSessionKey": {
-				"final": true,
-				"name": "ownerEncSessionKey",
-				"id": 512,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": false,
-				"name": "ownerKeyVersion",
-				"id": 1427,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"previousMessageId": {
-				"final": true,
-				"name": "previousMessageId",
-				"id": 510,
-				"since": 11,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"draftData": {
-				"final": false,
-				"name": "draftData",
-				"id": 515,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "DraftData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DraftCreateReturn": {
-		"name": "DraftCreateReturn",
-		"since": 11,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 516,
-		"rootId": "CHR1dGFub3RhAAIE",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 517,
-				"since": 11,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"draft": {
-				"final": false,
-				"name": "draft",
-				"id": 518,
-				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DraftData": {
-		"name": "DraftData",
-		"since": 11,
-		"type": "AGGREGATED_TYPE",
-		"id": 496,
-		"rootId": "CHR1dGFub3RhAAHw",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 497,
-				"since": 11,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"bodyText": {
-				"final": true,
-				"name": "bodyText",
-				"id": 499,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"compressedBodyText": {
-				"final": true,
-				"name": "compressedBodyText",
-				"id": 1194,
-				"since": 46,
-				"type": "CompressedString",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"confidential": {
-				"final": true,
-				"name": "confidential",
-				"id": 502,
-				"since": 11,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"method": {
-				"final": true,
-				"name": "method",
-				"id": 1116,
-				"since": 42,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"senderMailAddress": {
-				"final": true,
-				"name": "senderMailAddress",
-				"id": 500,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"senderName": {
-				"final": true,
-				"name": "senderName",
-				"id": 501,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"subject": {
-				"final": true,
-				"name": "subject",
-				"id": 498,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"addedAttachments": {
-				"final": true,
-				"name": "addedAttachments",
-				"id": 506,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "DraftAttachment",
-				"dependency": null
-			},
-			"bccRecipients": {
-				"final": true,
-				"name": "bccRecipients",
-				"id": 505,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "DraftRecipient",
-				"dependency": null
-			},
-			"ccRecipients": {
-				"final": true,
-				"name": "ccRecipients",
-				"id": 504,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "DraftRecipient",
-				"dependency": null
-			},
-			"removedAttachments": {
-				"final": true,
-				"name": "removedAttachments",
-				"id": 507,
-				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "File",
-				"dependency": null
-			},
-			"replyTos": {
-				"final": false,
-				"name": "replyTos",
-				"id": 819,
-				"since": 21,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "EncryptedMailAddress",
-				"dependency": null
-			},
-			"toRecipients": {
-				"final": true,
-				"name": "toRecipients",
-				"id": 503,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "DraftRecipient",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DraftRecipient": {
-		"name": "DraftRecipient",
-		"since": 11,
-		"type": "AGGREGATED_TYPE",
-		"id": 482,
-		"rootId": "CHR1dGFub3RhAAHi",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 483,
-				"since": 11,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailAddress": {
-				"final": true,
-				"name": "mailAddress",
-				"id": 485,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"name": {
-				"final": true,
-				"name": "name",
-				"id": 484,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DraftUpdateData": {
-		"name": "DraftUpdateData",
-		"since": 11,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 519,
-		"rootId": "CHR1dGFub3RhAAIH",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 520,
-				"since": 11,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"draft": {
-				"final": false,
-				"name": "draft",
-				"id": 522,
-				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "Mail",
-				"dependency": null
-			},
-			"draftData": {
-				"final": false,
-				"name": "draftData",
-				"id": 521,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "DraftData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"DraftUpdateReturn": {
-		"name": "DraftUpdateReturn",
-		"since": 11,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 523,
-		"rootId": "CHR1dGFub3RhAAIL",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 524,
-				"since": 11,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"attachments": {
-				"final": true,
-				"name": "attachments",
-				"id": 525,
-				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "File",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"EmailTemplate": {
-		"name": "EmailTemplate",
-		"since": 45,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1158,
-		"rootId": "CHR1dGFub3RhAASG",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1162,
-				"since": 45,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1160,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1164,
-				"since": 45,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1163,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1406,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1161,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"tag": {
-				"final": false,
-				"name": "tag",
-				"id": 1166,
-				"since": 45,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"title": {
-				"final": false,
-				"name": "title",
-				"id": 1165,
-				"since": 45,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"contents": {
-				"final": false,
-				"name": "contents",
-				"id": 1167,
-				"since": 45,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "EmailTemplateContent",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"EmailTemplateContent": {
-		"name": "EmailTemplateContent",
-		"since": 45,
-		"type": "AGGREGATED_TYPE",
-		"id": 1154,
-		"rootId": "CHR1dGFub3RhAASC",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1155,
-				"since": 45,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"languageCode": {
-				"final": false,
-				"name": "languageCode",
-				"id": 1157,
-				"since": 45,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"text": {
-				"final": false,
-				"name": "text",
-				"id": 1156,
-				"since": 45,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"EncryptTutanotaPropertiesData": {
-		"name": "EncryptTutanotaPropertiesData",
-		"since": 9,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 473,
-		"rootId": "CHR1dGFub3RhAAHZ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 474,
-				"since": 9,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"symEncSessionKey": {
-				"final": false,
-				"name": "symEncSessionKey",
-				"id": 476,
-				"since": 9,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"symKeyVersion": {
-				"final": false,
-				"name": "symKeyVersion",
-				"id": 1428,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"properties": {
-				"final": false,
-				"name": "properties",
-				"id": 475,
-				"since": 9,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "TutanotaProperties",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"EncryptedMailAddress": {
-		"name": "EncryptedMailAddress",
-		"since": 14,
-		"type": "AGGREGATED_TYPE",
-		"id": 612,
-		"rootId": "CHR1dGFub3RhAAJk",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 613,
-				"since": 14,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -3268,1997 +887,38 @@ export const typeModels = {
 			"address": {
 				"final": true,
 				"name": "address",
-				"id": 615,
-				"since": 14,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"name": {
-				"final": true,
-				"name": "name",
-				"id": 614,
-				"since": 14,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"EntropyData": {
-		"name": "EntropyData",
-		"since": 43,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1122,
-		"rootId": "CHR1dGFub3RhAARi",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1123,
-				"since": 43,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"userEncEntropy": {
-				"final": false,
-				"name": "userEncEntropy",
-				"id": 1124,
-				"since": 43,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"userKeyVersion": {
-				"final": false,
-				"name": "userKeyVersion",
-				"id": 1432,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ExternalUserData": {
-		"name": "ExternalUserData",
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 145,
-		"rootId": "CHR1dGFub3RhAACR",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 146,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"externalMailEncMailBoxSessionKey": {
-				"final": false,
-				"name": "externalMailEncMailBoxSessionKey",
-				"id": 673,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"externalMailEncMailGroupInfoSessionKey": {
-				"final": false,
-				"name": "externalMailEncMailGroupInfoSessionKey",
-				"id": 670,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"externalUserEncEntropy": {
-				"final": false,
-				"name": "externalUserEncEntropy",
-				"id": 412,
-				"since": 2,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"externalUserEncMailGroupKey": {
-				"final": false,
-				"name": "externalUserEncMailGroupKey",
-				"id": 148,
-				"since": 1,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"externalUserEncTutanotaPropertiesSessionKey": {
-				"final": false,
-				"name": "externalUserEncTutanotaPropertiesSessionKey",
-				"id": 672,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"externalUserEncUserGroupInfoSessionKey": {
-				"final": false,
-				"name": "externalUserEncUserGroupInfoSessionKey",
-				"id": 150,
-				"since": 1,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"internalMailEncMailGroupInfoSessionKey": {
-				"final": false,
-				"name": "internalMailEncMailGroupInfoSessionKey",
-				"id": 671,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"internalMailEncUserGroupInfoSessionKey": {
-				"final": false,
-				"name": "internalMailEncUserGroupInfoSessionKey",
-				"id": 669,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"internalMailGroupKeyVersion": {
-				"final": false,
-				"name": "internalMailGroupKeyVersion",
-				"id": 1429,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"kdfVersion": {
-				"final": false,
-				"name": "kdfVersion",
-				"id": 1323,
-				"since": 63,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"verifier": {
-				"final": false,
-				"name": "verifier",
-				"id": 149,
-				"since": 1,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"userGroupData": {
-				"final": false,
-				"name": "userGroupData",
-				"id": 151,
-				"since": 1,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "CreateExternalUserGroupData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"File": {
-		"name": "File",
-		"since": 1,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 13,
-		"rootId": "CHR1dGFub3RhAA0",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 17,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 15,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 18,
-				"since": 1,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 580,
-				"since": 13,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1391,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 16,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"cid": {
-				"final": true,
-				"name": "cid",
-				"id": 924,
-				"since": 32,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"mimeType": {
-				"final": true,
-				"name": "mimeType",
-				"id": 23,
-				"since": 1,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"name": {
-				"final": false,
-				"name": "name",
-				"id": 21,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"size": {
-				"final": true,
-				"name": "size",
-				"id": 22,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"blobs": {
-				"final": true,
-				"name": "blobs",
-				"id": 1225,
-				"since": 52,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "Blob",
-				"dependency": "sys"
-			},
-			"parent": {
-				"final": true,
-				"name": "parent",
-				"id": 25,
-				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refType": "File",
-				"dependency": null
-			},
-			"subFiles": {
-				"final": true,
-				"name": "subFiles",
-				"id": 26,
-				"since": 1,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "Subfiles",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"FileSystem": {
-		"name": "FileSystem",
-		"since": 1,
-		"type": "ELEMENT_TYPE",
-		"id": 28,
-		"rootId": "CHR1dGFub3RhABw",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 32,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 30,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 582,
-				"since": 13,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 581,
-				"since": 13,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1392,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 31,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"files": {
-				"final": true,
-				"name": "files",
-				"id": 35,
-				"since": 1,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "File",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"GroupInvitationDeleteData": {
-		"name": "GroupInvitationDeleteData",
-		"since": 38,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1016,
-		"rootId": "CHR1dGFub3RhAAP4",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1017,
-				"since": 38,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"receivedInvitation": {
-				"final": false,
-				"name": "receivedInvitation",
-				"id": 1018,
-				"since": 38,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "ReceivedGroupInvitation",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"GroupInvitationPostData": {
-		"name": "GroupInvitationPostData",
-		"since": 38,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1002,
-		"rootId": "CHR1dGFub3RhAAPq",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1003,
-				"since": 38,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"internalKeyData": {
-				"final": false,
-				"name": "internalKeyData",
-				"id": 1005,
-				"since": 38,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "InternalRecipientKeyData",
-				"dependency": null
-			},
-			"sharedGroupData": {
-				"final": false,
-				"name": "sharedGroupData",
-				"id": 1004,
-				"since": 38,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "SharedGroupData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"GroupInvitationPostReturn": {
-		"name": "GroupInvitationPostReturn",
-		"since": 38,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1006,
-		"rootId": "CHR1dGFub3RhAAPu",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1007,
-				"since": 38,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"existingMailAddresses": {
-				"final": false,
-				"name": "existingMailAddresses",
-				"id": 1008,
-				"since": 38,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "MailAddress",
-				"dependency": null
-			},
-			"invalidMailAddresses": {
-				"final": false,
-				"name": "invalidMailAddresses",
-				"id": 1009,
-				"since": 38,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "MailAddress",
-				"dependency": null
-			},
-			"invitedMailAddresses": {
-				"final": false,
-				"name": "invitedMailAddresses",
-				"id": 1010,
-				"since": 38,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "MailAddress",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"GroupInvitationPutData": {
-		"name": "GroupInvitationPutData",
-		"since": 38,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1011,
-		"rootId": "CHR1dGFub3RhAAPz",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1012,
-				"since": 38,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sharedGroupEncInviteeGroupInfoKey": {
-				"final": true,
-				"name": "sharedGroupEncInviteeGroupInfoKey",
-				"id": 1014,
-				"since": 38,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sharedGroupKeyVersion": {
-				"final": true,
-				"name": "sharedGroupKeyVersion",
-				"id": 1419,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"userGroupEncGroupKey": {
-				"final": true,
-				"name": "userGroupEncGroupKey",
-				"id": 1013,
-				"since": 38,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"userGroupKeyVersion": {
-				"final": false,
-				"name": "userGroupKeyVersion",
-				"id": 1418,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"receivedInvitation": {
-				"final": false,
-				"name": "receivedInvitation",
-				"id": 1015,
-				"since": 38,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "ReceivedGroupInvitation",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"GroupSettings": {
-		"name": "GroupSettings",
-		"since": 34,
-		"type": "AGGREGATED_TYPE",
-		"id": 968,
-		"rootId": "CHR1dGFub3RhAAPI",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 969,
-				"since": 34,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"color": {
-				"final": false,
-				"name": "color",
-				"id": 971,
-				"since": 34,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"name": {
-				"final": false,
-				"name": "name",
-				"id": 1020,
-				"since": 39,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"sourceUrl": {
-				"final": false,
-				"name": "sourceUrl",
-				"id": 1468,
-				"since": 75,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"defaultAlarmsList": {
-				"final": false,
-				"name": "defaultAlarmsList",
-				"id": 1449,
-				"since": 74,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "DefaultAlarmInfo",
-				"dependency": null
-			},
-			"group": {
-				"final": true,
-				"name": "group",
-				"id": 970,
-				"since": 34,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"Header": {
-		"name": "Header",
-		"since": 58,
-		"type": "AGGREGATED_TYPE",
-		"id": 1269,
-		"rootId": "CHR1dGFub3RhAAT1",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1270,
-				"since": 58,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"compressedHeaders": {
-				"final": true,
-				"name": "compressedHeaders",
-				"id": 1272,
-				"since": 58,
-				"type": "CompressedString",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"headers": {
-				"final": true,
-				"name": "headers",
-				"id": 1271,
-				"since": 58,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImapFolder": {
-		"name": "ImapFolder",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 190,
-		"rootId": "CHR1dGFub3RhAAC-",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 191,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"lastseenuid": {
-				"final": false,
-				"name": "lastseenuid",
-				"id": 193,
+				"id": 95,
 				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"name": {
-				"final": false,
+				"final": true,
 				"name": "name",
-				"id": 192,
+				"id": 94,
 				"since": 1,
 				"type": "String",
 				"cardinality": "One",
-				"encrypted": false
-			},
-			"uidvalidity": {
-				"final": false,
-				"name": "uidvalidity",
-				"id": 194,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
+				"encrypted": true
 			}
 		},
 		"associations": {
-			"syncInfo": {
-				"final": true,
-				"name": "syncInfo",
-				"id": 195,
-				"since": 1,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "RemoteImapSyncInfo",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImapSyncConfiguration": {
-		"name": "ImapSyncConfiguration",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 209,
-		"rootId": "CHR1dGFub3RhAADR",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 210,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"host": {
+			"contact": {
 				"final": false,
-				"name": "host",
-				"id": 211,
+				"name": "contact",
+				"id": 96,
 				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"password": {
-				"final": false,
-				"name": "password",
-				"id": 214,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"port": {
-				"final": false,
-				"name": "port",
-				"id": 212,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"user": {
-				"final": false,
-				"name": "user",
-				"id": 213,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"imapSyncState": {
-				"final": false,
-				"name": "imapSyncState",
-				"id": 215,
-				"since": 1,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "ImapSyncState",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImapSyncState": {
-		"name": "ImapSyncState",
-		"since": 1,
-		"type": "ELEMENT_TYPE",
-		"id": 196,
-		"rootId": "CHR1dGFub3RhAADE",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 200,
-				"since": 1,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 198,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 595,
-				"since": 13,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 199,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"folders": {
-				"final": false,
-				"name": "folders",
-				"id": 201,
-				"since": 1,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "ImapFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImportAttachment": {
-		"name": "ImportAttachment",
-		"since": 79,
-		"type": "AGGREGATED_TYPE",
-		"id": 1524,
-		"rootId": "CHR1dGFub3RhAAX0",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1525,
-				"since": 79,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerEncFileSessionKey": {
-				"final": true,
-				"name": "ownerEncFileSessionKey",
-				"id": 1526,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerFileKeyVersion": {
-				"final": false,
-				"name": "ownerFileKeyVersion",
-				"id": 1527,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"existingAttachmentFile": {
-				"final": true,
-				"name": "existingAttachmentFile",
-				"id": 1529,
-				"since": 79,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
-				"refType": "File",
-				"dependency": null
-			},
-			"newAttachment": {
-				"final": true,
-				"name": "newAttachment",
-				"id": 1528,
-				"since": 79,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "NewImportAttachment",
+				"refTypeId": 64,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"ImportMailData": {
-		"name": "ImportMailData",
-		"since": 79,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1530,
-		"rootId": "CHR1dGFub3RhAAX6",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1531,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"compressedBodyText": {
-				"final": true,
-				"name": "compressedBodyText",
-				"id": 1535,
-				"since": 79,
-				"type": "CompressedString",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"compressedHeaders": {
-				"final": true,
-				"name": "compressedHeaders",
-				"id": 1546,
-				"since": 79,
-				"type": "CompressedString",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"confidential": {
-				"final": true,
-				"name": "confidential",
-				"id": 1541,
-				"since": 79,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"date": {
-				"final": true,
-				"name": "date",
-				"id": 1536,
-				"since": 79,
-				"type": "Date",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"differentEnvelopeSender": {
-				"final": true,
-				"name": "differentEnvelopeSender",
-				"id": 1544,
-				"since": 79,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"inReplyTo": {
-				"final": true,
-				"name": "inReplyTo",
-				"id": 1540,
-				"since": 79,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"messageId": {
-				"final": true,
-				"name": "messageId",
-				"id": 1539,
-				"since": 79,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"method": {
-				"final": true,
-				"name": "method",
-				"id": 1542,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"ownerEncSessionKey": {
-				"final": false,
-				"name": "ownerEncSessionKey",
-				"id": 1532,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": false,
-				"name": "ownerKeyVersion",
-				"id": 1533,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"phishingStatus": {
-				"final": true,
-				"name": "phishingStatus",
-				"id": 1545,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"replyType": {
-				"final": false,
-				"name": "replyType",
-				"id": 1543,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"state": {
-				"final": true,
-				"name": "state",
-				"id": 1537,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"subject": {
-				"final": true,
-				"name": "subject",
-				"id": 1534,
-				"since": 79,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"unread": {
-				"final": true,
-				"name": "unread",
-				"id": 1538,
-				"since": 79,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"importedAttachments": {
-				"final": true,
-				"name": "importedAttachments",
-				"id": 1551,
-				"since": 79,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "ImportAttachment",
-				"dependency": null
-			},
-			"recipients": {
-				"final": true,
-				"name": "recipients",
-				"id": 1550,
-				"since": 79,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "Recipients",
-				"dependency": null
-			},
-			"references": {
-				"final": true,
-				"name": "references",
-				"id": 1547,
-				"since": 79,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "ImportMailDataMailReference",
-				"dependency": null
-			},
-			"replyTos": {
-				"final": false,
-				"name": "replyTos",
-				"id": 1549,
-				"since": 79,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "EncryptedMailAddress",
-				"dependency": null
-			},
-			"sender": {
-				"final": true,
-				"name": "sender",
-				"id": 1548,
-				"since": 79,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "MailAddress",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImportMailDataMailReference": {
-		"name": "ImportMailDataMailReference",
-		"since": 79,
-		"type": "AGGREGATED_TYPE",
-		"id": 1513,
-		"rootId": "CHR1dGFub3RhAAXp",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1514,
-				"since": 79,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"reference": {
-				"final": false,
-				"name": "reference",
-				"id": 1515,
-				"since": 79,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImportMailGetIn": {
-		"name": "ImportMailGetIn",
-		"since": 79,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1582,
-		"rootId": "CHR1dGFub3RhAAYu",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1583,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"newImportedMailSetName": {
-				"final": false,
-				"name": "newImportedMailSetName",
-				"id": 1597,
-				"since": 80,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"ownerEncSessionKey": {
-				"final": false,
-				"name": "ownerEncSessionKey",
-				"id": 1596,
-				"since": 80,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerGroup": {
-				"final": false,
-				"name": "ownerGroup",
-				"id": 1594,
-				"since": 80,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": false,
-				"name": "ownerKeyVersion",
-				"id": 1595,
-				"since": 80,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"totalMails": {
-				"final": false,
-				"name": "totalMails",
-				"id": 1598,
-				"since": 80,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"targetMailFolder": {
-				"final": true,
-				"name": "targetMailFolder",
-				"id": 1599,
-				"since": 80,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImportMailGetOut": {
-		"name": "ImportMailGetOut",
-		"since": 80,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1591,
-		"rootId": "CHR1dGFub3RhAAY3",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1592,
-				"since": 80,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"mailState": {
-				"final": true,
-				"name": "mailState",
-				"id": 1593,
-				"since": 80,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "ImportMailState",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImportMailPostIn": {
-		"name": "ImportMailPostIn",
-		"since": 79,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1570,
-		"rootId": "CHR1dGFub3RhAAYi",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1571,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"encImports": {
-				"final": false,
-				"name": "encImports",
-				"id": 1578,
-				"since": 79,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "StringWrapper",
-				"dependency": "sys"
-			},
-			"mailState": {
-				"final": true,
-				"name": "mailState",
-				"id": 1577,
-				"since": 79,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "ImportMailState",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImportMailPostOut": {
-		"name": "ImportMailPostOut",
-		"since": 79,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1579,
-		"rootId": "CHR1dGFub3RhAAYr",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1580,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImportMailState": {
-		"name": "ImportMailState",
-		"since": 79,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1559,
-		"rootId": "CHR1dGFub3RhAAYX",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1563,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1561,
-				"since": 79,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1564,
-				"since": 79,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1562,
-				"since": 79,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"failedMails": {
-				"final": false,
-				"name": "failedMails",
-				"id": 1567,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"status": {
-				"final": false,
-				"name": "status",
-				"id": 1565,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"successfulMails": {
-				"final": false,
-				"name": "successfulMails",
-				"id": 1566,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"totalMails": {
-				"final": false,
-				"name": "totalMails",
-				"id": 1600,
-				"since": 80,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"importedMails": {
-				"final": true,
-				"name": "importedMails",
-				"id": 1568,
-				"since": 79,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "ImportedMail",
-				"dependency": null
-			},
-			"targetFolder": {
-				"final": true,
-				"name": "targetFolder",
-				"id": 1569,
-				"since": 79,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ImportedMail": {
-		"name": "ImportedMail",
-		"since": 79,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1552,
-		"rootId": "CHR1dGFub3RhAAYQ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1556,
-				"since": 79,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1554,
-				"since": 79,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1557,
-				"since": 79,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1555,
-				"since": 79,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"mailSetEntry": {
-				"final": false,
-				"name": "mailSetEntry",
-				"id": 1558,
-				"since": 79,
-				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
-				"cardinality": "One",
-				"refType": "MailSetEntry",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"InboxRule": {
-		"name": "InboxRule",
-		"since": 12,
-		"type": "AGGREGATED_TYPE",
-		"id": 573,
-		"rootId": "CHR1dGFub3RhAAI9",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 574,
-				"since": 12,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 575,
-				"since": 12,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"value": {
-				"final": false,
-				"name": "value",
-				"id": 576,
-				"since": 12,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"targetFolder": {
-				"final": false,
-				"name": "targetFolder",
-				"id": 577,
-				"since": 12,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"InternalGroupData": {
-		"name": "InternalGroupData",
-		"since": 16,
-		"type": "AGGREGATED_TYPE",
-		"id": 642,
-		"rootId": "CHR1dGFub3RhAAKC",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 643,
-				"since": 16,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"adminEncGroupKey": {
-				"final": false,
-				"name": "adminEncGroupKey",
-				"id": 646,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"adminKeyVersion": {
-				"final": false,
-				"name": "adminKeyVersion",
-				"id": 1415,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"groupEncPrivEccKey": {
-				"final": true,
-				"name": "groupEncPrivEccKey",
-				"id": 1343,
-				"since": 66,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"groupEncPrivKyberKey": {
-				"final": true,
-				"name": "groupEncPrivKyberKey",
-				"id": 1345,
-				"since": 66,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"groupEncPrivRsaKey": {
-				"final": false,
-				"name": "groupEncPrivRsaKey",
-				"id": 645,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"ownerEncGroupInfoSessionKey": {
-				"final": false,
-				"name": "ownerEncGroupInfoSessionKey",
-				"id": 647,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": false,
-				"name": "ownerKeyVersion",
-				"id": 1416,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"pubEccKey": {
-				"final": true,
-				"name": "pubEccKey",
-				"id": 1342,
-				"since": 66,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"pubKyberKey": {
-				"final": true,
-				"name": "pubKyberKey",
-				"id": 1344,
-				"since": 66,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"pubRsaKey": {
-				"final": false,
-				"name": "pubRsaKey",
-				"id": 644,
-				"since": 16,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"adminGroup": {
-				"final": true,
-				"name": "adminGroup",
-				"id": 874,
-				"since": 25,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "Group",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"InternalRecipientKeyData": {
-		"name": "InternalRecipientKeyData",
-		"since": 11,
-		"type": "AGGREGATED_TYPE",
-		"id": 527,
-		"rootId": "CHR1dGFub3RhAAIP",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 528,
-				"since": 11,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailAddress": {
-				"final": true,
-				"name": "mailAddress",
-				"id": 529,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"protocolVersion": {
-				"final": true,
-				"name": "protocolVersion",
-				"id": 1352,
-				"since": 66,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"pubEncBucketKey": {
-				"final": true,
-				"name": "pubEncBucketKey",
-				"id": 530,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"recipientKeyVersion": {
-				"final": true,
-				"name": "recipientKeyVersion",
-				"id": 531,
-				"since": 11,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"senderKeyVersion": {
-				"final": true,
-				"name": "senderKeyVersion",
-				"id": 1431,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"KnowledgeBaseEntry": {
-		"name": "KnowledgeBaseEntry",
-		"since": 45,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1171,
-		"rootId": "CHR1dGFub3RhAAST",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1175,
-				"since": 45,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1173,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1177,
-				"since": 45,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1176,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1413,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1174,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"description": {
-				"final": false,
-				"name": "description",
-				"id": 1179,
-				"since": 45,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"title": {
-				"final": false,
-				"name": "title",
-				"id": 1178,
-				"since": 45,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"keywords": {
-				"final": false,
-				"name": "keywords",
-				"id": 1180,
-				"since": 45,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "KnowledgeBaseEntryKeyword",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"KnowledgeBaseEntryKeyword": {
-		"name": "KnowledgeBaseEntryKeyword",
-		"since": 45,
-		"type": "AGGREGATED_TYPE",
-		"id": 1168,
-		"rootId": "CHR1dGFub3RhAASQ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1169,
-				"since": 45,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"keyword": {
-				"final": false,
-				"name": "keyword",
-				"id": 1170,
-				"since": 45,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ListUnsubscribeData": {
-		"name": "ListUnsubscribeData",
-		"since": 24,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 867,
-		"rootId": "CHR1dGFub3RhAANj",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 868,
-				"since": 24,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"headers": {
-				"final": false,
-				"name": "headers",
-				"id": 871,
-				"since": 24,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"recipient": {
-				"final": false,
-				"name": "recipient",
-				"id": 870,
-				"since": 24,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"mail": {
-				"final": false,
-				"name": "mail",
-				"id": 869,
-				"since": 24,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"Mail": {
+	"97": {
 		"name": "Mail",
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
@@ -5456,7 +1116,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
-				"refType": "File",
+				"refTypeId": 13,
 				"dependency": null
 			},
 			"bucketKey": {
@@ -5466,7 +1126,7 @@ export const typeModels = {
 				"since": 58,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "BucketKey",
+				"refTypeId": 2043,
 				"dependency": "sys"
 			},
 			"conversationEntry": {
@@ -5476,7 +1136,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
-				"refType": "ConversationEntry",
+				"refTypeId": 84,
 				"dependency": null
 			},
 			"firstRecipient": {
@@ -5486,7 +1146,7 @@ export const typeModels = {
 				"since": 58,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "MailAddress",
+				"refTypeId": 92,
 				"dependency": null
 			},
 			"mailDetails": {
@@ -5496,7 +1156,7 @@ export const typeModels = {
 				"since": 58,
 				"type": "BLOB_ELEMENT_ASSOCIATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "MailDetailsBlob",
+				"refTypeId": 1298,
 				"dependency": null
 			},
 			"mailDetailsDraft": {
@@ -5506,7 +1166,7 @@ export const typeModels = {
 				"since": 58,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
-				"refType": "MailDetailsDraft",
+				"refTypeId": 1290,
 				"dependency": null
 			},
 			"sender": {
@@ -5516,7 +1176,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refType": "MailAddress",
+				"refTypeId": 92,
 				"dependency": null
 			},
 			"sets": {
@@ -5526,141 +1186,14 @@ export const typeModels = {
 				"since": 74,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
-				"refType": "MailFolder",
+				"refTypeId": 429,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"MailAddress": {
-		"name": "MailAddress",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 92,
-		"rootId": "CHR1dGFub3RhAFw",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 93,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"address": {
-				"final": true,
-				"name": "address",
-				"id": 95,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"name": {
-				"final": true,
-				"name": "name",
-				"id": 94,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"contact": {
-				"final": false,
-				"name": "contact",
-				"id": 96,
-				"since": 1,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refType": "Contact",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailAddressProperties": {
-		"name": "MailAddressProperties",
-		"since": 56,
-		"type": "AGGREGATED_TYPE",
-		"id": 1263,
-		"rootId": "CHR1dGFub3RhAATv",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1264,
-				"since": 56,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailAddress": {
-				"final": true,
-				"name": "mailAddress",
-				"id": 1265,
-				"since": 56,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"senderName": {
-				"final": false,
-				"name": "senderName",
-				"id": 1266,
-				"since": 56,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailBag": {
-		"name": "MailBag",
-		"since": 74,
-		"type": "AGGREGATED_TYPE",
-		"id": 1460,
-		"rootId": "CHR1dGFub3RhAAW0",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1461,
-				"since": 74,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"mails": {
-				"final": true,
-				"name": "mails",
-				"id": 1462,
-				"since": 74,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailBox": {
+	"125": {
 		"name": "MailBox",
 		"since": 1,
 		"type": "ELEMENT_TYPE",
@@ -5741,7 +1274,7 @@ export const typeModels = {
 				"since": 74,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "MailBag",
+				"refTypeId": 1460,
 				"dependency": null
 			},
 			"currentMailBag": {
@@ -5751,7 +1284,7 @@ export const typeModels = {
 				"since": 74,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "MailBag",
+				"refTypeId": 1460,
 				"dependency": null
 			},
 			"folders": {
@@ -5761,7 +1294,7 @@ export const typeModels = {
 				"since": 7,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "MailFolderRef",
+				"refTypeId": 440,
 				"dependency": null
 			},
 			"importedAttachments": {
@@ -5771,7 +1304,7 @@ export const typeModels = {
 				"since": 79,
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
-				"refType": "File",
+				"refTypeId": 13,
 				"dependency": null
 			},
 			"mailDetailsDrafts": {
@@ -5781,7 +1314,7 @@ export const typeModels = {
 				"since": 60,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "MailDetailsDraftsRef",
+				"refTypeId": 1315,
 				"dependency": null
 			},
 			"mailImportStates": {
@@ -5791,7 +1324,7 @@ export const typeModels = {
 				"since": 79,
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
-				"refType": "ImportMailState",
+				"refTypeId": 1559,
 				"dependency": null
 			},
 			"receivedAttachments": {
@@ -5801,7 +1334,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
-				"refType": "File",
+				"refTypeId": 13,
 				"dependency": null
 			},
 			"sentAttachments": {
@@ -5811,7 +1344,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
-				"refType": "File",
+				"refTypeId": 13,
 				"dependency": null
 			},
 			"spamResults": {
@@ -5821,310 +1354,63 @@ export const typeModels = {
 				"since": 48,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "SpamResults",
+				"refTypeId": 1217,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"MailDetails": {
-		"name": "MailDetails",
-		"since": 58,
+	"138": {
+		"name": "CreateExternalUserGroupData",
+		"since": 1,
 		"type": "AGGREGATED_TYPE",
-		"id": 1282,
-		"rootId": "CHR1dGFub3RhAAUC",
+		"id": 138,
+		"rootId": "CHR1dGFub3RhAACK",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 1283,
-				"since": 58,
+				"id": 139,
+				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"authStatus": {
+			"externalPwEncUserGroupKey": {
 				"final": false,
-				"name": "authStatus",
-				"id": 1289,
-				"since": 58,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sentDate": {
-				"final": true,
-				"name": "sentDate",
-				"id": 1284,
-				"since": 58,
-				"type": "Date",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"body": {
-				"final": true,
-				"name": "body",
-				"id": 1288,
-				"since": 58,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "Body",
-				"dependency": null
-			},
-			"headers": {
-				"final": true,
-				"name": "headers",
-				"id": 1287,
-				"since": 58,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "Header",
-				"dependency": null
-			},
-			"recipients": {
-				"final": true,
-				"name": "recipients",
-				"id": 1286,
-				"since": 58,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "Recipients",
-				"dependency": null
-			},
-			"replyTos": {
-				"final": true,
-				"name": "replyTos",
-				"id": 1285,
-				"since": 58,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "EncryptedMailAddress",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailDetailsBlob": {
-		"name": "MailDetailsBlob",
-		"since": 58,
-		"type": "BLOB_ELEMENT_TYPE",
-		"id": 1298,
-		"rootId": "CHR1dGFub3RhAAUS",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1302,
-				"since": 58,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1300,
-				"since": 58,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1304,
-				"since": 58,
+				"name": "externalPwEncUserGroupKey",
+				"id": 142,
+				"since": 1,
 				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": false
 			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1303,
-				"since": 58,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
+			"internalUserEncUserGroupKey": {
+				"final": false,
+				"name": "internalUserEncUserGroupKey",
+				"id": 143,
+				"since": 1,
+				"type": "Bytes",
+				"cardinality": "One",
 				"encrypted": false
 			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1408,
+			"internalUserGroupKeyVersion": {
+				"final": false,
+				"name": "internalUserGroupKeyVersion",
+				"id": 1433,
 				"since": 69,
 				"type": "Number",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": false
 			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1301,
-				"since": 58,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"details": {
-				"final": true,
-				"name": "details",
-				"id": 1305,
-				"since": 58,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "MailDetails",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailDetailsDraft": {
-		"name": "MailDetailsDraft",
-		"since": 58,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1290,
-		"rootId": "CHR1dGFub3RhAAUK",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
+			"mailAddress": {
 				"final": false,
-				"name": "_format",
-				"id": 1294,
-				"since": 58,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1292,
-				"since": 58,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1296,
-				"since": 58,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1295,
-				"since": 58,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1407,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1293,
-				"since": 58,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"details": {
-				"final": true,
-				"name": "details",
-				"id": 1297,
-				"since": 58,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "MailDetails",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailDetailsDraftsRef": {
-		"name": "MailDetailsDraftsRef",
-		"since": 60,
-		"type": "AGGREGATED_TYPE",
-		"id": 1315,
-		"rootId": "CHR1dGFub3RhAAUj",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1316,
-				"since": 60,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"list": {
-				"final": true,
-				"name": "list",
-				"id": 1317,
-				"since": 60,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailDetailsDraft",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailExportTokenServicePostOut": {
-		"name": "MailExportTokenServicePostOut",
-		"since": 81,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1605,
-		"rootId": "CHR1dGFub3RhAAZF",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1606,
-				"since": 81,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailExportToken": {
-				"final": false,
-				"name": "mailExportToken",
-				"id": 1607,
-				"since": 81,
+				"name": "mailAddress",
+				"id": 141,
+				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -6134,20 +1420,153 @@ export const typeModels = {
 		"app": "tutanota",
 		"version": "85"
 	},
-	"MailFolder": {
-		"name": "MailFolder",
-		"since": 7,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 429,
-		"rootId": "CHR1dGFub3RhAAGt",
+	"145": {
+		"name": "ExternalUserData",
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 145,
+		"rootId": "CHR1dGFub3RhAACR",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 146,
+				"since": 1,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"externalMailEncMailBoxSessionKey": {
+				"final": false,
+				"name": "externalMailEncMailBoxSessionKey",
+				"id": 673,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"externalMailEncMailGroupInfoSessionKey": {
+				"final": false,
+				"name": "externalMailEncMailGroupInfoSessionKey",
+				"id": 670,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"externalUserEncEntropy": {
+				"final": false,
+				"name": "externalUserEncEntropy",
+				"id": 412,
+				"since": 2,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"externalUserEncMailGroupKey": {
+				"final": false,
+				"name": "externalUserEncMailGroupKey",
+				"id": 148,
+				"since": 1,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"externalUserEncTutanotaPropertiesSessionKey": {
+				"final": false,
+				"name": "externalUserEncTutanotaPropertiesSessionKey",
+				"id": 672,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"externalUserEncUserGroupInfoSessionKey": {
+				"final": false,
+				"name": "externalUserEncUserGroupInfoSessionKey",
+				"id": 150,
+				"since": 1,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"internalMailEncMailGroupInfoSessionKey": {
+				"final": false,
+				"name": "internalMailEncMailGroupInfoSessionKey",
+				"id": 671,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"internalMailEncUserGroupInfoSessionKey": {
+				"final": false,
+				"name": "internalMailEncUserGroupInfoSessionKey",
+				"id": 669,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"internalMailGroupKeyVersion": {
+				"final": false,
+				"name": "internalMailGroupKeyVersion",
+				"id": 1429,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"kdfVersion": {
+				"final": false,
+				"name": "kdfVersion",
+				"id": 1323,
+				"since": 63,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"verifier": {
+				"final": false,
+				"name": "verifier",
+				"id": 149,
+				"since": 1,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"userGroupData": {
+				"final": false,
+				"name": "userGroupData",
+				"id": 151,
+				"since": 1,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 138,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"153": {
+		"name": "ContactList",
+		"since": 1,
+		"type": "ELEMENT_TYPE",
+		"id": 153,
+		"rootId": "CHR1dGFub3RhAACZ",
 		"versioned": false,
 		"encrypted": true,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 433,
-				"since": 7,
+				"id": 157,
+				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -6155,8 +1574,8 @@ export const typeModels = {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 431,
-				"since": 7,
+				"id": 155,
+				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -6164,8 +1583,8 @@ export const typeModels = {
 			"_ownerEncSessionKey": {
 				"final": true,
 				"name": "_ownerEncSessionKey",
-				"id": 434,
-				"since": 7,
+				"id": 593,
+				"since": 13,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -6173,7 +1592,7 @@ export const typeModels = {
 			"_ownerGroup": {
 				"final": true,
 				"name": "_ownerGroup",
-				"id": 589,
+				"id": 592,
 				"since": 13,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
@@ -6182,7 +1601,7 @@ export const typeModels = {
 			"_ownerKeyVersion": {
 				"final": true,
 				"name": "_ownerKeyVersion",
-				"id": 1399,
+				"id": 1397,
 				"since": 69,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
@@ -6191,1291 +1610,39 @@ export const typeModels = {
 			"_permissions": {
 				"final": true,
 				"name": "_permissions",
-				"id": 432,
-				"since": 7,
+				"id": 156,
+				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
-			},
-			"color": {
-				"final": false,
-				"name": "color",
-				"id": 1479,
-				"since": 77,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"folderType": {
-				"final": true,
-				"name": "folderType",
-				"id": 436,
-				"since": 7,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"name": {
-				"final": false,
-				"name": "name",
-				"id": 435,
-				"since": 7,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
 			}
 		},
 		"associations": {
-			"entries": {
+			"contacts": {
 				"final": true,
-				"name": "entries",
-				"id": 1459,
-				"since": 74,
+				"name": "contacts",
+				"id": 160,
+				"since": 1,
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
-				"refType": "MailSetEntry",
+				"refTypeId": 64,
 				"dependency": null
 			},
-			"parentFolder": {
-				"final": true,
-				"name": "parentFolder",
-				"id": 439,
-				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailFolderRef": {
-		"name": "MailFolderRef",
-		"since": 7,
-		"type": "AGGREGATED_TYPE",
-		"id": 440,
-		"rootId": "CHR1dGFub3RhAAG4",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 441,
-				"since": 7,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"folders": {
-				"final": true,
-				"name": "folders",
-				"id": 442,
-				"since": 7,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailSetEntry": {
-		"name": "MailSetEntry",
-		"since": 74,
-		"type": "LIST_ELEMENT_TYPE",
-		"id": 1450,
-		"rootId": "CHR1dGFub3RhAAWq",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
+			"photos": {
 				"final": false,
-				"name": "_format",
-				"id": 1454,
-				"since": 74,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1452,
-				"since": 74,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1455,
-				"since": 74,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1453,
-				"since": 74,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"mail": {
-				"final": true,
-				"name": "mail",
-				"id": 1456,
-				"since": 74,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailboxGroupRoot": {
-		"name": "MailboxGroupRoot",
-		"since": 18,
-		"type": "ELEMENT_TYPE",
-		"id": 693,
-		"rootId": "CHR1dGFub3RhAAK1",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 697,
-				"since": 18,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 695,
-				"since": 18,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 698,
-				"since": 18,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 696,
-				"since": 18,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"calendarEventUpdates": {
-				"final": true,
-				"name": "calendarEventUpdates",
-				"id": 1119,
-				"since": 42,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "CalendarEventUpdateList",
-				"dependency": null
-			},
-			"mailbox": {
-				"final": true,
-				"name": "mailbox",
-				"id": 699,
-				"since": 18,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailBox",
-				"dependency": null
-			},
-			"mailboxProperties": {
-				"final": true,
-				"name": "mailboxProperties",
-				"id": 1203,
-				"since": 47,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "MailboxProperties",
-				"dependency": null
-			},
-			"outOfOfficeNotification": {
-				"final": true,
-				"name": "outOfOfficeNotification",
-				"id": 1150,
-				"since": 44,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "OutOfOfficeNotification",
-				"dependency": null
-			},
-			"outOfOfficeNotificationRecipientList": {
-				"final": true,
-				"name": "outOfOfficeNotificationRecipientList",
-				"id": 1151,
-				"since": 44,
-				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
-				"refType": "OutOfOfficeNotificationRecipientList",
-				"dependency": null
-			},
-			"serverProperties": {
-				"final": true,
-				"name": "serverProperties",
-				"id": 700,
-				"since": 18,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "MailboxServerProperties",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailboxProperties": {
-		"name": "MailboxProperties",
-		"since": 47,
-		"type": "ELEMENT_TYPE",
-		"id": 1195,
-		"rootId": "CHR1dGFub3RhAASr",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1199,
-				"since": 47,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1197,
-				"since": 47,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1201,
-				"since": 47,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1200,
-				"since": 47,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1411,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1198,
-				"since": 47,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"reportMovedMails": {
-				"final": false,
-				"name": "reportMovedMails",
-				"id": 1202,
-				"since": 47,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {
-			"mailAddressProperties": {
-				"final": false,
-				"name": "mailAddressProperties",
-				"id": 1267,
-				"since": 56,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "MailAddressProperties",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MailboxServerProperties": {
-		"name": "MailboxServerProperties",
-		"since": 18,
-		"type": "ELEMENT_TYPE",
-		"id": 677,
-		"rootId": "CHR1dGFub3RhAAKl",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 681,
-				"since": 18,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 679,
-				"since": 18,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 682,
-				"since": 18,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 680,
-				"since": 18,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"whitelistProtectionEnabled": {
-				"final": false,
-				"name": "whitelistProtectionEnabled",
-				"id": 683,
-				"since": 18,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ManageLabelServiceDeleteIn": {
-		"name": "ManageLabelServiceDeleteIn",
-		"since": 77,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1500,
-		"rootId": "CHR1dGFub3RhAAXc",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1501,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"label": {
-				"final": false,
-				"name": "label",
-				"id": 1502,
-				"since": 77,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ManageLabelServiceLabelData": {
-		"name": "ManageLabelServiceLabelData",
-		"since": 77,
-		"type": "AGGREGATED_TYPE",
-		"id": 1480,
-		"rootId": "CHR1dGFub3RhAAXI",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1481,
-				"since": 77,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"color": {
-				"final": false,
-				"name": "color",
-				"id": 1483,
-				"since": 77,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			},
-			"name": {
-				"final": false,
-				"name": "name",
-				"id": 1482,
-				"since": 77,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": true
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ManageLabelServicePostIn": {
-		"name": "ManageLabelServicePostIn",
-		"since": 77,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1484,
-		"rootId": "CHR1dGFub3RhAAXM",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1485,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerEncSessionKey": {
-				"final": false,
-				"name": "ownerEncSessionKey",
-				"id": 1486,
-				"since": 77,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerGroup": {
-				"final": false,
-				"name": "ownerGroup",
-				"id": 1488,
-				"since": 77,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": false,
-				"name": "ownerKeyVersion",
-				"id": 1487,
-				"since": 77,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"data": {
-				"final": false,
-				"name": "data",
-				"id": 1489,
-				"since": 77,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "ManageLabelServiceLabelData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"MoveMailData": {
-		"name": "MoveMailData",
-		"since": 7,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 445,
-		"rootId": "CHR1dGFub3RhAAG9",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 446,
-				"since": 7,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"excludeMailSet": {
-				"final": false,
-				"name": "excludeMailSet",
-				"id": 1644,
-				"since": 85,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refType": "MailFolder",
-				"dependency": null
-			},
-			"mails": {
-				"final": false,
-				"name": "mails",
-				"id": 448,
-				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "Mail",
-				"dependency": null
-			},
-			"targetFolder": {
-				"final": false,
-				"name": "targetFolder",
-				"id": 447,
-				"since": 7,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"NewDraftAttachment": {
-		"name": "NewDraftAttachment",
-		"since": 11,
-		"type": "AGGREGATED_TYPE",
-		"id": 486,
-		"rootId": "CHR1dGFub3RhAAHm",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 487,
-				"since": 11,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"encCid": {
-				"final": true,
-				"name": "encCid",
-				"id": 925,
-				"since": 32,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"encFileName": {
-				"final": true,
-				"name": "encFileName",
-				"id": 488,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"encMimeType": {
-				"final": true,
-				"name": "encMimeType",
-				"id": 489,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"referenceTokens": {
-				"final": true,
-				"name": "referenceTokens",
-				"id": 1226,
-				"since": 52,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "BlobReferenceTokenWrapper",
-				"dependency": "sys"
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"NewImportAttachment": {
-		"name": "NewImportAttachment",
-		"since": 79,
-		"type": "AGGREGATED_TYPE",
-		"id": 1516,
-		"rootId": "CHR1dGFub3RhAAXs",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1517,
-				"since": 79,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"encCid": {
-				"final": true,
-				"name": "encCid",
-				"id": 1522,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"encFileHash": {
-				"final": true,
-				"name": "encFileHash",
-				"id": 1519,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"encFileName": {
-				"final": true,
-				"name": "encFileName",
-				"id": 1520,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"encMimeType": {
-				"final": true,
-				"name": "encMimeType",
-				"id": 1521,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerEncFileHashSessionKey": {
-				"final": true,
-				"name": "ownerEncFileHashSessionKey",
-				"id": 1518,
-				"since": 79,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"referenceTokens": {
-				"final": true,
-				"name": "referenceTokens",
-				"id": 1523,
-				"since": 79,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "BlobReferenceTokenWrapper",
-				"dependency": "sys"
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"NewsId": {
-		"name": "NewsId",
-		"since": 55,
-		"type": "AGGREGATED_TYPE",
-		"id": 1245,
-		"rootId": "CHR1dGFub3RhAATd",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1246,
-				"since": 55,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"newsItemId": {
-				"final": false,
-				"name": "newsItemId",
-				"id": 1248,
-				"since": 55,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"newsItemName": {
-				"final": false,
-				"name": "newsItemName",
-				"id": 1247,
-				"since": 55,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"NewsIn": {
-		"name": "NewsIn",
-		"since": 55,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1259,
-		"rootId": "CHR1dGFub3RhAATr",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1260,
-				"since": 55,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"newsItemId": {
-				"final": false,
-				"name": "newsItemId",
-				"id": 1261,
-				"since": 55,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"NewsOut": {
-		"name": "NewsOut",
-		"since": 55,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1256,
-		"rootId": "CHR1dGFub3RhAATo",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1257,
-				"since": 55,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"newsItemIds": {
-				"final": false,
-				"name": "newsItemIds",
-				"id": 1258,
-				"since": 55,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "NewsId",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"NotificationMail": {
-		"name": "NotificationMail",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 223,
-		"rootId": "CHR1dGFub3RhAADf",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 224,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"bodyText": {
-				"final": false,
-				"name": "bodyText",
-				"id": 226,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailboxLink": {
-				"final": false,
-				"name": "mailboxLink",
-				"id": 417,
-				"since": 3,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"recipientMailAddress": {
-				"final": false,
-				"name": "recipientMailAddress",
-				"id": 227,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"recipientName": {
-				"final": false,
-				"name": "recipientName",
-				"id": 228,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"subject": {
-				"final": false,
-				"name": "subject",
-				"id": 225,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"OutOfOfficeNotification": {
-		"name": "OutOfOfficeNotification",
-		"since": 44,
-		"type": "ELEMENT_TYPE",
-		"id": 1131,
-		"rootId": "CHR1dGFub3RhAARr",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1135,
-				"since": 44,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1133,
-				"since": 44,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1136,
-				"since": 44,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1134,
-				"since": 44,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"enabled": {
-				"final": false,
-				"name": "enabled",
-				"id": 1137,
-				"since": 44,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"endDate": {
-				"final": false,
-				"name": "endDate",
-				"id": 1139,
-				"since": 44,
-				"type": "Date",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"startDate": {
-				"final": false,
-				"name": "startDate",
-				"id": 1138,
-				"since": 44,
-				"type": "Date",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"notifications": {
-				"final": false,
-				"name": "notifications",
-				"id": 1140,
-				"since": 44,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "OutOfOfficeNotificationMessage",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"OutOfOfficeNotificationMessage": {
-		"name": "OutOfOfficeNotificationMessage",
-		"since": 44,
-		"type": "AGGREGATED_TYPE",
-		"id": 1126,
-		"rootId": "CHR1dGFub3RhAARm",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1127,
-				"since": 44,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"message": {
-				"final": false,
-				"name": "message",
-				"id": 1129,
-				"since": 44,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"subject": {
-				"final": false,
-				"name": "subject",
-				"id": 1128,
-				"since": 44,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"type": {
-				"final": false,
-				"name": "type",
-				"id": 1130,
-				"since": 44,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"OutOfOfficeNotificationRecipientList": {
-		"name": "OutOfOfficeNotificationRecipientList",
-		"since": 44,
-		"type": "AGGREGATED_TYPE",
-		"id": 1147,
-		"rootId": "CHR1dGFub3RhAAR7",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1148,
-				"since": 44,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"list": {
-				"final": true,
-				"name": "list",
-				"id": 1149,
-				"since": 44,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "OutOfOfficeNotificationRecipient",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"PhishingMarkerWebsocketData": {
-		"name": "PhishingMarkerWebsocketData",
-		"since": 40,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1034,
-		"rootId": "CHR1dGFub3RhAAQK",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1035,
-				"since": 40,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"lastId": {
-				"final": false,
-				"name": "lastId",
-				"id": 1036,
-				"since": 40,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"markers": {
-				"final": false,
-				"name": "markers",
-				"id": 1037,
-				"since": 40,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "ReportedMailFieldMarker",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"PhotosRef": {
-		"name": "PhotosRef",
-		"since": 23,
-		"type": "AGGREGATED_TYPE",
-		"id": 853,
-		"rootId": "CHR1dGFub3RhAANV",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 854,
+				"name": "photos",
+				"id": 856,
 				"since": 23,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"files": {
-				"final": true,
-				"name": "files",
-				"id": 855,
-				"since": 23,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "File",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ReceiveInfoServiceData": {
-		"name": "ReceiveInfoServiceData",
-		"since": 12,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 570,
-		"rootId": "CHR1dGFub3RhAAI6",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 571,
-				"since": 12,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"language": {
-				"final": true,
-				"name": "language",
-				"id": 1121,
-				"since": 42,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ReceiveInfoServicePostOut": {
-		"name": "ReceiveInfoServicePostOut",
-		"since": 84,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1641,
-		"rootId": "CHR1dGFub3RhAAZp",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1642,
-				"since": 84,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"outdatedVersion": {
-				"final": true,
-				"name": "outdatedVersion",
-				"id": 1643,
-				"since": 84,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"Recipients": {
-		"name": "Recipients",
-		"since": 58,
-		"type": "AGGREGATED_TYPE",
-		"id": 1277,
-		"rootId": "CHR1dGFub3RhAAT9",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1278,
-				"since": 58,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"bccRecipients": {
-				"final": true,
-				"name": "bccRecipients",
-				"id": 1281,
-				"since": 58,
 				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "MailAddress",
-				"dependency": null
-			},
-			"ccRecipients": {
-				"final": true,
-				"name": "ccRecipients",
-				"id": 1280,
-				"since": 58,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "MailAddress",
-				"dependency": null
-			},
-			"toRecipients": {
-				"final": true,
-				"name": "toRecipients",
-				"id": 1279,
-				"since": 58,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "MailAddress",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 853,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"RemoteImapSyncInfo": {
+	"183": {
 		"name": "RemoteImapSyncInfo",
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
@@ -7538,785 +1705,88 @@ export const typeModels = {
 				"since": 1,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
-				"refType": "Mail",
+				"refTypeId": 97,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"ReportMailPostData": {
-		"name": "ReportMailPostData",
-		"since": 40,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1066,
-		"rootId": "CHR1dGFub3RhAAQq",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1067,
-				"since": 40,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailSessionKey": {
-				"final": false,
-				"name": "mailSessionKey",
-				"id": 1068,
-				"since": 40,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"reportType": {
-				"final": false,
-				"name": "reportType",
-				"id": 1082,
-				"since": 41,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"mailId": {
-				"final": false,
-				"name": "mailId",
-				"id": 1069,
-				"since": 40,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ReportedMailFieldMarker": {
-		"name": "ReportedMailFieldMarker",
-		"since": 40,
-		"type": "AGGREGATED_TYPE",
-		"id": 1023,
-		"rootId": "CHR1dGFub3RhAAP_",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1024,
-				"since": 40,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"marker": {
-				"final": false,
-				"name": "marker",
-				"id": 1025,
-				"since": 40,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"status": {
-				"final": false,
-				"name": "status",
-				"id": 1026,
-				"since": 40,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ResolveConversationsServiceGetIn": {
-		"name": "ResolveConversationsServiceGetIn",
-		"since": 85,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1645,
-		"rootId": "CHR1dGFub3RhAAZt",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1646,
-				"since": 85,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"conversationLists": {
-				"final": true,
-				"name": "conversationLists",
-				"id": 1647,
-				"since": 85,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "GeneratedIdWrapper",
-				"dependency": "sys"
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"ResolveConversationsServiceGetOut": {
-		"name": "ResolveConversationsServiceGetOut",
-		"since": 85,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1648,
-		"rootId": "CHR1dGFub3RhAAZw",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1649,
-				"since": 85,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"mailIds": {
-				"final": true,
-				"name": "mailIds",
-				"id": 1650,
-				"since": 85,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "IdTupleWrapper",
-				"dependency": "sys"
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"SecureExternalRecipientKeyData": {
-		"name": "SecureExternalRecipientKeyData",
-		"since": 11,
-		"type": "AGGREGATED_TYPE",
-		"id": 532,
-		"rootId": "CHR1dGFub3RhAAIU",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 533,
-				"since": 11,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"kdfVersion": {
-				"final": true,
-				"name": "kdfVersion",
-				"id": 1324,
-				"since": 63,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailAddress": {
-				"final": true,
-				"name": "mailAddress",
-				"id": 534,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerEncBucketKey": {
-				"final": true,
-				"name": "ownerEncBucketKey",
-				"id": 599,
-				"since": 13,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"ownerKeyVersion": {
-				"final": true,
-				"name": "ownerKeyVersion",
-				"id": 1417,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"passwordVerifier": {
-				"final": true,
-				"name": "passwordVerifier",
-				"id": 536,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"pwEncCommunicationKey": {
-				"final": true,
-				"name": "pwEncCommunicationKey",
-				"id": 540,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"salt": {
-				"final": true,
-				"name": "salt",
-				"id": 538,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"saltHash": {
-				"final": true,
-				"name": "saltHash",
-				"id": 539,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"userGroupKeyVersion": {
-				"final": false,
-				"name": "userGroupKeyVersion",
-				"id": 1445,
-				"since": 72,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"SendDraftData": {
-		"name": "SendDraftData",
-		"since": 11,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 547,
-		"rootId": "CHR1dGFub3RhAAIj",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 548,
-				"since": 11,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"bucketEncMailSessionKey": {
-				"final": true,
-				"name": "bucketEncMailSessionKey",
-				"id": 551,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"calendarMethod": {
-				"final": false,
-				"name": "calendarMethod",
-				"id": 1117,
-				"since": 42,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"language": {
-				"final": true,
-				"name": "language",
-				"id": 549,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"mailSessionKey": {
-				"final": true,
-				"name": "mailSessionKey",
-				"id": 550,
-				"since": 11,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"plaintext": {
-				"final": true,
-				"name": "plaintext",
-				"id": 675,
-				"since": 18,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"senderNameUnencrypted": {
-				"final": true,
-				"name": "senderNameUnencrypted",
-				"id": 552,
-				"since": 11,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"sessionEncEncryptionAuthStatus": {
-				"final": true,
-				"name": "sessionEncEncryptionAuthStatus",
-				"id": 1444,
-				"since": 71,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"attachmentKeyData": {
-				"final": true,
-				"name": "attachmentKeyData",
-				"id": 555,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "AttachmentKeyData",
-				"dependency": null
-			},
-			"internalRecipientKeyData": {
-				"final": true,
-				"name": "internalRecipientKeyData",
-				"id": 553,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "InternalRecipientKeyData",
-				"dependency": null
-			},
-			"mail": {
-				"final": true,
-				"name": "mail",
-				"id": 556,
-				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "Mail",
-				"dependency": null
-			},
-			"secureExternalRecipientKeyData": {
-				"final": true,
-				"name": "secureExternalRecipientKeyData",
-				"id": 554,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "SecureExternalRecipientKeyData",
-				"dependency": null
-			},
-			"symEncInternalRecipientKeyData": {
-				"final": true,
-				"name": "symEncInternalRecipientKeyData",
-				"id": 1353,
-				"since": 66,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "SymEncInternalRecipientKeyData",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"SendDraftReturn": {
-		"name": "SendDraftReturn",
-		"since": 11,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 557,
-		"rootId": "CHR1dGFub3RhAAIt",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 558,
-				"since": 11,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"messageId": {
-				"final": false,
-				"name": "messageId",
-				"id": 559,
-				"since": 11,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sentDate": {
-				"final": false,
-				"name": "sentDate",
-				"id": 560,
-				"since": 11,
-				"type": "Date",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"notifications": {
-				"final": false,
-				"name": "notifications",
-				"id": 561,
-				"since": 11,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "NotificationMail",
-				"dependency": null
-			},
-			"sentMail": {
-				"final": true,
-				"name": "sentMail",
-				"id": 562,
-				"since": 11,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"SharedGroupData": {
-		"name": "SharedGroupData",
-		"since": 38,
-		"type": "AGGREGATED_TYPE",
-		"id": 992,
-		"rootId": "CHR1dGFub3RhAAPg",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 993,
-				"since": 38,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"bucketEncInvitationSessionKey": {
-				"final": false,
-				"name": "bucketEncInvitationSessionKey",
-				"id": 998,
-				"since": 38,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"capability": {
-				"final": false,
-				"name": "capability",
-				"id": 994,
-				"since": 38,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sessionEncInviterName": {
-				"final": false,
-				"name": "sessionEncInviterName",
-				"id": 997,
-				"since": 38,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sessionEncSharedGroupKey": {
-				"final": false,
-				"name": "sessionEncSharedGroupKey",
-				"id": 995,
-				"since": 38,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sessionEncSharedGroupName": {
-				"final": false,
-				"name": "sessionEncSharedGroupName",
-				"id": 996,
-				"since": 38,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sharedGroup": {
-				"final": false,
-				"name": "sharedGroup",
-				"id": 1001,
-				"since": 38,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sharedGroupEncInviterGroupInfoKey": {
-				"final": true,
-				"name": "sharedGroupEncInviterGroupInfoKey",
-				"id": 999,
-				"since": 38,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sharedGroupEncSharedGroupInfoKey": {
-				"final": true,
-				"name": "sharedGroupEncSharedGroupInfoKey",
-				"id": 1000,
-				"since": 38,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"sharedGroupKeyVersion": {
-				"final": true,
-				"name": "sharedGroupKeyVersion",
-				"id": 1420,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"SimpleMoveMailPostIn": {
-		"name": "SimpleMoveMailPostIn",
-		"since": 76,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1469,
-		"rootId": "CHR1dGFub3RhAAW9",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1470,
-				"since": 76,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"destinationSetType": {
-				"final": false,
-				"name": "destinationSetType",
-				"id": 1472,
-				"since": 76,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"mails": {
-				"final": false,
-				"name": "mails",
-				"id": 1471,
-				"since": 76,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"SpamResults": {
-		"name": "SpamResults",
-		"since": 48,
-		"type": "AGGREGATED_TYPE",
-		"id": 1217,
-		"rootId": "CHR1dGFub3RhAATB",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1218,
-				"since": 48,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"list": {
-				"final": true,
-				"name": "list",
-				"id": 1219,
-				"since": 48,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "SpamResult",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"Subfiles": {
-		"name": "Subfiles",
+	"190": {
+		"name": "ImapFolder",
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
-		"id": 11,
-		"rootId": "CHR1dGFub3RhAAs",
+		"id": 190,
+		"rootId": "CHR1dGFub3RhAAC-",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 12,
+				"id": 191,
 				"since": 1,
 				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"lastseenuid": {
+				"final": false,
+				"name": "lastseenuid",
+				"id": 193,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"name": {
+				"final": false,
+				"name": "name",
+				"id": 192,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"uidvalidity": {
+				"final": false,
+				"name": "uidvalidity",
+				"id": 194,
+				"since": 1,
+				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"files": {
+			"syncInfo": {
 				"final": true,
-				"name": "files",
-				"id": 27,
+				"name": "syncInfo",
+				"id": 195,
 				"since": 1,
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
-				"refType": "File",
+				"refTypeId": 183,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"SupportCategory": {
-		"name": "SupportCategory",
-		"since": 82,
-		"type": "AGGREGATED_TYPE",
-		"id": 1626,
-		"rootId": "CHR1dGFub3RhAAZa",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1627,
-				"since": 82,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"icon": {
-				"final": false,
-				"name": "icon",
-				"id": 1632,
-				"since": 82,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"introductionDE": {
-				"final": false,
-				"name": "introductionDE",
-				"id": 1631,
-				"since": 82,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"introductionEN": {
-				"final": false,
-				"name": "introductionEN",
-				"id": 1630,
-				"since": 82,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"nameDE": {
-				"final": false,
-				"name": "nameDE",
-				"id": 1629,
-				"since": 82,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"nameEN": {
-				"final": false,
-				"name": "nameEN",
-				"id": 1628,
-				"since": 82,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"topics": {
-				"final": false,
-				"name": "topics",
-				"id": 1633,
-				"since": 82,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refType": "SupportTopic",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"SupportData": {
-		"name": "SupportData",
-		"since": 82,
+	"196": {
+		"name": "ImapSyncState",
+		"since": 1,
 		"type": "ELEMENT_TYPE",
-		"id": 1634,
-		"rootId": "CHR1dGFub3RhAAZi",
+		"id": 196,
+		"rootId": "CHR1dGFub3RhAADE",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 1638,
-				"since": 82,
+				"id": 200,
+				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -8324,8 +1794,8 @@ export const typeModels = {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 1636,
-				"since": 82,
+				"id": 198,
+				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -8333,8 +1803,8 @@ export const typeModels = {
 			"_ownerGroup": {
 				"final": true,
 				"name": "_ownerGroup",
-				"id": 1639,
-				"since": 82,
+				"id": 595,
+				"since": 13,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -8342,329 +1812,99 @@ export const typeModels = {
 			"_permissions": {
 				"final": true,
 				"name": "_permissions",
-				"id": 1637,
-				"since": 82,
+				"id": 199,
+				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"categories": {
+			"folders": {
 				"final": false,
-				"name": "categories",
-				"id": 1640,
-				"since": 82,
+				"name": "folders",
+				"id": 201,
+				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "SupportCategory",
+				"refTypeId": 190,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"SupportTopic": {
-		"name": "SupportTopic",
-		"since": 82,
+	"209": {
+		"name": "ImapSyncConfiguration",
+		"since": 1,
 		"type": "AGGREGATED_TYPE",
-		"id": 1618,
-		"rootId": "CHR1dGFub3RhAAZS",
+		"id": 209,
+		"rootId": "CHR1dGFub3RhAADR",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_id": {
 				"final": true,
 				"name": "_id",
-				"id": 1619,
-				"since": 82,
+				"id": 210,
+				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"issueDE": {
+			"host": {
 				"final": false,
-				"name": "issueDE",
-				"id": 1622,
-				"since": 82,
+				"name": "host",
+				"id": 211,
+				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"issueEN": {
+			"password": {
 				"final": false,
-				"name": "issueEN",
-				"id": 1621,
-				"since": 82,
+				"name": "password",
+				"id": 214,
+				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"lastUpdated": {
+			"port": {
 				"final": false,
-				"name": "lastUpdated",
-				"id": 1620,
-				"since": 82,
-				"type": "Date",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"solutionHtmlDE": {
-				"final": false,
-				"name": "solutionHtmlDE",
-				"id": 1624,
-				"since": 82,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"solutionHtmlEN": {
-				"final": false,
-				"name": "solutionHtmlEN",
-				"id": 1623,
-				"since": 82,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"visibility": {
-				"final": false,
-				"name": "visibility",
-				"id": 1625,
-				"since": 82,
+				"name": "port",
+				"id": 212,
+				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"SymEncInternalRecipientKeyData": {
-		"name": "SymEncInternalRecipientKeyData",
-		"since": 66,
-		"type": "AGGREGATED_TYPE",
-		"id": 1347,
-		"rootId": "CHR1dGFub3RhAAVD",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1348,
-				"since": 66,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
 			},
-			"mailAddress": {
-				"final": true,
-				"name": "mailAddress",
-				"id": 1349,
-				"since": 66,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"symEncBucketKey": {
-				"final": true,
-				"name": "symEncBucketKey",
-				"id": 1350,
-				"since": 66,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"symKeyVersion": {
+			"user": {
 				"final": false,
-				"name": "symKeyVersion",
-				"id": 1435,
-				"since": 69,
-				"type": "Number",
+				"name": "user",
+				"id": 213,
+				"since": 1,
+				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"keyGroup": {
-				"final": true,
-				"name": "keyGroup",
-				"id": 1351,
-				"since": 66,
+			"imapSyncState": {
+				"final": false,
+				"name": "imapSyncState",
+				"id": 215,
+				"since": 1,
 				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 196,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"TemplateGroupRoot": {
-		"name": "TemplateGroupRoot",
-		"since": 45,
-		"type": "ELEMENT_TYPE",
-		"id": 1181,
-		"rootId": "CHR1dGFub3RhAASd",
-		"versioned": false,
-		"encrypted": true,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1185,
-				"since": 45,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_id": {
-				"final": true,
-				"name": "_id",
-				"id": 1183,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"_ownerEncSessionKey": {
-				"final": true,
-				"name": "_ownerEncSessionKey",
-				"id": 1187,
-				"since": 45,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerGroup": {
-				"final": true,
-				"name": "_ownerGroup",
-				"id": 1186,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_ownerKeyVersion": {
-				"final": true,
-				"name": "_ownerKeyVersion",
-				"id": 1412,
-				"since": 69,
-				"type": "Number",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"_permissions": {
-				"final": true,
-				"name": "_permissions",
-				"id": 1184,
-				"since": 45,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"knowledgeBase": {
-				"final": true,
-				"name": "knowledgeBase",
-				"id": 1189,
-				"since": 45,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "KnowledgeBaseEntry",
-				"dependency": null
-			},
-			"templates": {
-				"final": true,
-				"name": "templates",
-				"id": 1188,
-				"since": 45,
-				"type": "LIST_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "EmailTemplate",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"TranslationGetIn": {
-		"name": "TranslationGetIn",
-		"since": 70,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1436,
-		"rootId": "CHR1dGFub3RhAAWc",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1437,
-				"since": 70,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"lang": {
-				"final": true,
-				"name": "lang",
-				"id": 1438,
-				"since": 70,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"TranslationGetOut": {
-		"name": "TranslationGetOut",
-		"since": 70,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1439,
-		"rootId": "CHR1dGFub3RhAAWf",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1440,
-				"since": 70,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"giftCardSubject": {
-				"final": false,
-				"name": "giftCardSubject",
-				"id": 1441,
-				"since": 70,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"invitationSubject": {
-				"final": false,
-				"name": "invitationSubject",
-				"id": 1442,
-				"since": 70,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"TutanotaProperties": {
+	"216": {
 		"name": "TutanotaProperties",
 		"since": 1,
 		"type": "ELEMENT_TYPE",
@@ -8835,7 +2075,7 @@ export const typeModels = {
 				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "ImapSyncConfiguration",
+				"refTypeId": 209,
 				"dependency": null
 			},
 			"inboxRules": {
@@ -8845,7 +2085,7 @@ export const typeModels = {
 				"since": 12,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "InboxRule",
+				"refTypeId": 573,
 				"dependency": null
 			},
 			"lastPushedMail": {
@@ -8855,70 +2095,95 @@ export const typeModels = {
 				"since": 1,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
-				"refType": "Mail",
+				"refTypeId": 97,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"UnreadMailStatePostIn": {
-		"name": "UnreadMailStatePostIn",
-		"since": 76,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1474,
-		"rootId": "CHR1dGFub3RhAAXC",
+	"223": {
+		"name": "NotificationMail",
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 223,
+		"rootId": "CHR1dGFub3RhAADf",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1475,
-				"since": 76,
-				"type": "Number",
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 224,
+				"since": 1,
+				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"unread": {
+			"bodyText": {
 				"final": false,
-				"name": "unread",
-				"id": 1477,
-				"since": 76,
-				"type": "Boolean",
+				"name": "bodyText",
+				"id": 226,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailboxLink": {
+				"final": false,
+				"name": "mailboxLink",
+				"id": 417,
+				"since": 3,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"recipientMailAddress": {
+				"final": false,
+				"name": "recipientMailAddress",
+				"id": 227,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"recipientName": {
+				"final": false,
+				"name": "recipientName",
+				"id": 228,
+				"since": 1,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"subject": {
+				"final": false,
+				"name": "subject",
+				"id": 225,
+				"since": 1,
+				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
-		"associations": {
-			"mails": {
-				"final": false,
-				"name": "mails",
-				"id": 1476,
-				"since": 76,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refType": "Mail",
-				"dependency": null
-			}
-		},
+		"associations": {},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"UpdateMailFolderData": {
-		"name": "UpdateMailFolderData",
-		"since": 59,
+	"419": {
+		"name": "DeleteMailData",
+		"since": 5,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1311,
-		"rootId": "CHR1dGFub3RhAAUf",
+		"id": 419,
+		"rootId": "CHR1dGFub3RhAAGj",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 1312,
-				"since": 59,
+				"id": 420,
+				"since": 5,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -8926,83 +2191,1465 @@ export const typeModels = {
 		},
 		"associations": {
 			"folder": {
-				"final": false,
+				"final": true,
 				"name": "folder",
-				"id": 1313,
-				"since": 59,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refType": "MailFolder",
-				"dependency": null
-			},
-			"newParent": {
-				"final": false,
-				"name": "newParent",
-				"id": 1314,
-				"since": 59,
+				"id": 724,
+				"since": 19,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
-				"refType": "MailFolder",
+				"refTypeId": 429,
+				"dependency": null
+			},
+			"mails": {
+				"final": false,
+				"name": "mails",
+				"id": 421,
+				"since": 5,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 97,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"UserAccountCreateData": {
-		"name": "UserAccountCreateData",
-		"since": 16,
+	"429": {
+		"name": "MailFolder",
+		"since": 7,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 429,
+		"rootId": "CHR1dGFub3RhAAGt",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 433,
+				"since": 7,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 431,
+				"since": 7,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 434,
+				"since": 7,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 589,
+				"since": 13,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1399,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 432,
+				"since": 7,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"color": {
+				"final": false,
+				"name": "color",
+				"id": 1479,
+				"since": 77,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"folderType": {
+				"final": true,
+				"name": "folderType",
+				"id": 436,
+				"since": 7,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"name": {
+				"final": false,
+				"name": "name",
+				"id": 435,
+				"since": 7,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"entries": {
+				"final": true,
+				"name": "entries",
+				"id": 1459,
+				"since": 74,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1450,
+				"dependency": null
+			},
+			"parentFolder": {
+				"final": true,
+				"name": "parentFolder",
+				"id": 439,
+				"since": 7,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"440": {
+		"name": "MailFolderRef",
+		"since": 7,
+		"type": "AGGREGATED_TYPE",
+		"id": 440,
+		"rootId": "CHR1dGFub3RhAAG4",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 441,
+				"since": 7,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"folders": {
+				"final": true,
+				"name": "folders",
+				"id": 442,
+				"since": 7,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"445": {
+		"name": "MoveMailData",
+		"since": 7,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 663,
-		"rootId": "CHR1dGFub3RhAAKX",
+		"id": 445,
+		"rootId": "CHR1dGFub3RhAAG9",
 		"versioned": false,
 		"encrypted": false,
 		"values": {
 			"_format": {
 				"final": false,
 				"name": "_format",
-				"id": 664,
-				"since": 16,
+				"id": 446,
+				"since": 7,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
-			},
-			"date": {
-				"final": false,
-				"name": "date",
-				"id": 665,
-				"since": 16,
-				"type": "Date",
-				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"userData": {
+			"excludeMailSet": {
 				"final": false,
-				"name": "userData",
-				"id": 666,
-				"since": 16,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refType": "UserAccountUserData",
+				"name": "excludeMailSet",
+				"id": 1644,
+				"since": 85,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
 				"dependency": null
 			},
-			"userGroupData": {
+			"mails": {
 				"final": false,
-				"name": "userGroupData",
-				"id": 667,
-				"since": 16,
-				"type": "AGGREGATION",
+				"name": "mails",
+				"id": 448,
+				"since": 7,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 97,
+				"dependency": null
+			},
+			"targetFolder": {
+				"final": false,
+				"name": "targetFolder",
+				"id": 447,
+				"since": 7,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
-				"refType": "InternalGroupData",
+				"refTypeId": 429,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"UserAccountUserData": {
+	"450": {
+		"name": "CreateMailFolderData",
+		"since": 7,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 450,
+		"rootId": "CHR1dGFub3RhAAHC",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 451,
+				"since": 7,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"folderName": {
+				"final": true,
+				"name": "folderName",
+				"id": 453,
+				"since": 7,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"ownerEncSessionKey": {
+				"final": true,
+				"name": "ownerEncSessionKey",
+				"id": 454,
+				"since": 7,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerGroup": {
+				"final": true,
+				"name": "ownerGroup",
+				"id": 1268,
+				"since": 57,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": true,
+				"name": "ownerKeyVersion",
+				"id": 1414,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"parentFolder": {
+				"final": true,
+				"name": "parentFolder",
+				"id": 452,
+				"since": 7,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"455": {
+		"name": "CreateMailFolderReturn",
+		"since": 7,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 455,
+		"rootId": "CHR1dGFub3RhAAHH",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 456,
+				"since": 7,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"newFolder": {
+				"final": false,
+				"name": "newFolder",
+				"id": 457,
+				"since": 7,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"458": {
+		"name": "DeleteMailFolderData",
+		"since": 7,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 458,
+		"rootId": "CHR1dGFub3RhAAHK",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 459,
+				"since": 7,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"folders": {
+				"final": false,
+				"name": "folders",
+				"id": 460,
+				"since": 7,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"473": {
+		"name": "EncryptTutanotaPropertiesData",
+		"since": 9,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 473,
+		"rootId": "CHR1dGFub3RhAAHZ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 474,
+				"since": 9,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"symEncSessionKey": {
+				"final": false,
+				"name": "symEncSessionKey",
+				"id": 476,
+				"since": 9,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"symKeyVersion": {
+				"final": false,
+				"name": "symKeyVersion",
+				"id": 1428,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"properties": {
+				"final": false,
+				"name": "properties",
+				"id": 475,
+				"since": 9,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 216,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"482": {
+		"name": "DraftRecipient",
+		"since": 11,
+		"type": "AGGREGATED_TYPE",
+		"id": 482,
+		"rootId": "CHR1dGFub3RhAAHi",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 483,
+				"since": 11,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailAddress": {
+				"final": true,
+				"name": "mailAddress",
+				"id": 485,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"name": {
+				"final": true,
+				"name": "name",
+				"id": 484,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"486": {
+		"name": "NewDraftAttachment",
+		"since": 11,
+		"type": "AGGREGATED_TYPE",
+		"id": 486,
+		"rootId": "CHR1dGFub3RhAAHm",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 487,
+				"since": 11,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encCid": {
+				"final": true,
+				"name": "encCid",
+				"id": 925,
+				"since": 32,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"encFileName": {
+				"final": true,
+				"name": "encFileName",
+				"id": 488,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encMimeType": {
+				"final": true,
+				"name": "encMimeType",
+				"id": 489,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"referenceTokens": {
+				"final": true,
+				"name": "referenceTokens",
+				"id": 1226,
+				"since": 52,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1990,
+				"dependency": "sys"
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"491": {
+		"name": "DraftAttachment",
+		"since": 11,
+		"type": "AGGREGATED_TYPE",
+		"id": 491,
+		"rootId": "CHR1dGFub3RhAAHr",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 492,
+				"since": 11,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerEncFileSessionKey": {
+				"final": true,
+				"name": "ownerEncFileSessionKey",
+				"id": 493,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": true,
+				"name": "ownerKeyVersion",
+				"id": 1430,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"existingFile": {
+				"final": true,
+				"name": "existingFile",
+				"id": 495,
+				"since": 11,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 13,
+				"dependency": null
+			},
+			"newFile": {
+				"final": true,
+				"name": "newFile",
+				"id": 494,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 486,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"496": {
+		"name": "DraftData",
+		"since": 11,
+		"type": "AGGREGATED_TYPE",
+		"id": 496,
+		"rootId": "CHR1dGFub3RhAAHw",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 497,
+				"since": 11,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"bodyText": {
+				"final": true,
+				"name": "bodyText",
+				"id": 499,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"compressedBodyText": {
+				"final": true,
+				"name": "compressedBodyText",
+				"id": 1194,
+				"since": 46,
+				"type": "CompressedString",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"confidential": {
+				"final": true,
+				"name": "confidential",
+				"id": 502,
+				"since": 11,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"method": {
+				"final": true,
+				"name": "method",
+				"id": 1116,
+				"since": 42,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"senderMailAddress": {
+				"final": true,
+				"name": "senderMailAddress",
+				"id": 500,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"senderName": {
+				"final": true,
+				"name": "senderName",
+				"id": 501,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"subject": {
+				"final": true,
+				"name": "subject",
+				"id": 498,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"addedAttachments": {
+				"final": true,
+				"name": "addedAttachments",
+				"id": 506,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 491,
+				"dependency": null
+			},
+			"bccRecipients": {
+				"final": true,
+				"name": "bccRecipients",
+				"id": 505,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 482,
+				"dependency": null
+			},
+			"ccRecipients": {
+				"final": true,
+				"name": "ccRecipients",
+				"id": 504,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 482,
+				"dependency": null
+			},
+			"removedAttachments": {
+				"final": true,
+				"name": "removedAttachments",
+				"id": 507,
+				"since": 11,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 13,
+				"dependency": null
+			},
+			"replyTos": {
+				"final": false,
+				"name": "replyTos",
+				"id": 819,
+				"since": 21,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 612,
+				"dependency": null
+			},
+			"toRecipients": {
+				"final": true,
+				"name": "toRecipients",
+				"id": 503,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 482,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"508": {
+		"name": "DraftCreateData",
+		"since": 11,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 508,
+		"rootId": "CHR1dGFub3RhAAH8",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 509,
+				"since": 11,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"conversationType": {
+				"final": true,
+				"name": "conversationType",
+				"id": 511,
+				"since": 11,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerEncSessionKey": {
+				"final": true,
+				"name": "ownerEncSessionKey",
+				"id": 512,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 1427,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"previousMessageId": {
+				"final": true,
+				"name": "previousMessageId",
+				"id": 510,
+				"since": 11,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"draftData": {
+				"final": false,
+				"name": "draftData",
+				"id": 515,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 496,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"516": {
+		"name": "DraftCreateReturn",
+		"since": 11,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 516,
+		"rootId": "CHR1dGFub3RhAAIE",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 517,
+				"since": 11,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"draft": {
+				"final": false,
+				"name": "draft",
+				"id": 518,
+				"since": 11,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 97,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"519": {
+		"name": "DraftUpdateData",
+		"since": 11,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 519,
+		"rootId": "CHR1dGFub3RhAAIH",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 520,
+				"since": 11,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"draft": {
+				"final": false,
+				"name": "draft",
+				"id": 522,
+				"since": 11,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 97,
+				"dependency": null
+			},
+			"draftData": {
+				"final": false,
+				"name": "draftData",
+				"id": 521,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 496,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"523": {
+		"name": "DraftUpdateReturn",
+		"since": 11,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 523,
+		"rootId": "CHR1dGFub3RhAAIL",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 524,
+				"since": 11,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"attachments": {
+				"final": true,
+				"name": "attachments",
+				"id": 525,
+				"since": 11,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 13,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"527": {
+		"name": "InternalRecipientKeyData",
+		"since": 11,
+		"type": "AGGREGATED_TYPE",
+		"id": 527,
+		"rootId": "CHR1dGFub3RhAAIP",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 528,
+				"since": 11,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailAddress": {
+				"final": true,
+				"name": "mailAddress",
+				"id": 529,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"protocolVersion": {
+				"final": true,
+				"name": "protocolVersion",
+				"id": 1352,
+				"since": 66,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"pubEncBucketKey": {
+				"final": true,
+				"name": "pubEncBucketKey",
+				"id": 530,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"recipientKeyVersion": {
+				"final": true,
+				"name": "recipientKeyVersion",
+				"id": 531,
+				"since": 11,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"senderKeyVersion": {
+				"final": true,
+				"name": "senderKeyVersion",
+				"id": 1431,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"532": {
+		"name": "SecureExternalRecipientKeyData",
+		"since": 11,
+		"type": "AGGREGATED_TYPE",
+		"id": 532,
+		"rootId": "CHR1dGFub3RhAAIU",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 533,
+				"since": 11,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"kdfVersion": {
+				"final": true,
+				"name": "kdfVersion",
+				"id": 1324,
+				"since": 63,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailAddress": {
+				"final": true,
+				"name": "mailAddress",
+				"id": 534,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerEncBucketKey": {
+				"final": true,
+				"name": "ownerEncBucketKey",
+				"id": 599,
+				"since": 13,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": true,
+				"name": "ownerKeyVersion",
+				"id": 1417,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"passwordVerifier": {
+				"final": true,
+				"name": "passwordVerifier",
+				"id": 536,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"pwEncCommunicationKey": {
+				"final": true,
+				"name": "pwEncCommunicationKey",
+				"id": 540,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"salt": {
+				"final": true,
+				"name": "salt",
+				"id": 538,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"saltHash": {
+				"final": true,
+				"name": "saltHash",
+				"id": 539,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"userGroupKeyVersion": {
+				"final": false,
+				"name": "userGroupKeyVersion",
+				"id": 1445,
+				"since": 72,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"542": {
+		"name": "AttachmentKeyData",
+		"since": 11,
+		"type": "AGGREGATED_TYPE",
+		"id": 542,
+		"rootId": "CHR1dGFub3RhAAIe",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 543,
+				"since": 11,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"bucketEncFileSessionKey": {
+				"final": true,
+				"name": "bucketEncFileSessionKey",
+				"id": 544,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"fileSessionKey": {
+				"final": true,
+				"name": "fileSessionKey",
+				"id": 545,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"file": {
+				"final": true,
+				"name": "file",
+				"id": 546,
+				"since": 11,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 13,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"547": {
+		"name": "SendDraftData",
+		"since": 11,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 547,
+		"rootId": "CHR1dGFub3RhAAIj",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 548,
+				"since": 11,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"bucketEncMailSessionKey": {
+				"final": true,
+				"name": "bucketEncMailSessionKey",
+				"id": 551,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"calendarMethod": {
+				"final": false,
+				"name": "calendarMethod",
+				"id": 1117,
+				"since": 42,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"language": {
+				"final": true,
+				"name": "language",
+				"id": 549,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailSessionKey": {
+				"final": true,
+				"name": "mailSessionKey",
+				"id": 550,
+				"since": 11,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"plaintext": {
+				"final": true,
+				"name": "plaintext",
+				"id": 675,
+				"since": 18,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"senderNameUnencrypted": {
+				"final": true,
+				"name": "senderNameUnencrypted",
+				"id": 552,
+				"since": 11,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"sessionEncEncryptionAuthStatus": {
+				"final": true,
+				"name": "sessionEncEncryptionAuthStatus",
+				"id": 1444,
+				"since": 71,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"attachmentKeyData": {
+				"final": true,
+				"name": "attachmentKeyData",
+				"id": 555,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 542,
+				"dependency": null
+			},
+			"internalRecipientKeyData": {
+				"final": true,
+				"name": "internalRecipientKeyData",
+				"id": 553,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 527,
+				"dependency": null
+			},
+			"mail": {
+				"final": true,
+				"name": "mail",
+				"id": 556,
+				"since": 11,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 97,
+				"dependency": null
+			},
+			"secureExternalRecipientKeyData": {
+				"final": true,
+				"name": "secureExternalRecipientKeyData",
+				"id": 554,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 532,
+				"dependency": null
+			},
+			"symEncInternalRecipientKeyData": {
+				"final": true,
+				"name": "symEncInternalRecipientKeyData",
+				"id": 1353,
+				"since": 66,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1347,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"557": {
+		"name": "SendDraftReturn",
+		"since": 11,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 557,
+		"rootId": "CHR1dGFub3RhAAIt",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 558,
+				"since": 11,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"messageId": {
+				"final": false,
+				"name": "messageId",
+				"id": 559,
+				"since": 11,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sentDate": {
+				"final": false,
+				"name": "sentDate",
+				"id": 560,
+				"since": 11,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"notifications": {
+				"final": false,
+				"name": "notifications",
+				"id": 561,
+				"since": 11,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 223,
+				"dependency": null
+			},
+			"sentMail": {
+				"final": true,
+				"name": "sentMail",
+				"id": 562,
+				"since": 11,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 97,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"570": {
+		"name": "ReceiveInfoServiceData",
+		"since": 12,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 570,
+		"rootId": "CHR1dGFub3RhAAI6",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 571,
+				"since": 12,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"language": {
+				"final": true,
+				"name": "language",
+				"id": 1121,
+				"since": 42,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"573": {
+		"name": "InboxRule",
+		"since": 12,
+		"type": "AGGREGATED_TYPE",
+		"id": 573,
+		"rootId": "CHR1dGFub3RhAAI9",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 574,
+				"since": 12,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 575,
+				"since": 12,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"value": {
+				"final": false,
+				"name": "value",
+				"id": 576,
+				"since": 12,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"targetFolder": {
+				"final": false,
+				"name": "targetFolder",
+				"id": 577,
+				"since": 12,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"612": {
+		"name": "EncryptedMailAddress",
+		"since": 14,
+		"type": "AGGREGATED_TYPE",
+		"id": 612,
+		"rootId": "CHR1dGFub3RhAAJk",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 613,
+				"since": 14,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"address": {
+				"final": true,
+				"name": "address",
+				"id": 615,
+				"since": 14,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"name": {
+				"final": true,
+				"name": "name",
+				"id": 614,
+				"since": 14,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"622": {
 		"name": "UserAccountUserData",
 		"since": 16,
 		"type": "AGGREGATED_TYPE",
@@ -9223,7 +3870,1162 @@ export const typeModels = {
 		"app": "tutanota",
 		"version": "85"
 	},
-	"UserAreaGroupData": {
+	"642": {
+		"name": "InternalGroupData",
+		"since": 16,
+		"type": "AGGREGATED_TYPE",
+		"id": 642,
+		"rootId": "CHR1dGFub3RhAAKC",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 643,
+				"since": 16,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"adminEncGroupKey": {
+				"final": false,
+				"name": "adminEncGroupKey",
+				"id": 646,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"adminKeyVersion": {
+				"final": false,
+				"name": "adminKeyVersion",
+				"id": 1415,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"groupEncPrivEccKey": {
+				"final": true,
+				"name": "groupEncPrivEccKey",
+				"id": 1343,
+				"since": 66,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"groupEncPrivKyberKey": {
+				"final": true,
+				"name": "groupEncPrivKyberKey",
+				"id": 1345,
+				"since": 66,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"groupEncPrivRsaKey": {
+				"final": false,
+				"name": "groupEncPrivRsaKey",
+				"id": 645,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"ownerEncGroupInfoSessionKey": {
+				"final": false,
+				"name": "ownerEncGroupInfoSessionKey",
+				"id": 647,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 1416,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"pubEccKey": {
+				"final": true,
+				"name": "pubEccKey",
+				"id": 1342,
+				"since": 66,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"pubKyberKey": {
+				"final": true,
+				"name": "pubKyberKey",
+				"id": 1344,
+				"since": 66,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"pubRsaKey": {
+				"final": false,
+				"name": "pubRsaKey",
+				"id": 644,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"adminGroup": {
+				"final": true,
+				"name": "adminGroup",
+				"id": 874,
+				"since": 25,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 5,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"648": {
+		"name": "CustomerAccountCreateData",
+		"since": 16,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 648,
+		"rootId": "CHR1dGFub3RhAAKI",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 649,
+				"since": 16,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"accountGroupKeyVersion": {
+				"final": false,
+				"name": "accountGroupKeyVersion",
+				"id": 1421,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"adminEncAccountingInfoSessionKey": {
+				"final": false,
+				"name": "adminEncAccountingInfoSessionKey",
+				"id": 659,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"adminEncCustomerServerPropertiesSessionKey": {
+				"final": false,
+				"name": "adminEncCustomerServerPropertiesSessionKey",
+				"id": 661,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"app": {
+				"final": false,
+				"name": "app",
+				"id": 1511,
+				"since": 78,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"authToken": {
+				"final": false,
+				"name": "authToken",
+				"id": 650,
+				"since": 16,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"code": {
+				"final": false,
+				"name": "code",
+				"id": 873,
+				"since": 24,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"date": {
+				"final": false,
+				"name": "date",
+				"id": 651,
+				"since": 16,
+				"type": "Date",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"lang": {
+				"final": false,
+				"name": "lang",
+				"id": 652,
+				"since": 16,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"systemAdminPubEncAccountingInfoSessionKey": {
+				"final": false,
+				"name": "systemAdminPubEncAccountingInfoSessionKey",
+				"id": 660,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"systemAdminPubKeyVersion": {
+				"final": false,
+				"name": "systemAdminPubKeyVersion",
+				"id": 1422,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"systemAdminPublicProtocolVersion": {
+				"final": true,
+				"name": "systemAdminPublicProtocolVersion",
+				"id": 1355,
+				"since": 66,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"userEncAccountGroupKey": {
+				"final": false,
+				"name": "userEncAccountGroupKey",
+				"id": 655,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"userEncAdminGroupKey": {
+				"final": false,
+				"name": "userEncAdminGroupKey",
+				"id": 654,
+				"since": 16,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"adminGroupData": {
+				"final": false,
+				"name": "adminGroupData",
+				"id": 657,
+				"since": 16,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 642,
+				"dependency": null
+			},
+			"customerGroupData": {
+				"final": false,
+				"name": "customerGroupData",
+				"id": 658,
+				"since": 16,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 642,
+				"dependency": null
+			},
+			"userData": {
+				"final": false,
+				"name": "userData",
+				"id": 653,
+				"since": 16,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 622,
+				"dependency": null
+			},
+			"userGroupData": {
+				"final": false,
+				"name": "userGroupData",
+				"id": 656,
+				"since": 16,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 642,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"663": {
+		"name": "UserAccountCreateData",
+		"since": 16,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 663,
+		"rootId": "CHR1dGFub3RhAAKX",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 664,
+				"since": 16,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"date": {
+				"final": false,
+				"name": "date",
+				"id": 665,
+				"since": 16,
+				"type": "Date",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"userData": {
+				"final": false,
+				"name": "userData",
+				"id": 666,
+				"since": 16,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 622,
+				"dependency": null
+			},
+			"userGroupData": {
+				"final": false,
+				"name": "userGroupData",
+				"id": 667,
+				"since": 16,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 642,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"677": {
+		"name": "MailboxServerProperties",
+		"since": 18,
+		"type": "ELEMENT_TYPE",
+		"id": 677,
+		"rootId": "CHR1dGFub3RhAAKl",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 681,
+				"since": 18,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 679,
+				"since": 18,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 682,
+				"since": 18,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 680,
+				"since": 18,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"whitelistProtectionEnabled": {
+				"final": false,
+				"name": "whitelistProtectionEnabled",
+				"id": 683,
+				"since": 18,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"693": {
+		"name": "MailboxGroupRoot",
+		"since": 18,
+		"type": "ELEMENT_TYPE",
+		"id": 693,
+		"rootId": "CHR1dGFub3RhAAK1",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 697,
+				"since": 18,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 695,
+				"since": 18,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 698,
+				"since": 18,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 696,
+				"since": 18,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"calendarEventUpdates": {
+				"final": true,
+				"name": "calendarEventUpdates",
+				"id": 1119,
+				"since": 42,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1113,
+				"dependency": null
+			},
+			"mailbox": {
+				"final": true,
+				"name": "mailbox",
+				"id": 699,
+				"since": 18,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 125,
+				"dependency": null
+			},
+			"mailboxProperties": {
+				"final": true,
+				"name": "mailboxProperties",
+				"id": 1203,
+				"since": 47,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1195,
+				"dependency": null
+			},
+			"outOfOfficeNotification": {
+				"final": true,
+				"name": "outOfOfficeNotification",
+				"id": 1150,
+				"since": 44,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1131,
+				"dependency": null
+			},
+			"outOfOfficeNotificationRecipientList": {
+				"final": true,
+				"name": "outOfOfficeNotificationRecipientList",
+				"id": 1151,
+				"since": 44,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1147,
+				"dependency": null
+			},
+			"serverProperties": {
+				"final": true,
+				"name": "serverProperties",
+				"id": 700,
+				"since": 18,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 677,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"707": {
+		"name": "CreateMailGroupData",
+		"since": 19,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 707,
+		"rootId": "CHR1dGFub3RhAALD",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 708,
+				"since": 19,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encryptedName": {
+				"final": false,
+				"name": "encryptedName",
+				"id": 710,
+				"since": 19,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailAddress": {
+				"final": false,
+				"name": "mailAddress",
+				"id": 709,
+				"since": 19,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailEncMailboxSessionKey": {
+				"final": false,
+				"name": "mailEncMailboxSessionKey",
+				"id": 711,
+				"since": 19,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"groupData": {
+				"final": false,
+				"name": "groupData",
+				"id": 712,
+				"since": 19,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 642,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"713": {
+		"name": "DeleteGroupData",
+		"since": 19,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 713,
+		"rootId": "CHR1dGFub3RhAALJ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 714,
+				"since": 19,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"restore": {
+				"final": false,
+				"name": "restore",
+				"id": 715,
+				"since": 19,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"group": {
+				"final": true,
+				"name": "group",
+				"id": 716,
+				"since": 19,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 5,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"844": {
+		"name": "Birthday",
+		"since": 23,
+		"type": "AGGREGATED_TYPE",
+		"id": 844,
+		"rootId": "CHR1dGFub3RhAANM",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 845,
+				"since": 23,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"day": {
+				"final": false,
+				"name": "day",
+				"id": 846,
+				"since": 23,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"month": {
+				"final": false,
+				"name": "month",
+				"id": 847,
+				"since": 23,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"year": {
+				"final": false,
+				"name": "year",
+				"id": 848,
+				"since": 23,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"853": {
+		"name": "PhotosRef",
+		"since": 23,
+		"type": "AGGREGATED_TYPE",
+		"id": 853,
+		"rootId": "CHR1dGFub3RhAANV",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 854,
+				"since": 23,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"files": {
+				"final": true,
+				"name": "files",
+				"id": 855,
+				"since": 23,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 13,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"867": {
+		"name": "ListUnsubscribeData",
+		"since": 24,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 867,
+		"rootId": "CHR1dGFub3RhAANj",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 868,
+				"since": 24,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"headers": {
+				"final": false,
+				"name": "headers",
+				"id": 871,
+				"since": 24,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"recipient": {
+				"final": false,
+				"name": "recipient",
+				"id": 870,
+				"since": 24,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mail": {
+				"final": false,
+				"name": "mail",
+				"id": 869,
+				"since": 24,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 97,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"926": {
+		"name": "CalendarRepeatRule",
+		"since": 33,
+		"type": "AGGREGATED_TYPE",
+		"id": 926,
+		"rootId": "CHR1dGFub3RhAAOe",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 927,
+				"since": 33,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"endType": {
+				"final": false,
+				"name": "endType",
+				"id": 929,
+				"since": 33,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"endValue": {
+				"final": false,
+				"name": "endValue",
+				"id": 930,
+				"since": 33,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"frequency": {
+				"final": false,
+				"name": "frequency",
+				"id": 928,
+				"since": 33,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"interval": {
+				"final": false,
+				"name": "interval",
+				"id": 931,
+				"since": 33,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"timeZone": {
+				"final": false,
+				"name": "timeZone",
+				"id": 932,
+				"since": 33,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"advancedRules": {
+				"final": false,
+				"name": "advancedRules",
+				"id": 1590,
+				"since": 80,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1586,
+				"dependency": null
+			},
+			"excludedDates": {
+				"final": true,
+				"name": "excludedDates",
+				"id": 1319,
+				"since": 61,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2073,
+				"dependency": "sys"
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"933": {
+		"name": "CalendarEvent",
+		"since": 33,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 933,
+		"rootId": "CHR1dGFub3RhAAOl",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 937,
+				"since": 33,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 935,
+				"since": 33,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 939,
+				"since": 33,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 938,
+				"since": 33,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1401,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 936,
+				"since": 33,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"description": {
+				"final": false,
+				"name": "description",
+				"id": 941,
+				"since": 33,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"endTime": {
+				"final": false,
+				"name": "endTime",
+				"id": 943,
+				"since": 33,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"hashedUid": {
+				"final": false,
+				"name": "hashedUid",
+				"id": 1088,
+				"since": 42,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"invitedConfidentially": {
+				"final": false,
+				"name": "invitedConfidentially",
+				"id": 1090,
+				"since": 42,
+				"type": "Boolean",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"location": {
+				"final": false,
+				"name": "location",
+				"id": 944,
+				"since": 33,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"recurrenceId": {
+				"final": false,
+				"name": "recurrenceId",
+				"id": 1320,
+				"since": 62,
+				"type": "Date",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"sequence": {
+				"final": false,
+				"name": "sequence",
+				"id": 1089,
+				"since": 42,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"startTime": {
+				"final": false,
+				"name": "startTime",
+				"id": 942,
+				"since": 33,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"summary": {
+				"final": false,
+				"name": "summary",
+				"id": 940,
+				"since": 33,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"uid": {
+				"final": false,
+				"name": "uid",
+				"id": 988,
+				"since": 35,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"alarmInfos": {
+				"final": false,
+				"name": "alarmInfos",
+				"id": 946,
+				"since": 33,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 1541,
+				"dependency": null
+			},
+			"attendees": {
+				"final": false,
+				"name": "attendees",
+				"id": 1091,
+				"since": 42,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1084,
+				"dependency": null
+			},
+			"organizer": {
+				"final": false,
+				"name": "organizer",
+				"id": 1092,
+				"since": 42,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 612,
+				"dependency": null
+			},
+			"repeatRule": {
+				"final": false,
+				"name": "repeatRule",
+				"id": 945,
+				"since": 33,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 926,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"947": {
+		"name": "CalendarGroupRoot",
+		"since": 33,
+		"type": "ELEMENT_TYPE",
+		"id": 947,
+		"rootId": "CHR1dGFub3RhAAOz",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 951,
+				"since": 33,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 949,
+				"since": 33,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 953,
+				"since": 33,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 952,
+				"since": 33,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1402,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 950,
+				"since": 33,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"index": {
+				"final": true,
+				"name": "index",
+				"id": 1103,
+				"since": 42,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1100,
+				"dependency": null
+			},
+			"longEvents": {
+				"final": true,
+				"name": "longEvents",
+				"id": 955,
+				"since": 33,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 933,
+				"dependency": null
+			},
+			"shortEvents": {
+				"final": true,
+				"name": "shortEvents",
+				"id": 954,
+				"since": 33,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 933,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"956": {
 		"name": "UserAreaGroupData",
 		"since": 33,
 		"type": "AGGREGATED_TYPE",
@@ -9322,48 +5124,14 @@ export const typeModels = {
 				"since": 33,
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "ZeroOrOne",
-				"refType": "Group",
+				"refTypeId": 5,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"UserAreaGroupDeleteData": {
-		"name": "UserAreaGroupDeleteData",
-		"since": 45,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1190,
-		"rootId": "CHR1dGFub3RhAASm",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"_format": {
-				"final": false,
-				"name": "_format",
-				"id": 1191,
-				"since": 45,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"group": {
-				"final": false,
-				"name": "group",
-				"id": 1192,
-				"since": 45,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refType": "Group",
-				"dependency": null
-			}
-		},
-		"app": "tutanota",
-		"version": "85"
-	},
-	"UserAreaGroupPostData": {
+	"964": {
 		"name": "UserAreaGroupPostData",
 		"since": 33,
 		"type": "DATA_TRANSFER_TYPE",
@@ -9390,14 +5158,85 @@ export const typeModels = {
 				"since": 33,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refType": "UserAreaGroupData",
+				"refTypeId": 956,
 				"dependency": null
 			}
 		},
 		"app": "tutanota",
 		"version": "85"
 	},
-	"UserSettingsGroupRoot": {
+	"968": {
+		"name": "GroupSettings",
+		"since": 34,
+		"type": "AGGREGATED_TYPE",
+		"id": 968,
+		"rootId": "CHR1dGFub3RhAAPI",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 969,
+				"since": 34,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"color": {
+				"final": false,
+				"name": "color",
+				"id": 971,
+				"since": 34,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"name": {
+				"final": false,
+				"name": "name",
+				"id": 1020,
+				"since": 39,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"sourceUrl": {
+				"final": false,
+				"name": "sourceUrl",
+				"id": 1468,
+				"since": 75,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"defaultAlarmsList": {
+				"final": false,
+				"name": "defaultAlarmsList",
+				"id": 1449,
+				"since": 74,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1446,
+				"dependency": null
+			},
+			"group": {
+				"final": true,
+				"name": "group",
+				"id": 970,
+				"since": 34,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 5,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"972": {
 		"name": "UserSettingsGroupRoot",
 		"since": 34,
 		"type": "ELEMENT_TYPE",
@@ -9496,8 +5335,4169 @@ export const typeModels = {
 				"since": 34,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refType": "GroupSettings",
+				"refTypeId": 968,
 				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"982": {
+		"name": "CalendarDeleteData",
+		"since": 34,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 982,
+		"rootId": "CHR1dGFub3RhAAPW",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 983,
+				"since": 34,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"groupRootId": {
+				"final": false,
+				"name": "groupRootId",
+				"id": 984,
+				"since": 34,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 947,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"985": {
+		"name": "CreateGroupPostReturn",
+		"since": 34,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 985,
+		"rootId": "CHR1dGFub3RhAAPZ",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 986,
+				"since": 34,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"group": {
+				"final": true,
+				"name": "group",
+				"id": 987,
+				"since": 34,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 5,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"992": {
+		"name": "SharedGroupData",
+		"since": 38,
+		"type": "AGGREGATED_TYPE",
+		"id": 992,
+		"rootId": "CHR1dGFub3RhAAPg",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 993,
+				"since": 38,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"bucketEncInvitationSessionKey": {
+				"final": false,
+				"name": "bucketEncInvitationSessionKey",
+				"id": 998,
+				"since": 38,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"capability": {
+				"final": false,
+				"name": "capability",
+				"id": 994,
+				"since": 38,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sessionEncInviterName": {
+				"final": false,
+				"name": "sessionEncInviterName",
+				"id": 997,
+				"since": 38,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sessionEncSharedGroupKey": {
+				"final": false,
+				"name": "sessionEncSharedGroupKey",
+				"id": 995,
+				"since": 38,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sessionEncSharedGroupName": {
+				"final": false,
+				"name": "sessionEncSharedGroupName",
+				"id": 996,
+				"since": 38,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sharedGroup": {
+				"final": false,
+				"name": "sharedGroup",
+				"id": 1001,
+				"since": 38,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sharedGroupEncInviterGroupInfoKey": {
+				"final": true,
+				"name": "sharedGroupEncInviterGroupInfoKey",
+				"id": 999,
+				"since": 38,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sharedGroupEncSharedGroupInfoKey": {
+				"final": true,
+				"name": "sharedGroupEncSharedGroupInfoKey",
+				"id": 1000,
+				"since": 38,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sharedGroupKeyVersion": {
+				"final": true,
+				"name": "sharedGroupKeyVersion",
+				"id": 1420,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1002": {
+		"name": "GroupInvitationPostData",
+		"since": 38,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1002,
+		"rootId": "CHR1dGFub3RhAAPq",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1003,
+				"since": 38,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"internalKeyData": {
+				"final": false,
+				"name": "internalKeyData",
+				"id": 1005,
+				"since": 38,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 527,
+				"dependency": null
+			},
+			"sharedGroupData": {
+				"final": false,
+				"name": "sharedGroupData",
+				"id": 1004,
+				"since": 38,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 992,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1006": {
+		"name": "GroupInvitationPostReturn",
+		"since": 38,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1006,
+		"rootId": "CHR1dGFub3RhAAPu",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1007,
+				"since": 38,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"existingMailAddresses": {
+				"final": false,
+				"name": "existingMailAddresses",
+				"id": 1008,
+				"since": 38,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 92,
+				"dependency": null
+			},
+			"invalidMailAddresses": {
+				"final": false,
+				"name": "invalidMailAddresses",
+				"id": 1009,
+				"since": 38,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 92,
+				"dependency": null
+			},
+			"invitedMailAddresses": {
+				"final": false,
+				"name": "invitedMailAddresses",
+				"id": 1010,
+				"since": 38,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 92,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1011": {
+		"name": "GroupInvitationPutData",
+		"since": 38,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1011,
+		"rootId": "CHR1dGFub3RhAAPz",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1012,
+				"since": 38,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sharedGroupEncInviteeGroupInfoKey": {
+				"final": true,
+				"name": "sharedGroupEncInviteeGroupInfoKey",
+				"id": 1014,
+				"since": 38,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sharedGroupKeyVersion": {
+				"final": true,
+				"name": "sharedGroupKeyVersion",
+				"id": 1419,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"userGroupEncGroupKey": {
+				"final": true,
+				"name": "userGroupEncGroupKey",
+				"id": 1013,
+				"since": 38,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"userGroupKeyVersion": {
+				"final": false,
+				"name": "userGroupKeyVersion",
+				"id": 1418,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"receivedInvitation": {
+				"final": false,
+				"name": "receivedInvitation",
+				"id": 1015,
+				"since": 38,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 1602,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1016": {
+		"name": "GroupInvitationDeleteData",
+		"since": 38,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1016,
+		"rootId": "CHR1dGFub3RhAAP4",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1017,
+				"since": 38,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"receivedInvitation": {
+				"final": false,
+				"name": "receivedInvitation",
+				"id": 1018,
+				"since": 38,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 1602,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1023": {
+		"name": "ReportedMailFieldMarker",
+		"since": 40,
+		"type": "AGGREGATED_TYPE",
+		"id": 1023,
+		"rootId": "CHR1dGFub3RhAAP_",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1024,
+				"since": 40,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"marker": {
+				"final": false,
+				"name": "marker",
+				"id": 1025,
+				"since": 40,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"status": {
+				"final": false,
+				"name": "status",
+				"id": 1026,
+				"since": 40,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1034": {
+		"name": "PhishingMarkerWebsocketData",
+		"since": 40,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1034,
+		"rootId": "CHR1dGFub3RhAAQK",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1035,
+				"since": 40,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"lastId": {
+				"final": false,
+				"name": "lastId",
+				"id": 1036,
+				"since": 40,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"markers": {
+				"final": false,
+				"name": "markers",
+				"id": 1037,
+				"since": 40,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1023,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1066": {
+		"name": "ReportMailPostData",
+		"since": 40,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1066,
+		"rootId": "CHR1dGFub3RhAAQq",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1067,
+				"since": 40,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailSessionKey": {
+				"final": false,
+				"name": "mailSessionKey",
+				"id": 1068,
+				"since": 40,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"reportType": {
+				"final": false,
+				"name": "reportType",
+				"id": 1082,
+				"since": 41,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mailId": {
+				"final": false,
+				"name": "mailId",
+				"id": 1069,
+				"since": 40,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 97,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1084": {
+		"name": "CalendarEventAttendee",
+		"since": 42,
+		"type": "AGGREGATED_TYPE",
+		"id": 1084,
+		"rootId": "CHR1dGFub3RhAAQ8",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1085,
+				"since": 42,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"status": {
+				"final": false,
+				"name": "status",
+				"id": 1086,
+				"since": 42,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"address": {
+				"final": true,
+				"name": "address",
+				"id": 1087,
+				"since": 42,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 612,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1093": {
+		"name": "CalendarEventUidIndex",
+		"since": 42,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1093,
+		"rootId": "CHR1dGFub3RhAARF",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1097,
+				"since": 42,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1095,
+				"since": 42,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1098,
+				"since": 42,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1096,
+				"since": 42,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"alteredInstances": {
+				"final": false,
+				"name": "alteredInstances",
+				"id": 1321,
+				"since": 62,
+				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
+				"cardinality": "Any",
+				"refTypeId": 933,
+				"dependency": null
+			},
+			"progenitor": {
+				"final": true,
+				"name": "progenitor",
+				"id": 1099,
+				"since": 42,
+				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 933,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1100": {
+		"name": "CalendarEventIndexRef",
+		"since": 42,
+		"type": "AGGREGATED_TYPE",
+		"id": 1100,
+		"rootId": "CHR1dGFub3RhAARM",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1101,
+				"since": 42,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"list": {
+				"final": true,
+				"name": "list",
+				"id": 1102,
+				"since": 42,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1093,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1104": {
+		"name": "CalendarEventUpdate",
+		"since": 42,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1104,
+		"rootId": "CHR1dGFub3RhAARQ",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1108,
+				"since": 42,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1106,
+				"since": 42,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1110,
+				"since": 42,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1109,
+				"since": 42,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1405,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1107,
+				"since": 42,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sender": {
+				"final": true,
+				"name": "sender",
+				"id": 1111,
+				"since": 42,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"file": {
+				"final": true,
+				"name": "file",
+				"id": 1112,
+				"since": 42,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 13,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1113": {
+		"name": "CalendarEventUpdateList",
+		"since": 42,
+		"type": "AGGREGATED_TYPE",
+		"id": 1113,
+		"rootId": "CHR1dGFub3RhAARZ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1114,
+				"since": 42,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"list": {
+				"final": true,
+				"name": "list",
+				"id": 1115,
+				"since": 42,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1104,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1122": {
+		"name": "EntropyData",
+		"since": 43,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1122,
+		"rootId": "CHR1dGFub3RhAARi",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1123,
+				"since": 43,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"userEncEntropy": {
+				"final": false,
+				"name": "userEncEntropy",
+				"id": 1124,
+				"since": 43,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"userKeyVersion": {
+				"final": false,
+				"name": "userKeyVersion",
+				"id": 1432,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1126": {
+		"name": "OutOfOfficeNotificationMessage",
+		"since": 44,
+		"type": "AGGREGATED_TYPE",
+		"id": 1126,
+		"rootId": "CHR1dGFub3RhAARm",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1127,
+				"since": 44,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"message": {
+				"final": false,
+				"name": "message",
+				"id": 1129,
+				"since": 44,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"subject": {
+				"final": false,
+				"name": "subject",
+				"id": 1128,
+				"since": 44,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 1130,
+				"since": 44,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1131": {
+		"name": "OutOfOfficeNotification",
+		"since": 44,
+		"type": "ELEMENT_TYPE",
+		"id": 1131,
+		"rootId": "CHR1dGFub3RhAARr",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1135,
+				"since": 44,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1133,
+				"since": 44,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1136,
+				"since": 44,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1134,
+				"since": 44,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"enabled": {
+				"final": false,
+				"name": "enabled",
+				"id": 1137,
+				"since": 44,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"endDate": {
+				"final": false,
+				"name": "endDate",
+				"id": 1139,
+				"since": 44,
+				"type": "Date",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"startDate": {
+				"final": false,
+				"name": "startDate",
+				"id": 1138,
+				"since": 44,
+				"type": "Date",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"notifications": {
+				"final": false,
+				"name": "notifications",
+				"id": 1140,
+				"since": 44,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1126,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1147": {
+		"name": "OutOfOfficeNotificationRecipientList",
+		"since": 44,
+		"type": "AGGREGATED_TYPE",
+		"id": 1147,
+		"rootId": "CHR1dGFub3RhAAR7",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1148,
+				"since": 44,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"list": {
+				"final": true,
+				"name": "list",
+				"id": 1149,
+				"since": 44,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1141,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1154": {
+		"name": "EmailTemplateContent",
+		"since": 45,
+		"type": "AGGREGATED_TYPE",
+		"id": 1154,
+		"rootId": "CHR1dGFub3RhAASC",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1155,
+				"since": 45,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"languageCode": {
+				"final": false,
+				"name": "languageCode",
+				"id": 1157,
+				"since": 45,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"text": {
+				"final": false,
+				"name": "text",
+				"id": 1156,
+				"since": 45,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1158": {
+		"name": "EmailTemplate",
+		"since": 45,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1158,
+		"rootId": "CHR1dGFub3RhAASG",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1162,
+				"since": 45,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1160,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1164,
+				"since": 45,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1163,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1406,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1161,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"tag": {
+				"final": false,
+				"name": "tag",
+				"id": 1166,
+				"since": 45,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"title": {
+				"final": false,
+				"name": "title",
+				"id": 1165,
+				"since": 45,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"contents": {
+				"final": false,
+				"name": "contents",
+				"id": 1167,
+				"since": 45,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1154,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1168": {
+		"name": "KnowledgeBaseEntryKeyword",
+		"since": 45,
+		"type": "AGGREGATED_TYPE",
+		"id": 1168,
+		"rootId": "CHR1dGFub3RhAASQ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1169,
+				"since": 45,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"keyword": {
+				"final": false,
+				"name": "keyword",
+				"id": 1170,
+				"since": 45,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1171": {
+		"name": "KnowledgeBaseEntry",
+		"since": 45,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1171,
+		"rootId": "CHR1dGFub3RhAAST",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1175,
+				"since": 45,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1173,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1177,
+				"since": 45,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1176,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1413,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1174,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"description": {
+				"final": false,
+				"name": "description",
+				"id": 1179,
+				"since": 45,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"title": {
+				"final": false,
+				"name": "title",
+				"id": 1178,
+				"since": 45,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"keywords": {
+				"final": false,
+				"name": "keywords",
+				"id": 1180,
+				"since": 45,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1168,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1181": {
+		"name": "TemplateGroupRoot",
+		"since": 45,
+		"type": "ELEMENT_TYPE",
+		"id": 1181,
+		"rootId": "CHR1dGFub3RhAASd",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1185,
+				"since": 45,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1183,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1187,
+				"since": 45,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1186,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1412,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1184,
+				"since": 45,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"knowledgeBase": {
+				"final": true,
+				"name": "knowledgeBase",
+				"id": 1189,
+				"since": 45,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1171,
+				"dependency": null
+			},
+			"templates": {
+				"final": true,
+				"name": "templates",
+				"id": 1188,
+				"since": 45,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1158,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1190": {
+		"name": "UserAreaGroupDeleteData",
+		"since": 45,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1190,
+		"rootId": "CHR1dGFub3RhAASm",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1191,
+				"since": 45,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"group": {
+				"final": false,
+				"name": "group",
+				"id": 1192,
+				"since": 45,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 5,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1195": {
+		"name": "MailboxProperties",
+		"since": 47,
+		"type": "ELEMENT_TYPE",
+		"id": 1195,
+		"rootId": "CHR1dGFub3RhAASr",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1199,
+				"since": 47,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1197,
+				"since": 47,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1201,
+				"since": 47,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1200,
+				"since": 47,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1411,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1198,
+				"since": 47,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"reportMovedMails": {
+				"final": false,
+				"name": "reportMovedMails",
+				"id": 1202,
+				"since": 47,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {
+			"mailAddressProperties": {
+				"final": false,
+				"name": "mailAddressProperties",
+				"id": 1267,
+				"since": 56,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1263,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1217": {
+		"name": "SpamResults",
+		"since": 48,
+		"type": "AGGREGATED_TYPE",
+		"id": 1217,
+		"rootId": "CHR1dGFub3RhAATB",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1218,
+				"since": 48,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"list": {
+				"final": true,
+				"name": "list",
+				"id": 1219,
+				"since": 48,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1208,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1245": {
+		"name": "NewsId",
+		"since": 55,
+		"type": "AGGREGATED_TYPE",
+		"id": 1245,
+		"rootId": "CHR1dGFub3RhAATd",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1246,
+				"since": 55,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"newsItemId": {
+				"final": false,
+				"name": "newsItemId",
+				"id": 1248,
+				"since": 55,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"newsItemName": {
+				"final": false,
+				"name": "newsItemName",
+				"id": 1247,
+				"since": 55,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1256": {
+		"name": "NewsOut",
+		"since": 55,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1256,
+		"rootId": "CHR1dGFub3RhAATo",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1257,
+				"since": 55,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"newsItemIds": {
+				"final": false,
+				"name": "newsItemIds",
+				"id": 1258,
+				"since": 55,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1245,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1259": {
+		"name": "NewsIn",
+		"since": 55,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1259,
+		"rootId": "CHR1dGFub3RhAATr",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1260,
+				"since": 55,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"newsItemId": {
+				"final": false,
+				"name": "newsItemId",
+				"id": 1261,
+				"since": 55,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1263": {
+		"name": "MailAddressProperties",
+		"since": 56,
+		"type": "AGGREGATED_TYPE",
+		"id": 1263,
+		"rootId": "CHR1dGFub3RhAATv",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1264,
+				"since": 56,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailAddress": {
+				"final": true,
+				"name": "mailAddress",
+				"id": 1265,
+				"since": 56,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"senderName": {
+				"final": false,
+				"name": "senderName",
+				"id": 1266,
+				"since": 56,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1269": {
+		"name": "Header",
+		"since": 58,
+		"type": "AGGREGATED_TYPE",
+		"id": 1269,
+		"rootId": "CHR1dGFub3RhAAT1",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1270,
+				"since": 58,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"compressedHeaders": {
+				"final": true,
+				"name": "compressedHeaders",
+				"id": 1272,
+				"since": 58,
+				"type": "CompressedString",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"headers": {
+				"final": true,
+				"name": "headers",
+				"id": 1271,
+				"since": 58,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1273": {
+		"name": "Body",
+		"since": 58,
+		"type": "AGGREGATED_TYPE",
+		"id": 1273,
+		"rootId": "CHR1dGFub3RhAAT5",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1274,
+				"since": 58,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"compressedText": {
+				"final": true,
+				"name": "compressedText",
+				"id": 1276,
+				"since": 58,
+				"type": "CompressedString",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"text": {
+				"final": true,
+				"name": "text",
+				"id": 1275,
+				"since": 58,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1277": {
+		"name": "Recipients",
+		"since": 58,
+		"type": "AGGREGATED_TYPE",
+		"id": 1277,
+		"rootId": "CHR1dGFub3RhAAT9",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1278,
+				"since": 58,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"bccRecipients": {
+				"final": true,
+				"name": "bccRecipients",
+				"id": 1281,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 92,
+				"dependency": null
+			},
+			"ccRecipients": {
+				"final": true,
+				"name": "ccRecipients",
+				"id": 1280,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 92,
+				"dependency": null
+			},
+			"toRecipients": {
+				"final": true,
+				"name": "toRecipients",
+				"id": 1279,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 92,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1282": {
+		"name": "MailDetails",
+		"since": 58,
+		"type": "AGGREGATED_TYPE",
+		"id": 1282,
+		"rootId": "CHR1dGFub3RhAAUC",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1283,
+				"since": 58,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"authStatus": {
+				"final": false,
+				"name": "authStatus",
+				"id": 1289,
+				"since": 58,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"sentDate": {
+				"final": true,
+				"name": "sentDate",
+				"id": 1284,
+				"since": 58,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"body": {
+				"final": true,
+				"name": "body",
+				"id": 1288,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1273,
+				"dependency": null
+			},
+			"headers": {
+				"final": true,
+				"name": "headers",
+				"id": 1287,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1269,
+				"dependency": null
+			},
+			"recipients": {
+				"final": true,
+				"name": "recipients",
+				"id": 1286,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1277,
+				"dependency": null
+			},
+			"replyTos": {
+				"final": true,
+				"name": "replyTos",
+				"id": 1285,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 612,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1290": {
+		"name": "MailDetailsDraft",
+		"since": 58,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1290,
+		"rootId": "CHR1dGFub3RhAAUK",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1294,
+				"since": 58,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1292,
+				"since": 58,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1296,
+				"since": 58,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1295,
+				"since": 58,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1407,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1293,
+				"since": 58,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"details": {
+				"final": true,
+				"name": "details",
+				"id": 1297,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1282,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1298": {
+		"name": "MailDetailsBlob",
+		"since": 58,
+		"type": "BLOB_ELEMENT_TYPE",
+		"id": 1298,
+		"rootId": "CHR1dGFub3RhAAUS",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1302,
+				"since": 58,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1300,
+				"since": 58,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1304,
+				"since": 58,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1303,
+				"since": 58,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1408,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1301,
+				"since": 58,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"details": {
+				"final": true,
+				"name": "details",
+				"id": 1305,
+				"since": 58,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1282,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1311": {
+		"name": "UpdateMailFolderData",
+		"since": 59,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1311,
+		"rootId": "CHR1dGFub3RhAAUf",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1312,
+				"since": 59,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"folder": {
+				"final": false,
+				"name": "folder",
+				"id": 1313,
+				"since": 59,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 429,
+				"dependency": null
+			},
+			"newParent": {
+				"final": false,
+				"name": "newParent",
+				"id": 1314,
+				"since": 59,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1315": {
+		"name": "MailDetailsDraftsRef",
+		"since": 60,
+		"type": "AGGREGATED_TYPE",
+		"id": 1315,
+		"rootId": "CHR1dGFub3RhAAUj",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1316,
+				"since": 60,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"list": {
+				"final": true,
+				"name": "list",
+				"id": 1317,
+				"since": 60,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1290,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1325": {
+		"name": "ContactListEntry",
+		"since": 64,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1325,
+		"rootId": "CHR1dGFub3RhAAUt",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1329,
+				"since": 64,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1327,
+				"since": 64,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1331,
+				"since": 64,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1330,
+				"since": 64,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1409,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1328,
+				"since": 64,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"emailAddress": {
+				"final": false,
+				"name": "emailAddress",
+				"id": 1332,
+				"since": 64,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1333": {
+		"name": "ContactListGroupRoot",
+		"since": 64,
+		"type": "ELEMENT_TYPE",
+		"id": 1333,
+		"rootId": "CHR1dGFub3RhAAU1",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1337,
+				"since": 64,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1335,
+				"since": 64,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerEncSessionKey": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1339,
+				"since": 64,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1338,
+				"since": 64,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_ownerKeyVersion": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 1410,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1336,
+				"since": 64,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"entries": {
+				"final": true,
+				"name": "entries",
+				"id": 1340,
+				"since": 64,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1325,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1347": {
+		"name": "SymEncInternalRecipientKeyData",
+		"since": 66,
+		"type": "AGGREGATED_TYPE",
+		"id": 1347,
+		"rootId": "CHR1dGFub3RhAAVD",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1348,
+				"since": 66,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailAddress": {
+				"final": true,
+				"name": "mailAddress",
+				"id": 1349,
+				"since": 66,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"symEncBucketKey": {
+				"final": true,
+				"name": "symEncBucketKey",
+				"id": 1350,
+				"since": 66,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"symKeyVersion": {
+				"final": false,
+				"name": "symKeyVersion",
+				"id": 1435,
+				"since": 69,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"keyGroup": {
+				"final": true,
+				"name": "keyGroup",
+				"id": 1351,
+				"since": 66,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 5,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1356": {
+		"name": "ContactCustomDate",
+		"since": 67,
+		"type": "AGGREGATED_TYPE",
+		"id": 1356,
+		"rootId": "CHR1dGFub3RhAAVM",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1357,
+				"since": 67,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"customTypeName": {
+				"final": false,
+				"name": "customTypeName",
+				"id": 1359,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"dateIso": {
+				"final": false,
+				"name": "dateIso",
+				"id": 1360,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 1358,
+				"since": 67,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1361": {
+		"name": "ContactWebsite",
+		"since": 67,
+		"type": "AGGREGATED_TYPE",
+		"id": 1361,
+		"rootId": "CHR1dGFub3RhAAVR",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1362,
+				"since": 67,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"customTypeName": {
+				"final": false,
+				"name": "customTypeName",
+				"id": 1364,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 1363,
+				"since": 67,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"url": {
+				"final": false,
+				"name": "url",
+				"id": 1365,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1366": {
+		"name": "ContactRelationship",
+		"since": 67,
+		"type": "AGGREGATED_TYPE",
+		"id": 1366,
+		"rootId": "CHR1dGFub3RhAAVW",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1367,
+				"since": 67,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"customTypeName": {
+				"final": false,
+				"name": "customTypeName",
+				"id": 1369,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"person": {
+				"final": false,
+				"name": "person",
+				"id": 1370,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 1368,
+				"since": 67,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1371": {
+		"name": "ContactMessengerHandle",
+		"since": 67,
+		"type": "AGGREGATED_TYPE",
+		"id": 1371,
+		"rootId": "CHR1dGFub3RhAAVb",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1372,
+				"since": 67,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"customTypeName": {
+				"final": false,
+				"name": "customTypeName",
+				"id": 1374,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"handle": {
+				"final": false,
+				"name": "handle",
+				"id": 1375,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"type": {
+				"final": false,
+				"name": "type",
+				"id": 1373,
+				"since": 67,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1376": {
+		"name": "ContactPronouns",
+		"since": 67,
+		"type": "AGGREGATED_TYPE",
+		"id": 1376,
+		"rootId": "CHR1dGFub3RhAAVg",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1377,
+				"since": 67,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"language": {
+				"final": false,
+				"name": "language",
+				"id": 1378,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"pronouns": {
+				"final": false,
+				"name": "pronouns",
+				"id": 1379,
+				"since": 67,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1436": {
+		"name": "TranslationGetIn",
+		"since": 70,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1436,
+		"rootId": "CHR1dGFub3RhAAWc",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1437,
+				"since": 70,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"lang": {
+				"final": true,
+				"name": "lang",
+				"id": 1438,
+				"since": 70,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1439": {
+		"name": "TranslationGetOut",
+		"since": 70,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1439,
+		"rootId": "CHR1dGFub3RhAAWf",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1440,
+				"since": 70,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"giftCardSubject": {
+				"final": false,
+				"name": "giftCardSubject",
+				"id": 1441,
+				"since": 70,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"invitationSubject": {
+				"final": false,
+				"name": "invitationSubject",
+				"id": 1442,
+				"since": 70,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1446": {
+		"name": "DefaultAlarmInfo",
+		"since": 74,
+		"type": "AGGREGATED_TYPE",
+		"id": 1446,
+		"rootId": "CHR1dGFub3RhAAWm",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1447,
+				"since": 74,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"trigger": {
+				"final": true,
+				"name": "trigger",
+				"id": 1448,
+				"since": 74,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1450": {
+		"name": "MailSetEntry",
+		"since": 74,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1450,
+		"rootId": "CHR1dGFub3RhAAWq",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1454,
+				"since": 74,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1452,
+				"since": 74,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1455,
+				"since": 74,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1453,
+				"since": 74,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mail": {
+				"final": true,
+				"name": "mail",
+				"id": 1456,
+				"since": 74,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 97,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1460": {
+		"name": "MailBag",
+		"since": 74,
+		"type": "AGGREGATED_TYPE",
+		"id": 1460,
+		"rootId": "CHR1dGFub3RhAAW0",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1461,
+				"since": 74,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mails": {
+				"final": true,
+				"name": "mails",
+				"id": 1462,
+				"since": 74,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 97,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1469": {
+		"name": "SimpleMoveMailPostIn",
+		"since": 76,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1469,
+		"rootId": "CHR1dGFub3RhAAW9",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1470,
+				"since": 76,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"destinationSetType": {
+				"final": false,
+				"name": "destinationSetType",
+				"id": 1472,
+				"since": 76,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mails": {
+				"final": false,
+				"name": "mails",
+				"id": 1471,
+				"since": 76,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 97,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1474": {
+		"name": "UnreadMailStatePostIn",
+		"since": 76,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1474,
+		"rootId": "CHR1dGFub3RhAAXC",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1475,
+				"since": 76,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"unread": {
+				"final": false,
+				"name": "unread",
+				"id": 1477,
+				"since": 76,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mails": {
+				"final": false,
+				"name": "mails",
+				"id": 1476,
+				"since": 76,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 97,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1480": {
+		"name": "ManageLabelServiceLabelData",
+		"since": 77,
+		"type": "AGGREGATED_TYPE",
+		"id": 1480,
+		"rootId": "CHR1dGFub3RhAAXI",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1481,
+				"since": 77,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"color": {
+				"final": false,
+				"name": "color",
+				"id": 1483,
+				"since": 77,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"name": {
+				"final": false,
+				"name": "name",
+				"id": 1482,
+				"since": 77,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1484": {
+		"name": "ManageLabelServicePostIn",
+		"since": 77,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1484,
+		"rootId": "CHR1dGFub3RhAAXM",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1485,
+				"since": 77,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerEncSessionKey": {
+				"final": false,
+				"name": "ownerEncSessionKey",
+				"id": 1486,
+				"since": 77,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerGroup": {
+				"final": false,
+				"name": "ownerGroup",
+				"id": 1488,
+				"since": 77,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 1487,
+				"since": 77,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"data": {
+				"final": false,
+				"name": "data",
+				"id": 1489,
+				"since": 77,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1480,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1500": {
+		"name": "ManageLabelServiceDeleteIn",
+		"since": 77,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1500,
+		"rootId": "CHR1dGFub3RhAAXc",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1501,
+				"since": 77,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"label": {
+				"final": false,
+				"name": "label",
+				"id": 1502,
+				"since": 77,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1504": {
+		"name": "ApplyLabelServicePostIn",
+		"since": 77,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1504,
+		"rootId": "CHR1dGFub3RhAAXg",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1505,
+				"since": 77,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"addedLabels": {
+				"final": false,
+				"name": "addedLabels",
+				"id": 1507,
+				"since": 77,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 429,
+				"dependency": null
+			},
+			"mails": {
+				"final": false,
+				"name": "mails",
+				"id": 1506,
+				"since": 77,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 97,
+				"dependency": null
+			},
+			"removedLabels": {
+				"final": false,
+				"name": "removedLabels",
+				"id": 1508,
+				"since": 77,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1513": {
+		"name": "ImportMailDataMailReference",
+		"since": 79,
+		"type": "AGGREGATED_TYPE",
+		"id": 1513,
+		"rootId": "CHR1dGFub3RhAAXp",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1514,
+				"since": 79,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"reference": {
+				"final": false,
+				"name": "reference",
+				"id": 1515,
+				"since": 79,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1516": {
+		"name": "NewImportAttachment",
+		"since": 79,
+		"type": "AGGREGATED_TYPE",
+		"id": 1516,
+		"rootId": "CHR1dGFub3RhAAXs",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1517,
+				"since": 79,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encCid": {
+				"final": true,
+				"name": "encCid",
+				"id": 1522,
+				"since": 79,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"encFileHash": {
+				"final": true,
+				"name": "encFileHash",
+				"id": 1519,
+				"since": 79,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"encFileName": {
+				"final": true,
+				"name": "encFileName",
+				"id": 1520,
+				"since": 79,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encMimeType": {
+				"final": true,
+				"name": "encMimeType",
+				"id": 1521,
+				"since": 79,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerEncFileHashSessionKey": {
+				"final": true,
+				"name": "ownerEncFileHashSessionKey",
+				"id": 1518,
+				"since": 79,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"referenceTokens": {
+				"final": true,
+				"name": "referenceTokens",
+				"id": 1523,
+				"since": 79,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1990,
+				"dependency": "sys"
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1524": {
+		"name": "ImportAttachment",
+		"since": 79,
+		"type": "AGGREGATED_TYPE",
+		"id": 1524,
+		"rootId": "CHR1dGFub3RhAAX0",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1525,
+				"since": 79,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerEncFileSessionKey": {
+				"final": true,
+				"name": "ownerEncFileSessionKey",
+				"id": 1526,
+				"since": 79,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerFileKeyVersion": {
+				"final": false,
+				"name": "ownerFileKeyVersion",
+				"id": 1527,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"existingAttachmentFile": {
+				"final": true,
+				"name": "existingAttachmentFile",
+				"id": 1529,
+				"since": 79,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 13,
+				"dependency": null
+			},
+			"newAttachment": {
+				"final": true,
+				"name": "newAttachment",
+				"id": 1528,
+				"since": 79,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1516,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1530": {
+		"name": "ImportMailData",
+		"since": 79,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1530,
+		"rootId": "CHR1dGFub3RhAAX6",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1531,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"compressedBodyText": {
+				"final": true,
+				"name": "compressedBodyText",
+				"id": 1535,
+				"since": 79,
+				"type": "CompressedString",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"compressedHeaders": {
+				"final": true,
+				"name": "compressedHeaders",
+				"id": 1546,
+				"since": 79,
+				"type": "CompressedString",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"confidential": {
+				"final": true,
+				"name": "confidential",
+				"id": 1541,
+				"since": 79,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"date": {
+				"final": true,
+				"name": "date",
+				"id": 1536,
+				"since": 79,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"differentEnvelopeSender": {
+				"final": true,
+				"name": "differentEnvelopeSender",
+				"id": 1544,
+				"since": 79,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
+			},
+			"inReplyTo": {
+				"final": true,
+				"name": "inReplyTo",
+				"id": 1540,
+				"since": 79,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"messageId": {
+				"final": true,
+				"name": "messageId",
+				"id": 1539,
+				"since": 79,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"method": {
+				"final": true,
+				"name": "method",
+				"id": 1542,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"ownerEncSessionKey": {
+				"final": false,
+				"name": "ownerEncSessionKey",
+				"id": 1532,
+				"since": 79,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 1533,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"phishingStatus": {
+				"final": true,
+				"name": "phishingStatus",
+				"id": 1545,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"replyType": {
+				"final": false,
+				"name": "replyType",
+				"id": 1543,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"state": {
+				"final": true,
+				"name": "state",
+				"id": 1537,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"subject": {
+				"final": true,
+				"name": "subject",
+				"id": 1534,
+				"since": 79,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"unread": {
+				"final": true,
+				"name": "unread",
+				"id": 1538,
+				"since": 79,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"importedAttachments": {
+				"final": true,
+				"name": "importedAttachments",
+				"id": 1551,
+				"since": 79,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1524,
+				"dependency": null
+			},
+			"recipients": {
+				"final": true,
+				"name": "recipients",
+				"id": 1550,
+				"since": 79,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1277,
+				"dependency": null
+			},
+			"references": {
+				"final": true,
+				"name": "references",
+				"id": 1547,
+				"since": 79,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1513,
+				"dependency": null
+			},
+			"replyTos": {
+				"final": false,
+				"name": "replyTos",
+				"id": 1549,
+				"since": 79,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 612,
+				"dependency": null
+			},
+			"sender": {
+				"final": true,
+				"name": "sender",
+				"id": 1548,
+				"since": 79,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 92,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1552": {
+		"name": "ImportedMail",
+		"since": 79,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1552,
+		"rootId": "CHR1dGFub3RhAAYQ",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1556,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1554,
+				"since": 79,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1557,
+				"since": 79,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1555,
+				"since": 79,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mailSetEntry": {
+				"final": false,
+				"name": "mailSetEntry",
+				"id": 1558,
+				"since": 79,
+				"type": "LIST_ELEMENT_ASSOCIATION_CUSTOM",
+				"cardinality": "One",
+				"refTypeId": 1450,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1559": {
+		"name": "ImportMailState",
+		"since": 79,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1559,
+		"rootId": "CHR1dGFub3RhAAYX",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1563,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1561,
+				"since": 79,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1564,
+				"since": 79,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1562,
+				"since": 79,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"failedMails": {
+				"final": false,
+				"name": "failedMails",
+				"id": 1567,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"status": {
+				"final": false,
+				"name": "status",
+				"id": 1565,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"successfulMails": {
+				"final": false,
+				"name": "successfulMails",
+				"id": 1566,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"totalMails": {
+				"final": false,
+				"name": "totalMails",
+				"id": 1600,
+				"since": 80,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"importedMails": {
+				"final": true,
+				"name": "importedMails",
+				"id": 1568,
+				"since": 79,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 1552,
+				"dependency": null
+			},
+			"targetFolder": {
+				"final": true,
+				"name": "targetFolder",
+				"id": 1569,
+				"since": 79,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1570": {
+		"name": "ImportMailPostIn",
+		"since": 79,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1570,
+		"rootId": "CHR1dGFub3RhAAYi",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1571,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"encImports": {
+				"final": false,
+				"name": "encImports",
+				"id": 1578,
+				"since": 79,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 728,
+				"dependency": "sys"
+			},
+			"mailState": {
+				"final": true,
+				"name": "mailState",
+				"id": 1577,
+				"since": 79,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 1559,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1579": {
+		"name": "ImportMailPostOut",
+		"since": 79,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1579,
+		"rootId": "CHR1dGFub3RhAAYr",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1580,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1582": {
+		"name": "ImportMailGetIn",
+		"since": 79,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1582,
+		"rootId": "CHR1dGFub3RhAAYu",
+		"versioned": false,
+		"encrypted": true,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1583,
+				"since": 79,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"newImportedMailSetName": {
+				"final": false,
+				"name": "newImportedMailSetName",
+				"id": 1597,
+				"since": 80,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"ownerEncSessionKey": {
+				"final": false,
+				"name": "ownerEncSessionKey",
+				"id": 1596,
+				"since": 80,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerGroup": {
+				"final": false,
+				"name": "ownerGroup",
+				"id": 1594,
+				"since": 80,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"ownerKeyVersion": {
+				"final": false,
+				"name": "ownerKeyVersion",
+				"id": 1595,
+				"since": 80,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"totalMails": {
+				"final": false,
+				"name": "totalMails",
+				"id": 1598,
+				"since": 80,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"targetMailFolder": {
+				"final": true,
+				"name": "targetMailFolder",
+				"id": 1599,
+				"since": 80,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1586": {
+		"name": "AdvancedRepeatRule",
+		"since": 80,
+		"type": "AGGREGATED_TYPE",
+		"id": 1586,
+		"rootId": "CHR1dGFub3RhAAYy",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1587,
+				"since": 80,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"interval": {
+				"final": false,
+				"name": "interval",
+				"id": 1589,
+				"since": 80,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"ruleType": {
+				"final": false,
+				"name": "ruleType",
+				"id": 1588,
+				"since": 80,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1591": {
+		"name": "ImportMailGetOut",
+		"since": 80,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1591,
+		"rootId": "CHR1dGFub3RhAAY3",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1592,
+				"since": 80,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mailState": {
+				"final": true,
+				"name": "mailState",
+				"id": 1593,
+				"since": 80,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 1559,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1605": {
+		"name": "MailExportTokenServicePostOut",
+		"since": 81,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1605,
+		"rootId": "CHR1dGFub3RhAAZF",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1606,
+				"since": 81,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"mailExportToken": {
+				"final": false,
+				"name": "mailExportToken",
+				"id": 1607,
+				"since": 81,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1618": {
+		"name": "SupportTopic",
+		"since": 82,
+		"type": "AGGREGATED_TYPE",
+		"id": 1618,
+		"rootId": "CHR1dGFub3RhAAZS",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1619,
+				"since": 82,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"issueDE": {
+				"final": false,
+				"name": "issueDE",
+				"id": 1622,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"issueEN": {
+				"final": false,
+				"name": "issueEN",
+				"id": 1621,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"lastUpdated": {
+				"final": false,
+				"name": "lastUpdated",
+				"id": 1620,
+				"since": 82,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"solutionHtmlDE": {
+				"final": false,
+				"name": "solutionHtmlDE",
+				"id": 1624,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"solutionHtmlEN": {
+				"final": false,
+				"name": "solutionHtmlEN",
+				"id": 1623,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"visibility": {
+				"final": false,
+				"name": "visibility",
+				"id": 1625,
+				"since": 82,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1626": {
+		"name": "SupportCategory",
+		"since": 82,
+		"type": "AGGREGATED_TYPE",
+		"id": 1626,
+		"rootId": "CHR1dGFub3RhAAZa",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1627,
+				"since": 82,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"icon": {
+				"final": false,
+				"name": "icon",
+				"id": 1632,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"introductionDE": {
+				"final": false,
+				"name": "introductionDE",
+				"id": 1631,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"introductionEN": {
+				"final": false,
+				"name": "introductionEN",
+				"id": 1630,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"nameDE": {
+				"final": false,
+				"name": "nameDE",
+				"id": 1629,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"nameEN": {
+				"final": false,
+				"name": "nameEN",
+				"id": 1628,
+				"since": 82,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"topics": {
+				"final": false,
+				"name": "topics",
+				"id": 1633,
+				"since": 82,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1618,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1634": {
+		"name": "SupportData",
+		"since": 82,
+		"type": "ELEMENT_TYPE",
+		"id": 1634,
+		"rootId": "CHR1dGFub3RhAAZi",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1638,
+				"since": 82,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 1636,
+				"since": 82,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"_ownerGroup": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1639,
+				"since": 82,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"_permissions": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1637,
+				"since": 82,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"categories": {
+				"final": false,
+				"name": "categories",
+				"id": 1640,
+				"since": 82,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1626,
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1641": {
+		"name": "ReceiveInfoServicePostOut",
+		"since": 84,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1641,
+		"rootId": "CHR1dGFub3RhAAZp",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1642,
+				"since": 84,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"outdatedVersion": {
+				"final": true,
+				"name": "outdatedVersion",
+				"id": 1643,
+				"since": 84,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1645": {
+		"name": "ResolveConversationsServiceGetIn",
+		"since": 85,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1645,
+		"rootId": "CHR1dGFub3RhAAZt",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1646,
+				"since": 85,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"conversationLists": {
+				"final": true,
+				"name": "conversationLists",
+				"id": 1647,
+				"since": 85,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1349,
+				"dependency": "sys"
+			}
+		},
+		"app": "tutanota",
+		"version": "85"
+	},
+	"1648": {
+		"name": "ResolveConversationsServiceGetOut",
+		"since": 85,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1648,
+		"rootId": "CHR1dGFub3RhAAZw",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1649,
+				"since": 85,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mailIds": {
+				"final": true,
+				"name": "mailIds",
+				"id": 1650,
+				"since": 85,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2315,
+				"dependency": "sys"
 			}
 		},
 		"app": "tutanota",

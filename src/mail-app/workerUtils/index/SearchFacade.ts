@@ -227,7 +227,7 @@ export class SearchFacade {
 				}
 			} else if (model.associations[attributeName] && model.associations[attributeName].type === AssociationType.Aggregation && entity[attributeName]) {
 				let aggregates = model.associations[attributeName].cardinality === Cardinality.Any ? entity[attributeName] : [entity[attributeName]]
-				const refModel = await resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refType))
+				const refModel = await resolveTypeReference(new TypeRef(model.app, model.associations[attributeName].refTypeId))
 				return asyncFind(aggregates, (aggregate) => {
 					return this._containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)
 				}).then((found) => found != null)
