@@ -149,12 +149,6 @@ export class CryptoFacade {
 		return decryptedInstance
 	}
 
-	async resolveSessionKeyForInstance(instance: SomeEntity): Promise<AesKey | null> {
-		const typeModel = await resolveTypeReference(instance._type)
-		const mappedInstance = await this.instanceMapper.mapToLiteral(instance)
-		return this.resolveSessionKey(typeModel, mappedInstance)
-	}
-
 	/** Helper for the rare cases when we needed it on the client side. */
 	async resolveSessionKeyForInstanceBinary(instance: SomeEntity): Promise<Uint8Array | null> {
 		const key = await this.resolveSessionKeyForInstance(instance)
@@ -172,6 +166,38 @@ export class CryptoFacade {
 		return decryptKey(gk, ownerEncSessionKey.key)
 	}
 
+	async resolveSessionKeyForInstance(instance: Record<string, any>): Promise<AesKey | null> {
+		const typeModel = await resolveTypeReference(instance._type)
+		if (!typeModel.encrypted) {
+			return null
+		}
+
+		try {
+			if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(instance._ownerGroup, parseKeyVersion(instance._ownerKeyVersion ?? "0"))
+				return this.resolveSessionKeyWithOwnerKey(instance._ownerEncSessionKey, gk)
+			} else if (instance.ownerEncSessionKey) {
+				// Likely a DataTransferType, so this is a service.
+				const gk = await this.keyLoaderFacade.loadSymGroupKey(
+					this.userFacade.getGroupId(GroupType.Mail),
+					parseKeyVersion(instance.ownerKeyVersion ?? "0"),
+				)
+				return this.resolveSessionKeyWithOwnerKey(instance._ownerEncSessionKey, gk)
+			} else {
+				// See PermissionType jsdoc for more info on permissions
+				const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
+				return (await this.trySymmetricPermission(permissions)) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
+			}
+		} catch (e) {
+			if (e instanceof CryptoError) {
+				console.log("failed to resolve session key", e)
+				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
+			} else {
+				throw e
+			}
+		}
+	}
+
 	/**
 	 * Returns the session key for the provided type/instance:
 	 * * null, if the instance is unencrypted
@@ -183,12 +209,11 @@ export class CryptoFacade {
 	 */
 	async resolveSessionKey(typeModel: TypeModel, instance: Record<number, any>): Promise<AesKey | null> {
 		const typeRef: TypeRef<SomeEntity> = new TypeRef(typeModel.app, typeModel.id)
+		if (!typeModel.encrypted) {
+			return null
+		}
 
 		try {
-			if (!typeModel.encrypted) {
-				return null
-			}
-
 			const bucketKeyAttrId = await getAttributeId(typeRef, "bucketKey")
 			const instanceBucketKey = bucketKeyAttrId ? instance[bucketKeyAttrId] : null
 
@@ -310,7 +335,7 @@ export class CryptoFacade {
 		return null
 	}
 
-	public async resolveWithBucketKeyForMail(bucketKey: BucketKey, mail: Mail) {
+	public async resolveWithBucketKeyForMappedInstance(bucketKey: BucketKey, mail: Mail) {
 		const senderAdress = mail.confidential ? mail.sender.address : SYSTEM_GROUP_MAIL_ADDRESS
 		const ownerGroup = assertNotNull(mail._ownerGroup)
 
@@ -333,7 +358,6 @@ export class CryptoFacade {
 
 	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<number, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
 		const typeRef: TypeRef<SomeEntity> = new TypeRef(typeModel.app, typeModel.id)
-		console.log(`Logging ${typeRef.toString()}`)
 
 		const underscoredOwnerGroup = instance[assertNotNull(await getAttributeId(typeRef, "_ownerGroup"))]
 		const instanceId = instance[assertNotNull(await getAttributeId(typeRef, "_id"))]
@@ -891,7 +915,7 @@ export class CryptoFacade {
 		const outOfSyncInstances = childInstances.filter((f) => f._ownerEncSessionKey == null)
 		if (mainInstance.bucketKey) {
 			// invoke updateSessionKeys service in case a bucket key is still available
-			const resolvedSessionKeys = await this.resolveWithBucketKeyForMail(mainInstance.bucketKey, mainInstance)
+			const resolvedSessionKeys = await this.resolveWithBucketKeyForMappedInstance(mainInstance.bucketKey, mainInstance)
 			await this.ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)
 		} else {
 			console.warn("files are out of sync refreshing", outOfSyncInstances.map((f) => f._id).join(", "))
