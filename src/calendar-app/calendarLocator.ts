@@ -104,8 +104,6 @@ import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
-import { locator } from "../common/api/main/CommonLocator.js"
-import { showSnackBar } from "../common/gui/base/SnackBar.js"
 import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
@@ -606,6 +604,7 @@ class CalendarLocator {
 		this.sqlCipherFacade = sqlCipherFacade
 		this.logins = new LoginController(
 			this.loginFacade,
+			this.customerFacade,
 			async () => this.loginListener,
 			() => this.worker.reset(),
 		)

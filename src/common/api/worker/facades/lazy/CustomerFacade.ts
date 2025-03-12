@@ -4,6 +4,7 @@ import {
 	Const,
 	CounterType,
 	CryptoProtocolVersion,
+	FeatureType,
 	GroupType,
 	InvoiceData,
 	PaymentData,
@@ -73,10 +74,15 @@ import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
 import { PublicKeyProvider } from "../PublicKeyProvider"
+import { isInternalUser } from "../../../common/utils/UserUtils"
+import { CacheMode } from "../../rest/EntityRestClient"
 
 assertWorkerOrNode()
 
 export class CustomerFacade {
+	// they are FeatureType but we might not be aware of newer values for it, so it is not just FeatureType
+	private customizations: NumberString[] | null = null
+
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly groupManagement: GroupManagementFacade,
@@ -495,5 +501,21 @@ export class CustomerFacade {
 			group: oldGroup,
 		})
 		return this.serviceExecutor.delete(MembershipService, membershipRemoveData)
+	}
+
+	// This also exists in LoginController. Look at the comment in LoginController for an explanation.
+	async isEnabled(feature: FeatureType): Promise<boolean> {
+		return this.customizations != null ? this.customizations.indexOf(feature) !== -1 : false
+	}
+
+	async loadCustomizations(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<string[] | null> {
+		const user = this.userFacade.getLoggedInUser()
+		if (isInternalUser(user)) {
+			const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer), { cacheMode })
+			this.customizations = customer.customizations.map((f) => f.feature)
+			return this.customizations
+		} else {
+			return null
+		}
 	}
 }

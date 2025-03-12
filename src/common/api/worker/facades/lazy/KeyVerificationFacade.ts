@@ -1,6 +1,6 @@
 import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
-import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
-import { assertNotNull, base64ToUint8Array, concat, Hex, stringToUtf8Uint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { FeatureType, KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
+import { assertNotNull, base64ToUint8Array, concat, Hex, lazyAsync, stringToUtf8Uint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { isVersionedPqPublicKey, isVersionedRsaEccPublicKey, isVersionedRsaPublicKey, KeyPairType, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { NotFoundError } from "../../../common/error/RestError"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
@@ -8,6 +8,7 @@ import { sql } from "../../offline/Sql"
 import { TaggedSqlValue } from "../../offline/SqlValue"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
 import { PublicKeyProvider } from "../PublicKeyProvider"
+import { CustomerFacade } from "./CustomerFacade"
 
 assertWorkerOrNode()
 
@@ -34,7 +35,21 @@ export interface KeyVerificationDetails {
 }
 
 export class KeyVerificationFacade {
-	constructor(private readonly sqlCipherFacade: SqlCipherFacade, private readonly publicKeyProvider: PublicKeyProvider) {}
+	constructor(
+		private readonly lazyCustomerFacade: lazyAsync<CustomerFacade>,
+		private readonly sqlCipherFacade: SqlCipherFacade,
+		private readonly publicKeyProvider: PublicKeyProvider,
+	) {}
+
+	async isSupported(): Promise<boolean> {
+		const customerFacade = await this.lazyCustomerFacade()
+
+		// SQLite database is unavailable in a browser environment
+		const isNative = !isBrowser()
+		const isEnabledForCustomer = await customerFacade.isEnabled(FeatureType.KeyVerification)
+
+		return isNative && isEnabledForCustomer
+	}
 
 	deserializeDatabaseEntry(entry: Record<string, TaggedSqlValue>): [MailAddress, PublicKeyFingerprint] {
 		const mailAddress = entry.mailAddress.value as string
@@ -101,8 +116,8 @@ export class KeyVerificationFacade {
 	 * Determines whether the trust database contains an entry for a given mail address.
 	 */
 	async isTrusted(mailAddress: string): Promise<boolean> {
-		// This has to happen before we ask for the local trust status, as there is no SQLite in the browser environment.
-		if (isBrowser()) {
+		const isSupported = await this.isSupported()
+		if (!isSupported) {
 			return false
 		}
 
@@ -193,8 +208,8 @@ export class KeyVerificationFacade {
 	}
 
 	async resolveVerificationState(mailAddress: string, publicKey: Versioned<PublicKey> | null): Promise<KeyVerificationState> {
-		// SQLite database is unavailable in a browser environment, so for now it does not make sense to continue resolving.
-		if (isBrowser()) {
+		const isSupported = await this.isSupported()
+		if (!isSupported) {
 			return KeyVerificationState.NO_ENTRY
 		}
 

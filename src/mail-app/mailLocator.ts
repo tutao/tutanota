@@ -114,8 +114,6 @@ import { MobilePaymentsFacade } from "../common/native/common/generatedipc/Mobil
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
-import { locator } from "../common/api/main/CommonLocator.js"
-import { showSnackBar } from "../common/gui/base/SnackBar.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { SearchCategoryTypes } from "./search/model/SearchUtils.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
@@ -765,6 +763,7 @@ class MailLocator {
 		this.sqlCipherFacade = sqlCipherFacade
 		this.logins = new LoginController(
 			this.loginFacade,
+			this.customerFacade,
 			async () => this.loginListener,
 			() => this.worker.reset(),
 		)

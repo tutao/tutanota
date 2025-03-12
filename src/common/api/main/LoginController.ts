@@ -1,6 +1,6 @@
 import type { DeferredObject, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { assertNotNull, defer } from "@tutao/tutanota-utils"
-import { assertMainOrNodeBoot } from "../common/Env"
+import { assertMainOrNodeBoot, isAdminClient } from "../common/Env"
 import type { UserController, UserControllerInitData } from "./UserController"
 import { getWhitelabelCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import { NotFoundError } from "../common/error/RestError"
@@ -14,6 +14,7 @@ import { ExternalUserKeyDeriver } from "../../misc/LoginUtils.js"
 import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials.js"
 import { PageContextLoginListener } from "./PageContextLoginListener.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
+import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
 
 assertMainOrNodeBoot()
 
@@ -44,6 +45,7 @@ export class LoginController {
 
 	constructor(
 		private readonly loginFacade: LoginFacade,
+		private readonly customerFacade: CustomerFacade,
 		private readonly loginListener: lazyAsync<PageContextLoginListener>,
 		private readonly resetAppState: () => Promise<unknown>,
 	) {}
@@ -94,7 +96,9 @@ export class LoginController {
 		const { initUserController } = await import("./UserController")
 		this.userController = await initUserController(initData)
 
-		await this.loadCustomizations()
+		if (!isAdminClient()) {
+			await this.loadCustomizations()
+		}
 		await this._determineIfWhitelabel()
 
 		for (const lazyHandler of this.postLoginActions) {
@@ -222,15 +226,14 @@ export class LoginController {
 		return assertNotNull(this.userController) // only to be used after login (when user is defined)
 	}
 
+	// This also exists in CustomerFacade. It's duplicated because delegating to CustomerFacade
+	// would change this API to return Promise<boolean>, breaking all consumers of this function.
 	isEnabled(feature: FeatureType): boolean {
 		return this.customizations != null ? this.customizations.indexOf(feature) !== -1 : false
 	}
 
 	async loadCustomizations(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<void> {
-		if (this.getUserController().isInternalUser()) {
-			const customer = await this.getUserController().loadCustomer(cacheMode)
-			this.customizations = customer.customizations.map((f) => f.feature)
-		}
+		this.customizations = await this.customerFacade.loadCustomizations(cacheMode)
 	}
 
 	/**

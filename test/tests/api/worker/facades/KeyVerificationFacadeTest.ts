@@ -4,11 +4,13 @@ import { SqlCipherFacade } from "../../../../../src/common/native/common/generat
 import { matchers, object, verify, when } from "testdouble"
 import { SqlType, TaggedSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { PublicKeyGetOut, PublicKeyGetOutTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
-import { concat, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
-import { KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { concat, lazyAsync, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
+import { FeatureType, KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import { KeyPairType, PQPublicKeys, PublicKey } from "@tutao/tutanota-crypto"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
+import { CustomerFacade } from "../../../../../src/common/api/worker/facades/lazy/CustomerFacade"
+import { Mode } from "../../../../../src/common/api/common/Env"
 
 const { anything } = matchers
 
@@ -61,15 +63,30 @@ o.spec("KeyVerificationFacadeTest", function () {
 	let keyVerification: KeyVerificationFacade
 	let sqlCipherFacade: SqlCipherFacade
 	let publicKeyProvider: PublicKeyProvider
+	let lazyCustomerFacade: lazyAsync<CustomerFacade>
+	let customerFacade: CustomerFacade
 	let versionedRecipientPublicKey: Versioned<PQPublicKeys>
 
+	let backupEnv: any
+
 	o.beforeEach(function () {
+		// Better safe than sorry.
+		backupEnv = globalThis.env
+
+		customerFacade = object()
 		sqlCipherFacade = object()
 		publicKeyProvider = object()
 
-		keyVerification = new KeyVerificationFacade(sqlCipherFacade, publicKeyProvider)
+		when(customerFacade.isEnabled(FeatureType.KeyVerification)).thenResolve(true)
+		lazyCustomerFacade = () => Promise.resolve(customerFacade)
+
+		keyVerification = new KeyVerificationFacade(lazyCustomerFacade, sqlCipherFacade, publicKeyProvider)
 
 		when(publicKeyProvider.convertFromPublicKeyGetOut(PUBLIC_KEY_GET_OUT)).thenReturn(PUBLIC_KEY)
+	})
+
+	o.afterEach(function () {
+		globalThis.env = backupEnv
 	})
 
 	o.spec("confirm trusted identity database works as intended", function () {
@@ -318,5 +335,29 @@ o.spec("KeyVerificationFacadeTest", function () {
 			concatenation = keyVerification.concatenateFingerprint(publicKey)
 			verifyKeyMetadata(concatenation, 0, KeyPairType.RSA_AND_ECC)
 		})
+	})
+
+	o("feature should be supported when on desktop and enabled", async function () {
+		globalThis.env.mode = Mode.Desktop
+		when(customerFacade.isEnabled(FeatureType.KeyVerification)).thenResolve(true)
+
+		const isSupported = await keyVerification.isSupported()
+		o(isSupported).equals(true)
+	})
+
+	o("feature should NOT be supported when on desktop and disabled", async function () {
+		globalThis.env.mode = Mode.Desktop
+		when(customerFacade.isEnabled(FeatureType.KeyVerification)).thenResolve(false)
+
+		const isSupported = await keyVerification.isSupported()
+		o(isSupported).equals(false)
+	})
+
+	o("feature should NOT be supported when on browser and enabled", async function () {
+		globalThis.env.mode = Mode.Browser
+		when(customerFacade.isEnabled(FeatureType.KeyVerification)).thenResolve(true)
+
+		const isSupported = await keyVerification.isSupported()
+		o(isSupported).equals(false)
 	})
 })

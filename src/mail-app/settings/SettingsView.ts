@@ -141,7 +141,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			),
 		]
 
-		if (!isBrowser()) {
+		if (!isBrowser() && this.logins.isEnabled(FeatureType.KeyVerification)) {
 			this._userFolders.push(
 				new SettingsFolder(
 					() => "keyManagement_label",
