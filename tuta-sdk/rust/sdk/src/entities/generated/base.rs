@@ -7,11 +7,8 @@ use serde::{Deserialize, Serialize};
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct PersistenceResourcePostReturn {
-	#[serde(rename = "1")]
 	pub _format: i64,
-	#[serde(rename = "2")]
 	pub generatedId: Option<GeneratedId>,
-	#[serde(rename = "3")]
 	pub permissionListId: GeneratedId,
 }
 

@@ -15,7 +15,7 @@ pub enum JsonElement {
 	Bool(bool),
 }
 
-/// A JSON object containing an entity/instance
+/// Encrypted raw entity/instance (JSON object) using attributeIds as keys.
 pub type RawEntity = HashMap<String, JsonElement>;
 
 struct JsonElementVisitor;
@@ -149,11 +149,11 @@ mod tests {
 	#[test]
 	fn can_deserialize_email() {
 		let json = include_str!("../test_data/email_response.json");
-		let parsed = serde_json::from_str::<HashMap<String, JsonElement>>(json).unwrap();
-		let JsonElement::Dict(address_map) = parsed.get("firstRecipient").unwrap() else {
+		let raw_entity = serde_json::from_str::<RawEntity>(json).unwrap();
+		let JsonElement::Dict(address_map) = raw_entity.get("1306").unwrap() else {
 			panic!("Not a map!")
 		};
-		let JsonElement::String(address) = address_map.get("address").unwrap() else {
+		let JsonElement::String(address) = address_map.get("95").unwrap() else {
 			panic!("Not a string")
 		};
 		assert_eq!("bed-free@tutanota.de", address);

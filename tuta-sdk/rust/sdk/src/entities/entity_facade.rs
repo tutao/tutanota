@@ -756,9 +756,8 @@ mod tests {
 	use crate::date::DateTime;
 	use crate::element_value::{ElementValue, ParsedEntity};
 	use crate::entities::entity_facade::{
-		make_random_aggregate_id, EntityFacade, EntityFacadeImpl, MappedValue, BUCKET_KEY_FIELD,
-		FORMAT_FIELD, ID_FIELD, MAX_UNCOMPRESSED_INPUT_LZ4, OWNER_ENC_SESSION_KEY_FIELD,
-		OWNER_GROUP_FIELD, OWNER_KEY_VERSION_FIELD, PERMISSIONS_FIELD,
+		make_random_aggregate_id, EntityFacade, EntityFacadeImpl, MappedValue, ID_FIELD,
+		MAX_UNCOMPRESSED_INPUT_LZ4, OWNER_ENC_SESSION_KEY_FIELD, OWNER_KEY_VERSION_FIELD,
 	};
 	use crate::entities::generated::sys::CustomerAccountTerminationRequest;
 	use crate::entities::generated::tutanota::Mail;
@@ -796,7 +795,7 @@ mod tests {
 		let owner_enc_session_key = vec![0, 1, 2];
 		let owner_key_version = 0u64;
 		let type_model_provider = Arc::new(init_type_model_provider());
-		let raw_entity: RawEntity = make_json_entity();
+		let raw_entity: RawEntity = make_mail_raw_entity();
 		let json_serializer = JsonSerializer::new(type_model_provider.clone());
 		let encrypted_mail: ParsedEntity = json_serializer
 			.parse(&Mail::type_ref(), raw_entity)
@@ -1274,21 +1273,22 @@ mod tests {
 		let sk = GenericAesKey::from_bytes(rand::random::<[u8; 32]>().as_slice()).unwrap();
 
 		let dummy_date = DateTime::from_system_time(SystemTime::now());
-		let instance: RawEntity = collection! {
-				FORMAT_FIELD => JsonElement::String("0".to_string()),
-				ID_FIELD => JsonElement::Array(vec![JsonElement::String("O1RT2Dj--3-0".to_string()); 2]),
-				OWNER_GROUP_FIELD => JsonElement::Null,
-				PERMISSIONS_FIELD => JsonElement::String("O2TT2Aj--2-1".to_string()),
-				"terminationDate" => JsonElement::String(dummy_date.as_millis().to_string()),
-				"terminationRequestDate" => JsonElement::String(dummy_date.as_millis().to_string()),
-				"customer" => JsonElement::String("customId".to_string()),
+		// sys/CustomerAccountTerminationRequest
+		let raw_entity: RawEntity = collection! {
+				"2009" => JsonElement::String("0".to_string()),
+				"2007" => JsonElement::Array(vec![JsonElement::String("O1RT2Dj--3-0".to_string()); 2]),
+				"2010" => JsonElement::Null,
+				"2008" => JsonElement::String("O2TT2Aj--2-1".to_string()),
+				"2012" => JsonElement::String(dummy_date.as_millis().to_string()),
+				"2013" => JsonElement::String(dummy_date.as_millis().to_string()),
+				"2011" => JsonElement::String("customId".to_string()),
 		};
-		let instance = json_serializer.parse(&type_ref, instance).unwrap();
+		let parsed_entity = json_serializer.parse(&type_ref, raw_entity).unwrap();
 
-		let encrypted_instance = entity_facade.encrypt_and_map(type_model, &instance, &sk);
+		let encrypted_instance = entity_facade.encrypt_and_map(type_model, &parsed_entity, &sk);
 
 		// unencrypted value should be kept as-is
-		assert_eq!(Ok(instance), encrypted_instance);
+		assert_eq!(Ok(parsed_entity), encrypted_instance);
 	}
 
 	#[test]
@@ -1425,17 +1425,18 @@ mod tests {
 		}
 	}
 
-	fn make_json_entity() -> RawEntity {
+	fn make_mail_raw_entity() -> RawEntity {
+		// tutanota:Mail
 		collection! {
-			"sentDate"=> JsonElement::Null,
-			OWNER_ENC_SESSION_KEY_FIELD=> JsonElement::String(
+			"560"=> JsonElement::Null,
+			"102"=> JsonElement::String(
 				"AbK4PO4dConOew4jXt7UcmL9I73z1NA14EgbpBEw8J9ipgjD3i92SakgAv7SFXOE59VlWQ5dw3whqqSzkwoQavWWkDeJep1JzdP4ZyzNFMO7".to_string(),
 			),
-			"method"=> JsonElement::String(
+			"1120"=> JsonElement::String(
 				"AROQNb+N33nEk9+C+fCuy0vPwMWzqDcnZP48St2Jm1obAvKux3xZwnq1mdqpZmcUQEUL3USwYoJ80Ef8gmqmFgk=".to_string(),
 			),
-			BUCKET_KEY_FIELD=> JsonElement::Null,
-			"conversationEntry"=> JsonElement::Array(
+			"1310"=> JsonElement::Null,
+			"117"=> JsonElement::Array(
 				vec![
 					JsonElement::String(
 						"O1RT2Dj--3-0".to_string(),
@@ -1445,66 +1446,63 @@ mod tests {
 					),
 				],
 			),
-			PERMISSIONS_FIELD=> JsonElement::String(
+			"100"=> JsonElement::String(
 				"O1RT2Dj--g-0".to_string(),
 			),
-			"mailDetailsDraft"=> JsonElement::Null,
-			"sender"=> JsonElement::Dict(
+			"1309"=> JsonElement::Null,
+			"111"=> JsonElement::Dict(
 				collection! {
-					"address"=> JsonElement::String(
+					"95"=> JsonElement::String(
 						"map-free@tutanota.de".to_string(),
 					),
-					"contact"=> JsonElement::Null,
-					ID_FIELD=> JsonElement::String(
+					"96"=> JsonElement::Null,
+					"93"=> JsonElement::String(
 						"0y7Pgw".to_string(),
 					),
-					"name"=> JsonElement::String(
+					"94"=> JsonElement::String(
 						"AQLHPJe+eDYk6eRtBsmtpNBGllFzNvfb7gUuMjxsiJGinYAStt4nHO4L1PLChTZL63ifyZd87IqJ7DpVNFkpPNQ=".to_string(),
 					),
 				},
 			),
-			"subject"=> JsonElement::String(
+			"105"=> JsonElement::String(
 				"AVRYAouCyrii0gGUpQ9TcgbBdzQiFUc8n0I32fO5pA0wk+0i6vNke8uML5vPy09NQEzUiozrSYDl3bEzHCdrD9rjQgvrJhaygZiAF5bv8eX/".to_string(),
 			),
-			"movedTime"=> JsonElement::String(
+			"896"=> JsonElement::String(
 				"1720612041643".to_string(),
 			),
-			"state"=> JsonElement::String(
+			"108"=> JsonElement::String(
 				"2".to_string(),
 			),
-			OWNER_KEY_VERSION_FIELD=> JsonElement::String(
+			"1395"=> JsonElement::String(
 				"0".to_string(),
 			),
-			"replyTos"=> JsonElement::Array(
-				vec![],
-			),
-			"unread"=> JsonElement::String(
+			"109"=> JsonElement::String(
 				"0".to_string(),
 			),
-			"body"=> JsonElement::Null,
-			"authStatus"=> JsonElement::Null,
-			"firstRecipient"=> JsonElement::Dict(
+			"1346"=> JsonElement::Null,
+			"1022"=> JsonElement::Null,
+			"1306"=> JsonElement::Dict(
 				collection! {
-					"address"=> JsonElement::String(
+					"95"=> JsonElement::String(
 						"bed-free@tutanota.de".to_string(),
 					),
-					ID_FIELD=> JsonElement::String(
+					"93"=> JsonElement::String(
 						"yPeInQ".to_string(),
 					),
-					"name"=> JsonElement::String(
+					"94"=> JsonElement::String(
 						"AcCA59dQjq0y32zLYtBYvZZ84DXe3ftn4fBplPt9KAkdRBauIaKN2jiSqNa7wvcb5TTyeLz7tdTt9sKyM9Y+tx0=".to_string(),
 					),
-					"contact"=> JsonElement::Null,
+					"96"=> JsonElement::Null,
 				},
 			),
-			"differentEnvelopeSender"=> JsonElement::Null,
-			"listUnsubscribe"=> JsonElement::String(
+			"617"=> JsonElement::Null,
+			"866"=> JsonElement::String(
 				"".to_string(),
 			),
-			"attachments"=> JsonElement::Array(
+			"115"=> JsonElement::Array(
 				vec![],
 			),
-			ID_FIELD=> JsonElement::Array(
+			"99"=> JsonElement::Array(
 				vec![
 					JsonElement::String(
 						"O1RT1m6-0R-0".to_string(),
@@ -1514,32 +1512,31 @@ mod tests {
 					),
 				],
 			),
-			"confidential"=> JsonElement::String(
+			"426"=> JsonElement::String(
 				"AWv1okmvm7ItO37ubnKytr0kPscHFvpjzzs7P6CeiL8F3H8GWj/lpk20ewECiAg3wfj7sCyajaw1ShWU0D+Qncg=".to_string(),
 			),
-			"headers"=> JsonElement::Null,
-			"receivedDate"=> JsonElement::String(
+			"107"=> JsonElement::String(
 				"1720612041643".to_string(),
 			),
-			OWNER_GROUP_FIELD=> JsonElement::String(
+			"587"=> JsonElement::String(
 				"O1RT1m4-0s-0".to_string(),
 			),
-			"replyType"=> JsonElement::String(
+			"466"=> JsonElement::String(
 				"".to_string(),
 			),
-			"phishingStatus"=> JsonElement::String(
+			"1021"=> JsonElement::String(
 				"0".to_string(),
 			),
-			FORMAT_FIELD=> JsonElement::String(
+			"101"=> JsonElement::String(
 				"0".to_string(),
 			),
-			"recipientCount"=> JsonElement::String(
+			"1307"=> JsonElement::String(
 				"1".to_string(),
 			),
-			"encryptionAuthStatus"=> JsonElement::String(
+			"1346"=> JsonElement::String(
 				"AfrN1BgMCYxVksEHHVYnJCMrBK+59cgsu2S84Vvc57YbwV3NvuzFMXq8fMkTZB7vtLBiZdc2ZwLKrxTGwPWqk7w=".to_string(),
 			),
-			"mailDetails"=> JsonElement::Array(
+			"1308"=> JsonElement::Array(
 				vec![
 					JsonElement::String(
 						"O1RT1m5-0--0".to_string(),
@@ -1549,7 +1546,7 @@ mod tests {
 					),
 				],
 			),
-		"sets"=> JsonElement::Array(vec![]),}
+		"1465"=> JsonElement::Array(vec![]),}
 	}
 
 	fn create_model_value(
