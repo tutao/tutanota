@@ -31,6 +31,17 @@ public struct EncryptedAlarmNotification: Codable {
 		self.notificationSessionKeys = notificationSessionKeys
 		self.user = user
 	}
+
+    enum CodingKeys: String, CodingKey {
+        case operation = "1566"
+        case summary = "1567"
+        case eventStart = "1568"
+        case eventEnd = "1569"
+        case alarmInfo = "1570"
+        case repeatRule = "1571"
+        case notificationSessionKeys = "1572"
+        case user = "1573"
+    }
 }
 
 extension EncryptedAlarmNotification: Equatable {

@@ -4,4 +4,9 @@ import Foundation
 public struct NotificationSessionKey: Codable {
 	public let pushIdentifier: IdTuple
 	public let pushIdentifierSessionEncSessionKey: String
+
+    enum CodingKeys: String, CodingKey {
+        case pushIdentifier = "1555"
+        case pushIdentifierSessionEncSessionKey = "1556"
+    }
 }
