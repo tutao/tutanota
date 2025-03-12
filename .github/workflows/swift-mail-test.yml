@@ -21,7 +21,7 @@ env:
 
 jobs:
   test-swift:
-    runs-on: macos-14
+    runs-on: macos-15
 
     permissions:
       actions: none
