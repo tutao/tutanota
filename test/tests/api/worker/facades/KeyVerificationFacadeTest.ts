@@ -360,4 +360,14 @@ o.spec("KeyVerificationFacadeTest", function () {
 		const isSupported = await keyVerification.isSupported()
 		o(isSupported).equals(false)
 	})
+
+	o("database should NOT be queried when key verification is not supported", async function () {
+		// Ensure isSupported() returns false
+		when(customerFacade.isEnabled(FeatureType.KeyVerification)).thenResolve(false)
+
+		const verificationState = await keyVerification.resolveVerificationState(object(), object())
+		o(verificationState).equals(KeyVerificationState.NO_ENTRY)
+
+		verify(sqlCipherFacade.get(anything(), anything()), { times: 0 })
+	})
 })
