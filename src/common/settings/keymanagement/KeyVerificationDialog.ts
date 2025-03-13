@@ -104,7 +104,7 @@ export async function showKeyVerificationDialog(
 						case KeyVerificationDialogPages.QR_CODE_INPUT_METHOD:
 							return {
 								type: ButtonType.Secondary,
-								click: () => goBack(),
+								click: () => goBack(KeyVerificationDialogPages.CHOOSE_METHOD),
 								label: "back_action",
 								title: "back_action",
 							}
