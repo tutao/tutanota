@@ -88,7 +88,6 @@ import { NotFoundError } from "../../../common/error/RestError.js"
 import {
 	BlobReferenceTokenWrapper,
 	createGeneratedIdWrapper,
-	EntityUpdate,
 	ExternalUserReference,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
@@ -153,9 +152,9 @@ import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
-import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 import { Entity } from "../../../common/EntityTypes"
+import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>

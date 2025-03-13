@@ -22,8 +22,6 @@ import { CalendarFacade } from "../common/api/worker/facades/lazy/CalendarFacade
 import { MailFacade } from "../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../common/api/worker/facades/lazy/CounterFacade.js"
-import { Indexer } from "./workerUtils/index/Indexer.js"
-import { SearchFacade } from "./workerUtils/index/SearchFacade.js"
 import { BookingFacade } from "../common/api/worker/facades/lazy/BookingFacade.js"
 import { MailAddressFacade } from "../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { BlobFacade } from "../common/api/worker/facades/lazy/BlobFacade.js"
@@ -134,6 +132,8 @@ import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
+import { Indexer } from "./workerUtils/index/Indexer"
+import { SearchFacade } from "./workerUtils/index/SearchFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 

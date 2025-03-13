@@ -51,7 +51,7 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../common/api/worker/crypt
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import { Challenge } from "../../../common/api/entities/sys/TypeRefs.js"
+import { Challenge, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
@@ -76,7 +76,11 @@ import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyP
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
+import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
+import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
+import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 
 assertWorkerOrNode()
 
@@ -193,6 +197,11 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	if (isOfflineStorageAvailable()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
+			const customCacheHandler = new CustomCacheHandlerMap({
+				ref: CalendarEventTypeRef,
+				handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
+			})
+
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
@@ -201,6 +210,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				new CalendarOfflineCleaner(),
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
+				customCacheHandler,
 			)
 		}
 	} else {
@@ -211,11 +221,19 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
+	const ephemeralStorageProvider = async () => {
+		const customCacheHandler = new CustomCacheHandlerMap({
+			ref: UserTypeRef,
+			handler: new CustomUserCacheHandler(locator.cacheStorage),
+		})
+		return new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, customCacheHandler)
+	}
+
 	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
-		async () => new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver),
+		ephemeralStorageProvider,
 		offlineStorageProvider,
 	)
 

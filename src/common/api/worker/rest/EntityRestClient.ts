@@ -41,10 +41,10 @@ import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { EntityAdapter } from "../crypto/EntityAdapter"
-import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { AttributeModel } from "../../common/AttributeModel"
 import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
+import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 
 assertWorkerOrNode()
 
