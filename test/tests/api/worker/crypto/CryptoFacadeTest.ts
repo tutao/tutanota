@@ -266,7 +266,7 @@ o.spec("CryptoFacadeTest", function () {
 			_ownerGroup: recipientUser.mailGroup._id,
 			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
 		})
-		const mailLiteral = await new InstanceMapper().mapToLiteral(mail)
+		const mailLiteral = await new InstanceMapper().mapToLiteral(mail, MailTypeRef)
 
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mailLiteral))
@@ -1440,7 +1440,7 @@ o.spec("CryptoFacadeTest", function () {
 			_ownerKeyVersion: null,
 			details: downcast<MailDetails>(null),
 		} satisfies MailDetailsBlob
-		const mailDetailsBlobLiteral = await instanceMapper.mapToLiteral(mailDetailsBlob)
+		const mailDetailsBlobLiteral = await instanceMapper.mapToLiteral(mailDetailsBlob, MailDetailsBlobTypeRef)
 		when(entityClient.loadAll(PermissionTypeRef, "permissionListId")).thenResolve([])
 
 		try {

@@ -15,7 +15,7 @@ import { createTestEntity, mockFetchRequest } from "../../TestUtils.js"
 import tutanotaModelInfo from "../../../../src/common/api/entities/tutanota/ModelInfo.js"
 import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
-import { Mail, MailAddressTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailAddressTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification.js"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
@@ -180,7 +180,7 @@ o.spec("TutaNotificationHandler", () => {
 				}),
 			})
 
-			const mailLiteral = await mapper.mapToLiteral(mailMetadata)
+			const mailLiteral = await mapper.mapToLiteral(mailMetadata, MailTypeRef)
 
 			const requestDefer = mockFetchRequest(
 				fetch,

@@ -151,7 +151,7 @@ o.spec("TutaSseFacade", () => {
 				alarmNotifications: [alarmNotification],
 			})
 
-			const literal = await mapper.mapToLiteral(encryptedMissedNotification)
+			const literal = await mapper.mapToLiteral(encryptedMissedNotification, MissedNotificationTypeRef)
 
 			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, literal)
 
@@ -187,7 +187,7 @@ o.spec("TutaSseFacade", () => {
 			})
 			const encryptedMissedNotification: EncryptedMissedNotification = Object.assign({}, missedNotification, { alarmNotifications: [] })
 
-			const literal = await mapper.mapToLiteral(encryptedMissedNotification)
+			const literal = await mapper.mapToLiteral(encryptedMissedNotification, MissedNotificationTypeRef)
 
 			await sseFacade.connect()
 

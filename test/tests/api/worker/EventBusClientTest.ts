@@ -429,7 +429,7 @@ o.spec("EventBusClientTest", function () {
 				}),
 			],
 		})
-		const value = await instanceMapper.mapToLiteral(event as any)
+		const value = await instanceMapper.mapToLiteral(event as any, EntityUpdateTypeRef)
 		const eventAsJson = JSON.stringify(value)
 		return "entityUpdate;" + eventAsJson
 	}
