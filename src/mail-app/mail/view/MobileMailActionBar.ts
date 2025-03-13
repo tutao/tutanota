@@ -165,28 +165,28 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				click:
 					replyAllAction != null
 						? (e, dom) => {
-								const dropdown = new Dropdown(() => {
-									const buttons: DropdownButtonAttrs[] = []
-									buttons.push({
-										label: "replyAll_action",
-										icon: Icons.ReplyAll,
-										click: replyAllAction,
-									})
-
-									buttons.push({
-										label: "reply_action",
-										icon: Icons.Reply,
-										click: replyAction,
-									})
-									return buttons
-								}, this.dropdownWidth() ?? 300)
+								const dropdown = new Dropdown(
+									() => [
+										{
+											label: "replyAll_action",
+											icon: Icons.ReplyAll,
+											click: replyAllAction,
+										},
+										{
+											label: "reply_action",
+											icon: Icons.Reply,
+											click: replyAction,
+										},
+									],
+									this.dropdownWidth() ?? 300,
+								)
 
 								const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
 								dropdown.setOrigin(domRect)
 								modal.displayUnique(dropdown, true)
 						  }
 						: replyAction,
-				icon: replyAllAction == null ? Icons.ReplyAll : Icons.Reply,
+				icon: replyAllAction != null ? Icons.ReplyAll : Icons.Reply,
 			})
 		)
 	}
