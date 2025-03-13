@@ -514,12 +514,6 @@ export const enum KeyVerificationResultType {
 	QR_FINGERPRINT_MISMATCH = "3",
 }
 
-// TODO: DRY! There is a similar object in KeyVerificationProcessModel.
-export const KeyVerificationMethodOptions = Object.freeze([
-	{ name: "Text", value: KeyVerificationMethodType.text },
-	{ name: "QR code", value: KeyVerificationMethodType.qr },
-])
-
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
 export const MAX_LOGO_SIZE = 1024 * 100
 export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE

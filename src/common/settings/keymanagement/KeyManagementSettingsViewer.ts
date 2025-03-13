@@ -7,9 +7,8 @@ import { lang } from "../../misc/LanguageViewModel"
 import { IconButton } from "../../gui/base/IconButton"
 import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
-import { KeyVerificationFacade, MailAddress, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
-import { DropDownSelectorAttrs } from "../../gui/base/DropDownSelector"
-import { KeyVerificationMethodOptions, KeyVerificationMethodType, KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
+import { KeyVerificationFacade, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
 import { showKeyVerificationDialog } from "./KeyVerificationDialog"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
@@ -22,11 +21,15 @@ import { MenuTitle } from "../../gui/titles/MenuTitle"
 import { theme } from "../../gui/theme"
 import { FingerprintRow } from "./FingerprintRow"
 
+/**
+ * Section in user settings to deal with everything related to key verification.
+ *
+ * It can display the user's own fingerprint, list trusted identities, and start the key verification process.
+ */
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	mailAddress: string | null
 	publicKeyHash: PublicKeyFingerprint | null
-	trustedIdentities: Map<MailAddress, PublicKeyFingerprint>
-	selectedFingerprintRenderMethod: KeyVerificationMethodType = KeyVerificationMethodType.text
+	trustedIdentities: Map<string, PublicKeyFingerprint>
 
 	constructor(
 		private readonly keyVerificationFacade: KeyVerificationFacade,
@@ -36,7 +39,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	) {
 		this.mailAddress = null
 		this.publicKeyHash = null
-		this.trustedIdentities = new Map<MailAddress, PublicKeyFingerprint>()
+		this.trustedIdentities = new Map<string, PublicKeyFingerprint>()
 		this.view = this.view.bind(this)
 	}
 
@@ -74,14 +77,6 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 				},
 			})
 		})
-
-		const fingerprintRenderDropdownAttrs: DropDownSelectorAttrs<KeyVerificationMethodType> = {
-			label: "keyManagement.showFingerprintAs_label",
-			selectedValue: this.selectedFingerprintRenderMethod,
-			selectionChangedHandler: (newValue) => (this.selectedFingerprintRenderMethod = newValue),
-			items: KeyVerificationMethodOptions,
-			dropdownWidth: 300,
-		}
 
 		return m("", [
 			m(

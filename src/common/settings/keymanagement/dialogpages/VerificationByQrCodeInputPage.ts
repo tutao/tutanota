@@ -23,7 +23,7 @@ export type QrCodePageErrorType =
 	| "camera_permission_denied"
 	| "malformed_qr"
 	| "email_not_found"
-	| "qr_code_mistmatch"
+	| "qr_code_mismatch"
 	| "camera_not_found"
 	| "video_source_error"
 	| "unknown"
@@ -291,7 +291,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	resultToErrorType(kr: KeyVerificationResultType | undefined): QrCodePageErrorType {
 		switch (kr) {
 			case KeyVerificationResultType.QR_FINGERPRINT_MISMATCH: {
-				return "qr_code_mistmatch"
+				return "qr_code_mismatch"
 			}
 			case KeyVerificationResultType.QR_MAIL_ADDRESS_NOT_FOUND: {
 				return "email_not_found"

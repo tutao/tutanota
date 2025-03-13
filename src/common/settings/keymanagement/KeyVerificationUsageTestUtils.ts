@@ -12,6 +12,10 @@ export enum KeyVerificationScanCompleteMetric {
 	Failure = "Failure",
 }
 
+/**
+ * This is a thin abstraction over the different usage tests related to key verification.
+ * It is sufficient if the consumer uses the public methods exported by this class; no usage test object needs to be directly interacted with.
+ */
 export class KeyVerificationUsageTestUtils {
 	private tracks: TestTracks
 

@@ -12,9 +12,6 @@ import { CustomerFacade } from "./CustomerFacade"
 
 assertWorkerOrNode()
 
-// TODO: does this type exist anywhere else maybe?
-export type MailAddress = string
-
 export enum KeyVerificationState {
 	NO_ENTRY, // Identity is not trusted by user
 	VERIFIED, // Identity is trusted and verified
@@ -51,7 +48,7 @@ export class KeyVerificationFacade {
 		return isNative && isEnabledForCustomer
 	}
 
-	deserializeDatabaseEntry(entry: Record<string, TaggedSqlValue>): [MailAddress, PublicKeyFingerprint] {
+	deserializeDatabaseEntry(entry: Record<string, TaggedSqlValue>): [string, PublicKeyFingerprint] {
 		const mailAddress = entry.mailAddress.value as string
 
 		// remove this after resetting the DB
@@ -72,17 +69,14 @@ export class KeyVerificationFacade {
 	}
 
 	/**
-	 * Returns all trusted identities, including fresh information if they are still valid.
-	 * TODO: Does this scale?
+	 * Returns all trusted identities.
 	 */
-	async getTrustedIdentities(): Promise<Map<MailAddress, PublicKeyFingerprint>> {
+	async getTrustedIdentities(): Promise<Map<string, PublicKeyFingerprint>> {
 		const result = await this.sqlCipherFacade.all(`SELECT * FROM trusted_identities`, [])
 
-		const identities = new Map<MailAddress, PublicKeyFingerprint>()
+		const identities = new Map<string, PublicKeyFingerprint>()
 		for (let [_, row] of result.entries()) {
 			const [mailAddress, publicKeyFingerprint] = this.deserializeDatabaseEntry(row)
-			const verified = await this.confirmFingerprint(mailAddress, publicKeyFingerprint.fingerprint, KeyVerificationSourceOfTruth.PublicKeyService)
-
 			identities.set(mailAddress, publicKeyFingerprint)
 		}
 

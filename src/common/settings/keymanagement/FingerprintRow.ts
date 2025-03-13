@@ -14,6 +14,10 @@ type FingerprintRowAttrs = {
 	onRemoveFingerprint?: (mailAddress: string) => void
 }
 
+/**
+ * Component for displaying a verified public key fingerprint as a compact card,
+ * including key version, key type and a shield icon.
+ */
 export class FingerprintRow implements Component<FingerprintRowAttrs> {
 	view(vnode: Vnode<FingerprintRowAttrs>): Children {
 		const { mailAddress, publicKeyFingerprint, onRemoveFingerprint } = vnode.attrs

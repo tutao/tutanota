@@ -694,10 +694,21 @@ o.spec("CryptoFacadeTest", function () {
 				},
 			},
 		}
-		when(publicKeyProvider.loadCurrentPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress })).thenResolve(
-			recipientPublicKeys,
-		)
-		when(publicKeyProvider.loadPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress }, 0)).thenResolve({
+		when(
+			publicKeyProvider.loadCurrentPubKey({
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				identifier: recipientMailAddress,
+			}),
+		).thenResolve(recipientPublicKeys)
+		when(
+			publicKeyProvider.loadPubKey(
+				{
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+					identifier: recipientMailAddress,
+				},
+				0,
+			),
+		).thenResolve({
 			version: 0,
 			object: {
 				keyPairType: KeyPairType.TUTA_CRYPT,
@@ -706,7 +717,10 @@ o.spec("CryptoFacadeTest", function () {
 			},
 		})
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
-		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })
+		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({
+			object: senderGroupKey,
+			version: 0,
+		})
 		when(asymmetricCryptoFacade.asymEncryptSymKey(bk, recipientPublicKeys, senderUserGroup._id)).thenResolve({
 			recipientKeyVersion: recipientPublicKeys.version,
 			senderKeyVersion: parseKeyVersion(senderUserGroup.groupKeyVersion),
@@ -732,18 +746,6 @@ o.spec("CryptoFacadeTest", function () {
 		let recipientMailAddress = "bob@tutanota.com"
 		let senderGroupKey = aes256RandomKey()
 		let bk = aes256RandomKey()
-
-		// const senderKeyPairs = await pqFacade.generateKeyPairs()
-		//
-		// const senderKeyPair = createKeyPair({
-		// 	_id: "senderKeyPairId",
-		// 	pubEccKey: senderKeyPairs.eccKeyPair.publicKey,
-		// 	symEncPrivEccKey: aesEncrypt(senderGroupKey, senderKeyPairs.eccKeyPair.privateKey),
-		// 	pubKyberKey: kyberPublicKeyToBytes(senderKeyPairs.kyberKeyPair.publicKey),
-		// 	symEncPrivKyberKey: aesEncrypt(senderGroupKey, kyberPrivateKeyToBytes(senderKeyPairs.kyberKeyPair.privateKey)),
-		// 	pubRsaKey: null,
-		// 	symEncPrivRsaKey: null,
-		// })
 
 		let senderMailAddress = "alice@tutanota.com"
 
@@ -782,9 +784,12 @@ o.spec("CryptoFacadeTest", function () {
 			version: 0,
 			object: object(),
 		}
-		when(publicKeyProvider.loadCurrentPubKey({ identifierType: PublicKeyIdentifierType.MAIL_ADDRESS, identifier: recipientMailAddress })).thenResolve(
-			recipientPublicKeys,
-		)
+		when(
+			publicKeyProvider.loadCurrentPubKey({
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				identifier: recipientMailAddress,
+			}),
+		).thenResolve(recipientPublicKeys)
 
 		const senderPublicKeys: Versioned<PQPublicKeys> = {
 			version: 0,
@@ -799,7 +804,10 @@ o.spec("CryptoFacadeTest", function () {
 		).thenResolve(senderPublicKeys)
 
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
-		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({ object: senderGroupKey, version: 0 })
+		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({
+			object: senderGroupKey,
+			version: 0,
+		})
 		const pubEncBucketKey = object<Uint8Array>()
 		when(asymmetricCryptoFacade.asymEncryptSymKey(bk, recipientPublicKeys, senderUserGroup._id)).thenResolve({
 			recipientKeyVersion: recipientPublicKeys.version,
@@ -1940,8 +1948,14 @@ export function createTestUser(name: string, entityClient: EntityClient): TestUs
  */
 export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade, keyLoaderFacade: KeyLoaderFacade) {
 	when(userFacade.getLoggedInUser()).thenReturn(testUser.user)
-	when(keyLoaderFacade.getCurrentSymGroupKey(testUser.mailGroup._id)).thenResolve({ object: testUser.mailGroupKey, version: 0 })
-	when(keyLoaderFacade.getCurrentSymGroupKey(testUser.userGroup._id)).thenResolve({ object: testUser.userGroupKey, version: 0 })
+	when(keyLoaderFacade.getCurrentSymGroupKey(testUser.mailGroup._id)).thenResolve({
+		object: testUser.mailGroupKey,
+		version: 0,
+	})
+	when(keyLoaderFacade.getCurrentSymGroupKey(testUser.userGroup._id)).thenResolve({
+		object: testUser.userGroupKey,
+		version: 0,
+	})
 	when(userFacade.hasGroup(testUser.userGroup._id)).thenReturn(true)
 	when(userFacade.hasGroup(testUser.mailGroup._id)).thenReturn(true)
 	when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: testUser.userGroupKey, version: 0 })

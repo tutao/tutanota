@@ -23,6 +23,9 @@ enum KeyVerificationDialogPages {
 	ERROR,
 }
 
+/**
+ * Entry point to the key verification dialog, which guides the user through the process of verifying a contact.
+ */
 export async function showKeyVerificationDialog(
 	keyVerificationFacade: KeyVerificationFacade,
 	mobileSystemFacade: MobileSystemFacade,

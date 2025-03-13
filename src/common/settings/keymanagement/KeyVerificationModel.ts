@@ -6,6 +6,9 @@ import { KeyVerificationMethodType, KeyVerificationResultType, KeyVerificationSo
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 
+/**
+ * This model tracks state across multiple pages in the key verification dialog.
+ */
 export class KeyVerificationModel {
 	mailAddress: string = ""
 	publicKeyFingerprint: PublicKeyFingerprint | null = null
@@ -21,10 +24,6 @@ export class KeyVerificationModel {
 	) {}
 
 	public validateMailAddress(mailAddress: string): TranslationKey | null {
-		/* TODO:
-        Properly validate mail address. Only Tuta domains are reasonable for this problem space
-        so only those should be considered valid. */
-
 		// validate email address (syntactically)
 		if (getCleanedMailAddress(mailAddress) == null) {
 			return "mailAddressInvalid_msg"

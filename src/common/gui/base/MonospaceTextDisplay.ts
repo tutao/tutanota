@@ -10,6 +10,9 @@ export type MonospaceTextDisplayAttrs = {
 	classes?: string
 }
 
+/**
+ * Useful for displaying technical pieces of data, e.g. the recovery code or key fingerprints.
+ */
 export class MonospaceTextDisplay implements Component<MonospaceTextDisplayAttrs> {
 	view(vnode: Vnode<MonospaceTextDisplayAttrs>): Children {
 		const { text, placeholder, chunkSize, classes } = vnode.attrs
