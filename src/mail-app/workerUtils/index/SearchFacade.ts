@@ -104,9 +104,9 @@ export class SearchFacade {
             SELECT list_entities.listId,
                    list_entities.elementId
             FROM mail_index
-                     LEFT JOIN list_entities ON
+                     INNER JOIN list_entities ON
                 mail_index.rowId = list_entities.rowId
-            WHERE email = ${query}`
+            WHERE mail_index = ${query}`
 		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 		const resultIds = resultRows.map(({ listId, elementId }) => {
 			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple

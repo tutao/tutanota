@@ -12,7 +12,6 @@ import {
 	ImportedMailTypeRef,
 	ImportMailStateTypeRef,
 	Mail,
-	MailAddress,
 	MailBox,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
@@ -33,7 +32,6 @@ import {
 	DAY_IN_MILLIS,
 	findAllAndRemove,
 	first,
-	getTypeId,
 	groupBy,
 	isEmpty,
 	isNotNull,
@@ -45,8 +43,6 @@ import {
 import {
 	deconstructMailSetEntryId,
 	elementIdPart,
-	getElementId,
-	getListId,
 	isSameId,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
@@ -57,11 +53,9 @@ import {
 import {
 	_createNewIndexUpdate,
 	benchmarkFunction,
-	encryptIndexKeyBase64,
 	filterMailMemberships,
 	getPerformanceTimestamp,
 	htmlToText,
-	typeRefToTypeInfo,
 } from "../../../common/api/worker/search/IndexUtils.js"
 import { Db, GroupData, IndexingErrorReason, IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
@@ -72,7 +66,7 @@ import type { EntityUpdate, GroupMembership, User } from "../../../common/api/en
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { ProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
-import { ElementDataOS, GroupDataOS, Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
+import { GroupDataOS, Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { containsEventOfType, EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { b64UserIdHash } from "../../../common/api/worker/search/DbFacade.js"
@@ -81,8 +75,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
-import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
-import { sql } from "../../../common/api/worker/offline/Sql"
+import { MailIndexerBackend } from "./MailIndexerBackend"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -106,7 +99,6 @@ export class MailIndexer {
 	mailboxIndexingPromise: Promise<void>
 	isIndexing: boolean = false
 	_indexingCancelled: boolean
-	_core: IndexerCore
 	_db: Db
 	_dateProvider: DateProvider
 
@@ -118,9 +110,8 @@ export class MailIndexer {
 		private readonly entityClient: EntityClient,
 		dateProvider: DateProvider,
 		private readonly mailFacade: MailFacade,
-		private readonly sqlCipherFacade: SqlCipherFacade,
+		private readonly backend: MailIndexerBackend,
 	) {
-		this._core = core
 		this._db = db
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this.mailIndexingEnabled = false
@@ -244,28 +235,6 @@ export class MailIndexer {
 			)
 	}
 
-	/** @private visibleForTesting */
-	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
-		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId, this._db.iv)
-		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
-			return transaction.get(ElementDataOS, encInstanceId).then((elementData) => {
-				if (elementData) {
-					indexUpdate.move.push({
-						encInstanceId,
-						newListId: event.instanceListId,
-					})
-				} else {
-					// instance is moved but not yet indexed: handle as new for example moving a mail from non indexed folder like spam to indexed folder
-					return this.processNewMail([event.instanceListId, event.instanceId]).then((result) => {
-						if (result) {
-							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-						}
-					})
-				}
-			})
-		})
-	}
-
 	async enableMailIndexing(user: User): Promise<void> {
 		const t = await this._db.dbFacade.createTransaction(true, [MetaDataOS])
 		const enabled = await t.get(MetaDataOS, Metadata.mailIndexingEnabled)
@@ -331,7 +300,8 @@ export class MailIndexer {
 		this.isIndexing = true
 		this._indexingCancelled = false
 
-		this._core.resetStats()
+		// FIXME
+		// this._core.resetStats()
 
 		await this.infoMessageHandler.onSearchIndexStateUpdate({
 			initializing: false,
@@ -345,7 +315,8 @@ export class MailIndexer {
 
 		let memberships = filterMailMemberships(user)
 
-		this._core.queue.pause()
+		// FIXME
+		// this._core.queue.pause()
 
 		try {
 			const mailBoxes: Array<{ mbox: MailBox; newestTimestamp: number }> = []
@@ -378,7 +349,8 @@ export class MailIndexer {
 				await this._indexMailLists(mailBoxes, oldestTimestamp)
 			}
 
-			this._core.printStatus()
+			// FIXME
+			// this._core.printStatus()
 
 			await this.updateCurrentIndexTimestamp(user)
 
@@ -388,7 +360,9 @@ export class MailIndexer {
 				progress: 0,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
 				aimedMailIndexTimestamp: oldestTimestamp,
-				indexedMailCount: this._core._stats.mailcount,
+				// FIXME
+				indexedMailCount: 0,
+				// indexedMailCount: this._core._stats.mailcount,
 				failedIndexingUpTo: null,
 			})
 		} catch (e) {
@@ -397,7 +371,9 @@ export class MailIndexer {
 			this.mailboxIndexingPromise = Promise.resolve()
 			await this.updateCurrentIndexTimestamp(user)
 
-			const success = this._core.isStoppedProcessing() || e instanceof CancelledError
+			// FIXME
+			const success = true
+			// const success = this._core.isStoppedProcessing() || e instanceof CancelledError
 
 			const failedIndexingUpTo = success ? null : oldestTimestamp
 
@@ -409,12 +385,14 @@ export class MailIndexer {
 				progress: 0,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
 				aimedMailIndexTimestamp: oldestTimestamp,
-				indexedMailCount: this._core._stats.mailcount,
+				// FIXME
+				indexedMailCount: 0, //this._core._stats.mailcount,
 				failedIndexingUpTo,
 				error,
 			})
 		} finally {
-			this._core.queue.resume()
+			// FIXME
+			// this._core.queue.resume()
 			this.isIndexing = false
 		}
 	}
@@ -439,8 +417,6 @@ export class MailIndexer {
 				failedIndexingUpTo: null,
 			})
 		})
-
-		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 
 		const indexLoader = this.bulkLoaderFactory()
 
@@ -469,6 +445,8 @@ export class MailIndexer {
 		progress: ProgressMonitor,
 		indexLoader: BulkMailLoader,
 	): Promise<void> {
+		// FIXME: the structure is really wrong now because we keep passing the IndexUpdate around and losing data
+		//  while we should keep something more generic
 		const mailboxesToWrite = mailboxIndexDatas.filter((mboxData) => rangeEnd < mboxData.newestTimestamp)
 
 		let mailSetEntriesToProcess: MailSetEntry[] = []
@@ -496,57 +474,27 @@ export class MailIndexer {
 				).flat()
 				mailSetEntriesToProcess.push(...allMails)
 			})
-			this._core._stats.preparingTime += mailsetLoadTime
+			// this._core._stats.preparingTime += mailsetLoadTime
 
 			// If we've reached critical mass (MAIL_INDEXER_CHUNK) or it's the last iteration, process mails.
 			if (finalIteration || mailSetEntriesToProcess.length >= MAIL_INDEXER_CHUNK) {
-				const processTime = await benchmarkFunction(async () => {
-					const mailData = await this.processIndexMails(mailSetEntriesToProcess, currentIndexUpdate, indexLoader)
-					this._core._stats.mailcount += mailData.length
-					for (const {
-						mail,
-						mailDetails: { recipients, body },
-						files,
-					} of mailData) {
-						const foundMailQuery = sql`SELECT rowId
-                                                   FROM list_entities
-                                                   WHERE type = ${getTypeId(MailTypeRef)}
-                                                     AND listId = ${getListId(mail)}
-                                                     AND elementId = ${getElementId(mail)}`
-						const foundMail = await this.sqlCipherFacade.get(foundMailQuery.query, foundMailQuery.params)
-						console.log(`found mail for ${mail._id} (${mail.subject}): ${foundMail}`)
-
-						// FIXME: attachment names is just an empty string right now
-						const { query, params } = sql`
-                            INSERT INTO mail_index(rowId, subject, toRecipients, ccRecipients, bccRecipients, sender,
-                                                   body, attachments)
-                            VALUES ((SELECT rowId
-                                     FROM list_entities
-                                     WHERE type = ${getTypeId(MailTypeRef)}
-                                       AND listId = ${getListId(mail)}
-                                       AND elementId = ${getElementId(mail)}),
-                                    ${mail.subject},
-                                    ${this.serializeRecipients(recipients.toRecipients)},
-                                    ${this.serializeRecipients(recipients.ccRecipients)},
-                                    ${this.serializeRecipients(recipients.bccRecipients)},
-                                    ${this.serializeRecipients([mail.sender])},
-                                    ${htmlToText(getMailBodyText(body))},
-                                    ${files.map((f) => f.name).join(" ")})`
-						await this.sqlCipherFacade.run(query, params)
-					}
-				})
-				this._core._stats.preparingTime += processTime
+				// const processTime = await benchmarkFunction(async () => {
+				// 	const mailData = await this.processIndexMails(mailSetEntriesToProcess, indexLoader)
+				// 	// this._core._stats.mailcount += mailData.length
+				// })
+				const mailData = await this.processIndexMails(mailSetEntriesToProcess, indexLoader)
+				// this._core._stats.preparingTime += processTime
 
 				mailSetEntriesToProcess = []
 
-				if (finalIteration || this.processedEnoughForIndexWrite(currentIndexUpdate)) {
+				if (finalIteration || this.backend.enoughForUpdate(mailData)) {
 					// only write to database if we have collected enough entities, or it's the last iteration
-					const indexTimestampPerGroup = mailboxesToWrite.map((data) => ({
-						groupId: data.ownerGroup,
-						indexTimestamp: this.isMailboxLoadedCompletely(data) ? FULL_INDEXED_TIMESTAMP : batchEnd,
-					}))
-					await this.writeIndexUpdate(indexTimestampPerGroup, currentIndexUpdate)
-					currentIndexUpdate = _createNewIndexUpdate(currentIndexUpdate.typeInfo)
+					const indexTimestampPerGroup = new Map(
+						mailboxesToWrite.map((data) => [data.ownerGroup, this.isMailboxLoadedCompletely(data) ? FULL_INDEXED_TIMESTAMP : batchEnd]),
+					)
+					this.backend.indexMails(indexTimestampPerGroup, mailData)
+					// await this.writeIndexUpdate(indexTimestampPerGroup, currentIndexUpdate)
+					// currentIndexUpdate = _createNewIndexUpdate(currentIndexUpdate.typeInfo)
 
 					// If there aren't any more mails in a mailbox that we can retrieve, we're done with those.
 					findAllAndRemove(mailboxesToWrite, (data) => this.isMailboxLoadedCompletely(data))
@@ -561,19 +509,14 @@ export class MailIndexer {
 		}
 	}
 
-	private serializeRecipients(recipients: readonly MailAddress[]): string {
-		return recipients.map((r) => `${r.name} ${r.address}`).join(", ")
-	}
-
 	private isMailboxLoadedCompletely(data: MboxIndexData): boolean {
 		return data.mailSetListDatas.every((data) => data.loadedCompletely && isEmpty(data.loadedButUnusedEntries))
 	}
 
 	private async processIndexMails(
 		mailSetEntries: Array<MailSetEntry>,
-		indexUpdate: IndexUpdate,
 		indexLoader: BulkMailLoader,
-	): Promise<{ mail: Mail; mailDetails: MailDetails; files: TutanotaFile[] }[]> {
+	): Promise<{ mail: Mail; mailDetails: MailDetails; attachments: TutanotaFile[] }[]> {
 		this.assertNotCancelled("processIndexMails")
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailSetEntries)
 		let mailsWithoutErros = mails.filter((m) => !hasError(m))
@@ -589,11 +532,11 @@ export class MailIndexer {
 				}
 			})
 			.filter(isNotNull)
-		for (const element of mailsWithMailDetailsAndFiles) {
-			let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.mailDetails, element.files)
-
-			this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
-		}
+		// for (const element of mailsWithMailDetailsAndFiles) {
+		// 	let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.mailDetails, element.files)
+		//
+		// 	this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
+		// }
 		console.log(TAG, `processIndexMails done ${mails.at(0)?._id.at(0)} ${mails.length}`)
 		return mailsWithMailDetailsAndFiles
 	}
@@ -660,8 +603,8 @@ export class MailIndexer {
 	}
 
 	async processImportStateEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
-		if (!this.mailIndexingEnabled) return Promise.resolve()
-		await promiseMap(events, async (event) => {
+		if (!this.mailIndexingEnabled) return
+		for (const event of events) {
 			// we can only process create and update events (create is because of EntityEvent optimization
 			// (CREATE + UPDATE = CREATE) which requires us to process CREATE events with imported mails)
 			if (event.operation === OperationType.CREATE || event.operation === OperationType.UPDATE) {
@@ -669,15 +612,11 @@ export class MailIndexer {
 
 				await this.preloadMails(mailIds)
 
-				return await promiseMap(mailIds, (mailId) =>
-					this.processNewMail(mailId).then((result) => {
-						if (result) {
-							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-						}
-					}),
-				)
+				for (const mailId of mailIds) {
+					await this.backend.onMailCreated(mailId)
+				}
 			}
-		})
+		}
 	}
 
 	/**
@@ -726,49 +665,44 @@ export class MailIndexer {
 	 * @param batchId
 	 * @param indexUpdate which will be populated with operations
 	 */
-	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+	async processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
-		return promiseMap(events, (event) => {
+		for (const event of events) {
 			const mailId: IdTuple = [event.instanceListId, event.instanceId]
 			if (event.operation === OperationType.CREATE) {
-				if (containsEventOfType(events as readonly EntityUpdateData[], OperationType.DELETE, event.instanceId)) {
-					// do not execute move operation if there is a delete event or another move event.
-					return this.processMovedMail(event, indexUpdate)
-				} else {
-					return this.processNewMail(mailId).then((result) => {
-						if (result) {
-							this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
-						}
-					})
-				}
+				// return this.processNewMail(mailId).then((result) => {
+				// 	if (result) {
+				// 		this._core.encryptSearchIndexEntries(result.mail._id, neverNull(result.mail._ownerGroup), result.keyToIndexEntries, indexUpdate)
+				// 	}
+				// })
+				await this.backend.onMailCreated(mailId)
 			} else if (event.operation === OperationType.UPDATE) {
-				return this.entityClient
-					.load(MailTypeRef, [event.instanceListId, event.instanceId])
-					.then((mail) => {
-						if (mail.state === MailState.DRAFT) {
-							return Promise.all([
-								this._core._processDeleted(event, indexUpdate),
-								this.processNewMail(mailId).then((result) => {
-									if (result) {
-										this._core.encryptSearchIndexEntries(
-											result.mail._id,
-											neverNull(result.mail._ownerGroup),
-											result.keyToIndexEntries,
-											indexUpdate,
-										)
-									}
-								}),
-							])
-						}
-					})
-					.catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
+				await this.backend.onMailUpdated(mailId)
+				// FIXME: draft logic
+				// return this.entityClient
+				// 	.load(MailTypeRef, [event.instanceListId, event.instanceId])
+				// 	.then((mail) => {
+				// 		if (mail.state === MailState.DRAFT) {
+				// 			return Promise.all([
+				// 				this._core._processDeleted(event, indexUpdate),
+				// 				this.processNewMail(mailId).then((result) => {
+				// 					if (result) {
+				// 						this._core.encryptSearchIndexEntries(
+				// 							result.mail._id,
+				// 							neverNull(result.mail._ownerGroup),
+				// 							result.keyToIndexEntries,
+				// 							indexUpdate,
+				// 						)
+				// 					}
+				// 				}),
+				// 			])
+				// 		}
+				// 	})
+				// 	.catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
 			} else if (event.operation === OperationType.DELETE) {
-				if (!containsEventOfType(events as readonly EntityUpdateData[], OperationType.CREATE, event.instanceId)) {
-					// Check that this is *not* a move event. Move events are handled separately.
-					return this._core._processDeleted(event, indexUpdate)
-				}
+				await this.backend.onMailDeleted(mailId)
 			}
-		}).then(noOp)
+		}
 	}
 }
 
