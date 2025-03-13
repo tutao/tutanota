@@ -132,50 +132,68 @@ o.spec("Index Utils", () => {
 		o(userIsGlobalAdmin(user)).equals(false)
 	})
 	o("filterIndexMemberships", function () {
-		let user = createTestEntity(UserTypeRef)
-		user.memberships = [
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-		]
-		user.memberships[0].groupType = GroupType.Admin
-		user.memberships[1].groupType = GroupType.Contact
-		user.memberships[2].groupType = GroupType.Customer
-		user.memberships[3].groupType = GroupType.External
-		user.memberships[4].groupType = GroupType.File
-		user.memberships[5].groupType = GroupType.Mail
-		user.memberships[6].groupType = GroupType.MailingList
-		user.memberships[7].groupType = GroupType.User
-		o(filterIndexMemberships(user)).deepEquals([user.memberships[0], user.memberships[1], user.memberships[2], user.memberships[5]])
+		const adminGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Admin,
+		})
+		const contactGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Contact,
+		})
+		const customerGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Customer,
+		})
+		const externalGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.External,
+		})
+		const fileGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.File,
+		})
+		const mailGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Mail,
+		})
+		const mailingListGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.MailingList,
+		})
+		const userGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.User,
+		})
+		const user = createTestEntity(UserTypeRef, {
+			memberships: [adminGroup, contactGroup, customerGroup, externalGroup, fileGroup, mailGroup, mailingListGroup, userGroup],
+		})
+		o(filterIndexMemberships(user)).deepEquals([contactGroup, mailGroup])
 	})
 	o("filterMailMemberships", function () {
-		let user = createTestEntity(UserTypeRef)
-		user.memberships = [
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-			createTestEntity(GroupMembershipTypeRef),
-		]
-		user.memberships[0].groupType = GroupType.Admin
-		user.memberships[1].groupType = GroupType.Contact
-		user.memberships[2].groupType = GroupType.Customer
-		user.memberships[3].groupType = GroupType.External
-		user.memberships[4].groupType = GroupType.File
-		user.memberships[5].groupType = GroupType.Mail
-		user.memberships[6].groupType = GroupType.MailingList
-		user.memberships[7].groupType = GroupType.User
-		user.memberships[8].groupType = GroupType.Mail
-		o(filterMailMemberships(user)).deepEquals([user.memberships[5], user.memberships[8]])
+		const adminGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Admin,
+		})
+		const contactGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Contact,
+		})
+		const customerGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Customer,
+		})
+		const externalGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.External,
+		})
+		const fileGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.File,
+		})
+		const mailGroup1 = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Mail,
+		})
+		const mailingListGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.MailingList,
+		})
+		const userGroup = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.User,
+		})
+		const mailGroup2 = createTestEntity(GroupMembershipTypeRef, {
+			groupType: GroupType.Mail,
+		})
+		const user = createTestEntity(UserTypeRef, {
+			memberships: [adminGroup, contactGroup, customerGroup, externalGroup, fileGroup, mailGroup1, mailGroup2, mailingListGroup, userGroup],
+		})
+
+		o(filterMailMemberships(user)).deepEquals([mailGroup1, mailGroup2])
 	})
 	o("containsEventOfType", function () {
 		function createUpdate(type: OperationType, id: Id): EntityUpdateData {

@@ -2,23 +2,25 @@
  * Created by bdeterding on 13.12.17.
  */
 import o from "@tutao/otest"
-import { ContactTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { Contact, ContactTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
+import { DbEncryptionData } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { object } from "testdouble"
+import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
 
 o.spec("SuggestionFacade test", () => {
-	let db
-	let facade
+	let db: EncryptedDbWrapper
+	let facade: SuggestionFacade<Contact>
+	let encryptionData: DbEncryptionData
 	o.beforeEach(function () {
-		db = {
-			key: aes256RandomKey(),
-			iv: fixedIv,
-			dbFacade: {},
-			initialized: Promise.resolve(),
-		}
+		db = new EncryptedDbWrapper(object())
+
+		encryptionData = { key: aes256RandomKey(), iv: fixedIv }
+		db.init(encryptionData)
 		facade = new SuggestionFacade(ContactTypeRef, db)
 	})
 	o("add and get suggestion", () => {

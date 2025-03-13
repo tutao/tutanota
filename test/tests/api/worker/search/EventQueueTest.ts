@@ -1,23 +1,27 @@
 import o from "@tutao/otest"
 import { batchMod, EntityModificationType, EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
-import { EntityUpdate, EntityUpdateTypeRef, GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef, GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
 import { MailboxGroupRootTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
 import { createTestEntity } from "../../../TestUtils.js"
+import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
 	let processElement: any
 	let lastProcess: { resolve: () => void; reject: (Error) => void; promise: Promise<void> }
 
-	const newUpdate = (type: OperationType, instanceId: string) => {
-		const update = createTestEntity(EntityUpdateTypeRef)
-		update.operation = type
-		update.instanceId = instanceId
-		return update
+	const newUpdate = (type: OperationType, instanceId: string): EntityUpdateData => {
+		return {
+			operation: type,
+			instanceId,
+			instanceListId: "",
+			application: "",
+			type: "",
+		}
 	}
 
 	o.beforeEach(function () {
@@ -314,7 +318,7 @@ o.spec("EventQueueTest", function () {
 			queue.add(batchId, groupId, [updateEvent2])
 		})
 
-		function createUpdate(type: OperationType, listId: Id, instanceId: Id, eventId?: Id): EntityUpdate {
+		function createUpdate(type: OperationType, listId: Id, instanceId: Id, eventId?: Id): EntityUpdateData {
 			let update = createTestEntity(EntityUpdateTypeRef)
 			update.operation = type
 			update.instanceListId = listId
@@ -324,7 +328,13 @@ o.spec("EventQueueTest", function () {
 			if (eventId) {
 				update._id = eventId
 			}
-			return update
+			return {
+				operation: type,
+				instanceListId: listId,
+				instanceId,
+				type: MailTypeRef.type,
+				application: MailTypeRef.app,
+			}
 		}
 	})
 
@@ -337,21 +347,21 @@ o.spec("EventQueueTest", function () {
 				batchMod(
 					batchId,
 					[
-						createTestEntity(EntityUpdateTypeRef, {
+						{
 							application: "tutanota",
 							type: "mail",
 							operation: OperationType.CREATE,
 							instanceId,
 							instanceListId,
-						}),
+						},
 					],
-					createTestEntity(EntityUpdateTypeRef, {
+					{
 						application: "tutanota",
 						type: "mail",
 						operation: OperationType.CREATE,
 						instanceId,
 						instanceListId,
-					}),
+					},
 				),
 			).equals(EntityModificationType.CREATE)
 		})
@@ -361,28 +371,28 @@ o.spec("EventQueueTest", function () {
 				batchMod(
 					batchId,
 					[
-						createTestEntity(EntityUpdateTypeRef, {
+						{
 							application: "tutanota",
 							type: "mail",
 							operation: OperationType.DELETE,
 							instanceId: "instanceId2",
 							instanceListId,
-						}),
-						createTestEntity(EntityUpdateTypeRef, {
+						},
+						{
 							application: "tutanota",
 							type: "mail",
 							operation: OperationType.CREATE,
 							instanceId,
 							instanceListId,
-						}),
+						},
 					],
-					createTestEntity(EntityUpdateTypeRef, {
+					{
 						application: "tutanota",
 						type: "mail",
 						operation: OperationType.CREATE,
 						instanceId,
 						instanceListId,
-					}),
+					},
 				),
 			).equals(EntityModificationType.CREATE)
 		})
@@ -392,28 +402,28 @@ o.spec("EventQueueTest", function () {
 				batchMod(
 					batchId,
 					[
-						createTestEntity(EntityUpdateTypeRef, {
+						{
 							application: "tutanota",
 							type: "mail",
 							operation: OperationType.DELETE,
 							instanceId,
 							instanceListId: "instanceListId2",
-						}),
-						createTestEntity(EntityUpdateTypeRef, {
+						},
+						{
 							application: "tutanota",
 							type: "mail",
 							operation: OperationType.CREATE,
 							instanceId,
 							instanceListId,
-						}),
+						},
 					],
-					createTestEntity(EntityUpdateTypeRef, {
+					{
 						application: "tutanota",
 						type: "mail",
 						operation: OperationType.CREATE,
 						instanceId,
 						instanceListId,
-					}),
+					},
 				),
 			).equals(EntityModificationType.CREATE)
 		})
@@ -423,28 +433,28 @@ o.spec("EventQueueTest", function () {
 				batchMod(
 					batchId,
 					[
-						createTestEntity(EntityUpdateTypeRef, {
+						{
 							application: "tutanota",
 							type: "contact",
 							operation: OperationType.DELETE,
 							instanceId,
 							instanceListId,
-						}),
-						createTestEntity(EntityUpdateTypeRef, {
+						},
+						{
 							application: "tutanota",
 							type: "mail",
 							operation: OperationType.CREATE,
 							instanceId,
 							instanceListId,
-						}),
+						},
 					],
-					createTestEntity(EntityUpdateTypeRef, {
+					{
 						application: "tutanota",
 						type: "mail",
 						operation: OperationType.CREATE,
 						instanceId,
 						instanceListId,
-					}),
+					},
 				),
 			).equals(EntityModificationType.CREATE)
 		})
@@ -454,21 +464,21 @@ o.spec("EventQueueTest", function () {
 				batchMod(
 					batchId,
 					[
-						createTestEntity(EntityUpdateTypeRef, {
+						{
 							application: "tutanota",
 							type: "mail",
 							operation: OperationType.CREATE,
 							instanceId,
 							instanceListId,
-						}),
+						},
 					],
-					createTestEntity(EntityUpdateTypeRef, {
+					{
 						application: "tutanota",
 						type: "mail",
 						operation: OperationType.DELETE,
 						instanceId,
 						instanceListId,
-					}),
+					},
 				),
 			).equals(EntityModificationType.CREATE)
 		})
