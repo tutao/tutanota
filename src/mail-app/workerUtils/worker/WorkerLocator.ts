@@ -1,6 +1,5 @@
 import { CacheInfo, LoginFacade, LoginListener } from "../../../common/api/worker/facades/LoginFacade.js"
 import type { WorkerImpl } from "./WorkerImpl.js"
-import type { Indexer } from "../index/Indexer.js"
 import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
 import type { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
@@ -63,8 +62,7 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../common/api/worker/crypt
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import type { SearchFacade } from "../index/SearchFacade.js"
-import { Challenge } from "../../../common/api/entities/sys/TypeRefs.js"
+import { Challenge, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { ConnectionError, ServiceUnavailableError } from "../../../common/api/common/error/RestError.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
@@ -88,11 +86,21 @@ import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyA
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
-import { BulkMailLoader } from "../index/BulkMailLoader.js"
+import type { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
+import type { Indexer } from "../index/Indexer"
+import type { SearchFacade } from "../index/SearchFacade"
+import type { ContactIndexer } from "../index/ContactIndexer"
+import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
+import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
+import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
+import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { DateProvider } from "../../../common/api/common/DateProvider"
 
 assertWorkerOrNode()
 
@@ -210,10 +218,84 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { BookingFacade } = await import("../../../common/api/worker/facades/lazy/BookingFacade.js")
 		return new BookingFacade(locator.serviceExecutor)
 	})
+
+	const db = lazyMemoized(async () => {
+		const { newSearchIndexDB } = await import("../index/IndexedDbIndexer.js")
+		const { EncryptedDbWrapper } = await import("../../../common/api/worker/search/EncryptedDbWrapper")
+		return new EncryptedDbWrapper(newSearchIndexDB())
+	})
+
+	const indexerCore = lazyMemoized(async () => {
+		if (isOfflineStorageAvailable()) {
+			throw new ProgrammingError("getting indexerCore when we should be using SQLite (offline storage)")
+		}
+		const { IndexerCore } = await import("../index/IndexerCore.js")
+		return new IndexerCore(await db(), browserData)
+	})
+
+	const mailIndexer = lazyMemoized(async () => {
+		const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
+		const { SqliteMailIndexerBackend } = await import("../index/SqliteMailIndexerBackend")
+		const { MailIndexer } = await import("../index/MailIndexer.js")
+		const bulkLoaderFactory = await prepareBulkLoaderFactory()
+		const dateProvider = new LocalTimeDateProvider()
+		const mailFacade = await locator.mail()
+		if (isOfflineStorageAvailable()) {
+			const persistence = await offlineStorageIndexerPersistence()
+			return new MailIndexer(
+				mainInterface.infoMessageHandler,
+				bulkLoaderFactory,
+				locator.cachingEntityClient,
+				dateProvider,
+				mailFacade,
+				() => new SqliteMailIndexerBackend(persistence),
+			)
+		} else {
+			const core = await indexerCore()
+			return new MailIndexer(
+				mainInterface.infoMessageHandler,
+				bulkLoaderFactory,
+				locator.cachingEntityClient,
+				dateProvider,
+				mailFacade,
+				(userId) => new IndexedDbMailIndexerBackend(core, userId),
+			)
+		}
+	})
+
+	const contactSuggestionFacade = lazyMemoized(async () => {
+		const { SuggestionFacade } = await import("../index/SuggestionFacade")
+		return new SuggestionFacade(ContactTypeRef, await db(), typeModelResolver)
+	})
+
+	const contactIndexer = lazyMemoized(async (): Promise<ContactIndexer> => {
+		const { OfflineStorageContactIndexerBackend } = await import("../index/OfflineStorageContactIndexerBackend")
+		const { IndexedDbContactIndexerBackend } = await import("../index/IndexedDbContactIndexerBackend")
+		const { ContactIndexer } = await import("../index/ContactIndexer.js")
+
+		if (isOfflineStorageAvailable()) {
+			const persistence = await offlineStorageIndexerPersistence()
+			const backend = new OfflineStorageContactIndexerBackend(locator.cachingEntityClient, persistence)
+			return new ContactIndexer(locator.cachingEntityClient, locator.user, backend)
+		} else {
+			const core = await indexerCore()
+			const backend = new IndexedDbContactIndexerBackend(core, locator.cachingEntityClient, await contactSuggestionFacade())
+			return new ContactIndexer(locator.cachingEntityClient, locator.user, backend)
+		}
+	})
+
 	let offlineStorageProvider
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
+			const customCacheHandler = new CustomCacheHandlerMap(
+				{
+					ref: CalendarEventTypeRef,
+					handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
+				},
+				{ ref: MailTypeRef, handler: new CustomMailEventCacheHandler(mailIndexer) },
+				{ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage) },
+			)
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
@@ -222,23 +304,32 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				new MailOfflineCleaner(),
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
+				customCacheHandler,
 			)
 		}
 	} else {
 		offlineStorageProvider = async () => null
 	}
+	const ephemeralStorageProvider = async () => {
+		const customCacheHandler = new CustomCacheHandlerMap({
+			ref: UserTypeRef,
+			handler: new CustomUserCacheHandler(locator.cacheStorage),
+		})
+		return new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, customCacheHandler)
+	}
+
+	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(
+		(error: Error) => worker.sendError(error),
+        ephemeralStorageProvider,
+		offlineStorageProvider,
+	)
+
+	locator.cacheStorage = maybeUninitializedStorage
+
 	locator.pdfWriter = async () => {
 		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
-
-	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(
-		async (error: Error) => {
-			await worker.sendError(error)
-		},
-		async () => new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver),
-		offlineStorageProvider,
-	)
 
 	locator.cacheStorage = maybeUninitializedStorage
 
@@ -268,12 +359,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient, mailFacade)
 			} else {
 				// On platforms without offline cache we use new ephemeral cache storage for mails only and uncached storage for the rest
-				const cacheStorage = new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver)
-				return new BulkMailLoader(
-					new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage, typeModelResolver), typeModelResolver),
-					new EntityClient(entityRestClient, typeModelResolver),
-                    mailFacade,
-				)
+				// We create empty CustomCacheHandlerMap because this cache is separate anyway and user updates don't matter.
+				const cacheStorage = new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, new CustomCacheHandlerMap())
+				return new BulkMailLoader(new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage, typeModelResolver), typeModelResolver), new EntityClient(entityRestClient, typeModelResolver), mailFacade)
 			}
 		}
 	}
@@ -282,22 +370,33 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return factory()
 	}
 
+	const offlineStorageIndexerPersistence = lazyMemoized(async () => {
+		const { OfflineStoragePersistence } = await import("../index/OfflineStoragePersistence.js")
+		return new OfflineStoragePersistence(locator.sqlCipherFacade)
+	})
+
+	const serverDateProvider: DateProvider = {
+		now(): number {
+			return locator.restClient.getServerTimestampMs()
+		},
+		timeZone(): string {
+			throw new ProgrammingError("Not supported")
+		},
+	}
+
 	locator.indexer = lazyMemoized(async () => {
-		const { Indexer } = await import("../index/Indexer.js")
-		const { MailIndexer } = await import("../index/MailIndexer.js")
-		const mailFacade = await locator.mail()
-		const bulkLoaderFactory = await prepareBulkLoaderFactory()
-		return new Indexer(
-			entityRestClient,
-			mainInterface.infoMessageHandler,
-			browserData,
-			locator.cache as DefaultEntityRestCache,
-			(core, db) => {
-				const dateProvider = new LocalTimeDateProvider()
-				return new MailIndexer(core, db, mainInterface.infoMessageHandler, bulkLoaderFactory, locator.cachingEntityClient, dateProvider, mailFacade)
-			},
-			typeModelResolver,
-		)
+		const contact = await contactIndexer()
+		const mail = await mailIndexer()
+
+		if (isOfflineStorageAvailable()) {
+			const { OfflineStorageIndexer } = await import("../index/OfflineStorageIndexer.js")
+			const persistence = await offlineStorageIndexerPersistence()
+			return new OfflineStorageIndexer(locator.user, persistence, mail, mainInterface.infoMessageHandler, contact)
+		} else {
+			const { IndexedDbIndexer } = await import("../index/IndexedDbIndexer.js")
+			const core = await indexerCore()
+			return new IndexedDbIndexer(serverDateProvider, await db(), core, mainInterface.infoMessageHandler, locator.cachingEntityClient, mail, contact, typeModelResolver)
+		}
 	})
 
 	if (isIOSApp() || isAndroidApp()) {
@@ -444,10 +543,21 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 
 	locator.search = lazyMemoized(async () => {
-		const { SearchFacade } = await import("../index/SearchFacade.js")
-		const indexer = await locator.indexer()
-		const suggestionFacades = [indexer._contact.suggestionFacade]
-		return new SearchFacade(locator.user, indexer.db, indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient, typeModelResolver)
+		if (isOfflineStorageAvailable()) {
+			const { OfflineStorageSearchFacade } = await import("../index/OfflineStorageSearchFacade.js")
+			return new OfflineStorageSearchFacade(locator.sqlCipherFacade, await mailIndexer(), await contactIndexer())
+		} else {
+			const { IndexedDbSearchFacade } = await import("../index/IndexedDbSearchFacade.js")
+			return new IndexedDbSearchFacade(
+				locator.user,
+				await db(),
+				await mailIndexer(),
+				await contactSuggestionFacade(),
+				browserData,
+				locator.cachingEntityClient,
+                typeModelResolver
+			)
+		}
 	})
 	locator.userManagement = lazyMemoized(async () => {
 		const { UserManagementFacade } = await import("../../../common/api/worker/facades/lazy/UserManagementFacade.js")
@@ -551,8 +661,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		},
 		async (events, batchId, groupId) => {
 			const indexer = await locator.indexer()
-			indexer.addBatchesToQueue(events, batchId, groupId)
-			indexer.startProcessing()
+			await indexer.processEntityEvents(events, batchId, groupId)
 		},
 	)
 

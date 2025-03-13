@@ -1,12 +1,17 @@
 import o from "@tutao/otest"
 import { batchMod, EntityModificationType, EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
-import { GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { EntityUpdateTypeRef, GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
-import { ContactTypeRef, MailboxGroupRootTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import {
+    ContactTypeRef,
+    MailboxGroupRootTypeRef,
+    MailTypeRef
+} from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
