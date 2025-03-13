@@ -21,6 +21,38 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 assertWorkerOrNode()
 
+// attributeId as defined by the type of the model. Is mapped to AttributeName for app usage
+type AttributeId = number
+// the name of an attribute
+type AttributeName = string
+
+// An encrypted value that is returned from the server and is decrypted before used by the app (Base64 encoded encrypted value)
+type EncryptedValue = string
+// Value as provided by the server (e.g. "0" for boolean false / Base64 encoded bytes)
+type ServerValue = string
+
+// An EncryptedValue that has been decrypted to use in the app and store in the offline DB
+type DecryptedValue = string | Date | boolean | Uint8Array
+// Value as used by the app (e.g. boolean false / Uint8Array)
+type Value = any
+
+type AssociationOrValue = UntypedInstance | Value
+
+/**
+ * Literal as returned from the server
+ */
+type UntypedInstance = Record<AttributeId, EncryptedValue | ServerValue>
+
+/**
+ * Literal as stored by the DB
+ */
+type ParsedInstance = Record<AttributeId, DecryptedValue | Value>
+
+/**
+ * Literal as used in client code
+ */
+type Instance = Record<AttributeName, DecryptedValue | Value>
+
 export class InstanceMapper {
 	/**
 	 * Decrypts an object literal as received from the DB and maps it to an entity class (e.g. Mail)
@@ -93,12 +125,16 @@ export class InstanceMapper {
 		})
 	}
 
-	/// Since entity have fieldName, CBORG will just use fieldName while serializing,
-	/// we should create a new object that map fieldName to filedId before putting it
+	/// Since entity have fieldName, CBOR will just use fieldName while serializing,
+	/// we should create a new object that map fieldName to fieldId before putting it
 	/// into storage
 	// object 1: { field1: value1, field2: value2 }
 	// object 2: Map  { "field1Id" -> "value1", "field2" -> "value2" }
-	async mapToLiteral<T extends Entity>(instance: T, typeRef: TypeRef<T>): Promise<Record<number, any>> {
+	private async mapToServerOrDbLiteralInner<T extends Entity>(
+		instance: T,
+		typeRef: TypeRef<T>,
+		valueConverter: typeof convertJsToServerType | typeof convertJsToOfflineDbType,
+	): Promise<UntypedInstance | ParsedInstance> {
 		const typemodel = await resolveTypeReference(typeRef)
 
 		let result: Record<number, any> = {}
@@ -117,18 +153,20 @@ export class InstanceMapper {
 
 				switch (association.cardinality) {
 					case Cardinality.ZeroOrOne: {
-						result[attributeId] = attributeValue ? await this.mapToLiteral(assertNotNull(attributeValue), aggregationTypeRef) : null
+						result[attributeId] = attributeValue
+							? await this.mapToServerOrDbLiteralInner(assertNotNull(attributeValue), aggregationTypeRef, valueConverter)
+							: null
 						break
 					}
 					case Cardinality.Any: {
 						const agg = assertNotNull(attributeValue) as Array<any>
 						result[attributeId] = await promiseMap(agg, (e) => {
-							return this.mapToLiteral(e, aggregationTypeRef)
+							return this.mapToServerOrDbLiteralInner(e, aggregationTypeRef, valueConverter)
 						})
 						break
 					}
 					case Cardinality.One: {
-						result[attributeId] = await this.mapToLiteral(assertNotNull(attributeValue), aggregationTypeRef)
+						result[attributeId] = await this.mapToServerOrDbLiteralInner(assertNotNull(attributeValue), aggregationTypeRef, valueConverter)
 						break
 					}
 				}
@@ -139,32 +177,42 @@ export class InstanceMapper {
 		return result
 	}
 
-	async mapFromLiteral(instance: Record<number, any>, typeModel: TypeModel): Promise<Record<string, unknown>> {
+	async mapToServerLiteral<T extends Entity>(instance: T, typeRef: TypeRef<T>): Promise<UntypedInstance> {
+		return this.mapToServerOrDbLiteralInner(instance, typeRef)
+	}
+
+	/**
+	 * Maps a ServerLiteral or a DbLiteral to a Literal
+	 */
+	private async mapToInstanceInner(
+		serverLiteral: ParsedInstance | UntypedInstance,
+		typeModel: TypeModel,
+		valueConverter: typeof convertServerToJsType | typeof convertOfflineDbToJsType,
+	): Promise<Instance> {
 		let nameMappedAttribute: Record<string, unknown> = {
 			_type: new TypeRef(typeModel.app, typeModel.id),
 		}
 
-		for (const [attributeIdStr, attributeValue] of Object.entries(instance)) {
+		for (const [attributeIdStr, attributeValue] of Object.entries(serverLiteral)) {
 			const attributeId = parseInt(attributeIdStr)
 			const vAttribute = typeModel.values[attributeId]
 			const aAttribute = typeModel.associations[attributeId]
-
 			if (aAttribute && aAttribute.type === AssociationType.Aggregation) {
 				switch (aAttribute.cardinality) {
 					case Cardinality.ZeroOrOne: {
 						const refTypeModel = await resolveTypeReference(new TypeRef(aAttribute.dependency || typeModel.app, aAttribute.refTypeId))
-						nameMappedAttribute[aAttribute.name] = attributeValue ? await this.mapFromLiteral(attributeValue, refTypeModel) : null
+						nameMappedAttribute[aAttribute.name] = attributeValue ? await this.mapServerLiteralToInstance(attributeValue, refTypeModel) : null
 						break
 					}
 					case Cardinality.Any: {
 						const refTypeModel = await resolveTypeReference(new TypeRef(aAttribute.dependency || typeModel.app, aAttribute.refTypeId))
 						const agg = assertNotNull(attributeValue) as Array<Record<string, any>>
-						nameMappedAttribute[aAttribute.name] = await promiseMap(agg, (e) => this.mapFromLiteral(e, refTypeModel))
+						nameMappedAttribute[aAttribute.name] = await promiseMap(agg, (e) => this.mapServerLiteralToInstance(e, refTypeModel))
 						break
 					}
 					case Cardinality.One: {
 						const refTypeModel = await resolveTypeReference(new TypeRef(aAttribute.dependency || typeModel.app, aAttribute.refTypeId))
-						nameMappedAttribute[aAttribute.name] = await this.mapFromLiteral(assertNotNull(attributeValue), refTypeModel)
+						nameMappedAttribute[aAttribute.name] = await this.mapServerLiteralToInstance(assertNotNull(attributeValue), refTypeModel)
 						break
 					}
 				}
@@ -174,14 +222,13 @@ export class InstanceMapper {
 				const valueType = typeModel.values[attributeId].type
 				switch (vAttribute.cardinality) {
 					case Cardinality.ZeroOrOne:
-						nameMappedAttribute[vAttribute.name] = attributeValue ? convertDbToJsType(valueType, attributeValue) : null
+						nameMappedAttribute[vAttribute.name] = attributeValue ? valueConverter(valueType, attributeValue) : null
 						break
 					case Cardinality.One:
-						console.log(`${typeModel.name}::${vAttribute.name}`)
-						nameMappedAttribute[vAttribute.name] = convertDbToJsType(valueType, assertNotNull(attributeValue))
+						nameMappedAttribute[vAttribute.name] = valueConverter(valueType, assertNotNull(attributeValue))
 						break
 					case Cardinality.Any:
-						nameMappedAttribute[vAttribute.name] = await promiseMap(attributeValue, (v: string | Base64) => convertDbToJsType(valueType, v))
+						nameMappedAttribute[vAttribute.name] = await promiseMap(attributeValue, (v: string | Base64) => valueConverter(valueType, v))
 						break
 				}
 			} else {
@@ -189,6 +236,14 @@ export class InstanceMapper {
 			}
 		}
 		return nameMappedAttribute
+	}
+
+	async mapServerLiteralToInstance(serverLiteral: UntypedInstance, typeModel: TypeModel): Promise<Instance> {
+		return this.mapToInstanceInner(serverLiteral, typeModel, convertServerToJsType)
+	}
+
+	async mapDbLiteralToInstance(dbLiteral: ParsedInstance, typeModel: TypeModel): Promise<Instance> {
+		return this.mapToInstanceInner(dbLiteral, typeModel, convertOfflineDbToJsType)
 	}
 
 	// FIXME: now we have following pattern in bunch of places:
@@ -293,13 +348,13 @@ export function encryptValue(
 		let bytes = value
 
 		if (valueType.type !== ValueType.Bytes) {
-			const dbType = assertNotNull(convertJsToDbType(valueType.type, value))
+			const dbType = assertNotNull(convertJsToServerType(valueType.type, value))
 			bytes = typeof dbType === "string" ? stringToUtf8Uint8Array(dbType) : dbType
 		}
 
 		return uint8ArrayToBase64(aesEncrypt(assertNotNull(sk), bytes, iv, true, ENABLE_MAC))
 	} else {
-		const dbType = convertJsToDbType(valueType.type, value)
+		const dbType = convertJsToServerType(valueType.type, value)
 
 		if (typeof dbType === "string") {
 			return dbType
@@ -330,10 +385,10 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: (B
 		} else if (valueType.type === ValueType.CompressedString) {
 			return decompressString(decryptedBytes)
 		} else {
-			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
+			return convertServerToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
 		}
 	} else {
-		return convertDbToJsType(valueType.type, value)
+		return convertServerToJsType(valueType.type, value)
 	}
 }
 
@@ -343,7 +398,7 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: (B
  * @param value
  * @returns {string|string|NodeJS.Global.Uint8Array|*}
  */
-function convertJsToDbType(type: Values<typeof ValueType>, value: any): Uint8Array | string {
+function convertJsToServerType(type: Values<typeof ValueType>, value: DecryptedValue | Value): EncryptedValue | ServerValue {
 	if (type === ValueType.Bytes && value != null) {
 		return value
 	} else if (type === ValueType.Boolean) {
@@ -357,7 +412,7 @@ function convertJsToDbType(type: Values<typeof ValueType>, value: any): Uint8Arr
 	}
 }
 
-function convertDbToJsType(type: Values<typeof ValueType>, value: Base64 | string): any {
+function convertServerToJsType(type: Values<typeof ValueType>, value: EncryptedValue | ServerValue): DecryptedValue | Value {
 	if (type === ValueType.Bytes) {
 		return base64ToUint8Array(value as any)
 	} else if (type === ValueType.Boolean) {
@@ -369,6 +424,14 @@ function convertDbToJsType(type: Values<typeof ValueType>, value: Base64 | strin
 	} else {
 		return value
 	}
+}
+
+function convertOfflineDbToJsType(type: Values<typeof ValueType>, value: DecryptedValue | Value): DecryptedValue | Value {
+	return value
+}
+
+function convertJsToOfflineDbType(type: Values<typeof ValueType>, value: DecryptedValue | Value): DecryptedValue | Value {
+	return value
 }
 
 function compressString(uncompressed: string): Uint8Array {

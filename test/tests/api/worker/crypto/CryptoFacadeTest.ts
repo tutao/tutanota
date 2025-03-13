@@ -266,7 +266,7 @@ o.spec("CryptoFacadeTest", function () {
 			_ownerGroup: recipientUser.mailGroup._id,
 			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
 		})
-		const mailLiteral = await new InstanceMapper().mapToLiteral(mail, MailTypeRef)
+		const mailLiteral = await new InstanceMapper().mapToServerLiteral(mail, MailTypeRef)
 
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mailLiteral))
@@ -616,7 +616,7 @@ o.spec("CryptoFacadeTest", function () {
 		]
 
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
-		const mailEntity = (await new InstanceMapper().mapFromLiteral(testData.mailLiteral, testData.MailTypeModel)) as Mail
+		const mailEntity = (await new InstanceMapper().mapServerLiteralToInstance(testData.mailLiteral, testData.MailTypeModel)) as Mail
 
 		// const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 		const updatedFiles = await crypto.enforceSessionKeyUpdateIfNeeded(mailEntity, files)
@@ -1228,11 +1228,11 @@ o.spec("CryptoFacadeTest", function () {
 			const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
 			testData.mailLiteral[assertNotNull(await getAttributeId(MailTypeRef, "mailDetailsDraft"))] = ["draftDetailsListId", "draftDetailsId"]
 
-			const mailInstance = await instanceMapper.mapFromLiteral(testData.mailLiteral, testData.MailTypeModel)
+			const mailInstance = await instanceMapper.mapServerLiteralToInstance(testData.mailLiteral, testData.MailTypeModel)
 
 			// do not use testdouble here because it's hard to not break the function itself and then verify invocations
 			const decryptAndMapToInstance = (instanceMapper.decryptAndMapToInstance = spy(instanceMapper.decryptAndMapToInstance))
-			const mapFromLiteral = (instanceMapper.mapFromLiteral = spy(instanceMapper.mapFromLiteral))
+			const mapFromLiteral = (instanceMapper.mapServerLiteralToInstance = spy(instanceMapper.mapServerLiteralToInstance))
 
 			const sessionKey = neverNull(await crypto.resolveSessionKeyForInstance(mailInstance))
 			o(decryptAndMapToInstance.invocations.length).equals(0)
@@ -1440,7 +1440,7 @@ o.spec("CryptoFacadeTest", function () {
 			_ownerKeyVersion: null,
 			details: downcast<MailDetails>(null),
 		} satisfies MailDetailsBlob
-		const mailDetailsBlobLiteral = await instanceMapper.mapToLiteral(mailDetailsBlob, MailDetailsBlobTypeRef)
+		const mailDetailsBlobLiteral = await instanceMapper.mapToServerLiteral(mailDetailsBlob, MailDetailsBlobTypeRef)
 		when(entityClient.loadAll(PermissionTypeRef, "permissionListId")).thenResolve([])
 
 		try {
@@ -1916,7 +1916,7 @@ export async function createMailLiteral(
 	if (sessionKey) {
 		return await new InstanceMapper().encryptAndMapToLiteral(await resolveTypeReference(MailTypeRef), mailEntity, sessionKey)
 	} else {
-		return await new InstanceMapper().mapFromLiteral(mailEntity, await resolveTypeReference(MailTypeRef))
+		return await new InstanceMapper().mapServerLiteralToInstance(mailEntity, await resolveTypeReference(MailTypeRef))
 	}
 }
 

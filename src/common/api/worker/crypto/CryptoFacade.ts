@@ -230,7 +230,7 @@ export class CryptoFacade {
 				// await this.instanceMapper.mapFromLiteral()
 				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 				// we need to do this BEFORE we check the owner enc session key
-				const bucketKeyNamedLiteral: Record<string, any> = await this.instanceMapper.mapFromLiteral(
+				const bucketKeyNamedLiteral: Record<string, any> = await this.instanceMapper.mapServerLiteralToInstance(
 					instanceBucketKey,
 					await resolveTypeReference(BucketKeyTypeRef),
 				)
@@ -367,7 +367,10 @@ export class CryptoFacade {
 			const isConfidential = instance[assertNotNull(await getAttributeId(MailTypeRef, "confidential"))] == "1"
 			if (isConfidential) {
 				const senderLiteral = instance[assertNotNull(await getAttributeId(MailTypeRef, "sender"))]
-				const sender = (await this.instanceMapper.mapFromLiteral(senderLiteral, await resolveTypeReference(MailAddressTypeRef))) as MailAddress
+				const sender = (await this.instanceMapper.mapServerLiteralToInstance(
+					senderLiteral,
+					await resolveTypeReference(MailAddressTypeRef),
+				)) as MailAddress
 				senderAdress = assertNotNull(sender).address
 			}
 		}

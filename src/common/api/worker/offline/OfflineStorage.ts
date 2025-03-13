@@ -782,7 +782,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	private async serialize(originalEntity: SomeEntity): Promise<Uint8Array> {
-		const idMappedInstance: Record<number, any> = await new InstanceMapper().mapToLiteral(originalEntity, originalEntity._type)
+		const idMappedInstance: Record<number, any> = await new InstanceMapper().mapToServerLiteral(originalEntity, originalEntity._type)
 		try {
 			return cborg.encode(idMappedInstance, { typeEncoders: customTypeEncoders })
 		} catch (e) {
@@ -810,7 +810,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	private decodeCborEntity(loaded: Uint8Array, typeModel: TypeModel): Promise<Record<string, unknown>> {
 		const idMappedEntity: Record<number, unknown> = cborg.decode(loaded, { tags: customTypeDecoders })
-		return new InstanceMapper().mapFromLiteral(idMappedEntity, typeModel)
+		return new InstanceMapper().mapServerLiteralToInstance(idMappedEntity, typeModel)
 	}
 
 	private async fixupTypeRefs(typeModel: TypeModel, deserialized: any): Promise<unknown> {

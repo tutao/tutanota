@@ -47,9 +47,10 @@ export class TutaNotificationHandler {
 		}
 
 		// we can't download the email if we don't have access to credentials
+		const credentialEncryptionMode = await this.nativeCredentialFacade.getCredentialEncryptionMode()
+		const extendedNotificationMode = await this.sseStorage.getExtendedNotificationConfig(notificationInfo.userId)
 		const canShowExtendedNotification =
-			(await this.nativeCredentialFacade.getCredentialEncryptionMode()) === CredentialEncryptionMode.DEVICE_LOCK &&
-			(await this.sseStorage.getExtendedNotificationConfig(notificationInfo.userId)) !== ExtendedNotificationMode.NoSenderOrSubject
+			credentialEncryptionMode === CredentialEncryptionMode.DEVICE_LOCK && extendedNotificationMode !== ExtendedNotificationMode.NoSenderOrSubject
 		if (!canShowExtendedNotification) {
 			const notificationId = notificationInfo.mailId
 				? `${notificationInfo.mailId.listId},${notificationInfo.mailId?.listElementId}`
@@ -109,7 +110,7 @@ export class TutaNotificationHandler {
 			}
 
 			const parsedResponse = (await response.json()) as Record<number, any>
-			const mail = await mapper.mapFromLiteral(parsedResponse, await resolveTypeReference(MailTypeRef))
+			const mail = await mapper.mapServerLiteralToInstance(parsedResponse, await resolveTypeReference(MailTypeRef))
 			return mail as MailMetadata
 		} catch (e) {
 			log.debug(TAG, "Error fetching mail metadata, " + (e as Error).message)

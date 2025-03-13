@@ -180,7 +180,7 @@ o.spec("TutaNotificationHandler", () => {
 				}),
 			})
 
-			const mailLiteral = await mapper.mapToLiteral(mailMetadata, MailTypeRef)
+			const mailLiteral = await mapper.mapToServerLiteral(mailMetadata, MailTypeRef)
 
 			const requestDefer = mockFetchRequest(
 				fetch,

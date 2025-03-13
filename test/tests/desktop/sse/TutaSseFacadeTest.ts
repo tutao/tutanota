@@ -151,7 +151,7 @@ o.spec("TutaSseFacade", () => {
 				alarmNotifications: [alarmNotification],
 			})
 
-			const literal = await mapper.mapToLiteral(encryptedMissedNotification, MissedNotificationTypeRef)
+			const literal = await mapper.mapToServerLiteral(encryptedMissedNotification, MissedNotificationTypeRef)
 
 			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, literal)
 
@@ -187,7 +187,7 @@ o.spec("TutaSseFacade", () => {
 			})
 			const encryptedMissedNotification: EncryptedMissedNotification = Object.assign({}, missedNotification, { alarmNotifications: [] })
 
-			const literal = await mapper.mapToLiteral(encryptedMissedNotification, MissedNotificationTypeRef)
+			const literal = await mapper.mapToServerLiteral(encryptedMissedNotification, MissedNotificationTypeRef)
 
 			await sseFacade.connect()
 
@@ -266,7 +266,7 @@ o.spec("TutaSseFacade", () => {
 			const url = captor.values![1].url
 			const body = url.searchParams.get("_body")!
 
-			const literal = await mapper.mapFromLiteral(JSON.parse(body), await resolveTypeReference(SseConnectDataTypeRef))
+			const literal = await mapper.mapServerLiteralToInstance(JSON.parse(body), await resolveTypeReference(SseConnectDataTypeRef))
 			o(literal.userIds).deepEquals([{ _type: GeneratedIdWrapperTypeRef, value: "user1" }])
 		})
 

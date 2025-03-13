@@ -94,7 +94,7 @@ export class TutaSseFacade implements SseEventHandler {
 	}
 
 	private async requestJson(identifier: string, userId: string): Promise<string> {
-		const literal = await mapper.mapToLiteral(
+		const literal = await mapper.mapToServerLiteral(
 			createSseConnectData({
 				identifier: identifier,
 				userIds: [
@@ -162,7 +162,7 @@ export class TutaSseFacade implements SseEventHandler {
 		} else {
 			const literal = (await res.json()) as Record<number, unknown>
 			const typeModel = await resolveTypeReference(MissedNotificationTypeRef)
-			const missedNotification = (await mapper.mapFromLiteral(literal, typeModel)) as EncryptedMissedNotification
+			const missedNotification = (await mapper.mapServerLiteralToInstance(literal, typeModel)) as EncryptedMissedNotification
 			log.debug("downloaded missed notification")
 			return missedNotification
 		}
