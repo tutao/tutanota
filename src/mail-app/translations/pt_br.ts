@@ -486,7 +486,7 @@ export default {
 		"dynamicLoginPreparingRocketLaunch_msg": "Preparando o lançamento do foguete ...",
 		"dynamicLoginRestockingTutaFridge_msg": "Reesbatecendo o frigorífico Tuta ...",
 		"dynamicLoginSortingContacts_msg": "Ordenando os contatos...",
-		"dynamicLoginSwitchingOnPrivacy_msg": "Ativiando a privacidade...",
+		"dynamicLoginSwitchingOnPrivacy_msg": "Ativando a privacidade...",
 		"dynamicLoginUpdatingOfflineDatabase_msg": "Atualizando para base de dados offline",
 		"Edit contact form": "Editar formulário de contato",
 		"editContactForm_label": "Editar formulário de contato",
