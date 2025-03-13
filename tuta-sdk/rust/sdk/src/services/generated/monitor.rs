@@ -11,12 +11,12 @@ use crate::entities::generated::monitor::ReadCounterReturn;
 use crate::entities::generated::monitor::ReportErrorIn;
 pub struct CounterService;
 
-crate::service_impl!(declare, CounterService, "monitor/counterservice", 31);
+crate::service_impl!(declare, CounterService, "monitor/counterservice", 32);
 crate::service_impl!(POST, CounterService, WriteCounterData, ());
 crate::service_impl!(GET, CounterService, ReadCounterData, ReadCounterReturn);
 
 
 pub struct ReportErrorService;
 
-crate::service_impl!(declare, ReportErrorService, "monitor/reporterrorservice", 31);
+crate::service_impl!(declare, ReportErrorService, "monitor/reporterrorservice", 32);
 crate::service_impl!(POST, ReportErrorService, ReportErrorIn, ());
