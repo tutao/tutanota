@@ -17,10 +17,11 @@ import "./api/worker/rest/EntityRestCacheTest.js"
 import "./api/worker/rest/EphemeralCacheStorageTest.js"
 import "./api/worker/EventBusClientTest.js"
 import "./api/worker/EventBusEventCoordinatorTest.js"
-import "./api/worker/search/IndexerTest.js"
+import "./api/worker/search/IndexedDbIndexerTest.js"
 import "./api/worker/search/IndexerCoreTest.js"
 import "./api/worker/search/ContactIndexerTest.js"
 import "./api/worker/search/MailIndexerTest.js"
+import "./api/worker/search/IndexedDbMailIndexerBackendTest.js"
 import "./api/worker/search/IndexUtilsTest.js"
 import "./api/worker/search/SearchFacadeTest.js"
 import "./api/worker/search/SuggestionFacadeTest.js"
@@ -144,6 +145,10 @@ import "./misc/InAppRatingUtilsTest.js"
 import "./native/main/MailExportControllerTest.js"
 import "./api/worker/facades/MailExportFacadeTest.js"
 import "./api/worker/search/BulkMailLoaderTest.js"
+import "./api/worker/search/IndexedDbContactIndexerBackendTest.js"
+import "./api/worker/search/OfflineStorageContactIndexerBackendTest.js"
+import "./api/worker/search/OfflineStoragePersistenceTest.js"
+import "./api/worker/rest/CustomUserCacheHandlerTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
@@ -208,6 +213,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/credentials/KeychainEncryptionTest.js")
 		await import("./desktop/credentials/DesktopCredentialsStorageTest.js")
 		await import("./desktop/export/DesktopExportFacadeTest.js")
+		await import("./api/worker/search/SqliteMailIndexerBackendTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.

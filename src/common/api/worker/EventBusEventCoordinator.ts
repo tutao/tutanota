@@ -1,13 +1,6 @@
 import { EventBusListener } from "./EventBusClient.js"
 import { WsConnectionState } from "../main/WorkerClient.js"
-import {
-	EntityUpdate,
-	GroupKeyUpdateTypeRef,
-	UserGroupKeyDistributionTypeRef,
-	UserTypeRef,
-	WebsocketCounterData,
-	WebsocketLeaderStatus,
-} from "../entities/sys/TypeRefs.js"
+import { GroupKeyUpdateTypeRef, UserGroupKeyDistributionTypeRef, UserTypeRef, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
 import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { isAdminClient, isTest } from "../common/Env.js"
@@ -22,6 +15,7 @@ import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
 import type { QueuedBatch } from "./EventQueue.js"
+import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -42,7 +36,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		this.connectivityListener.updateWebSocketState(state)
 	}
 
-	async onEntityEventsReceived(events: EntityUpdate[], batchId: Id, groupId: Id): Promise<void> {
+	async onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
 		await this.entityEventsReceived(events)
 		await (await this.mailFacade()).entityEventsReceived(events)
 		await this.eventController.onEntityUpdateReceived(events, groupId)
@@ -83,7 +77,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		this.eventController.onCountersUpdateReceived(counter)
 	}
 
-	private async entityEventsReceived(data: EntityUpdate[]): Promise<void> {
+	private async entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
 		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
 		const groupKeyUpdates: IdTuple[] = [] // GroupKeyUpdates all in the same list
 		const user = this.userFacade.getUser()

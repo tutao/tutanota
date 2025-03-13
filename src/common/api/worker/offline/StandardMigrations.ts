@@ -89,11 +89,6 @@ export function changeCardinalityFromAnyToZeroOrOne(attribute: string): Migratio
 	}
 }
 
-export async function clearDatabase(storage: OfflineStorage) {
-	await storage.purgeStorage()
-	await writeModelVersions(storage)
-}
-
 export function deleteInstancesOfType<T extends SomeEntity>(storage: OfflineStorage, type: TypeRef<T>): Promise<void> {
 	return storage.deleteAllOfType(type)
 }

@@ -1,4 +1,4 @@
-import { Base64, concat, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { Base64, concat, isSameTypeRef, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type {
 	DecryptedSearchIndexEntry,
 	EncryptedSearchIndexEntry,
@@ -7,14 +7,16 @@ import type {
 	SearchIndexMetaDataDbRow,
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
+	SearchRestriction,
 } from "./SearchTypes"
-import { GroupType } from "../../common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../common/TutanotaConstants"
 import { calculateNeededSpaceForNumber, calculateNeededSpaceForNumbers, decodeNumberBlock, decodeNumbers, encodeNumbers } from "./SearchIndexEncoding"
 import { typeModels as tutanotaTypeModels } from "../../entities/tutanota/TypeModels"
 import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import type { TypeModel } from "../../common/EntityTypes"
 import { isTest } from "../../common/Env"
 import { aes256EncryptSearchIndexEntry, Aes256Key, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { MailTypeRef } from "../../entities/tutanota/TypeRefs"
 
 export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Base64 {
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbIv))
@@ -160,9 +162,7 @@ export function userIsGlobalAdmin(user: User): boolean {
 }
 
 export function filterIndexMemberships(user: User): GroupMembership[] {
-	return user.memberships.filter(
-		(m) => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact || m.groupType === GroupType.Customer || m.groupType === GroupType.Admin,
-	)
+	return user.memberships.filter(({ groupType }) => groupType === GroupType.Mail || groupType === GroupType.Contact)
 }
 
 export function filterMailMemberships(user: User): GroupMembership[] {
@@ -381,4 +381,14 @@ export function markEnd(name: string) {
 
 export function shouldMeasure(): boolean {
 	return !env.dist && !isTest()
+}
+
+export function getSearchEndTimestamp(currentMailIndexTimestamp: number, restriction: SearchRestriction): number {
+	if (restriction.end) {
+		return restriction.end
+	} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
+		return currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? Date.now() : currentMailIndexTimestamp
+	} else {
+		return FULL_INDEXED_TIMESTAMP
+	}
 }
