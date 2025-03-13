@@ -1,0 +1,41 @@
+Tutanota umożliwia korzystanie z zalet chmury - dostępność, elastyczność, automatyczne tworzenie kopii zapasowych - bez narażania bezpieczeństwa. Dzięki wbudowanemu szyfrowaniu Tutanota, masz swoje dane i nikt inny nie ma do nich dostępu. Tutanota zawiera lekki i piękny graficzny interfejs użytkownika, zawierający ciemne motywy, powiadomienia błyskawiczne, automatyczną synchronizację, wyszukiwanie pełnotekstowe, gesty przesuwania palcem i wiele innych.
+
+Aplikacja poczty Tutanota o otwartym kodzie źródłowym umożliwia każdemu wysyłanie zaszyfrowanych wiadomości end-to-end. Nawet wiadomości e-mail, które są wysyłane bez szyfrowania end-to-end oraz wszystkie twoje kontakty są przechowywane bezpiecznie, zaszyfrowane na serwerach Tutanota.
+
+Nasza pasja do prywatności.
+
+Tutanota jest budowana przez zespół, który pasjonuje się prawem do prywatności dla każdego. Wspiera nas niesamowita społeczność, która pozwala nam stale powiększać nasz zespół, czyniąc Tutanotę sukcesem bez zależności od interesów venture capital.
+
+Tutanota szanuje Ciebie i Twoje dane:
+
+- Tylko Ty możesz uzyskać dostęp do zaszyfrowanych wiadomości e-mail i kontaktów
+- Tutanota nie śledzi ani nie profiluje użytkowników.
+- Klient i aplikacje typu open source
+- Innowacyjna funkcja wyszukiwania pełnotekstowego umożliwia łatwe przeszukiwanie skrzynki pocztowej.
+- TLS z obsługą PFS, DMARC, DKIM, DNSSEC i DANE.
+- Bezpieczne resetowanie hasła, które nie daje nam absolutnie żadnego dostępu do Twojej poczty.
+- 100% opracowane i zlokalizowane w Niemczech zgodnie z surowymi przepisami o ochronie danych (RODO).
+
+Oficjalna strona: https://tutanota.com
+
+Kod źródłowy: https://github.com/tutao/tutanota
+
+Dzięki aplikacji Tutanota możesz:
+
+- stworzyć swój własny adres e-mail Tutanota (kończący się na @tutanota.com, @tutanota.de, @tutamail.com, @tuta.io lub @keemail.me) z 1 GB wolnego miejsca.
+- stworzyć niestandardowy adres e-mail we własnej domenie za 1€ miesięcznie.
+- wysyłać i odbierać wiadomości e-mail zaszyfrowane end-to-end.
+- wysyłać i odbierać wiadomości e-mail w starym stylu (nie zaszyfrowane end-to-end). Nawet te wiadomości są przechowywane w postaci zaszyfrowanej na serwerach Tutanota.
+- automatycznie szyfrować temat, treść i załączniki.
+- natychmiast otrzymywać powiadomienia push.
+- automatycznie wypełniać adresy e-mail podczas pisania z Tutanoty lub kontaktów telefonicznych.
+
+Aplikacja Tutanota prosi o bardzo mało uprawnień, aby zachować maksymalny poziom prywatności:
+
+- Pełny dostęp do sieci: używany do wysyłania i odbierania wiadomości e-mail.
+- Odbieranie danych z Internetu: powiadamianie o otrzymaniu nowej wiadomości e-mail.
+- Wyświetlanie połączenia sieciowego:  Aby dowiedzieć się, czy istnieje połączenie z Internetem.
+- Odczyt kontaktów: Ta funkcja umożliwia wybrać odbiorców z kontaktów w telefonie
+- Odczyt z karty SD: Aby umożliwić dodawanie załączników z karty SD do wiadomości e-mail.
+- Kontrola wibracji: Aby powiadomić Cię, gdy otrzymasz nową wiadomość e-mail.
+- Dezaktywacja trybu uśpienia: Aby powiadomić Cię, gdy otrzymujesz nowy e-mail.

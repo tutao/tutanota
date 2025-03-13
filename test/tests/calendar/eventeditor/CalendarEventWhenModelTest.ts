@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { noOp } from "@tutao/tutanota-utils"
 import { getEventWithDefaultTimes, isAllDayEvent } from "../../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
-import { DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CalendarEvent, CalendarEventTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
 import { createTestEntity } from "../../TestUtils.js"
@@ -336,13 +336,14 @@ o.spec("CalendarEventWhenModel", function () {
 			model.repeatPeriod = RepeatPeriod.DAILY
 			o(model.repeatPeriod).equals(RepeatPeriod.DAILY)
 			o(model.result.repeatRule).deepEquals(
-				createTestEntity(RepeatRuleTypeRef, {
+				createRepeatRule({
 					interval: "1",
 					endType: EndType.Never,
 					endValue: "1",
 					frequency: RepeatPeriod.DAILY,
 					excludedDates: [],
 					timeZone: model.zone,
+					advancedRules: [],
 				}),
 			)
 		})
@@ -689,7 +690,7 @@ o.spec("CalendarEventWhenModel", function () {
 			model.excludeDate(exclusions[1])
 			model.excludeDate(exclusions[0])
 
-			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createTestEntity(DateWrapperTypeRef, { date })))
+			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
 			o(model.excludedDates).deepEquals(exclusions)
 		})
 		o("adding two exclusions in order sorts them", async function () {
@@ -709,7 +710,7 @@ o.spec("CalendarEventWhenModel", function () {
 			model.excludeDate(exclusions[0])
 			model.excludeDate(exclusions[1])
 
-			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createTestEntity(DateWrapperTypeRef, { date })))
+			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
 			o(model.excludedDates).deepEquals(exclusions)
 		})
 		o("adding the same exclusion multiple times deduplicates them", async function () {
@@ -729,7 +730,7 @@ o.spec("CalendarEventWhenModel", function () {
 			model.excludeDate(exclusion)
 			model.excludeDate(exclusion)
 
-			o(model.result.repeatRule?.excludedDates).deepEquals([createTestEntity(DateWrapperTypeRef, { date: exclusion })])
+			o(model.result.repeatRule?.excludedDates).deepEquals([createDateWrapper({ date: exclusion })])
 			o(model.excludedDates).deepEquals([exclusion])
 		})
 	})

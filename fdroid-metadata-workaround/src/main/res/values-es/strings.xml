@@ -1,0 +1,20 @@
+<resources>
+    <string name="reminder_label">Recordatorio</string>
+    <string name="pushNewMail_msg">Nuevo correo recibido.</string>
+    <string name="notificationSync_msg">Notificaciones de sincronización</string>
+    <string name="scheduleAlarmError_msg">No se pudo configurar una alarma. Actualiza la aplicación.</string>
+    <string name="wantToSendReport_msg">Algo inesperado salió mal. ¿Deseas enviar un informe de errores? Puedes añadir un mensaje que nos ayude a corregir este error.</string>
+    <string name="downloadCompleted_msg">Descarga completada</string>
+    <string name="unlockCredentials_action">Desbloquear credenciales</string>
+    <string name="delete_action">Borrar</string>
+    <string name="markRead_action">Marcar como leído</string>
+    <string name="sendLogs_action">Enviar registros</string>
+    <string name="account_label">Usuario</string>
+    <string name="calendars_label">Calendarios</string>
+    <string name="widgetNoCredentialsInfo_msg">No hay credenciales disponibles</string>
+    <string name="widgetUnexpectedError_msg">¡Uy! Algo ha salido mal.</string>
+    <string name="widgetCredentialsError_msg">Inicia sesión en la aplicación Calendario</string>
+    <string name="widgetOpenApp_action">Abrir la aplicación</string>
+    <string name="widgetNoEvents_msg">Ningún acontecimiento</string>
+    <string name="widgetDescription_msg">Mostrar los próximos eventos de hoy</string>
+</resources>

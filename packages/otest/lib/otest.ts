@@ -221,8 +221,10 @@ ${fancy("passing", ansiSequences.greenBg)}: ${result.passedTests.length} ${fancy
 				if (error.userMessage) {
 					console.error(fancy(error.userMessage, ansiSequences.redFg))
 				}
-
 				console.error(error.error)
+				if (error.diff) {
+					console.log(error.diff)
+				}
 				console.log()
 			}
 		}
@@ -239,7 +241,12 @@ ${fancy("passing", ansiSequences.greenBg)}: ${result.passedTests.length} ${fancy
 	}
 
 	private async runTest(test: Test): Promise<TestResult> {
-		const currentTestResult: TestResult = (this.currentTest = { name: test.name, errors: [], timeout: null, skipped: false })
+		const currentTestResult: TestResult = (this.currentTest = {
+			name: test.name,
+			errors: [],
+			timeout: null,
+			skipped: false,
+		})
 
 		let testResolved = false
 

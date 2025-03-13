@@ -9,7 +9,7 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, getTypeString, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, getTypeString, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -22,10 +22,8 @@ import {
 	RejectedSenderTypeRef,
 	SecondFactorTypeRef,
 	SessionTypeRef,
-	User,
 	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
-	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
@@ -45,11 +43,11 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
-import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
+import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
-import { AttributeModel } from "../../common/AttributeModel"
 import { TypeModelResolver } from "../../common/EntityFunctions"
+import { AttributeModel } from "../../common/AttributeModel"
 
 assertWorkerOrNode()
 
@@ -170,9 +168,6 @@ export interface ExposedCacheStorage {
 	 * we must maintain the integrity of our list ranges.
 	 * */
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
-
-	/** delete all instances of the given type that share {@param listId}. also deletes the range of that list. */
-	deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -206,7 +201,7 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * get a map with cache handlers for the customId types this storage implementation supports
 	 * customId types that don't have a custom handler don't get served from the cache
 	 */
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap
+	getCustomCacheHandlerMap(): CustomCacheHandlerMap
 
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
 
@@ -440,7 +435,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		reverse: boolean,
 		opts: EntityRestClientLoadOptions = {},
 	): Promise<T[]> {
-		const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
+		const customHandler = this.storage.getCustomCacheHandlerMap().get(typeRef)
 		if (customHandler && customHandler.loadRange) {
 			return await customHandler.loadRange(this.storage, listId, start, count, reverse)
 		}
@@ -779,7 +774,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			const ids = updates.map((update) => update.instanceId)
 
 			// We only want to load the instances that are in cache range
-			const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
+			const customHandler = this.storage.getCustomCacheHandlerMap().get(typeRef)
 			const idsInCacheRange =
 				customHandler && customHandler.getElementIdsInCacheRange
 					? await customHandler.getElementIdsInCacheRange(this.storage, instanceListId, ids)
@@ -812,8 +807,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 
-		const otherEventUpdates: EntityUpdateData[] = []
 		// we need an array of UpdateEntityData
+		const otherEventUpdates: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
 			const { operation, typeRef } = update
 			const { instanceListId, instanceId } = getUpdateInstanceId(update)
@@ -889,7 +884,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// If there is a custom handler we follow its decision.
 				// Otherwise, we do a range check to see if we need to keep the range up-to-date.
 				const shouldLoad =
-					(await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)?.shouldLoadOnCreateEvent?.(update)) ??
+					this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update) ??
 					(await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
 				if (shouldLoad) {
 					// No need to try to download something that's not there anymore
@@ -948,9 +943,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + instanceId)
 				}
 				const newEntity = await this.entityRestClient.loadParsedInstance(typeRef, collapseId(instanceListId, instanceId))
-				if (isSameTypeRef(typeRef, UserTypeRef)) {
-					await this.handleUpdatedUser(cached, newEntity)
-				}
 				await this.storage.put(typeRef, newEntity)
 				return update
 			} catch (e) {
@@ -966,23 +958,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 		return update
-	}
-
-	private async handleUpdatedUser(cachedUserInstance: ServerModelParsedInstance, newUserInstance: ServerModelParsedInstance) {
-		// When we are removed from a group we just get an update for our user
-		// with no membership on it. We need to clean up all the entities that
-		// belong to that group since we shouldn't be able to access them anymore
-		// and we won't get any update or another chance to clean them up.
-		const oldUser = await this.entityRestClient.mapInstanceToEntity<User>(UserTypeRef, cachedUserInstance)
-		if (oldUser._id !== this.storage.getUserId()) {
-			return
-		}
-		const newUser = await this.entityRestClient.mapInstanceToEntity<User>(UserTypeRef, newUserInstance)
-		const removedShips = difference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
-		for (const ship of removedShips) {
-			console.log("Lost membership on ", ship._id, ship.groupType)
-			await this.storage.deleteAllOwnedBy(ship.group)
-		}
 	}
 
 	/**
@@ -1047,7 +1022,10 @@ export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	}
 }
 
-export function getUpdateInstanceId(update: EntityUpdateData): { instanceListId: Id | null; instanceId: Id } {
+export function getUpdateInstanceId(update: EntityUpdateData): {
+	instanceListId: Id | null
+	instanceId: Id
+} {
 	let instanceListId
 	if (update.instanceListId === "") {
 		instanceListId = null

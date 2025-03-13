@@ -1,5 +1,6 @@
 export const ansiSequences = Object.freeze({
 	redFg: "\x1b[31m",
+	greenFg: "\x1b[32m",
 	greenBg: "\x1b[42m",
 	redBg: "\x1b[41m",
 	yellowBg: "\x1b[43m",

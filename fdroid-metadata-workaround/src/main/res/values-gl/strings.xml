@@ -1,0 +1,20 @@
+<resources>
+    <string name="reminder_label">Recordatorio</string>
+    <string name="pushNewMail_msg">Novo correo recibido.</string>
+    <string name="notificationSync_msg">Sincronizando notificacións</string>
+    <string name="scheduleAlarmError_msg">Non se estableceu a alarma. Por favor actualiza a aplicación.</string>
+    <string name="wantToSendReport_msg">Aconteceu algo imprevisto. Queres informar do fallo? Podes engadir unha mensaxe para axudarnos a resolver este problema.</string>
+    <string name="downloadCompleted_msg">Descarga completa</string>
+    <string name="unlockCredentials_action">Desbloquear credenciais</string>
+    <string name="delete_action">Eliminar</string>
+    <string name="markRead_action">Marcar como lido</string>
+    <string name="sendLogs_action">Enviar rexistros</string>
+    <string name="account_label">Usuario</string>
+    <string name="calendars_label">Calendarios</string>
+    <string name="widgetNoCredentialsInfo_msg">Sen credenciais dispoñibles</string>
+    <string name="widgetUnexpectedError_msg">Oooi! Houbo un fallo.</string>
+    <string name="widgetCredentialsError_msg">Accede na App Calendario</string>
+    <string name="widgetOpenApp_action">Abrir a app</string>
+    <string name="widgetNoEvents_msg">Sen eventos</string>
+    <string name="widgetDescription_msg">Mostrar os eventos para hoxe</string>
+</resources>

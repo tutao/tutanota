@@ -14,6 +14,7 @@ import { CalendarModel } from "../../../../src/calendar-app/calendar/model/Calen
 import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
+	createCalendarEventAttendee,
 	EncryptedMailAddressTypeRef,
 	MailboxGroupRootTypeRef,
 	MailboxProperties,
@@ -42,27 +43,15 @@ import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMail
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
 
-o.spec("CalendarEventModelTest", function () {
-	let userController: UserController
+o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender
 	let calendarModel: CalendarModel
 	let entityClient: EntityClient
-	let editModels: CalendarEventEditModels
 
 	o.beforeEach(function () {
-		userController = object()
 		distributor = object()
 		calendarModel = object()
 		entityClient = object()
-
-		editModels = {
-			alarmModel: object(),
-			whenModel: object(),
-			whoModel: object(),
-			summary: object(),
-			description: object(),
-			location: object(),
-		}
 	})
 
 	o.spec("integration tests", function () {
@@ -92,11 +81,11 @@ o.spec("CalendarEventModelTest", function () {
 				organizer: ownerAddress,
 				alarmInfos: [["alarmListId", "alarmElementId"]],
 				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
+					createCalendarEventAttendee({
 						address: ownerAddress,
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),
-					createTestEntity(CalendarEventAttendeeTypeRef, {
+					createCalendarEventAttendee({
 						address: otherAddress,
 						status: CalendarAttendeeStatus.ACCEPTED,
 					}),

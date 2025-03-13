@@ -4,6 +4,11 @@ import {
 	ContactMailAddressTypeRef,
 	ContactPhoneNumberTypeRef,
 	ContactTypeRef,
+	createContact,
+	createContactAddress,
+	createContactMailAddress,
+	createContactPhoneNumber,
+	createMailAddress,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { neverNull } from "@tutao/tutanota-utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/mail-app/contacts/VCardImporter.js"
@@ -157,86 +162,131 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		o(vCardFileToVCards(str)!).deepEquals(expected)
 	})
 	o("testToContactNames", function () {
-		let a = ["N:Public\\\\;John\\;Quinlan;Lange;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
-		let contacts = vCardListToContacts(a, "")
-		let b = createTestEntity(ContactTypeRef, {
+		const vcardData = ["N:Public\\\\;John\\;Quinlan;Lange;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
+		const parsedContacts = vCardListToContacts(vcardData, "")
+		const expectedContact = createContact({
 			_ownerGroup: "",
+			firstName: "John;Quinlan",
+			lastName: "Public\\",
+			role: "",
+			company: "",
+			oldBirthdayDate: null,
+			comment: "Hello World\nHier ist ein Umbruch",
+			presharedPassword: null,
+			nickname: null,
+			title: "Mr.",
+			birthdayIso: "2016-09-09",
+			middleName: "Lange",
+			nameSuffix: "Esq.",
+			phoneticFirst: null,
+			phoneticMiddle: null,
+			phoneticLast: null,
+			department: "",
+			mailAddresses: [],
+			phoneNumbers: [],
 			addresses: [
-				createTestEntity(ContactAddressTypeRef, {
-					_id: neverNull(null),
+				createContactAddress({
 					address: "Die Heide 81\nBasche",
 					customTypeName: "",
 					type: "2",
 				}),
 			],
-			middleName: "Lange",
-			department: "",
-			firstName: "John;Quinlan",
-			lastName: "Public\\",
-			comment: "Hello World\nHier ist ein Umbruch",
-			company: "",
-			role: "",
-			title: "Mr.",
-			nameSuffix: "Esq.",
-			nickname: neverNull(null),
-			birthdayIso: "2016-09-09",
+			socialIds: [],
+			oldBirthdayAggregate: null,
+			photo: null,
+			customDate: [],
+			websites: [],
+			relationships: [],
+			messengerHandles: [],
+			pronouns: [],
 		})
-		o(contacts[0]).deepEquals(b)
+		o(parsedContacts).deepEquals([expectedContact])
 	})
 	o("testEmptyAddressElements", function () {
-		let a = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;; ;;Basche"]
-		let contacts = vCardListToContacts(a, "")
-		let b = createTestEntity(ContactTypeRef, {
+		const vcardData = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;; ;;Basche"]
+		const parsedContacts = vCardListToContacts(vcardData, "")
+		const expectedContact = createContact({
 			_ownerGroup: "",
-			addresses: [
-				createTestEntity(ContactAddressTypeRef, {
-					_id: neverNull(null),
-					address: "Die Heide 81\nBasche",
-					customTypeName: "",
-					type: "2",
-				}),
-			],
-			middleName: "",
-			department: "",
 			firstName: "John;Quinlan",
 			lastName: "Public\\",
-			comment: "",
-			company: "",
 			role: "",
+			company: "",
+			oldBirthdayDate: null,
+			comment: "",
+			presharedPassword: null,
+			nickname: null,
 			title: "Mr.",
-			nameSuffix: "Esq.",
-			nickname: neverNull(null),
 			birthdayIso: "2016-09-09",
-		})
-		o(contacts[0]).deepEquals(b)
-	})
-	o("testTooManySpaceElements", function () {
-		let a = ["N:Public\\\\; John\\; Quinlan;;Mr.    ;Esq.\nBDAY: 2016-09-09\nADR: Die Heide 81;;;; Basche"]
-		let contacts = vCardListToContacts(a, "")
-		let b = createTestEntity(ContactTypeRef, {
-			_ownerGroup: "",
+			middleName: "",
+			nameSuffix: "Esq.",
+			phoneticFirst: null,
+			phoneticMiddle: null,
+			phoneticLast: null,
+			department: "",
+			mailAddresses: [],
+			phoneNumbers: [],
 			addresses: [
-				createTestEntity(ContactAddressTypeRef, {
-					_id: neverNull(null),
+				createContactAddress({
 					address: "Die Heide 81\nBasche",
 					customTypeName: "",
 					type: "2",
 				}),
 			],
-			middleName: "",
-			department: "",
+			socialIds: [],
+			oldBirthdayAggregate: null,
+			photo: null,
+			customDate: [],
+			websites: [],
+			relationships: [],
+			messengerHandles: [],
+			pronouns: [],
+		})
+		o(parsedContacts).deepEquals([expectedContact])
+	})
+
+	o("testTooManySpaceElements", function () {
+		const vcardData = ["N:Public\\\\; John\\; Quinlan;;Mr.    ;Esq.\nBDAY: 2016-09-09\nADR: Die Heide 81;;;; Basche"]
+		const parsedContacts = vCardListToContacts(vcardData, "")
+		const expectedContact = createContact({
+			_ownerGroup: "",
 			firstName: "John; Quinlan",
 			lastName: "Public\\",
-			comment: "",
-			company: "",
 			role: "",
+			company: "",
+			oldBirthdayDate: null,
+			comment: "",
+			presharedPassword: null,
+			nickname: null,
 			title: "Mr.",
-			nameSuffix: "Esq.",
-			nickname: neverNull(null),
 			birthdayIso: "2016-09-09",
+			middleName: "",
+			nameSuffix: "Esq.",
+			phoneticFirst: null,
+			phoneticMiddle: null,
+			phoneticLast: null,
+			department: "",
+			mailAddresses: [],
+			phoneNumbers: [],
+			addresses: [
+				createContactAddress({
+					address: "Die Heide 81\nBasche",
+					customTypeName: "",
+					type: "2",
+				}),
+			],
+			socialIds: [],
+			oldBirthdayAggregate: null,
+			photo: null,
+			customDate: [],
+			websites: [],
+			relationships: [],
+			messengerHandles: [],
+			pronouns: [],
 		})
-		o(contacts[0]).deepEquals(b)
+
+		o(parsedContacts).deepEquals([expectedContact])
 	})
+
 	o("testVCard4", function () {
 		let aContent = "VERSION:4.0\nN:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;Basche\nNOTE:Hello World\\nHier ist ein Umbruch"
 		let a = `BEGIN:VCARD\n${aContent}\nEND:VCARD\n`
@@ -245,45 +295,57 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		o(vCardFileToVCards(a + b)).deepEquals([aContent, bContent])
 	})
 	o("testTypeInUserText", function () {
-		let a = ["EMAIL;TYPE=WORK:HOME@mvrht.net\nADR;TYPE=WORK:Street;HOME;;\nTEL;TYPE=WORK:HOME01923825434"]
-		let contacts = vCardListToContacts(a, "")
-		let b = createTestEntity(ContactTypeRef, {
+		const vcardContent = ["EMAIL;TYPE=WORK:HOME@mvrht.net\nADR;TYPE=WORK:Street;HOME;;\nTEL;TYPE=WORK:HOME01923825434"]
+		const parsedContacts = vCardListToContacts(vcardContent, "")
+		const expectedContact = createContact({
 			_ownerGroup: "",
-			addresses: [
-				createTestEntity(ContactAddressTypeRef, {
-					_id: neverNull(null),
-					address: "Street\nHOME",
-					customTypeName: "",
-					type: "1",
-				}),
-			],
+			firstName: "",
+			lastName: "",
+			role: "",
+			company: "",
+			oldBirthdayDate: null,
+			comment: "",
+			presharedPassword: null,
+			nickname: null,
+			title: null,
+			birthdayIso: null,
+			middleName: "",
+			nameSuffix: "",
+			phoneticFirst: null,
+			phoneticMiddle: null,
+			phoneticLast: null,
+			department: "",
 			mailAddresses: [
-				createTestEntity(ContactMailAddressTypeRef, {
-					_id: neverNull(null),
+				createContactMailAddress({
 					address: "HOME@mvrht.net",
 					customTypeName: "",
 					type: "1",
 				}),
 			],
 			phoneNumbers: [
-				createTestEntity(ContactPhoneNumberTypeRef, {
-					_id: neverNull(null),
+				createContactPhoneNumber({
 					customTypeName: "",
 					number: "HOME01923825434",
 					type: "1",
 				}),
 			],
-			middleName: "",
-			department: "",
-			firstName: "",
-			lastName: "",
-			comment: "",
-			company: "",
-			role: "",
-			nameSuffix: "",
-			nickname: neverNull(null),
+			addresses: [
+				createContactAddress({
+					address: "Street\nHOME",
+					customTypeName: "",
+					type: "1",
+				}),
+			],
+			socialIds: [],
+			oldBirthdayAggregate: null,
+			photo: null,
+			customDate: [],
+			websites: [],
+			relationships: [],
+			messengerHandles: [],
+			pronouns: [],
 		})
-		o(contacts[0]).deepEquals(b)
+		o(parsedContacts[0]).deepEquals(expectedContact)
 	})
 	o("test vcard 4.0 date format", function () {
 		let vcards = `BEGIN:VCARD

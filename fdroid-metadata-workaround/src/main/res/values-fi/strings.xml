@@ -1,0 +1,20 @@
+<resources>
+    <string name="reminder_label">Muistutus</string>
+    <string name="pushNewMail_msg">Olet saanut uuden sähköpostin.</string>
+    <string name="notificationSync_msg">Ilmoituksia synkronoidaan</string>
+    <string name="scheduleAlarmError_msg">Hälytystä ei voitu asettaa. Päivitä sovellus.</string>
+    <string name="wantToSendReport_msg">Jotakin odottamatonta meni pieleen. Haluatko lähettää virheilmoituksen?  Voit liittää ilmoitukseen myös oman viestisi auttaaksesi meitä korjaamaan virheen.</string>
+    <string name="downloadCompleted_msg">Lataus valmis</string>
+    <string name="unlockCredentials_action">Avaa tunnistetiedot</string>
+    <string name="delete_action">Poista</string>
+    <string name="markRead_action">Merkitse luetuksi</string>
+    <string name="sendLogs_action">Lähetä lokit</string>
+    <string name="account_label">Käyttäjä</string>
+    <string name="calendars_label">Kalenterit</string>
+    <string name="widgetNoCredentialsInfo_msg">Kirjautumistietoja ei saatavilla</string>
+    <string name="widgetUnexpectedError_msg">Hups! Jotain meni pieleen.</string>
+    <string name="widgetCredentialsError_msg">Kirjaudu kalenterisovellukseen</string>
+    <string name="widgetOpenApp_action">Avaa sovellus</string>
+    <string name="widgetNoEvents_msg">Ei tapahtumia</string>
+    <string name="widgetDescription_msg">Näytä tulevat tapahtumat tänään</string>
+</resources>

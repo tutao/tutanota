@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { verify } from "@tutao/tutanota-test-utils"
 import { customTypeEncoders, ensureBase64Ext, OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
-import { instance, object, when } from "testdouble"
+import { instance, matchers, object, when } from "testdouble"
 import * as cborg from "cborg"
 import {
 	constructMailSetEntryId,
@@ -42,14 +42,14 @@ import { untagSqlObject } from "../../../../../src/common/api/worker/offline/Sql
 import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
-import Id from "../../../../../src/mail-app/translations/id.js"
+import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { Entity, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 
 function incrementId(id: Id, ms: number) {
@@ -80,21 +80,9 @@ class MailSetEntryIdGenerator {
 	}
 }
 
-function encode(thing) {
-	return cborg.encode(thing, { typeEncoders: customTypeEncoders })
-}
-
 const nativePath = __NODE_GYP_better_sqlite3
 const databasePath = ":memory:"
 export const offlineDatabaseTestKey = Uint8Array.from([3957386659, 354339016, 3786337319, 3366334248])
-
-/**
- * remove fields from mails that are added by the model mapper in order to allow comparing mails
- */
-function cleanFieldsFromMail(mail: Mail) {
-	downcast(mail.sender)._id = null
-	return mail
-}
 
 /**
  * remove fields from mailDetailsBlobs that are added by the model mapper in order to allow comparing mailDetailsBlobs
@@ -115,7 +103,7 @@ o.spec("OfflineStorageDb", function () {
 	/** get an id based on a timestamp that is {@param days} days away from the time range cutoff */
 	const offsetId = (days) => timestampToGeneratedId(getDayShifted(now, 0 - timeRangeDays + days).getTime())
 	const offsetMailSetEntryId = (days, mailId) => constructMailSetEntryId(getDayShifted(now, 0 - timeRangeDays + days), mailId)
-	const cuttoffMailSetEntryId = offsetMailSetEntryId(0, GENERATED_MAX_ID)
+	const cutoffMailSetEntryId = offsetMailSetEntryId(0, GENERATED_MAX_ID)
 
 	let dbFacade: DesktopSqlCipher
 	let dateProviderMock: DateProvider
@@ -125,6 +113,7 @@ o.spec("OfflineStorageDb", function () {
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
 	let typeModelResolver: TypeModelResolver
 	let modelMapper: ModelMapper
+	let customCacheHandlerMap: CustomCacheHandlerMap
 
 	o.beforeEach(async function () {
 		// integrity checks do not work with in-memory databases
@@ -137,6 +126,8 @@ o.spec("OfflineStorageDb", function () {
 		typeModelResolver = clientInitializedTypeModelResolver()
 		modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 		when(dateProviderMock.now()).thenReturn(now.getTime())
+		customCacheHandlerMap = object()
+
 		storage = new OfflineStorage(
 			dbFacade,
 			interWindowEventSenderMock,
@@ -145,6 +136,7 @@ o.spec("OfflineStorageDb", function () {
 			offlineStorageCleanerMock,
 			modelMapper,
 			typeModelResolver,
+			customCacheHandlerMap,
 		)
 	})
 
@@ -185,6 +177,208 @@ o.spec("OfflineStorageDb", function () {
 		o.test("migrations are run", async function () {
 			await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 			verify(migratorMock.migrate(storage, dbFacade))
+		})
+
+		o.spec("custom cache handlers", function () {
+			const userId = "userId1"
+
+			o.beforeEach(async function () {
+				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+			})
+
+			o.test("put calls the cache handler", async function () {
+				const user = createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+					},
+					{ populateAggregates: true },
+				)
+				const storableUser = await toStorableInstance(user)
+
+				const userCacheHandler: CustomCacheHandler<User> = object()
+				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+				await storage.put(UserTypeRef, storableUser)
+				verify(userCacheHandler.onBeforeUpdate?.(user))
+			})
+
+			o.test("deleteIfExists calls the cache handler", async function () {
+				const user = createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+					},
+					{ populateAggregates: true },
+				)
+				const storableUser = await toStorableInstance(user)
+
+				const userCacheHandler: CustomCacheHandler<User> = object()
+				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+				await storage.put(UserTypeRef, storableUser)
+
+				await storage.deleteIfExists(UserTypeRef, null, userId)
+				verify(userCacheHandler.onBeforeDelete?.(userId))
+			})
+
+			o.spec("deleteAllOfType", function () {
+				o.test("calls the cache handler for element types", async function () {
+					const user = createTestEntity(
+						UserTypeRef,
+						{
+							_id: userId,
+							_ownerGroup: "ownerGroup",
+						},
+						{ populateAggregates: true },
+					)
+					const storableUser = await toStorableInstance(user)
+
+					const userCacheHandler: CustomCacheHandler<User> = object()
+					when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+
+					await storage.put(UserTypeRef, storableUser)
+
+					await storage.deleteAllOfType(UserTypeRef)
+					verify(userCacheHandler.onBeforeDelete?.(userId))
+				})
+
+				o.test("calls the cache handler for list element types", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(
+						MailTypeRef,
+						{
+							_id: id,
+							_ownerGroup: "ownerGroup",
+						},
+						{ populateAggregates: true },
+					)
+					const storableMail = await toStorableInstance(entityToStore)
+
+					const customCacheHandler: CustomCacheHandler<Mail> = object()
+					when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(MailTypeRef, storableMail)
+
+					await storage.deleteAllOfType(MailTypeRef)
+					verify(customCacheHandler.onBeforeDelete?.(id))
+				})
+
+				o.test("calls the cache handler for blob element types", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: id,
+							_ownerGroup: "ownerGroup",
+						},
+						{ populateAggregates: true },
+					)
+					const storableDetails = await toStorableInstance(entityToStore)
+
+					const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+					when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(MailDetailsBlobTypeRef, storableDetails)
+
+					await storage.deleteAllOfType(MailDetailsBlobTypeRef)
+					verify(customCacheHandler.onBeforeDelete?.(id))
+				})
+			})
+
+			o.spec("deleteAllOwnedBy", function () {
+				const userId = "id1"
+				const groupId = "groupId"
+
+				o.test("calls the cache handler for element types", async function () {
+					const user = createTestEntity(
+						UserTypeRef,
+						{
+							_id: userId,
+							_ownerGroup: groupId,
+						},
+						{ populateAggregates: true },
+					)
+					const storableUser = await toStorableInstance(user)
+
+					const userCacheHandler: CustomCacheHandler<User> = object()
+					when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+					await storage.put(UserTypeRef, storableUser)
+
+					await storage.deleteAllOwnedBy(groupId)
+					verify(userCacheHandler.onBeforeDelete?.(userId))
+				})
+
+				o.test("calls the cache handler for list element types", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(
+						MailTypeRef,
+						{
+							_id: id,
+							_ownerGroup: groupId,
+						},
+						{ populateAggregates: true },
+					)
+					const storableMail = await toStorableInstance(entityToStore)
+
+					const customCacheHandler: CustomCacheHandler<Mail> = object()
+					when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(MailTypeRef, storableMail)
+
+					await storage.deleteAllOwnedBy(groupId)
+					verify(customCacheHandler.onBeforeDelete?.(id))
+				})
+
+				o.test("calls the cache handler for blob element types", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: id,
+							_ownerGroup: groupId,
+						},
+						{ populateAggregates: true },
+					)
+					const storableDetailsBlob = await toStorableInstance(entityToStore)
+
+					const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+					when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
+
+					await storage.deleteAllOwnedBy(groupId)
+					verify(customCacheHandler.onBeforeDelete?.(id))
+				})
+
+				o.test("removes last batch id for the deleted group", async function () {
+					await storage.putLastBatchIdForGroup("group1", "batch1")
+					await storage.putLastBatchIdForGroup("group2", "batch2")
+
+					await storage.deleteAllOwnedBy("group1")
+					o(await storage.getLastBatchIdForGroup("group1")).equals(null)
+					o(await storage.getLastBatchIdForGroup("group2")).equals("batch2")
+				})
+			})
+
+			o.test("deleteIn calls the cache handler", async function () {
+				const id: IdTuple = ["listId", "id1"]
+				const entityToStore = createTestEntity(MailDetailsBlobTypeRef, { _id: id, _ownerGroup: "ownerGroup" }, { populateAggregates: true })
+				const storableDetailsBlob = await toStorableInstance(entityToStore)
+
+				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+				when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+				await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
+
+				await storage.deleteIn(MailDetailsBlobTypeRef, "listId", ["id1"])
+				verify(customCacheHandler.onBeforeDelete?.(id))
+			})
 		})
 
 		o.spec("Offline storage round trip", function () {
@@ -260,61 +454,6 @@ o.spec("OfflineStorageDb", function () {
 					o(rangeAfter).equals(null)
 				})
 
-				o.test("deleteWholeList", async function () {
-					const listOne = "listId1"
-					const listTwo = "listId2"
-					await storage.init({ userId: "user", databaseKey, timeRangeDays, forceNewDatabase: false })
-
-					const listOneMailOne = createTestEntity(MailTypeRef, {
-						_id: [listOne, "id1"],
-						_ownerGroup: "ownerGroup",
-						_permissions: "permissions",
-						sender: createTestEntity(MailAddressTypeRef, {
-							name: "some name",
-							address: "address@tuta.com",
-						}),
-						conversationEntry: ["listId", "listElementId"],
-					})
-					const listOneMailTwo = createTestEntity(MailTypeRef, {
-						_id: [listOne, "id2"],
-						_ownerGroup: "ownerGroup",
-						_permissions: "permissions",
-						sender: createTestEntity(MailAddressTypeRef, {
-							name: "some name",
-							address: "address@tuta.com",
-						}),
-						conversationEntry: ["listId", "listElementId"],
-					})
-					const listTwoMail = createTestEntity(MailTypeRef, {
-						_id: [listTwo, "id3"],
-						_ownerGroup: "ownerGroup",
-						_permissions: "permissions",
-						sender: createTestEntity(MailAddressTypeRef, {
-							name: "some name",
-							address: "address@tuta.com",
-						}),
-						conversationEntry: ["listId", "listElementId"],
-					})
-					await storage.put(MailTypeRef, await toStorableInstance(listOneMailOne))
-					await storage.put(MailTypeRef, await toStorableInstance(listOneMailTwo))
-					await storage.put(MailTypeRef, await toStorableInstance(listTwoMail))
-					await storage.setNewRangeForList(MailTypeRef, listOne, "id1", "id2")
-					await storage.setNewRangeForList(MailTypeRef, listTwo, "id3", "id3")
-
-					await storage.deleteWholeList(MailTypeRef, listOne)
-
-					const mailsInListOne = await storage.getWholeList(MailTypeRef, listOne)
-					const mailsInListTwo = await storage.getWholeList(MailTypeRef, listTwo)
-					cleanFieldsFromMail(mailsInListTwo[0])
-					const rangeListOne = await storage.getRangeForList(MailTypeRef, listOne)
-					const rangeListTwo = await storage.getRangeForList(MailTypeRef, listTwo)
-
-					o(mailsInListOne).deepEquals([])
-					o(mailsInListTwo).deepEquals([listTwoMail])
-					o(rangeListOne).equals(null)
-					o(rangeListTwo).deepEquals({ lower: "id3", upper: "id3" })
-				})
-
 				o.test("provideMultiple", async function () {
 					const listId = "listId1"
 					const elementId1 = "id1"
@@ -348,14 +487,11 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(MailTypeRef, await toStorableInstance(storableMail1))
 
 					mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1, elementId2])
-					cleanFieldsFromMail(mails[0])
 					o(mails).deepEquals([storableMail1])
 
 					await storage.put(MailTypeRef, await toStorableInstance(storableMail2))
 
 					mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1, elementId2])
-					cleanFieldsFromMail(mails[0])
-					cleanFieldsFromMail(mails[1])
 					o(mails).deepEquals([storableMail1, storableMail2])
 				})
 			})
@@ -447,7 +583,6 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(storableMailDetails))
 
 					mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
-					clearFieldsFromMailDetailsBlob(assertNotNull(mailDetailsBlob))
 
 					o(mailDetailsBlob).deepEquals(storableMailDetails)
 
@@ -632,7 +767,7 @@ o.spec("OfflineStorageDb", function () {
 					type: mailSetEntryType,
 					listId: entriesListId,
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-					lower: ensureBase64Ext(mailSetEntryTypeModel, cuttoffMailSetEntryId),
+					lower: ensureBase64Ext(mailSetEntryTypeModel, cutoffMailSetEntryId),
 					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
 				})
 			})
@@ -824,7 +959,7 @@ o.spec("OfflineStorageDb", function () {
 					type: mailSetEntryType,
 					listId: listIdPart(mailSetEntryId),
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-					lower: ensureBase64Ext(mailSetEntryTypeModel, cuttoffMailSetEntryId),
+					lower: ensureBase64Ext(mailSetEntryTypeModel, cutoffMailSetEntryId),
 					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
 				})
 
@@ -1514,7 +1649,7 @@ o.spec("OfflineStorageDb", function () {
 				entries: "spamEntriesListId",
 			})
 
-			const everyEntity: Array<Entity> = [
+			const everyEntity: Array<SomeEntity> = [
 				userMailbox,
 				inboxFolder,
 				trashFolder,
@@ -1556,11 +1691,6 @@ o.spec("OfflineStorageDb", function () {
 			const assertContents = async ({ _id, _type }, expected, msg) => {
 				const { listId, elementId } = expandId(_id)
 				let valueFromDb = await storage.get(_type, listId, elementId)
-				if (valueFromDb && _type === MailTypeRef) {
-					cleanFieldsFromMail(valueFromDb as Mail)
-				} else if (valueFromDb && _type === MailDetailsBlobTypeRef) {
-					clearFieldsFromMailDetailsBlob(valueFromDb as MailDetailsBlob)
-				}
 				return o(valueFromDb).deepEquals(expected)(msg)
 			}
 
@@ -1578,7 +1708,7 @@ o.spec("OfflineStorageDb", function () {
 
 			o(await storage.getRangeForList(MailSetEntryTypeRef, inboxFolder.entries)).deepEquals({
 				// base64Ext encoding is not needed here, as storage.getRangeForList is returning custom elementIds in base64Url already
-				lower: cuttoffMailSetEntryId,
+				lower: cutoffMailSetEntryId,
 				upper: elementIdPart(lastThrow(newInboxMailSetEntries)._id),
 			})("lower range for inbox was set to cutoff")
 			o(await storage.getRangeForList(MailSetEntryTypeRef, trashFolder.entries)).equals(null)("range for trash was deleted")

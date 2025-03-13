@@ -3,15 +3,24 @@ import { TestError, TestResult } from "./TestResult.js"
 export type AssertionDescriber = (description: string) => void
 
 let asString: (thing: unknown) => string
+let differ: (actual: unknown, expected: unknown) => string | null
 if (typeof process !== "undefined") {
 	const { inspect } = await import("node:util")
 	asString = function (thing) {
 		return inspect(thing, { depth: 5 })
 	}
+	const NodeAssertionError = (await import("node:assert")).AssertionError
+	differ = (actual, expected) =>
+		new NodeAssertionError({
+			actual: actual,
+			expected: expected,
+			operator: "deepStrictEqual",
+		}).message
 } else {
 	asString = function (thing) {
 		return JSON.stringify(thing)
 	}
+	differ = () => null
 }
 
 /**
@@ -27,7 +36,11 @@ export class Assertion<T> {
 	 */
 	deepEquals(expected: T): AssertionDescriber {
 		if (!deepEqual(this.actual, expected)) {
-			return this.addError(`expected "${asString(this.actual)}" to be deep equal to "${asString(expected)}"`)
+			const left = asString(this.actual)
+			const right = asString(expected)
+			const diffMsg = differ(this.actual, expected) ?? undefined
+
+			return this.addError(`expected "${left}" to be deep equal to "${right}"`, diffMsg)
 		}
 		return noop
 	}
@@ -72,7 +85,12 @@ export class Assertion<T> {
 	/**
 	 * Same as {@link satisfies} but the check function is async.
 	 */
-	async asyncSatisfies(check: (value: T) => Promise<{ pass: boolean; message: string }>): Promise<AssertionDescriber> {
+	async asyncSatisfies(
+		check: (value: T) => Promise<{
+			pass: boolean
+			message: string
+		}>,
+	): Promise<AssertionDescriber> {
 		const result = await check(this.actual)
 		if (!result.pass) {
 			return this.addError(`expected to satisfy condition: "${result.message}"`)
@@ -129,8 +147,8 @@ export class Assertion<T> {
 		}
 	}
 
-	private addError(assertionDescription: string) {
-		const testError: TestError = { error: new AssertionError(assertionDescription), userMessage: null }
+	private addError(assertionDescription: string, diff?: string) {
+		const testError: TestError = { error: new AssertionError(assertionDescription), userMessage: null, diff }
 		this.testResult.errors.push(testError)
 		return (userMessage: string) => {
 			testError.userMessage = userMessage
