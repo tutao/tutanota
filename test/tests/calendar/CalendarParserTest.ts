@@ -14,7 +14,7 @@ import {
 } from "../../../src/calendar-app/calendar/export/CalendarParser.js"
 import { ParserError, StringIterator } from "../../../src/common/misc/parsing/ParserCombinator.js"
 import { DateTime } from "luxon"
-import { DateWrapperTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { createDateWrapper, DateWrapperTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { getDateInUTC, zone } from "./CalendarTestUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import { AlarmIntervalUnit } from "../../../src/common/calendar/date/CalendarUtils.js"
@@ -308,15 +308,15 @@ o.spec("CalendarParser", function () {
 		o("are excluded dates deduplicated", function () {
 			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230308T230000Z,20230308T230000Z,20230309T230000Z" }])
 			o(parsedDates).deepEquals([
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-08T23:00:00Z") }),
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-09T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-08T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 			])
 		})
 		o("are excluded dates sorted", function () {
 			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230313T230000Z,20230309T230000Z" }])
 			o(parsedDates).deepEquals([
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-09T23:00:00Z") }),
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-13T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-13T23:00:00Z") }),
 			])
 		})
 		o("multiple exdates in separate lines are parsed", function () {
@@ -329,8 +329,8 @@ o.spec("CalendarParser", function () {
 				},
 			])
 			o(parsedDates).deepEquals([
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-02-03T23:00:00Z") }),
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-09T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-02-03T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 			])
 		})
 		o("deduplication over multiple lines works", function () {
@@ -343,16 +343,16 @@ o.spec("CalendarParser", function () {
 				},
 			])
 			o(parsedDates).deepEquals([
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-01-14T23:00:00Z") }),
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T23:00:00Z") }),
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-09T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-01-14T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-02T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 			])
 		})
 		o("is timezone parsed", function () {
 			const parsedDates = parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000,20230302T230000" }])
 			o(parsedDates).deepEquals([
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-02T22:00:00Z") }),
-				createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-09T22:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") }),
 			])
 		})
 		o(" deduplication over different timezones", function () {
@@ -360,7 +360,7 @@ o.spec("CalendarParser", function () {
 				{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000" },
 				{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
 			])
-			o(parsedDates).deepEquals([createTestEntity(DateWrapperTypeRef, { date: new Date("2023-03-09T22:00:00Z") })])
+			o(parsedDates).deepEquals([createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") })])
 		})
 	})
 

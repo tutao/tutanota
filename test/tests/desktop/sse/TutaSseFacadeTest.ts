@@ -18,6 +18,7 @@ import {
 	createIdTupleWrapper,
 	createMissedNotification,
 	createNotificationInfo,
+	createNotificationSessionKey,
 	MissedNotificationTypeRef,
 	NotificationInfo,
 	NotificationSessionKeyTypeRef,
@@ -170,7 +171,7 @@ o.spec("TutaSseFacade", () => {
 				}),
 				repeatRule: null,
 				notificationSessionKeys: [
-					createTestEntity(NotificationSessionKeyTypeRef, {
+					createNotificationSessionKey({
 						pushIdentifier: ["pListId", "pElementId"],
 						pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("sk"),
 					}),
@@ -198,12 +199,6 @@ o.spec("TutaSseFacade", () => {
 
 			const sk = aes256RandomKey()
 			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
-			const strippedEncryptedNotificationInfo: StrippedEntity<NotificationInfo> = {
-				mailAddress: notificationInfo.mailAddress,
-				userId: notificationInfo.userId,
-				mailId: notificationInfo.mailId,
-			}
-
 			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, untypedInstance)
 
 			when(alarmStorage.getNotificationSessionKey(alarmNotification.notificationSessionKeys)).thenResolve({

@@ -33,8 +33,6 @@ import { InstancePipeline } from "../../../../src/common/api/worker/crypto/Insta
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
-const { anything } = matchers
-
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
 	let cacheMock: DefaultEntityRestCache

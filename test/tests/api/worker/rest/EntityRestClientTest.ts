@@ -1137,7 +1137,7 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("Update entity throws if entity does not have an id", async function () {
-			const newCustomer = createTestEntity(CustomerTypeRef)
+			const newCustomer = createTestEntity(CustomerTypeRef, { _id: undefined })
 			const result = await assertThrows(Error, async () => await entityRestClient.update(newCustomer))
 			o(result.message).equals("Id must be defined")
 		})

@@ -21,6 +21,7 @@ import { KeyRotationFacade } from "../../../../src/common/api/worker/facades/Key
 import { CacheManagementFacade } from "../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { Mode } from "../../../../src/common/api/common/Env"
+import { QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -36,7 +37,10 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	let cacheManagementFacade: CacheManagementFacade
 
 	o.beforeEach(function () {
-		user = createTestEntity(UserTypeRef, { userGroup: createTestEntity(GroupMembershipTypeRef, { group: userGroupId }), _id: userId })
+		user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, { group: userGroupId }),
+			_id: userId,
+		})
 		userFacade = object()
 		when(userFacade.getUser()).thenReturn(user)
 		entityClient = object()

@@ -32,7 +32,7 @@ import {
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { tutaDunkel, tutaRed } from "../../../../src/common/gui/builtinThemes"
-import { entityUpdateToUpdateData, EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
