@@ -715,7 +715,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					if (mailList == null) {
 						return
 					}
-					showLabelsPopup(mailModel, mailList.getSelectedAsArray(), (mails: Mail[]) => this.mailViewModel.getActionableMails(mails), dom, opts)
+					// conversationViewModel is not there if we are in multiselect or if nothing is selected
+					if (this.conversationViewModel != null) {
+						// when viewing a conversation we need to get the label state for all the mails in that conversation
+						const conversationMails = this.conversationViewModel.conversationItems().map((mailItem) => mailItem.viewModel.mail)
+						showLabelsPopup(mailModel, conversationMails, async (mails: Mail[]) => mails.map((mail) => mail._id), dom, opts)
+					} else {
+						showLabelsPopup(mailModel, mailList.getSelectedAsArray(), (mails: Mail[]) => this.mailViewModel.getActionableMails(mails), dom, opts)
+					}
 			  }
 			: null
 	}
