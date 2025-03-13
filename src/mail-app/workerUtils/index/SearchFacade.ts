@@ -42,7 +42,6 @@ import {
 	decryptSearchIndexEntry,
 	encryptIndexKeyBase64,
 	getIdFromEncSearchIndexEntry,
-	getPerformanceTimestamp,
 	markEnd,
 	markStart,
 	printMeasure,
@@ -60,6 +59,9 @@ import type { TypeModel } from "../../../common/api/common/EntityTypes.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "../../../common/api/worker/search/IndexTables.js"
+import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
+import { sql } from "../../../common/api/worker/offline/Sql"
+import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
@@ -80,6 +82,7 @@ export class SearchFacade {
 		suggestionFacades: SuggestionFacade<any>[],
 		browserData: BrowserData,
 		entityClient: EntityClient,
+		private readonly sqlCipherFacade: SqlCipherFacade,
 	) {
 		this._db = db
 		this._mailIndexer = mailIndexer
@@ -96,63 +99,86 @@ export class SearchFacade {
 	 * @param minSuggestionCount If minSuggestionCount > 0 regards the last query token as suggestion token and includes suggestion results for that token, but not less than minSuggestionCount
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
-	search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
-		return this._db.initialized.then(() => {
-			let searchTokens = tokenize(query)
-			let result: SearchResult = {
-				query,
-				restriction,
-				results: [],
-				currentIndexTimestamp: this._getSearchEndTimestamp(restriction),
-				lastReadSearchIndexRow: searchTokens.map((token) => [token, null]),
-				matchWordOrder: searchTokens.length > 1 && query.startsWith('"') && query.endsWith('"'),
-				moreResults: [],
-				moreResultsEntries: [],
-			}
-
-			if (searchTokens.length > 0) {
-				let isFirstWordSearch = searchTokens.length === 1
-				let before = getPerformanceTimestamp()
-
-				let suggestionFacade = this._suggestionFacades.find((f) => isSameTypeRef(f.type, restriction.type))
-
-				let searchPromise
-
-				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
-					let addSuggestionBefore = getPerformanceTimestamp()
-					searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result).then(() => {
-						if (result.results.length < minSuggestionCount) {
-							// there may be fields that are not indexed with suggestions but which we can find with the normal search
-							// TODO: let suggestion facade and search facade know which fields are
-							// indexed with suggestions, so that we
-							// 1) know if we also have to search normally and
-							// 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
-							let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
-							return this._startOrContinueSearch(result).then((result) => {
-								return result
-							})
-						}
-					})
-				} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
-					let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
-					searchPromise = this._startOrContinueSearch(result).then(() => {
-						// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
-						// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
-						result.results.sort(compareNewestFirst)
-						return this._loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
-					})
-				} else {
-					searchPromise = this._startOrContinueSearch(result, maxResults)
-				}
-
-				return searchPromise.then(() => {
-					result.results.sort(compareNewestFirst)
-					return result
-				})
-			} else {
-				return Promise.resolve(result)
-			}
+	async search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
+		const preparedSqlQuery = sql`
+            SELECT list_entities.listId,
+                   list_entities.elementId
+            FROM mail_index
+                     LEFT JOIN list_entities ON
+                mail_index.rowId = list_entities.rowId
+            WHERE email = ${query}`
+		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
+		const resultIds = resultRows.map(({ listId, elementId }) => {
+			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
 		})
+		const result: SearchResult = {
+			query,
+			restriction,
+			results: resultIds,
+			currentIndexTimestamp: this._getSearchEndTimestamp(restriction),
+			lastReadSearchIndexRow: [],
+			matchWordOrder: false,
+			moreResults: [],
+			moreResultsEntries: [],
+		}
+		return result
+
+		// return this._db.initialized.then(() => {
+		// 	let searchTokens = tokenize(query)
+		// 	let result: SearchResult = {
+		// 		query,
+		// 		restriction,
+		// 		results: [],
+		// 		currentIndexTimestamp: this._getSearchEndTimestamp(restriction),
+		// 		lastReadSearchIndexRow: searchTokens.map((token) => [token, null]),
+		// 		matchWordOrder: searchTokens.length > 1 && query.startsWith('"') && query.endsWith('"'),
+		// 		moreResults: [],
+		// 		moreResultsEntries: [],
+		// 	}
+		//
+		// 	if (searchTokens.length > 0) {
+		// 		let isFirstWordSearch = searchTokens.length === 1
+		// 		let before = getPerformanceTimestamp()
+		//
+		// 		let suggestionFacade = this._suggestionFacades.find((f) => isSameTypeRef(f.type, restriction.type))
+		//
+		// 		let searchPromise
+		//
+		// 		if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
+		// 			let addSuggestionBefore = getPerformanceTimestamp()
+		// 			searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result).then(() => {
+		// 				if (result.results.length < minSuggestionCount) {
+		// 					// there may be fields that are not indexed with suggestions but which we can find with the normal search
+		// 					// TODO: let suggestion facade and search facade know which fields are
+		// 					// indexed with suggestions, so that we
+		// 					// 1) know if we also have to search normally and
+		// 					// 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
+		// 					let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
+		// 					return this._startOrContinueSearch(result).then((result) => {
+		// 						return result
+		// 					})
+		// 				}
+		// 			})
+		// 		} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
+		// 			let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
+		// 			searchPromise = this._startOrContinueSearch(result).then(() => {
+		// 				// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
+		// 				// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
+		// 				result.results.sort(compareNewestFirst)
+		// 				return this._loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
+		// 			})
+		// 		} else {
+		// 			searchPromise = this._startOrContinueSearch(result, maxResults)
+		// 		}
+		//
+		// 		return searchPromise.then(() => {
+		// 			result.results.sort(compareNewestFirst)
+		// 			return result
+		// 		})
+		// 	} else {
+		// 		return Promise.resolve(result)
+		// 	}
+		// })
 	}
 
 	async _loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {

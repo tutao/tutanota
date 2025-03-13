@@ -261,7 +261,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const bulkLoaderFactory = await prepareBulkLoaderFactory()
 		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache, (core, db) => {
 			const dateProvider = new LocalTimeDateProvider()
-			return new MailIndexer(core, db, mainInterface.infoMessageHandler, bulkLoaderFactory, locator.cachingEntityClient, dateProvider, mailFacade)
+			return new MailIndexer(
+				core,
+				db,
+				mainInterface.infoMessageHandler,
+				bulkLoaderFactory,
+				locator.cachingEntityClient,
+				dateProvider,
+				mailFacade,
+				locator.sqlCipherFacade,
+			)
 		})
 	})
 
@@ -403,7 +412,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { SearchFacade } = await import("../index/SearchFacade.js")
 		const indexer = await locator.indexer()
 		const suggestionFacades = [indexer._contact.suggestionFacade]
-		return new SearchFacade(locator.user, indexer.db, indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
+		return new SearchFacade(locator.user, indexer.db, indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient, locator.sqlCipherFacade)
 	})
 	locator.userManagement = lazyMemoized(async () => {
 		const { UserManagementFacade } = await import("../../../common/api/worker/facades/lazy/UserManagementFacade.js")

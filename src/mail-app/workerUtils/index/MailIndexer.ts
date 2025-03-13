@@ -12,6 +12,7 @@ import {
 	ImportedMailTypeRef,
 	ImportMailStateTypeRef,
 	Mail,
+	MailAddress,
 	MailBox,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
@@ -32,6 +33,7 @@ import {
 	DAY_IN_MILLIS,
 	findAllAndRemove,
 	first,
+	getTypeId,
 	groupBy,
 	isEmpty,
 	isNotNull,
@@ -43,6 +45,8 @@ import {
 import {
 	deconstructMailSetEntryId,
 	elementIdPart,
+	getElementId,
+	getListId,
 	isSameId,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
@@ -77,6 +81,8 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
+import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
+import { sql } from "../../../common/api/worker/offline/Sql"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -112,6 +118,7 @@ export class MailIndexer {
 		private readonly entityClient: EntityClient,
 		dateProvider: DateProvider,
 		private readonly mailFacade: MailFacade,
+		private readonly sqlCipherFacade: SqlCipherFacade,
 	) {
 		this._core = core
 		this._db = db
@@ -494,8 +501,39 @@ export class MailIndexer {
 			// If we've reached critical mass (MAIL_INDEXER_CHUNK) or it's the last iteration, process mails.
 			if (finalIteration || mailSetEntriesToProcess.length >= MAIL_INDEXER_CHUNK) {
 				const processTime = await benchmarkFunction(async () => {
-					const mailCount = await this.processIndexMails(mailSetEntriesToProcess, currentIndexUpdate, indexLoader)
-					this._core._stats.mailcount += mailCount
+					const mailData = await this.processIndexMails(mailSetEntriesToProcess, currentIndexUpdate, indexLoader)
+					this._core._stats.mailcount += mailData.length
+					for (const {
+						mail,
+						mailDetails: { recipients, body },
+						files,
+					} of mailData) {
+						const foundMailQuery = sql`SELECT rowId
+                                                   FROM list_entities
+                                                   WHERE type = ${getTypeId(MailTypeRef)}
+                                                     AND listId = ${getListId(mail)}
+                                                     AND elementId = ${getElementId(mail)}`
+						const foundMail = await this.sqlCipherFacade.get(foundMailQuery.query, foundMailQuery.params)
+						console.log(`found mail for ${mail._id} (${mail.subject}): ${foundMail}`)
+
+						// FIXME: attachment names is just an empty string right now
+						const { query, params } = sql`
+                            INSERT INTO mail_index(rowId, subject, toRecipients, ccRecipients, bccRecipients, sender,
+                                                   body, attachments)
+                            VALUES ((SELECT rowId
+                                     FROM list_entities
+                                     WHERE type = ${getTypeId(MailTypeRef)}
+                                       AND listId = ${getListId(mail)}
+                                       AND elementId = ${getElementId(mail)}),
+                                    ${mail.subject},
+                                    ${this.serializeRecipients(recipients.toRecipients)},
+                                    ${this.serializeRecipients(recipients.ccRecipients)},
+                                    ${this.serializeRecipients(recipients.bccRecipients)},
+                                    ${this.serializeRecipients([mail.sender])},
+                                    ${htmlToText(getMailBodyText(body))},
+                                    ${files.map((f) => f.name).join(" ")})`
+						await this.sqlCipherFacade.run(query, params)
+					}
 				})
 				this._core._stats.preparingTime += processTime
 
@@ -523,11 +561,19 @@ export class MailIndexer {
 		}
 	}
 
+	private serializeRecipients(recipients: readonly MailAddress[]): string {
+		return recipients.map((r) => `${r.name} ${r.address}`).join(", ")
+	}
+
 	private isMailboxLoadedCompletely(data: MboxIndexData): boolean {
 		return data.mailSetListDatas.every((data) => data.loadedCompletely && isEmpty(data.loadedButUnusedEntries))
 	}
 
-	private async processIndexMails(mailSetEntries: Array<MailSetEntry>, indexUpdate: IndexUpdate, indexLoader: BulkMailLoader): Promise<number> {
+	private async processIndexMails(
+		mailSetEntries: Array<MailSetEntry>,
+		indexUpdate: IndexUpdate,
+		indexLoader: BulkMailLoader,
+	): Promise<{ mail: Mail; mailDetails: MailDetails; files: TutanotaFile[] }[]> {
 		this.assertNotCancelled("processIndexMails")
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailSetEntries)
 		let mailsWithoutErros = mails.filter((m) => !hasError(m))
@@ -549,7 +595,7 @@ export class MailIndexer {
 			this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 		}
 		console.log(TAG, `processIndexMails done ${mails.at(0)?._id.at(0)} ${mails.length}`)
-		return mailsWithMailDetailsAndFiles.length
+		return mailsWithMailDetailsAndFiles
 	}
 
 	private assertNotCancelled(where: string) {
