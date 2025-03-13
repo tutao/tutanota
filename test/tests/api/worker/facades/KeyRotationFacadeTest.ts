@@ -410,7 +410,7 @@ function prepareMultiAdminUserKeyRotation(
 	when(mocks.cryptoWrapper.encryptKeyWithVersionedKey(NEW_USER_GROUP_KEY, NEW_ADMIN_GROUP_KEY.object)).thenReturn(NEW_USER_GROUP_ENC_NEW_ADMIN_GROUP_KEY)
 }
 
-o.spec("KeyRotationFacadeTest", function () {
+o.spec("KeyRotationFacade", function () {
 	let entityClientMock: EntityClient
 	let keyRotationFacade: KeyRotationFacade
 	let keyLoaderFacadeMock: KeyLoaderFacade
@@ -637,11 +637,13 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(sentData.groupKeyUpdates.length).equals(1)
 				const update = sentData.groupKeyUpdates[0]
 
-				const sentKeyPairs = createTestEntity(KeyPairTypeRef, {
+				const sentKeyPairs = createKeyPair({
 					pubEccKey: generatedKeyPair.encodedx25519PublicKey,
 					symEncPrivEccKey: generatedKeyPair.encryptedEccPrivKey,
 					pubKyberKey: generatedKeyPair.encodedKyberPublicKey,
 					symEncPrivKyberKey: generatedKeyPair.encryptedKyberPrivKey,
+					pubRsaKey: null,
+					symEncPrivRsaKey: null,
 				})
 				o(update.keyPair).deepEquals(sentKeyPairs)
 				o(update.group).equals(groupId)
@@ -1851,11 +1853,13 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(sentData.groupKeyUpdates.length).equals(1)
 				const update = sentData.groupKeyUpdates[0]
 
-				const sentKeyPairs = createTestEntity(KeyPairTypeRef, {
+				const sentKeyPairs = createKeyPair({
 					pubEccKey: generatedKeyPairs.encodedx25519PublicKey,
 					symEncPrivEccKey: generatedKeyPairs.encryptedEccPrivKey,
 					pubKyberKey: generatedKeyPairs.encodedKyberPublicKey,
 					symEncPrivKyberKey: generatedKeyPairs.encryptedKyberPrivKey,
+					pubRsaKey: null,
+					symEncPrivRsaKey: null,
 				})
 				o(update.keyPair).deepEquals(sentKeyPairs)
 				o(update.group).equals(groupId)

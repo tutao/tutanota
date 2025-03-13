@@ -1,3 +1,4 @@
+import { AssertionError as NodeAssertionError } from "node:assert"
 import { TestError, TestResult } from "./TestResult.js"
 
 export type AssertionDescriber = (description: string) => void
@@ -27,7 +28,15 @@ export class Assertion<T> {
 	 */
 	deepEquals(expected: T): AssertionDescriber {
 		if (!deepEqual(this.actual, expected)) {
-			return this.addError(`expected "${asString(this.actual)}" to be deep equal to "${asString(expected)}"`)
+			const left = asString(this.actual)
+			const right = asString(expected)
+			const diffMsg = new NodeAssertionError({
+				actual: this.actual,
+				expected: expected,
+				operator: "deepStrictEqual",
+			}).message
+
+			return this.addError(`expected "${left}" to be deep equal to "${right}"`, diffMsg)
 		}
 		return noop
 	}
@@ -72,7 +81,12 @@ export class Assertion<T> {
 	/**
 	 * Same as {@link satisfies} but the check function is async.
 	 */
-	async asyncSatisfies(check: (value: T) => Promise<{ pass: boolean; message: string }>): Promise<AssertionDescriber> {
+	async asyncSatisfies(
+		check: (value: T) => Promise<{
+			pass: boolean
+			message: string
+		}>,
+	): Promise<AssertionDescriber> {
 		const result = await check(this.actual)
 		if (!result.pass) {
 			return this.addError(`expected to satisfy condition: "${result.message}"`)
@@ -129,8 +143,8 @@ export class Assertion<T> {
 		}
 	}
 
-	private addError(assertionDescription: string) {
-		const testError: TestError = { error: new AssertionError(assertionDescription), userMessage: null }
+	private addError(assertionDescription: string, diff?: string) {
+		const testError: TestError = { error: new AssertionError(assertionDescription), userMessage: null, diff }
 		this.testResult.errors.push(testError)
 		return (userMessage: string) => {
 			testError.userMessage = userMessage

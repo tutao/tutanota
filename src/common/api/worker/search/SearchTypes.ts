@@ -1,9 +1,6 @@
-import type { DbFacade } from "./DbFacade"
 import type { GroupType } from "../../common/TutanotaConstants"
 import type { TypeInfo } from "./IndexUtils"
-import type { Base64, lazy } from "@tutao/tutanota-utils"
-import { TypeRef } from "@tutao/tutanota-utils"
-import type { ModelAssociation, ModelValue } from "../../common/EntityTypes"
+import { Base64, TypeRef } from "@tutao/tutanota-utils"
 import { Aes256Key } from "@tutao/tutanota-crypto"
 // db types
 
@@ -37,12 +34,13 @@ export type GroupData = {
 }
 // runtime types
 export type B64EncIndexKey = Base64
-type EncIndexKey = Uint8Array
-type EncInstanceId = Uint8Array
+
 export type B64EncInstanceId = Base64
+
 export type AttributeHandler = {
-	attribute: ModelValue | ModelAssociation
-	value: lazy<string>
+	// id of the attribute that will uniquely identify it. Used to be if of ModelValue / ModelAssociation
+	id: number
+	value: () => string
 }
 export type ElementDataSurrogate = {
 	listId: Id
@@ -96,14 +94,12 @@ export type IndexUpdate = {
 		encInstanceIds: B64EncInstanceId[]
 	}
 }
-export type Db = {
+
+export interface DbEncryptionData {
 	key: Aes256Key
-	// @pre: must not be accessed before initialized promise is resolved.
 	iv: Uint8Array
-	// fixed iv for all search index entries
-	dbFacade: DbFacade
-	initialized: Promise<void>
 }
+
 export type SearchIndexMetaDataRow = {
 	id: number
 	word: B64EncIndexKey

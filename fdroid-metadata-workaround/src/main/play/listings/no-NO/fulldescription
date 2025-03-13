@@ -1,0 +1,41 @@
+Tutanota muliggjør e-post i skyen - med oppetid, fleksibilitet, automatisk backup - uten å gå på kompromiss med sikkerheten. Med Tutanotas innebygde kryptering sikrer du deg slik at ingen andre får tilgang til dine data. Tutanota kommer med et enkelt og vakkert GUI, med støtte for mørkt tema, push-varsler, auto-synkronisering, fulltekstsøk, sveipebevegelser og mer.
+
+Tutanota er bygget på åpen kildekode og lar deg seg ende-til-ende-krypterte e-poster til andre. Selv e-poster som er sendt uten ende-til-ende-kryptering, samt alle dine kontakter, er sikkert og trygt lagret kryptert på Tutanotas servere.
+
+Vår lidenskap for personvern.
+
+Tutanota blir laget av et dedikert team som brenner for alles rett til personvern. Vi er støttet av et fellesskap av brukere og utviklere som lar oss vokse og kontinuerlig forbedre Tutanota uten å være avhengig av store kapitalkrefter.
+
+Tutanota respekterer deg og dine data:
+
+- Kun du har tilgang til dine krypterte e-poster og kontakter.
+- Tutanota sporer eller profilerer deg ikke.
+- Åpen kildekode-klient og -applikasjon.
+- Innovativ fulltekstsøk lar deg enkelt søke gjennom e-postene dine.
+- TLS med støtte for PFS, DMARC, DKIM, DNSSEC og DANE
+- Sikker passordtilbakestillingsfunksjon, som kun du har tilgang til.
+- 100% utviklet og lokalisert i Tyskland under strenge databeskyttelseslover (GDPR).
+
+Offisiell nettside: https://tutanota.com
+
+Kildekode: https://github.com/tutao/tutanota
+
+Med Tutanota kan du:
+
+- Opprette din egen gratis Tutanota-konto (@tutanota.com, @tutanota.de, @tutamail.com, @tuta.io eller @keemail.me) med 1 GB lagring
+- E-postadresse med eget domenenavn for 1 € per måned
+- Sende og motta ende-til-ende-krypterte eposter til alle
+- Sende og motta tradisjonelle e-poster (uten ende-til-ende-kryptering). Disse e-postene er også lagret kryptert på våre servere.
+- Automatisk kryptert emnefelt, innhold og vedlegg.
+- Få push-varsler umiddelbart.
+- Auto-fullføring av e-postadresser i Tutanota eller din telefonkontaktliste.
+
+Tutanota-applikasjonen spør etter få tillatelser for å verne ditt personvern maksimalt:
+
+- Full nettverkstilgang: for å sende og motta e-poster.
+- Motta data fra internet: for å varsle deg når du mottar e-post.
+- Se nettverkstilkoblinger: for å se om du har tilgang til internet.
+- Lese kontaktene dine: for å kunne velge mottakere fra telefonkontaktlisten.
+- Lese innholdet i SD-kortet: for å kunne laste opp vedlegg fra telefonens lagring til e-post.
+- Kontrollere vibrasjon: for å varsle deg når du mottar e-post.
+- Be om å ignorere batterioptimaliseringer: for å varsle eg når du mottar e-post.

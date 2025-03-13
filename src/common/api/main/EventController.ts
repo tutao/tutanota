@@ -1,10 +1,10 @@
-import { identity, noOp } from "@tutao/tutanota-utils"
+import { identity } from "@tutao/tutanota-utils"
 import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertMainOrNode } from "../common/Env"
-import { EntityUpdate, WebsocketCounterData } from "../entities/sys/TypeRefs"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils.js"
+import { WebsocketCounterData } from "../entities/sys/TypeRefs"
+import { EntityUpdateData } from "../common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 
@@ -40,22 +40,15 @@ export class EventController {
 		return this.countersStream.map(identity)
 	}
 
-	async onEntityUpdateReceived(entityUpdates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
-		let loginsUpdates = Promise.resolve()
-
+	async onEntityUpdateReceived(entityUpdates: readonly EntityUpdateData[], eventOwnerGroupId: Id): Promise<void> {
 		if (this.logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
-			loginsUpdates = this.logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
+			await this.logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
 		}
-
-		return loginsUpdates
-			.then(async () => {
-				// sequentially to prevent parallel loading of instances
-				for (const listener of this.entityListeners) {
-					await listener(entityUpdates, eventOwnerGroupId)
-				}
-			})
-			.then(noOp)
+		// sequentially to prevent parallel loading of instances
+		for (const listener of this.entityListeners) {
+			await listener(entityUpdates, eventOwnerGroupId)
+		}
 	}
 
 	async onCountersUpdateReceived(update: WebsocketCounterData): Promise<void> {

@@ -1,28 +1,26 @@
-import { EventBusListener } from "./EventBusClient.js"
-import { WsConnectionState } from "../main/WorkerClient.js"
+import {EventBusListener} from "./EventBusClient.js"
+import {WsConnectionState} from "../main/WorkerClient.js"
 import {
-	EntityUpdate,
-	GroupKeyUpdateTypeRef,
-	UserGroupKeyDistributionTypeRef,
-	UserTypeRef,
-	WebsocketCounterData,
-	WebsocketLeaderStatus,
+    GroupKeyUpdateTypeRef,
+    UserGroupKeyDistributionTypeRef,
+    UserTypeRef,
+    WebsocketCounterData,
+    WebsocketLeaderStatus
 } from "../entities/sys/TypeRefs.js"
-import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
-import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
-import { isAdminClient, isTest } from "../common/Env.js"
-import { MailFacade } from "./facades/lazy/MailFacade.js"
-import { UserFacade } from "./facades/UserFacade.js"
-import { EntityClient } from "../common/EntityClient.js"
-import { AccountType, OperationType } from "../common/TutanotaConstants.js"
-import { lazyAsync } from "@tutao/tutanota-utils"
-import { isSameId } from "../common/utils/EntityUtils.js"
-import { ExposedEventController } from "../main/EventController.js"
-import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
-import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
-import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
-import type { QueuedBatch } from "./EventQueue.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils"
+import {ReportedMailFieldMarker} from "../entities/tutanota/TypeRefs.js"
+import {WebsocketConnectivityListener} from "../../misc/WebsocketConnectivityModel.js"
+import {isAdminClient, isTest} from "../common/Env.js"
+import {MailFacade} from "./facades/lazy/MailFacade.js"
+import {UserFacade} from "./facades/UserFacade.js"
+import {EntityClient} from "../common/EntityClient.js"
+import {AccountType, OperationType} from "../common/TutanotaConstants.js"
+import {lazyAsync} from "@tutao/tutanota-utils"
+import {isSameId} from "../common/utils/EntityUtils.js"
+import {ExposedEventController} from "../main/EventController.js"
+import {ConfigurationDatabase} from "./facades/lazy/ConfigurationDatabase.js"
+import {KeyRotationFacade} from "./facades/KeyRotationFacade.js"
+import {CacheManagementFacade} from "./facades/lazy/CacheManagementFacade.js"
+import {EntityUpdateData, isUpdateForTypeRef} from "../common/utils/EntityUpdateUtils";
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {

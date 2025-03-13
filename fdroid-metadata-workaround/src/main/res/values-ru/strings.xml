@@ -1,0 +1,20 @@
+<resources>
+    <string name="reminder_label">Напоминание</string>
+    <string name="pushNewMail_msg">Новое письмо получено.</string>
+    <string name="notificationSync_msg">Синхронизация уведомлений</string>
+    <string name="scheduleAlarmError_msg">Не удалось настроить оповещение. Пожалуйста, обновите приложение.</string>
+    <string name="wantToSendReport_msg">Что-то неожиданно пошло не так. Отправить отчет об ошибке? Вы можете добавить сообщение, чтобы помочь нам исправить эту ошибку.</string>
+    <string name="downloadCompleted_msg">Загрузка завершена</string>
+    <string name="unlockCredentials_action">Разблокировать учетные данные</string>
+    <string name="delete_action">Удалить</string>
+    <string name="markRead_action">Пометить как прочитанное</string>
+    <string name="sendLogs_action">Отправить журналы</string>
+    <string name="account_label">Пользователь</string>
+    <string name="calendars_label">Календари</string>
+    <string name="widgetNoCredentialsInfo_msg">Учетные данные отсутствуют</string>
+    <string name="widgetUnexpectedError_msg">Упс! Что-то пошло не так.</string>
+    <string name="widgetCredentialsError_msg">Пожалуйста, войдите в приложение Calendar</string>
+    <string name="widgetOpenApp_action">Открыть  приложение</string>
+    <string name="widgetNoEvents_msg">Нет событий</string>
+    <string name="widgetDescription_msg">Показать предстоящие события</string>
+</resources>

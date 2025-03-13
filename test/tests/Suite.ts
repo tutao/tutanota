@@ -65,8 +65,9 @@ import "./api/worker/search/ContactIndexerTest.js"
 import "./api/worker/search/EventQueueTest.js"
 import "./api/worker/search/IndexUtilsTest.js"
 import "./api/worker/search/IndexerCoreTest.js"
-import "./api/worker/search/IndexerTest.js"
+import "./api/worker/search/IndexedDbIndexerTest.js"
 import "./api/worker/search/MailIndexerTest.js"
+import "./api/worker/search/IndexedDbMailIndexerBackendTest.js"
 import "./api/worker/search/SearchFacadeTest.js"
 import "./api/worker/search/SearchIndexEncodingTest.js"
 import "./api/worker/search/SuggestionFacadeTest.js"
@@ -150,6 +151,11 @@ import "./subscription/SignupFormTest.js"
 import "./subscription/SubscriptionUtilsTest.js"
 import "./support/FaqModelTest.js"
 import "./translations/TranslationKeysTest.js"
+import "./api/worker/search/IndexedDbContactIndexerBackendTest.js"
+import "./api/worker/search/OfflineStorageContactIndexerBackendTest.js"
+import "./api/worker/search/OfflineStoragePersistenceTest.js"
+import "./api/worker/rest/CustomUserCacheHandlerTest.js"
+
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
 import { Mode } from "../../src/common/api/common/Env.js"
@@ -212,6 +218,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/sse/SseClientTest.js")
 		await import("./desktop/sse/TutaNotificationHandlerTest.js")
 		await import("./desktop/sse/TutaSseFacadeTest.js")
+		await import("./api/worker/search/SqliteMailIndexerBackendTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.

@@ -5,7 +5,7 @@ import { ParsingError } from "../../../../../src/common/api/common/error/Parsing
 import { TutanotaError } from "@tutao/tutanota-error"
 import { createTestEntity } from "../../../TestUtils.js"
 
-o.spec("BirthdayUtilsTest", function () {
+o.spec("BirthdayUtils", function () {
 	o("birthdayToIsoDate", function () {
 		const bday = createTestEntity(BirthdayTypeRef, {
 			day: "12",
@@ -24,28 +24,28 @@ o.spec("BirthdayUtilsTest", function () {
 	})
 	o("isoDateToBirthday", function () {
 		o(isoDateToBirthday("--10-12")).deepEquals(
-			createTestEntity(BirthdayTypeRef, {
+			createBirthday({
 				day: "12",
 				month: "10",
 				year: null,
 			}),
 		)
 		o(isoDateToBirthday("2009-10-12")).deepEquals(
-			createTestEntity(BirthdayTypeRef, {
+			createBirthday({
 				day: "12",
 				month: "10",
 				year: "2009",
 			}),
 		)
 		o(isoDateToBirthday("2009-12-31")).deepEquals(
-			createTestEntity(BirthdayTypeRef, {
+			createBirthday({
 				day: "31",
 				month: "12",
 				year: "2009",
 			}),
 		)
 		o(isoDateToBirthday("2009-01-01")).deepEquals(
-			createTestEntity(BirthdayTypeRef, {
+			createBirthday({
 				day: "01",
 				month: "01",
 				year: "2009",

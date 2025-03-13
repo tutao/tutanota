@@ -1,0 +1,20 @@
+<resources>
+    <string name="reminder_label">Připomenutí</string>
+    <string name="pushNewMail_msg">Nový e-mail</string>
+    <string name="notificationSync_msg">Synchronizace oznámení</string>
+    <string name="scheduleAlarmError_msg">Nepodařilo se nastavit alarm. Aktualizujte prosím aplikaci.</string>
+    <string name="wantToSendReport_msg">Vyskytla se neočekávaná chyba. Chceš odeslat zprávu o chybě? Můžeš přidat zprávu a pomoci nám tak chybu odstranit.</string>
+    <string name="downloadCompleted_msg">Úspěšně staženo</string>
+    <string name="unlockCredentials_action">Odemknout přístupové údaje</string>
+    <string name="delete_action">Odstranit</string>
+    <string name="markRead_action">Označit jako přečtené</string>
+    <string name="sendLogs_action">Odeslat protokol</string>
+    <string name="account_label">Uživatel</string>
+    <string name="calendars_label">Kalendáře</string>
+    <string name="widgetNoCredentialsInfo_msg">Žádné přihlašovací údaje k dispozici</string>
+    <string name="widgetUnexpectedError_msg">Jejda! Něco se pokazilo.</string>
+    <string name="widgetCredentialsError_msg">Přihlaste se prosím v aplikaci Calendar</string>
+    <string name="widgetOpenApp_action">Otevřít aplikaci</string>
+    <string name="widgetNoEvents_msg">Žádné události</string>
+    <string name="widgetDescription_msg">Zobrazit dnešní nadcházející události</string>
+</resources>

@@ -1,0 +1,24 @@
+Açık kaynak uygulaması Tutanota ile herhangi birine uçtan-uca şifrelenmiş eposta göndermeniz çok kolay. Uçtan-uca şifrelemediğiniz mesajlarınız ve tüm irtibatlarınız bile Tutanota sunucularında şifrelenmiş olarak saklanır.
+
+Şifrelenmiş verilerinize parolanızla yalnızca siz erişebilirsiniz, profilinizin çıkartılması mümkün değildir. Tutanota güvenlik ve kolaylığı herkesin uçtan-uca şifrelemeyi kullanabileceği şekilde bir araya getirdi. Artık gizliliğinizi kolayca geri alabilirsiniz.
+Resmi site: https://tutanota.com
+Kaynak kodu: https://github.com/tutao/tutanota
+
+- 1 GB depolama alanıyla ücretsiz Tutanota hesabınızı hemen alın.
+- Seçebileceğiniz eposta alan adı uzantıları: @tutanota.com, @tutanota.de, @tutamail.com, @tuta.io ve @keemail.me.
+- Tutanota hesabı olan diğer kullanıcılara otomatik diğer kullanıcılara ise şifre korumalı şifrelenmiş eposta gönderimi yada alımı.
+- Tutanota sunucularında şifreli olarak tutulan, eski usul(uçtan-uca şifrelenmemiş) eposta gönderimi yada alımı.
+- Başlık, içerik ve eklentiler otomatik olarak şifrelenir.
+- Yeni email alındığında anlık bildirimi destekler.
+- Tutanota yada telefonunuzdaki kişileri yazarken otomatik tamamlama.
+- Tutanota açık kaynaktır dolayısıyla herhangi biri kodu inceleyerek güvenliliğini doğrulayabilir.
+
+Tutanota uygulaması gizlilik seviyenizi en üst düzeyde tutmak için çok az erişim iznine ihtiyaç duyar:
+
+- Tam ağ erişimi: Eposta gönderimi ve alımı için kullanılır.
+- İnternetten veri alımı: Yeni eposta alındığında uyarı için.
+- Ağ bağlantılarını görme: İnternet bağlantının olup olmadığını anlamak için.
+- Kişilerinizi okuma: Alıcılarınızı telefonunuzdaki kişilerden seçmenize olanak sağlar.
+- SD karttan okuma: Epostalarınıza eklentileri SD karttan seçmenizi sağlar.
+- Titreşim kontrolü: Yeni eposta geldiğinde sizi uyarmak için.
+- Uyku modunu devredışı bırakma: Yeni eposta geldiğinde sizi uyarmak için.

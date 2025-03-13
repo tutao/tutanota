@@ -1,0 +1,20 @@
+<resources>
+    <string name="reminder_label">提醒</string>
+    <string name="pushNewMail_msg">收到新電郵。</string>
+    <string name="notificationSync_msg">同步通知</string>
+    <string name="scheduleAlarmError_msg">無法設定提醒。請更新應用程式。</string>
+    <string name="wantToSendReport_msg">發生未預期的問題。您想發送錯誤報告嗎？您可以附加訊息來幫助我們修正此錯誤。</string>
+    <string name="downloadCompleted_msg">下載完成</string>
+    <string name="unlockCredentials_action">解鎖登入資料</string>
+    <string name="delete_action">刪除</string>
+    <string name="markRead_action">標記為已讀</string>
+    <string name="sendLogs_action">發送記錄</string>
+    <string name="account_label">用戶</string>
+    <string name="calendars_label">日曆</string>
+    <string name="widgetNoCredentialsInfo_msg">沒有登入資料可用</string>
+    <string name="widgetUnexpectedError_msg">哎喲！發生問題。</string>
+    <string name="widgetCredentialsError_msg">請在日曆應用程式上登入</string>
+    <string name="widgetOpenApp_action">開啟應用程式</string>
+    <string name="widgetNoEvents_msg">沒有活動</string>
+    <string name="widgetDescription_msg">顯示今天即將進行的活動</string>
+</resources>

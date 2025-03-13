@@ -3,7 +3,7 @@ import { SearchResultListEntry } from "./SearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { ListElementEntity, SomeEntity } from "../../../common/api/common/EntityTypes.js"
+import { ListElementEntity } from "../../../common/api/common/EntityTypes.js"
 import {
 	CLIENT_ONLY_CALENDARS,
 	FULL_INDEXED_TIMESTAMP,
@@ -55,9 +55,7 @@ import {
 } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { SearchFacade } from "../../workerUtils/index/SearchFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { Indexer } from "../../workerUtils/index/Indexer.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
@@ -81,7 +79,8 @@ import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/Calen
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
+import { Indexer } from "../../workerUtils/index/Indexer"
+import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 
 const SEARCH_PAGE_SIZE = 100
 

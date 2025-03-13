@@ -1,0 +1,41 @@
+Tutanota giver dig mulighed for at bruge fordelene ved skyen - tilgængelighed, fleksibilitet, automatisk backup - uden at gå på kompromis med sikkerheden. Med Tutanotas indbyggede kryptering ejer du dine data, ingen andre kan få adgang til det. Tutanota leveres med et let og smukt GUI, mørkt tema inkluderet med øjeblikkelige push notifikationer, automatisk synkronisering, fuldtekstsøgning, swipe gestures og mere.
+
+Open source email appen Tutanota giver dig mulighed for at sende ende-til-ende krypterede e-mails til alle. Selv e-mails, der sendes uden ende-til-ende kryptering og alle dine kontakter, gemmes sikkert krypteret på Tutanota-serverne.
+
+ Vores passion for privatliv.
+
+ Tutanota bygges af et team, der er lidenskabeligt for alles ret til privatliv. Vi støttes af et fantastisk community, som gør det muligt for os at vokse vores team, der løbende gør Tutanota til en succes uden at være afhængig af venturekapitalinteresser.
+
+ Tutanota respekterer dig og dine data:
+
+- Kun du kan få adgang til dine krypterede e-mails og kontaktpersoner.
+- Tutanota sporer dig ikke.
+- Open source klient og apps.
+-  Vores innovative fuldtekstsøgningsfunktion lader dig nemt søge i din mailkonto.
+- TLS med support fra PFS, DMARC, DKIM, DNSSEC og DANE.
+- Sikker adgangskode nulstilling, der giver os absolut ingen adgang.
+- 100% udviklet og placeret i Tyskland under strenge databeskyttelseslove (GDPR).
+
+Officiel hjemmeside: https: //tutanota.com
+
+Kildekode: https://github.com/tutao/tutanota
+
+Med Tutanota appen kan du:
+
+ - skabe din egen Tutanota email adresse (slutter med @ tutanota.com, @ tutanota.de, @ tutamail.com, @ tuta.io eller @ keemail.me) med 1 GB gratis lagerplads.
+- oprette din tilpassede domæne e-mail adresse for € 1 per måned.
+-  sende og modtage end-til-ende krypterede e-mails til alle.
+- sende og modtag old-fashioned e-mails (ikke krypteret fra ende til ende). Selv disse e-mails gemmes krypteret på Tutanota-serverne.
+- Automatisk kryptering af emne, indhold og vedhæftede filer.
+- Få push-notifikationer med det samme.
+ - Udfylder automatisk e-mail-adresser, når du skriver fra din Tutanota eller dine telefonkontakter.
+
+Tutanota-appen beder om meget få tilladelser til at holde dit privatlivsniveau maksimalt:
+
+ - Fuld netværksadgang: Bruges til at sende og modtage e-mails.
+- Modtage data fra internettet: At underrette dig, når du modtager en ny email .
+- Se netværksforbindelser: For at finde ud af om en internetforbindelse eksisterer.
+- Læse dine kontakter: Dette gør det muligt at vælge modtagere fra telefonens kontaktpersoner.
+- Læse fra SD-kort: For at tillade tilføjelse af vedhæftede filer fra SD-kortet til e-mails.
+- Kontrolvibration: At underrette dig, når du modtager en ny email.
+- Deaktivere sleepingmode: At underrette dig, når du modtager en ny email.

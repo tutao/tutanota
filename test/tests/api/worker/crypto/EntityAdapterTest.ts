@@ -21,6 +21,7 @@ o.spec("EntityAdapter", () => {
 		const groupModel = await typeModelResolver.resolveClientTypeReference(GroupInfoTypeRef)
 
 		const groupInfo = createTestEntity(GroupInfoTypeRef, {
+			_id: undefined,
 			_ownerGroup: "ownerGroupId",
 			_permissions: "permissionListId",
 			_ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
@@ -43,6 +44,7 @@ o.spec("EntityAdapter", () => {
 		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 		const mail = createTestEntity(MailTypeRef, {
+			_id: undefined,
 			_ownerGroup: "ownerGroupId",
 			_permissions: "permissionListId",
 			_ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),

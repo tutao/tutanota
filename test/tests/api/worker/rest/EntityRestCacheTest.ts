@@ -3,30 +3,30 @@
 //
 import o from "@tutao/otest"
 import {
-	CUSTOM_MAX_ID,
-	CUSTOM_MIN_ID,
-	elementIdPart,
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
-	getElementId,
-	getListId,
-	listIdPart,
-	stringToCustomId,
+    CUSTOM_MAX_ID,
+    CUSTOM_MIN_ID,
+    elementIdPart,
+    firstBiggerThanSecond,
+    GENERATED_MAX_ID,
+    GENERATED_MIN_ID,
+    getElementId,
+    getListId,
+    stringToCustomId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { arrayOf, clone, deepEqual, downcast, isSameTypeRef, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import {
-	CustomerTypeRef,
-	ExternalUserReferenceTypeRef,
-	GroupKeyTypeRef,
-	GroupMembershipTypeRef,
-	GroupRootTypeRef,
-	MailAddressToGroupTypeRef,
-	PermissionTypeRef,
-	RootInstanceTypeRef,
-	UserTypeRef,
+    CustomerTypeRef,
+    ExternalUserReferenceTypeRef,
+    GroupKeyTypeRef,
+    MailAddressToGroupTypeRef,
+    PermissionTypeRef,
+    RootInstanceTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CacheStorage, DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
+import {
+    CacheStorage,
+    DefaultEntityRestCache,
+    EXTEND_RANGE_MIN_CHUNK_SIZE
+} from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import {
 	BodyTypeRef,
 	CalendarEventTypeRef,
@@ -41,30 +41,40 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
-import { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/tutanota-test-utils"
-import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
-import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
-import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
-import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
-import { GroupType, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
-import { createEventElementId } from "../../../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { func, instance, matchers, object, replace, when } from "testdouble"
-import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { Entity, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { CacheMode, EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
-import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
-import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import {OfflineStorage, OfflineStorageCleaner} from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
+import {assertThrows, mockAttribute, spy, unmockAttribute, verify} from "@tutao/tutanota-test-utils"
+import {NoZoneDateProvider} from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
+import {RestClient} from "../../../../../src/common/api/worker/rest/RestClient.js"
+import {NotAuthorizedError, NotFoundError} from "../../../../../src/common/api/common/error/RestError.js"
+import {EphemeralCacheStorage} from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
+import {OperationType} from "../../../../../src/common/api/common/TutanotaConstants.js"
+import {OfflineStorageMigrator} from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
+import {createEventElementId} from "../../../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import {
+    InterWindowEventFacadeSendDispatcher
+} from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {func, instance, matchers, object, replace, when} from "testdouble"
+import {SqlCipherFacade} from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
+import {
+    clientInitializedTypeModelResolver,
+    createTestEntity,
+    modelMapperFromTypeModelResolver
+} from "../../../TestUtils.js"
+import {CacheMode, EntityRestClient} from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import {
+    CustomCacheHandler,
+    CustomCacheHandlerMap
+} from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler";
+import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
+import {ModelMapper} from "../../../../../src/common/api/worker/crypto/ModelMapper";
+import {Entity, ServerModelParsedInstance} from "../../../../../src/common/api/common/EntityTypes";
+import {EntityUpdateData} from "../../../../../src/common/api/common/utils/EntityUpdateUtils";
 
 const { anything } = matchers
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
-async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
+async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap): Promise<CacheStorage> {
 	const { PerWindowSqlCipherFacade } = await import("../../../../../src/common/desktop/db/PerWindowSqlCipherFacade.js")
 	const { OfflineDbRefCounter } = await import("../../../../../src/common/desktop/db/OfflineDbRefCounter.js")
 	const { DesktopSqlCipher } = await import("../../../../../src/common/desktop/db/DesktopSqlCipher.js")
@@ -85,37 +95,38 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
 	const offlineStorageCleanerMock = object<OfflineStorageCleaner>()
-	const typeModelResolver = clientInitializedTypeModelResolver()
-
-	const offlineStorage = new OfflineStorage(
-		sqlCipherFacade,
-		interWindowEventSender,
-		new NoZoneDateProvider(),
-		migratorMock,
-		offlineStorageCleanerMock,
-		modelMapperFromTypeModelResolver(typeModelResolver),
-		typeModelResolver,
-	)
+    const typeModelResolver = clientInitializedTypeModelResolver()
+    const offlineStorage = new OfflineStorage(
+        sqlCipherFacade,
+        interWindowEventSender,
+        new NoZoneDateProvider(),
+        migratorMock,
+        offlineStorageCleanerMock,
+        modelMapperFromTypeModelResolver(typeModelResolver),
+        typeModelResolver,
+        handlerMap,
+    )
 	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false })
 	return offlineStorage
 }
 
-async function getEphemeralStorage(): Promise<EphemeralCacheStorage> {
+async function getEphemeralStorage(userId, handlerMap): Promise<EphemeralCacheStorage> {
 	const typeModelResolver = clientInitializedTypeModelResolver()
 	const modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
-	return new EphemeralCacheStorage(modelMapper, typeModelResolver)
+	return new EphemeralCacheStorage(modelMapper, typeModelResolver, handlerMap)
 }
 
 testEntityRestCache("ephemeral", getEphemeralStorage)
 
 node(() => testEntityRestCache("offline", getOfflineStorage))()
 
-export function testEntityRestCache(name: string, getStorage: (userId: Id) => Promise<CacheStorage>) {
+export function testEntityRestCache(name: string, getStorage: (userId: Id, customCacheHandlerMap: CustomCacheHandlerMap) => Promise<CacheStorage>) {
 	const groupId = "groupId"
 	const batchId = "batchId"
 
 	o.spec(`EntityRestCache ${name}`, function () {
 		let storage: CacheStorage
+		let customCacheHandlerMap: CustomCacheHandlerMap
 		let cache: DefaultEntityRestCache
 		let typeModelResolver: TypeModelResolver
 		let modelMapper: ModelMapper
@@ -193,7 +204,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 		o.beforeEach(async function () {
 			userId = "userId"
-			storage = await getStorage(userId)
+			customCacheHandlerMap = object()
+			storage = await getStorage(userId, customCacheHandlerMap)
 			typeModelResolver = clientInitializedTypeModelResolver()
 			modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 			entityRestClient = mockRestClient()
@@ -796,22 +808,23 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			})
 
 			// list element notifications
+			o("when the list is not cached, mail create notifications are not put into cache", async function () {
+				await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.CREATE)], "batchId", groupId)
+			})
 
-			if (name === "offline") {
-				o("when the list is not cache, list element create notifications are still put into cache", async function () {
-					const mail = createMailInstance("listId1", "id1", "i am a mail")
-					when(entityRestClient.loadParsedInstance(MailTypeRef, mail._id)).thenResolve(await toStorableInstance(mail))
-					when(entityRestClient.load(MailTypeRef, mail._id)).thenResolve(mail)
-					await cache.entityEventsReceived([createUpdate(MailTypeRef, getListId(mail), getElementId(mail), OperationType.CREATE)], "batchId", groupId)
+            o("when the list is not cached but there is a custom cache handler, mail create notifications are put into cache", async function () {
+                const customCacheHandler: CustomCacheHandler<Mail> = {
+                    shouldLoadOnCreateEvent: () => true,
+                }
+                when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+                const mail = createMailInstance("listId1", "id1", "i am a mail")
+                when(entityRestClient.loadParsedInstance(MailTypeRef, mail._id)).thenResolve(await toStorableInstance(mail))
+                when(entityRestClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
-					o(await storage.get(MailTypeRef, getListId(mail), getElementId(mail))).deepEquals(mail)
-				})
-			} else {
-				// With ephemeral cache we do not automatically download all mails because we don't need to.
-				o("when the list is not cached, mail create notifications are not put into cache", async function () {
-					await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.CREATE)], "batchId", groupId)
-				})
-			}
+                await cache.entityEventsReceived([createUpdate(MailTypeRef, getListId(mail), getElementId(mail), OperationType.CREATE)], "batchId", groupId)
+
+                o(await storage.get(MailTypeRef, getListId(mail), getElementId(mail))).deepEquals(mail)
+            })
 
 			o("list element update notifications are not put into cache", async function () {
 				await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)], "batchId", groupId)
@@ -840,309 +853,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				const mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
 				// The entity is provided from the cache
 				o(mails).deepEquals([originalMails[0], originalMails[2]])
-			})
-
-			o.spec("membership changes", function () {
-				o("no membership change does not delete an entity and lastUpdateBatchIdPerGroup", async function () {
-					const userId = "userId"
-					const calendarGroupId = "calendarGroupId"
-					const initialUser = createTestEntity(UserTypeRef, {
-						_id: userId,
-						_ownerGroup: "owner-group",
-						_permissions: "permid",
-						successfulLogins: "0",
-						failedLogins: "0",
-						secondFactorAuthentications: "0",
-						userGroup: createTestEntity(GroupMembershipTypeRef, {
-							_id: "userGroupShipId",
-							group: "userGroup",
-							groupType: GroupType.User,
-							groupInfo: ["info", "id3"],
-							groupMember: ["member", "id"],
-						}),
-						memberships: [
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "mailShipId",
-								groupType: GroupType.Mail,
-								group: "group",
-								groupInfo: ["info", "id"],
-								groupMember: ["member", "id"],
-							}),
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "calendarShipId",
-								group: calendarGroupId,
-								groupType: GroupType.Calendar,
-								groupInfo: ["info", "id2"],
-								groupMember: ["member", "id"],
-							}),
-						],
-					})
-
-					entityRestClient.loadParsedInstance = func<EntityRestClient["loadParsedInstance"]>()
-					when(entityRestClient.loadParsedInstance(UserTypeRef, userId)).thenResolve(await toStorableInstance(initialUser))
-
-					await storage.put(UserTypeRef, await toStorableInstance(initialUser))
-
-					const eventId: IdTuple = ["eventListId", "eventId"]
-					const event = createTestEntity(CalendarEventTypeRef, {
-						_id: eventId,
-						_ownerGroup: calendarGroupId,
-						_permissions: "permid",
-					})
-
-					await storage.put(CalendarEventTypeRef, await toStorableInstance(event))
-					await storage.putLastBatchIdForGroup(calendarGroupId, "1")
-					storage.getUserId = () => userId
-
-					await cache.entityEventsReceived([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)], "batchId", groupId)
-
-					o(await storage.get(CalendarEventTypeRef, listIdPart(eventId), elementIdPart(eventId))).notEquals(null)("Event has been evicted from cache")
-					o(await storage.getLastBatchIdForGroup(calendarGroupId)).notEquals(null)
-				})
-
-				o("membership change deletes an element entity and lastUpdateBatchIdPerGroup", async function () {
-					const userId = "userId"
-					const calendarGroupId = "calendarGroupId"
-					const initialUser = createTestEntity(UserTypeRef, {
-						_id: userId,
-						_ownerGroup: "owner-group",
-						_permissions: "permid",
-						successfulLogins: "0",
-						failedLogins: "0",
-						secondFactorAuthentications: "0",
-						userGroup: createTestEntity(GroupMembershipTypeRef, {
-							_id: "userGroupShipId",
-							group: "userGroup",
-							groupType: GroupType.User,
-							groupInfo: ["info", "id3"],
-							groupMember: ["member", "id"],
-						}),
-						memberships: [
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "mailShipId",
-								groupType: GroupType.Mail,
-								group: "group",
-								groupInfo: ["info", "id"],
-								groupMember: ["member", "id"],
-							}),
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "calendarShipId",
-								group: calendarGroupId,
-								groupType: GroupType.Calendar,
-								groupInfo: ["info", "id2"],
-								groupMember: ["member", "id"],
-							}),
-						],
-					})
-
-					await storage.put(UserTypeRef, await toStorableInstance(initialUser))
-
-					const updatedUser = createTestEntity(UserTypeRef, {
-						_id: userId,
-						_ownerGroup: "owner-group",
-						_permissions: "permid",
-						successfulLogins: "0",
-						failedLogins: "0",
-						secondFactorAuthentications: "0",
-						userGroup: createTestEntity(GroupMembershipTypeRef, {
-							_id: "userGroupShipId",
-							group: "userGroup",
-							groupType: GroupType.User,
-							groupInfo: ["info", "id3"],
-							groupMember: ["member", "id"],
-						}),
-						memberships: [
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "mailShipId",
-								groupType: GroupType.Mail,
-								group: "group",
-								groupInfo: ["info", "id"],
-								groupMember: ["member", "id"],
-							}),
-						],
-					})
-
-					entityRestClient.loadParsedInstance = func<EntityRestClient["loadParsedInstance"]>()
-					when(entityRestClient.loadParsedInstance(UserTypeRef, userId)).thenResolve(await toStorableInstance(updatedUser))
-
-					const groupRootId = "groupRootId"
-					const groupRoot = createTestEntity(GroupRootTypeRef, {
-						_id: groupRootId,
-						_ownerGroup: calendarGroupId,
-					})
-
-					await storage.put(GroupRootTypeRef, await toStorableInstance(groupRoot))
-					await storage.putLastBatchIdForGroup(calendarGroupId, "1")
-					storage.getUserId = () => userId
-
-					await cache.entityEventsReceived([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)], "batchId", groupId)
-
-					o(await storage.get(CalendarEventTypeRef, null, groupRootId)).equals(null)("GroupRoot has been evicted from cache")
-					o(await storage.getLastBatchIdForGroup(calendarGroupId)).equals(null)
-				})
-
-				o("membership change deletes a list entity and lastUpdateBatchIdPerGroup", async function () {
-					const userId = "userId"
-					const calendarGroupId = "calendarGroupId"
-					const initialUser = createTestEntity(UserTypeRef, {
-						_id: userId,
-						_ownerGroup: "owner-group",
-						_permissions: "permid",
-						successfulLogins: "0",
-						failedLogins: "0",
-						secondFactorAuthentications: "0",
-						userGroup: createTestEntity(GroupMembershipTypeRef, {
-							_id: "userGroupShipId",
-							group: "userGroup",
-							groupType: GroupType.User,
-							groupInfo: ["info", "id3"],
-							groupMember: ["member", "id"],
-						}),
-						memberships: [
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "mailShipId",
-								groupType: GroupType.Mail,
-								group: "group",
-								groupInfo: ["info", "id"],
-								groupMember: ["member", "id"],
-							}),
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "calendarShipId",
-								group: calendarGroupId,
-								groupType: GroupType.Calendar,
-								groupInfo: ["info", "id2"],
-								groupMember: ["member", "id2"],
-							}),
-						],
-					})
-
-					await storage.put(UserTypeRef, await toStorableInstance(initialUser))
-
-					const updatedUser = createTestEntity(UserTypeRef, {
-						_id: userId,
-						_ownerGroup: "owner-group",
-						_permissions: "permid",
-						successfulLogins: "0",
-						failedLogins: "0",
-						secondFactorAuthentications: "0",
-						userGroup: createTestEntity(GroupMembershipTypeRef, {
-							_id: "userGroupShipId",
-							group: "userGroup",
-							groupType: GroupType.User,
-							groupInfo: ["info", "id3"],
-							groupMember: ["member", "id"],
-						}),
-						memberships: [
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "mailShipId",
-								groupType: GroupType.Mail,
-								group: "group",
-								groupInfo: ["info", "id"],
-								groupMember: ["member", "id"],
-							}),
-						],
-					})
-
-					entityRestClient.loadParsedInstance = func<EntityRestClient["loadParsedInstance"]>()
-					when(entityRestClient.loadParsedInstance(UserTypeRef, userId)).thenResolve(await toStorableInstance(updatedUser))
-
-					const eventId: IdTuple = ["eventListId", "eventId"]
-					const event = createTestEntity(CalendarEventTypeRef, {
-						_id: eventId,
-						_ownerGroup: calendarGroupId,
-					})
-
-					await storage.put(CalendarEventTypeRef, await toStorableInstance(event))
-					await storage.putLastBatchIdForGroup?.(calendarGroupId, "1")
-					storage.getUserId = () => userId
-
-					await cache.entityEventsReceived([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)], "batchId", groupId)
-
-					o(await storage.get(CalendarEventTypeRef, listIdPart(eventId), elementIdPart(eventId))).equals(null)("Event has been evicted from cache")
-					const deletedRange = await storage.getRangeForList(CalendarEventTypeRef, listIdPart(eventId))
-					o(deletedRange).equals(null)
-					if (storage.getLastBatchIdForGroup) o(await storage.getLastBatchIdForGroup(calendarGroupId)).equals(null)
-				})
-
-				o("membership change but for another user does nothing", async function () {
-					const userId = "userId"
-					const calendarGroupId = "calendarGroupId"
-					const initialUser = createTestEntity(UserTypeRef, {
-						_id: userId,
-						_ownerGroup: "owner-group",
-						_permissions: "permid",
-						successfulLogins: "0",
-						failedLogins: "0",
-						secondFactorAuthentications: "0",
-						memberships: [
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "mailShipId",
-								group: "mailgroup",
-								groupType: GroupType.Mail,
-								groupInfo: ["info", "id"],
-								groupMember: ["member", "id"],
-							}),
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "calendarShipId",
-								group: calendarGroupId,
-								groupType: GroupType.Calendar,
-								groupInfo: ["info", "id2"],
-								groupMember: ["member", "id"],
-							}),
-						],
-						userGroup: createTestEntity(GroupMembershipTypeRef, {
-							_id: "userGroupShipId",
-							group: "userGroup",
-							groupType: GroupType.User,
-							groupInfo: ["info", "id3"],
-							groupMember: ["member", "id"],
-						}),
-					})
-
-					await storage.put(UserTypeRef, await toStorableInstance(initialUser))
-
-					const updatedUser = createTestEntity(UserTypeRef, {
-						_id: userId,
-						_ownerGroup: "owner-group",
-						_permissions: "permid",
-						successfulLogins: "0",
-						failedLogins: "0",
-						secondFactorAuthentications: "0",
-						memberships: [
-							createTestEntity(GroupMembershipTypeRef, {
-								_id: "mailShipId",
-								group: "mailgroup",
-								groupType: GroupType.Mail,
-								groupInfo: ["info", "id"],
-								groupMember: ["member", "id"],
-							}),
-						],
-						userGroup: createTestEntity(GroupMembershipTypeRef, {
-							_id: "userGroupShipId",
-							group: "userGroup",
-							groupType: GroupType.User,
-							groupInfo: ["info", "id3"],
-							groupMember: ["member", "id"],
-						}),
-					})
-
-					entityRestClient.loadParsedInstance = func<EntityRestClient["loadParsedInstance"]>()
-					when(entityRestClient.loadParsedInstance(UserTypeRef, userId)).thenResolve(await toStorableInstance(updatedUser))
-
-					const eventId: IdTuple = ["eventListId", "eventId"]
-					const event = createTestEntity(CalendarEventTypeRef, {
-						_id: eventId,
-						_permissions: "permid2",
-						_ownerGroup: calendarGroupId,
-					})
-
-					await storage.put(CalendarEventTypeRef, await toStorableInstance(event))
-					storage.getUserId = () => "anotherUserId"
-
-					await cache.entityEventsReceived([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)], "batchId", groupId)
-
-					o(await storage.get(CalendarEventTypeRef, listIdPart(eventId), elementIdPart(eventId))).notEquals(null)("Event has been evicted from cache")
-				})
 			})
 		}) // entityEventsReceived
 

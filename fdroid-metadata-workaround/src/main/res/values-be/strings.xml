@@ -1,0 +1,19 @@
+<resources>
+    <string name="reminder_label">Напамін</string>
+    <string name="pushNewMail_msg">Прыйшоў новы ліст.</string>
+    <string name="notificationSync_msg">Сінхранаваць абвесткі</string>
+    <string name="scheduleAlarmError_msg">Не атрымалася паставіць напамін. Калі ласка, абнаві праграму.</string>
+    <string name="wantToSendReport_msg">Штосьці непрадказальна пайшло не туды. Ці хочаш ты даслаць справаздачу пра памылку? Ты можаш дадаць туды паведамленне, каб дапамагчы нам выправіць памылку.</string>
+    <string name="downloadCompleted_msg">Спампаванне скончана</string>
+    <string name="unlockCredentials_action">Разамкнуць даныя ўваходу</string>
+    <string name="delete_action">Выдаліць</string>
+    <string name="markRead_action">Пазначыць прачытаным</string>
+    <string name="sendLogs_action">Даслаць рапарты</string>
+    <string name="account_label">Карыстальнік</string>
+    <string name="calendars_label">Календары</string>
+    <string name="widgetNoCredentialsInfo_msg">Няма даных уваходу</string>
+    <string name="widgetUnexpectedError_msg">Матухна! Штось пайшло не туды.</string>
+    <string name="widgetCredentialsError_msg">Калі ласка, зарэгіструйся ў праграме-календары</string>
+    <string name="widgetOpenApp_action">Адкрыць праграму</string>
+    <string name="widgetNoEvents_msg">Няма падзей</string>
+</resources>

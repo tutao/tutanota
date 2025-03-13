@@ -6,10 +6,12 @@ import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
 import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
 
 export type QueuedBatch = {
-	events: EntityUpdateData[]
+	events: readonly EntityUpdateData[]
 	groupId: Id
 	batchId: Id
 }
+
+type WritableQueuedBatch = QueuedBatch & { events: EntityUpdateData[] }
 
 export const enum EntityModificationType {
 	CREATE = "CREATE",
@@ -68,12 +70,13 @@ function lastOperationKey(update: EntityUpdateData): LastOperationKey {
 
 export class EventQueue {
 	/** Batches to process. Oldest first. */
-	private readonly eventQueue: Array<QueuedBatch>
+	private readonly eventQueue: Array<WritableQueuedBatch>
 	// the last processed operation for a given entity id
 	private readonly lastOperationForEntity: Map<LastOperationKey, QueuedBatch>
 	private processingBatch: QueuedBatch | null
 	private paused: boolean
 	private progressMonitor: ProgressMonitorDelegate | null
+	private emptyQueueEventTarget: EventTarget
 
 	/**
 	 * @param tag identifier to make for better log messages
@@ -86,6 +89,7 @@ export class EventQueue {
 		this.processingBatch = null
 		this.paused = false
 		this.progressMonitor = null
+		this.emptyQueueEventTarget = new EventTarget()
 	}
 
 	addBatches(batches: ReadonlyArray<QueuedBatch>) {
@@ -103,7 +107,7 @@ export class EventQueue {
 	 * @return whether the batch was added (not optimized away)
 	 */
 	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>): boolean {
-		const newBatch: QueuedBatch = {
+		const newBatch: WritableQueuedBatch = {
 			events: [],
 			groupId,
 			batchId,
@@ -128,7 +132,7 @@ export class EventQueue {
 		return newBatch.events.length > 0
 	}
 
-	private optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>): void {
+	private optimizingAddEvents(newBatch: WritableQueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>): void {
 		for (const newEvent of newEvents) {
 			const lastOpKey = lastOperationKey(newEvent)
 			const lastBatchForEntity = this.lastOperationForEntity.get(lastOpKey)
@@ -235,7 +239,7 @@ export class EventQueue {
 							this.lastOperationForEntity.delete(concatenatedId)
 						}
 					}
-
+					// do this *before* processNext() is called
 					this.processNext()
 				})
 				.catch((e) => {
@@ -247,6 +251,8 @@ export class EventQueue {
 						console.error("Uncaught EventQueue error!", e, next)
 					}
 				})
+		} else {
+			this.emptyQueueEventTarget.dispatchEvent(new Event("queueempty"))
 		}
 	}
 
@@ -267,6 +273,13 @@ export class EventQueue {
 	resume() {
 		this.paused = false
 		this.start()
+	}
+
+	async waitForEmptyQueue(): Promise<void> {
+		if (this.processingBatch == null) {
+			return
+		}
+		await new Promise<void>((resolve) => this.emptyQueueEventTarget.addEventListener("queueempty", () => resolve(), { once: true }))
 	}
 
 	/** @private visibleForTesting */

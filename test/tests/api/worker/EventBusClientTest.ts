@@ -27,14 +27,12 @@ import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDete
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
-import { clientInitializedTypeModelResolver, clientModelAsServerModel, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../../src/common/api/worker/facades/ApplicationTypesFacade"
-import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
+import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
-
-const { anything } = matchers
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient

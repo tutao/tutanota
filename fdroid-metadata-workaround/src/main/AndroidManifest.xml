@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+		xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
+	<uses-permission android:name="android.permission.READ_CONTACTS"/>
+	<uses-permission android:name="android.permission.WRITE_CONTACTS"/>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="android.permission.VIBRATE"/>
+	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+	<uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+	<uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+	<uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
+	<uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+	<uses-permission android:name="android.permission.USE_CREDENTIALS"/>
+	<uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+	<uses-permission
+			android:name="android.permission.SCHEDULE_EXACT_ALARM"
+			android:maxSdkVersion="32"/>
+	<uses-permission android:name="android.permission.CAMERA"/>
+
+	<uses-feature
+			android:name="android.hardware.camera"
+			android:required="false"/>
+
+	<!-- We have to enable cleartext (non-HTTPS) traffic because of the external email content
+	which might still be served or HTTP. The only alternative is to proxy all of it. -->
+
+	<!-- resizeableActivity is redundant with our target API version but it is required for Samsung DeX to work
+	correctly, see https://github.com/tutao/tutanota/issues/2167 -->
+
+	<!-- exported=true allows the app to be used to handle custom URIs (setup below) -->
+
+	<!--
+		android:allowBackup="false" disabled backup for Android < 12
+		android:dataExtractionRules disables backup for Android >= 12
+	-->
+	<application
+			android:allowBackup="false"
+			android:icon="@mipmap/ic_logo"
+			android:label="@string/app_name"
+			android:supportsRtl="true"
+			android:theme="@style/AppTheme"
+			android:resizeableActivity="true"
+			android:usesCleartextTraffic="true"
+			android:exported="true"
+			android:dataExtractionRules="@xml/data_extraction_rules"
+			android:appCategory="social">
+		<!-- we do not want to restart activity for most of the things. uiMode changes with dark mode. -->
+		<activity
+				android:name=".MainActivity"
+				android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|uiMode"
+				android:launchMode="singleInstance"
+				android:theme="@style/SplashTheme"
+				android:exported="true">
+			<!--Main intent for launching from home screen-->
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+			<!--Handler for "share" event or when another app wants to send an email-->
+			<intent-filter>
+				<action android:name="android.intent.action.SEND"/>
+				<action android:name="android.intent.action.SEND_MULTIPLE"/>
+				<action android:name="android.intent.action.SENDTO"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<data android:mimeType="*/*"/>
+			</intent-filter>
+			<!--Handler for "open" event for a vCard file-->
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<category android:name="android.intent.category.BROWSABLE"/>
+
+				<data android:scheme="file"/>
+				<data android:scheme="content"/>
+				<data android:mimeType="text/vcard"/>
+				<data android:mimeType="text/x-vcard"/>
+			</intent-filter>
+			<!--Handler for "open" event for a ics file-->
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<category android:name="android.intent.category.BROWSABLE"/>
+
+				<data android:scheme="file"/>
+				<data android:scheme="content"/>
+				<data android:mimeType="text/calendar"/>
+			</intent-filter>
+			<!--Handler for "mailto:" links-->
+			<intent-filter>
+				<action android:name="android.intent.action.SEND"/>
+				<action android:name="android.intent.action.SENDTO"/>
+				<action android:name="android.intent.action.SEND_MULTIPLE"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<data android:scheme="mailto"/>
+			</intent-filter>
+			<!--Another handler for mailto links, when user pressed them in browser-->
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW"/>
+				<data android:scheme="mailto"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<category android:name="android.intent.category.BROWSABLE"/>
+			</intent-filter>
+			<!-- handler for custom tutanota://app uri, used for redirecting back from other apps (ie. the browser when
+			obtaining user payment info) -->
+			<intent-filter>
+				<data
+						android:scheme="tutanota"
+						android:host="app"/>
+
+				<category android:name="android.intent.category.BROWSABLE"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+
+				<action android:name="android.intent.action.VIEW"/>
+			</intent-filter>
+			<intent-filter>
+				<data
+						android:scheme="tutamail"
+						android:host="interop"/>
+				<action android:name="android.intent.action.EDIT"/>
+
+				<category android:name="android.intent.category.DEFAULT"/>
+				<category android:name="android.intent.category.BROWSABLE"/>
+			</intent-filter>
+
+			<intent-filter>
+				<data
+						android:scheme="tutanota"
+						android:host="webauthn"/>
+
+				<category android:name="android.intent.category.BROWSABLE"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+
+				<action android:name="android.intent.action.VIEW"/>
+			</intent-filter>
+
+		</activity>
+		<provider
+				android:name="androidx.core.content.FileProvider"
+				android:authorities="${contentProviderAuthority}"
+				android:exported="false"
+				android:grantUriPermissions="true">
+			<meta-data
+					android:name="android.support.FILE_PROVIDER_PATHS"
+					android:resource="@xml/paths"/>
+		</provider>
+
+		<service
+				android:name=".push.PushNotificationService"
+				android:enabled="true"
+				android:exported="false"
+				android:permission="android.permission.BIND_JOB_SERVICE"
+				android:process=":pushprocess"/>
+
+
+		<service
+				android:name="de.tutao.tutashared.credentials.AccountAuthenticatorService"
+				android:exported="false">
+			<intent-filter>
+				<action android:name="android.accounts.AccountAuthenticator"/>
+			</intent-filter>
+
+			<meta-data
+					android:name="android.accounts.AccountAuthenticator"
+					android:resource="@xml/account_authenticator"/>
+		</service>
+
+		<service
+				android:name=".StubSyncService"
+				android:exported="true"
+				android:process=":sync">
+			<intent-filter>
+				<action android:name="android.content.SyncAdapter"/>
+			</intent-filter>
+			<meta-data
+					android:name="android.content.SyncAdapter"
+					android:resource="@xml/syncadapter"/>
+			<meta-data
+					android:name="android.provider.CONTACTS_STRUCTURE"
+					android:resource="@xml/contacts"/>
+		</service>
+
+		<receiver
+				android:name=".push.BootBroadcastReceiver"
+				android:exported="false">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED"/>
+				<action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+			</intent-filter>
+		</receiver>
+
+		<receiver
+				android:name=".alarms.AlarmBroadcastReceiver"
+				android:exported="false">
+			<intent-filter>
+				<action android:name="de.tutao.tutanota.ALARM"/>
+				<data android:scheme="alarm"/>
+			</intent-filter>
+		</receiver>
+
+		<receiver
+				android:name=".push.MailNotificationActionReceiver"
+				android:exported="false">
+			<intent-filter>
+				<action android:name="de.tutao.tutanota.MAIL_ACTION_RECEIVER"/>
+			</intent-filter>
+		</receiver>
+
+		<meta-data
+				android:name="android.webkit.WebView.MetricsOptOut"
+				android:value="true"/>
+
+	</application>
+	<queries>
+		<intent>
+			<action android:name="android.support.customtabs.action.CustomTabsService"/>
+		</intent>
+	</queries>
+
+</manifest>

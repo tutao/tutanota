@@ -5,7 +5,7 @@ import { SuspensionHandler } from "../../../../../src/common/api/worker/Suspensi
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef, createBlobReferenceTokenWrapper } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
@@ -22,6 +22,7 @@ import {
 	BlobPostOutTypeRef,
 	BlobServerAccessInfoTypeRef,
 	BlobServerUrlTypeRef,
+	createBlobPostOut,
 } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { elementIdPart, getElementId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
@@ -32,7 +33,7 @@ import { typeModels as storageTypeModels } from "../../../../../src/common/api/e
 
 const { anything, captor } = matchers
 
-o.spec("BlobFacade test", function () {
+o.spec("BlobFacade", function () {
 	let blobFacade: BlobFacade
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let restClientMock: RestClient
@@ -99,8 +100,11 @@ o.spec("BlobFacade test", function () {
 				blobAccessTokenFacade,
 			)
 
-			const expectedReferenceToken = createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "blobRefToken" })
-			const blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceToken.blobReferenceToken })
+			const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
+			const blobServiceResponse = createBlobPostOut({
+				blobReferenceToken: expectedReferenceToken.blobReferenceToken,
+				blobReferenceTokens: [],
+			})
 			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
 
 			const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(JSON.stringify(blobServiceResponseWithDebug))
@@ -112,7 +116,7 @@ o.spec("BlobFacade test", function () {
 			const sessionKey = aes256RandomKey()
 			const blobData = new Uint8Array([1, 2, 3])
 
-			const expectedReferenceTokens = [createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "blobRefToken" })]
+			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
 
 			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -139,7 +143,7 @@ o.spec("BlobFacade test", function () {
 			const ownerGroup = "ownerId"
 			const sessionKey = aes256RandomKey()
 
-			const expectedReferenceTokens = [createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "blobRefToken" })]
+			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
 			const uploadedFileUri = "rawFileUri"
 			const chunkUris = ["uri1"]
 

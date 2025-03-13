@@ -2,7 +2,7 @@ import m, { Params } from "mithril"
 import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from "../api/common/Env"
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
-import type { Indexer } from "../../mail-app/workerUtils/index/Indexer.js"
+import type { IndexedDbIndexer } from "../../mail-app/workerUtils/index/IndexedDbIndexer.js"
 import { noOp, remove } from "@tutao/tutanota-utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
@@ -17,7 +17,7 @@ export class WindowFacade {
 	windowCloseConfirmation: boolean
 	private _windowCloseListeners: Set<(e: Event) => unknown>
 	private _historyStateEventListeners: Array<(e: Event) => boolean> = []
-	private indexerFacade: Indexer | null = null
+	private indexerFacade: IndexedDbIndexer | null = null
 	// following two properties are for the iOS
 	private _keyboardSize: number = 0
 	private _keyboardSizeListeners: KeyboardSizeListener[] = []

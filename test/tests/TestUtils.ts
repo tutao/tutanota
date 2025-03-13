@@ -1,9 +1,8 @@
 import type { BrowserData } from "../../src/common/misc/ClientConstants.js"
-import type { Db } from "../../src/common/api/worker/search/SearchTypes.js"
+import { DbEncryptionData } from "../../src/common/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/mail-app/workerUtils/index/IndexerCore.js"
-import { EventQueue } from "../../src/common/api/worker/EventQueue.js"
 import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFacade.js"
-import { AppNameEnum, assertNotNull, clone, deepEqual, defer, Thunk, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, deepEqual, defer, Thunk, typedEntries, TypeRef } from "@tutao/tutanota-utils"
 import type { DesktopKeyStoreFacade } from "../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/tutanota-test-utils"
 import { aes256RandomKey, fixedIv, uint8ArrayToKey } from "@tutao/tutanota-crypto"
@@ -16,6 +15,7 @@ import { type fetch as undiciFetch, type Response } from "undici"
 import { Cardinality, ValueType } from "../../src/common/api/common/EntityConstants.js"
 import { InstancePipeline } from "../../src/common/api/worker/crypto/InstancePipeline"
 import { ModelMapper } from "../../src/common/api/worker/crypto/ModelMapper"
+import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -25,8 +25,7 @@ export const browserDataStub: BrowserData = {
 
 export function makeCore(
 	args?: {
-		db?: Db
-		queue?: EventQueue
+		encryptionData?: DbEncryptionData
 		browserData?: BrowserData
 		transaction?: DbTransaction
 	},
@@ -34,18 +33,14 @@ export function makeCore(
 ): IndexerCore {
 	const safeArgs = args ?? {}
 	const { transaction } = safeArgs
-	const defaultDb = {
-		key: aes256RandomKey(),
-		iv: fixedIv,
-		dbFacade: { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>,
-		initialized: Promise.resolve(),
-	} as Partial<Db> as Db
-	const defaultQueue = {} as Partial<EventQueue> as EventQueue
-	const { db, queue, browserData } = {
-		...{ db: defaultDb, browserData: browserDataStub, queue: defaultQueue },
+	const dbFacade = { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>
+	const defaultDb = new EncryptedDbWrapper(dbFacade as DbFacade)
+	defaultDb.init(safeArgs.encryptionData ?? { key: aes256RandomKey(), iv: fixedIv })
+	const { db, browserData } = {
+		...{ db: defaultDb, browserData: browserDataStub },
 		...safeArgs,
 	}
-	const core = new IndexerCore(db, queue, browserData)
+	const core = new IndexerCore(db, browserData)
 	if (mocker) mock(core, mocker)
 	return core
 }
@@ -160,9 +155,9 @@ function getDefaultTestValue(valueName: string, value: ModelValue): any {
 	if (valueName === "_format") {
 		return "0"
 	} else if (valueName === "_id") {
-		return null // aggregate ids are set in the worker, list ids must be set explicitely and element ids are created on the server
+		return `${value.id}_id`
 	} else if (valueName === "_permissions") {
-		return null
+		return `${value.id}_permissions`
 	} else if (value.cardinality === Cardinality.ZeroOrOne) {
 		return null
 	} else {
@@ -184,15 +179,47 @@ function getDefaultTestValue(valueName: string, value: ModelValue): any {
 
 			case ValueType.CustomId:
 			case ValueType.GeneratedId:
-				return null
-			// we have to use null although the value must be set to something different
+				return `${value.id}_${valueName}`
 		}
 	}
 }
 
-export function createTestEntity<T extends Entity>(typeRef: TypeRef<T>, values?: Partial<T>): T {
+export function createTestEntity<T extends Entity>(
+	typeRef: TypeRef<T>,
+	values?: Partial<T>,
+	opts?: {
+		populateAggregates: boolean
+	},
+): T {
 	const typeModel = resolveTypeReference(typeRef as TypeRef<any>)
 	const entity = create(typeModel, typeRef, getDefaultTestValue)
+	if (opts?.populateAggregates) {
+		for (const [_, assocDef] of typedEntries(typeModel.associations)) {
+			if (assocDef.cardinality === Cardinality.One) {
+				const assocName = assocDef.name
+				switch (assocDef.type) {
+					case "AGGREGATION": {
+						const assocTypeRef = new TypeRef<Entity>(assocDef.dependency ?? typeRef.app, assocDef.refTypeId)
+						entity[assocName] = createTestEntity(assocTypeRef, undefined, opts)
+						break
+					}
+					case "ELEMENT_ASSOCIATION":
+						entity[assocName] = `elementAssoc_${assocName}`
+						break
+					case "LIST_ASSOCIATION":
+						entity[assocName] = `listAssoc_${assocName}`
+						break
+					case "LIST_ELEMENT_ASSOCIATION_GENERATED":
+					case "LIST_ELEMENT_ASSOCIATION_CUSTOM":
+						entity[assocName] = [`listElemAssocList_${assocName}`, `listElemAssocElem_${assocName}`]
+						break
+					case "BLOB_ELEMENT_ASSOCIATION":
+						entity[assocName] = [`blobElemAssocList_${assocName}`, `blobElemAssocElem_${assocName}`]
+						break
+				}
+			}
+		}
+	}
 	if (values) {
 		return Object.assign(entity, values)
 	} else {
