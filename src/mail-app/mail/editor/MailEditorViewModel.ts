@@ -77,8 +77,8 @@ export function showFileChooserForAttachments(boundingRect: ClientRect, fileType
 export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>): Array<AttachmentBubbleAttrs> {
 	return model.getAttachments().map((attachment) => ({
 		attachment,
-		open: null,
-		download: () => _downloadAttachment(attachment),
+		open: () => _openAndDownloadAttachment(attachment),
+		download: null,
 		remove: () => {
 			model.removeAttachment(attachment)
 
@@ -99,14 +99,14 @@ export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageEle
 	}))
 }
 
-async function _downloadAttachment(attachment: Attachment) {
+async function _openAndDownloadAttachment(attachment: Attachment) {
 	try {
 		if (isFileReference(attachment)) {
 			await locator.fileApp.open(attachment)
 		} else if (isDataFile(attachment)) {
 			await locator.fileController.saveDataFile(attachment)
 		} else if (isTutanotaFile(attachment)) {
-			await locator.fileController.download(attachment)
+			await locator.fileController.open(attachment)
 		} else {
 			throw new ProgrammingError("attachment is neither reference, datafile nor tutanotafile!")
 		}
