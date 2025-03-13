@@ -1,7 +1,6 @@
 import o from "@tutao/otest"
 import { instance, matchers, verify, when } from "testdouble"
 import { CalendarEventTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { CustomCalendarEventCacheHandler } from "../../../../../src/common/api/worker/rest/CustomCacheHandler.js"
 import { createEventElementId } from "../../../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { LateInitializedCacheStorageImpl } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
@@ -10,6 +9,7 @@ import { numberRange, promiseMap } from "@tutao/tutanota-utils"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { CustomCalendarEventCacheHandler } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 
 o.spec("Custom calendar events handler", function () {
 	const entityRestClientMock = instance(EntityRestClient)

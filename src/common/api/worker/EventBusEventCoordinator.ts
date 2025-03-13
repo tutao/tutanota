@@ -1,13 +1,6 @@
 import { EventBusListener } from "./EventBusClient.js"
 import { WsConnectionState } from "../main/WorkerClient.js"
-import {
-	EntityUpdate,
-	GroupKeyUpdateTypeRef,
-	UserGroupKeyDistributionTypeRef,
-	UserTypeRef,
-	WebsocketCounterData,
-	WebsocketLeaderStatus,
-} from "../entities/sys/TypeRefs.js"
+import { GroupKeyUpdateTypeRef, UserGroupKeyDistributionTypeRef, UserTypeRef, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
 import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { isAdminClient, isTest } from "../common/Env.js"
@@ -21,7 +14,6 @@ import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
-import type { QueuedBatch } from "./EventQueue.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils"
 
 /** A bit of glue to distribute event bus events across the app. */

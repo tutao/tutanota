@@ -1,4 +1,5 @@
 import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
+import { QueuedBatch } from "../EventQueue.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { EntityRestCache } from "./DefaultEntityRestCache.js"

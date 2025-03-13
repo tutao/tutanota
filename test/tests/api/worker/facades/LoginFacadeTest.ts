@@ -18,7 +18,6 @@ import {
 	createAuthVerifier,
 	encryptKey,
 	KEY_LENGTH_BYTES_AES_256,
-	keyToBase64,
 	sha256Hash,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
@@ -26,7 +25,6 @@ import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../.
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { CacheStorageLateInitializer } from "../../../../../src/common/api/worker/rest/CacheStorageProxy"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
@@ -49,6 +47,7 @@ import { CredentialType } from "../../../../../src/common/misc/credentials/Crede
 import { encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { CacheMode } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 
 const { anything, argThat } = matchers
 
@@ -206,7 +205,9 @@ o.spec("LoginFacadeTest", function () {
 						challenges: [],
 					}),
 				)
-				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(await makeUser(userId))
+				const user = await makeUser(userId)
+				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 			})
 
 			o.test("When a database key is provided and session is persistent it is passed to the offline storage initializer", async function () {
@@ -286,6 +287,7 @@ o.spec("LoginFacadeTest", function () {
 				}
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				// The call to /sys/session/...
 				when(
@@ -428,6 +430,7 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				calls = []
 				// .thenReturn(sessionServiceDefer)
@@ -640,6 +643,7 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				calls = []
 				// .thenReturn(sessionServiceDefer)
@@ -752,6 +756,7 @@ o.spec("LoginFacadeTest", function () {
 				} as Credentials
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				when(serviceExecutor.get(SaltService, anything()), { ignoreExtraArgs: true }).thenResolve(
 					createSaltReturn({ salt: SALT, kdfVersion: KdfType.Bcrypt }),
@@ -815,6 +820,7 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
@@ -903,6 +909,7 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
+				when(entityClientMock.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })).thenResolve(user)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
 					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),

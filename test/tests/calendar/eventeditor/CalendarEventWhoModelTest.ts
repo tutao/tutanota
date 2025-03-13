@@ -4,6 +4,7 @@ import {
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	ContactTypeRef,
+	createCalendarEventAttendee,
 	UserSettingsGroupRootTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { matchers, object, replace, verify, when } from "testdouble"
@@ -291,8 +292,14 @@ o.spec("CalendarEventWhoModel", function () {
 			o(result.cancelModel).equals(null)
 			o(result.responseModel).equals(null)
 			o(result.attendees).deepEquals([
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: ownerAlias, status: CalendarAttendeeStatus.ACCEPTED }),
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.ADDED }),
+				createCalendarEventAttendee({
+					address: ownerAlias,
+					status: CalendarAttendeeStatus.ACCEPTED,
+				}),
+				createCalendarEventAttendee({
+					address: otherAddress,
+					status: CalendarAttendeeStatus.ADDED,
+				}),
 			])("the result contains all attendees including the organizer")
 			o(result.organizer).deepEquals(ownerAlias)
 		})
@@ -375,16 +382,31 @@ o.spec("CalendarEventWhoModel", function () {
 			await model.recipientsSettled
 			const resultBeforeRemove = model.result
 			o(resultBeforeRemove.attendees).deepEquals([
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: ownerAddress, status: CalendarAttendeeStatus.ACCEPTED }),
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.ADDED }),
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress2, status: CalendarAttendeeStatus.ADDED }),
+				createCalendarEventAttendee({
+					address: ownerAddress,
+					status: CalendarAttendeeStatus.ACCEPTED,
+				}),
+				createCalendarEventAttendee({
+					address: otherAddress,
+					status: CalendarAttendeeStatus.ADDED,
+				}),
+				createCalendarEventAttendee({
+					address: otherAddress2,
+					status: CalendarAttendeeStatus.ADDED,
+				}),
 			])("there are three attendees in the event")
 			o(resultBeforeRemove.organizer).deepEquals(ownerAddress)
 			model.removeAttendee(otherAddress.address)
 			const result = model.result
 			o(result.attendees).deepEquals([
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: ownerAddress, status: CalendarAttendeeStatus.ACCEPTED }),
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress2, status: CalendarAttendeeStatus.ADDED }),
+				createCalendarEventAttendee({
+					address: ownerAddress,
+					status: CalendarAttendeeStatus.ACCEPTED,
+				}),
+				createCalendarEventAttendee({
+					address: otherAddress2,
+					status: CalendarAttendeeStatus.ADDED,
+				}),
 			])
 			o(result.organizer).deepEquals(ownerAddress)
 		})
@@ -423,11 +445,11 @@ o.spec("CalendarEventWhoModel", function () {
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "otherPassword", strength: 1 })
 			const { attendees } = model.result
 			o(attendees).deepEquals([
-				createTestEntity(CalendarEventAttendeeTypeRef, {
+				createCalendarEventAttendee({
 					address: ownerAddress,
 					status: CalendarAttendeeStatus.ADDED,
 				}),
-				createTestEntity(CalendarEventAttendeeTypeRef, {
+				createCalendarEventAttendee({
 					address: otherAddress,
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 				}),
