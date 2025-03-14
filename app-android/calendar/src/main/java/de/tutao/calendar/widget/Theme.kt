@@ -11,23 +11,23 @@ object AppTheme {
 		onPrimary = Color(0xFFFFFFFF),
 		secondary = Color(0xFF303030),
 		onSecondary = Color(0xFF013E85),
-		background = Color(0xFFF6F6F6),
+		background = Color(0xFFF3F4F8), // Color(0xFFF6F6F6),
 		onBackground = Color(0xFF707070),
 		surface = Color(0xFFFFFFFF),
 		onSurface = Color(0xFF303030),
 		primaryContainer = Color(0xFFF6F6F6),
-		tertiary = Color(0xFF8B8B8B) // Used for ripple effects
+		tertiary = Color(0xFF8B8B8B), // Used for ripple effects
 	)
 
 	val DarkColors = darkColorScheme(
-		primary = Color(0xFFACC7FF),
+		primary = Color(0xFFA1C1FF), // Color(0xFFACC7FF),
 		onPrimary = Color(0xFF232323),
-		secondary = Color(0xFFDDDDDD),
+		secondary = Color(0xFFFFFFFF),
 		onSecondary = Color(0xFFACC7FF),
-		background = Color(0xFF232323),
-		onBackground = Color(0xFFDDDDDD),
-		surface = Color(0xFF111111),
-		onSurface = Color(0xFFDDDDDD),
+		background = Color(0xFF233052), // Color(0xFF232323),
+		onBackground = Color(0xFFFFFFFF),
+		surface = Color(0xFF515976), // Color(0xFF111111),
+		onSurface = Color(0xFFFFFFFF), // Color(0xFFDDDDDD),
 		primaryContainer = Color(0xFF111111),
 		tertiary = Color(0xFF8B8B8B) // Used for ripple effects
 	)

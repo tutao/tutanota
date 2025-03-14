@@ -5,7 +5,11 @@ import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -24,8 +28,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ButtonColors
@@ -48,20 +54,28 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toSize
 import androidx.core.graphics.toColorInt
 import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -102,6 +116,32 @@ class WidgetConfigActivity : AppCompatActivity() {
 
 		// Use Jetpack Compose to build the configuration UI.
 		setContent {
+			val isDarkMode = isSystemInDarkTheme()
+			val context = LocalActivity.current as ComponentActivity
+
+			DisposableEffect(isDarkMode) {
+				context.enableEdgeToEdge(
+					statusBarStyle = if (!isDarkMode) {
+						SystemBarStyle.light(
+							AppTheme.LightColors.background.toArgb(),
+							AppTheme.DarkColors.background.toArgb()
+						)
+					} else {
+						SystemBarStyle.dark(AppTheme.DarkColors.background.toArgb())
+					},
+					navigationBarStyle = if (!isDarkMode) {
+						SystemBarStyle.light(
+							AppTheme.LightColors.background.toArgb(),
+							AppTheme.DarkColors.background.toArgb()
+						)
+					} else {
+						SystemBarStyle.dark(AppTheme.DarkColors.background.toArgb())
+					}
+				)
+
+				onDispose { }
+			}
+
 			MaterialTheme(
 				colorScheme = if (isSystemInDarkTheme()) {
 					AppTheme.DarkColors
@@ -225,6 +265,8 @@ private fun SettingsBody(innerPadding: PaddingValues) {
 	val selectedLogin = model.selectedCredential.collectAsState().value?.credentialInfo?.login ?: "Select a credential"
 	val calendars = model.calendars.collectAsState()
 
+	var rowSize by remember { mutableStateOf(Size.Zero) }
+
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -237,6 +279,7 @@ private fun SettingsBody(innerPadding: PaddingValues) {
 		Column(
 			modifier = Modifier
 				.padding(8.dp)
+				.wrapContentWidth()
 		) {
 			Text(
 				"Account".uppercase(),
@@ -257,13 +300,24 @@ private fun SettingsBody(innerPadding: PaddingValues) {
 				),
 				modifier = Modifier
 					.fillMaxWidth()
+					.onPlaced { layoutCoordinates -> rowSize = layoutCoordinates.size.toSize() }
 			) {
-				Text(selectedLogin, modifier = Modifier.fillMaxWidth())
+				Text(selectedLogin, modifier = Modifier.weight(weight = 1f), overflow = TextOverflow.Ellipsis)
+				Icon(
+					Icons.Default.ArrowDropDown,
+					"",
+					tint = MaterialTheme.colorScheme.onBackground,
+					modifier = Modifier
+						.size(28.dp)
+						.padding(4.dp)
+				)
 			}
 			DropdownMenu(
 				expanded = showDropdown,
 				onDismissRequest = { showDropdown = false },
-				modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+				modifier = Modifier
+					.background(MaterialTheme.colorScheme.surface)
+					.width(with(LocalDensity.current) { rowSize.width.toDp() })
 			) {
 				credentials.forEach {
 					DropdownMenuItem(
@@ -335,7 +389,7 @@ private fun CalendarRow(
 	onCalendarSelect: (selected: Boolean) -> Unit,
 	isChecked: Boolean = false
 ) {
-	var checked by remember { mutableStateOf(isChecked) }
+	var checked by rememberSaveable { mutableStateOf(isChecked) }
 	val markCalendarAsChecked = {
 		onCalendarSelect(!checked)
 		checked = !checked
