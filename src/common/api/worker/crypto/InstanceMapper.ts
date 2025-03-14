@@ -14,12 +14,17 @@ import {
 } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import { Entity, ModelValue, TypeModel } from "../../common/EntityTypes"
+import { Entity, ModelValue, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 assertWorkerOrNode()
+
+export type AttributeId = number
+export type TypeId = number
+export type AppName = "base" | "sys" | "tutanota" | "usage" | "monitor" | "accouting" | "gossip"
+export type AttributeName = string
 
 export class InstanceMapper {
 	/**
@@ -139,6 +144,14 @@ export class InstanceMapper {
 			}
 		}
 		return result
+	}
+
+	async uncloak<T extends SomeEntity>(typeRef: TypeRef<T>, literal: any): Promise<T> {
+		const t = {
+			_type: typeRef,
+		}
+
+		return t as unknown as T
 	}
 
 	async mapFromLiteral(instance: Record<number, any>, typeModel: TypeModel): Promise<Record<string, unknown>> {

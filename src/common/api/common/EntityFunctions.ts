@@ -1,6 +1,6 @@
 import { Type } from "./EntityConstants.js"
-import { TypeRef } from "@tutao/tutanota-utils"
-import type { Entity, TypeModel } from "./EntityTypes"
+import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
+import type { TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
 import { typeModels as tutanotaTypeModels } from "../entities/tutanota/TypeModels.js"
@@ -17,7 +17,8 @@ import accountingModelInfo from "../entities/accounting/ModelInfo.js"
 import gossipModelInfo from "../entities/gossip/ModelInfo.js"
 import storageModelInfo from "../entities/storage/ModelInfo.js"
 import usageModelInfo from "../entities/usage/ModelInfo.js"
-import { when } from "testdouble"
+import { ProgrammingError } from "./error/ProgrammingError"
+import { AppName, AttributeId, AttributeName, TypeId } from "../worker/crypto/InstanceMapper"
 
 export const enum HttpMethod {
 	GET = "GET",
@@ -61,26 +62,6 @@ let typeIdToAttributeNameMap: Record<string, Map<number, Map<string, number>>> =
 	usage: new Map<number, Map<string, number>>(),
 }
 
-export async function getAttributeId(typeRef: TypeRef<Entity>, attributeName: string): Promise<number | null> {
-	const typeIdMap = typeIdToAttributeNameMap[typeRef.app].get(typeRef.typeId) ?? null
-	if (typeIdMap) {
-		return typeIdMap.get(attributeName) ?? null
-	} else {
-		const typeModel = await resolveTypeReference(typeRef)
-
-		let attributeNameToAttributeId: Map<string, number> = new Map()
-		for (const [valueId, value] of Object.entries(typeModel.values)) {
-			attributeNameToAttributeId.set(value.name, parseInt(valueId))
-		}
-		for (const [associationId, association] of Object.entries(typeModel.associations)) {
-			attributeNameToAttributeId.set(association.name, parseInt(associationId))
-		}
-
-		typeIdToAttributeNameMap[typeRef.app].set(typeRef.typeId, attributeNameToAttributeId)
-		return await getAttributeId(typeRef, attributeName)
-	}
-}
-
 export const modelInfos = {
 	base: baseModelInfo,
 	sys: sysModelInfo,
@@ -115,5 +96,58 @@ export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeM
 export function _verifyType(typeModel: TypeModel) {
 	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement && typeModel.type !== Type.BlobElement) {
 		throw new Error("only Element, ListElement and BlobElement types are permitted, was: " + typeModel.type)
+	}
+}
+
+export class AttributeModel {
+	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
+		base: new Map(),
+		tutanota: new Map(),
+		gossip: new Map(),
+		monitor: new Map(),
+		usage: new Map(),
+		accouting: new Map(),
+		sys: new Map(),
+	}
+
+	private static getResolvedAttributeId(typeModel: TypeModel, attrName: string): number | null {
+		const typeIdMap = typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)
+		if (typeIdMap == null) {
+			throw new ProgrammingError(`Unknown type: ${typeModel.app}/${typeModel.name}`)
+		}
+
+		return typeIdMap.get(attrName) ?? null
+	}
+
+	private static computeAttributeIdsForTypeIfNotExists(typeModel: TypeModel) {
+		if (!AttributeModel.typeIdToAttributeNameMap[typeModel.app].has(typeModel.id)) {
+			AttributeModel.computeAttributeIdsForType(typeModel)
+		}
+	}
+
+	private static computeAttributeIdsForType(typeModel: TypeModel) {
+		let attributeNameToAttributeId: Map<string, number> = new Map()
+		for (const [valueId, value] of Object.entries(typeModel.values)) {
+			attributeNameToAttributeId.set(value.name, parseInt(valueId))
+		}
+		for (const [associationId, association] of Object.entries(typeModel.associations)) {
+			attributeNameToAttributeId.set(association.name, parseInt(associationId))
+		}
+
+		typeIdToAttributeNameMap[typeModel.app].set(typeModel.id, attributeNameToAttributeId)
+	}
+
+	public static isKnownAttribute(typeModel: TypeModel, attributeName: string): boolean {
+		AttributeModel.computeAttributeIdsForTypeIfNotExists(typeModel)
+		return AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)?.has(attributeName) ?? false
+	}
+
+	public static getAttributeId(typeModel: TypeModel, attributeName: string): number | null {
+		if (AttributeModel.isKnownAttribute(typeModel, attributeName)) {
+			AttributeModel.computeAttributeIdsForTypeIfNotExists(typeModel)
+			return assertNotNull(AttributeModel.getResolvedAttributeId(typeModel, attributeName))
+		}
+
+		return null
 	}
 }

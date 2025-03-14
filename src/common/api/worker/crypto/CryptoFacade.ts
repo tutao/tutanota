@@ -24,7 +24,7 @@ import {
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
-import { getAttributeId, HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
+import { AttributeModel, HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
 import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketKeyTypeRef,
@@ -84,7 +84,7 @@ import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
 import { PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
-import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { KeyVersion, Nullable } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 
 assertWorkerOrNode()
@@ -181,31 +181,12 @@ export class CryptoFacade {
 	 */
 	// fixme: should we have two version for this method . one that takes SomeEntity and one that takes Record<number, any>
 	// previously SomeEntity was compatible to Record<string, any>
-	async resolveSessionKey(typeModel: TypeModel, instance: Record<number, any>): Promise<AesKey | null> {
+	async resolveSessionKey(typeModel: TypeModel, instanceWrapper: InstanceWrapper): Promise<AesKey> {
 		const typeRef: TypeRef<SomeEntity> = new TypeRef(typeModel.app, typeModel.id)
 
 		try {
-			if (!typeModel.encrypted) {
-				return null
-			}
-
-			const bucketKeyAttrId = await getAttributeId(typeRef, "bucketKey")
-			const instanceBucketKey = bucketKeyAttrId ? instance[bucketKeyAttrId] : null
-
-			const underscoredOwnerEncSessionKeyAttrId = await getAttributeId(typeRef, "_ownerEncSessionKey")
-			const instanceUnderscoredOwnerEncSessionKey = underscoredOwnerEncSessionKeyAttrId ? instance[underscoredOwnerEncSessionKeyAttrId] : null
-
-			const ownerEncSessionKeyAttrId = await getAttributeId(typeRef, "ownerEncSessionKey")
-			const instanceOwnerEncSessionKey = ownerEncSessionKeyAttrId ? instance[ownerEncSessionKeyAttrId] : null
-
-			const underscoredOwnerGroupAttrId = await getAttributeId(typeRef, "_ownerGroup")
-			const underscoredOwnerGroup = underscoredOwnerGroupAttrId ? instance[underscoredOwnerGroupAttrId] : null
-
-			if (instanceBucketKey) {
-				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
-				// we need to do this BEFORE we check the owner enc session key
-				const bucketKey = await this.convertBucketKeyToInstanceIfNecessary(instanceBucketKey)
-				const resolvedSessionKeys = await this.resolveWithBucketKey(bucketKey, instance, typeModel)
+			if (instanceWrapper.bucketKey) {
+				const resolvedSessionKeys = await this.resolveWithBucketKey(instanceWrapper.bucketKey)
 				return resolvedSessionKeys.resolvedSessionKeyForInstance
 			} else if (
 				instanceUnderscoredOwnerEncSessionKey &&
@@ -284,8 +265,9 @@ export class CryptoFacade {
 		}
 	}
 
-	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
-		const instanceElementId = this.getElementIdFromInstance(instance)
+	public async resolveWithBucketKey(bucketKeyResolver: BucketKeyResolver): Promise<ResolvedSessionKeys> {
+		const bucketKey = bucketKeyResolver.bucketKey
+
 		let decryptedBucketKey: AesKey
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
 		let pqMessageSenderKey: EccPublicKey | null = null
@@ -315,7 +297,7 @@ export class CryptoFacade {
 			decryptedBucketKey = await this.resolveWithGroupReference(keyGroup, groupKeyVersion, bucketKey.groupEncBucketKey)
 			unencryptedSenderAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
 		} else {
-			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
+			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${bucketKeyResolver.typeName}`)
 		}
 		const resolvedSessionKeys = await this.collectAllInstanceSessionKeysAndAuthenticate(
 			bucketKey,
@@ -492,32 +474,35 @@ export class CryptoFacade {
 	 * session keys in order to update them.
 	 */
 	private async collectAllInstanceSessionKeysAndAuthenticate(
-		bucketKey: BucketKey,
+		instanceWrapper: InstanceWrapper,
 		decBucketKey: number[],
-		instanceElementId: string,
-		instance: Record<string, any>,
-		typeModel: TypeModel,
 		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: EccPublicKey | null,
 	): Promise<ResolvedSessionKeys> {
+		const bucketKey = assertNotNull(instanceWrapper.bucketKey)
+
 		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
+			const _ownerGroup = assertNotNull(instanceWrapper._ownerGroup)
+
 			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
-			const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(instance._ownerGroup)
+			const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(_ownerGroup)
 			const ownerEncSessionKey = encryptKeyWithVersionedKey(groupKey, decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
-			if (instanceElementId == instanceSessionKey.instanceId) {
+			if (instanceWrapper.elementId == instanceSessionKey.instanceId) {
 				resolvedSessionKeyForInstance = decryptedSessionKey
+				const pqSenderKeyVersion =
+					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? parseKeyVersion(bucketKey.senderKeyVersion ?? "0") : null
+				const decryptedInstance = await instanceWrapper.provideDecryptedInstance(resolvedSessionKeyForInstance)
+
 				// we can only authenticate once we have the session key
 				// because we need to check if the confidential flag is set, which is encrypted still
 				// we need to do it here at the latest because we must write the flag when updating the session key on the instance
 				await this.authenticateMainInstance(
-					typeModel,
 					encryptionAuthStatus,
 					pqMessageSenderKey,
-					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? parseKeyVersion(bucketKey.senderKeyVersion ?? "0") : null,
-					instance,
-					resolvedSessionKeyForInstance,
+					pqSenderKeyVersion,
+					decryptedInstance,
 					instanceSessionKeyWithOwnerEncSessionKey,
 					decryptedSessionKey,
 					bucketKey.keyGroup,
@@ -531,24 +516,24 @@ export class CryptoFacade {
 		if (resolvedSessionKeyForInstance) {
 			return { resolvedSessionKeyForInstance, instanceSessionKeys }
 		} else {
-			throw new SessionKeyNotFoundError("no session key for instance " + instance._id)
+			throw new SessionKeyNotFoundError("no session key for instance " + instanceWrapper.id)
 		}
 	}
 
 	private async authenticateMainInstance(
-		typeModel: TypeModel,
 		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: Uint8Array | null,
 		pqMessageSenderKeyVersion: KeyVersion | null,
-		instance: Record<string, any>,
-		resolvedSessionKeyForInstance: number[],
+		instance: SomeEntity,
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: number[],
 		keyGroup: Id | null,
 	) {
 		// we only authenticate mail instances
-		const isMailInstance = isSameTypeRef(MailTypeRef, new TypeRef(typeModel.app, typeModel.id))
+		const isMailInstance = isSameTypeRef(MailTypeRef, instance._type)
 		if (isMailInstance) {
+			const mail = instance as Mail
+
 			if (!encryptionAuthStatus) {
 				if (!pqMessageSenderKey) {
 					// This message was encrypted with RSA. We check if TutaCrypt could have been used instead.
@@ -566,9 +551,6 @@ export class CryptoFacade {
 						}
 					}
 				} else {
-					const mail = this.isLiteralInstance(instance)
-						? ((await this.instanceMapper.decryptAndMapToInstance(typeModel, instance, resolvedSessionKeyForInstance)) as Mail)
-						: (instance as Mail)
 					const senderMailAddress = mail.confidential ? mail.sender.address : SYSTEM_GROUP_MAIL_ADDRESS
 					encryptionAuthStatus = await this.tryAuthenticateSenderOfMainInstance(
 						senderMailAddress,
@@ -924,4 +906,121 @@ if (!("toJSON" in Error.prototype)) {
 		configurable: true,
 		writable: true,
 	})
+}
+
+type ElementValue =
+	| Id
+	| IdTuple
+	// it should have been circularily ParsedEncryptedInstance
+	| Record<string, any>
+	| boolean
+	| Date
+	| number
+	| string
+	| Uint8Array
+
+type DecryptedIntance = Instance & { ownerGroup?: Id } & { bucketKey?: BucketKey | null } & { ownerEncSessionKey?: VersionedEncryptedKey }
+type ParsedEncryptedInstance = Record<number, Nullable<ElementValue>>
+
+class InstanceWrapper {
+	readonly elementId: Id
+
+	private constructor(
+		public readonly isDecrypted: boolean,
+		public readonly typeRef: TypeRef<Instance>,
+		public readonly typeModel: TypeModel,
+		private readonly instanceMapper: InstanceMapper,
+		public readonly id: Id | IdTuple,
+		public readonly instance: DecryptedIntance | ParsedEncryptedInstance,
+		public readonly _ownerGroup: Nullable<Id>,
+		public readonly ownerGroup: Nullable<Id>,
+		public readonly ownerEncSessionKey: Nullable<VersionedEncryptedKey>,
+		public readonly bucketKey: Nullable<BucketKey>,
+	) {
+		this.elementId = typeof id == "string" ? id : elementIdPart(id)
+	}
+
+	static async fromInstance(decryptedInstance: DecryptedIntance): Promise<InstanceWrapper> {
+		const id = decryptedInstance._id
+		const typeRef = decryptedInstance._type
+		const _ownerGroup = decryptedInstance._ownerGroup
+		const ownerGroup = decryptedInstance.ownerGroup ?? null
+		const bucketKey = decryptedInstance.bucketKey ?? null
+		const ownerEncSessionKey = decryptedInstance.ownerEncSessionKey ?? null
+
+		const typeModel = await resolveTypeReference(typeRef)
+
+		// if we have parsed entity already we should not need instanceMapper`
+		const instanceMapper = null
+		return new InstanceWrapper(true, typeRef, typeModel, instanceMapper, id, decryptedInstance, _ownerGroup, ownerGroup, ownerEncSessionKey, bucketKey)
+	}
+
+	static getAttributeorNull<T>(instance: ParsedEncryptedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
+		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
+		if (attrId) {
+			const value = instance[attrId]
+			return downcast<T>(value)
+		} else {
+			return null
+		}
+	}
+
+	static async fromEncryptedParsedInstance(
+		instanceMapper: InstanceMapper,
+		typeModel: TypeModel,
+		encryptedParsedInstance: ParsedEncryptedInstance,
+	): Promise<InstanceWrapper> {
+		const typeRef = new TypeRef<Instance>(typeModel.app, typeModel.id)
+
+		const id: Id | IdTuple = assertNotNull(InstanceWrapper.getAttributeorNull<Id | IdTuple>(encryptedParsedInstance, "_id", typeModel))
+		const _ownerGroup = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "_ownerGroup", typeModel)
+		const ownerGroup = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "ownerGroup", typeModel)
+		const ownerEncSessionKeyPart = InstanceWrapper.getAttributeorNull<Uint8Array>(encryptedParsedInstance, "ownerEncSessionKey", typeModel)
+
+		let ownerEncSessionKey: Nullable<VersionedEncryptedKey> = null
+		if (ownerEncSessionKeyPart) {
+			const ownerEncSessionKeyVersion = assertNotNull(
+				InstanceWrapper.getAttributeorNull<number>(encryptedParsedInstance, "ownerEncSessionKeyVersion", typeModel),
+			)
+			ownerEncSessionKey = {
+				key: ownerEncSessionKeyPart,
+				encryptingKeyVersion: parseKeyVersion(ownerEncSessionKeyVersion.toString()),
+			}
+		}
+
+		let bucketKey: Nullable<BucketKey> = null
+		const bucketKeyLiteral = InstanceWrapper.getAttributeorNull<ParsedEncryptedInstance>(encryptedParsedInstance, "bucketKey", typeModel)
+		if (bucketKeyLiteral) {
+			// fixme: is decrypt a good name here? since bucket key is mapped inside crypto and it's bit confusing that we are decrypting inside cryptoFacade itself
+			// since, bucket key is really not encrypted entity, we can just parse it to instance
+			bucketKey = await instanceMapper.uncloak<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
+		}
+
+		return new InstanceWrapper(
+			false,
+			typeRef,
+			typeModel,
+			instanceMapper,
+			id,
+			encryptedParsedInstance,
+			_ownerGroup,
+			ownerGroup,
+			ownerEncSessionKey,
+			bucketKey,
+		)
+	}
+
+	writeSessionKey() {}
+
+	async provideDecryptedInstance(resolvedSessionKey: AesKey): Promise<SomeEntity> {
+		if (this.isDecrypted) {
+			return this.instance as SomeEntity
+		} else {
+			const encryptedEntity = downcast<ParsedEncryptedInstance>(this.instance)
+			const typeRef = downcast<TypeRef<SomeEntity>>(this.typeRef)
+
+			const parsedInstance = await this.instanceMapper.decrypt(encryptedEntity, resolvedSessionKey)
+			return await this.instanceMapper.uncloak(typeRef, parsedInstance)
+		}
+	}
 }
