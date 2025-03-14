@@ -4,6 +4,7 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -120,8 +121,9 @@ class WidgetConfigActivity : AppCompatActivity() {
 								setResult(Activity.RESULT_OK, resultValue)
 								val curContext = this
 								GlobalScope.launch { //FIXME handle coroutine properly
-									println("Inside GlobalScope coroutine")
+									Log.d("WidgetConfigActivity", "GlobalScope coroutine start")
 									VerticalWidget().updateAll(curContext)
+									Log.d("WidgetConfigActivity", "GlobalScope coroutine end")
 								}
 							} catch (ex: Exception) {
 								Toast.makeText(

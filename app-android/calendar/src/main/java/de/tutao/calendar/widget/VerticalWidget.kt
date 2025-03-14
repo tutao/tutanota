@@ -2,20 +2,24 @@ package de.tutao.calendar.widget
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
+import androidx.core.graphics.toColorInt
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.ImageProvider
+import androidx.glance.LocalGlanceId
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.components.Scaffold
 import androidx.glance.appwidget.components.SquareIconButton
 import androidx.glance.appwidget.cornerRadius
@@ -33,113 +37,113 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
-import androidx.glance.state.GlanceStateDefinition
-import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
-import de.tutao.tutasdk.CalendarEvent
-import de.tutao.tutasdk.Sdk
-import de.tutao.tutashared.AndroidNativeCryptoFacade
-import de.tutao.tutashared.SdkRestClient
-import de.tutao.tutashared.createAndroidKeyStoreFacade
-import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
-import de.tutao.tutashared.data.AppDatabase
+import de.tutao.calendar.widget.data.UIEvent
+import de.tutao.calendar.widget.data.WidgetUIData
+import de.tutao.calendar.widget.data.WidgetUIViewModel
 import de.tutao.tutashared.ipc.CalendarOpenAction
-import de.tutao.tutashared.isAllDayEventByTimes
-import de.tutao.tutashared.push.SseStorage
-import de.tutao.tutashared.push.toSdkCredentials
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
-import java.util.Date
-import java.util.TimeZone
 
+
+const val TAG = "VerticalWidget"
 
 class VerticalWidget : GlanceAppWidget() {
-	override var stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
-
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
 
 		// Load data needed to render the AppWidget.
 		// Use `withContext` to switch to another thread for long running
 		// operations.
-		val db = AppDatabase.getDatabase(context, true)
-		val keyStoreFacade = createAndroidKeyStoreFacade()
-		val sseStorage = SseStorage(db, keyStoreFacade)
-		val userId = "OKV2uY3----4"
-
-		val crypto = AndroidNativeCryptoFacade(context)
-		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
-		val credentials = nativeCredentialsFacade.loadByUserId(userId)!!
-			.toSdkCredentials()
-
-		val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()).login(credentials)
-		val calendars = sdk.calendarFacade().getCalendarsRenderData()
-
-		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
-
-		val events = sdk.calendarFacade()
-			.getCalendarEvents(calendars.keys.first(), systemCalendar.timeInMillis.toULong())
-
-		val allEvents: List<CalendarEvent> = events.shortEvents.plus(events.longEvents)
-
-		// Remember mutable state for the data
-//		val data = remember { mutableStateOf(allEvents) }
-
-		// Apply transformations to each item in the list
-		val allDayEvents: MutableList<Event> = mutableListOf()
-		val normalEvents: MutableList<Event> = mutableListOf()
-
-		val todayMidnight = Calendar.getInstance()
-		todayMidnight.set(Calendar.HOUR_OF_DAY, 0)
-		todayMidnight.set(Calendar.MINUTE, 0)
-		todayMidnight.set(Calendar.SECOND, 0)
-		todayMidnight.set(Calendar.MILLISECOND, 0)
-
-		val tomorrowMidnight = Calendar.getInstance()
-		tomorrowMidnight.add(Calendar.DAY_OF_YEAR, 1)
-		tomorrowMidnight.set(Calendar.HOUR_OF_DAY, 0)
-		tomorrowMidnight.set(Calendar.MINUTE, 0)
-		tomorrowMidnight.set(Calendar.SECOND, 0)
-		tomorrowMidnight.set(Calendar.MILLISECOND, 0)
-
-		allEvents.forEach { ev ->
-			val zoneId = ZoneId.systemDefault()
-			val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(ev.startTime.toLong()), zoneId)
-			val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(ev.endTime.toLong()), zoneId)
-			val formatter = DateTimeFormatter.ofPattern("HH:mm")
-			val isAllDay = isAllDayEventByTimes(
-				Date.from(Instant.ofEpochMilli(ev.startTime.toLong())),
-				Date.from(Instant.ofEpochMilli(ev.endTime.toLong()))
-			) || (ev.startTime.toLong() < todayMidnight.timeInMillis && ev.endTime.toLong() >= tomorrowMidnight.timeInMillis)
-
-			val event = Event(
-				ev.summary,
-				start.format(formatter),
-				end.format(formatter),
-				isAllDay
-			)
-
-			if (isAllDay) {
-				allDayEvents.add(event)
-			} else {
-				normalEvents.add(event)
-			}
-		}
-
+//		val db = AppDatabase.getDatabase(context, true)
+//		val keyStoreFacade = createAndroidKeyStoreFacade()
+//		val sseStorage = SseStorage(db, keyStoreFacade)
+//		val userId = "OKV2uY3----4"
+//
+//		val crypto = AndroidNativeCryptoFacade(context)
+//		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
+//		val credentials = nativeCredentialsFacade.loadByUserId(userId)!!
+//			.toSdkCredentials()
+//
+//		val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()).login(credentials)
+//		val calendars = sdk.calendarFacade().getCalendarsRenderData()
+//
+//		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
+//
+//		val events = sdk.calendarFacade()
+//			.getCalendarEvents(calendars.keys.first(), systemCalendar.timeInMillis.toULong())
+//
+//		val allEvents: List<CalendarEvent> = events.shortEvents.plus(events.longEvents)
+//
+//		// Remember mutable state for the data
+////		val data = remember { mutableStateOf(allEvents) }
+//
+//		// Apply transformations to each item in the list
+//		val allDayEvents: MutableList<UIEvent> = mutableListOf()
+//		val normalEvents: MutableList<UIEvent> = mutableListOf()
+//
+//		val todayMidnight = Calendar.getInstance()
+//		todayMidnight.set(Calendar.HOUR_OF_DAY, 0)
+//		todayMidnight.set(Calendar.MINUTE, 0)
+//		todayMidnight.set(Calendar.SECOND, 0)
+//		todayMidnight.set(Calendar.MILLISECOND, 0)
+//
+//		val tomorrowMidnight = Calendar.getInstance()
+//		tomorrowMidnight.add(Calendar.DAY_OF_YEAR, 1)
+//		tomorrowMidnight.set(Calendar.HOUR_OF_DAY, 0)
+//		tomorrowMidnight.set(Calendar.MINUTE, 0)
+//		tomorrowMidnight.set(Calendar.SECOND, 0)
+//		tomorrowMidnight.set(Calendar.MILLISECOND, 0)
+//
+//		allEvents.forEach { ev ->
+//			val zoneId = ZoneId.systemDefault()
+//			val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(ev.startTime.toLong()), zoneId)
+//			val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(ev.endTime.toLong()), zoneId)
+//			val formatter = DateTimeFormatter.ofPattern("HH:mm")
+//			val isAllDay = isAllDayEventByTimes(
+//				Date.from(Instant.ofEpochMilli(ev.startTime.toLong())),
+//				Date.from(Instant.ofEpochMilli(ev.endTime.toLong()))
+//			) || (ev.startTime.toLong() < todayMidnight.timeInMillis && ev.endTime.toLong() >= tomorrowMidnight.timeInMillis)
+//
+//			val event = UIEvent(
+//				"test",
+//				"2196f3",
+//				ev.summary,
+//				start.format(formatter),
+//				end.format(formatter),
+//				isAllDay
+//			)
+//
+//			if (isAllDay) {
+//				allDayEvents.add(event)
+//			} else {
+//				normalEvents.add(event)
+//			}
+//		}
 		provideContent {
+			Log.d(TAG, "provideContent")
+
+			val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(LocalGlanceId.current)
+			val widgetUIViewModel = rememberSaveable(saver = WidgetUIViewModel.Saver) {
+				WidgetUIViewModel(context, appWidgetId)
+			}
+			val data by widgetUIViewModel.uiState.collectAsState()
+			val userId = widgetUIViewModel.getLoggedInUser()
+
+//			val data = WidgetUIData(normalEvents, allDayEvents)
+
 			GlanceTheme(
 				colors = AppTheme.colors
 			) {
-				WidgetBody(
-					WidgetData(normalEvents, allDayEvents),
-					headerCallback = { openCalendarAgenda(context, userId) },
-					newEventCallback = { openCalendarEditor(context, userId) })
+				if (data != null && userId != null) {
+					WidgetBody(
+						data!!,
+						headerCallback = { openCalendarAgenda(context, userId) },
+						newEventCallback = { openCalendarEditor(context, userId) })
+				}
 			}
 		}
 	}
@@ -175,22 +179,9 @@ class VerticalWidget : GlanceAppWidget() {
 	}
 }
 
-data class Event(
-	val summary: String,
-	val startTime: String,
-	val endTime: String,
-	val isAllDay: Boolean,
-)
-
-data class WidgetData(
-	val normalEvents: List<Event>,
-	val allDayEvents: List<Event>,
-	val allDayEventsCount: Int = allDayEvents.size
-)
-
 @Composable
-fun WidgetBody(_data: WidgetData, headerCallback: () -> Unit, newEventCallback: () -> Unit) {
-	val data by rememberSaveable { mutableStateOf(_data) };
+fun WidgetBody(data: WidgetUIData, headerCallback: () -> Unit, newEventCallback: () -> Unit) {
+	println(data)
 	Scaffold(
 		modifier = GlanceModifier
 			.padding(horizontal = 20.dp),
@@ -270,7 +261,7 @@ private fun Header(allDayEventsCount: Int, onTap: () -> Unit, onNewEvent: () -> 
 }
 
 @Composable
-fun EventCard(event: Event) {
+fun EventCard(event: UIEvent) {
 	Row(
 		modifier = GlanceModifier.padding(8.dp)
 			.background(GlanceTheme.colors.surface)
@@ -278,7 +269,7 @@ fun EventCard(event: Event) {
 			.fillMaxWidth(),
 		verticalAlignment = Alignment.CenterVertically
 	) {
-		CalendarIndicator()
+		CalendarIndicator(color = Color("#$event.calendarColor".toColorInt()))
 
 		// event title and time
 		Column(
@@ -330,11 +321,13 @@ fun CalendarIndicator(radius: Int = 20, color: Color = Color.Blue) {
 @Preview(widthDp = 400, heightDp = 500)
 @Composable
 fun VerticalWidgetPreview() {
-	val eventData = ArrayList<Event>()
-	val allDayEvents = ArrayList<Event>()
+	val eventData = ArrayList<UIEvent>()
+	val allDayEvents = ArrayList<UIEvent>()
 	for (i in 1..7) {
 		eventData.add(
-			Event(
+			UIEvent(
+				"previewCalendar",
+				"2196f3",
 				"Hello Widget $i",
 				"08:00",
 				"17:00",
@@ -344,7 +337,9 @@ fun VerticalWidgetPreview() {
 	}
 
 	eventData.add(
-		Event(
+		UIEvent(
+			"previewCalendar",
+			"2196f3",
 			"Summery",
 			"Start Time",
 			"End Time",
@@ -353,7 +348,9 @@ fun VerticalWidgetPreview() {
 	)
 
 	allDayEvents.add(
-		Event(
+		UIEvent(
+			"previewCalendar",
+			"2196f3",
 			"Summery",
 			"Start Time",
 			"End Time",
@@ -363,7 +360,7 @@ fun VerticalWidgetPreview() {
 
 	GlanceTheme(colors = AppTheme.colors) {
 		WidgetBody(
-			WidgetData(
+			WidgetUIData(
 				allDayEvents = allDayEvents,
 				normalEvents = eventData,
 			),

@@ -100,10 +100,10 @@ class WidgetRepository(context: Context) {
 	}
 
 	suspend fun loadEvents(
-		credential: PersistedCredentials,
+		userId: GeneratedId,
 		calendars: List<GeneratedId>
 	): Map<GeneratedId, CalendarEventsList> {
-		val loadedCredentials = credentialsFacade.loadByUserId(credential.credentialInfo.userId)!!.toSdkCredentials()
+		val loadedCredentials = credentialsFacade.loadByUserId(userId)!!.toSdkCredentials()
 		val loggedInSdk = sdk.login(loadedCredentials)
 
 		val calendarFacade = loggedInSdk.calendarFacade()
