@@ -2,42 +2,55 @@ package de.tutao.calendar.widget
 
 import android.content.Context
 import android.content.Intent
+import android.util.TypedValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
+import androidx.core.graphics.ColorUtils
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.components.Scaffold
-import androidx.glance.appwidget.components.SquareIconButton
+import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.itemsIndexed
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.absolutePadding
+import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.layout.width
+import androidx.glance.layout.wrapContentHeight
+import androidx.glance.layout.wrapContentWidth
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.tutasdk.CalendarEvent
@@ -59,12 +72,11 @@ import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
 
-
 class VerticalWidget : GlanceAppWidget() {
 	override var stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
-
+		TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics);
 		// Load data needed to render the AppWidget.
 		// Use `withContext` to switch to another thread for long running
 		// operations.
@@ -139,7 +151,8 @@ class VerticalWidget : GlanceAppWidget() {
 				WidgetBody(
 					WidgetData(normalEvents, allDayEvents),
 					headerCallback = { openCalendarAgenda(context, userId) },
-					newEventCallback = { openCalendarEditor(context, userId) })
+					newEventCallback = { openCalendarEditor(context, userId) }
+				)
 			}
 		}
 	}
@@ -191,28 +204,63 @@ data class WidgetData(
 @Composable
 fun WidgetBody(_data: WidgetData, headerCallback: () -> Unit, newEventCallback: () -> Unit) {
 	val data by rememberSaveable { mutableStateOf(_data) };
-	Scaffold(
-		modifier = GlanceModifier
-			.padding(horizontal = 20.dp),
-		backgroundColor = GlanceTheme.colors.background,
-		horizontalPadding = 0.dp,
-		titleBar = {
-			Row(
-				modifier = GlanceModifier.padding(vertical = 16.dp),
-				verticalAlignment = Alignment.CenterVertically
+	val isEmpty = data.allDayEvents.isEmpty() && data.normalEvents.isEmpty()
+
+	Column(
+		modifier = GlanceModifier.padding(
+			top = 12.dp,
+			start = 12.dp,
+			end = 12.dp,
+			bottom = if (isEmpty) 0.dp else 12.dp
+		)
+			.background(GlanceTheme.colors.background)
+			.fillMaxSize()
+			.appWidgetBackground()
+			.cornerRadius(8.dp),
+	) {
+		Header(
+			allDayEvents = data.allDayEvents,
+			onTap = headerCallback,
+			onNewEvent = newEventCallback,
+			hasAllDayEvents = data.allDayEvents.isNotEmpty()
+		)
+
+		if (isEmpty) {
+			return@Column Column(
+				verticalAlignment = Alignment.Vertical.Bottom,
+				horizontalAlignment = Alignment.CenterHorizontally,
+				modifier = GlanceModifier
+					.fillMaxSize()
 			) {
-				Header(
-					allDayEventsCount = data.allDayEventsCount,
-					onTap = headerCallback,
-					onNewEvent = newEventCallback
-				)
+				Column(
+					modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
+					verticalAlignment = Alignment.Top,
+					horizontalAlignment = Alignment.CenterHorizontally
+				) {
+					Text(
+						"No Events",
+						style = TextStyle(
+							fontSize = 16.sp,
+							color = GlanceTheme.colors.onBackground,
+							textAlign = TextAlign.Center
+						),
+						maxLines = 2,
+						modifier = GlanceModifier.padding(bottom = 8.dp)
+					)
+					Image(
+						provider = ImageProvider(R.drawable.dog),
+						contentDescription = "No events",
+						contentScale = ContentScale.Fit,
+						modifier = GlanceModifier.fillMaxWidth().defaultWeight().wrapContentHeight()
+					)
+				}
 			}
 		}
-	) {
-		// calendar events
-		// we remove the scrollbar in res/values/styles.xml
+
 		LazyColumn {
-			itemsIndexed(data.normalEvents, itemId = { index, _ -> index.toLong() }) { _, event ->
+			itemsIndexed(
+				data.normalEvents.ifEmpty { data.allDayEvents },
+				itemId = { index, _ -> index.toLong() }) { _, event ->
 				Column {
 					EventCard(event)
 					Spacer(modifier = GlanceModifier.height(4.dp))
@@ -223,56 +271,108 @@ fun WidgetBody(_data: WidgetData, headerCallback: () -> Unit, newEventCallback: 
 }
 
 @Composable
-private fun Header(allDayEventsCount: Int, onTap: () -> Unit, onNewEvent: () -> Unit) {
-	Column(
-		modifier = GlanceModifier
-			.clickable(rippleOverride = R.drawable.transparent_ripple) { onTap() }
-	) {
-		Text(
-			style = TextStyle(
-				fontWeight = FontWeight.Bold,
-				fontSize = 16.sp,
-				color = GlanceTheme.colors.secondary
-			),
-			text = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMMM")),
-			maxLines = 1,
-			modifier = GlanceModifier.padding(bottom = 4.dp)
-		)
-		// all day events
-		// TODO() border is thicker in the corners. should probably switch to xml or no border
-		Spacer(modifier = GlanceModifier.background(GlanceTheme.colors.primaryContainer).height(1.dp))
+private fun Header(allDayEvents: List<Event>, onTap: () -> Unit, onNewEvent: () -> Unit, hasAllDayEvents: Boolean) {
+	val hasAllDayEvent = allDayEvents.isNotEmpty()
+	val titleBottomPadding = if (hasAllDayEvent) 0.dp else (-8).dp
+	val dateNow = LocalDateTime.now()
 
-		if (allDayEventsCount > 0) {
-			Text(
-				modifier = GlanceModifier
-					.padding(top = 4.dp),
-				style = TextStyle(
-					color = GlanceTheme.colors.secondary,
-					fontSize = 14.sp
-				),
-				text = "$allDayEventsCount all day event"
-			)
-		}
-	}
-	// create event button
-	Column(
-		modifier = GlanceModifier
-			.fillMaxWidth(),
-		horizontalAlignment = Alignment.End
+	Row(
+		verticalAlignment = Alignment.Top,
+		modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp)
 	) {
-		SquareIconButton(
-			imageProvider = ImageProvider(R.drawable.ic_add),
-			contentDescription = "Add event button",
-			onClick = { onNewEvent() },
-			backgroundColor = GlanceTheme.colors.primary
-		)
+		Column(
+			modifier = GlanceModifier
+				.clickable(rippleOverride = R.drawable.transparent_ripple) { onTap() }.defaultWeight()
+		) {
+			Text(
+				style = TextStyle(
+					fontWeight = FontWeight.Bold,
+					fontSize = if (hasAllDayEvents) 20.sp else 32.sp,
+					color = GlanceTheme.colors.secondary
+				),
+				text = dateNow.format(DateTimeFormatter.ofPattern(if (hasAllDayEvent) "EEEE dd" else "dd")),
+				maxLines = 1,
+				modifier = GlanceModifier.defaultWeight().wrapContentHeight()
+					.absolutePadding(0.dp, (-7).dp, 0.dp, titleBottomPadding)
+			)
+
+			val subTitle = if (hasAllDayEvent) {
+				allDayEvents.first().summary.ifEmpty { "<No title>" }
+			} else {
+				dateNow.format(DateTimeFormatter.ofPattern("EEEE"))
+			}
+
+			Row(
+				modifier = GlanceModifier.defaultWeight()
+			) {
+				if (hasAllDayEvent) {
+					val isLightBg = ColorUtils.calculateLuminance(Color.Blue.toArgb()) > 0.5
+					val allDayIconColor =
+						if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface
+					Image(
+						provider = ImageProvider(R.drawable.ic_all_day),
+						contentDescription = "Add event button",
+						colorFilter = ColorFilter.tint(ColorProvider(allDayIconColor)),
+						modifier = GlanceModifier.size(16.dp).background(Color.Blue).cornerRadius(10.dp)
+							.padding(2.dp)
+					)
+				}
+
+				Row {
+					Text(
+						style = TextStyle(
+							color = GlanceTheme.colors.secondary,
+							fontSize = 12.sp
+						),
+						maxLines = 1,
+						text = subTitle,
+						modifier = GlanceModifier.padding(start = if (hasAllDayEvent) 4.dp else 0.dp)
+							.defaultWeight()
+					)
+
+					if (allDayEvents.size > 1) {
+						Text(
+							"+${allDayEvents.size - 1}", style = TextStyle(
+								color = GlanceTheme.colors.secondary,
+								fontSize = 12.sp,
+								fontWeight = FontWeight.Bold
+							),
+							maxLines = 1,
+							modifier = GlanceModifier.padding(start = 8.dp).defaultWeight().wrapContentWidth()
+						)
+					}
+				}
+			}
+		}
+		Row(
+			modifier = GlanceModifier.defaultWeight().padding(start = 32.dp).wrapContentWidth(),
+			horizontalAlignment = Alignment.End
+		) {
+			Box(
+				contentAlignment = Alignment.Center,
+				modifier = GlanceModifier
+					.size(48.dp)
+					.background(GlanceTheme.colors.primary)
+					.cornerRadius(8.dp)
+					.clickable(rippleOverride = R.drawable.transparent_ripple) {
+						onNewEvent()
+					}
+			) {
+				Image(
+					provider = ImageProvider(R.drawable.ic_add),
+					contentDescription = "Add event button",
+					colorFilter = ColorFilter.tint(GlanceTheme.colors.onPrimary),
+					modifier = GlanceModifier.size(24.dp)
+				)
+			}
+		}
 	}
 }
 
 @Composable
 fun EventCard(event: Event) {
 	Row(
-		modifier = GlanceModifier.padding(8.dp)
+		modifier = GlanceModifier.padding(horizontal = 8.dp, vertical = 4.dp)
 			.background(GlanceTheme.colors.surface)
 			.cornerRadius(8.dp)
 			.fillMaxWidth(),
@@ -284,38 +384,31 @@ fun EventCard(event: Event) {
 		Column(
 			modifier = GlanceModifier.padding(start = 8.dp)
 				.clickable(rippleOverride = R.drawable.transparent_ripple) { }) {
-			// title
-			// TODO() display limited amount of characters and handle overflow with dots e.g. "Hello Widget..."
 			Text(
-				event.summary,
+				event.summary.ifEmpty { "<No title>" },
 				style = TextStyle(
 					color = GlanceTheme.colors.onSurface,
 					fontWeight = FontWeight.Bold,
 					fontSize = 14.sp
-				)
+				),
+				maxLines = 1
 			)
 
-			// start and end time
-			Row(
+			Text(
+				if (event.isAllDay) "All day" else event.startTime + " - " + event.endTime,
 				modifier = GlanceModifier,
-				horizontalAlignment = Alignment.Start
-			) {
-				Text(
-					event.startTime + " - " + event.endTime,
-					modifier = GlanceModifier,
-					style = TextStyle(
-						color = GlanceTheme.colors.onSurface,
-						fontSize = 14.sp
-					),
-				)
-			}
+				style = TextStyle(
+					color = GlanceTheme.colors.onSurface,
+					fontSize = 10.sp
+				),
+			)
 		}
 	}
 
 }
 
 @Composable
-fun CalendarIndicator(radius: Int = 20, color: Color = Color.Blue) {
+fun CalendarIndicator(radius: Int = 16, color: Color = Color.Blue) {
 	Column(
 		modifier = GlanceModifier
 			.width(radius.dp)
@@ -357,7 +450,7 @@ fun VerticalWidgetPreview() {
 			"Summery",
 			"Start Time",
 			"End Time",
-			isAllDay = true
+			isAllDay = false
 		)
 	)
 
@@ -368,7 +461,28 @@ fun VerticalWidgetPreview() {
 				normalEvents = eventData,
 			),
 			headerCallback = {},
-			newEventCallback = {}
+			newEventCallback = {},
+		)
+	}
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 200, heightDp = 200)
+@Preview(widthDp = 400, heightDp = 500)
+@Preview(widthDp = 800, heightDp = 500)
+@Composable
+fun VerticalWidgetPreviewNoEvents() {
+	val eventData = ArrayList<Event>()
+	val allDayEvents = ArrayList<Event>()
+
+	GlanceTheme(colors = AppTheme.colors) {
+		WidgetBody(
+			WidgetData(
+				allDayEvents = allDayEvents,
+				normalEvents = eventData,
+			),
+			headerCallback = {},
+			newEventCallback = {},
 		)
 	}
 }
