@@ -6,6 +6,7 @@
 		<item name="android:colorPrimaryDark">@color/red</item>
 		<item name="android:statusBarColor">@color/white</item>
 		<item name="android:windowLightStatusBar">true</item>
+		<item name="widgetBackgroundRadius">0dp</item>
 	</style>
 
 	<style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
@@ -20,4 +21,7 @@
 		<item name="android:scrollbars">none</item>
 	</style>
 
+	<style name="Glance.AppWidget.Background" parent="" tools:ignore="PrivateResource">
+		<item name="widgetBackgroundRadius">0dp</item>
+	</style>
 </resources>
