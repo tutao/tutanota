@@ -11,13 +11,13 @@ export type SegmentControlAttrs<T> = {
 	onValueSelected: (_: T) => unknown
 	items: SegmentControlItem<T>[]
 	itemMaxWidth?: number
-	shouldCampaignColor?: boolean
+	shouldApplyCampaignColor?: boolean
 	class?: string
 }
 
 export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 	view(vnode: Vnode<SegmentControlAttrs<T>>): Children {
-		const { shouldCampaignColor, selectedValue, items, itemMaxWidth } = vnode.attrs
+		const { shouldApplyCampaignColor, selectedValue, items, itemMaxWidth } = vnode.attrs
 
 		return [
 			m(
@@ -34,7 +34,7 @@ export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 						{
 							style: {
 								flex: "0 1 " + (typeof itemMaxWidth !== "undefined" ? px(itemMaxWidth) : px(120)),
-								...(shouldCampaignColor &&
+								...(shouldApplyCampaignColor &&
 									item.value === selectedValue && {
 										border: `2px solid ${theme.content_accent_tuta_bday}`,
 										color: theme.content_accent_tuta_bday,
