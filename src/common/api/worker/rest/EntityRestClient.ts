@@ -1,6 +1,6 @@
 import { RestClient, SuspensionBehavior } from "./RestClient"
 import type { CryptoFacade } from "../crypto/CryptoFacade"
-import { _verifyType, getAttributeId, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
+import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { PushIdentifierTypeRef } from "../../entities/sys/TypeRefs.js"
@@ -14,7 +14,7 @@ import {
 } from "../../common/error/RestError"
 import { assertNotNull, isSameTypeRef, KeyVersion, lazy, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
-import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import type { ListElementEntity, ParsedEncryptedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
@@ -441,7 +441,9 @@ export class EntityRestClient implements EntityRestInterface {
 		const idChunks: Array<Array<Id>> = await promiseMap(instanceChunks, async (instanceChunk) => {
 			try {
 				const encryptedEntities = await promiseMap(instanceChunk, async (e) => {
-					const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, e)
+					// todo: convert to parsedInstance
+					const patsedInstance: ParsedEncryptedInstance = this.instanceMapper.convertToParsedEncryptedInstance()
+					const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, patsedInstance)
 
 					return this.instanceMapper.encryptAndMapToLiteral(typeModel, e, sk)
 				})

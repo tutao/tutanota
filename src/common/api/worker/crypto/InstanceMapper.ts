@@ -14,7 +14,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import { Entity, ModelValue, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import { Entity, ModelValue, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -146,7 +146,7 @@ export class InstanceMapper {
 		return result
 	}
 
-	async uncloak<T extends SomeEntity>(typeRef: TypeRef<T>, literal: any): Promise<T> {
+	async uncloak<T extends Entity>(typeRef: TypeRef<T>, literal: any): Promise<T> {
 		const t = {
 			_type: typeRef,
 		}
