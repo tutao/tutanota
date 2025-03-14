@@ -682,7 +682,9 @@ export class Dialog implements ModalComponent {
 					m(
 						".plr-l",
 						m(ImageWithOptionsDialog, {
-							image: `${window.tutao.appState.prefixWithoutFile}/images/update_needed_illu_${client.isCalendarApp() ? "calendar" : "mail"}.svg`,
+							image: `${window.tutao.appState.prefixWithoutFile}/images/update/update_needed_illu_${
+								client.isCalendarApp() ? "calendar" : "mail"
+							}.svg`,
 							titleText: "updateNeeded_msg",
 							messageText: "outdatedClient_msg",
 							mainActionText: "update_action",
