@@ -1,10 +1,17 @@
 package de.tutao.calendar.widget.data
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
+import de.tutao.tutasdk.Sdk
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.PersistedCredentials
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,8 +19,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class WidgetConfigViewModel(application: Application) : AndroidViewModel(application) {
+class WidgetConfigViewModel(
+	application: Application,
+	private val credentialsFacade: NativeCredentialsFacade,
+	private val sdk: Sdk,
 	private val repository: WidgetRepository
+) :
+	AndroidViewModel(application) {
 	private val _credentials = MutableStateFlow<List<PersistedCredentials>>(listOf())
 	private val _isLoading = MutableStateFlow(true)
 	private val _selectedCredential = MutableStateFlow<PersistedCredentials?>(null)
@@ -25,20 +37,39 @@ class WidgetConfigViewModel(application: Application) : AndroidViewModel(applica
 	val selectedCredential: StateFlow<PersistedCredentials?> = _selectedCredential.asStateFlow()
 	val calendars: StateFlow<Map<GeneratedId, CalendarRenderData>> = _calendars.asStateFlow()
 
-	init {
-		val context = getApplication<Application>().applicationContext
-		repository = WidgetRepository(context)
+	companion object {
+		val APPLICATION_EXTRA_KEY = object : CreationExtras.Key<Application> {}
+		val CREDENTIALS_FACADE_EXTRA_KEY = object : CreationExtras.Key<NativeCredentialsFacade> {}
+		val SDK_EXTRA_KEY = object : CreationExtras.Key<Sdk> {}
+		val REPOSITORY_EXTRA_KEY = object : CreationExtras.Key<WidgetRepository> {}
+
+		const val TAG = "WidgetConfigViewModel"
+
+		val Factory: ViewModelProvider.Factory = viewModelFactory {
+			initializer {
+				val application = this[APPLICATION_EXTRA_KEY] as Application
+				val credentialsFacade = this[CREDENTIALS_FACADE_EXTRA_KEY] as NativeCredentialsFacade
+				val sdk = this[SDK_EXTRA_KEY] as Sdk
+				val repository = this[REPOSITORY_EXTRA_KEY] as WidgetRepository
+
+				WidgetConfigViewModel(application, credentialsFacade, sdk, repository)
+			}
+		}
 	}
 
 	fun loadCredentials() {
 		viewModelScope.launch {
 			_isLoading.value = true
-			_credentials.value = repository.loadCredentials()
+			_credentials.value = repository.loadCredentials(credentialsFacade)
 			_isLoading.value = false
 		}
 	}
 
-	fun setSelectedCredential(credential: PersistedCredentials): Job {
+	fun setSelectedCredential(credential: PersistedCredentials): Job? {
+		if (_selectedCredential.value == credential) {
+			return null
+		}
+		_selectedCalendars.value = HashMap()
 		_selectedCredential.value = credential
 
 		return viewModelScope.launch {
@@ -60,41 +91,43 @@ class WidgetConfigViewModel(application: Application) : AndroidViewModel(applica
 		return _selectedCalendars.value[calendarId] != null
 	}
 
-	fun loadWidgetSettings(widgetId: Int) {
-		val settings = repository.loadSettings(widgetId) ?: return
+	fun loadWidgetSettings(context: Context, widgetId: Int) {
+		viewModelScope.launch {
+			val settings = repository.loadSettings(context, widgetId) ?: return@launch
 
-		_isLoading.value = true
+			_isLoading.value = true
 
-		val selectedCredential =
-			credentials.value.find { credential -> credential.credentialInfo.userId == settings.userId }
+			val selectedCredential =
+				credentials.value.find { credential -> credential.credentialInfo.userId == settings.userId }
 
-		val preSelectCalendars = {
-			if (calendars.value.isNotEmpty()) {
-				_selectedCalendars.value = settings.calendars.filterKeys { id -> calendars.value.containsKey(id) }
-			} else {
-				_selectedCalendars.value = settings.calendars
+			val preSelectCalendars = {
+				if (calendars.value.isNotEmpty()) {
+					_selectedCalendars.value = settings.calendars.filterKeys { id -> calendars.value.containsKey(id) }
+				} else {
+					_selectedCalendars.value = settings.calendars
+				}
+
+				_isLoading.value = false
 			}
 
-			_isLoading.value = false
-		}
-
-		if (selectedCredential != null) {
-			setSelectedCredential(selectedCredential).invokeOnCompletion {
-				println(calendars.value)
+			if (selectedCredential != null) {
+				setSelectedCredential(selectedCredential)?.invokeOnCompletion {
+					preSelectCalendars()
+				}
+			} else {
 				preSelectCalendars()
 			}
-		} else {
-			preSelectCalendars()
 		}
 	}
 
-	fun storeSettings(widgetId: Int) {
+	fun storeSettings(context: Context, widgetId: Int): Job {
 		val credential = _selectedCredential.value ?: throw Exception("Missing credentials for user")
 
 		_isLoading.value = true
 
-		viewModelScope.launch {
+		return viewModelScope.launch {
 			repository.storeSettings(
+				context,
 				widgetId,
 				SettingsDao(
 					calendars = _selectedCalendars.value,
@@ -108,7 +141,7 @@ class WidgetConfigViewModel(application: Application) : AndroidViewModel(applica
 
 	private suspend fun loadCalendars(credential: PersistedCredentials) {
 		_isLoading.value = true
-		_calendars.value = repository.loadCalendars(credential)
+		_calendars.value = repository.loadCalendars(credential.credentialInfo.userId, credentialsFacade, sdk)
 		_isLoading.value = false
 	}
 }
