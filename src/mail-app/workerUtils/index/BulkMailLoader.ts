@@ -225,12 +225,8 @@ export class BulkMailLoader {
 		}
 	}
 
-	async loadMailsFromMultipleLists(mailSetEntries: readonly MailSetEntry[]): Promise<Mail[]> {
-		const mailIdsByFolder = groupByAndMap(
-			mailSetEntries,
-			(entry) => listIdPart(entry.mail),
-			(entry) => elementIdPart(entry.mail),
-		)
+	async loadMailsFromMultipleLists(mailIds: readonly IdTuple[]): Promise<Mail[]> {
+		const mailIdsByFolder = groupByAndMap(mailIds, listIdPart, elementIdPart)
 		const mails = await promiseMap(mailIdsByFolder, ([listId, mailIds]) => this.mailEntityClient.loadMultiple(MailTypeRef, listId, mailIds))
 		return mails.flat()
 	}

@@ -12,6 +12,10 @@ export type EntityUpdateData = {
 	operation: OperationType
 }
 
+export function entityUpdatesAsData(updates: readonly EntityUpdate[]): readonly EntityUpdateData[] {
+	return updates as readonly EntityUpdateData[]
+}
+
 export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData): boolean {
 	return isSameTypeRefByAttr(typeRef, update.application, update.type)
 }

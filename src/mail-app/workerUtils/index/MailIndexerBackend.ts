@@ -3,6 +3,7 @@ import Id from "../../translations/id"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { assertNotNull, getTypeId } from "@tutao/tutanota-utils"
 import {
+	elementIdPart,
 	getElementId,
 	getListId,
 	LEGACY_BCC_RECIPIENTS_ID,
@@ -13,13 +14,13 @@ import {
 import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
-import { MailWithMailDetails } from "./BulkMailLoader"
 import { IndexerCore } from "./IndexerCore"
-import { SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
+import { IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels"
-import { EntityUpdate } from "../../../common/api/entities/sys/TypeRefs"
+import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade"
+import { Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
 
-interface MailWithDetails {
+export interface MailWithDetailsAndAttachments {
 	mail: Mail
 	mailDetails: MailDetails
 	attachments: readonly TutanotaFile[]
@@ -33,33 +34,37 @@ const enum IndexResult {
 export type GroupTimestamps = Map<Id, number>
 
 export interface MailIndexerBackend {
-	enoughForUpdate(mails: readonly MailWithMailDetails[]): boolean
+	indexMails(dataPerGroup: GroupTimestamps, mailsWithDetails: readonly MailWithDetailsAndAttachments[]): Promise<void>
 
-	indexMails(dataPerGroup: GroupTimestamps, mailsWithDetails: readonly MailWithDetails[]): Promise<void>
+	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>>
 
 	// FIXME: previous model was ensuring atomicity for batch processing by having a single IndexedDB transaction for
 	//  the whole batch. We should think how to replicate this with IndexedDB.
-	onMailCreated(mailId: IdTuple): Promise<void>
+	onMailCreated(mailData: MailWithDetailsAndAttachments): Promise<void>
 
-	onMailUpdated(mailId: IdTuple): Promise<void>
+	onMailUpdated(mailData: MailWithDetailsAndAttachments): Promise<void>
 
 	onMailDeleted(mailId: IdTuple): Promise<void>
+
+	enableIndexing(): Promise<boolean>
+
+	deleteIndex(): Promise<void>
 }
 
 class IndexedDbMailIndexerBackend implements MailIndexerBackend {
-	constructor(private readonly core: IndexerCore) {}
+	constructor(private readonly dbFacade: DbFacade, private readonly core: IndexerCore, private readonly userId: Id) {}
 
-	enoughForUpdate(mails: readonly MailWithMailDetails[]): boolean {
-		return mails.length > 500
+	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
+		return this.core.getGroupIndexTimestamps(groupIds)
 	}
 
-	async indexMails(dataPerGroup: GroupTimestamps, mailsWithDetails: readonly MailWithDetails[]): Promise<void> {
-		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+	async indexMails(dataPerGroup: GroupTimestamps, mailsWithDetails: readonly MailWithDetailsAndAttachments[]): Promise<void> {
+		const indexUpdate = this.createIndexUpdate()
 		for (const element of mailsWithDetails) {
 			const keyToIndexEntries = this.createMailIndexEntries(element.mail, element.mailDetails, element.attachments)
 			this.core.encryptSearchIndexEntries(element.mail._id, assertNotNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 		}
-		await this.core.writeIndexUpdate(
+		await this.core.writeIndexUpdateWithIndexTimestamps(
 			Array.from(dataPerGroup).map(([id, timestamp]) => ({
 				groupId: id,
 				indexTimestamp: timestamp,
@@ -68,11 +73,46 @@ class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		)
 	}
 
-	async onMailCreated(mailId: IdTuple): Promise<void> {}
+	async onMailCreated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {
+		const indexUpdate = this.createIndexUpdate()
+		const indexEntries = this.createMailIndexEntries(mail, mailDetails, attachments)
+		this.core.encryptSearchIndexEntries(mail._id, assertNotNull(mail._ownerGroup), indexEntries, indexUpdate)
+		await this.core.writeIndexUpdate(indexUpdate)
+	}
 
-	async onMailUpdated(mailId: IdTuple): Promise<void> {}
+	async onMailUpdated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {
+		const indexUpdate = this.createIndexUpdate()
+		await this.core._processDeleted(MailTypeRef, getElementId(mail), indexUpdate)
+		const indexEntries = this.createMailIndexEntries(mail, mailDetails, attachments)
+		this.core.encryptSearchIndexEntries(mail._id, assertNotNull(mail._ownerGroup), indexEntries, indexUpdate)
+		await this.core.writeIndexUpdate(indexUpdate)
+	}
 
-	async onMailDeleted(mailId: IdTuple): Promise<void> {}
+	async onMailDeleted(mailId: IdTuple): Promise<void> {
+		const indexUpdate = this.createIndexUpdate()
+		await this.core._processDeleted(MailTypeRef, elementIdPart(mailId), indexUpdate)
+		await this.core.writeIndexUpdate(indexUpdate)
+	}
+
+	async enableIndexing(): Promise<boolean> {
+		const t = await this.dbFacade.createTransaction(true, [MetaDataOS])
+		const enabled = await t.get(MetaDataOS, Metadata.mailIndexingEnabled)
+		if (!enabled) {
+			const t2 = await this.dbFacade.createTransaction(false, [MetaDataOS])
+			t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
+			t2.put(MetaDataOS, Metadata.excludedListIds, [])
+			await t2.wait()
+		}
+		return enabled
+	}
+
+	deleteIndex(): Promise<void> {
+		return this.dbFacade.deleteDatabase(b64UserIdHash(this.userId))
+	}
+
+	private createIndexUpdate(): IndexUpdate {
+		return _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+	}
 
 	private createMailIndexEntries(mail: Mail, mailDetails: MailDetails, files: readonly TutanotaFile[]): Map<string, SearchIndexEntry[]> {
 		let startTimeIndex = getPerformanceTimestamp()
@@ -129,12 +169,12 @@ class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 class SqliteMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
 
-	enoughForUpdate(_: readonly MailWithMailDetails[]): boolean {
-		// assume it's always enough for now
-		return true
+	async getCurrentIndexTimestamps(groupIds: readonly []): Promise<Map<Id, number>> {
+		// FIXME
+		throw new Error("FIXME: not implemented")
 	}
 
-	async indexMails(dataPerGroup: GroupTimestamps, mailData: readonly MailWithDetails[]): Promise<void> {
+	async indexMails(dataPerGroup: GroupTimestamps, mailData: readonly MailWithDetailsAndAttachments[]): Promise<void> {
 		for (const {
 			mail,
 			mailDetails: { recipients, body },
@@ -170,11 +210,26 @@ class SqliteMailIndexerBackend implements MailIndexerBackend {
 		}
 	}
 
-	async onMailCreated(mailId: IdTuple): Promise<void> {}
+	async enableIndexing(): Promise<boolean> {
+		// FIXME: not clear what we want to do here, it should probably be always enabled
+		throw new Error("FIXME: not implemented")
+	}
 
-	async onMailUpdated(mailId: IdTuple): Promise<void> {}
+	deleteIndex(): Promise<void> {
+		throw new Error("FIXME: not implemented")
+	}
 
-	async onMailDeleted(mailId: IdTuple): Promise<void> {}
+	async onMailCreated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {
+		throw new Error("FIXME: not implemented")
+	}
+
+	async onMailUpdated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {
+		throw new Error("FIXME: not implemented")
+	}
+
+	async onMailDeleted(mailId: IdTuple): Promise<void> {
+		throw new Error("FIXME: not implemented")
+	}
 }
 
 function serializeMailAddresses(recipients: readonly MailAddress[]): string {

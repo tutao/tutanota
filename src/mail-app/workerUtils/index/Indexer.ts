@@ -10,24 +10,7 @@ import type { EntityUpdate, GroupMembership, User } from "../../../common/api/en
 import { EntityEventBatch, EntityEventBatchTypeRef, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import {
-	assertNotNull,
-	contains,
-	daysToMillis,
-	defer,
-	DeferredObject,
-	downcast,
-	getFromMap,
-	isNotNull,
-	isSameTypeRef,
-	isSameTypeRefByAttr,
-	millisToDays,
-	neverNull,
-	noOp,
-	ofClass,
-	promiseMap,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { contains, daysToMillis, defer, DeferredObject, downcast, isNotNull, millisToDays, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import {
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -36,11 +19,11 @@ import {
 	isSameId,
 	timestampToGeneratedId,
 } from "../../../common/api/common/utils/EntityUtils.js"
-import { _createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils.js"
+import { filterIndexMemberships } from "../../../common/api/worker/search/IndexUtils.js"
 import type { Db, GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { ContactList, ContactListTypeRef, ContactTypeRef, ImportMailStateTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { ContactList, ContactListTypeRef, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import type { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
@@ -53,7 +36,6 @@ import { CancelledError } from "../../../common/api/common/error/CancelledError.
 import { MembershipRemovedError } from "../../../common/api/common/error/MembershipRemovedError.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
-import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
 import {
@@ -80,10 +62,10 @@ import {
 	SearchIndexWordsIndex,
 	SearchTermSuggestionsOS,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { entityUpdatesAsData } from "../../../common/api/common/utils/EntityUpdateUtils"
 
 export type InitParams = {
 	user: User
@@ -294,7 +276,7 @@ export class Indexer {
 
 	async deleteIndex(userId: string): Promise<void> {
 		this._core.stopProcessing()
-		await this._mail.disableMailIndexing(userId)
+		await this._mail.disableMailIndexing()
 	}
 
 	extendMailIndex(newOldestTimestamp: number): Promise<void> {
@@ -319,7 +301,7 @@ export class Indexer {
 
 	_reCreateIndex(): Promise<void> {
 		const mailIndexingWasEnabled = this._mail.mailIndexingEnabled
-		return this._mail.disableMailIndexing(assertNotNull(this._initParams.user._id)).then(() => {
+		return this._mail.disableMailIndexing().then(() => {
 			// do not try to init again on error
 			return this.init({
 				user: this._initParams.user,
@@ -655,76 +637,32 @@ export class Indexer {
 	}
 
 	_processEntityEvents(batch: QueuedBatch): Promise<any> {
-		const { events, groupId, batchId } = batch
+		const { groupId, batchId } = batch
+		const events = entityUpdatesAsData(batch.events)
+
 		return this.db.initialized
 			.then(async () => {
-				if (!this.db.dbFacade.indexingSupported) {
-					return Promise.resolve()
-				}
+				// FIXME: this check should be elsewhere
+				// if (!this.db.dbFacade.indexingSupported) {
+				// 	return Promise.resolve()
+				// }
 
+				// FIXME: not sure if this should be done here, there's also another check below
 				if (
-					filterIndexMemberships(this._initParams.user)
+					!filterIndexMemberships(this._initParams.user)
 						.map((m) => m.group)
-						.indexOf(groupId) === -1
+						.includes(groupId)
 				) {
-					return Promise.resolve()
+					return
 				}
 
-				if (this._indexedGroupIds.indexOf(groupId) === -1) {
-					return Promise.resolve()
+				if (!this._indexedGroupIds.includes(groupId)) {
+					return
 				}
 
-				markStart("processEntityEvents")
-				const groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = new Map() // define map first because Webstorm has problems with type annotations
-
-				events.reduce((all, update) => {
-					if (isSameTypeRefByAttr(MailTypeRef, update.application, update.type)) {
-						getFromMap(all, MailTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(ContactTypeRef, update.application, update.type)) {
-						getFromMap(all, ContactTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(UserTypeRef, update.application, update.type)) {
-						getFromMap(all, UserTypeRef, () => []).push(update)
-					} else if (isSameTypeRefByAttr(ImportMailStateTypeRef, update.application, update.type)) {
-						getFromMap(all, ImportMailStateTypeRef, () => []).push(update)
-					}
-
-					return all
-				}, groupedEvents)
-				markStart("processEvent")
-				return promiseMap(groupedEvents.entries(), ([key, value]) => {
-					let promise = Promise.resolve()
-
-					if (isSameTypeRef(UserTypeRef, key)) {
-						return this._processUserEntityEvents(value)
-					}
-
-					const typeInfoToIndex =
-						isSameTypeRef(ImportMailStateTypeRef, key) || isSameTypeRef(MailTypeRef, key) ? typeRefToTypeInfo(MailTypeRef) : typeRefToTypeInfo(key)
-					const indexUpdate = _createNewIndexUpdate(typeInfoToIndex)
-
-					if (isSameTypeRef(MailTypeRef, key)) {
-						promise = this._mail.processEntityEvents(value, groupId, batchId, indexUpdate)
-					} else if (isSameTypeRef(ContactTypeRef, key)) {
-						promise = this._contact.processEntityEvents(value, groupId, batchId, indexUpdate)
-					} else if (isSameTypeRef(ImportMailStateTypeRef, key)) {
-						promise = this._mail.processImportStateEntityEvents(value, groupId, batchId, indexUpdate)
-					}
-
-					return promise
-						.then(() => {
-							markEnd("processEvent")
-							markStart("writeIndexUpdate")
-							return this._core.writeIndexUpdateWithBatchId(groupId, batchId, indexUpdate)
-						})
-						.then(() => {
-							markEnd("writeIndexUpdate")
-							markEnd("processEntityEvents") // if (!env.dist && env.mode !== "Test") {
-							// 	printMeasure("Update of " + key.type + " " + batch.events.map(e => operationTypeKeys[e.operation]).join(","), [
-							// 		"processEntityEvents", "processEvent", "writeIndexUpdate"
-							// 	])
-							// }
-						})
-				})
+				await this._mail.processEntityEvents(events, groupId, batchId)
+				await this._contact.processEntityEvents(events, groupId, batchId)
+				await this._core.writeGroupDataBatchId(groupId, batchId)
 			})
 			.catch(ofClass(CancelledError, noOp))
 			.catch(

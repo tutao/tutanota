@@ -70,6 +70,7 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
+import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -195,10 +196,10 @@ export class IndexerCore {
 	/**
 	 * Process delete event before applying to the index.
 	 */
-	async _processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
-		const encInstanceIdPlain = encryptIndexKeyUint8Array(this.db.key, event.instanceId, this.db.iv)
+	async _processDeleted(typeRef: TypeRef<any>, instanceId: Id, indexUpdate: IndexUpdate): Promise<void> {
+		const encInstanceIdPlain = encryptIndexKeyUint8Array(this.db.key, instanceId, this.db.iv)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceIdPlain)
-		const { appId, typeId } = typeRefToTypeInfo(new TypeRef(event.application, event.type))
+		const { appId, typeId } = typeRefToTypeInfo(typeRef)
 		const transaction = await this.db.dbFacade.createTransaction(true, [ElementDataOS])
 		const elementData = await transaction.get(ElementDataOS, encInstanceIdB64)
 		if (!elementData) {
@@ -217,7 +218,7 @@ export class IndexerCore {
 				encInstanceId: encInstanceIdPlain,
 				appId,
 				typeId,
-				timestamp: generatedIdToTimestamp(event.instanceId),
+				timestamp: generatedIdToTimestamp(instanceId),
 			})
 		}
 		indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
@@ -248,7 +249,7 @@ export class IndexerCore {
 	/**
 	 * Apply populated {@param indexUpdate} to the database.
 	 */
-	writeIndexUpdate(
+	writeIndexUpdateWithIndexTimestamps(
 		dataPerGroup: Array<{
 			groupId: Id
 			indexTimestamp: number
@@ -260,6 +261,20 @@ export class IndexerCore {
 
 	writeIndexUpdateWithBatchId(groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		return this._writeIndexUpdate(indexUpdate, (t) => this._updateGroupDataBatchId(groupId, batchId, t))
+	}
+
+	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
+		return this._writeIndexUpdate(indexUpdate, noOp)
+	}
+
+	async writeGroupDataBatchId(groupId: Id, batchId: Id) {
+		await this._executeOperation({
+			transaction: null,
+			deferred: defer(),
+			isAbortedForBackgroundMode: false,
+			transactionFactory: () => this.db.dbFacade.createTransaction(false, [SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS]),
+			operation: (transaction) => this._updateGroupDataBatchId(groupId, batchId, transaction),
+		})
 	}
 
 	_writeIndexUpdate(indexUpdate: IndexUpdate, updateGroupData: (t: DbTransaction) => $Promisable<void>): Promise<void> {
@@ -867,6 +882,22 @@ export class IndexerCore {
 				})
 			}
 		})
+	}
+
+	getGroupIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
+		return this.db.dbFacade
+			.createTransaction(true, [GroupDataOS])
+			.then((t) => {
+				return Promise.all(
+					groupIds.map((groupId) => {
+						return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
+							const timestamp = !groupData ? NOTHING_INDEXED_TIMESTAMP : groupData.indexTimestamp
+							return [groupId, timestamp] satisfies [Id, number]
+						})
+					}),
+				)
+			})
+			.then((timestamps) => new Map<Id, number>(timestamps))
 	}
 
 	_updateGroupDataIndexTimestamp(
