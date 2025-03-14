@@ -1,7 +1,9 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { Base64, TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
 import { AppName } from "../worker/crypto/InstanceMapper"
+import type { BucketKey } from "../entities/sys/TypeRefs"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export type TypeModel = {
 	id: number
@@ -52,24 +54,44 @@ export interface Instance extends Entity {
 
 export interface Entity {
 	_type: TypeRef<this>
-}
 
-export interface ElementEntity extends Entity, Element {
 	_ownerEncSessionKey?: null | Uint8Array
 	_ownerKeyVersion?: null | NumberString
-	_ownerGroup: null | Id
+	_ownerGroup?: null | Id
 }
 
-export interface ListElementEntity extends Entity, ListElement {
-	_ownerEncSessionKey?: null | Uint8Array
-	_ownerKeyVersion?: null | NumberString
-	_ownerGroup: null | Id
-}
+export interface ElementEntity extends Entity, Element {}
 
-export interface BlobElementEntity extends Entity, BlobElement {
-	_ownerEncSessionKey?: null | Uint8Array
-	_ownerKeyVersion?: null | NumberString
-	_ownerGroup: null | Id
-}
+export interface ListElementEntity extends Entity, ListElement {}
+
+export interface BlobElementEntity extends Entity, BlobElement {}
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
+
+/// fixme:
+/// An instance that if encrypted, was already decrypted
+//// and is mapped by filedName
+//// This is already ts object usable
+//// probabbly alll entities in TypeRef shouldsatisfy this interface
+//// or we can merge it with Instance interface itself
+export type DecryptedInstance = SomeEntity & {
+	ownerGroup?: Id
+	_permissions?: Id | null
+	ownerKeyVersion?: NumberString
+	bucketKey?: BucketKey | null
+	ownerEncSessionKey?: Uint8Array
+}
+
+export type ElementValue =
+	| Id
+	| IdTuple
+	// it should have been circularily ParsedEncryptedInstance
+	| Record<string, any>
+	| boolean
+	| Date
+	| number
+	| string
+	| Uint8Array
+	| Base64
+
+export type ParsedEncryptedInstance = Record<number, Nullable<ElementValue>>
