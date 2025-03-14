@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-03-06T09:28:41Z",
+	"updated_at": "2025-03-13T09:09:34Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1020,7 +1020,7 @@ export default {
 		"matchCase_alt": "Groß/Kleinschreibung beachten",
 		"matchingKeywords_label": "Übereinstimmende Schlüsselwörter",
 		"maximumLabelsPerMailReached_msg": "Maximum der erlaubten Labels pro E-Mail erreicht.",
-		"maybeAttending_label": "Veilleicht teilnehmen",
+		"maybeAttending_label": "Vielleicht teilnehmen",
 		"maybeLater_action": "Vielleicht später",
 		"maybe_label": "Vielleicht",
 		"menu_label": "Menü",

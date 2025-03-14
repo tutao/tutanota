@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2025-03-03T15:45:02Z",
+	"updated_at": "2025-03-13T09:58:13Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -486,7 +486,7 @@ export default {
 		"dynamicLoginPreparingRocketLaunch_msg": "Preparando o lançamento do foguete ...",
 		"dynamicLoginRestockingTutaFridge_msg": "Reesbatecendo o frigorífico Tuta ...",
 		"dynamicLoginSortingContacts_msg": "Ordenando os contatos...",
-		"dynamicLoginSwitchingOnPrivacy_msg": "Ativiando a privacidade...",
+		"dynamicLoginSwitchingOnPrivacy_msg": "Ativando a privacidade...",
 		"dynamicLoginUpdatingOfflineDatabase_msg": "Atualizando para base de dados offline",
 		"Edit contact form": "Editar formulário de contato",
 		"editContactForm_label": "Editar formulário de contato",
