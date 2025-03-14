@@ -1,8 +1,10 @@
+import { AppName } from "../../../src/common/api/worker/crypto/InstanceMapper"
+
 /**
  * T should be restricted to Entity.
  */
 export class TypeRef<T> {
-	readonly app: string
+	readonly app: AppName
 	readonly typeId: number
 
 	/**
@@ -11,7 +13,7 @@ export class TypeRef<T> {
 	 */
 	readonly phantom: T | null = null
 
-	constructor(app: string, typeId: number) {
+	constructor(app: AppName, typeId: number) {
 		this.app = app
 		this.typeId = typeId
 		Object.freeze(this)

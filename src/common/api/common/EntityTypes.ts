@@ -1,11 +1,12 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
+import { AppName } from "../worker/crypto/InstanceMapper"
 
 export type TypeModel = {
 	id: number
 	since: number
-	app: string
+	app: AppName
 	version: string
 	name: string
 	type: Values<typeof Type>

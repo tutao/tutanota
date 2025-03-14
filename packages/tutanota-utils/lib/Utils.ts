@@ -637,3 +637,5 @@ export function createResizeObserver(cb: ResizeObserverCallback): ResizeObserver
 		})
 	})
 }
+
+export type Nullable<T> = T | null
