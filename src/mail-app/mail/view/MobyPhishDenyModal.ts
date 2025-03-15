@@ -6,10 +6,10 @@ import type { Shortcut } from "../../../common/misc/KeyManager.js";
 export class MobyPhishDenyModal implements ModalComponent {
     view(): Children {
         return m(".dialog-overlay", {
-            onclick: () => modal.remove(this) // Close modal when clicking the background
+            onclick: (e: MouseEvent) => this.backgroundClick(e) // Ensure modal closes on background click
         }, [
             m(".dialog-container", {
-                onclick: (e: MouseEvent) => e.stopPropagation() // Prevent closing when clicking inside the modal
+                onclick: (e: MouseEvent) => e.stopPropagation() // Prevent closing when clicking inside modal
             }, [
                 m(".dialog.elevated-bg.border-radius", {
                     style: {
@@ -36,9 +36,9 @@ export class MobyPhishDenyModal implements ModalComponent {
 
     onClose(): void {}
 
-    // **🔥 Fix: Add `backgroundClick` method to properly close modal on click**
+    // 🔥 Fix: Ensure `backgroundClick` method is defined properly
     backgroundClick(e: MouseEvent): void {
-        modal.remove(this);
+        modal.remove(this); // Ensure modal closes when clicking background
     }
 
     popState(e: Event): boolean {
