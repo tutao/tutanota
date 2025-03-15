@@ -728,45 +728,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}
 
-	//
-	//
-	//
-	//moby phish banner
-	// private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
-
-	// 	// const mobyPhishButton: BannerButtonAttrs = {
-	// 	// 	label: "mobyPhish_action",
-	// 	// 	click: () => {
-	// 	// 		console.log("Moby Phish Button Clicked!");
-	// 	// 		console.log("viewModel:", viewModel);
-	// 	// 	},
-	// 	// };
-		
-	// 	const confirmButton: BannerButtonAttrs = {
-	// 		label: "mobyPhish_confirm",
-	// 		click: () => {
-	// 			console.log("Moby Phish Confirm Button Clicked!");
-	// 		},
-	// 	};
-		
-	// 	const denyButton: BannerButtonAttrs = {
-	// 		label: "mobyPhish_deny",
-	// 		click: () => {
-	// 			console.log("Moby Phish Deny Button Clicked!");
-	// 		},
-	// 	};
-
-	// 	return m(InfoBanner, {
-	// 		message: "mobyPhish_is_trusted",
-	// 		icon: Icons.Warning,
-	// 		type: BannerType.Warning,
-	// 		helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-	// 		buttons: [confirmButton, denyButton],
-	// 	})
-	// }
-	//
-	//
-	//
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		if (this.isSenderConfirmed) {			
 			return m(InfoBanner as any, {

@@ -5,21 +5,23 @@ import type { Shortcut } from "../../../common/misc/KeyManager.js";
 
 export class MobyPhishDenyModal implements ModalComponent {
     view(): Children {
-        return m(".dialog-container", [
-            m(".dialog.elevated-bg.border-radius", {
-                style: {
-                    position: "fixed",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    padding: "20px",
-                    textAlign: "center"
-                }
-            }, [
-                m("h3", "Choose an Action"),
-                m("button.btn", { onclick: () => console.log("This is someone else clicked") }, "This is someone else"),
-                m("button.btn", { onclick: () => console.log("Remove from Trusted Senders clicked") }, "Remove from Trusted Senders"),
-                m("button.btn", { onclick: () => modal.remove(this) }, "Cancel") // Close button
+        return m(".dialog-overlay", { onclick: this.backgroundClick.bind(this) }, [ // Background click handler
+            m(".dialog-container", { onclick: (e: MouseEvent) => e.stopPropagation() }, [ // Prevent closing when clicking inside
+                m(".dialog.elevated-bg.border-radius", {
+                    style: {
+                        position: "fixed",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        padding: "20px",
+                        textAlign: "center"
+                    }
+                }, [
+                    m("h3", "Choose an Action"),
+                    m("button.btn", { onclick: () => console.log("This is someone else clicked") }, "This is someone else"),
+                    m("button.btn", { onclick: () => console.log("Remove from Trusted Senders clicked") }, "Remove from Trusted Senders"),
+                    m("button.btn", { onclick: () => modal.remove(this) }, "Cancel") // Close button
+                ])
             ])
         ]);
     }
@@ -31,7 +33,7 @@ export class MobyPhishDenyModal implements ModalComponent {
     onClose(): void {}
 
     backgroundClick(e: MouseEvent): void {
-        modal.remove(this);
+        modal.remove(this); // Closes the modal when clicking outside
     }
 
     popState(e: Event): boolean {
@@ -43,11 +45,9 @@ export class MobyPhishDenyModal implements ModalComponent {
         return null;
     }
 
-    // **Fix: Add shortcuts() method**
     shortcuts(): Shortcut[] {
         return [
             {
-                
                 key: Keys.ESC, // Close modal when Escape key is pressed
                 exec: () => {
                     modal.remove(this);
