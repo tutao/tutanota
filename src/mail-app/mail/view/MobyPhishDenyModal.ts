@@ -5,11 +5,11 @@ import type { Shortcut } from "../../../common/misc/KeyManager.js";
 
 export class MobyPhishDenyModal implements ModalComponent {
     view(): Children {
-        return m(".dialog-overlay", {
-            onclick: (e: MouseEvent) => this.backgroundClick(e) // Ensure modal closes on background click
+        return m(".modal-overlay", {
+            onclick: (e: MouseEvent) => this.backgroundClick(e) // Handle background click properly
         }, [
-            m(".dialog-container", {
-                onclick: (e: MouseEvent) => e.stopPropagation() // Prevent closing when clicking inside modal
+            m(".modal-content", {
+                onclick: (e: MouseEvent) => e.stopPropagation() // Prevent modal from closing when clicking inside it
             }, [
                 m(".dialog.elevated-bg.border-radius", {
                     style: {
@@ -18,7 +18,10 @@ export class MobyPhishDenyModal implements ModalComponent {
                         left: "50%",
                         transform: "translate(-50%, -50%)",
                         padding: "20px",
-                        textAlign: "center"
+                        textAlign: "center",
+                        background: "#fff", // Ensure modal is visible
+                        boxShadow: "0px 0px 10px rgba(0,0,0,0.2)", // Add shadow for better visibility
+                        borderRadius: "6px"
                     }
                 }, [
                     m("h3", "Choose an Action"),
@@ -36,9 +39,9 @@ export class MobyPhishDenyModal implements ModalComponent {
 
     onClose(): void {}
 
-    // 🔥 Fix: Ensure `backgroundClick` method is defined properly
     backgroundClick(e: MouseEvent): void {
-        modal.remove(this); // Ensure modal closes when clicking background
+        console.log("Background clicked, closing modal...");
+        modal.remove(this);
     }
 
     popState(e: Event): boolean {
@@ -53,7 +56,7 @@ export class MobyPhishDenyModal implements ModalComponent {
     shortcuts(): Shortcut[] {
         return [
             {
-                key: Keys.ESC, // Close modal when Escape key is pressed
+                key: Keys.ESC, 
                 exec: () => {
                     modal.remove(this);
                     return true;
