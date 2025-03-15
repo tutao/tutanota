@@ -34,6 +34,7 @@ export class MobyPhishDenyModal implements ModalComponent {
 
     backgroundClick(e: MouseEvent): void {
         modal.remove(this); // Closes the modal when clicking outside
+        console.log("whammra");
     }
 
     popState(e: Event): boolean {
