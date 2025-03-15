@@ -4,14 +4,12 @@ import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 
 export class MobyPhishDenyModal implements ModalComponent {
-    private isMounted: boolean = false;
-
     view(): Children {
         return m(".dialog-overlay", {
-            onclick: () => modal.remove(this) // Always remove modal when background is clicked
+            onclick: () => modal.remove(this) // Close modal when clicking the background
         }, [
             m(".dialog-container", {
-                onclick: (e: MouseEvent) => e.stopPropagation() // Prevent closing when clicking inside
+                onclick: (e: MouseEvent) => e.stopPropagation() // Prevent closing when clicking inside the modal
             }, [
                 m(".dialog.elevated-bg.border-radius", {
                     style: {
@@ -32,23 +30,16 @@ export class MobyPhishDenyModal implements ModalComponent {
         ]);
     }
 
-    oncreate() {
-        this.isMounted = true;
-    }
-
-    onupdate() {
-        this.isMounted = true;
-    }
-
-    onremove() {
-        this.isMounted = false;
-    }
-
     hideAnimation(): Promise<void> {
         return Promise.resolve();
     }
 
     onClose(): void {}
+
+    // **🔥 Fix: Add `backgroundClick` method to properly close modal on click**
+    backgroundClick(e: MouseEvent): void {
+        modal.remove(this);
+    }
 
     popState(e: Event): boolean {
         modal.remove(this);
