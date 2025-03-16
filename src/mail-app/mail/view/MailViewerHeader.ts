@@ -756,7 +756,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        }
 	    };
 
-	    // ➡️ New test buttons for blocking/unblocking images
+	    // test buttons for blocking/unblocking images
 	    const blockImagesButton: BannerButtonAttrs = {
 	        label: "blockExternalContentSender_action",
 	        click: () => {
@@ -769,6 +769,23 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        label: "showBlockedContent_action",
 	        click: () => {
 	            console.log("✅ Showing images...");
+	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
+	        }
+	    };
+
+	    // test buttons for blocking/unblocking links
+	    const blockLinksButton: BannerButtonAttrs = {
+	        label: "blockExternalContentSender_action",
+	        click: () => {
+	            console.log("🚫 Blocking links...");
+	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Block);
+	        }
+	    };
+
+	    const showLinksButton: BannerButtonAttrs = {
+	        label: "showBlockedContent_action",
+	        click: () => {
+	            console.log("✅ Enabling links...");
 	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
 	        }
 	    };

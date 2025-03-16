@@ -491,6 +491,9 @@ export class MailViewerViewModel {
 		this.sanitizeResult = await this.sanitizeMailBody(this.mail, status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock)
 		//follow-up actions resulting from a changed blocking status must start after sanitization finished
 		this.contentBlockingStatus = status
+
+		 // Toggle links when blocking status changes
+    	this.toggleLinks(status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock);
 	}
 
 	async markAsNotPhishing(): Promise<void> {
@@ -1142,4 +1145,29 @@ export class MailViewerViewModel {
 
 		this.loadAll(Promise.resolve(), { notify: true })
 	}
+
+	private toggleLinks(block: boolean): void {
+	    const emailBody = this.getSanitizedMailBody();
+	    if (!emailBody) return;
+
+	    const links = emailBody.querySelectorAll("a"); // Find all links
+	    links.forEach((link) => {
+	        if (block) {
+	            console.log("🚫 Disabling link:", link.href);
+	            (link as HTMLAnchorElement).dataset.originalHref = link.getAttribute("href") || "";
+	            (link as HTMLAnchorElement).setAttribute("href", "#");
+	            (link as HTMLAnchorElement).style.pointerEvents = "none";
+	            (link as HTMLAnchorElement).style.color = "gray";
+	        } else {
+	            console.log("✅ Enabling link:", link.dataset.originalHref);
+	            const originalHref = (link as HTMLAnchorElement).dataset.originalHref;
+	            if (originalHref) {
+	                (link as HTMLAnchorElement).setAttribute("href", originalHref);
+	                (link as HTMLAnchorElement).style.pointerEvents = "auto";
+	                (link as HTMLAnchorElement).style.color = "";
+	            }
+	        }
+	    });
+	}
+
 }
