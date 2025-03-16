@@ -68,6 +68,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 	}
 
 	renderIcon(icon: AllIcons, type: BannerType | null): Children {
+		console.log("rendering icon: ",  icon);
 		return m(Icon, {
 			icon,
 			style: {
