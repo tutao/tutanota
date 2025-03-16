@@ -67,6 +67,7 @@ export interface ButtonAttrs {
 	click?: ClickHandler
 	type: ButtonType
 	colors?: ButtonColor
+	icon?: Children
 }
 
 /**
