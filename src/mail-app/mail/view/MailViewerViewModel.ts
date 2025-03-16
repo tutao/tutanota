@@ -1182,4 +1182,8 @@ export class MailViewerViewModel {
 		return this.senderConfirmed;
 	}
 
+	public confirmTrusted(): void {
+		this.senderConfirmed = true;
+	}
+
 }

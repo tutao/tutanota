@@ -752,8 +752,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        icon: m(Icon, { icon: Icons.Checkmark }),
 	        click: (event: MouseEvent) => {
             	console.log("✅ User confirmed sender:", senderEmail);
-            	viewModel.trustedSenders.push(senderEmail); // Add to trusted list
-	            viewModel.isSenderTrusted = true;
+            	viewModel.confirmTrusted(); // Add to trusted list
 	            m.redraw();
 	        }
 	    };
