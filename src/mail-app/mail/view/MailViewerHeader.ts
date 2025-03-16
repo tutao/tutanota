@@ -758,7 +758,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	    // ➡️ New test buttons for blocking/unblocking images
 	    const blockImagesButton: BannerButtonAttrs = {
-	        label: "Block Images",
+	        label: "blockExternalContentSender_action",
 	        click: () => {
 	            console.log("🚫 Blocking images...");
 	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Block);
@@ -766,7 +766,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    };
 
 	    const showImagesButton: BannerButtonAttrs = {
-	        label: "Show Images",
+	        label: "showBlockedContent_action",
 	        click: () => {
 	            console.log("✅ Showing images...");
 	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
