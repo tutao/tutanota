@@ -755,8 +755,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
             	viewModel.trustedSenders.push(senderEmail); // Add to trusted list
 	            viewModel.isSenderTrusted = true;
 	            m.redraw();
-	        });
-	    };
+	        }
+	    });
 
     	 const denyButton: BannerButtonAttrs = m({
 	        label: "mobyPhish_deny",
@@ -764,8 +764,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        click: (event: MouseEvent) => {
 	        	console.log("🚫 User denied sender:", senderEmail);
 	            modal.display(new MobyPhishDenyModal());
-	        });
-	    };	   
+	        }
+	    });	   
 
 	    return m(InfoBanner, {
 	        message: "mobyPhish_is_trusted",
