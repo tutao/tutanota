@@ -1147,27 +1147,36 @@ export class MailViewerViewModel {
 	}
 
 	private toggleLinks(block: boolean): void {
-	    const emailBody = this.getSanitizedMailBody();
-	    if (!emailBody) return;
-
-	    const links = emailBody.querySelectorAll("a"); // Find all links
-	    links.forEach((link) => {
-	        if (block) {
-	            console.log("🚫 Disabling link:", link.href);
-	            (link as HTMLAnchorElement).dataset.originalHref = link.getAttribute("href") || "";
-	            (link as HTMLAnchorElement).setAttribute("href", "#");
-	            (link as HTMLAnchorElement).style.pointerEvents = "none";
-	            (link as HTMLAnchorElement).style.color = "gray";
-	        } else {
-	            console.log("✅ Enabling link:", link.dataset.originalHref);
-	            const originalHref = (link as HTMLAnchorElement).dataset.originalHref;
-	            if (originalHref) {
-	                (link as HTMLAnchorElement).setAttribute("href", originalHref);
-	                (link as HTMLAnchorElement).style.pointerEvents = "auto";
-	                (link as HTMLAnchorElement).style.color = "";
-	            }
+	    setTimeout(() => {
+	        const emailBody = this.getSanitizedMailBody();
+	        if (!emailBody) {
+	            console.warn("Email body not found, retrying...");
+	            return;
 	        }
-	    });
+
+	        const links = emailBody.querySelectorAll("a"); // Find all links
+	        if (links.length === 0) {
+	            console.warn("No links found in email body.");
+	        }
+
+	        links.forEach((link) => {
+	            if (block) {
+	                console.log("🚫 Disabling link:", link.href);
+	                (link as HTMLAnchorElement).dataset.originalHref = link.getAttribute("href") || "";
+	                (link as HTMLAnchorElement).setAttribute("href", "#");
+	                (link as HTMLAnchorElement).style.pointerEvents = "none";
+	                (link as HTMLAnchorElement).style.color = "gray";
+	            } else {
+	                console.log("✅ Enabling link:", link.dataset.originalHref);
+	                const originalHref = (link as HTMLAnchorElement).dataset.originalHref;
+	                if (originalHref) {
+	                    (link as HTMLAnchorElement).setAttribute("href", originalHref);
+	                    (link as HTMLAnchorElement).style.pointerEvents = "auto";
+	                    (link as HTMLAnchorElement).style.color = "";
+	                }
+	            }
+	        });
+	    }, 100); // Delay execution slightly to ensure content is loaded
 	}
 
 }
