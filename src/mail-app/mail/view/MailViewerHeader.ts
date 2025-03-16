@@ -57,7 +57,6 @@ export interface MailViewerHeaderAttrs {
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private detailsExpanded = false
 	private filesExpanded = false
-	isSenderConfirmed: any
 
 	view({ attrs }: Vnode<MailViewerHeaderAttrs>): Children {
 		const { viewModel } = attrs
@@ -732,7 +731,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
     	const senderEmail = viewModel.getSender().address;
 
-	    if (viewModel.isSenderConfirmed) {            
+	    if (viewModel.isSenderTrusted) {            
 	        return m(InfoBanner, {
 	            message: "mobyPhish_sender_confirmed",
 	            icon: Icons.CircleCheckmark,
@@ -748,7 +747,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        click: (event: MouseEvent) => {
             	console.log("✅ User confirmed sender:", senderEmail);
             	viewModel.trustedSenders.push(senderEmail); // Add to trusted list
-	            viewModel.isSenderConfirmed = true;
+	            viewModel.isSenderTrusted = true;
 	            m.redraw();
 	        }
 	    };
