@@ -755,7 +755,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
             	console.log("✅ User confirmed sender:", senderEmail);
             	viewModel.confirmTrusted(); // Add to trusted list
 	            m.redraw();
-	        }
+	        },
+		    style: {
+		        backgroundColor: "green",
+		        color: "white",
+		        fontWeight: "bold",
+		        borderRadius: "8px",
+		        padding: "8px 12px",
+		    }
 	    };
 
     	 const denyButton: BannerButtonAttrs = {
@@ -765,7 +772,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        click: (event: MouseEvent) => {
 	        	console.log("🚫 User denied sender:", senderEmail);
 	            modal.display(new MobyPhishDenyModal());
-	        }
+	        },
+		    style: {
+		        backgroundColor: "red",
+		        color: "white",
+		        fontWeight: "bold",
+		        borderRadius: "8px",
+		        padding: "8px 12px",
+		    }
 	    };	   
 
 	    return m(InfoBanner, {
