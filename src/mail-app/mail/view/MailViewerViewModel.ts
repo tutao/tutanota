@@ -470,7 +470,18 @@ export class MailViewerViewModel {
 	async setContentBlockingStatus(status: ContentBlockingStatus): Promise<void> {
 		// We can only be set to NoExternalContent when initially loading the mailbody (_loadMailBody)
 		// so we ignore it here, and don't do anything if we were already set to NoExternalContent
-		if (
+		console.log(`🔍 Setting content blocking status to: ${status}`);
+
+		if (status === ContentBlockingStatus.Block) {
+	        console.log("🚫 Blocking external images...");
+	    } else if (status === ContentBlockingStatus.Show) {
+	        console.log("✅ Allowing external images...");
+	    }
+
+	    this.contentBlockingStatus = status;
+	    m.redraw();
+
+		/*if (
 			status === ContentBlockingStatus.NoExternalContent ||
 			this.contentBlockingStatus === ContentBlockingStatus.NoExternalContent ||
 			this.contentBlockingStatus === status
@@ -490,7 +501,7 @@ export class MailViewerViewModel {
 		// We don't check mail authentication status here because the user has manually called this
 		this.sanitizeResult = await this.sanitizeMailBody(this.mail, status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock)
 		//follow-up actions resulting from a changed blocking status must start after sanitization finished
-		this.contentBlockingStatus = status
+		this.contentBlockingStatus = status*/
 	}
 
 	async markAsNotPhishing(): Promise<void> {
