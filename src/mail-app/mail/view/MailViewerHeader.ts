@@ -749,7 +749,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	    const confirmButton: BannerButtonAttrs = {
 	        label: "mobyPhish_confirm",
-	        icon: Icons.Checkmark,
+	        icon: m(Icon, { name: "Checkmark" }),
 	        click: (event: MouseEvent) => {
             	console.log("✅ User confirmed sender:", senderEmail);
             	viewModel.trustedSenders.push(senderEmail); // Add to trusted list
@@ -760,7 +760,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
     	 const denyButton: BannerButtonAttrs = {
 	        label: "mobyPhish_deny",
-	        icon: Icons.Close,
+	        icon: m(Icon, { name: "Close"}),
 	        click: (event: MouseEvent) => {
 	        	console.log("🚫 User denied sender:", senderEmail);
 	            modal.display(new MobyPhishDenyModal());
