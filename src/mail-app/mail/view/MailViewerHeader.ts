@@ -748,7 +748,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    }
 
 	    const confirmButton: BannerButtonAttrs = {
-	        label: "mobyPhish_confirm",
+	        title: "mobyPhish_confirm",
 			icon: m(Icon, { icon: Icons.Checkmark }),
 	        click: (event: MouseEvent) => {
             	console.log("✅ User confirmed sender:", senderEmail);
@@ -758,7 +758,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    };
 
     	 const denyButton: BannerButtonAttrs = {
-	        label: "mobyPhish_confirm",
+	        title: "mobyPhish_confirm",
 	        icon: m(Icon, { icon: Icons.Close}),
 	        click: (event: MouseEvent) => {
 	        	console.log("🚫 User denied sender:", senderEmail);
