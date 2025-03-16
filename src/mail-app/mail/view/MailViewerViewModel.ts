@@ -1170,4 +1170,9 @@ export class MailViewerViewModel {
 	    });
 	}
 
+	private isSenderTrusted(): boolean {
+	    const sender = this.getSender().address;
+	    return this.trustedSenders.includes(sender);
+	}	
+
 }

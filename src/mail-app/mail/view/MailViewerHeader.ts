@@ -615,7 +615,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderPhishingWarning(viewModel: MailViewerViewModel): Children | null {
-		//if (viewModel.isMailSuspicious()) {
+		if (viewModel.isMailSuspicious()) {
 			return m(InfoBanner, {
 				message: "phishingMessageBody_msg",
 				icon: Icons.Warning,
@@ -628,7 +628,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					},
 				],
 			})
-		//}
+		}
 	}
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
@@ -729,11 +729,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
-	    if (this.isSenderConfirmed) {            
+
+    	const senderEmail = viewModel.getSender().address;
+
+	    if (viewModel.isSenderConfirmed) {            
 	        return m(InfoBanner, {
 	            message: "mobyPhish_sender_confirmed",
-	            icon: Icons.Warning,
-	            type: BannerType.Warning,
+	            icon: Icons.CircleCheckmark,
+	            type: BannerType.Info,
 	            helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 	            buttons: [],
 	        });
@@ -741,52 +744,21 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	    const confirmButton: BannerButtonAttrs = {
 	        label: "mobyPhish_confirm",
+	        icon: Icons.Checkmark,
 	        click: (event: MouseEvent) => {
-	            console.log("Moby Phish Confirm Button Clicked!");
-	            this.isSenderConfirmed = true;
+            	console.log("✅ User confirmed sender:", senderEmail);
+            	viewModel.trustedSenders.push(senderEmail); // Add to trusted list
+	            viewModel.isSenderConfirmed = true;
 	            m.redraw();
 	        }
 	    };
 
 	    const denyButton: BannerButtonAttrs = {
 	        label: "mobyPhish_deny",
+	        icon: Icons.Close,
 	        click: (event: MouseEvent) => {
-	            console.log("Moby Phish Deny Button Clicked!");
+	        	console.log("🚫 User denied sender:", senderEmail);
 	            modal.display(new MobyPhishDenyModal());
-	        }
-	    };
-
-	    // test buttons for blocking/unblocking images
-	    const blockImagesButton: BannerButtonAttrs = {
-	        label: "blockExternalContentSender_action",
-	        click: () => {
-	            console.log("🚫 Blocking images...");
-	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Block);
-	        }
-	    };
-
-	    const showImagesButton: BannerButtonAttrs = {
-	        label: "showBlockedContent_action",
-	        click: () => {
-	            console.log("✅ Showing images...");
-	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
-	        }
-	    };
-
-	    // test buttons for blocking/unblocking links
-	    const blockLinksButton: BannerButtonAttrs = {
-	        label: "blockExternalContentSender_action",
-	        click: () => {
-	            console.log("🚫 Blocking links...");
-	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Block);
-	        }
-	    };
-
-	    const showLinksButton: BannerButtonAttrs = {
-	        label: "showBlockedContent_action",
-	        click: () => {
-	            console.log("✅ Enabling links...");
-	            viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
 	        }
 	    };
 
@@ -795,7 +767,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        icon: Icons.Warning,
 	        type: BannerType.Warning,
 	        helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-	        buttons: [confirmButton, denyButton, blockImagesButton, showImagesButton, blockLinksButton, showLinksButton], // Added test buttons here
+	        buttons: [confirmButton, denyButton],
 	    });
 	}
 
