@@ -795,7 +795,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        icon: Icons.Warning,
 	        type: BannerType.Warning,
 	        helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-	        buttons: [confirmButton, denyButton, blockImagesButton, showImagesButton], // Added test buttons here
+	        buttons: [confirmButton, denyButton, blockImagesButton, showImagesButton, blockLinksButton, showLinksButton], // Added test buttons here
 	    });
 	}
 
