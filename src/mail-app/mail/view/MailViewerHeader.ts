@@ -748,6 +748,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    }
 
 	    const confirmButton: BannerButtonAttrs = {
+	    	label: "emptyString_msg",
 	        title: "mobyPhish_confirm",
 			icon: m(Icon, { icon: Icons.Checkmark }),
 	        click: (event: MouseEvent) => {
@@ -758,6 +759,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    };
 
     	 const denyButton: BannerButtonAttrs = {
+    	 	label: "emptyString_msg",
 	        title: "mobyPhish_confirm",
 	        icon: m(Icon, { icon: Icons.Close}),
 	        click: (event: MouseEvent) => {
