@@ -747,7 +747,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    	//click blue add (add them and show confirm banner)
 	    }
 
-	    const confirmButton: BannerButtonAttrs = {
+	    const confirmButton: BannerButtonAttrs = m(BannerButtonAttrs, {
 	        label: "mobyPhish_confirm",
 	        icon: m(Icons.Checkmark),
 	        click: (event: MouseEvent) => {
@@ -755,16 +755,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
             	viewModel.trustedSenders.push(senderEmail); // Add to trusted list
 	            viewModel.isSenderTrusted = true;
 	            m.redraw();
-	        }
+	        });
 	    };
 
-    	 const denyButton: BannerButtonAttrs = {
+    	 const denyButton: BannerButtonAttrs = m({
 	        label: "mobyPhish_deny",
-	        icon: m(Icons.Close),
+	        icon: Icons.Close,
 	        click: (event: MouseEvent) => {
 	        	console.log("🚫 User denied sender:", senderEmail);
 	            modal.display(new MobyPhishDenyModal());
-	        }
+	        });
 	    };	   
 
 	    return m(InfoBanner, {
