@@ -749,7 +749,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	    const confirmButton: BannerButtonAttrs = {
 	        label: "mobyPhish_confirm",
-	        icon: m(Icon, { icon: Icons.Checkmark, style: {color: "red", fontSize: "24px"} }),
+    		icon: m("span", { style: "color: red;" }, "✔️"), // Test icon
 	        click: (event: MouseEvent) => {
             	console.log("✅ User confirmed sender:", senderEmail);
             	viewModel.confirmTrusted(); // Add to trusted list
