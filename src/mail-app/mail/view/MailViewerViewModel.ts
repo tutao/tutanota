@@ -125,6 +125,9 @@ export class MailViewerViewModel {
 
 	private mailDetails: MailDetails | null = null
 
+	private trustedSenders: string[] = [];
+	private senderConfirmed: boolean = false; 
+
 	constructor(
 		private _mail: Mail,
 		showFolder: boolean,
@@ -1170,9 +1173,13 @@ export class MailViewerViewModel {
 	    });
 	}
 
-	private isSenderTrusted(): boolean {
+	public isSenderTrusted(): boolean {
 	    const sender = this.getSender().address;
 	    return this.trustedSenders.includes(sender);
 	}	
+
+	public isSenderConfirmed(): boolean {
+		return this.senderConfirmed;
+	}
 
 }
