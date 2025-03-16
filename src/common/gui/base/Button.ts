@@ -84,6 +84,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 				borderColor: getColors(attrs.colors).border,
 			},
 			onclick: attrs.click ?? noOp,
+			icon: attrs.icon,
 		})
 	}
 
