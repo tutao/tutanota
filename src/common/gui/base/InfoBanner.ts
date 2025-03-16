@@ -18,7 +18,7 @@ export const enum BannerType {
 	Warning = "warning",
 }
 
-export type BannerButtonAttrs = Omit<ButtonAttrs, "type"> & { icon?: Children}
+export type BannerButtonAttrs = Omit<ButtonAttrs, "type"> & { icon?: Children; style?: Record<string, any> };
 
 export interface InfoBannerAttrs {
 	message: TranslationKey | lazy<Children>
