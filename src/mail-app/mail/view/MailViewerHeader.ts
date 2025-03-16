@@ -739,7 +739,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		            type: BannerType.Info,
 		            helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 		            buttons: [],
-		        });  
+		        });
 	    	}	
 	    } else { //sender not in trusted list
 	    	//click green check (since not trusted open modal)
@@ -747,25 +747,25 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    	//click blue add (add them and show confirm banner)
 	    }
 
-	    const confirmButton: BannerButtonAttrs = m(BannerButtonAttrs, {
+	    const confirmButton: BannerButtonAttrs = {
 	        label: "mobyPhish_confirm",
-	        icon: m(Icons.Checkmark),
+	        icon: Icons.Checkmark,
 	        click: (event: MouseEvent) => {
             	console.log("✅ User confirmed sender:", senderEmail);
             	viewModel.trustedSenders.push(senderEmail); // Add to trusted list
 	            viewModel.isSenderTrusted = true;
 	            m.redraw();
 	        }
-	    });
+	    };
 
-    	 const denyButton: BannerButtonAttrs = m({
+    	 const denyButton: BannerButtonAttrs = {
 	        label: "mobyPhish_deny",
 	        icon: Icons.Close,
 	        click: (event: MouseEvent) => {
 	        	console.log("🚫 User denied sender:", senderEmail);
 	            modal.display(new MobyPhishDenyModal());
 	        }
-	    });	   
+	    };	   
 
 	    return m(InfoBanner, {
 	        message: "mobyPhish_is_trusted",
