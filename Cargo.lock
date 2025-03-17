@@ -1839,9 +1839,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.24"
+version = "0.23.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96bf61953b1bc045820a2b947e6e9771c58c8c4b15242425b03f783ede1b34fe"
+checksum = "822ee9188ac4ec04a2f0531e55d035fb2de73f18b41a63c70c2712503b6fb13c"
 dependencies = [
  "aws-lc-rs",
  "log 0.4.26",
@@ -2325,7 +2325,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tuta-sdk"
-version = "275.250317.0"
+version = "275.250317.1"
 dependencies = [
  "aes",
  "android_log",
@@ -2373,7 +2373,7 @@ dependencies = [
 
 [[package]]
 name = "tutao_node-mimimi"
-version = "275.250317.0"
+version = "275.250317.1"
 dependencies = [
  "base64",
  "log 0.4.26",

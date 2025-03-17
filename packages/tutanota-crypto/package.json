@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-crypto",
-	"version": "275.250317.0",
+	"version": "275.250317.1",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"exports": {
@@ -25,11 +25,11 @@
 		"tsconfig.json"
 	],
 	"dependencies": {
-		"@tutao/tutanota-error": "275.250317.0"
+		"@tutao/tutanota-error": "275.250317.1"
 	},
 	"devDependencies": {
 		"typescript": "5.3.3",
-		"@tutao/tutanota-utils": "275.250317.0",
-		"@tutao/otest": "275.250317.0"
+		"@tutao/tutanota-utils": "275.250317.1",
+		"@tutao/otest": "275.250317.1"
 	}
 }
