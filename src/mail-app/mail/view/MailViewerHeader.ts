@@ -755,7 +755,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
             	console.log("✅ User confirmed sender:", senderEmail);
             	viewModel.confirmTrusted(); // Add to trusted list
             	viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
-	            m.redraw();
+	            this.renderMobyPhishBanner(viewModel);
 	        },
 		    style: {
 		        backgroundColor: "green",
