@@ -1,4 +1,6 @@
-use crate::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions};
+use crate::bindings::rest_client::{
+	encode_query_params, HttpMethod, RestClient, RestClientOptions,
+};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::entities::entity_facade::EntityFacade;
@@ -206,6 +208,7 @@ impl Executor for ServiceExecutor {
 			S::PATH,
 		);
 		let model_version: u32 = S::VERSION;
+		let mut query_params = extra_service_params.query_params.unwrap_or_default();
 
 		let parsed_input_data: Option<RawEntity> = if let Some(input_entity) = data {
 			let parsed_entity = self
@@ -254,15 +257,14 @@ impl Executor for ServiceExecutor {
 			Some(input) => {
 				//we cannot send a body with GET so we send as url parameters
 				if method == HttpMethod::GET {
-					url = format!(
-						"{}?_body={}",
-						url,
+					query_params.insert(
+						"_body".to_string(),
 						serde_json::to_string(&input).map_err(|e| {
 							ApiCallError::internal_with_err(
 								e,
 								"failed to serialize input to string",
 							)
-						})?
+						})?,
 					);
 					None
 				} else {
@@ -280,6 +282,7 @@ impl Executor for ServiceExecutor {
 		if body.is_some() {
 			headers.insert("Content-Type".to_owned(), "application/json".to_owned());
 		}
+		url = format!("{}{}", url, encode_query_params(&query_params));
 
 		let response = self
 			.rest_client
@@ -628,50 +631,50 @@ mod tests {
 
 		entity_facade.expect_encrypt_and_map().never();
 		rest_client
-			.expect_request_binary()
-			.return_once(move |url, method, opts| {
-				if method == HttpMethod::GET {
-					assert_eq!(
-						"http://api.tuta.com/rest/test/unencrypted-hello?_body={\"message\":\"Something\"}",
-						url.as_str()
-					);
-					assert_eq!(None, opts.body);
-				} else {
-					assert_eq!(
-						"http://api.tuta.com/rest/test/unencrypted-hello",
-						url.as_str()
-					);
-					let expected_body =
-						serde_json::from_str::<RawEntity>(r#"{"message":"Something"}"#).unwrap();
-					let body =
-						serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
-					assert_eq!(expected_body, body);
-				}
+            .expect_request_binary()
+            .return_once(move |url, method, opts| {
+                if method == HttpMethod::GET {
+                    assert_eq!(
+                        "http://api.tuta.com/rest/test/unencrypted-hello?_body=%7B%22message%22%3A%22Something%22%7D",
+                        url.as_str()
+                    );
+                    assert_eq!(None, opts.body);
+                } else {
+                    assert_eq!(
+                        "http://api.tuta.com/rest/test/unencrypted-hello",
+                        url.as_str()
+                    );
+                    let expected_body =
+                        serde_json::from_str::<RawEntity>(r#"{"message":"Something"}"#).unwrap();
+                    let body =
+                        serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
+                    assert_eq!(expected_body, body);
+                }
 
-				assert_eq!(http_method, method);
+                assert_eq!(http_method, method);
 
-				let mut headers = vec![
-					("v", APP_VERSION_STR),
-					("accessToken", "access_token"),
-					("cv", CLIENT_VERSION),
-				];
-				if method != HttpMethod::GET {
-					headers.push(("Content-Type", "application/json"))
-				}
-				let expected_headers = headers
-					.into_iter()
-					.map(|(a, b)| (a.to_string(), b.to_string()))
-					.collect::<HashMap<_, _>>();
-				assert_eq!(expected_headers, opts.headers);
+                let mut headers = vec![
+                    ("v", APP_VERSION_STR),
+                    ("accessToken", "access_token"),
+                    ("cv", CLIENT_VERSION),
+                ];
+                if method != HttpMethod::GET {
+                    headers.push(("Content-Type", "application/json"))
+                }
+                let expected_headers = headers
+                    .into_iter()
+                    .map(|(a, b)| (a.to_string(), b.to_string()))
+                    .collect::<HashMap<_, _>>();
+                assert_eq!(expected_headers, opts.headers);
 
-				Ok(RestResponse {
-					status: 200,
-					headers: HashMap::new(),
-					body: Some(
-						br#"{"answer":"Response to some request","timestamp":"3000"}"#.to_vec(),
-					),
-				})
-			});
+                Ok(RestResponse {
+                    status: 200,
+                    headers: HashMap::new(),
+                    body: Some(
+                        br#"{"answer":"Response to some request","timestamp":"3000"}"#.to_vec(),
+                    ),
+                })
+            });
 
 		executor
 	}
@@ -706,51 +709,51 @@ mod tests {
 		let owner_key_version = 0u64;
 
 		rest_client
-			.expect_request_binary()
-			.return_once(move |url, method, opts| {
-				if method == HttpMethod::GET {
-					assert_eq!(
-						"http://api.tuta.com/rest/test/encrypted-hello?_body={\"message\":\"my encrypted request\"}",
-						url.as_str()
-					);
-					assert_eq!(None, opts.body);
-				} else {
-					assert_eq!(
-						"http://api.tuta.com/rest/test/encrypted-hello",
-						url.as_str()
-					);
-					let expected_body =
-						serde_json::from_str::<RawEntity>(r#"{"message": "my encrypted request"}"#)
-							.unwrap();
-					let body =
-						serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
-					assert_eq!(expected_body, body);
-				}
-				assert_eq!(http_method, method);
+            .expect_request_binary()
+            .return_once(move |url, method, opts| {
+                if method == HttpMethod::GET {
+                    assert_eq!(
+                        "http://api.tuta.com/rest/test/encrypted-hello?_body=%7B%22message%22%3A%22my+encrypted+request%22%7D",
+                        url.as_str()
+                    );
+                    assert_eq!(None, opts.body);
+                } else {
+                    assert_eq!(
+                        "http://api.tuta.com/rest/test/encrypted-hello",
+                        url.as_str()
+                    );
+                    let expected_body =
+                        serde_json::from_str::<RawEntity>(r#"{"message": "my encrypted request"}"#)
+                            .unwrap();
+                    let body =
+                        serde_json::from_slice::<RawEntity>(opts.body.unwrap().as_slice()).unwrap();
+                    assert_eq!(expected_body, body);
+                }
+                assert_eq!(http_method, method);
 
-				let mut headers = vec![
-					("accessToken", "access_token"),
-					("cv", CLIENT_VERSION),
-					("v", APP_VERSION_STR),
-				];
-				if method != HttpMethod::GET {
-					headers.push(("Content-Type", "application/json"));
-				};
+                let mut headers = vec![
+                    ("accessToken", "access_token"),
+                    ("cv", CLIENT_VERSION),
+                    ("v", APP_VERSION_STR),
+                ];
+                if method != HttpMethod::GET {
+                    headers.push(("Content-Type", "application/json"));
+                };
 
-				let expected_headers = headers
-					.into_iter()
-					.map(|(a, b)| (a.to_string(), b.to_string()))
-					.collect::<HashMap<_, _>>();
-				assert_eq!(expected_headers, opts.headers);
-				Ok(RestResponse {
-					status: 200,
-					headers: HashMap::new(),
-					body: Some(
-						br#"{ "answer":"bXkgc2VjcmV0IHJlc3BvbnNl","timestamp":"MzAwMA==" }"#
-							.to_vec(),
-					),
-				})
-			});
+                let expected_headers = headers
+                    .into_iter()
+                    .map(|(a, b)| (a.to_string(), b.to_string()))
+                    .collect::<HashMap<_, _>>();
+                assert_eq!(expected_headers, opts.headers);
+                Ok(RestResponse {
+                    status: 200,
+                    headers: HashMap::new(),
+                    body: Some(
+                        br#"{ "answer":"bXkgc2VjcmV0IHJlc3BvbnNl","timestamp":"MzAwMA==" }"#
+                            .to_vec(),
+                    ),
+                })
+            });
 
 		let session_key_clone = session_key.clone();
 		crypto_facade

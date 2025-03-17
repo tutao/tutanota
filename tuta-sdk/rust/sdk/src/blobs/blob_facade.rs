@@ -1,3 +1,4 @@
+use crate::bindings::rest_client;
 use crate::bindings::rest_client::HttpMethod::POST;
 use crate::bindings::rest_client::RestClient;
 use crate::bindings::rest_client::{RestClientOptions, RestResponse};
@@ -197,7 +198,7 @@ impl BlobFacade {
 			.await?;
 
 		let query_params = self.create_query_params_multiple_blobs(blob_access_token);
-		let encoded_query_params = encode_query_params(query_params);
+		let encoded_query_params = rest_client::encode_query_params(query_params);
 
 		for server in &servers {
 			let maybe_response = self
@@ -318,7 +319,7 @@ impl BlobFacade {
 			.map_err(|_e| ApiCallError::internal(String::from("failed to encrypt blob")))?;
 		let query_params =
 			self.create_query_params_single_blob_legacy(&encrypted_blob, blob_access_token);
-		let encoded_query_params = encode_query_params(query_params);
+		let encoded_query_params = rest_client::encode_query_params(query_params);
 
 		for server in &servers {
 			let maybe_response = self
@@ -476,33 +477,6 @@ impl BlobFacade {
 	}
 }
 
-/// URL-encode some query params for appending them to some URL.
-/// all the keys and values must be non-empty.
-///
-/// only used for blob store requests atm, should be moved to the rest client trait
-/// or a wrapper that prepares the URL for the native impls once it's needed somewhere else.
-fn encode_query_params<Pairs, Keys, Values>(params: Pairs) -> String
-where
-	Pairs: IntoIterator<Item = (Keys, Values)>,
-	Keys: AsRef<[u8]>,
-	Values: AsRef<[u8]>,
-{
-	let encode = |slice: &[u8]| form_urlencoded::byte_serialize(slice).collect::<String>();
-
-	let pairs = params
-		.into_iter()
-		.filter(|(k, v)| !k.as_ref().is_empty() && !v.as_ref().is_empty())
-		.map(|(k, v)| (encode(k.as_ref()), encode(v.as_ref())))
-		.map(|(k, v)| format!("{}={}", k, v))
-		.collect::<Vec<_>>();
-
-	if pairs.is_empty() {
-		String::new()
-	} else {
-		format!("?{}", pairs.join("&"))
-	}
-}
-
 /// The ".chunks" function returns an empty iterator if the data length
 /// is zero, we prefer an iterator with one empty element.
 fn chunk_data<'slice>(
@@ -520,9 +494,9 @@ fn chunk_data<'slice>(
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::bindings::rest_client::MockRestClient;
 	use crate::bindings::rest_client::RestClientOptions;
 	use crate::bindings::rest_client::RestResponse;
+	use crate::bindings::rest_client::{encode_query_params, MockRestClient};
 	use crate::blobs::binary_blob_wrapper_serializer::deserialize_new_blobs;
 	use crate::blobs::blob_access_token_facade::MockBlobAccessTokenFacade;
 	use crate::crypto::randomizer_facade::test_util::DeterministicRng;
