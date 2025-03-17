@@ -102,7 +102,7 @@ export class CryptoFacade {
 			return null
 		}
 		const parsedInstance = this.instanceMapper.cloak(instance._type, instance)
-		const instanceWrapper = await InstanceWrapper.fromInstance(this.instanceMapper, typeModel, parsedInstance)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, typeModel, parsedInstance)
 		return this.resolveSessionKey(instanceWrapper)
 	}
 
@@ -127,7 +127,11 @@ export class CryptoFacade {
 	 */
 	// fixme: should we have two version for this method . one that takes SomeEntity and one that takes Record<number, any>
 	// previously SomeEntity was compatible to Record<string, any>
-	async resolveSessionKey(instanceWrapper: InstanceWrapper): Promise<AesKey> {
+	async resolveSessionKey(instanceWrapper: InstanceWrapper): Promise<Nullable<AesKey>> {
+		if (!instanceWrapper.typeModel.encrypted) {
+			return null
+		}
+
 		let permissionUpdateData: Nullable<{
 			bucketPermission: BucketPermission
 		}> = null

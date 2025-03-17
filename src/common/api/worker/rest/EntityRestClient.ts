@@ -499,7 +499,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 	private async prepareRequestPostPayload<T>(typeModel: TypeModel, instance: T, options?: EntityRestClientSetupOptions) {
 		const parsedInstance: ParsedInstance = await this.instanceMapper.cloak(typeModel, instance)
-		const instanceWrapper = await InstanceWrapper.fromInstance(this.instanceMapper, typeModel, parsedInstance)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, typeModel, parsedInstance)
 		await this._crypto.setNewOwnerEncSessionKey(instanceWrapper, options?.ownerKey)
 
 		const encryptedParsedInstance: EncryptedParsedInstance = await this.instanceMapper.encryptAndMapToLiteral(instanceWrapper)
@@ -509,7 +509,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 	private async prepareRequestPutPayload<T>(typeModel: TypeModel, instance: T, options?: EntityRestClientUpdateOptions) {
 		const parsedInstance: ParsedInstance = await this.instanceMapper.cloak(typeModel, instance)
-		const instanceWrapper = await InstanceWrapper.fromInstance(this.instanceMapper, typeModel, parsedInstance)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, typeModel, parsedInstance)
 
 		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instanceWrapper)
 		if (sessionKey) {

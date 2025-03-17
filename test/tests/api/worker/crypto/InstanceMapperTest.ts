@@ -6,11 +6,19 @@ import { Cardinality, ValueType } from "../../../../../src/common/api/common/Ent
 import { ModelValue } from "../../../../../src/common/api/common/EntityTypes.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { base64ToUint8Array, isSameTypeRef, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import {
+	assertNotNull,
+	base64ToUint8Array,
+	isSameTypeRef,
+	neverNull,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString,
+} from "@tutao/tutanota-utils"
+import { AttributeModel, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ContactAddressTypeRef, ContactTypeRef, Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { configureLoggedInUser, createMailLiteral, createTestUser } from "./CryptoFacadeTest.js"
+import { configureLoggedInUser, createMailUntypedInstance, createTestUser } from "./CryptoFacadeTest.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { object } from "testdouble"
@@ -343,8 +351,9 @@ o.spec("InstanceMapper", function () {
 		let senderName = "TutanotaTeam"
 		const user = createTestUser("Alice", entityClient)
 		const sk = aes256RandomKey()
-		let mail = createMailLiteral(user.mailGroupKey, sk, subject, confidential, senderName, user.name, user.mailGroup._id)
+		let mail = await createMailUntypedInstance(user.mailGroupKey, sk, subject, confidential, senderName, user.name, user.mailGroup._id)
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
+		// FIXME can't pass UntypedInstance to instanceMapper
 		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then((decrypted) => {
 			o(isSameTypeRef(decrypted._type, MailTypeRef)).equals(true)
 			o(decrypted.receivedDate.getTime()).equals(1470039025474)
@@ -468,9 +477,11 @@ o.spec("InstanceMapper", function () {
 		let confidential = true
 		let senderName = "TutanotaTeam"
 		let sk = aes256RandomKey()
-		let mail = createMailLiteral(testUser.mailGroupKey, sk, subject, confidential, senderName, testUser.name, testUser.mailGroup._id)
-		mail.subject = "asdf"
+		let mail = await createMailUntypedInstance(testUser.mailGroupKey, sk, subject, confidential, senderName, testUser.name, testUser.mailGroup._id)
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
+		mail[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "subject"))] = "asdf"
+
+		// FIXME can't pass UntypedInstance to instanceMapper
 		const instance: Mail = await instanceMapper.decryptAndMapToInstance(MailTypeModel, mail, sk)
 		o(typeof instance._errors["subject"]).equals("string")
 	})

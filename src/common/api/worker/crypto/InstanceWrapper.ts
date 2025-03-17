@@ -39,7 +39,7 @@ export class InstanceWrapper {
 		this.resolvedSessionKey = null
 	}
 
-	static async fromInstance(instanceMapper: NewInstanceMapper, typeModel: TypeModel, decryptedInstance: ParsedInstance): Promise<InstanceWrapper> {
+	static async fromParsedInstance(instanceMapper: NewInstanceMapper, typeModel: TypeModel, decryptedInstance: ParsedInstance): Promise<InstanceWrapper> {
 		const literalInstance = true
 		return await this.from(typeModel, decryptedInstance, instanceMapper, literalInstance)
 	}
