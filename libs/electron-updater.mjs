@@ -888,7 +888,7 @@ function requireBrowser () {
 			} catch (error) {
 				return '[UnexpectedJSONParseError]: ' + error.message;
 			}
-		}; 
+		};
 	} (browser, browser.exports));
 	return browser.exports;
 }
@@ -1322,7 +1322,7 @@ function requireNode () {
 		formatters.O = function (v) {
 			this.inspectOpts.colors = this.useColors;
 			return util.inspect(v, this.inspectOpts);
-		}; 
+		};
 	} (node, node.exports));
 	return node.exports;
 }
@@ -3772,7 +3772,7 @@ var sax$1 = {};
 	      }
 	    }());
 	  }
-	})(exports); 
+	})(exports);
 } (sax$1));
 
 Object.defineProperty(xml, "__esModule", { value: true });
@@ -3975,7 +3975,7 @@ function equals(firstValue, secondValue) {
 	        return [v];
 	    }
 	}
-	
+
 } (out));
 
 var fs$i = {};
@@ -5078,7 +5078,7 @@ function retry () {
 	    'fs.realpath.native is not a function. Is fs being monkey-patched?',
 	    'Warning', 'fs-extra-WARN0003'
 	  );
-	} 
+	}
 } (fs$i));
 
 var makeDir$1 = {};
@@ -10951,7 +10951,7 @@ var debug_1 = debug$1;
 	createToken('STAR', '(<|>)?=?\\s*\\*');
 	// >=0.0.0 is like a star
 	createToken('GTE0', '^\\s*>=\\s*0\\.0\\.0\\s*$');
-	createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$'); 
+	createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$');
 } (re$2, re$2.exports));
 
 var reExports = re$2.exports;
@@ -14840,7 +14840,7 @@ lodash_isequal.exports;
 	  return false;
 	}
 
-	module.exports = isEqual; 
+	module.exports = isEqual;
 } (lodash_isequal, lodash_isequal.exports));
 
 var lodash_isequalExports = lodash_isequal.exports;
@@ -15159,7 +15159,7 @@ var electronHttpExecutor = {};
 	    }
 	}
 	exports.ElectronHttpExecutor = ElectronHttpExecutor;
-	
+
 } (electronHttpExecutor));
 
 var GenericProvider$1 = {};
@@ -17459,7 +17459,7 @@ function requireAppUpdater () {
 	    }
 	}
 	AppUpdater.NoOpLogger = NoOpLogger;
-	
+
 	return AppUpdater;
 }
 
@@ -17615,7 +17615,7 @@ function requireBaseUpdater () {
 	    }
 	};
 	BaseUpdater.BaseUpdater = BaseUpdater$1;
-	
+
 	return BaseUpdater;
 }
 
@@ -17770,7 +17770,7 @@ function requireAppImageUpdater () {
 	    }
 	};
 	AppImageUpdater.AppImageUpdater = AppImageUpdater$1;
-	
+
 	return AppImageUpdater;
 }
 
@@ -17819,7 +17819,7 @@ function requireDebUpdater () {
 	    }
 	};
 	DebUpdater.DebUpdater = DebUpdater$1;
-	
+
 	return DebUpdater;
 }
 
@@ -17877,7 +17877,7 @@ function requireRpmUpdater () {
 	    }
 	};
 	RpmUpdater.RpmUpdater = RpmUpdater$1;
-	
+
 	return RpmUpdater;
 }
 
@@ -18134,7 +18134,7 @@ function requireMacUpdater () {
 	    }
 	};
 	MacUpdater.MacUpdater = MacUpdater$1;
-	
+
 	return MacUpdater;
 }
 
@@ -18453,7 +18453,7 @@ function requireNsisUpdater () {
 	    }
 	};
 	NsisUpdater.NsisUpdater = NsisUpdater$1;
-	
+
 	return NsisUpdater;
 }
 
@@ -18557,7 +18557,7 @@ function requireMain () {
 		        emitter.on(event, handler);
 		    }
 		}
-		
+
 	} (main$2));
 	return main$2;
 }

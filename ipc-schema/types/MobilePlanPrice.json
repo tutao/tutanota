@@ -8,6 +8,7 @@
 		"rawYearlyPerMonth": "string",
 		"displayMonthlyPerMonth": "string",
 		"displayYearlyPerYear": "string",
-		"displayYearlyPerMonth": "string"
+		"displayYearlyPerMonth": "string",
+		"displayZero": "string"
 	}
 }

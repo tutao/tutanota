@@ -1968,3 +1968,7 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "pricing.selectTryForFree_label"
+	| "firstMonthForFree_msg"
+	| "firstMonthForFreeDetail_msg"
+	| "oneMonthTrial_label"
