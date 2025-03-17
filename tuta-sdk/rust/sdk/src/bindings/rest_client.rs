@@ -59,3 +59,29 @@ pub struct RestResponse {
 	pub headers: HashMap<String, String>,
 	pub body: Option<Vec<u8>>,
 }
+
+/// URL-encode some query params for appending them to the URL.
+/// all the keys and values must be non-empty.
+///
+/// @return a full encoded query param string with leading '?' and '&' separated key value pairs
+pub fn encode_query_params<Pairs, Keys, Values>(params: Pairs) -> String
+where
+	Pairs: IntoIterator<Item = (Keys, Values)>,
+	Keys: AsRef<[u8]>,
+	Values: AsRef<[u8]>,
+{
+	let encode = |slice: &[u8]| form_urlencoded::byte_serialize(slice).collect::<String>();
+
+	let pairs = params
+		.into_iter()
+		.filter(|(k, v)| !k.as_ref().is_empty() && !v.as_ref().is_empty())
+		.map(|(k, v)| (encode(k.as_ref()), encode(v.as_ref())))
+		.map(|(k, v)| format!("{}={}", k, v))
+		.collect::<Vec<_>>();
+
+	if pairs.is_empty() {
+		String::new()
+	} else {
+		format!("?{}", pairs.join("&"))
+	}
+}
