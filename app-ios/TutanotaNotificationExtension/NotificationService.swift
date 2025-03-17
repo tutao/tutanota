@@ -3,39 +3,41 @@ import UserNotifications
 import tutasdk
 
 class NotificationService: UNNotificationServiceExtension {
-	var contentHandler: ((UNNotificationContent) -> Void)?
-	var bestAttemptContent: UNMutableNotificationContent?
-	let urlSession: URLSession = makeUrlSession()
+	private var contentHandler: ((UNNotificationContent) -> Void)?
+	private var bestAttemptContent: UNMutableNotificationContent?
+	private let urlSession: URLSession = makeUrlSession()
 
 	override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
 		self.contentHandler = contentHandler
 		bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
 		if let bestAttemptContent {
 			Task {
-				let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
-				let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
-				let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
-				let credentialsFacade = IosNativeCredentialsFacade(
-					keychainEncryption: keychainEncryption,
-					credentialsDb: credentialsDb,
-					cryptoFns: CryptoFunctions()
-				)
-				let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
-
-				let mailId = bestAttemptContent.userInfo["mailId"] as? [String]
-				let userId = bestAttemptContent.userInfo["userId"] as? String
-
-				guard let userId else { return }
-				guard let mailId else { return }
-
-				guard let credentials = try await credentialsFacade.loadByUserId(userId) else { return }
-				guard let mail = try await getMail(credentials, notificationStorage, mailId, userId) else { return }
-				try await populateNotification(content: bestAttemptContent, mail: mail, credentials: credentials)
-				try await insertMail(mail: mail, credentials: credentials)
+				// Catch all errors to always call contentHandler, otherwise we will use up our quota to time out
+				do { try await handleNotification(content: bestAttemptContent) } catch { printLog("Failed to populate notification: \(error)") }
 				contentHandler(bestAttemptContent)
 			}
 		}
 	}
+
+	private func handleNotification(content: UNMutableNotificationContent) async throws {
+		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
+		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
+		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
+		let credentialsFacade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: CryptoFunctions())
+		let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
+
+		let mailId = content.userInfo["mailId"] as? [String]
+		let userId = content.userInfo["userId"] as? String
+
+		guard let userId else { return }
+		guard let mailId else { return }
+
+		guard let credentials = try await credentialsFacade.loadByUserId(userId) else { return }
+		guard let mail = try await getMail(credentials, notificationStorage, mailId, userId) else { return }
+		try await populateNotification(content: content, mail: mail, credentials: credentials)
+		try await insertMail(mail: mail, credentials: credentials)
+	}
+
 	private func getMail(_ credentials: UnencryptedCredentials, _ notificationStorage: NotificationStorage, _ mailId: [String], _ userId: String) async throws
 		-> tutasdk.Mail?
 	{

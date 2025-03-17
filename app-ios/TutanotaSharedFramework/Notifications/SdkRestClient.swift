@@ -12,6 +12,7 @@ public class SdkRestClient: RestClient {
 			case .delete: "delete"
 			case .put: "put"
 			}
+		for (key, value) in options.headers { request.setValue(value, forHTTPHeaderField: key) }
 		request.httpBody = options.body
 		let (data, urlResponse) = try await self.urlSession.data(for: request)
 		let httpUrlResponse = urlResponse as! HTTPURLResponse  // We should only ever receive HTTP URLs
