@@ -102,6 +102,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		priceInfoTextId: TranslationKey | null,
 		isBusiness: boolean,
 		isCampaign: boolean,
+		isFirstMonthForFree: boolean,
 	): Children {
 		const wrapInDiv = (text: string, style?: Record<string, any>) => {
 			return m(".b.center", { style }, text)
@@ -117,6 +118,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			return wrapInDiv(lang.get(priceInfoTextId))
 		}
 
+		if (isFirstMonthForFree) {
+			return wrapInDiv("Try out plans. TODO")
+		}
+
 		if (isCampaign && !isBusiness) {
 			return wrapInDiv("Birthday Deal: Become a LEGEND", { width: "230px", margin: "1em auto 0 auto" })
 		}
@@ -124,7 +129,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 	view(vnode: Vnode<SubscriptionSelectorAttr>): Children {
 		// Add BuyOptionBox margin twice to the boxWidth received
-		const { acceptedPlans, priceInfoTextId, msg, featureListProvider, currentPlanType, options, boxWidth } = vnode.attrs
+		const { acceptedPlans, priceInfoTextId, priceAndConfigProvider, msg, featureListProvider, currentPlanType, options, boxWidth } = vnode.attrs
 
 		const columnWidth = boxWidth + BOX_MARGIN * 2
 		const inMobileView: boolean = (this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2) == true
@@ -190,7 +195,14 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						items: BusinessUseItems,
 				  })
 				: null,
-			this.renderHeadline(msg, currentPlanType, priceInfoTextId, options.businessUse(), isTutaBirthdayCampaign),
+			this.renderHeadline(
+				msg,
+				currentPlanType,
+				priceInfoTextId,
+				options.businessUse(),
+				isTutaBirthdayCampaign,
+				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan,
+			),
 			m(
 				".flex.center-horizontally.wrap",
 				{
