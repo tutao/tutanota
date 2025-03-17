@@ -308,10 +308,10 @@ mod test {
 	use crate::crypto::aes::{Aes256Key, Iv};
 	use crate::crypto::asymmetric_crypto_facade::{DecapsulatedAesKey, MockAsymmetricCryptoFacade};
 	use crate::crypto::crypto_facade::CryptoFacade;
-	use crate::crypto::ecc::EccKeyPair;
 	use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
+	use crate::crypto::x25519::EccKeyPair;
 	use crate::element_value::ParsedEntity;
 	use crate::entities::generated::sys::{BucketKey, InstanceSessionKey};
 	use crate::entities::generated::tutanota::Mail;
