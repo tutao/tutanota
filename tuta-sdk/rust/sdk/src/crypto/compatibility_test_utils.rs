@@ -93,6 +93,20 @@ pub struct X25519Test {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Ed25519Test {
+	#[serde(with = "const_hex")]
+	pub alice_private_key_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub alice_public_key_hex: Vec<u8>,
+	pub message: String,
+	#[serde(with = "const_hex")]
+	pub signature: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub seed: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct KyberEncryptionTest {
 	#[serde(with = "const_hex")]
 	pub public_key: Vec<u8>,
@@ -166,6 +180,7 @@ pub struct CompatibilityTestData {
 	pub hmac_sha256_tests: Vec<HmacTest>,
 	pub argon2id_tests: Vec<Argon2Test>,
 	pub x25519_tests: Vec<X25519Test>,
+	pub ed25519_tests: Vec<Ed25519Test>,
 	pub kyber_encryption_tests: Vec<KyberEncryptionTest>,
 	pub rsa_encryption_tests: Vec<RSAEncryptionTest>,
 	pub pqcrypt_encryption_tests: Vec<PQCryptEncryptionTest>,

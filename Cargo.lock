@@ -562,6 +562,7 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "curve25519-dalek-derive",
+ "digest",
  "fiat-crypto",
  "rustc_version",
  "subtle",
@@ -636,6 +637,31 @@ name = "dunce"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
+
+[[package]]
+name = "ed25519"
+version = "2.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "115531babc129696a58c64a4fef0a8bf9e9698629fb97e9e40767d235cfbcd53"
+dependencies = [
+ "pkcs8",
+ "signature",
+]
+
+[[package]]
+name = "ed25519-dalek"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a3daa8e81a3963a60642bcc1f90a670680bd4a77535faa384e9d1c79d620871"
+dependencies = [
+ "curve25519-dalek",
+ "ed25519",
+ "rand_core",
+ "serde",
+ "sha2",
+ "subtle",
+ "zeroize",
+]
 
 [[package]]
 name = "either"
@@ -2335,6 +2361,7 @@ dependencies = [
  "cbc",
  "const-hex",
  "curve25519-dalek",
+ "ed25519-dalek",
  "form_urlencoded",
  "futures",
  "hkdf",
