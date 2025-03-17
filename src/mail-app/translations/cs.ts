@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-03-13T10:55:19Z",
+	"updated_at": "2025-03-17T12:02:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -840,6 +840,12 @@ export default {
 		"invoice_label": "Faktura",
 		"IpAddress_label": "IP adresa",
 		"keyboardShortcuts_title": "Klávesové zkratky",
+		"keyManagement.publicKeyFingerprintQrInfo_msg": "Jedná se o otisk veřejného klíče přidruženého k vašemu uživatelskému účtu, který je vložen do kódu QR.",
+		"keyManagement.publicKeyFingerprintTextInfo_msg": "Jedná se o otisk veřejného klíče přidruženého k vašemu uživatelskému účtu.",
+		"keyManagement.publicKeyFingerprint_label": "Veřejný klíč",
+		"keyManagement.qrCodeInvalid_msg": "Naskenovaný QR kód není platný.",
+		"keyManagement.qrCode_label": "QR kód",
+		"keyManagement_label": "Správa klíčů",
 		"keywords_label": "Klíčová slova",
 		"knowledgebase_label": "Báze znalostí",
 		"knownCredentials_label": "Uložené účty",
