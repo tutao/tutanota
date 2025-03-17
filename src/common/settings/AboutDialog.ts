@@ -49,7 +49,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 			m(".flex.justify-center.selectable.flex-wrap", [
 				m("p.center.mt.mlr", `v${env.versionNumber}`),
 				m("p.text-center.mlr", "GPL-v3"),
-				m("p", "© 2024 Tutao GmbH"),
+				m("p", "© 2025 Tutao GmbH"),
 			]),
 			this._sendLogsLink(),
 			// wrap it in a div so that it's not filling the whole width
