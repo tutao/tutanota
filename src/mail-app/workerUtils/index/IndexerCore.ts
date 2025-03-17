@@ -96,6 +96,10 @@ type WriteOperation = {
  * too early.
  */
 export class IndexerCore {
+	// FIXME: we should take this queue out of IndexerCore because it is not related to the rest of the code.
+	//  It is loosely related as queue has `_isStopped` that is checked in transaction. It is a general pattern
+	//  where we should not disable the index and then write something to it. We need to either check before each
+	//  write (something that we do now) or we should wait for processing of the current event and then disable it.
 	queue: EventQueue
 	db: Db
 	private _isStopped: boolean

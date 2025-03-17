@@ -127,6 +127,8 @@ export class Indexer {
 	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>
 
+	private eventQueue = new EventQueue("indexer_core", true, (batch) => this._processEntityEvents(batch))
+
 	constructor(
 		entityRestClient: EntityRestClient,
 		private readonly infoMessageHandler: InfoMessageHandler,
@@ -143,7 +145,7 @@ export class Indexer {
 			initialized: deferred.promise,
 		}
 		// correctly initialized during init()
-		this._core = new IndexerCore(this.db, new EventQueue("indexer_core", true, (batch) => this._processEntityEvents(batch)), browserData)
+		this._core = new IndexerCore(this.db, this.eventQueue, browserData)
 		this._entityRestClient = entityRestClient
 		this._entity = new EntityClient(defaultEntityRestCache)
 		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
@@ -277,6 +279,11 @@ export class Indexer {
 	async deleteIndex(userId: string): Promise<void> {
 		this._core.stopProcessing()
 		await this._mail.disableMailIndexing()
+	}
+
+	private stopProcessing() {
+		// FIXME: have a way to wait for the current op
+		this.eventQueue.clear()
 	}
 
 	extendMailIndex(newOldestTimestamp: number): Promise<void> {
@@ -580,7 +587,7 @@ export class Indexer {
 
 		// add all batches of all groups in one step to avoid that just some groups are added when a ServiceUnavailableError occurs
 		// Add them directly to the core so that they are added before the realtime batches
-		this._core.addBatchesToQueue(batchesOfAllGroups)
+		this.eventQueue.addBatches(batchesOfAllGroups)
 
 		// Add latest batches per group so that we can filter out overlapping realtime updates later
 		this._initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
@@ -678,7 +685,7 @@ export class Indexer {
 				ofClass(InvalidDatabaseStateError, (e) => {
 					console.log("InvalidDatabaseStateError during _processEntityEvents")
 
-					this._core.stopProcessing()
+					this.stopProcessing()
 
 					return this._reCreateIndex()
 				}),
