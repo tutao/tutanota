@@ -67,10 +67,6 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			availablePlans = availablePlans.filter((plan) => plan != PlanType.Free)
 		}
 
-		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
-		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
-		const shouldHighlight = isYearly && isTutaBirthdayCampaign
-
 		const subscriptionActionButtons: SubscriptionActionButtons = {
 			[PlanType.Free]: () => {
 				return {
@@ -79,11 +75,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				} as LoginButtonAttrs
 			},
 			[PlanType.Revolutionary]: this.createUpgradeButton(data, PlanType.Revolutionary),
-			[PlanType.Legend]: () => ({
-				label: shouldHighlight ? "pricing.cyber_monday_select_action" : "pricing.select_action",
-				class: shouldHighlight ? "accent-bg-cyber-monday" : undefined,
-				onclick: () => this.setNonFreeDataAndGoToNextPage(data, PlanType.Legend),
-			}),
+			[PlanType.Legend]: this.createUpgradeButton(data, PlanType.Legend),
 			[PlanType.Essential]: this.createUpgradeButton(data, PlanType.Essential),
 			[PlanType.Advanced]: this.createUpgradeButton(data, PlanType.Advanced),
 			[PlanType.Unlimited]: this.createUpgradeButton(data, PlanType.Unlimited),
@@ -214,8 +206,22 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 	}
 
 	createUpgradeButton(data: UpgradeSubscriptionData, planType: PlanType): lazy<LoginButtonAttrs> {
+		const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
+
+		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
+		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
+
+		// Tuta bday / cyber monday
+		if (isYearly && isTutaBirthdayCampaign) {
+			return () => ({
+				label: "pricing.cyber_monday_select_action",
+				class: "accent-bg-cyber-monday",
+				onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
+			})
+		}
+
 		return () => ({
-			label: "pricing.select_action",
+			label: isFirstMonthForFree && isYearly ? "pricing.selectTryForFree_label" : "pricing.select_action",
 			onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 		})
 	}

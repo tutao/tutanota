@@ -1988,5 +1988,6 @@ export default {
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
+		"pricing.selectTryForFree_label": "Gratis probieren",
 	}
 }

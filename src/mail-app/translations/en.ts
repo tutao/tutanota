@@ -1984,5 +1984,6 @@ export default {
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
+		"pricing.selectTryForFree_label": "Try for free"
 	}
 }
