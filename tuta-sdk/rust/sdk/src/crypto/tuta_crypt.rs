@@ -1,14 +1,14 @@
 use crate::crypto::aes::{
 	aes_256_decrypt, aes_256_encrypt, Aes256Key, AesDecryptError, AesEncryptError, Iv, PaddingMode,
 };
-use crate::crypto::ecc::{
-	ecc_decapsulate, ecc_encapsulate, EccKeyPair, EccPublicKey, EccSharedSecrets,
-};
 use crate::crypto::hkdf::hkdf;
 use crate::crypto::kyber::{
 	KyberCiphertext, KyberDecapsulationError, KyberKeyPair, KyberPublicKey, KyberSharedSecret,
 };
 use crate::crypto::randomizer_facade::RandomizerFacade;
+use crate::crypto::x25519::{
+	ecc_decapsulate, ecc_encapsulate, EccKeyPair, EccPublicKey, EccSharedSecrets,
+};
 use crate::join_slices;
 use crate::util::{decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
 use zeroize::{ZeroizeOnDrop, Zeroizing};
@@ -238,8 +238,8 @@ mod tests {
 	use crate::crypto::compatibility_test_utils::{
 		get_compatibility_test_data, PQCryptEncryptionTest,
 	};
-	use crate::crypto::ecc::EccPrivateKey;
 	use crate::crypto::kyber::KyberPrivateKey;
+	use crate::crypto::x25519::EccPrivateKey;
 
 	#[test]
 	fn test_bucket_key_serialize_roundtrip() {
