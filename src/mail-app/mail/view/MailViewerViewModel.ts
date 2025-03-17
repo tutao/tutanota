@@ -471,33 +471,24 @@ export class MailViewerViewModel {
 	}
 
 	async setContentBlockingStatus(status: ContentBlockingStatus): Promise<void> {
-		// We can only be set to NoExternalContent when initially loading the mailbody (_loadMailBody)
-		// so we ignore it here, and don't do anything if we were already set to NoExternalContent
-		if (
-			status === ContentBlockingStatus.NoExternalContent ||
-			this.contentBlockingStatus === ContentBlockingStatus.NoExternalContent ||
-			this.contentBlockingStatus === status
-		) {
-			return
-		}
+	    // Prevent unnecessary re-execution
+	    if (this.contentBlockingStatus === status) return;
 
-		if (status === ContentBlockingStatus.AlwaysShow) {
-			this.configFacade.addExternalImageRule(this.getSender().address, ExternalImageRule.Allow).catch(ofClass(IndexingNotSupportedError, noOp))
-		} else if (status === ContentBlockingStatus.AlwaysBlock) {
-			this.configFacade.addExternalImageRule(this.getSender().address, ExternalImageRule.Block).catch(ofClass(IndexingNotSupportedError, noOp))
-		} else {
-			// we are going from allow or block to something else it means we're resetting to the default rule for the given sender
-			this.configFacade.addExternalImageRule(this.getSender().address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
-		}
+	    // Images should always be blocked initially unless sender is explicitly trusted
+	    const blockContent = status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock;
 
-		// We don't check mail authentication status here because the user has manually called this
-		this.sanitizeResult = await this.sanitizeMailBody(this.mail, status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock)
-		//follow-up actions resulting from a changed blocking status must start after sanitization finished
-		this.contentBlockingStatus = status
+	    // Sanitize mail content while blocking images if necessary
+	    this.sanitizeResult = await this.sanitizeMailBody(this.mail, blockContent);
 
-		 // Toggle links when blocking status changes
-    	this.toggleLinks(status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock);
+	    // Ensure links are disabled if content is blocked
+	    this.toggleLinks(blockContent);
+
+	    // Update status
+	    this.contentBlockingStatus = status;
+
+	    console.log(`🔒 Content blocking updated. Images blocked: ${blockContent}, Links disabled: ${blockContent}`);
 	}
+
 
 	async markAsNotPhishing(): Promise<void> {
 		const oldStatus = this.getPhishingStatus()

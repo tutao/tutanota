@@ -292,7 +292,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					? null
 					: this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel),
 			),
-			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
+			//m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
 			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(viewModel)), // Add Moby Phish Banner
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
 		].filter(Boolean)
@@ -682,7 +682,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 	}
 
-	private renderExternalContentBanner(attrs: MailViewerHeaderAttrs): Children | null {
+/*	private renderExternalContentBanner(attrs: MailViewerHeaderAttrs): Children | null {
 		// only show banner when there are blocked images and the user hasn't made a decision about how to handle them
 		if (attrs.viewModel.getContentBlockingStatus() !== ContentBlockingStatus.Block) {
 			return null
@@ -725,7 +725,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			helpLink: canSeeTutaLinks(attrs.viewModel.logins) ? InfoLink.LoadImages : null,
 			buttons: [showButton, ...maybeDropdownButtons],
 		})
-	}
+	}*/
 
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
