@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-03-21T18:02:24Z",
+	"updated_at": "2025-03-31T16:03:05Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -967,6 +967,7 @@ export default {
 		"loading_msg": "Ładowanie...",
 		"loadMore_action": "Załaduj więcej",
 		"localDataSection_label": "Dane lokalne",
+		"localDataSection_msg": "Lokalnie zapisane dane wiadomości e-mail umożliwiają czytanie i wyszukiwanie wiadomości e-mail w trybie offline. Jeśli rozszerzysz datę „od” w widoku wyszukiwania, okres czasu zapisanych wiadomości e-mail zostanie zaktualizowany.",
 		"location_label": "Lokalizacja",
 		"lockdownModeNotSupported1_msg": "Twoje urządzenie ma włączony Tryb blokady, który uniemożliwi uruchomienie przyszłych wersji Tuta.",
 		"lockdownModeNotSupported2_msg": "Dodaj wyjątek dla Tuta lub wyłącz Tryb blokady.",
@@ -1707,6 +1708,7 @@ export default {
 		"storageCapacity_label": "Pojemność skrzynki pocztowej",
 		"storageDeletion_msg": "Wiadomości w tym folderze zostaną automatycznie usunięte po 30 dniach.",
 		"storageQuotaExceeded_msg": "Na urządzeniu nie ma wystarczającej ilości miejsca, aby utworzyć indeks wyszukiwania. Dlatego wyniki wyszukiwania nie mogą być wyświetlane w całości.",
+		"storedDataDate_label": "Przechowuj wiadomości e-mail od {date}",
 		"storedDataTimeRangeHelpText_msg": "Przechowywane wiadomości e-mail starsze niż skonfigurowane w tym miejscu będą automatycznie usuwane z urządzenia.",
 		"storedDataTimeRange_label": "Zachowuj wiadomości e-mail z ostatnich {numDays} dni",
 		"storeDowngradeOrResubscribe_msg": "Twoja obecna subskrypcja App Store wygasła. Czy chcesz obniżyć wersję konta lub ponownie subskrybować, aby zachować płatne funkcje?\nZobacz {AppStoreDowngrade}",

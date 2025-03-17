@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-03-21T11:15:26Z",
+	"updated_at": "2025-03-25T13:09:09Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -961,7 +961,8 @@ export default {
 		"loadingTemplates_label": "Laddar mallar...",
 		"loading_msg": "Laddar...",
 		"loadMore_action": "Ladda mer",
-		"localDataSection_label": "Lokala data",
+		"localDataSection_label": "Lokal datalagring",
+		"localDataSection_msg": "Lokalt sparad e-post data gör att du kan läsa och söka efter mejl offline. Om du förlänger datumet ”sedan” i sökvyn uppdateras tidsperioden för lagrade mejl.",
 		"location_label": "Plats",
 		"lockdownModeNotSupported1_msg": "Din enhet har Lockdown Mode aktiverat vilket kommer att förhindra att framtida versioner av Tuta körs.",
 		"lockdownModeNotSupported2_msg": "Exkludera Tuta eller inaktivera Lockdown Mode.",
@@ -1703,6 +1704,7 @@ export default {
 		"storageCapacity_label": "Lagringskapacitet",
 		"storageDeletion_msg": "E-post i den här mappen raderas automatiskt efter 30 dagar.",
 		"storageQuotaExceeded_msg": "Det finns inte tillräckligt med lagringsutrymme på enheten för att skapa sökindex. Därför kan sökresultaten inte visas helt.",
+		"storedDataDate_label": "Spara mejl sedan {datum}",
 		"storedDataTimeRangeHelpText_msg": "Sparad e-post som är äldre än vad du konfigurerar här kommer automatiskt att tas bort från enheten.",
 		"storedDataTimeRange_label": "Behåll mejl från de senaste {numDays} dagarna",
 		"storeDowngradeOrResubscribe_msg": "Ditt nuvarande App Store abonnemang har löpt ut. Vill du nedgradera ditt konto eller förlänga abonnemanget för att behålla de betalda funktionerna?\n\nSe {AppStoreDowngrade}",

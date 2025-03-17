@@ -33,6 +33,7 @@ export class PaymentMethodInput {
 	_accountingInfo: AccountingInfo
 	_entityEventListener: EntityEventsListener
 	private __paymentPaypalTest?: UsageTest
+	private isBankTransferAllowed: boolean
 
 	constructor(
 		subscriptionOptions: SelectedSubscriptionOptions,
@@ -40,11 +41,13 @@ export class PaymentMethodInput {
 		accountingInfo: AccountingInfo,
 		payPalRequestUrl: LazyLoaded<string>,
 		defaultPaymentMethod: PaymentMethodType,
+		isBankTransferAllowed: boolean,
 	) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions
 		this.ccViewModel = new SimplifiedCreditCardViewModel(lang)
 		this._accountingInfo = accountingInfo
+		this.isBankTransferAllowed = isBankTransferAllowed
 		this._payPalAttrs = {
 			payPalRequestUrl,
 			accountingInfo: this._accountingInfo,
@@ -195,7 +198,7 @@ export class PaymentMethodInput {
 		]
 
 		// show bank transfer in case of business use, even if it is not available for the selected country
-		if (this._subscriptionOptions.businessUse() || this._accountingInfo.paymentMethod === PaymentMethodType.Invoice) {
+		if ((this._subscriptionOptions.businessUse() && this.isBankTransferAllowed) || this._accountingInfo.paymentMethod === PaymentMethodType.Invoice) {
 			availablePaymentMethods.push({
 				name: lang.get("paymentMethodOnAccount_label"),
 				value: PaymentMethodType.Invoice,

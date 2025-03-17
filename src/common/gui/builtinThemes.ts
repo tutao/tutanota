@@ -31,9 +31,11 @@ const grey_darker_0 = "#707070"
 const grey_darker_1 = "#303030"
 const red = "#850122"
 const secondary_red = "#FF2222"
+const red_nota = "#d93951"
 const dunkel = "#410002"
 const blue = "#013E85"
 const secondary_blue = "#4282FF"
+const blue_nota = "#3964d9"
 const light_blue = "#ACC7FF"
 const dark_purple = "#AC3E80"
 const light_purple = "#FCBFDE"
@@ -126,6 +128,7 @@ export const themes = (): Themes => {
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
 		error_color: SONNE,
+		tuta_color_nota: red_nota,
 	})
 	const darkRed = Object.freeze({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -166,6 +169,7 @@ export const themes = (): Themes => {
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
 		error_color: SONNE_70,
+		tuta_color_nota: red_nota,
 	})
 	const lightBlue = Object.freeze({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -205,6 +209,7 @@ export const themes = (): Themes => {
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
 		error_color: SONNE,
+		tuta_color_nota: blue_nota,
 	})
 	const darkBlue = Object.freeze({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -245,6 +250,7 @@ export const themes = (): Themes => {
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
 		error_color: SONNE_70,
+		tuta_color_nota: blue_nota,
 	})
 
 	return {

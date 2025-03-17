@@ -1,19 +1,17 @@
 import m from "mithril"
 import stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
-import { lang } from "../misc/LanguageViewModel"
 import { getByAbbreviation } from "../api/common/CountryList"
 import { PaymentMethodInput } from "./PaymentMethodInput"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { px } from "../gui/size"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { getDefaultPaymentMethod, PaymentMethodType } from "../api/common/TutanotaConstants"
+import { PaymentMethodType } from "../api/common/TutanotaConstants"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { asPaymentInterval } from "./PriceUtils.js"
 import { getLazyLoadedPayPalUrl } from "./SubscriptionUtils.js"
-import { locator } from "../api/main/CommonLocator.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 
 /**
@@ -36,6 +34,7 @@ export async function show(customer: Customer, accountingInfo: AccountingInfo, p
 		neverNull(accountingInfo),
 		payPalRequestUrl,
 		defaultPaymentMethod,
+		true, // We accept that for free of charge offers users might change to bank transfer
 	)
 	const availablePaymentMethods = paymentMethodInput.getVisiblePaymentMethods()
 

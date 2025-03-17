@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-03-21T10:35:50Z",
+	"updated_at": "2025-03-25T13:05:04Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -966,6 +966,7 @@ export default {
 		"loading_msg": "Cargando …",
 		"loadMore_action": "Cargar más",
 		"localDataSection_label": "Datos Locales",
+		"localDataSection_msg": "Los datos de correo electrónico guardados localmente te permiten leer y buscar correos electrónicos sin conexión. Si amplías la fecha «desde» en la vista de búsqueda, se actualiza el periodo de tiempo de los correos electrónicos almacenados.",
 		"location_label": "Ubicación",
 		"lockdownModeNotSupported1_msg": "Tu dispositivo tiene habilitado el modo de bloqueo, lo que evitará que se ejecuten futuras versiones de Tuta.",
 		"lockdownModeNotSupported2_msg": "Excluye Tuta o desactiva el modo de bloqueo.",
@@ -1707,6 +1708,7 @@ export default {
 		"storageCapacity_label": "Capacidad de almacenamiento",
 		"storageDeletion_msg": "Los correos en esta carpeta se eliminarán automáticamente después de 30 días.",
 		"storageQuotaExceeded_msg": "No hay suficiente espacio en el dispositivo para crear el índice de búsqueda; por tanto los resultados no se pueden mostrar en su totalidad.",
+		"storedDataDate_label": "Almacenar correos electrónicos desde {date}",
 		"storedDataTimeRangeHelpText_msg": "Cualquier dato almacenado que sea más antiguo que esto se eliminará automáticamente de tu dispositivo.",
 		"storedDataTimeRange_label": "Mantenga los correos de los últimos {numDays} días",
 		"storeDowngradeOrResubscribe_msg": "Tu suscripción actual al App Store ha caducado. ¿Deseas reducir la categoría de tu cuenta o volver a suscribirte para conservar las funciones pagadas?\nVer {AppStoreDowngrade}",

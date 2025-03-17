@@ -14,6 +14,7 @@ import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { isIOSApp } from "../api/common/Env"
+import { isColorLight } from "../gui/base/Color.js"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -43,6 +44,8 @@ export type BuyOptionBoxAttr = {
 	 */
 	targetSubscription?: AvailablePlanType
 	isCampaign?: boolean
+	isFirstMonthForFree?: boolean
+	hasPriceFootnote?: boolean
 }
 
 export type BuyOptionDetailsAttr = {
@@ -144,9 +147,30 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 
 		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
 		const isLegendPlan = attrs.targetSubscription === PlanType.Legend
+		const isPersonalPaidPlan = attrs.targetSubscription === PlanType.Revolutionary || attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
 		const shouldApplyCampaignColor =
 			attrs.highlighted && attrs.isCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
+
+		function getRibbon(): Children {
+			if (isLegendPlan && isTutaBirthdayCampaign && isYearly) {
+				return BuyOptionBox.renderCampaignRibbon()
+			}
+
+			if (attrs.bonusMonths > 0) {
+				return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, `+${attrs.bonusMonths} ${lang.get("pricing.months_label")}`))
+			}
+
+			if (attrs.isFirstMonthForFree && isPersonalPaidPlan && isYearly) {
+				const isDarkTheme = !isColorLight(theme.content_bg)
+				return m(
+					".ribbon-horizontal.nota",
+					m(".text-center.b", { style: { padding: px(3), color: isDarkTheme ? "#fff" : undefined } }, lang.get("oneMonthTrial_label")),
+				)
+			}
+
+			return undefined
+		}
 
 		return m(
 			".fg-black",
@@ -177,10 +201,15 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						},
 					},
 					[
-						isLegendPlan && isTutaBirthdayCampaign && isYearly ? this.renderCampaignRibbon() : this.renderBonusMonthsRibbon(attrs.bonusMonths),
+						getRibbon(),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading, shouldApplyCampaignColor) : attrs.heading,
 						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined, shouldApplyCampaignColor),
-						m(".small.text-center", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
+						m(
+							".small.flex",
+							{ style: { "justify-content": "center", "column-gap": px(1) } },
+							m("span", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
+							vnode.attrs.hasPriceFootnote && m("sup", { style: { "font-size": px(8) } }, "1"),
+						),
 						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
 						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isLegendPlan && isTutaBirthdayCampaign && isYearly),
 						attrs.actionButton
@@ -224,15 +253,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		)
 	}
 
-	private renderBonusMonthsRibbon(bonusMonths: number): Children {
-		return bonusMonths > 0 ? this.renderRibbon(`+${bonusMonths} ${lang.get("pricing.months_label")}`) : null
-	}
-
-	private renderRibbon(text: string) {
-		return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, text))
-	}
-
-	private renderCampaignRibbon(): Children {
+	private static renderCampaignRibbon(): Children {
 		const text = isIOSApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
 		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)" } }, [
 			// Birthday cake

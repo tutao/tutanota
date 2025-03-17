@@ -67,6 +67,7 @@ export type UpgradeSubscriptionData = {
 	multipleUsersAllowed: boolean
 	acceptedPlans: AvailablePlanType[]
 	msg: MaybeTranslation | null
+	firstMonthForFreeOfferActive: boolean
 }
 
 export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: MaybeTranslation): Promise<void> {
@@ -109,6 +110,7 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 		multipleUsersAllowed: false,
 		acceptedPlans,
 		msg: msg != null ? msg : null,
+		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
 	}
 
 	const wizardPages = [
@@ -195,6 +197,7 @@ export async function loadSignupWizard(
 		multipleUsersAllowed: false,
 		acceptedPlans,
 		msg: message,
+		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)

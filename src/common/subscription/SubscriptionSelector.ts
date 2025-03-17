@@ -30,7 +30,7 @@ import {
 	PlanType,
 	PlanTypeToName,
 } from "../api/common/TutanotaConstants.js"
-import { px } from "../gui/size.js"
+import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
@@ -102,6 +102,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		priceInfoTextId: TranslationKey | null,
 		isBusiness: boolean,
 		isCampaign: boolean,
+		isFirstMonthForFree: boolean,
 	): Children {
 		const wrapInDiv = (text: string, style?: Record<string, any>) => {
 			return m(".b.center", { style }, text)
@@ -117,6 +118,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			return wrapInDiv(lang.get(priceInfoTextId))
 		}
 
+		if (isFirstMonthForFree) {
+			return wrapInDiv(lang.get("firstMonthForFree_msg"), { marginTop: px(size.vpad), marginBottom: px(size.vpad) })
+		}
+
 		if (isCampaign && !isBusiness) {
 			return wrapInDiv("Birthday Deal: Become a LEGEND", { width: "230px", margin: "1em auto 0 auto" })
 		}
@@ -124,7 +129,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 	view(vnode: Vnode<SubscriptionSelectorAttr>): Children {
 		// Add BuyOptionBox margin twice to the boxWidth received
-		const { acceptedPlans, priceInfoTextId, msg, featureListProvider, currentPlanType, options, boxWidth } = vnode.attrs
+		const { acceptedPlans, priceInfoTextId, priceAndConfigProvider, msg, featureListProvider, currentPlanType, options, boxWidth } = vnode.attrs
 
 		const columnWidth = boxWidth + BOX_MARGIN * 2
 		const inMobileView: boolean = (this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2) == true
@@ -163,13 +168,25 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
 		}
 
-		const shouldShowFirstYearDiscountNotice =
-			!isIOSApp() && isTutaBirthdayCampaign && !options.businessUse() && options.paymentInterval() === PaymentInterval.Yearly
+		function getFootnoteElement(): Children {
+			const isYearly = options.paymentInterval() === PaymentInterval.Yearly
+			if (!isIOSApp() && isTutaBirthdayCampaign && !options.businessUse() && isYearly) {
+				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("pricing.legendAsterisk_msg")))
+			}
 
-		additionalInfo = m(".flex.flex-column.items-center", [
+			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly && (!currentPlan || currentPlan === PlanType.Free)) {
+				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("firstMonthForFreeDetail_msg")))
+			}
+
+			return undefined
+		}
+
+		const footnoteElement = getFootnoteElement()
+
+		additionalInfo = m(".flex.flex-column", [
 			featureExpander.All, // global feature expander
-			m(".smaller.mb.center", subscriptionPeriodInfoMsg),
-			shouldShowFirstYearDiscountNotice && m(".smaller.mb.center", `* ${lang.get("pricing.legendAsterisk_msg")}`),
+			m(".smaller.mb", subscriptionPeriodInfoMsg),
+			footnoteElement && m(".smaller.mb", footnoteElement),
 		])
 
 		const buyBoxesViewPlacement = plans
@@ -190,7 +207,14 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						items: BusinessUseItems,
 				  })
 				: null,
-			this.renderHeadline(msg, currentPlanType, priceInfoTextId, options.businessUse(), isTutaBirthdayCampaign),
+			this.renderHeadline(
+				msg,
+				currentPlanType,
+				priceInfoTextId,
+				options.businessUse(),
+				isTutaBirthdayCampaign,
+				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan,
+			),
 			m(
 				".flex.center-horizontally.wrap",
 				{
@@ -309,7 +333,15 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
-		const asteriskOrEmptyString = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && interval === PaymentInterval.Yearly ? "*" : ""
+		const isYearly = interval === PaymentInterval.Yearly
+		const hasFirstYearDiscount = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && isYearly
+
+		const appliesFirstMonthForFree =
+			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
+			isYearly &&
+			// Not showing first month free offer for the paid plan switching
+			(selectorAttrs.currentPlanType === null ? true : selectorAttrs.currentPlanType === PlanType.Free) &&
+			targetSubscription !== PlanType.Free
 
 		return {
 			heading: getDisplayNameOfPlanType(targetSubscription),
@@ -319,7 +351,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
 			price: priceStr,
 			referencePrice: referencePriceStr,
-			priceHint: lang.makeTranslation("price_hint", `${getPriceHint(subscriptionPrice, priceType, multiuser)}${asteriskOrEmptyString}`),
+			priceHint: lang.makeTranslation("price_hint", `${getPriceHint(subscriptionPrice, priceType, multiuser)}`),
+			hasPriceFootnote: appliesFirstMonthForFree || hasFirstYearDiscount,
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
@@ -329,11 +362,12 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			highlighted: isHighlighted,
 			mobile,
 			bonusMonths:
-				targetSubscription !== PlanType.Free && interval === PaymentInterval.Yearly
+				targetSubscription !== PlanType.Free && isYearly
 					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 					: 0,
 			targetSubscription,
 			isCampaign,
+			isFirstMonthForFree: appliesFirstMonthForFree,
 		}
 	}
 

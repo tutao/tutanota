@@ -119,6 +119,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					neverNull(data.accountingInfo),
 					payPalRequestUrl,
 					defaultPaymentMethod,
+					!data.firstMonthForFreeOfferActive,
 				)
 				this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
 

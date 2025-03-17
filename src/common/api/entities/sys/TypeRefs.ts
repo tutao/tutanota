@@ -3228,6 +3228,7 @@ export type UpgradePriceServiceReturn = {
 	_format: NumberString;
 	bonusMonthsForYearlyPlan: NumberString;
 	business: boolean;
+	firstMonthForFreeForYearlyPlan: boolean;
 	messageTextId: null | string;
 
 	advancedPrices: PlanPrices;

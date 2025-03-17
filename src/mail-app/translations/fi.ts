@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-03-22T13:35:53Z",
+	"updated_at": "2025-03-26T12:51:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -961,7 +961,8 @@ export default {
 		"loadingTemplates_label": "Ladataan viestipohjia...",
 		"loading_msg": "Ladataan...",
 		"loadMore_action": "Lataa lisää",
-		"localDataSection_label": "Paikalliset tiedot",
+		"localDataSection_label": "Paikallisten tietojen säilytys",
+		"localDataSection_msg": "Paikallisesti tallennettuja sähköposteja voi lukea ja hakea ilman verkkoyhteyttä. Jos muutat hakunäkymän alkupäivää, sähköpostien tallennusaikaväliä muutetaan.",
 		"location_label": "Sijainti",
 		"lockdownModeNotSupported1_msg": "Olet ottanut Sulkutilan käyttöön, joten Tutan tulevia versioita ei voi käyttää laitteellasi.",
 		"lockdownModeNotSupported2_msg": "Poista Sulkutila käytöstä tai jätä Tuta siitä pois.",
@@ -1703,6 +1704,7 @@ export default {
 		"storageCapacity_label": "Tallennustila",
 		"storageDeletion_msg": "Tämän kansion viestit tuhotaan automaattisesti 30 päivässä.",
 		"storageQuotaExceeded_msg": "Laitteella ei ole tarpeeksi tallennustilaa hakuindeksin luontiin, joten hakutulokset ovat puutteellisia.",
+		"storedDataDate_label": "Tallenna sähköpostit alkaen päivästä {date}",
 		"storedDataTimeRangeHelpText_msg": "Tätä aikamäärettä vanhemmat tallennetut sähköpostit poistetaan laitteelta. ",
 		"storedDataTimeRange_label": "Säilytä sähköpostit {numDays} viimeisimmältä päivältä. ",
 		"storeDowngradeOrResubscribe_msg": "Nykyinen App Store -tilauksesi on erääntynyt. Haluaisitko vaihtaa ilmaiseen tilaukseen, vai jatkaa tilaustasi pitääksesi maksulliset toiminnallisuudet?\nKs. {AppStoreDowngrade}",
