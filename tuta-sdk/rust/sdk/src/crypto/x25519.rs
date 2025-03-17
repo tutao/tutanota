@@ -3,20 +3,20 @@ use crate::util::{array_cast_slice, ArrayCastingError};
 use std::ops::Deref;
 use zeroize::*;
 
-const ECC_KEY_SIZE: usize = 32;
+const X25519_KEY_SIZE: usize = 32;
 
 #[derive(ZeroizeOnDrop, Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
-pub struct EccPrivateKey([u8; ECC_KEY_SIZE]);
+pub struct X25519PrivateKey([u8; X25519_KEY_SIZE]);
 
-impl EccPrivateKey {
+impl X25519PrivateKey {
 	/// Get a reference to the underlying bytes.
 	pub fn as_bytes(&self) -> &[u8] {
 		self.0.as_slice()
 	}
 
 	/// Calculate the public key for this private key.
-	pub fn derive_public_key(&self) -> EccPublicKey {
+	pub fn derive_public_key(&self) -> X25519PublicKey {
 		use curve25519_dalek::montgomery::MontgomeryPoint;
 		use curve25519_dalek::Scalar;
 
@@ -25,14 +25,14 @@ impl EccPrivateKey {
 			Zeroizing::new(Scalar::from_bytes_mod_order(self.0)).deref(),
 		));
 
-		EccPublicKey(public_key.0)
+		X25519PublicKey(public_key.0)
 	}
 
-	/// Attempt to convert a slice of bytes into an ECC key.
+	/// Attempt to convert a slice of bytes into an X25519 key.
 	///
 	/// Returns `Err` on failure.
 	pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
-		Ok(Self(array_cast_slice(bytes, "EccPrivateKey")?))
+		Ok(Self(array_cast_slice(bytes, "X25519PrivateKey")?))
 	}
 
 	fn from_bytes_clamped(bytes: [u8; 32]) -> Self {
@@ -43,21 +43,21 @@ impl EccPrivateKey {
 
 #[derive(ZeroizeOnDrop, Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
-pub struct EccPublicKey([u8; ECC_KEY_SIZE]);
+pub struct X25519PublicKey([u8; X25519_KEY_SIZE]);
 
 #[derive(Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
-pub struct EccKeyPair {
-	pub public_key: EccPublicKey,
-	pub private_key: EccPrivateKey,
+pub struct X25519KeyPair {
+	pub public_key: X25519PublicKey,
+	pub private_key: X25519PrivateKey,
 }
 
-impl EccKeyPair {
+impl X25519KeyPair {
 	/// Generate a keypair with the given random number generator.
 	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
 		let seed: [u8; 32] = randomizer_facade.generate_random_array();
 
-		let private_key = EccPrivateKey::from_bytes_clamped(seed);
+		let private_key = X25519PrivateKey::from_bytes_clamped(seed);
 		let public_key = private_key.derive_public_key();
 
 		Self {
@@ -67,67 +67,70 @@ impl EccKeyPair {
 	}
 }
 
-impl EccPublicKey {
+impl X25519PublicKey {
 	/// Get a reference to the underlying bytes.
 	#[must_use]
 	pub fn as_bytes(&self) -> &[u8] {
 		self.0.as_slice()
 	}
 
-	/// Attempt to convert a slice of bytes into an ECC key.
+	/// Attempt to convert a slice of bytes into an X25519 key.
 	///
 	/// Returns `Err` on failure.
 	pub fn from_bytes(bytes: &[u8]) -> Result<Self, ArrayCastingError> {
-		Ok(Self(array_cast_slice(bytes, "EccPublicKey")?))
+		Ok(Self(array_cast_slice(bytes, "X25519PublicKey")?))
 	}
 
-	/// Convert an array of bytes into an ECC key.
+	/// Convert an array of bytes into an X25519 key.
 	#[cfg(test)]
-	pub const fn from_array(bytes: [u8; ECC_KEY_SIZE]) -> Self {
+	pub const fn from_array(bytes: [u8; X25519_KEY_SIZE]) -> Self {
 		Self(bytes)
 	}
 }
 
 #[derive(Zeroize, ZeroizeOnDrop)]
-pub struct EccSharedSecret([u8; ECC_KEY_SIZE]);
+pub struct X25519SharedSecret([u8; X25519_KEY_SIZE]);
 
-impl EccSharedSecret {
+impl X25519SharedSecret {
 	pub fn as_bytes(&self) -> &[u8] {
 		self.0.as_slice()
 	}
 }
 
 /// Describes shared secrets for encrypting/decrypting a message and verifying authenticity.
-pub struct EccSharedSecrets {
-	pub ephemeral_shared_secret: EccSharedSecret,
-	pub auth_shared_secret: EccSharedSecret,
+pub struct X25519SharedSecrets {
+	pub ephemeral_shared_secret: X25519SharedSecret,
+	pub auth_shared_secret: X25519SharedSecret,
 }
 
 /// Generate a shared secret using the sender's identity key, an ephemeral key, and the recipient's public key.
-pub fn ecc_encapsulate(
-	sender_key: &EccPrivateKey,
-	ephemeral_key: &EccPrivateKey,
-	recipient_key: &EccPublicKey,
-) -> EccSharedSecrets {
-	EccSharedSecrets {
+pub fn x25519_encapsulate(
+	sender_key: &X25519PrivateKey,
+	ephemeral_key: &X25519PrivateKey,
+	recipient_key: &X25519PublicKey,
+) -> X25519SharedSecrets {
+	X25519SharedSecrets {
 		ephemeral_shared_secret: generate_shared_secret(ephemeral_key, recipient_key),
 		auth_shared_secret: generate_shared_secret(sender_key, recipient_key),
 	}
 }
 
 /// Generate a shared secret using the sender's identity key, an ephemeral key, and the recipient's private key.
-pub fn ecc_decapsulate(
-	sender_key: &EccPublicKey,
-	ephemeral_key: &EccPublicKey,
-	recipient_key: &EccPrivateKey,
-) -> EccSharedSecrets {
-	EccSharedSecrets {
+pub fn x25519_decapsulate(
+	sender_key: &X25519PublicKey,
+	ephemeral_key: &X25519PublicKey,
+	recipient_key: &X25519PrivateKey,
+) -> X25519SharedSecrets {
+	X25519SharedSecrets {
 		ephemeral_shared_secret: generate_shared_secret(recipient_key, ephemeral_key),
 		auth_shared_secret: generate_shared_secret(recipient_key, sender_key),
 	}
 }
 
-fn generate_shared_secret(local_key: &EccPrivateKey, remote_key: &EccPublicKey) -> EccSharedSecret {
+fn generate_shared_secret(
+	local_key: &X25519PrivateKey,
+	remote_key: &X25519PublicKey,
+) -> X25519SharedSecret {
 	use curve25519_dalek::montgomery::MontgomeryPoint;
 	use curve25519_dalek::Scalar;
 
@@ -135,7 +138,7 @@ fn generate_shared_secret(local_key: &EccPrivateKey, remote_key: &EccPublicKey) 
 	let scalar = Zeroizing::new(Scalar::from_bytes_mod_order(local_key.0));
 	let secret = (point.deref() * scalar.deref()).0;
 
-	EccSharedSecret(secret)
+	X25519SharedSecret(secret)
 }
 
 #[cfg(test)]
@@ -147,13 +150,14 @@ mod tests {
 	fn test_x25519() {
 		let data = get_compatibility_test_data();
 		for i in data.x25519_tests {
-			let alice_private_key = EccPrivateKey(i.alice_private_key_hex.try_into().unwrap());
-			let alice_public_key = EccPublicKey(i.alice_public_key_hex.try_into().unwrap());
+			let alice_private_key = X25519PrivateKey(i.alice_private_key_hex.try_into().unwrap());
+			let alice_public_key = X25519PublicKey(i.alice_public_key_hex.try_into().unwrap());
 			let ephemeral_private_key =
-				EccPrivateKey(i.ephemeral_private_key_hex.try_into().unwrap());
-			let ephemeral_public_key = EccPublicKey(i.ephemeral_public_key_hex.try_into().unwrap());
-			let bob_private_key = EccPrivateKey(i.bob_private_key_hex.try_into().unwrap());
-			let bob_public_key = EccPublicKey(i.bob_public_key_hex.try_into().unwrap());
+				X25519PrivateKey(i.ephemeral_private_key_hex.try_into().unwrap());
+			let ephemeral_public_key =
+				X25519PublicKey(i.ephemeral_public_key_hex.try_into().unwrap());
+			let bob_private_key = X25519PrivateKey(i.bob_private_key_hex.try_into().unwrap());
+			let bob_public_key = X25519PublicKey(i.bob_public_key_hex.try_into().unwrap());
 
 			assert_eq!(alice_public_key.0, alice_private_key.derive_public_key().0);
 			assert_eq!(
@@ -163,11 +167,11 @@ mod tests {
 			assert_eq!(bob_public_key.0, bob_private_key.derive_public_key().0);
 
 			let ephemeral_secret =
-				EccSharedSecret(i.ephemeral_shared_secret_hex.try_into().unwrap());
-			let auth_secret = EccSharedSecret(i.auth_shared_secret_hex.try_into().unwrap());
+				X25519SharedSecret(i.ephemeral_shared_secret_hex.try_into().unwrap());
+			let auth_secret = X25519SharedSecret(i.auth_shared_secret_hex.try_into().unwrap());
 
 			let encapsulation =
-				ecc_encapsulate(&alice_private_key, &ephemeral_private_key, &bob_public_key);
+				x25519_encapsulate(&alice_private_key, &ephemeral_private_key, &bob_public_key);
 			assert_eq!(
 				ephemeral_secret.0, encapsulation.ephemeral_shared_secret.0,
 				"encaps: ephemeral shared secret mismatch"
@@ -178,7 +182,7 @@ mod tests {
 			);
 
 			let decapsulation =
-				ecc_decapsulate(&alice_public_key, &ephemeral_public_key, &bob_private_key);
+				x25519_decapsulate(&alice_public_key, &ephemeral_public_key, &bob_private_key);
 			assert_eq!(
 				ephemeral_secret.0, decapsulation.ephemeral_shared_secret.0,
 				"decaps: ephemeral shared secret mismatch"

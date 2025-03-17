@@ -2,11 +2,11 @@ use crate::crypto::aes::Iv;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 use crate::crypto::asymmetric_crypto_facade::{AsymmetricCryptoError, DecapsulatedAesKey};
-use crate::crypto::ecc::EccPublicKey;
 use crate::crypto::key::{GenericAesKey, KeyLoadError};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::RSAEncryptionError;
-use crate::crypto::tuta_crypt::PQError;
+use crate::crypto::tuta_crypt::TutaCryptError;
+use crate::crypto::x25519::X25519PublicKey;
 use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::{
@@ -41,7 +41,8 @@ pub struct ResolvedSessionKey {
 	pub session_key: GenericAesKey,
 	pub owner_enc_session_key: Vec<u8>,
 	pub owner_key_version: u64,
-	pub sender_identity_pub_key: Option<EccPublicKey>, // the sender's ecc key that was used to decrypt the PQ message, in case TutaCrypt was used.
+	// the sender's x25519 key that was used to decrypt the PQ message, in case TutaCrypt was used.
+	pub sender_identity_pub_key: Option<X25519PublicKey>,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -292,7 +293,7 @@ impl SessionKeyResolutionErrorSubtype for KeyLoadError {}
 
 impl SessionKeyResolutionErrorSubtype for ArrayCastingError {}
 
-impl SessionKeyResolutionErrorSubtype for PQError {}
+impl SessionKeyResolutionErrorSubtype for TutaCryptError {}
 
 impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 impl SessionKeyResolutionErrorSubtype for AsymmetricCryptoError {}
@@ -311,7 +312,7 @@ mod test {
 	use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
-	use crate::crypto::x25519::EccKeyPair;
+	use crate::crypto::x25519::X25519KeyPair;
 	use crate::element_value::ParsedEntity;
 	use crate::entities::generated::sys::{BucketKey, InstanceSessionKey};
 	use crate::entities::generated::tutanota::Mail;
@@ -328,11 +329,11 @@ mod test {
 	use std::sync::Arc;
 
 	#[tokio::test]
-	async fn test_pq_bucket_key_resolves() {
+	async fn test_tuta_crypt_bucket_key_resolves() {
 		let randomizer_facade = make_thread_rng_facade();
 		let constants = BucketKeyConstants::new(&randomizer_facade);
 
-		let sender_keypair = EccKeyPair::generate(&randomizer_facade);
+		let sender_keypair = X25519KeyPair::generate(&randomizer_facade);
 
 		let protocol_version = CryptoProtocolVersion::TutaCrypt;
 		let raw_mail = make_raw_mail(
