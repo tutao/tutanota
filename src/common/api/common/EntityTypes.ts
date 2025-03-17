@@ -1,5 +1,5 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
-import { Base64, TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
 import { AppName } from "../worker/crypto/InstanceMapper"
 import type { BucketKey } from "../entities/sys/TypeRefs"
@@ -82,16 +82,34 @@ export type DecryptedInstance = SomeEntity & {
 	ownerEncSessionKey?: Uint8Array
 }
 
-export type ElementValue =
-	| Id
-	| IdTuple
-	// it should have been circularily ParsedEncryptedInstance
-	| Record<string, any>
-	| boolean
-	| Date
-	| number
-	| string
-	| Uint8Array
-	| Base64
+type EncryptedTypeModel = TypeModel & { encrypted: true }
 
-export type ParsedEncryptedInstance = Record<number, Nullable<ElementValue>>
+export enum ElementAssociationType {
+	Id,
+	IdTuple,
+	// it should have been circularily ParsedEncryptedInstance
+	AggregatedLiteral,
+}
+
+export type UntypedInstance = Record<string, string>
+
+export type EncryptedParsedValue =
+	| Id // element association or list association or _id
+	| IdTuple // list element association
+	| boolean // unencrypted
+	| Date // unencrypted
+	| number // unencrypted
+	| string // unencrypted
+	| Uint8Array // Either Bytes or encrypted value
+
+export type EncryptedParsedAssociation =
+	| null
+	| Id
+	| Array<Id>
+	| IdTuple
+	| Array<IdTuple>
+	// should have been reference to EncryptedParsedInstance
+	| Record<string, any>
+	| Array<Record<string, any>>
+
+export type EncryptedParsedInstance = Record<number, Nullable<EncryptedParsedValue | EncryptedParsedAssociation>>

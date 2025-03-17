@@ -55,7 +55,7 @@ import { typeRefToRestPath } from "../rest/EntityRestClient"
 import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
-import type { DecryptedInstance, Entity, ParsedEncryptedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import type { DecryptedInstance, Entity, EncryptedParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
@@ -66,7 +66,7 @@ import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Servic
 import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
 import { elementIdPart, getElementId, getListId, isSameId } from "../../common/utils/EntityUtils.js"
-import { InstanceMapper } from "./InstanceMapper.js"
+import { InstanceMapper, NewInstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -678,7 +678,7 @@ export class CryptoFacade {
 	 */
 	async setNewOwnerEncSessionKey(
 		typeModel: TypeModel,
-		parsedInstance: ParsedEncryptedInstance,
+		parsedInstance: EncryptedParsedInstance,
 		keyToEncryptSessionKey?: VersionedKey,
 	): Promise<AesKey | null> {
 		const typeRef = new TypeRef(typeModel.app, typeModel.id)
@@ -868,7 +868,7 @@ if (!("toJSON" in Error.prototype)) {
 	})
 }
 
-class InstanceWrapper {
+export class InstanceWrapper {
 	public readonly elementId: Id
 	public publicOrExternalPermission: Nullable<Permission>
 	public symmetricOrPublicSymmetricPermission: Nullable<Permission>
@@ -880,7 +880,7 @@ class InstanceWrapper {
 		public readonly typeModel: TypeModel,
 		private readonly instanceMapper: Nullable<InstanceMapper>,
 		public readonly id: Id | IdTuple,
-		public readonly instance: DecryptedInstance | ParsedEncryptedInstance,
+		public readonly instance: DecryptedInstance | EncryptedParsedInstance,
 		public readonly permissionId: Nullable<Id>,
 		public _ownerGroup: Nullable<Id>,
 		public readonly ownerGroup: Nullable<Id>,
@@ -896,7 +896,7 @@ class InstanceWrapper {
 		this.resolvedSessionKey = null
 	}
 
-	static async fromInstance(decryptedInstance: DecryptedInstance): Promise<InstanceWrapper> {
+	static async fromInstance(decryptedInstance: SomeEntity): Promise<InstanceWrapper> {
 		const typeRef = decryptedInstance._type
 		const typeModel = await resolveTypeReference(typeRef)
 		const instanceMapper = null
@@ -933,9 +933,9 @@ class InstanceWrapper {
 	}
 
 	static async fromEncryptedParsedInstance(
-		instanceMapper: InstanceMapper,
+		instanceMapper: NewInstanceMapper,
 		typeModel: TypeModel,
-		encryptedParsedInstance: ParsedEncryptedInstance,
+		encryptedParsedInstance: EncryptedParsedInstance,
 	): Promise<InstanceWrapper> {
 		const typeRef = new TypeRef<DecryptedInstance>(typeModel.app, typeModel.id)
 
@@ -966,7 +966,7 @@ class InstanceWrapper {
 		}
 
 		let bucketKey: Nullable<BucketKey> = null
-		const bucketKeyLiteral = InstanceWrapper.getAttributeorNull<ParsedEncryptedInstance>(encryptedParsedInstance, "bucketKey", typeModel)
+		const bucketKeyLiteral = InstanceWrapper.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)
 		if (bucketKeyLiteral) {
 			// fixme: is decrypt a good name here? since bucket key is mapped inside crypto and it's bit confusing that we are decrypting inside cryptoFacade itself
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
@@ -996,7 +996,7 @@ class InstanceWrapper {
 		if (this.instanceIsLiteral()) {
 			return this.instance as SomeEntity
 		} else {
-			const encryptedEntity = downcast<ParsedEncryptedInstance>(this.instance)
+			const encryptedEntity = downcast<EncryptedParsedInstance>(this.instance)
 			const typeRef = downcast<TypeRef<SomeEntity>>(this.typeRef)
 			const instanceMapper = assertNotNull(this.instanceMapper)
 
@@ -1018,7 +1018,7 @@ class InstanceWrapper {
 	set_ownerEncSessionKey(key: VersionedEncryptedKey) {
 		this._ownerEncSessionKey = key
 		if (this.instanceIsLiteral()) {
-			const instance = downcast<ParsedEncryptedInstance>(this.instance)
+			const instance = downcast<EncryptedParsedInstance>(this.instance)
 
 			// fixme: should we assertNotNull this Id?
 			const _ownerEncSessionKeyFieldId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerEncSessionKey"))
@@ -1035,7 +1035,7 @@ class InstanceWrapper {
 	set_ownerGroup(ownerGroup: Id) {
 		this._ownerGroup = ownerGroup
 		if (this.instanceIsLiteral()) {
-			const instance = downcast<ParsedEncryptedInstance>(this.instance)
+			const instance = downcast<EncryptedParsedInstance>(this.instance)
 
 			// fixme: should we assertNotNull this Id?
 			const _ownerGroupId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerGroup"))
@@ -1070,7 +1070,7 @@ class InstanceWrapper {
 		return typeRestPath + "/" + idPath
 	}
 
-	static getAttributeorNull<T>(instance: ParsedEncryptedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
+	static getAttributeorNull<T>(instance: EncryptedParsedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
 		if (attrId) {
 			const value = instance[attrId]

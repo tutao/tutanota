@@ -1,4 +1,4 @@
-import { getAttributeId, resolveTypeReference } from "../../common/EntityFunctions"
+import { resolveTypeReference } from "../../common/EntityFunctions"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import {
 	assertNotNull,
@@ -14,10 +14,20 @@ import {
 } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import { Entity, ModelValue, TypeModel } from "../../common/EntityTypes"
+import {
+	EncryptedParsedAssociation,
+	EncryptedParsedInstance,
+	EncryptedParsedValue,
+	Entity,
+	ModelAssociation,
+	ModelValue,
+	TypeModel,
+	UntypedInstance,
+} from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 assertWorkerOrNode()
 
@@ -25,6 +35,75 @@ export type AttributeId = number
 export type TypeId = number
 export type AppName = "base" | "sys" | "tutanota" | "usage" | "monitor" | "accouting" | "gossip"
 export type AttributeName = string
+
+export class NewInstanceMapper {
+	async map(typeModel: TypeModel, instance: UntypedInstance): Promise<EncryptedParsedInstance> {
+		let parsedInstance: EncryptedParsedInstance = {}
+		for (const [attrIdStr, modelValue] of Object.entries(typeModel.values)) {
+			const attrId = parseInt(attrIdStr)
+			const untypedValue: string = instance[attrId.toString()]
+
+			parsedInstance[attrId] = this.convertUntypedInstanceValueToEncryptedParsedValue(modelValue, untypedValue)
+		}
+		for (const [attrIdStr, modelAssociation] of Object.entries(typeModel.associations)) {
+			const attrId = parseInt(attrIdStr)
+			const untypedValue: any = instance[attrId.toString()]
+
+			parsedInstance[attrId] = await this.convertUntypedInstanceAssocToEncryptedParsedAssoc(typeModel.app, modelAssociation, untypedValue)
+		}
+
+		return parsedInstance
+	}
+
+	private convertUntypedInstanceValueToEncryptedParsedValue(modelValue: ModelValue, value: string): EncryptedParsedValue {
+		const modelValueType = modelValue.type
+
+		if (modelValueType === ValueType.Bytes || modelValue.encrypted) {
+			return base64ToUint8Array(value as any)
+		} else if (modelValueType === ValueType.Boolean) {
+			return value !== "0"
+		} else if (modelValueType === ValueType.Date) {
+			return new Date(parseInt(value))
+		} else if (modelValueType === ValueType.CompressedString) {
+			return decompressString(base64ToUint8Array(value))
+		} else {
+			return value
+		}
+	}
+
+	private async convertUntypedInstanceAssocToEncryptedParsedAssoc(
+		appName: AppName,
+		modelAssociation: ModelAssociation,
+		value: any,
+	): Promise<EncryptedParsedAssociation> {
+		let v = value
+		if (modelAssociation.cardinality === Cardinality.One) {
+			v = assertNotNull(value)
+		}
+
+		switch (modelAssociation.type) {
+			case AssociationType.ElementAssociation || AssociationType.ListAssociation:
+				return modelAssociation.cardinality === Cardinality.Any ? (v as Array<Id>) : (v as Nullable<Id>)
+			case AssociationType.ListElementAssociationGenerated || AssociationType.ListElementAssociationCustom || AssociationType.BlobElementAssociation:
+				return modelAssociation.cardinality === Cardinality.Any ? (v as Array<IdTuple>) : (v as Nullable<IdTuple>)
+			case AssociationType.Aggregation: {
+				const refType = new TypeRef((modelAssociation.dependency as Nullable<AppName>) ?? appName, modelAssociation.refTypeId)
+				const refTypeModel = await resolveTypeReference(refType)
+
+				if (modelAssociation.cardinality === Cardinality.One) {
+					return await this.map(refTypeModel, v as UntypedInstance)
+				} else {
+					if (v == null) {
+						return null
+					}
+					return await promiseMap(v as Array<UntypedInstance>, (aggregateLiteral) => this.map(refTypeModel, aggregateLiteral))
+				}
+			}
+		}
+
+		throw new ProgrammingError(`Unhandled AssociationType`)
+	}
+}
 
 export class InstanceMapper {
 	/**

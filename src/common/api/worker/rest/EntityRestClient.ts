@@ -1,5 +1,5 @@
 import { RestClient, SuspensionBehavior } from "./RestClient"
-import type { CryptoFacade } from "../crypto/CryptoFacade"
+import { CryptoFacade, InstanceWrapper } from "../crypto/CryptoFacade"
 import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
@@ -14,12 +14,12 @@ import {
 } from "../../common/error/RestError"
 import { assertNotNull, isSameTypeRef, KeyVersion, lazy, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
-import type { ListElementEntity, ParsedEncryptedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import type { ListElementEntity, EncryptedParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
-import { InstanceMapper } from "../crypto/InstanceMapper"
+import { InstanceMapper, NewInstanceMapper } from "../crypto/InstanceMapper"
 import { QueuedBatch } from "../EventQueue.js"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -192,7 +192,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly authDataProvider: AuthDataProvider,
 		private readonly restClient: RestClient,
 		private readonly lazyCrypto: lazy<CryptoFacade>,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instanceMapper: NewInstanceMapper,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}
 
@@ -213,8 +213,11 @@ export class EntityRestClient implements EntityRestInterface {
 			baseUrl: opts.baseUrl,
 		})
 		const entity = JSON.parse(json)
-		const migratedEntity = await this._crypto.applyMigrations(typeRef, entity)
-		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, migratedEntity, typeModel)
+		const encryptedParsedInstance = await this.instanceMapper.map(typeModel, entity)
+		const instanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(this.instanceMapper, typeModel, encryptedParsedInstance)
+
+		await this._crypto.applyMigrations(instanceWrapper)
+		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, instanceWrapper, typeModel)
 
 		const instance = await this.instanceMapper.decryptAndMapToInstance<T>(typeModel, migratedEntity, sessionKey)
 		return this._crypto.applyMigrationsForInstance(instance)
@@ -442,7 +445,7 @@ export class EntityRestClient implements EntityRestInterface {
 			try {
 				const encryptedEntities = await promiseMap(instanceChunk, async (e) => {
 					// todo: convert to parsedInstance
-					const patsedInstance: ParsedEncryptedInstance = this.instanceMapper.convertToParsedEncryptedInstance()
+					const patsedInstance: EncryptedParsedInstance = this.instanceMapper.convertToParsedEncryptedInstance()
 					const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, patsedInstance)
 
 					return this.instanceMapper.encryptAndMapToLiteral(typeModel, e, sk)
