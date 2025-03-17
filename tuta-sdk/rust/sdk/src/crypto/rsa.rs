@@ -1,5 +1,5 @@
 use crate::crypto::randomizer_facade::RandomizerFacade;
-use crate::crypto::x25519::EccKeyPair;
+use crate::crypto::x25519::X25519KeyPair;
 use crate::join_slices;
 use rand_core::impls::{next_u32_via_fill, next_u64_via_fill};
 use rand_core::{CryptoRng, Error, RngCore};
@@ -127,20 +127,20 @@ impl RSAKeyPair {
 
 #[derive(Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
-pub struct RSAEccKeyPair {
+pub struct RSAX25519KeyPair {
 	pub rsa_key_pair: RSAKeyPair,
-	pub ecc_key_pair: EccKeyPair,
+	pub x25519_key_pair: X25519KeyPair,
 }
 
-impl RSAEccKeyPair {
-	/// Generate an RSA-ECC keypair.
+impl RSAX25519KeyPair {
+	/// Generate an RSA-X25519 keypair.
 	///
 	/// This is only intended to be used for testing, as new RSA keys should not be generated.
 	#[cfg(test)]
 	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
 		Self {
 			rsa_key_pair: RSAKeyPair::generate(randomizer_facade),
-			ecc_key_pair: EccKeyPair::generate(randomizer_facade),
+			x25519_key_pair: X25519KeyPair::generate(randomizer_facade),
 		}
 	}
 }
