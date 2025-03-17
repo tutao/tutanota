@@ -5,7 +5,7 @@ use crate::crypto::asymmetric_crypto_facade::{AsymmetricCryptoError, Decapsulate
 use crate::crypto::key::{GenericAesKey, KeyLoadError};
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::RSAEncryptionError;
-use crate::crypto::tuta_crypt::PQError;
+use crate::crypto::tuta_crypt::TutaCryptError;
 use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::{
@@ -288,7 +288,7 @@ impl SessionKeyResolutionErrorSubtype for KeyLoadError {}
 
 impl SessionKeyResolutionErrorSubtype for ArrayCastingError {}
 
-impl SessionKeyResolutionErrorSubtype for PQError {}
+impl SessionKeyResolutionErrorSubtype for TutaCryptError {}
 
 impl SessionKeyResolutionErrorSubtype for RSAEncryptionError {}
 impl SessionKeyResolutionErrorSubtype for AsymmetricCryptoError {}
@@ -307,7 +307,7 @@ mod test {
 	use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
-	use crate::crypto::x25519::EccKeyPair;
+	use crate::crypto::x25519::X25519KeyPair;
 	use crate::element_value::ParsedEntity;
 	use crate::entities::generated::sys::{BucketKey, InstanceSessionKey};
 	use crate::entities::generated::tutanota::Mail;
@@ -328,7 +328,7 @@ mod test {
 		let randomizer_facade = make_thread_rng_facade();
 		let constants = BucketKeyConstants::new(&randomizer_facade);
 
-		let sender_keypair = EccKeyPair::generate(&randomizer_facade);
+		let sender_keypair = X25519KeyPair::generate(&randomizer_facade);
 
 		let protocol_version = CryptoProtocolVersion::TutaCrypt;
 		let raw_mail = make_raw_mail(

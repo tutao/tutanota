@@ -16,7 +16,7 @@ pub struct PublicKeyIdentifier {
 
 pub struct PublicKeys {
 	pub pub_rsa_key: Option<Vec<u8>>,
-	pub pub_ecc_key: Option<Vec<u8>>,
+	pub pub_x25519_key: Option<Vec<u8>>,
 	pub pub_kyber_key: Option<Vec<u8>>,
 }
 
@@ -104,7 +104,7 @@ impl PublicKeyProvider {
 			object: PublicKeys {
 				pub_rsa_key: public_key_get_out.pubRsaKey,
 				pub_kyber_key: public_key_get_out.pubKyberKey,
-				pub_ecc_key: public_key_get_out.pubEccKey,
+				pub_x25519_key: public_key_get_out.pubEccKey,
 			},
 			version: convert_version_to_u64(public_key_get_out.pubKeyVersion),
 		}
@@ -189,7 +189,7 @@ mod tests {
 			assert_eq!(pub_keys.version, current_key_version);
 			assert_eq!(pub_keys.object.pub_rsa_key, None);
 			assert_eq!(pub_keys.object.pub_kyber_key, Some(pub_key.clone()));
-			assert_eq!(pub_keys.object.pub_ecc_key, Some(pub_key.clone()));
+			assert_eq!(pub_keys.object.pub_x25519_key, Some(pub_key.clone()));
 		}
 
 		#[tokio::test]
@@ -267,7 +267,7 @@ mod tests {
 				.unwrap();
 			assert_eq!(pub_keys.pub_rsa_key, None);
 			assert_eq!(pub_keys.pub_kyber_key, Some(pub_key.clone()));
-			assert_eq!(pub_keys.pub_ecc_key, Some(pub_key.clone()));
+			assert_eq!(pub_keys.pub_x25519_key, Some(pub_key.clone()));
 		}
 
 		#[tokio::test]

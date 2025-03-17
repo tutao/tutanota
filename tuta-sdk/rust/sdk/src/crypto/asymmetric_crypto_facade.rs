@@ -7,9 +7,9 @@ use crate::crypto::kyber::{KyberKeyError, KyberPublicKey};
 use crate::crypto::public_key_provider::PublicKeyProvider;
 use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError, PublicKeys};
 use crate::crypto::randomizer_facade::RandomizerFacade;
-use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError, RSAKeyError, RSAPublicKey};
-use crate::crypto::tuta_crypt::{PQError, PQMessage, TutaCryptPublicKeys};
-use crate::crypto::x25519::{EccKeyPair, EccPublicKey};
+use crate::crypto::rsa::{RSAEncryptionError, RSAKeyError, RSAPublicKey, RSAX25519KeyPair};
+use crate::crypto::tuta_crypt::{TutaCryptError, TutaCryptMessage, TutaCryptPublicKeys};
+use crate::crypto::x25519::{X25519KeyPair, X25519PublicKey};
 use crate::crypto::Aes256Key;
 use crate::entities::generated::sys::{PubEncKeyData, PublicKeyPutIn};
 #[cfg_attr(test, mockall_double::double)]
@@ -29,7 +29,7 @@ use zeroize::Zeroizing;
 
 pub struct DecapsulatedAesKey {
 	pub decrypted_aes_key: GenericAesKey,
-	pub sender_identity_pub_key: Option<EccPublicKey>, // for authentication: None for rsa only
+	pub sender_identity_pub_key: Option<X25519PublicKey>, // for authentication: None for rsa only
 }
 
 pub struct PubEncSymKey {
@@ -47,7 +47,7 @@ pub enum AsymmetricCryptoError {
 	UnexpectedPublicKeyPairType(String),
 	UnexpectedSymmetricKeyType(String),
 	RsaEncrypt(#[from] RSAEncryptionError),
-	PqCrypto(#[from] PQError),
+	TutaCrypt(#[from] TutaCryptError),
 	ArrayCasting(#[from] ArrayCastingError),
 	KeyLoading(#[from] KeyLoadError),
 	KeyParsing(String),
@@ -100,8 +100,8 @@ impl AsymmetricCryptoFacade {
 			.load_versioned_pub_key(&identifier, sender_key_version)
 			.await?;
 
-		if Option::is_some(&pub_keys.pub_ecc_key)
-			&& pub_keys.pub_ecc_key.unwrap() == sender_identity_pub_key
+		if Option::is_some(&pub_keys.pub_x25519_key)
+			&& pub_keys.pub_x25519_key.unwrap() == sender_identity_pub_key
 		{
 			Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded)
 		} else {
@@ -129,7 +129,7 @@ impl AsymmetricCryptoFacade {
 			&pub_enc_key_data.pubEncSymKey,
 		)?;
 		if crypto_protocol_version == CryptoProtocolVersion::TutaCrypt {
-			let sender_identity_pub_key_from_pq_message = decapsulated_aes_key
+			let sender_identity_pub_key_from_tuta_crypt_message = decapsulated_aes_key
 				.sender_identity_pub_key
 				.as_ref()
 				.unwrap()
@@ -137,7 +137,7 @@ impl AsymmetricCryptoFacade {
 			let encryption_auth_status = self
 				.authenticate_sender(
 					sender_identifier,
-					sender_identity_pub_key_from_pq_message,
+					sender_identity_pub_key_from_tuta_crypt_message,
 					convert_version_to_u64(pub_enc_key_data.senderKeyVersion.unwrap()),
 				)
 				.await?;
@@ -162,7 +162,7 @@ impl AsymmetricCryptoFacade {
 	) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
 		match crypto_protocol_version {
 			CryptoProtocolVersion::Rsa => match recipient_key_pair {
-				AsymmetricKeyPair::RSAEccKeyPair(RSAEccKeyPair {
+				AsymmetricKeyPair::RSAX25519KeyPair(RSAX25519KeyPair {
 					rsa_key_pair: key_pair,
 					..
 				})
@@ -180,9 +180,9 @@ impl AsymmetricCryptoFacade {
 				)),
 			},
 			CryptoProtocolVersion::TutaCrypt => match recipient_key_pair {
-				AsymmetricKeyPair::PQKeyPairs(key_pair) => {
+				AsymmetricKeyPair::TutaCryptKeyPairs(key_pair) => {
 					let decapsulated_sym_key =
-						PQMessage::deserialize(pub_enc_sym_key)?.decapsulate(&key_pair)?;
+						TutaCryptMessage::deserialize(pub_enc_sym_key)?.decapsulate(&key_pair)?;
 					Ok(DecapsulatedAesKey {
 						decrypted_aes_key: decapsulated_sym_key.decrypted_sym_key_bytes.into(),
 						sender_identity_pub_key: Some(decapsulated_sym_key.sender_identity_pub_key),
@@ -238,12 +238,12 @@ impl AsymmetricCryptoFacade {
 					recipient_key_version: versioned_recipient_public_keys.version,
 				})
 			},
-			AsymmetricPublicKey::PqPublicKeys(pq_pub_keys) => {
+			AsymmetricPublicKey::TutaCryptPublicKeys(tuta_crypt_keys) => {
 				let sender_key_pair: Versioned<AsymmetricKeyPair> = self
 					.key_loader_facade
 					.load_current_key_pair(sender_group_id)
 					.await?;
-				let sender_ecc_key_pair = self
+				let sender_x25519_key_pair = self
 					.get_or_make_sender_identity_key_pair(sender_key_pair.object, sender_group_id)
 					.await?;
 				match sym_key {
@@ -256,12 +256,12 @@ impl AsymmetricCryptoFacade {
 					GenericAesKey::Aes256(aes256_sym_key) => Ok(self
 						.tuta_crypt_encrypt_sym_key_impl(
 							Versioned {
-								object: *pq_pub_keys,
+								object: *tuta_crypt_keys,
 								version: versioned_recipient_public_keys.version,
 							},
 							aes256_sym_key,
 							Versioned {
-								object: sender_ecc_key_pair,
+								object: sender_x25519_key_pair,
 								version: sender_key_pair.version,
 							},
 						)?),
@@ -272,14 +272,14 @@ impl AsymmetricCryptoFacade {
 
 	/// Encrypts the symKey asymmetrically with the provided public keys using the TutaCrypt protocol.
 	/// @param symKey the key to be encrypted
-	/// @param recipientPublicKeys MUST be a pq key pair
-	/// @param senderEccKeyPair the sender's key pair (needed for authentication)
+	/// @param recipientPublicKeys MUST be a tuta_crypt key pair
+	/// @param senderX25519KeyPair the sender's key pair (needed for authentication)
 	/// @throws ProgrammingError if the recipientPublicKeys are not suitable for TutaCrypt
 	pub fn tuta_crypt_encrypt_sym_key(
 		&self,
 		sym_key: Aes256Key,
 		recipient_public_keys: Versioned<PublicKeys>,
-		sender_ecc_key_pair: Versioned<EccKeyPair>,
+		sender_x25519_key_pair: Versioned<X25519KeyPair>,
 	) -> Result<PubEncSymKey, AsymmetricCryptoError> {
 		let recipient_public_key =
 			AsymmetricCryptoFacade::extract_recipient_public_key(recipient_public_keys.object)?;
@@ -290,14 +290,15 @@ impl AsymmetricCryptoFacade {
 					recipient_public_key
 				)))
 			},
-			AsymmetricPublicKey::PqPublicKeys(pq_pub_keys) => self.tuta_crypt_encrypt_sym_key_impl(
-				Versioned {
-					object: *pq_pub_keys,
-					version: recipient_public_keys.version,
-				},
-				sym_key,
-				sender_ecc_key_pair,
-			),
+			AsymmetricPublicKey::TutaCryptPublicKeys(tuta_crypt_pub_keys) => self
+				.tuta_crypt_encrypt_sym_key_impl(
+					Versioned {
+						object: *tuta_crypt_pub_keys,
+						version: recipient_public_keys.version,
+					},
+					sym_key,
+					sender_x25519_key_pair,
+				),
 		}
 	}
 
@@ -305,14 +306,14 @@ impl AsymmetricCryptoFacade {
 		&self,
 		recipient_public_key: Versioned<TutaCryptPublicKeys>,
 		sym_key: Aes256Key,
-		sender_ecc_key_pair: Versioned<EccKeyPair>,
+		sender_x25519_key_pair: Versioned<X25519KeyPair>,
 	) -> Result<PubEncSymKey, AsymmetricCryptoError> {
-		let ephemeral_key_pair = EccKeyPair::generate(&self.randomizer_facade);
+		let ephemeral_key_pair = X25519KeyPair::generate(&self.randomizer_facade);
 		let encapsulation_iv = Iv::generate(&self.randomizer_facade);
-		let pub_enc_sym_key_bytes = PQMessage::encapsulate(
-			&sender_ecc_key_pair.object,
+		let pub_enc_sym_key_bytes = TutaCryptMessage::encapsulate(
+			&sender_x25519_key_pair.object,
 			&ephemeral_key_pair,
-			&recipient_public_key.object.ecc_public_key,
+			&recipient_public_key.object.x25519_public_key,
 			&recipient_public_key.object.kyber_public_key,
 			&sym_key,
 			encapsulation_iv,
@@ -321,7 +322,7 @@ impl AsymmetricCryptoFacade {
 		Ok(PubEncSymKey {
 			pub_enc_sym_key_bytes,
 			crypto_protocol_version: CryptoProtocolVersion::TutaCrypt,
-			sender_key_version: Some(sender_ecc_key_pair.version),
+			sender_key_version: Some(sender_x25519_key_pair.version),
 			recipient_key_version: recipient_public_key.version,
 		})
 	}
@@ -330,20 +331,20 @@ impl AsymmetricCryptoFacade {
 		public_keys: PublicKeys,
 	) -> Result<AsymmetricPublicKey, AsymmetricCryptoError> {
 		if Option::is_some(&public_keys.pub_rsa_key) {
-			// we ignore ecc keys as this is only used for the recipient keys
+			// we ignore x25519 keys as this is only used for the recipient keys
 			Ok(AsymmetricPublicKey::RsaPublicKey(Box::new(
 				RSAPublicKey::deserialize(public_keys.pub_rsa_key.unwrap().as_slice())?,
 			)))
-		} else if Option::is_some(&public_keys.pub_ecc_key)
+		} else if Option::is_some(&public_keys.pub_x25519_key)
 			&& Option::is_some(&public_keys.pub_kyber_key)
 		{
 			let kyber_public_key =
 				KyberPublicKey::deserialize(public_keys.pub_kyber_key.unwrap().as_slice())?;
-			let ecc_public_key =
-				EccPublicKey::from_bytes(public_keys.pub_ecc_key.unwrap().as_slice())?;
-			return Ok(AsymmetricPublicKey::PqPublicKeys(Box::new(
+			let x25519_public_key =
+				X25519PublicKey::from_bytes(public_keys.pub_x25519_key.unwrap().as_slice())?;
+			return Ok(AsymmetricPublicKey::TutaCryptPublicKeys(Box::new(
 				TutaCryptPublicKeys {
-					ecc_public_key,
+					x25519_public_key,
 					kyber_public_key,
 				},
 			)));
@@ -364,18 +365,22 @@ impl AsymmetricCryptoFacade {
 		&self,
 		sender_key_pair: AsymmetricKeyPair,
 		key_group_id: &GeneratedId,
-	) -> Result<EccKeyPair, AsymmetricCryptoError> {
+	) -> Result<X25519KeyPair, AsymmetricCryptoError> {
 		match sender_key_pair {
-			AsymmetricKeyPair::PQKeyPairs(pq_pairs) => Ok(pq_pairs.ecc_keys),
-			AsymmetricKeyPair::RSAEccKeyPair(rsa_ecc_pairs) => Ok(rsa_ecc_pairs.ecc_key_pair),
+			AsymmetricKeyPair::TutaCryptKeyPairs(tuta_crypt_pairs) => {
+				Ok(tuta_crypt_pairs.x25519_keys)
+			},
+			AsymmetricKeyPair::RSAX25519KeyPair(rsa_x25519_pairs) => {
+				Ok(rsa_x25519_pairs.x25519_key_pair)
+			},
 			AsymmetricKeyPair::RSAKeyPair(_rsa_pair) => {
-				// there is no ecc key pair yet, so we have to generate and upload one
+				// there is no x25519 key pair yet, so we have to generate and upload one
 				let sym_group_key: VersionedAesKey = self
 					.key_loader_facade
 					.get_current_sym_group_key(key_group_id)
 					.await?;
-				let new_identity_key_pair = EccKeyPair::generate(&self.randomizer_facade);
-				let sym_enc_priv_ecc_key = sym_group_key.object.encrypt_data(
+				let new_identity_key_pair = X25519KeyPair::generate(&self.randomizer_facade);
+				let sym_enc_priv_x25519_key = sym_group_key.object.encrypt_data(
 					new_identity_key_pair.private_key.as_bytes(),
 					Iv::generate(&self.randomizer_facade),
 				)?;
@@ -383,7 +388,7 @@ impl AsymmetricCryptoFacade {
 				let data = PublicKeyPutIn {
 					_format: 0,
 					pubEccKey: new_identity_key_pair.public_key.as_bytes().to_vec(),
-					symEncPrivEccKey: sym_enc_priv_ecc_key,
+					symEncPrivEccKey: sym_enc_priv_x25519_key,
 					keyGroup: key_group_id.to_owned(),
 				};
 				self.service_executor
@@ -468,7 +473,7 @@ mod tests {
 				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
 					Ok(PublicKeys {
-						pub_ecc_key: Some(pub_key.clone()),
+						pub_x25519_key: Some(pub_key.clone()),
 						pub_kyber_key: Some(vec![1, 2, 3]),
 						pub_rsa_key: None,
 					})
@@ -492,7 +497,7 @@ mod tests {
 		}
 
 		#[tokio::test]
-		async fn should_return_tutacrypt_authentication_failed_if_sender_does_not_have_an_ecc_identity_key_in_the_requested_version(
+		async fn should_return_tutacrypt_authentication_failed_if_sender_does_not_have_an_x25519_identity_key_in_the_requested_version(
 		) {
 			let (
 				sender_key_version,
@@ -511,7 +516,7 @@ mod tests {
 				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
 					Ok(PublicKeys {
-						pub_ecc_key: None,
+						pub_x25519_key: None,
 						pub_kyber_key: None,
 						pub_rsa_key: Some(pub_key.clone()),
 					})
@@ -548,7 +553,7 @@ mod tests {
 				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
 					Ok(PublicKeys {
-						pub_ecc_key: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
+						pub_x25519_key: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
 						pub_kyber_key: Some(vec![1, 2, 3]),
 						pub_rsa_key: None,
 					})
@@ -580,9 +585,9 @@ mod tests {
 		use crate::crypto::public_key_provider::PublicKeys;
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
-		use crate::crypto::tuta_crypt::PQMessage;
-		use crate::crypto::x25519::EccKeyPair;
-		use crate::crypto::{Aes256Key, PQKeyPairs};
+		use crate::crypto::tuta_crypt::TutaCryptMessage;
+		use crate::crypto::x25519::X25519KeyPair;
+		use crate::crypto::{Aes256Key, TutaCryptKeyPairs};
 		use crate::entities::generated::sys::PubEncKeyData;
 		use crate::services::generated::sys::PublicKeyService;
 		use crate::tutanota_constants::CryptoProtocolVersion;
@@ -605,7 +610,7 @@ mod tests {
 				.with(eq(sender_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
 					Ok(PublicKeys {
-						pub_ecc_key: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
+						pub_x25519_key: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
 						pub_kyber_key: Some(vec![1, 2, 3]),
 						pub_rsa_key: None,
 					})
@@ -615,12 +620,12 @@ mod tests {
 				make_asymmetric_crypto_facade(service_executor, public_key_provider);
 
 			let randomizer_facade = make_thread_rng_facade();
-			let recipient_key_pair = PQKeyPairs::generate(&randomizer_facade);
+			let recipient_key_pair = TutaCryptKeyPairs::generate(&randomizer_facade);
 
-			let pub_enc_sym_key = PQMessage::encapsulate(
-				&EccKeyPair::generate(&randomizer_facade),
-				&EccKeyPair::generate(&randomizer_facade),
-				&recipient_key_pair.ecc_keys.public_key.clone(),
+			let pub_enc_sym_key = TutaCryptMessage::encapsulate(
+				&X25519KeyPair::generate(&randomizer_facade),
+				&X25519KeyPair::generate(&randomizer_facade),
+				&recipient_key_pair.x25519_keys.public_key.clone(),
 				&recipient_key_pair.kyber_keys.public_key.clone(),
 				&Aes256Key::generate(&randomizer_facade),
 				Iv::generate(&randomizer_facade),
@@ -644,7 +649,7 @@ mod tests {
 
 			let result = asymmetric_crypto_facade
 				.decrypt_sym_key_with_key_pair_and_authenticate(
-					AsymmetricKeyPair::PQKeyPairs(recipient_key_pair),
+					AsymmetricKeyPair::TutaCryptKeyPairs(recipient_key_pair),
 					pub_enc_key_data,
 					sender_identifier,
 				)
@@ -709,9 +714,9 @@ mod tests {
 		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
-		use crate::crypto::tuta_crypt::PQMessage;
-		use crate::crypto::x25519::EccKeyPair;
-		use crate::crypto::{Aes256Key, PQKeyPairs};
+		use crate::crypto::tuta_crypt::TutaCryptMessage;
+		use crate::crypto::x25519::X25519KeyPair;
+		use crate::crypto::{Aes256Key, TutaCryptKeyPairs};
 		use crate::tutanota_constants::CryptoProtocolVersion;
 
 		#[tokio::test]
@@ -753,7 +758,9 @@ mod tests {
 		#[tokio::test]
 		async fn error_when_crypto_protocol_version_does_not_match_key_pair_rsa() {
 			let result = AsymmetricCryptoFacade::decrypt_sym_key_with_key_pair(
-				AsymmetricKeyPair::PQKeyPairs(PQKeyPairs::generate(&make_thread_rng_facade())),
+				AsymmetricKeyPair::TutaCryptKeyPairs(TutaCryptKeyPairs::generate(
+					&make_thread_rng_facade(),
+				)),
 				&CryptoProtocolVersion::Rsa,
 				&[1, 2, 3],
 			);
@@ -782,14 +789,14 @@ mod tests {
 		async fn should_call_tuta_crypt_decryption_when_the_protocol_version_is_set_to_tuta_crypt()
 		{
 			let randomizer_facade = make_thread_rng_facade();
-			let recipient_key_pair = PQKeyPairs::generate(&randomizer_facade);
+			let recipient_key_pair = TutaCryptKeyPairs::generate(&randomizer_facade);
 
-			let sender_ecc_key_pair = EccKeyPair::generate(&randomizer_facade);
+			let sender_x25519_key_pair = X25519KeyPair::generate(&randomizer_facade);
 			let sym_key = Aes256Key::generate(&randomizer_facade);
-			let pub_enc_sym_key = PQMessage::encapsulate(
-				&sender_ecc_key_pair,
-				&EccKeyPair::generate(&randomizer_facade),
-				&recipient_key_pair.ecc_keys.public_key.clone(),
+			let pub_enc_sym_key = TutaCryptMessage::encapsulate(
+				&sender_x25519_key_pair,
+				&X25519KeyPair::generate(&randomizer_facade),
+				&recipient_key_pair.x25519_keys.public_key.clone(),
 				&recipient_key_pair.kyber_keys.public_key.clone(),
 				&sym_key,
 				Iv::generate(&randomizer_facade),
@@ -797,7 +804,7 @@ mod tests {
 			.unwrap();
 
 			let result = AsymmetricCryptoFacade::decrypt_sym_key_with_key_pair(
-				AsymmetricKeyPair::PQKeyPairs(recipient_key_pair),
+				AsymmetricKeyPair::TutaCryptKeyPairs(recipient_key_pair),
 				&CryptoProtocolVersion::TutaCrypt,
 				&pub_enc_sym_key.serialize(),
 			)
@@ -805,41 +812,19 @@ mod tests {
 
 			assert_eq!(
 				result.sender_identity_pub_key,
-				Some(sender_ecc_key_pair.public_key)
+				Some(sender_x25519_key_pair.public_key)
 			);
 			assert_eq!(result.decrypted_aes_key, GenericAesKey::Aes256(sym_key));
 		}
 	}
 
 	mod encrypt_pub_sym_key {
-		// let recipientKeyVersion = 1
-		// let sender_key_version = 2
-		// let senderGroupId = "senderGroupId"
-		// let symKey: AesKey
-		// let pubEncSymKeyBytes: Uint8Array
-		// let recipientKyberPublicKey: KyberPublicKey
-		// let senderPqKeyPair: Versioned<PQKeyPairs>
-		// let ephemeralKeyPair: EccKeyPair
-		//
-		// o.beforeEach(function () {
-		// recipientKyberPublicKey = object<KyberPublicKey>()
-		// symKey = [1, 2, 3, 4]
-		// pubEncSymKeyBytes = object<Uint8Array>()
-		// senderPqKeyPair = {
-		// object: { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair: object(), kyberKeyPair: object() },
-		// version: sender_key_version,
-		// }
-		// ephemeralKeyPair = object()
-		// when(cryptoWrapper.generateEccKeyPair()).thenReturn(ephemeralKeyPair)
-		// when(keyLoaderFacade.loadCurrentKeyPair(senderGroupId)).thenResolve(senderPqKeyPair)
-		// })
-
 		use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 		use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeys};
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
-		use crate::crypto::{Aes256Key, PQKeyPairs};
+		use crate::crypto::{Aes256Key, TutaCryptKeyPairs};
 		use crate::entities::generated::sys::PublicKeyPutIn;
 		use crate::key_loader_facade::MockKeyLoaderFacade;
 		use crate::services::generated::sys::PublicKeyService;
@@ -852,7 +837,7 @@ mod tests {
 		use std::sync::Arc;
 
 		#[tokio::test]
-		async fn encrypt_the_sym_key_with_the_recipient_pq_public_key() {
+		async fn encrypt_the_sym_key_with_the_recipient_tuta_crypt_public_key() {
 			let sender_key_version = 1u64;
 			let sender_group_id = GeneratedId::test_random();
 
@@ -863,8 +848,9 @@ mod tests {
 			let mut key_loader_facade = MockKeyLoaderFacade::default();
 
 			let randomizer_facade = make_thread_rng_facade();
-			let sender_key_pair =
-				AsymmetricKeyPair::PQKeyPairs(PQKeyPairs::generate(&randomizer_facade));
+			let sender_key_pair = AsymmetricKeyPair::TutaCryptKeyPairs(
+				TutaCryptKeyPairs::generate(&randomizer_facade),
+			);
 			key_loader_facade
 				.expect_load_current_key_pair()
 				.with(eq(sender_group_id.clone()))
@@ -883,14 +869,14 @@ mod tests {
 			);
 
 			let sym_key = Aes256Key::generate(&randomizer_facade);
-			let recipient_key_pair = PQKeyPairs::generate(&randomizer_facade);
+			let recipient_key_pair = TutaCryptKeyPairs::generate(&randomizer_facade);
 			let recipient_key_version = 3u64;
 			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
 				version: recipient_key_version,
 				object: PublicKeys {
-					pub_ecc_key: Some(
+					pub_x25519_key: Some(
 						recipient_key_pair
-							.ecc_keys
+							.x25519_keys
 							.public_key
 							.clone()
 							.as_bytes()
@@ -917,11 +903,11 @@ mod tests {
 			);
 			assert_eq!(pub_enc_sym_key.sender_key_version, Some(sender_key_version));
 			assert_eq!(pub_enc_sym_key.recipient_key_version, recipient_key_version);
-			assert!(pub_enc_sym_key.pub_enc_sym_key_bytes.len() > 1000); // tutaCrypt tests will check that this is a valid pqmessage
+			assert!(pub_enc_sym_key.pub_enc_sym_key_bytes.len() > 1000); // tutaCrypt tests will check that this is a valid tuta_crypt_message
 		}
 
 		#[tokio::test]
-		async fn recipient_has_pq_public_key_and_sender_has_only_rsa_key_pair_then_put_sender_ecc_key(
+		async fn recipient_has_tuta_crypt_public_key_and_sender_has_only_rsa_key_pair_then_put_sender_x25519_key(
 		) {
 			let sender_key_version = 1u64;
 			let sender_group_id = GeneratedId::test_random();
@@ -975,14 +961,14 @@ mod tests {
 			);
 
 			let sym_key = Aes256Key::generate(&randomizer_facade);
-			let recipient_key_pair = PQKeyPairs::generate(&randomizer_facade);
+			let recipient_key_pair = TutaCryptKeyPairs::generate(&randomizer_facade);
 			let recipient_key_version = 3u64;
 			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
 				version: recipient_key_version,
 				object: PublicKeys {
-					pub_ecc_key: Some(
+					pub_x25519_key: Some(
 						recipient_key_pair
-							.ecc_keys
+							.x25519_keys
 							.public_key
 							.clone()
 							.as_bytes()
@@ -1009,7 +995,7 @@ mod tests {
 			);
 			assert_eq!(pub_enc_sym_key.sender_key_version, Some(sender_key_version));
 			assert_eq!(pub_enc_sym_key.recipient_key_version, recipient_key_version);
-			assert!(pub_enc_sym_key.pub_enc_sym_key_bytes.len() > 1000); // tutaCrypt tests will check that this is a valid pqmessage
+			assert!(pub_enc_sym_key.pub_enc_sym_key_bytes.len() > 1000); // tutaCrypt tests will check that this is a valid tuta_crypt_message
 		}
 
 		#[tokio::test]
@@ -1038,7 +1024,7 @@ mod tests {
 			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
 				version: recipient_key_version,
 				object: PublicKeys {
-					pub_ecc_key: None,
+					pub_x25519_key: None,
 					pub_kyber_key: None,
 					pub_rsa_key: Some(recipient_key_pair.public_key.serialize()),
 				},
@@ -1067,7 +1053,7 @@ mod tests {
 			use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeys};
 			use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 			use crate::crypto::rsa::RSAKeyPair;
-			use crate::crypto::x25519::EccKeyPair;
+			use crate::crypto::x25519::X25519KeyPair;
 			use crate::crypto::Aes256Key;
 			use crate::services::generated::sys::PublicKeyService;
 			use crate::services::service_executor::MockServiceExecutor;
@@ -1091,7 +1077,7 @@ mod tests {
 				let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
 					version: recipient_key_version,
 					object: PublicKeys {
-						pub_ecc_key: None,
+						pub_x25519_key: None,
 						pub_kyber_key: None,
 						pub_rsa_key: Some(recipient_key_pair.public_key.serialize()),
 					},
@@ -1102,7 +1088,7 @@ mod tests {
 					versioned_recipient_public_keys,
 					Versioned {
 						version: sender_key_version,
-						object: EccKeyPair::generate(&randomizer_facade),
+						object: X25519KeyPair::generate(&randomizer_facade),
 					},
 				);
 

@@ -11,7 +11,7 @@ pub use argon2_id::generate_key_from_passphrase;
 pub use hkdf::hkdf;
 pub use sha::sha256;
 #[allow(unused_imports)]
-pub use tuta_crypt::PQKeyPairs;
+pub use tuta_crypt::TutaCryptKeyPairs;
 
 pub mod aes;
 pub mod hmac;

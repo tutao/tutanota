@@ -7,7 +7,7 @@ use crate::crypto::kyber::{
 };
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::x25519::{
-	ecc_decapsulate, ecc_encapsulate, EccKeyPair, EccPublicKey, EccSharedSecrets,
+	x25519_decapsulate, x25519_encapsulate, X25519KeyPair, X25519PublicKey, X25519SharedSecrets,
 };
 use crate::join_slices;
 use crate::util::{decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
@@ -15,43 +15,44 @@ use zeroize::{ZeroizeOnDrop, Zeroizing};
 
 #[cfg_attr(test, derive(Debug))]
 pub struct DecapsulatedSymKey {
-	pub sender_identity_pub_key: EccPublicKey,
+	pub sender_identity_pub_key: X25519PublicKey,
 	pub decrypted_sym_key_bytes: Aes256Key,
 }
 
 #[cfg_attr(test, derive(Debug))]
 pub struct TutaCryptPublicKeys {
-	pub ecc_public_key: EccPublicKey,
+	pub x25519_public_key: X25519PublicKey,
 	pub kyber_public_key: KyberPublicKey,
 }
 
 /// An encapsulated post quantum message using the Tuta Crypt protocol.
 #[derive(ZeroizeOnDrop)]
-pub struct PQMessage {
-	sender_identity_public_key: EccPublicKey,
-	ephemeral_public_key: EccPublicKey,
-	encapsulation: PQBucketKeyEncapsulation,
+pub struct TutaCryptMessage {
+	sender_identity_public_key: X25519PublicKey,
+	ephemeral_public_key: X25519PublicKey,
+	encapsulation: TutaCryptBucketKeyEncapsulation,
 }
 
-impl PQMessage {
+impl TutaCryptMessage {
 	/// Deserialized from encoded form.
 	///
 	/// Returns `Err` if invalid.
-	pub fn deserialize(data: &[u8]) -> Result<PQMessage, PQError> {
+	pub fn deserialize(data: &[u8]) -> Result<TutaCryptMessage, TutaCryptError> {
 		let [sender_identity_pub_key_bytes, ephemeral_pub_key_bytes, kyber_cipher_text_bytes, kek_enc_bucket_key_bytes] =
-			decode_byte_arrays(data).map_err(|reason| PQError {
-				reason: format!("Can't deserialize PQBucketKey: {reason}"),
+			decode_byte_arrays(data).map_err(|reason| TutaCryptError {
+				reason: format!("Can't deserialize TutaCryptBucketKey: {reason}"),
 			})?;
 
-		let sender_identity_public_key = EccPublicKey::from_bytes(sender_identity_pub_key_bytes)?;
-		let ephemeral_public_key = EccPublicKey::from_bytes(ephemeral_pub_key_bytes)?;
+		let sender_identity_public_key =
+			X25519PublicKey::from_bytes(sender_identity_pub_key_bytes)?;
+		let ephemeral_public_key = X25519PublicKey::from_bytes(ephemeral_pub_key_bytes)?;
 		let kyber_ciphertext = kyber_cipher_text_bytes.try_into()?;
 		let kek_enc_bucket_key = kek_enc_bucket_key_bytes.to_owned();
 
 		Ok(Self {
 			sender_identity_public_key,
 			ephemeral_public_key,
-			encapsulation: PQBucketKeyEncapsulation {
+			encapsulation: TutaCryptBucketKeyEncapsulation {
 				kyber_ciphertext,
 				kek_enc_bucket_key,
 			},
@@ -69,30 +70,33 @@ impl PQMessage {
 		.unwrap()
 	}
 
-	/// Decapsulate the PQ message with the given keys.
-	pub fn decapsulate(&self, recipient_keys: &PQKeyPairs) -> Result<DecapsulatedSymKey, PQError> {
-		let PQKeyPairs {
-			ecc_keys,
+	/// Decapsulate the TutaCrypt message with the given keys.
+	pub fn decapsulate(
+		&self,
+		recipient_keys: &TutaCryptKeyPairs,
+	) -> Result<DecapsulatedSymKey, TutaCryptError> {
+		let TutaCryptKeyPairs {
+			x25519_keys,
 			kyber_keys,
 		} = recipient_keys;
 
-		let ecc_shared_secret = ecc_decapsulate(
+		let x25519_shared_secret = x25519_decapsulate(
 			&self.sender_identity_public_key,
 			&self.ephemeral_public_key,
-			&ecc_keys.private_key,
+			&x25519_keys.private_key,
 		);
 		let kyber_shared_secret = kyber_keys
 			.private_key
 			.decapsulate(&self.encapsulation.kyber_ciphertext)?;
 
-		let kek = derive_pq_kek(
+		let kek = derive_tuta_crypt_kek(
 			&self.sender_identity_public_key,
 			&self.ephemeral_public_key,
-			&ecc_keys.public_key,
+			&x25519_keys.public_key,
 			&kyber_keys.public_key,
 			&self.encapsulation.kyber_ciphertext,
 			&kyber_shared_secret,
-			&ecc_shared_secret,
+			&x25519_shared_secret,
 			CryptoProtocolVersion::TutaCrypt,
 		);
 
@@ -103,30 +107,30 @@ impl PQMessage {
 		})
 	}
 
-	/// Construct a `PQMessage` containing an AES key from the given keys.
+	/// Construct a `TutaCryptMessage` containing an AES key from the given keys.
 	pub fn encapsulate(
-		sender_ecc_keypair: &EccKeyPair,
-		ephemeral_ecc_keypair: &EccKeyPair, //TODO this is error prone and dangerous, we should generate the key pair inside
-		recipient_ecc_key: &EccPublicKey,
+		sender_x25519_keypair: &X25519KeyPair,
+		ephemeral_x25519_keypair: &X25519KeyPair, //TODO this is error prone and dangerous, we should generate the key pair inside
+		recipient_x25519_key: &X25519PublicKey,
 		recipient_kyber_key: &KyberPublicKey,
 		bucket_key: &Aes256Key,
 		iv: Iv, //TODO this is error prone and dangerous, we should generate the iv inside the aes implementation
-	) -> Result<Self, PQError> {
-		let ecc_shared_secret = ecc_encapsulate(
-			&sender_ecc_keypair.private_key,
-			&ephemeral_ecc_keypair.private_key,
-			recipient_ecc_key,
+	) -> Result<Self, TutaCryptError> {
+		let x25519_shared_secret = x25519_encapsulate(
+			&sender_x25519_keypair.private_key,
+			&ephemeral_x25519_keypair.private_key,
+			recipient_x25519_key,
 		);
 		let encapsulation = recipient_kyber_key.encapsulate();
 
-		let kek = derive_pq_kek(
-			&sender_ecc_keypair.public_key,
-			&ephemeral_ecc_keypair.public_key,
-			recipient_ecc_key,
+		let kek = derive_tuta_crypt_kek(
+			&sender_x25519_keypair.public_key,
+			&ephemeral_x25519_keypair.public_key,
+			recipient_x25519_key,
 			recipient_kyber_key,
 			&encapsulation.ciphertext,
 			&encapsulation.shared_secret,
-			&ecc_shared_secret,
+			&x25519_shared_secret,
 			CryptoProtocolVersion::TutaCrypt,
 		);
 
@@ -134,9 +138,9 @@ impl PQMessage {
 			aes_256_encrypt(&kek, bucket_key.as_bytes(), &iv, PaddingMode::WithPadding)?;
 
 		Ok(Self {
-			sender_identity_public_key: sender_ecc_keypair.public_key.clone(),
-			ephemeral_public_key: ephemeral_ecc_keypair.public_key.clone(),
-			encapsulation: PQBucketKeyEncapsulation {
+			sender_identity_public_key: sender_x25519_keypair.public_key.clone(),
+			ephemeral_public_key: ephemeral_x25519_keypair.public_key.clone(),
+			encapsulation: TutaCryptBucketKeyEncapsulation {
 				kyber_ciphertext: encapsulation.ciphertext,
 				kek_enc_bucket_key,
 			},
@@ -152,28 +156,28 @@ enum CryptoProtocolVersion {
 	TutaCrypt = 2,
 }
 
-fn derive_pq_kek(
-	sender_identity_public_key: &EccPublicKey,
-	ephemeral_public_key: &EccPublicKey,
-	recipient_ecc_public_key: &EccPublicKey,
+fn derive_tuta_crypt_kek(
+	sender_identity_public_key: &X25519PublicKey,
+	ephemeral_public_key: &X25519PublicKey,
+	recipient_x25519_public_key: &X25519PublicKey,
 	recipient_kyber_public_key: &KyberPublicKey,
 	kyber_ciphertext: &KyberCiphertext,
 	kyber_shared_secret: &KyberSharedSecret,
-	ecc_shared_secrets: &EccSharedSecrets,
+	x25519_shared_secrets: &X25519SharedSecrets,
 	crypto_protocol_version: CryptoProtocolVersion,
 ) -> Aes256Key {
 	let context = Zeroizing::new(join_slices!(
 		sender_identity_public_key.as_bytes(),
 		ephemeral_public_key.as_bytes(),
-		recipient_ecc_public_key.as_bytes(),
+		recipient_x25519_public_key.as_bytes(),
 		Zeroizing::new(recipient_kyber_public_key.serialize()).as_slice(),
 		kyber_ciphertext.as_bytes(),
 		&[crypto_protocol_version as u8]
 	));
 
 	let input_key_material = Zeroizing::new(join_slices!(
-		ecc_shared_secrets.ephemeral_shared_secret.as_bytes(),
-		ecc_shared_secrets.auth_shared_secret.as_bytes(),
+		x25519_shared_secrets.ephemeral_shared_secret.as_bytes(),
+		x25519_shared_secrets.auth_shared_secret.as_bytes(),
 		kyber_shared_secret.as_bytes()
 	));
 
@@ -183,40 +187,40 @@ fn derive_pq_kek(
 
 #[derive(Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
-pub struct PQKeyPairs {
-	pub ecc_keys: EccKeyPair,
+pub struct TutaCryptKeyPairs {
+	pub x25519_keys: X25519KeyPair,
 	pub kyber_keys: KyberKeyPair,
 }
 
-impl PQKeyPairs {
+impl TutaCryptKeyPairs {
 	/// Generate a keypair with the given random number generator.
 	#[must_use]
 	pub fn generate(randomizer_facade: &RandomizerFacade) -> Self {
-		let ecc_keys = EccKeyPair::generate(randomizer_facade);
+		let x25519_keys = X25519KeyPair::generate(randomizer_facade);
 		let kyber_keys = KyberKeyPair::generate();
 		Self {
-			ecc_keys,
+			x25519_keys,
 			kyber_keys,
 		}
 	}
 }
 
 #[derive(ZeroizeOnDrop)]
-pub struct PQBucketKeyEncapsulation {
+pub struct TutaCryptBucketKeyEncapsulation {
 	kyber_ciphertext: KyberCiphertext,
 	kek_enc_bucket_key: Vec<u8>,
 }
 
 /// Error that occurs when parsing RSA keys.
 #[derive(thiserror::Error, Debug)]
-#[error("PQ error: {reason}")]
-pub struct PQError {
+#[error("TutaCrypt error: {reason}")]
+pub struct TutaCryptError {
 	reason: String,
 }
 
-trait PQErrorType: ToString {}
+trait TutaCryptErrorType: ToString {}
 
-impl<T: PQErrorType> From<T> for PQError {
+impl<T: TutaCryptErrorType> From<T> for TutaCryptError {
 	fn from(reason: T) -> Self {
 		Self {
 			reason: reason.to_string(),
@@ -224,13 +228,13 @@ impl<T: PQErrorType> From<T> for PQError {
 	}
 }
 
-impl PQErrorType for ArrayCastingError {}
+impl TutaCryptErrorType for ArrayCastingError {}
 
-impl PQErrorType for KyberDecapsulationError {}
+impl TutaCryptErrorType for KyberDecapsulationError {}
 
-impl PQErrorType for AesDecryptError {}
+impl TutaCryptErrorType for AesDecryptError {}
 
-impl PQErrorType for AesEncryptError {}
+impl TutaCryptErrorType for AesEncryptError {}
 
 #[cfg(test)]
 mod tests {
@@ -239,14 +243,14 @@ mod tests {
 		get_compatibility_test_data, PQCryptEncryptionTest,
 	};
 	use crate::crypto::kyber::KyberPrivateKey;
-	use crate::crypto::x25519::EccPrivateKey;
+	use crate::crypto::x25519::X25519PrivateKey;
 
 	#[test]
 	fn test_bucket_key_serialize_roundtrip() {
 		let tests = get_compatibility_test_data();
 		for i in tests.pqcrypt_encryption_tests {
-			let pq_message = PQMessage::deserialize(&i.pq_message).unwrap();
-			let serialized = pq_message.serialize();
+			let tuta_crypt_message = TutaCryptMessage::deserialize(&i.pq_message).unwrap();
+			let serialized = tuta_crypt_message.serialize();
 			assert_eq!(i.pq_message, serialized);
 		}
 	}
@@ -255,9 +259,9 @@ mod tests {
 	fn test_bucket_key_serialize_decapsulate() {
 		let tests = get_compatibility_test_data();
 		for i in tests.pqcrypt_encryption_tests {
-			let pq_message = PQMessage::deserialize(&i.pq_message).unwrap();
+			let tuta_crypt_message = TutaCryptMessage::deserialize(&i.pq_message).unwrap();
 			let recipient_keys = get_recipient_keys(&i);
-			let decapsulated_sym_key = pq_message.decapsulate(&recipient_keys).unwrap();
+			let decapsulated_sym_key = tuta_crypt_message.decapsulate(&recipient_keys).unwrap();
 			assert_eq!(
 				i.bucket_key,
 				decapsulated_sym_key.decrypted_sym_key_bytes.as_bytes()
@@ -274,25 +278,25 @@ mod tests {
 		let tests = get_compatibility_test_data();
 		for i in tests.pqcrypt_encryption_tests {
 			let recipient_keys = get_recipient_keys(&i);
-			let PQKeyPairs {
-				ecc_keys,
+			let TutaCryptKeyPairs {
+				x25519_keys,
 				kyber_keys,
 			} = &recipient_keys;
 
 			// Note that the test data uses sender keys as recipient keys, so we are basically just simulating sending mail to ourselves.
-			let sender_ecc_keypair = ecc_keys;
-			let ephemeral_ecc_keypair = EccKeyPair {
-				private_key: EccPrivateKey::from_bytes(&i.epheremal_private_x25519_key).unwrap(),
-				public_key: EccPublicKey::from_bytes(&i.epheremal_public_x25519_key).unwrap(),
+			let sender_x25519_keypair = x25519_keys;
+			let ephemeral_x25519_keypair = X25519KeyPair {
+				private_key: X25519PrivateKey::from_bytes(&i.epheremal_private_x25519_key).unwrap(),
+				public_key: X25519PublicKey::from_bytes(&i.epheremal_public_x25519_key).unwrap(),
 			};
 
 			let bucket_key = Aes256Key::try_from(i.bucket_key).unwrap();
 			let iv = Iv::from_bytes(&i.seed[i.seed.len() - 16..]).unwrap();
 
-			let encapsulation = PQMessage::encapsulate(
-				sender_ecc_keypair,
-				&ephemeral_ecc_keypair,
-				&ecc_keys.public_key,
+			let encapsulation = TutaCryptMessage::encapsulate(
+				sender_x25519_keypair,
+				&ephemeral_x25519_keypair,
+				&x25519_keys.public_key,
 				&kyber_keys.public_key,
 				&bucket_key,
 				iv,
@@ -303,7 +307,7 @@ mod tests {
 			//
 			// However, since we can test decapsulation separately, we can prove that encapsulation is accurate if we can decapsulate it as well.
 			//
-			// assert_eq!(i.pq_message, encapsulation.serialize());
+			// assert_eq!(i.tuta_crypt_message, encapsulation.serialize());
 
 			let decapsulation = encapsulation.decapsulate(&recipient_keys).unwrap();
 			assert_eq!(
@@ -311,35 +315,36 @@ mod tests {
 				decapsulation.decrypted_sym_key_bytes.as_bytes()
 			);
 			assert_eq!(
-				sender_ecc_keypair.public_key,
+				sender_x25519_keypair.public_key,
 				decapsulation.sender_identity_pub_key
 			);
 
 			// Should be able to serialize/deserialize and still decapsulate it.
-			let reloaded = PQMessage::deserialize(&encapsulation.serialize()).unwrap();
+			let reloaded = TutaCryptMessage::deserialize(&encapsulation.serialize()).unwrap();
 			let decapsulated_sym_key = reloaded.decapsulate(&recipient_keys).unwrap();
 			assert_eq!(
 				bucket_key.as_bytes(),
 				decapsulated_sym_key.decrypted_sym_key_bytes.as_bytes()
 			);
 			assert_eq!(
-				sender_ecc_keypair.public_key,
+				sender_x25519_keypair.public_key,
 				decapsulated_sym_key.sender_identity_pub_key
 			);
 		}
 	}
 
-	fn get_recipient_keys(test: &PQCryptEncryptionTest) -> PQKeyPairs {
-		let ecc_private = EccPrivateKey::from_bytes(test.private_x25519_key.as_slice()).unwrap();
-		let ecc_public = EccPublicKey::from_bytes(test.public_x25519_key.as_slice()).unwrap();
+	fn get_recipient_keys(test: &PQCryptEncryptionTest) -> TutaCryptKeyPairs {
+		let x25519_private =
+			X25519PrivateKey::from_bytes(test.private_x25519_key.as_slice()).unwrap();
+		let x25519_public = X25519PublicKey::from_bytes(test.public_x25519_key.as_slice()).unwrap();
 		let kyber_private =
 			KyberPrivateKey::deserialize(test.private_kyber_key.as_slice()).unwrap();
 		let kyber_public = KyberPublicKey::deserialize(test.public_kyber_key.as_slice()).unwrap();
 
-		PQKeyPairs {
-			ecc_keys: EccKeyPair {
-				public_key: ecc_public,
-				private_key: ecc_private,
+		TutaCryptKeyPairs {
+			x25519_keys: X25519KeyPair {
+				public_key: x25519_public,
+				private_key: x25519_private,
 			},
 			kyber_keys: KyberKeyPair {
 				public_key: kyber_public,
