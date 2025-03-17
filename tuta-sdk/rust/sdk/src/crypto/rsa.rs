@@ -1,5 +1,5 @@
-use crate::crypto::ecc::EccKeyPair;
 use crate::crypto::randomizer_facade::RandomizerFacade;
+use crate::crypto::x25519::EccKeyPair;
 use crate::join_slices;
 use rand_core::impls::{next_u32_via_fill, next_u64_via_fill};
 use rand_core::{CryptoRng, Error, RngCore};

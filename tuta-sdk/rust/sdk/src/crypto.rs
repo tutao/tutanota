@@ -22,9 +22,9 @@ mod hkdf;
 
 pub(crate) mod argon2_id;
 
-mod ecc;
 pub(crate) mod kyber;
 pub(crate) mod rsa;
+mod x25519;
 
 mod tuta_crypt;
 

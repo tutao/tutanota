@@ -1,5 +1,4 @@
 use crate::crypto::aes::{AesEncryptError, Iv};
-use crate::crypto::ecc::{EccKeyPair, EccPublicKey};
 use crate::crypto::key::{
 	AsymmetricKeyPair, AsymmetricPublicKey, GenericAesKey, KeyLoadError, VersionedAesKey,
 };
@@ -10,6 +9,7 @@ use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingEr
 use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEccKeyPair, RSAEncryptionError, RSAKeyError, RSAPublicKey};
 use crate::crypto::tuta_crypt::{PQError, PQMessage, TutaCryptPublicKeys};
+use crate::crypto::x25519::{EccKeyPair, EccPublicKey};
 use crate::crypto::Aes256Key;
 use crate::entities::generated::sys::{PubEncKeyData, PublicKeyPutIn};
 #[cfg_attr(test, mockall_double::double)]
@@ -576,12 +576,12 @@ mod tests {
 			make_asymmetric_crypto_facade, setup_authentication_test,
 		};
 		use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
-		use crate::crypto::ecc::EccKeyPair;
 		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 		use crate::crypto::public_key_provider::PublicKeys;
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::tuta_crypt::PQMessage;
+		use crate::crypto::x25519::EccKeyPair;
 		use crate::crypto::{Aes256Key, PQKeyPairs};
 		use crate::entities::generated::sys::PubEncKeyData;
 		use crate::services::generated::sys::PublicKeyService;
@@ -706,11 +706,11 @@ mod tests {
 		use crate::crypto::asymmetric_crypto_facade::{
 			AsymmetricCryptoError, AsymmetricCryptoFacade,
 		};
-		use crate::crypto::ecc::EccKeyPair;
 		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::tuta_crypt::PQMessage;
+		use crate::crypto::x25519::EccKeyPair;
 		use crate::crypto::{Aes256Key, PQKeyPairs};
 		use crate::tutanota_constants::CryptoProtocolVersion;
 
@@ -1064,10 +1064,10 @@ mod tests {
 		mod tuta_crypt_encrypt_sym_key {
 			use crate::crypto::asymmetric_crypto_facade::tests::make_asymmetric_crypto_facade;
 			use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
-			use crate::crypto::ecc::EccKeyPair;
 			use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeys};
 			use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 			use crate::crypto::rsa::RSAKeyPair;
+			use crate::crypto::x25519::EccKeyPair;
 			use crate::crypto::Aes256Key;
 			use crate::services::generated::sys::PublicKeyService;
 			use crate::services::service_executor::MockServiceExecutor;
