@@ -4038,6 +4038,7 @@ pub struct UpgradePriceServiceReturn {
 	pub _format: i64,
 	pub bonusMonthsForYearlyPlan: i64,
 	pub business: bool,
+	pub firstMonthForFreeForYearlyPlan: bool,
 	pub messageTextId: Option<String>,
 	pub advancedPrices: PlanPrices,
 	pub essentialPrices: PlanPrices,
