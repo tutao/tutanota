@@ -32,7 +32,7 @@ settings:
     GCC_C_LANGUAGE_STANDARD: "gnu17"
     CLANG_ENABLE_MODULES: "YES"
     CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION: "YES"
-    INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2024 Tutao GmbH. All rights reserved."
+    INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2025 Tutao GmbH. All rights reserved."
   configs:
     Debug Development:
       CODE_SIGN_IDENTITY: "Apple Development"
