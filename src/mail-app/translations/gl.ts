@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2025-03-10T12:56:37Z",
+	"updated_at": "2025-03-15T05:23:59Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1323,7 +1323,7 @@ export default {
 		"pricing.currentPlan_label": "Subscrición actual",
 		"pricing.custom_title": "Imaxe de marca",
 		"pricing.custom_tooltip": "Personaliza Tuta coa túa propia marca definindo os logos e cores da web Tuta e os clientes de móbil e escritorio.",
-		"pricing.cyberMonday_label": "Aforra o 62%",
+		"pricing.cyberMonday_label": "AFORRA o 62%",
 		"pricing.cyber_monday_msg": "Consigue o mellor plan durante un ano ao mellor prezo!",
 		"pricing.cyber_monday_select_action": "Consigue a oferta!",
 		"pricing.encryptedCalendar_label": "Calendario encryptado",
@@ -1858,6 +1858,7 @@ export default {
 		"updateAllCalendarEvents_action": "Actualizar todos os eventos",
 		"updateAvailable_label": "Hai unha nova versión de Escritorio de Tuta ({version})",
 		"updateFound_label": "Nova versión dispoñible.",
+		"updateNeeded_msg": "É necesario actualizar",
 		"updateOneCalendarEvent_action": "Actualizar só este evento",
 		"updateOwnAdminship_msg": "Non podes cambiar a administración do teu propio usuario.",
 		"updatePaymentDataBusy_msg": "Validando os datos de pagamento. Sé paciente, podería demorarse.",

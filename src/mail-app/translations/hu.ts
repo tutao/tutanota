@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-03-11T07:30:46Z",
+	"updated_at": "2025-03-17T08:39:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1856,6 +1856,7 @@ export default {
 		"updateAllCalendarEvents_action": "Minden esemény frissítése",
 		"updateAvailable_label": "Frissítés elérhető a Tuta Desktop-hoz.",
 		"updateFound_label": "Elérhető új verzió.",
+		"updateNeeded_msg": "Frissítés szükséges",
 		"updateOneCalendarEvent_action": "Csak ezt az eseményt frissítse!",
 		"updateOwnAdminship_msg": "Saját felhasználójának adminisztrációját nem módosíthatja!",
 		"updatePaymentDataBusy_msg": "Fizetési adatok hitelesítése. Kérjük legyen türelemmel, akár 1 percig is eltarthat.",

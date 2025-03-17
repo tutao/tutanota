@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-03-11T19:21:09Z",
+	"updated_at": "2025-03-14T20:14:32Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1856,6 +1856,7 @@ export default {
 		"updateAllCalendarEvents_action": "Оновити всі події",
 		"updateAvailable_label": "Доступне оновлення {version} для Tuta Настільна",
 		"updateFound_label": "Доступна нова версія",
+		"updateNeeded_msg": "Потрібне оновлення",
 		"updateOneCalendarEvent_action": "Оновити тільки цю подію",
 		"updateOwnAdminship_msg": "Ви не можете змінити адміністрування свого власного користувача. ",
 		"updatePaymentDataBusy_msg": "Перевірка даних про платежі. Виявіть терпіння, це може зайняти до однієї хвилини. ",

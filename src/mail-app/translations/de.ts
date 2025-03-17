@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-03-13T09:09:26Z",
+	"updated_at": "2025-03-17T08:39:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -842,6 +842,12 @@ export default {
 		"invoice_label": "Rechnung",
 		"IpAddress_label": "IP-Adresse",
 		"keyboardShortcuts_title": "Tastatur-Kürzel",
+		"keyManagement.cameraNotFound_msg": "Es wurde keine Kamera auf diesem Gerät gefunden. Bitte schließ deine Kamera an oder aktiviere sie.",
+		"keyManagement.cameraPermissionDenied_msg": "Erlaube die Verwendung der Kamera, um den QR-Code zu scannen.",
+		"keyManagement.contactVerificationConfirmationTitle_label": "Kontakt erfolgreich verifiziert!",
+		"keyManagement.contactVerificationConfirmation_label": "Dieser Kontakt wurde verifiziert:",
+		"keyManagement.fingerprint_label": "Fingerabdruck",
+		"keyManagement_label": "Schlüsselverwaltung",
 		"keywords_label": "Schlüsselwörter",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Gespeicherte Zugangsdaten",

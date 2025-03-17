@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-03-10T22:00:45Z",
+	"updated_at": "2025-03-14T19:19:10Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1859,6 +1859,7 @@ export default {
 		"updateAllCalendarEvents_action": "Zaktualizuj wszystkie wydarzenia",
 		"updateAvailable_label": "Dostępna aktualizacja dla pulpitu Tuta ({version})",
 		"updateFound_label": "Nowa wersja jest dostępna.",
+		"updateNeeded_msg": "Wymagana aktualizacja",
 		"updateOneCalendarEvent_action": "Zaktualizuj tylko to wydarzenie",
 		"updateOwnAdminship_msg": "Nie możesz zmienić administratora swojego użytkownika.",
 		"updatePaymentDataBusy_msg": "Trwa sprawdzanie danych płatniczych. Prosimy o cierpliwość, może to zająć do minuty czasu.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2025-03-13T09:26:18Z",
+	"updated_at": "2025-03-16T14:40:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1128,6 +1128,7 @@ export default {
 		"oldPasswordNeutral_msg": "Graag uw oude wachtwoord invullen.",
 		"oldPassword_label": "Oud wachtwoord",
 		"onboarding_text": "Neem even de tijd om de app naar uw wensen aan te passen.",
+		"onDays_label": "Op {days}",
 		"oneEmail_label": "1 e-mail",
 		"oneMailSelected_msg": "1 e-mail geselecteerd.",
 		"online_label": "Online",
@@ -1246,6 +1247,7 @@ export default {
 		"preview_label": "Voorbeeld",
 		"previous_action": "Vorige",
 		"prevMonth_label": "Vorige maand",
+		"prevThreeDays_label": "Vorige drie dagen",
 		"prevWeek_label": "Vorige week",
 		"priceChangeValidFrom_label": "Prijswijziging wordt van kracht op {1}",
 		"priceFirstYear_label": "Prijs voor het eerste jaar",
@@ -1503,6 +1505,7 @@ export default {
 		"runInBackground_action": "Op de achtergrond uitvoeren",
 		"runInBackground_msg": "Ontvang pushmeldingen als nu niet bent ingelogd en beheer vensters vanuit het systeemvak.",
 		"runOnStartup_action": "Uitvoeren bij opstarten",
+		"sameDay_label": "Dezelfde dag",
 		"saturday_label": "zaterdag",
 		"saveAll_action": "Alles opslaan",
 		"saveDownloadNotPossibleIos_msg": "Deze browser ondersteunt het opslaan van bijlagen op schijf niet. Wel kunnen enkele bestandstypen in de browser worden weergegeven door te klikken op de link. ",

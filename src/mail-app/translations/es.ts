@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-03-10T13:08:02Z",
+	"updated_at": "2025-03-14T15:25:38Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1859,6 +1859,7 @@ export default {
 		"updateAllCalendarEvents_action": "Actualiza todos los eventos",
 		"updateAvailable_label": "Actualización disponible para Tuta de escritorio ({version})",
 		"updateFound_label": "Hay una nueva versión disponible.",
+		"updateNeeded_msg": "Actualización necesaria",
 		"updateOneCalendarEvent_action": "Actualiza solo este evento",
 		"updateOwnAdminship_msg": "No puedes cambiar la administración de tu propio usuario.",
 		"updatePaymentDataBusy_msg": "Verificando la información de pago. Por favor, ten paciencia, esto puedo tomar hasta un minuto.",

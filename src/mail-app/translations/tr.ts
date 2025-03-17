@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-03-10T12:56:37Z",
+	"updated_at": "2025-03-16T18:09:06Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1860,6 +1860,7 @@ export default {
 		"updateAllCalendarEvents_action": "Tüm etkinlikleri güncelle",
 		"updateAvailable_label": "Tuta Masaüstü ({version}) güncellemesi mevcut",
 		"updateFound_label": "yeni sürüm mevcut",
+		"updateNeeded_msg": "Güncelleme gerekli",
 		"updateOneCalendarEvent_action": "Sadece bu etkinliği güncelle",
 		"updateOwnAdminship_msg": "Kendi kullanıcınızda yöneticiyi değiştiremezsiniz.",
 		"updatePaymentDataBusy_msg": "Ödemeniz doğrulanıyor. Lütfen biraz bekleyin, bu işlem bir dakika kadar sürebilir.",

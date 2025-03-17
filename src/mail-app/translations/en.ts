@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-03-10T12:56:37Z",
+	"updated_at": "2025-03-17T08:39:24Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -838,6 +838,12 @@ export default {
 		"invoice_label": "Invoice",
 		"IpAddress_label": "IP address",
 		"keyboardShortcuts_title": "Keyboard shortcuts",
+		"keyManagement.cameraNotFound_msg": "No camera was found on this device. Please connect or activate your camera.",
+		"keyManagement.cameraPermissionDenied_msg": "Allow to use the camera in order to scan the QR Code.",
+		"keyManagement.contactVerificationConfirmationTitle_label": "Contact successfully verified!",
+		"keyManagement.contactVerificationConfirmation_label": "The following contact has been verified:",
+		"keyManagement.fingerprint_label": "Fingerprint",
+		"keyManagement_label": "Key management",
 		"keywords_label": "Keywords",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Saved accounts",

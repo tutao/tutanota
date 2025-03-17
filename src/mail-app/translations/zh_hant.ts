@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-03-10T16:38:43Z",
+	"updated_at": "2025-03-14T17:05:16Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1366,7 +1366,7 @@ export default {
 		"pricing.platforms_label": "網頁、手機及桌面版應用程式",
 		"pricing.privateUse_label": "個人",
 		"pricing.roles_label": "多個管理員角色",
-		"pricing.roles_tooltip": "定義擁有一切存取權限的管理員。",
+		"pricing.roles_tooltip": "您可以定義擁有一切存取權限的管理員。",
 		"pricing.saveAmount_label": "節省{amount}",
 		"pricing.search_msg": "無限量搜尋",
 		"pricing.search_tooltip": "透過我們的加密搜尋索引機密地搜尋您的整個郵箱。",
@@ -1855,6 +1855,7 @@ export default {
 		"updateAllCalendarEvents_action": "更新所有活動",
 		"updateAvailable_label": "桌面版Tuta有更新可用 ({version})",
 		"updateFound_label": "有新版本可用。",
+		"updateNeeded_msg": "需要更新",
 		"updateOneCalendarEvent_action": "只更新此活動",
 		"updateOwnAdminship_msg": "您無法更改您自己用戶的管理權限。",
 		"updatePaymentDataBusy_msg": "驗證付款資料中。請耐心等候，這可能需時一分鐘。",

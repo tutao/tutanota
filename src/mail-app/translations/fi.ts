@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-03-12T16:36:18Z",
+	"updated_at": "2025-03-16T18:31:50Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1855,6 +1855,7 @@ export default {
 		"updateAllCalendarEvents_action": "Muokkaa kaikkia tapahtumia",
 		"updateAvailable_label": "Päivitys Tuta-työpöytäsovellukseen on saatavilla ({version})",
 		"updateFound_label": "Uusi versio on saatavilla.",
+		"updateNeeded_msg": "Päivitys vaaditaan",
 		"updateOneCalendarEvent_action": "Muokkaa vain tätä tapahtumaa",
 		"updateOwnAdminship_msg": "Et voi muuttaa oman tunnuksesi ylläpitäjäoikeuksia.",
 		"updatePaymentDataBusy_msg": "Tarkistetaan maksutietoja. Pyydämme kärsivällisyyttä, koska tämä voi kestää jopa minuutin.",
