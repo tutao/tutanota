@@ -48,6 +48,7 @@ import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { containsEventOfType, entityUpateToUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
+import { AppName } from "../crypto/InstanceMapper"
 
 assertWorkerOrNode()
 
@@ -735,7 +736,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// we first handle potential post multiple updates in get multiple requests
 		for (let [instanceListId, updates] of createUpdatesForLETsPerList) {
 			const firstUpdate = updates[0]
-			const typeRef = new TypeRef<ListElementEntity>(firstUpdate.application, parseInt(firstUpdate.typeId))
+			const typeRef = new TypeRef<ListElementEntity>(firstUpdate.application as AppName, parseInt(firstUpdate.typeId))
 			const ids = updates.map((update) => update.instanceId)
 
 			// We only want to load the instances that are in cache range

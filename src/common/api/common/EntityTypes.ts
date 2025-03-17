@@ -68,30 +68,7 @@ export interface BlobElementEntity extends Entity, BlobElement {}
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
 
-/// fixme:
-/// An instance that if encrypted, was already decrypted
-//// and is mapped by filedName
-//// This is already ts object usable
-//// probabbly alll entities in TypeRef shouldsatisfy this interface
-//// or we can merge it with Instance interface itself
-export type DecryptedInstance = SomeEntity & {
-	ownerGroup?: Id
-	_permissions?: Id | null
-	ownerKeyVersion?: NumberString
-	bucketKey?: BucketKey | null
-	ownerEncSessionKey?: Uint8Array
-}
-
-type EncryptedTypeModel = TypeModel & { encrypted: true }
-
-export enum ElementAssociationType {
-	Id,
-	IdTuple,
-	// it should have been circularily ParsedEncryptedInstance
-	AggregatedLiteral,
-}
-
-export type UntypedInstance = Record<string, string>
+export type UntypedInstance = Record<string, string | Uint8Array | any> // any is UntypedInstance again
 
 export type EncryptedParsedValue =
 	| Id // element association or list association or _id
@@ -113,3 +90,8 @@ export type EncryptedParsedAssociation =
 	| Array<Record<string, any>>
 
 export type EncryptedParsedInstance = Record<number, Nullable<EncryptedParsedValue | EncryptedParsedAssociation>>
+
+export type ParsedValue = EncryptedParsedValue // Only for doc purpose, structure is the same
+export type ParsedAssociation = EncryptedParsedAssociation // Only for doc purpose, structure is the same
+
+export type ParsedInstance = Record<number, Nullable<ParsedValue | ParsedAssociation>>

@@ -60,6 +60,7 @@ import type { TypeModel } from "../../../common/api/common/EntityTypes.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "../../../common/api/worker/search/IndexTables.js"
+import { AppName } from "../../../common/api/worker/crypto/InstanceMapper"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
