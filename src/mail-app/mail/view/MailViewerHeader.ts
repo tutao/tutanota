@@ -732,7 +732,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     	const senderEmail = viewModel.getSender().address;
 
 	    if (viewModel.isSenderTrusted()) { //sender in trust list
-	    	if (viewModel.isSenderConfirmed()) { //trusted and confirmed
+	    	/*if (viewModel.isSenderConfirmed()) { //trusted and confirmed
 	    		return m(InfoBanner, {
 		            message: "mobyPhish_sender_confirmed",
 		            icon: Icons.CircleCheckmark,
@@ -740,7 +740,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		            helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 		            buttons: [],
 		        });
-	    	}	
+	    	}	*/
 	    } else { //sender not in trusted list
 	    	//click green check (since not trusted open modal)
 
