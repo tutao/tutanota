@@ -160,7 +160,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			}
 
 			if (attrs.isFirstMonthForFree) {
-				return BuyOptionBox.renderRibbon("1 month test")
+				return BuyOptionBox.renderRibbon("1 month trial")
 			}
 
 			return undefined
