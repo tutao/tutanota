@@ -22,6 +22,7 @@ export enum ListAutoSelectBehavior {
 	OLDER,
 	NEWER,
 }
+
 export const enum MailListDisplayMode {
 	CONVERSATIONS = "conversations",
 	MAILS = "mails",
@@ -55,7 +56,8 @@ interface ConfigObject {
 	acknowledgedNewsItems: Id[]
 	_testDeviceId: string | null
 	_testAssignments: PersistedAssignmentData | null
-	offlineTimeRangeDaysByUser: Record<Id, number>
+	/** OfflineTimeRangeDateByUser: number - date in millis */
+	offlineTimeRangeDateByUser: Record<Id, number>
 	conversationViewShowOnlySelectedMail: boolean
 	mailListDisplayMode: MailListDisplayMode
 	/** Stores each users' definition about contact synchronization */
@@ -142,7 +144,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			_testDeviceId: loadedConfig._testDeviceId ?? null,
 			_testAssignments: loadedConfig._testAssignments ?? null,
 			_signupToken: signupToken,
-			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {},
+			offlineTimeRangeDateByUser: loadedConfig.offlineTimeRangeDateByUser ?? {},
 			conversationViewShowOnlySelectedMail: loadedConfig.conversationViewShowOnlySelectedMail ?? false,
 			mailListDisplayMode: loadedConfig.mailListDisplayMode ?? MailListDisplayMode.CONVERSATIONS,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
@@ -401,12 +403,17 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 		this.writeToStorage()
 	}
 
-	getOfflineTimeRangeDays(userId: Id): number | null {
-		return this.config.offlineTimeRangeDaysByUser[userId]
+	getOfflineTimeRangeDate(userId: Id): Date | null {
+		const dateMillis = this.config.offlineTimeRangeDateByUser[userId]
+		if (dateMillis != null) {
+			return new Date(dateMillis)
+		} else {
+			return null
+		}
 	}
 
-	setOfflineTimeRangeDays(userId: Id, days: number) {
-		this.config.offlineTimeRangeDaysByUser[userId] = days
+	setOfflineTimeRangeDate(userId: Id, date: Date) {
+		this.config.offlineTimeRangeDateByUser[userId] = date.getTime()
 		this.writeToStorage()
 	}
 

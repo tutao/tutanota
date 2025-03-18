@@ -9,7 +9,7 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { Const, FeatureType, InboxRuleType, OperationType, ReportMovedMailsType } from "../../common/api/common/TutanotaConstants"
-import { assertNotNull, capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, LazyLoaded, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../common/gui/base/Dialog"
@@ -22,7 +22,7 @@ import Stream from "mithril/stream"
 import type { DropDownSelectorAttrs } from "../../common/gui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import type { TextFieldAttrs } from "../../common/gui/base/TextField.js"
-import { TextField, TextFieldType } from "../../common/gui/base/TextField.js"
+import { TextField } from "../../common/gui/base/TextField.js"
 import type { TableAttrs, TableLineAttrs } from "../../common/gui/base/Table.js"
 import { ColumnWidth, createRowActions, Table } from "../../common/gui/base/Table.js"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
@@ -41,7 +41,7 @@ import { ButtonSize } from "../../common/gui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../../common/misc/MailboxPropertiesUtils.js"
 import { MailAddressTableModel } from "../../common/settings/mailaddress/MailAddressTableModel.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../common/api/common/utils/GroupUtils.js"
-import { formatStorageSize } from "../../common/misc/Formatter.js"
+import { formatDate, formatStorageSize } from "../../common/misc/Formatter.js"
 import { CustomerInfo } from "../../common/api/entities/sys/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { getMailAddressDisplayText } from "../../common/mailFunctionality/SharedMailUtils.js"
@@ -49,6 +49,7 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { getDefaultSenderFromUser, getFolderName } from "../mail/model/MailUtils.js"
 import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
+import { DatePicker, DatePickerAttrs } from "../../calendar-app/calendar/gui/pickers/DatePicker"
 
 assertMainOrNode()
 
@@ -419,7 +420,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				label: "emptyString_msg",
 				// Negative upper margin to make up for no label
 				class: "mt-negative-s",
-				value: lang.get("storedDataTimeRange_label", { "{numDays}": this.offlineStorageSettings.getTimeRange() }),
+				value: formatDate(this.offlineStorageSettings.getTimeRange()),
 				isReadOnly: true,
 				injectionsRight: () => [
 					m(IconButton, {
@@ -565,15 +566,18 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 	const dialog = Dialog.showActionDialog({
 		title: "emptyString_msg",
 		child: () =>
-			m(TextField, {
-				label: lang.makeTranslation("days_label", capitalizeFirstLetter(lang.get("days_label"))),
-				helpLabel: () => lang.get("storedDataTimeRangeHelpText_msg"),
-				type: TextFieldType.Number,
-				value: `${timeRange}`,
-				oninput: (newValue) => {
-					timeRange = Math.max(0, Number(newValue))
-				},
-			}),
+			m("", [
+				m(DatePicker, {
+					date: timeRange,
+					onDateSelected: (date) => {
+						timeRange = date
+					},
+					startOfTheWeekOffset: settings.getStartOfTheWeekOffset(),
+					label: "dateFrom_label",
+					rightAlignDropdown: false,
+				} satisfies DatePickerAttrs),
+				m(".mt", lang.get("storedDataTimeRangeHelpText_msg")),
+			]),
 		okAction: async () => {
 			try {
 				if (initialTimeRange !== timeRange) {
