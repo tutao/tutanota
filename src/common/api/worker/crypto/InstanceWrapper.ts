@@ -12,7 +12,7 @@ import { PermissionType } from "../../common/TutanotaConstants"
 import { typeRefToRestPath } from "../rest/EntityRestClient"
 
 export class InstanceWrapper {
-	public readonly elementId: Id
+	public readonly elementId: Nullable<Id>
 	public publicOrExternalPermission: Nullable<Permission>
 	public symmetricOrPublicSymmetricPermission: Nullable<Permission>
 	public resolvedSessionKey: Nullable<AesKey>
@@ -22,7 +22,7 @@ export class InstanceWrapper {
 		public readonly typeRef: TypeRef<SomeEntity>,
 		public readonly typeModel: TypeModel,
 		private readonly instanceMapper: InstanceMapper,
-		public readonly id: Id | IdTuple,
+		public readonly id: Nullable<Id | IdTuple>,
 		public readonly instance: ParsedInstance | EncryptedParsedInstance,
 		public readonly permissionId: Nullable<Id>,
 		public _ownerGroup: Nullable<Id>,
@@ -32,7 +32,11 @@ export class InstanceWrapper {
 		public readonly listEncSessionKey: Nullable<Base64>,
 		public readonly bucketKey: Nullable<BucketKey>,
 	) {
-		this.elementId = typeof id == "string" ? id : elementIdPart(id)
+		if (id) {
+			this.elementId = typeof id == "string" ? id : elementIdPart(id)
+		} else {
+			this.elementId = null
+		}
 
 		this.symmetricOrPublicSymmetricPermission = null
 		this.publicOrExternalPermission = null
@@ -40,8 +44,8 @@ export class InstanceWrapper {
 	}
 
 	static async fromParsedInstance(instanceMapper: InstanceMapper, typeModel: TypeModel, decryptedInstance: ParsedInstance): Promise<InstanceWrapper> {
-		const literalInstance = true
-		return await this.from(typeModel, decryptedInstance, instanceMapper, literalInstance)
+		const localInstance = true
+		return await this.from(typeModel, decryptedInstance, instanceMapper, localInstance)
 	}
 
 	static async fromEncryptedParsedInstance(
@@ -49,19 +53,19 @@ export class InstanceWrapper {
 		typeModel: TypeModel,
 		encryptedParsedInstance: EncryptedParsedInstance,
 	): Promise<InstanceWrapper> {
-		const literalInstance = false
-		return await this.from(typeModel, encryptedParsedInstance, instanceMapper, literalInstance)
+		const localInstance = false
+		return await this.from(typeModel, encryptedParsedInstance, instanceMapper, localInstance)
 	}
 
 	private static async from(
 		typeModel: TypeModel,
 		encryptedParsedInstance: EncryptedParsedInstance,
 		instanceMapper: InstanceMapper,
-		literalInstance: boolean,
+		localInstance: boolean, // local instances are created on the client or read from offline DB. They have not directly been retrieved from the server
 	) {
 		const typeRef = new TypeRef<SomeEntity>(typeModel.app, typeModel.id)
 
-		const id = assertNotNull(InstanceWrapper.getAttributeorNull<Id | IdTuple>(encryptedParsedInstance, "_id", typeModel))
+		const id = InstanceWrapper.getAttributeorNull<Id | IdTuple>(encryptedParsedInstance, "_id", typeModel)
 		const _ownerGroup = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "_ownerGroup", typeModel)
 		const ownerGroup = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "ownerGroup", typeModel)
 		const permission = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "_permissions", typeModel)
@@ -88,17 +92,16 @@ export class InstanceWrapper {
 		}
 
 		let bucketKey: Nullable<BucketKey> = null
-		if (!literalInstance) {
+		if (!localInstance) {
 			const bucketKeyLiteral = InstanceWrapper.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)
 			if (bucketKeyLiteral) {
-				// fixme: is decrypt a good name here? since bucket key is mapped inside crypto and it's bit confusing that we are decrypting inside cryptoFacade itself
 				// since, bucket key is really not encrypted entity, we can just parse it to instance
 				bucketKey = await instanceMapper.uncloak<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
 			}
 		}
 
 		return new InstanceWrapper(
-			literalInstance,
+			localInstance,
 			typeRef,
 			typeModel,
 			instanceMapper,
@@ -177,7 +180,8 @@ export class InstanceWrapper {
 
 	async getInstanceUpdateServerPath(): Promise<string> {
 		const typeRestPath = await typeRefToRestPath(this.typeRef)
-		const idPath = typeof this.id == "string" ? this.id : this.id.join("/")
+		const id = assertNotNull(this.id)
+		const idPath = typeof id == "string" ? id : id.join("/")
 		return typeRestPath + "/" + idPath
 	}
 

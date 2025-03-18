@@ -694,7 +694,7 @@ export class CryptoFacade {
 			// invoke updateSessionKeys service in case a bucket key is still available
 			const resolvedSessionKeys = await this.resolveWithBucketKey(instanceWrapper)
 			await this.ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)
-		} else {
+		} else if (outOfSyncInstances.length > 0) {
 			console.warn("files are out of sync refreshing", outOfSyncInstances.map((f) => f._id).join(", "))
 		}
 		for (const childInstance of outOfSyncInstances) {

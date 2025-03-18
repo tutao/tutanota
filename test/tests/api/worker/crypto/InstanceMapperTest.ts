@@ -18,7 +18,7 @@ import {
 import { AttributeModel, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ContactAddressTypeRef, ContactTypeRef, Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { configureLoggedInUser, createMailUntypedInstance, createTestUser } from "./CryptoFacadeTest.js"
+import { configureLoggedInUser, createEnryptedUntypedMailInstance, createTestUser } from "./CryptoFacadeTest.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { object } from "testdouble"
@@ -352,7 +352,7 @@ o.spec("InstanceMapper", function () {
 		let senderName = "TutanotaTeam"
 		const user = createTestUser("Alice", entityClient)
 		const sk = aes256RandomKey()
-		let mail = await createMailUntypedInstance(user.mailGroupKey, sk, subject, confidential, senderName, user.name, user.mailGroup._id)
+		let mail = await createEnryptedUntypedMailInstance(user.mailGroupKey, sk, confidential, user.mailGroup._id)
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		// FIXME can't pass UntypedInstance to instanceMapper
 		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then((decrypted) => {
@@ -478,9 +478,10 @@ o.spec("InstanceMapper", function () {
 		let confidential = true
 		let senderName = "TutanotaTeam"
 		let sk = aes256RandomKey()
-		let mail = await createMailUntypedInstance(testUser.mailGroupKey, sk, subject, confidential, senderName, testUser.name, testUser.mailGroup._id)
+		let mail = await createEnryptedUntypedMailInstance(testUser.mailGroupKey, sk, confidential, testUser.mailGroup._id)
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		mail[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "subject"))] = "asdf"
+		// change the subject
+		mail[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "subject"))] = "random subject that was not encoded"
 
 		// FIXME can't pass UntypedInstance to instanceMapper
 		const instance: Mail = await instanceMapper.decryptAndMapToInstance(MailTypeModel, mail, sk)
