@@ -154,8 +154,6 @@ export class MailViewerViewModel {
 		this.eventController.addEntityListener(this.entityListener)
 	}
 	
-	private trustedSenders: Set<string> = new Set();
-
 	async fetchTrustedSenders(): Promise<void> {
 	    console.log("📡 Fetching trusted senders for:", this.getSender().address);
 	    
