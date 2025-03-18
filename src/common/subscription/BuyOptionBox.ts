@@ -156,11 +156,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			}
 
 			if (attrs.bonusMonths > 0) {
-				return BuyOptionBox.renderRibbon(`+${attrs.bonusMonths} ${lang.get("pricing.months_label")}`)
+				return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, `+${attrs.bonusMonths} ${lang.get("pricing.months_label")}`))
 			}
 
 			if (attrs.isFirstMonthForFree) {
-				return BuyOptionBox.renderRibbon("1 month trial")
+				return m(".ribbon-horizontal.nota", m(".text-center.b", { style: { padding: px(3) } }, "1 month trial"))
 			}
 
 			return undefined
@@ -245,10 +245,6 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			m(".h1", price),
 			m(""),
 		)
-	}
-
-	private static renderRibbon(text: string) {
-		return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, text))
 	}
 
 	private static renderCampaignRibbon(): Children {
