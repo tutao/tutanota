@@ -62,7 +62,7 @@ import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Servic
 import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
 import { getElementId, getListId, isSameId } from "../../common/utils/EntityUtils.js"
-import { NewInstanceMapper } from "./InstanceMapper.js"
+import { InstanceMapper } from "./InstanceMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -87,7 +87,7 @@ export class CryptoFacade {
 		private readonly entityClient: EntityClient,
 		private readonly restClient: RestClient,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly instanceMapper: NewInstanceMapper,
+		private readonly instanceMapper: InstanceMapper,
 		private readonly ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue,
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,

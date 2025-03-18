@@ -83,7 +83,7 @@ import {
 	rsaPrivateKeyToHex,
 	rsaPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
-import { InstanceMapper, NewInstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { InstanceMapper, InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
 import { EncryptedParsedInstance, ParsedInstance, SomeEntity, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -133,7 +133,7 @@ async function prepareBucketKeyInstance(
 	bk: AesKey,
 	pubEncBucketKey: Uint8Array,
 	recipientUser: TestUser,
-	instanceMapper: NewInstanceMapper,
+	instanceMapper: InstanceMapper,
 	mailLiteral: Record<string, any>,
 	senderPubEccKey?: Versioned<EccPublicKey>,
 	recipientKeyVersion: NumberString = "0",
@@ -191,7 +191,7 @@ async function prepareBucketKeyInstance(
 o.spec("CryptoFacadeTest", function () {
 	let restClient: RestClient
 
-	let instanceMapper = new NewInstanceMapper()
+	let instanceMapper = new InstanceMapper()
 	let serviceExecutor: IServiceExecutor
 	let entityClient: EntityClient
 	let ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue
@@ -2090,16 +2090,12 @@ export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade
 	when(keyLoaderFacade.loadSymGroupKey(testUser.userGroup._id, 0)).thenResolve(testUser.userGroupKey)
 }
 
-async function mapUntypedInstanceToInstanceWrapper(
-	typeModel: TypeModel,
-	instanceMapper: NewInstanceMapper,
-	instance: UntypedInstance,
-): Promise<InstanceWrapper> {
+async function mapUntypedInstanceToInstanceWrapper(typeModel: TypeModel, instanceMapper: InstanceMapper, instance: UntypedInstance): Promise<InstanceWrapper> {
 	const encryptedParsedInstance = await instanceMapper.map(typeModel, instance)
 	return await InstanceWrapper.fromEncryptedParsedInstance(instanceMapper, typeModel, encryptedParsedInstance)
 }
 
-async function mapInstanceToInstanceWrapper(instanceMapper: NewInstanceMapper, instance: SomeEntity): Promise<InstanceWrapper> {
+async function mapInstanceToInstanceWrapper(instanceMapper: InstanceMapper, instance: SomeEntity): Promise<InstanceWrapper> {
 	const typeModel = await resolveTypeReference(instance._type)
 	const parsedInstance: ParsedInstance = instanceMapper.cloak(instance)
 	return InstanceWrapper.fromParsedInstance(instanceMapper, typeModel, parsedInstance)

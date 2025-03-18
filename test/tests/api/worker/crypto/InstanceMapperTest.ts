@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { CustomerAccountTerminationRequest, CustomerAccountTerminationRequestTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
-import { decryptValue, encryptValue, InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
 import { Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
 import { ModelValue } from "../../../../../src/common/api/common/EntityTypes.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
@@ -23,6 +23,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { object } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { decryptValue, encryptValue } from "../../../../../src/common/api/worker/crypto/InstanceCryptoMapper"
 
 o.spec("InstanceMapper", function () {
 	let entityClient: EntityClient

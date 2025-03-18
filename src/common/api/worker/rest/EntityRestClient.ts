@@ -18,7 +18,7 @@ import { LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/Ent
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
-import { NewInstanceMapper } from "../crypto/InstanceMapper"
+import { InstanceMapper } from "../crypto/InstanceMapper"
 import { QueuedBatch } from "../EventQueue.js"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -193,7 +193,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly authDataProvider: AuthDataProvider,
 		private readonly restClient: RestClient,
 		private readonly lazyCrypto: lazy<CryptoFacade>,
-		private readonly instanceMapper: NewInstanceMapper,
+		private readonly instanceMapper: InstanceMapper,
 		private readonly instanceCryptoMapper: InstanceCryptoMapper,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}

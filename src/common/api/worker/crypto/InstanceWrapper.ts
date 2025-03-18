@@ -3,7 +3,7 @@ import { BucketKey, BucketKeyTypeRef, Permission } from "../../entities/sys/Type
 import { AesKey } from "@tutao/tutanota-crypto"
 import { Base64, TypeRef } from "@tutao/tutanota-utils"
 import type { EncryptedParsedInstance, ParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { NewInstanceMapper } from "./InstanceMapper"
+import { InstanceMapper } from "./InstanceMapper"
 import { VersionedEncryptedKey } from "./CryptoWrapper"
 import { elementIdPart } from "../../common/utils/EntityUtils"
 import { AttributeModel } from "../../common/EntityFunctions"
@@ -21,7 +21,7 @@ export class InstanceWrapper {
 		private readonly isLiteralInstance: boolean,
 		public readonly typeRef: TypeRef<SomeEntity>,
 		public readonly typeModel: TypeModel,
-		private readonly instanceMapper: NewInstanceMapper,
+		private readonly instanceMapper: InstanceMapper,
 		public readonly id: Id | IdTuple,
 		public readonly instance: ParsedInstance | EncryptedParsedInstance,
 		public readonly permissionId: Nullable<Id>,
@@ -39,13 +39,13 @@ export class InstanceWrapper {
 		this.resolvedSessionKey = null
 	}
 
-	static async fromParsedInstance(instanceMapper: NewInstanceMapper, typeModel: TypeModel, decryptedInstance: ParsedInstance): Promise<InstanceWrapper> {
+	static async fromParsedInstance(instanceMapper: InstanceMapper, typeModel: TypeModel, decryptedInstance: ParsedInstance): Promise<InstanceWrapper> {
 		const literalInstance = true
 		return await this.from(typeModel, decryptedInstance, instanceMapper, literalInstance)
 	}
 
 	static async fromEncryptedParsedInstance(
-		instanceMapper: NewInstanceMapper,
+		instanceMapper: InstanceMapper,
 		typeModel: TypeModel,
 		encryptedParsedInstance: EncryptedParsedInstance,
 	): Promise<InstanceWrapper> {
@@ -56,7 +56,7 @@ export class InstanceWrapper {
 	private static async from(
 		typeModel: TypeModel,
 		encryptedParsedInstance: EncryptedParsedInstance,
-		instanceMapper: NewInstanceMapper,
+		instanceMapper: InstanceMapper,
 		literalInstance: boolean,
 	) {
 		const typeRef = new TypeRef<SomeEntity>(typeModel.app, typeModel.id)
