@@ -173,13 +173,13 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("pricing.legendAsterisk_msg")))
 			}
 
-			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && options.paymentInterval() === PaymentInterval.Yearly) {
+			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan) {
 				return m(
 					".flex.column-gap-s",
 					m("span", m("sup", "1")),
 					m(
 						"span",
-						"A 30-day trial period is available for all our paid plans. You won’t have to pay anything until the end of the 30 days, and you can cancel at any time. During this offer, payment via bank transfer is not available for business plans.",
+						"A one month trial period is available for all our paid plans. You won’t have to pay anything until the end of the month, and you can cancel at any time.",
 					),
 				)
 			}
@@ -341,10 +341,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
 		const hasFirstYearDiscount = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && interval === PaymentInterval.Yearly
 
-		const appliesFirstMonthForFree =
-			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
-			targetSubscription !== PlanType.Free &&
-			selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
+		const appliesFirstMonthForFree = priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && targetSubscription !== PlanType.Free
 
 		return {
 			heading: getDisplayNameOfPlanType(targetSubscription),

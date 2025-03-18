@@ -221,7 +221,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		}
 
 		return () => ({
-			label: isFirstMonthForFree && isYearly ? "pricing.selectTryForFree_label" : "pricing.select_action",
+			label: isFirstMonthForFree ? "pricing.selectTryForFree_label" : "pricing.select_action",
 			onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 		})
 	}
