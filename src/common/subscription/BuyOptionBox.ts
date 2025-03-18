@@ -43,6 +43,7 @@ export type BuyOptionBoxAttr = {
 	 */
 	targetSubscription?: AvailablePlanType
 	isCampaign?: boolean
+	isFirstMonthForFree: boolean
 }
 
 export type BuyOptionDetailsAttr = {
@@ -148,6 +149,22 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		const shouldApplyCampaignColor =
 			attrs.highlighted && attrs.isCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
 
+		function getRibbon(): Children {
+			if (isLegendPlan && isTutaBirthdayCampaign && isYearly) {
+				return BuyOptionBox.renderCampaignRibbon()
+			}
+
+			if (attrs.bonusMonths > 0) {
+				return BuyOptionBox.renderRibbon(`+${attrs.bonusMonths} ${lang.get("pricing.months_label")}`)
+			}
+
+			if (attrs.isFirstMonthForFree) {
+				return BuyOptionBox.renderRibbon("30 days free")
+			}
+
+			return undefined
+		}
+
 		return m(
 			".fg-black",
 			{
@@ -177,7 +194,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						},
 					},
 					[
-						isLegendPlan && isTutaBirthdayCampaign && isYearly ? this.renderCampaignRibbon() : this.renderBonusMonthsRibbon(attrs.bonusMonths),
+						getRibbon(),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading, shouldApplyCampaignColor) : attrs.heading,
 						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined, shouldApplyCampaignColor),
 						m(".small.text-center", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
@@ -224,15 +241,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		)
 	}
 
-	private renderBonusMonthsRibbon(bonusMonths: number): Children {
-		return bonusMonths > 0 ? this.renderRibbon(`+${bonusMonths} ${lang.get("pricing.months_label")}`) : null
-	}
-
-	private renderRibbon(text: string) {
+	private static renderRibbon(text: string) {
 		return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, text))
 	}
 
-	private renderCampaignRibbon(): Children {
+	private static renderCampaignRibbon(): Children {
 		const text = isIOSApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
 		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)" } }, [
 			// Birthday cake

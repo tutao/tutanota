@@ -119,7 +119,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (isFirstMonthForFree) {
-			return wrapInDiv("Try out plans. TODO")
+			return wrapInDiv("Get first month for free at any paid plan!")
 		}
 
 		if (isCampaign && !isBusiness) {
@@ -346,6 +346,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					: 0,
 			targetSubscription,
 			isCampaign,
+			isFirstMonthForFree:
+				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
+				targetSubscription !== PlanType.Free &&
+				selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly,
 		}
 	}
 
