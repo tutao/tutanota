@@ -176,9 +176,7 @@ export class MailViewerViewModel {
 	        console.error("❌ Error fetching trusted senders:", error);
 	    }
 	}
-      console.error("❌ Error fetching trusted senders:", error);
-	    }
-	}
+
 
 
 	isSenderTrusted(): boolean {
