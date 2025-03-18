@@ -55,6 +55,13 @@ export interface MailViewerHeaderAttrs {
 
 /** The upper part of the mail viewer, everything but the mail body itself. */
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
+	oninit({ attrs }: Vnode<MailViewerHeaderAttrs>) {
+        console.log("📩 MailViewerHeader initialized");
+        
+        // Fetch trusted senders when this component loads
+        attrs.viewModel.fetchTrustedSenders();
+    }
+
 	private detailsExpanded = false
 	private filesExpanded = false
 
@@ -295,6 +302,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			//m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
 			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(viewModel)), // Add Moby Phish Banner
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
+			m("div", { class: "trusted-senders-banner" }, [
+			            m("strong", "🔒 Trusted Senders: "),
+			            m("span", viewModel.trustedSenders.length > 0 ? viewModel.trustedSenders.join(", ") : "None"),
+			        ]),
 		].filter(Boolean)
 	}
 
