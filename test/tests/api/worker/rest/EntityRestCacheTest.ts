@@ -13,7 +13,7 @@ import {
 	getListId,
 	stringToCustomId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { arrayOf, clone, deepEqual, downcast, isSameTypeRef, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import {arrayOf, clone, deepEqual, downcast, isSameTypeRef, last, promiseMap, TypeRef} from "@tutao/tutanota-utils"
 import {
 	CustomerTypeRef,
 	ExternalUserReferenceTypeRef,
@@ -22,7 +22,11 @@ import {
 	PermissionTypeRef,
 	RootInstanceTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CacheStorage, DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
+import {
+	CacheStorage,
+	DefaultEntityRestCache,
+	EXTEND_RANGE_MIN_CHUNK_SIZE
+} from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import {
 	BodyTypeRef,
 	CalendarEventTypeRef,
@@ -37,25 +41,34 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
-import { assertThrows, mockAttribute, spy, unmockAttribute, verify } from "@tutao/tutanota-test-utils"
-import { NoZoneDateProvider } from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
-import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
-import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
-import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
-import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
-import { createEventElementId } from "../../../../../src/common/api/common/utils/CommonCalendarUtils.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { func, instance, matchers, object, replace, when } from "testdouble"
-import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
-import { CacheMode, EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
-import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { Entity, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import {OfflineStorage, OfflineStorageCleaner} from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
+import {assertThrows, mockAttribute, spy, unmockAttribute, verify} from "@tutao/tutanota-test-utils"
+import {NoZoneDateProvider} from "../../../../../src/common/api/common/utils/NoZoneDateProvider.js"
+import {RestClient} from "../../../../../src/common/api/worker/rest/RestClient.js"
+import {NotAuthorizedError, NotFoundError} from "../../../../../src/common/api/common/error/RestError.js"
+import {EphemeralCacheStorage} from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
+import {OperationType} from "../../../../../src/common/api/common/TutanotaConstants.js"
+import {OfflineStorageMigrator} from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
+import {createEventElementId} from "../../../../../src/common/api/common/utils/CommonCalendarUtils.js"
+import {
+	InterWindowEventFacadeSendDispatcher
+} from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {func, instance, matchers, object, replace, when} from "testdouble"
+import {SqlCipherFacade} from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	modelMapperFromTypeModelResolver
+} from "../../../TestUtils.js"
+import {CacheMode, EntityRestClient} from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import {
+	CustomCacheHandler,
+	CustomCacheHandlerMap
+} from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
+import {TypeModelResolver} from "../../../../../src/common/api/common/EntityFunctions.js"
+import {ModelMapper} from "../../../../../src/common/api/worker/crypto/ModelMapper"
+import {Entity, ServerModelParsedInstance} from "../../../../../src/common/api/common/EntityTypes"
+import {EntityUpdateData} from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const { anything } = matchers
 
@@ -93,7 +106,12 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 		typeModelResolver,
 		handlerMap,
 	)
-	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false })
+	await offlineStorage.init({
+		userId,
+		databaseKey: offlineDatabaseTestKey,
+		timeRangeDate: new Date("2025-03-21T12:33:40.972Z"),
+		forceNewDatabase: false,
+	})
 	return offlineStorage
 }
 
