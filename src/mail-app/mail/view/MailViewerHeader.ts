@@ -290,6 +290,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderBanners(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
+		const trustedSendersArray = Array.from(viewModel.trustedSenders); // Convert Set to Array
 		if (viewModel.isCollapsed()) return null
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
 		return [
