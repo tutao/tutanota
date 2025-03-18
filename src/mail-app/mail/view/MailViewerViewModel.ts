@@ -95,7 +95,7 @@ export class MailViewerViewModel {
 
 	private contentBlockingStatus: ContentBlockingStatus | null = null
 
-	private errorOccurred: boolean = false
+	private errorOccurredWhileLoadingMailDetails: boolean = false
 	private loadedInlineImages: InlineImages | null = null
 	/** only loaded when showFolder is set to true */
 	private folderMailboxText: string | null
@@ -438,7 +438,7 @@ export class MailViewerViewModel {
 		if (this.mailDetails) {
 			bodyErrors = typeof downcast(this.mailDetails.body)._errors !== "undefined"
 		}
-		return this.errorOccurred || typeof this.mail._errors !== "undefined" || bodyErrors
+		return this.errorOccurredWhileLoadingMailDetails || typeof this.mail._errors !== "undefined" || bodyErrors
 	}
 
 	isTutanotaTeamMail(): boolean {
@@ -638,16 +638,17 @@ export class MailViewerViewModel {
 
 		try {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
+			this.errorOccurredWhileLoadingMailDetails = false
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("could load mail body as it has been moved/deleted already", e)
-				this.errorOccurred = true
+				this.errorOccurredWhileLoadingMailDetails = true
 				return []
 			}
 
 			if (e instanceof NotAuthorizedError) {
 				console.log("could load mail body as the permission is missing", e)
-				this.errorOccurred = true
+				this.errorOccurredWhileLoadingMailDetails = true
 				return []
 			}
 
@@ -732,8 +733,8 @@ export class MailViewerViewModel {
 
 					this.entityClient
 						.update(mail)
-						.catch(ofClass(LockedError, (e) => console.log("could not update mail phishing status as mail is locked")))
-						.catch(ofClass(NotFoundError, (e) => console.log("mail already moved")))
+						.catch(ofClass(LockedError, (_) => console.log("could not update mail phishing status as mail is locked")))
+						.catch(ofClass(NotFoundError, (_) => console.log("mail already moved")))
 
 					m.redraw()
 				}
@@ -1131,10 +1132,6 @@ export class MailViewerViewModel {
 
 	getLabels(): readonly MailFolder[] {
 		return this.mailModel.getLabelsForMail(this.mail)
-	}
-
-	private getMailOwnerGroup(): Id | null {
-		return this.mail._ownerGroup
 	}
 
 	private updateMail({ mail, showFolder }: { mail: Mail; showFolder?: boolean }) {
