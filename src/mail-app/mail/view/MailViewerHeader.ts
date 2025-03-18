@@ -304,9 +304,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(viewModel)), // Add Moby Phish Banner
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
 			m("div", { class: "trusted-senders-banner" }, [
-			            m("strong", "🔒 Trusted Senders: "),
-			            m("span", viewModel.trustedSenders.length > 0 ? viewModel.trustedSenders.join(", ") : "None"),
-			        ]),
+			           m("strong", "🔒 Trusted Senders: "),
+			           m("span", trustedSendersArray.length > 0 ? trustedSendersArray.join(", ") : "None"),
+			       ]),
 		].filter(Boolean)
 	}
 
