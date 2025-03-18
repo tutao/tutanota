@@ -125,8 +125,9 @@ export class MailViewerViewModel {
 
 	private mailDetails: MailDetails | null = null
 
-	private trustedSenders: string[] = [];
-	private senderConfirmed: boolean = false; 
+	private trustedSenders: Set<string> = new Set();
+	private senderConfirmed: boolean = false;
+	private currentUserEmail: string = "";
 
 	constructor(
 		private _mail: Mail,
@@ -152,6 +153,102 @@ export class MailViewerViewModel {
 		}
 		this.eventController.addEntityListener(this.entityListener)
 	}
+	
+	async fetchTrustedSenders(): Promise<void> {
+	    if (!this.currentUserEmail) {
+	        console.warn("User email not set. Cannot fetch trusted senders.");
+	        return;
+	    }
+
+	    try {
+	        console.log(`Fetching trusted senders for: ${this.currentUserEmail}`);
+	        const response = await fetch(`http://localhost:3000/trusted-senders/${encodeURIComponent(this.currentUserEmail)}`);
+	        if (!response.ok) throw new Error("Failed to fetch trusted senders.");
+
+	        const data = await response.json();
+	        this.trustedSenders = new Set(data.trusted_senders); 
+	        console.log("✅ Trusted Senders List:", this.trustedSenders);
+	        m.redraw();
+	    } catch (error) {
+	        console.error("❌ Error fetching trusted senders:", error);
+	    }
+	}
+
+
+	isSenderTrusted(): boolean {
+	    return this.trustedSenders.has(this.getSender().address);
+	}
+
+	async confirmTrusted(): Promise<void> {
+	    if (!this.currentUserEmail) {
+	        console.warn("User email not set. Cannot add trusted sender.");
+	        return;
+	    }
+
+	    const senderEmail = this.getSender().address;
+	    if (this.trustedSenders.has(senderEmail)) {
+	        console.log(`⚠️ ${senderEmail} is already trusted.`);
+	        return;
+	    }
+
+	    try {
+	        console.log(`Adding trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
+	        const response = await fetch("http://localhost:3000/add-trusted", {
+	            method: "POST",
+	            headers: { "Content-Type": "application/json" },
+	            body: JSON.stringify({
+	                user_email: this.currentUserEmail,
+	                trusted_email: senderEmail
+	            }),
+	        });
+
+	        if (!response.ok) throw new Error("Failed to add trusted sender.");
+
+	        this.trustedSenders.add(senderEmail);
+	        this.senderConfirmed = true;
+	        console.log(`✅ Sender added: ${senderEmail}`);
+	        m.redraw();
+	    } catch (error) {
+	        console.error("❌ Error adding trusted sender:", error);
+	    }
+	}
+
+
+	async removeTrustedSender(): Promise<void> {
+	    if (!this.currentUserEmail) {
+	        console.warn("User email not set. Cannot remove trusted sender.");
+	        return;
+	    }
+
+	    const senderEmail = this.getSender().address;
+	    if (!this.trustedSenders.has(senderEmail)) {
+	        console.log(`⚠️ ${senderEmail} is not in the trusted list.`);
+	        return;
+	    }
+
+	    try {
+	        console.log(`Removing trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
+	        const response = await fetch("http://localhost:3000/remove-trusted", {
+	            method: "POST",
+	            headers: { "Content-Type": "application/json" },
+	            body: JSON.stringify({
+	                user_email: this.currentUserEmail,
+	                trusted_email: senderEmail
+	            }),
+	        });
+
+	        if (!response.ok) throw new Error("Failed to remove trusted sender.");
+
+	        this.trustedSenders.delete(senderEmail);
+	        this.senderConfirmed = false;
+	        console.log(`✅ Sender removed: ${senderEmail}`);
+	        m.redraw();
+	    } catch (error) {
+	        console.error("❌ Error removing trusted sender:", error);
+	    }
+	}
+
+
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
 		for (const update of events) {
@@ -1171,45 +1268,6 @@ export class MailViewerViewModel {
 	            }
 	        }
 	    });
-	}
-
-	async getTrustedSenders(): Promise<string[]> {
-	    try {
-	        const storedSenders = await this.configFacade.getSetting("trustedSenders", []);
-	        return storedSenders instanceof Array ? storedSenders : [];
-	    } catch (error) {
-	        console.error("Error fetching trusted senders:", error);
-	        return [];
-	    }
-	}
-
-	async addTrustedSender(senderEmail: string): Promise<void> {
-	    try {
-	        const currentList = await this.getTrustedSenders();
-	        if (!currentList.includes(senderEmail)) {
-	            currentList.push(senderEmail);
-	            await this.configFacade.setSetting("trustedSenders", currentList);
-	            console.log("✅ Added trusted sender:", senderEmail);
-	        }
-	    } catch (error) {
-	        console.error("Error adding trusted sender:", error);
-	    }
-	}
-
-	async removeTrustedSender(senderEmail: string): Promise<void> {
-	    try {
-	        let currentList = await this.getTrustedSenders();
-	        currentList = currentList.filter(email => email !== senderEmail);
-	        await this.configFacade.setSetting("trustedSenders", currentList);
-	        console.log("❌ Removed trusted sender:", senderEmail);
-	    } catch (error) {
-	        console.error("Error removing trusted sender:", error);
-	    }
-	}
-
-	async isSenderTrusted(senderEmail: string): Promise<boolean> {
-	    const trustedSenders = await this.getTrustedSenders();
-	    return trustedSenders.includes(senderEmail);
 	}
 
 }
