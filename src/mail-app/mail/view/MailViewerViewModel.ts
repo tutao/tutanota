@@ -154,26 +154,34 @@ export class MailViewerViewModel {
 		this.eventController.addEntityListener(this.entityListener)
 	}
 	
-	async fetchTrustedSenders(): Promise<void> {
-	    console.log("📡 Fetching trusted senders for:", this.getSender().address);
-	    
-	    try {
-	        const response = await fetch(`http://localhost:3000/trusted-senders/${this.getSender().address}`);
-	        const data = await response.json();
+	const API_BASE_URL = "http://localhost:3000"; // Ensure this is correct
 
-	        console.log("✅ Trusted senders fetched:", data.trusted_senders);
+	async fetchTrustedSenders(): Promise<void> {
+	    const senderEmail = this.getSender().address;
+	    console.log(`📡 Attempting to fetch trusted senders for: ${senderEmail}`);
+
+	    try {
+	        const url = `${API_BASE_URL}/trusted-senders/${senderEmail}`;
+	        console.log(`🔗 Fetching: ${url}`);
+
+	        const response = await fetch(url);
+	        console.log(`📩 Response Status: ${response.status}`);
+
+	        const data = await response.json();
+	        console.log("📜 Raw Response Data:", data);
 
 	        if (Array.isArray(data.trusted_senders)) {
-	            this.trustedSenders = new Set(data.trusted_senders); // Ensure Set is used
-	            console.log("📌 Updated trusted senders list:", this.trustedSenders);
+	            this.trustedSenders = new Set(data.trusted_senders);
+	            console.log("✅ Updated trusted senders:", this.trustedSenders);
 	        } else {
 	            console.warn("⚠ Unexpected response format:", data);
 	        }
 
 	    } catch (error) {
-	        console.error("❌ Error fetching trusted senders:", error);
+	        console.error("❌ Fetching error:", error);
 	    }
 	}
+
 
 
 
