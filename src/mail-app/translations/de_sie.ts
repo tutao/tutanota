@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-03-13T09:09:34Z",
+	"updated_at": "2025-03-17T11:39:26Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -845,20 +845,20 @@ export default {
 		"keyManagement.cameraNotFound_msg": "Es wurde keine Kamera auf diesem Gerät gefunden. Bitte schließen Sie Ihre Kamera an oder aktivieren Sie sie.",
 		"keyManagement.cameraPermissionDenied_msg": "Bitte geben Sie uns die Erlaubnis, die Kamera zu benutzen, um den QR-Code zu scannen.",
 		"keyManagement_label": "Schlüsselverwaltung",
-		"keyManagement.contactVerificationConfirmation_label": "Dieser Kontakt wurde verifiziert:",
 		"keyManagement.contactVerificationConfirmationTitle_label": "Kontakt erfolgreich verifiziert!",
+		"keyManagement.contactVerificationConfirmation_label": "Dieser Kontakt wurde verifiziert:",
 		"keyManagement.fingerprint_label": "Fingerabdruck",
 		"keyManagement.invalidFingerprint_msg": "Dieser Fingerabdruck scheint nicht korrekt formatiert zu sein.",
 		"keyManagement.invalidMailAddress_msg": "Bitte eine gültige E-Mail-Adresse eingeben",
 		"keyManagement.keyVerification_label": "Schlüsselverifikation",
 		"keyManagement.keyVerification_subtitle_label": "Hier können Sie Ihre vertrauten Schlüssel verwalten.",
-		"keyManagement.markAsVerified_action": "Als verifiziert markieren",
-		"keyManagement.publicKeyFingerprint_label": "Öffentlicher Schlüssel",
+		"keyManagement.markAsVerified_action": "Kontakt vertrauen",
 		"keyManagement.publicKeyFingerprintQrInfo_msg": "Dies ist der Fingerabdruck des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels, dargestellt als QR-Code.",
 		"keyManagement.publicKeyFingerprintTextInfo_msg": "Dies ist der Fingerabdruck des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels.",
-		"keyManagement.qrCode_label": "QR-Code",
+		"keyManagement.publicKeyFingerprint_label": "Öffentlicher Schlüssel",
 		"keyManagement.qrCodeInvalid_msg": "Der gescannte QR-Code ist fehlerhaft oder ungültig.",
-		"keyManagement.qrFingerprintMismatch_msg": "Dieser öffentliche Schlüssel stimmt nicht mit den Informationen vom Server überein. Bitte überprüfen Sie den Typ und die Version der angezeigten Schlüssel. Wenn der Fehler weiterhin besteht, könnten Sie einem Sicherheitsrisiko ausgesetzt sein.",
+		"keyManagement.qrCode_label": "QR-Code",
+		"keyManagement.qrFingerprintMismatch_msg": "Dieser öffentliche Schlüssel stimmt nicht mit den Informationen auf dem Server überein. Bitte überprüfen Sie den Typ und die Version der angezeigten Schlüssel. Wenn der Fehler weiterhin besteht, könnten Sie einem Sicherheitsrisiko ausgesetzt sein.",
 		"keyManagement.qrMailAddressNotFound_msg": "Dieser QR-Code bezieht sich auf eine ungültige E-Mail-Adresse.",
 		"keyManagement.qrVerification_label": "QR-Code-Verifikation",
 		"keyManagement.selectMethodShort_label": "Methode auswählen",
@@ -1987,6 +1987,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
 	}
 }
