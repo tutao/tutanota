@@ -1,6 +1,7 @@
 import o from "@tutao/otest"
 import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import {
+	ConversationEntryTypeRef,
 	HeaderTypeRef,
 	Mail,
 	MailAddressTypeRef,
@@ -15,11 +16,12 @@ import { ConfigurationDatabase } from "../../../../src/common/api/worker/facades
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { WorkerFacade } from "../../../../src/common/api/worker/facades/WorkerFacade.js"
+import { NotFoundError } from "../../../../src/common/api/common/error/RestError.js"
 import { SearchModel } from "../../../../src/mail-app/search/model/SearchModel.js"
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { MailState } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { ExternalImageRule, MailState } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { GroupInfoTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
@@ -27,9 +29,11 @@ import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunction
 import { ContactModel } from "../../../../src/common/contactsFunctionality/ContactModel.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
+import { downcast } from "@tutao/tutanota-utils"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
+	let mailDetails: MailDetails
 	let showFolder: boolean = false
 	let entityClient: EntityClient
 
@@ -63,7 +67,7 @@ o.spec("MailViewerViewModel", function () {
 		mailFacade = object()
 		cryptoFacade = object()
 		contactImporter = object()
-		mail = prepareMailWithHeaders(mailFacade, headers)
+		prepareMailWithHeaders(mailFacade, headers)
 
 		return new MailViewerViewModel(
 			mail,
@@ -92,7 +96,7 @@ o.spec("MailViewerViewModel", function () {
 				address: "ma@tuta.com",
 			}),
 		]
-		const mail = createTestEntity(MailTypeRef, {
+		mail = createTestEntity(MailTypeRef, {
 			_id: ["mailListId", "mailId"],
 			listUnsubscribe: true,
 			mailDetails: ["mailDetailsListId", "mailDetailsId"],
@@ -102,22 +106,31 @@ o.spec("MailViewerViewModel", function () {
 				address: "sender@list.com",
 			}),
 		})
-		const mailDetails: MailDetails = createTestEntity(MailDetailsTypeRef, {
+		mailDetails = createTestEntity(MailDetailsTypeRef, {
 			headers: createTestEntity(HeaderTypeRef, {
 				headers,
 			}),
 			recipients: createTestEntity(RecipientsTypeRef, {
 				toRecipients,
 			}),
+			body: object(),
 		})
+		mailDetails.body.text = "Hello World"
+		mailDetails.body.compressedText = null
+		downcast(mailDetails.body)._errors = undefined
 		when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
-		return mail
+		when(configFacade.getExternalImageRule(mail.sender.address)).thenResolve(ExternalImageRule.None)
+		when(mailModel.checkMailForPhishing(matchers.anything(), matchers.anything())).thenResolve(false)
+		when(entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)).thenResolve(object())
 	}
 
 	o.spec("unsubscribe", function () {
 		function initUnsubscribeHeaders(headers: string) {
 			const viewModel = makeViewModelWithHeaders(headers)
-			const mailGroupInfo = createTestEntity(GroupInfoTypeRef, { mailAddressAliases: [], mailAddress: "ma@tuta.com" })
+			const mailGroupInfo = createTestEntity(GroupInfoTypeRef, {
+				mailAddressAliases: [],
+				mailAddress: "ma@tuta.com",
+			})
 			const mailboxDetail = { mailGroupInfo: mailGroupInfo } as MailboxDetail
 			when(mailModel.getMailboxDetailsForMail(matchers.anything())).thenResolve(mailboxDetail)
 			when(logins.getUserController()).thenReturn({ userGroupInfo: mailGroupInfo })
@@ -171,6 +184,52 @@ o.spec("MailViewerViewModel", function () {
 				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 				o(result).equals(false)
 			})
+		})
+	})
+
+	o.spec("load mail details", function () {
+		o("load mail details successfully", async function () {
+			const viewModel = makeViewModelWithHeaders("")
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+
+			await viewModel.loadAll(Promise.resolve())
+
+			o(viewModel.isLoading()).deepEquals(false)
+			o(viewModel.getMailBody()).deepEquals("Hello World")
+			o(viewModel.didErrorsOccur()).deepEquals(false)
+		})
+
+		o("mail details NotFoundError", async function () {
+			const viewModel = makeViewModelWithHeaders("")
+			when(mailFacade.loadMailDetailsBlob(mail)).thenReject(new NotFoundError("mail details not found"))
+
+			await viewModel.loadAll(Promise.resolve())
+
+			o(viewModel.isLoading()).deepEquals(false)
+			o(viewModel.getMailBody()).deepEquals("")
+			o(viewModel.didErrorsOccur()).deepEquals(true)
+		})
+
+		o("changind sent mail from mail details draft to mail details blob", async function () {
+			const viewModel = makeViewModelWithHeaders("")
+			mail.mailDetailsDraft = ["draftListId", "draftId"]
+
+			const mailDetailsBlob = mail.mailDetails
+			mail.mailDetails = null
+
+			when(mailFacade.loadMailDetailsDraft(mail)).thenReject(new NotFoundError("mail details draft not found"))
+			await viewModel.loadAll(Promise.resolve())
+			o(viewModel.isLoading()).deepEquals(false)
+			o(viewModel.getMailBody()).deepEquals("")
+			o(viewModel.didErrorsOccur()).deepEquals(true)
+
+			mail.mailDetailsDraft = null
+			mail.mailDetails = mailDetailsBlob
+			await viewModel.loadAll(Promise.resolve())
+
+			o(viewModel.isLoading()).deepEquals(false)
+			o(viewModel.getMailBody()).deepEquals("Hello World")
+			o(viewModel.didErrorsOccur()).deepEquals(false)
 		})
 	})
 })
