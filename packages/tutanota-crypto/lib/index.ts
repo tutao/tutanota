@@ -13,6 +13,7 @@ export {
 	unauthenticatedAesDecrypt,
 	KEY_LENGTH_BYTES_AES_256,
 	getKeyLengthBytes,
+	extractIvFromCipherText,
 } from "./encryption/Aes.js"
 export { EccPrivateKey, EccPublicKey, EccKeyPair, EccSharedSecrets, generateEccKeyPair, eccEncapsulate, eccDecapsulate } from "./encryption/Ecc.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"

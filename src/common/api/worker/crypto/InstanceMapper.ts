@@ -159,7 +159,7 @@ export function valueToDefault(type: Values<typeof ValueType>): Date | Uint8Arra
 	}
 }
 
-function isDefaultValue(type: Values<typeof ValueType>, value: unknown): boolean {
+export function isDefaultValue(type: Values<typeof ValueType>, value: unknown): boolean {
 	switch (type) {
 		case ValueType.String:
 			return value === ""

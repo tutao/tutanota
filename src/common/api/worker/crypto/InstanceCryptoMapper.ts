@@ -12,9 +12,9 @@ import { AssociationType, Cardinality, Type, ValueType } from "../../common/Enti
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { convertDbToJsType, convertJsToDbType, decompressString, valueToDefault } from "./InstanceMapper"
+import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./InstanceMapper"
 
 // Exported for testing
 export function encryptValue(
@@ -55,8 +55,7 @@ export function decryptValue(valueType: ModelValue & { encrypted: true }, value:
 export class InstanceCryptoMapper {
 	public async decryptParsedInstance(typeModel: TypeModel, encryptedInstance: EncryptedParsedInstance, sk: Nullable<AesKey>): Promise<ParsedInstance> {
 		const decrypted: ParsedInstance = {
-			_finalEncryptedValues: {},
-			_defaultEncryptedValues: {},
+			_finalIvs: {},
 		}
 		for (const [valueIdStr, valueInfo] of Object.entries(typeModel.values)) {
 			const valueId = parseInt(valueIdStr)
@@ -83,14 +82,16 @@ export class InstanceCryptoMapper {
 			} finally {
 				if (valueInfo.encrypted) {
 					if (valueInfo.final) {
-						// we have to store the encrypted value to be able to restore it when updating the instance.
-						// this is not needed for data transfer types, but it does not hurt
-						decrypted._finalEncryptedValues[valueId] = encryptedValue
+						// the server needs to be able to check if an encrypted final field changed.
+						// that's only possible if we re-encrypt using a deterministic IV, because the ciphertext changes if
+						// the IV or the value changes.
+						// storing the IV we used for the initial encryption lets us reuse it later.
+						decrypted._finalIvs[valueId] = extractIvFromCipherText(encryptedValue as Base64)
 					} else if (encryptedValue === "") {
 						// the encrypted value is "" if the decrypted value is the default value
-						// we store the default value to make sure that updates do not cause more storage use
+						// storing this marker lets us restore that empty string when we re-encrypt the instance.
 						// check out encrypt() to see the other side of this.
-						decrypted._defaultEncryptedValues[valueId] = decrypted[valueId]
+						decrypted._finalIvs[valueId] = null
 					}
 				}
 			}
@@ -129,8 +130,7 @@ export class InstanceCryptoMapper {
 
 	public async encryptParsedInstance(typeModel: TypeModel, parsedInstance: ParsedInstance, sk: Nullable<AesKey>): Promise<EncryptedParsedInstance> {
 		let encrypted: EncryptedParsedInstance = {}
-		const finalEncryptedValues = parsedInstance._finalEncryptedValues
-		const defaultEncryptedValues = parsedInstance._defaultEncryptedValues
+		const finalIvs = parsedInstance._finalIvs
 
 		for (let valueId of Object.keys(typeModel.values).map(Number)) {
 			let valueType = typeModel.values[valueId]
@@ -140,16 +140,16 @@ export class InstanceCryptoMapper {
 			let encryptedValue
 			if (!valueType.encrypted) {
 				encryptedValue = value
-			} else if (valueType.final && finalEncryptedValues[valueId] != null) {
-				// restore the original encrypted value if it exists. it does not exist if this is a data transfer type or a newly created entity. check against null explicitly because "" is allowed
-				encryptedValue = finalEncryptedValues[valueId]
-			} else if (defaultEncryptedValues[valueId] === value) {
+			} else if (finalIvs[valueId] === null && isDefaultValue(valueType.type, value)) {
 				// restore the default encrypted value because it has not changed.
-				// this saves storage and mor importantly prevents us from throwing out-of-storage errors for updates that
+				// this saves storage and more importantly prevents us from throwing out-of-storage errors for updates that
 				// should not increase the size of the instance.
 				encryptedValue = ""
 			} else if (sk != null) {
-				encryptedValue = encryptValue(valueType as ModelValue & { encrypted: true }, value, sk)
+				// the value is actually Uint8Array | null | undefined. null means we need to check that the default value wasn't changed,
+				// which happened above - so it's okay to roll null into undefined.
+				const iv = finalIvs[valueId] ?? undefined
+				encryptedValue = encryptValue(valueType as ModelValue & { encrypted: true }, value, sk, iv)
 			} else {
 				throw new ProgrammingError(`Encrypting ${typeModel.app}/${typeModel.name}.${valueName} requires a session key!`)
 			}

@@ -93,9 +93,6 @@ export type EncryptedParsedInstance = Record<number, Nullable<EncryptedParsedVal
 export type ParsedValue = EncryptedParsedValue // Only for doc purpose, structure is the same
 export type ParsedAssociation = EncryptedParsedAssociation // Only for doc purpose, structure is the same
 
-export type ParsedInstance = Record<number, Nullable<ParsedValue> | ParsedAssociation> & {
-	_errors?: Record<number, string>
-} & { _finalEncryptedValues: Record<number, Nullable<EncryptedParsedValue> | EncryptedParsedAssociation> } & {
-	// in practice the values in the records should be Uint8Array or Base64?
-	_defaultEncryptedValues: Record<number, Nullable<ParsedValue> | ParsedAssociation>
+export type ParsedInstance = Record<number, Nullable<ParsedValue> | ParsedAssociation> & { _errors?: Record<number, string> } & {
+	_finalIvs: Record<number, Nullable<Uint8Array>>
 }
