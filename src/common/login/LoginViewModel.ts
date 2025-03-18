@@ -23,6 +23,7 @@ import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
 import { UnencryptedCredentials } from "../native/common/generatedipc/UnencryptedCredentials.js"
 import { AppLock } from "./AppLock.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
+import {OfflineStorageSettingsModel} from "../offline/OfflineStorageSettingsModel";
 
 assertMainOrNode()
 
@@ -330,7 +331,7 @@ export class LoginViewModel implements ILoginViewModel {
 				credentials = await this.unlockAppAndGetCredentials(this.autoLoginCredentials.userId)
 
 				if (credentials) {
-					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDays(this.autoLoginCredentials.userId)
+					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDate(this.autoLoginCredentials.userId)
 					const result = await this.loginController.resumeSession(credentials, null, offlineTimeRange)
 					if (result.type == "success") {
 						await this.onLogin()

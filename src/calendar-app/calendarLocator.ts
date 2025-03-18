@@ -114,10 +114,11 @@ import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
+import { CommonLocator } from "../common/api/main/CommonLocator"
 
 assertMainOrNode()
 
-class CalendarLocator {
+class CalendarLocator implements CommonLocator {
 	eventController!: EventController
 	search!: CalendarSearchModel
 	mailboxModel!: MailboxModel
