@@ -206,7 +206,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.deleteAllOwnedBy(owner)
 	}
 
-	clearExcludedData(): Promise<void> {
-		return this.inner.clearExcludedData()
+	clearExcludedData(timeRangeDate: Date): Promise<void> {
+		return this.inner.clearExcludedData(timeRangeDate)
 	}
 }

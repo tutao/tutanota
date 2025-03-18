@@ -17,7 +17,7 @@ import {
 	getElementId,
 	listIdPart,
 } from "../../common/utils/EntityUtils.js"
-import {CacheStorage, collapseId, expandId, LastUpdateTime} from "../rest/DefaultEntityRestCache.js"
+import { CacheStorage, collapseId, expandId, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
 import {
@@ -112,14 +112,14 @@ type Range = { lower: Id; upper: Id }
 export interface OfflineStorageInitArgs {
 	userId: Id
 	databaseKey: Uint8Array
-	timeRangeDays: number | null
+	timeRangeDate: Date | null
 	forceNewDatabase: boolean
 }
 
 export class OfflineStorage implements CacheStorage {
 	private userId: Id | null = null
 	private databaseKey: Uint8Array | null = null
-	private timeRangeDays: number | null = null
+	private timeRangeDate: Date | null = null
 
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
@@ -161,11 +161,10 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * @return {boolean} whether the database was newly created or not
 	 */
-	async init({ userId, databaseKey, timeRangeDays, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
+	async init({ userId, databaseKey, timeRangeDate, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
 		this.userId = userId
 		this.databaseKey = databaseKey
-		this.timeRangeDays = timeRangeDays
-
+		this.timeRangeDate = timeRangeDate
 		if (forceNewDatabase) {
 			if (isDesktop()) {
 				await this.interWindowEventSender.localUserDataInvalidated(userId)
@@ -484,7 +483,7 @@ export class OfflineStorage implements CacheStorage {
 		lowerId = ensureBase64Ext(typeModel, lowerId)
 		const type = getTypeString(typeRef)
 
-		let cutoffId = await this.cleaner.getCutoffId(this, typeRef, this.timeRangeDays, assertNotNull(this.userId), this.dateProvider.now())
+		let cutoffId = await this.cleaner.getCutoffId(this, typeRef, this.timeRangeDate, assertNotNull(this.userId), this.dateProvider.now())
 		if (cutoffId && firstBiggerThanSecondCustomId(ensureBase64Ext(typeModel, cutoffId), lowerId)) {
 			return // prevent extending the range beyond the cutoff id as OfflineCleaner might delete data in that range at any time
 		}
@@ -706,11 +705,11 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data).
 	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
-	 * @param timeRangeDays: the maximum age of days that mails should be to be kept in the database. if null, will use a default value
+	 * @param timeRangeDate the maximum age that mails should be to be kept in the database
 	 * @param userId id of the current user. default, last stored userId
 	 */
-	async clearExcludedData(timeRangeDays: number | null = this.timeRangeDays, userId: Id = this.getUserId()): Promise<void> {
-		await this.cleaner.cleanOfflineDb(this, timeRangeDays, userId, this.dateProvider.now())
+	async clearExcludedData(timeRangeDate: Date | null = this.timeRangeDate, userId: Id = this.getUserId()): Promise<void> {
+		await this.cleaner.cleanOfflineDb(this, timeRangeDate, userId, this.dateProvider.now())
 	}
 
 	private async createTables() {
@@ -973,7 +972,7 @@ export interface OfflineStorageCleaner {
 	/**
 	 * Delete instances from db that are older than timeRangeDays.
 	 */
-	cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDays: number | null, userId: Id, now: number): Promise<void>
+	cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date | null, userId: Id, now: number): Promise<void>
 
 	/**
 	 * Compute cutoff id to delete instances from the offline database depending on the type.
@@ -984,7 +983,7 @@ export interface OfflineStorageCleaner {
 	getCutoffId<T extends Entity>(
 		offlineStorage: OfflineStorage,
 		typeRef: TypeRef<T>,
-		timeRangeDays: number | null,
+		timeRangeDate: Date | null,
 		userId: Id,
 		now: number,
 	): Promise<Id | null>
