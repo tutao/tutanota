@@ -5,11 +5,13 @@ import {
 	ListAutoSelectBehavior,
 	MailListDisplayMode,
 	migrateConfigV2to3,
+	migrateConfigV5to6,
 } from "../../../src/common/misc/DeviceConfig.js"
 import { matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { CredentialEncryptionMode } from "../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { CredentialType } from "../../../src/common/misc/credentials/CredentialType.js"
+import { getDayShifted, getStartOfDay } from "@tutao/tutanota-utils"
 
 o.spec("DeviceConfig", function () {
 	o.spec("migrateConfig", function () {
@@ -83,6 +85,20 @@ o.spec("DeviceConfig", function () {
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(oldConfig))
 			o.check(new DeviceConfig(localStorageMock).getMailListDisplayMode()).equals(MailListDisplayMode.MAILS)
 		})
+
+		o.test("migrating from v5 to v6 sets offlineTimeRangeDateByUser based on days from offlineTimeRangeDaysByUser", function () {
+			const user = "user"
+			const days = 31
+			const oldConfig: any = {
+				_version: 5,
+				offlineTimeRangeDaysByUser: { [user]: days },
+			}
+
+			const now = new Date("2025-03-21T12:33:40.972Z")
+			const computedDate = getStartOfDay(getDayShifted(now, -days)).getTime()
+			migrateConfigV5to6(oldConfig, now)
+			o.check(oldConfig.offlineTimeRangeDateByUser).deepEquals({ [user]: computedDate })
+		})
 	})
 
 	o.spec("loading config", function () {
@@ -152,7 +168,31 @@ o.spec("DeviceConfig", function () {
 
 			new DeviceConfig(localStorageMock)
 
-			const migratedConfig = Object.assign({}, storedInLocalStorage, {
+			const migratedConfig = {
+				_credentialEncryptionMode: CredentialEncryptionMode.DEVICE_LOCK,
+				_encryptedCredentialsKey: "somekey",
+				acknowledgedNewsItems: [],
+				_themeId: "mytheme",
+				scheduledAlarmModelVersionPerUser: {},
+				_language: "en",
+				_defaultCalendarView: {},
+				_hiddenCalendars: {},
+				expandedMailFolders: {},
+				_testDeviceId: "testId",
+				_testAssignments: null,
+				_signupToken: "signupToken",
+				conversationViewShowOnlySelectedMail: false,
+				syncContactsWithPhonePreference: {},
+				isCalendarDaySelectorExpanded: false,
+				mailAutoSelectBehavior: ListAutoSelectBehavior.OLDER,
+				lastExternalCalendarSync: {},
+				clientOnlyCalendars: new Map(),
+				events: [],
+				lastRatingPromptedDate: null,
+				retryRatingPromptAfter: null,
+				scrollTime: 8,
+				mailListDisplayMode: MailListDisplayMode.MAILS,
+
 				_version: DeviceConfig.Version,
 				_credentials: {
 					internalUserId: {
@@ -168,7 +208,8 @@ o.spec("DeviceConfig", function () {
 				},
 				isSetupComplete: true,
 				isCredentialsMigratedToNative: false,
-			})
+				offlineTimeRangeDateByUser: { userId1: getStartOfDay(getDayShifted(new Date(), -42)).getTime() },
+			}
 
 			// We can't just call verify on localStorageMock.setItem because the JSON string may not match perfectly
 			o(JSON.parse(storedJson)).deepEquals(migratedConfig)
