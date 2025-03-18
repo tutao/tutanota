@@ -230,17 +230,17 @@ export class SearchFacade {
 	}
 
 	private startOrContinueSearch(searchResult: SearchResult, maxResults?: number): Promise<void> {
-		markStart("findIndexEntries")
-
 		const nextScheduledIndexingRun = getStartOfDay(getDayShifted(new Date(this.mailIndexer.currentIndexTimestamp), INITIAL_MAIL_INDEX_INTERVAL_DAYS))
 		const theDayAfterTomorrow = getStartOfDay(getDayShifted(new Date(), 1))
 
 		if (searchResult.moreResults.length === 0 && nextScheduledIndexingRun.getTime() > theDayAfterTomorrow.getTime() && !this.mailIndexer.isIndexing) {
-			this.mailIndexer.extendIndexIfNeeded(
-				this.userFacade.getLoggedInUser(),
-				getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime(),
-			)
+			// Extend index and then retry this function
+			return this.mailIndexer
+				.extendIndexIfNeeded(this.userFacade.getLoggedInUser(), getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime())
+				.then((_) => this.startOrContinueSearch(searchResult, maxResults))
 		}
+
+		markStart("findIndexEntries")
 
 		let moreResultsEntries: Promise<Array<MoreResultsIndexEntry>>
 

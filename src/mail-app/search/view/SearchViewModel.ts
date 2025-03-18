@@ -524,10 +524,17 @@ export class SearchViewModel {
 			this.freeToAskAboutExtendingIndex = true
 			if (confirmed) {
 				this._startDate = startDate
-				this.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
-					this.updateSearchUrl()
-					this.updateUi()
+
+				const searchRestriction = this.getRestriction()
+				this.indexerFacade.extendMailIndex(startDate.getTime()).then(async () => {
+					// don't do anything further if the search parameters were changed
+					if (!isSameSearchRestriction(searchRestriction, this.getRestriction())) {
+						return
+					}
+					this.searchAgain()
 				})
+
+				return PaidFunctionResult.Success
 			} else {
 				// In this case it is not a success of payment, but we don't need to prompt for upgrade
 				return PaidFunctionResult.Success
