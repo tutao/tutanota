@@ -151,6 +151,7 @@ export class MailViewerViewModel {
 			this.showFolder()
 		}
 		this.eventController.addEntityListener(this.entityListener)
+		console.log("Checking configFacade access:", this.configFacade);
 	}
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
