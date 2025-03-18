@@ -1,7 +1,7 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
-import { lang } from "../misc/LanguageViewModel"
-import { formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
+import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
+import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -27,6 +27,8 @@ import { deviceConfig } from "../misc/DeviceConfig.js"
 import { isApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
 import { SubscriptionApp } from "./SubscriptionViewer.js"
+import { DateTime } from "luxon"
+import { formatDate } from "../misc/Formatter.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -158,6 +160,8 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		const isYearly = attrs.data.options.paymentInterval() === PaymentInterval.Yearly
 		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
 
+		const isFirstMonthForFree = attrs.data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
+
 		return [
 			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
 			m(".pt.pb.plr-l", [
@@ -171,8 +175,16 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 					value: subscription,
 					isReadOnly: true,
 				}),
+				isFirstMonthForFree &&
+					m(TextField, {
+						label: lang.getTranslation("priceTill_label", {
+							"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
+						}),
+						value: formatPrice(0, true),
+						isReadOnly: true,
+					}),
 				m(TextField, {
-					label: isYearly && attrs.data.nextYearPrice ? "priceFirstYear_label" : "price_label",
+					label: this.buildPriceLabel(isFirstMonthForFree, attrs),
 					value: buildPriceString(attrs.data.price?.displayPrice ?? "0", attrs.data.options),
 					isReadOnly: true,
 				}),
@@ -208,6 +220,20 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 					isReadOnly: true,
 			  })
 			: null
+	}
+
+	private buildPriceLabel(isYearly: boolean, { data: { nextYearPrice, planPrices } }: WizardPageAttrs<UpgradeSubscriptionData>): MaybeTranslation {
+		if (planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan) {
+			const inOneMonth = DateTime.now().plus({ month: 1 })
+
+			return lang.makeTranslation("price_label", `Price from ${formatDate(inOneMonth.plus({ day: 1 }).toJSDate())}`)
+		}
+
+		if (isYearly && nextYearPrice) {
+			return "priceFirstYear_label"
+		}
+
+		return "price_label"
 	}
 
 	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
