@@ -132,7 +132,7 @@ export const enum ResumeSessionErrorReason {
 export type InitCacheOptions = {
 	userId: Id
 	databaseKey: Uint8Array | null
-	timeRangeDays: number | null
+	timeRangeDate: Date | null
 	forceNewDatabase: boolean
 }
 
@@ -280,7 +280,7 @@ export class LoginFacade {
 		const cacheInfo = await this.initCache({
 			userId: sessionData.userId,
 			databaseKey,
-			timeRangeDays: null,
+			timeRangeDate: null,
 			forceNewDatabase,
 		})
 		const { user, userGroupInfo, accessToken } = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey)
@@ -470,7 +470,7 @@ export class LoginFacade {
 		const cacheInfo = await this.initCache({
 			userId,
 			databaseKey: null,
-			timeRangeDays: null,
+			timeRangeDate: null,
 			forceNewDatabase: true,
 		})
 		const { user, userGroupInfo, accessToken } = await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey)
@@ -544,13 +544,13 @@ export class LoginFacade {
 	 * @param credentials the saved credentials to use
 	 * @param externalUserKeyDeriver information for deriving a key (if external user)
 	 * @param databaseKey key to unlock the local database (if enabled)
-	 * @param timeRangeDays the user configured time range for the offline database
+	 * @param timeRangeDate the user configured time range for the offline database
 	 */
 	async resumeSession(
 		credentials: Credentials,
 		externalUserKeyDeriver: ExternalUserKeyDeriver | null,
 		databaseKey: Uint8Array | null,
-		timeRangeDays: number | null,
+		timeRangeDate: Date | null,
 	): Promise<ResumeSessionResult> {
 		if (this.userFacade.getUser() != null) {
 			throw new ProgrammingError(
@@ -565,7 +565,7 @@ export class LoginFacade {
 		const cacheInfo = await this.initCache({
 			userId: credentials.userId,
 			databaseKey,
-			timeRangeDays,
+			timeRangeDate,
 			forceNewDatabase: false,
 		})
 		const sessionId = this.getSessionId(credentials)
@@ -777,11 +777,11 @@ export class LoginFacade {
 	 *
 	 * @param userId the user for which the cache is created
 	 * @param databaseKey the key to use
-	 * @param timeRangeDays how far into the past the cache keeps data around
+	 * @param timeRangeDate how far into the past the cache keeps data around
 	 * @param forceNewDatabase true if the old database should be deleted if there is one
 	 * @private
 	 */
-	private async initCache({ userId, databaseKey, timeRangeDays, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
+	private async initCache({ userId, databaseKey, timeRangeDate, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
 			return {
 				databaseKey,
@@ -789,7 +789,7 @@ export class LoginFacade {
 					type: "offline",
 					userId,
 					databaseKey,
-					timeRangeDays,
+					timeRangeDate,
 					forceNewDatabase,
 				})),
 			}
