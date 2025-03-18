@@ -44,6 +44,7 @@ export type BuyOptionBoxAttr = {
 	targetSubscription?: AvailablePlanType
 	isCampaign?: boolean
 	isFirstMonthForFree: boolean
+	hasPriceFootnote?: boolean
 }
 
 export type BuyOptionDetailsAttr = {
@@ -197,7 +198,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						getRibbon(),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading, shouldApplyCampaignColor) : attrs.heading,
 						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined, shouldApplyCampaignColor),
-						m(".small.text-center", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
+						m(
+							".small.text-center",
+							m("span", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
+							vnode.attrs.hasPriceFootnote && m("sup", "1"),
+						),
 						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
 						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isLegendPlan && isTutaBirthdayCampaign && isYearly),
 						attrs.actionButton

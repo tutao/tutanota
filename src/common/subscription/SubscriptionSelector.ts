@@ -168,13 +168,31 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
 		}
 
-		const shouldShowFirstYearDiscountNotice =
-			!isIOSApp() && isTutaBirthdayCampaign && !options.businessUse() && options.paymentInterval() === PaymentInterval.Yearly
+		function getFootnoteElement(): Children {
+			if (!isIOSApp() && isTutaBirthdayCampaign && !options.businessUse() && options.paymentInterval() === PaymentInterval.Yearly) {
+				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("pricing.legendAsterisk_msg")))
+			}
 
-		additionalInfo = m(".flex.flex-column.items-center", [
+			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && options.paymentInterval() === PaymentInterval.Yearly) {
+				return m(
+					".flex.column-gap-s",
+					m("span", m("sup", "1")),
+					m(
+						"span",
+						"A 30-day trial period is available for all our paid plans. You won’t have to pay anything until the end of the 30 days, and you can cancel at any time. During this offer, payment via bank transfer is not available for business plans.",
+					),
+				)
+			}
+
+			return undefined
+		}
+
+		const footnoteElement = getFootnoteElement()
+
+		additionalInfo = m(".flex.flex-column", [
 			featureExpander.All, // global feature expander
-			m(".smaller.mb.center", subscriptionPeriodInfoMsg),
-			shouldShowFirstYearDiscountNotice && m(".smaller.mb.center", `* ${lang.get("pricing.legendAsterisk_msg")}`),
+			m(".smaller.mb", subscriptionPeriodInfoMsg),
+			footnoteElement && m(".smaller.mb", footnoteElement),
 		])
 
 		const buyBoxesViewPlacement = plans
@@ -321,7 +339,12 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
-		const asteriskOrEmptyString = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && interval === PaymentInterval.Yearly ? "*" : ""
+		const hasFirstYearDiscount = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && interval === PaymentInterval.Yearly
+
+		const appliesFirstMonthForFree =
+			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
+			targetSubscription !== PlanType.Free &&
+			selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
 
 		return {
 			heading: getDisplayNameOfPlanType(targetSubscription),
@@ -331,7 +354,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
 			price: priceStr,
 			referencePrice: referencePriceStr,
-			priceHint: lang.makeTranslation("price_hint", `${getPriceHint(subscriptionPrice, priceType, multiuser)}${asteriskOrEmptyString}`),
+			priceHint: lang.makeTranslation("price_hint", `${getPriceHint(subscriptionPrice, priceType, multiuser)}`),
+			hasPriceFootnote: appliesFirstMonthForFree || hasFirstYearDiscount,
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
@@ -346,10 +370,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					: 0,
 			targetSubscription,
 			isCampaign,
-			isFirstMonthForFree:
-				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
-				targetSubscription !== PlanType.Free &&
-				selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly,
+			isFirstMonthForFree: appliesFirstMonthForFree,
 		}
 	}
 
