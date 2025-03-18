@@ -151,7 +151,6 @@ export class MailViewerViewModel {
 			this.showFolder()
 		}
 		this.eventController.addEntityListener(this.entityListener)
-		console.log("Checking configFacade access:", this.configFacade);
 	}
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
@@ -1174,17 +1173,43 @@ export class MailViewerViewModel {
 	    });
 	}
 
-	public isSenderTrusted(): boolean {
-	    const sender = this.getSender().address;
-	    return this.trustedSenders.includes(sender);
-	}	
-
-	public isSenderConfirmed(): boolean {
-		return this.senderConfirmed;
+	async getTrustedSenders(): Promise<string[]> {
+	    try {
+	        const storedSenders = await this.configFacade.getSetting("trustedSenders", []);
+	        return storedSenders instanceof Array ? storedSenders : [];
+	    } catch (error) {
+	        console.error("Error fetching trusted senders:", error);
+	        return [];
+	    }
 	}
 
-	public confirmTrusted(): void {
-		this.senderConfirmed = true;
+	async addTrustedSender(senderEmail: string): Promise<void> {
+	    try {
+	        const currentList = await this.getTrustedSenders();
+	        if (!currentList.includes(senderEmail)) {
+	            currentList.push(senderEmail);
+	            await this.configFacade.setSetting("trustedSenders", currentList);
+	            console.log("✅ Added trusted sender:", senderEmail);
+	        }
+	    } catch (error) {
+	        console.error("Error adding trusted sender:", error);
+	    }
+	}
+
+	async removeTrustedSender(senderEmail: string): Promise<void> {
+	    try {
+	        let currentList = await this.getTrustedSenders();
+	        currentList = currentList.filter(email => email !== senderEmail);
+	        await this.configFacade.setSetting("trustedSenders", currentList);
+	        console.log("❌ Removed trusted sender:", senderEmail);
+	    } catch (error) {
+	        console.error("Error removing trusted sender:", error);
+	    }
+	}
+
+	async isSenderTrusted(senderEmail: string): Promise<boolean> {
+	    const trustedSenders = await this.getTrustedSenders();
+	    return trustedSenders.includes(senderEmail);
 	}
 
 }
