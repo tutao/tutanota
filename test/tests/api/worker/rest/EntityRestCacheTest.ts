@@ -93,7 +93,7 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 		offlineStorageCleanerMock,
 		handlerMap,
 	)
-	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false })
+	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDate: new Date("2025-03-21T12:33:40.972Z"), forceNewDatabase: false })
 	return offlineStorage
 }
 

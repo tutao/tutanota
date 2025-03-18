@@ -28,11 +28,7 @@ import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import {
-	generateCalendarInstancesInRange,
-	getStartOfTheWeekOffsetForUser,
-	retrieveClientOnlyEventsForUser,
-} from "../../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, retrieveClientOnlyEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -47,6 +43,7 @@ import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository"
 import { getClientOnlyCalendars } from "../../gui/CalendarGuiUtils"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
+import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 
 const SEARCH_PAGE_SIZE = 100
 
