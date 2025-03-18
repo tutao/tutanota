@@ -127,7 +127,8 @@ export class MailViewerViewModel {
 
 	public trustedSenders: Set<string> = new Set();
 	private senderConfirmed: boolean = false;
-	private currentUserEmail: string = "";
+	private currentUserEmail: string = "
+	const API_BASE_URL = "http://localhost:3000"; // Ensure this is correct";
 
 	constructor(
 		private _mail: Mail,
@@ -154,7 +155,6 @@ export class MailViewerViewModel {
 		this.eventController.addEntityListener(this.entityListener)
 	}
 	
-	const API_BASE_URL = "http://localhost:3000"; // Ensure this is correct
 
 	async fetchTrustedSenders(): Promise<void> {
 	    const senderEmail = this.getSender().address;
