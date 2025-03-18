@@ -41,6 +41,9 @@ class AlarmNotificationsManager(
 					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", cryptoError)
 				} catch (exception: IllegalArgumentException) {
 					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", exception)
+				} catch (exception: NumberFormatException) {
+					Log.e(TAG, "Failed to decrypt notification to reschedule alarm ", exception)
+					return
 				}
 			} else {
 				Log.d(TAG, "Failed to resolve session key for saved alarm notification")
@@ -89,6 +92,9 @@ class AlarmNotificationsManager(
 					Log.e(TAG, "Failed to decrypt notification to schedule new alarm ", cryptoError)
 				} catch (exception: IllegalArgumentException) {
 					Log.e(TAG, "Failed to decrypt notification to schedule new alarm ", exception)
+				} catch (exception: NumberFormatException) {
+					Log.e(TAG, "Failed to decrypt notification to schedule alarm ", exception)
+					return
 				}
 				sseStorage.insertAlarmNotification(alarmNotificationEntity)
 			} else {
@@ -210,6 +216,9 @@ class AlarmNotificationsManager(
 					Log.e(TAG, "Failed to decrypt notification to cancel alarm ", cryptoError)
 					return
 				} catch (exception: IllegalArgumentException) {
+					Log.e(TAG, "Failed to decrypt notification to cancel alarm ", exception)
+					return
+				} catch (exception: NumberFormatException) {
 					Log.e(TAG, "Failed to decrypt notification to cancel alarm ", exception)
 					return
 				}

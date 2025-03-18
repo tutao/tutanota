@@ -77,9 +77,22 @@ fun EncryptedRepeatRule.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: B
 		advancedRules = advancedRules.map {
 			val interval = crypto.decryptString(it.interval, sessionKey)
 			val rule = ByRuleType.fromValue(crypto.decryptNumber(it.ruleType, sessionKey).toInt())
+
+			if (rule == ByRuleType.BY_SET_POS) {
+				assertNumericSetPosInterval(interval)
+			}
+
 			ByRule(rule, interval)
 		}
 	)
+}
+
+private fun assertNumericSetPosInterval(interval: String) {
+	try {
+		interval.toInt()
+	} catch (e: NumberFormatException) {
+		throw NumberFormatException("Invalid bySetPos rule with interval $interval")
+	}
 }
 
 fun ByRuleType.Companion.fromValue(value: Int) = run {
