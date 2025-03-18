@@ -125,7 +125,7 @@ export class MailViewerViewModel {
 
 	private mailDetails: MailDetails | null = null
 
-	private trustedSenders: Set<string> = new Set();
+	public trustedSenders: Set<string> = new Set();
 	private senderConfirmed: boolean = false;
 	private currentUserEmail: string = "";
 
