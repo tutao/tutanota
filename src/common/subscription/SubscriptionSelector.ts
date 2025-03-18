@@ -179,7 +179,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					m("span", m("sup", "1")),
 					m(
 						"span",
-						"A one month trial period is available for all our paid plans. You won’t have to pay anything until the end of the month, and you can cancel at any time.",
+						"A one-month trial period is available for all our paid plans. The first month is completely free and you can cancel at any time.",
 					),
 				)
 			}
