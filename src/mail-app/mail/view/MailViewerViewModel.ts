@@ -84,6 +84,8 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
+const API_BASE_URL = "http://localhost:3000"; // Ensure this is correct
+
 export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
 	// always sanitized in this.sanitizeMailBody
@@ -128,8 +130,7 @@ export class MailViewerViewModel {
 	public trustedSenders: Set<string> = new Set();
 	private senderConfirmed: boolean = false;
 	private currentUserEmail: string = "";
-	const API_BASE_URL = "http://localhost:3000"; // Ensure this is correct
-	
+
 	constructor(
 		private _mail: Mail,
 		showFolder: boolean,
