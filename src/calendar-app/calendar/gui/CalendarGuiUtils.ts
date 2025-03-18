@@ -45,7 +45,6 @@ import {
 	getEventStart,
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
-	getStartOfTheWeekOffset,
 	getStartOfWeek,
 	getTimeZone,
 	getWeekNumber,
@@ -88,6 +87,7 @@ import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPick
 import { theme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
+import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 
 export interface IntervalOption {
 	value: number

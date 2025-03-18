@@ -1,6 +1,6 @@
 import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../common/api/common/TutanotaConstants.js"
-import { assertNotNull, DAY_IN_MILLIS, groupByAndMap } from "@tutao/tutanota-utils"
+import { assertNotNull, daysToMillis, groupByAndMap } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
@@ -26,17 +26,8 @@ import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worke
 import { isDraft, isSpamOrTrashFolder } from "../../mail/model/MailChecks.js"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
-	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDays: number | null, userId: Id, now: number): Promise<void> {
-		const user = await offlineStorage.get(UserTypeRef, null, userId)
-
-		// Free users always have default time range regardless of what is stored
-		const isFreeUser = user?.accountType === AccountType.FREE
-		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
-		const daysSinceDayAfterEpoch = now / DAY_IN_MILLIS - 1
-		const timeRangeMillisSafe = Math.min(daysSinceDayAfterEpoch, timeRange) * DAY_IN_MILLIS
-		// from May 15th 2109 onward, exceeding daysSinceDayAfterEpoch in the time range setting will
-		// lead to an overflow in our 42 bit timestamp in the id.
-		const cutoffTimestamp = now - timeRangeMillisSafe
+	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date, userId: Id, now: number): Promise<void> {
+		const cutoffTimestamp = timeRangeDate.getTime()
 
 		const mailBoxes = await offlineStorage.getElementsOfType(MailBoxTypeRef)
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)

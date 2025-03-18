@@ -959,7 +959,7 @@ export default {
 		"loadingTemplates_label": "Loading templates...",
 		"loading_msg": "Loading ...",
 		"loadMore_action": "Load more",
-		"localDataSection_label": "Local data",
+		"localDataSection_label": "Local data storage",
 		"location_label": "Location",
 		"lockdownModeNotSupported1_msg": "Your device has Lockdown Mode enabled which will prevent future versions of Tuta from running.",
 		"lockdownModeNotSupported2_msg": "Please exclude Tuta or disable Lockdown Mode.",
@@ -1983,6 +1983,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"storedDataDate_label": "Store emails since {date}",
+		"localDataSection_msg": "Locally stored email data allows you to read emails offline and search for emails. Extending the from search date in the search view will update this date."
 	}
 }

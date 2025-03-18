@@ -1987,6 +1987,8 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+    	"storedDataDate_label": "Store emails since {date}",
+    	"localDataSection_msg": "Locally stored email data allows you to read emails offline and search for emails. Extending the from search date in the search view will update this date."
 	}
 }

@@ -152,7 +152,7 @@ export interface ExposedCacheStorage {
 
 	getLastUpdateTime(): Promise<LastUpdateTime>
 
-	clearExcludedData(): Promise<void>
+	clearExcludedData(timeRangeDate: Date): Promise<void>
 
 	/**
 	 * remove an ElementEntity from the cache by typeRef and Id.

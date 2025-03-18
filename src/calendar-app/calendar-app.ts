@@ -127,6 +127,7 @@ import("../mail-app/translations/en.js")
 						calendarLocator.progressTracker,
 						calendarLocator.cacheStorage,
 						calendarLocator.logins,
+						null,
 					),
 			)
 		}

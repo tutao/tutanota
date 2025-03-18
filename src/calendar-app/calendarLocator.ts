@@ -112,10 +112,11 @@ import { ContactSuggestion } from "../common/native/common/generatedipc/ContactS
 import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
+import { CommonLocator } from "../common/api/main/CommonLocator"
 
 assertMainOrNode()
 
-class CalendarLocator {
+class CalendarLocator implements CommonLocator {
 	eventController!: EventController
 	search!: CalendarSearchModel
 	mailboxModel!: MailboxModel

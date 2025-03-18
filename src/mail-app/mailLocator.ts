@@ -1,4 +1,14 @@
-import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
+import {
+	assertMainOrNode,
+	isAndroidApp,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isElectronClient,
+	isIOSApp,
+	isOfflineStorageAvailable,
+	isTest,
+} from "../common/api/common/Env.js"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -114,6 +124,7 @@ import { MobilePaymentsFacade } from "../common/native/common/generatedipc/Mobil
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
+import type { CommonLocator } from "../common/api/main/CommonLocator.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { SearchCategoryTypes } from "./search/model/SearchUtils.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
@@ -134,10 +145,11 @@ import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
+import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
 
 assertMainOrNode()
 
-class MailLocator {
+class MailLocator implements CommonLocator {
 	eventController!: EventController
 	search!: SearchModel
 	mailboxModel!: MailboxModel
@@ -274,6 +286,7 @@ class MailLocator {
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
 		const calendarEventsRepository = await this.calendarEventsRepository()
+		const offlineStorageSettings = await this.offlineStorageSettingsModel()
 		return () => {
 			return new SearchViewModel(
 				searchRouter,
@@ -292,6 +305,7 @@ class MailLocator {
 				redraw,
 				deviceConfig.getMailAutoSelectBehavior(),
 				deviceConfig.getClientOnlyCalendars(),
+				offlineStorageSettings,
 			)
 		}
 	}
@@ -1197,6 +1211,14 @@ class MailLocator {
 		const { MailExportController } = await import("./native/main/MailExportController.js")
 		return new MailExportController(this.mailExportFacade, htmlSanitizer, this.exportFacade, this.logins, this.mailboxModel, await this.scheduler())
 	})
+
+	async offlineStorageSettingsModel(): Promise<OfflineStorageSettingsModel | null> {
+		if (isOfflineStorageAvailable()) {
+			return new OfflineStorageSettingsModel(this.logins.getUserController(), deviceConfig)
+		} else {
+			return null
+		}
+	}
 
 	/**
 	 * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.

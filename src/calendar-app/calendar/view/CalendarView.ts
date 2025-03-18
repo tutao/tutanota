@@ -33,8 +33,6 @@ import {
 	CalendarType,
 	findFirstPrivateCalendar,
 	getCalendarType,
-	getStartOfTheWeekOffset,
-	getStartOfTheWeekOffsetForUser,
 	getTimeZone,
 	hasSourceUrl,
 	isBirthdayEvent,
@@ -101,6 +99,7 @@ import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactEditor } from "../../../mail-app/contacts/ContactEditor.js"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
+import { getStartOfTheWeekOffset, getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 
 export type GroupColors = Map<Id, string>
 

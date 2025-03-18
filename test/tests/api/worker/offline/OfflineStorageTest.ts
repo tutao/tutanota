@@ -88,13 +88,13 @@ export const offlineDatabaseTestKey = Uint8Array.from([3957386659, 354339016, 37
 
 o.spec("OfflineStorageDb", function () {
 	const now = new Date("2022-01-01 00:00:00 UTC")
-	const timeRangeDays = 10
+	const timeRangeDate = new Date("2021-12-22 00:00:00 UTC")
 	const userId = "userId"
 	const databaseKey = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7])
 
 	/** get an id based on a timestamp that is {@param days} days away from the time range cutoff */
-	const offsetId = (days) => timestampToGeneratedId(getDayShifted(now, 0 - timeRangeDays + days).getTime())
-	const offsetMailSetEntryId = (days, mailId) => constructMailSetEntryId(getDayShifted(now, 0 - timeRangeDays + days), mailId)
+	const offsetId = (days: number) => timestampToGeneratedId(getDayShifted(timeRangeDate, days).getTime())
+	const offsetMailSetEntryId = (days: number, mailId: Id) => constructMailSetEntryId(getDayShifted(timeRangeDate, days), mailId)
 	const cuttoffMailSetEntryId = offsetMailSetEntryId(0, GENERATED_MAX_ID)
 
 	let dbFacade: DesktopSqlCipher
@@ -203,7 +203,7 @@ o.spec("OfflineStorageDb", function () {
 		}
 
 		o("migrations are run", async function () {
-			await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+			await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 			verify(migratorMock.migrate(storage, dbFacade))
 		})
 
@@ -213,7 +213,7 @@ o.spec("OfflineStorageDb", function () {
 					const userId = "id1"
 					const storableUser = createTestEntity(UserTypeRef, { _id: userId })
 
-					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let user = await storage.get(UserTypeRef, null, userId)
 					o(user).equals(null)
@@ -236,7 +236,7 @@ o.spec("OfflineStorageDb", function () {
 					const elementId = "id1"
 					const storableMail = createTestEntity(MailTypeRef, { _id: [listId, elementId] })
 
-					await storage.init({ userId: elementId, databaseKey, timeRangeDays, forceNewDatabase: false })
+					await storage.init({ userId: elementId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mail = await storage.get(MailTypeRef, listId, elementId)
 					o(mail).equals(null)
@@ -259,7 +259,7 @@ o.spec("OfflineStorageDb", function () {
 				o("deleteWholeList", async function () {
 					const listOne = "listId1"
 					const listTwo = "listId2"
-					await storage.init({ userId: "user", databaseKey, timeRangeDays, forceNewDatabase: false })
+					await storage.init({ userId: "user", databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					const listOneMailOne = createTestEntity(MailTypeRef, { _id: [listOne, "id1"] })
 					const listOneMailTwo = createTestEntity(MailTypeRef, { _id: [listOne, "id2"] })
@@ -290,7 +290,7 @@ o.spec("OfflineStorageDb", function () {
 					const storableMail1 = createTestEntity(MailTypeRef, { _id: [listId, elementId1] })
 					const storableMail2 = createTestEntity(MailTypeRef, { _id: [listId, elementId2] })
 
-					await storage.init({ userId: elementId1, databaseKey, timeRangeDays, forceNewDatabase: false })
+					await storage.init({ userId: elementId1, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1])
 					o(mails).deepEquals([])
@@ -313,7 +313,7 @@ o.spec("OfflineStorageDb", function () {
 					const elementId = constructMailSetEntryId(new Date(), "mailId")
 					const storableMailSetEntry = createTestEntity(MailSetEntryTypeRef, { _id: [listId, elementId] })
 
-					await storage.init({ userId: elementId, databaseKey, timeRangeDays, forceNewDatabase: false })
+					await storage.init({ userId: elementId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mailSetEntry = await storage.get(MailSetEntryTypeRef, listId, elementId)
 					o(mailSetEntry).equals(null)
@@ -340,7 +340,7 @@ o.spec("OfflineStorageDb", function () {
 					const storableMailSetEntry1 = createTestEntity(MailSetEntryTypeRef, { _id: [listId, elementId1] })
 					const storableMailSetEntry2 = createTestEntity(MailSetEntryTypeRef, { _id: [listId, elementId2] })
 
-					await storage.init({ userId: elementId1, databaseKey, timeRangeDays, forceNewDatabase: false })
+					await storage.init({ userId: elementId1, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mails = await storage.provideMultiple(MailSetEntryTypeRef, listId, [elementId1])
 					o(mails).deepEquals([])
@@ -366,7 +366,7 @@ o.spec("OfflineStorageDb", function () {
 						details: createTestEntity(MailDetailsTypeRef),
 					})
 
-					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
 					o(mailDetailsBlob).equals(null)
@@ -393,7 +393,7 @@ o.spec("OfflineStorageDb", function () {
 						details: createTestEntity(MailDetailsTypeRef),
 					})
 
-					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					await storage.put(storableMailDetails)
 
@@ -415,7 +415,7 @@ o.spec("OfflineStorageDb", function () {
 			const mailSetEntryType = getTypeId(MailSetEntryTypeRef)
 
 			o.beforeEach(async function () {
-				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+				await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 				await insertEntity(
 					createTestEntity(MailBoxTypeRef, {
@@ -478,7 +478,7 @@ o.spec("OfflineStorageDb", function () {
 				await insertRange(MailTypeRef, mailBagMailListId, lowerBeforeTimeRangeDays, upperBeforeTimeRangeDays)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				const allRanges = await dbFacade.all("SELECT * FROM ranges", [])
 				o(allRanges).deepEquals([])
@@ -507,7 +507,7 @@ o.spec("OfflineStorageDb", function () {
 				await insertRange(MailSetEntryTypeRef, entriesListId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
@@ -536,7 +536,7 @@ o.spec("OfflineStorageDb", function () {
 				await insertRange(MailSetEntryTypeRef, entriesListId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
@@ -585,7 +585,7 @@ o.spec("OfflineStorageDb", function () {
 				)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
@@ -644,7 +644,7 @@ o.spec("OfflineStorageDb", function () {
 				)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
@@ -753,7 +753,7 @@ o.spec("OfflineStorageDb", function () {
 				)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				// Ensure everything except for the folders themselves is deleted
 				// Currently, this test is expecting mails to not be deleted as MailOfflineCleaner needs to be reworked
@@ -806,7 +806,7 @@ o.spec("OfflineStorageDb", function () {
 					}),
 				)
 
-				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+				await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 				await insertEntity(spamMail)
 				await insertEntity(trashMail)
@@ -824,7 +824,7 @@ o.spec("OfflineStorageDb", function () {
 				)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				// Ensure everything except for the folders themselves is deleted
 				// Currently, this test is expecting mails to not be deleted as MailOfflineCleaner needs to be reworked
@@ -884,7 +884,7 @@ o.spec("OfflineStorageDb", function () {
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 
-				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+				await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 				await insertEntity(
 					createTestEntity(MailFolderTypeRef, {
@@ -901,7 +901,7 @@ o.spec("OfflineStorageDb", function () {
 				await insertEntity(afterMailDetails)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
 
 				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([inboxFolderId, spamFolderId, trashFolderId])
@@ -956,7 +956,7 @@ o.spec("OfflineStorageDb", function () {
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 
-				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+				await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 				await insertEntity(
 					createTestEntity(MailFolderTypeRef, {
@@ -973,7 +973,7 @@ o.spec("OfflineStorageDb", function () {
 				await insertEntity(twoDaysBeforeMailDetails)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([inboxFolderId, spamFolderId, trashFolderId])
 				const allMailSetEntryIds = await getAllIdsForType(MailSetEntryTypeRef)
@@ -1032,7 +1032,7 @@ o.spec("OfflineStorageDb", function () {
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 
-				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+				await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 				await insertEntity(
 					createTestEntity(MailFolderTypeRef, {
@@ -1050,7 +1050,7 @@ o.spec("OfflineStorageDb", function () {
 				await insertEntity(afterMailDetails)
 
 				// Here we clear the excluded data
-				await storage.clearExcludedData(timeRangeDays, userId)
+				await storage.clearExcludedData(timeRangeDate, userId)
 
 				o(await getAllIdsForType(MailTypeRef)).deepEquals([getElementId(mailAfter)])
 				o(await getAllIdsForType(FileTypeRef)).deepEquals([getElementId(fileAfter)])
@@ -1188,7 +1188,7 @@ o.spec("OfflineStorageDb", function () {
 				...trashMailDetailsBlobs,
 			]
 
-			await storage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays, forceNewDatabase: false })
+			await storage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDate, forceNewDatabase: false })
 
 			for (let entity of everyEntity) {
 				await storage.put(entity)
@@ -1208,7 +1208,7 @@ o.spec("OfflineStorageDb", function () {
 			)
 
 			// Here we clear the excluded data
-			await storage.clearExcludedData(timeRangeDays, userId)
+			await storage.clearExcludedData(timeRangeDate, userId)
 
 			const assertContents = async ({ _id, _type }, expected, msg) => {
 				const { listId, elementId } = expandId(_id)

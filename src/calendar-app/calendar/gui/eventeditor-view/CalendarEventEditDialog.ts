@@ -10,7 +10,7 @@ import { Dialog } from "../../../../common/gui/base/Dialog.js"
 import { lang, MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../common/gui/base/Button.js"
 import { Keys } from "../../../../common/api/common/TutanotaConstants.js"
-import { AlarmInterval, getStartOfTheWeekOffsetForUser, getTimeFormatForUser, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, getTimeFormatForUser, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { assertNotNull, noOp, Thunk } from "@tutao/tutanota-utils"
 import { PosRect } from "../../../../common/gui/base/Dropdown.js"
@@ -30,6 +30,7 @@ import { theme } from "../../../../common/gui/theme.js"
 import stream from "mithril/stream"
 
 import { handleRatingByEvent } from "../../../../common/ratings/InAppRatingDialog.js"
+import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 
 const enum ConfirmationResult {
 	Cancel,

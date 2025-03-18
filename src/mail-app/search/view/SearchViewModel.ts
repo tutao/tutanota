@@ -69,11 +69,7 @@ import { CalendarFacade } from "../../../common/api/worker/facades/lazy/Calendar
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ClientOnlyCalendarsInfo, ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import {
-	generateCalendarInstancesInRange,
-	getStartOfTheWeekOffsetForUser,
-	retrieveClientOnlyEventsForUser,
-} from "../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, retrieveClientOnlyEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -81,6 +77,8 @@ import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/Calen
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
+import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -214,6 +212,7 @@ export class SearchViewModel {
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
 		private readonly localCalendars: Map<Id, ClientOnlyCalendarsInfo>,
+		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
 		this._listModel = this.createList()
@@ -227,7 +226,7 @@ export class SearchViewModel {
 		return this.userHasNewPaidPlan
 	}
 
-	init(extendIndexConfirmationCallback: SearchViewModel["extendIndexConfirmationCallback"]) {
+	async init(extendIndexConfirmationCallback: SearchViewModel["extendIndexConfirmationCallback"]) {
 		if (this.extendIndexConfirmationCallback) {
 			return
 		}
@@ -255,6 +254,7 @@ export class SearchViewModel {
 			this.onMailboxesChanged(mailboxes)
 		})
 		this.eventController.addEntityListener(this.entityEventsListener)
+		await this.offlineStorageSettings?.init()
 	}
 
 	getRestriction(): SearchRestriction {
@@ -525,6 +525,7 @@ export class SearchViewModel {
 			if (confirmed) {
 				this._startDate = startDate
 				this.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
+					this.offlineStorageSettings?.setTimeRange(startDate)
 					this.updateSearchUrl()
 					this.updateUi()
 				})
