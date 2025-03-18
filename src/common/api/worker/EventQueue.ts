@@ -75,6 +75,7 @@ export class EventQueue {
 	private processingBatch: QueuedBatch | null
 	private paused: boolean
 	private progressMonitor: ProgressMonitorDelegate | null
+	private emptyQueueEventTarget: EventTarget
 
 	/**
 	 * @param tag identifier to make for better log messages
@@ -87,6 +88,7 @@ export class EventQueue {
 		this.processingBatch = null
 		this.paused = false
 		this.progressMonitor = null
+		this.emptyQueueEventTarget = new EventTarget()
 	}
 
 	addBatches(batches: ReadonlyArray<QueuedBatch>) {
@@ -236,7 +238,7 @@ export class EventQueue {
 							this.lastOperationForEntity.delete(concatenatedId)
 						}
 					}
-
+					// do this *before* processNext() is called
 					this.processNext()
 				})
 				.catch((e) => {
@@ -248,6 +250,8 @@ export class EventQueue {
 						console.error("Uncaught EventQueue error!", e, next)
 					}
 				})
+		} else {
+			this.emptyQueueEventTarget.dispatchEvent(new Event("queueempty"))
 		}
 	}
 
@@ -268,6 +272,10 @@ export class EventQueue {
 	resume() {
 		this.paused = false
 		this.start()
+	}
+
+	waitForEmptyQueue(): Promise<void> {
+		return new Promise((resolve) => this.emptyQueueEventTarget.addEventListener("queueempty", () => resolve(), { once: true }))
 	}
 
 	/** @private visibleForTesting */

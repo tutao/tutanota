@@ -104,6 +104,16 @@ export function newSearchIndexDB(): DbFacade {
 	})
 }
 
+/**
+ * Top-level orchestrator for search index.
+ *  - Allows enabling/disabling mail indexing
+ *  - Coordinates loading of events and dispatching of realtime events
+ */
+// FIXME: I'm not sure if it makes sense to try to keep a generic Indexer or if we should have two completely
+//  independent ones. sqlite-based indexer will probably not need to keep track of and download its own entity events
+//  since this is already handled by the cache. Same goes for out-of-sync detection. It would still need to coordinate
+//  between indexing process and realtime events though but this is pretty straightforward. It would also need to
+//  keep track of group diff.
 export class Indexer {
 	readonly db: Db
 	private readonly _dbInitializedDeferredObject: DeferredObject<void>
@@ -118,7 +128,7 @@ export class Indexer {
 	_initiallyLoadedBatchIdsPerGroup: Map<Id, Id>
 
 	/**
-	 * Queue which gets all the websocket events and dispatches them to the core. It is paused until we load initial events to avoid
+	 * Queue which gets all the websocket events and dispatches them to the other queue. It is paused until we load initial events to avoid
 	 * putting events from websocket before initial events.
 	 */
 	_realtimeEventQueue: EventQueue
@@ -127,7 +137,7 @@ export class Indexer {
 	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>
 
-	private eventQueue = new EventQueue("indexer_core", true, (batch) => this._processEntityEvents(batch))
+	private eventQueue = new EventQueue("indexer", true, (batch) => this._processEntityEvents(batch))
 
 	constructor(
 		entityRestClient: EntityRestClient,
@@ -158,7 +168,7 @@ export class Indexer {
 			const loadedIdForGroup = this._initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
 
 			if (loadedIdForGroup == null || firstBiggerThanSecond(nextElement.batchId, loadedIdForGroup)) {
-				this._core.addBatchesToQueue([nextElement])
+				this.addBatchesToQueue([nextElement])
 			}
 
 			return Promise.resolve()
@@ -277,13 +287,16 @@ export class Indexer {
 	}
 
 	async deleteIndex(userId: string): Promise<void> {
-		this._core.stopProcessing()
+		await this.stopProcessing()
 		await this._mail.disableMailIndexing()
 	}
 
-	private stopProcessing() {
+	private async stopProcessing() {
 		// FIXME: have a way to wait for the current op
-		this.eventQueue.clear()
+		// FIXME:
+		this.eventQueue.pause()
+
+		await this.eventQueue.waitForEmptyQueue()
 	}
 
 	extendMailIndex(newOldestTimestamp: number): Promise<void> {
@@ -299,7 +312,7 @@ export class Indexer {
 	}
 
 	startProcessing() {
-		this._core.queue.start()
+		this.eventQueue.start()
 	}
 
 	async onVisibilityChanged(visible: boolean): Promise<void> {

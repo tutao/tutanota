@@ -242,12 +242,6 @@ export class IndexerCore {
 		this._isStopped = false
 	}
 
-	addBatchesToQueue(batches: QueuedBatch[]): void {
-		if (!this._isStopped) {
-			this.queue.addBatches(batches)
-		}
-	}
-
 	/*********************************************** Writing index update ***********************************************/
 
 	/**
