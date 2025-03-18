@@ -1,6 +1,6 @@
 import { Type } from "./EntityConstants.js"
 import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
-import type { TypeModel } from "./EntityTypes"
+import type { AppName, TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
 import { typeModels as tutanotaTypeModels } from "../entities/tutanota/TypeModels.js"
@@ -18,7 +18,7 @@ import gossipModelInfo from "../entities/gossip/ModelInfo.js"
 import storageModelInfo from "../entities/storage/ModelInfo.js"
 import usageModelInfo from "../entities/usage/ModelInfo.js"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { AppName, AttributeId, AttributeName, TypeId } from "../worker/crypto/InstanceMapper"
+import { AttributeId, AttributeName, TypeId } from "../worker/crypto/InstanceMapper"
 
 export const enum HttpMethod {
 	GET = "GET",
@@ -73,6 +73,8 @@ export const modelInfos = {
 	usage: usageModelInfo,
 } as const
 export type ModelInfos = typeof modelInfos
+
+export type TypeReferenceResolver = typeof resolveTypeReference
 
 /**
  * Convert a {@link TypeRef} to a {@link TypeModel} that it refers to.

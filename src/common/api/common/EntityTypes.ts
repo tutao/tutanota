@@ -1,8 +1,8 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
-import { AppName } from "../worker/crypto/InstanceMapper"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 
 export type TypeModel = {
 	id: number
@@ -93,6 +93,7 @@ export type EncryptedParsedInstance = Record<number, Nullable<EncryptedParsedVal
 export type ParsedValue = EncryptedParsedValue // Only for doc purpose, structure is the same
 export type ParsedAssociation = EncryptedParsedAssociation // Only for doc purpose, structure is the same
 
-export type ParsedInstance = Record<number, Nullable<ParsedValue> | ParsedAssociation> & { _errors?: Record<number, string> } & {
+export type ParsedInstance = Record<number, Nullable<ParsedValue> | ParsedAssociation> & {
+	_errors?: Record<number, string>
 	_finalIvs: Record<number, Nullable<Uint8Array>>
 }

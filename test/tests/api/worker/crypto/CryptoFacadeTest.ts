@@ -103,6 +103,7 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { PublicKeyProvider, PublicKeys } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { InstanceWrapper } from "../../../../../src/common/api/worker/crypto/InstanceWrapper"
+import { InstanceCryptoMapper } from "../../../../../src/common/api/worker/crypto/InstanceCryptoMapper"
 
 const { captor, anything, argThat } = matchers
 
@@ -1940,7 +1941,7 @@ export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade
 	when(keyLoaderFacade.loadSymGroupKey(testUser.userGroup._id, 0)).thenResolve(testUser.userGroupKey)
 }
 
-async function mapInstanceToInstanceWrapper(instanceMapper: NewInstanceMapper, instance: SomeEntity): Promise<InstanceWrapper> {
+async function mapInstanceToInstanceWrapper(instanceMapper: InstanceMapper, instance: SomeEntity): Promise<InstanceWrapper> {
 	const typeModel = await resolveTypeReference(instance._type)
 	const parsedInstance: ParsedInstance = instanceMapper.cloak(instance)
 	return InstanceWrapper.fromParsedInstance(instanceMapper, typeModel, parsedInstance)

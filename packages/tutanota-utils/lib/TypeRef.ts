@@ -1,4 +1,4 @@
-import { AppName } from "../../../src/common/api/worker/crypto/InstanceMapper"
+export type AppName = "base" | "sys" | "tutanota" | "usage" | "monitor" | "accouting" | "gossip"
 
 /**
  * T should be restricted to Entity.

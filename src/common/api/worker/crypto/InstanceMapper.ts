@@ -4,6 +4,7 @@ import { base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToSt
 import { AssociationType, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
 import {
+	AppName,
 	EncryptedParsedAssociation,
 	EncryptedParsedInstance,
 	Entity,
@@ -21,7 +22,6 @@ assertWorkerOrNode()
 
 export type AttributeId = number
 export type TypeId = number
-export type AppName = "base" | "sys" | "tutanota" | "usage" | "monitor" | "accouting" | "gossip"
 export type AttributeName = string
 
 export class InstanceMapper {

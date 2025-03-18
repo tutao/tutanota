@@ -9,7 +9,7 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants"
-import { resolveTypeReference } from "../../common/EntityFunctions"
+import { TypeReferenceResolver } from "../../common/EntityFunctions"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
@@ -53,6 +53,8 @@ export function decryptValue(valueType: ModelValue & { encrypted: true }, value:
 }
 
 export class InstanceCryptoMapper {
+	constructor(private readonly typeRefResolver: TypeReferenceResolver) {}
+
 	public async decryptParsedInstance(typeModel: TypeModel, encryptedInstance: EncryptedParsedInstance, sk: Nullable<AesKey>): Promise<ParsedInstance> {
 		const decrypted: ParsedInstance = {
 			_finalIvs: {},
@@ -102,7 +104,7 @@ export class InstanceCryptoMapper {
 			const encryptedInstanceValue = encryptedInstance[associationId] as EncryptedParsedAssociation
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? typeModel.app
-				const associationTypeModel = await resolveTypeReference(new TypeRef(appName, associationType.refTypeId))
+				const associationTypeModel = await this.typeRefResolver(new TypeRef(appName, associationType.refTypeId))
 				decrypted[associationId] = await this.decryptAggregateAssociation(
 					associationTypeModel,
 					encryptedInstanceValue as Array<EncryptedParsedInstance>,
@@ -165,7 +167,7 @@ export class InstanceCryptoMapper {
 			const associationType = typeModel.associations[associationId]
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? typeModel.app
-				const aggregateTypeModel = await resolveTypeReference(new TypeRef(appName, associationType.refTypeId))
+				const aggregateTypeModel = await this.typeRefResolver(new TypeRef(appName, associationType.refTypeId))
 				const aggregate = parsedInstance[associationId] as Array<ParsedInstance>
 				encrypted[associationId] = await this.encryptAggregateAssociation(aggregateTypeModel, aggregate, sk)
 			} else {
