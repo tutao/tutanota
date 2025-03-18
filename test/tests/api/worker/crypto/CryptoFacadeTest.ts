@@ -38,7 +38,6 @@ import {
 	createBucket,
 	createBucketKey,
 	createBucketPermission,
-	createCustomerAccountTerminationRequest,
 	createGroup,
 	createInstanceSessionKey,
 	createKeyPair,
@@ -83,7 +82,7 @@ import {
 	rsaPrivateKeyToHex,
 	rsaPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
-import { InstanceMapper, InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
 import { EncryptedParsedInstance, ParsedInstance, SomeEntity, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -232,67 +231,38 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("resolve session key: unencrypted instance", async function () {
-		const dummyDate = new Date().getTime().toString()
-		const model = await resolveTypeReference(CustomerAccountTerminationRequestTypeRef)
-		const customerAccountTerminationRequest = toUntypedInstance(
-			{
-				_format: 0,
-				terminationDate: dummyDate,
-				terminationRequestDate: dummyDate,
-				customer: "customerId",
-			},
-			model,
-		)
+		const customerAccountTerminationRequest = createTestEntity(CustomerAccountTerminationRequestTypeRef)
+		const instanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, customerAccountTerminationRequest)
 
-		const instanceWrapper = await mapUntypedInstanceToInstanceWrapper(model, instanceMapper, customerAccountTerminationRequest)
 		o(await crypto.resolveSessionKey(instanceWrapper)).equals(null)
 	})
 
 	o("resolve session key: _ownerEncSessionKey instance.", async function () {
 		const recipientUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientUser, userFacade, keyLoaderFacade)
-		let subject = "this is our subject"
-		let confidential = true
-		let senderName = "TutanotaTeam"
 		const sk = aes256RandomKey()
-
-		/*
-        recipientUser.mailGroupKey, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id
-         */
-		// FIXME can't use creatTestEntity here as we expect an UntypedInstance
 		const mail = createTestEntity(MailTypeRef, {
 			_ownerEncSessionKey: recipientUser.mailGroupKey ? encryptKey(recipientUser.mailGroupKey, sk) : null,
-			subject: uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(subject), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
-			confidential,
-			sender: createMailAddress({ name: senderName, address: senderAddress, contact: null }),
-			firstRecipient: createMailAddress({ name: recipientUser.name, address: "support@yahoo.com", contact: null }),
 			_ownerGroup: recipientUser.mailGroup._id,
 			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
 		})
 		const instanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mail)
-
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(instanceWrapper))
-
 		o(sessionKey).deepEquals(sk)
 	})
 
 	o("resolve session key: _ownerEncSessionKey instance, fetches correct version.", async function () {
 		const recipientUser = createTestUser("Bob", entityClient)
 		configureLoggedInUser(recipientUser, userFacade, keyLoaderFacade)
-		let subject = "this is our subject"
-		let confidential = true
-		let senderName = "TutanotaTeam"
-		const sk = aes256RandomKey()
 
+		const sk = aes256RandomKey()
 		const groupKey_v1 = aes256RandomKey()
 		when(keyLoaderFacade.loadSymGroupKey(recipientUser.mailGroup._id, 1)).thenResolve(groupKey_v1)
-		const mail = await createMailUntypedInstance(groupKey_v1, sk, subject, confidential, senderName, recipientUser.name, recipientUser.mailGroup._id)
-		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 
-		mail[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "_ownerKeyVersion")).toString()] = "1"
-		mapInstanceToInstanceWrapper(instanceMapper, mail)
-		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
+		const mail = createTestEntity(MailTypeRef, { _ownerEncSessionKey: encryptKey(groupKey_v1, sk), _ownerKeyVersion: "1" })
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mail)
 
+		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 		o(sessionKey).deepEquals(sk)
 	})
 

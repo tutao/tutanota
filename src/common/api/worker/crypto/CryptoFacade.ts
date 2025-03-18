@@ -125,8 +125,6 @@ export class CryptoFacade {
 	 * @param typeModel the type model of the instance
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
-	// fixme: should we have two version for this method . one that takes SomeEntity and one that takes Record<number, any>
-	// previously SomeEntity was compatible to Record<string, any>
 	async resolveSessionKey(instanceWrapper: InstanceWrapper): Promise<Nullable<AesKey>> {
 		if (!instanceWrapper.typeModel.encrypted) {
 			return null
