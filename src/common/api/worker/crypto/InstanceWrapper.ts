@@ -10,6 +10,7 @@ import { AttributeModel } from "../../common/EntityFunctions"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { PermissionType } from "../../common/TutanotaConstants"
 import { typeRefToRestPath } from "../rest/EntityRestClient"
+import { createTestEntity } from "../../../../../test/tests/TestUtils"
 
 export class InstanceWrapper {
 	public readonly elementId: Nullable<Id>
@@ -18,18 +19,18 @@ export class InstanceWrapper {
 	public resolvedSessionKey: Nullable<AesKey>
 
 	private constructor(
-		private readonly isLiteralInstance: boolean,
+		private readonly localInstance: boolean, // local instances are created on the client or read from offline DB. They have not directly been retrieved from the server
 		public readonly typeRef: TypeRef<SomeEntity>,
 		public readonly typeModel: TypeModel,
 		private readonly instanceMapper: InstanceMapper,
 		public readonly id: Nullable<Id | IdTuple>,
+		// fixme: make this private?
 		public readonly instance: ParsedInstance | EncryptedParsedInstance,
 		public readonly permissionId: Nullable<Id>,
 		public _ownerGroup: Nullable<Id>,
-		public readonly ownerGroup: Nullable<Id>,
 		public readonly ownerEncSessionKey: Nullable<VersionedEncryptedKey>,
 		public _ownerEncSessionKey: Nullable<VersionedEncryptedKey>,
-		public readonly listEncSessionKey: Nullable<Base64>,
+		public readonly listEncSessionKey: Nullable<Base64>, // legacy; only used from migrating GroupInfo from list to ownerEncSessionKey
 		public readonly bucketKey: Nullable<BucketKey>,
 	) {
 		if (id) {
@@ -57,17 +58,14 @@ export class InstanceWrapper {
 		return await this.from(typeModel, encryptedParsedInstance, instanceMapper, localInstance)
 	}
 
-	private static async from(
-		typeModel: TypeModel,
-		encryptedParsedInstance: EncryptedParsedInstance,
-		instanceMapper: InstanceMapper,
-		localInstance: boolean, // local instances are created on the client or read from offline DB. They have not directly been retrieved from the server
-	) {
+	private static async from(typeModel: TypeModel, encryptedParsedInstance: EncryptedParsedInstance, instanceMapper: InstanceMapper, localInstance: boolean) {
 		const typeRef = new TypeRef<SomeEntity>(typeModel.app, typeModel.id)
 
 		const id = InstanceWrapper.getAttributeorNull<Id | IdTuple>(encryptedParsedInstance, "_id", typeModel)
+		if (!localInstance) {
+			assertNotNull(id)
+		}
 		const _ownerGroup = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "_ownerGroup", typeModel)
-		const ownerGroup = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "ownerGroup", typeModel)
 		const permission = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "_permissions", typeModel)
 		const listEncSessionKey = InstanceWrapper.getAttributeorNull<Base64>(encryptedParsedInstance, "_listEncSessionKey", typeModel)
 
@@ -92,12 +90,10 @@ export class InstanceWrapper {
 		}
 
 		let bucketKey: Nullable<BucketKey> = null
-		if (!localInstance) {
-			const bucketKeyLiteral = InstanceWrapper.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)
-			if (bucketKeyLiteral) {
-				// since, bucket key is really not encrypted entity, we can just parse it to instance
-				bucketKey = await instanceMapper.uncloak<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
-			}
+		const bucketKeyLiteral = InstanceWrapper.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)
+		if (bucketKeyLiteral) {
+			// since, bucket key is really not encrypted entity, we can just parse it to instance
+			bucketKey = await instanceMapper.uncloak<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
 		}
 
 		return new InstanceWrapper(
@@ -109,7 +105,6 @@ export class InstanceWrapper {
 			encryptedParsedInstance,
 			permission,
 			_ownerGroup,
-			ownerGroup,
 			ownerEncSessionKey,
 			_ownerEncSessionKey,
 			listEncSessionKey,
@@ -117,12 +112,10 @@ export class InstanceWrapper {
 		)
 	}
 
-	writeSessionKey() {}
-
 	async provideDecryptedInstance(resolvedSessionKey: AesKey): Promise<SomeEntity> {
 		const typeRef = downcast<TypeRef<SomeEntity>>(this.typeRef)
 
-		if (this.instanceIsLiteral()) {
+		if (this.isLocalInstance()) {
 			const parsedInstance = downcast<ParsedInstance>(this.instance)
 			return await this.instanceMapper.uncloak(typeRef, parsedInstance)
 		} else {
@@ -145,37 +138,38 @@ export class InstanceWrapper {
 	set_ownerEncSessionKey(key: VersionedEncryptedKey) {
 		this._ownerEncSessionKey = key
 
-		// fixme: should we assertNotNull this Id?
 		const _ownerEncSessionKeyFieldId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerEncSessionKey"))
 		const _ownerEncSessionKeyVersionFieldId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerEncSessionKeyVersion"))
-		this.instance[_ownerEncSessionKeyFieldId] = key.key // todo: convert key.key to raw json format: base64string?
-		this.instance[_ownerEncSessionKeyVersionFieldId] = key.encryptingKeyVersion // todo: convert to NumberString?
+		this.instance[_ownerEncSessionKeyFieldId] = key.key
+		this.instance[_ownerEncSessionKeyVersionFieldId] = key.encryptingKeyVersion
 	}
 
 	set_ownerGroup(ownerGroup: Id) {
 		this._ownerGroup = ownerGroup
 
-		// fixme: should we assertNotNull this Id?
 		const _ownerGroupId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerGroup"))
 		this.instance[_ownerGroupId] = ownerGroup
 	}
 
-	serverUploadableJson(): string {
-		if (this.instanceIsLiteral()) {
-			// fixme: convert this.instance: UntypedInstance => WireFormat
-			return JSON.stringify(this.instance)
+	async toWireFormat(): Promise<string> {
+		let encryptedParsedInstance: EncryptedParsedInstance
+		if (this.isLocalInstance()) {
+			encryptedParsedInstance = await this.instanceMapper.encrypt(this.typeModel, this.instance)
 		} else {
-			// fixme: convert this.instance: instance => parsedInstance => EncryptedParsedInstance => UntypedInstance => WireFormat
-			return JSON.stringify(this.instance)
+			encryptedParsedInstance = this.instance
 		}
+
+		const untypedInstance = await this.instanceMapper.applyDbTypes(this.typeModel, encryptedParsedInstance)
+		const wireFormat = JSON.stringify(untypedInstance)
+		return wireFormat
 	}
 
 	errorPrintableInstance() {
-		return JSON.stringify(this.instance)
+		return `${JSON.stringify(this.typeRef)} with Id: ${this.id}`
 	}
 
-	instanceIsLiteral() {
-		return this.isLiteralInstance
+	isLocalInstance() {
+		return this.localInstance
 	}
 
 	async getInstanceUpdateServerPath(): Promise<string> {

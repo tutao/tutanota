@@ -175,7 +175,7 @@ export class CryptoFacade {
 					const bucketPermission = await this.loadPublicOrExternalBucketPermission(instanceWrapper.publicOrExternalPermission)
 					instanceWrapper.setResolvedSessionKey(await this.resolveWithPublicOrExternalPermission(instanceWrapper, bucketPermission))
 
-					if (instanceWrapper.instanceIsLiteral() && this.userFacade.isLeader()) {
+					if (instanceWrapper.isLocalInstance() && this.userFacade.isLeader()) {
 						permissionUpdateData = { bucketPermission }
 					}
 				}
@@ -718,7 +718,7 @@ export class CryptoFacade {
 		await this.restClient
 			.request(updateUrl, HttpMethod.PUT, {
 				headers,
-				body: instanceWrapper.serverUploadableJson(),
+				body: await instanceWrapper.toWireFormat(),
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(
