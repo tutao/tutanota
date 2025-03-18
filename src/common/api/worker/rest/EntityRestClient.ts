@@ -29,6 +29,7 @@ import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { InstanceWrapper } from "../crypto/InstanceWrapper"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { InstanceCryptoMapper } from "../crypto/InstanceCryptoMapper"
 
 assertWorkerOrNode()
 
@@ -193,6 +194,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly restClient: RestClient,
 		private readonly lazyCrypto: lazy<CryptoFacade>,
 		private readonly instanceMapper: NewInstanceMapper,
+		private readonly instanceCryptoMapper: InstanceCryptoMapper,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}
 
@@ -220,8 +222,10 @@ export class EntityRestClient implements EntityRestInterface {
 	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: InstanceWrapper): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const ownerKey = await ownerKeyProvider(migratedEntity._ownerEncSessionKey.encryptingKeyVersion)
-				return this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey.key, ownerKey)
+				const parseKeyVersion = migratedEntity._ownerEncSessionKey.encryptingKeyVersion
+				const ownerKey = await ownerKeyProvider(parseKeyVersion)
+				const ownerEncSessionKey = migratedEntity._ownerEncSessionKey.key
+				return this._crypto.resolveSessionKeyWithOwnerKey(ownerEncSessionKey, ownerKey)
 			} else {
 				return await this._crypto.resolveSessionKey(migratedEntity)
 			}
@@ -344,13 +348,12 @@ export class EntityRestClient implements EntityRestInterface {
 		loadedEntities: Array<UntypedInstance>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<Array<T>> {
-		const model = await resolveTypeReference(typeRef)
-
+		const typeModel = await resolveTypeReference(typeRef)
 		return await promiseMap(
 			loadedEntities,
 			async (instance) => {
-				const encryptedParsedInstance = await this.instanceMapper.map(model, instance)
-				const instanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(this.instanceMapper, model, encryptedParsedInstance)
+				const encryptedParsedInstance = await this.instanceMapper.mapValues(typeModel, instance)
+				const instanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(this.instanceMapper, typeModel, encryptedParsedInstance)
 				await this._crypto.applyMigrations(instanceWrapper)
 				return this._decryptMapAndMigrate(instanceWrapper, ownerEncSessionKeyProvider)
 			},
@@ -363,10 +366,8 @@ export class EntityRestClient implements EntityRestInterface {
 	async _decryptMapAndMigrate<T>(instanceWrapper: InstanceWrapper, ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider): Promise<T> {
 		let sessionKey: AesKey | null
 		if (ownerEncSessionKeyProvider) {
-			sessionKey = await this._crypto.decryptSessionKey(
-				assertNotNull(instanceWrapper._ownerGroup),
-				await ownerEncSessionKeyProvider(instanceWrapper.elementId),
-			)
+			const ownerEncSessionKey = await ownerEncSessionKeyProvider(instanceWrapper.elementId)
+			sessionKey = await this._crypto.decryptSessionKey(assertNotNull(instanceWrapper._ownerGroup), ownerEncSessionKey)
 			instanceWrapper.setResolvedSessionKey(sessionKey)
 		} else {
 			try {
@@ -381,8 +382,12 @@ export class EntityRestClient implements EntityRestInterface {
 				}
 			}
 		}
-		const decryptedInstance = await this.instanceMapper.decryptAndMapToInstance<T>(instanceWrapper, sessionKey)
-		return this._crypto.applyMigrationsForInstance<T>(decryptedInstance)
+		const sk = instanceWrapper.resolvedSessionKey
+		// fixme: get rid of the cast?
+		const encryptedInstance: EncryptedParsedInstance = instanceWrapper.instance as EncryptedParsedInstance
+		const decryptedInstance = await this.instanceCryptoMapper.decryptParsedInstance(instanceWrapper.typeModel, encryptedInstance, sk)
+		const instance: T = this.instanceCloaker.decloak<T>(decryptedInstance)
+		return this._crypto.applyMigrationsForInstance<T>(instance)
 	}
 
 	async setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {

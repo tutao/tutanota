@@ -2,7 +2,6 @@ import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants
 import { TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
 import { AppName } from "../worker/crypto/InstanceMapper"
-import type { BucketKey } from "../entities/sys/TypeRefs"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export type TypeModel = {
@@ -42,7 +41,7 @@ export type ModelAssociation = {
 	 * From which model we import this association from. Currently, the field only exists for aggregates because they are only ones
 	 * which can be imported across models.
 	 */
-	dependency?: string | null
+	dependency?: AppName | null
 }
 
 export interface Instance extends Entity {
@@ -68,7 +67,11 @@ export interface BlobElementEntity extends Entity, BlobElement {}
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
 
-export type UntypedInstance = Record<string, string | Uint8Array | any> // any is UntypedInstance again
+// at this stage, all values are strings or not present.
+export type UntypedValue = Nullable<string>
+// server sends associations as arrays, cardinality is checked later.
+export type UntypedAssociation = Array<Id> | Array<IdTuple> | Array<UntypedInstance>
+export type UntypedInstance = Record<string, UntypedValue | UntypedAssociation>
 
 export type EncryptedParsedValue =
 	| Id // element association or list association or _id
@@ -80,18 +83,19 @@ export type EncryptedParsedValue =
 	| Uint8Array // Either Bytes or encrypted value
 
 export type EncryptedParsedAssociation =
-	| null
-	| Id
-	| Array<Id>
-	| IdTuple
-	| Array<IdTuple>
-	// should have been reference to EncryptedParsedInstance
-	| Record<string, any>
-	| Array<Record<string, any>>
+	| Array<Id> // element references / list references
+	| Array<IdTuple> // list element ref, card any
+	| Array<EncryptedParsedInstance> // aggregate
 
-export type EncryptedParsedInstance = Record<number, Nullable<EncryptedParsedValue | EncryptedParsedAssociation>>
+// this contains JS values except in encrypted fields, those are kept as a base64 string.
+export type EncryptedParsedInstance = Record<number, Nullable<EncryptedParsedValue> | EncryptedParsedAssociation>
 
 export type ParsedValue = EncryptedParsedValue // Only for doc purpose, structure is the same
 export type ParsedAssociation = EncryptedParsedAssociation // Only for doc purpose, structure is the same
 
-export type ParsedInstance = Record<number, Nullable<ParsedValue | ParsedAssociation>>
+export type ParsedInstance = Record<number, Nullable<ParsedValue> | ParsedAssociation> & {
+	_errors?: Record<number, string>
+} & { _finalEncryptedValues: Record<number, Nullable<EncryptedParsedValue> | EncryptedParsedAssociation> } & {
+	// in practice the values in the records should be Uint8Array or Base64?
+	_defaultEncryptedValues: Record<number, Nullable<ParsedValue> | ParsedAssociation>
+}

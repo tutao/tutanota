@@ -17,16 +17,17 @@ import { compress, uncompress } from "../Compression"
 import {
 	EncryptedParsedAssociation,
 	EncryptedParsedInstance,
-	EncryptedParsedValue,
 	Entity,
 	ModelAssociation,
 	ModelValue,
+	ParsedValue,
 	TypeModel,
+	UntypedAssociation,
 	UntypedInstance,
+	UntypedValue,
 } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
-import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 assertWorkerOrNode()
@@ -37,67 +38,49 @@ export type AppName = "base" | "sys" | "tutanota" | "usage" | "monitor" | "accou
 export type AttributeName = string
 
 export class NewInstanceMapper {
-	async map(typeModel: TypeModel, instance: UntypedInstance): Promise<EncryptedParsedInstance> {
+	async mapValues(typeModel: TypeModel, instance: UntypedInstance): Promise<EncryptedParsedInstance> {
 		let parsedInstance: EncryptedParsedInstance = {}
 		for (const [attrIdStr, modelValue] of Object.entries(typeModel.values)) {
 			const attrId = parseInt(attrIdStr)
-			const untypedValue: string = instance[attrId.toString()]
+			// values at this stage are only strings, the other types are only possible for associations.
+			const untypedValue = instance[attrId.toString()] as UntypedValue
 
-			parsedInstance[attrId] = this.convertUntypedInstanceValueToEncryptedParsedValue(modelValue, untypedValue)
+			if (modelValue.encrypted) {
+				// will be decrypted and mapped at a later stage
+				parsedInstance[attrId] = untypedValue
+			} else {
+				parsedInstance[attrId] = convertDbToJsType(modelValue.type, untypedValue)
+			}
 		}
+
 		for (const [attrIdStr, modelAssociation] of Object.entries(typeModel.associations)) {
 			const attrId = parseInt(attrIdStr)
-			const untypedValue: any = instance[attrId.toString()]
-
-			parsedInstance[attrId] = await this.convertUntypedInstanceAssocToEncryptedParsedAssoc(typeModel.app, modelAssociation, untypedValue)
+			const untypedAssociation = instance[attrId.toString()] as UntypedAssociation
+			parsedInstance[attrId] = await this.convertUntypedAssociationToEncryptedParsedAssociation(typeModel.app, modelAssociation, untypedAssociation)
 		}
 
 		return parsedInstance
 	}
 
-	private convertUntypedInstanceValueToEncryptedParsedValue(modelValue: ModelValue, value: string): EncryptedParsedValue {
-		const modelValueType = modelValue.type
-
-		if (modelValueType === ValueType.Bytes || modelValue.encrypted) {
-			return base64ToUint8Array(value as any)
-		} else if (modelValueType === ValueType.Boolean) {
-			return value !== "0"
-		} else if (modelValueType === ValueType.Date) {
-			return new Date(parseInt(value))
-		} else if (modelValueType === ValueType.CompressedString) {
-			return decompressString(base64ToUint8Array(value))
-		} else {
-			return value
-		}
-	}
-
-	private async convertUntypedInstanceAssocToEncryptedParsedAssoc(
+	private async convertUntypedAssociationToEncryptedParsedAssociation(
 		appName: AppName,
 		modelAssociation: ModelAssociation,
-		value: any,
+		value: UntypedAssociation,
 	): Promise<EncryptedParsedAssociation> {
-		let v = value
-		if (modelAssociation.cardinality === Cardinality.One) {
-			v = assertNotNull(value)
-		}
-
 		switch (modelAssociation.type) {
 			case AssociationType.ElementAssociation || AssociationType.ListAssociation:
-				return modelAssociation.cardinality === Cardinality.Any ? (v as Array<Id>) : (v as Nullable<Id>)
+				return value as Array<Id>
 			case AssociationType.ListElementAssociationGenerated || AssociationType.ListElementAssociationCustom || AssociationType.BlobElementAssociation:
-				return modelAssociation.cardinality === Cardinality.Any ? (v as Array<IdTuple>) : (v as Nullable<IdTuple>)
+				return value as Array<IdTuple>
 			case AssociationType.Aggregation: {
 				const refType = new TypeRef((modelAssociation.dependency as Nullable<AppName>) ?? appName, modelAssociation.refTypeId)
 				const refTypeModel = await resolveTypeReference(refType)
-
-				if (modelAssociation.cardinality === Cardinality.One) {
-					return await this.map(refTypeModel, v as UntypedInstance)
-				} else {
-					if (v == null) {
-						return null
-					}
-					return await promiseMap(v as Array<UntypedInstance>, (aggregateLiteral) => this.map(refTypeModel, aggregateLiteral))
+				const convertedAggregates: Array<EncryptedParsedInstance> = []
+				for (const aggregateLiteral of value as Array<UntypedInstance>) {
+					const convertedAggregate = await this.mapValues(refTypeModel, aggregateLiteral)
+					convertedAggregates.push(convertedAggregate)
 				}
+				return convertedAggregates
 			}
 		}
 
@@ -303,7 +286,9 @@ export class InstanceMapper {
 				const finalIv = decrypted["_finalIvs"][valueName]
 				encryptedValue = encryptValue(valueName, valueType, value, sk, finalIv)
 			} else if (valueType.encrypted && decrypted["_defaultEncrypted_" + valueName] === value) {
-				// restore the default encrypted value because it has not changed
+				// restore the default encrypted value because it has not changed.
+				// this saves storage and mor importantly prevents us from throwing out-of-storage errors for updates that
+				// should not increase the size of the instance.
 				encryptedValue = ""
 			} else {
 				encryptedValue = encryptValue(valueName, valueType, value, sk)
@@ -385,7 +370,7 @@ export function encryptValue(
 }
 
 // Exported for testing
-export function decryptValue(valueName: string, valueType: ModelValue, value: (Base64 | null) | string, sk: AesKey | null): any {
+export function decryptValue(valueName: string, valueType: ModelValue & { encrypted: true }, value: Nullable<Base64>, sk: AesKey): Nullable<ParsedValue> {
 	if (value == null) {
 		if (valueType.cardinality === Cardinality.ZeroOrOne) {
 			return null
@@ -393,11 +378,10 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: (B
 			throw new ProgrammingError(`Value ${valueName} with cardinality ONE can not be null`)
 		}
 	} else if (valueType.cardinality === Cardinality.One && value === "") {
-		return valueToDefault(valueType.type) // Migration for values added after the Type has been defined initially
-	} else if (valueType.encrypted) {
-		if (sk == null) {
-			throw new CryptoError("session key is null, but value is encrypted. valueName: " + valueName + " valueType: " + valueType)
-		}
+		// Migration for values added after the Type has been defined initially
+		// fixme: is the emtpy-string-trick only done for encrypted values?
+		return valueToDefault(valueType.type)
+	} else {
 		let decryptedBytes = aesDecrypt(sk, base64ToUint8Array(value))
 
 		if (valueType.type === ValueType.Bytes) {
@@ -407,8 +391,6 @@ export function decryptValue(valueName: string, valueType: ModelValue, value: (B
 		} else {
 			return convertDbToJsType(valueType.type, utf8Uint8ArrayToString(decryptedBytes))
 		}
-	} else {
-		return convertDbToJsType(valueType.type, value)
 	}
 }
 
@@ -432,17 +414,17 @@ function convertJsToDbType(type: Values<typeof ValueType>, value: any): Uint8Arr
 	}
 }
 
-function convertDbToJsType(type: Values<typeof ValueType>, value: Base64 | string): any {
+function convertDbToJsType(type: Values<typeof ValueType>, decryptedValue: Nullable<ParsedValue>): any {
 	if (type === ValueType.Bytes) {
-		return base64ToUint8Array(value as any)
+		return base64ToUint8Array(decryptedValue as any)
 	} else if (type === ValueType.Boolean) {
-		return value !== "0"
+		return decryptedValue !== "0"
 	} else if (type === ValueType.Date) {
-		return new Date(parseInt(value))
+		return new Date(parseInt(decryptedValue))
 	} else if (type === ValueType.CompressedString) {
-		return decompressString(base64ToUint8Array(value))
+		return decompressString(base64ToUint8Array(decryptedValue))
 	} else {
-		return value
+		return decryptedValue
 	}
 }
 
