@@ -1,14 +1,15 @@
 import o from "@tutao/otest"
 import { AttributeModel, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { ImportMailGetInTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
 import { createTestEntity } from "../../../TestUtils"
-import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper"
-import { BucketKeyTypeRef, GroupInfoTypeRef, PermissionTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { BucketKeyTypeRef, GroupInfoTypeRef, GroupTypeRef, PermissionTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { InstanceWrapper } from "../../../../../src/common/api/worker/crypto/InstanceWrapper"
 import { VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { PermissionType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { EncryptedParsedInstance, ParsedInstance, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { aes256RandomKey } from "@tutao/tutanota-crypto"
 
 o.spec("InstanceWrapperTest", () => {
 	const instanceMapper = new InstanceMapper()
@@ -144,5 +145,99 @@ o.spec("InstanceWrapperTest", () => {
 		instanceWrapper.updatePermission([pubSymPermission])
 		o(instanceWrapper.publicOrExternalPermission).equals(null)
 		o(instanceWrapper.symmetricOrPublicSymmetricPermission).equals(pubSymPermission)
+	})
+
+	o.test("set _ownerEncSessionKey", async () => {
+		const mailModel = await resolveTypeReference(MailTypeRef)
+
+		const mail = createTestEntity(MailTypeRef, {})
+
+		const mailParsed = await instanceMapper.applyAttrIds(mail)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
+
+		const ownerEncSk: VersionedEncryptedKey = {
+			encryptingKeyVersion: 99,
+			key: new Uint8Array([1, 2, 3]),
+		}
+
+		const ownerEncSessionKeyFieldId = assertNotNull(AttributeModel.getAttributeId(mailModel, "_ownerEncSessionKey"))?.toString()
+		const ownerEncSessionKeyVersionFieldId = assertNotNull(AttributeModel.getAttributeId(mailModel, "_ownerEncSessionKeyVersion"))?.toString()
+
+		o(instanceWrapper.ownerEncSessionKey).equals(null)
+		o(instanceWrapper.instance[ownerEncSessionKeyFieldId]).equals(null)
+		o(instanceWrapper.instance[ownerEncSessionKeyVersionFieldId]).equals(null)
+
+		instanceWrapper.set_ownerEncSessionKey(ownerEncSk)
+
+		o(instanceWrapper.ownerEncSessionKey).equals(ownerEncSk)
+		o(instanceWrapper.instance[ownerEncSessionKeyFieldId]).equals(ownerEncSk.key)
+		o(instanceWrapper.instance[ownerEncSessionKeyVersionFieldId]).equals(ownerEncSk.encryptingKeyVersion.toString())
+	})
+
+	o.test("set _ownerGroup", async () => {
+		const mailModel = await resolveTypeReference(MailTypeRef)
+
+		const mail = createTestEntity(MailTypeRef, {})
+
+		const mailParsed = await instanceMapper.applyAttrIds(mail)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
+
+		const ownerGroupId = "ownerGroupId"
+
+		const ownerGroupFieldId = assertNotNull(AttributeModel.getAttributeId(mailModel, "_ownerGroup"))?.toString()
+
+		o(instanceWrapper._ownerGroup).equals(null)
+		o(instanceWrapper.instance[ownerGroupFieldId]).equals(null)
+
+		instanceWrapper.set_ownerGroup(ownerGroupId)
+
+		o(instanceWrapper._ownerGroup).equals(ownerGroupId)
+		o(instanceWrapper.instance[ownerGroupFieldId]).equals(ownerGroupId)
+	})
+
+	o.test("toWireFormat roundtrip", async () => {
+		const mailModel = await resolveTypeReference(MailTypeRef)
+
+		const mail = createTestEntity(MailTypeRef, {
+			_ownerGroup: "ownerGroupId",
+		})
+		const sk = aes256RandomKey()
+
+		const mailParsed = await instanceMapper.applyAttrIds(mail)
+		const instanceWrapperFromInstance = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
+		instanceWrapperFromInstance.setResolvedSessionKey(sk)
+		const wireFormatFromInstance = await instanceWrapperFromInstance.toWireFormat()
+
+		const untyptedInstance: UntypedInstance = JSON.parse(wireFormatFromInstance)
+		const encryptedParsedInstance: EncryptedParsedInstance = instanceMapper.applyJsTypes(untyptedInstance, mailModel)
+		const instanceWrapperFromEncParsed = await InstanceWrapper.fromEncryptedParsedInstance(instanceMapper, mailModel, encryptedParsedInstance)
+		instanceWrapperFromEncParsed.setResolvedSessionKey(sk)
+		const wireFormatFromEncParsed = await instanceWrapperFromEncParsed.toWireFormat()
+
+		o(wireFormatFromInstance).deepEquals(wireFormatFromEncParsed)
+
+		o(await instanceWrapperFromEncParsed.provideDecryptedInstance()).deepEquals(mail)
+	})
+
+	o.test("update ServerPath for ElementType", async () => {
+		const groupModel = await resolveTypeReference(GroupTypeRef)
+		const group = createTestEntity(GroupTypeRef, { _id: "groupId" })
+
+		const groupParsedInstance: ParsedInstance = await instanceMapper.applyServerModel(group)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, groupModel, groupParsedInstance)
+
+		const serverPath = await instanceWrapper.getInstanceUpdateServerPath()
+		o(serverPath).equals(`/rest/sys/group/groupId`)
+	})
+
+	o.test("update ServerPath for ListElementType", async () => {
+		const mailModel = await resolveTypeReference(MailTypeRef)
+		const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"] })
+
+		const mailParsedInstance: ParsedInstance = await instanceMapper.applyServerModel(mail)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsedInstance)
+
+		const serverPath = await instanceWrapper.getInstanceUpdateServerPath()
+		o(serverPath).equals(`/rest/tutanota/mail/mailListId/mailId`)
 	})
 })

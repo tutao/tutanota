@@ -372,7 +372,8 @@ export class CryptoFacade {
 				resolvedSessionKeyForInstance = decryptedSessionKey
 				const pqSenderKeyVersion =
 					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? parseKeyVersion(bucketKey.senderKeyVersion ?? "0") : null
-				const decryptedInstance = await instanceWrapper.provideDecryptedInstance(resolvedSessionKeyForInstance)
+				instanceWrapper.setResolvedSessionKey(resolvedSessionKeyForInstance)
+				const decryptedInstance = await instanceWrapper.provideDecryptedInstance()
 
 				// we can only authenticate once we have the session key
 				// because we need to check if the confidential flag is set, which is encrypted still

@@ -112,7 +112,7 @@ export class InstanceWrapper {
 		)
 	}
 
-	async provideDecryptedInstance(resolvedSessionKey: AesKey): Promise<SomeEntity> {
+	async provideDecryptedInstance(): Promise<SomeEntity> {
 		const typeRef = downcast<TypeRef<SomeEntity>>(this.typeRef)
 
 		if (this.isLocalInstance()) {
@@ -120,7 +120,7 @@ export class InstanceWrapper {
 			return await this.instanceMapper.uncloak(typeRef, parsedInstance)
 		} else {
 			const encryptedEntity = downcast<EncryptedParsedInstance>(this.instance)
-			const parsedInstance = await this.instanceMapper.decrypt(encryptedEntity, resolvedSessionKey)
+			const parsedInstance = await this.instanceMapper.decrypt(encryptedEntity, this.resolvedSessionKey)
 			return await this.instanceMapper.uncloak(typeRef, parsedInstance)
 		}
 	}
@@ -141,7 +141,7 @@ export class InstanceWrapper {
 		const _ownerEncSessionKeyFieldId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerEncSessionKey"))
 		const _ownerEncSessionKeyVersionFieldId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerEncSessionKeyVersion"))
 		this.instance[_ownerEncSessionKeyFieldId] = key.key
-		this.instance[_ownerEncSessionKeyVersionFieldId] = key.encryptingKeyVersion
+		this.instance[_ownerEncSessionKeyVersionFieldId] = key.encryptingKeyVersion.toString()
 	}
 
 	set_ownerGroup(ownerGroup: Id) {
@@ -154,7 +154,7 @@ export class InstanceWrapper {
 	async toWireFormat(): Promise<string> {
 		let encryptedParsedInstance: EncryptedParsedInstance
 		if (this.isLocalInstance()) {
-			encryptedParsedInstance = await this.instanceMapper.encrypt(this.typeModel, this.instance)
+			encryptedParsedInstance = await this.instanceMapper.encrypt(this.typeModel, this.instance, assertNotNull(this.resolvedSessionKey))
 		} else {
 			encryptedParsedInstance = this.instance
 		}
