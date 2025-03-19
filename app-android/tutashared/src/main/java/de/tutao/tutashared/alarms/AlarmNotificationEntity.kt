@@ -7,13 +7,19 @@ import androidx.room.TypeConverters
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.IdTupleWrapper
+import de.tutao.tutashared.IdTupleWrapperOneAssociationSerializer
+import de.tutao.tutashared.IdTupleWrapperZeroOrOneAssociationSerializer
+import de.tutao.tutashared.OneAssociationSerializer
 import de.tutao.tutashared.OperationType
+import de.tutao.tutashared.ZeroOrOneAssociationSerializer
 import de.tutao.tutashared.alarms.AlarmNotificationEntity.OperationTypeConverter
 import de.tutao.tutashared.decryptDate
 import de.tutao.tutashared.decryptString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
+import kotlinx.serialization.serializer
 import java.util.Date
 import java.util.TimeZone
 
@@ -58,14 +64,21 @@ class EncryptedAlarmNotification(
 	@SerialName("1569")
 	val eventEnd: String,
 	@SerialName("1570")
+	@Serializable(with = EncryptedAlarmInfoOneAssociationSerializer::class)
 	val alarmInfo: EncryptedAlarmInfo,
 	@SerialName("1571")
+	@Serializable(with = EncryptedRepeatRuleZeroOrOneAssociationSerializer::class)
 	val repeatRule: EncryptedRepeatRule?,
 	@SerialName("1572")
 	val notificationSessionKeys: List<AlarmNotificationEntity.NotificationSessionKey>,
 	@SerialName("1573")
+	@Serializable(with = UserOneAssociationSerializer::class)
 	val user: String,
 )
+
+object EncryptedAlarmInfoOneAssociationSerializer : OneAssociationSerializer<EncryptedAlarmInfo>(serializer())
+object EncryptedRepeatRuleZeroOrOneAssociationSerializer : ZeroOrOneAssociationSerializer<EncryptedRepeatRule>(serializer())
+object UserOneAssociationSerializer : OneAssociationSerializer<String>(serializer())
 
 
 /**
@@ -102,7 +115,8 @@ class AlarmNotificationEntity(
 	@Serializable
 	class NotificationSessionKey(
 		@SerialName("1555")
-		@field:Embedded val pushIdentifier: IdTuple,
+		@Serializable(with = IdTupleWrapperOneAssociationSerializer::class)
+		val pushIdentifier: IdTupleWrapper,
 		@SerialName("1556")
 		val pushIdentifierSessionEncSessionKey: String,
 	)
