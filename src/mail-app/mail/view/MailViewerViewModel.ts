@@ -185,9 +185,9 @@ export class MailViewerViewModel {
 
 
 
-	isSenderTrusted(): boolean {
-	    return this.trustedSenders.has(this.getSender().address);
-	}
+	// isSenderTrusted(): boolean {
+	//     return this.trustedSenders.has(this.getSender().address);
+	// }
 
 	// async confirmTrusted(): Promise<void> {
 	//     if (!) {
@@ -199,8 +199,8 @@ export class MailViewerViewModel {
 	//     if (this.trustedSenders.has(senderEmail)) {
 	//         console.log(`⚠️ ${senderEmail} is already trusted.`);
 	//         return;
-	//     }
-
+	//     } 
+ 
 	//     try {
 	//         console.log(`Adding trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
 	//         const response = await fetch("http://localhost:3000/add-trusted", {
