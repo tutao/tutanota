@@ -61,18 +61,7 @@ export const POST_MULTIPLE_LIMIT = 100
  */
 export type Stripped<T extends Partial<SomeEntity>> = Omit<
 	T,
-	| "_id"
-	| "_area"
-	| "_owner"
-	| "_ownerGroup"
-	| "_ownerEncSessionKey"
-	| "_ownerKeyVersion"
-	| "_permissions"
-	| "_errors"
-	| "_format"
-	| "_type"
-	| `_finalEncrypted${string}`
-	| `_defaultEncrypted${string}`
+	"_id" | "_area" | "_owner" | "_ownerGroup" | "_ownerEncSessionKey" | "_ownerKeyVersion" | "_permissions" | "_errors" | "_format" | "_type"
 >
 
 type OptionalEntity<T extends Entity> = T & {
@@ -81,21 +70,7 @@ type OptionalEntity<T extends Entity> = T & {
 }
 
 export type StrippedEntity<T extends Entity> =
-	| Omit<
-			T,
-			| "_id"
-			| "_ownerGroup"
-			| "_ownerEncSessionKey"
-			| "_ownerKeyVersion"
-			| "_permissions"
-			| "_errors"
-			| "_format"
-			| "_type"
-			| "_area"
-			| "_owner"
-			| `_finalEncrypted${string}`
-			| `_defaultEncrypted${string}`
-	  >
+	| Omit<T, "_id" | "_ownerGroup" | "_ownerEncSessionKey" | "_ownerKeyVersion" | "_permissions" | "_errors" | "_format" | "_type" | "_area" | "_owner">
 	| OptionalEntity<T>
 
 /**

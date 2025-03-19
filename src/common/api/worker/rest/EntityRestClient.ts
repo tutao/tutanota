@@ -194,9 +194,9 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly authDataProvider: AuthDataProvider,
 		private readonly restClient: RestClient,
 		private readonly lazyCrypto: lazy<CryptoFacade>,
-		private readonly instanceMapper: ModelMapper,
 		private readonly typeMapper: TypeMapper,
 		private readonly cryptoMapper: CryptoMapper,
+		private readonly modelMapper: ModelMapper,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}
 
@@ -356,7 +356,7 @@ export class EntityRestClient implements EntityRestInterface {
 			async (instance) => {
 				const encryptedParsedInstance = await this.typeMapper.applyJsTypes(typeModel, instance)
 				const instanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(
-					this.instanceMapper,
+					this.modelMapper,
 					this.typeMapper,
 					this.cryptoMapper,
 					typeModel,
@@ -371,16 +371,18 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
-	async _decryptMapAndMigrate<T>(instanceWrapper: InstanceWrapper, ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider): Promise<T> {
+	async _decryptMapAndMigrate<T extends SomeEntity>(instanceWrapper: InstanceWrapper, ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider): Promise<T> {
 		let sessionKey: AesKey | null
 		if (ownerEncSessionKeyProvider) {
-			const ownerEncSessionKey = await ownerEncSessionKeyProvider(instanceWrapper.elementId)
+			const ownerEncSessionKey = await ownerEncSessionKeyProvider(assertNotNull(instanceWrapper.elementId))
 			sessionKey = await this._crypto.decryptSessionKey(assertNotNull(instanceWrapper._ownerGroup), ownerEncSessionKey)
 			instanceWrapper.setResolvedSessionKey(sessionKey)
 		} else {
 			try {
 				sessionKey = await this._crypto.resolveSessionKey(instanceWrapper)
-				instanceWrapper.setResolvedSessionKey(sessionKey)
+				if (sessionKey) {
+					instanceWrapper.setResolvedSessionKey(sessionKey)
+				}
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {
 					console.log("could not resolve session key", e, e.message, e.stack)
@@ -394,7 +396,7 @@ export class EntityRestClient implements EntityRestInterface {
 		// fixme: get rid of the cast?
 		const encryptedInstance: EncryptedParsedInstance = instanceWrapper.instance as EncryptedParsedInstance
 		const decryptedInstance = await this.cryptoMapper.decryptParsedInstance(instanceWrapper.typeModel, encryptedInstance, sk)
-		const instance: T = this.instanceCloaker.decloak<T>(decryptedInstance)
+		const instance: T = await this.modelMapper.applyClientModel<T>(instanceWrapper.typeRef, decryptedInstance)
 		return this._crypto.applyMigrationsForInstance<T>(instance)
 	}
 
@@ -511,26 +513,34 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	private async prepareRequestPostPayload<T>(typeModel: TypeModel, instance: T, options?: EntityRestClientSetupOptions) {
-		const parsedInstance: ParsedInstance = await this.instanceMapper.applyServerModel(typeModel, instance)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, typeModel, parsedInstance)
+		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel(typeModel, instance)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
 		await this._crypto.setNewOwnerEncSessionKey(instanceWrapper, options?.ownerKey)
 
-		const encryptedParsedInstance: EncryptedParsedInstance = await this.instanceMapper.encryptAndMapToLiteral(instanceWrapper)
-		const untypedInstance: UntypedInstance = await this.instanceMapper.unmap(typeModel, encryptedParsedInstance)
+		const encryptedParsedInstance: EncryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(
+			typeModel,
+			instanceWrapper.instance as ParsedInstance,
+			instanceWrapper.resolvedSessionKey,
+		)
+		const untypedInstance: UntypedInstance = await this.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
 		return untypedInstance
 	}
 
 	private async prepareRequestPutPayload<T>(typeModel: TypeModel, instance: T, options?: EntityRestClientUpdateOptions) {
-		const parsedInstance: ParsedInstance = await this.instanceMapper.applyServerModel(typeModel, instance)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, typeModel, parsedInstance)
+		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel(typeModel, instance)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
 
 		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instanceWrapper)
 		if (sessionKey) {
 			instanceWrapper.setResolvedSessionKey(sessionKey)
 		}
 
-		const encryptedParsedInstance: EncryptedParsedInstance = await this.instanceMapper.encryptAndMapToLiteral(instanceWrapper)
-		const untypedInstance: UntypedInstance = await this.instanceMapper.unmap(typeModel, encryptedParsedInstance)
+		const encryptedParsedInstance: EncryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(
+			typeModel,
+			instanceWrapper.instance as ParsedInstance,
+			instanceWrapper.resolvedSessionKey,
+		)
+		const untypedInstance: UntypedInstance = await this.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
 		return untypedInstance
 	}
 

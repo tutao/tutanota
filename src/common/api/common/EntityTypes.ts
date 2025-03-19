@@ -53,6 +53,7 @@ export interface Instance extends Entity {
 
 export interface Entity {
 	_type: TypeRef<this>
+	_finalIvs: Record<number, Nullable<Uint8Array>>
 
 	_ownerEncSessionKey?: null | Uint8Array
 	_ownerKeyVersion?: null | NumberString

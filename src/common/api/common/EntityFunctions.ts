@@ -20,6 +20,7 @@ import usageModelInfo from "../entities/usage/ModelInfo.js"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { AttributeId, AttributeName, TypeId } from "../worker/crypto/ModelMapper"
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export const enum HttpMethod {
 	GET = "GET",

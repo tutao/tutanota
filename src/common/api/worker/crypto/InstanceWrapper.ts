@@ -21,7 +21,7 @@ export class InstanceWrapper {
 
 	private constructor(
 		private readonly localInstance: boolean, // local instances are created on the client or read from offline DB. They have not directly been retrieved from the server
-		public readonly typeRef: TypeRef<SomeEntity>,
+		public readonly typeRef: TypeRef<unknown>,
 		public readonly typeModel: TypeModel,
 		private readonly instanceMapper: ModelMapper,
 		private readonly typeMapper: TypeMapper,
@@ -175,7 +175,11 @@ export class InstanceWrapper {
 	async toWireFormat(): Promise<string> {
 		let encryptedParsedInstance: EncryptedParsedInstance
 		if (this.isLocalInstance()) {
-			encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(this.typeModel, this.instance as ParsedInstance, assertNotNull(this.resolvedSessionKey))
+			encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(
+				this.typeModel,
+				this.instance as ParsedInstance,
+				assertNotNull(this.resolvedSessionKey),
+			)
 		} else {
 			encryptedParsedInstance = this.instance
 		}
