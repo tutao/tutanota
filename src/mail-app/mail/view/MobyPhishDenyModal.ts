@@ -20,42 +20,61 @@ export class MobyPhishDenyModal implements ModalComponent {
                         padding: "20px",
                         textAlign: "center",
                         background: "#fff", // Ensure modal is visible
-                        boxShadow: "0px 0px 10px rgba(0,0,0,0.2)", // Add shadow for better visibility
-                        borderRadius: "6px"
+                        boxShadow: "0px 4px 10px rgba(0,0,0,0.2)", // Subtle shadow
+                        borderRadius: "10px",
+                        width: "320px", // Fixed width for better appearance
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px" // Adds spacing between buttons
                     }
                 }, [
-                    m("h3", "Choose an Action"),
                     m("button.btn", {
-                            onclick: () => console.log("This is someone else clicked"),
-                            style: {
-                                background: "#007BFF", color: "#fff", border: "none",
-                                padding: "10px 15px", borderRadius: "5px", cursor: "pointer",
-                                margin: "5px", fontSize: "14px", transition: "background 0.2s"
-                            },
-                            onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#0056b3",
-                            onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#007BFF"
-                        }, "This is someone else"),
+                        onclick: () => console.log("This is someone else clicked"),
+                        style: {
+                            background: "#F8D7DA", // Soft red
+                            color: "#000",
+                            border: "none",
+                            padding: "15px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            width: "100%", // Full-width buttons
+                            fontSize: "16px",
+                            fontWeight: "bold",
+                        },
+                        onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F5C6CB",
+                        onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F8D7DA"
+                    }, "This is Someone Else"),
 
                     m("button.btn", {
                         onclick: () => console.log("Remove from Trusted Senders clicked"),
                         style: {
-                            background: "#DC3545", color: "#fff", border: "none",
-                            padding: "10px 15px", borderRadius: "5px", cursor: "pointer",
-                            margin: "5px", fontSize: "14px", transition: "background 0.2s"
+                            background: "#F8D7DA", // Soft red
+                            color: "#000",
+                            border: "none",
+                            padding: "15px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            width: "100%", // Full-width buttons
+                            fontSize: "16px",
+                            fontWeight: "bold",
                         },
-                        onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#a71d2a",
-                        onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#DC3545"
+                        onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F5C6CB",
+                        onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F8D7DA"
                     }, "Remove from Trusted Senders"),
 
                     m("button.btn", {
                         onclick: () => modal.remove(this),
                         style: {
-                            background: "#6C757D", color: "#fff", border: "none",
-                            padding: "10px 15px", borderRadius: "5px", cursor: "pointer",
-                            margin: "5px", fontSize: "14px", transition: "background 0.2s"
-                        },
-                        onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#5a6268",
-                        onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#6C757D"
+                            background: "transparent",
+                            color: "#000",
+                            border: "none",
+                            padding: "15px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            width: "100%", // Full-width buttons
+                            fontSize: "16px",
+                            fontWeight: "bold",
+                        }
                     }, "Cancel")
                 ])
             ])

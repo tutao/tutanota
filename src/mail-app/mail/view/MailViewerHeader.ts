@@ -742,7 +742,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
     	const senderEmail = viewModel.getSender().address;
-    	const buttons: BannerButtonAttrs[] = [];
 
 	    if (viewModel.isSenderTrusted() && viewModel.isSenderConfirmed()) {
 	        // sender both trusted and confirmed
@@ -755,6 +754,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        });
 	    }
 
+    	const buttons: BannerButtonAttrs[] = [];
+    	
 	    if (viewModel.isSenderTrusted()) {
 
 		    const confirmButton: BannerButtonAttrs = {
