@@ -173,7 +173,7 @@ export class MailViewerViewModel {
 	        //console.log("Raw Response Data:", data);
 
 	        this.trustedSenders = data.trusted_senders;
-	        m.redraw();
+	        //m.redraw();
 
 	    } catch (error) {
 	        console.error("Fetching error:", error);
