@@ -84,7 +84,7 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
-const API_BASE_URL = "http://34.234.82.6:3000"; // Ensure this is correct
+const API_BASE_URL = "http://34.234.82.6:3000"; // aws ec2 instance public address
 
 export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
@@ -127,9 +127,8 @@ export class MailViewerViewModel {
 
 	private mailDetails: MailDetails | null = null
 
-	public trustedSenders: Set<string> = new Set();
+	public trustedSenders: Array<string> = new Array();
 	private senderConfirmed: boolean = false;
-	private currentUserEmail: string = "";
 
 	constructor(
 		private _mail: Mail,
@@ -158,28 +157,28 @@ export class MailViewerViewModel {
 	
 
 	async fetchTrustedSenders(): Promise<void> {
-	    const senderEmail = this.getSender().address;
-	    console.log(`📡 Attempting to fetch trusted senders for: ${senderEmail}`);
+	    const recipient = this.getSenderOfResponseMail();
+	    console.log(`Attempting to fetch trusted senders for: ${recipient}`);
 
 	    try {
-	        const url = `${API_BASE_URL}/trusted-senders/${senderEmail}`;
-	        console.log(`🔗 Fetching: ${url}`);
+	        const url = `${API_BASE_URL}/trusted-senders/${recipient}`;
+	        console.log(`Fetching: ${url}`);
 
 	        const response = await fetch(url);
-	        console.log(`📩 Response Status: ${response.status}`);
+	        console.log(`Response Status: ${response.status}`);
 
 	        const data = await response.json();
-	        console.log("📜 Raw Response Data:", data);
+	        console.log("Raw Response Data:", data);
 
 	        if (Array.isArray(data.trusted_senders)) {
-	            this.trustedSenders = new Set(data.trusted_senders);
-	            console.log("✅ Updated trusted senders:", this.trustedSenders);
+	            this.trustedSenders = data.trusted_senders;
+	            console.log("Updated trusted senders:", this.trustedSenders);
 	        } else {
-	            console.warn("⚠ Unexpected response format:", data);
+	            console.warn("Unexpected response format:", data);
 	        }
 
 	    } catch (error) {
-	        console.error("❌ Fetching error:", error);
+	        console.error("Fetching error:", error);
 	    }
 	}
 
@@ -190,74 +189,74 @@ export class MailViewerViewModel {
 	    return this.trustedSenders.has(this.getSender().address);
 	}
 
-	async confirmTrusted(): Promise<void> {
-	    if (!this.currentUserEmail) {
-	        console.warn("User email not set. Cannot add trusted sender.");
-	        return;
-	    }
+	// async confirmTrusted(): Promise<void> {
+	//     if (!) {
+	//         console.warn("User email not set. Cannot add trusted sender.");
+	//         return;
+	//     }
 
-	    const senderEmail = this.getSender().address;
-	    if (this.trustedSenders.has(senderEmail)) {
-	        console.log(`⚠️ ${senderEmail} is already trusted.`);
-	        return;
-	    }
+	//     const senderEmail = this.getSender().address;
+	//     if (this.trustedSenders.has(senderEmail)) {
+	//         console.log(`⚠️ ${senderEmail} is already trusted.`);
+	//         return;
+	//     }
 
-	    try {
-	        console.log(`Adding trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
-	        const response = await fetch("http://localhost:3000/add-trusted", {
-	            method: "POST",
-	            headers: { "Content-Type": "application/json" },
-	            body: JSON.stringify({
-	                user_email: this.currentUserEmail,
-	                trusted_email: senderEmail
-	            }),
-	        });
+	//     try {
+	//         console.log(`Adding trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
+	//         const response = await fetch("http://localhost:3000/add-trusted", {
+	//             method: "POST",
+	//             headers: { "Content-Type": "application/json" },
+	//             body: JSON.stringify({
+	//                 user_email: this.currentUserEmail,
+	//                 trusted_email: senderEmail
+	//             }),
+	//         });
 
-	        if (!response.ok) throw new Error("Failed to add trusted sender.");
+	//         if (!response.ok) throw new Error("Failed to add trusted sender.");
 
-	        this.trustedSenders.add(senderEmail);
-	        this.senderConfirmed = true;
-	        console.log(`✅ Sender added: ${senderEmail}`);
-	        m.redraw();
-	    } catch (error) {
-	        console.error("❌ Error adding trusted sender:", error);
-	    }
-	}
+	//         this.trustedSenders.add(senderEmail);
+	//         this.senderConfirmed = true;
+	//         console.log(`✅ Sender added: ${senderEmail}`);
+	//         m.redraw();
+	//     } catch (error) {
+	//         console.error("❌ Error adding trusted sender:", error);
+	//     }
+	// }
 
 
-	async removeTrustedSender(): Promise<void> {
-	    if (!this.currentUserEmail) {
-	        console.warn("User email not set. Cannot remove trusted sender.");
-	        return;
-	    }
+	// async removeTrustedSender(): Promise<void> {
+	//     if (!this.currentUserEmail) {
+	//         console.warn("User email not set. Cannot remove trusted sender.");
+	//         return;
+	//     }
 
-	    const senderEmail = this.getSender().address;
-	    if (!this.trustedSenders.has(senderEmail)) {
-	        console.log(`⚠️ ${senderEmail} is not in the trusted list.`);
-	        return;
-	    }
+	//     const senderEmail = this.getSender().address;
+	//     if (!this.trustedSenders.has(senderEmail)) {
+	//         console.log(`⚠️ ${senderEmail} is not in the trusted list.`);
+	//         return;
+	//     }
 
-	    try {
-	        console.log(`Removing trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
-	        const response = await fetch("http://localhost:3000/remove-trusted", {
-	            method: "POST",
-	            headers: { "Content-Type": "application/json" },
-	            body: JSON.stringify({
-	                user_email: this.currentUserEmail,
-	                trusted_email: senderEmail
-	            }),
-	        });
+	//     try {
+	//         console.log(`Removing trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
+	//         const response = await fetch("http://localhost:3000/remove-trusted", {
+	//             method: "POST",
+	//             headers: { "Content-Type": "application/json" },
+	//             body: JSON.stringify({
+	//                 user_email: this.currentUserEmail,
+	//                 trusted_email: senderEmail
+	//             }),
+	//         });
 
-	        if (!response.ok) throw new Error("Failed to remove trusted sender.");
+	//         if (!response.ok) throw new Error("Failed to remove trusted sender.");
 
-	        this.trustedSenders.delete(senderEmail);
-	        this.senderConfirmed = false;
-	        console.log(`✅ Sender removed: ${senderEmail}`);
-	        m.redraw();
-	    } catch (error) {
-	        console.error("❌ Error removing trusted sender:", error);
-	    }
-	}
+	//         this.trustedSenders.delete(senderEmail);
+	//         this.senderConfirmed = false;
+	//         console.log(`✅ Sender removed: ${senderEmail}`);
+	//         m.redraw();
+	//     } catch (error) {
+	//         console.error("❌ Error removing trusted sender:", error);
+	//     }
+	// }
 
 
 
