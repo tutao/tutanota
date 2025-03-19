@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-
 use crate::date::DateTime;
 use crate::element_value::ElementValue;
 use crate::type_model_provider::{AttributeId, TypeId};
 use serde::Deserialize;
+use std::collections::HashMap;
+use thiserror::Error;
 
 /// A kind of element that can appear in the model
 #[derive(Deserialize, PartialEq, Clone, Debug)]
@@ -144,6 +144,10 @@ pub struct TypeModel {
 	pub associations: HashMap<AttributeId, ModelAssociation>,
 }
 
+#[derive(Error, Debug)]
+#[error("Error when accessing type model: {0}")]
+struct TypeModelError(String);
+
 impl TypeModel {
 	/// Whether entity is marked as encrypted in the metamodel.
 	/// This is not the case for aggregates even though they might contain encrypted fields.
@@ -158,5 +162,21 @@ impl TypeModel {
 		} else {
 			self.encrypted
 		}
+	}
+
+	pub fn get_attribute_id_cardinality(
+		&self,
+		attribute_id: &AttributeId,
+	) -> Result<&Cardinality, TypeModelError> {
+		self.associations
+			.get(attribute_id)
+			.map(|a| &a.cardinality)
+			.ok_or(TypeModelError(format!(
+				"did not find association with attributeId {attribute_id}"
+			)))
+	}
+
+	pub fn is_attribute_id_association(&self, attribute_id: &AttributeId) -> bool {
+		self.associations.get(attribute_id).is_some()
 	}
 }
