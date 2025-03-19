@@ -209,7 +209,7 @@ export const themes = (): Themes => {
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
 		error_color: SONNE,
-		tuta_color_nota: secondary_blue,
+		tuta_color_nota: blue_nota,
 	})
 	const darkBlue = Object.freeze({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -250,7 +250,7 @@ export const themes = (): Themes => {
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
 		error_color: SONNE_70,
-		tuta_color_nota: secondary_blue,
+		tuta_color_nota: blue_nota,
 	})
 
 	return {
