@@ -765,7 +765,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			icon: m(Icon, { icon: Icons.Checkmark }),
 	        click: (event: MouseEvent) => {
             	console.log("✅ User confirmed sender:", senderEmail);
-            	viewModel.confirmTrusted(); // Add to trusted list
+            	//viewModel.confirmTrusted(); // Add to trusted list
             	viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
 	            this.renderMobyPhishBanner(viewModel);
 	        },
