@@ -742,22 +742,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
     	const senderEmail = viewModel.getSender().address;
-    	console.log(viewModel);
-	    // if (viewModel.isSenderTrusted()) { //sender in trust list
-	    // 	if (viewModel.isSenderConfirmed()) { //trusted and confirmed
-	    // 		return m(InfoBanner, {
-		   //          message: "mobyPhish_sender_confirmed",
-		   //          icon: Icons.CircleCheckmark,
-		   //          type: BannerType.Info,
-		   //          helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-		   //          buttons: [],
-		   //      });
-	    // 	}	
-	    // } else { //sender not in trusted list
-	    // 	//click green check (since not trusted open modal)
 
-	    // 	//click blue add (add them and show confirm banner)
-	    // }
+	    if (viewModel.isSenderTrusted()) {
+	        console.log("✅ Trusted sender detected:", senderEmail);
+	    } else {
+	        console.log("🚫 Untrusted sender detected:", senderEmail);
+	    }
 
 	    const confirmButton: BannerButtonAttrs = {
 	        title: "mobyPhish_confirm",
