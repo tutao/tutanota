@@ -36,6 +36,8 @@ import { UpgradePriceType } from "../FeatureListProvider"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
+import { formatDate } from "../../misc/Formatter.js"
+import { DateTime } from "luxon"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -56,6 +58,7 @@ class RedeemGiftCardModel {
 			key: string
 			premiumPrice: number
 			storedCredentials: ReadonlyArray<CredentialsInfo>
+			isFirstMonthForFree: boolean
 		},
 		private readonly giftCardFacade: GiftCardFacade,
 		private readonly credentialsProvider: CredentialsProvider,
@@ -82,6 +85,10 @@ class RedeemGiftCardModel {
 
 	get message(): string {
 		return this.config.giftCardInfo.message
+	}
+
+	get isFirstMonthForFree(): boolean {
+		return this.config.isFirstMonthForFree
 	}
 
 	get paymentMethod(): PaymentMethodType {
@@ -463,8 +470,18 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 						value: lang.get("pricing.yearly_label"),
 						isReadOnly: true,
 					}),
+					model.isFirstMonthForFree &&
+						m(TextField, {
+							label: lang.getTranslation("priceTill_label", {
+								"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
+							}),
+							value: formatPrice(0, true),
+							isReadOnly: true,
+						}),
 					m(TextField, {
-						label: "price_label",
+						label: model.isFirstMonthForFree
+							? lang.makeTranslation("price_label", `Price from ${formatDate(DateTime.now().plus({ month: 1 }).plus({ day: 1 }).toJSDate())}`)
+							: "price_label",
 						value: formatPrice(Number(model.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
 						isReadOnly: true,
 					}),
@@ -556,6 +573,7 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 			key,
 			premiumPrice: pricesDataProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice),
 			storedCredentials,
+			isFirstMonthForFree: pricesDataProvider.getRawPricingData().firstMonthForFreeForYearlyPlan,
 		},
 		locator.giftCardFacade,
 		locator.credentialsProvider,

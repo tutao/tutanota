@@ -38,6 +38,7 @@ class PurchaseGiftCardModel {
 			availablePackages: Array<GiftCardOption>
 			selectedPackage: number
 			revolutionaryPrice: number
+			isFirstMonthForFree: boolean
 		},
 	) {}
 
@@ -63,6 +64,10 @@ class PurchaseGiftCardModel {
 
 	get revolutionaryPrice(): number {
 		return this.config.revolutionaryPrice
+	}
+
+	get isFirstMonthForFree(): boolean {
+		return this.config.isFirstMonthForFree
 	}
 
 	async purchaseGiftCard(): Promise<GiftCard> {
@@ -285,5 +290,6 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 		availablePackages: giftCardInfo.options,
 		selectedPackage: Math.floor(giftCardInfo.options.length / 2),
 		revolutionaryPrice: priceDataProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanActualPrice),
+		isFirstMonthForFree: priceDataProvider.getRawPricingData().firstMonthForFreeForYearlyPlan,
 	})
 }

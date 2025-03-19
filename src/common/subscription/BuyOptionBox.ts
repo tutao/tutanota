@@ -44,7 +44,7 @@ export type BuyOptionBoxAttr = {
 	 */
 	targetSubscription?: AvailablePlanType
 	isCampaign?: boolean
-	isFirstMonthForFree: boolean
+	isFirstMonthForFree?: boolean
 	hasPriceFootnote?: boolean
 }
 
