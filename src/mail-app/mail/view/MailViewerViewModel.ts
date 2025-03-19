@@ -157,7 +157,7 @@ export class MailViewerViewModel {
 	
 
 	async fetchTrustedSenders(): Promise<void> {
-	    const recipient = this.getSenderOfResponseMail();
+	    const recipient = this.getRelevantRecipient();
 	    console.log(`Attempting to fetch trusted senders for: ${recipient}`);
 
 	    try {
