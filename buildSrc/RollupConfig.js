@@ -17,6 +17,7 @@ export const dependencyMap = {
 	"better-sqlite3": path.normalize("./libs/better-sqlite3.mjs"),
 	winreg: path.normalize("./libs/winreg.mjs"),
 	undici: path.normalize("./libs/undici.mjs"),
+	jsqr: path.normalize("./libs/jsQR.js"),
 }
 
 /**
@@ -276,7 +277,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		moduleId.includes("commonjs-dynamic-modules")
 	) {
 		return "polyfill-helpers"
-	} else if (isIn("src/common/settings") || isIn("src/common/subscription") || isIn("libs/qrcode") || isIn("src/common/termination")) {
+	} else if (isIn("src/common/settings") || isIn("src/common/subscription") || isIn("libs/qrcode") || isIn("libs/jsQR") || isIn("src/common/termination")) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"

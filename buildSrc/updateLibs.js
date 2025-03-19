@@ -35,6 +35,7 @@ const clientDependencies = [
 	{ src: "../node_modules/linkifyjs/dist/linkify.es.js", target: "linkify.js", bundling: "copy" },
 	{ src: "../node_modules/linkify-html/dist/linkify-html.es.js", target: "linkify-html.js", bundling: "copy" },
 	{ src: "../node_modules/luxon/build/es6/luxon.js", target: "luxon.js", bundling: "copy" },
+	{ src: "../node_modules/jsqr/dist/jsQR.js", target: "jsQR.js", bundling: "copy" },
 	{ src: "../node_modules/jszip/dist/jszip.js", target: "jszip.js", bundling: "rollupWeb" },
 	{ src: "../node_modules/cborg/cborg.js", target: "cborg.js", bundling: "rollupWeb" },
 	{ src: "../node_modules/qrcode-svg/lib/qrcode.js", target: "qrcode.js", bundling: "rollupWeb" },

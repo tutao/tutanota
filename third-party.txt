@@ -55,3 +55,7 @@ Reference: https://github.com/mathiasbynens/quoted-printable/blob/master/LICENSE
 language icon - MGalloway (WMF) via Wikimedia Commons - https://upload.wikimedia.org/wikipedia/commons/4/43/OOjs_UI_icon_language-ltr.svg
 License: CC BY-SA 3.0
 Reference: https://creativecommons.org/licenses/by-sa/3.0>,
+
+jsQR - https://github.com/cozmo/jsQR
+License: Apache 2
+Reference: https://github.com/cozmo/jsQR/blob/master/LICENSE

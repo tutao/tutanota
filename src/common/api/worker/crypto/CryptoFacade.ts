@@ -22,6 +22,7 @@ import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	GroupType,
+	KeyVerificationState,
 	PermissionType,
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
@@ -65,13 +66,13 @@ import {
 	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
-	PublicKey,
 	bitArrayToUint8Array,
 	decryptKey,
 	EccPublicKey,
 	encryptKey,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
+	PublicKey,
 	sha256Hash,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
@@ -87,7 +88,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import { KeyVerificationFacade, KeyVerificationState } from "../facades/lazy/KeyVerificationFacade"
+import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
 import { UnverifiedRecipientError } from "../../common/error/UnverifiedRecipientError"
 import { PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"

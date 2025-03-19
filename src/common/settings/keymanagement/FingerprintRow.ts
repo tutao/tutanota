@@ -5,7 +5,6 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
-import { KeyPairType } from "@tutao/tutanota-crypto"
 import { Icon, IconSize } from "../../gui/base/Icon"
 
 type FingerprintRowAttrs = {
@@ -18,11 +17,25 @@ type FingerprintRowAttrs = {
  * Component for displaying a verified public key fingerprint as a compact card,
  * including key version, key type and a shield icon.
  */
+
+// Hack because right now we cannot import enum KeyPairType
+function getProtocolName(keyPairType: number): string {
+	if (keyPairType === 0) {
+		return "RSA"
+	} else if (keyPairType === 1) {
+		return "RSA and ECC"
+	} else if (keyPairType === 2) {
+		return "TutaCrypt"
+	} else {
+		return "unknown protocol"
+	}
+}
+
 export class FingerprintRow implements Component<FingerprintRowAttrs> {
 	view(vnode: Vnode<FingerprintRowAttrs>): Children {
 		const { mailAddress, publicKeyFingerprint, onRemoveFingerprint } = vnode.attrs
 
-		const protocol = KeyPairType[publicKeyFingerprint.keyPairType]
+		const protocol = getProtocolName(publicKeyFingerprint.keyPairType)
 		const version = publicKeyFingerprint.keyVersion
 
 		return m(Card, [

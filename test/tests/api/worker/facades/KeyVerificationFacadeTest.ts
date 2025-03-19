@@ -1,11 +1,16 @@
 import o from "@tutao/otest"
-import { KeyVerificationFacade, KeyVerificationState, PublicKeyFingerprint } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade, PublicKeyFingerprint } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { matchers, object, verify, when } from "testdouble"
 import { SqlType, TaggedSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { PublicKeyGetOut, PublicKeyGetOutTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { concat, lazyAsync, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
-import { FeatureType, KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
+import {
+	FeatureType,
+	KeyVerificationSourceOfTruth,
+	KeyVerificationState,
+	PublicKeyIdentifierType,
+} from "../../../../../src/common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import { KeyPairType, PQPublicKeys, PublicKey } from "@tutao/tutanota-crypto"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"

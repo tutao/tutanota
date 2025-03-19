@@ -514,6 +514,12 @@ export const enum KeyVerificationResultType {
 	QR_FINGERPRINT_MISMATCH = "3",
 }
 
+export enum KeyVerificationState {
+	NO_ENTRY, // Identity is not trusted by user
+	VERIFIED, // Identity is trusted and verified
+	MISMATCH, // Identity is trusted but not verified
+}
+
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
 export const MAX_LOGO_SIZE = 1024 * 100
 export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE

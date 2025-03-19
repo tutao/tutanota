@@ -8,15 +8,12 @@ import { GroupInfoTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { ContactMailAddressTypeRef, ContactTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
-import { GroupType } from "../../../src/common/api/common/TutanotaConstants.js"
+import { GroupType, KeyVerificationState } from "../../../src/common/api/common/TutanotaConstants.js"
 import { verify } from "@tutao/tutanota-test-utils"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
-import { KeyVerificationFacade, KeyVerificationState } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { ServiceExecutor } from "../../../src/common/api/worker/rest/ServiceExecutor"
-import { IServiceExecutor } from "../../../src/common/api/common/ServiceRequest"
-import { PublicKeyProvider } from "../../../src/common/api/worker/facades/PublicKeyProvider"
+import { KeyVerificationFacade } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
 o.spec("RecipientsModel", function () {
 	const contactListId = "contactListId"
@@ -32,8 +29,6 @@ o.spec("RecipientsModel", function () {
 	let mailFacadeMock: MailFacade
 	let entityClientMock: EntityClient
 	let keyVerificationFacadeMock: KeyVerificationFacade
-	let serviceExecutorMock: IServiceExecutor
-	let publicKeyProviderMock: PublicKeyProvider
 
 	let model: RecipientsModel
 
@@ -59,18 +54,8 @@ o.spec("RecipientsModel", function () {
 		mailFacadeMock = instance(MailFacade)
 		entityClientMock = instance(EntityClient)
 		keyVerificationFacadeMock = instance(KeyVerificationFacade)
-		serviceExecutorMock = instance(ServiceExecutor)
-		publicKeyProviderMock = object()
 
-		model = new RecipientsModel(
-			contactModelMock,
-			loginControllerMock,
-			mailFacadeMock,
-			entityClientMock,
-			keyVerificationFacadeMock,
-			serviceExecutorMock,
-			publicKeyProviderMock,
-		)
+		model = new RecipientsModel(contactModelMock, loginControllerMock, mailFacadeMock, entityClientMock, keyVerificationFacadeMock)
 	})
 
 	o("initializes with provided contact", function () {

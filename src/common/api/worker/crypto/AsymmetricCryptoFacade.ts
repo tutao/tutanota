@@ -2,7 +2,6 @@ import { assertWorkerOrNode } from "../../common/Env"
 import {
 	AesKey,
 	AsymmetricKeyPair,
-	PublicKey,
 	bitArrayToUint8Array,
 	EccKeyPair,
 	EccPublicKey,
@@ -13,13 +12,20 @@ import {
 	isVersionedRsaEccPublicKey,
 	isVersionedRsaOrRsaEccPublicKey,
 	PQPublicKeys,
+	PublicKey,
 	RsaPrivateKey,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import {
+	asCryptoProtoocolVersion,
+	CryptoProtocolVersion,
+	EncryptionAuthStatus,
+	KeyVerificationState,
+	PublicKeyIdentifierType,
+} from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, lazyAsync, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -27,7 +33,7 @@ import { createPublicKeyPutIn, PubEncKeyData } from "../../entities/sys/TypeRefs
 import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { KeyVerificationFacade, KeyVerificationState } from "../facades/lazy/KeyVerificationFacade"
+import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 

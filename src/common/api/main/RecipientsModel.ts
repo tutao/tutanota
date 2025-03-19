@@ -8,9 +8,8 @@ import { BoundedExecutor, LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
-import { KeyVerificationFacade, KeyVerificationState } from "../worker/facades/lazy/KeyVerificationFacade"
-import { IServiceExecutor } from "../common/ServiceRequest"
-import { PublicKeyProvider } from "../worker/facades/PublicKeyProvider"
+import type { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationState } from "../common/TutanotaConstants.js"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type
@@ -48,8 +47,6 @@ export class RecipientsModel {
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
 		private readonly keyVerificationFacade: KeyVerificationFacade,
-		private readonly serviceExecutor: IServiceExecutor,
-		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
 	/**
@@ -64,8 +61,6 @@ export class RecipientsModel {
 			(mailAddress) => this.executor.run(this.resolveRecipientType(mailAddress)),
 			this.entityClient,
 			this.keyVerificationFacade,
-			this.serviceExecutor,
-			this.publicKeyProvider,
 			resolveMode,
 		)
 	}
@@ -116,8 +111,6 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		private readonly typeResolver: (mailAddress: string) => Promise<RecipientType>,
 		private readonly entityClient: EntityClient,
 		private readonly keyVerificationFacade: KeyVerificationFacade,
-		private readonly serviceExecutor: IServiceExecutor,
-		private readonly publicKeyProvider: PublicKeyProvider,
 		resolveMode: ResolveMode,
 	) {
 		if (isTutaMailAddress(arg.address) || arg.type === RecipientType.INTERNAL) {

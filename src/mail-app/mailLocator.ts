@@ -134,7 +134,6 @@ import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
-import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
 
 assertMainOrNode()
 
@@ -169,7 +168,6 @@ class MailLocator {
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
-	publicKeyProvider!: PublicKeyProvider
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -206,15 +204,7 @@ class MailLocator {
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
-		return new RecipientsModel(
-			this.contactModel,
-			this.logins,
-			this.mailFacade,
-			this.entityClient,
-			this.keyVerificationFacade,
-			this.serviceExecutor,
-			this.publicKeyProvider,
-		)
+		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient, this.keyVerificationFacade)
 	})
 
 	async noZoneDateProvider(): Promise<NoZoneDateProvider> {
@@ -754,7 +744,6 @@ class MailLocator {
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.keyVerificationFacade = keyVerificationFacade
-		this.publicKeyProvider = new PublicKeyProvider(serviceExecutor)
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade

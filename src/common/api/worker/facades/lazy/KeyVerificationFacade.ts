@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
-import { FeatureType, KeyVerificationSourceOfTruth, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
+import { FeatureType, KeyVerificationSourceOfTruth, KeyVerificationState, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { assertNotNull, base64ToUint8Array, concat, Hex, lazyAsync, stringToUtf8Uint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { isVersionedPqPublicKey, isVersionedRsaEccPublicKey, isVersionedRsaPublicKey, KeyPairType, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { NotFoundError } from "../../../common/error/RestError"
@@ -11,12 +11,6 @@ import { PublicKeyProvider } from "../PublicKeyProvider"
 import { CustomerFacade } from "./CustomerFacade"
 
 assertWorkerOrNode()
-
-export enum KeyVerificationState {
-	NO_ENTRY, // Identity is not trusted by user
-	VERIFIED, // Identity is trusted and verified
-	MISMATCH, // Identity is trusted but not verified
-}
 
 export interface PublicKeyFingerprint {
 	fingerprint: Hex

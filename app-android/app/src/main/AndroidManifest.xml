@@ -22,6 +22,10 @@
 			android:maxSdkVersion="32"/>
 	<uses-permission android:name="android.permission.CAMERA"/>
 
+	<uses-feature
+			android:name="android.hardware.camera"
+			android:required="false"/>
+
 	<!-- We have to enable cleartext (non-HTTPS) traffic because of the external email content
 	which might still be served or HTTP. The only alternative is to proxy all of it. -->
 

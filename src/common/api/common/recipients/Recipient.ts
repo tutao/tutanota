@@ -1,5 +1,5 @@
 import { Contact } from "../../entities/tutanota/TypeRefs"
-import { KeyVerificationState } from "../../worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationState } from "../TutanotaConstants"
 
 export const enum RecipientType {
 	UNKNOWN = "unknown",
