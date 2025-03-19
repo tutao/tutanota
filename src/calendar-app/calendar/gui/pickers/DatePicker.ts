@@ -17,7 +17,7 @@ import { getCalendarMonth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../common/misc/KeyManager.js"
 import { Keys, TabIndex } from "../../../../common/api/common/TutanotaConstants.js"
 import { AriaPopupType } from "../../../../common/gui/AriaUtils.js"
-import { isApp } from "../../../../common/api/common/Env.js"
+import { isApp, isIOSApp } from "../../../../common/api/common/Env.js"
 import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../common/gui/base/InputButton.js"
 
 export enum PickerPosition {
@@ -101,7 +101,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						},
 						value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
 						oninput: (event: InputEvent) => {
-							this.handleNativeInput(event, onDateSelected)
+							this.handleNativeInput(event.target as HTMLInputElement, onDateSelected)
 						},
 				  })
 				: null,
@@ -292,8 +292,12 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			},
 			// Format as ISO date format (YYYY-MM-dd). We use luxon for that because JS Date only supports full format with time.
 			value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
-			oninput: (event: InputEvent) => {
-				this.handleNativeInput(event, onDateSelected)
+
+			// On iOS we use "onfocusout" instead of "oninput" because the native date picker changes the input immediately, triggering an "oninput" event.
+			// And tapping "done" has the same effect as tapping outside the picker, it only closes the picker.
+			// Note that "onfocusout" firing on picker opening and closing only happens on iOS.
+			[isIOSApp() ? "onfocusout" : "oninput"]: ({ target }: { target: HTMLInputElement }) => {
+				this.handleNativeInput(target, onDateSelected)
 			},
 		})
 	}
@@ -334,10 +338,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		return this.handleEscapePress(key)
 	}
 
-	private handleNativeInput(event: InputEvent, onDateSelected: (date: Date) => unknown) {
+	private handleNativeInput(inputElement: HTMLInputElement, onDateSelected: (date: Date) => unknown) {
 		// valueAsDate is always 00:00 UTC
 		// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
-		const htmlDate = (event.target as HTMLInputElement).valueAsDate
+		const htmlDate = inputElement.valueAsDate
 		// It can be null if user clicks "clear". Ignore it.
 		if (htmlDate != null) {
 			this.handleSelectedDate(getAllDayDateLocal(htmlDate), onDateSelected)
