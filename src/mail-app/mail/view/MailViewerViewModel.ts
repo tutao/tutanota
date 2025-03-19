@@ -189,7 +189,7 @@ export class MailViewerViewModel {
 		this.senderConfirmed = confirmed;
 	}
 
-	getSenderConfirmed(): boolean {
+	isSenderConfirmed(): boolean {
 		return this.senderConfirmed;
 	}
 

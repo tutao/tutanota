@@ -744,6 +744,17 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     	const senderEmail = viewModel.getSender().address;
     	const buttons: BannerButtonAttrs[] = [];
 
+	    if (viewModel.isSenderTrusted() && viewModel.isSenderConfirmed()) {
+	        // sender both trusted and confirmed
+	        return m(InfoBanner, {
+	            message: "mobyPhish_sender_confirmed",
+	            icon: Icons.CircleCheckmark,
+	            type: BannerType.Info,
+	            helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+	            buttons: []
+	        });
+	    }
+
 	    if (viewModel.isSenderTrusted()) {
 
 		    const confirmButton: BannerButtonAttrs = {
