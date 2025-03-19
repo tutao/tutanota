@@ -742,6 +742,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 
     	const senderEmail = viewModel.getSender().address;
+    	const buttons: BannerButtonAttrs[] = [];
 
 	    if (viewModel.isSenderTrusted()) {
 
@@ -781,9 +782,45 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     		    }
     	    };	
 
-	    	if ()
+    	    buttons.push(confirmButton, denyButton);
+
 	    } else {
 
+		    const confirmButton: BannerButtonAttrs = {
+		        title: "mobyPhish_confirm",
+		    	label: "emptyString_msg",
+				icon: m(Icon, { icon: Icons.Checkmark }),
+		        click: (event: MouseEvent) => {		        	
+    	        	console.log("User denied sender:", senderEmail);
+    	            modal.display(new MobyPhishDenyModal());
+		        },
+			    style: {
+			        backgroundColor: "green",
+			        color: "white",
+			        fontWeight: "bold",
+			        borderRadius: "8px",
+			        padding: "8px 12px",
+			    }
+		    };
+
+        	const addButton: BannerButtonAttrs = {
+    	        title: "mobyPhish_add",
+        	 	label: "emptyString_msg",
+    	        icon: m(Icon, { icon: Icons.Add}),
+    	        click: (event: MouseEvent) => {
+    	        	console.log("User to add sender:", senderEmail);
+    	            modal.display(new MobyPhishDenyModal());
+    	        },
+    		    style: {
+    		        backgroundColor: "red",
+    		        color: "white",
+    		        fontWeight: "bold",
+    		        borderRadius: "8px",
+    		        padding: "8px 12px",
+    		    }
+    	    };	
+
+    	    buttons.push(confirmButton, addButton);
 	    }  
 
 	    return m(InfoBanner, {
@@ -791,7 +828,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        icon: Icons.Warning,
 	        type: BannerType.Warning,
 	        helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-	        buttons: [confirmButton, denyButton],
+	        buttons: buttons,
 	    });
 	}
 

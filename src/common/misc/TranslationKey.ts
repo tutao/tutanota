@@ -1005,6 +1005,7 @@ export type TranslationKeyType =
 	| "middleName_placeholder"
 	| "mobile_label"
 	| "mobyPhish_action"
+	| "mobyPhish_add"
 	| "mobyPhish_confirm"
 	| "mobyPhish_deny"
 	| "mobyPhish_is_trusted"
