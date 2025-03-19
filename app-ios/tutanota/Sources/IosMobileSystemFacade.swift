@@ -1,6 +1,6 @@
+import AVFoundation
 import Contacts
 import Foundation
-import AVFoundation
 import StoreKit
 import TutanotaSharedFramework
 
