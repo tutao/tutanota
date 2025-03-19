@@ -31,15 +31,19 @@ export class MobyPhishDenyModal implements ModalComponent {
                     m("button.btn", {
                         onclick: () => console.log("This is someone else clicked"),
                         style: {
-                            background: "#F8D7DA", // Soft red
+                            background: "#F8D7DA", 
                             color: "#000",
                             border: "none",
                             padding: "15px",
                             borderRadius: "8px",
                             cursor: "pointer",
-                            width: "100%", // Full-width buttons
+                            width: "100%", 
                             fontSize: "16px",
                             fontWeight: "bold",
+                            textAlign: "center", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center"
                         },
                         onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F5C6CB",
                         onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F8D7DA"
@@ -57,6 +61,10 @@ export class MobyPhishDenyModal implements ModalComponent {
                             width: "100%", // Full-width buttons
                             fontSize: "16px",
                             fontWeight: "bold",
+                            textAlign: "center", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center"
                         },
                         onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F5C6CB",
                         onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F8D7DA"
@@ -71,9 +79,13 @@ export class MobyPhishDenyModal implements ModalComponent {
                             padding: "15px",
                             borderRadius: "8px",
                             cursor: "pointer",
-                            width: "100%", // Full-width buttons
+                            width: "100%", 
                             fontSize: "16px",
                             fontWeight: "bold",
+                            textAlign: "center", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center"
                         }
                     }, "Cancel")
                 ])
