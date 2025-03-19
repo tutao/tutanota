@@ -185,8 +185,12 @@ export class MailViewerViewModel {
 	    return this.trustedSenders?.includes(senderEmail) ?? false;
 	}
 
-	senderConfirmed(): void {
-		this.senderConfirmed = true;
+	private setSenderConfirmed(confirmed: boolean): void {
+		this.senderConfirmed = confirmed;
+	}
+
+	getSenderConfirmed(): boolean {
+		return this.senderConfirmed;
 	}
 
 
