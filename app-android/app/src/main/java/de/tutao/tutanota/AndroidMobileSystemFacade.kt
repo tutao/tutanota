@@ -111,7 +111,6 @@ class AndroidMobileSystemFacade(
 			)
 
 			PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activity.hasBatteryOptimizationPermission()
-
 			PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activity.hasPermission(Manifest.permission.POST_NOTIFICATIONS) else true
 			PermissionType.CAMERA -> activity.hasPermission(Manifest.permission.CAMERA)
 		}
@@ -127,7 +126,6 @@ class AndroidMobileSystemFacade(
 			PermissionType.IGNORE_BATTERY_OPTIMIZATION -> activity.requestBatteryOptimizationPermission()
 			PermissionType.NOTIFICATION -> if (atLeastTiramisu()) activity.getPermission(Manifest.permission.POST_NOTIFICATIONS)
 			PermissionType.CAMERA -> activity.getPermission(Manifest.permission.CAMERA)
-
 		}
 	}
 

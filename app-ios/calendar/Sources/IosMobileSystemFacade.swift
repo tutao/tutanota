@@ -1,3 +1,4 @@
+import AVFoundation
 import Contacts
 import Foundation
 import StoreKit
@@ -67,6 +68,9 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		case PermissionType.notification:
 			let settings = await UNUserNotificationCenter.current().notificationSettings()
 			return settings.authorizationStatus == .authorized
+		case PermissionType.camera:
+			let status = AVCaptureDevice.authorizationStatus(for: .video)
+			return status == .authorized
 		}
 	}
 
@@ -79,7 +83,14 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		case PermissionType.notification:
 			let isPermissionGranted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
 			if !isPermissionGranted { throw TutanotaSharedFramework.PermissionError(message: "Notification Permission was not granted.") }
+		case PermissionType.camera:
+			let status = AVCaptureDevice.authorizationStatus(for: .video)
+			var granted = status == .authorized
+
+			if status == .notDetermined { granted = await AVCaptureDevice.requestAccess(for: .video) }
+			if !granted { throw PermissionError(message: "Camera access was not granted.") }
 		}
+
 	}
 
 	func openMailApp(_ query: String) async throws {
