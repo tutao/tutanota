@@ -744,46 +744,47 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     	const senderEmail = viewModel.getSender().address;
 
 	    if (viewModel.isSenderTrusted()) {
-	        console.log("✅ Trusted sender detected:", senderEmail);
+
+		    const confirmButton: BannerButtonAttrs = {
+		        title: "mobyPhish_confirm",
+		    	label: "emptyString_msg",
+				icon: m(Icon, { icon: Icons.Checkmark }),
+		        click: (event: MouseEvent) => {
+	            	viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
+	            	viewModel.senderConfirmed();
+	            	m.redraw();
+	            	console.log("User confirmed sender:", senderEmail);
+		        },
+			    style: {
+			        backgroundColor: "green",
+			        color: "white",
+			        fontWeight: "bold",
+			        borderRadius: "8px",
+			        padding: "8px 12px",
+			    }
+		    };
+
+        	const denyButton: BannerButtonAttrs = {
+    	        title: "mobyPhish_confirm",
+        	 	label: "emptyString_msg",
+    	        icon: m(Icon, { icon: Icons.Close}),
+    	        click: (event: MouseEvent) => {
+    	        	console.log("User denied sender:", senderEmail);
+    	            modal.display(new MobyPhishDenyModal());
+    	        },
+    		    style: {
+    		        backgroundColor: "red",
+    		        color: "white",
+    		        fontWeight: "bold",
+    		        borderRadius: "8px",
+    		        padding: "8px 12px",
+    		    }
+    	    };	
+
+	    	if ()
 	    } else {
-	        console.log("🚫 Untrusted sender detected:", senderEmail);
-	    }
 
-	    const confirmButton: BannerButtonAttrs = {
-	        title: "mobyPhish_confirm",
-	    	label: "emptyString_msg",
-			icon: m(Icon, { icon: Icons.Checkmark }),
-	        click: (event: MouseEvent) => {
-            	console.log("✅ User confirmed sender:", senderEmail);
-            	//viewModel.confirmTrusted(); // Add to trusted list
-            	viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
-	            this.renderMobyPhishBanner(viewModel);
-	        },
-		    style: {
-		        backgroundColor: "green",
-		        color: "white",
-		        fontWeight: "bold",
-		        borderRadius: "8px",
-		        padding: "8px 12px",
-		    }
-	    };
-
-    	 const denyButton: BannerButtonAttrs = {
-	        title: "mobyPhish_confirm",
-    	 	label: "emptyString_msg",
-	        icon: m(Icon, { icon: Icons.Close}),
-	        click: (event: MouseEvent) => {
-	        	console.log("🚫 User denied sender:", senderEmail);
-	            modal.display(new MobyPhishDenyModal());
-	        },
-		    style: {
-		        backgroundColor: "red",
-		        color: "white",
-		        fontWeight: "bold",
-		        borderRadius: "8px",
-		        padding: "8px 12px",
-		    }
-	    };	   
+	    }  
 
 	    return m(InfoBanner, {
 	        message: "mobyPhish_is_trusted",
