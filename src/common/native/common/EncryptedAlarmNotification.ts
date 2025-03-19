@@ -11,7 +11,5 @@ export type EncryptedAlarmInfo = {
 
 export type EncryptedAlarmNotification = {
 	operation: OperationType
-	notificationSessionKeys: Array<NotificationSessionKey>
 	alarmInfo: EncryptedAlarmInfo
-	user: Id
 }

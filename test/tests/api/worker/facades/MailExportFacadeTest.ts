@@ -92,7 +92,7 @@ o.spec("MailExportFacade", () => {
 			createTestEntity(FileTypeRef, { name: "mail2", mimeType: "pdf", cid: "12345", _id: ["attachment", "id2"] }),
 		]
 
-		when(cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail1, mailAttachments)).thenResolve(mailAttachments)
+		when(cryptoFacade.enforceSessionKeyUpdateIfNeededForInstance(mail1, mailAttachments)).thenResolve(mailAttachments)
 		when(
 			blobFacade.downloadAndDecryptBlobsOfMultipleInstances(
 				ArchiveDataType.Attachments,

@@ -54,7 +54,7 @@ export async function downloadMailBundle(
 
 	const files = await promiseMap(mail.attachments, async (fileId) => await entityClient.load(FileTypeRef, fileId))
 	const attachments = await promiseMap(
-		await cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail, files),
+		await cryptoFacade.enforceSessionKeyUpdateIfNeededForInstance(mail, files),
 		async (file) => await fileController.getAsDataFile(file),
 	)
 	return makeMailBundle(sanitizer, mail, mailDetails, attachments)

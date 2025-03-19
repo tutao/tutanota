@@ -175,18 +175,14 @@ export class InstanceWrapper {
 	async toWireFormat(): Promise<string> {
 		let encryptedParsedInstance: EncryptedParsedInstance
 		if (this.isLocalInstance()) {
-			encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(
-				this.typeModel,
-				this.instance as ParsedInstance,
-				assertNotNull(this.resolvedSessionKey),
-			)
+			const parsedInstance = downcast<ParsedInstance>(this.instance)
+			encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(this.typeModel, parsedInstance, this.resolvedSessionKey)
 		} else {
 			encryptedParsedInstance = this.instance
 		}
 
 		const untypedInstance = await this.typeMapper.applyDbTypes(this.typeModel, encryptedParsedInstance)
-		const wireFormat = JSON.stringify(untypedInstance)
-		return wireFormat
+		return JSON.stringify(untypedInstance)
 	}
 
 	errorPrintableInstance() {

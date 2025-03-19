@@ -113,6 +113,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
 		private readonly cleaner: OfflineStorageCleaner,
+		private readonly modelMapper: ModelMapper,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
@@ -495,7 +496,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		const typeModel = await resolveTypeReference(typeRef)
 		return promiseMap(
 			items,
-			async (item) => (await this.decodeCborEntity(item.entity.value as Uint8Array, typeModel)) as Record<string, unknown> & ListElementEntity,
+			async (item) => (await this.decodeCborEntity(item.entity.value as Uint8Array, typeRef)) as Record<string, unknown> & ListElementEntity,
 		)
 	}
 
@@ -507,7 +508,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		const typeModel = await resolveTypeReference(typeRef)
 		return promiseMap(
 			items,
-			async (item) => (await this.decodeCborEntity(item.entity.value as Uint8Array, typeModel)) as Record<string, unknown> & ElementEntity,
+			async (item) => (await this.decodeCborEntity(item.entity.value as Uint8Array, typeRef)) as Record<string, unknown> & ElementEntity,
 		)
 	}
 
@@ -782,7 +783,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	private async serialize(originalEntity: SomeEntity): Promise<Uint8Array> {
-		const idMappedInstance: Record<number, any> = await new ModelMapper().mapToLiteral(originalEntity)
+		const idMappedInstance: Record<number, any> = await this.modelMapper.applyServerModel() //originalEntity)
 		try {
 			return cborg.encode(idMappedInstance, { typeEncoders: customTypeEncoders })
 		} catch (e) {
@@ -795,22 +796,21 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	 * Convert the type from CBOR representation to the runtime type
 	 */
 	private async deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): Promise<T | null> {
-		const typeModel = await resolveTypeReference(typeRef)
-
 		let deserialized
 		try {
-			deserialized = await this.decodeCborEntity(loaded, typeModel)
+			deserialized = await this.decodeCborEntity(loaded, typeRef)
 		} catch (e) {
 			console.log(`Error with CBOR decode. Trying to decode (of type: ${typeof loaded}): ${loaded}`)
 			return null
 		}
 
+		const typeModel = await resolveTypeReference(typeRef)
 		return (await this.fixupTypeRefs(typeModel, deserialized)) as T
 	}
 
-	private decodeCborEntity(loaded: Uint8Array, typeModel: TypeModel): Promise<Record<string, unknown>> {
+	private decodeCborEntity<T extends SomeEntity>(loaded: Uint8Array, typeRef: TypeRef<T>): Promise<T> {
 		const idMappedEntity: Record<number, unknown> = cborg.decode(loaded, { tags: customTypeDecoders })
-		return new ModelMapper().mapFromLiteral(idMappedEntity, typeModel)
+		return this.modelMapper.applyClientModel(typeRef, idMappedEntity)
 	}
 
 	private async fixupTypeRefs(typeModel: TypeModel, deserialized: any): Promise<unknown> {

@@ -112,6 +112,7 @@ export class AttributeModel {
 		usage: new Map(),
 		accouting: new Map(),
 		sys: new Map(),
+		storage: new Map(),
 	}
 
 	private static getResolvedAttributeId(typeModel: TypeModel, attrName: string): number | null {

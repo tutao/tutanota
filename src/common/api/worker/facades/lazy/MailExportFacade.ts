@@ -59,7 +59,7 @@ export class MailExportFacade {
 	}
 
 	async loadAttachmentData(mail: Mail, attachments: readonly TutanotaFile[]): Promise<DataFile[]> {
-		const attachmentsWithKeys = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(mail, attachments)
+		const attachmentsWithKeys = await this.cryptoFacade.enforceSessionKeyUpdateIfNeededForInstance(mail, attachments)
 
 		const downloads = await this.mailExportTokenFacade.loadWithToken((token) => {
 			const referencingInstances = attachmentsWithKeys.map(createReferencingInstance)

@@ -55,16 +55,25 @@ export interface Entity {
 	_type: TypeRef<this>
 	_finalIvs: Record<number, Nullable<Uint8Array>>
 
-	_ownerEncSessionKey?: null | Uint8Array
-	_ownerKeyVersion?: null | NumberString
-	_ownerGroup?: null | Id
 }
 
-export interface ElementEntity extends Entity, Element {}
+export interface ElementEntity extends Entity, Element {
+	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
+	_ownerGroup: null | Id
+}
 
-export interface ListElementEntity extends Entity, ListElement {}
+export interface ListElementEntity extends Entity, ListElement {
+	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
+	_ownerGroup: null | Id
+}
 
-export interface BlobElementEntity extends Entity, BlobElement {}
+export interface BlobElementEntity extends Entity, BlobElement {
+	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
+	_ownerGroup: null | Id
+}
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
 

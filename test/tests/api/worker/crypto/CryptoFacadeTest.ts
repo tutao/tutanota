@@ -94,7 +94,7 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/wo
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../../src/common/api/worker/facades/PQMessage.js"
-import { createTestEntity, createUntypedInstance } from "../../../TestUtils.js"
+import { createTestEntity } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
@@ -104,6 +104,7 @@ import { PublicKeyProvider, PublicKeys } from "../../../../../src/common/api/wor
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { InstanceWrapper } from "../../../../../src/common/api/worker/crypto/InstanceWrapper"
 import { CryptoMapper } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
+import { TypeMapper } from "../../../../../src/common/api/worker/crypto/TypeMapper"
 
 const { captor, anything, argThat } = matchers
 
@@ -186,7 +187,10 @@ async function prepareBucketKeyInstance(
 o.spec("CryptoFacadeTest", function () {
 	let restClient: RestClient
 
-	let instanceMapper = new ModelMapper()
+	let modelMapper = new ModelMapper(resolveTypeReference, resolveTypeReference)
+	let typeMapper = new TypeMapper(resolveTypeReference)
+	let cryptoMapper = new CryptoMapper(resolveTypeReference)
+
 	let serviceExecutor: IServiceExecutor
 	let entityClient: EntityClient
 	let ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue
@@ -216,7 +220,9 @@ o.spec("CryptoFacadeTest", function () {
 			entityClient,
 			restClient,
 			serviceExecutor,
-			instanceMapper,
+			modelMapper,
+			typeMapper,
+			cryptoMapper,
 			ownerEncSessionKeysUpdateQueue,
 			cache,
 			keyLoaderFacade,
@@ -228,7 +234,7 @@ o.spec("CryptoFacadeTest", function () {
 
 	o("resolve session key: unencrypted instance", async function () {
 		const customerAccountTerminationRequest = createTestEntity(CustomerAccountTerminationRequestTypeRef)
-		const instanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, customerAccountTerminationRequest)
+		const instanceWrapper = await mapInstanceToInstanceWrapper(customerAccountTerminationRequest)
 
 		o(await crypto.resolveSessionKey(instanceWrapper)).equals(null)
 	})
@@ -242,7 +248,7 @@ o.spec("CryptoFacadeTest", function () {
 			_ownerGroup: recipientUser.mailGroup._id,
 			_ownerKeyVersion: recipientUser.mailGroup.groupKeyVersion,
 		})
-		const instanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mail)
+		const instanceWrapper = await mapInstanceToInstanceWrapper(mail)
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(instanceWrapper))
 		o(sessionKey).deepEquals(sk)
 	})
@@ -256,7 +262,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(keyLoaderFacade.loadSymGroupKey(recipientUser.mailGroup._id, 1)).thenResolve(groupKey_v1)
 
 		const mail = createTestEntity(MailTypeRef, { _ownerEncSessionKey: encryptKey(groupKey_v1, sk), _ownerKeyVersion: "1" })
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(mail)
 
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 		o(sessionKey).deepEquals(sk)
@@ -322,7 +328,7 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(undefined)
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(sk)
@@ -405,7 +411,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
 		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(sk)
@@ -487,7 +493,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
 		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(sk)
@@ -563,7 +569,7 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(sk)
@@ -571,7 +577,7 @@ o.spec("CryptoFacadeTest", function () {
 
 	o("enforceSessionKeyUpdateIfNeeded: _ownerEncSessionKey already defined", async function () {
 		const files = [createTestEntity(FileTypeRef, { _ownerEncSessionKey: new Uint8Array() })]
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, createTestEntity(MailTypeRef, { bucketKey: null }))
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(createTestEntity(MailTypeRef, { bucketKey: null }))
 
 		await crypto.enforceSessionKeyUpdateIfNeeded(mailInstanceWrapper, files)
 
@@ -589,7 +595,7 @@ o.spec("CryptoFacadeTest", function () {
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
 		const bucketKey = assertNotNull(testData.mail.bucketKey)
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, createTestEntity(MailTypeRef, { bucketKey }))
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(createTestEntity(MailTypeRef, { bucketKey }))
 
 		// const sessionKey = neverNull(await crypto.resolveSessionKey(testData.MailTypeModel, testData.mailLiteral))
 		await crypto.enforceSessionKeyUpdateIfNeeded(mailInstanceWrapper, files)
@@ -603,7 +609,9 @@ o.spec("CryptoFacadeTest", function () {
 			entityClient,
 			restClient,
 			serviceExecutor,
-			instanceMapper,
+			modelMapper,
+			typeMapper,
+			cryptoMapper,
 			ownerEncSessionKeysUpdateQueue,
 			cache,
 			keyLoaderFacade,
@@ -736,7 +744,9 @@ o.spec("CryptoFacadeTest", function () {
 			entityClient,
 			restClient,
 			serviceExecutor,
-			instanceMapper,
+			modelMapper,
+			typeMapper,
+			cryptoMapper,
 			ownerEncSessionKeysUpdateQueue,
 			cache,
 			keyLoaderFacade,
@@ -867,7 +877,7 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(testData.sk)
@@ -901,7 +911,7 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(testData.sk)
@@ -936,7 +946,7 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(testData.sk)
@@ -957,7 +967,7 @@ o.spec("CryptoFacadeTest", function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey = assertNotNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 		o(sessionKey).deepEquals(testData.sk)
 
@@ -988,7 +998,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([])
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 		o(sessionKey).deepEquals(testData.sk)
 
@@ -1019,7 +1029,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		when(keyRotationFacade.getGroupIdsThatPerformedKeyRotations()).thenResolve([testData.userGroupId])
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 		const bucketKey = assertNotNull(testData.mail.bucketKey)
 		o(sessionKey).deepEquals(testData.sk)
@@ -1200,7 +1210,7 @@ o.spec("CryptoFacadeTest", function () {
 	o("resolve session key: rsa public key decryption of session key using BucketKey aggregated type", async function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(testData.sk)
@@ -1213,13 +1223,11 @@ o.spec("CryptoFacadeTest", function () {
 			const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
 
 			// do not use testdouble here because it's hard to not break the function itself and then verify invocations
-			const decryptAndMapToInstance = (instanceMapper.decrypt = spy(instanceMapper.decrypt))
-			const convertBucketKeyToInstanceIfNecessary = (crypto.convertBucketKeyToInstanceIfNecessary = spy(crypto.convertBucketKeyToInstanceIfNecessary))
+			const decryptAndMapToInstance = (cryptoMapper.decryptParsedInstance = spy(cryptoMapper.decryptParsedInstance))
 
-			const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+			const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 			const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 			o(decryptAndMapToInstance.invocations.length).equals(0)
-			o(convertBucketKeyToInstanceIfNecessary.invocations.length).equals(1)
 
 			o(sessionKey).deepEquals(testData.sk)
 		},
@@ -1229,7 +1237,7 @@ o.spec("CryptoFacadeTest", function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest()
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(testData.sk)
@@ -1243,7 +1251,7 @@ o.spec("CryptoFacadeTest", function () {
 			const file2SessionKey = aes256RandomKey()
 			const testData = await prepareRsaPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
 
-			const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+			const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 			const mailSessionKey = assertNotNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 			o(mailSessionKey).deepEquals(testData.sk)
 
@@ -1278,7 +1286,7 @@ o.spec("CryptoFacadeTest", function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
 
-		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+		const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 
 		o(sessionKey).deepEquals(testData.sk)
@@ -1292,13 +1300,11 @@ o.spec("CryptoFacadeTest", function () {
 			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
 
 			// do not use testdouble here because it's hard to not break the function itself and then verify invocations
-			const decryptAndMapToInstance = (instanceMapper.decrypt = spy(instanceMapper.decrypt))
-			const convertBucketKeyToInstanceIfNecessary = (crypto.convertBucketKeyToInstanceIfNecessary = spy(crypto.convertBucketKeyToInstanceIfNecessary))
+			const decryptAndMapToInstance = (cryptoMapper.decryptParsedInstance = spy(cryptoMapper.decryptParsedInstance))
 
-			const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+			const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 			const sessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 			o(decryptAndMapToInstance.invocations.length).equals(0)
-			o(convertBucketKeyToInstanceIfNecessary.invocations.length).equals(1)
 
 			o(sessionKey).deepEquals(testData.sk)
 		},
@@ -1312,7 +1318,7 @@ o.spec("CryptoFacadeTest", function () {
 			const file2SessionKey = aes256RandomKey()
 			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
 
-			const mailInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, testData.mail)
+			const mailInstanceWrapper = await mapInstanceToInstanceWrapper(testData.mail)
 			const mailSessionKey = neverNull(await crypto.resolveSessionKey(mailInstanceWrapper))
 			const bucketKey = assertNotNull(testData.mail.bucketKey)
 			o(mailSessionKey).deepEquals(testData.sk)
@@ -1407,8 +1413,8 @@ o.spec("CryptoFacadeTest", function () {
 		})
 		when(keyLoaderFacade.loadSymGroupKey(ownerGroup, 0)).thenResolve(gk)
 
-		const mailDetailsBlobInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mailDetailsBlob)
-		const mailDetailsBlobSessionKey = neverNull(await crypto.resolveSessionKey(MailDetailsBlobTypeModel, mailDetailsBlobInstanceWrapper))
+		const mailDetailsBlobInstanceWrapper = await mapInstanceToInstanceWrapper(mailDetailsBlob)
+		const mailDetailsBlobSessionKey = neverNull(await crypto.resolveSessionKey(mailDetailsBlobInstanceWrapper))
 		o(mailDetailsBlobSessionKey).deepEquals(sk)
 	})
 
@@ -1419,7 +1425,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 		when(entityClient.loadAll(PermissionTypeRef, "permissionListId")).thenResolve([])
 
-		const mailDetailsBlobInstanceWrapper = await mapInstanceToInstanceWrapper(instanceMapper, mailDetailsBlob)
+		const mailDetailsBlobInstanceWrapper = await mapInstanceToInstanceWrapper(mailDetailsBlob)
 		try {
 			await crypto.resolveSessionKey(mailDetailsBlobInstanceWrapper)
 			o(true).equals(false) // let the test fails if there is no exception
@@ -1694,13 +1700,19 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
-		const bucketKeyLiteral: EncryptedParsedInstance = await instanceMapper.applyServerModel(BucketKeyModel, bucketKey)
-		const bucketKeyUntypedInstance: UntypedInstance = await instanceMapper.unmap(BucketKeyModel, bucketKeyLiteral)
+		const bucketKeyLiteral: EncryptedParsedInstance = await modelMapper.applyServerModel() //BucketKeyModel, bucketKey)
+		const bucketKeyUntypedInstance: UntypedInstance = await typeMapper.applyDbTypes(BucketKeyModel, bucketKeyLiteral)
 		mailUntypedInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = bucketKeyUntypedInstance
 		mailUntypedInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "mailDetails"))] = ["mailDetailsArchiveId", "mailDetailsId"]
 
-		const mailEncryptedParsedInstance = await instanceMapper.map(MailTypeModel, mailUntypedInstance)
-		const mailInstanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(instanceMapper, MailTypeModel, mailEncryptedParsedInstance)
+		const mailEncryptedParsedInstance = await typeMapper.applyJsTypes(MailTypeModel, mailUntypedInstance)
+		const mailInstanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(
+			modelMapper,
+			typeMapper,
+			cryptoMapper,
+			MailTypeModel,
+			mailEncryptedParsedInstance,
+		)
 
 		return {
 			mailInstanceWrapper: mailInstanceWrapper,
@@ -1788,13 +1800,19 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
-		const bucketKeyParsedInstance: ParsedInstance = await instanceMapper.applyServerModel(BucketKeyModel, bucketKey, null)
-		const bucketKeyLiteral: UntypedInstance = await internalUser.unmap(BucketKeyModel, bucketKeyParsedInstance)
+		const bucketKeyParsedInstance: ParsedInstance = await modelMapper.applyServerModel() //BucketKeyModel, bucketKey, null)
+		const bucketKeyLiteral: UntypedInstance = await typeMapper.applyDbTypes(BucketKeyModel, bucketKeyParsedInstance)
 
 		untypedMailInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = bucketKeyLiteral
 
-		const encryptedMailParsedInstance = await instanceMapper.map(MailTypeModel, untypedMailInstance)
-		const mailInstanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(instanceMapper, MailTypeModel, encryptedMailParsedInstance)
+		const encryptedMailParsedInstance = await typeMapper.applyJsTypes(MailTypeModel, untypedMailInstance)
+		const mailInstanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(
+			modelMapper,
+			typeMapper,
+			cryptoMapper,
+			MailTypeModel,
+			encryptedMailParsedInstance,
+		)
 
 		return {
 			mailInstanceWrapper,
@@ -1806,6 +1824,12 @@ o.spec("CryptoFacadeTest", function () {
 			externalUser,
 			recipientKeyVersion: parseKeyVersion(recipientKeyVersion),
 		}
+	}
+
+	async function mapInstanceToInstanceWrapper(instance: SomeEntity): Promise<InstanceWrapper> {
+		const typeModel = await resolveTypeReference(instance._type)
+		const parsedInstance: ParsedInstance = await modelMapper.applyServerModel() //instance)
+		return InstanceWrapper.fromParsedInstance(modelMapper, typeMapper, cryptoMapper, typeModel, parsedInstance)
 	}
 })
 
@@ -1939,10 +1963,4 @@ export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade
 	when(userFacade.isFullyLoggedIn()).thenReturn(true)
 	when(keyLoaderFacade.loadSymGroupKey(testUser.mailGroup._id, 0)).thenResolve(testUser.mailGroupKey)
 	when(keyLoaderFacade.loadSymGroupKey(testUser.userGroup._id, 0)).thenResolve(testUser.userGroupKey)
-}
-
-async function mapInstanceToInstanceWrapper(instanceMapper: ModelMapper, instance: SomeEntity): Promise<InstanceWrapper> {
-	const typeModel = await resolveTypeReference(instance._type)
-	const parsedInstance: ParsedInstance = instanceMapper.applyServerModel(instance)
-	return InstanceWrapper.fromParsedInstance(instanceMapper, typeModel, parsedInstance)
 }

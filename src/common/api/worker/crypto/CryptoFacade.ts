@@ -51,7 +51,7 @@ import {
 import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
-import type { Entity, SomeEntity } from "../../common/EntityTypes"
+import type { Entity, ParsedInstance, SomeEntity } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
@@ -89,7 +89,7 @@ export class CryptoFacade {
 		private readonly entityClient: EntityClient,
 		private readonly restClient: RestClient,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly instanceMapper: ModelMapper,
+		private readonly modelMapper: ModelMapper,
 		private readonly typeMapper: TypeMapper,
 		private readonly cryptoMapper: CryptoMapper,
 		private readonly ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue,
@@ -105,8 +105,8 @@ export class CryptoFacade {
 		if (!typeModel.encrypted) {
 			return null
 		}
-		const parsedInstance = this.instanceMapper.applyServerModel(instance._type, instance)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
+		const parsedInstance = await this.modelMapper.applyServerModel()
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
 		return this.resolveSessionKey(instanceWrapper)
 	}
 
@@ -206,25 +206,6 @@ export class CryptoFacade {
 		}
 
 		return instanceWrapper.resolvedSessionKey
-	}
-
-	/**
-	 * In case the given bucketKey is a literal the literal will be converted to an instance and return. In case the BucketKey is already an instance the
-	 * instance is returned.
-	 * @param bucketKeyInstanceOrLiteral The bucket key as literal or instance
-	 */
-	// todo: remove this method
-	async convertBucketKeyToInstanceIfNecessary(bucketKeyInstanceOrLiteral: Record<string, any>): Promise<BucketKey> {
-		if (this.isLiteralInstance(bucketKeyInstanceOrLiteral)) {
-			// decryptAndMapToInstance is misleading here (it's not going to be decrypted), but we want to map the BucketKey aggregate and its session key from
-			// a literal to an instance to have the encrypted keys in binary format and not as base 64. There is actually no decryption ongoing, just
-			// mapToInstance.
-			const bucketKeyTypeModel = await resolveTypeReference(BucketKeyTypeRef)
-			return (await this.instanceMapper.decryptAndMapToInstance(bucketKeyTypeModel, bucketKeyInstanceOrLiteral, null)) as BucketKey
-		} else {
-			// bucket key was already decoded
-			return bucketKeyInstanceOrLiteral as BucketKey
-		}
 	}
 
 	public async resolveWithBucketKey(instanceWrapper: InstanceWrapper): Promise<ResolvedSessionKeys> {
@@ -684,6 +665,13 @@ export class CryptoFacade {
 		}
 	}
 
+	async enforceSessionKeyUpdateIfNeededForInstance(instance: SomeEntity, childInstances: readonly File[]): Promise<File[]> {
+		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel()
+		const typeModel = await resolveTypeReference(instance._type)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
+		return this.enforceSessionKeyUpdateIfNeeded(instanceWrapper, childInstances)
+	}
+
 	/**
 	 * Resolves the ownerEncSessionKey of a mail. This might be needed if it wasn't updated yet
 	 * by the OwnerEncSessionKeysUpdateQueue but the file is already downloaded.
@@ -832,7 +820,7 @@ export class CryptoFacade {
 		const groupEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, aes256RandomKey())
 		this.setOwnerEncSessionKey(instanceWrapper, groupEncSessionKey, this.userFacade.getUserGroupId())
 		const migrationData = createEncryptTutanotaPropertiesData({
-			properties: instanceWrapper.elementId,
+			properties: assertNotNull(instanceWrapper.elementId),
 			symKeyVersion: String(groupEncSessionKey.encryptingKeyVersion),
 			symEncSessionKey: groupEncSessionKey.key,
 		})
