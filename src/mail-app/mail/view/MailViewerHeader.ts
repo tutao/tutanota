@@ -752,7 +752,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				icon: m(Icon, { icon: Icons.Checkmark }),
 		        click: (event: MouseEvent) => {
 	            	viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
-	            	viewModel.senderConfirmed();
+	            	viewModel.setSenderConfirmed(true);
 	            	m.redraw();
 	            	console.log("User confirmed sender:", senderEmail);
 		        },
