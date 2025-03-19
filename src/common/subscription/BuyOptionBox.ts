@@ -14,6 +14,7 @@ import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { isIOSApp } from "../api/common/Env"
+import { isColorLight } from "../gui/base/Color.js"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -160,7 +161,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			}
 
 			if (attrs.isFirstMonthForFree) {
-				return m(".ribbon-horizontal.nota", m(".text-center.b", { style: { padding: px(3) } }, "1 month trial"))
+				const isDarkTheme = !isColorLight(theme.content_bg)
+				return m(
+					".ribbon-horizontal.nota",
+					m(".text-center.b", { style: { padding: px(3), color: isDarkTheme ? theme.content_fg : undefined } }, "1 month trial"),
+				)
 			}
 
 			return undefined

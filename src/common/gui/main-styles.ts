@@ -2072,7 +2072,7 @@ styles.registerStyle("main", () => {
 			color: theme.content_bg,
 		},
 		".ribbon-horizontal.nota": {
-			background: "#D93951",
+			background: theme.tuta_color_nota,
 		},
 		".ribbon-horizontal-cyber-monday": {
 			background: theme.content_bg_tuta_bday,
@@ -2092,7 +2092,7 @@ styles.registerStyle("main", () => {
 			"border-left": `6px solid ${theme.content_bg_tuta_bday}`,
 		},
 		".ribbon-horizontal.nota:after": {
-			"border-left": `6px solid #D93951`,
+			"border-left": `6px solid ${theme.tuta_color_nota}`,
 		},
 		".ribbon-horizontal:before": {
 			content: '""',
@@ -2105,7 +2105,7 @@ styles.registerStyle("main", () => {
 			left: 0,
 		},
 		".ribbon-horizontal.nota:before": {
-			"border-right": `6px solid #D93951`,
+			"border-right": `6px solid ${theme.tuta_color_nota}`,
 		},
 		".ribbon-horizontal-cyber-monday:before": {
 			"border-right": `6px solid ${theme.content_bg_tuta_bday}`,

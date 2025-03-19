@@ -55,6 +55,7 @@ export type Theme = {
 	navigation_menu_bg?: string
 	navigation_menu_icon: string
 	error_color: string
+	tuta_color_nota: string
 }
 
 const themeSingleton = {}
