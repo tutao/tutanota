@@ -80,7 +80,7 @@ export type EncryptedParsedValue =
 	| Date // unencrypted
 	| number // unencrypted
 	| string // unencrypted
-	| Uint8Array // Either Bytes or encrypted value
+	| Uint8Array // Either Bytes or encrypted value fixme: is this rather Base64
 
 export type EncryptedParsedAssociation =
 	| Array<Id> // element references / list references

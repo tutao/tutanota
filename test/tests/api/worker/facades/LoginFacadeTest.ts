@@ -15,7 +15,7 @@ import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../.
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { CacheStorageLateInitializer } from "../../../../../src/common/api/worker/rest/CacheStorageProxy"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
@@ -88,7 +88,7 @@ o.spec("LoginFacadeTest", function () {
 	let restClientMock: RestClient
 	let entityClientMock: EntityClient
 	let loginListener: LoginListener
-	let instanceMapperMock: InstanceMapper
+	let instanceMapperMock: ModelMapper
 	let cryptoFacadeMock: CryptoFacade
 	let cacheStorageInitializerMock: CacheStorageLateInitializer
 	let eventBusClientMock: EventBusClient
@@ -114,7 +114,7 @@ o.spec("LoginFacadeTest", function () {
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
 		loginListener = object<LoginListener>()
-		instanceMapperMock = instance(InstanceMapper)
+		instanceMapperMock = instance(ModelMapper)
 		cryptoFacadeMock = object<CryptoFacade>()
 		usingOfflineStorage = false
 		cacheStorageInitializerMock = object()

@@ -13,7 +13,7 @@ import { _verifyType, resolveTypeReference } from "../../../../../src/common/api
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
 import { downcast, TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { Type } from "../../../../../src/common/api/common/EntityConstants.js"
 
@@ -33,7 +33,7 @@ export class EntityRestClientMock extends EntityRestClient {
 	_lastIdTimestamp: number
 
 	constructor() {
-		super(authDataProvider, downcast({}), () => downcast({}), new InstanceMapper(), downcast({}))
+		super(authDataProvider, downcast({}), () => downcast({}), new ModelMapper(), downcast({}))
 		this._lastIdTimestamp = Date.now()
 	}
 

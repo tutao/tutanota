@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { InstanceCryptoMapper } from "../../../../../src/common/api/worker/crypto/InstanceCryptoMapper"
+import { CryptoMapper } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
 import { TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 
 o.spec("InstanceCryptoMapper", function () {
-	let mapper: InstanceCryptoMapper = new InstanceCryptoMapper()
+	let mapper: CryptoMapper = new CryptoMapper()
 
 	o("decrypt", function () {
 		const typeModel1: TypeModel = {

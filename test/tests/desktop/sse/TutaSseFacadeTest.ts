@@ -22,14 +22,14 @@ import {
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { mockFetchRequest } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
-import { InstanceMapper } from "../../../../src/common/api/worker/crypto/InstanceMapper"
+import { ModelMapper } from "../../../../src/common/api/worker/crypto/ModelMapper"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
 import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification"
 import { resolveTypeReference } from "../../../../src/common/api/common/EntityFunctions"
 
 const APP_V = env.versionNumber
 
-const mapper = new InstanceMapper()
+const mapper = new ModelMapper()
 o.spec("TutaSseFacade", () => {
 	let sseFacade: TutaSseFacade
 	let sseStorage: SseStorage

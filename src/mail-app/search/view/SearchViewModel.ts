@@ -81,7 +81,7 @@ import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/Calen
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
-import { AppName } from "../../../common/api/worker/crypto/InstanceMapper"
+import { AppName } from "../../../common/api/worker/crypto/ModelMapper"
 
 const SEARCH_PAGE_SIZE = 100
 

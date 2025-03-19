@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { RestClient, RestClientOptions } from "../../../../../src/common/api/worker/rest/RestClient.js"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
 import { DeleteService, GetService, PostService, PutService } from "../../../../../src/common/api/common/ServiceRequest.js"
@@ -23,7 +23,7 @@ o.spec("ServiceExecutor", function () {
 	}
 	let restClient: RestClient
 	let authHeaders: Record<string, string>
-	let instanceMapper: InstanceMapper
+	let instanceMapper: ModelMapper
 	let cryptoFacade: CryptoFacade
 	let executor: ServiceExecutor
 	let fullyLoggedIn: boolean

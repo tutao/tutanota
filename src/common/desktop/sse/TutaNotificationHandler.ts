@@ -16,14 +16,14 @@ import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
-import { InstanceMapper } from "../../api/worker/crypto/InstanceMapper"
+import { ModelMapper } from "../../api/worker/crypto/ModelMapper"
 import { resolveTypeReference } from "../../api/common/EntityFunctions"
 
 const TAG = "[notifications]"
 
 export type MailMetadata = Pick<Mail, "sender" | "firstRecipient" | "_id">
 
-const mapper = new InstanceMapper()
+const mapper = new ModelMapper()
 
 export class TutaNotificationHandler {
 	constructor(

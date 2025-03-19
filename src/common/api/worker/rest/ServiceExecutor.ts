@@ -13,7 +13,7 @@ import {
 import { Entity } from "../../common/EntityTypes"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/tutanota-utils"
 import { RestClient } from "./RestClient"
-import { InstanceMapper } from "../crypto/InstanceMapper"
+import { ModelMapper } from "../crypto/ModelMapper"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { assertWorkerOrNode } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
@@ -28,7 +28,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	constructor(
 		private readonly restClient: RestClient,
 		private readonly authDataProvider: AuthDataProvider,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instanceMapper: ModelMapper,
 		private readonly cryptoFacade: lazy<CryptoFacade>,
 	) {}
 

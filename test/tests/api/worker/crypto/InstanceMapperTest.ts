@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { CustomerAccountTerminationRequestTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
-import { convertDbToJsType, convertJsToDbType, InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { convertDbToJsType, convertJsToDbType, ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { AssociationType, Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
 import { ModelValue, ParsedInstance, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
 import {
@@ -22,7 +22,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { object } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
-import { decryptValue, encryptValue, InstanceCryptoMapper } from "../../../../../src/common/api/worker/crypto/InstanceCryptoMapper"
+import { decryptValue, encryptValue, CryptoMapper } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
 import { Type } from "../../../../../src/common/api/common/EntityConstants"
 
 const testTypeModel: TypeModel = {
@@ -86,15 +86,15 @@ o.spec("InstanceMapper", function () {
 	let userFacade: UserFacade
 	let keyLoaderFacade: KeyLoaderFacade
 
-	let instanceMapper: InstanceMapper
-	let instanceCryptoMapper: InstanceCryptoMapper
+	let instanceMapper: ModelMapper
+	let instanceCryptoMapper: CryptoMapper
 	o.beforeEach(() => {
-		instanceMapper = new InstanceMapper()
+		instanceMapper = new ModelMapper()
 		const dummyResolver = (tr: TypeRef<unknown>) => {
 			const model = tr.typeId === 42 ? testTypeModel : testAggregateModel
 			return Promise.resolve(model)
 		}
-		instanceCryptoMapper = new InstanceCryptoMapper(dummyResolver)
+		instanceCryptoMapper = new CryptoMapper(dummyResolver)
 		userFacade = object()
 		keyLoaderFacade = object()
 		entityClient = object()

@@ -48,7 +48,7 @@ import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { containsEventOfType, entityUpateToUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
-import { AppName } from "../crypto/InstanceMapper"
+import { AppName } from "../crypto/ModelMapper"
 
 assertWorkerOrNode()
 

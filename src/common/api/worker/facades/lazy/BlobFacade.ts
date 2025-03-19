@@ -24,7 +24,7 @@ import { BlobService } from "../../../entities/storage/Services.js"
 import { aesDecrypt, AesKey, sha256Hash } from "@tutao/tutanota-crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
-import { InstanceMapper } from "../../crypto/InstanceMapper.js"
+import { ModelMapper } from "../../crypto/ModelMapper.js"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs.js"
 import { FileReference } from "../../../common/utils/FileUtils.js"
 import { handleRestError } from "../../../common/error/RestError.js"
@@ -63,7 +63,7 @@ export class BlobFacade {
 		private readonly suspensionHandler: SuspensionHandler,
 		private readonly fileApp: NativeFileApp,
 		private readonly aesApp: AesApp,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instanceMapper: ModelMapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}

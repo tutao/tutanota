@@ -4,7 +4,7 @@ import { RestClient, RestClientOptions } from "../../../../../src/common/api/wor
 import { SuspensionHandler } from "../../../../../src/common/api/worker/SuspensionHandler.js"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -32,7 +32,7 @@ o.spec("BlobFacade test", function () {
 	let suspensionHandlerMock: SuspensionHandler
 	let fileAppMock: NativeFileApp
 	let aesAppMock: AesApp
-	let instanceMapperMock: InstanceMapper
+	let instanceMapperMock: ModelMapper
 	const archiveId = "archiveId1"
 	const blobId1 = "blobId1"
 	const blobs = [
@@ -50,7 +50,7 @@ o.spec("BlobFacade test", function () {
 		suspensionHandlerMock = instance(SuspensionHandler)
 		fileAppMock = instance(NativeFileApp)
 		aesAppMock = instance(AesApp)
-		instanceMapperMock = instance(InstanceMapper)
+		instanceMapperMock = instance(ModelMapper)
 		cryptoFacadeMock = object<CryptoFacade>()
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
 

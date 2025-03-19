@@ -62,7 +62,7 @@ import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Servic
 import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
 import { getElementId, getListId, isSameId } from "../../common/utils/EntityUtils.js"
-import { InstanceMapper } from "./InstanceMapper.js"
+import { ModelMapper } from "./ModelMapper.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -73,6 +73,8 @@ import { PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
 import { KeyVersion, Nullable } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { InstanceWrapper } from "./InstanceWrapper"
+import { CryptoMapper } from "./CryptoMapper"
+import { TypeMapper } from "./TypeMapper"
 
 assertWorkerOrNode()
 
@@ -87,7 +89,9 @@ export class CryptoFacade {
 		private readonly entityClient: EntityClient,
 		private readonly restClient: RestClient,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instanceMapper: ModelMapper,
+		private readonly typeMapper: TypeMapper,
+		private readonly cryptoMapper: CryptoMapper,
 		private readonly ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue,
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
@@ -101,8 +105,8 @@ export class CryptoFacade {
 		if (!typeModel.encrypted) {
 			return null
 		}
-		const parsedInstance = this.instanceMapper.cloak(instance._type, instance)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, typeModel, parsedInstance)
+		const parsedInstance = this.instanceMapper.applyServerModel(instance._type, instance)
+		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
 		return this.resolveSessionKey(instanceWrapper)
 	}
 

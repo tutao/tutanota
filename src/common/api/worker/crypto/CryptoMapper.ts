@@ -14,7 +14,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./InstanceMapper"
+import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./ModelMapper"
 
 // Exported for testing
 export function encryptValue(
@@ -52,7 +52,7 @@ export function decryptValue(valueType: ModelValue & { encrypted: true }, value:
 	}
 }
 
-export class InstanceCryptoMapper {
+export class CryptoMapper {
 	constructor(private readonly typeRefResolver: TypeReferenceResolver) {}
 
 	public async decryptParsedInstance(typeModel: TypeModel, encryptedInstance: EncryptedParsedInstance, sk: Nullable<AesKey>): Promise<ParsedInstance> {

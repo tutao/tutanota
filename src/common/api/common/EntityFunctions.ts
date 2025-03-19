@@ -1,6 +1,6 @@
 import { Type } from "./EntityConstants.js"
 import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
-import type { AppName, TypeModel } from "./EntityTypes"
+import type { TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
 import { typeModels as tutanotaTypeModels } from "../entities/tutanota/TypeModels.js"
@@ -18,7 +18,8 @@ import gossipModelInfo from "../entities/gossip/ModelInfo.js"
 import storageModelInfo from "../entities/storage/ModelInfo.js"
 import usageModelInfo from "../entities/usage/ModelInfo.js"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { AttributeId, AttributeName, TypeId } from "../worker/crypto/InstanceMapper"
+import { AttributeId, AttributeName, TypeId } from "../worker/crypto/ModelMapper"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 
 export const enum HttpMethod {
 	GET = "GET",

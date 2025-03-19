@@ -21,12 +21,12 @@ import { OperationType } from "../../../../src/common/api/common/TutanotaConstan
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
-import { InstanceMapper } from "../../../../src/common/api/worker/crypto/InstanceMapper"
+import { ModelMapper } from "../../../../src/common/api/worker/crypto/ModelMapper"
 import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
 
 type UndiciFetch = typeof undiciFetch
 
-const mapper = new InstanceMapper()
+const mapper = new ModelMapper()
 
 o.spec("TutaNotificationHandler", () => {
 	let wm: WindowManager

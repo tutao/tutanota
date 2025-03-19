@@ -17,7 +17,7 @@ import { SseStorage } from "./SseStorage.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { SseInfo } from "./SseInfo.js"
 import { FetchImpl } from "../net/NetAgent"
-import { InstanceMapper } from "../../api/worker/crypto/InstanceMapper"
+import { ModelMapper } from "../../api/worker/crypto/ModelMapper"
 import { Entity } from "../../api/common/EntityTypes"
 import { resolveTypeReference } from "../../api/common/EntityFunctions"
 
@@ -27,7 +27,7 @@ export const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
 export type EncryptedMissedNotification = MissedNotification & {
 	alarmNotifications: readonly EncryptedAlarmNotification[]
 }
-const mapper = new InstanceMapper()
+const mapper = new ModelMapper()
 
 export class TutaSseFacade implements SseEventHandler {
 	private currentSseInfo: SseInfo | null = null

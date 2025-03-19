@@ -18,7 +18,7 @@ import { MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRe
 import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { defer, noOp, TypeRef } from "@tutao/tutanota-utils"
-import { InstanceMapper } from "../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { ModelMapper } from "../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { EventQueue, QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
@@ -46,7 +46,7 @@ o.spec("EventBusClientTest", function () {
 
 	function initEventBus() {
 		const entityClient = new EntityClient(restClient)
-		const instanceMapper = new InstanceMapper()
+		const instanceMapper = new ModelMapper()
 		ebc = new EventBusClient(
 			listenerMock,
 			cacheMock,
@@ -414,7 +414,7 @@ o.spec("EventBusClientTest", function () {
 	}
 
 	async function createEntityMessage(eventBatchId: number): Promise<string> {
-		const instanceMapper = new InstanceMapper()
+		const instanceMapper = new ModelMapper()
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",

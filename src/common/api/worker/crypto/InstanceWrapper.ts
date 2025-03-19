@@ -3,14 +3,15 @@ import { BucketKey, BucketKeyTypeRef, Permission } from "../../entities/sys/Type
 import { AesKey } from "@tutao/tutanota-crypto"
 import { Base64, TypeRef } from "@tutao/tutanota-utils"
 import type { EncryptedParsedInstance, ParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { InstanceMapper } from "./InstanceMapper"
+import { ModelMapper } from "./ModelMapper"
 import { VersionedEncryptedKey } from "./CryptoWrapper"
 import { elementIdPart } from "../../common/utils/EntityUtils"
-import { AttributeModel } from "../../common/EntityFunctions"
+import { AttributeModel, resolveTypeReference } from "../../common/EntityFunctions"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { PermissionType } from "../../common/TutanotaConstants"
 import { typeRefToRestPath } from "../rest/EntityRestClient"
-import { createTestEntity } from "../../../../../test/tests/TestUtils"
+import { TypeMapper } from "./TypeMapper"
+import { CryptoMapper } from "./CryptoMapper"
 
 export class InstanceWrapper {
 	public readonly elementId: Nullable<Id>
@@ -22,7 +23,9 @@ export class InstanceWrapper {
 		private readonly localInstance: boolean, // local instances are created on the client or read from offline DB. They have not directly been retrieved from the server
 		public readonly typeRef: TypeRef<SomeEntity>,
 		public readonly typeModel: TypeModel,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instanceMapper: ModelMapper,
+		private readonly typeMapper: TypeMapper,
+		private readonly cryptoMapper: CryptoMapper,
 		public readonly id: Nullable<Id | IdTuple>,
 		// fixme: make this private?
 		public readonly instance: ParsedInstance | EncryptedParsedInstance,
@@ -44,21 +47,36 @@ export class InstanceWrapper {
 		this.resolvedSessionKey = null
 	}
 
-	static async fromParsedInstance(instanceMapper: InstanceMapper, typeModel: TypeModel, decryptedInstance: ParsedInstance): Promise<InstanceWrapper> {
+	static async fromParsedInstance(
+		instanceMapper: ModelMapper,
+		typeMapper: TypeMapper,
+		cryptoMapper: CryptoMapper,
+		typeModel: TypeModel,
+		decryptedInstance: ParsedInstance,
+	): Promise<InstanceWrapper> {
 		const localInstance = true
-		return await this.from(typeModel, decryptedInstance, instanceMapper, localInstance)
+		return await this.from(typeModel, decryptedInstance, instanceMapper, typeMapper, cryptoMapper, localInstance)
 	}
 
 	static async fromEncryptedParsedInstance(
-		instanceMapper: InstanceMapper,
+		instanceMapper: ModelMapper,
+		typeMapper: TypeMapper,
+		cryptoMapper: CryptoMapper,
 		typeModel: TypeModel,
 		encryptedParsedInstance: EncryptedParsedInstance,
 	): Promise<InstanceWrapper> {
 		const localInstance = false
-		return await this.from(typeModel, encryptedParsedInstance, instanceMapper, localInstance)
+		return await this.from(typeModel, encryptedParsedInstance, instanceMapper, typeMapper, cryptoMapper, localInstance)
 	}
 
-	private static async from(typeModel: TypeModel, encryptedParsedInstance: EncryptedParsedInstance, instanceMapper: InstanceMapper, localInstance: boolean) {
+	private static async from(
+		typeModel: TypeModel,
+		encryptedParsedInstance: EncryptedParsedInstance,
+		instanceMapper: ModelMapper,
+		typeMapper: TypeMapper,
+		cryptoMapper: CryptoMapper,
+		localInstance: boolean,
+	) {
 		const typeRef = new TypeRef<SomeEntity>(typeModel.app, typeModel.id)
 
 		const id = InstanceWrapper.getAttributeorNull<Id | IdTuple>(encryptedParsedInstance, "_id", typeModel)
@@ -93,7 +111,7 @@ export class InstanceWrapper {
 		const bucketKeyLiteral = InstanceWrapper.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)
 		if (bucketKeyLiteral) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
-			bucketKey = await instanceMapper.uncloak<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
+			bucketKey = await instanceMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
 		}
 
 		return new InstanceWrapper(
@@ -101,6 +119,8 @@ export class InstanceWrapper {
 			typeRef,
 			typeModel,
 			instanceMapper,
+			typeMapper,
+			cryptoMapper,
 			id,
 			encryptedParsedInstance,
 			permission,
@@ -114,14 +134,15 @@ export class InstanceWrapper {
 
 	async provideDecryptedInstance(): Promise<SomeEntity> {
 		const typeRef = downcast<TypeRef<SomeEntity>>(this.typeRef)
+		const typeModel = await resolveTypeReference(typeRef)
 
 		if (this.isLocalInstance()) {
 			const parsedInstance = downcast<ParsedInstance>(this.instance)
-			return await this.instanceMapper.uncloak(typeRef, parsedInstance)
+			return await this.instanceMapper.applyClientModel(typeRef, parsedInstance)
 		} else {
 			const encryptedEntity = downcast<EncryptedParsedInstance>(this.instance)
-			const parsedInstance = await this.instanceMapper.decrypt(encryptedEntity, this.resolvedSessionKey)
-			return await this.instanceMapper.uncloak(typeRef, parsedInstance)
+			const parsedInstance = await this.cryptoMapper.decryptParsedInstance(typeModel, encryptedEntity, this.resolvedSessionKey)
+			return await this.instanceMapper.applyClientModel(typeRef, parsedInstance)
 		}
 	}
 
@@ -154,12 +175,12 @@ export class InstanceWrapper {
 	async toWireFormat(): Promise<string> {
 		let encryptedParsedInstance: EncryptedParsedInstance
 		if (this.isLocalInstance()) {
-			encryptedParsedInstance = await this.instanceMapper.encrypt(this.typeModel, this.instance, assertNotNull(this.resolvedSessionKey))
+			encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(this.typeModel, this.instance as ParsedInstance, assertNotNull(this.resolvedSessionKey))
 		} else {
 			encryptedParsedInstance = this.instance
 		}
 
-		const untypedInstance = await this.instanceMapper.applyDbTypes(this.typeModel, encryptedParsedInstance)
+		const untypedInstance = await this.typeMapper.applyDbTypes(this.typeModel, encryptedParsedInstance)
 		const wireFormat = JSON.stringify(untypedInstance)
 		return wireFormat
 	}

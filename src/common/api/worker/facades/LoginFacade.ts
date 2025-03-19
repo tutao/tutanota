@@ -83,7 +83,7 @@ import {
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { InstanceMapper } from "../crypto/InstanceMapper"
+import { ModelMapper } from "../crypto/ModelMapper"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
@@ -192,7 +192,7 @@ export class LoginFacade {
 		private readonly restClient: RestClient,
 		private readonly entityClient: EntityClient,
 		private readonly loginListener: LoginListener,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instanceMapper: ModelMapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly keyRotationFacade: KeyRotationFacade,
 		/**
@@ -1006,11 +1006,12 @@ export class LoginFacade {
 			recoverCodeVerifier: recoverCodeVerifierBase64,
 			user: null,
 		})
-		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change. the web socket is not connected because we
-		// don't do a normal login, and therefore we would not get any user update events. we can not use permanentLogin=false with initSession because caching would be enabled,
-		// and therefore we would not be able to read the updated user
-		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
-		// when logging in normally after resetting the password
+		// we need a separate entity rest client because to avoid caching of the user instance which is updated on password change.
+		// the web socket is not connected because we don't do a normal login, and therefore we would not get any user update events.
+		// we can not use permanentLogin=false with initSession because caching would be enabled,
+		// and therefore we would not be able to read the updated user.
+		// additionally, we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling)
+		// because we do not want to have any race conditions when logging in normally after resetting the password.
 		const tempAuthDataProvider: AuthDataProvider = {
 			createAuthHeaders(): Dict {
 				return {}

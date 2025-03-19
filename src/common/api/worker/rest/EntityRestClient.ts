@@ -18,7 +18,7 @@ import { LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/Ent
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
-import { InstanceMapper } from "../crypto/InstanceMapper"
+import { ModelMapper } from "../crypto/ModelMapper"
 import { QueuedBatch } from "../EventQueue.js"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -29,7 +29,8 @@ import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { InstanceWrapper } from "../crypto/InstanceWrapper"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { InstanceCryptoMapper } from "../crypto/InstanceCryptoMapper"
+import { CryptoMapper } from "../crypto/CryptoMapper"
+import { TypeMapper } from "../crypto/TypeMapper"
 
 assertWorkerOrNode()
 
@@ -193,8 +194,9 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly authDataProvider: AuthDataProvider,
 		private readonly restClient: RestClient,
 		private readonly lazyCrypto: lazy<CryptoFacade>,
-		private readonly instanceMapper: InstanceMapper,
-		private readonly instanceCryptoMapper: InstanceCryptoMapper,
+		private readonly instanceMapper: ModelMapper,
+		private readonly typeMapper: TypeMapper,
+		private readonly cryptoMapper: CryptoMapper,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}
 
@@ -352,8 +354,14 @@ export class EntityRestClient implements EntityRestInterface {
 		return await promiseMap(
 			loadedEntities,
 			async (instance) => {
-				const encryptedParsedInstance = await this.instanceMapper.mapValues(typeModel, instance)
-				const instanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(this.instanceMapper, typeModel, encryptedParsedInstance)
+				const encryptedParsedInstance = await this.typeMapper.applyJsTypes(typeModel, instance)
+				const instanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(
+					this.instanceMapper,
+					this.typeMapper,
+					this.cryptoMapper,
+					typeModel,
+					encryptedParsedInstance,
+				)
 				await this._crypto.applyMigrations(instanceWrapper)
 				return this._decryptMapAndMigrate(instanceWrapper, ownerEncSessionKeyProvider)
 			},
@@ -385,7 +393,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const sk = instanceWrapper.resolvedSessionKey
 		// fixme: get rid of the cast?
 		const encryptedInstance: EncryptedParsedInstance = instanceWrapper.instance as EncryptedParsedInstance
-		const decryptedInstance = await this.instanceCryptoMapper.decryptParsedInstance(instanceWrapper.typeModel, encryptedInstance, sk)
+		const decryptedInstance = await this.cryptoMapper.decryptParsedInstance(instanceWrapper.typeModel, encryptedInstance, sk)
 		const instance: T = this.instanceCloaker.decloak<T>(decryptedInstance)
 		return this._crypto.applyMigrationsForInstance<T>(instance)
 	}
@@ -503,7 +511,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	private async prepareRequestPostPayload<T>(typeModel: TypeModel, instance: T, options?: EntityRestClientSetupOptions) {
-		const parsedInstance: ParsedInstance = await this.instanceMapper.cloak(typeModel, instance)
+		const parsedInstance: ParsedInstance = await this.instanceMapper.applyServerModel(typeModel, instance)
 		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, typeModel, parsedInstance)
 		await this._crypto.setNewOwnerEncSessionKey(instanceWrapper, options?.ownerKey)
 
@@ -513,7 +521,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	private async prepareRequestPutPayload<T>(typeModel: TypeModel, instance: T, options?: EntityRestClientUpdateOptions) {
-		const parsedInstance: ParsedInstance = await this.instanceMapper.cloak(typeModel, instance)
+		const parsedInstance: ParsedInstance = await this.instanceMapper.applyServerModel(typeModel, instance)
 		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.instanceMapper, typeModel, parsedInstance)
 
 		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instanceWrapper)

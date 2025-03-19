@@ -31,7 +31,7 @@ import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlV
 import { AssociationType, Cardinality, Type as TypeId, ValueType } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
-import { InstanceMapper } from "../crypto/InstanceMapper"
+import { ModelMapper } from "../crypto/ModelMapper"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -782,7 +782,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	private async serialize(originalEntity: SomeEntity): Promise<Uint8Array> {
-		const idMappedInstance: Record<number, any> = await new InstanceMapper().mapToLiteral(originalEntity)
+		const idMappedInstance: Record<number, any> = await new ModelMapper().mapToLiteral(originalEntity)
 		try {
 			return cborg.encode(idMappedInstance, { typeEncoders: customTypeEncoders })
 		} catch (e) {
@@ -810,7 +810,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	private decodeCborEntity(loaded: Uint8Array, typeModel: TypeModel): Promise<Record<string, unknown>> {
 		const idMappedEntity: Record<number, unknown> = cborg.decode(loaded, { tags: customTypeDecoders })
-		return new InstanceMapper().mapFromLiteral(idMappedEntity, typeModel)
+		return new ModelMapper().mapFromLiteral(idMappedEntity, typeModel)
 	}
 
 	private async fixupTypeRefs(typeModel: TypeModel, deserialized: any): Promise<unknown> {

@@ -26,7 +26,7 @@ import { AesApp } from "../../../common/native/worker/AesApp.js"
 import type { RsaImplementation } from "../../../common/api/worker/crypto/RsaImplementation.js"
 import { createRsaImplementation } from "../../../common/api/worker/crypto/RsaImplementation.js"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade.js"
-import { InstanceMapper } from "../../../common/api/worker/crypto/InstanceMapper.js"
+import { ModelMapper } from "../../../common/api/worker/crypto/ModelMapper.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
 import { NoZoneDateProvider } from "../../../common/api/common/utils/NoZoneDateProvider.js"
@@ -83,7 +83,7 @@ export type CalendarWorkerLocatorType = {
 	restClient: RestClient
 	serviceExecutor: IServiceExecutor
 	crypto: CryptoFacade
-	instanceMapper: InstanceMapper
+	instanceMapper: ModelMapper
 	cacheStorage: CacheStorage
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
@@ -149,7 +149,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const mainInterface = worker.getMainInterface()
 
 	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
-	locator.instanceMapper = new InstanceMapper()
+	locator.instanceMapper = new ModelMapper()
 	locator.rsa = await createRsaImplementation(worker)
 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()

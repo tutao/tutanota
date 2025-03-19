@@ -29,7 +29,7 @@ import type { QueuedBatch } from "./EventQueue.js"
 import { EventQueue } from "./EventQueue.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
 import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId } from "../common/utils/EntityUtils"
-import { InstanceMapper } from "./crypto/InstanceMapper"
+import { ModelMapper } from "./crypto/ModelMapper"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
@@ -146,7 +146,7 @@ export class EventBusClient {
 		private readonly cache: EntityRestCache,
 		private readonly userFacade: UserFacade,
 		private readonly entity: EntityClient,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instanceMapper: ModelMapper,
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: SleepDetector,
 		private readonly progressTracker: ExposedProgressTracker,

@@ -81,7 +81,7 @@ import {
 	rsaPrivateKeyToHex,
 	rsaPublicKeyToHex,
 } from "@tutao/tutanota-crypto"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { EncryptedParsedInstance, ParsedInstance, SomeEntity, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -103,7 +103,7 @@ import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/cry
 import { PublicKeyProvider, PublicKeys } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { InstanceWrapper } from "../../../../../src/common/api/worker/crypto/InstanceWrapper"
-import { InstanceCryptoMapper } from "../../../../../src/common/api/worker/crypto/InstanceCryptoMapper"
+import { CryptoMapper } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
 
 const { captor, anything, argThat } = matchers
 
@@ -186,7 +186,7 @@ async function prepareBucketKeyInstance(
 o.spec("CryptoFacadeTest", function () {
 	let restClient: RestClient
 
-	let instanceMapper = new InstanceMapper()
+	let instanceMapper = new ModelMapper()
 	let serviceExecutor: IServiceExecutor
 	let entityClient: EntityClient
 	let ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue
@@ -1694,7 +1694,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
-		const bucketKeyLiteral: EncryptedParsedInstance = await instanceMapper.cloak(BucketKeyModel, bucketKey)
+		const bucketKeyLiteral: EncryptedParsedInstance = await instanceMapper.applyServerModel(BucketKeyModel, bucketKey)
 		const bucketKeyUntypedInstance: UntypedInstance = await instanceMapper.unmap(BucketKeyModel, bucketKeyLiteral)
 		mailUntypedInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = bucketKeyUntypedInstance
 		mailUntypedInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "mailDetails"))] = ["mailDetailsArchiveId", "mailDetailsId"]
@@ -1788,7 +1788,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		const BucketKeyModel = await resolveTypeReference(BucketKeyTypeRef)
-		const bucketKeyParsedInstance: ParsedInstance = await instanceMapper.cloak(BucketKeyModel, bucketKey, null)
+		const bucketKeyParsedInstance: ParsedInstance = await instanceMapper.applyServerModel(BucketKeyModel, bucketKey, null)
 		const bucketKeyLiteral: UntypedInstance = await internalUser.unmap(BucketKeyModel, bucketKeyParsedInstance)
 
 		untypedMailInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = bucketKeyLiteral
@@ -1941,8 +1941,8 @@ export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade
 	when(keyLoaderFacade.loadSymGroupKey(testUser.userGroup._id, 0)).thenResolve(testUser.userGroupKey)
 }
 
-async function mapInstanceToInstanceWrapper(instanceMapper: InstanceMapper, instance: SomeEntity): Promise<InstanceWrapper> {
+async function mapInstanceToInstanceWrapper(instanceMapper: ModelMapper, instance: SomeEntity): Promise<InstanceWrapper> {
 	const typeModel = await resolveTypeReference(instance._type)
-	const parsedInstance: ParsedInstance = instanceMapper.cloak(instance)
+	const parsedInstance: ParsedInstance = instanceMapper.applyServerModel(instance)
 	return InstanceWrapper.fromParsedInstance(instanceMapper, typeModel, parsedInstance)
 }

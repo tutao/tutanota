@@ -41,7 +41,7 @@ import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
 import { aes256RandomKey, AesKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
-import { InstanceMapper } from "../../crypto/InstanceMapper.js"
+import { ModelMapper } from "../../crypto/ModelMapper.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { AlarmService } from "../../../entities/sys/Services.js"
@@ -98,7 +98,7 @@ export class CalendarFacade {
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly nativePushFacade: NativePushFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
-		private readonly instanceMapper: InstanceMapper,
+		private readonly instanceMapper: ModelMapper,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly infoMessageHandler: InfoMessageHandler,

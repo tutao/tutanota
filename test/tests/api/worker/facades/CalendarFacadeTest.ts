@@ -21,7 +21,7 @@ import { ProgressMonitor } from "../../../../../src/common/api/common/utils/Prog
 import { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { ImportError } from "../../../../../src/common/api/common/error/ImportError.js"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { object } from "testdouble"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
@@ -119,7 +119,7 @@ o.spec("CalendarFacadeTest", function () {
 		nativeMock = downcast({
 			invokeNative: spy(() => Promise.resolve()),
 		})
-		instanceMapper = new InstanceMapper()
+		instanceMapper = new ModelMapper()
 		serviceExecutor = object()
 		cryptoFacade = object()
 		infoMessageHandler = object()

@@ -1,22 +1,11 @@
-import { resolveTypeReference } from "../../common/EntityFunctions"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { AssociationType, ValueType } from "../../common/EntityConstants.js"
+import { ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import {
-	AppName,
-	EncryptedParsedAssociation,
-	EncryptedParsedInstance,
-	Entity,
-	ModelAssociation,
-	ParsedValue,
-	TypeModel,
-	UntypedAssociation,
-	UntypedInstance,
-	UntypedValue,
-} from "../../common/EntityTypes"
+import { Entity, ParsedValue } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { TypeReferenceResolver } from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -24,63 +13,21 @@ export type AttributeId = number
 export type TypeId = number
 export type AttributeName = string
 
-export class InstanceMapper {
-	async mapValues(typeModel: TypeModel, instance: UntypedInstance): Promise<EncryptedParsedInstance> {
-		let parsedInstance: EncryptedParsedInstance = {}
-		for (const [attrIdStr, modelValue] of Object.entries(typeModel.values)) {
-			const attrId = parseInt(attrIdStr)
-			// values at this stage are only strings, the other types are only possible for associations.
-			const untypedValue = instance[attrId.toString()] as UntypedValue
+/**
+ * responsible for "migrations" and checking types / cardinalities.
+ */
+export class ModelMapper {
+	constructor(private readonly serverTypes: TypeReferenceResolver, private readonly clientTypes: TypeReferenceResolver) {}
 
-			if (modelValue.encrypted) {
-				// will be decrypted and mapped at a later stage
-				parsedInstance[attrId] = untypedValue
-			} else {
-				parsedInstance[attrId] = convertDbToJsType(modelValue.type, untypedValue)
-			}
-		}
-
-		for (const [attrIdStr, modelAssociation] of Object.entries(typeModel.associations)) {
-			const attrId = parseInt(attrIdStr)
-			const untypedAssociation = instance[attrId.toString()] as UntypedAssociation
-			parsedInstance[attrId] = await this.convertUntypedAssociationToEncryptedParsedAssociation(typeModel.app, modelAssociation, untypedAssociation)
-		}
-
-		return parsedInstance
-	}
-
-	private async convertUntypedAssociationToEncryptedParsedAssociation(
-		appName: AppName,
-		modelAssociation: ModelAssociation,
-		value: UntypedAssociation,
-	): Promise<EncryptedParsedAssociation> {
-		switch (modelAssociation.type) {
-			case AssociationType.ElementAssociation || AssociationType.ListAssociation:
-				return value as Array<Id>
-			case AssociationType.ListElementAssociationGenerated || AssociationType.ListElementAssociationCustom || AssociationType.BlobElementAssociation:
-				return value as Array<IdTuple>
-			case AssociationType.Aggregation: {
-				const refType = new TypeRef((modelAssociation.dependency as Nullable<AppName>) ?? appName, modelAssociation.refTypeId)
-				const refTypeModel = await resolveTypeReference(refType)
-				const convertedAggregates: Array<EncryptedParsedInstance> = []
-				for (const aggregateLiteral of value as Array<UntypedInstance>) {
-					const convertedAggregate = await this.mapValues(refTypeModel, aggregateLiteral)
-					convertedAggregates.push(convertedAggregate)
-				}
-				return convertedAggregates
-			}
-		}
-
-		throw new ProgrammingError(`Unhandled AssociationType`)
-	}
-
-	async uncloak<T extends Entity>(typeRef: TypeRef<T>, literal: any): Promise<T> {
+	async applyClientModel<T extends Entity>(typeRef: TypeRef<T>, literal: any): Promise<T> {
 		const t = {
 			_type: typeRef,
 		}
 
 		return t as unknown as T
 	}
+
+	async applyServerModel(): Promise<any> {}
 }
 
 /**

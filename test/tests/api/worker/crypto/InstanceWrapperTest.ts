@@ -2,8 +2,8 @@ import o from "@tutao/otest"
 import { AttributeModel, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { ImportMailGetInTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../TestUtils"
-import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper"
+import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { BucketKeyTypeRef, GroupInfoTypeRef, GroupTypeRef, PermissionTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { InstanceWrapper } from "../../../../../src/common/api/worker/crypto/InstanceWrapper"
 import { VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
@@ -12,7 +12,7 @@ import { EncryptedParsedInstance, ParsedInstance, UntypedInstance } from "../../
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 
 o.spec("InstanceWrapperTest", () => {
-	const instanceMapper = new InstanceMapper()
+	const instanceMapper = new ModelMapper()
 
 	o.test("can create local mapped/decrypted instance - GroupInfo", async () => {
 		const groupModel = await resolveTypeReference(GroupInfoTypeRef)
@@ -24,7 +24,7 @@ o.spec("InstanceWrapperTest", () => {
 			_ownerKeyVersion: "99",
 			_listEncSessionKey: stringToUtf8Uint8Array("listEncSessionKey"),
 		})
-		const groupInfoParsed = await instanceMapper.applyAttrIds(groupInfo)
+		const groupInfoParsed = await instanceMapper.applyServerModel(groupInfo)
 		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, groupModel, groupInfoParsed)
 
 		o(instanceWrapper.id).equals(null)
@@ -84,7 +84,7 @@ o.spec("InstanceWrapperTest", () => {
 
 		const mail = createTestEntity(MailTypeRef, {})
 
-		const mailParsed = await instanceMapper.applyAttrIds(mail)
+		const mailParsed = await instanceMapper.applyServerModel(mail)
 		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
 
 		const pubPermission = createTestEntity(PermissionTypeRef, {

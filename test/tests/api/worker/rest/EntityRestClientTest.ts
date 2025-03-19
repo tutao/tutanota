@@ -13,7 +13,7 @@ import { CustomerServerPropertiesTypeRef, CustomerTypeRef } from "../../../../..
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import type { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
-import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import tutanotaModelInfo from "../../../../../src/common/api/entities/tutanota/ModelInfo.js"
 import sysModelInfo from "../../../../../src/common/api/entities/sys/ModelInfo.js"
@@ -65,7 +65,7 @@ function contacts(count) {
 o.spec("EntityRestClient", function () {
 	let entityRestClient: EntityRestClient
 	let restClient: RestClient
-	let instanceMapperMock: InstanceMapper
+	let instanceMapperMock: ModelMapper
 	let cryptoFacadeMock: CryptoFacade
 	let fullyLoggedIn: boolean
 	let blobAccessTokenFacade: BlobAccessTokenFacade

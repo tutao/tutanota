@@ -70,7 +70,7 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { AppName } from "../../../common/api/worker/crypto/InstanceMapper"
+import { AppName } from "../../../common/api/worker/crypto/ModelMapper"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
