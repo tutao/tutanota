@@ -56,7 +56,7 @@ export interface MailViewerHeaderAttrs {
 /** The upper part of the mail viewer, everything but the mail body itself. */
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	oninit({ attrs }: Vnode<MailViewerHeaderAttrs>) {
-        console.log("📩 MailViewerHeader initialized");
+        console.log("MailViewerHeader initialized");
         
         // Fetch trusted senders when this component loads
         attrs.viewModel.fetchTrustedSenders();
@@ -290,7 +290,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderBanners(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
-		const trustedSendersArray = Array.from(viewModel.trustedSenders); // Convert Set to Array
+		const trustedSendersArray = viewModel.trustedSenders;
 		if (viewModel.isCollapsed()) return null
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
 		return [
@@ -304,7 +304,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			m("." + responsiveCardHMargin(), this.renderMobyPhishBanner(viewModel)), // Add Moby Phish Banner
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
 			m("div", { class: "trusted-senders-banner" }, [
-			           m("strong", "🔒 Trusted Senders: "),
+			           m("strong", "Trusted Senders: "),
 			           m("span", trustedSendersArray.length > 0 ? trustedSendersArray.join(", ") : "None"),
 			       ]),
 		].filter(Boolean)
@@ -791,7 +791,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		    	label: "emptyString_msg",
 				icon: m(Icon, { icon: Icons.Checkmark }),
 		        click: (event: MouseEvent) => {		        	
-    	        	console.log("User denied sender:", senderEmail);
+    	        	console.log("User confirmed untrusted sender:", senderEmail);
     	            modal.display(new MobyPhishDenyModal());
 		        },
 			    style: {

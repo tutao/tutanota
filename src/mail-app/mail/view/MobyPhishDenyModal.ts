@@ -25,9 +25,38 @@ export class MobyPhishDenyModal implements ModalComponent {
                     }
                 }, [
                     m("h3", "Choose an Action"),
-                    m("button.btn", { onclick: () => console.log("This is someone else clicked") }, "This is someone else"),
-                    m("button.btn", { onclick: () => console.log("Remove from Trusted Senders clicked") }, "Remove from Trusted Senders"),
-                    m("button.btn", { onclick: () => modal.remove(this) }, "Cancel") // Close button
+                    m("button.btn", {
+                            onclick: () => console.log("This is someone else clicked"),
+                            style: {
+                                background: "#007BFF", color: "#fff", border: "none",
+                                padding: "10px 15px", borderRadius: "5px", cursor: "pointer",
+                                margin: "5px", fontSize: "14px", transition: "background 0.2s"
+                            },
+                            onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#0056b3",
+                            onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#007BFF"
+                        }, "This is someone else"),
+
+                    m("button.btn", {
+                        onclick: () => console.log("Remove from Trusted Senders clicked"),
+                        style: {
+                            background: "#DC3545", color: "#fff", border: "none",
+                            padding: "10px 15px", borderRadius: "5px", cursor: "pointer",
+                            margin: "5px", fontSize: "14px", transition: "background 0.2s"
+                        },
+                        onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#a71d2a",
+                        onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#DC3545"
+                    }, "Remove from Trusted Senders"),
+
+                    m("button.btn", {
+                        onclick: () => modal.remove(this),
+                        style: {
+                            background: "#6C757D", color: "#fff", border: "none",
+                            padding: "10px 15px", borderRadius: "5px", cursor: "pointer",
+                            margin: "5px", fontSize: "14px", transition: "background 0.2s"
+                        },
+                        onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#5a6268",
+                        onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#6C757D"
+                    }, "Cancel")
                 ])
             ])
         ]);
