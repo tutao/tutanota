@@ -14,7 +14,7 @@ use crate::date::DateTime;
 use crate::element_value::ElementValue::Array;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
-use crate::metamodel::Cardinality;
+use crate::metamodel::{Cardinality, TypeModel};
 use crate::type_model_provider::init_type_model_provider;
 use crate::{CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated, TypeRef};
 
@@ -25,20 +25,20 @@ impl InstanceMapper {
 	pub fn new() -> Self {
 		InstanceMapper {}
 	}
-	pub fn parse_entity<'a, T: Entity + Deserialize<'a>>(
+	pub fn parse_entity<'a, E: Entity + Deserialize<'a>>(
 		&self,
 		map: ParsedEntity,
-	) -> Result<T, DeError> {
-		let de = DictionaryDeserializer::<T, _>::from_iterable(map);
-		T::deserialize(de)
+	) -> Result<E, DeError> {
+		let de = DictionaryDeserializer::<E, _>::from_iterable(map);
+		E::deserialize(de)
 	}
 
-	pub fn serialize_entity<T: Entity + Serialize>(
+	pub fn serialize_entity<E: Entity + Serialize>(
 		&self,
-		entity: T,
+		entity: E,
 	) -> Result<ParsedEntity, SerError> {
 		entity
-			.serialize(ElementValueSerializer::<T>::default())
+			.serialize(ElementValueSerializer::<E>::default())
 			.map(|v| v.assert_dict())
 	}
 }
@@ -91,22 +91,22 @@ impl de::Error for DeError {
 /// This is a map/dictionary serializer.
 /// It is used for the top-level (because we have a map and not ElementValue as input), for
 /// nested aggregates and for "errors" map.
-struct DictionaryDeserializer<T: Entity, I>
+struct DictionaryDeserializer<E: Entity, I>
 where
 	I: Iterator<Item = (String, ElementValue)>,
 {
 	iter: I,
 	value: Option<(String, ElementValue)>,
-	_phantom: PhantomData<T>,
+	_phantom: PhantomData<E>,
 }
 
-impl<T: Entity, I> DictionaryDeserializer<T, I>
+impl<E: Entity, I> DictionaryDeserializer<E, I>
 where
 	I: Iterator<Item = (String, ElementValue)>,
 {
 	// We accept iterable and not a map because we have to give iterator a specific type but we
 	// need to let the compiler infer it from the signature.
-	fn from_iterable<II>(iterable: II) -> DictionaryDeserializer<T, I>
+	fn from_iterable<II>(iterable: II) -> DictionaryDeserializer<E, I>
 	where
 		II: IntoIterator<Item = (String, ElementValue), IntoIter = I>,
 	{
@@ -118,7 +118,7 @@ where
 	}
 }
 
-impl<'de, T: Entity, I> Deserializer<'de> for DictionaryDeserializer<T, I>
+impl<'de, E: Entity, I> Deserializer<'de> for DictionaryDeserializer<E, I>
 where
 	I: Iterator<Item = (String, ElementValue)>,
 {
@@ -150,7 +150,7 @@ where
 	}
 }
 
-impl<'de, T: Entity, I> MapAccess<'de> for DictionaryDeserializer<T, I>
+impl<'de, E: Entity, I> MapAccess<'de> for DictionaryDeserializer<E, I>
 where
 	I: Iterator<Item = (String, ElementValue)>,
 {
@@ -175,7 +175,7 @@ where
 		V: DeserializeSeed<'de>,
 	{
 		let (key, value) = self.value.take().expect("next_key must be called first!");
-		let deserializer = ElementValueDeserializer::<T> {
+		let deserializer = ElementValueDeserializer::<E> {
 			attribute_id: key.as_str(),
 			value,
 			_phantom: Default::default(),
@@ -195,7 +195,7 @@ where
 		match self.iter.next() {
 			Some((key, value)) => {
 				let key_result = kseed.deserialize(key.as_str().into_deserializer())?;
-				let value_result = vseed.deserialize(ElementValueDeserializer::<T> {
+				let value_result = vseed.deserialize(ElementValueDeserializer::<E> {
 					attribute_id: key.as_str(),
 					value,
 					_phantom: Default::default(),
@@ -216,21 +216,21 @@ where
 }
 
 /// Deserializer for a single ElementValue.
-struct ElementValueDeserializer<'s, T: Entity> {
+struct ElementValueDeserializer<'s, E: Entity> {
 	/// attribute_id for which we are deserializing the value. Useful for diagnostics.
 	attribute_id: &'s str,
 	/// The value being deserialized
 	value: ElementValue,
-	_phantom: PhantomData<T>,
+	_phantom: PhantomData<E>,
 }
 
-impl<T: Entity> ElementValueDeserializer<'_, T> {
+impl<E: Entity> ElementValueDeserializer<'_, E> {
 	fn wrong_type_err(&self, expected: &str) -> DeError {
 		DeError::wrong_type(self.attribute_id, &self.value, expected)
 	}
 }
 
-impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
+impl<'de, E: Entity> Deserializer<'de> for ElementValueDeserializer<'_, E> {
 	type Error = DeError;
 
 	serde::forward_to_deserialize_any! {
@@ -322,23 +322,28 @@ impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
 		V: Visitor<'de>,
 	{
 		if let ElementValue::Array(arr) = self.value {
-			let type_model = init_type_model_provider()
-				.resolve_type_ref(&T::type_ref())
-				.ok_or(DeError("some error".to_string()))?;
+			let type_model_provider = init_type_model_provider();
+			let type_model: &TypeModel = type_model_provider
+				.resolve_type_ref(&E::type_ref())
+				.ok_or(DeError(format!(
+					"could not resolve type model for {}",
+					E::type_ref()
+				)))?;
 			let cardinality: Cardinality = type_model
 				.get_attribute_id_cardinality(self.attribute_id.to_string())
 				.map_err(|e| DeError(e.to_string()))?
 				.clone();
 
-			let mut array_deserializer = ArrayDeserializer {
+			let mut array_deserializer = ArrayDeserializer::<_, E> {
 				attribute_id: self.attribute_id,
 				iter: arr.into_iter(),
+				_phantom: PhantomData,
 			};
 			if cardinality == Cardinality::One || cardinality == Cardinality::ZeroOrOne {
 				let element_value: Option<&ElementValue> =
 					array_deserializer.iter.as_slice().first();
 				if let Some(element_value) = element_value {
-					let element_value_deserializer: ElementValueDeserializer<'_, T> =
+					let element_value_deserializer: ElementValueDeserializer<'_, E> =
 						ElementValueDeserializer {
 							value: element_value.to_owned(),
 							attribute_id: self.attribute_id,
@@ -432,7 +437,7 @@ impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
 			};
 		}
 		if let ElementValue::Dict(dict) = self.value {
-			let deserializer = DictionaryDeserializer::<T, _>::from_iterable(dict);
+			let deserializer = DictionaryDeserializer::<E, _>::from_iterable(dict);
 			deserializer.deserialize_struct(name, fields, visitor)
 		} else {
 			Err(self.wrong_type_err("dict"))
@@ -444,7 +449,7 @@ impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
 		V: Visitor<'de>,
 	{
 		if let ElementValue::Dict(dict) = self.value {
-			let de = DictionaryDeserializer::<T, _>::from_iterable(dict);
+			let de = DictionaryDeserializer::<E, _>::from_iterable(dict);
 			visitor.visit_map(de)
 		} else {
 			Err(self.wrong_type_err("dict"))
@@ -471,7 +476,7 @@ impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
 	}
 }
 
-impl<'de, T: Entity> EnumAccess<'de> for ElementValueDeserializer<'_, T> {
+impl<'de, E: Entity> EnumAccess<'de> for ElementValueDeserializer<'_, E> {
 	type Error = DeError;
 	type Variant = Self;
 
@@ -515,16 +520,17 @@ impl<'de, E: Entity> VariantAccess<'de> for ElementValueDeserializer<'_, E> {
 }
 
 /// Deserializer for sequence of elements (like an array or vec).
-struct ArrayDeserializer<'s, I>
+struct ArrayDeserializer<'s, I, E: Entity>
 where
 	I: Iterator<Item = ElementValue>,
 {
 	/// Key under which the entities are. Will be passed to the deserializer for elements.
 	attribute_id: &'s str,
 	iter: I,
+	_phantom: PhantomData<E>,
 }
 
-impl<'de, I> Deserializer<'de> for ArrayDeserializer<'de, I>
+impl<'de, I, E: Entity> Deserializer<'de> for ArrayDeserializer<'de, I, E>
 where
 	I: Iterator<Item = ElementValue>,
 {
@@ -551,7 +557,7 @@ where
 	}
 }
 
-impl<'de, I> de::SeqAccess<'de> for ArrayDeserializer<'_, I>
+impl<'de, I, E: Entity> de::SeqAccess<'de> for ArrayDeserializer<'_, I, E>
 where
 	I: Iterator<Item = ElementValue>,
 {
@@ -563,7 +569,7 @@ where
 	{
 		match self.iter.next() {
 			Some(value) => seed
-				.deserialize(ElementValueDeserializer {
+				.deserialize(ElementValueDeserializer::<E> {
 					value,
 					attribute_id: self.attribute_id,
 					_phantom: Default::default(),
@@ -588,7 +594,7 @@ struct ElementValueSerializer<E: Entity> {
 	_phantom: PhantomData<E>,
 }
 
-impl<T: Entity> Default for ElementValueSerializer<T> {
+impl<E: Entity> Default for ElementValueSerializer<E> {
 	fn default() -> Self {
 		ElementValueSerializer {
 			_phantom: PhantomData,
@@ -613,18 +619,19 @@ enum ElementValueStructSerializer<E: Entity> {
 	},
 }
 
-struct ElementValueSeqSerializer {
+struct ElementValueSeqSerializer<E> {
 	vec: Vec<ElementValue>,
+	_phantom: PhantomData<E>,
 }
 
 impl<E: Entity> Serializer for ElementValueSerializer<E> {
 	type Ok = ElementValue;
 	type Error = SerError;
-	type SerializeSeq = ElementValueSeqSerializer;
+	type SerializeSeq = ElementValueSeqSerializer<E>;
 	type SerializeTuple = ser::Impossible<ElementValue, SerError>;
 	type SerializeTupleStruct = ser::Impossible<ElementValue, SerError>;
 	type SerializeTupleVariant = ser::Impossible<ElementValue, SerError>;
-	type SerializeMap = ElementValueMapSerializer;
+	type SerializeMap = ElementValueMapSerializer<E>;
 	type SerializeStruct = ElementValueStructSerializer<E>;
 	type SerializeStructVariant = ser::Impossible<ElementValue, SerError>;
 
@@ -767,7 +774,10 @@ impl<E: Entity> Serializer for ElementValueSerializer<E> {
 			None => Vec::new(),
 			Some(l) => Vec::with_capacity(l),
 		};
-		Ok(ElementValueSeqSerializer { vec })
+		Ok(ElementValueSeqSerializer::<E> {
+			vec,
+			_phantom: PhantomData,
+		})
 	}
 
 	fn serialize_tuple(self, _: usize) -> Result<Self::SerializeTuple, Self::Error> {
@@ -796,6 +806,7 @@ impl<E: Entity> Serializer for ElementValueSerializer<E> {
 		Ok(ElementValueMapSerializer {
 			map: HashMap::new(),
 			next_key: None,
+			_phantom: PhantomData,
 		})
 	}
 
@@ -836,7 +847,7 @@ fn unsupported(data_type: &str) -> ! {
 	panic!("Unsupported data type: {}", data_type)
 }
 
-impl SerializeSeq for ElementValueSeqSerializer {
+impl<E: Entity> SerializeSeq for ElementValueSeqSerializer<E> {
 	type Ok = ElementValue;
 	type Error = SerError;
 
@@ -845,7 +856,7 @@ impl SerializeSeq for ElementValueSeqSerializer {
 		T: ?Sized + Serialize,
 	{
 		self.vec
-			.push(value.serialize(ElementValueSerializer::default())?);
+			.push(value.serialize(ElementValueSerializer::<E>::default())?);
 		Ok(())
 	}
 
@@ -868,12 +879,14 @@ impl<E: Entity> SerializeStruct for ElementValueStructSerializer<E> {
 					// Throw decryption errors away since they are not part of the actual type.
 					return Ok(());
 				}
-				let serialized_value = value.serialize(ElementValueSerializer::default())?;
-				let type_model = init_type_model_provider().resolve_type_ref(&E::type_ref());
+				let serialized_value = value.serialize(ElementValueSerializer::<E>::default())?;
+				let type_model_provider = init_type_model_provider();
+				let type_model = type_model_provider.resolve_type_ref(&E::type_ref());
 				let cardinality: Cardinality = type_model
+					.expect("no type model")
 					.get_attribute_id_cardinality(key.parse().unwrap())
-					.map_err(|e| DeError(e.to_string()))?
-					.into();
+					.map_err(|e| SerError(e.to_string()))?
+					.clone();
 				if cardinality == Cardinality::One || cardinality == Cardinality::ZeroOrOne {
 					map.insert(key.to_string(), Array(vec![serialized_value]));
 				} else {
@@ -887,7 +900,7 @@ impl<E: Entity> SerializeStruct for ElementValueStructSerializer<E> {
 				"list_id" => {
 					*list_id = Some(
 						value
-							.serialize(ElementValueSerializer::default())?
+							.serialize(ElementValueSerializer::<E>::default())?
 							.assert_generated_id()
 							.to_owned(),
 					)
@@ -895,7 +908,7 @@ impl<E: Entity> SerializeStruct for ElementValueStructSerializer<E> {
 				"element_id" => {
 					*element_id = Some(
 						value
-							.serialize(ElementValueSerializer::default())?
+							.serialize(ElementValueSerializer::<E>::default())?
 							.assert_generated_id()
 							.to_owned(),
 					)
@@ -909,7 +922,7 @@ impl<E: Entity> SerializeStruct for ElementValueStructSerializer<E> {
 				"list_id" => {
 					*list_id = Some(
 						value
-							.serialize(ElementValueSerializer::default())?
+							.serialize(ElementValueSerializer::<E>::default())?
 							.assert_generated_id()
 							.to_owned(),
 					)
@@ -917,14 +930,16 @@ impl<E: Entity> SerializeStruct for ElementValueStructSerializer<E> {
 				"element_id" => {
 					*element_id = Some(
 						value
-							.serialize(ElementValueSerializer::default())?
+							.serialize(ElementValueSerializer::<E>::default())?
 							.assert_custom_id()
 							.to_owned(),
 					)
 				},
 				_ => unreachable!("unexpected key {key} for IdTuple", key = key),
 			},
-			_ => {},
+			Self::PhantomData { _phantom } => {
+				unreachable!("Received PhantomData for {}", key)
+			},
 		};
 		Ok(())
 	}
@@ -946,18 +961,21 @@ impl<E: Entity> SerializeStruct for ElementValueStructSerializer<E> {
 				list_id: list_id.unwrap(),
 				element_id: element_id.unwrap(),
 			})),
-			PhantomData => Err(SerError("programming error".to_string())),
+			Self::PhantomData { _phantom } => {
+				unreachable!("Received PhantomData!")
+			},
 		}
 	}
 }
 
 /// Yet Another Serializer, this one serializes a map with dynamic keys.
-struct ElementValueMapSerializer {
+struct ElementValueMapSerializer<E> {
 	next_key: Option<String>,
 	map: ParsedEntity,
+	_phantom: PhantomData<E>,
 }
 
-impl SerializeMap for ElementValueMapSerializer {
+impl<E: Entity> SerializeMap for ElementValueMapSerializer<E> {
 	type Ok = ElementValue;
 	type Error = SerError;
 
@@ -974,8 +992,10 @@ impl SerializeMap for ElementValueMapSerializer {
 		T: ?Sized + Serialize,
 	{
 		let key = self.next_key.take().expect("key must be serialized first");
-		self.map
-			.insert(key, value.serialize(ElementValueSerializer::default())?);
+		self.map.insert(
+			key,
+			value.serialize(ElementValueSerializer::<E>::default())?,
+		);
 		Ok(())
 	}
 

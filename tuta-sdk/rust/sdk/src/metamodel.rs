@@ -146,7 +146,7 @@ pub struct TypeModel {
 
 #[derive(Error, Debug)]
 #[error("Error when accessing type model: {0}")]
-struct TypeModelError(String);
+pub struct TypeModelError(String);
 
 impl TypeModel {
 	/// Whether entity is marked as encrypted in the metamodel.
