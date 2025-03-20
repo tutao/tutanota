@@ -154,7 +154,7 @@ export class MailViewerViewModel {
 		}
 		this.eventController.addEntityListener(this.entityListener)
 		this.trustedSenders = [];
-		this.fetchTrustedSenders();
+		this.fetchSenderStatus();
 	}
 	
 

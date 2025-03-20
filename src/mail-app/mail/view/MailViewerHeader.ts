@@ -59,7 +59,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
         console.log("MailViewerHeader initialized");
         
         // Fetch trusted senders when this component loads
-        attrs.viewModel.fetchTrustedSenders();
+        //attrs.viewModel.fetchSenderStatus();
     }
 
 	private detailsExpanded = false
