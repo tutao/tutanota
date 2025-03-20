@@ -35,6 +35,7 @@ import { px, size } from "../../../common/gui/size.js"
 import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
 import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
+import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js"
 
 
 export type MailAddressDropdownCreator = (args: {
