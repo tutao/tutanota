@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/common/misc/ListModel.js"
 import { getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/common/api/common/utils/EntityUtils.js"
-import { defer, DeferredObject } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "@tutao/tutanota-utils"
 import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { ListFetchResult } from "../../../src/common/gui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/common/gui/base/List.js"
@@ -13,10 +13,11 @@ o.spec("ListModel", function () {
 	const listId = "listId"
 	let fetchDefer: DeferredObject<ListFetchResult<KnowledgeBaseEntry>>
 	let listModel: ListModel<KnowledgeBaseEntry, Id>
+	let currentSelectBehavior = ListAutoSelectBehavior.OLDER
 	const defaultListConfig: ListModelConfig<KnowledgeBaseEntry, Id> = {
 		fetch: () => fetchDefer.promise,
 		sortCompare: sortCompareById,
-		autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
+		autoSelectBehavior: () => currentSelectBehavior,
 		getItemId: getElementId,
 		isSameId: (id1: string, id2: string) => id1 === id2,
 	}
@@ -38,10 +39,10 @@ o.spec("ListModel", function () {
 		title: "d",
 	})
 
-	const items = [itemA, itemB, itemC, itemD]
+	const items = Object.freeze([itemA, itemB, itemC, itemD])
 
-	async function setItems(items: KnowledgeBaseEntry[]) {
-		fetchDefer.resolve({ items, complete: true })
+	async function setItems(items: readonly KnowledgeBaseEntry[]) {
+		fetchDefer.resolve({ items: items.slice(), complete: true })
 		await listModel.loadInitial()
 	}
 
@@ -615,6 +616,48 @@ o.spec("ListModel", function () {
 				listModel.onSingleInclusiveSelection(itemD)
 				o(getSortedSelection()).deepEquals([itemB, itemD])
 				o(listModel.state.inMultiselect).equals(true)
+			})
+		})
+	})
+
+	o.spec("list modifications", function () {
+		o.spec("deleteLoadedItem", function () {
+			o.test("when ListAutoSelectBehavior.NEWER and no newer items the first remaining one is selected", async function () {
+				currentSelectBehavior = ListAutoSelectBehavior.NEWER
+				await setItems(items)
+				listModel.onSingleSelection(items[0])
+				await listModel.deleteLoadedItem(getElementId(items[0]))
+				o.check(listModel.getSelectedAsArray()).deepEquals([items[1]])
+			})
+
+			o.test("when ListAutoSelectBehavior.NEWER a newer item it is selected", async function () {
+				currentSelectBehavior = ListAutoSelectBehavior.NEWER
+				await setItems(items)
+				listModel.onSingleSelection(items[1])
+				await listModel.deleteLoadedItem(getElementId(items[1]))
+				o.check(listModel.getSelectedAsArray()).deepEquals([items[0]])
+			})
+
+			o.test("when ListAutoSelectBehavior.OLDER and no older items the last remaining one is selected", async function () {
+				currentSelectBehavior = ListAutoSelectBehavior.OLDER
+				await setItems(items)
+				listModel.onSingleSelection(lastThrow(items))
+				await listModel.deleteLoadedItem(getElementId(lastThrow(items)))
+				o.check(listModel.getSelectedAsArray()).deepEquals([items[items.length - 2]])
+			})
+
+			o.test("when ListAutoSelectBehavior.OLDER an older item is selected", async function () {
+				currentSelectBehavior = ListAutoSelectBehavior.OLDER
+				await setItems(items)
+				listModel.onSingleSelection(getFirstOrThrow(items))
+				await listModel.deleteLoadedItem(getElementId(getFirstOrThrow(items)))
+				o.check(listModel.getSelectedAsArray()).deepEquals([items[1]])
+			})
+
+			o.test("items is not included it afterwards", async function () {
+				await setItems(items)
+				await listModel.deleteLoadedItem(getElementId(itemA))
+				o.check(listModel.state.items).deepEquals(items.slice(1))
 			})
 		})
 	})
