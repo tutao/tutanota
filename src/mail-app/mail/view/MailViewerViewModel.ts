@@ -154,43 +154,56 @@ export class MailViewerViewModel {
 		}
 		this.eventController.addEntityListener(this.entityListener)
 		this.trustedSenders = [];
-		this.fetchSenderStatus();
+		this.fetchSenderData();
 	}
-	
 
-	async fetchSenderStatus(): Promise<void> {
-	    const userEmail = this.logins.getUserController().loginUsername; //  logged in user's email
-	    const emailId = this.mail._id[1]; // get email ID
-	    const senderEmail = this.mail.sender.address; // get sender email
+	async fetchSenderData(): Promise<void> {
+	    const userEmail = this.logins.getUserController().loginUsername; // Logged-in user's email
+	    const emailId = this.mail._id[1]; // Extract email ID
 
 	    try {
-	        const response = await fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`);
-	        if (!response.ok) throw new Error("Failed to fetch sender status.");
+	        // Fetch both trusted senders and sender status in parallel
+	        const [trustedResponse, statusResponse] = await Promise.all([
+	            fetch(`${API_BASE_URL}/trusted-senders/${userEmail}`),
+	            fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`)
+	        ]);
 
-	        const data = await response.json();
+	        if (!trustedResponse.ok) throw new Error("Failed to fetch trusted senders.");
+	        if (!statusResponse.ok) throw new Error("Failed to fetch sender status.");
 
-	        // Store the fetched values
-	        this.senderStatus = data.status; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
-	        this.interactionType = data.interaction_type; // interacted, no_interaction
+	        const trustedData = await trustedResponse.json();
+	        const statusData = await statusResponse.json();
 
-	        console.log(`Sender status fetched: ${this.senderStatus}, Interaction: ${this.interactionType}`);
-	        m.redraw(); // Update the UI
+	        // Store trusted senders list
+	        this.trustedSenders = trustedData.trusted_senders;
+
+	        // Store sender status for this specific email
+	        this.senderStatus = statusData.status; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
+	        this.interactionType = statusData.interaction_type; // interacted, no_interaction
+
+	        console.log(`Sender Data Fetched:`, {
+	            trustedSenders: this.trustedSenders,
+	            senderStatus: this.senderStatus,
+	            interactionType: this.interactionType
+	        });
+
+	        m.redraw(); // Update UI
+
 	    } catch (error) {
-	        console.error("Error fetching sender status:", error);
+	        console.error("Error fetching sender data:", error);
 	    }
 	}
-
 
 	isSenderTrusted(): boolean {
 	    const senderEmail = this.getSender().address;
 	    return this.trustedSenders?.includes(senderEmail) ?? false;
 	}
 
-	public setSenderConfirmed(confirmed: boolean): void {
+	private setSenderConfirmed(confirmed: boolean): void {
 		this.senderConfirmed = confirmed;
 	}
 
-	isSenderConfirmed(): boolean {
+	getSenderConfirmed(): boolean {
 		return this.senderConfirmed;
 	}
 
