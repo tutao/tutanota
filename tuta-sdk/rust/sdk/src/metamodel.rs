@@ -166,10 +166,10 @@ impl TypeModel {
 
 	pub fn get_attribute_id_cardinality(
 		&self,
-		attribute_id: &AttributeId,
+		attribute_id: String,
 	) -> Result<&Cardinality, TypeModelError> {
 		self.associations
-			.get(attribute_id)
+			.get(&(attribute_id.parse::<AttributeId>().unwrap()))
 			.map(|a| &a.cardinality)
 			.ok_or(TypeModelError(format!(
 				"did not find association with attributeId {attribute_id}"

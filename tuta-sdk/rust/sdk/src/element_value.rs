@@ -4,7 +4,7 @@ use crate::id::id_tuple::IdTupleGenerated;
 use crate::GeneratedId;
 
 use crate::date::DateTime;
-use crate::type_model_provider::{AppName, AttributeId};
+use crate::type_model_provider::AttributeId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

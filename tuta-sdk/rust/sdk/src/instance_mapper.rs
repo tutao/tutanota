@@ -15,7 +15,7 @@ use crate::element_value::ElementValue::Array;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
 use crate::metamodel::Cardinality;
-use crate::type_model_provider::{init_type_model_provider, AttributeId};
+use crate::type_model_provider::init_type_model_provider;
 use crate::{CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated, TypeRef};
 
 /// Converter between untyped representations of API Entities and generated structures
@@ -322,30 +322,38 @@ impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
 		V: Visitor<'de>,
 	{
 		if let ElementValue::Array(arr) = self.value {
-			let mut deserialized_seq = ArrayDeserializer {
-				key: self.attribute_id,
-				iter: arr.into_iter(),
-			};
 			let type_model = init_type_model_provider()
 				.resolve_type_ref(&T::type_ref())
 				.ok_or(DeError("some error".to_string()))?;
 			let cardinality: Cardinality = type_model
-				.get_attribute_id_cardinality(self.attribute_id.parse() as &AttributeId)
+				.get_attribute_id_cardinality(self.attribute_id.to_string())
 				.map_err(|e| DeError(e.to_string()))?
 				.clone();
+
+			let mut array_deserializer = ArrayDeserializer {
+				attribute_id: self.attribute_id,
+				iter: arr.into_iter(),
+			};
 			if cardinality == Cardinality::One || cardinality == Cardinality::ZeroOrOne {
-				let value = deserialized_seq.iter.as_slice().first();
-				if value.is_none() && cardinality == Cardinality::One {
+				let element_value: Option<&ElementValue> =
+					array_deserializer.iter.as_slice().first();
+				if let Some(element_value) = element_value {
+					let element_value_deserializer: ElementValueDeserializer<'_, T> =
+						ElementValueDeserializer {
+							value: element_value.to_owned(),
+							attribute_id: self.attribute_id,
+							_phantom: Default::default(),
+						};
+					visitor.visit_some(element_value_deserializer)
+				} else if cardinality == Cardinality::One {
 					Err(DeError(
 						"None value for association with Cardinality One".to_string(),
 					))
 				} else {
-					match value {
-						String -> visitor// TODO maybe to this
-					}
+					visitor.visit_none()
 				}
 			} else {
-				visitor.visit_seq(deserialized_seq)
+				visitor.visit_seq(array_deserializer)
 			}
 		} else {
 			Err(self.wrong_type_err("sequence"))
@@ -424,7 +432,7 @@ impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
 			};
 		}
 		if let ElementValue::Dict(dict) = self.value {
-			let deserializer = DictionaryDeserializer::from_iterable(dict);
+			let deserializer = DictionaryDeserializer::<T, _>::from_iterable(dict);
 			deserializer.deserialize_struct(name, fields, visitor)
 		} else {
 			Err(self.wrong_type_err("dict"))
@@ -436,7 +444,7 @@ impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
 		V: Visitor<'de>,
 	{
 		if let ElementValue::Dict(dict) = self.value {
-			let de = DictionaryDeserializer::from_iterable(dict);
+			let de = DictionaryDeserializer::<T,_>::from_iterable(dict);
 			visitor.visit_map(de)
 		} else {
 			Err(self.wrong_type_err("dict"))
@@ -512,7 +520,7 @@ where
 	I: Iterator<Item = ElementValue>,
 {
 	/// Key under which the entities are. Will be passed to the deserializer for elements.
-	key: &'s str,
+	attribute_id: &'s str,
 	iter: I,
 }
 
@@ -557,7 +565,7 @@ where
 			Some(value) => seed
 				.deserialize(ElementValueDeserializer {
 					value,
-					attribute_id: self.key,
+					attribute_id: self.attribute_id,
 					_phantom: Default::default(),
 				})
 				.map(Some),
