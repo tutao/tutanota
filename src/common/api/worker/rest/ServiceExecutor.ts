@@ -10,7 +10,7 @@ import {
 	PutService,
 	ReturnTypeFromRef,
 } from "../../common/ServiceRequest.js"
-import { Entity } from "../../common/EntityTypes"
+import { Entity, SomeEntity } from "../../common/EntityTypes"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/tutanota-utils"
 import { RestClient } from "./RestClient"
 import { ModelMapper } from "../crypto/ModelMapper"
@@ -165,9 +165,9 @@ export class ServiceExecutor implements IServiceExecutor {
 		const instance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
 		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(instance)) ?? params?.sessionKey ?? null
 
-		return await this.typeMapper
-			.applyJsTypes(responseTypeModel, instance)
-			.then((encryptedParsedInstance) => this.cryptoMapper.decryptParsedInstance(responseTypeModel, encryptedParsedInstance, sessionKey))
-			.then((parsedInstance) => this.modelMapper.applyClientModel(typeRef, parsedInstance))
+		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(responseTypeModel, instance)
+		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(responseTypeModel, encryptedParsedInstance, sessionKey)
+
+		return await this.modelMapper.applyClientModel(typeRef, parsedInstance)
 	}
 }

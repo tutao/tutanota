@@ -100,6 +100,8 @@ import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 import { encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
+import { CryptoMapper } from "../crypto/CryptoMapper"
+import { TypeMapper } from "../crypto/TypeMapper"
 
 assertWorkerOrNode()
 
@@ -192,7 +194,9 @@ export class LoginFacade {
 		private readonly restClient: RestClient,
 		private readonly entityClient: EntityClient,
 		private readonly loginListener: LoginListener,
-		private readonly instanceMapper: ModelMapper,
+		private readonly typeMapper: TypeMapper,
+		private readonly cryptoMapper: CryptoMapper,
+		private readonly modelMapper: ModelMapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly keyRotationFacade: KeyRotationFacade,
 		/**
@@ -1024,7 +1028,9 @@ export class LoginFacade {
 			tempAuthDataProvider,
 			this.restClient,
 			() => this.cryptoFacade,
-			this.instanceMapper,
+			this.typeMapper,
+			this.cryptoMapper,
+			this.modelMapper,
 			this.blobAccessTokenFacade,
 		)
 		const entityClient = new EntityClient(eventRestClient)

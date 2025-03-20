@@ -10,6 +10,7 @@ import {
 	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64UrlToBase64,
+	downcast,
 	getTypeId,
 	groupByAndMapUniquely,
 	mapNullable,
@@ -810,7 +811,9 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	private decodeCborEntity<T extends SomeEntity>(loaded: Uint8Array, typeRef: TypeRef<T>): Promise<T> {
 		const idMappedEntity: ParsedInstance = cborg.decode(loaded, { tags: customTypeDecoders })
-		return this.modelMapper.applyClientModel(typeRef, idMappedEntity)
+		// the entity must be a persistable type and conform to SomeEntity, otherwise it would
+		// not have been stored.
+		return downcast(this.modelMapper.applyClientModel(typeRef, idMappedEntity))
 	}
 
 	private async fixupTypeRefs(typeModel: TypeModel, deserialized: any): Promise<unknown> {
