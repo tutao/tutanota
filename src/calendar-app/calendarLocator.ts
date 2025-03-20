@@ -832,6 +832,9 @@ class CalendarLocator {
 			deviceConfig,
 			!isBrowser() ? this.pushService : null,
 			this.syncTracker,
+			() => {
+				this.systemFacade.requestWidgetRefresh()
+			},
 		)
 	})
 
