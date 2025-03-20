@@ -98,6 +98,11 @@
 			"doc": "Requests the system in-app rating dialog to be displayed",
 			"arg": [],
 			"ret": "void"
+		},
+		"requestWidgetRefresh": {
+			"doc": "Sends a refresh signal to the native side, updating widget last sync",
+			"arg": [],
+			"ret": "void"
 		}
 	}
 }

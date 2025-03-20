@@ -63,4 +63,9 @@ public protocol MobileSystemFacade {
 	 */
 	func requestInAppRating(
 	) async throws -> Void
+	/**
+	 * Sends a refresh signal to the native side, updating widget last sync
+	 */
+	func requestWidgetRefresh(
+	) async throws -> Void
 }

@@ -180,9 +180,17 @@ export class CalendarModel {
 		private readonly deviceConfig: DeviceConfig,
 		private readonly pushService: NativePushServiceApp | null,
 		private readonly syncTracker: SyncTracker,
+		private readonly requestWidgetRefresh: () => void,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
+
+		const syncStatus = syncTracker.isSyncDone.map((isDone) => {
+			if (isDone) {
+				this.requestWidgetRefresh()
+				syncStatus.end()
+			}
+		})
 	}
 
 	getCalendarInfos(): Promise<ReadonlyMap<Id, CalendarInfo>> {
@@ -252,7 +260,7 @@ export class CalendarModel {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
 			// version
-			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
+			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent).then(this.requestWidgetRefresh)
 			return newEvent
 		}
 	}
@@ -570,11 +578,11 @@ export class CalendarModel {
 		// Reset permissions because server will assign them
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
-		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null)
+		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null).then(this.requestWidgetRefresh)
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
-		return await this.entityClient.erase(event)
+		return await this.entityClient.erase(event).then(this.requestWidgetRefresh)
 	}
 
 	/**
@@ -939,7 +947,11 @@ export class CalendarModel {
 			this.entityClient.load<CalendarGroupRoot>(CalendarGroupRootTypeRef, assertNotNull(dbEvent._ownerGroup)),
 		])
 		const alarmInfos = alarms.map((a) => a.alarmInfo)
-		return await this.updateEvent(newEvent, alarmInfos, "", groupRoot, dbEvent)
+		const event = await this.updateEvent(newEvent, alarmInfos, "", groupRoot, dbEvent)
+
+		this.requestWidgetRefresh()
+
+		return event
 	}
 
 	async init(): Promise<void> {

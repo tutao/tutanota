@@ -1,7 +1,6 @@
 package de.tutao.calendar.widget
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -17,7 +16,7 @@ const val WIDGET_SETTINGS_PREFIX = "calendar_widget_settings"
 const val WIDGET_LAST_SYNC_PREFIX = "calendar_widget_last_sync"
 const val WIDGET_SETTINGS_DATASTORE_FILE = "tuta_calendar_widget_settings"
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(WIDGET_SETTINGS_DATASTORE_FILE)
+val Context.widgetDataStore: DataStore<Preferences> by preferencesDataStore(WIDGET_SETTINGS_DATASTORE_FILE)
 
 class WidgetReceiver : GlanceAppWidgetReceiver() {
 	companion object {

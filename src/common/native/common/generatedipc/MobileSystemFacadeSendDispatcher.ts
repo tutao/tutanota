@@ -46,4 +46,7 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async requestInAppRating(...args: Parameters<MobileSystemFacade["requestInAppRating"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "requestInAppRating", ...args])
 	}
+	async requestWidgetRefresh(...args: Parameters<MobileSystemFacade["requestWidgetRefresh"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "requestWidgetRefresh", ...args])
+	}
 }
