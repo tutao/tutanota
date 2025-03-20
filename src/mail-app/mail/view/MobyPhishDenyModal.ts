@@ -7,6 +7,7 @@ import { API_BASE_URL } from "./MailViewerViewModel";
 
 export class MobyPhishDenyModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
+    private step: number = 1; // which step of the modal is being displayed
 
     constructor(viewModel: MailViewerViewModel) {
         this.viewModel = viewModel;
@@ -14,87 +15,112 @@ export class MobyPhishDenyModal implements ModalComponent {
 
     view(): Children {
         return m(".modal-overlay", {
-            onclick: (e: MouseEvent) => this.backgroundClick(e) // Handle background click properly
+            onclick: (e: MouseEvent) => this.backgroundClick(e)
         }, [
             m(".modal-content", {
-                onclick: (e: MouseEvent) => e.stopPropagation() // Prevent modal from closing when clicking inside it
+                onclick: (e: MouseEvent) => e.stopPropagation()
             }, [
                 m(".dialog.elevated-bg.border-radius", {
-                    style: {
-                        position: "fixed",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        padding: "20px",
-                        textAlign: "center",
-                        background: "#fff", // Ensure modal is visible
-                        boxShadow: "0px 4px 10px rgba(0,0,0,0.2)", // Subtle shadow
-                        borderRadius: "10px",
-                        width: "320px", // Fixed width for better appearance
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px" // Adds spacing between buttons
-                    }
-                }, [
-                    // "This is someone else" button
-                    m("button.btn", {
-                        onclick: () => console.log("This is someone else clicked"),
-                        style: this.getButtonStyle("#F8D7DA", "#F5C6CB")
-                    }, "This is Someone Else"),
-
-                    // "Remove from Trusted Senders" button
-                    m("button.btn", {
-                        onclick: async () => {
-                            const senderEmail = this.viewModel.getSender().address;
-                            const userEmail = this.viewModel.logins.getUserController().loginUsername;
-
-                            try {
-                                const response = await fetch(`${API_BASE_URL}/remove-trusted`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ user_email: userEmail, trusted_email: senderEmail }),
-                                });
-
-                                if (response.ok) {
-                                    console.log(`Removed sender: ${senderEmail}`);
-                                    await this.viewModel.fetchSenderData();
-                                    modal.remove(this); 
-                                    m.redraw();
-                                } else {
-                                    console.error(`Failed to remove sender: ${senderEmail}`);
-                                }
-                            } catch (error) {
-                                console.error("Error removing trusted sender:", error);
-                            }
-                        },
-                        style: this.getButtonStyle("#F8D7DA", "#F5C6CB")
-                    }, "Remove from Trusted Senders"),
-
-                    // Cancel button
-                    m("button.btn", {
-                        onclick: () => modal.remove(this),
-                        style: {
-                            background: "transparent",
-                            color: "#000",
-                            border: "none",
-                            padding: "15px",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            width: "100%",
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            textAlign: "center",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                        }
-                    }, "Cancel")
-                ])
+                    style: this.getModalStyle()
+                }, this.step === 1 ? this.renderFirstStep() : this.renderSecondStep())
             ])
         ]);
     }
 
-    // Reusable button styling function
+    /** Step 1: First modal screen */
+    private renderFirstStep(): Children {
+        return [
+            m("button.btn", {
+                onclick: () => {
+                    this.step = 2; // Move to the second step
+                    m.redraw(); // Redraw the modal with new content
+                },
+                style: this.getButtonStyle("#F8D7DA", "#F5C6CB")
+            }, "This is Someone Else"),
+
+            m("button.btn", {
+                onclick: async () => {
+                    const senderEmail = this.viewModel.getSender().address;
+                    const userEmail = this.viewModel.logins.getUserController().loginUsername;
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/remove-trusted`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ user_email: userEmail, trusted_email: senderEmail }),
+                        });
+
+                        if (response.ok) {
+                            console.log(`Removed sender: ${senderEmail}`);
+                            await this.viewModel.fetchSenderData();
+                            modal.remove(this); 
+                            m.redraw();
+                        } else {
+                            console.error(`Failed to remove sender: ${senderEmail}`);
+                        }
+                    } catch (error) {
+                        console.error("Error removing trusted sender:", error);
+                    }
+                },
+                style: this.getButtonStyle("#F8D7DA", "#F5C6CB")
+            }, "Remove from Trusted Senders"),
+
+            m("button.btn", {
+                onclick: () => modal.remove(this),
+                style: this.getCancelButtonStyle()
+            }, "Cancel")
+        ];
+    }
+
+    /** Step 2: Confirmation modal */
+    private renderSecondStep(): Children {
+        return [
+            m("p", { style: { fontSize: "18px", fontWeight: "bold", textAlign: "center" } }, 
+                "Do you want to add this person as a known sender?"
+            ),
+
+            m("button.btn", {
+                onclick: async () => {
+                    const senderEmail = this.viewModel.getSender().address;
+                    const userEmail = this.viewModel.logins.getUserController().loginUsername;
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/add-trusted`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ user_email: userEmail, trusted_email: senderEmail }),
+                        });
+
+                        if (response.ok) {
+                            console.log(`Added sender: ${senderEmail}`);
+                            await this.viewModel.updateSenderStatus("added_to_trusted", "interacted");
+                            await this.viewModel.fetchSenderData();
+                            modal.remove(this);
+                            m.redraw();
+                        } else {
+                            console.error(`Failed to add sender: ${senderEmail}`);
+                        }
+                    } catch (error) {
+                        console.error("Error adding trusted sender:", error);
+                    }
+                },
+                style: this.getButtonStyle("#D4EDDA", "#C3E6CB")
+            }, "Add"),
+
+            m("button.btn", {
+                onclick: async () => {
+                    const senderEmail = this.viewModel.getSender().address;
+                    await this.viewModel.updateSenderStatus("denied", "interacted");
+                    console.log(`Sender denied: ${senderEmail}`);
+                    modal.remove(this);
+                    m.redraw();
+                },
+                style: this.getCancelButtonStyle()
+            }, "Continue without adding")
+        ];
+    }
+
+    /** Reusable button styling */
     private getButtonStyle(defaultColor: string, hoverColor: string) {
         return {
             background: defaultColor,
@@ -112,6 +138,44 @@ export class MobyPhishDenyModal implements ModalComponent {
             justifyContent: "center",
             onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = hoverColor,
             onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = defaultColor
+        };
+    }
+
+    /** Cancel button styling */
+    private getCancelButtonStyle() {
+        return {
+            background: "transparent",
+            color: "#000",
+            border: "none",
+            padding: "15px",
+            borderRadius: "8px",
+            cursor: "pointer",
+            width: "100%",
+            fontSize: "16px",
+            fontWeight: "bold",
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+        };
+    }
+
+    /** Modal styling */
+    private getModalStyle() {
+        return {
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            padding: "20px",
+            textAlign: "center",
+            background: "#fff",
+            boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+            borderRadius: "10px",
+            width: "320px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px"
         };
     }
 
