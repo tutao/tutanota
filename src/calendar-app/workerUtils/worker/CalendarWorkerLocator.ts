@@ -337,6 +337,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		 */
 		new EntityClient(locator.cache),
 		loginListener,
+		locator.typeMapper,
+		locator.cryptoMapper,
 		locator.modelMapper,
 		locator.crypto,
 		locator.keyRotation,
@@ -392,7 +394,17 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
-		return new BlobFacade(locator.restClient, suspensionHandler, fileApp, aesApp, locator.modelMapper, locator.crypto, locator.blobAccessToken)
+		return new BlobFacade(
+			locator.restClient,
+			suspensionHandler,
+			fileApp,
+			aesApp,
+			locator.typeMapper,
+			locator.cryptoMapper,
+			locator.modelMapper,
+			locator.crypto,
+			locator.blobAccessToken,
+		)
 	})
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("../../../common/api/worker/facades/lazy/MailFacade.js")
