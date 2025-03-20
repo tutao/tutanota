@@ -165,7 +165,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 				const isDarkTheme = !isColorLight(theme.content_bg)
 				return m(
 					".ribbon-horizontal.nota",
-					m(".text-center.b", { style: { padding: px(3), color: isDarkTheme ? theme.content_fg : undefined } }, lang.get("oneMonthTrial_label")),
+					m(".text-center.b", { style: { padding: px(3), color: isDarkTheme ? "#fff" : undefined } }, lang.get("oneMonthTrial_label")),
 				)
 			}
 
