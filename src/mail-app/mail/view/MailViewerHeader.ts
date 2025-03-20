@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang, InfoLink, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander.js"
@@ -35,8 +35,6 @@ import { px, size } from "../../../common/gui/size.js"
 import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
 import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
-import type { InfoLink, TranslationKey } from "../../misc/LanguageViewModel.js"
-
 
 
 export type MailAddressDropdownCreator = (args: {
