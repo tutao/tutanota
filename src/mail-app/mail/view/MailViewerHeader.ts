@@ -777,13 +777,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		    };
 
         	const denyButton: BannerButtonAttrs = {
-    	        title: "mobyPhish_confirm",
+    	        title: "mobyPhish_deny",
         	 	label: "emptyString_msg",
     	        icon: m(Icon, { icon: Icons.Close}),
-    	        click: (event: MouseEvent) => {
-    	        	console.log("User denied sender:", senderEmail);
-    	            modal.display(new MobyPhishDenyModal());
-    	        },
+    	        click: () => modal.display(new MobyPhishDenyModal(viewModel)),
     		    style: {
     		        backgroundColor: "red",
     		        color: "white",

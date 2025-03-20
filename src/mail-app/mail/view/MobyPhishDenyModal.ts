@@ -2,8 +2,16 @@ import m, { Children } from "mithril";
 import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
+import { MailViewerViewModel } from "./MailViewerViewModel";
+import { API_BASE_URL } from "./MailViewerViewModel";
 
 export class MobyPhishDenyModal implements ModalComponent {
+    private viewModel: MailViewerViewModel;
+
+    constructor(viewModel: MailViewerViewModel) {
+        this.viewModel = viewModel;
+    }
+
     view(): Children {
         return m(".modal-overlay", {
             onclick: (e: MouseEvent) => this.backgroundClick(e) // Handle background click properly
@@ -28,48 +36,41 @@ export class MobyPhishDenyModal implements ModalComponent {
                         gap: "10px" // Adds spacing between buttons
                     }
                 }, [
+                    // "This is someone else" button
                     m("button.btn", {
                         onclick: () => console.log("This is someone else clicked"),
-                        style: {
-                            background: "#F8D7DA", 
-                            color: "#000",
-                            border: "none",
-                            padding: "15px",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            width: "100%", 
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            textAlign: "center", 
-                            display: "flex", 
-                            alignItems: "center", 
-                            justifyContent: "center"
-                        },
-                        onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F5C6CB",
-                        onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F8D7DA"
+                        style: this.getButtonStyle("#F8D7DA", "#F5C6CB")
                     }, "This is Someone Else"),
 
+                    // "Remove from Trusted Senders" button
                     m("button.btn", {
-                        onclick: () => console.log("Remove from Trusted Senders clicked"),
-                        style: {
-                            background: "#F8D7DA", // Soft red
-                            color: "#000",
-                            border: "none",
-                            padding: "15px",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                            width: "100%", // Full-width buttons
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            textAlign: "center", 
-                            display: "flex", 
-                            alignItems: "center", 
-                            justifyContent: "center"
+                        onclick: async () => {
+                            const senderEmail = this.viewModel.getSender().address;
+                            const userEmail = this.viewModel.logins.getUserController().loginUsername;
+
+                            try {
+                                const response = await fetch(`${API_BASE_URL}/remove-trusted`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ user_email: userEmail, trusted_email: senderEmail }),
+                                });
+
+                                if (response.ok) {
+                                    console.log(`Removed sender: ${senderEmail}`);
+                                    await this.viewModel.fetchSenderData();
+                                    modal.remove(this); 
+                                    m.redraw();
+                                } else {
+                                    console.error(`Failed to remove sender: ${senderEmail}`);
+                                }
+                            } catch (error) {
+                                console.error("Error removing trusted sender:", error);
+                            }
                         },
-                        onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F5C6CB",
-                        onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = "#F8D7DA"
+                        style: this.getButtonStyle("#F8D7DA", "#F5C6CB")
                     }, "Remove from Trusted Senders"),
 
+                    // Cancel button
                     m("button.btn", {
                         onclick: () => modal.remove(this),
                         style: {
@@ -79,18 +80,39 @@ export class MobyPhishDenyModal implements ModalComponent {
                             padding: "15px",
                             borderRadius: "8px",
                             cursor: "pointer",
-                            width: "100%", 
+                            width: "100%",
                             fontSize: "16px",
                             fontWeight: "bold",
-                            textAlign: "center", 
-                            display: "flex", 
-                            alignItems: "center", 
+                            textAlign: "center",
+                            display: "flex",
+                            alignItems: "center",
                             justifyContent: "center"
                         }
                     }, "Cancel")
                 ])
             ])
         ]);
+    }
+
+    // Reusable button styling function
+    private getButtonStyle(defaultColor: string, hoverColor: string) {
+        return {
+            background: defaultColor,
+            color: "#000",
+            border: "none",
+            padding: "15px",
+            borderRadius: "8px",
+            cursor: "pointer",
+            width: "100%",
+            fontSize: "16px",
+            fontWeight: "bold",
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = hoverColor,
+            onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = defaultColor
+        };
     }
 
     hideAnimation(): Promise<void> {
