@@ -108,7 +108,9 @@ export class InstanceWrapper {
 		}
 
 		let bucketKey: Nullable<BucketKey> = null
-		const bucketKeyLiteral = InstanceWrapper.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)
+		const bucketKeyLiteral = downcast<ParsedInstance>(
+			InstanceWrapper.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel),
+		)
 		if (bucketKeyLiteral) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
 			bucketKey = await instanceMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)

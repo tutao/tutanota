@@ -57,7 +57,7 @@ function assertCompatibleModelTypes(typeRef: TypeRef<unknown>, attrId: string, f
 export class ModelMapper {
 	constructor(private readonly serverTypes: TypeReferenceResolver, private readonly clientTypes: TypeReferenceResolver) {}
 
-	async applyClientModel<T extends SomeEntity>(typeRef: TypeRef<unknown>, parsedInstance: ParsedInstance): Promise<T> {
+	async applyClientModel<T extends Entity>(typeRef: TypeRef<unknown>, parsedInstance: ParsedInstance): Promise<T> {
 		const clientTypeModel = await this.clientTypes(typeRef)
 		// fixme: what if the server has a new type?
 		const serverTypeModel = await this.serverTypes(typeRef)

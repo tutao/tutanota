@@ -463,6 +463,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cache as EntityRestCache,
 		locator.user,
 		locator.cachingEntityClient,
+		locator.typeMapper,
+		locator.cryptoMapper,
 		locator.modelMapper,
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),

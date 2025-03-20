@@ -37,6 +37,8 @@ import { encryptBytes } from "../../crypto/CryptoWrapper.js"
 import { BlobReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
+import { TypeMapper } from "../../crypto/TypeMapper"
+import { CryptoMapper } from "../../crypto/CryptoMapper"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -63,7 +65,9 @@ export class BlobFacade {
 		private readonly suspensionHandler: SuspensionHandler,
 		private readonly fileApp: NativeFileApp,
 		private readonly aesApp: AesApp,
-		private readonly instanceMapper: ModelMapper,
+		private readonly typeMapper: TypeMapper,
+		private readonly cryptoMapper: CryptoMapper,
+		private readonly modelMapper: ModelMapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}
@@ -352,7 +356,9 @@ export class BlobFacade {
 	private async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
 		const responseTypeModel = await resolveTypeReference(BlobPostOutTypeRef)
 		const instance = JSON.parse(jsonData)
-		const { blobReferenceToken } = await this.instanceMapper.decryptAndMapToInstance<BlobPostOut>(responseTypeModel, instance, null)
+		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(responseTypeModel, instance)
+		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(responseTypeModel, encryptedParsedInstance, null)
+		const { blobReferenceToken } = await this.modelMapper.applyClientModel<BlobPostOut>(BlobPostOutTypeRef, parsedInstance)
 		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk
 		// post single always has a valid blobRefernceToken with cardinality one.
 		if (blobReferenceToken == null) {
@@ -393,8 +399,10 @@ export class BlobFacade {
 			blobIds: blobs.map(({ blobId }) => createBlobId({ blobId: blobId })),
 		})
 		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
-		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)
-		const body = JSON.stringify(literalGetData)
+		const parsedInstance = await this.modelMapper.applyServerModel(BlobGetInTypeRef, getData)
+		const encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(BlobGetInTypeModel, parsedInstance, null)
+		const untypedInstance = await this.typeMapper.applyDbTypes(BlobGetInTypeModel, encryptedParsedInstance)
+		const body = JSON.stringify(untypedInstance)
 		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
 		const concatBinaryData = await tryServers(
 			blobServerAccessInfo.servers,
@@ -422,8 +430,10 @@ export class BlobFacade {
 			blobIds: [],
 		})
 		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
-		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)
-		const _body = JSON.stringify(literalGetData)
+		const parsedInstance = await this.modelMapper.applyServerModel(BlobGetInTypeRef, getData)
+		const encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(BlobGetInTypeModel, parsedInstance, null)
+		const untypedInstance = await this.typeMapper.applyDbTypes(BlobGetInTypeModel, encryptedParsedInstance)
+		const _body = JSON.stringify(untypedInstance)
 
 		const blobFilename = blobId + ".blob"
 

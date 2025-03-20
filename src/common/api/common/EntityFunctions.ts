@@ -110,7 +110,7 @@ export class AttributeModel {
 		gossip: new Map(),
 		monitor: new Map(),
 		usage: new Map(),
-		accouting: new Map(),
+		accounting: new Map(),
 		sys: new Map(),
 		storage: new Map(),
 	}
