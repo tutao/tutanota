@@ -59,7 +59,7 @@ import androidx.glance.unit.ColorProvider
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.UIEvent
-import de.tutao.calendar.widget.data.WidgetRepository
+import de.tutao.calendar.widget.data.WidgetDataRepository
 import de.tutao.calendar.widget.data.WidgetStateDefinition
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.data.WidgetUIViewModel
@@ -77,27 +77,18 @@ import java.time.format.DateTimeFormatter
 
 const val TAG = "VerticalWidget"
 
-class VerticalWidget : GlanceAppWidget() {
-	companion object {
-		val KEY_USER_ID = stringPreferencesKey("user_id")
-		val KEY_SELECTED_CALENDAR = stringPreferencesKey("selected_calendars")
-	}
-
+class Agenda : GlanceAppWidget() {
 	override val stateDefinition: GlanceStateDefinition<*> = WidgetStateDefinition()
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
-		// Load data needed to render the AppWidget.
-		// Use `withContext` to switch to another thread for long running
-		// operations.
-
 		val db = AppDatabase.getDatabase(context, true)
 		val keyStoreFacade = createAndroidKeyStoreFacade()
 		val sseStorage = SseStorage(db, keyStoreFacade)
 		val crypto = AndroidNativeCryptoFacade(context)
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
-		val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient())
+		val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()) // FIXME Change SSE Origin for something else
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
-		val widgetUIViewModel = WidgetUIViewModel(WidgetRepository(), appWidgetId, nativeCredentialsFacade, sdk)
+		val widgetUIViewModel = WidgetUIViewModel(WidgetDataRepository(), appWidgetId, nativeCredentialsFacade, sdk)
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
 		val settingsPreferencesKey = stringPreferencesKey("${WIDGET_SETTINGS_PREFIX}_$appWidgetId")
@@ -105,7 +96,6 @@ class VerticalWidget : GlanceAppWidget() {
 
 		widgetUIViewModel.loadUIState(context)
 
-		Log.d(TAG, "Loading UI State")
 		provideContent {
 			val data by widgetUIViewModel.uiState.collectAsState()
 			val preferences = currentState<Preferences>()
@@ -282,14 +272,15 @@ class VerticalWidget : GlanceAppWidget() {
 					modifier = GlanceModifier.defaultWeight()
 				) {
 					if (hasAllDayEvent) {
-						val isLightBg = ColorUtils.calculateLuminance(Color.Blue.toArgb()) > 0.5
+						val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
+						val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
 						val allDayIconColor =
 							if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface
 						Image(
 							provider = ImageProvider(R.drawable.ic_all_day),
 							contentDescription = "Add event button",
 							colorFilter = ColorFilter.tint(ColorProvider(allDayIconColor)),
-							modifier = GlanceModifier.size(16.dp).background(Color.Blue).cornerRadius(10.dp)
+							modifier = GlanceModifier.size(16.dp).background(calendarColor).cornerRadius(10.dp)
 								.padding(2.dp)
 						)
 					}

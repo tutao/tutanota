@@ -83,8 +83,8 @@ import androidx.core.graphics.toColorInt
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
+import de.tutao.calendar.widget.data.WidgetConfigRepository
 import de.tutao.calendar.widget.data.WidgetConfigViewModel
-import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.SdkRestClient
@@ -117,7 +117,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 			set(WidgetConfigViewModel.APPLICATION_EXTRA_KEY, application)
 			set(WidgetConfigViewModel.CREDENTIALS_FACADE_EXTRA_KEY, credentialsFacade)
 			set(WidgetConfigViewModel.SDK_EXTRA_KEY, sdk)
-			set(WidgetConfigViewModel.REPOSITORY_EXTRA_KEY, WidgetRepository())
+			set(WidgetConfigViewModel.REPOSITORY_EXTRA_KEY, WidgetConfigRepository())
 		}
 	}
 
@@ -198,7 +198,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 										Log.d("WidgetConfigActivity", "GlobalScope coroutine start")
 
 										val manager = GlanceAppWidgetManager(activityContext)
-										val widget = VerticalWidget()
+										val widget = Agenda()
 										val glanceIds = manager.getGlanceIds(widget.javaClass)
 										glanceIds.forEach { glanceId ->
 											widget.update(context, glanceId)

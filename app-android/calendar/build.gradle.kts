@@ -246,20 +246,18 @@ dependencies {
 	implementation("androidx.compose.material:material-icons-core")
 	// Optional - Add full set of material icons
 	implementation("androidx.compose.material:material-icons-extended")
-	// Optional - Add window size utils
-	// implementation("androidx.compose.material3.adaptive:adaptive")
 
 	// Optional - Integration with activities
-	implementation("androidx.activity:activity-compose:1.10.0")
+	implementation("androidx.activity:activity-compose:1.10.1")
 	// Optional - Integration with ViewModels
 	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-	// Optional - Integration with LiveData
-	implementation("androidx.compose.runtime:runtime-livedata")
-	// Optional - Integration with RxJava
-	implementation("androidx.compose.runtime:runtime-rxjava2")
+
+	// Jetpack WorkManager for background sync
+	implementation("androidx.work:work-runtime-ktx:2.10.0")
+
 
 	// For interop APIs with Material 3
-	implementation("androidx.glance:glance-material3:1.1.0")
+	implementation("androidx.glance:glance-material3:1.1.1")
 
 	// For AppWidgets support and preview
 	implementation("androidx.glance:glance:1.1.1")

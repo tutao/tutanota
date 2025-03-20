@@ -121,14 +121,14 @@
 		<receiver
 				android:name=".widget.WidgetReceiver"
 				android:exported="true"
-				android:label="V1"
+				android:label="Agenda"
 				>
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
 			</intent-filter>
 			<meta-data
 					android:name="android.appwidget.provider"
-					android:resource="@xml/my_app_widget_info"/>
+					android:resource="@xml/agenda"/>
 		</receiver>
 
 		<activity

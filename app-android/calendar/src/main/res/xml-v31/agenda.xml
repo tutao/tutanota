@@ -3,7 +3,7 @@
 					android:minHeight="110dp"
 					android:targetCellWidth="3"
 					android:targetCellHeight="2"
-					android:updatePeriodMillis="3600000"
+					android:updatePeriodMillis="0"
 					android:description="@string/app_name"
 					android:initialLayout="@layout/glance_default_loading_layout"
 					android:resizeMode="horizontal|vertical"

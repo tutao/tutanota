@@ -3,10 +3,6 @@ package de.tutao.calendar.widget.data
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
