@@ -57,7 +57,7 @@ import { TutanotaError } from "@tutao/tutanota-error"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { AlarmService } from "../../../entities/sys/Services.js"
 import { CalendarService } from "../../../entities/tutanota/Services.js"
-import { AttributeModel, resolveTypeReference } from "../../../common/EntityFunctions.js"
+import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { UserFacade } from "../UserFacade.js"
 import { EncryptedAlarmNotification, NotificationSessionKey } from "../../../../native/common/EncryptedAlarmNotification.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
@@ -79,6 +79,7 @@ import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils
 import { TypeMapper } from "../../crypto/TypeMapper"
 import { CryptoMapper } from "../../crypto/CryptoMapper"
 import { EncryptedParsedInstance, TypeModel } from "../../../common/EntityTypes"
+import { AttributeModel } from "../../../common/AttributeModel"
 
 assertWorkerOrNode()
 

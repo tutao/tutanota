@@ -50,7 +50,7 @@ import {
 import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
-import type { Entity, ParsedInstance, SomeEntity } from "../../common/EntityTypes"
+import type { EncryptedParsedInstance, Entity, ParsedInstance, SomeEntity } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
@@ -564,19 +564,19 @@ export class CryptoFacade {
 	 * the entity must already have an _ownerGroup
 	 * @returns the generated key
 	 */
-	async setNewOwnerEncSessionKey(instannceWrapper: InstanceWrapper, keyToEncryptSessionKey?: VersionedKey): Promise<void> {
-		if (instannceWrapper._ownerGroup == null) {
-			throw new Error(`no owner group set  for type ${instannceWrapper.typeRef} with id: ${instannceWrapper.id}`)
+	async setNewOwnerEncSessionKey(instanceWrapper: InstanceWrapper, keyToEncryptSessionKey?: VersionedKey): Promise<void> {
+		if (instanceWrapper._ownerGroup == null) {
+			throw new Error(`no owner group set  for type ${instanceWrapper.typeRef} with id: ${instanceWrapper.id}`)
 		}
 
-		if (instannceWrapper.typeModel.encrypted) {
+		if (instanceWrapper.typeModel.encrypted) {
 			const newSessionKey = aes256RandomKey()
-			instannceWrapper.setResolvedSessionKey(newSessionKey)
+			instanceWrapper.setResolvedSessionKey(newSessionKey)
 
-			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? (await this.keyLoaderFacade.getCurrentSymGroupKey(instannceWrapper._ownerGroup))
+			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? (await this.keyLoaderFacade.getCurrentSymGroupKey(instanceWrapper._ownerGroup))
 			const encryptedSessionKey = encryptKeyWithVersionedKey(effectiveKeyToEncryptSessionKey, newSessionKey)
 
-			this.setOwnerEncSessionKey(instannceWrapper, encryptedSessionKey, instannceWrapper._ownerGroup)
+			this.setOwnerEncSessionKey(instanceWrapper, encryptedSessionKey, instanceWrapper._ownerGroup)
 		}
 	}
 
@@ -784,7 +784,7 @@ export class CryptoFacade {
 	 * @param data
 	 * @return the unmapped and still encrypted instance
 	 */
-	async applyMigrations(instanceWrapper: InstanceWrapper) {
+	async applyMigrations(instanceWrapper: EncryptedParsedInstance) {
 		if (isSameTypeRef(instanceWrapper.typeRef, GroupInfoTypeRef) && instanceWrapper._ownerGroup == null) {
 			await this.applyCustomerGroupOwnershipToGroupInfo(instanceWrapper)
 		} else if (isSameTypeRef(instanceWrapper.typeRef, TutanotaPropertiesTypeRef) && instanceWrapper._ownerEncSessionKey == null) {

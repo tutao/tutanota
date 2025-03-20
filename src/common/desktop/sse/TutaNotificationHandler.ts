@@ -16,10 +16,11 @@ import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
-import { AttributeModel, resolveTypeReference } from "../../api/common/EntityFunctions"
+import { resolveTypeReference } from "../../api/common/EntityFunctions"
 import { StrippedEntity } from "../../api/common/utils/EntityUtils"
 import { TypeMapper } from "../../api/worker/crypto/TypeMapper"
 import { EncryptedParsedInstance, TypeModel, UntypedInstance } from "../../api/common/EntityTypes"
+import { AttributeModel } from "../../api/common/AttributeModel"
 
 const TAG = "[notifications]"
 

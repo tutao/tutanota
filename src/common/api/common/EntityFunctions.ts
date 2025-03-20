@@ -1,5 +1,5 @@
 import { Type } from "./EntityConstants.js"
-import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
+import { TypeRef } from "@tutao/tutanota-utils"
 import type { TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
@@ -17,10 +17,6 @@ import accountingModelInfo from "../entities/accounting/ModelInfo.js"
 import gossipModelInfo from "../entities/gossip/ModelInfo.js"
 import storageModelInfo from "../entities/storage/ModelInfo.js"
 import usageModelInfo from "../entities/usage/ModelInfo.js"
-import { ProgrammingError } from "./error/ProgrammingError"
-import { AttributeId, AttributeName, TypeId } from "../worker/crypto/ModelMapper"
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export const enum HttpMethod {
 	GET = "GET",
@@ -50,19 +46,6 @@ export const typeModels = Object.freeze({
 	storage: storageTypeModels,
 	usage: usageTypeModels,
 } as const)
-
-// Record<appName, Map<typeId, Map<attrName, attrId>>>
-let typeIdToAttributeNameMap: Record<string, Map<number, Map<string, number>>> = {
-	// Map<typeId, Map<attrName, attrId>>
-	base: new Map(),
-	sys: new Map(),
-	tutanota: new Map(),
-	monitor: new Map<number, Map<string, number>>(),
-	accounting: new Map<number, Map<string, number>>(),
-	gossip: new Map<number, Map<string, number>>(),
-	storage: new Map<number, Map<string, number>>(),
-	usage: new Map<number, Map<string, number>>(),
-}
 
 export const modelInfos = {
 	base: baseModelInfo,
@@ -100,59 +83,5 @@ export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeM
 export function _verifyType(typeModel: TypeModel) {
 	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement && typeModel.type !== Type.BlobElement) {
 		throw new Error("only Element, ListElement and BlobElement types are permitted, was: " + typeModel.type)
-	}
-}
-
-export class AttributeModel {
-	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
-		base: new Map(),
-		tutanota: new Map(),
-		gossip: new Map(),
-		monitor: new Map(),
-		usage: new Map(),
-		accounting: new Map(),
-		sys: new Map(),
-		storage: new Map(),
-	}
-
-	private static getResolvedAttributeId(typeModel: TypeModel, attrName: string): number | null {
-		const typeIdMap = typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)
-		if (typeIdMap == null) {
-			throw new ProgrammingError(`Unknown type: ${typeModel.app}/${typeModel.name}`)
-		}
-
-		return typeIdMap.get(attrName) ?? null
-	}
-
-	private static computeAttributeIdsForTypeIfNotExists(typeModel: TypeModel) {
-		if (!AttributeModel.typeIdToAttributeNameMap[typeModel.app].has(typeModel.id)) {
-			AttributeModel.computeAttributeIdsForType(typeModel)
-		}
-	}
-
-	private static computeAttributeIdsForType(typeModel: TypeModel) {
-		let attributeNameToAttributeId: Map<string, number> = new Map()
-		for (const [valueId, value] of Object.entries(typeModel.values)) {
-			attributeNameToAttributeId.set(value.name, parseInt(valueId))
-		}
-		for (const [associationId, association] of Object.entries(typeModel.associations)) {
-			attributeNameToAttributeId.set(association.name, parseInt(associationId))
-		}
-
-		typeIdToAttributeNameMap[typeModel.app].set(typeModel.id, attributeNameToAttributeId)
-	}
-
-	public static isKnownAttribute(typeModel: TypeModel, attributeName: string): boolean {
-		AttributeModel.computeAttributeIdsForTypeIfNotExists(typeModel)
-		return AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)?.has(attributeName) ?? false
-	}
-
-	public static getAttributeId(typeModel: TypeModel, attributeName: string): number | null {
-		if (AttributeModel.isKnownAttribute(typeModel, attributeName)) {
-			AttributeModel.computeAttributeIdsForTypeIfNotExists(typeModel)
-			return assertNotNull(AttributeModel.getResolvedAttributeId(typeModel, attributeName))
-		}
-
-		return null
 	}
 }

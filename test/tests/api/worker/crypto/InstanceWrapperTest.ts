@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { AttributeModel, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
+import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { ImportMailGetInTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../TestUtils"
-import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
+import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { BucketKeyTypeRef, GroupInfoTypeRef, GroupTypeRef, PermissionTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { InstanceWrapper } from "../../../../../src/common/api/worker/crypto/InstanceWrapper"
@@ -10,6 +10,7 @@ import { VersionedEncryptedKey } from "../../../../../src/common/api/worker/cryp
 import { PermissionType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { EncryptedParsedInstance, ParsedInstance, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 o.spec("InstanceWrapperTest", () => {
 	const instanceMapper = new ModelMapper()

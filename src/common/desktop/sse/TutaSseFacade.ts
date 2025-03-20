@@ -23,11 +23,12 @@ import { SseInfo } from "./SseInfo.js"
 import { FetchImpl } from "../net/NetAgent"
 import { ModelMapper } from "../../api/worker/crypto/ModelMapper"
 import { EncryptedParsedInstance, ParsedInstance, TypeModel, UntypedInstance } from "../../api/common/EntityTypes"
-import { AttributeModel, resolveTypeReference } from "../../api/common/EntityFunctions"
+import { resolveTypeReference } from "../../api/common/EntityFunctions"
 import { TypeMapper } from "../../api/worker/crypto/TypeMapper"
 import { CryptoMapper } from "../../api/worker/crypto/CryptoMapper"
 import { StrippedEntity } from "../../api/common/utils/EntityUtils"
 import { OperationType } from "../../api/common/TutanotaConstants"
+import { AttributeModel } from "../../api/common/AttributeModel"
 
 const log = makeTaggedLogger("[SSEFacade]")
 

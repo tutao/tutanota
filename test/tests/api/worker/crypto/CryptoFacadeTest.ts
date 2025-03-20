@@ -87,7 +87,7 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { matchers, object, verify, when } from "testdouble"
 import { UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { elementIdPart, getListId, isSameId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { AttributeModel, HttpMethod, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
@@ -105,6 +105,7 @@ import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/
 import { InstanceWrapper } from "../../../../../src/common/api/worker/crypto/InstanceWrapper"
 import { CryptoMapper } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
 import { TypeMapper } from "../../../../../src/common/api/worker/crypto/TypeMapper"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 const { captor, anything, argThat } = matchers
 

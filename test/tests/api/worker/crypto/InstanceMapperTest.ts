@@ -14,7 +14,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { AttributeModel, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { Mail, MailAddressTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { configureLoggedInUser, createEnryptedUntypedMailInstance, createTestUser } from "./CryptoFacadeTest.js"
@@ -24,6 +24,7 @@ import { object } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { decryptValue, encryptValue, CryptoMapper } from "../../../../../src/common/api/worker/crypto/CryptoMapper"
 import { Type } from "../../../../../src/common/api/common/EntityConstants"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 const testTypeModel: TypeModel = {
 	app: "tutanota",

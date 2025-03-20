@@ -3,15 +3,14 @@ import { BucketKey, BucketKeyTypeRef, Permission } from "../../entities/sys/Type
 import { AesKey } from "@tutao/tutanota-crypto"
 import { Base64, TypeRef } from "@tutao/tutanota-utils"
 import type { EncryptedParsedInstance, ParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { ModelMapper } from "./ModelMapper"
 import { VersionedEncryptedKey } from "./CryptoWrapper"
 import { elementIdPart } from "../../common/utils/EntityUtils"
-import { AttributeModel, resolveTypeReference } from "../../common/EntityFunctions"
+import { resolveTypeReference } from "../../common/EntityFunctions"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { PermissionType } from "../../common/TutanotaConstants"
 import { typeRefToRestPath } from "../rest/EntityRestClient"
-import { TypeMapper } from "./TypeMapper"
-import { CryptoMapper } from "./CryptoMapper"
+import { InstancePipeline } from "./InstancePipeline"
+import { AttributeModel } from "../../common/AttributeModel"
 
 export class InstanceWrapper {
 	public readonly elementId: Nullable<Id>
@@ -23,9 +22,7 @@ export class InstanceWrapper {
 		private readonly localInstance: boolean, // local instances are created on the client or read from offline DB. They have not directly been retrieved from the server
 		public readonly typeRef: TypeRef<unknown>,
 		public readonly typeModel: TypeModel,
-		private readonly instanceMapper: ModelMapper,
-		private readonly typeMapper: TypeMapper,
-		private readonly cryptoMapper: CryptoMapper,
+		private readonly instancePipeline: InstancePipeline,
 		public readonly id: Nullable<Id | IdTuple>,
 		// fixme: make this private?
 		public readonly instance: ParsedInstance | EncryptedParsedInstance,
@@ -47,50 +44,40 @@ export class InstanceWrapper {
 		this.resolvedSessionKey = null
 	}
 
-	static async fromParsedInstance(
-		instanceMapper: ModelMapper,
-		typeMapper: TypeMapper,
-		cryptoMapper: CryptoMapper,
-		typeModel: TypeModel,
-		decryptedInstance: ParsedInstance,
-	): Promise<InstanceWrapper> {
+	static async fromParsedInstance(instancePipeline: InstancePipeline, typeModel: TypeModel, decryptedInstance: ParsedInstance): Promise<InstanceWrapper> {
 		const localInstance = true
-		return await this.from(typeModel, decryptedInstance, instanceMapper, typeMapper, cryptoMapper, localInstance)
+		return await this.from(typeModel, decryptedInstance, instancePipeline, localInstance)
 	}
 
 	static async fromEncryptedParsedInstance(
-		instanceMapper: ModelMapper,
-		typeMapper: TypeMapper,
-		cryptoMapper: CryptoMapper,
+		instancePipeline: InstancePipeline,
 		typeModel: TypeModel,
 		encryptedParsedInstance: EncryptedParsedInstance,
 	): Promise<InstanceWrapper> {
 		const localInstance = false
-		return await this.from(typeModel, encryptedParsedInstance, instanceMapper, typeMapper, cryptoMapper, localInstance)
+		return await this.from(typeModel, encryptedParsedInstance, instancePipeline, localInstance)
 	}
 
 	private static async from(
 		typeModel: TypeModel,
 		encryptedParsedInstance: EncryptedParsedInstance,
-		instanceMapper: ModelMapper,
-		typeMapper: TypeMapper,
-		cryptoMapper: CryptoMapper,
+		instancePipeline: InstancePipeline,
 		localInstance: boolean,
 	) {
 		const typeRef = new TypeRef<SomeEntity>(typeModel.app, typeModel.id)
 
-		const id = InstanceWrapper.getAttributeorNull<Id | IdTuple>(encryptedParsedInstance, "_id", typeModel)
+		const id = AttributeModel.getAttributeorNull<Id | IdTuple>(encryptedParsedInstance, "_id", typeModel)
 		if (!localInstance) {
 			assertNotNull(id)
 		}
-		const _ownerGroup = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "_ownerGroup", typeModel)
-		const permission = InstanceWrapper.getAttributeorNull<Id>(encryptedParsedInstance, "_permissions", typeModel)
-		const listEncSessionKey = InstanceWrapper.getAttributeorNull<Base64>(encryptedParsedInstance, "_listEncSessionKey", typeModel)
+		const _ownerGroup = AttributeModel.getAttributeorNull<Id>(encryptedParsedInstance, "_ownerGroup", typeModel)
+		const permission = AttributeModel.getAttributeorNull<Id>(encryptedParsedInstance, "_permissions", typeModel)
+		const listEncSessionKey = AttributeModel.getAttributeorNull<Base64>(encryptedParsedInstance, "_listEncSessionKey", typeModel)
 
 		let ownerEncSessionKey: Nullable<VersionedEncryptedKey> = null
-		const ownerEncSessionKeyPart = InstanceWrapper.getAttributeorNull<Uint8Array>(encryptedParsedInstance, "ownerEncSessionKey", typeModel)
+		const ownerEncSessionKeyPart = AttributeModel.getAttributeorNull<Uint8Array>(encryptedParsedInstance, "ownerEncSessionKey", typeModel)
 		if (ownerEncSessionKeyPart) {
-			const ownerEncSessionKeyVersion = InstanceWrapper.getAttributeorNull<number>(encryptedParsedInstance, "ownerEncSessionKeyVersion", typeModel) ?? 0
+			const ownerEncSessionKeyVersion = AttributeModel.getAttributeorNull<number>(encryptedParsedInstance, "ownerEncSessionKeyVersion", typeModel) ?? 0
 			ownerEncSessionKey = {
 				key: ownerEncSessionKeyPart,
 				encryptingKeyVersion: parseKeyVersion(ownerEncSessionKeyVersion.toString()),
@@ -98,9 +85,9 @@ export class InstanceWrapper {
 		}
 
 		let _ownerEncSessionKey: Nullable<VersionedEncryptedKey> = null
-		const _ownerEncSessionKeyPart = InstanceWrapper.getAttributeorNull<Uint8Array>(encryptedParsedInstance, "_ownerEncSessionKey", typeModel)
+		const _ownerEncSessionKeyPart = AttributeModel.getAttributeorNull<Uint8Array>(encryptedParsedInstance, "_ownerEncSessionKey", typeModel)
 		if (_ownerEncSessionKeyPart) {
-			const _ownerEncSessionKeyVersion = InstanceWrapper.getAttributeorNull<number>(encryptedParsedInstance, "_ownerEncSessionKeyVersion", typeModel) ?? 0
+			const _ownerEncSessionKeyVersion = AttributeModel.getAttributeorNull<number>(encryptedParsedInstance, "_ownerEncSessionKeyVersion", typeModel) ?? 0
 			_ownerEncSessionKey = {
 				key: _ownerEncSessionKeyPart,
 				encryptingKeyVersion: parseKeyVersion(_ownerEncSessionKeyVersion.toString()),
@@ -109,20 +96,18 @@ export class InstanceWrapper {
 
 		let bucketKey: Nullable<BucketKey> = null
 		const bucketKeyLiteral = downcast<ParsedInstance>(
-			InstanceWrapper.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel),
+			AttributeModel.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel),
 		)
 		if (bucketKeyLiteral) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
-			bucketKey = await instanceMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
+			bucketKey = await instancePipeline.modelMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
 		}
 
 		return new InstanceWrapper(
 			localInstance,
 			typeRef,
 			typeModel,
-			instanceMapper,
-			typeMapper,
-			cryptoMapper,
+			instancePipeline,
 			id,
 			encryptedParsedInstance,
 			permission,
@@ -140,11 +125,11 @@ export class InstanceWrapper {
 
 		if (this.isLocalInstance()) {
 			const parsedInstance = downcast<ParsedInstance>(this.instance)
-			return await this.instanceMapper.applyClientModel(typeRef, parsedInstance)
+			return await this.instancePipeline.modelMapper.applyClientModel(typeRef, parsedInstance)
 		} else {
 			const encryptedEntity = downcast<EncryptedParsedInstance>(this.instance)
-			const parsedInstance = await this.cryptoMapper.decryptParsedInstance(typeModel, encryptedEntity, this.resolvedSessionKey)
-			return await this.instanceMapper.applyClientModel(typeRef, parsedInstance)
+			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(typeModel, encryptedEntity, this.resolvedSessionKey)
+			return await this.instancePipeline.modelMapper.applyClientModel(typeRef, parsedInstance)
 		}
 	}
 
@@ -178,12 +163,12 @@ export class InstanceWrapper {
 		let encryptedParsedInstance: EncryptedParsedInstance
 		if (this.isLocalInstance()) {
 			const parsedInstance = downcast<ParsedInstance>(this.instance)
-			encryptedParsedInstance = await this.cryptoMapper.encryptParsedInstance(this.typeModel, parsedInstance, this.resolvedSessionKey)
+			encryptedParsedInstance = await this.instancePipeline.cryptoMapper.encryptParsedInstance(this.typeModel, parsedInstance, this.resolvedSessionKey)
 		} else {
 			encryptedParsedInstance = this.instance
 		}
 
-		const untypedInstance = await this.typeMapper.applyDbTypes(this.typeModel, encryptedParsedInstance)
+		const untypedInstance = await this.instancePipeline.typeMapper.applyDbTypes(this.typeModel, encryptedParsedInstance)
 		return JSON.stringify(untypedInstance)
 	}
 
@@ -200,15 +185,5 @@ export class InstanceWrapper {
 		const id = assertNotNull(this.id)
 		const idPath = typeof id == "string" ? id : id.join("/")
 		return typeRestPath + "/" + idPath
-	}
-
-	static getAttributeorNull<T>(instance: EncryptedParsedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
-		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
-		if (attrId) {
-			const value = instance[attrId]
-			return downcast<T>(value)
-		} else {
-			return null
-		}
 	}
 }
