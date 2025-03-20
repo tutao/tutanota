@@ -156,7 +156,7 @@ o.spec("BlobFacade test", function () {
 				baseUrl: "someBaseUrl",
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			const requestBody = { "request-body": true }
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
@@ -206,7 +206,7 @@ o.spec("BlobFacade test", function () {
 				baseUrl: "someBaseUrl",
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			const requestBody = { "request-body": true }
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
@@ -250,7 +250,7 @@ o.spec("BlobFacade test", function () {
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfo)
 			when(blobAccessTokenFacade.createQueryParams(anything(), anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			const requestBody = { "request-body": true }
 			const encryptedFileUri = "encryptedUri"
 			const decryptedChunkUri = "decryptedChunkUri"
@@ -297,7 +297,7 @@ o.spec("BlobFacade test", function () {
 				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfo)
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			const requestBody = { "request-body": true }
 			const encryptedFileUri = "encryptedUri"
 			const decryptedChunkUri = "decryptedChunkUri"
@@ -357,8 +357,8 @@ o.spec("BlobFacade test", function () {
 				baseUrl: "someBaseUrl",
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(anotherFile)).thenResolve(anothersessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			const requestBody = { "request-body": true }
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
@@ -440,8 +440,8 @@ o.spec("BlobFacade test", function () {
 				baseUrl: "someBaseUrl",
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(anotherFile)).thenResolve(anothersessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			const requestBody1 = { body: 1 }
 			when(
 				instanceMapperMock.encryptAndMapToLiteral(
@@ -548,8 +548,8 @@ o.spec("BlobFacade test", function () {
 				baseUrl: "someBaseUrl",
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(anotherFile)).thenResolve(anothersessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			const requestBody = { "request-body": true }
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
@@ -613,8 +613,8 @@ o.spec("BlobFacade test", function () {
 				baseUrl: "someBaseUrl",
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
-			when(cryptoFacadeMock.resolveSessionKeyForInstance(anotherFile)).thenResolve(anothersessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			const requestBody = { "request-body": true }
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)

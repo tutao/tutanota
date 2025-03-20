@@ -126,7 +126,7 @@ export class NativePushServiceApp {
 	private async storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = this.logins.getUserController().user._id
 
-		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstance(pushIdentifier))
+		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(pushIdentifier))
 		const sk = bitArrayToUint8Array(sessionKey)
 
 		const origin = assertNotNull(env.staticUrl)

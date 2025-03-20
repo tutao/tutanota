@@ -691,7 +691,7 @@ export class MailViewerViewModel {
 			this.loadingAttachments = true
 
 			try {
-				const files = await this.cryptoFacade.enforceSessionKeyUpdateIfNeededForInstance(this._mail, await this.mailFacade.loadAttachments(mail))
+				const files = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, await this.mailFacade.loadAttachments(mail))
 
 				this.handleCalendarFile(files, mail)
 
@@ -1010,7 +1010,7 @@ export class MailViewerViewModel {
 	}
 
 	async downloadAll(): Promise<void> {
-		const nonInlineAttachments = await this.cryptoFacade.enforceSessionKeyUpdateIfNeededForInstance(this._mail, this.getNonInlineAttachments())
+		const nonInlineAttachments = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, this.getNonInlineAttachments())
 		try {
 			await this.fileController.downloadAll(nonInlineAttachments)
 		} catch (e) {
@@ -1025,7 +1025,7 @@ export class MailViewerViewModel {
 	}
 
 	async downloadAndOpenAttachment(file: TutanotaFile, open: boolean) {
-		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeededForInstance(this._mail, [file]))[0]
+		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			if (open) {
 				await this.fileController.open(file)
@@ -1053,7 +1053,7 @@ export class MailViewerViewModel {
 	}
 
 	private async importContacts(file: TutanotaFile) {
-		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeededForInstance(this._mail, [file]))[0]
+		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const contactListId = await this.contactModel.getContactListId()
@@ -1068,7 +1068,7 @@ export class MailViewerViewModel {
 	}
 
 	private async importCalendar(file: TutanotaFile) {
-		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeededForInstance(this._mail, [file]))[0]
+		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
 			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
 			const dataFile = await this.fileController.getAsDataFile(file)

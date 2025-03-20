@@ -1,9 +1,9 @@
 import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper } from "./CryptoMapper"
 import { resolveTypeReference, TypeReferenceResolver } from "../../common/EntityFunctions"
-import { Entity, ParsedInstance, UntypedInstance } from "../../common/EntityTypes"
+import {Entity, ParsedInstance, SomeEntity, UntypedInstance} from "../../common/EntityTypes"
 import { ModelMapper } from "./ModelMapper"
-import { TypeRef } from "@tutao/tutanota-utils"
+import {downcast, TypeRef} from "@tutao/tutanota-utils"
 import { AesKey } from "@tutao/tutanota-crypto"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
@@ -24,7 +24,7 @@ export class InstancePipeline {
 		sk: Promise<Nullable<AesKey>> | Nullable<AesKey>,
 	): Promise<UntypedInstance> {
 		const typeModel = await resolveTypeReference(typeRef)
-		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel(typeRef, instance)
+		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel(downcast(typeRef), instance)
 
 		const sessionKey = sk instanceof Promise ? await sk : sk
 

@@ -3,6 +3,7 @@ import { TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
+import {BucketKey} from "../entities/sys/TypeRefs";
 
 export type TypeModel = {
 	id: number
@@ -60,18 +61,27 @@ export interface ElementEntity extends Entity, Element {
 	_ownerEncSessionKey?: null | Uint8Array
 	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
+	bucketKey?: null | BucketKey
+	ownerEncSessionKey?: null | Uint8Array
+	ownerEncSessionKeyVersion?: null | NumberString
 }
 
 export interface ListElementEntity extends Entity, ListElement {
 	_ownerEncSessionKey?: null | Uint8Array
 	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
+	bucketKey?: null | BucketKey
+	ownerEncSessionKey?: null | Uint8Array
+	ownerEncSessionKeyVersion?: null | NumberString
 }
 
 export interface BlobElementEntity extends Entity, BlobElement {
 	_ownerEncSessionKey?: null | Uint8Array
 	_ownerKeyVersion?: null | NumberString
 	_ownerGroup: null | Id
+	bucketKey?: null | BucketKey
+	ownerEncSessionKey?: null | Uint8Array
+	ownerEncSessionKeyVersion?: null | NumberString
 }
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity

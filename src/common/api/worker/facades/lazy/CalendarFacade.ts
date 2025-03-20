@@ -370,7 +370,7 @@ export class CalendarFacade {
 				operation: downcast<OperationType>(operation),
 				notificationSessionKeys: notificationSessionKeys.map((n) => {
 					const { pushIdentifierSessionEncSessionKey, pushIdentifier } = n
-					return { pushIdentifier, pushIdentifierSessionEncSessionKey } satisfies NotificationSessionKey
+					return { pushIdentifier, pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentifierSessionEncSessionKey) } satisfies NotificationSessionKey
 				}),
 				alarmInfo: {
 					alarmIdentifier: alarmInfo.alarmIdentifier,
@@ -507,7 +507,7 @@ export class CalendarFacade {
 	): Promise<void> {
 		// PushID SK ->* Notification SK -> alarm fields
 		const maybeEncSessionKeys = await promiseMap(pushIdentifierList, async (identifier) => {
-			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKeyForInstance(identifier)
+			const pushIdentifierSk = await this.cryptoFacade.resolveSessionKey(identifier)
 			if (pushIdentifierSk) {
 				const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
 				return {

@@ -277,7 +277,7 @@ export class BlobFacade {
 	}
 
 	private async resolveSessionKey(entity: SomeEntity): Promise<AesKey> {
-		return neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(entity))
+		return neverNull(await this.cryptoFacade.resolveSessionKey(entity))
 	}
 
 	private async encryptAndUploadChunk(chunk: Uint8Array, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper> {

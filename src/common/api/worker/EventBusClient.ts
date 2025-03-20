@@ -43,6 +43,7 @@ import { TypeMapper } from "./crypto/TypeMapper"
 import { CryptoMapper } from "./crypto/CryptoMapper"
 import { Entity, UntypedInstance } from "../common/EntityTypes"
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
+import {InstancePipeline} from "./crypto/InstancePipeline";
 
 assertWorkerOrNode()
 
@@ -149,9 +150,7 @@ export class EventBusClient {
 		private readonly cache: EntityRestCache,
 		private readonly userFacade: UserFacade,
 		private readonly entity: EntityClient,
-		private readonly typeMapper: TypeMapper,
-		private readonly cryptoMapper: CryptoMapper,
-		private readonly modelMapper: ModelMapper,
+		private readonly instancePipeline: InstancePipeline,
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: SleepDetector,
 		private readonly progressTracker: ExposedProgressTracker,
@@ -288,10 +287,7 @@ export class EventBusClient {
 	private async decodeEntityEventValue<E extends Entity>(messageType: TypeRef<E>, untypedInstance: UntypedInstance): Promise<E> {
 		const typeModel = await resolveTypeReference(messageType)
 
-		const instance = await this.typeMapper
-			.applyJsTypes(typeModel, untypedInstance)
-			.then((encryptedParsedInstance) => this.cryptoMapper.decryptParsedInstance(typeModel, encryptedParsedInstance, null))
-			.then((parsedInstance) => this.modelMapper.applyClientModel(messageType, parsedInstance))
+		const instance = await this.instancePipeline.decryptAndMapToInstance(messageType, untypedInstance, null)
 		// FIXME:
 		// is this Entity? is this SomeEntity?
 		return instance as any

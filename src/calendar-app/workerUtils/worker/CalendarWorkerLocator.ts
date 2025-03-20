@@ -77,6 +77,7 @@ import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyA
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { TypeMapper } from "../../../common/api/worker/crypto/TypeMapper"
 import { CryptoMapper } from "../../../common/api/worker/crypto/CryptoMapper"
+import {InstancePipeline} from "../../../common/api/worker/crypto/InstancePipeline";
 
 assertWorkerOrNode()
 
@@ -85,9 +86,7 @@ export type CalendarWorkerLocatorType = {
 	restClient: RestClient
 	serviceExecutor: IServiceExecutor
 	crypto: CryptoFacade
-	typeMapper: TypeMapper
-	cryptoMapper: CryptoMapper
-	modelMapper: ModelMapper
+	instancePipeline: InstancePipeline
 	cacheStorage: CacheStorage
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
@@ -153,9 +152,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const mainInterface = worker.getMainInterface()
 
 	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
-	locator.typeMapper = new TypeMapper(resolveTypeReference)
-	locator.cryptoMapper = new CryptoMapper(resolveTypeReference)
-	locator.modelMapper = new ModelMapper(resolveTypeReference, resolveTypeReference)
+	locator.instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 	locator.rsa = await createRsaImplementation(worker)
 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
@@ -164,9 +161,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.serviceExecutor = new ServiceExecutor(
 		locator.restClient,
 		locator.user,
-		locator.modelMapper,
-		locator.cryptoMapper,
-		locator.typeMapper,
+		locator.instancePipeline,
 		() => locator.crypto,
 	)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
@@ -175,9 +170,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.user,
 		locator.restClient,
 		() => locator.crypto,
-		locator.typeMapper,
-		locator.cryptoMapper,
-		locator.modelMapper,
+		locator.instancePipeline,
 		locator.blobAccessToken,
 	)
 
@@ -197,7 +190,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				dateProvider,
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
 				new CalendarOfflineCleaner(),
-				locator.modelMapper,
+				locator.instancePipeline.modelMapper,
 			)
 		}
 	} else {
@@ -251,9 +244,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cachingEntityClient,
 		locator.restClient,
 		locator.serviceExecutor,
-		locator.modelMapper,
-		locator.typeMapper,
-		locator.cryptoMapper,
+		locator.instancePipeline,
 		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
 		locator.cache as DefaultEntityRestCache,
 		locator.keyLoader,
@@ -337,9 +328,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		 */
 		new EntityClient(locator.cache),
 		loginListener,
-		locator.typeMapper,
-		locator.cryptoMapper,
-		locator.modelMapper,
+		locator.instancePipeline,
 		locator.crypto,
 		locator.keyRotation,
 		maybeUninitializedStorage,
@@ -399,9 +388,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			suspensionHandler,
 			fileApp,
 			aesApp,
-			locator.typeMapper,
-			locator.cryptoMapper,
-			locator.modelMapper,
+			locator.instancePipeline,
 			locator.crypto,
 			locator.blobAccessToken,
 		)
@@ -430,9 +417,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			nonCachingEntityClient, // without cache
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
-			locator.modelMapper,
-			locator.cryptoMapper,
-			locator.typeMapper,
+			locator.instancePipeline,
 			locator.serviceExecutor,
 			locator.crypto,
 			mainInterface.infoMessageHandler,
@@ -475,9 +460,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cache as EntityRestCache,
 		locator.user,
 		locator.cachingEntityClient,
-		locator.typeMapper,
-		locator.cryptoMapper,
-		locator.modelMapper,
+		locator.instancePipeline,
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
