@@ -52,4 +52,9 @@ export interface MobileSystemFacade {
 	 * Requests the system in-app rating dialog to be displayed
 	 */
 	requestInAppRating(): Promise<void>
+
+	/**
+	 * Sends a refresh signal to the native side, updating widget last sync
+	 */
+	requestWidgetRefresh(): Promise<void>
 }

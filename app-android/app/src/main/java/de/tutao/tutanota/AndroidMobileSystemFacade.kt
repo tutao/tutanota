@@ -215,4 +215,8 @@ class AndroidMobileSystemFacade(
 	override suspend fun requestInAppRating() {
 		TODO("Not yet implemented")
 	}
+
+	override suspend fun requestWidgetRefresh() {
+		TODO("Not yet implemented")
+	}
 }

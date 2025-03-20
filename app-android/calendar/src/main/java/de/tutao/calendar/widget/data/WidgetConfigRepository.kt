@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
-import de.tutao.calendar.widget.dataStore
+import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.Sdk
@@ -19,7 +19,7 @@ class WidgetConfigRepository : WidgetRepository() {
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 		val serializedSettings = json.encodeToString(settings)
 
-		context.dataStore.edit { preferences ->
+		context.widgetDataStore.edit { preferences ->
 			preferences[preferencesKey] = serializedSettings
 		}
 	}
