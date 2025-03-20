@@ -747,7 +747,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
     	if (interactionType === "interacted") {
     		return m(InfoBanner, {
-    		    message: "mobyPhish_sender_" + senderStatus,
+    		    message: "mobyPhish_sender_confirmed",
     		    icon: Icons.CircleCheckmark,
     		    type: BannerType.Info,
     		    helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
