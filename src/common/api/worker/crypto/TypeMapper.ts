@@ -8,7 +8,7 @@ import {
 	UntypedValue,
 } from "../../common/EntityTypes"
 import { AssociationType } from "../../common/EntityConstants"
-import { resolveTypeReference, TypeReferenceResolver } from "../../common/EntityFunctions"
+import { TypeReferenceResolver } from "../../common/EntityFunctions"
 import { TypeRef, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
@@ -46,7 +46,7 @@ export class TypeMapper {
 
 			if (modelAssociation.type === AssociationType.Aggregation) {
 				const appName = modelAssociation.dependency ?? typeModel.app
-				const associationTypeModel = await resolveTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
+				const associationTypeModel = await this.typeRefResolver(new TypeRef(appName, modelAssociation.refTypeId))
 
 				const untypedAssociationValues = []
 				for (const value of values) {
@@ -89,7 +89,7 @@ export class TypeMapper {
 
 			if (modelAssociation.type === AssociationType.Aggregation) {
 				const appName = modelAssociation.dependency ?? typeModel.app
-				const associationTypeModel = await resolveTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
+				const associationTypeModel = await this.typeRefResolver(new TypeRef(appName, modelAssociation.refTypeId))
 
 				const untypedAssociationValues = []
 				for (const value in values) {
