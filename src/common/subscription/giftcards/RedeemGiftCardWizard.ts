@@ -480,7 +480,9 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 						}),
 					m(TextField, {
 						label: model.isFirstMonthForFree
-							? lang.makeTranslation("price_label", `Price from ${formatDate(DateTime.now().plus({ month: 1 }).plus({ day: 1 }).toJSDate())}`)
+							? lang.getTranslation("priceFrom_label", {
+									"{date}": formatDate(DateTime.now().plus({ month: 1, day: 1 }).toJSDate()),
+							  })
 							: "price_label",
 						value: formatPrice(Number(model.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
 						isReadOnly: true,

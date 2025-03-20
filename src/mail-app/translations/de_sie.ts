@@ -1989,5 +1989,8 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"pricing.selectTryForFree_label": "Gratis probieren",
+		"firstMonthForFree_msg": "Get the first month for free with any paid plan!",
+		"firstMonthForFreeDetail_msg": "A one-month trial period is available for all our paid plans. The first month is completely free and you can cancel at any time.",
+		"oneMonthTrial_label": "1 month trial"
 	}
 }

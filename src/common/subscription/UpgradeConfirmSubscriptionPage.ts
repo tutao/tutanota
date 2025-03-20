@@ -224,9 +224,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private buildPriceLabel(isYearly: boolean, { data: { nextYearPrice, planPrices } }: WizardPageAttrs<UpgradeSubscriptionData>): MaybeTranslation {
 		if (planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan) {
-			const inOneMonth = DateTime.now().plus({ month: 1 })
-
-			return lang.makeTranslation("price_label", `Price from ${formatDate(inOneMonth.plus({ day: 1 }).toJSDate())}`)
+			return lang.getTranslation("priceFrom_label", { "{date}": formatDate(DateTime.now().plus({ month: 1, day: 1 }).toJSDate()) })
 		}
 
 		if (isYearly && nextYearPrice) {

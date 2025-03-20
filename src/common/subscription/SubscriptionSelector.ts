@@ -30,7 +30,7 @@ import {
 	PlanType,
 	PlanTypeToName,
 } from "../api/common/TutanotaConstants.js"
-import { px } from "../gui/size.js"
+import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
@@ -119,7 +119,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (isFirstMonthForFree) {
-			return wrapInDiv("Get first month for free at any paid plan!")
+			return wrapInDiv(lang.get("firstMonthForFree_msg"), { marginTop: px(size.vpad), marginBottom: px(size.vpad) })
 		}
 
 		if (isCampaign && !isBusiness) {
@@ -174,14 +174,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			}
 
 			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan) {
-				return m(
-					".flex.column-gap-s",
-					m("span", m("sup", "1")),
-					m(
-						"span",
-						"A one-month trial period is available for all our paid plans. The first month is completely free and you can cancel at any time.",
-					),
-				)
+				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("firstMonthForFreeDetail_msg")))
 			}
 
 			return undefined
