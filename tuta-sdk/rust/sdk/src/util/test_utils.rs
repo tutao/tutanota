@@ -2,6 +2,7 @@
 
 use mockall::Any;
 use rand::random;
+use std::vec;
 
 use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 use crate::crypto::Aes256Key;
@@ -239,37 +240,43 @@ fn create_test_entity_dict_with_provider(
 	for (&_association_id, association) in &model.associations {
 		let association_name = &association.name;
 		let association_value = match association.cardinality {
-			Cardinality::ZeroOrOne => ElementValue::Null,
+			Cardinality::ZeroOrOne => ElementValue::Array(vec![]),
 			Cardinality::Any => ElementValue::Array(Vec::new()),
-			Cardinality::One => match association.association_type {
-				AssociationType::ElementAssociation => {
-					ElementValue::IdGeneratedId(GeneratedId::test_random())
-				},
-				AssociationType::ListAssociation => {
-					ElementValue::IdGeneratedId(GeneratedId::test_random())
-				},
-				AssociationType::ListElementAssociationGenerated => {
-					ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(
-						GeneratedId::test_random(),
-						GeneratedId::test_random(),
-					))
-				},
-				AssociationType::ListElementAssociationCustom => {
-					ElementValue::IdTupleCustomElementId(IdTupleCustom::new(
-						GeneratedId::test_random(),
-						CustomId::test_random(),
-					))
-				},
-				AssociationType::Aggregation => {
-					ElementValue::Dict(create_test_entity_dict_with_provider(
-						provider,
-						association.dependency.unwrap_or(app),
-						association.ref_type_id,
-					))
-				},
-				AssociationType::BlobElementAssociation => ElementValue::IdTupleGeneratedElementId(
-					IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
-				),
+			Cardinality::One => {
+				let element_value = match association.association_type {
+					AssociationType::ElementAssociation => {
+						ElementValue::IdGeneratedId(GeneratedId::test_random())
+					},
+					AssociationType::ListAssociation => {
+						ElementValue::IdGeneratedId(GeneratedId::test_random())
+					},
+					AssociationType::ListElementAssociationGenerated => {
+						ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(
+							GeneratedId::test_random(),
+							GeneratedId::test_random(),
+						))
+					},
+					AssociationType::ListElementAssociationCustom => {
+						ElementValue::IdTupleCustomElementId(IdTupleCustom::new(
+							GeneratedId::test_random(),
+							CustomId::test_random(),
+						))
+					},
+					AssociationType::Aggregation => {
+						ElementValue::Dict(create_test_entity_dict_with_provider(
+							provider,
+							association.dependency.unwrap_or(app),
+							association.ref_type_id,
+						))
+					},
+					AssociationType::BlobElementAssociation => {
+						ElementValue::IdTupleGeneratedElementId(IdTupleGenerated::new(
+							GeneratedId::test_random(),
+							GeneratedId::test_random(),
+						))
+					},
+				};
+				ElementValue::Array(vec![element_value])
 			},
 		};
 		object.insert(association_name.to_string(), association_value);

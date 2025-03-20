@@ -54,8 +54,7 @@ impl ValueType {
 
 /// Associations (references and aggregations) have two dimensions: the type they reference and
 /// their cardinality.
-#[derive(Deserialize, PartialEq, Clone)]
-#[cfg_attr(test, derive(Debug))]
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub enum Cardinality {
 	/// Optional
 	ZeroOrOne,
@@ -178,5 +177,25 @@ impl TypeModel {
 
 	pub fn is_attribute_id_association(&self, attribute_id: &AttributeId) -> bool {
 		self.associations.get(attribute_id).is_some()
+	}
+
+	pub fn is_attribute_name_association(&self, attribute_name: String) -> bool {
+		self.associations
+			.iter()
+			.find(|(association_id, association)| association.name == attribute_name)
+			.is_some()
+	}
+
+	pub fn get_attribute_name_cardinality(
+		&self,
+		attribute_name: String,
+	) -> Result<&Cardinality, TypeModelError> {
+		self.associations
+			.iter()
+			.find(|(association_id, association)| association.name == attribute_name)
+			.map(|(_, association)| &association.cardinality)
+			.ok_or(TypeModelError(format!(
+				"did not find association with attributeName {attribute_name}"
+			)))
 	}
 }

@@ -1,3 +1,4 @@
+use minicbor::Encode;
 use serde::de::{
 	DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, Unexpected, VariantAccess, Visitor,
 };
@@ -330,18 +331,17 @@ impl<'de, E: Entity> Deserializer<'de> for ElementValueDeserializer<'_, E> {
 					E::type_ref()
 				)))?;
 			let cardinality: Cardinality = type_model
-				.get_attribute_id_cardinality(self.attribute_id.to_string())
+				.get_attribute_name_cardinality(self.attribute_id.to_string())
 				.map_err(|e| DeError(e.to_string()))?
 				.clone();
 
-			let mut array_deserializer = ArrayDeserializer::<_, E> {
-				attribute_id: self.attribute_id,
-				iter: arr.into_iter(),
-				_phantom: PhantomData,
-			};
+			println!(
+				"association name: {} association cardinality {:?}",
+				self.attribute_id,
+				cardinality.clone()
+			);
 			if cardinality == Cardinality::One || cardinality == Cardinality::ZeroOrOne {
-				let element_value: Option<&ElementValue> =
-					array_deserializer.iter.as_slice().first();
+				let element_value: Option<&ElementValue> = arr.iter().as_slice().first();
 				if let Some(element_value) = element_value {
 					let element_value_deserializer: ElementValueDeserializer<'_, E> =
 						ElementValueDeserializer {
@@ -358,6 +358,11 @@ impl<'de, E: Entity> Deserializer<'de> for ElementValueDeserializer<'_, E> {
 					visitor.visit_none()
 				}
 			} else {
+				let array_deserializer = ArrayDeserializer::<_, E> {
+					attribute_id: self.attribute_id,
+					iter: arr.into_iter(),
+					_phantom: PhantomData,
+				};
 				visitor.visit_seq(array_deserializer)
 			}
 		} else {
@@ -881,14 +886,41 @@ impl<E: Entity> SerializeStruct for ElementValueStructSerializer<E> {
 				}
 				let serialized_value = value.serialize(ElementValueSerializer::<E>::default())?;
 				let type_model_provider = init_type_model_provider();
-				let type_model = type_model_provider.resolve_type_ref(&E::type_ref());
-				let cardinality: Cardinality = type_model
-					.expect("no type model")
-					.get_attribute_id_cardinality(key.parse().unwrap())
-					.map_err(|e| SerError(e.to_string()))?
-					.clone();
-				if cardinality == Cardinality::One || cardinality == Cardinality::ZeroOrOne {
-					map.insert(key.to_string(), Array(vec![serialized_value]));
+				let type_model =
+					type_model_provider
+						.resolve_type_ref(&E::type_ref())
+						.ok_or(SerError(format!(
+							"no type model found for {}",
+							E::type_ref()
+						)))?;
+
+				if type_model.is_attribute_name_association(key.to_string()) {
+					let cardinality: Cardinality = type_model
+						.get_attribute_name_cardinality(key.parse().unwrap())
+						.map_err(|e| SerError(e.to_string()))?
+						.clone();
+					match cardinality {
+						Cardinality::ZeroOrOne => {
+							if serialized_value == ElementValue::Null {
+								map.insert(key.to_string(), Array(vec![]));
+							} else {
+								map.insert(key.to_string(), Array(vec![serialized_value]));
+							}
+						},
+						Cardinality::One => {
+							if serialized_value == ElementValue::Null {
+								return Err(SerError(format!(
+									"null value for association with cardinality One for type {}",
+									E::type_ref()
+								)));
+							} else {
+								map.insert(key.to_string(), Array(vec![serialized_value]));
+							}
+						},
+						Cardinality::Any => {
+							map.insert(key.to_string(), serialized_value);
+						},
+					}
 				} else {
 					map.insert(key.to_string(), serialized_value);
 				}
@@ -1399,32 +1431,26 @@ mod tests {
 		let result = mapper.serialize_entity(group.clone()).unwrap();
 		assert_eq!(
 			&group.groupInfo,
-			result.get("groupInfo").unwrap().assert_tuple_id_generated()
+			result.get("groupInfo").unwrap().assert_array()[0].assert_tuple_id_generated()
 		);
 		assert_eq!(&ElementValue::Number(0), result.get(FORMAT_FIELD).unwrap());
 		assert_eq!(
 			&ElementValue::Bytes(vec![1, 2, 3]),
-			result
-				.get("pubAdminGroupEncGKey")
-				.unwrap()
+			result.get("pubAdminGroupEncGKey").unwrap().assert_array()[0]
 				.assert_dict()
 				.get("pubEncSymKey")
 				.expect("has_pubEncSymKey")
 		);
 		assert_eq!(
 			&ElementValue::Number(PublicKeyIdentifierType::GroupId as i64),
-			result
-				.get("pubAdminGroupEncGKey")
-				.unwrap()
+			result.get("pubAdminGroupEncGKey").unwrap().assert_array()[0]
 				.assert_dict()
 				.get("recipientIdentifierType")
 				.expect("has_recipientIdentifierType")
 		);
 		assert_eq!(
 			&ElementValue::Number(CryptoProtocolVersion::TutaCrypt as i64),
-			result
-				.get("pubAdminGroupEncGKey")
-				.unwrap()
+			result.get("pubAdminGroupEncGKey").unwrap().assert_array()[0]
 				.assert_dict()
 				.get("protocolVersion")
 				.expect("has_protocolVersion")
@@ -1451,7 +1477,7 @@ mod tests {
 			*parsed_entity.get(ID_FIELD).unwrap()
 		);
 		assert_eq!(
-			ElementValue::IdTupleCustomElementId(progenitor),
+			Array(vec![ElementValue::IdTupleCustomElementId(progenitor)]),
 			*parsed_entity.get("progenitor").unwrap()
 		);
 	}
@@ -1515,10 +1541,7 @@ mod tests {
 		);
 		assert_eq!(
 			&mail_details_id,
-			serialized
-				.get("mailDetails")
-				.unwrap()
-				.assert_tuple_id_generated()
+			serialized.get("mailDetails").unwrap().assert_array()[0].assert_tuple_id_generated()
 		);
 		assert_eq!(
 			&attachment_id,
@@ -1526,9 +1549,7 @@ mod tests {
 		);
 		assert_eq!(
 			sender_name,
-			serialized
-				.get("sender")
-				.unwrap()
+			serialized.get("sender").unwrap().assert_array()[0]
 				.assert_dict()
 				.get("name")
 				.unwrap()
