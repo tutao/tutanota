@@ -50,30 +50,7 @@ export class MobyPhishDenyModal implements ModalComponent {
                     }, "This is Someone Else"),
 
                     m("button.btn", {
-                        onclick: async () => {
-                            const senderEmail = viewModel.getSender().address;
-                            const recipientEmail = viewModel.logins.getUserController().loginUsername;
-                            
-                            try {
-                                const response = await fetch(`${API_BASE_URL}/trusted-senders/remove`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ user_email: recipientEmail, trusted_email: senderEmail }),
-                                });
-
-                                if (response.ok) {
-                                    console.log(`Removed sender: ${senderEmail}`);
-                                    viewModel.fetchTrustedSenders(); // Refresh the trusted senders list
-                                    viewModel.setSenderConfirmed(false); // Ensure it's no longer confirmed
-                                    modal.remove(this); // Close the modal
-                                    m.redraw();
-                                } else {
-                                    console.error(`Failed to remove sender: ${senderEmail}`);
-                                }
-                            } catch (error) {
-                                console.error("Error removing trusted sender:", error);
-                            }
-                        },
+                        onclick: () => console.log("Remove from Trusted Senders clicked"),
                         style: {
                             background: "#F8D7DA", // Soft red
                             color: "#000",
