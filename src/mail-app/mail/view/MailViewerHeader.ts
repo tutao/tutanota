@@ -742,17 +742,18 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		console.log(viewModel);
     	const senderEmail = viewModel.getSender().address;
+    	const senderStatus = viewModel.senderStatus; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
+    	const interactionType = viewModel.interactionType; // interacted, no_interaction
 
-	    if (viewModel.isSenderTrusted() && viewModel.isSenderConfirmed()) {
-	        // sender both trusted and confirmed
-	        return m(InfoBanner, {
-	            message: "mobyPhish_sender_confirmed",
-	            icon: Icons.CircleCheckmark,
-	            type: BannerType.Info,
-	            helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-	            buttons: []
-	        });
-	    }
+    	if (interactionType === "interacted") {
+    		return m(InfoBanner, {
+    		    message: "mobyPhish_sender_" + senderStatus,
+    		    icon: Icons.CircleCheckmark,
+    		    type: BannerType.Info,
+    		    helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+    		    buttons: []
+    		});
+    	}
 
     	const buttons: BannerButtonAttrs[] = [];
 
@@ -762,11 +763,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		        title: "mobyPhish_confirm",
 		    	label: "emptyString_msg",
 				icon: m(Icon, { icon: Icons.Checkmark }),
-		        click: (event: MouseEvent) => {
+		        click: async () => {
+		        	await viewModel.updateSenderStatus("confirmed", "interacted");		        	
 	            	viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
-	            	viewModel.setSenderConfirmed(true);
-	            	m.redraw();
-	            	console.log("User confirmed sender:", senderEmail);
+		        	m.redraw();
 		        },
 			    style: {
 			        backgroundColor: "green",

@@ -210,80 +210,33 @@ export class MailViewerViewModel {
 		return this.senderConfirmed;
 	}
 
+	async updateSenderStatus(status: string, interactionType: string): Promise<void> {
+	    const userEmail = this.logins.getUserController().loginUsername;
+	    const emailId = this.mail._id[1];
 
-	// isSenderTrusted(): boolean {
-	//     return this.trustedSenders.has(this.getSender().address);
-	// }
+	    try {
+	        const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+	            method: "POST",
+	            headers: { "Content-Type": "application/json" },
+	            body: JSON.stringify({
+	                user_email: userEmail,
+	                email_id: emailId,
+	                sender_email: this.mail.sender.address,
+	                status: status,
+	                interaction_type: interactionType
+	            }),
+	        });
 
-	// async confirmTrusted(): Promise<void> {
-	//     if (!) {
-	//         console.warn("User email not set. Cannot add trusted sender.");
-	//         return;
-	//     }
+	        if (!response.ok) throw new Error("Failed to update sender status.");
 
-	//     const senderEmail = this.getSender().address;
-	//     if (this.trustedSenders.has(senderEmail)) {
-	//         console.log(`⚠️ ${senderEmail} is already trusted.`);
-	//         return;
-	//     } 
- 
-	//     try {
-	//         console.log(`Adding trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
-	//         const response = await fetch("http://localhost:3000/add-trusted", {
-	//             method: "POST",
-	//             headers: { "Content-Type": "application/json" },
-	//             body: JSON.stringify({
-	//                 user_email: this.currentUserEmail,
-	//                 trusted_email: senderEmail
-	//             }),
-	//         });
+	        console.log(`Sender status updated: ${status}`);
+	        this.senderStatus = status;
+	        this.interactionType = interactionType;
 
-	//         if (!response.ok) throw new Error("Failed to add trusted sender.");
-
-	//         this.trustedSenders.add(senderEmail);
-	//         this.senderConfirmed = true;
-	//         console.log(`✅ Sender added: ${senderEmail}`);
-	//         m.redraw();
-	//     } catch (error) {
-	//         console.error("❌ Error adding trusted sender:", error);
-	//     }
-	// }
-
-
-	// async removeTrustedSender(): Promise<void> {
-	//     if (!this.currentUserEmail) {
-	//         console.warn("User email not set. Cannot remove trusted sender.");
-	//         return;
-	//     }
-
-	//     const senderEmail = this.getSender().address;
-	//     if (!this.trustedSenders.has(senderEmail)) {
-	//         console.log(`⚠️ ${senderEmail} is not in the trusted list.`);
-	//         return;
-	//     }
-
-	//     try {
-	//         console.log(`Removing trusted sender: ${senderEmail} for user: ${this.currentUserEmail}`);
-	//         const response = await fetch("http://localhost:3000/remove-trusted", {
-	//             method: "POST",
-	//             headers: { "Content-Type": "application/json" },
-	//             body: JSON.stringify({
-	//                 user_email: this.currentUserEmail,
-	//                 trusted_email: senderEmail
-	//             }),
-	//         });
-
-	//         if (!response.ok) throw new Error("Failed to remove trusted sender.");
-
-	//         this.trustedSenders.delete(senderEmail);
-	//         this.senderConfirmed = false;
-	//         console.log(`✅ Sender removed: ${senderEmail}`);
-	//         m.redraw();
-	//     } catch (error) {
-	//         console.error("❌ Error removing trusted sender:", error);
-	//     }
-	// }
-
+	    } catch (error) {
+	        console.error("Error updating sender status:", error);
+	    }
+	}
 
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
