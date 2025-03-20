@@ -35,6 +35,7 @@ import { px, size } from "../../../common/gui/size.js"
 import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
 import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
+import type { InfoLink, TranslationKey } from "../../misc/LanguageViewModel.js"
 
 
 
@@ -746,9 +747,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     	const interactionType = viewModel.interactionType; // interacted, no_interaction
 
     	if (interactionType && interactionType === "interacted") {
-    		return m(InfoBanner as m.Component<any>, {
-    		    message: `mobyPhish_sender_${String(senderStatus)}`,
-    		    icon: Icons.CircleCheckmark, 
+    		return m(InfoBanner, {
+    		    message: `mobyPhish_sender_${String(senderStatus)}` as TranslationKey,
+    		    icon: Icons.CircleCheckmark,
     		    type: BannerType.Info,
     		    helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
     		    buttons: []
