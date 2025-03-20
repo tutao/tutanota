@@ -158,27 +158,28 @@ export class MailViewerViewModel {
 	}
 	
 
-	async fetchTrustedSenders(): Promise<void> {
-	    const recipient = this.logins.getUserController().loginUsername;
-	    //console.log(`Attempting to fetch trusted senders for: ${recipient}`);
+	async fetchSenderStatus(): Promise<void> {
+	    const userEmail = this.logins.getUserController().loginUsername; //  logged in user's email
+	    const emailId = this.mail._id[1]; // get email ID
+	    const senderEmail = this.mail.sender.address; // get sender email
 
 	    try {
-	        const url = `${API_BASE_URL}/trusted-senders/${recipient}`;
-	        //console.log(`Fetching: ${url}`);
-
-	        const response = await fetch(url);
-	        //console.log(`Response Status: ${response.status}`);
+	        const response = await fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`);
+	        if (!response.ok) throw new Error("Failed to fetch sender status.");
 
 	        const data = await response.json();
-	        //console.log("Raw Response Data:", data);
 
-	        this.trustedSenders = data.trusted_senders;
-	        //m.redraw();
+	        // Store the fetched values
+	        this.senderStatus = data.status; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
+	        this.interactionType = data.interaction_type; // interacted, no_interaction
 
+	        console.log(`Sender status fetched: ${this.senderStatus}, Interaction: ${this.interactionType}`);
+	        m.redraw(); // Update the UI
 	    } catch (error) {
-	        console.error("Fetching error:", error);
+	        console.error("Error fetching sender status:", error);
 	    }
 	}
+
 
 	isSenderTrusted(): boolean {
 	    const senderEmail = this.getSender().address;
