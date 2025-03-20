@@ -32,6 +32,15 @@ const testTypeModel: TypeModel = {
 			final: false,
 			dependency: "tutanota",
 		},
+		"4": {
+			id: 4,
+			name: "testListAssociation",
+			type: AssociationType.ListAssociation,
+			cardinality: Cardinality.One,
+			refTypeId: 44,
+			final: false,
+			dependency: null,
+		},
 	},
 	version: "0",
 	versioned: false,
@@ -60,7 +69,7 @@ const testAggregateModel: TypeModel = {
 	versioned: false,
 }
 
-const untypedInstance: UntypedInstance = JSON.parse('{ "1": "test string", "3": [{ "2": "123" }] }')
+const untypedInstance: UntypedInstance = JSON.parse('{ "1": "test string", "3": [{ "2": "123" }], "4": ["assocId"]  }')
 o.spec("TypeMapper", function () {
 	let typeMapper: TypeMapper
 	o.beforeEach(() => {
@@ -72,10 +81,13 @@ o.spec("TypeMapper", function () {
 	})
 
 	o.spec("applyJsTypes", function () {
-		o.test("number strings are converted to numbers", async function () {
+		o.test("can handle associations and aggregations", async function () {
 			const encryptedParsedInstance = await typeMapper.applyJsTypes(testTypeModel, untypedInstance)
 			o(encryptedParsedInstance["1"]).equals("test string")
-			o(assertNotNull(encryptedParsedInstance["3"])[0]["2"]).equals("123")
+			const listAssociation = assertNotNull(encryptedParsedInstance["4"])
+			const aggregation = assertNotNull(encryptedParsedInstance["3"])
+			o(aggregation[0]["2"]).equals("123")
+			o(listAssociation[0]).equals("assocId")
 		})
 	})
 })
