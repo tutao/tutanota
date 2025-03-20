@@ -129,6 +129,9 @@ export class MailViewerViewModel {
 
 	public trustedSenders: Array<string> = new Array();
 	private senderConfirmed: boolean = false;
+	public senderStatus: string = ""; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
+	public interactionType: string = ""; // interacted, no_interaction
+
 
 	constructor(
 		private _mail: Mail,
@@ -199,11 +202,11 @@ export class MailViewerViewModel {
 	    return this.trustedSenders?.includes(senderEmail) ?? false;
 	}
 
-	private setSenderConfirmed(confirmed: boolean): void {
+	public setSenderConfirmed(confirmed: boolean): void {
 		this.senderConfirmed = confirmed;
 	}
 
-	getSenderConfirmed(): boolean {
+	isSenderConfirmed(): boolean {
 		return this.senderConfirmed;
 	}
 
