@@ -3,7 +3,7 @@ package de.tutao.calendar.widget.data
 import android.content.Context
 import androidx.datastore.preferences.core.stringPreferencesKey
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
-import de.tutao.calendar.widget.dataStore
+import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.CalendarEventsList
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
@@ -51,7 +51,7 @@ abstract class WidgetRepository {
 		val databaseWidgetIdentifier = "${WIDGET_SETTINGS_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 		val rawPreferencesFlow =
-			context.dataStore.data.first { preferences -> preferences[preferencesKey] != null }[preferencesKey]
+			context.widgetDataStore.data.first { preferences -> preferences[preferencesKey] != null }[preferencesKey]
 				?: return null
 
 		return json.decodeFromString<SettingsDao>(rawPreferencesFlow)

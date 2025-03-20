@@ -80,6 +80,10 @@ public class MobileSystemFacadeReceiveDispatcher {
 			try await self.facade.requestInAppRating(
 			)
 			return "null"
+		case "requestWidgetRefresh":
+			try await self.facade.requestWidgetRefresh(
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

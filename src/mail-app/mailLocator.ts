@@ -1002,6 +1002,7 @@ class MailLocator {
 			deviceConfig,
 			!isBrowser() ? this.pushService : null,
 			this.syncTracker,
+			noOp,
 		)
 	})
 

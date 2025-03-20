@@ -66,4 +66,9 @@ interface MobileSystemFacade {
 	 */
 	suspend fun requestInAppRating(
 	): Unit
+	/**
+	 * Sends a refresh signal to the native side, updating widget last sync
+	 */
+	suspend fun requestWidgetRefresh(
+	): Unit
 }
