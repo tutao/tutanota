@@ -800,7 +800,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				icon: m(Icon, { icon: Icons.Checkmark }),
 		        click: (event: MouseEvent) => {		        	
     	        	console.log("User confirmed untrusted sender:", senderEmail);
-    	            modal.display(new MobyPhishDenyModal());
+    	            modal.display(new MobyPhishDenyModal(viewModel));
 		        },
 			    style: {
 			        backgroundColor: "green",
@@ -817,7 +817,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     	        icon: m(Icon, { icon: Icons.Add}),
     	        click: (event: MouseEvent) => {
     	        	console.log("User to add sender:", senderEmail);
-    	            modal.display(new MobyPhishDenyModal());
+    	            modal.display(new MobyPhishDenyModal(viewModel));
     	        },
     		    style: {
     		        backgroundColor: "red",
