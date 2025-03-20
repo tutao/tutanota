@@ -745,9 +745,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     	const senderStatus = viewModel.senderStatus; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
     	const interactionType = viewModel.interactionType; // interacted, no_interaction
 
-    	if (interactionType === "interacted") {
+    	if (interactionType && interactionType === "interacted") {
     		return m(InfoBanner, {
-    		    message: "mobyPhish_sender_confirmed",
+    		    message: `mobyPhish_sender_${String(senderStatus)}`,
     		    icon: Icons.CircleCheckmark,
     		    type: BannerType.Info,
     		    helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
