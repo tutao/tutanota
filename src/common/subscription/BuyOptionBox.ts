@@ -147,6 +147,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 
 		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
 		const isLegendPlan = attrs.targetSubscription === PlanType.Legend
+		const isPersonalPaidPlan = attrs.targetSubscription === PlanType.Revolutionary || attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
 		const shouldApplyCampaignColor =
 			attrs.highlighted && attrs.isCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
@@ -160,7 +161,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 				return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, `+${attrs.bonusMonths} ${lang.get("pricing.months_label")}`))
 			}
 
-			if (attrs.isFirstMonthForFree) {
+			if (attrs.isFirstMonthForFree && isPersonalPaidPlan) {
 				const isDarkTheme = !isColorLight(theme.content_bg)
 				return m(
 					".ribbon-horizontal.nota",
