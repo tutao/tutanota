@@ -799,8 +799,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		    	label: "emptyString_msg",
 				icon: m(Icon, { icon: Icons.Checkmark }),
 		        click: (event: MouseEvent) => {		        	
-    	        	console.log("User confirmed untrusted sender:", senderEmail);
-    	            modal.display(new MobyPhishDenyModal(viewModel));
+    	            modal.display(new MobyPhishReportPhishingModal(viewModel));
 		        },
 			    style: {
 			        backgroundColor: "green",
