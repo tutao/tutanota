@@ -40,6 +40,8 @@ import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef, Report
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
+import { TypeMapper } from "./crypto/TypeMapper"
+import { CryptoMapper } from "./crypto/CryptoMapper"
 
 assertWorkerOrNode()
 
@@ -146,7 +148,9 @@ export class EventBusClient {
 		private readonly cache: EntityRestCache,
 		private readonly userFacade: UserFacade,
 		private readonly entity: EntityClient,
-		private readonly instanceMapper: ModelMapper,
+		private readonly typeMapper: TypeMapper,
+		private readonly cryptoMapper: CryptoMapper,
+		private readonly modelMapper: ModelMapper,
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: SleepDetector,
 		private readonly progressTracker: ExposedProgressTracker,
@@ -289,7 +293,7 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
-				const { eventBatchId, eventBatchOwner, eventBatch }: WebsocketEntityData = await this.instanceMapper.decryptAndMapToInstance(
+				const { eventBatchId, eventBatchOwner, eventBatch }: WebsocketEntityData = await this.modelMapper.decryptAndMapToInstance(
 					await resolveTypeReference(WebsocketEntityDataTypeRef),
 					JSON.parse(value),
 					null,
@@ -299,7 +303,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
-				const counterData: WebsocketCounterData = await this.instanceMapper.decryptAndMapToInstance(
+				const counterData: WebsocketCounterData = await this.modelMapper.decryptAndMapToInstance(
 					await resolveTypeReference(WebsocketCounterDataTypeRef),
 					JSON.parse(value),
 					null,
@@ -308,7 +312,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.PhishingMarkers: {
-				const data: PhishingMarkerWebsocketData = await this.instanceMapper.decryptAndMapToInstance(
+				const data: PhishingMarkerWebsocketData = await this.modelMapper.decryptAndMapToInstance(
 					await resolveTypeReference(PhishingMarkerWebsocketDataTypeRef),
 					JSON.parse(value),
 					null,
@@ -318,7 +322,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.LeaderStatus: {
-				const data: WebsocketLeaderStatus = await this.instanceMapper.decryptAndMapToInstance(
+				const data: WebsocketLeaderStatus = await this.modelMapper.decryptAndMapToInstance(
 					await resolveTypeReference(WebsocketLeaderStatusTypeRef),
 					JSON.parse(value),
 					null,

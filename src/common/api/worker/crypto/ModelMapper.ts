@@ -2,7 +2,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import type { ParsedAssociation, ParsedInstance, ParsedValue, SomeEntity } from "../../common/EntityTypes"
+import type { Entity, ParsedAssociation, ParsedInstance, ParsedValue, SomeEntity } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { TypeReferenceResolver } from "../../common/EntityFunctions"
@@ -105,7 +105,7 @@ export class ModelMapper {
 		return clientInstance as T
 	}
 
-	async applyServerModel<T extends SomeEntity>(typeRef: TypeRef<T>, instance: T): Promise<ParsedInstance> {
+	async applyServerModel<T extends Entity>(typeRef: TypeRef<T>, instance: T): Promise<ParsedInstance> {
 		const clientTypeModel = await this.clientTypes(typeRef)
 		// fixme: what if the server has a new type?
 		const serverTypeModel = await this.serverTypes(typeRef)

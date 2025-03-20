@@ -108,7 +108,6 @@ import {
 	isEmpty,
 	isNotNull,
 	isSameTypeRef,
-	isSameTypeRefByAttr,
 	noOp,
 	ofClass,
 	promiseFilter,
@@ -149,7 +148,6 @@ import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
-import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider, PublicKeys } from "../PublicKeyProvider.js"
@@ -1031,8 +1029,7 @@ export class MailFacade {
 		const bucketKey = mail.bucketKey
 		let ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | undefined
 		if (bucketKey) {
-			const typeModel = await resolveTypeReference(FileTypeRef)
-			const resolvedSessionKeys = await this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel)
+			const resolvedSessionKeys = await this.crypto.resolveWithBucketKeyForInstance(mail)
 			ownerEncSessionKeyProvider = async (instanceElementId: Id): Promise<VersionedEncryptedKey> => {
 				const instanceSessionKey = assertNotNull(
 					resolvedSessionKeys.instanceSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),

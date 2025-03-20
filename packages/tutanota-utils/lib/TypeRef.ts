@@ -1,4 +1,4 @@
-export type AppName = "base" | "sys" | "tutanota" | "usage" | "monitor" | "accouting" | "gossip" | "storage"
+export type AppName = "base" | "sys" | "tutanota" | "usage" | "monitor" | "accounting" | "gossip" | "storage"
 
 /**
  * T should be restricted to Entity.

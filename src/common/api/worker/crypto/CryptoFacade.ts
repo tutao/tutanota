@@ -23,9 +23,8 @@ import {
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
 import { HttpMethod, resolveTypeReference } from "../../common/EntityFunctions"
-import type { BucketKey, BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
+import type { BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
 import {
-	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
 	createUpdatePermissionKeyData,
@@ -105,7 +104,7 @@ export class CryptoFacade {
 		if (!typeModel.encrypted) {
 			return null
 		}
-		const parsedInstance = await this.modelMapper.applyServerModel()
+		const parsedInstance = await this.modelMapper.applyServerModel(instance._type, instance)
 		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
 		return this.resolveSessionKey(instanceWrapper)
 	}
@@ -206,6 +205,14 @@ export class CryptoFacade {
 		}
 
 		return instanceWrapper.resolvedSessionKey
+	}
+
+	async resolveWithBucketKeyForInstance(instance: SomeEntity): Promise<ResolvedSessionKeys> {
+		const typeModel = await resolveTypeReference(instance._type)
+		const parsedInstance = await this.modelMapper.applyServerModel(instance._type, instance)
+		let instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
+		assertNotNull(instanceWrapper.bucketKey)
+		return this.resolveWithBucketKey(instanceWrapper)
 	}
 
 	public async resolveWithBucketKey(instanceWrapper: InstanceWrapper): Promise<ResolvedSessionKeys> {
@@ -666,7 +673,7 @@ export class CryptoFacade {
 	}
 
 	async enforceSessionKeyUpdateIfNeededForInstance(instance: SomeEntity, childInstances: readonly File[]): Promise<File[]> {
-		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel()
+		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel(instance._type, instance)
 		const typeModel = await resolveTypeReference(instance._type)
 		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
 		return this.enforceSessionKeyUpdateIfNeeded(instanceWrapper, childInstances)

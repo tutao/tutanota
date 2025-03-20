@@ -1,4 +1,4 @@
-import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
+import { ElementEntity, ListElementEntity, ParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, get_IdValue, getElementId } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
@@ -783,7 +783,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	private async serialize(originalEntity: SomeEntity): Promise<Uint8Array> {
-		const idMappedInstance: Record<number, any> = await this.modelMapper.applyServerModel() //originalEntity)
+		const idMappedInstance: Record<number, any> = await this.modelMapper.applyServerModel(originalEntity._type, originalEntity)
 		try {
 			return cborg.encode(idMappedInstance, { typeEncoders: customTypeEncoders })
 		} catch (e) {
@@ -809,7 +809,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	private decodeCborEntity<T extends SomeEntity>(loaded: Uint8Array, typeRef: TypeRef<T>): Promise<T> {
-		const idMappedEntity: Record<number, unknown> = cborg.decode(loaded, { tags: customTypeDecoders })
+		const idMappedEntity: ParsedInstance = cborg.decode(loaded, { tags: customTypeDecoders })
 		return this.modelMapper.applyClientModel(typeRef, idMappedEntity)
 	}
 
@@ -818,7 +818,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		// Some places rely on TypeRef being a class and not a plain object.
 		// We also have to update all aggregates, recursively.
 		deserialized._type = new TypeRef(typeModel.app, typeModel.id)
-		for (const [associationId, associationModel] of Object.entries(typeModel.associations)) {
+		for (const [associationIdStr, associationModel] of Object.entries(typeModel.associations)) {
 			const associationName = associationModel.name
 			if (associationModel.type === AssociationType.Aggregation) {
 				const aggregateTypeRef = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refTypeId)

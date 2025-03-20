@@ -186,16 +186,23 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
 
 	locator.restClient = new RestClient(suspensionHandler, domainConfig)
-	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.modelMapper, () => locator.crypto)
+	locator.serviceExecutor = new ServiceExecutor(
+		locator.restClient,
+		locator.user,
+		locator.modelMapper,
+		locator.cryptoMapper,
+		locator.typeMapper,
+		() => locator.crypto,
+	)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider)
 	const entityRestClient = new EntityRestClient(
 		locator.user,
 		locator.restClient,
 		() => locator.crypto,
-		locator.modelMapper,
 		locator.typeMapper,
 		locator.cryptoMapper,
+		locator.modelMapper,
 		locator.blobAccessToken,
 	)
 
@@ -487,6 +494,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
 			locator.modelMapper,
+			locator.cryptoMapper,
+			locator.typeMapper,
 			locator.serviceExecutor,
 			locator.crypto,
 			mainInterface.infoMessageHandler,

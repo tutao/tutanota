@@ -13,7 +13,7 @@ import {
 } from "../../common/error/RestError"
 import { assertNotNull, downcast, KeyVersion, lazy, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
-import type { EncryptedParsedInstance, ListElementEntity, ParsedInstance, SomeEntity, TypeModel, UntypedInstance } from "../../common/EntityTypes"
+import type { EncryptedParsedInstance, Entity, ListElementEntity, ParsedInstance, SomeEntity, TypeModel, UntypedInstance } from "../../common/EntityTypes"
 import { LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
@@ -511,8 +511,12 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	private async prepareRequestPostPayload<T>(typeModel: TypeModel, instance: T, options?: EntityRestClientSetupOptions): Promise<UntypedInstance> {
-		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel() //typeModel, instance)
+	private async prepareRequestPostPayload<T extends Entity>(
+		typeModel: TypeModel,
+		instance: T,
+		options?: EntityRestClientSetupOptions,
+	): Promise<UntypedInstance> {
+		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel(instance._type, instance)
 		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
 		await this._crypto.setNewOwnerEncSessionKey(instanceWrapper, options?.ownerKey)
 
@@ -521,8 +525,12 @@ export class EntityRestClient implements EntityRestInterface {
 		return await this.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
 	}
 
-	private async prepareRequestPutPayload<T>(typeModel: TypeModel, instance: T, options?: EntityRestClientUpdateOptions): Promise<UntypedInstance> {
-		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel()
+	private async prepareRequestPutPayload<T extends Entity>(
+		typeModel: TypeModel,
+		instance: T,
+		options?: EntityRestClientUpdateOptions,
+	): Promise<UntypedInstance> {
+		const parsedInstance: ParsedInstance = await this.modelMapper.applyServerModel(instance._type, instance)
 		const instanceWrapper = await InstanceWrapper.fromParsedInstance(this.modelMapper, this.typeMapper, this.cryptoMapper, typeModel, parsedInstance)
 
 		await this.resolveSessionKey(options?.ownerKeyProvider, instanceWrapper)

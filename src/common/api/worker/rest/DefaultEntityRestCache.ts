@@ -48,7 +48,7 @@ import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { containsEventOfType, entityUpateToUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
-import { AppName } from "../crypto/ModelMapper"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 
 assertWorkerOrNode()
 
@@ -778,7 +778,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		for (let update of regularUpdates) {
 			const { operation, typeId, application } = update
 			const { instanceListId, instanceId } = getUpdateInstanceId(update)
-			const typeRef = new TypeRef<SomeEntity>(application, parseInt(typeId))
+			const typeRef = new TypeRef<SomeEntity>(application as AppName, parseInt(typeId))
 
 			switch (operation) {
 				case OperationType.UPDATE: {
