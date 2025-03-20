@@ -1,12 +1,13 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
 					android:minWidth="200dp"
 					android:minHeight="110dp"
-					android:updatePeriodMillis="3600000"
+					android:updatePeriodMillis="0"
 					android:description="@string/app_name"
 					android:initialLayout="@layout/glance_default_loading_layout"
 					android:resizeMode="horizontal|vertical"
 					android:widgetCategory="home_screen"
 					android:configure="de.tutao.calendar.widget.WidgetConfigActivity"
-		>
+					android:widgetFeatures="reconfigurable">
+	>
 
 </appwidget-provider>
