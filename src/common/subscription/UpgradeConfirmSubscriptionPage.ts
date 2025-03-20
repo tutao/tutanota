@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -24,7 +24,7 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { getRatingAllowed, RatingCheckResult } from "../ratings/InAppRatingUtils.js"
 import { showAppRatingDialog } from "../ratings/InAppRatingDialog.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
-import { isApp } from "../api/common/Env.js"
+import { isApp, isIOSApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
 import { SubscriptionApp } from "./SubscriptionViewer.js"
 import { DateTime } from "luxon"
@@ -180,7 +180,10 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 						label: lang.getTranslation("priceTill_label", {
 							"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
 						}),
-						value: formatPrice(0, true),
+						value: isIOSApp()
+							? attrs.data.planPrices.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary]!.toLowerCase())!.displayZero
+							: formatPrice(0, true),
+
 						isReadOnly: true,
 					}),
 				m(TextField, {
