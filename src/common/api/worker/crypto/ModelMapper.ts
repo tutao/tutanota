@@ -57,7 +57,7 @@ function assertCompatibleModelTypes(typeRef: TypeRef<unknown>, attrId: string, f
 export class ModelMapper {
 	constructor(private readonly serverTypes: TypeReferenceResolver, private readonly clientTypes: TypeReferenceResolver) {}
 
-	async applyClientModel<T>(typeRef: TypeRef<unknown>, parsedInstance: ParsedInstance): Promise<T> {
+	async applyClientModel<T extends SomeEntity>(typeRef: TypeRef<unknown>, parsedInstance: ParsedInstance): Promise<T> {
 		const clientTypeModel = await this.clientTypes(typeRef)
 		// fixme: what if the server has a new type?
 		const serverTypeModel = await this.serverTypes(typeRef)
@@ -83,7 +83,6 @@ export class ModelMapper {
 		for (const [assocIdStr, modelAssoc] of Object.entries(clientTypeModel.associations)) {
 			const assocId = parseInt(assocIdStr)
 			if (modelAssoc.type === AssociationType.Aggregation) {
-				// fixme: check refType
 				const appName = modelAssoc.dependency ?? clientTypeModel.app
 				const assocTypeRef = new TypeRef(appName, modelAssoc.refTypeId)
 				const values = parsedInstance[assocId] as Array<ParsedInstance>
@@ -110,7 +109,7 @@ export class ModelMapper {
 		// fixme: what if the server has a new type?
 		const serverTypeModel = await this.serverTypes(typeRef)
 
-		const serverInstance: ParsedInstance = {
+		const serverInstance: Record<number, unknown> & { _finalIvs: unknown } = {
 			_finalIvs: instance["_finalIvs"],
 		}
 
@@ -141,31 +140,26 @@ export class ModelMapper {
 
 		for (const [assocIdStr, modelAssoc] of Object.entries(serverTypeModel.associations)) {
 			const assocId = parseInt(assocIdStr)
+			const appName = modelAssoc.dependency ?? clientTypeModel.app
+			const assocTypeRef = new TypeRef<any>(appName, modelAssoc.refTypeId)
 			if (modelAssoc.type === AssociationType.Aggregation) {
 				const values = (instance as any)[modelAssoc.name] as Array<T>
 				const clientValues = []
 				for (const value of values) {
-					clientValues.push(await this.applyServerModel(typeRef, value))
+					clientValues.push(await this.applyServerModel(assocTypeRef, value))
 				}
-				// fixme: for transfomations of cardinality to One, we might have a null value on client, but require one on the server.
-				// Do we construct the aggregate type with default values in this case? do we handle it on the server or assume old clients
-				// should be disabled in this case?
-
-				// if (modelAssoc.cardinality === Cardinality.One && values.length === 0) {
-				// 	serverTypeModel.
-				// }
-				// serverInstance[assocId] = assertCorrectAssociationCardinality(typeRef, assocIdStr, modelAssoc.cardinality, clientValues)
+				serverInstance[assocId] = assertCorrectAssociationCardinality(assocTypeRef, assocIdStr, modelAssoc.cardinality, values)
 			} else {
-				// serverInstance[assocId] = assertCorrectAssociationCardinality(
-				// 	typeRef,
-				// 	assocIdStr,
-				// 	modelAssoc.cardinality,
-				// 	parsedInstance[assocId] as ParsedAssociation,
-				// )
+				serverInstance[assocId] = assertCorrectAssociationCardinality(
+					assocTypeRef,
+					assocIdStr,
+					modelAssoc.cardinality,
+					(instance as any)[modelAssoc.name] as ParsedAssociation,
+				)
 			}
 		}
 
-		return serverInstance
+		return serverInstance as ParsedInstance
 	}
 }
 
