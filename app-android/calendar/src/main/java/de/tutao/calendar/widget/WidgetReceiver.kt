@@ -1,6 +1,5 @@
 package de.tutao.calendar.widget
 
-import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
@@ -8,30 +7,40 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import kotlinx.coroutines.MainScope
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 const val WIDGET_SETTINGS_PREFIX = "calendar_widget_settings"
 const val WIDGET_LAST_SYNC_PREFIX = "calendar_widget_last_sync"
 const val WIDGET_SETTINGS_DATASTORE_FILE = "tuta_calendar_widget_settings"
+
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(WIDGET_SETTINGS_DATASTORE_FILE)
 
 class WidgetReceiver : GlanceAppWidgetReceiver() {
-	override val glanceAppWidget: GlanceAppWidget = VerticalWidget()
-	private val coroutineScope = MainScope()
+	companion object {
+		const val WIDGET_WORKER_TAG = "agenda_widget_worker"
+		const val TAG = "WidgetReceiver"
+	}
 
-	override fun onEnabled(context: Context?) {
+	override val glanceAppWidget: GlanceAppWidget = Agenda()
+
+	override fun onEnabled(context: Context) {
 		super.onEnabled(context)
+
+		WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+			WIDGET_WORKER_TAG,
+			ExistingPeriodicWorkPolicy.KEEP,
+			PeriodicWorkRequestBuilder<WidgetWorkManager>(30, TimeUnit.MINUTES)
+				.addTag(WIDGET_WORKER_TAG).setInitialDelay(Duration.ofMinutes(1)).build()
+		)
 	}
 
-	override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-		Log.d("WidgetReceiver", "Called update for appWidgetIds ${appWidgetIds.joinToString { " $it " }}")
-		super.onUpdate(context, appWidgetManager, appWidgetIds)
-//		observeData(context, )
-	}
+	override fun onDisabled(context: Context) {
+		super.onDisabled(context)
 
-	private fun observeData(context: Context, widgetId: Int) {
-//		coroutineScope.launch {
-//			WidgetUIViewModel.getInstance(context, AppWidgetManager)
-//		}
+		WorkManager.getInstance(context).cancelAllWorkByTag(WIDGET_WORKER_TAG)
 	}
 }
