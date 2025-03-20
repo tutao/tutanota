@@ -53,8 +53,6 @@ export interface Instance extends Entity {
 
 export interface Entity {
 	_type: TypeRef<this>
-	_finalIvs: Record<number, Nullable<Uint8Array>>
-
 }
 
 export interface ElementEntity extends Entity, Element {
