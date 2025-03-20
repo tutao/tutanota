@@ -54,7 +54,7 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 	async unscheduleAllAlarms(userId: Id | null = null): Promise<void> {
 		const alarms = await this.alarmStorage.getScheduledAlarms()
 		for (const alarm of alarms) {
-			if (userId == null || alarm.userId === userId) {
+			if (userId == null || alarm.user === userId) {
 				this.cancelAlarms(alarm)
 			}
 		}

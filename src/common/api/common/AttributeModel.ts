@@ -40,6 +40,17 @@ export class AttributeModel {
 		}
 	}
 
+	// FIXME remove after migrating EncryptedParsedInstance | ParsedInstance to string keys
+	static getAttributeorNullOfUntyped<T>(instance: UntypedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
+		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
+		if (attrId) {
+			const value = instance[attrId.toString()]
+			return downcast<T>(value)
+		} else {
+			return null
+		}
+	}
+
 	private static getResolvedAttributeId(typeModel: TypeModel, attrName: string): number | null {
 		const typeIdMap = typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)
 		if (typeIdMap == null) {

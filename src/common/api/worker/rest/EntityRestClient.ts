@@ -13,21 +13,11 @@ import {
 } from "../../common/error/RestError"
 import { assertNotNull, downcast, KeyVersion, lazy, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
-import type {
-	EncryptedParsedInstance,
-	Entity,
-	Instance,
-	ListElementEntity,
-	ParsedInstance,
-	SomeEntity,
-	TypeModel,
-	UntypedInstance,
-} from "../../common/EntityTypes"
+import type { EncryptedParsedInstance, Entity, ListElementEntity, ParsedInstance, SomeEntity, TypeModel, UntypedInstance } from "../../common/EntityTypes"
 import { LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
-import { ModelMapper } from "../crypto/ModelMapper"
 import { QueuedBatch } from "../EventQueue.js"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
@@ -38,8 +28,6 @@ import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { InstanceWrapper } from "../crypto/InstanceWrapper"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { CryptoMapper } from "../crypto/CryptoMapper"
-import { TypeMapper } from "../crypto/TypeMapper"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 
 assertWorkerOrNode()
@@ -365,7 +353,7 @@ export class EntityRestClient implements EntityRestInterface {
 			async (instance) => {
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, instance)
 				const instanceWrapper = await InstanceWrapper.fromEncryptedParsedInstance(this.instancePipeline, typeModel, encryptedParsedInstance)
-				await this._crypto.applyMigrations(instanceWrapper)
+				await this._crypto.applyMigrations(typeModel, typeRef, encryptedParsedInstance)
 				return this._decryptMapAndMigrate(instanceWrapper, ownerEncSessionKeyProvider)
 			},
 			{

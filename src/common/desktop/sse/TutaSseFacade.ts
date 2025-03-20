@@ -251,7 +251,7 @@ export class TutaSseFacade implements SseEventHandler {
 		return {
 			operation,
 			alarmInfo: { alarmIdentifier: alarmInfoIdentifier },
-			userId,
+			user: userId,
 			notificationSessionKeys,
 		}
 	}

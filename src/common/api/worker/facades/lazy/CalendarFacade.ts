@@ -15,7 +15,6 @@ import {
 	createRepeatRule,
 	createUserAlarmInfo,
 	Group,
-	NotificationSessionKeyTypeRef,
 	PushIdentifier,
 	PushIdentifierTypeRef,
 	RepeatRule,
@@ -52,14 +51,13 @@ import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
 import { aes256RandomKey, AesKey, encryptKey, sha256Hash } from "@tutao/tutanota-crypto"
-import { ModelMapper } from "../../crypto/ModelMapper.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { AlarmService } from "../../../entities/sys/Services.js"
 import { CalendarService } from "../../../entities/tutanota/Services.js"
 import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { UserFacade } from "../UserFacade.js"
-import { EncryptedAlarmNotification, NotificationSessionKey } from "../../../../native/common/EncryptedAlarmNotification.js"
+import { EncryptedAlarmInfo, EncryptedAlarmNotification, NotificationSessionKey } from "../../../../native/common/EncryptedAlarmNotification.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
@@ -76,10 +74,9 @@ import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils.js"
-import { TypeMapper } from "../../crypto/TypeMapper"
-import { CryptoMapper } from "../../crypto/CryptoMapper"
-import { EncryptedParsedInstance, TypeModel } from "../../../common/EntityTypes"
+import { EncryptedParsedInstance, TypeModel, UntypedInstance } from "../../../common/EntityTypes"
 import { AttributeModel } from "../../../common/AttributeModel"
+import { InstancePipeline } from "../../crypto/InstancePipeline"
 
 assertWorkerOrNode()
 
@@ -113,9 +110,7 @@ export class CalendarFacade {
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly nativePushFacade: NativePushFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
-		private readonly modelMapper: ModelMapper,
-		private readonly cryptoMapper: CryptoMapper,
-		private readonly typeMapper: TypeMapper,
+		private readonly instancePipeline: InstancePipeline,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly infoMessageHandler: InfoMessageHandler,
@@ -368,50 +363,23 @@ export class CalendarFacade {
 		// to store alarms securely.
 		const notificationKey = aes256RandomKey()
 		await this.encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
-		const requestEntity = createAlarmServicePost({
-			alarmNotifications,
-		})
-		const encryptedAlarms = await this.getEncryptedAlarmNotification(requestEntity, notificationKey)
-		await this.nativePushFacade.scheduleAlarms(encryptedAlarms)
-	}
 
-	private async getEncryptedAlarmNotification(alarmServicePost: AlarmServicePost, notificationKey: AesKey): Promise<Array<EncryptedAlarmNotification>> {
-		const alarmServicePostModel = await resolveTypeReference(AlarmServicePostTypeRef)
-
-		const alarmNotificationEncryptedParsedInstance = await this.modelMapper
-			.applyServerModel(alarmServicePost._type, alarmServicePost)
-			.then((parsedInstance) => this.cryptoMapper.encryptParsedInstance(alarmServicePostModel, parsedInstance, notificationKey))
-			.then((encryptedParsedInstance) => {
-				return downcast<Array<EncryptedParsedInstance>>(
-					assertNotNull(encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(alarmServicePostModel, "encryptedAlarms"))]),
-				)
-			})
-
-		const alarmNotificationModel = await resolveTypeReference(AlarmNotificationTypeRef)
-		const notificationSessionKeyModel = await resolveTypeReference(NotificationSessionKeyTypeRef)
-		const alarmInfoTypeModel = await resolveTypeReference(AlarmInfoTypeRef)
-		return alarmNotificationEncryptedParsedInstance.map((encryptedParsedInstance, i) => {
-			const userId = downcast<Id>(assertNotNull(encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(alarmNotificationModel, "user"))]))
-			const operation = downcast<OperationType>(
-				assertNotNull(encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(alarmNotificationModel, "operation"))]),
-			)
-			const alarmInfoEncryptedParsedInstance = downcast<EncryptedParsedInstance>(
-				assertNotNull(encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(alarmNotificationModel, "alarmInfo"))]),
-			)
-			const alarmIdentifier = downcast<Id>(
-				assertNotNull(alarmInfoEncryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(alarmInfoTypeModel, "alarmIdentifier"))]),
-			)
-			const notificationSessionKeys = downcast<Array<EncryptedParsedInstance>>(
-				assertNotNull(encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(alarmNotificationModel, "notificationSessionKeys"))]),
-			).map((ns) => this.mapNotificationSessionKey(notificationSessionKeyModel, ns))
-
+		const encryptedAlarmNotifications = alarmNotifications.map((alarmNotification) => {
+			const { operation, alarmInfo, notificationSessionKeys, user } = alarmNotification
 			return {
-				operation,
-				userId,
-				notificationSessionKeys,
-				alarmInfo: { alarmIdentifier },
+				operation: downcast<OperationType>(operation),
+				notificationSessionKeys: notificationSessionKeys.map((n) => {
+					const { pushIdentifierSessionEncSessionKey, pushIdentifier } = n
+					return { pushIdentifier, pushIdentifierSessionEncSessionKey } satisfies NotificationSessionKey
+				}),
+				alarmInfo: {
+					alarmIdentifier: alarmInfo.alarmIdentifier,
+				} satisfies EncryptedAlarmInfo,
+				user,
 			} satisfies EncryptedAlarmNotification
 		})
+
+		await this.nativePushFacade.scheduleAlarms(encryptedAlarmNotifications)
 	}
 
 	private mapNotificationSessionKey(notificationSessionKeyModel: TypeModel, encryptedParsedNotificationSk: EncryptedParsedInstance): NotificationSessionKey {
@@ -495,7 +463,11 @@ export class CalendarFacade {
 
 				const progenitor: CalendarEventProgenitor | null = await loadProgenitorFromIndexEntry(entityClient, indexEntry)
 				const alteredInstances: Array<CalendarEventAlteredInstance> = await loadAlteredInstancesFromIndexEntry(entityClient, indexEntry)
-				return { progenitor, alteredInstances, ownerGroup: assertNotNull(indexEntry._ownerGroup, "ownergroup on index entry was null!") }
+				return {
+					progenitor,
+					alteredInstances,
+					ownerGroup: assertNotNull(indexEntry._ownerGroup, "ownergroup on index entry was null!"),
+				}
 			} catch (e) {
 				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 					continue

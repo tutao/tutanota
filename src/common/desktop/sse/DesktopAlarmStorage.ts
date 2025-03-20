@@ -106,7 +106,7 @@ export class DesktopAlarmStorage {
 			return this._saveAlarms([])
 		} else {
 			const allScheduledAlarms = await this.getScheduledAlarms()
-			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.userId === userId)
+			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.user === userId)
 			return this._saveAlarms(allScheduledAlarms)
 		}
 	}
