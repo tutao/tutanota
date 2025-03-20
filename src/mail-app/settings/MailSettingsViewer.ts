@@ -33,7 +33,6 @@ import { LockedError } from "../../common/api/common/error/RestError"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
-import { OfflineStorageSettingsModel } from "./OfflineStorageSettings"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { deviceConfig, ListAutoSelectBehavior, MailListDisplayMode } from "../../common/misc/DeviceConfig"
 import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton.js"
@@ -50,6 +49,7 @@ import { mailLocator } from "../mailLocator.js"
 import { getDefaultSenderFromUser, getFolderName } from "../mail/model/MailUtils.js"
 import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../calendar-app/calendar/gui/pickers/DatePicker"
+import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
 
 assertMainOrNode()
 

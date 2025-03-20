@@ -81,6 +81,7 @@ import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/Calen
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
+import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -214,6 +215,7 @@ export class SearchViewModel {
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
 		private readonly localCalendars: Map<Id, ClientOnlyCalendarsInfo>,
+		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
 		this._listModel = this.createList()
@@ -227,7 +229,7 @@ export class SearchViewModel {
 		return this.userHasNewPaidPlan
 	}
 
-	init(extendIndexConfirmationCallback: SearchViewModel["extendIndexConfirmationCallback"]) {
+	async init(extendIndexConfirmationCallback: SearchViewModel["extendIndexConfirmationCallback"]) {
 		if (this.extendIndexConfirmationCallback) {
 			return
 		}
@@ -255,6 +257,7 @@ export class SearchViewModel {
 			this.onMailboxesChanged(mailboxes)
 		})
 		this.eventController.addEntityListener(this.entityEventsListener)
+		await this.offlineStorageSettings?.init()
 	}
 
 	getRestriction(): SearchRestriction {
@@ -525,6 +528,7 @@ export class SearchViewModel {
 			if (confirmed) {
 				this._startDate = startDate
 				this.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
+					this.offlineStorageSettings?.setTimeRange(startDate)
 					this.updateSearchUrl()
 					this.updateUi()
 				})

@@ -1,4 +1,4 @@
-import { PostLoginAction, LoggedInEvent, LoginController } from "../api/main/LoginController.js"
+import { LoggedInEvent, LoginController, PostLoginAction } from "../api/main/LoginController.js"
 import { CalendarModel } from "../../calendar-app/calendar/model/CalendarModel.js"
 import { CalendarEventTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { CUSTOM_MIN_ID } from "../api/common/utils/EntityUtils.js"
@@ -42,7 +42,5 @@ export class CachePostLoginAction implements PostLoginAction {
 		await this.cacheStorage.clearExcludedData()
 	}
 
-	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-		return Promise.resolve()
-	}
+	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {}
 }

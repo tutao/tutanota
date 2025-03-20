@@ -38,6 +38,7 @@ import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
+import { SearchOfflineRangePostLoginAction } from "./search/SearchOfflineRangePostLoginAction"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -183,6 +184,10 @@ import("./translations/en.js")
 						mailLocator.logins,
 					),
 			)
+			mailLocator.logins.addPostLoginAction(async () => {
+				const offlineStorageSettings = await mailLocator.offlineStorageSettingsModel()
+				return new SearchOfflineRangePostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade)
+			})
 		}
 
 		if (isDesktop()) {
