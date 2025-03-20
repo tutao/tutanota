@@ -444,7 +444,7 @@ impl<'de, T: Entity> Deserializer<'de> for ElementValueDeserializer<'_, T> {
 		V: Visitor<'de>,
 	{
 		if let ElementValue::Dict(dict) = self.value {
-			let de = DictionaryDeserializer::<T,_>::from_iterable(dict);
+			let de = DictionaryDeserializer::<T, _>::from_iterable(dict);
 			visitor.visit_map(de)
 		} else {
 			Err(self.wrong_type_err("dict"))
