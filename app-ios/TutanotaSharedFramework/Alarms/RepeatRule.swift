@@ -22,7 +22,7 @@ extension RepeatRule {
 			let type = try ByRuleType(value: decryptedType)
 
 			let interval: String = try decrypt(base64: $0.interval, key: sessionKey)
-			if Int(string: interval) == nil { throw TUTErrorFactory.createError("Invalid bySetPos rule with interval \(interval)") }
+			if type == .bysetpos && Int(string: interval) == nil { throw TUTErrorFactory.createError("Invalid bySetPos rule with interval \(interval)") }
 			return AdvancedRule(ruleType: type, interval: interval)
 		}
 		self.advancedRules = advancedRules
