@@ -15,7 +15,6 @@ import {
 	EntityUpdate,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
-	WebsocketEntityData,
 	WebsocketEntityDataTypeRef,
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
@@ -36,12 +35,14 @@ import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { resolveTypeReference } from "../common/EntityFunctions.js"
-import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
+import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
 import { TypeMapper } from "./crypto/TypeMapper"
 import { CryptoMapper } from "./crypto/CryptoMapper"
+import { Entity, UntypedInstance } from "../common/EntityTypes"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 
 assertWorkerOrNode()
 
@@ -284,6 +285,18 @@ export class EventBusClient {
 		return p
 	}
 
+	private async decodeEntityEventValue<E extends Entity>(messageType: TypeRef<E>, untypedInstance: UntypedInstance): Promise<E> {
+		const typeModel = await resolveTypeReference(messageType)
+
+		const instance = await this.typeMapper
+			.applyJsTypes(typeModel, untypedInstance)
+			.then((encryptedParsedInstance) => this.cryptoMapper.decryptParsedInstance(typeModel, encryptedParsedInstance, null))
+			.then((parsedInstance) => this.modelMapper.applyClientModel(messageType, parsedInstance))
+		// FIXME:
+		// is this Entity? is this SomeEntity?
+		return instance as any
+	}
+
 	private onError(error: any) {
 		console.log("ws error:", error, JSON.stringify(error), "state:", this.state)
 	}
@@ -293,41 +306,25 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
-				const { eventBatchId, eventBatchOwner, eventBatch }: WebsocketEntityData = await this.modelMapper.decryptAndMapToInstance(
-					await resolveTypeReference(WebsocketEntityDataTypeRef),
-					JSON.parse(value),
-					null,
-				)
+				const { eventBatchId, eventBatchOwner, eventBatch } = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
 				const filteredEntityUpdates = await this.removeUnknownTypes(eventBatch)
 				this.entityUpdateMessageQueue.add(eventBatchId, eventBatchOwner, filteredEntityUpdates)
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
-				const counterData: WebsocketCounterData = await this.modelMapper.decryptAndMapToInstance(
-					await resolveTypeReference(WebsocketCounterDataTypeRef),
-					JSON.parse(value),
-					null,
-				)
+				const counterData = await this.decodeEntityEventValue(WebsocketCounterDataTypeRef, JSON.parse(value))
 				this.listener.onCounterChanged(counterData)
 				break
 			}
 			case MessageType.PhishingMarkers: {
-				const data: PhishingMarkerWebsocketData = await this.modelMapper.decryptAndMapToInstance(
-					await resolveTypeReference(PhishingMarkerWebsocketDataTypeRef),
-					JSON.parse(value),
-					null,
-				)
+				const data = await this.decodeEntityEventValue(PhishingMarkerWebsocketDataTypeRef, JSON.parse(value))
 				this.lastAntiphishingMarkersId = data.lastId
 				this.listener.onPhishingMarkersReceived(data.markers)
 				break
 			}
 			case MessageType.LeaderStatus: {
-				const data: WebsocketLeaderStatus = await this.modelMapper.decryptAndMapToInstance(
-					await resolveTypeReference(WebsocketLeaderStatusTypeRef),
-					JSON.parse(value),
-					null,
-				)
-				await this.userFacade.setLeaderStatus(data)
+				const data = await this.decodeEntityEventValue(WebsocketLeaderStatusTypeRef, JSON.parse(value))
+				this.userFacade.setLeaderStatus(data)
 				await this.listener.onLeaderStatusChanged(data)
 				break
 			}
@@ -343,7 +340,7 @@ export class EventBusClient {
 	 */
 	private async removeUnknownTypes(eventBatch: EntityUpdate[]): Promise<EntityUpdate[]> {
 		return promiseFilter(eventBatch, async (entityUpdate) => {
-			const typeRef = new TypeRef(entityUpdate.application, parseInt(entityUpdate.typeId))
+			const typeRef = new TypeRef(entityUpdate.application as AppName, parseInt(entityUpdate.typeId))
 			try {
 				await resolveTypeReference(typeRef)
 				return true
