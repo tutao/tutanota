@@ -1,5 +1,7 @@
 use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
+
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 #[cfg_attr(test, mockall_double::double)]
@@ -355,6 +357,11 @@ impl CryptoEntityClient {
 
 #[cfg(test)]
 mod tests {
+	use std::sync::Arc;
+
+	use mockall::predicate::eq;
+	use rand::random;
+
 	use crate::crypto::asymmetric_crypto_facade::MockAsymmetricCryptoFacade;
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
 	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
@@ -380,11 +387,6 @@ mod tests {
 	use crate::util::test_utils::{create_test_entity, leak};
 	use crate::util::Versioned;
 	use crate::{GeneratedId, IdTupleGenerated, TypeRef};
-	use mockall::predicate::eq;
-	use rand::random;
-	use std::sync::Arc;
-	use crate::util::test_utils::leak;
-	use crate::{IdTupleGenerated, TypeRef};
 
 	#[tokio::test]
 	async fn no_auth_for_encrypted_instances_except_mail() {

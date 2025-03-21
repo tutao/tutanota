@@ -60,7 +60,7 @@ object AlarmModel {
 		var occurrences = 0
 		var futureOccurrences = 0
 		var intervalOccurrences = 0
-		val startTimeInSeconds = (calcEventStart.time / 1000).toULong()
+		val startTime = calcEventStart.time.toULong()
 
 		while (
 			futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD &&
@@ -72,13 +72,13 @@ object AlarmModel {
 			incrementByRepeatPeriod(calendar, frequency, interval * intervalOccurrences)
 
 			var expandedEvents: List<DateTime> = eventFacade.generateFutureInstances(
-				(calendar.time.time / 1000).toULong(),
+				calendar.time.time.toULong(),
 				EventRepeatRule(frequency.toSdkPeriod(), byRules)
 			)
-
+			
 			// Add the progenitor if it isn't included in the expansion
-			if (intervalOccurrences == 0 && !expandedEvents.contains(startTimeInSeconds)) {
-				expandedEvents = expandedEvents.plus(startTimeInSeconds)
+			if (intervalOccurrences == 0 && !expandedEvents.contains(startTime)) {
+				expandedEvents = expandedEvents.plus(startTime)
 			}
 
 			// This map + filter prevent an infinity loop trap by removing invalid rules like POS 320 for freq. weekly
@@ -111,7 +111,7 @@ object AlarmModel {
 
 				val event = expandedEvents[index]
 
-				val eventDate = Date.from(Instant.ofEpochSecond(event.toLong()))
+				val eventDate = Date.from(Instant.ofEpochMilli(event.toLong()))
 
 				val alarmTime = calculateAlarmTime(eventDate, localTimeZone, alarmTrigger)
 				val startTimeCalendar = calculateLocalStartTime(eventDate, localTimeZone)

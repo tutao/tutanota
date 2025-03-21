@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use base64::prelude::BASE64_URL_SAFE_NO_PAD;
-use base64::Engine;
+use num_enum::TryFromPrimitive;
 use time::{OffsetDateTime, Time};
 
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
+use crate::date::event_facade::EventFacade;
 use crate::date::DateTime;
 use crate::entities::generated::sys::{GroupInfo, GroupMembership};
 use crate::entities::generated::tutanota::{
@@ -17,6 +17,8 @@ use crate::groups::GroupType;
 use crate::user_facade::UserFacade;
 use crate::util::first_bigger_than_second_custom_id;
 use crate::{ApiCallError, CustomId, GeneratedId, ListLoadDirection};
+
+use super::event_facade::{ByRule, ByRuleType, EndType, EventRepeatRule, RepeatPeriod};
 
 #[derive(uniffi::Record)]
 pub struct CalendarData {
@@ -207,7 +209,9 @@ impl CalendarFacade {
 					.err()
 					.expect("Failed to load long calendar events"));
 			}
+
 			let mut unwraped_long_events = loaded_long_events?;
+
 			match self.is_list_load_done(&max_long_id, &mut unwraped_long_events) {
 				Ok((is_done, new_start)) => {
 					has_long_events_finished = is_done;
@@ -215,11 +219,81 @@ impl CalendarFacade {
 				},
 				Err(e) => return Err(e),
 			};
+
+			let events_facade = EventFacade {};
+			let mut advanced_instances: Vec<CalendarEvent> = Vec::new();
+
+			unwraped_long_events
+				.iter()
+				.filter(|event| event.repeatRule.is_some())
+				.for_each(|event| {
+					let repeat_rule = event.repeatRule.as_ref().unwrap();
+
+					let event_instances = match events_facade.create_event_instances(
+						event.startTime,
+						event.endTime,
+						EventRepeatRule {
+							frequency: RepeatPeriod::try_from_primitive(
+								repeat_rule.frequency as u8,
+							)
+							.unwrap(),
+							by_rules: repeat_rule
+								.advancedRules
+								.iter()
+								.map(|adv| ByRule {
+									by_rule: ByRuleType::try_from_primitive(adv.ruleType as u8)
+										.unwrap(),
+									interval: adv.interval.to_owned(),
+								})
+								.collect(),
+						},
+						repeat_rule.interval as u8,
+						EndType::try_from_primitive(repeat_rule.endType as u8).unwrap(),
+						repeat_rule
+							.endValue
+							.and_then(|val| Some(val.unsigned_abs())),
+						repeat_rule
+							.excludedDates
+							.iter()
+							.map(|date| date.date)
+							.collect(),
+						None,
+						Some(DateTime::from_millis(timestamp_start)),
+						Some(DateTime::from_millis(timestamp_end)),
+					) {
+						Ok(ev) => ev,
+						Err(e) => {
+							log::error!(
+								"Failed to parse advanced repeat rules for event {:?}: {e}",
+								event._id
+							);
+
+							Vec::new()
+						},
+					};
+
+					for ev in event_instances {
+						if ev.as_millis() == event.startTime.as_millis() {
+							continue;
+						}
+
+						let mut generic_event = event.clone();
+						let end_time = self.calculate_new_end_time(&generic_event, &ev);
+
+						generic_event.startTime = ev;
+						generic_event.endTime = end_time;
+
+						advanced_instances.push(generic_event);
+					}
+				});
+
+			unwraped_long_events.append(&mut advanced_instances);
 			let mut filtered_long_events = self.filter_events_in_range(
 				date.as_millis(),
 				timestamp_end,
 				&mut unwraped_long_events,
 			);
+
 			long_events.append(&mut filtered_long_events);
 		}
 
@@ -237,6 +311,16 @@ impl CalendarFacade {
 			short_events,
 			long_events,
 		})
+	}
+
+	fn calculate_new_end_time(
+		&self,
+		original_event: &CalendarEvent,
+		new_start_date: &DateTime,
+	) -> DateTime {
+		let diff = original_event.endTime.as_millis() - original_event.startTime.as_millis();
+
+		DateTime::from_millis(new_start_date.as_millis() + diff)
 	}
 
 	fn filter_events_in_range(
