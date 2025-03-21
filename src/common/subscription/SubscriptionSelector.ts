@@ -169,11 +169,12 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		function getFootnoteElement(): Children {
-			if (!isIOSApp() && isTutaBirthdayCampaign && !options.businessUse() && options.paymentInterval() === PaymentInterval.Yearly) {
+			const isYearly = options.paymentInterval() === PaymentInterval.Yearly
+			if (!isIOSApp() && isTutaBirthdayCampaign && !options.businessUse() && isYearly) {
 				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("pricing.legendAsterisk_msg")))
 			}
 
-			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan) {
+			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly) {
 				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("firstMonthForFreeDetail_msg")))
 			}
 
@@ -332,9 +333,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
-		const hasFirstYearDiscount = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && interval === PaymentInterval.Yearly
+		const isYearly = interval === PaymentInterval.Yearly
+		const hasFirstYearDiscount = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && isYearly
 
-		const appliesFirstMonthForFree = priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && targetSubscription !== PlanType.Free
+		const appliesFirstMonthForFree =
+			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && targetSubscription !== PlanType.Free && isYearly
 
 		return {
 			heading: getDisplayNameOfPlanType(targetSubscription),
@@ -355,7 +358,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			highlighted: isHighlighted,
 			mobile,
 			bonusMonths:
-				targetSubscription !== PlanType.Free && interval === PaymentInterval.Yearly
+				targetSubscription !== PlanType.Free && isYearly
 					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 					: 0,
 			targetSubscription,

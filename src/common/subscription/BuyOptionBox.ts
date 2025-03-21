@@ -161,7 +161,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 				return m(".ribbon-horizontal", m(".text-center.b", { style: { padding: px(3) } }, `+${attrs.bonusMonths} ${lang.get("pricing.months_label")}`))
 			}
 
-			if (attrs.isFirstMonthForFree && isPersonalPaidPlan) {
+			if (attrs.isFirstMonthForFree && isPersonalPaidPlan && isYearly) {
 				const isDarkTheme = !isColorLight(theme.content_bg)
 				return m(
 					".ribbon-horizontal.nota",

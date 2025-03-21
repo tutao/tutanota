@@ -160,7 +160,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		const isYearly = attrs.data.options.paymentInterval() === PaymentInterval.Yearly
 		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
 
-		const isFirstMonthForFree = attrs.data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
+		const isFirstMonthForFree = attrs.data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
 
 		return [
 			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
@@ -180,14 +180,12 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 						label: lang.getTranslation("priceTill_label", {
 							"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
 						}),
-						value: isIOSApp()
-							? attrs.data.planPrices.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary]!.toLowerCase())!.displayZero
-							: formatPrice(0, true),
+						value: isIOSApp() ? attrs.data.planPrices.getMobilePrices().get(attrs.data.type.toLowerCase())!.displayZero : formatPrice(0, true),
 
 						isReadOnly: true,
 					}),
 				m(TextField, {
-					label: this.buildPriceLabel(isFirstMonthForFree, attrs),
+					label: this.buildPriceLabel(isYearly, attrs),
 					value: buildPriceString(attrs.data.price?.displayPrice ?? "0", attrs.data.options),
 					isReadOnly: true,
 				}),
@@ -226,7 +224,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	}
 
 	private buildPriceLabel(isYearly: boolean, { data: { nextYearPrice, planPrices } }: WizardPageAttrs<UpgradeSubscriptionData>): MaybeTranslation {
-		if (planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan) {
+		if (planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly) {
 			return lang.getTranslation("priceFrom_label", { "{date}": formatDate(DateTime.now().plus({ month: 1, day: 1 }).toJSDate()) })
 		}
 
