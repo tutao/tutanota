@@ -7,8 +7,9 @@ use time::{OffsetDateTime, Time};
 
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
+use crate::date::event_facade::{ByRule, ByRuleType, EventFacade, EventRepeatRule, RepeatPeriod};
 use crate::date::DateTime;
-use crate::entities::generated::sys::{GroupInfo, GroupMembership};
+use crate::entities::generated::sys::{GroupInfo, GroupMembership, RepeatRule};
 use crate::entities::generated::tutanota::{
 	CalendarEvent, CalendarGroupRoot, GroupSettings, UserSettingsGroupRoot,
 };
@@ -215,6 +216,68 @@ impl CalendarFacade {
 				},
 				Err(e) => return Err(e),
 			};
+
+			let event_facade = EventFacade::new();
+			unwraped_long_events.iter().for_each(|long_event| {
+				if long_event.repeatRule.is_some() {
+					// Call event facade to generate all instances fo current event that contains a RepeatRule
+
+					let progenitor = long_event.to_owned();
+					let repeat_rule = progenitor.repeatRule.unwrap();
+
+					// let event_repeat_rule = EventRepeatRule {
+					// 	frequency: RepeatPeriod::try_from(repeat_rule.frequency).unwrap(),
+					// 	by_rules: repeat_rule
+					// 		.advancedRules
+					// 		.iter()
+					// 		.map(|adv| ByRule {
+					// 			interval: adv.to_owned().interval,
+					// 			by_rule: ByRuleType::try_from(adv.ruleType).unwrap(),
+					// 		})
+					// 		.collect(),
+					// };
+
+					let mut filtered_event_instances: Vec<CalendarEvent> = vec![];
+
+					// Generate instances from simple repeat rules
+
+					// Generate instances from adv repeat rules
+					// Filter set pos
+					// let event_instances_start_times = event_facade.generate_future_instances(
+					// 	long_event.startTime,
+					// 	event_repeat_rule.to_owned(),
+					// );
+					//
+					// // Filter set pos
+					// let filtered_event_instances_start_times =
+					// 	event_repeat_rule.by_rules.iter().find_map(|rule| {
+					// 		let parsed_interval = rule.interval.parse::<i64>();
+					//
+					// 		if (rule.by_rule == ByRuleType::BySetPos && parsed_interval.is_ok()) {
+					// 			let unwrapped_interval = parsed_interval.unwrap() as usize;
+					// 			let index = if (unwrapped_interval > 0) {
+					// 				unwrapped_interval
+					// 			} else {
+					// 				event_repeat_rule.by_rules.iter().len() - unwrapped_interval
+					// 			};
+					// 			let start_time: Option<&DateTime> =
+					// 				event_instances_start_times.get(index);
+					// 		}
+					// 		None
+					//
+					// 		// 	match start_time {
+					// 		// 		Some(new_start_time) => {
+					// 		// 			let mut instance = long_event.clone();
+					// 		// 			instance.startTime = *new_start_time;
+					// 		// 			filtered_event_instances.push(instance.to_owned());
+					// 		// 		},
+					// 		// 		None => {},
+					// 		// 	}
+					// 		// }
+					// 	});
+				}
+			});
+
 			let mut filtered_long_events = self.filter_events_in_range(
 				date.as_millis(),
 				timestamp_end,

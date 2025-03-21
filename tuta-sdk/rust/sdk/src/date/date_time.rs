@@ -35,6 +35,11 @@ impl DateTime {
 	}
 
 	#[must_use]
+	pub fn as_seconds(self) -> u64 {
+		self.as_millis() / 1000
+	}
+
+	#[must_use]
 	pub fn is_after(&self, other: &DateTime) -> bool {
 		self.0 > other.0
 	}

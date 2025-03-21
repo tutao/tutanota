@@ -1,12 +1,12 @@
 use std::ops::{Add, Sub};
 
+use crate::date::DateTime;
 use regex::{Match, Regex};
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Weekday};
 
-use crate::date::DateTime;
-
-#[derive(uniffi::Enum, PartialEq, Copy, Clone)]
+#[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
+#[repr(u8)]
 pub enum ByRuleType {
 	ByMinute,
 	ByHour,
@@ -19,7 +19,8 @@ pub enum ByRuleType {
 	Wkst,
 }
 
-#[derive(uniffi::Enum, PartialEq, Copy, Clone)]
+#[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
+#[repr(u8)]
 pub enum RepeatPeriod {
 	Daily,
 	Weekly,
@@ -866,11 +867,11 @@ impl EventFacade {
 
 		if (new_date.assume_utc().unix_timestamp() >= next_event)
 			|| (week_start != Weekday::Monday // We have WKST
-			&& new_date.assume_utc().unix_timestamp()
-			>= interval_start
-			.add(Duration::weeks(1))
-			.assume_utc()
-			.unix_timestamp())
+            && new_date.assume_utc().unix_timestamp()
+            >= interval_start
+            .add(Duration::weeks(1))
+            .assume_utc()
+            .unix_timestamp())
 		{
 			// Or we created an event after the first event or within the next week
 			return;
@@ -950,6 +951,101 @@ impl EventFacade {
 
 		clean_dates
 	}
+
+	pub fn create_event_instances(
+		&self,
+		event_start_time: DateTime,
+		event_end_time: DateTime,
+		repeat_rule: EventRepeatRule,
+		repeat_interval: u8,
+		end_type: EndType,
+		end_value: u64,
+		excluded_dates: Vec<DateTime>,
+		force_stop_time_condition: DateTime,
+	) {
+		let is_all_day_event = self.is_all_day_event_by_times(event_start_time, event_end_time);
+		let mut occurrences = 0;
+		while (end_type != EndType::Count || occurrences < end_value) {
+			let Ok(mut start_time) =
+				OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
+			else {
+				break;
+			};
+			start_time = self.increment_date_by_repeat_period(
+				&start_time,
+				repeat_interval,
+				&repeat_rule.frequency,
+			)
+		}
+	}
+
+	pub fn increment_date_by_repeat_period(
+		&self,
+		start_date: &OffsetDateTime,
+		repeat_interval: u8,
+		repeat_period: &RepeatPeriod,
+	) -> OffsetDateTime {
+		match repeat_period {
+			RepeatPeriod::Daily => start_date.add(Duration::days(repeat_interval as i64)),
+			RepeatPeriod::Weekly => start_date.add(Duration::weeks(repeat_interval as i64)),
+			RepeatPeriod::Monthly => self.add_months_to_date(start_date, repeat_interval),
+			RepeatPeriod::Annually => self.add_months_to_date(start_date, repeat_interval * 12),
+		}
+	}
+
+	fn add_months_to_date(&self, date: &OffsetDateTime, months: u8) -> OffsetDateTime {
+		if months == 0 {
+			return date.clone();
+		}
+
+		let mut date = date.clone();
+
+		let target_month = date.month().nth_next(months);
+		let mut sum_years = (months / 12) as i32;
+
+		if target_month.to_number() < date.month().to_number() && sum_years == 0 {
+			sum_years = 1;
+		}
+
+		let target_year = date.year() + sum_years;
+		let target_day = if target_month.length(target_year) < date.day() {
+			target_month.length(target_year)
+		} else {
+			date.day()
+		};
+
+		date.replace_date(Date::from_calendar_date(target_year, target_month, target_day).unwrap())
+	}
+
+	pub fn is_all_day_event_by_times(
+		&self,
+		event_start_time: DateTime,
+		event_end_time: DateTime,
+	) -> bool {
+		let Ok(start) = OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
+		else {
+			return false;
+		};
+		let Ok(end) = OffsetDateTime::from_unix_timestamp(event_end_time.as_seconds() as i64)
+		else {
+			return false;
+		};
+
+		let start_fits =
+			start.time().hour() == 0 && start.time().minute() == 0 && start.time().second() == 0;
+		let end_fits =
+			end.time().hour() == 0 && end.time().minute() == 0 && end.time().second() == 0;
+
+		start_fits && end_fits
+	}
+}
+
+#[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
+#[repr(u8)]
+pub enum EndType {
+	Never,
+	Count,
+	UntilDate,
 }
 
 #[cfg(test)]
@@ -965,6 +1061,21 @@ mod tests {
 		fn to_date_time(&self) -> DateTime {
 			DateTime::from_millis(self.assume_utc().unix_timestamp() as u64)
 		}
+	}
+
+	#[test]
+	fn test_add_months_to_date() {
+		let event_facade = EventFacade::new();
+		let jan_31 = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::January, 31).unwrap(),
+			Time::from_hms(0, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
+		assert_eq!(
+			event_facade.add_months_to_date(&jan_31, 1).date(),
+			Date::from_calendar_date(2025, Month::February, 28).unwrap()
+		)
 	}
 
 	#[test]
