@@ -3,7 +3,8 @@ package de.tutao.calendar.widget
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,6 +50,7 @@ import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.layout.wrapContentWidth
+import androidx.glance.material3.ColorProviders
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
@@ -287,7 +289,8 @@ class Agenda : GlanceAppWidget() {
 					if (hasAllDayEvent) {
 						val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
 						val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
-						val allDayIconColor = defineAllDayIconColor(isLightBg)
+						val allDayIconColor =
+							generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
 
 						Image(
 							provider = ImageProvider(R.drawable.ic_all_day),
@@ -349,13 +352,11 @@ class Agenda : GlanceAppWidget() {
 		}
 	}
 
-	@Composable
-	private fun defineAllDayIconColor(isLightBg: Boolean): ColorProvider {
-		return if (isLightBg == isSystemInDarkTheme()) {
-			GlanceTheme.colors.inverseOnSurface
-		} else {
-			GlanceTheme.colors.onSurface
-		}
+	private fun generateColorProviderForColor(color: Color): ColorProvider {
+		return ColorProviders(
+			light = lightColorScheme(primary = color),
+			dark = darkColorScheme(primary = color)
+		).primary
 	}
 
 	@Composable
@@ -422,7 +423,8 @@ class Agenda : GlanceAppWidget() {
 					"Hello Widget $i",
 					"08:00",
 					"17:00",
-					isAllDay = false
+					isAllDay = false,
+					startTimestamp = 0UL,
 				)
 			)
 		}
@@ -434,7 +436,8 @@ class Agenda : GlanceAppWidget() {
 				"Summery",
 				"Start Time",
 				"End Time",
-				isAllDay = false
+				isAllDay = false,
+				startTimestamp = 0UL,
 			)
 		)
 
@@ -445,7 +448,8 @@ class Agenda : GlanceAppWidget() {
 				"Summery",
 				"Start Time",
 				"End Time",
-				isAllDay = false
+				isAllDay = false,
+				startTimestamp = 0UL,
 			)
 		)
 

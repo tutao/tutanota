@@ -25,6 +25,7 @@ data class UIEvent(
 	val startTime: String,
 	val endTime: String,
 	val isAllDay: Boolean,
+	val startTimestamp: ULong,
 )
 
 data class WidgetUIData(
@@ -49,7 +50,9 @@ class WidgetUIViewModel(
 		private const val TAG = "WidgetUIViewModel"
 	}
 
-	init { _isLoading.value = true }
+	init {
+		_isLoading.value = true
+	}
 
 	suspend fun loadUIState(context: Context): WidgetUIData? {
 		Log.d(TAG, "loadUIState start")
@@ -101,7 +104,8 @@ class WidgetUIViewModel(
 					loadedEvent.summary,
 					start.format(formatter),
 					end.format(formatter),
-					isAllDay
+					isAllDay,
+					loadedEvent.startTime,
 				)
 
 				if (isAllDay) {
@@ -111,6 +115,14 @@ class WidgetUIViewModel(
 				}
 			}
 		}
+
+		normalEvents.sortWith(Comparator<UIEvent> { a, b ->
+			when {
+				a.startTimestamp > b.startTimestamp -> 1
+				a.startTimestamp < b.startTimestamp -> -1
+				else -> 0
+			}
+		})
 
 		_uiState.value = WidgetUIData(normalEvents, allDayEvents)
 		Log.d(TAG, "loadUIState coroutine end")
