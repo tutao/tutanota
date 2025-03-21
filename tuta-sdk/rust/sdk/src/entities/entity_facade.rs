@@ -13,6 +13,7 @@ use crate::util::array_cast_slice;
 use crate::ApiCallError;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use core::str;
 use lz4_flex::block::DecompressError;
 use minicbor::Encode;
 use std::borrow::Borrow;
@@ -548,11 +549,20 @@ impl EntityFacadeImpl {
 			},
 			ValueType::Bytes => Ok(ElementValue::Bytes(bytes.clone())),
 			ValueType::Date => {
-				let bytes = array_cast_slice(bytes.as_slice(), "u64")
+				let mut valid_bytes: Vec<u8> = bytes.clone();
+
+				if let Ok(string) = str::from_utf8(&valid_bytes) {
+					let bytes = string.parse::<u64>().or_else(|e| {
+						Err(ApiCallError::internal_with_err(e, "Invalid date bytes"))
+					})?;
+					valid_bytes = bytes.to_be_bytes().to_vec();
+				};
+
+				let bytes = array_cast_slice(valid_bytes.as_slice(), "u64")
 					.map_err(|e| ApiCallError::internal_with_err(e, "Invalid date bytes"))?;
-				Ok(ElementValue::Date(DateTime::from_millis(
-					u64::from_be_bytes(bytes),
-				)))
+				let value = u64::from_be_bytes(bytes);
+				let date_time = DateTime::from_millis(value);
+				Ok(ElementValue::Date(date_time))
 			},
 			ValueType::Boolean => match bytes.as_slice() {
 				b"1" => Ok(ElementValue::Bool(true)),
@@ -752,6 +762,7 @@ mod tests {
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::entity_test_utils::generate_email_entity;
 	use crate::{collection, ApiCallError};
+	use core::str;
 	use std::collections::{BTreeMap, HashMap};
 	use std::sync::Arc;
 	use std::time::SystemTime;
@@ -771,6 +782,69 @@ mod tests {
 		ValueType::CustomId,
 		ValueType::CompressedString,
 	];
+
+	#[test]
+	fn test_parse_decrypted_value_date_from_string() {
+		let timestamp: u64 = 1738310400000;
+		let value = timestamp.to_string().as_bytes().to_vec();
+
+		let parsed_decrypted_value =
+			EntityFacadeImpl::parse_decrypted_value(ValueType::Date, value);
+
+		assert!(parsed_decrypted_value.is_ok());
+		assert_eq!(
+			&DateTime::from_millis(timestamp),
+			parsed_decrypted_value.unwrap().assert_date()
+		);
+	}
+
+	#[test]
+	fn test_parse_decrypted_value_date_from_number() {
+		let timestamp: u64 = 1738310400000;
+		let value = timestamp.to_be_bytes().to_vec();
+
+		let parsed_decrypted_value =
+			EntityFacadeImpl::parse_decrypted_value(ValueType::Date, value);
+
+		assert!(parsed_decrypted_value.is_ok());
+		assert_eq!(
+			&DateTime::from_millis(timestamp),
+			parsed_decrypted_value.unwrap().assert_date()
+		);
+	}
+
+	#[test]
+	fn test_parse_decrypted_value_date_from_invalid() {
+		let value = vec![];
+
+		let parsed_decrypted_value =
+			EntityFacadeImpl::parse_decrypted_value(ValueType::Date, value);
+
+		assert!(parsed_decrypted_value.is_err());
+		let err = parsed_decrypted_value.unwrap_err().to_string();
+		assert!(err.contains("Invalid date bytes"));
+	}
+
+	#[test]
+	fn test_decrypt_and_parse_date_from_string() {
+		let timestamp: u64 = 1738310400000;
+		let model_value = create_model_value(ValueType::String, true, Cardinality::One);
+		let sk = GenericAesKey::from_bytes(&[rand::random(); 32]).unwrap();
+		let iv = Iv::generate(&RandomizerFacade::from_core(rand_core::OsRng));
+		let value = ElementValue::String(timestamp.to_string());
+		let encrypted_value =
+			EntityFacadeImpl::encrypt_value(&model_value, &value, &sk, iv.clone()).unwrap();
+
+		let decrypt_model_value = create_model_value(ValueType::Date, true, Cardinality::One);
+		let decrypted_value = EntityFacadeImpl::decrypt_and_parse_value(
+			encrypted_value,
+			&sk,
+			"test",
+			&decrypt_model_value,
+		);
+
+		assert!(decrypted_value.is_ok());
+	}
 
 	#[test]
 	fn test_decrypt_mail() {
