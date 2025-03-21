@@ -151,7 +151,6 @@ export class CryptoFacade {
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
 	async resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>> {
-		throw new Error("Here")
 		const typeModel = await resolveTypeReference(instance._type)
 		if (!typeModel.encrypted) {
 			return null
@@ -309,7 +308,7 @@ export class CryptoFacade {
 		}
 	}
 
-	private async addSessionKeyToPushIdentifier(typeModel: TypeModel, instance: EntityAdapter) {
+	private async addSessionKeyToPushIdentifier(typeModel: TypeModel, instance: EntityAdapter): Promise<EntityAdapter> {
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
@@ -317,7 +316,7 @@ export class CryptoFacade {
 		return instance
 	}
 
-	private async encryptTutanotaProperties(instance: EntityAdapter) {
+	private async encryptTutanotaProperties(instance: EntityAdapter): Promise<EntityAdapter> {
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 
 		// EncryptTutanotaPropertiesService could be removed and replaced with a Migration that writes the key

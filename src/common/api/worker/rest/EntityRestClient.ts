@@ -219,15 +219,15 @@ export class EntityRestClient implements EntityRestInterface {
 		const migratedEntity = await this._crypto.applyMigrations(typeModel, typeRef, entityAdapter)
 		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, migratedEntity)
 		const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(typeModel, migratedEntity.encryptedParsedInstance, sessionKey)
-		return this._decryptMapAndMigrate(typeModel, entityAdapter, undefined)
+		const instance = downcast<T>(await this.instancePipeline.modelMapper.applyClientModel(typeRef, parsedInstance))
+		return await this._crypto.applyMigrationsForInstance(instance)
 	}
 
 	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const ownerKey = await ownerKeyProvider(parseKeyVersion(assertNotNull(migratedEntity._ownerKeyVersion)))
-				const ownerEncSessionKey = migratedEntity._ownerEncSessionKey
-				return this._crypto.decryptSessionKeyWithOwnerKey(ownerEncSessionKey, ownerKey)
+				const ownerKey = await ownerKeyProvider(parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0"))
+				return this._crypto.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
 			} else {
 				return await this._crypto.resolveSessionKey(migratedEntity)
 			}
@@ -392,7 +392,7 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 		}
 		const decryptedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(typeModel, entityAdapter.encryptedParsedInstance, sessionKey)
-		const instance = await this.instancePipeline.modelMapper.applyClientModel<T>(new TypeRef(typeModel.app, typeModel.id), decryptedInstance)
+		const instance = downcast<T>(await this.instancePipeline.modelMapper.applyClientModel(new TypeRef(typeModel.app, typeModel.id), decryptedInstance))
 		return this._crypto.applyMigrationsForInstance<T>(instance)
 	}
 

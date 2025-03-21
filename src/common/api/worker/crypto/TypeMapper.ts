@@ -12,7 +12,6 @@ import { TypeReferenceResolver } from "../../common/EntityFunctions"
 import { TypeRef, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
-import Ar from "../../../../mail-app/translations/ar"
 
 /**
  * takes a raw parsed JSON value as received from the server and converts its attribute values from the
