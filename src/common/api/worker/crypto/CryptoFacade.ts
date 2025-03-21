@@ -151,6 +151,7 @@ export class CryptoFacade {
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
 	async resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>> {
+		throw new Error("Here")
 		const typeModel = await resolveTypeReference(instance._type)
 		if (!typeModel.encrypted) {
 			return null
@@ -186,7 +187,7 @@ export class CryptoFacade {
 	 * @param data
 	 * @return the unmapped and still encrypted instance
 	 */
-	async applyMigrations(typeModel: TypeModel, typeRef: TypeRef<Entity>, data: EntityAdapter) {
+	async applyMigrations(typeModel: TypeModel, typeRef: TypeRef<Entity>, data: EntityAdapter): Promise<EntityAdapter> {
 		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
 			return this.applyCustomerGroupOwnershipToGroupInfo(data)
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
@@ -313,6 +314,7 @@ export class CryptoFacade {
 
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
 		await this.updateOwnerEncSessionKey(typeModel, instance, userGroupKey, aes256RandomKey())
+		return instance
 	}
 
 	private async encryptTutanotaProperties(instance: EntityAdapter) {
@@ -327,6 +329,7 @@ export class CryptoFacade {
 			symEncSessionKey: groupEncSessionKey.key,
 		})
 		await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData)
+		return instance
 	}
 
 	private async applyCustomerGroupOwnershipToGroupInfo(data: EntityAdapter): Promise<EntityAdapter> {

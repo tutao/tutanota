@@ -13,7 +13,7 @@ import {
 } from "../../common/error/RestError"
 import { assertNotNull, downcast, KeyVersion, lazy, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
-import type { EncryptedParsedInstance, ListElementEntity, SomeEntity, TypeModel, UntypedInstance } from "../../common/EntityTypes"
+import type { Entity, ListElementEntity, SomeEntity, TypeModel, UntypedInstance } from "../../common/EntityTypes"
 import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
@@ -28,8 +28,8 @@ import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { InstancePipeline } from "../crypto/InstancePipeline"
-import { AttributeModel } from "../../common/AttributeModel"
 import { EntityAdapter } from "../crypto/EntityAdapter"
+import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 
 assertWorkerOrNode()
 
@@ -213,16 +213,19 @@ export class EntityRestClient implements EntityRestInterface {
 			responseType: MediaType.Json,
 			baseUrl: opts.baseUrl,
 		})
-		const entity = JSON.parse(json)
-		const instances = await this._handleLoadResult(typeRef, [entity])
-		return instances[0]
+
+		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, JSON.parse(json))
+		const entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
+		const migratedEntity = await this._crypto.applyMigrations(typeModel, typeRef, entityAdapter)
+		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, migratedEntity)
+		const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(typeModel, migratedEntity.encryptedParsedInstance, sessionKey)
+		return this._decryptMapAndMigrate(typeModel, entityAdapter, undefined)
 	}
 
-	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: SomeEntity): Promise<Nullable<AesKey>> {
+	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKeyProvider && migratedEntity._ownerEncSessionKey) {
-				const parseKeyVersion = downcast<KeyVersion>(assertNotNull(migratedEntity._ownerKeyVersion))
-				const ownerKey = await ownerKeyProvider(parseKeyVersion)
+				const ownerKey = await ownerKeyProvider(parseKeyVersion(assertNotNull(migratedEntity._ownerKeyVersion)))
 				const ownerEncSessionKey = migratedEntity._ownerEncSessionKey
 				return this._crypto.decryptSessionKeyWithOwnerKey(ownerEncSessionKey, ownerKey)
 			} else {
@@ -352,9 +355,9 @@ export class EntityRestClient implements EntityRestInterface {
 			loadedEntities,
 			async (instance) => {
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, instance)
-				const entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
-				await this._crypto.applyMigrations(typeModel, typeRef, entityAdapter)
-				return this._decryptMapAndMigrate(typeModel, encryptedParsedInstance, ownerEncSessionKeyProvider)
+				let entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
+				entityAdapter = await this._crypto.applyMigrations(typeModel, typeRef, entityAdapter)
+				return this._decryptMapAndMigrate(typeModel, entityAdapter, ownerEncSessionKeyProvider)
 			},
 			{
 				concurrency: 5,
@@ -364,22 +367,21 @@ export class EntityRestClient implements EntityRestInterface {
 
 	async _decryptMapAndMigrate<T extends SomeEntity>(
 		typeModel: TypeModel,
-		encryptedParsedInstance: EncryptedParsedInstance,
+		entityAdapter: EntityAdapter,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<T> {
 		let sessionKey: AesKey | null
 		if (ownerEncSessionKeyProvider) {
-			const id = assertNotNull(AttributeModel.getAttributeorNull<Id | IdTuple>(encryptedParsedInstance, "_id", typeModel))
+			const id = entityAdapter._id
 			const elementId = typeof id == "string" ? id : elementIdPart(id)
 
 			const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId)
-			const ownerGroup = assertNotNull(AttributeModel.getAttributeorNull<Id>(encryptedParsedInstance, "_ownerGroup", typeModel))
+			const ownerGroup = assertNotNull(entityAdapter._ownerGroup)
 
 			sessionKey = await this._crypto.decryptSessionKey(ownerGroup, ownerEncSessionKey)
 		} else {
 			try {
-				const instanceAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
-				sessionKey = await this._crypto.resolveSessionKey(instanceAdapter)
+				sessionKey = await this._crypto.resolveSessionKey(entityAdapter)
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {
 					console.log("could not resolve session key", e, e.message, e.stack)
@@ -389,8 +391,8 @@ export class EntityRestClient implements EntityRestInterface {
 				}
 			}
 		}
-		const decryptedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(typeModel, encryptedParsedInstance, sessionKey)
-		const instance: T = downcast<T>(await this.instancePipeline.modelMapper.applyClientModel(new TypeRef(typeModel.app, typeModel.id), decryptedInstance))
+		const decryptedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(typeModel, entityAdapter.encryptedParsedInstance, sessionKey)
+		const instance = await this.instancePipeline.modelMapper.applyClientModel<T>(new TypeRef(typeModel.app, typeModel.id), decryptedInstance)
 		return this._crypto.applyMigrationsForInstance<T>(instance)
 	}
 

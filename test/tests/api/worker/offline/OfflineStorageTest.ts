@@ -48,6 +48,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 import Id from "../../../../../src/mail-app/translations/id.js"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -102,6 +103,7 @@ o.spec("OfflineStorageDb", function () {
 	let migratorMock: OfflineStorageMigrator
 	let offlineStorageCleanerMock: OfflineStorageCleaner
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
+	let modelMapper: ModelMapper
 
 	o.beforeEach(async function () {
 		dbFacade = new DesktopSqlCipher(nativePath, database, false)
@@ -110,8 +112,9 @@ o.spec("OfflineStorageDb", function () {
 		migratorMock = instance(OfflineStorageMigrator)
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 		offlineStorageCleanerMock = new MailOfflineCleaner()
+		modelMapper = new ModelMapper(resolveTypeReference, resolveTypeReference)
 		when(dateProviderMock.now()).thenReturn(now.getTime())
-		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, offlineStorageCleanerMock)
+		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, offlineStorageCleanerMock, modelMapper)
 	})
 
 	o.afterEach(async function () {
@@ -127,18 +130,18 @@ o.spec("OfflineStorageDb", function () {
 			switch (typeModel.type) {
 				case TypeId.Element.valueOf():
 					preparedQuery = sql`select *
-										from element_entities
-										where type = ${getTypeId(typeRef)}`
+                                        from element_entities
+                                        where type = ${getTypeId(typeRef)}`
 					break
 				case TypeId.ListElement.valueOf():
 					preparedQuery = sql`select *
-										from list_entities
-										where type = ${getTypeId(typeRef)}`
+                                        from list_entities
+                                        where type = ${getTypeId(typeRef)}`
 					break
 				case TypeId.BlobElement.valueOf():
 					preparedQuery = sql`select *
-										from blob_element_entities
-										where type = ${getTypeId(typeRef)}`
+                                        from blob_element_entities
+                                        where type = ${getTypeId(typeRef)}`
 					break
 				default:
 					throw new Error("must be a persistent type")
@@ -364,6 +367,11 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailBoxTypeRef, {
 						_id: "mailboxId",
+						_permissions: "permissions",
+						sentAttachments: "sentAttachments",
+						receivedAttachments: "receivedAttachments",
+						importedAttachments: "importedAttachments",
+						mailImportStates: "mailImportStates",
 						currentMailBag: createTestEntity(MailBagTypeRef, { _id: "mailBagId", mails: mailBagMailListId }),
 						folders: createMailFolderRef({ folders: "mailFolderList" }),
 					}),

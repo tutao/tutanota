@@ -32,7 +32,13 @@ export function encryptValue(
 }
 
 // Exported for testing
-export function decryptValue(valueType: ModelValue & { encrypted: true }, value: Nullable<Base64>, sk: AesKey): Nullable<ParsedValue> {
+export function decryptValue(
+	valueType: ModelValue & {
+		encrypted: true
+	},
+	value: Nullable<Base64>,
+	sk: AesKey,
+): Nullable<ParsedValue> {
 	if (value == null) {
 		return null
 	} else if (valueType.cardinality === Cardinality.One && value === "") {
@@ -182,7 +188,7 @@ export class CryptoMapper {
 		aggregateValues: Array<ParsedInstance>,
 		sk: Nullable<AesKey>,
 	): Promise<Array<EncryptedParsedInstance>> {
-		let encryptedAggregates = []
+		let encryptedAggregates: Array<EncryptedParsedInstance> = []
 		for (const aggregate of aggregateValues) {
 			encryptedAggregates.push(await this.encryptParsedInstance(associationTypeModel, aggregate, sk))
 		}

@@ -12,6 +12,7 @@ import { TypeReferenceResolver } from "../../common/EntityFunctions"
 import { TypeRef, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
+import Ar from "../../../../mail-app/translations/ar"
 
 /**
  * takes a raw parsed JSON value as received from the server and converts its attribute values from the
@@ -48,7 +49,7 @@ export class TypeMapper {
 				const appName = modelAssociation.dependency ?? typeModel.app
 				const associationTypeModel = await this.typeRefResolver(new TypeRef(appName, modelAssociation.refTypeId))
 
-				const untypedAssociationValues = []
+				const untypedAssociationValues: Array<EncryptedParsedInstance> = []
 				for (const value of values) {
 					untypedAssociationValues.push(await this.applyJsTypes(associationTypeModel, value as UntypedInstance))
 				}
@@ -93,7 +94,7 @@ export class TypeMapper {
 				const appName = modelAssociation.dependency ?? typeModel.app
 				const associationTypeModel = await this.typeRefResolver(new TypeRef(appName, modelAssociation.refTypeId))
 
-				const untypedAssociationValues = []
+				const untypedAssociationValues: Array<UntypedInstance> = []
 				for (const value in values) {
 					untypedAssociationValues.push(await this.applyDbTypes(associationTypeModel, value))
 				}
