@@ -40,6 +40,7 @@ import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
+import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -64,6 +65,7 @@ export class MailIndexer {
 	isIndexing: boolean = false
 	_indexingCancelled: boolean
 	_dateProvider: DateProvider
+	_backend: MailIndexerBackend | null = null
 
 	constructor(
 		private readonly infoMessageHandler: InfoMessageHandler,
@@ -71,7 +73,7 @@ export class MailIndexer {
 		private readonly entityClient: EntityClient,
 		dateProvider: DateProvider,
 		private readonly mailFacade: MailFacade,
-		private readonly backend: MailIndexerBackend,
+		private readonly backendFactory: (user: Id) => MailIndexerBackend,
 	) {
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this.mailIndexingEnabled = false
@@ -153,6 +155,10 @@ export class MailIndexer {
 		this.mailIndexingEnabled = false
 		this._indexingCancelled = true
 		await this.backend.deleteIndex()
+	}
+
+	init(userId: Id) {
+		this._backend = this.backendFactory(userId)
 	}
 
 	cancelMailIndexing(): Promise<void> {
@@ -417,8 +423,9 @@ export class MailIndexer {
 	}
 
 	async updateCurrentIndexTimestamp(user: User): Promise<void> {
+		const backend = this.backendFactory(user._id)
 		const mailMemberships = filterMailMemberships(user).map((ship) => ship.group)
-		const timestamps = await this.backend.getCurrentIndexTimestamps(mailMemberships)
+		const timestamps = await backend.getCurrentIndexTimestamps(mailMemberships)
 		this.currentIndexTimestamp = _getCurrentIndexTimestamp(Array.from(timestamps.values()))
 	}
 
@@ -449,7 +456,6 @@ export class MailIndexer {
 	 * after importing lots of mails...
 	 */
 	private async preloadMails(mailIds: IdTuple[]): Promise<MailWithDetailsAndAttachments[]> {
-		// FIXME not sure if it's using cache like it's wants to
 		const indexLoader = this.bulkLoaderFactory()
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailIds)
 		const mailsWithDetails = await indexLoader.loadMailDetails(mails)
@@ -492,6 +498,7 @@ export class MailIndexer {
 	 */
 	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
+
 		for (const event of events) {
 			if (isUpdateForTypeRef(MailTypeRef, event)) {
 				const mailId: IdTuple = [event.instanceListId, event.instanceId]
@@ -515,6 +522,10 @@ export class MailIndexer {
 				await this.processImportStateEntityEvents(event)
 			}
 		}
+	}
+
+	private get backend(): MailIndexerBackend {
+		return assertNotNull(this._backend)
 	}
 }
 

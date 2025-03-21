@@ -46,8 +46,6 @@ import type {
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
 } from "../../../common/api/worker/search/SearchTypes.js"
-import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
-import { EventQueue } from "../../../common/api/worker/EventQueue.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
@@ -60,7 +58,6 @@ import {
 	iterateBinaryBlocks,
 	removeBinaryBlockRanges,
 } from "../../../common/api/worker/search/SearchIndexEncoding.js"
-import type { EntityUpdate } from "../../../common/api/entities/sys/TypeRefs.js"
 import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import {
 	ElementDataOS,
@@ -96,11 +93,6 @@ type WriteOperation = {
  * too early.
  */
 export class IndexerCore {
-	// FIXME: we should take this queue out of IndexerCore because it is not related to the rest of the code.
-	//  It is loosely related as queue has `_isStopped` that is checked in transaction. It is a general pattern
-	//  where we should not disable the index and then write something to it. We need to either check before each
-	//  write (something that we do now) or we should wait for processing of the current event and then disable it.
-	queue: EventQueue
 	db: Db
 	private _isStopped: boolean
 	private _promiseMapCompat: PromiseMapFn
@@ -120,8 +112,7 @@ export class IndexerCore {
 		indexedBytes: number
 	}
 
-	constructor(db: Db, queue: EventQueue, browserData: BrowserData) {
-		this.queue = queue
+	constructor(db: Db, browserData: BrowserData) {
 		this.db = db
 		this._isStopped = false
 		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
@@ -231,7 +222,6 @@ export class IndexerCore {
 	/********************************************* Manipulating the state ***********************************************/
 	stopProcessing() {
 		this._isStopped = true
-		this.queue.clear()
 	}
 
 	isStoppedProcessing(): boolean {

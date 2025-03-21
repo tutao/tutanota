@@ -1,5 +1,4 @@
 import { File as TutanotaFile, Mail, MailAddress, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import Id from "../../translations/id"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { assertNotNull, getTypeId } from "@tutao/tutanota-utils"
 import {
@@ -15,10 +14,11 @@ import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTy
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { IndexerCore } from "./IndexerCore"
-import { IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
+import { Db, IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade"
 import { Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
+import { newSearchIndexDB } from "./Indexer"
 
 export interface MailWithDetailsAndAttachments {
 	mail: Mail
@@ -51,7 +51,7 @@ export interface MailIndexerBackend {
 	deleteIndex(): Promise<void>
 }
 
-class IndexedDbMailIndexerBackend implements MailIndexerBackend {
+export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly dbFacade: DbFacade, private readonly core: IndexerCore, private readonly userId: Id) {}
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
@@ -166,7 +166,7 @@ class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	}
 }
 
-class SqliteMailIndexerBackend implements MailIndexerBackend {
+export class SqliteMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
 
 	async getCurrentIndexTimestamps(groupIds: readonly []): Promise<Map<Id, number>> {

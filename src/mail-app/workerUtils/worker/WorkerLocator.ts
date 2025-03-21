@@ -1,6 +1,6 @@
 import { CacheInfo, LoginFacade, LoginListener } from "../../../common/api/worker/facades/LoginFacade.js"
 import type { WorkerImpl } from "./WorkerImpl.js"
-import type { Indexer } from "../index/Indexer.js"
+import { Indexer, newSearchIndexDB } from "../index/Indexer.js"
 import type { EntityRestInterface } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
 import type { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
@@ -92,6 +92,7 @@ import { EphemeralCacheStorage } from "../../../common/api/worker/rest/Ephemeral
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
+import { IndexedDbMailIndexerBackend, MailIndexerBackend, SqliteMailIndexerBackend } from "../index/MailIndexerBackend"
 
 assertWorkerOrNode()
 
@@ -259,17 +260,24 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { MailIndexer } = await import("../index/MailIndexer.js")
 		const mailFacade = await locator.mail()
 		const bulkLoaderFactory = await prepareBulkLoaderFactory()
-		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache, (core, db) => {
+
+		return new Indexer(entityRestClient, mainInterface.infoMessageHandler, browserData, locator.cache as DefaultEntityRestCache, (core) => {
 			const dateProvider = new LocalTimeDateProvider()
 			return new MailIndexer(
-				core,
-				db,
 				mainInterface.infoMessageHandler,
 				bulkLoaderFactory,
 				locator.cachingEntityClient,
 				dateProvider,
 				mailFacade,
-				locator.sqlCipherFacade,
+				// FIXME: Does this need to be a factory? Maybe we just pass userId into makeMailIndexer, and we'll have
+				//        our backend immediately without needing a subsequent call to init()
+				(userId): MailIndexerBackend => {
+					if (isOfflineStorageAvailable()) {
+						return new SqliteMailIndexerBackend(locator.sqlCipherFacade)
+					} else {
+						return new IndexedDbMailIndexerBackend(newSearchIndexDB(), core, userId)
+					}
+				},
 			)
 		})
 	})
