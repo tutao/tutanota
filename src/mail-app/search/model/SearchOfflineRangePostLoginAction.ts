@@ -1,6 +1,6 @@
-import { LoggedInEvent, PostLoginAction } from "../../common/api/main/LoginController"
-import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
-import { Indexer } from "../workerUtils/index/Indexer"
+import { LoggedInEvent, PostLoginAction } from "../../../common/api/main/LoginController"
+import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
+import { Indexer } from "../../workerUtils/index/Indexer"
 
 // FIXME: shouldn't be in /search
 export class SearchOfflineRangePostLoginAction implements PostLoginAction {

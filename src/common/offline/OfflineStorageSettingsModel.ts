@@ -3,7 +3,7 @@ import { OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../api/common/TutanotaC
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { isOfflineStorageAvailable } from "../api/common/Env"
-import { getStartOfTheWeekOffsetForUser } from "../calendar/date/CalendarUtils"
+import { getStartOfTheWeekOffsetForUser } from "../misc/weekOffset"
 
 /**
  * A model for handling offline storage configuration

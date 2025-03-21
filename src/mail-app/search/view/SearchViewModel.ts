@@ -69,11 +69,7 @@ import { CalendarFacade } from "../../../common/api/worker/facades/lazy/Calendar
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ClientOnlyCalendarsInfo, ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import {
-	generateCalendarInstancesInRange,
-	getStartOfTheWeekOffsetForUser,
-	retrieveClientOnlyEventsForUser,
-} from "../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, retrieveClientOnlyEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -82,6 +78,7 @@ import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 
 const SEARCH_PAGE_SIZE = 100
 

@@ -25,12 +25,10 @@ import {
 	CLIENT_ONLY_CALENDARS,
 	EndType,
 	EventTextTimeOption,
-	getWeekStart,
 	RepeatPeriod,
 	TimeFormat,
-	WeekStart,
 } from "../../api/common/TutanotaConstants"
-import { DateTime, Duration, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
+import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,
@@ -775,26 +773,6 @@ export function getRangeOfDays(startDay: Date, numDays: number): Array<Date> {
 	}
 
 	return days
-}
-
-/** Start of the week offset relative to Sunday (forward). */
-export function getStartOfTheWeekOffset(weekStart: WeekStart): number {
-	switch (weekStart) {
-		case WeekStart.SUNDAY:
-			return 0
-
-		case WeekStart.SATURDAY:
-			return 6
-
-		case WeekStart.MONDAY:
-		default:
-			return 1
-	}
-}
-
-/** {@see getStartOfTheWeekOffset} */
-export function getStartOfTheWeekOffsetForUser(userSettingsGroupRoot: UserSettingsGroupRoot): number {
-	return getStartOfTheWeekOffset(getWeekStart(userSettingsGroupRoot))
 }
 
 export function getTimeFormatForUser(userSettingsGroupRoot: UserSettingsGroupRoot): TimeFormat {
