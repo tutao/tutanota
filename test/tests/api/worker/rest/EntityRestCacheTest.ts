@@ -88,7 +88,7 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
 	const offlineStorageCleanerMock = object<OfflineStorageCleaner>()
 	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock, offlineStorageCleanerMock)
-	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false })
+	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDate: new Date("2025-03-21T12:33:40.972Z"), forceNewDatabase: false })
 	return offlineStorage
 }
 

@@ -100,7 +100,7 @@ o.spec("LoginFacadeTest", function () {
 	let argon2idFacade: Argon2idFacade
 	let cacheManagmentFacadeMock: CacheManagementFacade
 
-	const timeRangeDays = 42
+	const timeRangeDate = new Date("2025-03-21T12:33:40.972Z")
 	const login = "born.slippy@tuta.io"
 
 	o.beforeEach(function () {
@@ -122,7 +122,7 @@ o.spec("LoginFacadeTest", function () {
 			cacheStorageInitializerMock.initialize({
 				userId: anything(),
 				databaseKey: anything(),
-				timeRangeDays: anything(),
+				timeRangeDate: anything(),
 				forceNewDatabase: anything(),
 				type: "offline",
 			}),
@@ -183,14 +183,14 @@ o.spec("LoginFacadeTest", function () {
 
 			o.test("When a database key is provided and session is persistent it is passed to the offline storage initializer", async function () {
 				await facade.createSession(login, passphrase, "client", SessionType.Persistent, dbKey)
-				verify(cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays: null, forceNewDatabase: false }))
+				verify(cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDate: null, forceNewDatabase: false }))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
 			})
 			o.test("When no database key is provided and session is persistent, a key is generated and we attempt offline db init", async function () {
 				const databaseKey = Uint8Array.from([1, 2, 3, 4])
 				when(databaseKeyFactoryMock.generateKey()).thenResolve(databaseKey)
 				await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
-				verify(cacheStorageInitializerMock.initialize({ type: "offline", userId, databaseKey, timeRangeDays: null, forceNewDatabase: true }))
+				verify(cacheStorageInitializerMock.initialize({ type: "offline", userId, databaseKey, timeRangeDate: null, forceNewDatabase: true }))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 1 })
 			})
 			o.test("When no database key is provided and session is Login, nothing is passed to the offline storage initialzier", async function () {
@@ -255,13 +255,13 @@ o.spec("LoginFacadeTest", function () {
 
 			o.test("When resuming a session and there is a database key, it is passed to offline storage initialization", async function () {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
-				verify(cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false }))
+				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
+				verify(cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDate, forceNewDatabase: false }))
 			})
 
 			o.test("When resuming a session and there is no database key, nothing is passed to offline storage initialization", async function () {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, null, null, timeRangeDays)
+				await facade.resumeSession(credentials, null, null, timeRangeDate)
 				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
 			})
 
@@ -269,13 +269,13 @@ o.spec("LoginFacadeTest", function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 				when(
-					cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false }),
+					cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDate, forceNewDatabase: false }),
 				).thenResolve({
 					isPersistent: true,
 					isNewOfflineDb: true,
 				})
 
-				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
 
 				o(facade.asyncLoginState).deepEquals({ state: "idle" })("Synchronous login occured, so once resume returns we have already logged in")
 			})
@@ -285,13 +285,13 @@ o.spec("LoginFacadeTest", function () {
 				user.accountType = AccountType.PAID
 
 				when(
-					cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false }),
+					cacheStorageInitializerMock.initialize({ type: "offline", databaseKey: dbKey, userId, timeRangeDate, forceNewDatabase: false }),
 				).thenResolve({
 					isPersistent: true,
 					isNewOfflineDb: false,
 				})
 
-				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
 
 				o(facade.asyncLoginState).deepEquals({ state: "running" })("Async login occurred so it is still running")
 			})
@@ -315,7 +315,7 @@ o.spec("LoginFacadeTest", function () {
 							kdfType: DEFAULT_KDF_TYPE,
 						},
 						dbKey,
-						timeRangeDays,
+						timeRangeDate,
 					),
 				).asyncThrows(NotAuthenticatedError)
 				verify(cacheStorageInitializerMock.deInitialize())
@@ -323,7 +323,7 @@ o.spec("LoginFacadeTest", function () {
 
 			o.test("when resuming a session with credentials that don't have encryptedPassphraseKey it is assigned", async () => {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, null, null, timeRangeDays)
+				await facade.resumeSession(credentials, null, null, timeRangeDate)
 
 				verify(
 					loginListener.onFullLoginSuccess(
@@ -394,7 +394,7 @@ o.spec("LoginFacadeTest", function () {
 					throw new ConnectionError("Oopsie 1")
 				})
 
-				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays).finally(() => {
+				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDate).finally(() => {
 					calls.push("return")
 				})
 
@@ -413,7 +413,7 @@ o.spec("LoginFacadeTest", function () {
 				const deferred = defer()
 				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => deferred.resolve(null))
 
-				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
+				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDate)
 
 				o(result.type).equals("success")
 
@@ -436,7 +436,7 @@ o.spec("LoginFacadeTest", function () {
 					throw connectionError
 				})
 
-				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
+				const result = await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDate)
 
 				// we expect async resume session so we have to pause current code execution.
 				await Promise.resolve()
@@ -478,7 +478,7 @@ o.spec("LoginFacadeTest", function () {
 				})
 
 				await facade
-					.resumeSession(credentials, user.salt == null ? null : { salt: user.salt, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
+					.resumeSession(credentials, user.salt == null ? null : { salt: user.salt, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDate)
 					.finally(() => {
 						calls.push("return")
 					})
@@ -491,7 +491,7 @@ o.spec("LoginFacadeTest", function () {
 					throw new ConnectionError("Oopsie 3")
 				})
 
-				await o(() => facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)).asyncThrows(
+				await o(() => facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDate)).asyncThrows(
 					ConnectionError,
 				)
 				o(calls).deepEquals(["sessionService"])
@@ -553,7 +553,7 @@ o.spec("LoginFacadeTest", function () {
 					JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }),
 				)
 
-				await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDate)
 
 				await fullLoginDeferred.promise
 
@@ -576,7 +576,7 @@ o.spec("LoginFacadeTest", function () {
 					// the type definitions for testdouble are lacking, but we can do this
 					.thenReturn(Promise.reject(connectionError), Promise.resolve(JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) })))
 
-				await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, { salt: user.salt!, kdfType: DEFAULT_KDF_TYPE }, dbKey, timeRangeDate)
 
 				verify(userFacade.setAccessToken("accessToken"))
 				verify(userFacade.unlockUserGroupKey(anything()), { times: 0 })
@@ -657,7 +657,7 @@ o.spec("LoginFacadeTest", function () {
 					JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }),
 				)
 
-				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
 
 				await fullLoginDeferred.promise
 
@@ -704,7 +704,7 @@ o.spec("LoginFacadeTest", function () {
 			})
 
 			o("when the salt is not outdated, login works", async function () {
-				const result = await facade.resumeSession(credentials, { salt: SALT, kdfType: DEFAULT_KDF_TYPE }, null, timeRangeDays)
+				const result = await facade.resumeSession(credentials, { salt: SALT, kdfType: DEFAULT_KDF_TYPE }, null, timeRangeDate)
 
 				o(result.type).equals("success")
 			})
@@ -712,7 +712,7 @@ o.spec("LoginFacadeTest", function () {
 			o("when the salt is outdated, AccessExpiredError is thrown", async function () {
 				user.externalAuthInfo!.latestSaltHash = new Uint8Array([1, 2, 3])
 
-				await o(() => facade.resumeSession(credentials, { salt: SALT, kdfType: DEFAULT_KDF_TYPE }, null, timeRangeDays)).asyncThrows(AccessExpiredError)
+				await o(() => facade.resumeSession(credentials, { salt: SALT, kdfType: DEFAULT_KDF_TYPE }, null, timeRangeDate)).asyncThrows(AccessExpiredError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()), { times: 0 })
 			})
 
@@ -728,7 +728,7 @@ o.spec("LoginFacadeTest", function () {
 							kdfType: DEFAULT_KDF_TYPE,
 						},
 						null,
-						timeRangeDays,
+						timeRangeDate,
 					),
 				).asyncThrows(NotAuthenticatedError)
 				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()))
@@ -774,7 +774,7 @@ o.spec("LoginFacadeTest", function () {
 			})
 
 			o("when the salt is not outdated, login works", async function () {
-				const result = await facade.resumeSession(credentials, { salt: SALT, kdfType: KdfType.Bcrypt }, null, timeRangeDays)
+				const result = await facade.resumeSession(credentials, { salt: SALT, kdfType: KdfType.Bcrypt }, null, timeRangeDate)
 
 				o(result.type).equals("success")
 			})

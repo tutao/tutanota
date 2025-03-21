@@ -1,4 +1,4 @@
-import { Base64, base64ToUint8Array, typedEntries, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { Base64, base64ToUint8Array, getDayShifted, getStartOfDay, typedEntries, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import type { LanguageCode } from "./LanguageViewModel"
 import type { ThemePreference } from "../gui/theme"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
@@ -13,6 +13,7 @@ import { SyncStatus } from "../calendar/import/ImportExportUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import type { GroupSettings } from "../api/entities/tutanota/TypeRefs.js"
+import { object } from "testdouble"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -99,7 +100,7 @@ interface ConfigObject {
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
-	public static readonly Version = 5
+	public static readonly Version = 6
 	public static readonly LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
@@ -553,6 +554,10 @@ export function migrateConfig(loadedConfig: any) {
 	if (loadedConfig._version < 5) {
 		loadedConfig.mailListDisplayMode = MailListDisplayMode.MAILS
 	}
+
+	if (loadedConfig._version < 6) {
+		migrateConfigV5to6(loadedConfig, new Date())
+	}
 }
 
 /**
@@ -586,6 +591,18 @@ export function migrateConfigV2to3(loadedConfig: any) {
 			accessToken: credential.accessToken,
 			encryptedPassphraseKey: null, // should not be present
 		}
+	}
+}
+
+export function migrateConfigV5to6(loadedConfig: any, now: Date) {
+	const ranges = loadedConfig.offlineTimeRangeDaysByUser
+
+	if (ranges != null) {
+		loadedConfig.offlineTimeRangeDateByUser = {}
+		for (const [user, days] of Object.entries(ranges)) {
+			loadedConfig.offlineTimeRangeDateByUser[user] = getStartOfDay(getDayShifted(now, -(days as number))).getTime()
+		}
+		delete loadedConfig.offlineTimeRangeDaysByUser
 	}
 }
 
