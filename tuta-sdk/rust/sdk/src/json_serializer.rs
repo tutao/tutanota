@@ -118,15 +118,7 @@ impl JsonSerializer {
 				&association_type.cardinality,
 				value,
 			) {
-				(
-					AssociationType::Aggregation,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					JsonElement::Dict(dict),
-				) => {
-					let parsed = self.parse(&association_type_ref, dict)?;
-					mapped.insert(association_name.to_owned(), ElementValue::Dict(parsed));
-				},
-				(AssociationType::Aggregation, Cardinality::Any, JsonElement::Array(elements)) => {
+				(AssociationType::Aggregation, _, JsonElement::Array(elements)) => {
 					let parsed_aggregates = self.parse_aggregated_array(
 						&association_name,
 						&association_type_ref,
@@ -137,95 +129,19 @@ impl JsonSerializer {
 						ElementValue::Array(parsed_aggregates),
 					);
 				},
-				(_, Cardinality::ZeroOrOne, JsonElement::Null) => {
-					mapped.insert(association_name.to_owned(), ElementValue::Null);
-				},
 				(
-					AssociationType::ElementAssociation | AssociationType::ListAssociation,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					JsonElement::String(id),
-				) => {
-					// NOTE: it's not always generated id, but it's fine probably
-					mapped.insert(
-						association_name.to_owned(),
-						ElementValue::IdGeneratedId(GeneratedId(id)),
-					);
-				},
-				(
-					AssociationType::ListElementAssociationGenerated,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					JsonElement::Array(vec),
-				) => {
-					let id_tuple = match Self::parse_id_tuple_generated(vec) {
-						None => {
-							return Err(InvalidValue {
-								type_ref: association_type_ref,
-								field: association_name.to_owned(),
-							});
-						},
-						Some(id_tuple) => id_tuple,
-					};
-					mapped.insert(
-						association_name.to_owned(),
-						ElementValue::IdTupleGeneratedElementId(id_tuple),
-					);
-				},
-				(
-					AssociationType::ListElementAssociationCustom,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					JsonElement::Array(vec),
-				) => {
-					let id_tuple = match Self::parse_id_tuple_custom(vec) {
-						None => {
-							return Err(InvalidValue {
-								type_ref: association_type_ref,
-								field: association_name.to_owned(),
-							});
-						},
-						Some(id_tuple) => id_tuple,
-					};
-					mapped.insert(
-						association_name.to_owned(),
-						ElementValue::IdTupleCustomElementId(id_tuple),
-					);
-				},
-				(
-					AssociationType::ListElementAssociationGenerated,
-					Cardinality::Any,
+					AssociationType::ListElementAssociationGenerated
+					| AssociationType::BlobElementAssociation,
+					_,
 					JsonElement::Array(vec),
 				) => {
 					let ids =
 						self.parse_id_tuple_list_generated(type_ref, &association_name, vec)?;
-
 					mapped.insert(association_name.to_owned(), ElementValue::Array(ids));
 				},
-				(
-					AssociationType::ListElementAssociationCustom,
-					Cardinality::Any,
-					JsonElement::Array(vec),
-				) => {
+				(AssociationType::ListElementAssociationCustom, _, JsonElement::Array(vec)) => {
 					let ids = self.parse_id_tuple_list_custom(type_ref, &association_name, vec)?;
-
 					mapped.insert(association_name.to_owned(), ElementValue::Array(ids));
-				},
-				(
-					AssociationType::BlobElementAssociation,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					JsonElement::Array(vec),
-				) => {
-					let id_tuple = match Self::parse_id_tuple_generated(vec) {
-						None => {
-							return Err(InvalidValue {
-								type_ref: association_type_ref,
-								field: association_name.to_owned(),
-							});
-						},
-						Some(id_tuple) => id_tuple,
-					};
-					mapped.insert(
-						association_name.to_owned(),
-						ElementValue::IdTupleGeneratedElementId(id_tuple),
-					);
 				},
 				_ => {},
 			}

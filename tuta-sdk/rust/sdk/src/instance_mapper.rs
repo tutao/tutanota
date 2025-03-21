@@ -1,14 +1,12 @@
-use minicbor::Encode;
+use futures::StreamExt;
 use serde::de::{
 	DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, Unexpected, VariantAccess, Visitor,
 };
 use serde::ser::{Error, Impossible, SerializeMap, SerializeSeq, SerializeStruct, SerializeTuple};
 use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
-use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::marker::PhantomData;
-use std::ops::Deref;
 use thiserror::Error;
 
 use crate::date::DateTime;
@@ -17,7 +15,7 @@ use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
 use crate::metamodel::{Cardinality, TypeModel};
 use crate::type_model_provider::init_type_model_provider;
-use crate::{CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated, TypeRef};
+use crate::{CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated};
 
 /// Converter between untyped representations of API Entities and generated structures
 pub struct InstanceMapper {}
@@ -105,7 +103,7 @@ impl<E: Entity, I> DictionaryDeserializer<E, I>
 where
 	I: Iterator<Item = (String, ElementValue)>,
 {
-	// We accept iterable and not a map because we have to give iterator a specific type but we
+	// We accept iterable and not a map because we have to give iterator a specific type, but we
 	// need to let the compiler infer it from the signature.
 	fn from_iterable<II>(iterable: II) -> DictionaryDeserializer<E, I>
 	where
@@ -147,6 +145,7 @@ where
 	where
 		V: Visitor<'de>,
 	{
+		println!("0 {:?}", self.value);
 		visitor.visit_map(self)
 	}
 }
@@ -161,6 +160,7 @@ where
 	where
 		K: DeserializeSeed<'de>,
 	{
+		println!("2 : {:?}", self.value);
 		match self.iter.next() {
 			Some((k, v)) => {
 				let result = seed.deserialize(k.as_str().into_deserializer());
@@ -175,6 +175,7 @@ where
 	where
 		V: DeserializeSeed<'de>,
 	{
+		println!("3 : {:?}", self.value);
 		let (key, value) = self.value.take().expect("next_key must be called first!");
 		let deserializer = ElementValueDeserializer::<E> {
 			attribute_id: key.as_str(),
@@ -193,6 +194,7 @@ where
 		K: DeserializeSeed<'de>,
 		V: DeserializeSeed<'de>,
 	{
+		println!("1 : {:?}", self.value);
 		match self.iter.next() {
 			Some((key, value)) => {
 				let key_result = kseed.deserialize(key.as_str().into_deserializer())?;
@@ -288,6 +290,7 @@ impl<'de, E: Entity> Deserializer<'de> for ElementValueDeserializer<'_, E> {
 	where
 		V: Visitor<'de>,
 	{
+		println!("self.value : {:?}", self.value);
 		match self.value {
 			ElementValue::String(str) => visitor.visit_string(str),
 			ElementValue::IdGeneratedId(GeneratedId(id))
@@ -311,6 +314,7 @@ impl<'de, E: Entity> Deserializer<'de> for ElementValueDeserializer<'_, E> {
 	where
 		V: Visitor<'de>,
 	{
+		println!("5 : {:?}", self.value);
 		match self.value {
 			ElementValue::Null => visitor.visit_none(),
 			// We have the same value but the visitor who is driving us will proceed to inner type
@@ -322,49 +326,14 @@ impl<'de, E: Entity> Deserializer<'de> for ElementValueDeserializer<'_, E> {
 	where
 		V: Visitor<'de>,
 	{
+		println!("6 : {:?}", self.value);
 		if let ElementValue::Array(arr) = self.value {
-			let type_model_provider = init_type_model_provider();
-			let type_model: &TypeModel = type_model_provider
-				.resolve_type_ref(&E::type_ref())
-				.ok_or(DeError(format!(
-					"could not resolve type model for {}",
-					E::type_ref()
-				)))?;
-			let cardinality: Cardinality = type_model
-				.get_attribute_name_cardinality(self.attribute_id.to_string())
-				.map_err(|e| DeError(e.to_string()))?
-				.clone();
-
-			println!(
-				"association name: {} association cardinality {:?}",
-				self.attribute_id,
-				cardinality.clone()
-			);
-			if cardinality == Cardinality::One || cardinality == Cardinality::ZeroOrOne {
-				let element_value: Option<&ElementValue> = arr.iter().as_slice().first();
-				if let Some(element_value) = element_value {
-					let element_value_deserializer: ElementValueDeserializer<'_, E> =
-						ElementValueDeserializer {
-							value: element_value.to_owned(),
-							attribute_id: self.attribute_id,
-							_phantom: Default::default(),
-						};
-					visitor.visit_some(element_value_deserializer)
-				} else if cardinality == Cardinality::One {
-					Err(DeError(
-						"None value for association with Cardinality One".to_string(),
-					))
-				} else {
-					visitor.visit_none()
-				}
-			} else {
-				let array_deserializer = ArrayDeserializer::<_, E> {
-					attribute_id: self.attribute_id,
-					iter: arr.into_iter(),
-					_phantom: PhantomData,
-				};
-				visitor.visit_seq(array_deserializer)
-			}
+			let array_deserializer = ArrayDeserializer::<_, E> {
+				attribute_id: self.attribute_id,
+				iter: arr.into_iter(),
+				_phantom: PhantomData,
+			};
+			visitor.visit_seq(array_deserializer)
 		} else {
 			Err(self.wrong_type_err("sequence"))
 		}
@@ -379,6 +348,7 @@ impl<'de, E: Entity> Deserializer<'de> for ElementValueDeserializer<'_, E> {
 	where
 		V: Visitor<'de>,
 	{
+		println!("7.struct :  {} : {:?}", name, self.value);
 		struct IdTupleMapAccess<I: Iterator<Item = (&'static str, String)>> {
 			iter: I,
 			value: Option<String>,
@@ -413,6 +383,32 @@ impl<'de, E: Entity> Deserializer<'de> for ElementValueDeserializer<'_, E> {
 				}
 			}
 		}
+
+		if let ElementValue::Array(arr) = self.value {
+			let type_model_provider = init_type_model_provider();
+			let type_model: &TypeModel = type_model_provider
+				.resolve_type_ref(&E::type_ref())
+				.ok_or(DeError(format!(
+					"could not resolve type model for {}",
+					E::type_ref()
+				)))?;
+			let cardinality: Cardinality = type_model
+				.get_attribute_name_cardinality(self.attribute_id.to_string())
+				.map_err(|e| DeError(e.to_string()))?
+				.clone();
+			println!(
+				"association name: {} association cardinality {:?}",
+				self.attribute_id,
+				cardinality.clone()
+			);
+			let array_deserializer = ArrayDeserializer::<_, E> {
+				attribute_id: self.attribute_id,
+				iter: arr.into_iter(),
+				_phantom: PhantomData,
+			};
+			return visitor.visit_seq(array_deserializer);
+		}
+
 		if name == crate::id::id_tuple::ID_TUPLE_GENERATED_NAME {
 			return if let ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
 				list_id: GeneratedId(list_id_str),
@@ -573,13 +569,15 @@ where
 		T: DeserializeSeed<'de>,
 	{
 		match self.iter.next() {
-			Some(value) => seed
-				.deserialize(ElementValueDeserializer::<E> {
+			Some(value) => {
+				println!("sdfsafdfasf {:?}", value);
+				seed.deserialize(ElementValueDeserializer::<E> {
 					value,
 					attribute_id: self.attribute_id,
 					_phantom: Default::default(),
 				})
-				.map(Some),
+				.map(Some)
+			},
 			None => Ok(None),
 		}
 	}
@@ -1270,6 +1268,7 @@ mod tests {
 	fn test_de_calendar_event_uid_index() {
 		let json = include_str!("../test_data/calendar_event_uid_index_response.json");
 		let parsed_entity = get_parsed_entity::<CalendarEventUidIndex>(json);
+		println!("{:?}", parsed_entity);
 		let mapper = InstanceMapper::new();
 		let uid_index: CalendarEventUidIndex = mapper.parse_entity(parsed_entity).unwrap();
 		assert_eq!(
