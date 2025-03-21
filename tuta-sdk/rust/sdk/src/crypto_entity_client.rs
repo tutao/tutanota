@@ -1,5 +1,3 @@
-use std::sync::Arc;
-use serde::{Deserialize, Serialize};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 #[cfg_attr(test, mockall_double::double)]
@@ -25,6 +23,8 @@ use crate::tutanota_constants::{
 use crate::util::{convert_version_to_u64, Versioned};
 use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 // A high level interface to manipulate encrypted entities/instances via the REST API
 pub struct CryptoEntityClient {
@@ -377,14 +377,14 @@ mod tests {
 	};
 	use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 	use crate::util::entity_test_utils::generate_email_entity;
+	use crate::util::test_utils::leak;
 	use crate::util::test_utils::{create_test_entity, leak};
 	use crate::util::Versioned;
 	use crate::{GeneratedId, IdTupleGenerated, TypeRef};
+	use crate::{IdTupleGenerated, TypeRef};
 	use mockall::predicate::eq;
 	use rand::random;
 	use std::sync::Arc;
-	use crate::util::test_utils::leak;
-	use crate::{IdTupleGenerated, TypeRef};
 
 	#[tokio::test]
 	async fn no_auth_for_encrypted_instances_except_mail() {
