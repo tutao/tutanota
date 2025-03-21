@@ -224,5 +224,8 @@ export function extractIvFromCipherText(encrypted: Base64): Uint8Array {
 	const encryptedBytes = base64ToUint8Array(encrypted)
 	const hasMac = encryptedBytes.length % 2 === 1
 	const cipherTextWithoutMac = hasMac ? encryptedBytes.subarray(1, encryptedBytes.length - MAC_LENGTH_BYTES) : encryptedBytes
+	if (cipherTextWithoutMac.length < IV_BYTE_LENGTH) {
+		throw new CryptoError(`insufficient bytes in cipherTextWithoutMac to extract iv: ${cipherTextWithoutMac.length}`)
+	}
 	return cipherTextWithoutMac.slice(0, IV_BYTE_LENGTH)
 }

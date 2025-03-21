@@ -1,75 +1,27 @@
-import { TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { AssociationType, Cardinality, Type, ValueType } from "../../../../../src/common/api/common/EntityConstants"
+import { EncryptedParsedInstance, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
 import o from "@tutao/otest"
 import { TypeMapper } from "../../../../../src/common/api/worker/crypto/TypeMapper"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
+import { testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
 
-const testTypeModel: TypeModel = {
-	app: "tutanota",
-	encrypted: true,
-	id: 42,
-	name: "TestType",
-	rootId: "SoMeId",
-	since: 41,
-	type: Type.ListElement,
-	values: {
-		"1": {
-			id: 1,
-			name: "testValue",
-			type: ValueType.String,
-			cardinality: Cardinality.One,
-			final: false,
-			encrypted: true,
-		},
-	},
-	associations: {
-		"3": {
-			id: 3,
-			name: "testAssociation",
-			type: AssociationType.Aggregation,
-			cardinality: Cardinality.One,
-			refTypeId: 43,
-			final: false,
-			dependency: "tutanota",
-		},
-		"4": {
-			id: 4,
-			name: "testListAssociation",
-			type: AssociationType.ListAssociation,
-			cardinality: Cardinality.One,
-			refTypeId: 44,
-			final: false,
-			dependency: null,
-		},
-	},
-	version: "0",
-	versioned: false,
+const untypedInstance: UntypedInstance = { "1": "test string", "3": [{ "2": "123" }], "4": ["assocId"], "5": "1735736415000", "7": "encryptedBool" }
+const encryptedParsedInstance: EncryptedParsedInstance = {
+	"1": "base64EncodedString",
+	"3": [{ "2": "123" }],
+	"4": ["assocId"],
+	"5": new Date("2025-01-01T13:00:15Z"),
+	"7": "encryptedBool",
 }
 
-const testAggregateModel: TypeModel = {
-	app: "tutanota",
-	encrypted: true,
-	id: 43,
-	name: "TestAggregate",
-	rootId: "SoMeId",
-	since: 41,
-	type: Type.ListElement,
-	values: {
-		"2": {
-			id: 2,
-			name: "testNumber",
-			type: ValueType.Number,
-			cardinality: Cardinality.One,
-			final: false,
-			encrypted: false,
-		},
-	},
-	associations: {},
-	version: "0",
-	versioned: false,
+const faultyEncryptedParsedInstance: EncryptedParsedInstance = {
+	"1": new Uint8Array(2),
+	"3": [{ "2": "123" }],
+	"4": ["assocId"],
+	"5": new Date("2025-01-01T13:00:15Z"),
 }
 
-const untypedInstance: UntypedInstance = JSON.parse('{ "1": "test string", "3": [{ "2": "123" }], "4": ["assocId"]  }')
 o.spec("TypeMapper", function () {
 	let typeMapper: TypeMapper
 	o.beforeEach(() => {
@@ -81,13 +33,25 @@ o.spec("TypeMapper", function () {
 	})
 
 	o.spec("applyJsTypes", function () {
-		o.test("can handle associations and aggregations", async function () {
+		o("can handle associations and aggregations", async function () {
 			const encryptedParsedInstance = await typeMapper.applyJsTypes(testTypeModel, untypedInstance)
 			o(encryptedParsedInstance["1"]).equals("test string")
 			const listAssociation = assertNotNull(encryptedParsedInstance["4"])
 			const aggregation = assertNotNull(encryptedParsedInstance["3"])
 			o(aggregation[0]["2"]).equals("123")
 			o(listAssociation[0]).equals("assocId")
+			o((encryptedParsedInstance["5"] as Date).toISOString()).equals(new Date("2025-01-01T13:00:15Z").toISOString())
+		})
+	})
+
+	o.spec("applyDbTypes", function () {
+		o("throws error for invalid encrypted values", async function () {
+			await assertThrows(ProgrammingError, () => typeMapper.applyDbTypes(testTypeModel, faultyEncryptedParsedInstance))
+		})
+		o("can apply db types", async function () {
+			const instance = await typeMapper.applyDbTypes(testTypeModel, encryptedParsedInstance)
+			o(instance["1"]).equals("base64EncodedString")
+			o(instance["5"]).equals("1735736415000")
 		})
 	})
 })

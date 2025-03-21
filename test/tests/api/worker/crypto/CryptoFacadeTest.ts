@@ -1662,7 +1662,7 @@ o.spec("CryptoFacadeTest", function () {
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mailUntypedInstance = await createEnryptedUntypedMailInstance(null, sk, confidential, externalUser.mailGroup._id)
+		const mailUntypedInstance = await createEncryptedUntypedMailInstance(null, sk, confidential, externalUser.mailGroup._id)
 
 		const groupKeyToEncryptBucketKey = externalUserGroupEncBucketKey ? externalUser.userGroupKey : externalUser.mailGroupKey
 		const groupEncBucketKey = encryptKey(groupKeyToEncryptBucketKey, bk)
@@ -1770,7 +1770,7 @@ o.spec("CryptoFacadeTest", function () {
 		let confidential = true
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
-		const untypedMailInstance = await createEnryptedUntypedMailInstance(null, sk, confidential, internalUser.mailGroup._id)
+		const untypedMailInstance = await createEncryptedUntypedMailInstance(null, sk, confidential, internalUser.mailGroup._id)
 
 		const keyGroup = externalUser.mailGroup._id
 		const groupEncBucketKey = encryptKey(externalUser.mailGroupKey, bk)
@@ -1849,10 +1849,10 @@ function toUntypedInstance(serverInstanceWithNamedFields: Record<string, any>, m
 	return untypedInstance
 }
 
-export async function createEnryptedUntypedMailInstance(
+export async function createEncryptedUntypedMailInstance(
 	ownerGroupKey: AesKey | null,
 	sessionKey: AesKey,
-	confidential,
+	confidential: boolean,
 	ownerGroupId: string,
 ): Promise<UntypedInstance> {
 	const model = await resolveTypeReference(MailTypeRef)

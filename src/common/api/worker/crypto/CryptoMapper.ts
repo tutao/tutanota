@@ -13,7 +13,6 @@ import { TypeReferenceResolver } from "../../common/EntityFunctions"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./ModelMapper"
 
 // Exported for testing
@@ -72,7 +71,7 @@ export class CryptoMapper {
 					const encryptedString = encryptedValue as Base64
 					decrypted[valueId] = decryptValue(encryptedValueInfo, encryptedString, sk)
 				} else {
-					throw new CryptoError("session key is null, but value is encrypted. valueName: " + valueName + " valueType: " + valueInfo)
+					throw new CryptoError("session key is null, but value is encrypted. valueName: " + valueName + " valueType: " + JSON.stringify(valueInfo))
 				}
 			} catch (e) {
 				if (decrypted._errors == null) {
@@ -83,17 +82,17 @@ export class CryptoMapper {
 				console.log("error when decrypting value on type:", `[${typeModel.app},${typeModel.name}]`, "valueName:", valueName, e)
 			} finally {
 				if (valueInfo.encrypted) {
-					if (valueInfo.final) {
+					if (encryptedValue === "") {
+						// the encrypted value is "" if the decrypted value is the default value
+						// storing this marker lets us restore that empty string when we re-encrypt the instance.
+						// check out encrypt() to see the other side of this.
+						decrypted._finalIvs[valueId] = null
+					} else if (valueInfo.final) {
 						// the server needs to be able to check if an encrypted final field changed.
 						// that's only possible if we re-encrypt using a deterministic IV, because the ciphertext changes if
 						// the IV or the value changes.
 						// storing the IV we used for the initial encryption lets us reuse it later.
 						decrypted._finalIvs[valueId] = extractIvFromCipherText(encryptedValue as Base64)
-					} else if (encryptedValue === "") {
-						// the encrypted value is "" if the decrypted value is the default value
-						// storing this marker lets us restore that empty string when we re-encrypt the instance.
-						// check out encrypt() to see the other side of this.
-						decrypted._finalIvs[valueId] = null
 					}
 				}
 			}
@@ -153,10 +152,11 @@ export class CryptoMapper {
 				const iv = finalIvs[valueId] ?? undefined
 				encryptedValue = encryptValue(valueType as ModelValue & { encrypted: true }, value, sk, iv)
 			} else {
-				throw new ProgrammingError(`Encrypting ${typeModel.app}/${typeModel.name}.${valueName} requires a session key!`)
+				throw new CryptoError(`Encrypting ${typeModel.app}/${typeModel.name}.${valueName} requires a session key!`)
 			}
 
 			if (typeModel.type === Type.Aggregated && valueName === "_id" && encryptedValue == null) {
+				// fixme: should the cryptomapper really handle this?
 				encrypted[valueId] = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
 			} else {
 				encrypted[valueId] = encryptedValue
