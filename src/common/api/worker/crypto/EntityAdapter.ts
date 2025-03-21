@@ -16,12 +16,12 @@ export class EntityAdapter implements Entity {
 
 	static async from(typeModel: TypeModel, encryptedParsedInstance: EncryptedParsedInstance, instancePipeline: InstancePipeline) {
 		let bucketKey: Nullable<BucketKey> = null
-		const bucketKeyLiteral = downcast<ParsedInstance>(
+		const bucketKeyParsedInstance = downcast<ParsedInstance>(
 			AttributeModel.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel),
 		)
-		if (bucketKeyLiteral) {
+		if (bucketKeyParsedInstance) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
-			bucketKey = await instancePipeline.modelMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
+			bucketKey = await instancePipeline.modelMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyParsedInstance)
 		}
 		return new EntityAdapter(typeModel, encryptedParsedInstance, bucketKey)
 	}

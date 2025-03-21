@@ -196,7 +196,7 @@ o.spec("EntityRestClient", function () {
 
 			const ownerKey = [1, 2, 3]
 			const sessionKey = [3, 2, 1]
-			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey)).thenReturn(sessionKey)
+			when(cryptoFacadeMock.decryptSessionKeyWithOwnerKey(anything(), ownerKey)).thenReturn(sessionKey)
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], { ownerKeyProvider: async (_) => ownerKey })
 
@@ -880,7 +880,7 @@ o.spec("EntityRestClient", function () {
 
 			const ownerKey = freshVersioned([1, 2, 3])
 			const sessionKey = [3, 2, 1]
-			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
+			when(cryptoFacadeMock.decryptSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
 
 			await entityRestClient.update(newCustomerServerProperties, {
 				ownerKeyProvider: async (version) => {
