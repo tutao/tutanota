@@ -17,6 +17,7 @@ object AppTheme {
 		onSurface = Color(0xFF303030),
 		primaryContainer = Color(0xFFF6F6F6),
 		tertiary = Color(0xFF8B8B8B), // Used for ripple effects
+		inverseOnSurface = Color(0xFFFFFFFF)
 	)
 
 	val DarkColors = darkColorScheme(
@@ -29,7 +30,8 @@ object AppTheme {
 		surface = Color(0xFF515976), // Color(0xFF111111),
 		onSurface = Color(0xFFFFFFFF), // Color(0xFFDDDDDD),
 		primaryContainer = Color(0xFF111111),
-		tertiary = Color(0xFF8B8B8B) // Used for ripple effects
+		tertiary = Color(0xFF8B8B8B), // Used for ripple effects
+		inverseOnSurface = Color(0xFF303030)
 	)
 
 	val colors = ColorProviders(

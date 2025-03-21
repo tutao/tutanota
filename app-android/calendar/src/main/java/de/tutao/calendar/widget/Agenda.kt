@@ -3,6 +3,7 @@ package de.tutao.calendar.widget
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -75,10 +76,22 @@ import de.tutao.tutashared.push.SseStorage
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-const val TAG = "VerticalWidget"
+const val TAG = "AgendaWidget"
 
 class Agenda : GlanceAppWidget() {
 	override val stateDefinition: GlanceStateDefinition<*> = WidgetStateDefinition()
+
+	override suspend fun onDelete(context: Context, glanceId: GlanceId) {
+		super.onDelete(context, glanceId)
+
+		val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
+
+		// We can't access the model from here, only the repository directly
+		val repository = WidgetDataRepository()
+
+		repository.eraseLastSyncForWidget(context, widgetId)
+		repository.eraseSettingsForWidget(context, widgetId)
+	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
 		val db = AppDatabase.getDatabase(context, true)
@@ -274,12 +287,12 @@ class Agenda : GlanceAppWidget() {
 					if (hasAllDayEvent) {
 						val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
 						val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
-						val allDayIconColor =
-							if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface
+						val allDayIconColor = defineAllDayIconColor(isLightBg)
+
 						Image(
 							provider = ImageProvider(R.drawable.ic_all_day),
 							contentDescription = "Add event button",
-							colorFilter = ColorFilter.tint(ColorProvider(allDayIconColor)),
+							colorFilter = androidx.glance.ColorFilter.tint(allDayIconColor),
 							modifier = GlanceModifier.size(16.dp).background(calendarColor).cornerRadius(10.dp)
 								.padding(2.dp)
 						)
@@ -333,6 +346,15 @@ class Agenda : GlanceAppWidget() {
 					)
 				}
 			}
+		}
+	}
+
+	@Composable
+	private fun defineAllDayIconColor(isLightBg: Boolean): ColorProvider {
+		return if (isLightBg == isSystemInDarkTheme()) {
+			GlanceTheme.colors.inverseOnSurface
+		} else {
+			GlanceTheme.colors.onSurface
 		}
 	}
 
