@@ -1088,7 +1088,7 @@ o.spec("IndexerTest", () => {
 		indexer._indexedGroupIds = ["group-id"]
 
 		await indexer._processEntityEvents(batch)
-		o(indexer._core.writeIndexUpdate.callCount).equals(0)
+		o(indexer._core.writeIndexUpdateWithIndexTimestamps.callCount).equals(0)
 		o(indexer._mail.processEntityEvents.callCount).equals(0)
 		o(indexer._contact.processEntityEvents.callCount).equals(0)
 		o(indexer._processUserEntityEvents.callCount).equals(0)

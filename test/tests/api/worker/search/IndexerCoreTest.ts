@@ -1002,7 +1002,7 @@ o.spec("IndexerCore test", () => {
 				indexTimestamp,
 			},
 		]
-		await core.writeIndexUpdate(groupUpdate, indexUpdate)
+		await core.writeIndexUpdateWithIndexTimestamps(groupUpdate, indexUpdate)
 		o(core._moveIndexedInstance.callCount).equals(1)
 		o(core._moveIndexedInstance.args).deepEquals([indexUpdate, transaction])
 		o(core._deleteIndexedInstance.callCount).equals(1)
@@ -1176,7 +1176,7 @@ o.spec("IndexerCore test", () => {
 		core.stopProcessing()
 		core.startProcessing()
 		// Should not throw
-		await core.writeIndexUpdate(
+		await core.writeIndexUpdateWithIndexTimestamps(
 			[
 				{
 					groupId: "group-id",

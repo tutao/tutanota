@@ -218,7 +218,7 @@ o.spec("ContactIndexer test", () => {
 		const contactIndexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 		return contactIndexer.indexFullContactList(contactList).then(() => {
 			// @ts-ignore
-			const [[{ groupId, indexTimestamp }], indexUpdate] = core.writeIndexUpdate.args
+			const [[{ groupId, indexTimestamp }], indexUpdate] = core.writeIndexUpdateWithIndexTimestamps.args
 			o(indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
 			o(groupId).equals(contactList._ownerGroup)
 			let expectedKeys = [
