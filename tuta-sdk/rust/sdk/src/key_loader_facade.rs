@@ -336,7 +336,7 @@ impl KeyLoaderFacade {
 			Some(kp) => {
 				let decrypted_key_pair = decrypt_key_pair(&group_key.object, &kp)?;
 				match decrypted_key_pair {
-					AsymmetricKeyPair::RSAEccKeyPair(_) | AsymmetricKeyPair::RSAKeyPair(_) => {
+					AsymmetricKeyPair::RSAX25519KeyPair(_) | AsymmetricKeyPair::RSAKeyPair(_) => {
 						if group_key.version != 0 {
 							return Err(KeyLoadError {
 								reason: format!(
@@ -346,7 +346,7 @@ impl KeyLoaderFacade {
 							});
 						}
 					},
-					AsymmetricKeyPair::PQKeyPairs(_) => {},
+					AsymmetricKeyPair::TutaCryptKeyPairs(_) => {},
 				}
 				Ok(decrypted_key_pair)
 			},
@@ -365,7 +365,7 @@ mod tests {
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::rsa::RSAKeyPair;
-	use crate::crypto::{aes::Iv, Aes256Key, PQKeyPairs};
+	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs};
 	use crate::entities::generated::sys::{GroupKeysRef, GroupMembership, KeyPair};
 	use crate::key_cache::MockKeyCache;
 	use crate::typed_entity_client::MockTypedEntityClient;
@@ -404,7 +404,7 @@ mod tests {
 			symEncPrivRsaKey: None,
 		};
 		match current_key_pair {
-			AsymmetricKeyPair::RSAEccKeyPair(_) => {
+			AsymmetricKeyPair::RSAX25519KeyPair(_) => {
 				panic!("not implemented")
 			},
 			AsymmetricKeyPair::RSAKeyPair(rsa_kp) => {
@@ -417,12 +417,12 @@ mod tests {
 				current_keys.pubRsaKey = Some(rsa_kp.public_key.serialize());
 				current_keys.symEncPrivRsaKey = Some(sym_enc_priv_rsa_key);
 			},
-			AsymmetricKeyPair::PQKeyPairs(pq_key_pairs) => {
-				let ecc_keys = &pq_key_pairs.ecc_keys;
-				let kyber_keys = &pq_key_pairs.kyber_keys;
-				let sym_enc_priv_ecc_key = group_key
+			AsymmetricKeyPair::TutaCryptKeyPairs(tuta_crypt_key_pairs) => {
+				let x25519_keys = &tuta_crypt_key_pairs.x25519_keys;
+				let kyber_keys = &tuta_crypt_key_pairs.kyber_keys;
+				let sym_enc_priv_x25519_key = group_key
 					.encrypt_data(
-						ecc_keys.private_key.as_bytes(),
+						x25519_keys.private_key.as_bytes(),
 						Iv::generate(randomizer_facade),
 					)
 					.unwrap();
@@ -432,9 +432,9 @@ mod tests {
 						Iv::generate(randomizer_facade),
 					)
 					.unwrap();
-				current_keys.pubEccKey = Some(ecc_keys.public_key.as_bytes().to_vec());
+				current_keys.pubEccKey = Some(x25519_keys.public_key.as_bytes().to_vec());
 				current_keys.pubKyberKey = Some(kyber_keys.public_key.serialize());
-				current_keys.symEncPrivEccKey = Some(sym_enc_priv_ecc_key);
+				current_keys.symEncPrivEccKey = Some(sym_enc_priv_x25519_key);
 				current_keys.symEncPrivKyberKey = Some(sync_enc_priv_kyber_key);
 			},
 		}
@@ -458,19 +458,19 @@ mod tests {
 		randomizer_facade: &RandomizerFacade,
 	) -> (
 		[GroupKey; FORMER_KEYS],
-		[PQKeyPairs; FORMER_KEYS],
+		[TutaCryptKeyPairs; FORMER_KEYS],
 		[Aes256Key; FORMER_KEYS],
 	) {
 		// Using `from_fn` has the same performance as using mutable vecs but less memory usage
 		let former_keys_decrypted: [Aes256Key; FORMER_KEYS] = from_fn(|_| random_aes256_key());
-		let former_key_pairs_decrypted: [PQKeyPairs; FORMER_KEYS] =
-			from_fn(|_| PQKeyPairs::generate(&make_thread_rng_facade()));
+		let former_key_pairs_decrypted: [TutaCryptKeyPairs; FORMER_KEYS] =
+			from_fn(|_| TutaCryptKeyPairs::generate(&make_thread_rng_facade()));
 
 		let mut former_keys = Vec::with_capacity(FORMER_KEYS);
 		let mut last_key = current_group_key.object.clone();
 
 		for (i, current_key) in former_keys_decrypted.iter().enumerate().rev() {
-			let pq_key_pair = &former_key_pairs_decrypted[i];
+			let tuta_crypt_key_pair = &former_key_pairs_decrypted[i];
 			// Get the previous key to use as the owner key
 			let current_key: &GenericAesKey = &current_key.clone().into();
 
@@ -478,9 +478,13 @@ mod tests {
 				.encrypt_key(current_key, Iv::generate(randomizer_facade))
 				.as_slice()
 				.to_vec();
-			let sym_enc_priv_ecc_key = current_key
+			let sym_enc_priv_x25519_key = current_key
 				.encrypt_data(
-					pq_key_pair.ecc_keys.private_key.clone().as_bytes(),
+					tuta_crypt_key_pair
+						.x25519_keys
+						.private_key
+						.clone()
+						.as_bytes(),
 					Iv::generate(randomizer_facade),
 				)
 				.unwrap();
@@ -502,14 +506,24 @@ mod tests {
 					pubAdminGroupEncGKey: None,
 					keyPair: Some(KeyPair {
 						_id: Default::default(),
-						pubEccKey: Some(pq_key_pair.ecc_keys.public_key.as_bytes().to_vec()),
-						pubKyberKey: Some(pq_key_pair.kyber_keys.public_key.serialize()),
+						pubEccKey: Some(
+							tuta_crypt_key_pair
+								.x25519_keys
+								.public_key
+								.as_bytes()
+								.to_vec(),
+						),
+						pubKyberKey: Some(tuta_crypt_key_pair.kyber_keys.public_key.serialize()),
 						pubRsaKey: None,
-						symEncPrivEccKey: Some(sym_enc_priv_ecc_key),
+						symEncPrivEccKey: Some(sym_enc_priv_x25519_key),
 						symEncPrivKyberKey: Some(
 							current_key
 								.encrypt_data(
-									pq_key_pair.kyber_keys.private_key.serialize().as_slice(),
+									tuta_crypt_key_pair
+										.kyber_keys
+										.private_key
+										.serialize()
+										.as_slice(),
 									Iv::generate(randomizer_facade),
 								)
 								.unwrap(),
@@ -720,10 +734,10 @@ mod tests {
 		// Same as the length of former_keys_deprecated
 		let current_group_key_version = FORMER_KEYS as u64;
 		let current_group_key = generate_group_key(current_group_key_version);
-		let current_key_pair = PQKeyPairs::generate(&randomizer);
+		let current_key_pair = TutaCryptKeyPairs::generate(&randomizer);
 
 		let group = generate_group_with_keys(
-			&AsymmetricKeyPair::PQKeyPairs(current_key_pair),
+			&AsymmetricKeyPair::TutaCryptKeyPairs(current_key_pair),
 			&current_group_key,
 			&randomizer,
 		);
@@ -740,10 +754,10 @@ mod tests {
 				.await
 				.unwrap();
 			match keypair {
-                AsymmetricKeyPair::RSAKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAKeyPair! Expected PQKeyPairs."),
-                AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAEccKeyPair! Expected PQKeyPairs."),
-                AsymmetricKeyPair::PQKeyPairs(pq_key_pair) => {
-                    assert_eq!(pq_key_pair, *former_key_pairs_decrypted.get(i).expect("former_key_pairs_decrypted should have FORMER_KEYS keys"))
+                AsymmetricKeyPair::RSAKeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAKeyPair! Expected TutaCryptKeyPairs."),
+                AsymmetricKeyPair::RSAX25519KeyPair(_) => panic!("key_loader_facade.load_key_pair() returned an RSAX25519KeyPair! Expected TutaCryptKeyPairs."),
+                AsymmetricKeyPair::TutaCryptKeyPairs(tuta_crypt_key_pairs) => {
+                    assert_eq!(tuta_crypt_key_pairs, *former_key_pairs_decrypted.get(i).expect("former_key_pairs_decrypted should have FORMER_KEYS keys"))
                 }
             }
 		}
@@ -753,8 +767,8 @@ mod tests {
 	async fn load_current_key_pair() {
 		let user_group_key = generate_group_key(1);
 		let randomizer = make_thread_rng_facade();
-		let current_key_pair = PQKeyPairs::generate(&randomizer);
-		let asymmetric_key_pair = AsymmetricKeyPair::PQKeyPairs(current_key_pair.clone());
+		let current_key_pair = TutaCryptKeyPairs::generate(&randomizer);
+		let asymmetric_key_pair = AsymmetricKeyPair::TutaCryptKeyPairs(current_key_pair.clone());
 		let user_group =
 			generate_group_with_keys(&asymmetric_key_pair, &user_group_key, &randomizer);
 
@@ -796,9 +810,9 @@ mod tests {
 			.unwrap();
 
 		match loaded_current_key_pair {
-			AsymmetricKeyPair::RSAKeyPair(_) => panic!("Expected PQ key pair!"),
-			AsymmetricKeyPair::RSAEccKeyPair(_) => panic!("Expected PQ key pair!"),
-			AsymmetricKeyPair::PQKeyPairs(loaded_current_key_pair) => {
+			AsymmetricKeyPair::RSAKeyPair(_) => panic!("Expected TutaCrypt key pair!"),
+			AsymmetricKeyPair::RSAX25519KeyPair(_) => panic!("Expected TutaCrypt key pair!"),
+			AsymmetricKeyPair::TutaCryptKeyPairs(loaded_current_key_pair) => {
 				assert_eq!(loaded_current_key_pair, current_key_pair);
 			},
 		}
@@ -853,7 +867,7 @@ mod tests {
 			AsymmetricKeyPair::RSAKeyPair(loaded_current_key_pair) => {
 				assert_eq!(loaded_current_key_pair, current_key_pair);
 			},
-			AsymmetricKeyPair::RSAEccKeyPair(_) | AsymmetricKeyPair::PQKeyPairs(_) => {
+			AsymmetricKeyPair::RSAX25519KeyPair(_) | AsymmetricKeyPair::TutaCryptKeyPairs(_) => {
 				panic!("Expected RSA key pair!")
 			},
 		}
@@ -973,9 +987,9 @@ mod tests {
 		let (former_keys, _, former_keys_decrypted) =
 			generate_former_keys(&current_group_key, &randomizer);
 
-		let current_key_pair = PQKeyPairs::generate(&randomizer);
+		let current_key_pair = TutaCryptKeyPairs::generate(&randomizer);
 		let group = generate_group_with_keys(
-			&AsymmetricKeyPair::PQKeyPairs(current_key_pair),
+			&AsymmetricKeyPair::TutaCryptKeyPairs(current_key_pair),
 			&current_group_key,
 			&randomizer,
 		);
@@ -1004,9 +1018,9 @@ mod tests {
 		let current_group_key_version = FORMER_KEYS as u64;
 		let current_group_key = generate_group_key(current_group_key_version);
 
-		let current_key_pair = PQKeyPairs::generate(&randomizer);
+		let current_key_pair = TutaCryptKeyPairs::generate(&randomizer);
 		let group = generate_group_with_keys(
-			&AsymmetricKeyPair::PQKeyPairs(current_key_pair),
+			&AsymmetricKeyPair::TutaCryptKeyPairs(current_key_pair),
 			&current_group_key,
 			&randomizer,
 		);
@@ -1038,9 +1052,9 @@ mod tests {
 		let current_group_key_version = FORMER_KEYS as u64;
 		let current_group_key = generate_group_key(current_group_key_version);
 
-		let current_key_pair = PQKeyPairs::generate(&randomizer);
+		let current_key_pair = TutaCryptKeyPairs::generate(&randomizer);
 		let group = generate_group_with_keys(
-			&AsymmetricKeyPair::PQKeyPairs(current_key_pair),
+			&AsymmetricKeyPair::TutaCryptKeyPairs(current_key_pair),
 			&current_group_key,
 			&randomizer,
 		);

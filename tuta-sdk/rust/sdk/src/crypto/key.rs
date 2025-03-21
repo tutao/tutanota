@@ -10,13 +10,13 @@ use zeroize::Zeroizing;
 #[allow(clippy::large_enum_variant)]
 pub enum AsymmetricKeyPair {
 	RSAKeyPair(RSAKeyPair),
-	RSAEccKeyPair(RSAEccKeyPair),
-	PQKeyPairs(PQKeyPairs),
+	RSAX25519KeyPair(RSAX25519KeyPair),
+	TutaCryptKeyPairs(TutaCryptKeyPairs),
 }
 
 pub enum AsymmetricPublicKey {
 	RsaPublicKey(Box<RSAPublicKey>),
-	PqPublicKeys(Box<TutaCryptPublicKeys>),
+	TutaCryptPublicKeys(Box<TutaCryptPublicKeys>),
 }
 
 // we implement this ourselves to make sure we do not leak anything
@@ -24,7 +24,9 @@ impl Debug for AsymmetricPublicKey {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
 			AsymmetricPublicKey::RsaPublicKey(_) => f.debug_struct("RsaPublicKey").finish(),
-			AsymmetricPublicKey::PqPublicKeys(_) => f.debug_struct("PqPublicKeys").finish(),
+			AsymmetricPublicKey::TutaCryptPublicKeys(_) => {
+				f.debug_struct("TutaCryptPublicKeys").finish()
+			},
 		}
 	}
 }
@@ -35,15 +37,15 @@ impl From<RSAKeyPair> for AsymmetricKeyPair {
 	}
 }
 
-impl From<RSAEccKeyPair> for AsymmetricKeyPair {
-	fn from(value: RSAEccKeyPair) -> Self {
-		Self::RSAEccKeyPair(value)
+impl From<RSAX25519KeyPair> for AsymmetricKeyPair {
+	fn from(value: RSAX25519KeyPair) -> Self {
+		Self::RSAX25519KeyPair(value)
 	}
 }
 
-impl From<PQKeyPairs> for AsymmetricKeyPair {
-	fn from(value: PQKeyPairs) -> Self {
-		Self::PQKeyPairs(value)
+impl From<TutaCryptKeyPairs> for AsymmetricKeyPair {
+	fn from(value: TutaCryptKeyPairs) -> Self {
+		Self::TutaCryptKeyPairs(value)
 	}
 }
 
@@ -52,8 +54,8 @@ impl Debug for AsymmetricKeyPair {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
 			AsymmetricKeyPair::RSAKeyPair(_) => f.debug_struct("RSAKeyPair").finish(),
-			AsymmetricKeyPair::RSAEccKeyPair(_) => f.debug_struct("RSAEccKeyPair").finish(),
-			AsymmetricKeyPair::PQKeyPairs(_) => f.debug_struct("PQKeyPairs").finish(),
+			AsymmetricKeyPair::RSAX25519KeyPair(_) => f.debug_struct("RSAX25519KeyPair").finish(),
+			AsymmetricKeyPair::TutaCryptKeyPairs(_) => f.debug_struct("TutaCryptKeyPairs").finish(),
 		}
 	}
 }

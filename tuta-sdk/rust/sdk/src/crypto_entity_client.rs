@@ -4,7 +4,7 @@ use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 use crate::crypto::public_key_provider::PublicKeyIdentifier;
-use crate::crypto::EccPublicKey;
+use crate::crypto::X25519PublicKey;
 use crate::element_value::ParsedEntity;
 use crate::entities::entity_facade::{EntityFacade, ID_FIELD};
 use crate::entities::generated::base::PersistenceResourcePostReturn;
@@ -216,7 +216,7 @@ impl CryptoEntityClient {
 	async fn insert_encryption_auth_status_if_needed<T: Entity + Deserialize<'static>>(
 		&self,
 		typed_entity: &mut T,
-		sender_identity_pub_key: Option<EccPublicKey>,
+		sender_identity_pub_key: Option<X25519PublicKey>,
 	) {
 		let Some(mail): Option<&mut Mail> = crate::util::downcast_mut(typed_entity) else {
 			// we only authenticate mail instances currently
@@ -248,7 +248,7 @@ impl CryptoEntityClient {
 	/// @return the EncryptionAuthStatus from the asymmetric decryption
 	async fn authenticate_main_instance(
 		&self,
-		sender_identity_pub_key: Option<Versioned<EccPublicKey>>,
+		sender_identity_pub_key: Option<Versioned<X25519PublicKey>>,
 		mail: &Mail,
 		recipient_group: &GeneratedId,
 	) -> EncryptionAuthStatus {
@@ -261,10 +261,10 @@ impl CryptoEntityClient {
 					.await
 					.expect("loading our own current key pair");
 				match current_key_pair.object {
-					AsymmetricKeyPair::RSAKeyPair(_) | AsymmetricKeyPair::RSAEccKeyPair(_) => {
+					AsymmetricKeyPair::RSAKeyPair(_) | AsymmetricKeyPair::RSAX25519KeyPair(_) => {
 						EncryptionAuthStatus::RSANoAuthentication
 					},
-					AsymmetricKeyPair::PQKeyPairs(_) => {
+					AsymmetricKeyPair::TutaCryptKeyPairs(_) => {
 						// theoretically we could check that we did not rotate during this session.
 						// However, we currently cannot rotate in the sdk.
 						// So it is not possible and we would depend on keyrotationfacade ddor something else to keep state for us
@@ -291,7 +291,7 @@ impl CryptoEntityClient {
 	async fn tuta_crypt_authenticate_sender_of_main_instance(
 		&self,
 		sender_mail_address: String,
-		sender_identity_pub_key: Versioned<EccPublicKey>,
+		sender_identity_pub_key: Versioned<X25519PublicKey>,
 	) -> EncryptionAuthStatus {
 		let result = self
 			.asymmetric_crypto_facade
@@ -362,7 +362,7 @@ mod tests {
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::rsa::RSAKeyPair;
-	use crate::crypto::{aes::Iv, Aes256Key, EccPublicKey, PQKeyPairs};
+	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs, X25519PublicKey};
 	use crate::crypto_entity_client::CryptoEntityClient;
 	use crate::date::DateTime;
 	use crate::entities::entity_facade::{EntityFacadeImpl, MockEntityFacade, ID_FIELD};
@@ -399,7 +399,7 @@ mod tests {
 		crypto_entity_client
 			.insert_encryption_auth_status_if_needed::<AccountingInfo>(
 				&mut accounting_info_input,
-				Some(EccPublicKey::from_bytes([0; 32].as_slice()).unwrap()),
+				Some(X25519PublicKey::from_bytes([0; 32].as_slice()).unwrap()),
 			)
 			.await;
 		assert_eq!(accounting_info, accounting_info_input);
@@ -514,7 +514,7 @@ mod tests {
 		const RECIPIENT_NAME: &str = "Recipient";
 		const SENDER_KEY_VERSION: u64 = 3u64;
 		const SENDER_IDENTIFIER_EMAIL: &str = "sender@tutao.de";
-		const PUB_SENDER_KEY: EccPublicKey = EccPublicKey::from_array([0xAC; 32]);
+		const PUB_SENDER_KEY: X25519PublicKey = X25519PublicKey::from_array([0xAC; 32]);
 		let bucket_key = BucketKey {
 			// only some fields are relevant because crypto_facade is mocked away
 			_id: None,
@@ -663,7 +663,7 @@ mod tests {
 			identifier: "sender@tutao.de".to_owned(), // hard_coded in generate_email_entity()
 			identifier_type: PublicKeyIdentifierType::MailAddress,
 		};
-		let pub_sender_key = EccPublicKey::from_bytes([0xac; 32].as_slice()).unwrap();
+		let pub_sender_key = X25519PublicKey::from_bytes([0xac; 32].as_slice()).unwrap();
 		let sender_key = pub_sender_key.clone();
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
@@ -792,7 +792,7 @@ mod tests {
 			identifier: "system@tutanota.de".to_owned(), // hard_coded in generate_email_entity()
 			identifier_type: PublicKeyIdentifierType::MailAddress,
 		};
-		let pub_sender_key = EccPublicKey::from_bytes([0xac; 32].as_slice()).unwrap();
+		let pub_sender_key = X25519PublicKey::from_bytes([0xac; 32].as_slice()).unwrap();
 		let sender_key = pub_sender_key.clone();
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
@@ -1105,9 +1105,9 @@ mod tests {
 			.returning(move |_| {
 				let randomizer_facade = make_thread_rng_facade();
 
-				let recipient_key_pair = PQKeyPairs::generate(&randomizer_facade);
+				let recipient_key_pair = TutaCryptKeyPairs::generate(&randomizer_facade);
 				Ok(Versioned {
-					object: AsymmetricKeyPair::PQKeyPairs(recipient_key_pair),
+					object: AsymmetricKeyPair::TutaCryptKeyPairs(recipient_key_pair),
 					version: 0,
 				})
 			});

@@ -8,11 +8,11 @@ pub use aes::PlaintextAndIv;
 #[allow(unused_imports)]
 pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
 pub use argon2_id::generate_key_from_passphrase;
-pub use ecc::EccPublicKey;
 pub use hkdf::hkdf;
 pub use sha::sha256;
 #[allow(unused_imports)]
-pub use tuta_crypt::PQKeyPairs;
+pub use tuta_crypt::TutaCryptKeyPairs;
+pub use x25519::X25519PublicKey;
 
 pub mod aes;
 pub mod hmac;
@@ -23,9 +23,10 @@ mod hkdf;
 
 pub(crate) mod argon2_id;
 
-mod ecc;
+mod ed25519;
 pub(crate) mod kyber;
 pub(crate) mod rsa;
+mod x25519;
 
 mod tuta_crypt;
 
