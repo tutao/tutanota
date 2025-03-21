@@ -1,14 +1,16 @@
-import {BucketKey, BucketKeyTypeRef} from "../../entities/sys/TypeRefs"
-import {assertNotNull, downcast, TypeRef} from "@tutao/tutanota-utils"
-import type {EncryptedParsedInstance, Entity, ParsedInstance, SomeEntity, TypeModel} from "../../common/EntityTypes"
+import { BucketKey, BucketKeyTypeRef } from "../../entities/sys/TypeRefs"
+import { assertNotNull, Base64, downcast, TypeRef } from "@tutao/tutanota-utils"
+import type { EncryptedParsedInstance, Entity, ParsedInstance, TypeModel } from "../../common/EntityTypes"
 import { AttributeModel } from "../../common/AttributeModel"
-import {InstancePipeline} from "./InstancePipeline";
-import {Nullable} from "@tutao/tutanota-utils/dist/Utils";
+import { InstancePipeline } from "./InstancePipeline"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
-export class EntityAdapter implements Entity{
-	public constructor(
+export class EntityAdapter implements Entity {
+	isAdapter = true
+
+	private constructor(
 		private readonly typeModel: TypeModel,
-		private readonly encryptedParsedInstance: EncryptedParsedInstance,
+		readonly encryptedParsedInstance: EncryptedParsedInstance,
 		public readonly bucketKey: BucketKey | null,
 	) {}
 
@@ -36,24 +38,39 @@ export class EntityAdapter implements Entity{
 		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "_ownerEncSessionKey", this.typeModel)
 	}
 
+	set _ownerEncSessionKey(value: Uint8Array) {
+		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerEncSessionKey"))] = value
+	}
+
 	get _ownerKeyVersion(): null | NumberString {
 		return AttributeModel.getAttributeorNull<NumberString>(this.encryptedParsedInstance, "_ownerKeyVersion", this.typeModel) ?? "0"
+	}
+
+	set _ownerKeyVersion(value: NumberString) {
+		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerKeyVersion"))] = value
 	}
 
 	get ownerEncSessionKey(): null | Uint8Array {
 		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "ownerEncSessionKey", this.typeModel)
 	}
 
-	get ownerEncSessionKeyVersion() : null | NumberString  {
+	get ownerEncSessionKeyVersion(): null | NumberString {
 		return AttributeModel.getAttributeorNull<NumberString>(this.encryptedParsedInstance, "ownerEncSessionKeyVersion", this.typeModel) ?? "0"
 	}
-
 
 	get _ownerGroup(): null | Id {
 		return AttributeModel.getAttributeorNull<NumberString>(this.encryptedParsedInstance, "_ownerGroup", this.typeModel)
 	}
 
+	set _ownerGroup(value: Id) {
+		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerGroup"))] = value
+	}
+
 	get _permissions(): null | Id {
 		return AttributeModel.getAttributeorNull<NumberString>(this.encryptedParsedInstance, "_permissions", this.typeModel)
+	}
+
+	get _listEncSessionKey(): null | Uint8Array {
+		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "_listEncSessionKey", this.typeModel)
 	}
 }

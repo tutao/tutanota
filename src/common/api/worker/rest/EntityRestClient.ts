@@ -352,7 +352,8 @@ export class EntityRestClient implements EntityRestInterface {
 			loadedEntities,
 			async (instance) => {
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, instance)
-				await this._crypto.applyMigrations(typeModel, typeRef, encryptedParsedInstance)
+				const entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
+				await this._crypto.applyMigrations(typeModel, typeRef, entityAdapter)
 				return this._decryptMapAndMigrate(typeModel, encryptedParsedInstance, ownerEncSessionKeyProvider)
 			},
 			{
@@ -377,7 +378,7 @@ export class EntityRestClient implements EntityRestInterface {
 			sessionKey = await this._crypto.decryptSessionKey(ownerGroup, ownerEncSessionKey)
 		} else {
 			try {
-				const instanceAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline);
+				const instanceAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
 				sessionKey = await this._crypto.resolveSessionKey(instanceAdapter)
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {

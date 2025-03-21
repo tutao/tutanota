@@ -3,7 +3,7 @@ import { TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import {BucketKey} from "../entities/sys/TypeRefs";
+import { BucketKey } from "../entities/sys/TypeRefs"
 
 export type TypeModel = {
 	id: number
@@ -45,13 +45,6 @@ export type ModelAssociation = {
 	dependency?: AppName | null
 }
 
-export interface Instance extends Entity {
-	_ownerEncSessionKey: null | Uint8Array
-	_ownerKeyVersion: null | NumberString
-	_ownerGroup: null | Id
-	_id: Id | IdTuple
-}
-
 export interface Entity {
 	_type: TypeRef<this>
 	_finalIvs?: Record<number, Nullable<Uint8Array>>
@@ -62,16 +55,14 @@ export interface Entity {
 	ownerEncSessionKey?: null | Uint8Array
 	ownerEncSessionKeyVersion?: null | NumberString
 	_permissions?: null | Id
+	isAdapter?: boolean
 }
 
-export interface ElementEntity extends Entity, Element {
-}
+export interface ElementEntity extends Entity, Element {}
 
-export interface ListElementEntity extends Entity, ListElement {
-}
+export interface ListElementEntity extends Entity, ListElement {}
 
-export interface BlobElementEntity extends Entity, BlobElement {
-}
+export interface BlobElementEntity extends Entity, BlobElement {}
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
 
