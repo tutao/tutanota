@@ -1,8 +1,10 @@
 package de.tutao.calendar.widget.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
+import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.CalendarEventsList
 import de.tutao.tutasdk.CalendarRenderData
@@ -55,5 +57,23 @@ abstract class WidgetRepository {
 				?: return null
 
 		return json.decodeFromString<SettingsDao>(rawPreferencesFlow)
+	}
+
+	suspend fun eraseLastSyncForWidget(context: Context, widgetId: Int) {
+		val databaseWidgetIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$widgetId"
+		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
+
+		context.widgetDataStore.edit { preferences ->
+			preferences.remove(preferencesKey)
+		}
+	}
+
+	suspend fun eraseSettingsForWidget(context: Context, widgetId: Int) {
+		val databaseWidgetIdentifier = "${WIDGET_SETTINGS_PREFIX}_$widgetId"
+		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
+
+		context.widgetDataStore.edit { preferences ->
+			preferences.remove(preferencesKey)
+		}
 	}
 }
