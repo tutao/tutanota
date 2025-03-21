@@ -38,6 +38,12 @@ class WidgetConfigRepository : WidgetRepository() {
 
 		val loggedInSdk = sdk.login(credential)
 		val calendarFacade = loggedInSdk.calendarFacade()
-		return calendarFacade.getCalendarsRenderData()
+		return calendarFacade.getCalendarsRenderData().toMutableMap().toSortedMap(Comparator<GeneratedId> { a, b ->
+			when {
+				a > b -> 1
+				a < b -> -1
+				else -> 0
+			}
+		})
 	}
 }
