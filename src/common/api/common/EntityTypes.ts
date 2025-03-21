@@ -55,33 +55,22 @@ export interface Instance extends Entity {
 export interface Entity {
 	_type: TypeRef<this>
 	_finalIvs?: Record<number, Nullable<Uint8Array>>
+	bucketKey?: null | BucketKey
+	_ownerGroup?: null | Id
+	_ownerEncSessionKey?: null | Uint8Array
+	_ownerKeyVersion?: null | NumberString
+	ownerEncSessionKey?: null | Uint8Array
+	ownerEncSessionKeyVersion?: null | NumberString
+	_permissions?: null | Id
 }
 
 export interface ElementEntity extends Entity, Element {
-	_ownerEncSessionKey?: null | Uint8Array
-	_ownerKeyVersion?: null | NumberString
-	_ownerGroup: null | Id
-	bucketKey?: null | BucketKey
-	ownerEncSessionKey?: null | Uint8Array
-	ownerEncSessionKeyVersion?: null | NumberString
 }
 
 export interface ListElementEntity extends Entity, ListElement {
-	_ownerEncSessionKey?: null | Uint8Array
-	_ownerKeyVersion?: null | NumberString
-	_ownerGroup: null | Id
-	bucketKey?: null | BucketKey
-	ownerEncSessionKey?: null | Uint8Array
-	ownerEncSessionKeyVersion?: null | NumberString
 }
 
 export interface BlobElementEntity extends Entity, BlobElement {
-	_ownerEncSessionKey?: null | Uint8Array
-	_ownerKeyVersion?: null | NumberString
-	_ownerGroup: null | Id
-	bucketKey?: null | BucketKey
-	ownerEncSessionKey?: null | Uint8Array
-	ownerEncSessionKeyVersion?: null | NumberString
 }
 
 export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity

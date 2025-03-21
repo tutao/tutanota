@@ -368,7 +368,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		const serializedEntity = await this.serialize(originalEntity)
 		const { listId, elementId } = expandId(originalEntity._id)
 		const type = getTypeId(originalEntity._type)
-		const ownerGroup = originalEntity._ownerGroup
+		const ownerGroup = assertNotNull(originalEntity._ownerGroup)
 		const typeModel = await resolveTypeReference(originalEntity._type)
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery: FormattedQuery

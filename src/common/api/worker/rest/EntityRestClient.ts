@@ -29,7 +29,7 @@ import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { AttributeModel } from "../../common/AttributeModel"
-import { InstanceAdapter } from "../crypto/InstanceAdapter"
+import { EntityAdapter } from "../crypto/EntityAdapter"
 
 assertWorkerOrNode()
 
@@ -377,7 +377,7 @@ export class EntityRestClient implements EntityRestInterface {
 			sessionKey = await this._crypto.decryptSessionKey(ownerGroup, ownerEncSessionKey)
 		} else {
 			try {
-				const instanceAdapter = await InstanceAdapter.from(typeModel, encryptedParsedInstance);
+				const instanceAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline);
 				sessionKey = await this._crypto.resolveSessionKey(instanceAdapter)
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {

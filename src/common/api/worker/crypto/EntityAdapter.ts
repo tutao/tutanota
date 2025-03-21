@@ -1,11 +1,11 @@
 import {BucketKey, BucketKeyTypeRef} from "../../entities/sys/TypeRefs"
 import {assertNotNull, downcast, TypeRef} from "@tutao/tutanota-utils"
-import type {EncryptedParsedInstance, ParsedInstance, SomeEntity, TypeModel} from "../../common/EntityTypes"
+import type {EncryptedParsedInstance, Entity, ParsedInstance, SomeEntity, TypeModel} from "../../common/EntityTypes"
 import { AttributeModel } from "../../common/AttributeModel"
 import {InstancePipeline} from "./InstancePipeline";
 import {Nullable} from "@tutao/tutanota-utils/dist/Utils";
 
-export class InstanceAdapter {
+export class EntityAdapter implements Entity{
 	public constructor(
 		private readonly typeModel: TypeModel,
 		private readonly encryptedParsedInstance: EncryptedParsedInstance,
@@ -21,14 +21,14 @@ export class InstanceAdapter {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
 			bucketKey = await instancePipeline.modelMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyLiteral)
 		}
-		return new InstanceAdapter(typeModel, encryptedParsedInstance, bucketKey)
+		return new EntityAdapter(typeModel, encryptedParsedInstance, bucketKey)
 	}
 
 	get _id(): Id | IdTuple {
 		return assertNotNull(AttributeModel.getAttributeorNull<Id | IdTuple>(this.encryptedParsedInstance, "_id", this.typeModel))
 	}
 
-	get _type(): TypeRef<SomeEntity> {
+	get _type(): TypeRef<this> {
 		return new TypeRef(this.typeModel.app, this.typeModel.id)
 	}
 
