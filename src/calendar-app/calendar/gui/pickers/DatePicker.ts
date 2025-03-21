@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
-import type { TranslationKey, MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
+import type { MaybeTranslation, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { px } from "../../../../common/gui/size.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -237,13 +237,17 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					}
 
 					this.documentInteractionListener = listener
-					document.addEventListener("click", listener, true)
-					document.addEventListener("focus", listener, true)
+					// We only listen for events on the main view and exclude the modal and overlay layers.
+					// This is done to avoid weird behaviours caused by focus shifting to and from modals
+					const mainViewDom = document.querySelector(".main-view") as HTMLElement
+					mainViewDom.addEventListener("click", listener, true)
+					mainViewDom.addEventListener("focus", listener, true)
 				},
 				onremove: () => {
 					if (this.documentInteractionListener) {
-						document.removeEventListener("click", this.documentInteractionListener, true)
-						document.removeEventListener("focus", this.documentInteractionListener, true)
+						const mainViewDom = document.querySelector(".main-view") as HTMLElement
+						mainViewDom.removeEventListener("click", this.documentInteractionListener, true)
+						mainViewDom.removeEventListener("focus", this.documentInteractionListener, true)
 					}
 				},
 			},
