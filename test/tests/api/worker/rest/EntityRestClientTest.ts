@@ -79,7 +79,7 @@ o.spec("EntityRestClient", function () {
 		when(cryptoFacadeMock.applyMigrationsForInstance(anything())).thenDo((decryptedInstance) => {
 			return Promise.resolve({ ...decryptedInstance, migratedForInstance: true })
 		})
-		when(cryptoFacadeMock.setNewOwnerEncSessionKey(anything(), anything())).thenResolve([])
+		when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), anything())).thenResolve([])
 		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything(), anything())).thenResolve(
 			createTestEntity(InternalRecipientKeyDataTypeRef),
 		)
@@ -590,7 +590,7 @@ o.spec("EntityRestClient", function () {
 
 			const ownerKey = freshVersioned([1, 2, 3])
 			const sessionKey = [3, 2, 1]
-			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), ownerKey)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, typeModel, anything())).thenResolve(sessionKey)
 
 			const result = await entityRestClient.setup(null, newCustomerServerProperties, undefined, { ownerKey })
 

@@ -410,7 +410,7 @@ export class EntityRestClient implements EntityRestInterface {
 		} else {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
-		const sk = this._crypto.setNewOwnerEncSessionKey(instance, options?.ownerKey)
+		const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
 		const untypedInstance = await this.instancePipeline.encryptAndMapToLiteral(downcast(instance._type), instance, sk)
 		const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
 			baseUrl: options?.baseUrl,
@@ -444,7 +444,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const idChunks: Array<Array<Id>> = await promiseMap(instanceChunks, async (instanceChunk) => {
 			try {
 				const encryptedEntities = await promiseMap(instanceChunk, async (instance) => {
-					const sk = this._crypto.setNewOwnerEncSessionKey(instance)
+					const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, instance)
 					return await this.instancePipeline.encryptAndMapToLiteral(downcast(instance._type), instance, sk)
 				})
 				// informs the server that this is a POST_MULTIPLE request

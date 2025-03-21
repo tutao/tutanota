@@ -9,7 +9,7 @@ export class EntityAdapter implements Entity {
 	isAdapter = true
 
 	private constructor(
-		private readonly typeModel: TypeModel,
+		readonly typeModel: TypeModel,
 		readonly encryptedParsedInstance: EncryptedParsedInstance,
 		public readonly bucketKey: BucketKey | null,
 	) {}
