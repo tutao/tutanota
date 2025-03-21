@@ -1,9 +1,13 @@
-import { assert, daysToMillis, getStartOfDay } from "@tutao/tutanota-utils"
+import { assert, daysToMillis, getDayShifted, getStartOfDay } from "@tutao/tutanota-utils"
 import { OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../api/common/TutanotaConstants"
 import { UserController } from "../api/main/UserController"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { isOfflineStorageAvailable } from "../api/common/Env"
 import { getStartOfTheWeekOffsetForUser } from "../misc/weekOffset"
+
+function getStartOfDayShiftedBy(number: number) {
+	return undefined
+}
 
 /**
  * A model for handling offline storage configuration
@@ -15,7 +19,7 @@ export class OfflineStorageSettingsModel {
 	private isEnabled: boolean | null = null
 
 	// the default value will never actually be used
-	private defaultTimeRange: Date = new Date(getStartOfDay(new Date()).getTime() - daysToMillis(OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS))
+	private defaultTimeRange: Date = getStartOfDay(getDayShifted(new Date(), -OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS))
 	private timeRange: Date = new Date(this.defaultTimeRange.getTime())
 
 	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
@@ -28,6 +32,12 @@ export class OfflineStorageSettingsModel {
 
 	private assertAvailable() {
 		assert(this.available(), "Not initialized or not available")
+	}
+
+	isValidDate(newDate: Date): boolean {
+		// FIXME: also check that it is not way too many days ~3650 should be enough
+		// the date should not be in the future, it makes no sense
+		return newDate.getTime() < new Date().getTime()
 	}
 
 	getStartOfTheWeekOffset(): number {

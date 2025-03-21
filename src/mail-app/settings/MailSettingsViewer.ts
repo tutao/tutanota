@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isApp } from "../../common/api/common/Env"
-import { lang } from "../../common/misc/LanguageViewModel"
+import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel"
 import type { MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	MailboxPropertiesTypeRef,
@@ -410,6 +410,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderLocalDataSection(): Children {
+		// FIXME: add more language here that makes it clear that this is tied to search too?
+		// and what this setting does for the user
 		if (!this.offlineStorageSettings.available()) {
 			return null
 		}
@@ -565,8 +567,10 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 	const newTimeRangeDeferred = defer<number>()
 	const dialog = Dialog.showActionDialog({
 		title: "emptyString_msg",
-		child: () =>
-			m("", [
+		child: () => {
+			const helpText: MaybeTranslation | undefined = settings.isValidDate(timeRange) ? undefined : "invalidDate_msg"
+
+			return m("", [
 				m(DatePicker, {
 					date: timeRange,
 					onDateSelected: (date) => {
@@ -574,11 +578,16 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 					},
 					startOfTheWeekOffset: settings.getStartOfTheWeekOffset(),
 					label: "dateFrom_label",
+					nullSelectionText: helpText,
 					rightAlignDropdown: false,
 				} satisfies DatePickerAttrs),
 				m(".mt", lang.get("storedDataTimeRangeHelpText_msg")),
-			]),
+			])
+		},
 		okAction: async () => {
+			if (!settings.isValidDate(timeRange)) {
+				return
+			}
 			try {
 				if (initialTimeRange !== timeRange) {
 					await settings.setTimeRange(timeRange)
