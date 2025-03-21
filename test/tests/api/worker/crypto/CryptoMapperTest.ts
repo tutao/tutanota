@@ -7,8 +7,9 @@ import { CryptoMapper, decryptValue, encryptValue } from "../../../../../src/com
 import { createEncryptedValueType, dummyResolver, testTypeModel } from "./InstancePipelineTestUtils"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { Type } from "cborg"
 
-o.spec("InstanceMapper", function () {
+o.spec("CryptoMapper", function () {
 	let cryptoMapper: CryptoMapper
 	cryptoMapper = new CryptoMapper(dummyResolver)
 
@@ -230,8 +231,9 @@ o.spec("InstanceMapper", function () {
 
 		o(decryptedInstance[3]![0][2]).equals("123")
 		o(decryptedInstance[4]![0]).equals("associatedListId")
-		o(decryptedInstance._finalIvs[7]).equals(undefined)
+		o(typeof decryptedInstance._finalIvs[7]).equals("undefined")
 		o(Array.from(decryptedInstance["_finalIvs"][1] as Uint8Array)).deepEquals(Array.from(expectedFinalIv))
+		o(typeof decryptedInstance._errors).equals("undefined")
 	})
 	o("encryptParsedInstance happy path works", async function () {
 		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
@@ -259,17 +261,17 @@ o.spec("InstanceMapper", function () {
 		o(encryptedAggregate[6].length).equals(6)
 		o(encryptedAggregate[2])
 		o(encryptedInstance[4]![0]).equals("associatedListId")
-		console.log(encryptedInstance)
 	})
 
-	o("decryptParsedInstance with missing sk throws", async function () {
+	o("decryptParsedInstance with missing sk sets _errors", async function () {
 		const encryptedInstance: EncryptedParsedInstance = {
 			1: "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj",
 			3: [{ 2: "123", 6: "someCustomId" }],
 			4: ["associatedListId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		}
-		await assertThrows(CryptoError, () => cryptoMapper.decryptParsedInstance(testTypeModel, encryptedInstance, null))
+		const instance = await cryptoMapper.decryptParsedInstance(testTypeModel, encryptedInstance, null)
+		o(typeof instance._errors?.[1]).equals("string")
 	})
 
 	o("encryptParsedInstance with missing sk throws", async function () {
@@ -313,5 +315,19 @@ o.spec("InstanceMapper", function () {
 
 		const encryptedInstance = await cryptoMapper.encryptParsedInstance(testTypeModel, parsedInstance, sk)
 		o(encryptedInstance[1]).equals("")
+	})
+
+	o("decryption errors are written to _errors field", async function () {
+		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
+		const encryptedInstance: EncryptedParsedInstance = {
+			1: "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2pmlpWEhgG5iwzqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj",
+			3: [{ 2: "123", 6: "someCustomId" }],
+			4: ["associatedListId"],
+			5: new Date("2025-01-01T13:00:00.000Z"),
+		}
+
+		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(testTypeModel, encryptedInstance, sk)
+		console.log(instanceWithErrors._errors?.[1])
+		o(typeof instanceWithErrors._errors?.[1]).equals("string")
 	})
 })

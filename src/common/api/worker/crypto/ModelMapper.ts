@@ -2,7 +2,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import type {Entity, ParsedAssociation, ParsedInstance, ParsedValue, SomeEntity} from "../../common/EntityTypes"
+import type { Entity, ParsedAssociation, ParsedInstance, ParsedValue } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { TypeReferenceResolver } from "../../common/EntityFunctions"
@@ -13,7 +13,7 @@ export type AttributeId = number
 export type TypeId = number
 export type AttributeName = string
 
-function assertCorrectValueCardinality(
+export function assertCorrectValueCardinality(
 	typeRef: TypeRef<unknown>,
 	attrId: string,
 	cardinality: Values<typeof Cardinality>,
@@ -25,13 +25,13 @@ function assertCorrectValueCardinality(
 	throw new ProgrammingError(`invalid value / cardinality combination for value ${attrId} on type ${typeRef.typeId}: ${cardinality}, isNull: ${!parsedValue}`)
 }
 
-function assertCorrectAssociationCardinality(
+export function assertCorrectAssociationClientCardinality(
 	typeRef: TypeRef<unknown>,
 	attrId: string,
 	cardinality: Values<typeof Cardinality>,
 	parsedValue: Array<unknown>,
 ): unknown {
-	if (cardinality === Cardinality.ZeroOrOne) {
+	if (cardinality === Cardinality.ZeroOrOne && parsedValue.length < 2) {
 		return parsedValue[0] ?? null
 	} else if (cardinality === Cardinality.One && parsedValue.length === 1) {
 		return parsedValue[0]
@@ -41,6 +41,27 @@ function assertCorrectAssociationCardinality(
 
 	throw new ProgrammingError(
 		`invalid association / cardinality combination for association ${attrId} on type ${typeRef.typeId}: ${cardinality}, val.len: ${parsedValue.length}`,
+	)
+}
+
+export function assertCorrectAssociationServerCardinality(
+	typeRef: TypeRef<unknown>,
+	attrId: string,
+	cardinality: Values<typeof Cardinality>,
+	parsedValue: Array<unknown> | unknown,
+): unknown {
+	if (cardinality === Cardinality.ZeroOrOne && !Array.isArray(parsedValue)) {
+		return parsedValue != null ? [parsedValue] : []
+	} else if (cardinality === Cardinality.One && parsedValue != null && !Array.isArray(parsedValue)) {
+		return [parsedValue]
+	} else if (cardinality === Cardinality.Any && Array.isArray(parsedValue)) {
+		return parsedValue
+	}
+
+	throw new ProgrammingError(
+		`invalid association / cardinality combination for association ${attrId} on type ${typeRef.typeId}: ${cardinality}, isArray: ${Array.isArray(
+			parsedValue,
+		)}, isNull ${parsedValue == null}`,
 	)
 }
 
@@ -65,7 +86,11 @@ export class ModelMapper {
 		const clientInstance: Record<string, unknown> = {
 			_type: typeRef,
 			_finalIvs: parsedInstance._finalIvs,
-			_errors: parsedInstance._errors,
+		}
+
+		if (parsedInstance._errors != null) {
+			// otherwise we get an explicit _errors: undefined
+			clientInstance._errors = parsedInstance._errors
 		}
 
 		for (const [attrIdStr, modelValue] of Object.entries(clientTypeModel.values)) {
@@ -90,9 +115,9 @@ export class ModelMapper {
 				for (const value of values) {
 					clientValues.push(await this.applyClientModel(assocTypeRef, value))
 				}
-				clientInstance[modelAssoc.name] = assertCorrectAssociationCardinality(typeRef, assocIdStr, modelAssoc.cardinality, clientValues)
+				clientInstance[modelAssoc.name] = assertCorrectAssociationClientCardinality(typeRef, assocIdStr, modelAssoc.cardinality, clientValues)
 			} else {
-				clientInstance[modelAssoc.name] = assertCorrectAssociationCardinality(
+				clientInstance[modelAssoc.name] = assertCorrectAssociationClientCardinality(
 					typeRef,
 					assocIdStr,
 					modelAssoc.cardinality,
@@ -143,14 +168,24 @@ export class ModelMapper {
 			const appName = modelAssoc.dependency ?? clientTypeModel.app
 			const assocTypeRef = new TypeRef<any>(appName, modelAssoc.refTypeId)
 			if (modelAssoc.type === AssociationType.Aggregation) {
-				const values = (instance as any)[modelAssoc.name] as Array<T>
-				const clientValues = []
-				for (const value of values) {
-					clientValues.push(await this.applyServerModel(assocTypeRef, value))
+				if (modelAssoc.cardinality === Cardinality.Any) {
+					const values = (instance as any)[modelAssoc.name] as Array<Entity>
+					const clientValues = []
+					for (const value of values) {
+						clientValues.push(await this.applyServerModel(assocTypeRef, value))
+					}
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(assocTypeRef, assocIdStr, modelAssoc.cardinality, values)
+				} else {
+					const value = (instance as any)[modelAssoc.name] as Entity
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(
+						assocTypeRef,
+						assocIdStr,
+						modelAssoc.cardinality,
+						await this.applyServerModel(assocTypeRef, value),
+					)
 				}
-				serverInstance[assocId] = assertCorrectAssociationCardinality(assocTypeRef, assocIdStr, modelAssoc.cardinality, values)
 			} else {
-				serverInstance[assocId] = assertCorrectAssociationCardinality(
+				serverInstance[assocId] = assertCorrectAssociationServerCardinality(
 					assocTypeRef,
 					assocIdStr,
 					modelAssoc.cardinality,

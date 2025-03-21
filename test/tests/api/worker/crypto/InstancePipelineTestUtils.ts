@@ -1,4 +1,4 @@
-import { ModelValue, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { Entity, ModelValue, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { AssociationType, Cardinality, Type, ValueType } from "../../../../../src/common/api/common/EntityConstants"
 import { TypeRef } from "@tutao/tutanota-utils"
 
@@ -89,6 +89,22 @@ export const testAggregateModel: TypeModel = {
 	associations: {},
 	version: "0",
 	versioned: false,
+}
+
+export const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
+export const TestAggregateRef = new TypeRef<TestAggregate>("tutanota", 43)
+
+export type TestAggregate = Entity & {
+	_id: Id
+	testNumber: NumberString
+}
+
+export type TestEntity = Entity & {
+	testValue: string
+	testDate: Date
+	testBoolean: boolean
+	testAssociation: TestAggregate
+	testListAssociation: Id
 }
 
 export const dummyResolver = (tr: TypeRef<unknown>) => {
