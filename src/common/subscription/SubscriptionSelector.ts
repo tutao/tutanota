@@ -268,10 +268,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			if (prices != null) {
 				if (isCampaign && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
 					const revolutionaryPrice = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())
-					priceStr = revolutionaryPrice?.displayYearlyPerMonth ?? NBSP
+					priceStr = revolutionaryPrice?.displayYearlyPerYear ?? NBSP
 					// if there is a discount for this plan we show the original price as reference
-					referencePriceStr = prices?.displayYearlyPerMonth
-					priceType = PriceType.YearlyPerMonth
+					referencePriceStr = prices?.displayYearlyPerYear
+					priceType = PriceType.YearlyPerYear
 				} else {
 					switch (interval) {
 						case PaymentInterval.Monthly:
