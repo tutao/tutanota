@@ -84,7 +84,7 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
-export const API_BASE_URL = "http://34.234.82.6:3000"; // aws ec2 instance public address
+export const API_BASE_URL = "http://3.88.110.172:3000"; // aws ec2 instance public address
 
 export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
