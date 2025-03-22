@@ -64,13 +64,32 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                     }, "Report as Phishing"),
 
                     // "Confirm Anyway" button
+                    // "Confirm Anyway" button
                     m("button.btn", {
                         onclick: async () => {
                             const senderEmail = this.viewModel.getSender().address;
                             const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
                             try {
-                                const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+                                // Add to trusted senders
+                                const addResponse = await fetch(`${API_BASE_URL}/add-trusted`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        user_email: userEmail,
+                                        trusted_email: senderEmail
+                                    }),
+                                });
+
+                                if (!addResponse.ok) {
+                                    console.error("Failed to add sender to trusted list.");
+                                    return;
+                                }
+
+                                console.log(`Sender added to trusted list: ${senderEmail}`);
+
+                                // Update email sender status
+                                const statusResponse = await fetch(`${API_BASE_URL}/update-email-status`, {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
@@ -82,16 +101,16 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                     }),
                                 });
 
-                                if (response.ok) {
-                                    console.log(`Confirmed sender: ${senderEmail}`);
+                                if (statusResponse.ok) {
+                                    console.log(`Confirmed sender and updated interaction for: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
                                     modal.remove(this);
                                     m.redraw();
                                 } else {
-                                    console.error("Failed to confirm sender.");
+                                    console.error("Failed to update sender status.");
                                 }
                             } catch (error) {
-                                console.error("Error confirming sender:", error);
+                                console.error("Error confirming and trusting sender:", error);
                             }
                         },
                         style: this.getButtonStyle("#5BC0DE", "#31B0D5") // Blue
