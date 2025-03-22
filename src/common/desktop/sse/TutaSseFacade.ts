@@ -109,17 +109,17 @@ export class TutaSseFacade implements SseEventHandler {
 	private async requestJson(identifier: string, userId: string): Promise<string> {
 		const typeModel = await resolveTypeReference(SseConnectDataTypeRef)
 
+		const connectData = createSseConnectData({
+			identifier: identifier,
+			userIds: [
+				createGeneratedIdWrapper({
+					value: userId,
+				}),
+			],
+		})
 		const parsedInstance: ParsedInstance = await modelMapper.applyServerModel(
 			SseConnectDataTypeRef,
-			createSseConnectData({
-				identifier: identifier,
-				userIds: [
-					createGeneratedIdWrapper({
-						_id: this.crypto.generateId(4),
-						value: userId,
-					}),
-				],
-			}),
+			connectData,
 		)
 		const encryptedParsedInstance = await cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, null)
 		const untypedInstance = await typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)

@@ -64,7 +64,7 @@ o.spec("EntityUtils", function () {
 	})
 
 	o.spec("removeTechnicalFields", function () {
-		const typeRef = { app: "testapp", typeId: 9999999 } as TypeRef<unknown>
+		const typeRef = { app: "sys", typeId: 9999999 } as TypeRef<unknown>
 
 		function makeEntity() {
 			return {

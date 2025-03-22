@@ -30,6 +30,8 @@ import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
+import {resolveTypeReference} from "../../../../src/common/api/common/EntityFunctions";
+import {InstancePipeline} from "../../../../src/common/api/worker/crypto/InstancePipeline";
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
@@ -46,13 +48,13 @@ o.spec("EventBusClientTest", function () {
 
 	function initEventBus() {
 		const entityClient = new EntityClient(restClient)
-		const instanceMapper = new ModelMapper()
+		const instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 		ebc = new EventBusClient(
 			listenerMock,
 			cacheMock,
 			userMock,
 			entityClient,
-			instanceMapper,
+			instancePipeline,
 			socketFactory,
 			sleepDetector,
 			progressTrackerMock,

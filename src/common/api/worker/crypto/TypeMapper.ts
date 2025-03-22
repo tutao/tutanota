@@ -94,7 +94,7 @@ export class TypeMapper {
 				const associationTypeModel = await this.typeRefResolver(new TypeRef(appName, modelAssociation.refTypeId))
 
 				const untypedAssociationValues: Array<UntypedInstance> = []
-				for (const value in values) {
+				for (const value of values) {
 					untypedAssociationValues.push(await this.applyDbTypes(associationTypeModel, value))
 				}
 				untypedInstance[attrId] = untypedAssociationValues

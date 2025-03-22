@@ -7,7 +7,7 @@ import { SseClient, SseConnectOptions } from "../../../../src/common/desktop/sse
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import { fetch as undiciFetch } from "undici"
 import { typeModels } from "../../../../src/common/api/entities/sys/TypeModels.js"
-import { deepEqual } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, deepEqual, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
 import {
 	createAlarmInfo,
@@ -16,20 +16,20 @@ import {
 	createIdTupleWrapper,
 	createMissedNotification,
 	createNotificationInfo,
-	GeneratedIdWrapperTypeRef,
 	MissedNotificationTypeRef,
 	SseConnectDataTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { mockFetchRequest } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
-import { ModelMapper } from "../../../../src/common/api/worker/crypto/ModelMapper"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
 import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification"
 import { resolveTypeReference } from "../../../../src/common/api/common/EntityFunctions"
+import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
+import { aes256RandomKey, random } from "@tutao/tutanota-crypto"
 
 const APP_V = env.versionNumber
 
-const mapper = new ModelMapper()
+const mapper = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 o.spec("TutaSseFacade", () => {
 	let sseFacade: TutaSseFacade
 	let sseStorage: SseStorage
@@ -144,16 +144,14 @@ o.spec("TutaSseFacade", () => {
 				_ownerGroup: "ownerGroupId",
 				_permissions: "permissionsId",
 				lastProcessedNotificationId: "lastProcessedNotificationId",
-				alarmNotifications: [],
+				alarmNotifications: [alarmNotification],
 				notificationInfos: [notificationInfo],
 			})
-			const encryptedMissedNotification = Object.assign({}, missedNotification, {
-				alarmNotifications: [alarmNotification],
-			})
 
-			const literal = await mapper.mapToLiteral(encryptedMissedNotification)
+			const sk = aes256RandomKey()
+			const untypedInstance = await mapper.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, sk)
 
-			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, literal)
+			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, untypedInstance)
 
 			await sseFacade.onNewMessage("data: notification")
 
@@ -185,13 +183,13 @@ o.spec("TutaSseFacade", () => {
 				alarmNotifications: [],
 				notificationInfos: [],
 			})
-			const encryptedMissedNotification: EncryptedMissedNotification = Object.assign({}, missedNotification, { alarmNotifications: [] })
 
-			const literal = await mapper.mapToLiteral(encryptedMissedNotification)
+			const sk = aes256RandomKey()
+			const untypedInstance = await mapper.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, sk)
 
 			await sseFacade.connect()
 
-			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, literal)
+			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, untypedInstance)
 
 			await sseFacade.onNewMessage("data: notification")
 
@@ -266,8 +264,9 @@ o.spec("TutaSseFacade", () => {
 			const url = captor.values![1].url
 			const body = url.searchParams.get("_body")!
 
-			const literal = await mapper.mapFromLiteral(JSON.parse(body), await resolveTypeReference(SseConnectDataTypeRef))
-			o(literal.userIds).deepEquals([{ _type: GeneratedIdWrapperTypeRef, value: "user1" }])
+			const instance = await mapper.decryptAndMapToInstance(SseConnectDataTypeRef, JSON.parse(body), null)
+			o(instance.userIds.length).equals(1)
+			o(instance.userIds[0].value).equals("user1")
 		})
 
 		o.test("does not reconnect if there are no more users", async () => {

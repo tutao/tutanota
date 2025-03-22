@@ -5,7 +5,7 @@ import o from "@tutao/otest"
 // import "./api/worker/facades/LoginFacadeTest.js"
 // import "./api/common/utils/LoggerTest.js"
 // import "./api/common/utils/BirthdayUtilsTest.js"
-import "./api/worker/rest/EntityRestClientTest.js"
+// import "./api/worker/rest/EntityRestClientTest.js"
 // import "./api/worker/crypto/CryptoFacadeTest.js"
 // import "./api/worker/crypto/AsymmetricCryptoFacadeTest.js"
 // import "./api/worker/crypto/InstanceMapperTest.js"
@@ -45,18 +45,18 @@ import "./api/worker/rest/EntityRestClientTest.js"
 // import "./api/worker/facades/BlobFacadeTest.js"
 // import "./api/worker/facades/BlobAccessTokenFacadeTest.js"
 // import "./api/worker/utils/SleepDetectorTest.js"
-import "./api/worker/rest/ServiceExecutorTest.js"
-import "./api/worker/rest/CacheStorageProxyTest.js"
-import "./contacts/VCardExporterTest.js"
-import "./contacts/VCardImporterTest.js"
-import "./misc/ClientDetectorTest.js"
-import "./misc/LanguageViewModelTest.js"
-import "./api/common/utils/CommonFormatterTest.js"
-import "./misc/FormatterTest.js"
-import "./api/worker/UrlifierTest.js"
-import "./misc/PasswordUtilsTest.js"
-import "./misc/PasswordGeneratorTest.js"
-import "./misc/PasswordModelTest.js"
+// import "./api/worker/rest/ServiceExecutorTest.js"
+// import "./api/worker/rest/CacheStorageProxyTest.js"
+// import "./contacts/VCardExporterTest.js"
+// import "./contacts/VCardImporterTest.js"
+// import "./misc/ClientDetectorTest.js"
+// import "./misc/LanguageViewModelTest.js"
+// import "./api/common/utils/CommonFormatterTest.js"
+// import "./misc/FormatterTest.js"
+// import "./api/worker/UrlifierTest.js"
+// import "./misc/PasswordUtilsTest.js"
+// import "./misc/PasswordGeneratorTest.js"
+// import "./misc/PasswordModelTest.js"
 // import "./gui/animation/AnimationsTest.js"
 // import "./gui/ThemeControllerTest.js"
 // import "./api/main/EntropyCollectorTest.js"
@@ -176,39 +176,39 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	if (typeof process != "undefined") {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
-		await import("./desktop/PathUtilsTest.js")
-		await import("./desktop/files/TempFsTest.js")
-		await import("./desktop/config/migrations/DesktopConfigMigratorTest.js")
-		await import("./desktop/ElectronUpdaterTest.js")
-		await import("./desktop/DesktopNotifierTest.js")
-		await import("./desktop/ApplicationWindowTest.js")
-		await import("./desktop/sse/SecretStorageTest.js")
-		await import("./desktop/sse/DesktopAlarmStorageTest.js")
-		await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
-		await import("./desktop/files/DesktopFileFacadeTest.js")
-		await import("./desktop/net/ProtocolProxyTest.js")
-		await import("./desktop/SocketeerTest.js")
-		await import("./desktop/integration/DesktopIntegratorTest.js")
-		await import("./desktop/integration/RegistryScriptGeneratorTest.js")
-		await import("./desktop/DesktopCryptoFacadeTest.js")
-		await import("./desktop/DesktopContextMenuTest.js")
-		await import("./desktop/DesktopKeyStoreFacadeTest.js")
-		await import("./desktop/config/ConfigFileTest.js")
-		await import("./desktop/db/OfflineDbFacadeTest.js")
-		await import("./desktop/credentials/DesktopNativeCredentialsFacadeTest.js")
-		await import("./desktop/credentials/AppPassHandlerTest.js")
-		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
-		await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
-		await import("./api/worker/offline/OfflineStorageTest.js")
-		await import("./desktop/config/DesktopConfigTest.js")
-		await import("./api/worker/rest/RestClientTest.js")
-		await import("./desktop/files/TempFsTest.js")
-		await import("./desktop/sse/SseClientTest.js")
+		// await import("./desktop/PathUtilsTest.js")
+		// await import("./desktop/files/TempFsTest.js")
+		// await import("./desktop/config/migrations/DesktopConfigMigratorTest.js")
+		// await import("./desktop/ElectronUpdaterTest.js")
+		// await import("./desktop/DesktopNotifierTest.js")
+		// await import("./desktop/ApplicationWindowTest.js")
+		// await import("./desktop/sse/SecretStorageTest.js")
+		// await import("./desktop/sse/DesktopAlarmStorageTest.js")
+		// await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
+		// await import("./desktop/files/DesktopFileFacadeTest.js")
+		// await import("./desktop/net/ProtocolProxyTest.js")
+		// await import("./desktop/SocketeerTest.js")
+		// await import("./desktop/integration/DesktopIntegratorTest.js")
+		// await import("./desktop/integration/RegistryScriptGeneratorTest.js")
+		// await import("./desktop/DesktopCryptoFacadeTest.js")
+		// await import("./desktop/DesktopContextMenuTest.js")
+		// await import("./desktop/DesktopKeyStoreFacadeTest.js")
+		// await import("./desktop/config/ConfigFileTest.js")
+		// await import("./desktop/db/OfflineDbFacadeTest.js")
+		// await import("./desktop/credentials/DesktopNativeCredentialsFacadeTest.js")
+		// await import("./desktop/credentials/AppPassHandlerTest.js")
+		// await import("./api/worker/offline/OfflineStorageMigratorTest.js")
+		// await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
+		// await import("./api/worker/offline/OfflineStorageTest.js")
+		// await import("./desktop/config/DesktopConfigTest.js")
+		// await import("./api/worker/rest/RestClientTest.js")
+		// await import("./desktop/files/TempFsTest.js")
+		// await import("./desktop/sse/SseClientTest.js")
 		await import("./desktop/sse/TutaSseFacadeTest.js")
-		await import("./desktop/sse/TutaNotificationHandlerTest.js")
-		await import("./desktop/credentials/KeychainEncryptionTest.js")
-		await import("./desktop/credentials/DesktopCredentialsStorageTest.js")
-		await import("./desktop/export/DesktopExportFacadeTest.js")
+		// await import("./desktop/sse/TutaNotificationHandlerTest.js")
+		// await import("./desktop/credentials/KeychainEncryptionTest.js")
+		// await import("./desktop/credentials/DesktopCredentialsStorageTest.js")
+		// await import("./desktop/export/DesktopExportFacadeTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.

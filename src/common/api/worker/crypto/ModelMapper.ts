@@ -131,11 +131,10 @@ export class ModelMapper {
 
 	async applyServerModel<T extends Entity>(typeRef: TypeRef<T>, instance: T): Promise<ParsedInstance> {
 		const clientTypeModel = await this.clientTypes(typeRef)
-		// fixme: what if the server has a new type?
+		// fixme: what if the server has a new type? -> map: can't happen in this case as we won't create instances of them
 		const serverTypeModel = await this.serverTypes(typeRef)
-
 		const serverInstance: Record<number, unknown> & { _finalIvs: unknown } = {
-			_finalIvs: instance["_finalIvs"],
+			_finalIvs: typeof instance["_finalIvs"] !== 'undefined' ? instance["_finalIvs"] : {},
 		}
 
 		for (const [attrIdStr, serverType] of Object.entries(serverTypeModel.values)) {
@@ -155,9 +154,17 @@ export class ModelMapper {
 
 			assertCompatibleModelTypes(typeRef, attrIdStr, clientType.type, serverType.type)
 			const clientValue = ((instance as any)[clientType.name] as Nullable<ParsedValue>) ?? null
-			if (serverType.cardinality === Cardinality.One && clientValue == null) {
+			if (serverType.cardinality === Cardinality.One && clientValue == null && serverType.name != "_id") {
 				// no value with Cardinality Any. A ZeroOrOne to One transformation needs a default value
-				serverInstance[attrId] = valueToDefault(serverType.type)
+				try {
+					serverInstance[attrId] = valueToDefault(serverType.type)
+				} catch (e) {
+					if (e instanceof ProgrammingError) {
+						throw new ProgrammingError(`Failed to map ${serverTypeModel.name}.${serverType.name}: ${e}`)
+					} else {
+						throw e
+					}
+				}
 			} else {
 				serverInstance[attrId] = clientValue
 			}
@@ -174,15 +181,15 @@ export class ModelMapper {
 					for (const value of values) {
 						clientValues.push(await this.applyServerModel(assocTypeRef, value))
 					}
-					serverInstance[assocId] = assertCorrectAssociationServerCardinality(assocTypeRef, assocIdStr, modelAssoc.cardinality, values)
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(assocTypeRef, assocIdStr, modelAssoc.cardinality, clientValues)
 				} else {
 					const value = (instance as any)[modelAssoc.name] as Entity
 					serverInstance[assocId] = assertCorrectAssociationServerCardinality(
-						assocTypeRef,
-						assocIdStr,
-						modelAssoc.cardinality,
-						await this.applyServerModel(assocTypeRef, value),
-					)
+								assocTypeRef,
+								assocIdStr,
+								modelAssoc.cardinality,
+								value ? await this.applyServerModel(assocTypeRef, value): null,
+						  )
 				}
 			} else {
 				serverInstance[assocId] = assertCorrectAssociationServerCardinality(
@@ -193,7 +200,6 @@ export class ModelMapper {
 				)
 			}
 		}
-
 		return serverInstance as ParsedInstance
 	}
 }
