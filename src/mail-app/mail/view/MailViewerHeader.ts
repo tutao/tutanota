@@ -57,9 +57,7 @@ export interface MailViewerHeaderAttrs {
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	oninit({ attrs }: Vnode<MailViewerHeaderAttrs>) {
         console.log("MailViewerHeader initialized");
-        
-        // Fetch trusted senders when this component loads
-        //attrs.viewModel.fetchSenderStatus();
+        console.log("🌀 MailViewerHeader initialized with trustedSenders:", attrs.viewModel.trustedSenders);
     }
 
 	private detailsExpanded = false
