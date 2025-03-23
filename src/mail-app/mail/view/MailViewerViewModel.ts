@@ -226,32 +226,47 @@ export class MailViewerViewModel {
 	}
 
 	async updateSenderStatus(status: string, interactionType: string): Promise<void> {
-	    const userEmail = this.logins.getUserController().loginUsername;
-	    const emailId = this.mail._id[1];
+		const userEmail = this.logins.getUserController().loginUsername;
+		const emailId = this.mail._id[1];
 
-	    try {
-	        const response = await fetch(`${API_BASE_URL}/update-email-status`, {
-	            method: "POST",
-	            headers: { "Content-Type": "application/json" },
-	            body: JSON.stringify({
-	                user_email: userEmail,
-	                email_id: emailId,
-	                sender_email: this.mail.sender.address,
-	                status: status,
-	                interaction_type: interactionType
-	            }),
-	        });
+		try {
+			const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					user_email: userEmail,
+					email_id: emailId,
+					sender_email: this.mail.sender.address,
+					status: status,
+					interaction_type: interactionType,
+				}),
+			});
 
-	        if (!response.ok) throw new Error("Failed to update sender status.");
+			if (!response.ok) throw new Error("Failed to update sender status.");
 
-	        console.log(`Sender status updated: ${status}`);
-	        this.senderStatus = status;
-	        this.interactionType = interactionType;
+			console.log(`Sender status updated: ${status}`);
+			this.senderStatus = status;
+			this.interactionType = interactionType;
 
-	    } catch (error) {
-	        console.error("Error updating sender status:", error);
-	    }
+			if (status === "confirmed") {
+				this.setSenderConfirmed(true);
+				this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
+
+				// 🔄 Resanitize with images allowed
+				this.sanitizeResult = await this.sanitizeMailBody(this.mail, false);
+
+				// Optional: Rerun phishing check if needed
+				this.checkMailForPhishing(this.mail, this.sanitizeResult.links);
+
+				// ✅ Trigger UI redraw
+				m.redraw();
+			}
+
+		} catch (error) {
+			console.error("Error updating sender status:", error);
+		}
 	}
+
 
 	showPhishingModal(): void {
 		if (this.isSenderConfirmed()) {
