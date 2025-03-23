@@ -26,7 +26,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                         "Warning: This sender is NOT in your trusted list."
                     ),
                     m("p", { style: { fontSize: "16px", textAlign: "center" } }, 
-                        "Are you sure you want to confirm this sender?"
+                        "Do you want to add this sender to your trusted list?"
                     ),
 
                     // "Report as Phishing" button
@@ -51,7 +51,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (response.ok) {
                                     console.log(`Reported phishing attempt: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    modal.remove(this);
+                                    await modal.remove(this);
                                     m.redraw();
                                 } else {
                                     console.error("Failed to report phishing.");
@@ -63,7 +63,6 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                         style: this.getButtonStyle("#D9534F", "#C9302C") // Red
                     }, "Report as Phishing"),
 
-                    // "Confirm Anyway" button
                     // "Confirm Anyway" button
                     m("button.btn", {
                         onclick: async () => {
@@ -104,7 +103,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (statusResponse.ok) {
                                     console.log(`Confirmed sender and updated interaction for: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    modal.remove(this);
+                                    await modal.remove(this);
                                     m.redraw();
                                 } else {
                                     console.error("Failed to update sender status.");
@@ -114,7 +113,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                             }
                         },
                         style: this.getButtonStyle("#5BC0DE", "#31B0D5") // Blue
-                    }, "Confirm Anyway"),
+                    }, "Add as Trusted Sender"),
 
                     // "Cancel" button
                     m("button.btn", {
