@@ -51,8 +51,8 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (response.ok) {
                                     console.log(`Reported phishing attempt: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    await modal.remove(this);
-                                    requestAnimationFrame(() => m.redraw());
+                                    this.backgroundClick();
+                                    m.redraw();
                                 } else {
                                     console.error("Failed to report phishing.");
                                 }
@@ -103,8 +103,8 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (statusResponse.ok) {
                                     console.log(`Confirmed sender and updated interaction for: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    await modal.remove(this);
-                                    requestAnimationFrame(() => m.redraw());
+                                    this.backgroundClick();
+                                    m.redraw();
                                 } else {
                                     console.error("Failed to update sender status.");
                                 }
@@ -117,7 +117,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
 
                     // "Cancel" button
                     m("button.btn", {
-                        onclick: () => modal.remove(this),
+                        onclick: this.backgroundClick(),
                         style: this.getCancelButtonStyle()
                     }, "Cancel")
                 ])

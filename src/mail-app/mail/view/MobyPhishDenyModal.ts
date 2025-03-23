@@ -53,8 +53,8 @@ export class MobyPhishDenyModal implements ModalComponent {
                         if (response.ok) {
                             console.log(`Removed sender: ${senderEmail}`);
                             await this.viewModel.fetchSenderData();
-                            await modal.remove(this); 
-                            requestAnimationFrame(() => m.redraw());
+                            this.backgroundClick();
+                            m.redraw();
                         } else {
                             console.error(`Failed to remove sender: ${senderEmail}`);
                         }
@@ -66,7 +66,7 @@ export class MobyPhishDenyModal implements ModalComponent {
             }, "Remove from Trusted Senders"),
 
             m("button.btn", {
-                onclick: () => modal.remove(this),
+                onclick: this.backgroundClick(),
                 style: this.getCancelButtonStyle()
             }, "Cancel")
         ];
@@ -95,8 +95,8 @@ export class MobyPhishDenyModal implements ModalComponent {
                             console.log(`Added sender: ${senderEmail}`);
                             await this.viewModel.updateSenderStatus("added_to_trusted", "interacted");
                             await this.viewModel.fetchSenderData();
-                            await modal.remove(this);
-                            requestAnimationFrame(() => m.redraw());
+                            this.backgroundClick();
+                            m.redraw();
                         } else {
                             console.error(`Failed to add sender: ${senderEmail}`);
                         }
@@ -112,8 +112,8 @@ export class MobyPhishDenyModal implements ModalComponent {
                     const senderEmail = this.viewModel.getSender().address;
                     await this.viewModel.updateSenderStatus("denied", "interacted");
                     console.log(`Sender denied: ${senderEmail}`);
-                    await modal.remove(this);
-                    requestAnimationFrame(() => m.redraw());
+                    this.backgroundClick();
+                    m.redraw();
                 },
                 style: this.getCancelButtonStyle()
             }, "Continue without adding")
