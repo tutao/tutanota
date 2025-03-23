@@ -776,6 +776,13 @@ export class MailViewerViewModel {
 				: this.sanitizeResult.blockedExternalContent > 0
 				? ContentBlockingStatus.Block
 				: ContentBlockingStatus.NoExternalContent
+				
+		// Ensure link toggling runs after content status is determined
+		this.toggleLinks(
+			this.contentBlockingStatus === ContentBlockingStatus.Block ||
+			this.contentBlockingStatus === ContentBlockingStatus.AlwaysBlock
+		);
+
 		m.redraw()
 		this.renderedMail = this.mail
 		return this.sanitizeResult.inlineImageCids
