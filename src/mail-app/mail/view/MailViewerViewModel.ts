@@ -1264,15 +1264,15 @@ export class MailViewerViewModel {
 		this.loadAll(Promise.resolve(), { notify: true })
 	}
 
-	private toggleLinks(block: boolean): void {
-		const emailBody = this.shadowDomMailContent; // this is where links actually live
+	public toggleLinks(block: boolean): void {
+		const emailBody = this.getSanitizedMailBody();
 		if (!emailBody) {
 			console.warn("No shadow DOM mail content available.");
 			return;
 		}
 
 		const links = emailBody.querySelectorAll("a");
-		links.forEach((link) => {
+		links.forEach((link: HTMLAnchorElement) => {
 			if (block) {
 				console.log("Disabling link:", link.href);
 
