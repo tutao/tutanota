@@ -1265,49 +1265,42 @@ export class MailViewerViewModel {
 	}
 
 	private toggleLinks(block: boolean): void {
-		const emailBody = this.getSanitizedMailBody();
-		if (!emailBody) return;
+		const emailBody = this.shadowDomMailContent; // this is where links actually live
+		if (!emailBody) {
+			console.warn("No shadow DOM mail content available.");
+			return;
+		}
 
 		const links = emailBody.querySelectorAll("a");
 		links.forEach((link) => {
-			const anchor = link as HTMLAnchorElement;
-
 			if (block) {
-				console.log("Disabling link:", anchor.href);
+				console.log("Disabling link:", link.href);
 
-				anchor.dataset.originalHref = anchor.getAttribute("href") || "";
-				anchor.setAttribute("href", "#");
-				anchor.style.pointerEvents = "auto";
-				anchor.style.color = "gray";
-				anchor.style.textDecoration = "line-through";
+				link.dataset.originalHref = link.getAttribute("href") || "";
+				link.setAttribute("href", "#");
+				link.style.pointerEvents = "auto";
+				link.style.color = "gray";
+				link.style.textDecoration = "line-through";
 
-				// Remove any existing click handlers
-				const clone = anchor.cloneNode(true);
-				anchor.parentNode?.replaceChild(clone, anchor);
-
-				// Add click listener to show modal
-				clone.addEventListener("click", (e) => {
+				link.onclick = (e: MouseEvent) => {
 					e.preventDefault();
-					e.stopPropagation();
-
-					console.log("⚠️ Link clicked on unconfirmed sender");
-
 					if (!this.isSenderConfirmed()) {
 						this.showPhishingModal();
 					}
-				}, { once: true }); // ensures only one handler at a time
+				};
 			} else {
-				console.log("Enabling link:", anchor.dataset.originalHref);
-				const originalHref = anchor.dataset.originalHref;
+				const originalHref = link.dataset.originalHref;
+				console.log("Enabling link:", originalHref);
 				if (originalHref) {
-					anchor.setAttribute("href", originalHref);
-					anchor.style.pointerEvents = "auto";
-					anchor.style.color = "";
-					anchor.style.textDecoration = "";
+					link.setAttribute("href", originalHref);
+					link.style.pointerEvents = "auto";
+					link.style.color = "";
+					link.style.textDecoration = "";
 				}
 			}
 		});
 	}
+
 
 
 }

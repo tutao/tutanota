@@ -290,21 +290,30 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			// key to avoid mithril reusing the dom element when it should switch the rendering the loading spinner
 			key: "mailBody",
 			oncreate: (vnode) => {
-				const dom = vnode.dom as HTMLElement
-				this.setDomBody(dom)
-				this.updateLineHeight(dom)
-				this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
-				if (client.isMobileDevice()) {
-					this.resizeObserverViewport?.disconnect()
-					this.resizeObserverViewport = createResizeObserver(() => {
-						if (this.pinchZoomable) {
-							// recreate if the orientation of the device changes -> size of the viewport / mail-body changes
-							this.createPinchZoom(this.pinchZoomable.getZoomable(), vnode.dom as HTMLElement)
-						}
-					})
-					this.resizeObserverViewport.observe(vnode.dom as HTMLElement)
-				}
+			    const dom = vnode.dom as HTMLElement;
+			    this.setDomBody(dom);
+			    this.updateLineHeight(dom);
+
+			    //Render the mail into the Shadow DOM
+			    this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement);
+
+			    //Toggle links now that the mail is rendered
+			    const shouldBlockLinks =
+			        this.viewModel.getContentBlockingStatus() === ContentBlockingStatus.Block ||
+			        this.viewModel.getContentBlockingStatus() === ContentBlockingStatus.AlwaysBlock;
+			    this.viewModel.toggleLinks(shouldBlockLinks);
+
+			    if (client.isMobileDevice()) {
+			        this.resizeObserverViewport?.disconnect();
+			        this.resizeObserverViewport = createResizeObserver(() => {
+			            if (this.pinchZoomable) {
+			                this.createPinchZoom(this.pinchZoomable.getZoomable(), vnode.dom as HTMLElement);
+			            }
+			        });
+			        this.resizeObserverViewport.observe(vnode.dom as HTMLElement);
+			    }
 			},
+
 			onupdate: (vnode) => {
 				const dom = vnode.dom as HTMLElement
 				this.setDomBody(dom)
