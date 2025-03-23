@@ -7,7 +7,8 @@ import { API_BASE_URL } from "./MailViewerViewModel";
 
 export class MobyPhishDenyModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
-    private step: number = 1; // which step of the modal is being displayed
+    private step: number = 1;
+    private modalHandle?: ModalComponent; 
 
     constructor(viewModel: MailViewerViewModel) {
         this.viewModel = viewModel;
@@ -53,9 +54,11 @@ export class MobyPhishDenyModal implements ModalComponent {
                         if (response.ok) {
                             console.log(`Removed sender: ${senderEmail}`);
                             await this.viewModel.fetchSenderData();
-                            console.log("Removing modal...");
-await modal.remove(this);
-console.log("Modal removed"); 
+                            if (this.modalHandle) {
+                                modal.remove(this.modalHandle);
+                            } else {
+                                console.warn("No modal handle set");
+                            }
                             m.redraw();
                         } else {
                             console.error(`Failed to remove sender: ${senderEmail}`);
@@ -68,7 +71,13 @@ console.log("Modal removed");
             }, "Remove from Trusted Senders"),
 
             m("button.btn", {
-                onclick: () => modal.remove(this),
+                onclick: () => {
+                    if (this.modalHandle) {
+                        modal.remove(this.modalHandle);
+                    } else {
+                        console.warn("No modal handle set");
+                    }
+                },
                 style: this.getCancelButtonStyle()
             }, "Cancel")
         ];
@@ -97,9 +106,11 @@ console.log("Modal removed");
                             console.log(`Added sender: ${senderEmail}`);
                             await this.viewModel.updateSenderStatus("added_to_trusted", "interacted");
                             await this.viewModel.fetchSenderData();
-                            console.log("Removing modal...");
-await modal.remove(this);
-console.log("Modal removed");
+                            if (this.modalHandle) {
+                                modal.remove(this.modalHandle);
+                            } else {
+                                console.warn("No modal handle set");
+                            }
                             m.redraw();
                         } else {
                             console.error(`Failed to add sender: ${senderEmail}`);
@@ -116,9 +127,11 @@ console.log("Modal removed");
                     const senderEmail = this.viewModel.getSender().address;
                     await this.viewModel.updateSenderStatus("denied", "interacted");
                     console.log(`Sender denied: ${senderEmail}`);
-                    console.log("Removing modal...");
-await modal.remove(this);
-console.log("Modal removed");
+                    if (this.modalHandle) {
+                        modal.remove(this.modalHandle);
+                    } else {
+                        console.warn("No modal handle set");
+                    }
                     m.redraw();
                 },
                 style: this.getCancelButtonStyle()
@@ -193,11 +206,19 @@ console.log("Modal removed");
 
     backgroundClick(e: MouseEvent): void {
         console.log("Background clicked, closing modal...");
-        modal.remove(this);
+        if (this.modalHandle) {
+            modal.remove(this.modalHandle);
+        } else {
+            console.warn("No modal handle set");
+        }
     }
 
     popState(e: Event): boolean {
-        modal.remove(this);
+        if (this.modalHandle) {
+            modal.remove(this.modalHandle);
+        } else {
+            console.warn("No modal handle set");
+        }
         return false;
     }
 
@@ -210,11 +231,20 @@ console.log("Modal removed");
             {
                 key: Keys.ESC, 
                 exec: () => {
-                    modal.remove(this);
+                    if (this.modalHandle) {
+                        modal.remove(this.modalHandle);
+                    } else {
+                        console.warn("No modal handle set");
+                    }
                     return true;
                 },
                 help: "close_alt",
             }
         ];
     }
+
+    setModalHandle(handle: ModalComponent) {
+        this.modalHandle = handle;
+    }
+
 }

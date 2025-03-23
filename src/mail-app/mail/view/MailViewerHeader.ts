@@ -797,8 +797,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		        title: "mobyPhish_confirm",
 		    	label: "emptyString_msg",
 				icon: m(Icon, { icon: Icons.Checkmark }),
-		        click: (event: MouseEvent) => {		        	
-    	            modal.display(new MobyPhishReportPhishingModal(viewModel));
+		        click: () => {
+		        	const modalInstance = new MobyPhishReportPhishingModal(viewModel);
+		        	const handle = modal.display(modalInstance);
+		        	modalInstance.setModalHandle(handle);
 		        },
 			    style: {
 			        backgroundColor: "green",
@@ -813,9 +815,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     	        title: "mobyPhish_add",
         	 	label: "emptyString_msg",
     	        icon: m(Icon, { icon: Icons.Add}),
-    	        click: (event: MouseEvent) => {
-    	        	console.log("User to add sender:", senderEmail);
-    	            modal.display(new MobyPhishDenyModal(viewModel));
+    	        click: () => {
+    	        	const modalInstance = new MobyPhishDenyModal(viewModel);
+    	        	const handle = modal.display(modalInstance);
+    	        	modalInstance.setModalHandle(handle);
     	        },
     		    style: {
     		        backgroundColor: "red",

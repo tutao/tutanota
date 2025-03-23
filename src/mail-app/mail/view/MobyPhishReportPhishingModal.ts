@@ -7,6 +7,7 @@ import { API_BASE_URL } from "./MailViewerViewModel";
 
 export class MobyPhishReportPhishingModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
+    private modalHandle?: ModalComponent;
 
     constructor(viewModel: MailViewerViewModel) {
         this.viewModel = viewModel;
@@ -51,9 +52,11 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (response.ok) {
                                     console.log(`Reported phishing attempt: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    console.log("Removing modal...");
-await modal.remove(this);
-console.log("Modal removed");
+                                    if (this.modalHandle) {
+                                        modal.remove(this.modalHandle);
+                                    } else {
+                                        console.warn("No modal handle set");
+                                    }
                                     m.redraw();
                                 } else {
                                     console.error("Failed to report phishing.");
@@ -105,9 +108,11 @@ console.log("Modal removed");
                                 if (statusResponse.ok) {
                                     console.log(`Confirmed sender and updated interaction for: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    console.log("Removing modal...");
-await modal.remove(this);
-console.log("Modal removed");
+                                    if (this.modalHandle) {
+                                        modal.remove(this.modalHandle);
+                                    } else {
+                                        console.warn("No modal handle set");
+                                    }
                                     m.redraw();
                                 } else {
                                     console.error("Failed to update sender status.");
@@ -121,7 +126,13 @@ console.log("Modal removed");
 
                     // "Cancel" button
                     m("button.btn", {
-                        onclick: () => modal.remove(this),
+                        onclick: () => {
+                            if (this.modalHandle) {
+                                modal.remove(this.modalHandle);
+                            } else {
+                                console.warn("No modal handle set");
+                            }
+                        },
                         style: this.getCancelButtonStyle()
                     }, "Cancel")
                 ])
@@ -196,11 +207,20 @@ console.log("Modal removed");
 
     backgroundClick(e: MouseEvent): void {
         console.log("Background clicked, closing modal...");
-        modal.remove(this);
+        if (this.modalHandle) {
+            modal.remove(this.modalHandle);
+        } else {
+            console.warn("No modal handle set");
+        }
+
     }
 
     popState(e: Event): boolean {
-        modal.remove(this);
+        if (this.modalHandle) {
+            modal.remove(this.modalHandle);
+        } else {
+            console.warn("No modal handle set");
+        }
         return false;
     }
 
@@ -213,11 +233,20 @@ console.log("Modal removed");
             {
                 key: Keys.ESC, 
                 exec: () => {
-                    modal.remove(this);
+                    if (this.modalHandle) {
+                        modal.remove(this.modalHandle);
+                    } else {
+                        console.warn("No modal handle set");
+                    }
                     return true;
                 },
                 help: "close_alt",
             }
         ];
     }
+
+    setModalHandle(handle: ModalComponent) {
+        this.modalHandle = handle;
+    }
+
 }
