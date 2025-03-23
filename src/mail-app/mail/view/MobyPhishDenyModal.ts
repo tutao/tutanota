@@ -39,7 +39,7 @@ export class MobyPhishDenyModal implements ModalComponent {
             }, "This is Someone Else"),
 
             m("button.btn", {
-                onclick: async () => {
+                onclick: async (e: MouseEvent) => {
                     const senderEmail = this.viewModel.getSender().address;
                     const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
@@ -53,7 +53,7 @@ export class MobyPhishDenyModal implements ModalComponent {
                         if (response.ok) {
                             console.log(`Removed sender: ${senderEmail}`);
                             await this.viewModel.fetchSenderData();
-                            this.backgroundClick();
+                            this.backgroundClick(e);
                             m.redraw();
                         } else {
                             console.error(`Failed to remove sender: ${senderEmail}`);
@@ -66,7 +66,7 @@ export class MobyPhishDenyModal implements ModalComponent {
             }, "Remove from Trusted Senders"),
 
             m("button.btn", {
-                onclick: this.backgroundClick(),
+                onclick: (e: MouseEvent) => this.backgroundClick(e),
                 style: this.getCancelButtonStyle()
             }, "Cancel")
         ];
@@ -80,7 +80,7 @@ export class MobyPhishDenyModal implements ModalComponent {
             ),
 
             m("button.btn", {
-                onclick: async () => {
+                onclick: async (e: MouseEvent) => {
                     const senderEmail = this.viewModel.getSender().address;
                     const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
@@ -95,7 +95,7 @@ export class MobyPhishDenyModal implements ModalComponent {
                             console.log(`Added sender: ${senderEmail}`);
                             await this.viewModel.updateSenderStatus("added_to_trusted", "interacted");
                             await this.viewModel.fetchSenderData();
-                            this.backgroundClick();
+                            this.backgroundClick(e);
                             m.redraw();
                         } else {
                             console.error(`Failed to add sender: ${senderEmail}`);
@@ -108,14 +108,14 @@ export class MobyPhishDenyModal implements ModalComponent {
             }, "Add"),
 
             m("button.btn", {
-                onclick: async () => {
+                onclick: async (e: MouseEvent) => {
                     const senderEmail = this.viewModel.getSender().address;
                     await this.viewModel.updateSenderStatus("denied", "interacted");
                     console.log(`Sender denied: ${senderEmail}`);
                     this.backgroundClick();
                     m.redraw();
                 },
-                style: this.getCancelButtonStyle()
+                style: this.getCancelButtonStyle(e)
             }, "Continue without adding")
         ];
     }
