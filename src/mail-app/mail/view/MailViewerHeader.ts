@@ -812,22 +812,47 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		    };
 
         	const addButton: BannerButtonAttrs = {
-    	        title: "mobyPhish_add",
-        	 	label: "emptyString_msg",
-    	        icon: m(Icon, { icon: Icons.Add}),
-    	        click: () => {
-    	        	const modalInstance = new MobyPhishDenyModal(viewModel);
-    	        	const handle = modal.display(modalInstance);
-    	        	modalInstance.setModalHandle(handle);
-    	        },
-    		    style: {
-    		        backgroundColor: "red",
-    		        color: "white",
-    		        fontWeight: "bold",
-    		        borderRadius: "8px",
-    		        padding: "8px 12px",
-    		    }
-    	    };	
+				title: "mobyPhish_add",
+				label: "emptyString_msg",
+				icon: m(Icon, { icon: Icons.Add }),
+				click: async () => {
+					const senderEmail = viewModel.getSender().address;
+					const userEmail = viewModel.logins.getUserController().loginUsername;
+			
+					try {
+						const response = await fetch(`${API_BASE_URL}/add-trusted`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								user_email: userEmail,
+								trusted_email: senderEmail
+							}),
+						});
+			
+						if (!response.ok) {
+							console.error("Failed to add sender to trusted list.");
+							return;
+						}
+			
+						console.log(`Sender added to trusted list: ${senderEmail}`);
+			
+						// Update email sender status
+						await viewModel.updateSenderStatus("confirmed", "interacted");
+			
+						m.redraw();
+			
+					} catch (error) {
+						console.error("Error adding sender:", error);
+					}
+				},
+				style: {
+					backgroundColor: "red",
+					color: "white",
+					fontWeight: "bold",
+					borderRadius: "8px",
+					padding: "8px 12px",
+				}
+			};			
 
     	    buttons.push(confirmButton, addButton);
 	    }  
