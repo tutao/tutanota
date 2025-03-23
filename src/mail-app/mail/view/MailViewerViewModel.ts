@@ -227,7 +227,8 @@ export class MailViewerViewModel {
 
 	async updateSenderStatus(status: string, interactionType: string): Promise<void> {
 		const userEmail = this.logins.getUserController().loginUsername;
-		const emailId = this.mail._id[1];
+		const emailId = this.getSender().address;
+
 
 		try {
 			const response = await fetch(`${API_BASE_URL}/update-email-status`, {
@@ -251,16 +252,11 @@ export class MailViewerViewModel {
 			if (status === "confirmed") {
 				this.setSenderConfirmed(true);
 
-				// ✅ Reset all relevant state to force re-sanitization
 				this.contentBlockingStatus = null;
 				this.sanitizeResult = null;
 				this.renderedMail = null;
-				this.mailExpanded = false;
 
-				// 🧼 Re-expand mail to trigger re-sanitization with trusted status
 				await this.expandMail(Promise.resolve());
-
-				// 🔁 Force redraw to show changes immediately
 				m.redraw();
 			}
 
@@ -268,6 +264,7 @@ export class MailViewerViewModel {
 			console.error("Error updating sender status:", error);
 		}
 	}
+
 
 
 
