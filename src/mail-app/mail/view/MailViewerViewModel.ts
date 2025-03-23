@@ -253,12 +253,11 @@ export class MailViewerViewModel {
 				this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
 				// Invalidate cached sanitize result and force re-render
-				this.sanitizeResult = null;
+				this.sanitizeResult = null; // force refresh
 				this.renderedMail = null;
 
-				console.log("Reloading mail with updated trust status after clearing cached data...");
 				await this.loadAll(Promise.resolve(), { notify: true });
-
+				this.expandMail(Promise.resolve()); 
 				m.redraw();
 			}
 
