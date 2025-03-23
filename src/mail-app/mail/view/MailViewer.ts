@@ -427,6 +427,28 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
 		this.shadowDomRoot.appendChild(wrapNode)
 
+		// Override link clicks inside Shadow DOM to prevent navigation if sender is not confirmed
+		wrapNode.querySelectorAll("a").forEach((link) => {
+		    const originalHref = link.getAttribute("href") || "";
+		    link.setAttribute("data-original-href", originalHref);
+		    link.setAttribute("href", "#");
+		    link.style.pointerEvents = "auto";
+		    link.style.color = "gray";
+		    link.style.textDecoration = "line-through";
+
+		    link.addEventListener("click", (e) => {
+		        e.preventDefault(); // ⛔ stop default navigation
+		        const isConfirmed = this.viewModel?.isSenderConfirmed?.() ?? false;
+		        if (!isConfirmed) {
+		            this.viewModel?.showPhishingModal?.();
+		        } else {
+		            // allow navigation manually if confirmed (optional)
+		            window.open(originalHref, "_blank");
+		        }
+		    });
+		});
+
+
 		if (client.isMobileDevice()) {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
