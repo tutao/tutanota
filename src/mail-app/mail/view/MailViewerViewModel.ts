@@ -252,11 +252,16 @@ export class MailViewerViewModel {
 				this.setSenderConfirmed(true);
 				this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
-				console.log("🔄 Reloading mail with updated trust status...");
-				await this.loadAll(Promise.resolve(), { notify: true }); // ✅ This is the key line
+				// Invalidate cached sanitize result and force re-render
+				this.sanitizeResult = null;
+				this.renderedMail = null;
+
+				console.log("Reloading mail with updated trust status after clearing cached data...");
+				await this.loadAll(Promise.resolve(), { notify: true });
 
 				m.redraw();
 			}
+
 
 		} catch (error) {
 			console.error("Error updating sender status:", error);
