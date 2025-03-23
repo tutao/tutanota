@@ -109,7 +109,7 @@ class Modal implements Component {
 		}
 	}
 
-	display(component: ModalComponent, needsBg: boolean = true) {
+	display(component: ModalComponent, needsBg: boolean = true): ModalComponent {
 		// move the handler to the top of the handler stack
 		windowFacade.removeHistoryEventListener(this.historyEventListener)
 		windowFacade.addHistoryEventListener(this.historyEventListener)
@@ -131,6 +131,8 @@ class Modal implements Component {
 		})
 		m.redraw()
 		keyManager.registerModalShortcuts(component.shortcuts())
+
+		return component;
 	}
 
 	/**
