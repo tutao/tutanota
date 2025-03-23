@@ -75,7 +75,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                             const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
                             try {
-                                // Add to trusted senders
+                                // Step 1 – Add to trusted senders
                                 const addResponse = await fetch(`${API_BASE_URL}/add-trusted`, {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
@@ -92,35 +92,22 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
 
                                 console.log(`Sender added to trusted list: ${senderEmail}`);
 
-                                // Update email sender status
-                                const statusResponse = await fetch(`${API_BASE_URL}/update-email-status`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        user_email: userEmail,
-                                        email_id: this.viewModel.mail._id[1],
-                                        sender_email: senderEmail,
-                                        status: "confirmed",
-                                        interaction_type: "interacted"
-                                    }),
-                                });
+                                // Step 2 – Let viewModel handle status update, DOM re-render, etc.
+                                await this.viewModel.updateSenderStatus("confirmed", "interacted");
 
-                                if (statusResponse.ok) {
-                                    console.log(`Confirmed sender and updated interaction for: ${senderEmail}`);
-                                    await this.viewModel.fetchSenderData();
-                                    if (this.modalHandle) {
-                                        modal.remove(this.modalHandle);
-                                    } else {
-                                        console.warn("No modal handle set");
-                                    }
-                                    m.redraw();
+                                // Step 3 – Close modal
+                                if (this.modalHandle) {
+                                    modal.remove(this.modalHandle);
                                 } else {
-                                    console.error("Failed to update sender status.");
+                                    console.warn("No modal handle set");
                                 }
+
+                                m.redraw();
                             } catch (error) {
                                 console.error("Error confirming and trusting sender:", error);
                             }
-                        },
+                        }
+,
                         style: this.getButtonStyle("#5BC0DE", "#31B0D5") // Blue
                     }, "Add as Trusted Sender"),
 
