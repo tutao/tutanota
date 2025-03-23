@@ -729,45 +729,48 @@ export class MailViewerViewModel {
 	private async loadAndProcessAdditionalMailInfo(mail: Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
-		let isDraft = mail.state === MailState.DRAFT
+		let isDraft = mail.state === MailState.DRAFT;
 		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraft && this.sanitizeResult != null) {
-			return this.sanitizeResult.inlineImageCids
+			return this.sanitizeResult.inlineImageCids;
 		}
 
 		try {
-			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
+			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail);
 		} catch (e) {
 			if (e instanceof NotFoundError) {
-				console.log("could load mail body as it has been moved/deleted already", e)
-				this.errorOccurred = true
-				return []
+				console.log("could not load mail body as it has been moved/deleted already", e);
+				this.errorOccurred = true;
+				return [];
 			}
-
 			if (e instanceof NotAuthorizedError) {
-				console.log("could load mail body as the permission is missing", e)
-				this.errorOccurred = true
-				return []
+				console.log("could not load mail body as the permission is missing", e);
+				this.errorOccurred = true;
+				return [];
 			}
-
-			throw e
+			throw e;
 		}
 
 		const externalImageRule = await this.configFacade.getExternalImageRule(mail.sender.address).catch((e) => {
-			console.log("Error getting external image rule:", e)
-			return ExternalImageRule.None
-		})
+			console.log("Error getting external image rule:", e);
+			return ExternalImageRule.None;
+		});
 		const isAllowedAndAuthenticatedExternalSender =
-			externalImageRule === ExternalImageRule.Allow && this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED)
-		// We should not try to sanitize body while we still animate because it's a heavy operation.
-		await delayBodyRenderingUntil
-		this.renderIsDelayed = false
+			externalImageRule === ExternalImageRule.Allow &&
+			this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED);
 
-		this.sanitizeResult = await this.sanitizeMailBody(mail, !isAllowedAndAuthenticatedExternalSender)
+		// Wait to render heavy mail content
+		await delayBodyRenderingUntil;
+		this.renderIsDelayed = false;
 
+		// Sanitize the mail body (strips unsafe content, identifies links, etc.)
+		this.sanitizeResult = await this.sanitizeMailBody(mail, !isAllowedAndAuthenticatedExternalSender);
+
+		// Run phishing check if it's not a draft
 		if (!isDraft) {
-			this.checkMailForPhishing(mail, this.sanitizeResult.links)
+			this.checkMailForPhishing(mail, this.sanitizeResult.links);
 		}
 
+		// Default content blocking logic
 		this.contentBlockingStatus =
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
@@ -775,17 +778,23 @@ export class MailViewerViewModel {
 				? ContentBlockingStatus.AlwaysShow
 				: this.sanitizeResult.blockedExternalContent > 0
 				? ContentBlockingStatus.Block
-				: ContentBlockingStatus.NoExternalContent
-				
-		// Ensure link toggling runs after content status is determined
+				: ContentBlockingStatus.NoExternalContent;
+
+		// Force block if sender is not trusted or confirmed
+		if (!this.isSenderTrusted() && !this.isSenderConfirmed()) {
+			console.log("🚫 Sender not trusted or confirmed — forcing contentBlockingStatus to Block");
+			this.contentBlockingStatus = ContentBlockingStatus.Block;
+		}
+
+		// Update links based on final status
 		this.toggleLinks(
 			this.contentBlockingStatus === ContentBlockingStatus.Block ||
 			this.contentBlockingStatus === ContentBlockingStatus.AlwaysBlock
 		);
 
-		m.redraw()
-		this.renderedMail = this.mail
-		return this.sanitizeResult.inlineImageCids
+		m.redraw();
+		this.renderedMail = this.mail;
+		return this.sanitizeResult.inlineImageCids;
 	}
 
 	private async loadAttachments(mail: Mail, inlineCids: string[]): Promise<void> {
