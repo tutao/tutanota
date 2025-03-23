@@ -182,7 +182,7 @@ export class MailViewerViewModel {
 
 	        // Store trusted senders list
 	        this.trustedSenders(trustedData.trusted_senders);
-	        console.log("✅ updated trustedSenders:", this.trustedSenders());
+	        console.log("updated trustedSenders:", this.trustedSenders());
 
 	        // Store sender status and interaction type
 	        this.senderStatus = statusData.status; // confirmed, denied, etc.
@@ -201,13 +201,13 @@ export class MailViewerViewModel {
 
 	        if (isTrusted && isConfirmed) {
 	            this.setSenderConfirmed(true);
-	            console.log("✅ Sender is trusted AND email is confirmed → senderConfirmed set to true");
+	            console.log("Sender is trusted AND email is confirmed → senderConfirmed set to true");
 	        }
 
 	        m.redraw(); // Update UI
 
 	    } catch (error) {
-	        console.error("❌ Error fetching sender data:", error);
+	        console.error("Error fetching sender data:", error);
 	    }
 	}
 
@@ -791,8 +791,13 @@ export class MailViewerViewModel {
 
 		// Force block if sender is not trusted or confirmed
 		if (!this.isSenderTrusted() && !this.isSenderConfirmed()) {
-			console.log("🚫 Sender not trusted or confirmed — forcing contentBlockingStatus to Block");
+			console.log("Sender not trusted or confirmed — forcing contentBlockingStatus to Block");
 			this.contentBlockingStatus = ContentBlockingStatus.Block;
+		}
+		// Automatically allow content if sender is trusted and confirmed
+		if (this.isSenderTrusted() && this.isSenderConfirmed()) {
+			console.log("Sender is trusted and confirmed — allowing external content");
+			this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 		}
 
 		m.redraw();
