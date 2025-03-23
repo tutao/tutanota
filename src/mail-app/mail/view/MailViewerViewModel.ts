@@ -199,7 +199,7 @@ export class MailViewerViewModel {
 
 	isSenderTrusted(): boolean {
 	    const senderEmail = this.getSender().address;
-	    return this.trustedSenders?.includes(senderEmail) ?? false;
+	    return this.trustedSenders()?.includes(senderEmail) ?? false;
 	}
 
 	public setSenderConfirmed(confirmed: boolean): void {
