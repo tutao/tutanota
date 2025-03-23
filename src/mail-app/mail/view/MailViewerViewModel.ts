@@ -1266,15 +1266,13 @@ export class MailViewerViewModel {
 
 	public toggleLinks(block: boolean): void {
 		const emailBody = this.getSanitizedMailBody();
-		if (!emailBody) {
-			console.warn("No shadow DOM mail content available.");
-			return;
-		}
+		if (!emailBody) return;
 
 		const links = emailBody.querySelectorAll("a");
+
 		links.forEach((link: HTMLAnchorElement) => {
-			if (block) {
-				console.log("Disabling link:", link.href);
+			if (block && !this.isSenderConfirmed() && !this.isSenderTrusted()) {
+				console.log("🔒 Disabling link:", link.href);
 
 				link.dataset.originalHref = link.getAttribute("href") || "";
 				link.setAttribute("href", "#");
@@ -1283,23 +1281,25 @@ export class MailViewerViewModel {
 				link.style.textDecoration = "line-through";
 
 				link.onclick = (e: MouseEvent) => {
-					e.preventDefault();
-					if (!this.isSenderConfirmed()) {
-						this.showPhishingModal();
-					}
+					e.preventDefault(); // Block real navigation
+					this.showPhishingModal(); // Show phishing warning
 				};
+
 			} else {
+				// Restore original link
 				const originalHref = link.dataset.originalHref;
-				console.log("Enabling link:", originalHref);
 				if (originalHref) {
 					link.setAttribute("href", originalHref);
-					link.style.pointerEvents = "auto";
-					link.style.color = "";
-					link.style.textDecoration = "";
 				}
+				link.style.pointerEvents = "auto";
+				link.style.color = "";
+				link.style.textDecoration = "";
+
+				link.onclick = null; // Allow normal navigation
 			}
 		});
 	}
+
 
 
 
