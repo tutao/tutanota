@@ -182,23 +182,35 @@ export class MailViewerViewModel {
 
 	        // Store trusted senders list
 	        this.trustedSenders(trustedData.trusted_senders);
-	        console.log("updated trustedSenders:", this.trustedSenders());
-	        // Store sender status for this specific email
-	        this.senderStatus = statusData.status; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
-	        this.interactionType = statusData.interaction_type; // interacted, no_interaction
+	        console.log("✅ updated trustedSenders:", this.trustedSenders());
 
-	        console.log(`Sender Data Fetched:`, {
-	            trustedSenders: this.trustedSenders,
+	        // Store sender status and interaction type
+	        this.senderStatus = statusData.status; // confirmed, denied, etc.
+	        this.interactionType = statusData.interaction_type;
+
+	        console.log("📬 Sender Data Fetched:", {
+	            trustedSenders: this.trustedSenders(),
 	            senderStatus: this.senderStatus,
 	            interactionType: this.interactionType
 	        });
 
+	        // 🔐 Logic to auto-confirm sender
+	        const senderEmail = this.mail.sender.address;
+	        const isTrusted = this.trustedSenders().includes(senderEmail);
+	        const isConfirmed = this.senderStatus === "confirmed";
+
+	        if (isTrusted && isConfirmed) {
+	            this.setSenderConfirmed(true);
+	            console.log("✅ Sender is trusted AND email is confirmed → senderConfirmed set to true");
+	        }
+
 	        m.redraw(); // Update UI
 
 	    } catch (error) {
-	        console.error("Error fetching sender data:", error);
+	        console.error("❌ Error fetching sender data:", error);
 	    }
 	}
+
 
 	isSenderTrusted(): boolean {
 	    const senderEmail = this.getSender().address;
