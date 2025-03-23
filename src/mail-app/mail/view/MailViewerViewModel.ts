@@ -226,44 +226,50 @@ export class MailViewerViewModel {
 	}
 
 	async updateSenderStatus(status: string, interactionType: string): Promise<void> {
-		const userEmail = this.logins.getUserController().loginUsername;
-		const emailId = this.getSender().address;
+	    const userEmail = this.logins.getUserController().loginUsername;
+	    const emailId = this.mail._id[1];
 
+	    try {
+	        const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+	            method: "POST",
+	            headers: { "Content-Type": "application/json" },
+	            body: JSON.stringify({
+	                user_email: userEmail,
+	                email_id: emailId,
+	                sender_email: this.mail.sender.address,
+	                status: status,
+	                interaction_type: interactionType,
+	            }),
+	        });
 
-		try {
-			const response = await fetch(`${API_BASE_URL}/update-email-status`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					user_email: userEmail,
-					email_id: emailId,
-					sender_email: this.mail.sender.address,
-					status: status,
-					interaction_type: interactionType,
-				}),
-			});
+	        if (!response.ok) throw new Error("Failed to update sender status.");
 
-			if (!response.ok) throw new Error("Failed to update sender status.");
+	        console.log(`Sender status updated: ${status}`);
+	        this.senderStatus = status;
+	        this.interactionType = interactionType;
 
-			console.log(`Sender status updated: ${status}`);
-			this.senderStatus = status;
-			this.interactionType = interactionType;
+	        if (status === "confirmed") {
+	            this.setSenderConfirmed(true);
+	            this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
-			if (status === "confirmed") {
-				this.setSenderConfirmed(true);
+	            // ✅ Refresh trusted senders list
+	            await this.fetchSenderData();
 
-				this.contentBlockingStatus = null;
-				this.sanitizeResult = null;
-				this.renderedMail = null;
+	            // ✅ Invalidate DOM + refresh view
+	            this.sanitizeResult = null;
+	            this.renderedMail = null;
 
-				await this.expandMail(Promise.resolve());
-				m.redraw();
-			}
+	            await this.loadAll(Promise.resolve(), { notify: true });
+	            this.expandMail(Promise.resolve());
 
-		} catch (error) {
-			console.error("Error updating sender status:", error);
-		}
+	            m.redraw();
+	        }
+
+	    } catch (error) {
+	        console.error("Error updating sender status:", error);
+	    }
 	}
+
 
 
 
