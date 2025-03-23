@@ -250,17 +250,19 @@ export class MailViewerViewModel {
 
 			if (status === "confirmed") {
 				this.setSenderConfirmed(true);
-				this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
-				// Invalidate cached sanitize result and force re-render
-				this.sanitizeResult = null; // force refresh
+				// ✅ Reset all relevant state to force re-sanitization
+				this.contentBlockingStatus = null;
+				this.sanitizeResult = null;
 				this.renderedMail = null;
+				this.mailExpanded = false;
 
-				await this.loadAll(Promise.resolve(), { notify: true });
-				this.expandMail(Promise.resolve()); 
+				// 🧼 Re-expand mail to trigger re-sanitization with trusted status
+				await this.expandMail(Promise.resolve());
+
+				// 🔁 Force redraw to show changes immediately
 				m.redraw();
 			}
-
 
 		} catch (error) {
 			console.error("Error updating sender status:", error);
