@@ -75,6 +75,7 @@ import { MailModel } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
+import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal";
 
 
 export const enum ContentBlockingStatus {
@@ -237,6 +238,16 @@ export class MailViewerViewModel {
 	        console.error("Error updating sender status:", error);
 	    }
 	}
+
+	showPhishingModal(): void {
+		if (this.isSenderConfirmed()) {
+			return;
+		}
+
+		const modalInstance = new MobyPhishReportPhishingModal(this);
+		modal.add(modalInstance);
+	}
+
 
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
@@ -1242,13 +1253,22 @@ export class MailViewerViewModel {
 	    const links = emailBody.querySelectorAll("a"); // Find all links
 	    links.forEach((link) => {
 	        if (block) {
-	            console.log("🚫 Disabling link:", link.href);
-	            (link as HTMLAnchorElement).dataset.originalHref = link.getAttribute("href") || "";
-	            (link as HTMLAnchorElement).setAttribute("href", "#");
-	            (link as HTMLAnchorElement).style.pointerEvents = "none";
-	            (link as HTMLAnchorElement).style.color = "gray";
+	            console.log("Disabling link:", link.href);
+
+            	(link as HTMLAnchorElement).dataset.originalHref = link.getAttribute("href") || "";
+            	(link as HTMLAnchorElement).setAttribute("href", "#");
+            	(link as HTMLAnchorElement).style.pointerEvents = "auto"; // Let the user click it
+            	(link as HTMLAnchorElement).style.color = "gray";
+
+            	// Add a click handler to show phishing modal
+            	(link as HTMLAnchorElement).onclick = (e: MouseEvent) => {
+            		e.preventDefault(); // Stop normal link behavior
+            		if (!this.isSenderConfirmed()) {
+            			this.showPhishingModal(); // Show your modal
+            		}
+            	};
 	        } else {
-	            console.log("✅ Enabling link:", link.dataset.originalHref);
+	            console.log("Enabling link:", link.dataset.originalHref);
 	            const originalHref = (link as HTMLAnchorElement).dataset.originalHref;
 	            if (originalHref) {
 	                (link as HTMLAnchorElement).setAttribute("href", originalHref);
