@@ -54,7 +54,7 @@ export class MobyPhishDenyModal implements ModalComponent {
                             console.log(`Removed sender: ${senderEmail}`);
                             await this.viewModel.fetchSenderData();
                             await modal.remove(this); 
-                            m.redraw();
+                            requestAnimationFrame(() => m.redraw());
                         } else {
                             console.error(`Failed to remove sender: ${senderEmail}`);
                         }
@@ -96,7 +96,7 @@ export class MobyPhishDenyModal implements ModalComponent {
                             await this.viewModel.updateSenderStatus("added_to_trusted", "interacted");
                             await this.viewModel.fetchSenderData();
                             await modal.remove(this);
-                            m.redraw();
+                            requestAnimationFrame(() => m.redraw());
                         } else {
                             console.error(`Failed to add sender: ${senderEmail}`);
                         }
@@ -113,7 +113,7 @@ export class MobyPhishDenyModal implements ModalComponent {
                     await this.viewModel.updateSenderStatus("denied", "interacted");
                     console.log(`Sender denied: ${senderEmail}`);
                     await modal.remove(this);
-                    m.redraw();
+                    requestAnimationFrame(() => m.redraw());
                 },
                 style: this.getCancelButtonStyle()
             }, "Continue without adding")
