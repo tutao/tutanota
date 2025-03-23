@@ -252,13 +252,9 @@ export class MailViewerViewModel {
 				this.setSenderConfirmed(true);
 				this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
-				// 🔄 Resanitize with images allowed
-				this.sanitizeResult = await this.sanitizeMailBody(this.mail, false);
+				console.log("🔄 Reloading mail with updated trust status...");
+				await this.loadAll(Promise.resolve(), { notify: true }); // ✅ This is the key line
 
-				// Optional: Rerun phishing check if needed
-				this.checkMailForPhishing(this.mail, this.sanitizeResult.links);
-
-				// ✅ Trigger UI redraw
 				m.redraw();
 			}
 
@@ -266,6 +262,7 @@ export class MailViewerViewModel {
 			console.error("Error updating sender status:", error);
 		}
 	}
+
 
 
 	showPhishingModal(): void {
