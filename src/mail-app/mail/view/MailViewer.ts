@@ -297,12 +297,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			    //Render the mail into the Shadow DOM
 			    this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement);
 
-			    //Toggle links now that the mail is rendered
-			    const shouldBlockLinks =
-			        this.viewModel.getContentBlockingStatus() === ContentBlockingStatus.Block ||
-			        this.viewModel.getContentBlockingStatus() === ContentBlockingStatus.AlwaysBlock;
-			    this.viewModel.toggleLinks(shouldBlockLinks);
-
 			    if (client.isMobileDevice()) {
 			        this.resizeObserverViewport?.disconnect();
 			        this.resizeObserverViewport = createResizeObserver(() => {

@@ -247,9 +247,9 @@ export class MailViewerViewModel {
 		}
 
 		const modalInstance = new MobyPhishReportPhishingModal(this);
-		modal.display(modalInstance);
+		const handle = modal.show(modalInstance);
+		modalInstance.setModalHandle(handle);
 	}
-
 
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
@@ -593,9 +593,6 @@ export class MailViewerViewModel {
 		this.sanitizeResult = await this.sanitizeMailBody(this.mail, status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock)
 		//follow-up actions resulting from a changed blocking status must start after sanitization finished
 		this.contentBlockingStatus = status
-
-		 // Toggle links when blocking status changes
-    	this.toggleLinks(status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock);
 	}
 
 	async markAsNotPhishing(): Promise<void> {
@@ -785,12 +782,6 @@ export class MailViewerViewModel {
 			console.log("🚫 Sender not trusted or confirmed — forcing contentBlockingStatus to Block");
 			this.contentBlockingStatus = ContentBlockingStatus.Block;
 		}
-
-		// Update links based on final status
-		this.toggleLinks(
-			this.contentBlockingStatus === ContentBlockingStatus.Block ||
-			this.contentBlockingStatus === ContentBlockingStatus.AlwaysBlock
-		);
 
 		m.redraw();
 		this.renderedMail = this.mail;
@@ -1263,44 +1254,5 @@ export class MailViewerViewModel {
 
 		this.loadAll(Promise.resolve(), { notify: true })
 	}
-
-	public toggleLinks(block: boolean): void {
-		const emailBody = this.getSanitizedMailBody();
-		if (!emailBody) return;
-
-		const links = emailBody.querySelectorAll("a");
-
-		links.forEach((link: HTMLAnchorElement) => {
-			if (block && !this.isSenderConfirmed() && !this.isSenderTrusted()) {
-				console.log("🔒 Disabling link:", link.href);
-
-				link.dataset.originalHref = link.getAttribute("href") || "";
-				link.setAttribute("href", "#");
-				link.style.pointerEvents = "auto";
-				link.style.color = "gray";
-				link.style.textDecoration = "line-through";
-
-				link.onclick = (e: MouseEvent) => {
-					e.preventDefault(); // Block real navigation
-					this.showPhishingModal(); // Show phishing warning
-				};
-
-			} else {
-				// Restore original link
-				const originalHref = link.dataset.originalHref;
-				if (originalHref) {
-					link.setAttribute("href", originalHref);
-				}
-				link.style.pointerEvents = "auto";
-				link.style.color = "";
-				link.style.textDecoration = "";
-
-				link.onclick = null; // Allow normal navigation
-			}
-		});
-	}
-
-
-
 
 }
