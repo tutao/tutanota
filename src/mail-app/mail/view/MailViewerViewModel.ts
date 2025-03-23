@@ -1265,36 +1265,49 @@ export class MailViewerViewModel {
 	}
 
 	private toggleLinks(block: boolean): void {
-	    const emailBody = this.getSanitizedMailBody();
-	    if (!emailBody) return;
+		const emailBody = this.getSanitizedMailBody();
+		if (!emailBody) return;
 
-	    const links = emailBody.querySelectorAll("a"); // Find all links
-	    links.forEach((link) => {
-	        if (block) {
-	            console.log("Disabling link:", link.href);
+		const links = emailBody.querySelectorAll("a");
+		links.forEach((link) => {
+			const anchor = link as HTMLAnchorElement;
 
-            	(link as HTMLAnchorElement).dataset.originalHref = link.getAttribute("href") || "";
-            	(link as HTMLAnchorElement).setAttribute("href", "#");
-            	(link as HTMLAnchorElement).style.pointerEvents = "auto"; // Let the user click it
-            	(link as HTMLAnchorElement).style.color = "gray";
+			if (block) {
+				console.log("Disabling link:", anchor.href);
 
-            	// Add a click handler to show phishing modal
-            	(link as HTMLAnchorElement).onclick = (e: MouseEvent) => {
-            		e.preventDefault(); // Stop normal link behavior
-            		if (!this.isSenderConfirmed()) {
-            			this.showPhishingModal(); // Show your modal
-            		}
-            	};
-	        } else {
-	            console.log("Enabling link:", link.dataset.originalHref);
-	            const originalHref = (link as HTMLAnchorElement).dataset.originalHref;
-	            if (originalHref) {
-	                (link as HTMLAnchorElement).setAttribute("href", originalHref);
-	                (link as HTMLAnchorElement).style.pointerEvents = "auto";
-	                (link as HTMLAnchorElement).style.color = "";
-	            }
-	        }
-	    });
+				anchor.dataset.originalHref = anchor.getAttribute("href") || "";
+				anchor.setAttribute("href", "#");
+				anchor.style.pointerEvents = "auto";
+				anchor.style.color = "gray";
+				anchor.style.textDecoration = "line-through";
+
+				// Remove any existing click handlers
+				const clone = anchor.cloneNode(true);
+				anchor.parentNode?.replaceChild(clone, anchor);
+
+				// Add click listener to show modal
+				clone.addEventListener("click", (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					console.log("⚠️ Link clicked on unconfirmed sender");
+
+					if (!this.isSenderConfirmed()) {
+						this.showPhishingModal();
+					}
+				}, { once: true }); // ensures only one handler at a time
+			} else {
+				console.log("Enabling link:", anchor.dataset.originalHref);
+				const originalHref = anchor.dataset.originalHref;
+				if (originalHref) {
+					anchor.setAttribute("href", originalHref);
+					anchor.style.pointerEvents = "auto";
+					anchor.style.color = "";
+					anchor.style.textDecoration = "";
+				}
+			}
+		});
 	}
+
 
 }
