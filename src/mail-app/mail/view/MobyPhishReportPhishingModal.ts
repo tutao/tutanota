@@ -31,7 +31,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
 
                     // "Report as Phishing" button
                     m("button.btn", {
-                        onclick: async (e: MouseEvent) => {
+                        onclick: async () => {
                             const senderEmail = this.viewModel.getSender().address;
                             const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
@@ -51,7 +51,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (response.ok) {
                                     console.log(`Reported phishing attempt: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    await this.backgroundClick(e);
+                                    await modal.remove(this);
                                     m.redraw();
                                 } else {
                                     console.error("Failed to report phishing.");
@@ -65,7 +65,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
 
                     // "Confirm Anyway" button
                     m("button.btn", {
-                        onclick: async (e: MouseEvent) => {
+                        onclick: async () => {
                             const senderEmail = this.viewModel.getSender().address;
                             const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
@@ -103,7 +103,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (statusResponse.ok) {
                                     console.log(`Confirmed sender and updated interaction for: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    await this.backgroundClick(e);
+                                    await modal.remove(this);
                                     m.redraw();
                                 } else {
                                     console.error("Failed to update sender status.");
@@ -117,7 +117,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
 
                     // "Cancel" button
                     m("button.btn", {
-                        onclick: (e: MouseEvent) => this.backgroundClick(e),
+                        onclick: () => modal.remove(this),
                         style: this.getCancelButtonStyle()
                     }, "Cancel")
                 ])
