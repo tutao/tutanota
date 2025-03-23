@@ -112,10 +112,10 @@ export class MobyPhishDenyModal implements ModalComponent {
                     const senderEmail = this.viewModel.getSender().address;
                     await this.viewModel.updateSenderStatus("denied", "interacted");
                     console.log(`Sender denied: ${senderEmail}`);
-                    this.backgroundClick();
+                    this.backgroundClick(e);
                     m.redraw();
                 },
-                style: this.getCancelButtonStyle(e)
+                style: this.getCancelButtonStyle()
             }, "Continue without adding")
         ];
     }
