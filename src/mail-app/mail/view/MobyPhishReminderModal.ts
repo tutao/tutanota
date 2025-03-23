@@ -101,4 +101,11 @@ export class MobyPhishReminderModal implements ModalComponent {
     callingElement(): HTMLElement | null {
         return null
     }
+
+    backgroundClick(e: MouseEvent): void {
+        if (this.modalHandle) {
+            modal.remove(this.modalHandle);
+        }
+    }
+
 }

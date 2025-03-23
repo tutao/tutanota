@@ -35,6 +35,8 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { createNewContact } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getExistingRuleForType } from "../model/MailUtils.js"
 import { createResizeObserver } from "@tutao/tutanota-utils/dist/Utils"
+import { modal } from "../../../common/gui/base/Modal.js";
+
 
 assertMainOrNode()
 
