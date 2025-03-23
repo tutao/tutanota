@@ -247,7 +247,7 @@ export class MailViewerViewModel {
 		}
 
 		const modalInstance = new MobyPhishReportPhishingModal(this);
-		const handle = modal.show(modalInstance);
+		const handle = modal.display(modalInstance);
 		modalInstance.setModalHandle(handle);
 	}
 
