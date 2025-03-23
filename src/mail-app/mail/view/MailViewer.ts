@@ -422,25 +422,38 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.shadowDomRoot.appendChild(wrapNode)
 
 		// Override link clicks inside Shadow DOM to prevent navigation if sender is not confirmed
-		wrapNode.querySelectorAll("a").forEach((link) => {
-		    const originalHref = link.getAttribute("href") || "";
-		    link.setAttribute("data-original-href", originalHref);
-		    link.setAttribute("href", "#");
-		    link.style.pointerEvents = "auto";
-		    link.style.color = "gray";
-		    link.style.textDecoration = "line-through";
+		const isConfirmed = this.viewModel?.isSenderConfirmed?.() ?? false;
 
-		    link.addEventListener("click", (e) => {
-		        e.preventDefault(); // ⛔ stop default navigation
-		        const isConfirmed = this.viewModel?.isSenderConfirmed?.() ?? false;
-		        if (!isConfirmed) {
+		wrapNode.querySelectorAll("a").forEach((link) => {
+		    const originalHref = link.getAttribute("data-original-href") || link.getAttribute("href") || "";
+
+		    if (!isConfirmed) {
+		        //Blocked: gray, strikethrough, disable
+		        link.setAttribute("data-original-href", originalHref);
+		        link.setAttribute("href", "#");
+		        link.style.pointerEvents = "auto";
+		        link.style.color = "gray";
+		        link.style.textDecoration = "line-through";
+
+		        link.addEventListener("click", (e) => {
+		            e.preventDefault();
 		            this.viewModel?.showPhishingModal?.();
-		        } else {
-		            // allow navigation manually if confirmed (optional)
+		        });
+		    } else {
+		        //Allowed: restore styling and href
+		        link.setAttribute("href", originalHref);
+		        link.style.color = "";
+		        link.style.textDecoration = "";
+		        link.style.pointerEvents = "auto";
+
+		        link.addEventListener("click", (e) => {
+		            // Optional: open in new tab
+		            e.preventDefault();
 		            window.open(originalHref, "_blank");
-		        }
-		    });
+		        });
+		    }
 		});
+
 
 
 		if (client.isMobileDevice()) {
