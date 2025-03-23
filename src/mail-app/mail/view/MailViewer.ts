@@ -437,8 +437,19 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		        link.addEventListener("click", (e) => {
 		            e.preventDefault();
-		            this.viewModel?.showPhishingModal?.();
+
+		            if (!this.viewModel.isSenderConfirmed()) {
+		                if (this.viewModel.isSenderTrusted()) {
+		                    const senderName = this.viewModel.getSender().name || this.viewModel.getSender().address;
+		                    import("./MobyPhishReminderModal").then(({ MobyPhishReminderModal }) => {
+		                        modal.show(new MobyPhishReminderModal(senderName));
+		                    });
+		                } else {
+		                    this.viewModel?.showPhishingModal?.();
+		                }
+		            }
 		        });
+
 		    } else {
 		        //Allowed: restore styling and href
 		        link.setAttribute("href", originalHref);
