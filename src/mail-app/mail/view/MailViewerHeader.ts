@@ -57,7 +57,7 @@ export interface MailViewerHeaderAttrs {
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	oninit({ attrs }: Vnode<MailViewerHeaderAttrs>) {
         console.log("MailViewerHeader initialized");
-        console.log("🌀 MailViewerHeader initialized with trustedSenders:", attrs.viewModel.trustedSenders);
+        console.log("🌀 MailViewerHeader initialized with trustedSenders:", attrs.viewModel.trustedSenders());
     }
 
 	private detailsExpanded = false
@@ -288,7 +288,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderBanners(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
-		const trustedSendersArray = viewModel.trustedSenders;
+		const trustedSendersArray = viewModel.trustedSenders();
 		if (viewModel.isCollapsed()) return null
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
 		return [

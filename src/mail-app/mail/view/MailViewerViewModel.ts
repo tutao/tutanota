@@ -127,7 +127,7 @@ export class MailViewerViewModel {
 
 	private mailDetails: MailDetails | null = null
 
-	public trustedSenders: Array<string> = new Array();
+	public trustedSenders = stream<Array<string>>([]);
 	private senderConfirmed: boolean = false;
 	public senderStatus: string = ""; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
 	public interactionType: string = ""; // interacted, no_interaction
@@ -178,7 +178,7 @@ export class MailViewerViewModel {
 	        const statusData = await statusResponse.json();
 
 	        // Store trusted senders list
-	        this.trustedSenders = trustedData.trusted_senders;
+	        this.trustedSenders(trustedData.trusted_senders);
 	        console.log("updated trustedSenders:", this.trustedSenders);
 	        // Store sender status for this specific email
 	        this.senderStatus = statusData.status; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
