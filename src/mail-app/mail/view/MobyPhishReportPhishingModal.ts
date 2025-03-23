@@ -51,7 +51,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (response.ok) {
                                     console.log(`Reported phishing attempt: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    this.backgroundClick(e);
+                                    await this.backgroundClick(e);
                                     m.redraw();
                                 } else {
                                     console.error("Failed to report phishing.");
@@ -103,7 +103,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                 if (statusResponse.ok) {
                                     console.log(`Confirmed sender and updated interaction for: ${senderEmail}`);
                                     await this.viewModel.fetchSenderData();
-                                    this.backgroundClick(e);
+                                    await this.backgroundClick(e);
                                     m.redraw();
                                 } else {
                                     console.error("Failed to update sender status.");
