@@ -76,6 +76,7 @@ import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./M
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 
+
 export const enum ContentBlockingStatus {
 	Block = "0",
 	Show = "1",
@@ -156,7 +157,6 @@ export class MailViewerViewModel {
 			this.showFolder()
 		}
 		this.eventController.addEntityListener(this.entityListener)
-		this.trustedSenders = [];
 		this.fetchSenderData();
 	}
 
@@ -179,7 +179,7 @@ export class MailViewerViewModel {
 
 	        // Store trusted senders list
 	        this.trustedSenders(trustedData.trusted_senders);
-	        console.log("updated trustedSenders:", this.trustedSenders);
+	        console.log("updated trustedSenders:", this.trustedSenders());
 	        // Store sender status for this specific email
 	        this.senderStatus = statusData.status; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
 	        this.interactionType = statusData.interaction_type; // interacted, no_interaction
