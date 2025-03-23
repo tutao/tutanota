@@ -444,7 +444,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		                if (this.viewModel.isSenderTrusted()) {
 		                    const senderName = this.viewModel.getSender().name || this.viewModel.getSender().address;
 		                    import("./MobyPhishReminderModal").then(({ MobyPhishReminderModal }) => {
-		                        modal.show(new MobyPhishReminderModal(senderName));
+		                        modal.display(new MobyPhishReminderModal(senderName));
 		                    });
 		                } else {
 		                    this.viewModel?.showPhishingModal?.();
