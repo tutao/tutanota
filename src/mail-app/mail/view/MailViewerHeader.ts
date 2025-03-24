@@ -876,8 +876,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				icon: m(Icon, { icon: Icons.Unlock }),
 				click: async () => {
 					try {
-						await viewModel.updateSenderStatus("trusted_once", "interacted");
 						await viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
+				
+						await viewModel.updateSenderStatus("trusted_once", "interacted");
 				
 						await viewModel.reloadContent();
 				
@@ -886,9 +887,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					} catch (error) {
 						console.error("Error applying trust-once behavior:", error);
 					}
-				},
+				}
+				,
 				style: {
-					backgroundColor: "#f0ad4e", // warning yellow
+					backgroundColor: "#f0ad4e", // yellow
 					color: "white",
 					fontWeight: "bold",
 					borderRadius: "8px",
