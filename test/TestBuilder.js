@@ -27,9 +27,9 @@ export async function runTestBuild({ clean, fast = false }) {
 			await buildPackages("..")
 		})
 
-		// await runStep("Types", async () => {
-		// 	await sh`npx tsc --incremental true --noEmit true`
-		// })
+		await runStep("Types", async () => {
+			await sh`npx tsc --incremental true --noEmit true`
+		})
 	}
 
 	const version = await getTutanotaAppVersion()

@@ -128,16 +128,16 @@ export class TutaNotificationHandler {
 	}
 
 	private encryptedMailToMailMetaData(mailModel: TypeModel, mailAddressModel: TypeModel, mi: EncryptedParsedInstance): MailMetadata {
-		const mailId = downcast<IdTuple>(assertNotNull(mi[assertNotNull(AttributeModel.getAttributeId(mailModel, "_id"))]))
+		const mailId = AttributeModel.getAttribute<IdTuple>(mi, "_id", mailModel)
 
-		const firstRecipient = downcast<EncryptedParsedInstance | null>(mi[assertNotNull(AttributeModel.getAttributeId(mailModel, "firstRecipient"))])
-		const sender = downcast<EncryptedParsedInstance>(assertNotNull(mi[assertNotNull(AttributeModel.getAttributeId(mailModel, "sender"))]))
+		const firstRecipient = AttributeModel.getAttributeorNull<EncryptedParsedInstance[] | null>(mi, "firstRecipient", mailModel)
+		const sender = AttributeModel.getAttribute<EncryptedParsedInstance[]>(mi, "sender", mailModel)[0]
 
-		const addressFieldId = assertNotNull(AttributeModel.getAttributeId(mailAddressModel, "address"))
+		const senderAddress = AttributeModel.getAttribute<string>(sender, "address", mailAddressModel)
 		return {
 			id: mailId,
-			senderAddress: downcast(assertNotNull(sender[addressFieldId])),
-			firstRecipientAddress: firstRecipient ? downcast(assertNotNull(firstRecipient[addressFieldId])) : null,
+			senderAddress: senderAddress,
+			firstRecipientAddress: firstRecipient ? AttributeModel.getAttribute(firstRecipient[0], "address", mailAddressModel) : null,
 		}
 	}
 
