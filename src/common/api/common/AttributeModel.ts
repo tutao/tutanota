@@ -1,6 +1,6 @@
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 import { AttributeId, AttributeName, TypeId } from "../worker/crypto/ModelMapper"
-import type { EncryptedParsedInstance, ParsedInstance, TypeModel, UntypedInstance } from "./EntityTypes"
+import { EncryptedParsedInstance, ModelAssociation, ModelValue, ParsedInstance, TypeModel, UntypedInstance } from "./EntityTypes"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
@@ -87,5 +87,15 @@ export class AttributeModel {
 		}
 
 		return null
+	}
+
+	public static getModelValue(typeModel: TypeModel, attributeName: string): ModelValue {
+		const filedId = assertNotNull(AttributeModel.getAttributeId(typeModel, attributeName))
+		return typeModel.values[filedId]
+	}
+
+	public static getModelAssociation(typeModel: TypeModel, attributeName: string): ModelAssociation {
+		const filedId = assertNotNull(AttributeModel.getAttributeId(typeModel, attributeName))
+		return typeModel.associations[filedId]
 	}
 }

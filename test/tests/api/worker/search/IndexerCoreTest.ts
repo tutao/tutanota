@@ -37,6 +37,7 @@ import { Aes256Key, aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { ModelValue, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
@@ -64,7 +65,6 @@ function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
 o.spec("IndexerCore test", () => {
 	o("createIndexEntriesForAttributes", async function () {
 		const ContactModel = await resolveTypeReference(ContactTypeRef)
-		const fieldIdForContactType = (attrName: string) => assertNotNull(AttributeModel.getAttributeId(ContactModel, attrName))
 
 		let core = makeCore()
 		let contact = createTestEntity(ContactTypeRef)
@@ -77,15 +77,15 @@ o.spec("IndexerCore test", () => {
 		contact.comment = "Friend of Tim"
 		let entries = core.createIndexEntriesForAttributes(contact, [
 			{
-				attribute: ContactModel.values[fieldIdForContactType("firstName")],
+				attribute: AttributeModel.getModelValue(ContactModel, "firstName"),
 				value: () => contact.firstName,
 			},
 			{
-				attribute: ContactModel.values[fieldIdForContactType("company")],
+				attribute: AttributeModel.getModelValue(ContactModel, "company"),
 				value: () => contact.company,
 			},
 			{
-				attribute: ContactModel.values[fieldIdForContactType("comment")],
+				attribute: AttributeModel.getModelValue(ContactModel, "comment"),
 				value: () => contact.comment,
 			},
 		])
@@ -93,33 +93,33 @@ o.spec("IndexerCore test", () => {
 		o(entries.get("max")!).deepEquals([
 			{
 				id: "L-dNNLe----0",
-				attribute: ContactModel.values[fieldIdForContactType("firstName")].id,
+				attribute: AttributeModel.getModelValue(ContactModel, "firstName").id,
 				positions: [0],
 			},
 		])
 		o(entries.get("tim")!).deepEquals([
 			{
 				id: "L-dNNLe----0",
-				attribute: ContactModel.values[fieldIdForContactType("firstName")].id,
+				attribute: AttributeModel.getModelValue(ContactModel, "firstName").id,
 				positions: [1],
 			},
 			{
 				id: "L-dNNLe----0",
-				attribute: ContactModel.values[fieldIdForContactType("comment")].id,
+				attribute: AttributeModel.getModelValue(ContactModel, "comment").id,
 				positions: [2],
 			},
 		])
 		o(entries.get("friend")!).deepEquals([
 			{
 				id: "L-dNNLe----0",
-				attribute: ContactModel.values[fieldIdForContactType("comment")].id,
+				attribute: AttributeModel.getModelValue(ContactModel, "comment").id,
 				positions: [0],
 			},
 		])
 		o(entries.get("of")!).deepEquals([
 			{
 				id: "L-dNNLe----0",
-				attribute: ContactModel.values[fieldIdForContactType("comment")].id,
+				attribute: AttributeModel.getModelValue(ContactModel, "comment").id,
 				positions: [1],
 			},
 		])
@@ -255,8 +255,6 @@ o.spec("IndexerCore test", () => {
 		await core._moveIndexedInstance(indexUpdate, transaction)
 	})
 	o("writeIndexUpdate _moveIndexedInstance instance already deleted", async function () {
-		let groupId = "my-group"
-
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
 		let encInstanceId = uint8ArrayToBase64(new Uint8Array([8]))

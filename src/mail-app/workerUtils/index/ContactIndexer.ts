@@ -11,6 +11,7 @@ import { SuggestionFacade } from "./SuggestionFacade.js"
 import type { EntityUpdate } from "../../../common/api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupDataOS, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
+import { AttributeModel } from "../../../common/api/common/AttributeModel"
 
 export class ContactIndexer {
 	_core: IndexerCore
@@ -29,47 +30,47 @@ export class ContactIndexer {
 		const ContactModel = tutanotaModels[ContactTypeRef.typeId.toString()]
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(contact, [
 			{
-				attribute: ContactModel.values["firstName"],
+				attribute: AttributeModel.getModelValue(ContactModel, "firstName"),
 				value: () => contact.firstName,
 			},
 			{
-				attribute: ContactModel.values["lastName"],
+				attribute: AttributeModel.getModelValue(ContactModel, "lastName"),
 				value: () => contact.lastName,
 			},
 			{
-				attribute: ContactModel.values["nickname"],
+				attribute: AttributeModel.getModelValue(ContactModel, "nickname"),
 				value: () => contact.nickname || "",
 			},
 			{
-				attribute: ContactModel.values["role"],
+				attribute: AttributeModel.getModelValue(ContactModel, "role"),
 				value: () => contact.role,
 			},
 			{
-				attribute: ContactModel.values["title"],
+				attribute: AttributeModel.getModelValue(ContactModel, "title"),
 				value: () => contact.title || "",
 			},
 			{
-				attribute: ContactModel.values["comment"],
+				attribute: AttributeModel.getModelValue(ContactModel, "comment"),
 				value: () => contact.comment,
 			},
 			{
-				attribute: ContactModel.values["company"],
+				attribute: AttributeModel.getModelValue(ContactModel, "company"),
 				value: () => contact.company,
 			},
 			{
-				attribute: ContactModel.associations["addresses"],
+				attribute: AttributeModel.getModelAssociation(ContactModel, "addresses"),
 				value: () => contact.addresses.map((a) => a.address).join(","),
 			},
 			{
-				attribute: ContactModel.associations["mailAddresses"],
+				attribute: AttributeModel.getModelAssociation(ContactModel, "mailAddresses"),
 				value: () => contact.mailAddresses.map((cma) => cma.address).join(","),
 			},
 			{
-				attribute: ContactModel.associations["phoneNumbers"],
+				attribute: AttributeModel.getModelAssociation(ContactModel, "phoneNumbers"),
 				value: () => contact.phoneNumbers.map((pn) => pn.number).join(","),
 			},
 			{
-				attribute: ContactModel.associations["socialIds"],
+				attribute: AttributeModel.getModelAssociation(ContactModel, "socialIds"),
 				value: () => contact.socialIds.map((s) => s.socialId).join(","),
 			},
 		])
