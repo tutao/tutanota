@@ -5,7 +5,7 @@ import o from "@tutao/otest"
 // import "./api/worker/facades/LoginFacadeTest.js"
 // import "./api/common/utils/LoggerTest.js"
 // import "./api/common/utils/BirthdayUtilsTest.js"
-// import "./api/worker/rest/EntityRestClientTest.js"
+import "./api/worker/rest/EntityRestClientTest.js"
 // import "./api/worker/crypto/CryptoFacadeTest.js"
 // import "./api/worker/crypto/AsymmetricCryptoFacadeTest.js"
 // import "./api/worker/crypto/InstanceMapperTest.js"
@@ -145,7 +145,6 @@ import o from "@tutao/otest"
 // import "./api/worker/facades/MailExportFacadeTest.js"
 // import "./api/worker/search/BulkMailLoaderTest.js"
 // import "./api/common/EntityFunctionsTest.js"
-
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
 import { Mode } from "../../src/common/api/common/Env.js"
@@ -201,10 +200,10 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		// await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
 		// await import("./api/worker/offline/OfflineStorageTest.js")
 		// await import("./desktop/config/DesktopConfigTest.js")
-		// await import("./api/worker/rest/RestClientTest.js")
+		await import("./api/worker/rest/RestClientTest.js")
 		// await import("./desktop/files/TempFsTest.js")
 		// await import("./desktop/sse/SseClientTest.js")
-		await import("./desktop/sse/TutaSseFacadeTest.js")
+		// await import("./desktop/sse/TutaSseFacadeTest.js")
 		// await import("./desktop/sse/TutaNotificationHandlerTest.js")
 		// await import("./desktop/credentials/KeychainEncryptionTest.js")
 		// await import("./desktop/credentials/DesktopCredentialsStorageTest.js")

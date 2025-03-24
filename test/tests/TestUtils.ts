@@ -14,6 +14,7 @@ import { create } from "../../src/common/api/common/utils/EntityUtils.js"
 import { typeModels } from "../../src/common/api/common/EntityFunctions.js"
 import { type fetch as undiciFetch, type Response } from "undici"
 import { Cardinality, ValueType } from "../../src/common/api/common/EntityConstants.js"
+import { AttributeModel } from "../../src/common/api/common/AttributeModel"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,

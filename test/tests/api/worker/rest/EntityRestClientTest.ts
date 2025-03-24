@@ -19,7 +19,7 @@ import sysModelInfo from "../../../../../src/common/api/entities/sys/ModelInfo.j
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
 import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
-import { downcast, freshVersioned, isSameTypeRef, KeyVersion, Mapper, ofClass, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned, isSameTypeRef, Mapper, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import {
@@ -34,7 +34,9 @@ import { DateProvider } from "../../../../../src/common/api/common/DateProvider.
 import { createTestEntity } from "../../../TestUtils.js"
 import { DefaultDateProvider } from "../../../../../src/common/calendar/date/CalendarUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
+import { TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { PersistenceResourcePostReturnTypeRef } from "../../../../../src/common/api/entities/base/TypeRefs"
 
 const { anything, argThat } = matchers
 
@@ -86,7 +88,13 @@ o.spec("EntityRestClient", function () {
 			createTestEntity(InternalRecipientKeyDataTypeRef),
 		)
 
-		instancePipelineMock = object()
+		instancePipelineMock = new InstancePipeline(resolveTypeReference, resolveTypeReference)
+		Object.assign(instancePipelineMock, {
+			modelMapper: object(),
+			cryptoMapper: object(),
+			typeMapper: object(),
+		})
+
 		when(instancePipelineMock.cryptoMapper.encryptParsedInstance(anything(), anything(), anything())).thenDo((typeModel, instance, sessionKey) => {
 			return Promise.resolve({ ...instance, encrypted: true })
 		})
@@ -96,7 +104,13 @@ o.spec("EntityRestClient", function () {
 		when(instancePipelineMock.typeMapper.applyJsTypes(anything(), anything())).thenDo((typeModel, migratedEntity, sessionKey) => {
 			return Promise.resolve({ ...migratedEntity })
 		})
+		when(instancePipelineMock.typeMapper.applyDbTypes(anything(), anything())).thenDo((typeModel, migratedEntity, sessionKey) => {
+			return Promise.resolve({ ...migratedEntity })
+		})
 		when(instancePipelineMock.modelMapper.applyClientModel(anything(), anything())).thenDo((typeModel, migratedEntity, sessionKey) => {
+			return Promise.resolve({ ...migratedEntity })
+		})
+		when(instancePipelineMock.modelMapper.applyServerModel(anything(), anything())).thenDo((typeModel, migratedEntity, sessionKey) => {
 			return Promise.resolve({ ...migratedEntity })
 		})
 
@@ -193,6 +207,9 @@ o.spec("EntityRestClient", function () {
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
+			const calenderEventModel = await resolveTypeReference(CalendarEventTypeRef)
+			const ownerEncSessionKeyFieldId = assertNotNull(AttributeModel.getAttributeId(calenderEventModel, "_ownerEncSessionKey"))
+
 			when(
 				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
@@ -200,7 +217,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: undefined,
 					baseUrl: undefined,
 				}),
-			).thenResolve(JSON.stringify({ _ownerEncSessionKey: "some key" }))
+			).thenResolve(JSON.stringify({ [ownerEncSessionKeyFieldId]: "some key" }))
 
 			const ownerKey = [1, 2, 3]
 			const sessionKey = [3, 2, 1]
@@ -208,11 +225,18 @@ o.spec("EntityRestClient", function () {
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], { ownerKeyProvider: async (_) => ownerKey })
 
-			const typeModel = await resolveTypeReference(CalendarEventTypeRef)
-			verify(instancePipelineMock.cryptoMapper.decryptParsedInstance(typeModel, anything(), sessionKey))
+			verify(
+				instancePipelineMock.cryptoMapper.decryptParsedInstance(
+					argThat((typeModel) => {
+						return isSameTypeRef(typeRefOfModel(typeModel), CalendarEventTypeRef)
+					}),
+					anything(),
+					sessionKey,
+				),
+			)
 			verify(cryptoFacadeMock.resolveSessionKey(anything()), { times: 0 })
 			o(result as any).deepEquals({
-				_ownerEncSessionKey: "some key",
+				[ownerEncSessionKeyFieldId]: "some key",
 				decrypted: true,
 				migrated: true,
 				migratedForInstance: true,
@@ -578,35 +602,38 @@ o.spec("EntityRestClient", function () {
 			)
 		})
 
-		// 	o("when ownerKey is passed it is used instead for session key resolution", async function () {
-		// 		const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
-		// 		const v = typeModel.version
-		// 		const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
-		// 			_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
-		// 		})
-		// 		const resultId = "id"
-		// 		when(
-		// 			restClient.request(`/rest/sys/customerserverproperties`, HttpMethod.POST, {
-		// 				baseUrl: undefined,
-		// 				headers: { ...authHeader, v },
-		// 				queryParams: undefined,
-		// 				responseType: MediaType.Json,
-		// 				body: JSON.stringify({ ...newCustomerServerProperties, encrypted: true }),
-		// 			}),
-		// 			{ times: 1 },
-		// 		).thenResolve(JSON.stringify({ generatedId: resultId }))
-		//
-		// 		const ownerKey = freshVersioned([1, 2, 3])
-		// 		const sessionKey = [3, 2, 1]
-		// 		when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), anything())).thenResolve(sessionKey)
-		//
-		// 		const result = await entityRestClient.setup(null, newCustomerServerProperties, undefined, { ownerKey })
-		//
-		// 		verify(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
-		// 		verify(cryptoFacadeMock.resolveSessionKey(anything()), { times: 0 })
-		//
-		// 		o(result).equals(resultId)
-		// 	})
+		o("when ownerKey is passed it is used instead for session key resolution", async function () {
+			const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
+			const v = typeModel.version
+			const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
+				_id: "id-for-customer",
+				_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
+			})
+			const isMyCustomer = (instance) => instance["_id"] === "id-for-customer"
+
+			const resultId = "id"
+			when(
+				restClient.request(`/rest/sys/customerserverproperties`, HttpMethod.POST, {
+					baseUrl: undefined,
+					headers: { ...authHeader, v },
+					queryParams: undefined,
+					responseType: MediaType.Json,
+					body: JSON.stringify({ ...newCustomerServerProperties, encrypted: true }),
+				}),
+				{ times: 1 },
+			).thenResolve(JSON.stringify({ generatedId: resultId }))
+
+			const ownerKey = freshVersioned([1, 2, 3])
+			const sessionKey = [3, 2, 1]
+			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), anything())).thenResolve(sessionKey)
+
+			const result = await entityRestClient.setup(null, newCustomerServerProperties, undefined, { ownerKey })
+
+			verify(instancePipelineMock.cryptoMapper.encryptParsedInstance(typeModel, argThat(isMyCustomer), sessionKey))
+			verify(cryptoFacadeMock.resolveSessionKey(anything()), { times: 0 })
+
+			o(result).equals(resultId)
+		})
 	})
 
 	o.spec("Setup multiple", function () {
@@ -710,6 +737,7 @@ o.spec("EntityRestClient", function () {
 		o("More than 200 entities created should result in 3 rest requests", async function () {
 			const newContacts = contacts(211)
 			const resultIds = countFrom(0, 211).map(String)
+			const persistentPostReturnModel = await resolveTypeReference(PersistenceResourcePostReturnTypeRef)
 			const { version } = await resolveTypeReference(ContactTypeRef)
 
 			when(
@@ -1003,3 +1031,7 @@ o.spec("EntityRestClient", function () {
 		})
 	})
 })
+
+function typeRefOfModel(model: TypeModel): TypeRef<unknown> {
+	return new TypeRef(model.app, model.id)
+}

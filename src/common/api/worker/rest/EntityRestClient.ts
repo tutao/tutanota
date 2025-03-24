@@ -356,7 +356,8 @@ export class EntityRestClient implements EntityRestInterface {
 			async (instance) => {
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, instance)
 				let entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
-				entityAdapter = await this._crypto.applyMigrations(typeModel, typeRef, entityAdapter)
+				// fixme: why we need to migrate here?
+				// entityAdapter = await this._crypto.applyMigrations(typeModel, typeRef, entityAdapter)
 				return this._decryptMapAndMigrate(typeModel, entityAdapter, ownerEncSessionKeyProvider)
 			},
 			{
@@ -412,8 +413,8 @@ export class EntityRestClient implements EntityRestInterface {
 		} else {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
-		const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
-		const untypedInstance = await this.instancePipeline.encryptAndMapToLiteral(downcast(instance._type), instance, sk)
+		const sk: Promise<Nullable<AesKey>> = this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
+		const untypedInstance = await this.instancePipeline.encryptAndMapToLiteral(downcast<TypeRef<Entity>>(instance._type), instance, sk)
 		const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
 			baseUrl: options?.baseUrl,
 			queryParams,
@@ -447,7 +448,7 @@ export class EntityRestClient implements EntityRestInterface {
 			try {
 				const encryptedEntities = await promiseMap(instanceChunk, async (instance) => {
 					const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, instance)
-					return await this.instancePipeline.encryptAndMapToLiteral(downcast(instance._type), instance, sk)
+					return await this.instancePipeline.encryptAndMapToLiteral(downcast<TypeRef<Entity>>(instance._type), instance, sk)
 				})
 				// informs the server that this is a POST_MULTIPLE request
 				const queryParams = {
