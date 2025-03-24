@@ -2,7 +2,6 @@ import { RestClient, SuspensionBehavior } from "./RestClient"
 import type { CryptoFacade } from "../crypto/CryptoFacade"
 import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
-import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { PushIdentifierTypeRef } from "../../entities/sys/TypeRefs.js"
 import {
 	ConnectionError,
@@ -30,6 +29,7 @@ import { AesKey } from "@tutao/tutanota-crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
+import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 
@@ -171,7 +171,7 @@ export interface EntityRestInterface {
 	 * @param batch The entity events that were received.
 	 * @return Similar to the events in the data parameter, but reduced by the events which are obsolete.
 	 */
-	entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>>
+	entityEventsReceived(batch: QueuedBatch): Promise<readonly EntityUpdateData[]>
 }
 
 /**
@@ -569,7 +569,7 @@ export class EntityRestClient implements EntityRestInterface {
 	/**
 	 * for the admin area (no cache available)
 	 */
-	entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
+	entityEventsReceived(batch: QueuedBatch): Promise<readonly EntityUpdateData[]> {
 		return Promise.resolve(batch.events)
 	}
 

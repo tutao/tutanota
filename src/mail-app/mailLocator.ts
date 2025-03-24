@@ -134,6 +134,7 @@ import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
+import { Indexer } from "./workerUtils/index/Indexer"
 
 assertMainOrNode()
 
@@ -163,7 +164,7 @@ class MailLocator {
 	mailFacade!: MailFacade
 	shareFacade!: ShareFacade
 	counterFacade!: CounterFacade
-	indexerFacade!: IndexedDbIndexer
+	indexerFacade!: Indexer
 	searchFacade!: SearchFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade

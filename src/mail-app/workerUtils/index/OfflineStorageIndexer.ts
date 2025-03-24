@@ -51,4 +51,16 @@ export class OfflineStorageIndexer implements Indexer {
 	async processEntityEvents(updates: readonly EntityUpdateData[], eventOwnerGroupId: Id) {
 		TODO("dispatch events, but not while indexing")
 	}
+
+	async extendMailIndex(time: number) {
+		TODO("extendMailIndex")
+	}
+
+	async deleteIndex(userId: string) {
+		TODO("deleteIndex")
+	}
+
+	async cancelMailIndexing() {
+		TODO("cancelMailIndexing")
+	}
 }

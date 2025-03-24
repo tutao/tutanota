@@ -698,12 +698,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 *
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
-	async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
+	async entityEventsReceived(batch: QueuedBatch): Promise<readonly EntityUpdateData[]> {
 		await this.recordSyncTime()
 
 		// we handle post multiple create operations separately to optimize the number of requests with getMultiple
-		const createUpdatesForLETs: EntityUpdate[] = []
-		const regularUpdates: EntityUpdate[] = [] // all updates not resulting from post multiple requests
+		const createUpdatesForLETs: EntityUpdateData[] = []
+		const regularUpdates: EntityUpdateData[] = [] // all updates not resulting from post multiple requests
 		const updatesArray = batch.events
 		for (const update of updatesArray) {
 			const typeRef = new TypeRef(update.application, update.type)
@@ -725,7 +725,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		const createUpdatesForLETsPerList = groupBy(createUpdatesForLETs, (update) => update.instanceListId)
 
-		const postMultipleEventUpdates: EntityUpdate[][] = []
+		const postMultipleEventUpdates: EntityUpdateData[][] = []
 		// we first handle potential post multiple updates in get multiple requests
 		for (let [instanceListId, updates] of createUpdatesForLETsPerList) {
 			const firstUpdate = updates[0]
@@ -766,7 +766,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 
-		const otherEventUpdates: EntityUpdate[] = []
+		const otherEventUpdates: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
 			const { operation, type, application } = update
 			const { instanceListId, instanceId } = getUpdateInstanceId(update)
@@ -817,7 +817,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	/** Returns {null} when the update should be skipped. */
-	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdate, batch: ReadonlyArray<EntityUpdate>): Promise<EntityUpdate | null> {
+	private async processCreateEvent(
+		typeRef: TypeRef<any>,
+		update: EntityUpdateData,
+		batch: ReadonlyArray<EntityUpdateData>,
+	): Promise<EntityUpdateData | null> {
 		// do not return undefined to avoid implicit returns
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
 
@@ -874,7 +878,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	/** Returns {null} when the update should be skipped. */
-	private async processUpdateEvent(typeRef: TypeRef<SomeEntity>, update: EntityUpdate): Promise<EntityUpdate | null> {
+	private async processUpdateEvent(typeRef: TypeRef<SomeEntity>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
 		const cached = await this.storage.get(typeRef, instanceListId, instanceId)
 		// No need to try to download something that's not there anymore
@@ -987,7 +991,7 @@ export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	}
 }
 
-export function getUpdateInstanceId(update: EntityUpdate): { instanceListId: Id | null; instanceId: Id } {
+export function getUpdateInstanceId(update: EntityUpdate | EntityUpdateData): { instanceListId: Id | null; instanceId: Id } {
 	let instanceListId
 	if (update.instanceListId === "") {
 		instanceListId = null

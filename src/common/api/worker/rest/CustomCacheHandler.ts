@@ -7,6 +7,7 @@ import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCac
 import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { EntityUpdate } from "../../entities/sys/TypeRefs"
+import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 
 /**
  * update when implementing custom cache handlers.
@@ -60,7 +61,7 @@ export interface CustomCacheHandler<T extends ListElementEntity> {
 
 	getElementIdsInCacheRange?: (storage: ExposedCacheStorage, listId: Id, ids: Array<Id>) => Promise<Array<Id>>
 
-	shouldLoadOnCreateEvent?: (event: EntityUpdate) => Promise<boolean>
+	shouldLoadOnCreateEvent?: (event: EntityUpdateData) => Promise<boolean>
 }
 
 /**

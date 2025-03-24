@@ -97,7 +97,8 @@ import("./translations/en.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel, (visible) => {
-			mailLocator.indexerFacade?.onVisibilityChanged(!document.hidden)
+			// FIXME
+			// mailLocator.indexerFacade?.onVisibilityChanged(!document.hidden)
 		})
 		if (isDesktop()) {
 			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))

@@ -19,4 +19,10 @@ export interface Indexer {
 	disableMailIndexing(): Promise<void>
 
 	processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void>
+
+	extendMailIndex(time: number): Promise<void>
+
+	deleteIndex(userId: string): Promise<void>
+
+	cancelMailIndexing(): Promise<void>
 }

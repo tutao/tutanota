@@ -1,6 +1,6 @@
 import type { Db } from "../../../common/api/worker/search/SearchTypes.js"
 import { stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { aesDecrypt, aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/IndexTables.js"
 
 export type SuggestionsType = Record<string, string[]>
@@ -17,17 +17,18 @@ export class SuggestionFacade<T> {
 	}
 
 	load(): Promise<void> {
-		return this._db.initialized.then(() => {
-			return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then((t) => {
-				return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then((encSuggestions) => {
-					if (encSuggestions) {
-						this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(this._db.key, encSuggestions, true)))
-					} else {
-						this._suggestions = {}
-					}
-				})
+		// FIXME
+		// return this._db.initialized.then(() => {
+		return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then((t) => {
+			return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then((encSuggestions) => {
+				if (encSuggestions) {
+					this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(this._db.key, encSuggestions, true)))
+				} else {
+					this._suggestions = {}
+				}
 			})
 		})
+		// })
 	}
 
 	addSuggestions(words: string[]): void {
@@ -65,12 +66,13 @@ export class SuggestionFacade<T> {
 	}
 
 	store(): Promise<void> {
-		return this._db.initialized.then(() => {
-			return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then((t) => {
-				let encSuggestions = aes256EncryptSearchIndexEntry(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
-				t.put(SearchTermSuggestionsOS, this.type.type.toLowerCase(), encSuggestions)
-				return t.wait()
-			})
+		// FIXME
+		// return this._db.initialized.then(() => {
+		return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then((t) => {
+			let encSuggestions = aes256EncryptSearchIndexEntry(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
+			t.put(SearchTermSuggestionsOS, this.type.type.toLowerCase(), encSuggestions)
+			return t.wait()
 		})
+		// })
 	}
 }

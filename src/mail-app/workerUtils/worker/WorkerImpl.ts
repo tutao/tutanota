@@ -16,7 +16,6 @@ import { CalendarFacade } from "../../../common/api/worker/facades/lazy/Calendar
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
-import type { IndexedDbIndexer } from "../index/IndexedDbIndexer.js"
 import { SearchFacade } from "../index/SearchFacade.js"
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
@@ -43,6 +42,7 @@ import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/Asymme
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
+import { Indexer } from "../index/Indexer"
 
 assertWorkerOrNode()
 
@@ -58,7 +58,7 @@ export interface WorkerInterface {
 	readonly shareFacade: ShareFacade
 	readonly cacheManagementFacade: CacheManagementFacade
 	readonly counterFacade: CounterFacade
-	readonly indexerFacade: IndexedDbIndexer
+	readonly indexerFacade: Indexer
 	readonly searchFacade: SearchFacade
 	readonly bookingFacade: BookingFacade
 	readonly mailAddressFacade: MailAddressFacade

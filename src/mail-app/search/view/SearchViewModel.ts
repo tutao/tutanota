@@ -81,6 +81,7 @@ import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/Calen
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
+import { Indexer } from "../../workerUtils/index/Indexer"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -203,7 +204,7 @@ export class SearchViewModel {
 		private readonly searchFacade: SearchFacade,
 		private readonly mailboxModel: MailboxModel,
 		private readonly logins: LoginController,
-		private readonly indexerFacade: IndexedDbIndexer,
+		private readonly indexerFacade: Indexer,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly mailOpenedListener: MailOpenedListener | null,
