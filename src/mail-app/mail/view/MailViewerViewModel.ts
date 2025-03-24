@@ -263,6 +263,8 @@ export class MailViewerViewModel {
 	            this.expandMail(Promise.resolve());
 
 	            m.redraw();
+				console.log("⚠️ Resetting sanitizeResult and reloading mail");
+
 	        }
 
 	    } catch (error) {
@@ -782,9 +784,9 @@ export class MailViewerViewModel {
 			externalImageRule === ExternalImageRule.Allow &&
 			this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED);
 	
-		// ✅ Determine contentBlockingStatus BEFORE sanitizing
+		// 
 		if (this.senderStatus === "trusted_once") {
-			console.log("📬 Sender is trusted_once — setting to AlwaysShow for this session only");
+			console.log("Sender is trusted_once — setting to AlwaysShow for this session only");
 			this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 		} else if (this.isSenderTrusted() && this.isSenderConfirmed()) {
 			console.log("Sender is trusted and confirmed — pre-setting to AlwaysShow BEFORE sanitizing");
@@ -1127,6 +1129,8 @@ export class MailViewerViewModel {
 		this.contrastFixNeeded = isMailContrastFixNeeded(fragment)
 
 		m.redraw()
+		console.log("🔁 sanitizeMailBody() called — blockExternalContent =", blockExternalContent);
+
 		return {
 			// We want to stringify and return the fragment here, because once a fragment is appended to a DOM Node, it's children are moved
 			// and the fragment is left empty. If we cache the fragment and then append that directly to the DOM tree when rendering, there are cases where
