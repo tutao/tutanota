@@ -4,7 +4,6 @@ import { RestClient, RestClientOptions } from "../../../../../src/common/api/wor
 import { SuspensionHandler } from "../../../../../src/common/api/worker/SuspensionHandler.js"
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -22,6 +21,7 @@ import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/faca
 import { elementIdPart, getElementId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
+import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 
 const { anything, captor } = matchers
 
@@ -32,7 +32,7 @@ o.spec("BlobFacade test", function () {
 	let suspensionHandlerMock: SuspensionHandler
 	let fileAppMock: NativeFileApp
 	let aesAppMock: AesApp
-	let instanceMapperMock: ModelMapper
+	let instancePipelineMock: InstancePipeline
 	const archiveId = "archiveId1"
 	const blobId1 = "blobId1"
 	const blobs = [
@@ -50,7 +50,7 @@ o.spec("BlobFacade test", function () {
 		suspensionHandlerMock = instance(SuspensionHandler)
 		fileAppMock = instance(NativeFileApp)
 		aesAppMock = instance(AesApp)
-		instanceMapperMock = instance(ModelMapper)
+		instancePipelineMock = instance(InstancePipeline)
 		cryptoFacadeMock = object<CryptoFacade>()
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
 
@@ -59,7 +59,15 @@ o.spec("BlobFacade test", function () {
 		file = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "fileElementId"] })
 		anotherFile = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "anotherFileElementId"] })
 
-		blobFacade = new BlobFacade(restClientMock, suspensionHandlerMock, fileAppMock, aesAppMock, instanceMapperMock, cryptoFacadeMock, blobAccessTokenFacade)
+		blobFacade = new BlobFacade(
+			restClientMock,
+			suspensionHandlerMock,
+			fileAppMock,
+			aesAppMock,
+			instancePipelineMock,
+			cryptoFacadeMock,
+			blobAccessTokenFacade,
+		)
 	})
 
 	o.afterEach(function () {
@@ -80,7 +88,7 @@ o.spec("BlobFacade test", function () {
 			})
 			when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
 			let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
-			when(instanceMapperMock.decryptAndMapToInstance(anything(), anything(), anything())).thenResolve(blobServiceResponse)
+			when(instancePipelineMock.decryptAndMapToInstance(anything(), anything(), anything())).thenResolve(blobServiceResponse)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify(blobServiceResponse))
 
 			const referenceTokens = await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroup, sessionKey)
@@ -110,7 +118,7 @@ o.spec("BlobFacade test", function () {
 			let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
 			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
-			when(instanceMapperMock.decryptAndMapToInstance(anything(), anything(), anything())).thenResolve(blobServiceResponse)
+			when(instancePipelineMock.decryptAndMapToInstance(anything(), anything(), anything())).thenResolve(blobServiceResponse)
 			when(fileAppMock.splitFile(uploadedFileUri, MAX_BLOB_SIZE_BYTES)).thenResolve(chunkUris)
 			let encryptedFileInfo = {
 				uri: "encryptedChunkUri",
@@ -157,8 +165,8 @@ o.spec("BlobFacade test", function () {
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
-			const requestBody = { "request-body": true }
-			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			const requestBody = { "request-body": "1" }
+			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -207,8 +215,8 @@ o.spec("BlobFacade test", function () {
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
-			const requestBody = { "request-body": true }
-			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			const requestBody = { "request-body": "1" }
+			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -251,13 +259,13 @@ o.spec("BlobFacade test", function () {
 			when(blobAccessTokenFacade.createQueryParams(anything(), anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
-			const requestBody = { "request-body": true }
+			const requestBody = { "request-body": "1" }
 			const encryptedFileUri = "encryptedUri"
 			const decryptedChunkUri = "decryptedChunkUri"
 			const decryptedUri = "decryptedUri"
 			const size = 3
 
-			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			when(fileAppMock.download(anything(), anything(), anything())).thenResolve({
 				statusCode: 200,
 				encryptedFileUri,
@@ -298,13 +306,13 @@ o.spec("BlobFacade test", function () {
 			})
 			when(blobAccessTokenFacade.requestReadTokenBlobs(anything(), anything(), matchers.anything())).thenResolve(blobAccessInfo)
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
-			const requestBody = { "request-body": true }
+			const requestBody = { "request-body": "1" }
 			const encryptedFileUri = "encryptedUri"
 			const decryptedChunkUri = "decryptedChunkUri"
 			const decryptedUri = "decryptedUri"
 			const size = 3
 
-			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			when(fileAppMock.download(anything(), blobs[0].blobId + ".blob", anything())).thenResolve({
 				statusCode: 200,
 				encryptedFileUri,
@@ -359,8 +367,8 @@ o.spec("BlobFacade test", function () {
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
-			const requestBody = { "request-body": true }
-			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			const requestBody = { "request-body": "1" }
+			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -442,17 +450,17 @@ o.spec("BlobFacade test", function () {
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
-			const requestBody1 = { body: 1 }
+			const requestBody1 = { body: "1" }
 			when(
-				instanceMapperMock.encryptAndMapToLiteral(
+				instancePipelineMock.encryptAndMapToLiteral(
 					anything(),
 					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId1" && inData.blobIds.length == 2),
 					anything(),
 				),
 			).thenResolve(requestBody1)
-			const requestBody2 = { body: 2 }
+			const requestBody2 = { body: "2" }
 			when(
-				instanceMapperMock.encryptAndMapToLiteral(
+				instancePipelineMock.encryptAndMapToLiteral(
 					anything(),
 					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId2" && inData.blobIds.length == 1),
 					anything(),
@@ -550,8 +558,8 @@ o.spec("BlobFacade test", function () {
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
-			const requestBody = { "request-body": true }
-			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			const requestBody = { "request-body": "1" }
+			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -615,8 +623,8 @@ o.spec("BlobFacade test", function () {
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
-			const requestBody = { "request-body": true }
-			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			const requestBody = { "request-body": "1" }
+			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
