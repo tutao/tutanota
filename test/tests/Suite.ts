@@ -14,7 +14,7 @@ import "./api/worker/rest/EntityRestClientTest.js"
 // import "./api/worker/crypto/CompatibilityTest.js"
 import "./api/common/error/RestErrorTest.js"
 import "./api/common/error/TutanotaErrorTest.js"
-// import "./api/worker/rest/EntityRestCacheTest.js"
+import "./api/worker/rest/EntityRestCacheTest.js"
 // import "./api/worker/rest/EphemeralCacheStorageTest.js"
 // import "./api/worker/EventBusClientTest.js"
 // import "./api/worker/EventBusEventCoordinatorTest.js"
@@ -40,7 +40,7 @@ import "./api/common/error/TutanotaErrorTest.js"
 // import "./api/worker/facades/ConfigurationDbTest.js"
 // import "./api/worker/CompressionTest.js"
 // import "./api/common/utils/PlainTextSearchTest.js"
-// import "./api/common/utils/EntityUtilsTest.js"
+import "./api/common/utils/EntityUtilsTest.js"
 // import "./api/worker/rest/CborDateEncoderTest.js"
 // import "./api/worker/facades/BlobFacadeTest.js"
 // import "./api/worker/facades/BlobAccessTokenFacadeTest.js"
@@ -92,8 +92,8 @@ import "./api/common/error/TutanotaErrorTest.js"
 // import "./mail/export/ExporterTest.js"
 // import "./mail/export/BundlerTest.js"
 // import "./api/common/utils/FileUtilsTest.js"
-// import "./gui/GuiUtilsTest.js"
-// import "./misc/ParserTest.js"
+import "./gui/GuiUtilsTest.js"
+import "./misc/ParserTest.js"
 // import "./misc/news/items/ReferralLinkNewsTest.js"
 // import "./settings/TemplateEditorModelTest.js"
 // import "./settings/mailaddress/MailAddressTableModelTest.js"
@@ -132,7 +132,7 @@ import "./api/common/error/TutanotaErrorTest.js"
 // import "./api/worker/pdf/PdfDocumentTest.js"
 // import "./api/worker/invoicegen/PdfInvoiceGeneratorTest.js"
 // import "./api/worker/invoicegen/XRechnungInvoiceGeneratorTest.js"
-// import "./subscription/SignupFormTest.js"
+import "./subscription/SignupFormTest.js"
 // import "./api/worker/facades/ContactFacadeTest.js"
 // import "./api/worker/facades/KeyRotationFacadeTest.js"
 // import "./api/worker/facades/KeyAuthenticationFacadeTest.js"
@@ -178,7 +178,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		// await import("./desktop/PathUtilsTest.js")
 		// await import("./desktop/files/TempFsTest.js")
 		// await import("./desktop/config/migrations/DesktopConfigMigratorTest.js")
-		// await import("./desktop/ElectronUpdaterTest.js")
+		await import("./desktop/ElectronUpdaterTest.js")
 		// await import("./desktop/DesktopNotifierTest.js")
 		// await import("./desktop/ApplicationWindowTest.js")
 		// await import("./desktop/sse/SecretStorageTest.js")
