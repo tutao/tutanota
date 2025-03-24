@@ -197,15 +197,15 @@ export class ModelMapper {
 					for (const value of values) {
 						clientValues.push(await this.applyServerModel(assocTypeRef, value))
 					}
-					serverInstance[assocId] = assertCorrectAssociationServerCardinality(assocTypeRef, assocIdStr, modelAssoc, clientValues)
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(typeRef, assocIdStr, modelAssoc, clientValues)
 				} else {
 					const value = (instance as any)[modelAssoc.name] as Nullable<Entity>
 					const parsedMappedValue = value != null ? await this.applyServerModel(assocTypeRef, value) : null
-					serverInstance[assocId] = assertCorrectAssociationServerCardinality(assocTypeRef, assocIdStr, modelAssoc, parsedMappedValue)
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(typeRef, assocIdStr, modelAssoc, parsedMappedValue)
 				}
 			} else {
 				serverInstance[assocId] = assertCorrectAssociationServerCardinality(
-					assocTypeRef,
+					typeRef,
 					assocIdStr,
 					modelAssoc,
 					(instance as any)[modelAssoc.name] as ParsedAssociation,

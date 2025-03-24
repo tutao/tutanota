@@ -1,5 +1,5 @@
 import { BucketKey, BucketKeyTypeRef } from "../../entities/sys/TypeRefs"
-import { assertNotNull, Base64, downcast, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, TypeRef } from "@tutao/tutanota-utils"
 import type { EncryptedParsedInstance, Entity, ParsedInstance, TypeModel } from "../../common/EntityTypes"
 import { AttributeModel } from "../../common/AttributeModel"
 import { InstancePipeline } from "./InstancePipeline"
@@ -16,12 +16,12 @@ export class EntityAdapter implements Entity {
 
 	static async from(typeModel: TypeModel, encryptedParsedInstance: EncryptedParsedInstance, instancePipeline: InstancePipeline) {
 		let bucketKey: Nullable<BucketKey> = null
-		const bucketKeyParsedInstance = downcast<Array<ParsedInstance>>(
-			AttributeModel.getAttributeorNull<Array<EncryptedParsedInstance>>(encryptedParsedInstance, "bucketKey", typeModel),
+		const bucketKeyParsedInstance = downcast<ParsedInstance>(
+			AttributeModel.getAttributeorNull<EncryptedParsedInstance>(encryptedParsedInstance, "bucketKey", typeModel)?.[0],
 		)
 		if (bucketKeyParsedInstance) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
-			bucketKey = await instancePipeline.modelMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyParsedInstance[0])
+			bucketKey = await instancePipeline.modelMapper.applyClientModel<BucketKey>(BucketKeyTypeRef, bucketKeyParsedInstance)
 		}
 		return new EntityAdapter(typeModel, encryptedParsedInstance, bucketKey)
 	}
@@ -42,6 +42,7 @@ export class EntityAdapter implements Entity {
 		this.encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_ownerEncSessionKey"))] = value
 	}
 
+	// fixme: _ownerKeyVersion can have cardinality ZeroOrOne, should we default to "0"?
 	get _ownerKeyVersion(): null | NumberString {
 		return AttributeModel.getAttributeorNull<NumberString>(this.encryptedParsedInstance, "_ownerKeyVersion", this.typeModel) ?? "0"
 	}
@@ -54,7 +55,11 @@ export class EntityAdapter implements Entity {
 		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "ownerEncSessionKey", this.typeModel)
 	}
 
-	get ownerEncSessionKeyVersion(): null | NumberString {
+	get ownerKeyVersion(): NumberString {
+		return AttributeModel.getAttributeorNull<NumberString>(this.encryptedParsedInstance, "ownerKeyVersion", this.typeModel) ?? "0"
+	}
+
+	get ownerEncSessionKeyVersion(): NumberString {
 		return AttributeModel.getAttributeorNull<NumberString>(this.encryptedParsedInstance, "ownerEncSessionKeyVersion", this.typeModel) ?? "0"
 	}
 
