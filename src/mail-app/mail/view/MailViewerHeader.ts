@@ -876,12 +876,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				icon: m(Icon, { icon: Icons.Unlock }),
 				click: async () => {
 					try {
-						await viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
-			
 						await viewModel.updateSenderStatus("trusted_once", "interacted");
-			
-						await viewModel.reloadContent();
-			
 						console.log("Trusted once: Content unblocked for this email only.");
 						m.redraw();
 					} catch (error) {

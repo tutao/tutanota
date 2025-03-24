@@ -248,8 +248,8 @@ export class MailViewerViewModel {
 	        this.senderStatus = status;
 	        this.interactionType = interactionType;
 
-	        if (status === "confirmed") {
-	            this.setSenderConfirmed(true);
+	        if (status === "confirmed" || status === "trusted_once") {
+	            this.setSenderConfirmed(status == "confirmed");
 	            this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
 	            // Refresh trusted senders list
@@ -278,15 +278,7 @@ export class MailViewerViewModel {
 		const modalInstance = new MobyPhishReportPhishingModal(this);
 		const handle = modal.display(modalInstance);
 		modalInstance.setModalHandle(handle);
-	}
-
-	public async reloadContent(): Promise<void> {
-		this.sanitizeResult = null;
-		this.renderedMail = null;
-		await this.loadAll(Promise.resolve(), { notify: true });
-		this.expandMail(Promise.resolve());
-	}
-	
+	}	
 
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
