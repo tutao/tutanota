@@ -14,11 +14,11 @@ import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTy
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { IndexerCore } from "./IndexerCore"
-import { Db, IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
+import { IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade"
 import { Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
-import { newSearchIndexDB } from "./IndexedDbIndexer"
+import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
 
 export interface MailWithDetailsAndAttachments {
 	mail: Mail
@@ -34,6 +34,8 @@ const enum IndexResult {
 export type GroupTimestamps = Map<Id, number>
 
 export interface MailIndexerBackend {
+	init(): Promise<void>
+
 	indexMails(dataPerGroup: GroupTimestamps, mailsWithDetails: readonly MailWithDetailsAndAttachments[]): Promise<void>
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>>
@@ -49,10 +51,14 @@ export interface MailIndexerBackend {
 	enableIndexing(): Promise<boolean>
 
 	deleteIndex(): Promise<void>
+
+	isMailIndexingEnabled(): Promise<boolean>
 }
 
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly dbFacade: DbFacade, private readonly core: IndexerCore, private readonly userId: Id) {}
+
+	async init() {}
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
 		return this.core.getGroupIndexTimestamps(groupIds)
@@ -95,8 +101,7 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	}
 
 	async enableIndexing(): Promise<boolean> {
-		const t = await this.dbFacade.createTransaction(true, [MetaDataOS])
-		const enabled = await t.get(MetaDataOS, Metadata.mailIndexingEnabled)
+		const enabled = await this.isMailIndexingEnabled()
 		if (!enabled) {
 			const t2 = await this.dbFacade.createTransaction(false, [MetaDataOS])
 			t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
@@ -104,6 +109,11 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 			await t2.wait()
 		}
 		return enabled
+	}
+
+	async isMailIndexingEnabled(): Promise<boolean> {
+		const t = await this.dbFacade.createTransaction(true, [MetaDataOS])
+		return (await t.get(MetaDataOS, Metadata.mailIndexingEnabled)) ?? false
 	}
 
 	deleteIndex(): Promise<void> {
@@ -166,8 +176,18 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	}
 }
 
+const tableDefinitions = Object.freeze(["CREATE TABLE IF NOT EXISTS search_metadata (key TEXT NOT NULL PRIMARY KEY, value)"])
+
 export class SqliteMailIndexerBackend implements MailIndexerBackend {
+	private static readonly MAIL_INDEXING_ENABLED = "mailIndexingEnabled"
+
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
+
+	async init(): Promise<void> {
+		for (const tableDef of tableDefinitions) {
+			await this.sqlCipherFacade.run(tableDef, [])
+		}
+	}
 
 	async getCurrentIndexTimestamps(groupIds: readonly []): Promise<Map<Id, number>> {
 		// FIXME
@@ -211,12 +231,28 @@ export class SqliteMailIndexerBackend implements MailIndexerBackend {
 	}
 
 	async enableIndexing(): Promise<boolean> {
-		// FIXME: not clear what we want to do here, it should probably be always enabled
-		throw new Error("FIXME: not implemented")
+		const wasEnabled = await this.isMailIndexingEnabled()
+
+		const { query, params } = sql`INSERT
+        OR REPLACE INTO search_metadata VALUES (
+        ${SqliteMailIndexerBackend.MAIL_INDEXING_ENABLED},
+        ${1}
+        )`
+		await this.sqlCipherFacade.run(query, params)
+
+		return wasEnabled
 	}
 
-	deleteIndex(): Promise<void> {
-		throw new Error("FIXME: not implemented")
+	async deleteIndex() {
+		// FIXME: do we need to do anything?
+	}
+
+	async isMailIndexingEnabled(): Promise<boolean> {
+		const { query, params } = sql`SELECT CAST(value as NUMBER) as value
+                                    FROM search_metadata
+                                    WHERE key = ${SqliteMailIndexerBackend.MAIL_INDEXING_ENABLED}`
+		const row = await this.sqlCipherFacade.get(query, params)
+		return row != null && untagSqlValue(row["value"]) === 1
 	}
 
 	async onMailCreated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {

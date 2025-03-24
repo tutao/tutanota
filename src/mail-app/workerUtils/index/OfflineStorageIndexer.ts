@@ -9,17 +9,24 @@ import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateU
 import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { Indexer } from "./Indexer"
+import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 
 function TODO(message = "(empty)"): never {
 	throw new Error(`FIXME: not implemented: ${message}`)
 }
 
 export class OfflineStorageIndexer implements Indexer {
-	constructor(private readonly userFacade: UserFacade, private readonly persistence: OfflineStoragePersistence, private readonly mailIndexer: MailIndexer) {}
+	constructor(
+		private readonly userFacade: UserFacade,
+		private readonly persistence: OfflineStoragePersistence,
+		private readonly mailIndexer: MailIndexer,
+		private readonly infoMessageHandler: InfoMessageHandler,
+	) {}
 
 	async init() {
 		const user = assertNotNull(this.userFacade.getUser())
 		await this.persistence.init()
+		await this.mailIndexer.init(user._id)
 
 		const indexedGroups = await this.persistence.getIndexedGroups()
 		const userGroups = filterIndexMemberships(user).map((membership) => membership.group)
@@ -35,16 +42,23 @@ export class OfflineStorageIndexer implements Indexer {
 			await this.persistence.addIndexedGroup(addedGroup, groupType, NOTHING_INDEXED_TIMESTAMP)
 		}
 		// FIXME: start indexing process for groups
+		await this.infoMessageHandler.onSearchIndexStateUpdate({
+			initializing: false,
+			mailIndexEnabled: this.mailIndexer.mailIndexingEnabled,
+			progress: 0,
+			currentMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
+			aimedMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
+			indexedMailCount: 0,
+			failedIndexingUpTo: null,
+		})
 	}
 
 	async enableMailIndexing() {
 		const user = assertNotNull(this.userFacade.getUser())
-		await this.persistence.setMailIndexingEnabled(true)
 		await this.mailIndexer.enableMailIndexing(user)
 	}
 
 	async disableMailIndexing() {
-		await this.persistence.setMailIndexingEnabled(true)
 		await this.mailIndexer.disableMailIndexing()
 	}
 
@@ -57,7 +71,7 @@ export class OfflineStorageIndexer implements Indexer {
 	}
 
 	async deleteIndex(userId: string) {
-		TODO("deleteIndex")
+		// FIXME: do we need to do anything?
 	}
 
 	async cancelMailIndexing() {

@@ -40,7 +40,6 @@ import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -80,6 +79,11 @@ export class MailIndexer {
 		this.mailboxIndexingPromise = Promise.resolve()
 		this._indexingCancelled = false
 		this._dateProvider = dateProvider
+	}
+
+	async init(userId: Id): Promise<void> {
+		this._backend = this.backendFactory(userId)
+		this.mailIndexingEnabled = await this.backend.isMailIndexingEnabled()
 	}
 
 	/** @private visibleForTesting */
@@ -155,10 +159,6 @@ export class MailIndexer {
 		this.mailIndexingEnabled = false
 		this._indexingCancelled = true
 		await this.backend.deleteIndex()
-	}
-
-	init(userId: Id) {
-		this._backend = this.backendFactory(userId)
 	}
 
 	cancelMailIndexing(): Promise<void> {

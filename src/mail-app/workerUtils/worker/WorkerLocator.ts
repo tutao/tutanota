@@ -306,13 +306,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 
 	locator.indexer = lazyMemoized(async () => {
-		const bulkLoaderFactory = await prepareBulkLoaderFactory()
-
 		if (isOfflineStorageAvailable()) {
 			const { OfflineStorageIndexer } = await import("../index/OfflineStorageIndexer.js")
 			const { OfflineStoragePersistence } = await import("../index/OfflineStoragePersistence.js")
 			const persistence = new OfflineStoragePersistence(locator.sqlCipherFacade)
-			return new OfflineStorageIndexer(locator.user, persistence, await mailIndexer())
+			return new OfflineStorageIndexer(locator.user, persistence, await mailIndexer(), mainInterface.infoMessageHandler)
 		} else {
 			const { IndexedDbIndexer } = await import("../index/IndexedDbIndexer.js")
 			return new IndexedDbIndexer(
@@ -630,6 +628,7 @@ async function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo, keyLoaderFa
 			return
 		}
 	}
+	// FIXME: make this work with existing credentials on old db
 	if (cacheInfo.isPersistent && cacheInfo.isNewOfflineDb) {
 		// not awaiting
 		indexer.enableMailIndexing()
