@@ -872,7 +872,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			
 			const trustOnceButton: BannerButtonAttrs = {
 				title: "mobyPhish_trust_once",
-				label: "emptyString_msg",
+				label: "mobyPhish_trust_once",
 				icon: m(Icon, { icon: Icons.Eye }),
 				click: async () => {
 					const senderEmail = viewModel.getSender().address;
