@@ -249,7 +249,7 @@ export class MailViewerViewModel {
 	        this.interactionType = interactionType;
 
 	        if (status === "confirmed" || status === "trusted_once") {
-	            this.setSenderConfirmed(status == "confirmed");
+	            this.setSenderConfirmed(true);
 	            this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
 	            // Refresh trusted senders list
@@ -263,8 +263,6 @@ export class MailViewerViewModel {
 	            this.expandMail(Promise.resolve());
 
 	            m.redraw();
-				console.log("⚠️ Resetting sanitizeResult and reloading mail");
-
 	        }
 
 	    } catch (error) {
@@ -1113,23 +1111,11 @@ export class MailViewerViewModel {
 		// 	console.warn("Failed to urlify mail body!", e)
 		// 	return rawBody
 		// })
-		
 		const sanitizeResult = htmlSanitizer.sanitizeFragment(rawBody, {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
-
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult
-
-		if (this.senderStatus === "trusted_once" || this.contentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
-			for (const link of links) {
-				link.removeAttribute("onclick");
-				link.style.pointerEvents = "auto";
-				link.style.color = "";
-				link.removeAttribute("aria-disabled");
-				link.setAttribute("href", link.getAttribute("data-original-href") || link.getAttribute("href") || "#");
-			}
-		}
 
 		/**
 		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
@@ -1141,8 +1127,6 @@ export class MailViewerViewModel {
 		this.contrastFixNeeded = isMailContrastFixNeeded(fragment)
 
 		m.redraw()
-		console.log("🔁 sanitizeMailBody() called — blockExternalContent =", blockExternalContent);
-
 		return {
 			// We want to stringify and return the fragment here, because once a fragment is appended to a DOM Node, it's children are moved
 			// and the fragment is left empty. If we cache the fragment and then append that directly to the DOM tree when rendering, there are cases where
