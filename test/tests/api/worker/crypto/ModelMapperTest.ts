@@ -11,8 +11,8 @@ import {
 	valueToDefault,
 } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
-import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { dummyResolver, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
+import { downcast, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { dummyResolver, TestAggregateRef, TestEntity, testTypeModel, TestTypeRef } from "./InstancePipelineTestUtils"
 import { ParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
@@ -100,6 +100,39 @@ o.spec("ModelMapper", function () {
 			o(mappedInstance._finalIvs).deepEquals(parsedInstance._finalIvs)
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
+		o("wrong cardinality on value field throws", async function () {
+			const parsedInstance: ParsedInstance = {
+				1: null,
+				5: new Date("2025-01-01T13:00:00.000Z"),
+				3: [{ 2: "123", 6: "123456", _finalIvs: {} } as ParsedInstance],
+				4: ["associatedListId"],
+				7: true,
+				_finalIvs: {},
+			}
+			await assertThrows(ProgrammingError, async () => modelMapper.applyClientModel(TestTypeRef, parsedInstance))
+		})
+		o("wrong aggregation cardinality throws", async function () {
+			const parsedInstance: ParsedInstance = {
+				1: "some encrypted string",
+				5: new Date("2025-01-01T13:00:00.000Z"),
+				3: [],
+				4: ["associatedListId"],
+				7: true,
+				_finalIvs: {},
+			}
+			await assertThrows(ProgrammingError, async () => modelMapper.applyClientModel(TestTypeRef, parsedInstance))
+		})
+		o("wrong reference cardinality throws", async function () {
+			const parsedInstance: ParsedInstance = {
+				1: "some encrypted string",
+				5: new Date("2025-01-01T13:00:00.000Z"),
+				3: [{ 2: "123", 6: "123456", _finalIvs: {} } as ParsedInstance],
+				4: [],
+				7: true,
+				_finalIvs: {},
+			}
+			await assertThrows(ProgrammingError, async () => modelMapper.applyClientModel(TestTypeRef, parsedInstance))
+		})
 	})
 	o.spec("applyServerModel", function () {
 		o("happy path", async function () {
@@ -132,6 +165,25 @@ o.spec("ModelMapper", function () {
 			o(serverInstance[4]).deepEquals(["associatedListId"])
 			o(serverInstance._finalIvs).deepEquals(instance._finalIvs!)
 			o(typeof serverInstance._errors).equals("undefined")
+		})
+
+		o("default values are assigned", async function () {
+			const instance: TestEntity = {
+				_type: TestTypeRef,
+				_finalIvs: {},
+				testAssociation: {
+					_type: TestAggregateRef,
+					_finalIvs: {},
+					_id: "someCustomId",
+					testNumber: "123456",
+				},
+				testBoolean: false,
+				testDate: new Date("2025-01-01T13:00:00.000Z"),
+				testListAssociation: "associatedListId",
+				testValue: downcast<string>(null),
+			}
+			const serverInstance: ParsedInstance = await modelMapper.applyServerModel(TestTypeRef, instance)
+			o(serverInstance[1]).equals(valueToDefault(testTypeModel.values["1"].type))
 		})
 	})
 	o.spec("default value mappings", function () {

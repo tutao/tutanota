@@ -48,9 +48,11 @@ o.spec("TypeMapper", function () {
 		o("throws error for invalid encrypted values", async function () {
 			await assertThrows(ProgrammingError, () => typeMapper.applyDbTypes(testTypeModel, faultyEncryptedParsedInstance))
 		})
+
 		o("can apply db types", async function () {
 			const instance = await typeMapper.applyDbTypes(testTypeModel, encryptedParsedInstance)
 			o(instance["1"]).equals("base64EncodedString")
+			o(instance["3"]![0]["2"]).equals("123")
 			o(instance["5"]).equals("1735736415000")
 		})
 	})

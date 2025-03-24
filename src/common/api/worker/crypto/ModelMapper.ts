@@ -134,7 +134,7 @@ export class ModelMapper {
 		// fixme: what if the server has a new type? -> map: can't happen in this case as we won't create instances of them
 		const serverTypeModel = await this.serverTypes(typeRef)
 		const serverInstance: Record<number, unknown> & { _finalIvs: unknown } = {
-			_finalIvs: typeof instance["_finalIvs"] !== 'undefined' ? instance["_finalIvs"] : {},
+			_finalIvs: typeof instance["_finalIvs"] !== "undefined" ? instance["_finalIvs"] : {},
 		}
 
 		for (const [attrIdStr, serverType] of Object.entries(serverTypeModel.values)) {
@@ -183,13 +183,9 @@ export class ModelMapper {
 					}
 					serverInstance[assocId] = assertCorrectAssociationServerCardinality(assocTypeRef, assocIdStr, modelAssoc.cardinality, clientValues)
 				} else {
-					const value = (instance as any)[modelAssoc.name] as Entity
-					serverInstance[assocId] = assertCorrectAssociationServerCardinality(
-								assocTypeRef,
-								assocIdStr,
-								modelAssoc.cardinality,
-								value ? await this.applyServerModel(assocTypeRef, value): null,
-						  )
+					const value = (instance as any)[modelAssoc.name] as Nullable<Entity>
+					const parsedMappedValue = value != null ? await this.applyServerModel(assocTypeRef, value) : null
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(assocTypeRef, assocIdStr, modelAssoc.cardinality, parsedMappedValue)
 				}
 			} else {
 				serverInstance[assocId] = assertCorrectAssociationServerCardinality(
