@@ -42,7 +42,7 @@ import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConsta
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
@@ -158,7 +158,19 @@ o.spec("OfflineStorageDb", function () {
 			o.spec("ElementType", function () {
 				o("deleteAllOfType", async function () {
 					const userId = "id1"
-					const storableUser = createTestEntity(UserTypeRef, { _id: userId })
+					const storableUser = createTestEntity(UserTypeRef, {
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						userGroup: createTestEntity(GroupMembershipTypeRef, {
+							group: "groupId",
+							groupInfo: ["groupInfoListId", "groupInfoElementId"],
+							groupMember: ["groupMemberListId", "groupMemberElementId"],
+						}),
+						successfulLogins: "successfullLogins",
+						failedLogins: "failedLogins",
+						secondFactorAuthentications: "secondFactorAuthentications",
+					})
 
 					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -181,7 +193,11 @@ o.spec("OfflineStorageDb", function () {
 				o("deleteAllOfType", async function () {
 					const listId = "listId1"
 					const elementId = "id1"
-					const storableMail = createTestEntity(MailTypeRef, { _id: [listId, elementId] })
+					const storableMail = createTestEntity(MailTypeRef, {
+						_id: [listId, elementId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
 
 					await storage.init({ userId: elementId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -208,9 +224,21 @@ o.spec("OfflineStorageDb", function () {
 					const listTwo = "listId2"
 					await storage.init({ userId: "user", databaseKey, timeRangeDays, forceNewDatabase: false })
 
-					const listOneMailOne = createTestEntity(MailTypeRef, { _id: [listOne, "id1"] })
-					const listOneMailTwo = createTestEntity(MailTypeRef, { _id: [listOne, "id2"] })
-					const listTwoMail = createTestEntity(MailTypeRef, { _id: [listTwo, "id3"] })
+					const listOneMailOne = createTestEntity(MailTypeRef, {
+						_id: [listOne, "id1"],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
+					const listOneMailTwo = createTestEntity(MailTypeRef, {
+						_id: [listOne, "id2"],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
+					const listTwoMail = createTestEntity(MailTypeRef, {
+						_id: [listTwo, "id3"],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
 					await storage.put(listOneMailOne)
 					await storage.put(listOneMailTwo)
 					await storage.put(listTwoMail)
@@ -234,8 +262,16 @@ o.spec("OfflineStorageDb", function () {
 					const listId = "listId1"
 					const elementId1 = "id1"
 					const elementId2 = "id2"
-					const storableMail1 = createTestEntity(MailTypeRef, { _id: [listId, elementId1] })
-					const storableMail2 = createTestEntity(MailTypeRef, { _id: [listId, elementId2] })
+					const storableMail1 = createTestEntity(MailTypeRef, {
+						_id: [listId, elementId1],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
+					const storableMail2 = createTestEntity(MailTypeRef, {
+						_id: [listId, elementId2],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
 
 					await storage.init({ userId: elementId1, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -258,7 +294,11 @@ o.spec("OfflineStorageDb", function () {
 				o("deleteAllOfType", async function () {
 					const listId = "listId1"
 					const elementId = constructMailSetEntryId(new Date(), "mailId")
-					const storableMailSetEntry = createTestEntity(MailSetEntryTypeRef, { _id: [listId, elementId] })
+					const storableMailSetEntry = createTestEntity(MailSetEntryTypeRef, {
+						_id: [listId, elementId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
 
 					await storage.init({ userId: elementId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -284,8 +324,16 @@ o.spec("OfflineStorageDb", function () {
 					const listId = "listId1"
 					const elementId1 = constructMailSetEntryId(new Date(1724675875113), "mailId1")
 					const elementId2 = constructMailSetEntryId(new Date(1724675899978), "mailId2")
-					const storableMailSetEntry1 = createTestEntity(MailSetEntryTypeRef, { _id: [listId, elementId1] })
-					const storableMailSetEntry2 = createTestEntity(MailSetEntryTypeRef, { _id: [listId, elementId2] })
+					const storableMailSetEntry1 = createTestEntity(MailSetEntryTypeRef, {
+						_id: [listId, elementId1],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
+					const storableMailSetEntry2 = createTestEntity(MailSetEntryTypeRef, {
+						_id: [listId, elementId2],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+					})
 
 					await storage.init({ userId: elementId1, databaseKey, timeRangeDays, forceNewDatabase: false })
 
@@ -310,6 +358,8 @@ o.spec("OfflineStorageDb", function () {
 					const blobElementId = "id1"
 					const storableMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 						_id: [archiveId, blobElementId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					})
 
@@ -337,6 +387,7 @@ o.spec("OfflineStorageDb", function () {
 					const storableMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 						_id: [archiveId, blobElementId],
 						_ownerGroup,
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					})
 
@@ -367,6 +418,7 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailBoxTypeRef, {
 						_id: "mailboxId",
+						_ownerGroup: "ownerGroup",
 						_permissions: "permissions",
 						sentAttachments: "sentAttachments",
 						receivedAttachments: "receivedAttachments",
@@ -379,6 +431,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", spamFolderId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						entries: spamFolderEntriesId,
 						folderType: MailSetKind.SPAM,
 					}),
@@ -386,6 +440,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", trashFolderId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						entries: trashFolderEntriesId,
 						folderType: MailSetKind.TRASH,
 					}),
@@ -404,13 +460,24 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", "mailFolderId"],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						entries: listIdPart(mailSetEntryId),
 					}),
 				)
-				await storage.put(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
+				await storage.put(
+					createTestEntity(MailSetEntryTypeRef, {
+						_id: mailSetEntryId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						mail: mailId,
+					}),
+				)
 				await storage.put(
 					createTestEntity(MailTypeRef, {
 						_id: mailId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						mailDetails: mailDetailsBlobId,
 						sets: [mailSetEntryId],
 					}),
@@ -418,6 +485,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: mailDetailsBlobId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
@@ -451,6 +520,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", "mailFolderId"],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						entries: entriesListId,
 						folderType: MailSetKind.INBOX,
 					}),
@@ -481,6 +552,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", "mailFolderId"],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						entries: entriesListId,
 						folderType: MailSetKind.CUSTOM,
 					}),
@@ -518,20 +591,33 @@ o.spec("OfflineStorageDb", function () {
 
 				const mail = createTestEntity(MailTypeRef, {
 					_id: mailId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: mailDetailsBlobId,
 					sets: [mailSetEntryId],
 				})
 				const mailFolder = createTestEntity(MailFolderTypeRef, {
 					_id: ["mailFolderList", "folderId"],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					entries: listIdPart(mailSetEntryId),
 				})
 
 				await storage.put(mailFolder)
 				await storage.put(mail)
-				await storage.put(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
+				await storage.put(
+					createTestEntity(MailSetEntryTypeRef, {
+						_id: mailSetEntryId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						mail: mailId,
+					}),
+				)
 				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: mailDetailsBlobId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
@@ -577,20 +663,33 @@ o.spec("OfflineStorageDb", function () {
 
 				const mail = createTestEntity(MailTypeRef, {
 					_id: mailId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: mailDetailsBlobId,
 					sets: [mailSetEntryId],
 				})
 				const mailFolder = createTestEntity(MailFolderTypeRef, {
 					_id: ["mailFolderList", "folderId"],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					entries: listIdPart(mailSetEntryId),
 				})
 
 				await storage.put(mailFolder)
 				await storage.put(mail)
-				await storage.put(createTestEntity(MailSetEntryTypeRef, { _id: mailSetEntryId, mail: mailId }))
+				await storage.put(
+					createTestEntity(MailSetEntryTypeRef, {
+						_id: mailSetEntryId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
+						mail: mailId,
+					}),
+				)
 				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: mailDetailsBlobId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
@@ -633,16 +732,22 @@ o.spec("OfflineStorageDb", function () {
 				const spamMailId = offsetId(twoDaysAfterTimeRangeDays)
 				const spamMail = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, spamMailId],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: spamDetailsId,
 				})
 				const trashMailId = offsetId(threeDaysAfterTimeRangeDays)
 				const trashMail = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, trashMailId],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: trashDetailsId,
 				})
 				const trashSubfolderMailId = offsetId(fourDaysBeforeTimeRangeDays)
 				const trashSubfolderMail = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, trashSubfolderMailId],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: trashSubfolderDetailsId,
 				})
 
@@ -656,6 +761,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", trashSubfolderId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						parentFolder: ["mailFolderList", trashFolderId],
 						entries: trashSubfolderEntriesId,
 						folderType: MailSetKind.CUSTOM,
@@ -666,18 +773,24 @@ o.spec("OfflineStorageDb", function () {
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: spamMailSetEntryId,
 						mail: spamMail._id,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 					}),
 				)
 				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: trashMailSetEntryId,
 						mail: trashMail._id,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 					}),
 				)
 				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: trashSubfolderMailSetEntryId,
 						mail: trashSubfolderMail._id,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 					}),
 				)
 
@@ -688,18 +801,24 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: spamDetailsId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
 				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: trashDetailsId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
 				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: trashSubfolderDetailsId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
@@ -732,11 +851,15 @@ o.spec("OfflineStorageDb", function () {
 				const spamMailId = offsetId(twoDaysAfterTimeRangeDays)
 				const spamMail = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, spamMailId],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: spamDetailsId,
 				})
 				const trashMailId = offsetId(threeDaysBeforeTimeRangeDays)
 				const trashMail = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, trashMailId],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: trashDetailsId,
 				})
 
@@ -748,12 +871,16 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: spamMailSetEntryId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						mail: spamMail._id,
 					}),
 				)
 				await storage.put(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: trashMailSetEntryId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						mail: trashMail._id,
 					}),
 				)
@@ -765,12 +892,16 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: spamDetailsId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
 				await storage.put(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: trashDetailsId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef),
 					}),
 				)
@@ -812,27 +943,39 @@ o.spec("OfflineStorageDb", function () {
 
 				const mailBefore = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, offsetId(twoDaysBeforeTimeRangeDays)],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: beforeMailDetailsId,
 				})
 
 				const mailAfter = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, offsetId(twoDaysAfterTimeRangeDays)],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: afterMailDetailsId,
 				})
 				const mailSetEntryBefore = createTestEntity(MailSetEntryTypeRef, {
 					_id: twoDaysBeforeMailSetEntryId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mail: mailBefore._id,
 				})
 				const mailSetEntryAfter = createTestEntity(MailSetEntryTypeRef, {
 					_id: twoDaysAfterMailSetEntryId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mail: mailAfter._id,
 				})
 				const beforeMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 					_id: beforeMailDetailsId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 				const afterMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 					_id: afterMailDetailsId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 
@@ -841,6 +984,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", inboxFolderId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						folderType: MailSetKind.INBOX,
 						entries: inboxFolderEntriesId,
 					}),
@@ -883,28 +1028,40 @@ o.spec("OfflineStorageDb", function () {
 
 				const mailOneDayBefore = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, oneDayBeforeMailId],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: oneDayBeforeDetailsId,
 				})
 
 				const mailTwoDaysBefore = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, twoDaysBeforeMailId],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: twoDaysBeforeDetailsId,
 				})
 
 				const mailSetEntryTwoDaysBefore = createTestEntity(MailSetEntryTypeRef, {
 					_id: twoDaysBeforeMailSetEntryId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mail: mailTwoDaysBefore._id,
 				})
 				const mailSetEntryOneDayBefore = createTestEntity(MailSetEntryTypeRef, {
 					_id: oneDayBeforeMailSetEntryId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mail: mailOneDayBefore._id,
 				})
 				const oneDayBeforeMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 					_id: oneDayBeforeDetailsId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 				const twoDaysBeforeMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 					_id: twoDaysBeforeDetailsId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 
@@ -913,6 +1070,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", inboxFolderId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						folderType: MailSetKind.INBOX,
 						entries: inboxFolderEntriesId,
 					}),
@@ -959,28 +1118,40 @@ o.spec("OfflineStorageDb", function () {
 
 				const mailBefore = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, offsetId(twoDaysBeforeTimeRangeDays)],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: beforeMailDetailsId,
 					attachments: [fileBefore._id],
 				})
 				const mailAfter = createTestEntity(MailTypeRef, {
 					_id: [mailBagMailListId, offsetId(twoDaysAfterTimeRangeDays)],
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mailDetails: afterMailDetailsId,
 					attachments: [fileAfter._id],
 				})
 				const mailSetEntryBefore = createTestEntity(MailSetEntryTypeRef, {
 					_id: twoDaysBeforeMailSetEntryId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mail: mailBefore._id,
 				})
 				const mailSetEntryAfter = createTestEntity(MailSetEntryTypeRef, {
 					_id: twoDaysAfterMailSetEntryId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					mail: mailAfter._id,
 				})
 				const beforeMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 					_id: beforeMailDetailsId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 				const afterMailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 					_id: afterMailDetailsId,
+					_ownerGroup: "ownerGroup",
+					_permissions: "permissions",
 					details: createTestEntity(MailDetailsTypeRef),
 				})
 
@@ -989,6 +1160,8 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(
 					createTestEntity(MailFolderTypeRef, {
 						_id: ["mailFolderList", inboxFolderId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						folderType: MailSetKind.INBOX,
 					}),
 				)
@@ -1032,12 +1205,16 @@ o.spec("OfflineStorageDb", function () {
 				mailSetEntries.push(
 					createTestEntity(MailSetEntryTypeRef, {
 						_id: mailSetEntryId,
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						mail: [mailBagMailListId, mailId],
 					}),
 				)
 				mails.push(
 					createTestEntity(MailTypeRef, {
 						_id: [mailBagMailListId, mailId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						subject: getSubject(i),
 						sets: [folder._id],
 						mailDetails: ["detailsListId", mailDetailsId],
@@ -1046,6 +1223,8 @@ o.spec("OfflineStorageDb", function () {
 				mailDetailsBlobs.push(
 					createTestEntity(MailDetailsBlobTypeRef, {
 						_id: ["detailsListId", mailDetailsId],
+						_ownerGroup: "ownerGroup",
+						_permissions: "permissions",
 						details: createTestEntity(MailDetailsTypeRef, {
 							_id: mailDetailsId,
 							body: createTestEntity(BodyTypeRef, { text: getBody(i) }),
@@ -1065,12 +1244,16 @@ o.spec("OfflineStorageDb", function () {
 
 			const userMailbox = createTestEntity(MailBoxTypeRef, {
 				_id: "mailboxId",
+				_ownerGroup: "ownerGroup",
+				_permissions: "permissions",
 				currentMailBag: createTestEntity(MailBagTypeRef, { mails: mailBagMailListId }),
 				folders: createMailFolderRef({ folders: "mailFolderList" }),
 			})
 
 			const inboxFolder = createTestEntity(MailFolderTypeRef, {
 				_id: ["mailFolderList", oldIds.getNext()],
+				_ownerGroup: "ownerGroup",
+				_permissions: "permissions",
 				folderType: MailSetKind.INBOX,
 				entries: "inboxEntriesListId",
 			})
@@ -1102,6 +1285,8 @@ o.spec("OfflineStorageDb", function () {
 
 			const trashFolder = createTestEntity(MailFolderTypeRef, {
 				_id: ["mailFolderList", oldIds.getNext()],
+				_ownerGroup: "ownerGroup",
+				_permissions: "permissions",
 				folderType: MailSetKind.TRASH,
 				entries: "trashEntriesListId",
 			})
@@ -1120,6 +1305,8 @@ o.spec("OfflineStorageDb", function () {
 
 			const spamFolder = createTestEntity(MailFolderTypeRef, {
 				_id: ["mailFolderList", oldIds.getNext()],
+				_ownerGroup: "ownerGroup",
+				_permissions: "permissions",
 				folderType: MailSetKind.SPAM,
 				entries: "spamEntriesListId",
 			})
