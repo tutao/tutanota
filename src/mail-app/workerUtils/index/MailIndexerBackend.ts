@@ -18,7 +18,7 @@ import { Db, IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/se
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade"
 import { Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
-import { newSearchIndexDB } from "./Indexer"
+import { newSearchIndexDB } from "./IndexedDbIndexer"
 
 export interface MailWithDetailsAndAttachments {
 	mail: Mail

@@ -57,7 +57,7 @@ import Stream from "mithril/stream"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { Indexer } from "../../workerUtils/index/Indexer.js"
+import { IndexedDbIndexer } from "../../workerUtils/index/IndexedDbIndexer.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
@@ -203,7 +203,7 @@ export class SearchViewModel {
 		private readonly searchFacade: SearchFacade,
 		private readonly mailboxModel: MailboxModel,
 		private readonly logins: LoginController,
-		private readonly indexerFacade: Indexer,
+		private readonly indexerFacade: IndexedDbIndexer,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly mailOpenedListener: MailOpenedListener | null,

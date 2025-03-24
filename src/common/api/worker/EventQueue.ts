@@ -1,15 +1,17 @@
 import { OperationType } from "../common/TutanotaConstants.js"
 import { findAllAndRemove } from "@tutao/tutanota-utils"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
-import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
+import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
 
 export type QueuedBatch = {
-	events: EntityUpdate[]
+	events: readonly EntityUpdateData[]
 	groupId: Id
 	batchId: Id
 }
+
+type WritableQueuedBatch = QueuedBatch & { events: EntityUpdateData[] }
 
 export const enum EntityModificationType {
 	CREATE = "CREATE",
@@ -24,7 +26,7 @@ type QueueAction = (nextElement: QueuedBatch) => Promise<void>
  * @param batch entity updates of the batch.
  * @private visibleForTests
  */
-export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entityUpdate: EntityUpdate): EntityModificationType {
+export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdateData>, entityUpdate: EntityUpdateData): EntityModificationType {
 	for (const batchEvent of batch) {
 		if (
 			entityUpdate.instanceId === batchEvent.instanceId &&
@@ -58,7 +60,7 @@ export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entity
 // Adding brand for type safety.
 type LastOperationKey = string & { __brand: "lastOpeKey" }
 
-function lastOperationKey(update: EntityUpdate): LastOperationKey {
+function lastOperationKey(update: EntityUpdateData): LastOperationKey {
 	const typeIdentifier = `${update.application}/${update.type}`
 	if (update.instanceListId) {
 		return `${typeIdentifier}/${update.instanceListId}/${update.instanceId}` as LastOperationKey
@@ -69,7 +71,7 @@ function lastOperationKey(update: EntityUpdate): LastOperationKey {
 
 export class EventQueue {
 	/** Batches to process. Oldest first. */
-	private readonly eventQueue: Array<QueuedBatch>
+	private readonly eventQueue: Array<WritableQueuedBatch>
 	// the last processed operation for a given entity id
 	private readonly lastOperationForEntity: Map<LastOperationKey, QueuedBatch>
 	private processingBatch: QueuedBatch | null
@@ -105,8 +107,8 @@ export class EventQueue {
 	/**
 	 * @return whether the batch was added (not optimized away)
 	 */
-	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): boolean {
-		const newBatch: QueuedBatch = {
+	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>): boolean {
+		const newBatch: WritableQueuedBatch = {
 			events: [],
 			groupId,
 			batchId,
@@ -131,7 +133,7 @@ export class EventQueue {
 		return newBatch.events.length > 0
 	}
 
-	private optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): void {
+	private optimizingAddEvents(newBatch: WritableQueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>): void {
 		for (const newEvent of newEvents) {
 			const lastOpKey = lastOperationKey(newEvent)
 			const lastBatchForEntity = this.lastOperationForEntity.get(lastOpKey)

@@ -71,7 +71,7 @@ type RowsToReadForIndexKey = {
 export class SearchFacade {
 	_db: Db
 	_mailIndexer: MailIndexer
-	_suggestionFacades: SuggestionFacade<any>[]
+	_suggestionFacades: readonly SuggestionFacade<any>[]
 	_promiseMapCompat: PromiseMapFn
 	_entityClient: EntityClient
 
@@ -79,7 +79,7 @@ export class SearchFacade {
 		private readonly userFacade: UserFacade,
 		db: Db,
 		mailIndexer: MailIndexer,
-		suggestionFacades: SuggestionFacade<any>[],
+		suggestionFacades: readonly SuggestionFacade<any>[],
 		browserData: BrowserData,
 		entityClient: EntityClient,
 		private readonly sqlCipherFacade: SqlCipherFacade,
