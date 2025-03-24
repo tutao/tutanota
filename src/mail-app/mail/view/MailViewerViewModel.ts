@@ -1119,6 +1119,16 @@ export class MailViewerViewModel {
 		})
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult
 
+		if (!blockExternalContent) {
+			for (const link of links) {
+				link.removeAttribute("onclick");
+				link.style.pointerEvents = "auto";
+				link.style.color = ""; // reset any greyed-out color
+				link.removeAttribute("aria-disabled");
+				link.setAttribute("href", link.getAttribute("data-original-href") || link.getAttribute("href") || "#");
+			}
+		}
+
 		/**
 		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
 		 * the html body of the mail
