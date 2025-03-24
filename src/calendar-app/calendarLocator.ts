@@ -561,6 +561,7 @@ class CalendarLocator {
 			counterFacade,
 			bookingFacade,
 			mailAddressFacade,
+			keyVerificationFacade,
 			blobFacade,
 			userManagementFacade,
 			recoverCodeFacade,
@@ -586,6 +587,7 @@ class CalendarLocator {
 		this.counterFacade = counterFacade
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
+		this.keyVerificationFacade = keyVerificationFacade
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade

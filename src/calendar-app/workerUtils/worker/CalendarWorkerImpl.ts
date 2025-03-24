@@ -109,6 +109,10 @@ export class CalendarWorkerImpl implements NativeInterface {
 				return locator.mailAddress()
 			},
 
+			async keyVerificationFacade() {
+				return locator.keyVerification()
+			},
+
 			async blobAccessTokenFacade() {
 				return locator.blobAccessToken
 			},
