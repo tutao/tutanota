@@ -1,9 +1,10 @@
 use std::ops::{Add, Sub};
 
-use crate::date::DateTime;
 use regex::{Match, Regex};
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Weekday};
+
+use crate::date::DateTime;
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
 #[repr(u8)]
@@ -124,9 +125,9 @@ impl EventFacade {
 	pub fn generate_future_instances(
 		&self,
 		date: DateTime,
-		repeat_rule: EventRepeatRule,
+		repeat_rule: &EventRepeatRule,
 	) -> Vec<DateTime> {
-		let Ok(parsed_date) = OffsetDateTime::from_unix_timestamp(date.as_millis() as i64) else {
+		let Ok(parsed_date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
 			return Vec::new();
 		};
 
@@ -243,8 +244,43 @@ impl EventFacade {
 			Some(date_timestamp),
 		)
 		.iter()
-		.map(|date| DateTime::from_millis(date.assume_utc().unix_timestamp() as u64))
+		.map(|date| DateTime::from_millis(date.assume_utc().unix_timestamp().unsigned_abs() * 1000))
 		.collect()
+	}
+
+	pub fn create_event_instances(
+		&self,
+		event_start_time: DateTime,
+		event_end_time: DateTime,
+		repeat_rule: EventRepeatRule,
+		repeat_interval: u8,
+		end_type: EndType,
+		end_value: u64,
+		excluded_dates: Vec<DateTime>,
+		force_stop_time_condition: DateTime,
+	) {
+		let is_all_day_event = self.is_all_day_event_by_times(event_start_time, event_end_time);
+		let mut occurrences = 0;
+
+		while (end_type != EndType::Count || occurrences < end_value) {
+			let Ok(mut start_time) =
+				OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
+			else {
+				break;
+			};
+
+			let repeat_frequency = repeat_rule.frequency;
+			start_time = self.increment_date_by_repeat_period(
+				&start_time,
+				repeat_interval,
+				&repeat_frequency,
+			);
+
+			let expanded_events = self.generate_future_instances(
+				DateTime::from_millis(start_time.unix_timestamp().unsigned_abs()),
+				&repeat_rule,
+			);
+		}
 	}
 }
 
@@ -952,33 +988,6 @@ impl EventFacade {
 		clean_dates
 	}
 
-	pub fn create_event_instances(
-		&self,
-		event_start_time: DateTime,
-		event_end_time: DateTime,
-		repeat_rule: EventRepeatRule,
-		repeat_interval: u8,
-		end_type: EndType,
-		end_value: u64,
-		excluded_dates: Vec<DateTime>,
-		force_stop_time_condition: DateTime,
-	) {
-		let is_all_day_event = self.is_all_day_event_by_times(event_start_time, event_end_time);
-		let mut occurrences = 0;
-		while (end_type != EndType::Count || occurrences < end_value) {
-			let Ok(mut start_time) =
-				OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
-			else {
-				break;
-			};
-			start_time = self.increment_date_by_repeat_period(
-				&start_time,
-				repeat_interval,
-				&repeat_rule.frequency,
-			)
-		}
-	}
-
 	pub fn increment_date_by_repeat_period(
 		&self,
 		start_date: &OffsetDateTime,
@@ -989,8 +998,12 @@ impl EventFacade {
 			RepeatPeriod::Daily => start_date.add(Duration::days(repeat_interval as i64)),
 			RepeatPeriod::Weekly => start_date.add(Duration::weeks(repeat_interval as i64)),
 			RepeatPeriod::Monthly => self.add_months_to_date(start_date, repeat_interval),
-			RepeatPeriod::Annually => self.add_months_to_date(start_date, repeat_interval * 12),
+			RepeatPeriod::Annually => self.add_years_to_date(start_date, repeat_interval),
 		}
+	}
+
+	fn add_years_to_date(&self, date: &OffsetDateTime, years: u8) -> OffsetDateTime {
+		self.add_months_to_date(date, years * 12)
 	}
 
 	fn add_months_to_date(&self, date: &OffsetDateTime, months: u8) -> OffsetDateTime {
@@ -998,7 +1011,7 @@ impl EventFacade {
 			return date.clone();
 		}
 
-		let mut date = date.clone();
+		let date = date.clone();
 
 		let target_month = date.month().nth_next(months);
 		let mut sum_years = (months / 12) as i32;
@@ -1059,7 +1072,7 @@ mod tests {
 	}
 	impl PrimitiveToDateTime for PrimitiveDateTime {
 		fn to_date_time(&self) -> DateTime {
-			DateTime::from_millis(self.assume_utc().unix_timestamp() as u64)
+			DateTime::from_millis(self.assume_utc().unix_timestamp().unsigned_abs() * 1000)
 		}
 	}
 
@@ -1072,10 +1085,42 @@ mod tests {
 		)
 		.assume_utc();
 
+		let feb_29 = PrimitiveDateTime::new(
+			Date::from_calendar_date(2024, Month::February, 29).unwrap(),
+			Time::from_hms(0, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let dec_31 = PrimitiveDateTime::new(
+			Date::from_calendar_date(2024, Month::December, 31).unwrap(),
+			Time::from_hms(0, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
 		assert_eq!(
 			event_facade.add_months_to_date(&jan_31, 1).date(),
 			Date::from_calendar_date(2025, Month::February, 28).unwrap()
-		)
+		);
+
+		assert_eq!(
+			event_facade.add_months_to_date(&jan_31, 2).date(),
+			Date::from_calendar_date(2025, Month::March, 31).unwrap()
+		);
+
+		assert_eq!(
+			event_facade.add_months_to_date(&jan_31, 3).date(),
+			Date::from_calendar_date(2025, Month::April, 30).unwrap()
+		);
+
+		assert_eq!(
+			event_facade.add_months_to_date(&dec_31, 1).date(),
+			Date::from_calendar_date(2025, Month::January, 31).unwrap()
+		);
+
+		assert_eq!(
+			event_facade.add_months_to_date(&feb_29, 12).date(),
+			Date::from_calendar_date(2025, Month::February, 28).unwrap()
+		);
 	}
 
 	#[test]
@@ -2188,25 +2233,25 @@ mod tests {
 		assert_eq!(
 			event_recurrence.generate_future_instances(
 				date.replace_month(Month::January).unwrap().to_date_time(),
-				repeat_rule.clone(),
+				&repeat_rule,
 			),
 			[]
 		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.to_date_time()]
 		);
 		assert_eq!(
 			event_recurrence.generate_future_instances(
 				date.replace_month(Month::February).unwrap().to_date_time(),
-				repeat_rule.clone(),
+				&repeat_rule,
 			),
 			[date.replace_month(Month::February).unwrap().to_date_time()]
 		);
 		assert_eq!(
 			event_recurrence.generate_future_instances(
 				date.replace_month(Month::June).unwrap().to_date_time(),
-				repeat_rule.clone(),
+				&repeat_rule,
 			),
 			[date.replace_month(Month::June).unwrap().to_date_time()]
 		);
@@ -2240,7 +2285,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[]
 		);
 	}
@@ -2277,13 +2322,13 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.replace_day(14).unwrap().to_date_time()]
 		);
 		assert_eq!(
 			event_recurrence.generate_future_instances(
 				date.replace_day(13).unwrap().to_date_time(),
-				repeat_rule.clone(),
+				&repeat_rule,
 			),
 			[]
 		);
@@ -2307,13 +2352,13 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.replace_day(10).unwrap().to_date_time(),]
 		);
 		assert_eq!(
 			event_recurrence.generate_future_instances(
 				date.replace_month(Month::January).unwrap().to_date_time(),
-				repeat_rule.clone(),
+				&repeat_rule,
 			),
 			[]
 		);
@@ -2347,7 +2392,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(13).unwrap().to_date_time(),
 				date.replace_day(14).unwrap().to_date_time()
@@ -2379,7 +2424,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(13).unwrap().to_date_time(),
 				date.replace_day(14).unwrap().to_date_time()
@@ -2411,7 +2456,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(3).unwrap().to_date_time(),
 				date.replace_day(4).unwrap().to_date_time()
@@ -2447,7 +2492,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.replace_day(13).unwrap().to_date_time(),]
 		);
 	}
@@ -2480,7 +2525,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(7).unwrap().to_date_time(),
 				date.replace_day(13).unwrap().to_date_time(),
@@ -2506,7 +2551,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(14).unwrap().to_date_time(),
 				date.replace_day(21).unwrap().to_date_time(),
@@ -2533,7 +2578,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.replace_day(14).unwrap().to_date_time(),]
 		);
 	}
@@ -2562,7 +2607,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(21).unwrap().to_date_time(),
 				date.replace_day(28).unwrap().to_date_time(),
@@ -2592,12 +2637,12 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.replace_day(10).unwrap().to_date_time(),]
 		);
 		assert_eq!(
 			event_recurrence
-				.generate_future_instances(date_not_in_range.to_date_time(), repeat_rule.clone()),
+				.generate_future_instances(date_not_in_range.to_date_time(), &repeat_rule),
 			[]
 		);
 	}
@@ -2626,7 +2671,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(25).unwrap().to_date_time(),
 				date.replace_day(28).unwrap().to_date_time(),
@@ -2662,7 +2707,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.replace_day(28).unwrap().to_date_time()]
 		);
 	}
@@ -2695,7 +2740,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(13).unwrap().to_date_time(),
 				date.replace_day(14).unwrap().to_date_time(),
@@ -2750,7 +2795,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			expected_dates
 		);
 	}
@@ -2779,14 +2824,14 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.replace_day(13).unwrap().to_date_time()]
 		);
 
 		assert_eq!(
 			event_recurrence.generate_future_instances(
 				date.replace_month(Month::March).unwrap().to_date_time(),
-				repeat_rule.clone(),
+				&repeat_rule,
 			),
 			[]
 		);
@@ -2816,14 +2861,14 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[date.replace_day(20).unwrap().to_date_time()]
 		);
 
 		assert_eq!(
 			event_recurrence.generate_future_instances(
 				date.replace_month(Month::March).unwrap().to_date_time(),
-				repeat_rule.clone(),
+				&repeat_rule,
 			),
 			[date
 				.replace_year(2026)
@@ -2862,7 +2907,7 @@ mod tests {
 		let event_recurrence = EventFacade {};
 
 		assert_eq!(
-			event_recurrence.generate_future_instances(valid_date.to_date_time(), repeat_rule),
+			event_recurrence.generate_future_instances(valid_date.to_date_time(), &repeat_rule),
 			[]
 		);
 	}
@@ -2891,7 +2936,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(18).unwrap().to_date_time(),
 				date.replace_day(19).unwrap().to_date_time(),
@@ -2932,7 +2977,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 		assert_eq!(
-			event_recurrence.generate_future_instances(date.to_date_time(), repeat_rule.clone()),
+			event_recurrence.generate_future_instances(date.to_date_time(), &repeat_rule),
 			[
 				date.replace_day(13).unwrap().to_date_time(),
 				date.replace_day(14).unwrap().to_date_time(),
