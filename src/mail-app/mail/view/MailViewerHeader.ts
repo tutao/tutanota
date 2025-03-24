@@ -761,7 +761,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		    const confirmButton: BannerButtonAttrs = {
 		        title: "mobyPhish_confirm",
-		    	label: "emptyString_msg",
+		    	label: "mobyPhish_confirm",
 				icon: m(Icon, { icon: Icons.Checkmark }),
 		        click: async () => {
 		        	await viewModel.updateSenderStatus("confirmed", "interacted");		        	
@@ -779,9 +779,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
         	const denyButton: BannerButtonAttrs = {
     	        title: "mobyPhish_deny",
-        	 	label: "emptyString_msg",
+        	 	label: "mobyPhish_deny",
     	        icon: m(Icon, { icon: Icons.Close}),
-    	        click: () => modal.display(new MobyPhishDenyModal(viewModel)),
+    	        click: () => {
+					const modalInstance = new MobyPhishDenyModal(viewModel);
+					const handle = modal.display(modalInstance);
+					modalInstance.setModalHandle(handle);
+				},
     		    style: {
     		        backgroundColor: "red",
     		        color: "white",
@@ -815,7 +819,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
         	const addButton: BannerButtonAttrs = {
 				title: "mobyPhish_add",
-				label: "emptyString_msg",
+				label: "mobyPhish_add",
 				icon: m(Icon, { icon: Icons.Add }),
 				click: async () => {
 					const senderEmail = viewModel.getSender().address;
@@ -858,7 +862,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			
 			const trustOnceButton: BannerButtonAttrs = {
 				title: "mobyPhish_trust_once",
-				label: "emptyString_msg",
+				label: "mobyPhish_trust_once",
 				icon: m(Icon, { icon: Icons.Unlock }),
 				click: async () => {
 					try {
