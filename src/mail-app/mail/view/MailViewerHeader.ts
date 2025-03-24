@@ -879,7 +879,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				}
 			};
 
-    	    buttons.push(confirmButton, addButton);
+    	    buttons.push(confirmButton, addButton, trustOnceButton);
 	    }  
 
 	    return m(InfoBanner, {
