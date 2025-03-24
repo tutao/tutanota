@@ -1117,14 +1117,14 @@ export class MailViewerViewModel {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
-		
+
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult
 
-		if (!blockExternalContent) {
+		if (this.senderStatus === "trusted_once" || this.contentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
 			for (const link of links) {
 				link.removeAttribute("onclick");
 				link.style.pointerEvents = "auto";
-				link.style.color = ""; // reset any greyed-out color
+				link.style.color = "";
 				link.removeAttribute("aria-disabled");
 				link.setAttribute("href", link.getAttribute("data-original-href") || link.getAttribute("href") || "#");
 			}
