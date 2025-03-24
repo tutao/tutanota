@@ -801,7 +801,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		    const confirmButton: BannerButtonAttrs = {
 		        title: "mobyPhish_confirm",
-		    	label: "emptyString_msg",
+		    	label: "mobyPhish_confirm",
 				icon: m(Icon, { icon: Icons.Checkmark }),
 		        click: () => {
 		        	const modalInstance = new MobyPhishReportPhishingModal(viewModel);
