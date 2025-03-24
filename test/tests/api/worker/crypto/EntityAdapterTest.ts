@@ -2,18 +2,13 @@ import o from "@tutao/otest"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { ImportMailGetInTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../TestUtils"
-import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { BucketKeyTypeRef, GroupInfoTypeRef, GroupTypeRef, PermissionTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
-import { InstanceWrapper } from "../../../../../src/common/api/worker/crypto/InstanceWrapper"
-import { VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
-import { PermissionType } from "../../../../../src/common/api/common/TutanotaConstants"
-import { EncryptedParsedInstance, ParsedInstance, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { aes256RandomKey } from "@tutao/tutanota-crypto"
-import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { BucketKeyTypeRef, GroupInfoTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
+import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 
-o.spec("InstanceWrapperTest", () => {
-	const instanceMapper = new ModelMapper()
+o.spec("EntityAdapter", () => {
+	const instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 
 	o.test("can create local mapped/decrypted instance - GroupInfo", async () => {
 		const groupModel = await resolveTypeReference(GroupInfoTypeRef)
@@ -25,17 +20,15 @@ o.spec("InstanceWrapperTest", () => {
 			_ownerKeyVersion: "99",
 			_listEncSessionKey: stringToUtf8Uint8Array("listEncSessionKey"),
 		})
-		const groupInfoParsed = await instanceMapper.applyServerModel(groupInfo)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, groupModel, groupInfoParsed)
+		const groupInfoParsed = await instancePipeline.modelMapper.applyServerModel(GroupInfoTypeRef, groupInfo)
+		const entityAdapter = await EntityAdapter.from(groupModel, groupInfoParsed, instancePipeline)
 
-		o(instanceWrapper.id).equals(null)
-		o(instanceWrapper._ownerGroup).equals("ownerGroupId")
-		o(instanceWrapper._ownerEncSessionKey).deepEquals({
-			key: groupInfo._ownerEncSessionKey!,
-			encryptingKeyVersion: 99,
-		} satisfies VersionedEncryptedKey)
-		o(instanceWrapper.permissionId).equals("permissionListId")
-		o(instanceWrapper.listEncSessionKey).deepEquals(stringToUtf8Uint8Array("listEncSessionKey"))
+		o(entityAdapter._id).equals(null)
+		o(entityAdapter._ownerGroup).equals("ownerGroupId")
+		o(entityAdapter._ownerEncSessionKey).equals(groupInfo._ownerEncSessionKey!)
+		o(entityAdapter._ownerKeyVersion).equals("99")
+		o(entityAdapter._permissions).equals("permissionListId")
+		o(entityAdapter._listEncSessionKey).deepEquals(stringToUtf8Uint8Array("listEncSessionKey"))
 	})
 
 	o.test("can create local mapped/decrypted instance - Mail", async () => {
@@ -49,17 +42,15 @@ o.spec("InstanceWrapperTest", () => {
 			bucketKey: createTestEntity(BucketKeyTypeRef, { _id: "bucketKey" }),
 		})
 
-		const mailParsed = await instanceMapper.applyAttrIds(mail)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
+		const mailParsed = await instancePipeline.modelMapper.applyServerModel(MailTypeRef, mail)
+		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline)
 
-		o(instanceWrapper.id).equals(null)
-		o(instanceWrapper._ownerGroup).equals("ownerGroupId")
-		o(instanceWrapper._ownerEncSessionKey).deepEquals({
-			key: mail._ownerEncSessionKey!,
-			encryptingKeyVersion: 99,
-		} satisfies VersionedEncryptedKey)
-		o(instanceWrapper.permissionId).equals("permissionListId")
-		o(instanceWrapper.bucketKey).deepEquals(mail.bucketKey)
+		o(entityAdapter._id).equals(null)
+		o(entityAdapter._ownerGroup).equals("ownerGroupId")
+		o(entityAdapter._ownerEncSessionKey).equals(mail._ownerEncSessionKey!)
+		o(entityAdapter._ownerKeyVersion).equals("99")
+		o(entityAdapter._permissions).equals("permissionListId")
+		o(entityAdapter.bucketKey).deepEquals(mail.bucketKey)
 	})
 
 	o.test("can create local mapped/decrypted data transfer instance", async () => {
@@ -70,82 +61,11 @@ o.spec("InstanceWrapperTest", () => {
 			ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			ownerKeyVersion: "99",
 		})
-		const importMailGetInParsed = await instanceMapper.applyAttrIds(importMailGetIn)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, importMailGetInModel, importMailGetInParsed)
-
-		o(instanceWrapper.id).equals(null)
-		o(instanceWrapper.ownerEncSessionKey).deepEquals({
-			key: importMailGetIn.ownerEncSessionKey!,
-			encryptingKeyVersion: 99,
-		} satisfies VersionedEncryptedKey)
-	})
-
-	o.test("update permission public", async () => {
-		const mailModel = await resolveTypeReference(MailTypeRef)
-
-		const mail = createTestEntity(MailTypeRef, {})
-
-		const mailParsed = await instanceMapper.applyServerModel(mail)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
-
-		const pubPermission = createTestEntity(PermissionTypeRef, {
-			type: PermissionType.Public,
-		})
-
-		instanceWrapper.updatePermission([pubPermission])
-		o(instanceWrapper.publicOrExternalPermission).equals(pubPermission)
-		o(instanceWrapper.symmetricOrPublicSymmetricPermission).equals(null)
-	})
-
-	o.test("update permission external", async () => {
-		const mailModel = await resolveTypeReference(MailTypeRef)
-
-		const mail = createTestEntity(MailTypeRef, {})
-
-		const mailParsed = await instanceMapper.applyAttrIds(mail)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
-
-		const extPermission = createTestEntity(PermissionTypeRef, {
-			type: PermissionType.External,
-		})
-
-		instanceWrapper.updatePermission([extPermission])
-		o(instanceWrapper.publicOrExternalPermission).equals(extPermission)
-		o(instanceWrapper.symmetricOrPublicSymmetricPermission).equals(null)
-	})
-
-	o.test("update permission symmetric", async () => {
-		const mailModel = await resolveTypeReference(MailTypeRef)
-
-		const mail = createTestEntity(MailTypeRef, {})
-
-		const mailParsed = await instanceMapper.applyAttrIds(mail)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
-
-		const symPermission = createTestEntity(PermissionTypeRef, {
-			type: PermissionType.Symmetric,
-		})
-
-		instanceWrapper.updatePermission([symPermission])
-		o(instanceWrapper.publicOrExternalPermission).equals(null)
-		o(instanceWrapper.symmetricOrPublicSymmetricPermission).equals(symPermission)
-	})
-
-	o.test("update permission public symmetric", async () => {
-		const mailModel = await resolveTypeReference(MailTypeRef)
-
-		const mail = createTestEntity(MailTypeRef, {})
-
-		const mailParsed = await instanceMapper.applyAttrIds(mail)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
-
-		const pubSymPermission = createTestEntity(PermissionTypeRef, {
-			type: PermissionType.Public_Symmetric,
-		})
-
-		instanceWrapper.updatePermission([pubSymPermission])
-		o(instanceWrapper.publicOrExternalPermission).equals(null)
-		o(instanceWrapper.symmetricOrPublicSymmetricPermission).equals(pubSymPermission)
+		const importMailGetInParsed = await instancePipeline.modelMapper.applyServerModel(ImportMailGetInTypeRef, importMailGetIn)
+		const entityAdapter = await EntityAdapter.from(importMailGetInModel, importMailGetInParsed, instancePipeline)
+		o(entityAdapter._id).equals(null)
+		o(entityAdapter._ownerEncSessionKey).equals(importMailGetIn.ownerEncSessionKey!)
+		o(entityAdapter._ownerKeyVersion).equals("99")
 	})
 
 	o.test("set _ownerEncSessionKey", async () => {
@@ -153,92 +73,32 @@ o.spec("InstanceWrapperTest", () => {
 
 		const mail = createTestEntity(MailTypeRef, {})
 
-		const mailParsed = await instanceMapper.applyAttrIds(mail)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
+		const mailParsed = await instancePipeline.modelMapper.applyServerModel(MailTypeRef, mail)
+		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline)
 
-		const ownerEncSk: VersionedEncryptedKey = {
-			encryptingKeyVersion: 99,
-			key: new Uint8Array([1, 2, 3]),
-		}
+		const ownerEncSk: Uint8Array = new Uint8Array([1, 2, 3])
 
-		const ownerEncSessionKeyFieldId = assertNotNull(AttributeModel.getAttributeId(mailModel, "_ownerEncSessionKey"))?.toString()
-		const ownerEncSessionKeyVersionFieldId = assertNotNull(AttributeModel.getAttributeId(mailModel, "_ownerEncSessionKeyVersion"))?.toString()
+		o(entityAdapter._ownerEncSessionKey).equals(null)
+		o(entityAdapter._ownerKeyVersion).equals(null)
 
-		o(instanceWrapper.ownerEncSessionKey).equals(null)
-		o(instanceWrapper.instance[ownerEncSessionKeyFieldId]).equals(null)
-		o(instanceWrapper.instance[ownerEncSessionKeyVersionFieldId]).equals(null)
+		entityAdapter._ownerEncSessionKey = ownerEncSk
+		entityAdapter._ownerKeyVersion = "99"
 
-		instanceWrapper.set_ownerEncSessionKey(ownerEncSk)
-
-		o(instanceWrapper.ownerEncSessionKey).equals(ownerEncSk)
-		o(instanceWrapper.instance[ownerEncSessionKeyFieldId]).equals(ownerEncSk.key)
-		o(instanceWrapper.instance[ownerEncSessionKeyVersionFieldId]).equals(ownerEncSk.encryptingKeyVersion.toString())
+		o(entityAdapter._ownerEncSessionKey).equals(ownerEncSk)
+		o(entityAdapter._ownerKeyVersion).equals("99")
 	})
 
 	o.test("set _ownerGroup", async () => {
 		const mailModel = await resolveTypeReference(MailTypeRef)
 
 		const mail = createTestEntity(MailTypeRef, {})
-
-		const mailParsed = await instanceMapper.applyAttrIds(mail)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
+		const mailParsed = await instancePipeline.modelMapper.applyServerModel(MailTypeRef, mail)
+		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline)
 
 		const ownerGroupId = "ownerGroupId"
+		o(entityAdapter._ownerGroup).equals(null)
+		entityAdapter._ownerGroup = ownerGroupId
 
-		const ownerGroupFieldId = assertNotNull(AttributeModel.getAttributeId(mailModel, "_ownerGroup"))?.toString()
-
-		o(instanceWrapper._ownerGroup).equals(null)
-		o(instanceWrapper.instance[ownerGroupFieldId]).equals(null)
-
-		instanceWrapper.set_ownerGroup(ownerGroupId)
-
-		o(instanceWrapper._ownerGroup).equals(ownerGroupId)
-		o(instanceWrapper.instance[ownerGroupFieldId]).equals(ownerGroupId)
-	})
-
-	o.test("toWireFormat roundtrip", async () => {
-		const mailModel = await resolveTypeReference(MailTypeRef)
-
-		const mail = createTestEntity(MailTypeRef, {
-			_ownerGroup: "ownerGroupId",
-		})
-		const sk = aes256RandomKey()
-
-		const mailParsed = await instanceMapper.applyAttrIds(mail)
-		const instanceWrapperFromInstance = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsed)
-		instanceWrapperFromInstance.setResolvedSessionKey(sk)
-		const wireFormatFromInstance = await instanceWrapperFromInstance.toWireFormat()
-
-		const untyptedInstance: UntypedInstance = JSON.parse(wireFormatFromInstance)
-		const encryptedParsedInstance: EncryptedParsedInstance = instanceMapper.applyJsTypes(untyptedInstance, mailModel)
-		const instanceWrapperFromEncParsed = await InstanceWrapper.fromEncryptedParsedInstance(instanceMapper, mailModel, encryptedParsedInstance)
-		instanceWrapperFromEncParsed.setResolvedSessionKey(sk)
-		const wireFormatFromEncParsed = await instanceWrapperFromEncParsed.toWireFormat()
-
-		o(wireFormatFromInstance).deepEquals(wireFormatFromEncParsed)
-
-		o(await instanceWrapperFromEncParsed.provideDecryptedInstance()).deepEquals(mail)
-	})
-
-	o.test("update ServerPath for ElementType", async () => {
-		const groupModel = await resolveTypeReference(GroupTypeRef)
-		const group = createTestEntity(GroupTypeRef, { _id: "groupId" })
-
-		const groupParsedInstance: ParsedInstance = await instanceMapper.applyServerModel(group)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, groupModel, groupParsedInstance)
-
-		const serverPath = await instanceWrapper.getInstanceUpdateServerPath()
-		o(serverPath).equals(`/rest/sys/group/groupId`)
-	})
-
-	o.test("update ServerPath for ListElementType", async () => {
-		const mailModel = await resolveTypeReference(MailTypeRef)
-		const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"] })
-
-		const mailParsedInstance: ParsedInstance = await instanceMapper.applyServerModel(mail)
-		const instanceWrapper = await InstanceWrapper.fromParsedInstance(instanceMapper, mailModel, mailParsedInstance)
-
-		const serverPath = await instanceWrapper.getInstanceUpdateServerPath()
-		o(serverPath).equals(`/rest/tutanota/mail/mailListId/mailId`)
+		o(entityAdapter._ownerGroup).equals(ownerGroupId)
 	})
 })
