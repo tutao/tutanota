@@ -16,12 +16,19 @@ import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/Crypto
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
-import { BlobGetIn, BlobPostOutTypeRef, BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
+import {
+	BlobGetIn,
+	BlobGetInTypeRef,
+	BlobPostOutTypeRef,
+	BlobServerAccessInfoTypeRef,
+	BlobServerUrlTypeRef,
+} from "../../../../../src/common/api/entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { elementIdPart, getElementId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { typeModels as storageTypeModels } from "../../../../../src/common/api/entities/storage/TypeModels"
 
 const { anything, captor } = matchers
 
@@ -133,16 +140,15 @@ o.spec("BlobFacade test", function () {
 			})
 
 			env.mode = Mode.Desktop
+			env.versionNumber = "274.250306.0"
 			const referenceTokens = await blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey)
 
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
 			verify(
-				fileAppMock.upload(
-					encryptedFileInfo.uri,
-					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
-					HttpMethod.POST,
-					{},
-				),
+				fileAppMock.upload(encryptedFileInfo.uri, `http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, HttpMethod.POST, {
+					v: storageTypeModels[BlobGetInTypeRef.typeId].version,
+					cv: env.versionNumber,
+				}),
 			)
 		})
 	})
@@ -274,6 +280,7 @@ o.spec("BlobFacade test", function () {
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
 			env.mode = Mode.Desktop
+			env.versionNumber = "265.250101.0"
 
 			const decryptedFileReference = await blobFacade.downloadAndDecryptNative(
 				archiveDataType,
@@ -290,7 +297,12 @@ o.spec("BlobFacade test", function () {
 				location: decryptedUri,
 			}
 			o(decryptedFileReference).deepEquals(expectedFileReference)
-			verify(fileAppMock.download(`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, blobs[0].blobId + ".blob", {}))
+			verify(
+				fileAppMock.download(`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, blobs[0].blobId + ".blob", {
+					v: storageTypeModels[BlobGetInTypeRef.typeId].version,
+					cv: env.versionNumber,
+				}),
+			)
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))
 		})
@@ -505,14 +517,14 @@ o.spec("BlobFacade test", function () {
 				restClientMock.request(
 					BLOB_SERVICE_REST_PATH,
 					HttpMethod.GET,
-					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse(options.body as string).body === 1),
+					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse(options.body as string).body === "1"),
 				),
 			).thenResolve(blobResponse1)
 			when(
 				restClientMock.request(
 					BLOB_SERVICE_REST_PATH,
 					HttpMethod.GET,
-					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse(options.body as string).body === 2),
+					matchers.argThat((options: RestClientOptions) => options.body && JSON.parse(options.body as string).body === "2"),
 				),
 			).thenResolve(blobResponse2)
 
