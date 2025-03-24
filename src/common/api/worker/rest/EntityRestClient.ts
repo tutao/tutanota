@@ -356,8 +356,6 @@ export class EntityRestClient implements EntityRestInterface {
 			async (instance) => {
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, instance)
 				let entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
-				// fixme: why we need to migrate here?
-				// entityAdapter = await this._crypto.applyMigrations(typeModel, typeRef, entityAdapter)
 				return this._decryptMapAndMigrate(typeModel, entityAdapter, ownerEncSessionKeyProvider)
 			},
 			{

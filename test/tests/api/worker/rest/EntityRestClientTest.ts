@@ -89,6 +89,7 @@ o.spec("EntityRestClient", function () {
 		)
 
 		instancePipelineMock = new InstancePipeline(resolveTypeReference, resolveTypeReference)
+		// instead of mocking the instance pipeline itself, mock it's internal mapper.
 		Object.assign(instancePipelineMock, {
 			modelMapper: object(),
 			cryptoMapper: object(),
@@ -898,36 +899,38 @@ o.spec("EntityRestClient", function () {
 			o(result.message).equals("Id must be defined")
 		})
 
-		// 	o("when ownerKey is passed it is used instead for session key resolution", async function () {
-		// 		const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
-		// 		const version = typeModel.version
-		// 		const ownerKeyVersion = 2
-		// 		const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
-		// 			_id: "id",
-		// 			_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
-		// 			_ownerKeyVersion: String(ownerKeyVersion),
-		// 		})
-		// 		when(
-		// 			restClient.request("/rest/sys/customerserverproperties/id", HttpMethod.PUT, {
-		// 				headers: { ...authHeader, v: version },
-		// 				body: JSON.stringify({ ...newCustomerServerProperties, encrypted: true }),
-		// 			}),
-		// 		)
-		//
-		// 		const ownerKey = freshVersioned([1, 2, 3])
-		// 		const sessionKey = [3, 2, 1]
-		// 		when(cryptoFacadeMock.decryptSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
-		//
-		// 		await entityRestClient.update(newCustomerServerProperties, {
-		// 			ownerKeyProvider: async (version) => {
-		// 				o(version).equals(ownerKeyVersion)
-		// 				return ownerKey.object
-		// 			},
-		// 		})
-		//
-		// 		verify(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
-		// 		verify(cryptoFacadeMock.resolveSessionKey(anything()), { times: 0 })
-		// 	})
+		o("when ownerKey is passed it is used instead for session key resolution", async function () {
+			const typeModel = await resolveTypeReference(CustomerServerPropertiesTypeRef)
+			const version = typeModel.version
+			const ownerKeyVersion = 2
+			const newCustomerServerProperties = createTestEntity(CustomerServerPropertiesTypeRef, {
+				_id: "my-customer-id",
+				_ownerEncSessionKey: new Uint8Array([4, 5, 6]),
+				_ownerKeyVersion: String(ownerKeyVersion),
+			})
+			const isMyCustomer = (instance) => (instance["_id"] = "my-customer-id")
+
+			when(
+				restClient.request("/rest/sys/customerserverproperties/my-customer-id", HttpMethod.PUT, {
+					headers: { ...authHeader, v: version },
+					body: JSON.stringify({ ...newCustomerServerProperties, encrypted: true }),
+				}),
+			)
+
+			const ownerKey = freshVersioned([1, 2, 3])
+			const sessionKey = [3, 2, 1]
+			when(cryptoFacadeMock.decryptSessionKeyWithOwnerKey(anything(), ownerKey.object)).thenReturn(sessionKey)
+
+			await entityRestClient.update(newCustomerServerProperties, {
+				ownerKeyProvider: async (version) => {
+					o(version).equals(ownerKeyVersion)
+					return ownerKey.object
+				},
+			})
+
+			verify(instancePipelineMock.cryptoMapper.encryptParsedInstance(typeModel, argThat(isMyCustomer), sessionKey))
+			verify(cryptoFacadeMock.resolveSessionKey(anything()), { times: 0 })
+		})
 	})
 
 	o.spec("Delete", function () {
