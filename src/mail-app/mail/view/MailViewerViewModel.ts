@@ -1117,6 +1117,7 @@ export class MailViewerViewModel {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
+		
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult
 
 		if (!blockExternalContent) {
