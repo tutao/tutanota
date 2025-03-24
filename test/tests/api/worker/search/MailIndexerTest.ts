@@ -258,7 +258,7 @@ o.spec("MailIndexer test", () => {
 				return keyToIndexEntries
 			})
 		})
-		return indexer.processNewMail([event.instanceListId, event.instanceId]).then((result) => {
+		return indexer.downloadNewMailData([event.instanceListId, event.instanceId]).then((result) => {
 			o(indexer.createMailIndexEntries.callCount).equals(1)
 			o(result).deepEquals({
 				mail,
@@ -272,7 +272,7 @@ o.spec("MailIndexer test", () => {
 			instanceListId: "lid",
 			instanceId: "eid",
 		} as any
-		const result = await indexer.processNewMail([event.instanceListId, event.instanceId])
+		const result = await indexer.downloadNewMailData([event.instanceListId, event.instanceId])
 		o(result).equals(null)
 	})
 	o("processNewMail catches NotAuthorizedError", function () {
@@ -282,7 +282,7 @@ o.spec("MailIndexer test", () => {
 			instanceListId: "lid",
 			instanceId: "eid",
 		} as any
-		return indexer.processNewMail([event.instanceListId, event.instanceId]).then((result) => {
+		return indexer.downloadNewMailData([event.instanceListId, event.instanceId]).then((result) => {
 			o(result).equals(null)
 		})
 	})
@@ -293,7 +293,7 @@ o.spec("MailIndexer test", () => {
 			instanceListId: "lid",
 			instanceId: "eid",
 		} as any
-		await o(() => indexer.processNewMail([event.instanceListId, event.instanceId])).asyncThrows(Error)
+		await o(() => indexer.downloadNewMailData([event.instanceListId, event.instanceId])).asyncThrows(Error)
 	})
 	o("processMovedMail", async function () {
 		let event: EntityUpdate = {
@@ -740,7 +740,7 @@ o.spec("MailIndexer test", () => {
 			await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 			// nothing changed
 			// @ts-ignore
-			o(indexer.processNewMail.invocations.length).equals(1)
+			o(indexer.downloadNewMailData.invocations.length).equals(1)
 			o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
 			o(indexUpdate.move.length).equals(0)
 			// @ts-ignore
@@ -898,7 +898,7 @@ o.spec("MailIndexer test", () => {
 
 			const core = makeCore()
 			core.encryptSearchIndexEntries = () => {}
-			core.writeIndexUpdate = () => Promise.resolve()
+			core.writeIndexUpdateWithIndexTimestamps = () => Promise.resolve()
 
 			const db: Db = object()
 			const infoMessageHandler: InfoMessageHandler = object()

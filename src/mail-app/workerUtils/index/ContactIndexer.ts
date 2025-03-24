@@ -2,16 +2,15 @@ import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/er
 import type { Contact, ContactList } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { typeModels as tutanotaModels } from "../../../common/api/entities/tutanota/TypeModels.js"
-import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes.js"
+import type { Db, GroupData, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes.js"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils.js"
-import { neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { neverNull, noOp, ofClass, promiseMap, tokenize } from "@tutao/tutanota-utils"
 import { FULL_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
-import { tokenize } from "@tutao/tutanota-utils"
-import type { EntityUpdate } from "../../../common/api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupDataOS, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
+import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 
 export class ContactIndexer {
 	_core: IndexerCore
@@ -83,7 +82,7 @@ export class ContactIndexer {
 		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map((ma) => ma.address).join(" "))
 	}
 
-	processNewContact(event: EntityUpdate): Promise<
+	processNewContact(event: EntityUpdateData): Promise<
 		| {
 				contact: Contact
 				keyToIndexEntries: Map<string, SearchIndexEntry[]>
@@ -137,7 +136,7 @@ export class ContactIndexer {
 				this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 			}
 			return Promise.all([
-				this._core.writeIndexUpdate(
+				this._core.writeIndexUpdateWithIndexTimestamps(
 					[
 						{
 							groupId,
@@ -156,7 +155,8 @@ export class ContactIndexer {
 		}
 	}
 
-	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+	processEntityEvents(events: readonly EntityUpdateData[], groupId: Id, batchId: Id): Promise<void> {
+		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		return promiseMap(events, async (event) => {
 			if (event.operation === OperationType.CREATE) {
 				await this.processNewContact(event).then((result) => {
@@ -166,7 +166,7 @@ export class ContactIndexer {
 				})
 			} else if (event.operation === OperationType.UPDATE) {
 				await Promise.all([
-					this._core._processDeleted(event, indexUpdate),
+					this._core._processDeleted(ContactTypeRef, event.instanceId, indexUpdate),
 					this.processNewContact(event).then((result) => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(
@@ -179,7 +179,7 @@ export class ContactIndexer {
 					}),
 				])
 			} else if (event.operation === OperationType.DELETE) {
-				await this._core._processDeleted(event, indexUpdate)
+				await this._core._processDeleted(ContactTypeRef, event.instanceId, indexUpdate)
 			}
 		}).then(noOp)
 	}

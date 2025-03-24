@@ -22,7 +22,7 @@ import { CalendarFacade } from "../common/api/worker/facades/lazy/CalendarFacade
 import { MailFacade } from "../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../common/api/worker/facades/lazy/CounterFacade.js"
-import { Indexer } from "./workerUtils/index/Indexer.js"
+import { IndexedDbIndexer } from "./workerUtils/index/IndexedDbIndexer.js"
 import { SearchFacade } from "./workerUtils/index/SearchFacade.js"
 import { BookingFacade } from "../common/api/worker/facades/lazy/BookingFacade.js"
 import { MailAddressFacade } from "../common/api/worker/facades/lazy/MailAddressFacade.js"
@@ -163,7 +163,7 @@ class MailLocator {
 	mailFacade!: MailFacade
 	shareFacade!: ShareFacade
 	counterFacade!: CounterFacade
-	indexerFacade!: Indexer
+	indexerFacade!: IndexedDbIndexer
 	searchFacade!: SearchFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade

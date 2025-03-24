@@ -102,7 +102,8 @@ export type Db = {
 	iv: Uint8Array
 	// fixed iv for all search index entries
 	dbFacade: DbFacade
-	initialized: Promise<void>
+	// FIXME: check if we need to wait for db
+	// initialized: Promise<void>
 }
 export type SearchIndexMetaDataRow = {
 	id: number
