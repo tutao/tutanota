@@ -35,9 +35,9 @@ export function assertCorrectAssociationClientCardinality(
 		return parsedValue[0] ?? null
 	} else if (cardinality === Cardinality.One && parsedValue.length === 1) {
 		return parsedValue[0]
-	} else if (cardinality !== Cardinality.Any && parsedValue.length === 2 && idTupleAssociations.includes(type)) {
+	} else if (cardinality !== Cardinality.Any && (parsedValue.length === 2 || parsedValue.length === 0) && idTupleAssociations.includes(type)) {
 		return parsedValue
-	} else if (cardinality === Cardinality.Any && !idTupleAssociations.includes(type)) {
+	} else if (cardinality === Cardinality.Any) {
 		return parsedValue
 	}
 
@@ -66,11 +66,11 @@ export function assertCorrectAssociationServerCardinality(
 		cardinality !== Cardinality.Any &&
 		parsedValue != null &&
 		Array.isArray(parsedValue) &&
-		parsedValue.length === 2 &&
+		(parsedValue.length === 2 || parsedValue.length === 0) &&
 		idTupleAssociations.includes(type)
 	) {
-		return parsedValue
-	} else if (cardinality === Cardinality.Any && Array.isArray(parsedValue) && !idTupleAssociations.includes(type)) {
+		return [parsedValue]
+	} else if (cardinality === Cardinality.Any && Array.isArray(parsedValue)) {
 		return parsedValue
 	}
 
