@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-03-19T14:30:45Z",
+	"updated_at": "2025-03-21T05:39:16Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -656,6 +656,8 @@ export default {
 		"finallyDeleteSelectedEmails_msg": "Es wurden E-Mails aus dem Papierkorb ausgewählt, diese werden endgültig gelöscht.",
 		"finish_action": "Beenden",
 		"firstMergeContact_label": "Kontakt 1",
+		"firstMonthForFreeDetail_msg": "Eine einmonatige Testphase ist für alle unsere kostenpflichtigen Abonnements verfügbar. Der erste Monat ist völlig kostenlos und du kannst jederzeit kündigen.",
+		"firstMonthForFree_msg": "Erhalte den ersten Monat kostenlos!",
 		"firstName_placeholder": "Vorname",
 		"firstOfPeriod_label": "Ersten {day}",
 		"folderDepth_label": "{folderName}, Ebene {depth}.",
@@ -1174,6 +1176,7 @@ export default {
 		"onDays_label": "Am {days}",
 		"oneEmail_label": "1 E-Mail",
 		"oneMailSelected_msg": "1 E-Mail ausgewählt.",
+		"oneMonthTrial_label": "1 Monat testen",
 		"online_label": "Online",
 		"onlyAccountAdminFeature_msg": "Diese Funktion ist nur für Administratoren freigeschaltet",
 		"onlyPrivateAccountFeature_msg": "Gutscheine können nur von privaten Accounts eingelöst werden.",

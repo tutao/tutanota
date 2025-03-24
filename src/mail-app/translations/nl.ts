@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2025-03-16T14:40:58Z",
+	"updated_at": "2025-03-20T20:53:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -837,6 +837,8 @@ export default {
 		"invoice_label": "Factuur",
 		"IpAddress_label": "IP-adres",
 		"keyboardShortcuts_title": "Toetsenbord sneltoetsen",
+		"keyManagement.verificationError_title": "Contactverificatie mislukt",
+		"keyManagement.verificationPool_label": "Geverifieerde contacten",
 		"keywords_label": "trefwoorden",
 		"knowledgebase_label": "Knowledgebase",
 		"knownCredentials_label": "Bewaarde accounts",

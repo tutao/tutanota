@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-03-19T12:27:25Z",
+	"updated_at": "2025-03-21T10:35:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -656,6 +656,8 @@ export default {
 		"finallyDeleteSelectedEmails_msg": "Has seleccionado correos de la papelera, estos serán borrados permanentemente.",
 		"finish_action": "Terminar",
 		"firstMergeContact_label": "Contacto 1",
+		"firstMonthForFreeDetail_msg": "Todos nuestros planes de pago disponen de un mes de prueba. El primer mes es totalmente gratuito y puedes cancelarlo en cualquier momento.",
+		"firstMonthForFree_msg": "¡Consigue el primer mes gratis con cualquier plan de pago!",
 		"firstName_placeholder": "Nombre",
 		"firstOfPeriod_label": "Primer {day}",
 		"folderDepth_label": "{folderName}, {depth} capas de profundidad.",
@@ -869,6 +871,7 @@ export default {
 		"keyManagement.verificationByQrCodeScan_label": "Escanea el código QR que has recibido de tu contacto.",
 		"keyManagement.verificationByTextMailAdress_label": "Introduce la dirección de correo electrónico Tuta del contacto que deseas verificar.",
 		"keyManagement.verificationByText_label": "Compara la huella que se muestra a continuación con la que recibiste del contacto. Haz clic sólo en \"{button}\" si ambas huellas coinciden.",
+		"keyManagement.verificationError_title": "Error en la verificación de contactos",
 		"keyManagement.verificationPool_label": "Contactos verificados",
 		"keyManagement.verifyMailAddress_action": "Añadir y verificar una dirección de correo electrónico",
 		"keyManagement.videoSourceError_msg": "No hemos podido iniciar la transmisión de vídeo desde tu cámara.",
@@ -1173,6 +1176,7 @@ export default {
 		"onDays_label": "En {days}",
 		"oneEmail_label": "1 correo electrónico",
 		"oneMailSelected_msg": "1 correo seleccionado.",
+		"oneMonthTrial_label": "1 mes de prueba",
 		"online_label": "En línea",
 		"onlyAccountAdminFeature_msg": "Sólo el administrador de la cuenta puede hacer eso",
 		"onlyPrivateAccountFeature_msg": "Las tarjetas de regalo solo pueden ser canjeadas por cuentas privadas",

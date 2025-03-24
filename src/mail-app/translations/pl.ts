@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-03-18T17:10:12Z",
+	"updated_at": "2025-03-21T18:02:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -658,6 +658,8 @@ export default {
 		"finallyDeleteSelectedEmails_msg": "Wybrano wiadomości z folderu \"Kosz\"; zostaną one trwale usunięte.",
 		"finish_action": "Zakończ",
 		"firstMergeContact_label": "Kontakt 1",
+		"firstMonthForFreeDetail_msg": "Dla wszystkich naszych płatnych ofert dostępny jest miesięczny okres próbny. Pierwszy miesiąc jest całkowicie darmowy i można z niego zrezygnować w dowolnym momencie.",
+		"firstMonthForFree_msg": "Otrzymaj pierwszy miesiąc za darmo z dowolną płatną ofertą!",
 		"firstName_placeholder": "Imię",
 		"firstOfPeriod_label": "Pierwszy {day}",
 		"folderDepth_label": "{folderName}, {depth} głębokość warstw.",
@@ -871,6 +873,7 @@ export default {
 		"keyManagement.verificationByQrCodeScan_label": "Zeskanuj kod QR otrzymany od osoby kontaktowej",
 		"keyManagement.verificationByTextMailAdress_label": "Wprowadź adres e-mail kontaktu, który chcesz zweryfikować.",
 		"keyManagement.verificationByText_label": "Porównaj odcisk palca wyświetlony poniżej z odciskiem otrzymanym od kontaktu. Kliknij \"{button}” tylko wtedy, gdy oba odciski palców pasują do siebie.",
+		"keyManagement.verificationError_title": "Weryfikacja kontaktu nie powiodła się",
 		"keyManagement.verificationPool_label": "Zweryfikowane kontakty",
 		"keyManagement.verifyMailAddress_action": "Dodaj i zweryfikuj adres e-mail",
 		"keyManagement.videoSourceError_msg": "Nie mogliśmy uruchomić strumienia wideo twojego aparatu.",
@@ -1174,6 +1177,7 @@ export default {
 		"onDays_label": "W {days}",
 		"oneEmail_label": "1 wiadomość e-mail",
 		"oneMailSelected_msg": "Wybrano: 1 wiadomość",
+		"oneMonthTrial_label": "1 miesiąc próbny",
 		"online_label": "Połączono",
 		"onlyAccountAdminFeature_msg": "Opcja dozwolona tylko dla administratora",
 		"onlyPrivateAccountFeature_msg": "Karty podarunkowe mogą być realizowane wyłącznie przez konta osobiste.",

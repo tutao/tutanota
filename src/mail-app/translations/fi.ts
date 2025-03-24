@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-03-19T12:42:14Z",
+	"updated_at": "2025-03-22T13:35:53Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -652,6 +652,8 @@ export default {
 		"finallyDeleteSelectedEmails_msg": "Valitut viestit poistetaan lopullisesti.",
 		"finish_action": "Valmis",
 		"firstMergeContact_label": "Yhteystieto 1",
+		"firstMonthForFreeDetail_msg": "Tarjoamme kaikilla maksullisilla tilausvaihtoehdoillamme yhden kuukauden pituisen kokeilujakson. Ensimmäinen kuukausi on täysin ilmainen, ja voit perua tilauksen koska tahansa.",
+		"firstMonthForFree_msg": "Ensimmäinen kuukausi ilmaiseksi maksullisella tilauksella!",
 		"firstName_placeholder": "Etunimi",
 		"firstOfPeriod_label": "Ensimmäisenä {day}",
 		"folderDepth_label": "{folderName}, {depth}. kerroksessa",
@@ -865,6 +867,7 @@ export default {
 		"keyManagement.verificationByQrCodeScan_label": "Skannaa yhteystiedolta saamasi QR-koodi.",
 		"keyManagement.verificationByTextMailAdress_label": "Syötä sen yhteystiedon Tuta-sähköpostiosoite, jonka haluat vahvistaa.",
 		"keyManagement.verificationByText_label": "Vertaa alla näkyvää sormenjälkeä yhteystiedoltasi saamaan. Napsauta \"{button}\" vain, jos sormenjäljet täsmäävät.",
+		"keyManagement.verificationError_title": "Yhteystiedon vahvistaminen epäonnistui",
 		"keyManagement.verificationPool_label": "Vahvistetut yhteystiedot",
 		"keyManagement.verifyMailAddress_action": "Lisää ja vahvista sähköpostiosoite",
 		"keyManagement.videoSourceError_msg": "Emme saa kamerasi videokuvaa käyntiin.",
@@ -1169,6 +1172,7 @@ export default {
 		"onDays_label": "{days}",
 		"oneEmail_label": "1 viesti",
 		"oneMailSelected_msg": "1 viesti valittu",
+		"oneMonthTrial_label": "1 kk:n kokeilujakso",
 		"online_label": "Yhdistetty",
 		"onlyAccountAdminFeature_msg": "Vain tilin ylläpitäjä voi tehdä näin",
 		"onlyPrivateAccountFeature_msg": "Lahjakortin voi lunastaa vain henkilökohtaiselta tililtä.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-03-19T14:30:28Z",
+	"updated_at": "2025-03-21T05:39:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -652,6 +652,8 @@ export default {
 		"finallyDeleteSelectedEmails_msg": "You have selected emails from the trash folder, they will be permanently deleted.",
 		"finish_action": "Finish",
 		"firstMergeContact_label": "Contact 1",
+		"firstMonthForFreeDetail_msg": "A one-month trial period is available for all our paid plans. The first month is completely free and you can cancel at any time.",
+		"firstMonthForFree_msg": "Get the first month for free with any paid plan!",
 		"firstName_placeholder": "First name",
 		"firstOfPeriod_label": "First {day}",
 		"folderDepth_label": "{folderName}, {depth} layers deep.",
@@ -1170,6 +1172,7 @@ export default {
 		"onDays_label": "On {days}",
 		"oneEmail_label": "1 email",
 		"oneMailSelected_msg": "1 email selected",
+		"oneMonthTrial_label": "1 month trial",
 		"online_label": "Online",
 		"onlyAccountAdminFeature_msg": "Only the account administrator may do that",
 		"onlyPrivateAccountFeature_msg": "Gift cards may only be redeemed by personal accounts.",
