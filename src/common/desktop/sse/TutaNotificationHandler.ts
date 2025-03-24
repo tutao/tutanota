@@ -120,14 +120,14 @@ export class TutaNotificationHandler {
 			const mailModel = await resolveTypeReference(MailTypeRef)
 			const mailAddressModel = await resolveTypeReference(MailAddressTypeRef)
 			const mailEncryptedParsedInstance: EncryptedParsedInstance = await typeMapper.applyJsTypes(mailModel, parsedResponse)
-			return this.encryptedMailToMailMeataData(mailModel, mailAddressModel, mailEncryptedParsedInstance)
+			return this.encryptedMailToMailMetaData(mailModel, mailAddressModel, mailEncryptedParsedInstance)
 		} catch (e) {
 			log.debug(TAG, "Error fetching mail metadata, " + (e as Error).message)
 			return null
 		}
 	}
 
-	private encryptedMailToMailMeataData(mailModel: TypeModel, mailAddressModel: TypeModel, mi: EncryptedParsedInstance): MailMetadata {
+	private encryptedMailToMailMetaData(mailModel: TypeModel, mailAddressModel: TypeModel, mi: EncryptedParsedInstance): MailMetadata {
 		const mailId = downcast<IdTuple>(assertNotNull(mi[assertNotNull(AttributeModel.getAttributeId(mailModel, "_id"))]))
 
 		const firstRecipient = downcast<EncryptedParsedInstance | null>(mi[assertNotNull(AttributeModel.getAttributeId(mailModel, "firstRecipient"))])
