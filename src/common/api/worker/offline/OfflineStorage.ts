@@ -20,9 +20,8 @@ import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.j
 import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
-import { CalendarEventTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
-import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler, CustomMailEventCacheHandler } from "../rest/CustomCacheHandler.js"
+import { CustomCacheHandlerMap } from "../rest/CustomCacheHandler.js"
 import { EntityRestClient } from "../rest/EntityRestClient.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
@@ -101,7 +100,6 @@ export interface OfflineStorageInitArgs {
 }
 
 export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
-	private customCacheHandler: CustomCacheHandlerMap | null = null
 	private userId: Id | null = null
 	private timeRangeDays: number | null = null
 
@@ -111,6 +109,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
 		private readonly cleaner: OfflineStorageCleaner,
+		private readonly customCacheHandler: CustomCacheHandlerMap,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
@@ -371,16 +370,32 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		switch (typeModel.type) {
 			case TypeId.Element:
 				formattedQuery = sql`INSERT
-                OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (
-                ${type},
-                ${encodedElementId},
-                ${ownerGroup},
-                ${serializedEntity}
-                )`
+				OR REPLACE INTO element_entities (rowId, type, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowId FROM element_entities WHERE elementId =
+				${encodedElementId}
+				UNION
+				SELECT
+				max
+				(
+				rowId
+				)
+				+
+				1
+				FROM
+				element_entities
+				LIMIT
+				1
+				),
+				${type},
+				${encodedElementId},
+				${ownerGroup},
+				${serializedEntity}
+				)`
 				break
 			case TypeId.ListElement:
 				formattedQuery = sql`INSERT
-                OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (
+                OR REPLACE INTO list_entities (rowId, type, listId, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowId FROM list_entities WHERE elementId = ${encodedElementId} UNION SELECT max(rowId) + 1 FROM list_entities LIMIT 1),
                 ${type},
                 ${listId},
                 ${encodedElementId},
@@ -390,7 +405,8 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				break
 			case TypeId.BlobElement:
 				formattedQuery = sql`INSERT
-                OR REPLACE INTO blob_element_entities (type, listId, elementId, ownerGroup, entity) VALUES (
+                OR REPLACE INTO blob_element_entities (rowId, type, listId, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowId FROM blob_element_entities WHERE elementId = ${encodedElementId} UNION SELECT max(rowId) + 1 FROM blob_element_entities LIMIT 1),
                 ${type},
                 ${listId},
                 ${encodedElementId},
@@ -534,15 +550,6 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
-		if (this.customCacheHandler == null) {
-			this.customCacheHandler = new CustomCacheHandlerMap(
-				{
-					ref: CalendarEventTypeRef,
-					handler: new CustomCalendarEventCacheHandler(entityRestClient),
-				},
-				{ ref: MailTypeRef, handler: new CustomMailEventCacheHandler() },
-			)
-		}
 		return this.customCacheHandler
 	}
 
@@ -660,21 +667,6 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				[],
 			)
 		}
-		// FIXME move this definition where appropriate (mail indexer?)
-		await this.sqlCipherFacade.run(
-			`CREATE
-            VIRTUAL TABLE IF NOT EXISTS mail_index USING fts5(
-       subject,
-       toRecipients,
-       ccRecipients,
-       bccRecipients,
-       sender,
-       body,
-       attachments,
-       content=''
-       )`,
-			[],
-		)
 	}
 
 	private async getRange(typeRef: TypeRef<ElementEntity | ListElementEntity>, listId: Id): Promise<Range | null> {

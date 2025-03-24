@@ -100,13 +100,19 @@ export class SearchFacade {
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
 	async search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
+		// from https://github.com/signalapp/Signal-Desktop/blob/a714a31b3990c64801f1c43b3d465877719f30a4/ts/sql/Server.ts#L1873
+		// but simplified (we don't do tokenizing here)
+		const normalizedQuery = query
+			.split(/\s+/)
+			.map((token) => `"${token.replace(/"/g, '""')}"*`)
+			.join(" ")
 		const preparedSqlQuery = sql`
             SELECT list_entities.listId,
                    list_entities.elementId
             FROM mail_index
                      INNER JOIN list_entities ON
                 mail_index.rowId = list_entities.rowId
-            WHERE mail_index = ${query}`
+            WHERE mail_index = ${normalizedQuery}`
 		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 		const resultIds = resultRows.map(({ listId, elementId }) => {
 			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple

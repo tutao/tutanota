@@ -96,6 +96,8 @@ import { IndexedDbMailIndexerBackend, MailIndexerBackend, SqliteMailIndexerBacke
 import { Indexer } from "../index/Indexer"
 import { SuggestionFacade } from "../index/SuggestionFacade"
 import { IndexerCore } from "../index/IndexerCore"
+import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler, CustomMailEventCacheHandler } from "../../../common/api/worker/rest/CustomCacheHandler"
+import { CalendarEventTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 
 assertWorkerOrNode()
 
@@ -195,9 +197,48 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new BookingFacade(locator.serviceExecutor)
 	})
 
+	const mailIndexer = lazyMemoized(async () => {
+		const { MailIndexer } = await import("../index/MailIndexer.js")
+		const bulkLoaderFactory = await prepareBulkLoaderFactory()
+		const dateProvider = new LocalTimeDateProvider()
+		const mailFacade = await locator.mail()
+		if (isOfflineStorageAvailable()) {
+			const persistence = await offlineStorageIndexerPersistence()
+			return new MailIndexer(
+				mainInterface.infoMessageHandler,
+				bulkLoaderFactory,
+				locator.cachingEntityClient,
+				dateProvider,
+				mailFacade,
+				() => new SqliteMailIndexerBackend(persistence),
+			)
+		} else {
+			const core = await indexerCore()
+			return new MailIndexer(
+				mainInterface.infoMessageHandler,
+				bulkLoaderFactory,
+				locator.cachingEntityClient,
+				dateProvider,
+				mailFacade,
+				// FIXME: Does this need to be a factory? Maybe we just pass userId into makeMailIndexer, and we'll have
+				//        our backend immediately without needing a subsequent call to init()
+				(userId): MailIndexerBackend => {
+					return new IndexedDbMailIndexerBackend(newSearchIndexDB(), core, userId)
+				},
+			)
+		}
+	})
+
 	let offlineStorageProvider
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
+		const customCacheHandler = new CustomCacheHandlerMap(
+			{
+				ref: CalendarEventTypeRef,
+				handler: new CustomCalendarEventCacheHandler(entityRestClient),
+			},
+			{ ref: MailTypeRef, handler: new CustomMailEventCacheHandler(mailIndexer) },
+		)
 		offlineStorageProvider = async () => {
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
@@ -205,6 +246,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				dateProvider,
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
 				new MailOfflineCleaner(),
+				customCacheHandler,
 			)
 		}
 	} else {
@@ -273,43 +315,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new IndexerCore(db, browserData)
 	})
 
-	const mailIndexer = lazyMemoized(async () => {
-		const { MailIndexer } = await import("../index/MailIndexer.js")
-		const bulkLoaderFactory = await prepareBulkLoaderFactory()
-		const dateProvider = new LocalTimeDateProvider()
-		const mailFacade = await locator.mail()
-
-		if (isOfflineStorageAvailable()) {
-			return new MailIndexer(
-				mainInterface.infoMessageHandler,
-				bulkLoaderFactory,
-				locator.cachingEntityClient,
-				dateProvider,
-				mailFacade,
-				() => new SqliteMailIndexerBackend(locator.sqlCipherFacade),
-			)
-		} else {
-			const core = await indexerCore()
-			return new MailIndexer(
-				mainInterface.infoMessageHandler,
-				bulkLoaderFactory,
-				locator.cachingEntityClient,
-				dateProvider,
-				mailFacade,
-				// FIXME: Does this need to be a factory? Maybe we just pass userId into makeMailIndexer, and we'll have
-				//        our backend immediately without needing a subsequent call to init()
-				(userId): MailIndexerBackend => {
-					return new IndexedDbMailIndexerBackend(newSearchIndexDB(), core, userId)
-				},
-			)
-		}
+	const offlineStorageIndexerPersistence = lazyMemoized(async () => {
+		const { OfflineStoragePersistence } = await import("../index/OfflineStoragePersistence.js")
+		return new OfflineStoragePersistence(locator.sqlCipherFacade)
 	})
 
 	locator.indexer = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
 			const { OfflineStorageIndexer } = await import("../index/OfflineStorageIndexer.js")
-			const { OfflineStoragePersistence } = await import("../index/OfflineStoragePersistence.js")
-			const persistence = new OfflineStoragePersistence(locator.sqlCipherFacade)
+			const persistence = await offlineStorageIndexerPersistence()
 			return new OfflineStorageIndexer(locator.user, persistence, await mailIndexer(), mainInterface.infoMessageHandler)
 		} else {
 			const { IndexedDbIndexer } = await import("../index/IndexedDbIndexer.js")
@@ -318,7 +332,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				db,
 				await indexerCore(),
 				mainInterface.infoMessageHandler,
-				browserData,
 				locator.cache as DefaultEntityRestCache,
 				await mailIndexer(),
 			)

@@ -1,6 +1,6 @@
-import { ListElementEntity } from "../../common/EntityTypes.js"
+import { ListElementEntity, SomeEntity } from "../../common/EntityTypes.js"
 import { CalendarEvent, CalendarEventTypeRef, Mail } from "../../entities/tutanota/TypeRefs.js"
-import { freezeMap, getTypeId, TypeRef } from "@tutao/tutanota-utils"
+import { freezeMap, getTypeId, lazy, lazyAsync, TypeRef } from "@tutao/tutanota-utils"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils.js"
 import { resolveTypeReference } from "../../common/EntityFunctions.js"
 import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCache.js"
@@ -8,6 +8,8 @@ import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { EntityUpdate } from "../../entities/sys/TypeRefs"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
+import { Indexer } from "../../../../mail-app/workerUtils/index/Indexer"
+import { MailIndexer } from "../../../../mail-app/workerUtils/index/MailIndexer"
 
 /**
  * update when implementing custom cache handlers.
@@ -45,7 +47,7 @@ export class CustomCacheHandlerMap {
 		this.handlers = freezeMap(handlers)
 	}
 
-	get<T extends ListElementEntity>(typeRef: TypeRef<T>): CustomCacheHandler<T> | undefined {
+	get<T extends SomeEntity>(typeRef: TypeRef<T>): CustomCacheHandler<T> | undefined {
 		const typeId = getTypeId(typeRef)
 		// map is frozen after the constructor. constructor arg types are set up to uphold this invariant.
 		return this.handlers.get(typeId) as CustomCacheHandler<T> | undefined
@@ -56,12 +58,14 @@ export class CustomCacheHandlerMap {
  * Some types are not cached like other types, for example because their custom Ids are not sortable.
  * make sure to update CustomHandledType when implementing this for a new type.
  */
-export interface CustomCacheHandler<T extends ListElementEntity> {
+export interface CustomCacheHandler<T extends SomeEntity> {
 	loadRange?: (storage: ExposedCacheStorage, listId: Id, start: Id, count: number, reverse: boolean) => Promise<T[]>
 
 	getElementIdsInCacheRange?: (storage: ExposedCacheStorage, listId: Id, ids: Array<Id>) => Promise<Array<Id>>
 
 	shouldLoadOnCreateEvent?: (event: EntityUpdateData) => Promise<boolean>
+
+	onBeforeDelete?: (event: EntityUpdateData) => Promise<void>
 }
 
 /**
@@ -126,11 +130,17 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 }
 
 export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
+	constructor(private readonly indexer: lazyAsync<MailIndexer>) {}
 	async shouldLoadOnCreateEvent(): Promise<boolean> {
 		// New emails should be pre-cached.
 		//  - we need them to display the folder contents
 		//  - will very likely be loaded by indexer later
 		//  - we might have the instance in offline cache already because of notification process
 		return true
+	}
+
+	async onBeforeDelete(event: EntityUpdateData): Promise<void> {
+		const indexer = await this.indexer()
+		return indexer.beforeMailDeleted([event.instanceListId, event.instanceId])
 	}
 }

@@ -136,7 +136,6 @@ export class IndexedDbIndexer implements Indexer {
 		private db: Db,
 		private readonly _core: IndexerCore,
 		private readonly infoMessageHandler: InfoMessageHandler,
-		browserData: BrowserData,
 		defaultEntityRestCache: DefaultEntityRestCache,
 		private readonly _mail: MailIndexer,
 	) {

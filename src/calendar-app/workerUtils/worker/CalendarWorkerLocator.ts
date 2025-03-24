@@ -75,6 +75,8 @@ import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/Asymme
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
+import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler, CustomMailEventCacheHandler } from "../../../common/api/worker/rest/CustomCacheHandler"
+import { CalendarEventTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 
 assertWorkerOrNode()
 
@@ -170,12 +172,18 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	if (isOfflineStorageAvailable()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
+			const customCacheHandler = new CustomCacheHandlerMap({
+				ref: CalendarEventTypeRef,
+				handler: new CustomCalendarEventCacheHandler(entityRestClient),
+			})
+
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
 				dateProvider,
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
 				new CalendarOfflineCleaner(),
+				customCacheHandler,
 			)
 		}
 	} else {

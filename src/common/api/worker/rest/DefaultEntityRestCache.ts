@@ -781,6 +781,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
+					this.storage.getCustomCacheHandlerMap(this.entityRestClient)?.get(typeRef)?.onBeforeDelete?.(update)
+					// FIXME: tell indexer before entity is removed
 					if (
 						isSameTypeRef(MailSetEntryTypeRef, typeRef) &&
 						containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)
@@ -925,6 +927,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const removedShips = difference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
 		for (const ship of removedShips) {
 			console.log("Lost membership on ", ship._id, ship.groupType)
+			// FIXME: tell indexer that this happens before the data is actually removed
 			await this.storage.deleteAllOwnedBy(ship.group)
 		}
 	}

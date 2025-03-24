@@ -1,6 +1,6 @@
 import { File as TutanotaFile, Mail, MailAddress, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { sql } from "../../../common/api/worker/offline/Sql"
-import { assertNotNull, getTypeId } from "@tutao/tutanota-utils"
+import { assertNotNull, getTypeId, groupByAndMap } from "@tutao/tutanota-utils"
 import {
 	elementIdPart,
 	getElementId,
@@ -19,6 +19,7 @@ import { typeModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade"
 import { Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
 import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
+import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 
 export interface MailWithDetailsAndAttachments {
 	mail: Mail
@@ -176,70 +177,27 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	}
 }
 
-const tableDefinitions = Object.freeze(["CREATE TABLE IF NOT EXISTS search_metadata (key TEXT NOT NULL PRIMARY KEY, value)"])
-
 export class SqliteMailIndexerBackend implements MailIndexerBackend {
-	private static readonly MAIL_INDEXING_ENABLED = "mailIndexingEnabled"
+	constructor(private readonly persistence: OfflineStoragePersistence) {}
 
-	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
+	async init(): Promise<void> {}
 
-	async init(): Promise<void> {
-		for (const tableDef of tableDefinitions) {
-			await this.sqlCipherFacade.run(tableDef, [])
+	async getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
+		const groupData = await this.persistence.getIndexedGroups()
+		const map = new Map<Id, number>()
+		for (const group of groupData) {
+			map.set(group.groupId, group.indexedTimestamp)
 		}
-	}
-
-	async getCurrentIndexTimestamps(groupIds: readonly []): Promise<Map<Id, number>> {
-		// FIXME
-		throw new Error("FIXME: not implemented")
+		return map
 	}
 
 	async indexMails(dataPerGroup: GroupTimestamps, mailData: readonly MailWithDetailsAndAttachments[]): Promise<void> {
-		for (const {
-			mail,
-			mailDetails: { recipients, body },
-			attachments,
-		} of mailData) {
-			const foundMailQuery = sql`SELECT rowId
-                                       FROM list_entities
-                                       WHERE type = ${getTypeId(MailTypeRef)}
-                                         AND listId = ${getListId(mail)}
-                                         AND elementId = ${getElementId(mail)}`
-			const foundMail = await this.sqlCipherFacade.get(foundMailQuery.query, foundMailQuery.params)
-			console.log(`found mail for ${mail._id} (${mail.subject}): ${foundMail}`)
-
-			// FIXME: attachment names is just an empty string right now
-			// FIXME: not do each email one by one if possible
-			// FIXME: write indexing metadata somewhere
-			const { query, params } = sql`
-                INSERT INTO mail_index(rowId, subject, toRecipients, ccRecipients, bccRecipients, sender,
-                                       body, attachments)
-                VALUES ((SELECT rowId
-                         FROM list_entities
-                         WHERE type = ${getTypeId(MailTypeRef)}
-                           AND listId = ${getListId(mail)}
-                           AND elementId = ${getElementId(mail)}),
-                        ${mail.subject},
-                        ${serializeMailAddresses(recipients.toRecipients)},
-                        ${serializeMailAddresses(recipients.ccRecipients)},
-                        ${serializeMailAddresses(recipients.bccRecipients)},
-                        ${serializeMailAddresses([mail.sender])},
-                        ${htmlToText(getMailBodyText(body))},
-                        ${attachments.map((f) => f.name).join(" ")})`
-			await this.sqlCipherFacade.run(query, params)
-		}
+		await this.persistence.storeMailData(mailData)
 	}
 
 	async enableIndexing(): Promise<boolean> {
 		const wasEnabled = await this.isMailIndexingEnabled()
-
-		const { query, params } = sql`INSERT
-        OR REPLACE INTO search_metadata VALUES (
-        ${SqliteMailIndexerBackend.MAIL_INDEXING_ENABLED},
-        ${1}
-        )`
-		await this.sqlCipherFacade.run(query, params)
-
+		await this.persistence.setMailIndexingEnabled(true)
 		return wasEnabled
 	}
 
@@ -248,26 +206,18 @@ export class SqliteMailIndexerBackend implements MailIndexerBackend {
 	}
 
 	async isMailIndexingEnabled(): Promise<boolean> {
-		const { query, params } = sql`SELECT CAST(value as NUMBER) as value
-                                    FROM search_metadata
-                                    WHERE key = ${SqliteMailIndexerBackend.MAIL_INDEXING_ENABLED}`
-		const row = await this.sqlCipherFacade.get(query, params)
-		return row != null && untagSqlValue(row["value"]) === 1
+		return this.persistence.isMailIndexingEnabled()
 	}
 
-	async onMailCreated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {
-		throw new Error("FIXME: not implemented")
+	async onMailCreated(mailData: MailWithDetailsAndAttachments): Promise<void> {
+		await this.persistence.storeMailData([mailData])
 	}
 
-	async onMailUpdated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {
-		throw new Error("FIXME: not implemented")
+	async onMailUpdated(mailData: MailWithDetailsAndAttachments): Promise<void> {
+		await this.persistence.storeMailData([mailData])
 	}
 
 	async onMailDeleted(mailId: IdTuple): Promise<void> {
-		throw new Error("FIXME: not implemented")
+		await this.persistence.deleteMailData(mailId)
 	}
-}
-
-function serializeMailAddresses(recipients: readonly MailAddress[]): string {
-	return recipients.map((r) => `${r.name} ${r.address}`).join(", ")
 }

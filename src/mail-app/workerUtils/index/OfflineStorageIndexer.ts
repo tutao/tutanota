@@ -28,7 +28,7 @@ export class OfflineStorageIndexer implements Indexer {
 		await this.persistence.init()
 		await this.mailIndexer.init(user._id)
 
-		const indexedGroups = await this.persistence.getIndexedGroups()
+		const indexedGroups = (await this.persistence.getIndexedGroups()).map((data) => data.groupId)
 		const userGroups = filterIndexMemberships(user).map((membership) => membership.group)
 		const removedGroups = difference(indexedGroups, userGroups)
 		for (const removedGroup of removedGroups) {
@@ -62,8 +62,10 @@ export class OfflineStorageIndexer implements Indexer {
 		await this.mailIndexer.disableMailIndexing()
 	}
 
-	async processEntityEvents(updates: readonly EntityUpdateData[], eventOwnerGroupId: Id) {
-		TODO("dispatch events, but not while indexing")
+	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id) {
+		// FIXME: dispatch events, but not while indexing
+		await this.mailIndexer.processEntityEvents(updates, groupId, batchId)
+		// FIXME: contact indexer
 	}
 
 	async extendMailIndex(time: number) {

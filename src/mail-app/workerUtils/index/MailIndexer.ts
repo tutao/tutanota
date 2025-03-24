@@ -143,6 +143,7 @@ export class MailIndexer {
 
 	async enableMailIndexing(user: User): Promise<void> {
 		const wasEnabled = await this.backend.enableIndexing()
+		this.mailIndexingEnabled = true
 		if (!wasEnabled) {
 			// create index in background, termination is handled in Indexer.enableMailIndexing
 			const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
@@ -516,12 +517,17 @@ export class MailIndexer {
 						}
 					}
 				} else if (event.operation === OperationType.DELETE) {
-					await this.backend.onMailDeleted(mailId)
+					// FIXME: this should not be called from sqlite backend
+					// await this.backend.onMailDeleted(mailId)
 				}
 			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, event)) {
 				await this.processImportStateEntityEvents(event)
 			}
 		}
+	}
+
+	async beforeMailDeleted(mailId: IdTuple) {
+		await this.backend.onMailDeleted(mailId)
 	}
 
 	private get backend(): MailIndexerBackend {
