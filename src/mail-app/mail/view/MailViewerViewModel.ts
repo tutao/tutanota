@@ -270,10 +270,6 @@ export class MailViewerViewModel {
 	    }
 	}
 
-
-
-
-
 	showPhishingModal(): void {
 		if (this.isSenderConfirmed()) {
 			return;
@@ -283,6 +279,14 @@ export class MailViewerViewModel {
 		const handle = modal.display(modalInstance);
 		modalInstance.setModalHandle(handle);
 	}
+
+	public async reloadContent(): Promise<void> {
+		this.sanitizeResult = null;
+		this.renderedMail = null;
+		await this.loadAll(Promise.resolve(), { notify: true });
+		this.expandMail(Promise.resolve());
+	}
+	
 
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
