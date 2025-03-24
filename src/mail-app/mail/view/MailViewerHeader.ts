@@ -877,18 +877,17 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				click: async () => {
 					try {
 						await viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
-				
+			
 						await viewModel.updateSenderStatus("trusted_once", "interacted");
-				
+			
 						await viewModel.reloadContent();
-				
+			
 						console.log("Trusted once: Content unblocked for this email only.");
 						m.redraw();
 					} catch (error) {
 						console.error("Error applying trust-once behavior:", error);
 					}
-				}
-				,
+				},
 				style: {
 					backgroundColor: "#f0ad4e", // yellow
 					color: "white",
@@ -897,6 +896,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					padding: "8px 12px",
 				}
 			};
+			;
 
     	    buttons.push(confirmButton, addButton, trustOnceButton);
 	    }  
