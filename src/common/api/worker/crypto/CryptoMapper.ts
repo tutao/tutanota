@@ -93,7 +93,7 @@ export class CryptoMapper {
 						// storing this marker lets us restore that empty string when we re-encrypt the instance.
 						// check out encrypt() to see the other side of this.
 						decrypted._finalIvs[valueId] = null
-					} else if (valueInfo.final) {
+					} else if (valueInfo.final && encryptedValue) {
 						// the server needs to be able to check if an encrypted final field changed.
 						// that's only possible if we re-encrypt using a deterministic IV, because the ciphertext changes if
 						// the IV or the value changes.

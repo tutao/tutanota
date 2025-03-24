@@ -67,7 +67,7 @@ export class TypeMapper {
 			const attrId = parseInt(attrIdStr)
 			const value = instance[attrId] as EncryptedParsedValue
 
-			if (modelValue.encrypted && typeof value === "string") {
+			if ((modelValue.encrypted && typeof value === "string") || value === null) {
 				untypedInstance[attrId] = value
 			} else if (modelValue.encrypted) {
 				// fixme: is it OK to have plaintext null in an encrypted field or is null always encrypted as well?
@@ -77,10 +77,10 @@ export class TypeMapper {
 			} else {
 				// fixme: maybe keeping it as a byte array makes sense after all
 				const dbValue = convertJsToDbType(modelValue.type, value)
-				if (dbValue == null || typeof dbValue === "string") {
-					untypedInstance[attrId] = dbValue
-				} else {
+				if (dbValue instanceof Uint8Array) {
 					untypedInstance[attrId] = uint8ArrayToBase64(dbValue)
+				} else {
+					untypedInstance[attrId] = dbValue
 				}
 			}
 		}
