@@ -1,10 +1,12 @@
+use std::i64;
 use std::ops::{Add, Sub};
 
+use crate::date::DateTime;
+use crate::ApiCallError;
 use regex::{Match, Regex};
 use time::util::weeks_in_year;
-use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Weekday};
-
-use crate::date::DateTime;
+use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Weekday};
+use tokio::time::interval;
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
 #[repr(u8)]
@@ -244,7 +246,7 @@ impl EventFacade {
 			Some(date_timestamp),
 		)
 		.iter()
-		.map(|date| DateTime::from_millis(date.assume_utc().unix_timestamp().unsigned_abs() * 1000))
+		.map(|date| DateTime::from_seconds(date.assume_utc().unix_timestamp().unsigned_abs()))
 		.collect()
 	}
 
@@ -255,16 +257,75 @@ impl EventFacade {
 		repeat_rule: EventRepeatRule,
 		repeat_interval: u8,
 		end_type: EndType,
-		end_value: u64,
+		end_value: Option<u64>,
 		excluded_dates: Vec<DateTime>,
-		force_stop_time_condition: DateTime,
-	) {
+		max_interval: Option<u8>,
+		generate_after: Option<DateTime>,
+		max_date: Option<DateTime>,
+	) -> Result<Vec<DateTime>, ApiCallError> {
 		let is_all_day_event = self.is_all_day_event_by_times(event_start_time, event_end_time);
-		let mut occurrences = 0;
+		let set_pos_rules: Vec<&ByRule> = repeat_rule
+			.by_rules
+			.iter()
+			.filter(|rule| rule.by_rule == ByRuleType::BySetPos)
+			.collect();
 
-		while (end_type != EndType::Count || occurrences < end_value) {
+		let calc_event_start = if is_all_day_event {
+			let all_day_event = match self.get_all_day_time(&event_start_time) {
+				Ok(dt) => dt,
+				Err(e) => return Err(e),
+			};
+
+			all_day_event
+		} else {
+			event_start_time
+		};
+
+		let end_date = if end_type == EndType::UntilDate {
+			if is_all_day_event {
+				let all_day_event =
+					match self.get_all_day_time(&DateTime::from_millis(end_value.unwrap())) {
+						Ok(dt) => dt,
+						Err(e) => return Err(e),
+					};
+
+				Some(all_day_event)
+			} else {
+				Some(DateTime::from_millis(end_value.unwrap()))
+			}
+		} else {
+			None
+		};
+
+		let transformed_excluded_dates = if is_all_day_event {
+			excluded_dates
+				.iter()
+				.filter_map(|date| self.get_all_day_time(date).ok())
+				.collect()
+		} else {
+			excluded_dates
+		};
+
+		if end_type != EndType::Never && end_value.is_none() {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: format!(
+					"Event with different from EndType::Never without EndValue {:?}",
+					event_start_time.as_millis()
+				),
+			});
+		}
+
+		let mut occurrences = 0;
+		let mut interval_occurrences = 0;
+		let mut generated_events: Vec<DateTime> = Vec::new();
+		let mut interval_multiplier = 0;
+
+		while (end_type != EndType::Count || occurrences < end_value.unwrap())
+			&& ((max_interval.is_some() && interval_occurrences < max_interval.unwrap())
+				|| max_interval.is_none())
+		{
 			let Ok(mut start_time) =
-				OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
+				OffsetDateTime::from_unix_timestamp(calc_event_start.as_seconds() as i64)
 			else {
 				break;
 			};
@@ -272,15 +333,101 @@ impl EventFacade {
 			let repeat_frequency = repeat_rule.frequency;
 			start_time = self.increment_date_by_repeat_period(
 				&start_time,
-				repeat_interval,
+				interval_multiplier * repeat_interval,
 				&repeat_frequency,
 			);
 
-			let expanded_events = self.generate_future_instances(
-				DateTime::from_millis(start_time.unix_timestamp().unsigned_abs()),
+			if max_date.is_some()
+				&& start_time.unix_timestamp().unsigned_abs() >= max_date.unwrap().as_seconds()
+			{
+				break;
+			}
+
+			let mut expanded_events: Vec<DateTime> = self.generate_future_instances(
+				DateTime::from_seconds(start_time.unix_timestamp().unsigned_abs()),
 				&repeat_rule,
 			);
+
+			// We might don't want to generate from the beggining, so we must increase start time until we
+			// reach the desired minimum date.
+			if generate_after.is_some() {
+				let min_date = generate_after.unwrap().as_seconds() as i64;
+				while start_time.unix_timestamp() <= min_date
+					&& !expanded_events
+						.iter()
+						.any(|ev| ev.as_seconds() >= min_date.unsigned_abs())
+				{
+					interval_multiplier += 1;
+
+					start_time = self.increment_date_by_repeat_period(
+						&start_time,
+						interval_multiplier * repeat_interval,
+						&repeat_frequency,
+					);
+
+					expanded_events = self.generate_future_instances(
+						DateTime::from_seconds(start_time.unix_timestamp().unsigned_abs()),
+						&repeat_rule,
+					);
+				}
+			}
+
+			let progenitor = DateTime::from_seconds(start_time.unix_timestamp() as u64);
+
+			let mut has_invalid_set_pos = false;
+			let parsed_set_pos: Vec<i64> = set_pos_rules
+				.iter()
+				.map(|rule| {
+					let Ok(interval) = rule.interval.parse::<i64>() else {
+						has_invalid_set_pos = true;
+						return 0;
+					};
+
+					if interval < 0 {
+						return (expanded_events.len() as i64) - interval.abs();
+					} else {
+						return interval - 1;
+					}
+				})
+				.collect();
+
+			if (end_date.is_some() && progenitor.as_millis() >= end_date.unwrap().as_millis())
+				|| has_invalid_set_pos
+			{
+				break;
+			}
+
+			for index in 0..expanded_events.len() {
+				if (end_type == EndType::Count && occurrences >= end_value.unwrap())
+					|| (end_type == EndType::UntilDate
+						&& expanded_events.get(index).unwrap().as_millis() >= end_value.unwrap())
+				{
+					break;
+				}
+
+				if !(parsed_set_pos.is_empty() && !parsed_set_pos.contains(&(index as i64))) {
+					continue;
+				}
+
+				if !transformed_excluded_dates.is_empty()
+					&& transformed_excluded_dates.contains(expanded_events.get(index).unwrap())
+				{
+					continue;
+				}
+
+				generated_events.push(expanded_events.get(index).unwrap().clone());
+				occurrences += 1;
+			}
+
+			if interval_occurrences == u8::MAX {
+				break;
+			}
+
+			interval_occurrences += 1;
+			interval_multiplier += 1;
 		}
+
+		Ok(generated_events)
 	}
 }
 
@@ -1051,6 +1198,28 @@ impl EventFacade {
 
 		start_fits && end_fits
 	}
+
+	pub fn get_all_day_time(&self, date: &DateTime) -> Result<DateTime, ApiCallError> {
+		let Ok(date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
+			eprintln!(
+				"Failed to get all day time for date {:?}",
+				date.as_seconds()
+			);
+
+			return Err(ApiCallError::InternalSdkError {
+				error_message: format!(
+					"Failed to get all day time for date {}.",
+					date.as_seconds()
+				),
+			});
+		};
+
+		Ok(DateTime::from_seconds(
+			date.replace_time(Time::from_hms(0, 0, 0).unwrap())
+				.unix_timestamp()
+				.unsigned_abs(),
+		))
+	}
 }
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
@@ -1074,6 +1243,275 @@ mod tests {
 		fn to_date_time(&self) -> DateTime {
 			DateTime::from_millis(self.assume_utc().unix_timestamp().unsigned_abs() * 1000)
 		}
+	}
+
+	#[test]
+	fn test_generate_instances() {
+		let event_facade = EventFacade::new();
+
+		let event_start = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let event_end = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 30, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let max_date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 30).unwrap(),
+			Time::from_hms(00, 00, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Daily,
+			by_rules: vec![],
+		};
+
+		let events = event_facade.create_event_instances(
+			DateTime::from_seconds(event_start.unix_timestamp() as u64),
+			DateTime::from_seconds(event_end.unix_timestamp() as u64),
+			repeat_rule,
+			1,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			None,
+			Some(DateTime::from_seconds(
+				max_date.unix_timestamp().unsigned_abs(),
+			)),
+		);
+
+		assert_eq!(
+			events.unwrap(),
+			vec![
+				DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
+				DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
+				DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
+				DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
+				DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
+				DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
+				DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
+				DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
+			]
+		);
+	}
+
+	#[test]
+	fn test_create_event_instances_for_weekly_events() {
+		let event_facade = EventFacade::new();
+
+		let event_start = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let event_end = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 30, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let max_date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 30).unwrap(),
+			Time::from_hms(00, 00, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let weekly_events = event_facade.create_event_instances(
+			DateTime::from_seconds(event_start.unix_timestamp() as u64),
+			DateTime::from_seconds(event_end.unix_timestamp() as u64),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Weekly,
+				by_rules: vec![],
+			},
+			1,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			None,
+			Some(DateTime::from_seconds(
+				max_date.unix_timestamp().unsigned_abs(),
+			)),
+		);
+
+		assert_eq!(
+			weekly_events.unwrap(),
+			vec![
+				DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
+				DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
+			]
+		);
+	}
+
+	#[test]
+	fn test_create_event_instances_after_date() {
+		let event_facade = EventFacade::new();
+
+		let event_start = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let event_end = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 30, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let max_date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 30).unwrap(),
+			Time::from_hms(00, 00, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let weekly_events_after = event_facade.create_event_instances(
+			DateTime::from_seconds(event_start.unix_timestamp() as u64),
+			DateTime::from_seconds(event_end.unix_timestamp() as u64),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Weekly,
+				by_rules: vec![],
+			},
+			1,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			Some(DateTime::from_millis(1742644800000)), //22.03.2025 12:00:00
+			Some(DateTime::from_seconds(
+				max_date.unix_timestamp().unsigned_abs(),
+			)),
+		);
+
+		assert_eq!(
+			weekly_events_after.unwrap(),
+			vec![
+				DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
+			]
+		);
+	}
+
+	#[test]
+	fn test_create_event_instances_with_excluded_dates() {
+		let event_facade = EventFacade::new();
+
+		let event_start = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let event_end = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 30, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let max_date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 30).unwrap(),
+			Time::from_hms(00, 00, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let excluded_dates = event_facade.create_event_instances(
+			DateTime::from_seconds(event_start.unix_timestamp() as u64),
+			DateTime::from_seconds(event_end.unix_timestamp() as u64),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: vec![],
+			},
+			1,
+			EndType::Never,
+			None,
+			vec![
+				DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
+				DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
+				DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
+				DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
+				DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
+				DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
+			],
+			None,
+			None,
+			Some(DateTime::from_seconds(
+				max_date.unix_timestamp().unsigned_abs(),
+			)),
+		);
+
+		assert_eq!(
+			excluded_dates.unwrap(),
+			vec![
+				DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
+				DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
+			]
+		);
+	}
+
+	#[test]
+	fn test_create_event_instances_with_by_rule() {
+		let event_facade = EventFacade::new();
+
+		let event_start = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let event_end = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 30, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let max_date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 30).unwrap(),
+			Time::from_hms(00, 00, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let by_rules = event_facade.create_event_instances(
+			DateTime::from_seconds(event_start.unix_timestamp() as u64),
+			DateTime::from_seconds(event_end.unix_timestamp() as u64),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Daily,
+				by_rules: vec![
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "MO".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "WE".to_string(),
+					},
+				],
+			},
+			1,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			None,
+			Some(DateTime::from_seconds(
+				max_date.unix_timestamp().unsigned_abs(),
+			)),
+		);
+
+		assert_eq!(
+			by_rules.unwrap(),
+			vec![
+				DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
+				DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
+				DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
+			]
+		);
 	}
 
 	#[test]

@@ -1,7 +1,8 @@
-use serde::de::{Error, Visitor};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::Formatter;
 use std::time::{Duration, SystemTime};
+
+use serde::de::{Error, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// A wrapper around `SystemTime` so we can change how it is serialised by serde.
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Default)]
@@ -22,6 +23,11 @@ impl DateTime {
 	#[must_use]
 	pub fn from_millis(millis: u64) -> Self {
 		Self(millis)
+	}
+
+	#[must_use]
+	pub fn from_seconds(seconds: u64) -> Self {
+		Self(seconds * 1000)
 	}
 
 	#[must_use]
