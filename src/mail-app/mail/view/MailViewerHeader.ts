@@ -872,26 +872,50 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			
 			const trustOnceButton: BannerButtonAttrs = {
 				title: "mobyPhish_trust_once",
-				label: "mobyPhish_trust_once",
-				icon: m(Icon, { icon: Icons.Unlock }),
+				label: "emptyString_msg",
+				icon: m(Icon, { icon: Icons.Eye }),
 				click: async () => {
+					const senderEmail = viewModel.getSender().address;
+					const userEmail = viewModel.logins.getUserController().loginUsername;
+			
 					try {
-						await viewModel.updateSenderStatus("trusted_once", "interacted");
-						viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
+						const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								user_email: userEmail,
+								email_id: viewModel.mail._id[1],
+								sender_email: senderEmail,
+								status: "trusted_once",
+								interaction_type: "interacted",
+							}),
+						});
+			
+						if (!response.ok) {
+							throw new Error("Failed to update sender status.");
+						}
+			
 						console.log("Trusted once: Content unblocked for this email only.");
+			
+						await viewModel.fetchSenderData(); // to refresh state from backend if needed
+						await viewModel.updateSenderStatus("trusted_once", "interacted");
+			
+						viewModel.setContentBlockingStatus(ContentBlockingStatus.Show); // <-- this is the key
+			
 						m.redraw();
 					} catch (error) {
-						console.error("Error applying trust-once behavior:", error);
+						console.error("Error trusting once:", error);
 					}
 				},
 				style: {
-					backgroundColor: "#f0ad4e", // warning yellow
+					backgroundColor: "#007bff",
 					color: "white",
 					fontWeight: "bold",
 					borderRadius: "8px",
 					padding: "8px 12px",
 				}
 			};
+			
 
     	    buttons.push(confirmButton, addButton, trustOnceButton);
 	    }  
