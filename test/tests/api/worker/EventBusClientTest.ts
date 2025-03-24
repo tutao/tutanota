@@ -17,8 +17,7 @@ import {
 import { MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
-import { defer, noOp, TypeRef } from "@tutao/tutanota-utils"
-import { ModelMapper } from "../../../../src/common/api/worker/crypto/ModelMapper.js"
+import { defer, noOp } from "@tutao/tutanota-utils"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { EventQueue, QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
@@ -30,8 +29,10 @@ import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
-import {resolveTypeReference} from "../../../../src/common/api/common/EntityFunctions";
-import {InstancePipeline} from "../../../../src/common/api/worker/crypto/InstancePipeline";
+import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
+import { resolveTypeReference } from "../../../../src/common/api/common/EntityFunctions"
+
+const { anything } = matchers
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
@@ -44,11 +45,13 @@ o.spec("EventBusClientTest", function () {
 	let listenerMock: EventBusListener
 	let progressTrackerMock: ExposedProgressTracker
 	let syncTrackerMock: SyncTracker
+	let instancePipeline: InstancePipeline
 	let socketFactory
 
 	function initEventBus() {
 		const entityClient = new EntityClient(restClient)
-		const instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
+		instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
+
 		ebc = new EventBusClient(
 			listenerMock,
 			cacheMock,
@@ -243,7 +246,7 @@ o.spec("EventBusClientTest", function () {
 		ebc.connect(ConnectMode.Initial)
 		await socket.onopen?.(new Event("open"))
 
-		const messageData = createEntityMessageWithUnknownEntity(1)
+		const messageData = await createEntityMessageWithUnknownEntity(1)
 
 		const updateCaptor: Captor = matchers.captor()
 		// Is waiting for cache to process the first event.
@@ -255,16 +258,15 @@ o.spec("EventBusClientTest", function () {
 		} as MessageEvent<string>)
 
 		o(updateCaptor.values?.length).equals(1)
-		o(updateCaptor.value.events).deepEquals([
-			createTestEntity(EntityUpdateTypeRef, {
-				_id: "eventBatchId",
-				application: "tutanota",
-				typeId: MailTypeRef.typeId.toString(),
-				instanceListId: "listId1",
-				instanceId: "id1",
-				operation: OperationType.UPDATE,
-			}),
-		])
+		const expectedUpdateInstance = createTestEntity(EntityUpdateTypeRef, {
+			_id: "eventBatchId",
+			application: "tutanota",
+			typeId: MailTypeRef.typeId.toString(),
+			instanceListId: "listId1",
+			instanceId: "id1",
+			operation: OperationType.UPDATE,
+		})
+		o(updateCaptor.value.events).deepEquals([{ _finalIvs: {}, ...expectedUpdateInstance }])
 	})
 
 	o("missed entity events are processed in order", async function () {
@@ -343,12 +345,21 @@ o.spec("EventBusClientTest", function () {
 
 	o("on counter update it send message to the main thread", async function () {
 		const counterUpdate = createCounterData({ mailGroupId: "group1", counterValue: 4, counterId: "list1" })
+
 		await ebc.connect(ConnectMode.Initial)
 
 		await socket.onmessage?.({
-			data: createCounterMessage(counterUpdate),
+			data: await createCounterMessage(counterUpdate),
 		} as MessageEvent)
-		verify(listenerMock.onCounterChanged(counterUpdate))
+
+		const updateCaptor = matchers.captor()
+		verify(listenerMock.onCounterChanged(updateCaptor.capture()))
+
+		// same counterUpdate defined above with added _finalIvs field
+		const expectedCounterUpdate = { ...counterUpdate }
+		Object.assign(expectedCounterUpdate, { _finalIvs: {} })
+		Object.assign(expectedCounterUpdate.counterValues[0], { _finalIvs: {} })
+		o(updateCaptor.values).deepEquals([expectedCounterUpdate])
 	})
 
 	o.spec("sleep detection", function () {
@@ -389,7 +400,7 @@ o.spec("EventBusClientTest", function () {
 		})
 	})
 
-	function createEntityMessageWithUnknownEntity(eventBatchId: number): string {
+	async function createEntityMessageWithUnknownEntity(eventBatchId: number): Promise<string> {
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
@@ -412,11 +423,11 @@ o.spec("EventBusClientTest", function () {
 				}),
 			],
 		})
-		return "entityUpdate;" + JSON.stringify(event)
+		const eventData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		return "entityUpdate;" + JSON.stringify(eventData)
 	}
 
 	async function createEntityMessage(eventBatchId: number): Promise<string> {
-		const instanceMapper = new ModelMapper()
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
@@ -431,9 +442,8 @@ o.spec("EventBusClientTest", function () {
 				}),
 			],
 		})
-		const value = await instanceMapper.mapToLiteral(event as any)
-		const eventAsJson = JSON.stringify(value)
-		return "entityUpdate;" + eventAsJson
+		const instanceAsData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		return "entityUpdate;" + JSON.stringify(instanceAsData)
 	}
 
 	type CounterMessageParams = { mailGroupId: Id; counterValue: number; counterId: Id }
@@ -452,7 +462,8 @@ o.spec("EventBusClientTest", function () {
 		})
 	}
 
-	function createCounterMessage(event: WebsocketCounterData): string {
-		return "unreadCounterUpdate;" + JSON.stringify(event)
+	async function createCounterMessage(event: WebsocketCounterData): Promise<string> {
+		const instanceAsData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		return "unreadCounterUpdate;" + JSON.stringify(instanceAsData)
 	}
 })

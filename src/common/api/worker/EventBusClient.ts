@@ -28,7 +28,6 @@ import type { QueuedBatch } from "./EventQueue.js"
 import { EventQueue } from "./EventQueue.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
 import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId } from "../common/utils/EntityUtils"
-import { ModelMapper } from "./crypto/ModelMapper"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
@@ -39,11 +38,9 @@ import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
-import { TypeMapper } from "./crypto/TypeMapper"
-import { CryptoMapper } from "./crypto/CryptoMapper"
 import { Entity, UntypedInstance } from "../common/EntityTypes"
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import {InstancePipeline} from "./crypto/InstancePipeline";
+import { InstancePipeline } from "./crypto/InstancePipeline"
 
 assertWorkerOrNode()
 
@@ -285,12 +282,7 @@ export class EventBusClient {
 	}
 
 	private async decodeEntityEventValue<E extends Entity>(messageType: TypeRef<E>, untypedInstance: UntypedInstance): Promise<E> {
-		const typeModel = await resolveTypeReference(messageType)
-
-		const instance = await this.instancePipeline.decryptAndMapToInstance(messageType, untypedInstance, null)
-		// FIXME:
-		// is this Entity? is this SomeEntity?
-		return instance as any
+		return await this.instancePipeline.decryptAndMapToInstance(messageType, untypedInstance, null)
 	}
 
 	private onError(error: any) {
