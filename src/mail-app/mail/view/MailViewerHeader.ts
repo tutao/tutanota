@@ -877,9 +877,18 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				click: async () => {
 					try {
 						await viewModel.updateSenderStatus("trusted_once", "interacted");
-						viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
+				
+						await viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
+				
+						// Force re-sanitize + reload + expand mail to apply changes visually
+						viewModel.sanitizeResult = null;
+						viewModel.renderedMail = null;
+						await viewModel.loadAll(Promise.resolve(), { notify: true });
+						viewModel.expandMail(Promise.resolve());
+				
 						console.log("Trusted once: Content unblocked for this email only.");
 						m.redraw();
+				
 					} catch (error) {
 						console.error("Error applying trust-once behavior:", error);
 					}

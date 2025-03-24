@@ -252,10 +252,10 @@ export class MailViewerViewModel {
 	            this.setSenderConfirmed(true);
 	            this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
-	            // ✅ Refresh trusted senders list
+	            // Refresh trusted senders list
 	            await this.fetchSenderData();
 
-	            // ✅ Invalidate DOM + refresh view
+	            // Invalidate DOM + refresh view
 	            this.sanitizeResult = null;
 	            this.renderedMail = null;
 
