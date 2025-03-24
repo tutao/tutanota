@@ -235,7 +235,15 @@ o.spec("TutaSseFacade", () => {
 			await jsonDefer
 			verify(sseStorage.setLastProcessedNotificationId("lastProcessedNotificationId"))
 			verify(sseStorage.recordMissedNotificationCheckTime())
-			verify(notificationHandler.onMailNotification(sseInfo, strippedEncryptedNotificationInfo))
+			verify(
+				notificationHandler.onMailNotification(
+					sseInfo,
+					matchers.argThat((actualNotificationInfo) => {
+						actualNotificationInfo.mailId._id = null
+						return deepEqual(actualNotificationInfo, strippedEncryptedNotificationInfo)
+					}),
+				),
+			)
 			verify(notificationHandler.onAlarmNotification(strippedAlarmNotification))
 		})
 

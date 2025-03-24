@@ -16,10 +16,10 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import {Cardinality, Type, ValueType} from "../EntityConstants.js"
+import { Cardinality, Type, ValueType } from "../EntityConstants.js"
 import type { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
 import { TimeRange } from "../../../../mail-app/workerUtils/index/BulkMailLoader"
-import {random} from "@tutao/tutanota-crypto";
+import { random } from "@tutao/tutanota-crypto"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -249,12 +249,7 @@ export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>, createDefau
 	}
 
 	for (const [valueIdStr, value] of Object.entries(typeModel.values)) {
-		// FIXME do we want to move it here? Was in InstanceMaper before
-		if (typeModel.type === Type.Aggregated && value.name === "_id") {
-			i[value.name] = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
-		} else {
-			i[value.name] = createDefaultValue(value.name, value)
-		}
+		i[value.name] = createDefaultValue(value.name, value)
 	}
 
 	for (const [associationIdStr, association] of Object.entries(typeModel.associations)) {
