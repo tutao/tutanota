@@ -79,6 +79,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
+import { AttributeModel } from "../../../common/api/common/AttributeModel"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -139,35 +140,35 @@ export class MailIndexer {
 		const RecipientModel = typeModels[RecipientsTypeRef.typeId.toString()]
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(mail, [
 			{
-				attribute: MailModel.values["subject"],
+				attribute: AttributeModel.getModelValue(MailModel, "subject"),
 				value: () => mail.subject,
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["toRecipients"], { id: LEGACY_TO_RECIPIENTS_ID }),
+				attribute: Object.assign({}, AttributeModel.getModelAssociation(RecipientModel, "toRecipients"), { id: LEGACY_TO_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.toRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["ccRecipients"], { id: LEGACY_CC_RECIPIENTS_ID }),
+				attribute: Object.assign({}, AttributeModel.getModelAssociation(RecipientModel, "ccRecipients"), { id: LEGACY_CC_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.ccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["bccRecipients"], { id: LEGACY_BCC_RECIPIENTS_ID }),
+				attribute: Object.assign({}, AttributeModel.getModelAssociation(RecipientModel, "bccRecipients"), { id: LEGACY_BCC_RECIPIENTS_ID }),
 				value: () => mailDetails.recipients.bccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
-				attribute: MailModel.associations["sender"],
+				attribute: AttributeModel.getModelAssociation(MailModel, "sender"),
 				value: () => (hasSender ? senderToIndex.name + " <" + senderToIndex.address + ">" : ""),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, MailDetailsModel.associations["body"], { id: LEGACY_BODY_ID }),
+				attribute: Object.assign({}, AttributeModel.getModelAssociation(MailDetailsModel, "body"), { id: LEGACY_BODY_ID }),
 				value: () => htmlToText(getMailBodyText(mailDetails.body)),
 			},
 			{
-				attribute: MailModel.associations["attachments"],
+				attribute: AttributeModel.getModelAssociation(MailModel, "attachments"),
 				value: () => files.map((file) => file.name).join(" "),
 			},
 		])
