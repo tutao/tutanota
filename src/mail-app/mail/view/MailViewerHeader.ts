@@ -854,7 +854,30 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					borderRadius: "8px",
 					padding: "8px 12px",
 				}
-			};			
+			};
+			
+			const trustOnceButton: BannerButtonAttrs = {
+				title: "mobyPhish_trust_once",
+				label: "emptyString_msg",
+				icon: m(Icon, { icon: Icons.Unlock }),
+				click: async () => {
+					try {
+						await viewModel.updateSenderStatus("confirmed", "interacted");
+						viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
+						console.log("Trusted once: Content unblocked for this email only.");
+						m.redraw();
+					} catch (error) {
+						console.error("Error applying trust-once behavior:", error);
+					}
+				},
+				style: {
+					backgroundColor: "#f0ad4e", // warning yellow
+					color: "white",
+					fontWeight: "bold",
+					borderRadius: "8px",
+					padding: "8px 12px",
+				}
+			};
 
     	    buttons.push(confirmButton, addButton);
 	    }  
