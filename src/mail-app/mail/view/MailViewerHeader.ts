@@ -745,7 +745,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     	const senderStatus = viewModel.senderStatus; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
     	const interactionType = viewModel.interactionType; // interacted, no_interaction
 
-    	if (interactionType && interactionType === "interacted") {
+    	if (interactionType === "interacted") {
+			if (senderStatus === "trusted_once") {
+				return m(InfoBanner, {
+					message: "mobyPhish_trust_once_loaded" as TranslationKey,
+					icon: Icons.Warning,
+					type: BannerType.Info,
+					helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+					buttons: []
+				});
+			}			
     		return m(InfoBanner, {
     		    message: `mobyPhish_sender_${String(senderStatus)}` as TranslationKey,
     		    icon: Icons.CircleCheckmark,
@@ -753,7 +762,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
     		    helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
     		    buttons: []
     		});
-    	}
+		}
+		
 
     	const buttons: BannerButtonAttrs[] = [];
 
@@ -866,7 +876,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				icon: m(Icon, { icon: Icons.Unlock }),
 				click: async () => {
 					try {
-						await viewModel.updateSenderStatus("confirmed", "interacted");
+						await viewModel.updateSenderStatus("trusted_once", "interacted");
 						viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
 						console.log("Trusted once: Content unblocked for this email only.");
 						m.redraw();
