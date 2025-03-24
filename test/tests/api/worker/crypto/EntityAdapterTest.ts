@@ -3,10 +3,11 @@ import { resolveTypeReference } from "../../../../../src/common/api/common/Entit
 import { ImportMailGetInTypeRef, MailAddressTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../TestUtils"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { BucketKeyTypeRef, GroupInfoTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { BucketKey, BucketKeyTypeRef, GroupInfoTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { assertThrows } from "@tutao/tutanota-test-utils"
+import { Entity } from "../../../../../src/common/api/common/EntityTypes"
 
 o.spec("EntityAdapter", () => {
 	const instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
@@ -59,7 +60,7 @@ o.spec("EntityAdapter", () => {
 		o(entityAdapter._ownerEncSessionKey).equals(mail._ownerEncSessionKey!)
 		o(entityAdapter._ownerKeyVersion).equals("99")
 		o(entityAdapter._permissions).equals("permissionListId")
-		o(entityAdapter.bucketKey).deepEquals(mailBucketKey)
+		o(entityAdapter.bucketKey).deepEquals(mailBucketKey as BucketKey)
 	})
 
 	o.test("can create local mapped/decrypted data transfer instance", async () => {

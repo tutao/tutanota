@@ -77,7 +77,7 @@ import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyA
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { TypeMapper } from "../../../common/api/worker/crypto/TypeMapper"
 import { CryptoMapper } from "../../../common/api/worker/crypto/CryptoMapper"
-import {InstancePipeline} from "../../../common/api/worker/crypto/InstancePipeline";
+import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 
 assertWorkerOrNode()
 
@@ -158,21 +158,10 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
 
 	locator.restClient = new RestClient(suspensionHandler, domainConfig)
-	locator.serviceExecutor = new ServiceExecutor(
-		locator.restClient,
-		locator.user,
-		locator.instancePipeline,
-		() => locator.crypto,
-	)
+	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider)
-	const entityRestClient = new EntityRestClient(
-		locator.user,
-		locator.restClient,
-		() => locator.crypto,
-		locator.instancePipeline,
-		locator.blobAccessToken,
-	)
+	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instancePipeline, locator.blobAccessToken)
 
 	locator.native = worker
 	locator.booking = lazyMemoized(async () => {
@@ -383,15 +372,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
-		return new BlobFacade(
-			locator.restClient,
-			suspensionHandler,
-			fileApp,
-			aesApp,
-			locator.instancePipeline,
-			locator.crypto,
-			locator.blobAccessToken,
-		)
+		return new BlobFacade(locator.restClient, suspensionHandler, fileApp, aesApp, locator.instancePipeline, locator.crypto, locator.blobAccessToken)
 	})
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("../../../common/api/worker/facades/lazy/MailFacade.js")
@@ -417,7 +398,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			nonCachingEntityClient, // without cache
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
-			locator.instancePipeline,
 			locator.serviceExecutor,
 			locator.crypto,
 			mainInterface.infoMessageHandler,
