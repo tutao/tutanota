@@ -18,7 +18,6 @@ import {
 	createIdTupleWrapper,
 	createMissedNotification,
 	createNotificationInfo,
-	GeneratedIdWrapperTypeRef,
 	MissedNotificationTypeRef,
 	NotificationInfo,
 	NotificationInfoTypeRef,
@@ -33,9 +32,8 @@ import { resolveTypeReference } from "../../../../src/common/api/common/EntityFu
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { AttributeModel } from "../../../../src/common/api/common/AttributeModel"
-import { Stripped, StrippedEntity } from "../../../../src/common/api/common/utils/EntityUtils"
+import { StrippedEntity } from "../../../../src/common/api/common/utils/EntityUtils"
 import { EncryptedParsedInstance, UntypedInstance } from "../../../../src/common/api/common/EntityTypes"
-import de from "../../../../src/mail-app/translations/de"
 
 const APP_V = env.versionNumber
 
@@ -164,8 +162,7 @@ o.spec("TutaSseFacade", () => {
 				notificationInfos: [notificationInfo],
 			})
 
-			const sk = aes256RandomKey()
-			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, aes256RandomKey())
 			const missedNotificationTypeModel = await resolveTypeReference(MissedNotificationTypeRef)
 			const notificationInfoTypeModel = await resolveTypeReference(NotificationInfoTypeRef)
 
@@ -197,13 +194,14 @@ o.spec("TutaSseFacade", () => {
 			)[0]
 
 			const notificationSessionKeyModel = await resolveTypeReference(NotificationSessionKeyTypeRef)
-			const strippedAlarmNotificationSessionKeys = assertNotNull(
+			const notificationSessionKeys = assertNotNull(
 				AttributeModel.getAttributeorNull<EncryptedParsedInstance[]>(
 					alarmNotificationEncryptedParsedInstance,
 					"notificationSessionKeys",
 					alarmNotificationTypeModel,
 				),
-			).map((ns): Stripped<NotificationSessionKey> => {
+			)
+			const strippedAlarmNotificationSessionKeys = notificationSessionKeys.map((ns): NotificationSessionKey => {
 				const pushIdentifier = downcast<IdTuple>(
 					assertNotNull(AttributeModel.getAttributeorNull<Id>(ns, "pushIdentifier", notificationSessionKeyModel)),
 				)

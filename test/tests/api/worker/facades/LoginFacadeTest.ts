@@ -37,6 +37,7 @@ import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
 import { encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
+import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 
 const { anything, argThat } = matchers
 
@@ -88,7 +89,7 @@ o.spec("LoginFacadeTest", function () {
 	let restClientMock: RestClient
 	let entityClientMock: EntityClient
 	let loginListener: LoginListener
-	let instanceMapperMock: ModelMapper
+	let instancePipelineMock: InstancePipeline
 	let cryptoFacadeMock: CryptoFacade
 	let cacheStorageInitializerMock: CacheStorageLateInitializer
 	let eventBusClientMock: EventBusClient
@@ -114,7 +115,7 @@ o.spec("LoginFacadeTest", function () {
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
 		loginListener = object<LoginListener>()
-		instanceMapperMock = instance(ModelMapper)
+		instancePipelineMock = instance(InstancePipeline)
 		cryptoFacadeMock = object<CryptoFacade>()
 		usingOfflineStorage = false
 		cacheStorageInitializerMock = object()
@@ -147,7 +148,7 @@ o.spec("LoginFacadeTest", function () {
 			restClientMock,
 			entityClientMock,
 			loginListener,
-			instanceMapperMock,
+			instancePipelineMock,
 			cryptoFacadeMock,
 			instance(KeyRotationFacade),
 			cacheStorageInitializerMock,

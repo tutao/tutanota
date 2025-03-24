@@ -473,7 +473,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			nonCachingEntityClient, // without cache
 			nativePushFacade,
 			mainInterface.operationProgressTracker,
-			locator.instancePipeline,
 			locator.serviceExecutor,
 			locator.crypto,
 			mainInterface.infoMessageHandler,

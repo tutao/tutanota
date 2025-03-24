@@ -15,18 +15,20 @@ import { createTestEntity, mockFetchRequest } from "../../TestUtils.js"
 import tutanotaModelInfo from "../../../../src/common/api/entities/tutanota/ModelInfo.js"
 import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
-import { Mail, MailAddressTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailAddressTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification.js"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
-import { ModelMapper } from "../../../../src/common/api/worker/crypto/ModelMapper"
 import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
+import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
+import { resolveTypeReference } from "../../../../src/common/api/common/EntityFunctions"
+import { aes256RandomKey } from "@tutao/tutanota-crypto"
 
 type UndiciFetch = typeof undiciFetch
 
-const mapper = new ModelMapper()
+const mapper = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 
 o.spec("TutaNotificationHandler", () => {
 	let wm: WindowManager
@@ -180,7 +182,8 @@ o.spec("TutaNotificationHandler", () => {
 				}),
 			})
 
-			const mailLiteral = await mapper.mapToLiteral(mailMetadata)
+			const sk = aes256RandomKey()
+			const mailLiteral = await mapper.encryptAndMapToLiteral(MailTypeRef, mailMetadata, sk)
 
 			const requestDefer = mockFetchRequest(
 				fetch,

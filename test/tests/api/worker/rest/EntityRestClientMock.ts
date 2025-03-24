@@ -16,6 +16,7 @@ import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } 
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { Type } from "../../../../../src/common/api/common/EntityConstants.js"
+import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 
 const authDataProvider: AuthDataProvider = {
 	createAuthHeaders(): Dict {
@@ -33,7 +34,7 @@ export class EntityRestClientMock extends EntityRestClient {
 	_lastIdTimestamp: number
 
 	constructor() {
-		super(authDataProvider, downcast({}), () => downcast({}), new ModelMapper(), downcast({}))
+		super(authDataProvider, downcast({}), () => downcast({}), new InstancePipeline(resolveTypeReference, resolveTypeReference), downcast({}))
 		this._lastIdTimestamp = Date.now()
 	}
 

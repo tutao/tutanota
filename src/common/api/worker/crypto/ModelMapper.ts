@@ -193,7 +193,7 @@ export class ModelMapper {
 			if (modelAssoc.type === AssociationType.Aggregation) {
 				if (modelAssoc.cardinality === Cardinality.Any) {
 					const values = (instance as any)[modelAssoc.name] as Array<Entity>
-					const clientValues = []
+					const clientValues: Array<ParsedInstance> = []
 					for (const value of values) {
 						clientValues.push(await this.applyServerModel(assocTypeRef, value))
 					}

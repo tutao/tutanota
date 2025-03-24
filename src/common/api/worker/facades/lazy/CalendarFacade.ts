@@ -110,7 +110,6 @@ export class CalendarFacade {
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly nativePushFacade: NativePushFacade,
 		private readonly operationProgressTracker: ExposedOperationProgressTracker,
-		private readonly instancePipeline: InstancePipeline,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly infoMessageHandler: InfoMessageHandler,
@@ -370,7 +369,10 @@ export class CalendarFacade {
 				operation: downcast<OperationType>(operation),
 				notificationSessionKeys: notificationSessionKeys.map((n) => {
 					const { pushIdentifierSessionEncSessionKey, pushIdentifier } = n
-					return { pushIdentifier, pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentifierSessionEncSessionKey) } satisfies NotificationSessionKey
+					return {
+						pushIdentifier,
+						pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentifierSessionEncSessionKey),
+					} satisfies NotificationSessionKey
 				}),
 				alarmInfo: {
 					alarmIdentifier: alarmInfo.alarmIdentifier,

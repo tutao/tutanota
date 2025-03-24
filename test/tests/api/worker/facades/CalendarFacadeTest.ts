@@ -119,7 +119,6 @@ o.spec("CalendarFacadeTest", function () {
 		nativeMock = downcast({
 			invokeNative: spy(() => Promise.resolve()),
 		})
-		instanceMapper = new ModelMapper()
 		serviceExecutor = object()
 		cryptoFacade = object()
 		infoMessageHandler = object()
@@ -130,7 +129,6 @@ o.spec("CalendarFacadeTest", function () {
 			new EntityClient(entityRestCache),
 			nativeMock,
 			workerMock,
-			instanceMapper,
 			serviceExecutor,
 			cryptoFacade,
 			infoMessageHandler,
