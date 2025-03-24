@@ -10,10 +10,10 @@ import {
 	ModelMapper,
 	valueToDefault,
 } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
-import { Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
+import { AssociationType, Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
 import { downcast, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { dummyResolver, TestAggregateRef, TestEntity, testTypeModel, TestTypeRef } from "./InstancePipelineTestUtils"
-import { ParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { ModelAssociation, ParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
@@ -82,6 +82,7 @@ o.spec("ModelMapper", function () {
 				3: [{ 2: "123", 6: "123456", _finalIvs: {} } as ParsedInstance],
 				4: ["associatedListId"],
 				7: true,
+				8: ["listId", "listElementId"],
 				_finalIvs: {},
 			}
 			const mappedInstance = (await modelMapper.applyClientModel(TestTypeRef, parsedInstance)) as any
@@ -148,6 +149,7 @@ o.spec("ModelMapper", function () {
 				testBoolean: false,
 				testDate: new Date("2025-01-01T13:00:00.000Z"),
 				testListAssociation: "associatedListId",
+				testListElementAssociation: ["listId", "listElementId"],
 				testValue: "some encrypted string",
 			}
 			const serverInstance: ParsedInstance = await modelMapper.applyServerModel(TestTypeRef, instance)
@@ -180,6 +182,7 @@ o.spec("ModelMapper", function () {
 				testBoolean: false,
 				testDate: new Date("2025-01-01T13:00:00.000Z"),
 				testListAssociation: "associatedListId",
+				testListElementAssociation: ["listId", "listElementId"],
 				testValue: downcast<string>(null),
 			}
 			const serverInstance: ParsedInstance = await modelMapper.applyServerModel(TestTypeRef, instance)
@@ -203,32 +206,54 @@ o.spec("ModelMapper", function () {
 	})
 	o.spec("cardinality assertions", function () {
 		o("assertCorrectAssociationClientCardinality", async function () {
-			const f = (card, value) => assertCorrectAssociationClientCardinality(TestTypeRef, "1", card, value)
-			o(f(Cardinality.One, ["v"])).deepEquals("v")
-			o(f(Cardinality.ZeroOrOne, ["v"])).deepEquals("v")
-			o(f(Cardinality.ZeroOrOne, [])).deepEquals(null)
-			o(f(Cardinality.Any, ["v"])).deepEquals(["v"])
-			o(f(Cardinality.Any, ["v", "v2"])).deepEquals(["v", "v2"])
+			const f = (type, cardinality, value) =>
+				assertCorrectAssociationClientCardinality(TestTypeRef, "1", downcast<ModelAssociation>({ type, cardinality }), value)
+			o(f(AssociationType.ListAssociation, Cardinality.One, ["v"])).deepEquals("v")
+			o(f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, ["v"])).deepEquals("v")
+			o(f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, [])).deepEquals(null)
+			o(f(AssociationType.ListAssociation, Cardinality.Any, ["v"])).deepEquals(["v"])
+			o(f(AssociationType.ListAssociation, Cardinality.Any, ["v", "v2"])).deepEquals(["v", "v2"])
+			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.ZeroOrOne, ["listId", "listElementId"])).deepEquals(["listId", "listElementId"])
+			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.One, ["listId", "listElementId"])).deepEquals(["listId", "listElementId"])
 
-			await assertThrows(ProgrammingError, async () => f(Cardinality.One, []))
-			await assertThrows(ProgrammingError, async () => f(Cardinality.One, ["v", "v2"]))
-			await assertThrows(ProgrammingError, async () => f(Cardinality.ZeroOrOne, ["v", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.Any, ["v", "v1"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.Any, ["v", "v1", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.One, ["v", "v1", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.ZeroOrOne, ["v", "v1", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.One, []))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.One, ["v", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, ["v", "v2"]))
 		})
 
 		o("assertCorrectAssociationServerCardinality", async function () {
-			const f = (card, value) => assertCorrectAssociationServerCardinality(TestTypeRef, "1", card, value)
-			o(f(Cardinality.One, "v")).deepEquals(["v"])
-			o(f(Cardinality.ZeroOrOne, "v")).deepEquals(["v"])
-			o(f(Cardinality.ZeroOrOne, null)).deepEquals([])
-			o(f(Cardinality.Any, ["v"])).deepEquals(["v"])
-			o(f(Cardinality.Any, [])).deepEquals([])
-			o(f(Cardinality.Any, ["v", "v2"])).deepEquals(["v", "v2"])
+			const f = (type, cardinality, value) =>
+				assertCorrectAssociationServerCardinality(
+					TestTypeRef,
+					"1",
+					downcast<ModelAssociation>({
+						type,
+						cardinality,
+					}),
+					value,
+				)
+			o(f(AssociationType.ListAssociation, Cardinality.One, "v")).deepEquals(["v"])
+			o(f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, "v")).deepEquals(["v"])
+			o(f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, null)).deepEquals([])
+			o(f(AssociationType.ListAssociation, Cardinality.Any, ["v"])).deepEquals(["v"])
+			o(f(AssociationType.ListAssociation, Cardinality.Any, [])).deepEquals([])
+			o(f(AssociationType.ListAssociation, Cardinality.Any, ["v", "v2"])).deepEquals(["v", "v2"])
+			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.ZeroOrOne, ["listId", "listElementId"])).deepEquals(["listId", "listElementId"])
+			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.One, ["listId", "listElementId"])).deepEquals(["listId", "listElementId"])
 
-			await assertThrows(ProgrammingError, async () => f(Cardinality.One, null))
-			await assertThrows(ProgrammingError, async () => f(Cardinality.One, ["v"]))
-			await assertThrows(ProgrammingError, async () => f(Cardinality.One, ["v", "v2"]))
-			await assertThrows(ProgrammingError, async () => f(Cardinality.ZeroOrOne, ["v"]))
-			await assertThrows(ProgrammingError, async () => f(Cardinality.ZeroOrOne, []))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.ZeroOrOne, ["v", "v1", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.Any, ["v", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.One, ["v", "v1", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.Any, ["v", "v1"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.One, null))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.One, ["v"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.One, ["v", "v2"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, ["v"]))
+			await assertThrows(ProgrammingError, async () => f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, []))
 		})
 		o("assertCorrectValueCardinality", async function () {
 			const f = (card, value) => assertCorrectValueCardinality(TestTypeRef, "1", card, value)
