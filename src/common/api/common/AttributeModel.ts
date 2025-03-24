@@ -5,19 +5,6 @@ import { ProgrammingError } from "./error/ProgrammingError"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
-// Record<appName, Map<typeId, Map<attrName, attrId>>>
-let typeIdToAttributeNameMap: Record<string, Map<number, Map<string, number>>> = {
-	// Map<typeId, Map<attrName, attrId>>
-	base: new Map(),
-	sys: new Map(),
-	tutanota: new Map(),
-	monitor: new Map<number, Map<string, number>>(),
-	accounting: new Map<number, Map<string, number>>(),
-	gossip: new Map<number, Map<string, number>>(),
-	storage: new Map<number, Map<string, number>>(),
-	usage: new Map<number, Map<string, number>>(),
-}
-
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
 		base: new Map(),
@@ -28,6 +15,16 @@ export class AttributeModel {
 		accounting: new Map(),
 		sys: new Map(),
 		storage: new Map(),
+	}
+
+	static getAttribute<T>(instance: EncryptedParsedInstance | ParsedInstance, attrName: string, typeModel: TypeModel): T {
+		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
+		if (attrId) {
+			const value = instance[attrId]
+			return assertNotNull(downcast<T>(value))
+		} else {
+			throw new ProgrammingError("null not allowed")
+		}
 	}
 
 	static getAttributeorNull<T>(instance: EncryptedParsedInstance | ParsedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
@@ -52,7 +49,7 @@ export class AttributeModel {
 	}
 
 	private static getResolvedAttributeId(typeModel: TypeModel, attrName: string): number | null {
-		const typeIdMap = typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)
+		const typeIdMap = AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)
 		if (typeIdMap == null) {
 			throw new ProgrammingError(`Unknown type: ${typeModel.app}/${typeModel.name}`)
 		}
@@ -75,7 +72,7 @@ export class AttributeModel {
 			attributeNameToAttributeId.set(association.name, parseInt(associationId))
 		}
 
-		typeIdToAttributeNameMap[typeModel.app].set(typeModel.id, attributeNameToAttributeId)
+		AttributeModel.typeIdToAttributeNameMap[typeModel.app].set(typeModel.id, attributeNameToAttributeId)
 	}
 
 	public static isKnownAttribute(typeModel: TypeModel, attributeName: string): boolean {

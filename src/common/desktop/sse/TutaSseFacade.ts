@@ -3,13 +3,15 @@ import { TutaNotificationHandler } from "./TutaNotificationHandler.js"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
 import { typeModels } from "../../api/entities/sys/TypeModels.js"
-import { assertNotNull, Base64, base64ToBase64Url, downcast, filterInt, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ToBase64Url, downcast, filterInt, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { handleRestError } from "../../api/common/error/RestError.js"
 import {
 	AlarmInfoTypeRef,
 	AlarmNotificationTypeRef,
 	createGeneratedIdWrapper,
 	createSseConnectData,
+	IdTupleWrapper,
+	IdTupleWrapperTypeRef,
 	MissedNotificationTypeRef,
 	NotificationInfo,
 	NotificationInfoTypeRef,
@@ -34,7 +36,7 @@ const log = makeTaggedLogger("[SSEFacade]")
 
 export const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
 export type EncryptedMissedNotification = {
-	lastProcessedNotificationId: null | Id
+	lastProcessedNotificationId: Id
 	notificationInfos: Array<StrippedEntity<NotificationInfo>>
 	alarmNotifications: readonly EncryptedAlarmNotification[]
 }
@@ -117,10 +119,7 @@ export class TutaSseFacade implements SseEventHandler {
 				}),
 			],
 		})
-		const parsedInstance: ParsedInstance = await modelMapper.applyServerModel(
-			SseConnectDataTypeRef,
-			connectData,
-		)
+		const parsedInstance: ParsedInstance = await modelMapper.applyServerModel(SseConnectDataTypeRef, connectData)
 		const encryptedParsedInstance = await cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, null)
 		const untypedInstance = await typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
 		return JSON.stringify(untypedInstance)
@@ -194,15 +193,15 @@ export class TutaSseFacade implements SseEventHandler {
 
 		const encryptedParsedInstance = await typeMapper.applyJsTypes(missedNotificationTypeModel, untypedInstance)
 
-		const lastProcessedNotificationId = downcast<Id | null>(
-			encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(missedNotificationTypeModel, "lastProcessedNotificationId"))],
-		)
+		const lastProcessedNotificationId = AttributeModel.getAttribute<Id>(encryptedParsedInstance, "lastProcessedNotificationId", missedNotificationTypeModel)
 		const alarmNotifications = downcast<Array<EncryptedParsedInstance>>(
-			assertNotNull(encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(missedNotificationTypeModel, "alarmNotifications"))]),
+			AttributeModel.getAttribute(encryptedParsedInstance, "alarmNotifications", missedNotificationTypeModel),
 		).map((an) => this.mapAlarmNotification(alarmNotificationTypeModel, alarmInfoTypeModel, notificationSessionKeyModel, an))
-		const notificationInfos = downcast<Array<EncryptedParsedInstance>>(
-			assertNotNull(encryptedParsedInstance[assertNotNull(AttributeModel.getAttributeId(missedNotificationTypeModel, "notificationInfos"))]),
-		).map((ni) => this.mapNotificationInfo(notificationInfoTypeModel, ni))
+		const notificationInfos = await Promise.all(
+			downcast<Array<EncryptedParsedInstance>>(
+				AttributeModel.getAttribute(encryptedParsedInstance, "notificationInfos", missedNotificationTypeModel),
+			).map(async (ni) => await this.mapNotificationInfo(notificationInfoTypeModel, ni)),
+		)
 
 		return {
 			lastProcessedNotificationId,
@@ -211,11 +210,18 @@ export class TutaSseFacade implements SseEventHandler {
 		}
 	}
 
-	private mapNotificationInfo(typeModel: TypeModel, ni: EncryptedParsedInstance): StrippedEntity<NotificationInfo> {
+	private async mapNotificationInfo(typeModel: TypeModel, ni: EncryptedParsedInstance): Promise<StrippedEntity<NotificationInfo>> {
+		const idTupleWrapperTypeModel = await resolveTypeReference(IdTupleWrapperTypeRef)
+		const mailIdEncryptedParsedInstance = downcast(assertNotNull(AttributeModel.getAttributeorNull(ni, "mailId", typeModel)))[0]
 		return {
-			mailAddress: downcast(assertNotNull(ni[assertNotNull(AttributeModel.getAttributeId(typeModel, "mailAddress"))])),
-			userId: downcast(assertNotNull(ni[assertNotNull(AttributeModel.getAttributeId(typeModel, "userId"))])),
-			mailId: downcast(ni[assertNotNull(AttributeModel.getAttributeId(typeModel, "mailId"))]),
+			mailAddress: assertNotNull(AttributeModel.getAttributeorNull<string>(ni, "mailAddress", typeModel)),
+			userId: assertNotNull(AttributeModel.getAttributeorNull<Id>(ni, "userId", typeModel)),
+			mailId: {
+				_type: IdTupleWrapperTypeRef,
+				_id: AttributeModel.getAttribute<Id>(mailIdEncryptedParsedInstance, "_id", idTupleWrapperTypeModel),
+				listId: AttributeModel.getAttribute<Id>(mailIdEncryptedParsedInstance, "listId", idTupleWrapperTypeModel),
+				listElementId: AttributeModel.getAttribute<Id>(mailIdEncryptedParsedInstance, "listElementId", idTupleWrapperTypeModel),
+			} satisfies IdTupleWrapper,
 		}
 	}
 
@@ -225,19 +231,16 @@ export class TutaSseFacade implements SseEventHandler {
 		notificationSessionKeyModel: TypeModel,
 		an: EncryptedParsedInstance,
 	): EncryptedAlarmNotification {
-		const userId = downcast<Id>(assertNotNull(an[assertNotNull(AttributeModel.getAttributeId(alarmNotificationTypeModel, "user"))]))
-		const operation = downcast<OperationType>(assertNotNull(an[assertNotNull(AttributeModel.getAttributeId(alarmInfoTypeModel, "operation"))]))
-		const alarmInfo = downcast<EncryptedParsedInstance>(
-			assertNotNull(an[assertNotNull(AttributeModel.getAttributeId(alarmNotificationTypeModel, "alarmInfo"))]),
-		)
+		const userId = AttributeModel.getAttribute<Id[]>(an, "user", alarmNotificationTypeModel)[0]
+		const operation = AttributeModel.getAttribute<OperationType>(an, "operation", alarmNotificationTypeModel)
+		const alarmInfoArray = AttributeModel.getAttribute<EncryptedParsedInstance[]>(an, "alarmInfo", alarmNotificationTypeModel)
+		const alarmInfo = downcast<EncryptedParsedInstance>(alarmInfoArray[0])
 		const notificationSessionKeys = downcast<Array<EncryptedParsedInstance>>(
-			assertNotNull(an[assertNotNull(AttributeModel.getAttributeId(alarmNotificationTypeModel, "notificationSessionKeys"))]),
+			AttributeModel.getAttribute(an, "notificationSessionKeys", alarmNotificationTypeModel),
 		).map((ns): NotificationSessionKey => {
-			const pushIdentifier = downcast<IdTuple>(
-				assertNotNull(ns[assertNotNull(AttributeModel.getAttributeId(notificationSessionKeyModel, "pushIdentifier"))]),
-			)
-			const pushIdentifierSessionEncSessionKey = downcast<Base64>(
-				ns[assertNotNull(AttributeModel.getAttributeId(notificationSessionKeyModel, "pushIdentifierSessionEncSessionKey"))],
+			const pushIdentifier = downcast<IdTuple>(AttributeModel.getAttribute(ns, "pushIdentifier", notificationSessionKeyModel))
+			const pushIdentifierSessionEncSessionKey = uint8ArrayToBase64(
+				AttributeModel.getAttribute<Uint8Array>(ns, "pushIdentifierSessionEncSessionKey", notificationSessionKeyModel),
 			)
 
 			return {
@@ -246,7 +249,7 @@ export class TutaSseFacade implements SseEventHandler {
 			}
 		})
 
-		const alarmInfoIdentifier = downcast<Id>(assertNotNull(alarmInfo[assertNotNull(AttributeModel.getAttributeId(alarmInfoTypeModel, "alarmIdentifier"))]))
+		const alarmInfoIdentifier = AttributeModel.getAttribute<Id>(alarmInfo, "alarmIdentifier", alarmInfoTypeModel)
 
 		return {
 			operation,
