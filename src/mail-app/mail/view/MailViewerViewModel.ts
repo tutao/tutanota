@@ -753,13 +753,11 @@ export class MailViewerViewModel {
 
 	/** @return list of inline referenced cid */
 	private async loadAndProcessAdditionalMailInfo(mail: Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
-		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited
-		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
 		const isDraft = mail.state === MailState.DRAFT;
 		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraft && this.sanitizeResult != null) {
 			return this.sanitizeResult.inlineImageCids;
 		}
-
+	
 		try {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail);
 		} catch (e) {
@@ -775,7 +773,7 @@ export class MailViewerViewModel {
 			}
 			throw e;
 		}
-
+	
 		const externalImageRule = await this.configFacade.getExternalImageRule(mail.sender.address).catch((e) => {
 			console.log("Error getting external image rule:", e);
 			return ExternalImageRule.None;
@@ -783,9 +781,12 @@ export class MailViewerViewModel {
 		const isAllowedAndAuthenticatedExternalSender =
 			externalImageRule === ExternalImageRule.Allow &&
 			this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED);
-
-		//Determine contentBlockingStatus BEFORE sanitizing
-		if (this.isSenderTrusted() && this.isSenderConfirmed()) {
+	
+		// ✅ Determine contentBlockingStatus BEFORE sanitizing
+		if (this.senderStatus === "trusted_once") {
+			console.log("📬 Sender is trusted_once — setting to AlwaysShow for this session only");
+			this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
+		} else if (this.isSenderTrusted() && this.isSenderConfirmed()) {
 			console.log("Sender is trusted and confirmed — pre-setting to AlwaysShow BEFORE sanitizing");
 			this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 		} else if (!this.isSenderTrusted() && !this.isSenderConfirmed()) {
@@ -799,23 +800,22 @@ export class MailViewerViewModel {
 					? ContentBlockingStatus.AlwaysShow
 					: ContentBlockingStatus.NoExternalContent;
 		}
-
+	
 		// Wait to render heavy mail content
 		await delayBodyRenderingUntil;
 		this.renderIsDelayed = false;
-
-		// Sanitize mail body using correct contentBlockingStatus
+	
 		this.sanitizeResult = await this.sanitizeMailBody(mail, this.isBlockingExternalImages());
-
-		// Run phishing check if it's not a draft
+	
 		if (!isDraft) {
 			this.checkMailForPhishing(mail, this.sanitizeResult.links);
 		}
-
+	
 		m.redraw();
 		this.renderedMail = this.mail;
 		return this.sanitizeResult.inlineImageCids;
 	}
+	
 
 
 	private async loadAttachments(mail: Mail, inlineCids: string[]): Promise<void> {
