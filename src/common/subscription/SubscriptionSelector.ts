@@ -174,7 +174,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("pricing.legendAsterisk_msg")))
 			}
 
-			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly) {
+			if (
+				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
+				isYearly &&
+				(currentPlan === null ? true : currentPlan === PlanType.Free)
+			) {
 				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("firstMonthForFreeDetail_msg")))
 			}
 
@@ -337,7 +341,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const hasFirstYearDiscount = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && isYearly
 
 		const appliesFirstMonthForFree =
-			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && targetSubscription !== PlanType.Free && isYearly
+			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
+			isYearly &&
+			// Not showing first month free offer for the paid plan switching
+			(selectorAttrs.currentPlanType === null ? true : selectorAttrs.currentPlanType === PlanType.Free) &&
+			targetSubscription !== PlanType.Free
 
 		return {
 			heading: getDisplayNameOfPlanType(targetSubscription),
