@@ -18,7 +18,7 @@ import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
  * string representation to javascript types. Also implements the inverse operation.
  *
  * it's operating on encrypted objects, which means that encrypted attributes are passed through as-is.
- * they are mapped to their javascript type after decryption (see InstanceCryptoMapper).
+ * they are mapped to their javascript type after decryption (see CryptoMapper).
  *
  * The objects are treated according to the server's model version.
  */
@@ -68,16 +68,14 @@ export class TypeMapper {
 			const value = instance[attrId] as EncryptedParsedValue
 
 			if ((modelValue.encrypted && typeof value === "string") || value === null) {
+				// encrypted values are either null or have been converted to a byte array, encrypted and b64-encoded at this point.
 				untypedInstance[attrId] = value
 			} else if (modelValue.encrypted) {
-				// encrypted values have been converted to a byte array, encrypted and b64-encoded at this point.
-				// fixme: is it OK to have plaintext null in an encrypted field or is null always encrypted as well?
 				throw new ProgrammingError(
 					`received encrypted value that is not a string, should have been converted already. ${typeModel.name}/${typeModel.id}, ${modelValue.name}`,
 				)
 			} else {
-				// unencrypted values don't have to be modified anymore before it's sent to the server.
-				// fixme: maybe keeping it as a byte array makes sense after all
+				// unencrypted values don't have to be modified anymore before they're sent to the server
 				const dbValue = convertJsToDbType(modelValue.type, value)
 				if (dbValue instanceof Uint8Array) {
 					untypedInstance[attrId] = uint8ArrayToBase64(dbValue)

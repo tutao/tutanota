@@ -27,7 +27,8 @@ export function encryptValue(
 	} else {
 		const dbValue = convertJsToDbType(valueType.type, value)!
 		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
-		return uint8ArrayToBase64(aesEncrypt(sk, bytes, iv, true, ENABLE_MAC))
+		const encryptedBytes = aesEncrypt(sk, bytes, iv, true, ENABLE_MAC)
+		return uint8ArrayToBase64(encryptedBytes)
 	}
 }
 

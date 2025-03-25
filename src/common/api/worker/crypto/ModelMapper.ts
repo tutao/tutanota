@@ -9,10 +9,15 @@ import { TypeReferenceResolver } from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
-export type AttributeId = number
-export type TypeId = number
-export type AttributeName = string
-
+/**
+ * check that a field on an instance conforms to the cardinality requirements in its server or client type model and
+ *
+ * @param typeRef the reference to the client or server type the value is a field on
+ * @param attrId the attribute id the field has in the model
+ * @param cardinality which cardinality should the value have according to the type model
+ * @param parsedValue the actual value as found on the Instance or ParsedInstance
+ * @return a value that can be assigned to a ParsedInstance or Instance (depending on the direction)
+ */
 export function assertCorrectValueCardinality(
 	typeRef: TypeRef<unknown>,
 	attrId: string,
@@ -25,6 +30,17 @@ export function assertCorrectValueCardinality(
 	throw new ProgrammingError(`invalid value / cardinality combination for value ${attrId} on type ${typeRef.typeId}: ${cardinality}, isNull: ${!parsedValue}`)
 }
 
+/**
+ * check that a value passing from server to client conforms to the cardinality requirements of the business logic
+ * as laid out in the type model.
+ *
+ * @param typeRef the reference to the client type the value is a field on
+ * @param attrId the attribute id the field has in the model
+ * @param type the type the value will have on the client instance
+ * @param cardinality which cardinality should the value have when used in the business logic
+ * @param parsedValue the actual value as found on the ParsedInstance
+ * @return a value that can be assigned to an Instance
+ */
 export function assertCorrectAssociationClientCardinality(
 	typeRef: TypeRef<unknown>,
 	attrId: string,
@@ -46,12 +62,27 @@ export function assertCorrectAssociationClientCardinality(
 	)
 }
 
+/**
+ * the AssociationTypes that have an IdTuple as the references value.
+ * they need to be special-cased for cardinality checking because an IdTuple is an array.
+ */
 const idTupleAssociations: Array<Values<typeof AssociationType>> = [
 	AssociationType.ListElementAssociationGenerated,
 	AssociationType.BlobElementAssociation,
 	AssociationType.ListElementAssociationCustom,
 ]
 
+/**
+ * check that a value passing from client to server conforms to the cardinality requirements of the business logic
+ * as laid out in the type model.
+ *
+ * @param typeRef the reference to the server type the value is a field on
+ * @param attrId the attribute id the field has in the model
+ * @param type the type the value will have on the server instance
+ * @param cardinality which cardinality should the value have when used in the server.
+ * @param parsedValue the actual value as found on the Instance
+ * @return a value that can be assigned to a ParsedInstance
+ */
 export function assertCorrectAssociationServerCardinality(
 	typeRef: TypeRef<unknown>,
 	attrId: string,
@@ -81,6 +112,15 @@ export function assertCorrectAssociationServerCardinality(
 	)
 }
 
+/**
+ * check that the types on the server model and client model are compatible. if this doesn't pass for a pair of
+ * type models, it's likely that the old client version needs to be disabled to roll out that change.
+ *
+ * @param typeRef the reference to the client and server type the field is on
+ * @param attrId the attribute id the field has in the models
+ * @param fromType the type we would like to map the field into
+ * @param toType the type the field currently has
+ */
 function assertCompatibleModelTypes(typeRef: TypeRef<unknown>, attrId: string, fromType: Values<typeof ValueType>, toType: Values<typeof ValueType>) {
 	if (fromType === toType) return
 	throw new ProgrammingError(
@@ -89,14 +129,30 @@ function assertCompatibleModelTypes(typeRef: TypeRef<unknown>, attrId: string, f
 }
 
 /**
- * responsible for "migrations" and checking types / cardinalities.
+ * this mapper is responsible for "migrations" and checking model correctness, mostly field types and cardinalities.
+ *
+ * it maps between the plain Instance objects used in the clients business logic and the ParsedInstance representation
+ * which conforms to the server's model and is closer to the Instance format that is used on the server.
+ *
+ * There are unsafe model transformations that can result in data loss if not executed carefully.
+ * See the tutadb documentation on lossy migrations.
+ * This class is also responsible for checking for those as much as possible.
+ *
  */
 export class ModelMapper {
-	constructor(private readonly serverTypes: TypeReferenceResolver, private readonly clientTypes: TypeReferenceResolver) {}
+	constructor(
+		/** resolves typerefs against the current type models as used on the server the client connects to */
+		private readonly serverTypes: TypeReferenceResolver,
+		/** resolves typerefs against the type models used by the clients business logic. */
+		private readonly clientTypes: TypeReferenceResolver,
+	) {}
 
 	async applyClientModel<T extends Entity>(typeRef: TypeRef<unknown>, parsedInstance: ParsedInstance): Promise<T> {
+		// in case of a new type, the server should not send it to clients until the oldest client can handle it.
+		// if a type is not in the client's model anymore, it should have been removed from the business logic and
+		// the server should have stopped sending it by now.
 		const clientTypeModel = await this.clientTypes(typeRef)
-		// fixme: what if the server has a new type?
+		// the server sent the instance, so it should be in the server's type models no matter what.
 		const serverTypeModel = await this.serverTypes(typeRef)
 
 		const clientInstance: Record<string, unknown> = {
@@ -105,7 +161,9 @@ export class ModelMapper {
 		}
 
 		if (parsedInstance._errors != null) {
-			// otherwise we get an explicit _errors: undefined
+			// if we do this unconditionally, we get an explicit {_errors: undefined, ... } in cases where
+			// decryption was successful.
+			// that would mess with places that check for the presence of the field.
 			clientInstance._errors = parsedInstance._errors
 		}
 
@@ -147,7 +205,10 @@ export class ModelMapper {
 
 	async applyServerModel<T extends Entity>(typeRef: TypeRef<T>, instance: T): Promise<ParsedInstance> {
 		const clientTypeModel = await this.clientTypes(typeRef)
-		// fixme: what if the server has a new type? -> map: can't happen in this case as we won't create instances of them
+		// the client does not create instances of types it doesn't know, so this is safe from the perspective of
+		// introducing new types on the server.
+		// if the server doesn't know the type anymore, the oldest enabled client must be changed to not use it anymore
+		// before the server model is updated.
 		const serverTypeModel = await this.serverTypes(typeRef)
 		const serverInstance: Record<number, unknown> & { _finalIvs: unknown } = {
 			_finalIvs: typeof instance["_finalIvs"] !== "undefined" ? instance["_finalIvs"] : {},
@@ -220,8 +281,17 @@ export class ModelMapper {
 }
 
 /**
- * Returns bytes when the type of the field in the client is Bytes or type CompressedString, otherwise returns a string.
- * see convertDbToJsType for more info about how this is used.
+ * Returns
+ *   - bytes when the type of the field in the client is Bytes or CompressedString
+ *   - otherwise a string
+ * type mapping is done twice:
+ * * once during encryption
+ *    -> plaintext values are left as-is, encrypted values are converted to bytes, encrypted and encoded to base64 here.
+ *  * once directly before serializing to JSON
+ *    -> encrypted values are just left as base64 strings, plaintext values convert to strings.
+ *
+ * note: this function does not enforce this; the user has to check that the first invocation is compatible with
+ *       the second.
  * @returns {string|string|Uint8Array|*}
  */
 export function convertJsToDbType(type: Values<typeof ValueType>, value: Nullable<ParsedValue>): Nullable<string | Uint8Array> {
@@ -248,7 +318,8 @@ export function convertJsToDbType(type: Values<typeof ValueType>, value: Nullabl
  * * once after decrypting encrypted values
  *   -> plaintext values are left as-is, encrypted values are mapped to their final type there.
  *
- * this function does not enforce this; the user has to check that the first invocation is compatible with the second.
+ * note: this function does not enforce this; the user has to check that the first invocation is compatible with
+ *       the second.
  */
 export function convertDbToJsType(type: Values<typeof ValueType>, decryptedValue: Nullable<string | Uint8Array>): Nullable<ParsedValue> {
 	if (decryptedValue == null) {
@@ -282,6 +353,7 @@ export function decompressString(compressed: Uint8Array): string {
 export function valueToDefault(type: Values<typeof ValueType>): ParsedValue {
 	switch (type) {
 		case ValueType.String:
+		case ValueType.CompressedString:
 			return ""
 
 		case ValueType.Number:
@@ -295,18 +367,15 @@ export function valueToDefault(type: Values<typeof ValueType>): ParsedValue {
 
 		case ValueType.Boolean:
 			return false
-
-		case ValueType.CompressedString:
-			return ""
-
 		default:
-			throw new ProgrammingError(`${type} is not a valid value type`)
+			throw new ProgrammingError(`${type} is not a value type with a defined default`)
 	}
 }
 
 export function isDefaultValue(type: Values<typeof ValueType>, value: unknown): boolean {
 	switch (type) {
 		case ValueType.String:
+		case ValueType.CompressedString:
 			return value === ""
 
 		case ValueType.Number:
@@ -321,10 +390,7 @@ export function isDefaultValue(type: Values<typeof ValueType>, value: unknown): 
 		case ValueType.Boolean:
 			return value === false
 
-		case ValueType.CompressedString:
-			return value === ""
-
 		default:
-			throw new ProgrammingError(`${type} is not a valid value type`)
+			throw new ProgrammingError(`${type} is not a value type with a defined default`)
 	}
 }

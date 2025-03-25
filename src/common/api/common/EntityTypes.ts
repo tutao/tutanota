@@ -96,3 +96,6 @@ export type ParsedInstance = Record<number, Nullable<ParsedValue> | ParsedAssoci
 	_errors?: Record<number, string>
 	_finalIvs: Record<number, Nullable<Uint8Array>>
 }
+export type AttributeId = number
+export type TypeId = number
+export type AttributeName = string

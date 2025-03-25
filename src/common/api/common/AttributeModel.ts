@@ -1,6 +1,15 @@
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import { AttributeId, AttributeName, TypeId } from "../worker/crypto/ModelMapper"
-import { EncryptedParsedInstance, ModelAssociation, ModelValue, ParsedInstance, TypeModel, UntypedInstance } from "./EntityTypes"
+import {
+	AttributeId,
+	AttributeName,
+	EncryptedParsedInstance,
+	ModelAssociation,
+	ModelValue,
+	ParsedInstance,
+	TypeId,
+	TypeModel,
+	UntypedInstance,
+} from "./EntityTypes"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
