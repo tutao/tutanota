@@ -70,11 +70,13 @@ export class TypeMapper {
 			if ((modelValue.encrypted && typeof value === "string") || value === null) {
 				untypedInstance[attrId] = value
 			} else if (modelValue.encrypted) {
+				// encrypted values have been converted to a byte array, encrypted and b64-encoded at this point.
 				// fixme: is it OK to have plaintext null in an encrypted field or is null always encrypted as well?
 				throw new ProgrammingError(
 					`received encrypted value that is not a string, should have been converted already. ${typeModel.name}/${typeModel.id}, ${modelValue.name}`,
 				)
 			} else {
+				// unencrypted values don't have to be modified anymore before it's sent to the server.
 				// fixme: maybe keeping it as a byte array makes sense after all
 				const dbValue = convertJsToDbType(modelValue.type, value)
 				if (dbValue instanceof Uint8Array) {

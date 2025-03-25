@@ -220,10 +220,9 @@ export class ModelMapper {
 }
 
 /**
- * Returns bytes when the type === Bytes or type === CompressedString, otherwise returns a string
- * @param type
- * @param value
- * @returns {string|string|NodeJS.Global.Uint8Array|*}
+ * Returns bytes when the type of the field in the client is Bytes or type CompressedString, otherwise returns a string.
+ * see convertDbToJsType for more info about how this is used.
+ * @returns {string|string|Uint8Array|*}
  */
 export function convertJsToDbType(type: Values<typeof ValueType>, value: Nullable<ParsedValue>): Nullable<string | Uint8Array> {
 	if (value == null) {
@@ -241,6 +240,16 @@ export function convertJsToDbType(type: Values<typeof ValueType>, value: Nullabl
 	}
 }
 
+/*
+ * converts values of fields on instances between the server representation and the client representation.
+ * type mapping is done twice:
+ * * once directly after deserializing the JSON
+ *   -> encrypted values are just left as base64 strings
+ * * once after decrypting encrypted values
+ *   -> plaintext values are left as-is, encrypted values are mapped to their final type there.
+ *
+ * this function does not enforce this; the user has to check that the first invocation is compatible with the second.
+ */
 export function convertDbToJsType(type: Values<typeof ValueType>, decryptedValue: Nullable<string | Uint8Array>): Nullable<ParsedValue> {
 	if (decryptedValue == null) {
 		return null
