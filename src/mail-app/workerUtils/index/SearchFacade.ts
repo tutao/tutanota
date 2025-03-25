@@ -114,8 +114,12 @@ export class SearchFacade {
                    list_entities.elementId
             FROM mail_index
                      INNER JOIN list_entities ON
-                mail_index.rowId = list_entities.rowId
-            WHERE mail_index = ${normalizedQuery}`
+                mail_index.rowid = list_entities.rowid
+                     INNER JOIN content_mail_index ON
+                list_entities.rowid = content_mail_index.rowid
+            WHERE mail_index = ${normalizedQuery}
+            ORDER BY content_mail_index.receivedDate DESC
+                LIMIT ${maxResults ?? Number.MAX_SAFE_INTEGER}`
 		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 		const resultIds = resultRows.map(({ listId, elementId }) => {
 			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple

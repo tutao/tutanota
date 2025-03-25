@@ -10,19 +10,10 @@ import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 
 const searchTables = Object.freeze([
-	// // plus ownerGroup added in a migration
-	// list_entities:
-	// 	"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
-	// // plus ownerGroup added in a migration
-	// element_entities: "type TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, elementId)",
-	// ranges: "type TEXT NOT NULL, listId TEXT NOT NULL, lower TEXT NOT NULL, upper TEXT NOT NULL, PRIMARY KEY (type, listId)",
-	// lastUpdateBatchIdPerGroupId: "groupId TEXT NOT NULL, batchId TEXT NOT NULL, PRIMARY KEY (groupId)",
-	// metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
-	// blob_element_entities:
-	// 	"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
-
 	"CREATE TABLE IF NOT EXISTS search_group_data (groupId TEXT NOT NULL PRIMARY KEY, groupType NUMBER NOT NULL, indexedTimestamp NUMBER NOT NULL)",
 	"CREATE TABLE IF NOT EXISTS search_metadata (key TEXT NOT NULL PRIMARY KEY, value)",
+	// full-text index of mails.
+	// list_entities.rowid = mail_index.rowid = content_mail_index = rowid
 	`CREATE VIRTUAL TABLE IF NOT EXISTS mail_index USING fts5(
        subject,
        toRecipients,
@@ -34,6 +25,9 @@ const searchTables = Object.freeze([
        content='',
        contentless_delete=1
        )`,
+	// Content of the mail that we might need while matching, but that should not be indexed by fts5
+	// we would love to use the contentless_unindexed option, but it's only available from SQLite 3.47.0 onwards
+	"CREATE TABLE IF NOT EXISTS content_mail_index (receivedDate NUMBER NOT NULL, sets STRING NOT NULL)",
 ] as const)
 
 export interface IndexedGroupData {
@@ -70,8 +64,9 @@ export class OfflineStoragePersistence {
 
 	async removeIndexedGroup(id: Id): Promise<void> {
 		const { query, params } = sql`DELETE
-        FROM search_group_data WHERE groupId =
-        ${id}`
+                                    FROM search_group_data
+                                    WHERE groupId =
+                                          ${id}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -98,43 +93,38 @@ export class OfflineStoragePersistence {
 			mailDetails: { recipients, body },
 			attachments,
 		} of mailData) {
-			const foundMailQuery = sql`SELECT rowId
-                                       FROM list_entities
-                                       WHERE type = ${getTypeId(MailTypeRef)}
-                                         AND listId = ${getListId(mail)}
-                                         AND elementId = ${getElementId(mail)}`
-			const foundMail = await this.sqlCipherFacade.get(foundMailQuery.query, foundMailQuery.params)
-			console.log(`found mail for ${mail._id} (${mail.subject}): ${foundMail}`)
-
+			// Find rowid from the offline storage.
+			// We could have done it in a single query but we need to insert into two tables.
+			const rowIdQuery = sql`SELECT rowid
+                                   FROM list_entities
+                                   WHERE type = ${getTypeId(MailTypeRef)}
+                                     AND listId = ${getListId(mail)}
+                                     AND elementId = ${getElementId(mail)}`
+			const rowIdResult = await this.sqlCipherFacade.get(rowIdQuery.query, rowIdQuery.params)
+			if (rowIdResult == null) {
+				console.warn(`Did not find row id for mail ${mail._id.join(",")}`)
+				return
+			}
+			const rowid = untagSqlObject(rowIdResult).rowid
 			// FIXME: attachment names is just an empty string right now
-			// FIXME: not do each email one by one if possible
-			// FIXME: write indexing metadata somewhere
 			const { query, params } = sql`
-                INSERT
-                OR REPLACE INTO mail_index(rowId, subject, toRecipients, ccRecipients, bccRecipients, sender,
+				INSERT
+				OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
                                        body, attachments)
-                VALUES ((SELECT rowId
-                         FROM list_entities
-                         WHERE type =
-                ${getTypeId(MailTypeRef)}
-                AND
-                listId
-                =
-                ${getListId(mail)}
-                AND
-                elementId
-                =
-                ${getElementId(mail)}
-                ),
-                ${mail.subject},
-                ${serializeMailAddresses(recipients.toRecipients)},
-                ${serializeMailAddresses(recipients.ccRecipients)},
-                ${serializeMailAddresses(recipients.bccRecipients)},
-                ${serializeMailAddresses([mail.sender])},
-                ${htmlToText(getMailBodyText(body))},
-                ${attachments.map((f) => f.name).join(" ")}
-                )`
+                VALUES (
+				${rowid},
+				${mail.subject},
+				${serializeMailAddresses(recipients.toRecipients)},
+				${serializeMailAddresses(recipients.ccRecipients)},
+				${serializeMailAddresses(recipients.bccRecipients)},
+				${serializeMailAddresses([mail.sender])},
+				${htmlToText(getMailBodyText(body))},
+				${attachments.map((f) => f.name).join(" ")}
+				)`
 			await this.sqlCipherFacade.run(query, params)
+			const serializedSets = mail.sets.map((set) => set.join("/")).join(" ")
+			const contentQuery = sql`INSERT OR REPLACE INTO content_mail_index(rowId, sets, receivedDate) VALUES (${rowid}, ${serializedSets}, ${mail.receivedDate.getTime()})`
+			await this.sqlCipherFacade.run(contentQuery.query, contentQuery.params)
 		}
 	}
 
