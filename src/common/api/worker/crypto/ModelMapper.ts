@@ -170,7 +170,10 @@ export class ModelMapper {
 
 			assertCompatibleModelTypes(typeRef, attrIdStr, clientType.type, serverType.type)
 			const clientValue = ((instance as any)[clientType.name] as Nullable<ParsedValue>) ?? null
-			if (serverType.cardinality === Cardinality.One && clientValue == null && serverType.name != "_id") {
+			// while setting up new element,
+			// these fields can & should be null. While update, they should not but it's ok for now ( might not be ok with partial patch )
+			const isIdOrPermission = serverType.name === "_id" || serverType.name === "_permissions"
+			if (serverType.cardinality === Cardinality.One && clientValue == null && !isIdOrPermission) {
 				// no value with Cardinality Any. A ZeroOrOne to One transformation needs a default value
 				try {
 					serverInstance[attrId] = valueToDefault(serverType.type)
