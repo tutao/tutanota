@@ -102,6 +102,9 @@ export class SearchFacade {
 	async search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
 		// from https://github.com/signalapp/Signal-Desktop/blob/a714a31b3990c64801f1c43b3d465877719f30a4/ts/sql/Server.ts#L1873
 		// but simplified (we don't do tokenizing here)
+		// FIXME: escape more special characters from fts5 syntax, e.g. '*'
+		//  https://sqlite.org/fts5.html#full_text_query_syntax
+		// FIXME: order the results by time
 		const normalizedQuery = query
 			.split(/\s+/)
 			.map((token) => `"${token.replace(/"/g, '""')}"*`)

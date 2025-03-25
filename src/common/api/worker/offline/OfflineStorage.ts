@@ -367,35 +367,45 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		const typeModel = await resolveTypeReference(originalEntity._type)
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery: FormattedQuery
+
+		// Note that we have to also select and re-insert the rowId or else it will not match search index.
+		//
+		// A null rowId (i.e. not found) is fine if this is an insertion.
 		switch (typeModel.type) {
 			case TypeId.Element:
 				formattedQuery = sql`INSERT
-				OR REPLACE INTO element_entities (rowId, type, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowId FROM element_entities WHERE elementId =
-				${encodedElementId}
-				UNION
-				SELECT
-				max
-				(
-				rowId
-				)
-				+
-				1
-				FROM
-				element_entities
-				LIMIT
-				1
-				),
-				${type},
-				${encodedElementId},
-				${ownerGroup},
-				${serializedEntity}
-				)`
+                OR REPLACE INTO element_entities (rowId, type, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowId FROM element_entities WHERE type =
+                ${type}
+                AND
+                elementId
+                =
+                ${encodedElementId}
+                LIMIT
+                1
+                ),
+                ${type},
+                ${encodedElementId},
+                ${ownerGroup},
+                ${serializedEntity}
+                )`
 				break
 			case TypeId.ListElement:
 				formattedQuery = sql`INSERT
                 OR REPLACE INTO list_entities (rowId, type, listId, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowId FROM list_entities WHERE elementId = ${encodedElementId} UNION SELECT max(rowId) + 1 FROM list_entities LIMIT 1),
+                (SELECT rowId FROM list_entities WHERE type =
+                ${type}
+                AND
+                listId
+                =
+                ${listId}
+                AND
+                elementId
+                =
+                ${encodedElementId}
+                LIMIT
+                1
+                ),
                 ${type},
                 ${listId},
                 ${encodedElementId},
@@ -406,7 +416,19 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			case TypeId.BlobElement:
 				formattedQuery = sql`INSERT
                 OR REPLACE INTO blob_element_entities (rowId, type, listId, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowId FROM blob_element_entities WHERE elementId = ${encodedElementId} UNION SELECT max(rowId) + 1 FROM blob_element_entities LIMIT 1),
+                (SELECT rowId FROM blob_element_entities WHERE type =
+                ${type}
+                AND
+                listId
+                =
+                ${listId}
+                AND
+                elementId
+                =
+                ${encodedElementId}
+                LIMIT
+                1
+                ),
                 ${type},
                 ${listId},
                 ${encodedElementId},
