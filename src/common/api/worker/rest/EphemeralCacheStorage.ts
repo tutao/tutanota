@@ -357,7 +357,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return listCache.allRange.map((id) => clone(listCache.elements.get(id) as T))
 	}
 
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
+	getCustomCacheHandlerMap(): CustomCacheHandlerMap {
 		return this.customCacheHandlerMap
 	}
 

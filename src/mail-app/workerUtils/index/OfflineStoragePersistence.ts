@@ -69,11 +69,9 @@ export class OfflineStoragePersistence {
 	}
 
 	async removeIndexedGroup(id: Id): Promise<void> {
-		const { query, params } = sql`REMOVE
+		const { query, params } = sql`DELETE
         FROM search_group_data WHERE groupId =
-        ${id}
-        LIMIT
-        1`
+        ${id}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -142,17 +140,17 @@ export class OfflineStoragePersistence {
 
 	async deleteMailData(mailId: IdTuple): Promise<void> {
 		const { query, params } = sql`DELETE
-									  FROM mail_index
-									  WHERE rowId = (SELECT rowId
-													 FROM list_entities
-													 WHERE type =
-														   ${getTypeId(MailTypeRef)}
-													   AND listId
-														 =
-														   ${listIdPart(mailId)}
-													   AND elementId
-														 =
-														   ${elementIdPart(mailId)} LIMIT 1)`
+                                    FROM mail_index
+                                    WHERE rowId = (SELECT rowId
+                                                   FROM list_entities
+                                                   WHERE type =
+                                                         ${getTypeId(MailTypeRef)}
+                                                     AND listId
+                                                       =
+                                                         ${listIdPart(mailId)}
+                                                     AND elementId
+                                                       =
+                                                         ${elementIdPart(mailId)} LIMIT 1)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 }

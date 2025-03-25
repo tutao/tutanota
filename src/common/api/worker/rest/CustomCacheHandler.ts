@@ -6,7 +6,7 @@ import { resolveTypeReference } from "../../common/EntityFunctions.js"
 import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCache.js"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { EntityUpdate } from "../../entities/sys/TypeRefs"
+import { EntityUpdate, User } from "../../entities/sys/TypeRefs"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { Indexer } from "../../../../mail-app/workerUtils/index/Indexer"
 import { MailIndexer } from "../../../../mail-app/workerUtils/index/MailIndexer"
@@ -16,7 +16,7 @@ import { MailIndexer } from "../../../../mail-app/workerUtils/index/MailIndexer"
  * add new types to the union when implementing new
  * custom cache handlers.
  */
-type CustomCacheHandledType = never | CalendarEvent | Mail
+type CustomCacheHandledType = never | CalendarEvent | Mail | User
 
 /**
  * makes sure that any {ref<A>, handler<A>} pair passed to
@@ -24,7 +24,7 @@ type CustomCacheHandledType = never | CalendarEvent | Mail
  * are types for which we actually do custom handling.
  */
 type CustomCacheHandlerMapping = CustomCacheHandledType extends infer A
-	? A extends ListElementEntity
+	? A extends SomeEntity
 		? { ref: TypeRef<A>; handler: CustomCacheHandler<A> }
 		: never
 	: never
@@ -36,10 +36,10 @@ type CustomCacheHandlerMapping = CustomCacheHandledType extends infer A
  * it is mostly read-only
  */
 export class CustomCacheHandlerMap {
-	private readonly handlers: ReadonlyMap<string, CustomCacheHandler<ListElementEntity>>
+	private readonly handlers: ReadonlyMap<string, CustomCacheHandler<SomeEntity>>
 
 	constructor(...args: ReadonlyArray<CustomCacheHandlerMapping>) {
-		const handlers: Map<string, CustomCacheHandler<ListElementEntity>> = new Map()
+		const handlers: Map<string, CustomCacheHandler<SomeEntity>> = new Map()
 		for (const { ref, handler } of args) {
 			const key = getTypeId(ref)
 			handlers.set(key, handler)
@@ -65,7 +65,9 @@ export interface CustomCacheHandler<T extends SomeEntity> {
 
 	shouldLoadOnCreateEvent?: (event: EntityUpdateData) => Promise<boolean>
 
-	onBeforeDelete?: (event: EntityUpdateData) => Promise<void>
+	onBeforeUpdate?: (newEntity: T) => Promise<void>
+
+	onBeforeDelete?: (id: T["_id"]) => Promise<void>
 }
 
 /**
@@ -139,8 +141,8 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		return true
 	}
 
-	async onBeforeDelete(event: EntityUpdateData): Promise<void> {
+	async onBeforeDelete(id: IdTuple): Promise<void> {
 		const indexer = await this.indexer()
-		return indexer.beforeMailDeleted([event.instanceListId, event.instanceId])
+		return indexer.beforeMailDeleted(id)
 	}
 }

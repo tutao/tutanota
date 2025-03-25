@@ -38,7 +38,7 @@ import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/Enti
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, EntityUpdateData, getEntityUpdateId, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
 
 assertWorkerOrNode()
@@ -175,7 +175,7 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * get a map with cache handlers for the customId types this storage implementation supports
 	 * customId types that don't have a custom handler don't get served from the cache
 	 */
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap
+	getCustomCacheHandlerMap(): CustomCacheHandlerMap
 
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
 
@@ -255,7 +255,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	constructor(private readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
-		const useCache = await this.shouldUseCache(typeRef, opts)
+		const useCache = this.shouldUseCache(typeRef, opts)
 		if (!useCache) {
 			return await this.entityRestClient.load(typeRef, id, opts)
 		}
@@ -401,7 +401,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		reverse: boolean,
 		opts: EntityRestClientLoadOptions = {},
 	): Promise<T[]> {
-		const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
+		const customHandler = this.storage.getCustomCacheHandlerMap().get(typeRef)
 		if (customHandler && customHandler.loadRange) {
 			return await customHandler.loadRange(this.storage, listId, start, count, reverse)
 		}
@@ -733,7 +733,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			const ids = updates.map((update) => update.instanceId)
 
 			// We only want to load the instances that are in cache range
-			const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
+			const customHandler = this.storage.getCustomCacheHandlerMap().get(typeRef)
 			const idsInCacheRange =
 				customHandler && customHandler.getElementIdsInCacheRange
 					? await customHandler.getElementIdsInCacheRange(this.storage, instanceListId, ids)
@@ -781,8 +781,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
-					this.storage.getCustomCacheHandlerMap(this.entityRestClient)?.get(typeRef)?.onBeforeDelete?.(update)
-					// FIXME: tell indexer before entity is removed
+					const handler = this.storage.getCustomCacheHandlerMap()?.get(typeRef)
+					handler?.onBeforeDelete?.(getEntityUpdateId(update))
 					if (
 						isSameTypeRef(MailSetEntryTypeRef, typeRef) &&
 						containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)
@@ -844,7 +844,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// If there is a custom handler we follow its decision.
 				// Otherwise, we do a range check to see if we need to keep the range up-to-date.
 				const shouldLoad =
-					(await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)?.shouldLoadOnCreateEvent?.(update)) ??
+					(await this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)) ??
 					(await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
 				if (shouldLoad) {
 					// No need to try to download something that's not there anymore
@@ -894,9 +894,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// clicks their saved credentials again, but lets them still use offline login if they try to use the
 				// outdated credentials while not connected to the internet.
 				const newEntity = await this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
-				if (isSameTypeRef(typeRef, UserTypeRef)) {
-					await this.handleUpdatedUser(cached, newEntity)
-				}
 				await this.storage.put(newEntity)
 				return update
 			} catch (e) {
@@ -912,24 +909,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 		return update
-	}
-
-	private async handleUpdatedUser(cached: SomeEntity, newEntity: SomeEntity) {
-		// When we are removed from a group we just get an update for our user
-		// with no membership on it. We need to clean up all the entities that
-		// belong to that group since we shouldn't be able to access them anymore
-		// and we won't get any update or another chance to clean them up.
-		const oldUser = cached as User
-		if (oldUser._id !== this.storage.getUserId()) {
-			return
-		}
-		const newUser = newEntity as User
-		const removedShips = difference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
-		for (const ship of removedShips) {
-			console.log("Lost membership on ", ship._id, ship.groupType)
-			// FIXME: tell indexer that this happens before the data is actually removed
-			await this.storage.deleteAllOwnedBy(ship.group)
-		}
 	}
 
 	/**
@@ -994,7 +973,10 @@ export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	}
 }
 
-export function getUpdateInstanceId(update: EntityUpdate | EntityUpdateData): { instanceListId: Id | null; instanceId: Id } {
+export function getUpdateInstanceId(update: EntityUpdate | EntityUpdateData): {
+	instanceListId: Id | null
+	instanceId: Id
+} {
 	let instanceListId
 	if (update.instanceListId === "") {
 		instanceListId = null

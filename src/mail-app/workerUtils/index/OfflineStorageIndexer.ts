@@ -33,7 +33,6 @@ export class OfflineStorageIndexer implements Indexer {
 		const removedGroups = difference(indexedGroups, userGroups)
 		for (const removedGroup of removedGroups) {
 			await this.persistence.removeIndexedGroup(removedGroup)
-			TODO("remove group from index")
 		}
 		const addedGroups = difference(userGroups, indexedGroups)
 		for (const addedGroup of addedGroups) {

@@ -4,7 +4,6 @@ import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
-import { EntityRestClient } from "./EntityRestClient.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
@@ -168,8 +167,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.setUpperRangeForList(typeRef, listId, id)
 	}
 
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
-		return this.inner.getCustomCacheHandlerMap(entityRestClient)
+	getCustomCacheHandlerMap(): CustomCacheHandlerMap {
+		return this.inner.getCustomCacheHandlerMap()
 	}
 
 	getUserId(): Id {

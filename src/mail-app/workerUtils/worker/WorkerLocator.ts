@@ -56,7 +56,7 @@ import { NativePushFacadeSendDispatcher } from "../../../common/native/common/ge
 import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
 import { BitArray, random } from "@tutao/tutanota-crypto"
 import { ExportFacadeSendDispatcher } from "../../../common/native/common/generatedipc/ExportFacadeSendDispatcher.js"
-import { assertNotNull, delay, downcast, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, difference, downcast, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
 import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacadeSendDispatcher } from "../../../common/native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
@@ -66,7 +66,7 @@ import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEve
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
 import type { SearchFacade } from "../index/SearchFacade.js"
-import { Challenge } from "../../../common/api/entities/sys/TypeRefs.js"
+import { Challenge, User, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { ConnectionError, ServiceUnavailableError } from "../../../common/api/common/error/RestError.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
@@ -96,8 +96,14 @@ import { IndexedDbMailIndexerBackend, MailIndexerBackend, SqliteMailIndexerBacke
 import { Indexer } from "../index/Indexer"
 import { SuggestionFacade } from "../index/SuggestionFacade"
 import { IndexerCore } from "../index/IndexerCore"
-import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler, CustomMailEventCacheHandler } from "../../../common/api/worker/rest/CustomCacheHandler"
+import {
+	CustomCacheHandler,
+	CustomCacheHandlerMap,
+	CustomCalendarEventCacheHandler,
+	CustomMailEventCacheHandler,
+} from "../../../common/api/worker/rest/CustomCacheHandler"
 import { CalendarEventTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { isSameId } from "../../../common/api/common/utils/EntityUtils"
 
 assertWorkerOrNode()
 
@@ -168,6 +174,30 @@ export type WorkerLocatorType = {
 }
 export const locator: WorkerLocatorType = {} as any
 
+class CustomUserCacheHandler implements CustomCacheHandler<User> {
+	constructor(private readonly storage: CacheStorage) {}
+
+	async onBeforeUpdate(newUser: User) {
+		const id = newUser._id
+		const currentId = this.storage.getUserId()
+		if (isSameId(currentId, id)) {
+			const oldUser = await this.storage.get(UserTypeRef, null, id)
+			if (oldUser == null) {
+				return
+			}
+			// When we are removed from a group we just get an update for our user
+			// with no membership on it. We need to clean up all the entities that
+			// belong to that group since we shouldn't be able to access them anymore
+			// and we won't get any update or another chance to clean them up.
+			const removedShips = difference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
+			for (const ship of removedShips) {
+				console.log("Lost membership on ", ship._id, ship.groupType)
+				await this.storage.deleteAllOwnedBy(ship.group)
+			}
+		}
+	}
+}
+
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
 	locator._worker = worker
 	locator._browserData = browserData
@@ -232,14 +262,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	let offlineStorageProvider
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
-		const customCacheHandler = new CustomCacheHandlerMap(
-			{
-				ref: CalendarEventTypeRef,
-				handler: new CustomCalendarEventCacheHandler(entityRestClient),
-			},
-			{ ref: MailTypeRef, handler: new CustomMailEventCacheHandler(mailIndexer) },
-		)
 		offlineStorageProvider = async () => {
+			const customCacheHandler = new CustomCacheHandlerMap(
+				{
+					ref: CalendarEventTypeRef,
+					handler: new CustomCalendarEventCacheHandler(entityRestClient),
+				},
+				{ ref: MailTypeRef, handler: new CustomMailEventCacheHandler(mailIndexer) },
+				// FIXME: this should be used for ephemeral cache as well
+				{ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage) },
+			)
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
@@ -252,16 +284,17 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	} else {
 		offlineStorageProvider = async () => null
 	}
-	locator.pdfWriter = async () => {
-		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
-		return new PdfWriter(new TextEncoder(), undefined)
-	}
 
 	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(async (error: Error) => {
 		await worker.sendError(error)
 	}, offlineStorageProvider)
 
 	locator.cacheStorage = maybeUninitializedStorage
+
+	locator.pdfWriter = async () => {
+		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
+		return new PdfWriter(new TextEncoder(), undefined)
+	}
 
 	const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(worker), new ExportFacadeSendDispatcher(worker))
 

@@ -55,7 +55,7 @@ import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { assertWorkerOrNode, isAdminClient } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
-import { EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
+import { CacheMode, EntityRestClient, typeRefToPath } from "../rest/EntityRestClient"
 import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
 import { CancelledError } from "../../common/error/CancelledError"
 import { RestClient } from "../rest/RestClient"
@@ -726,7 +726,7 @@ export class LoginFacade {
 
 		try {
 			// We need to use up-to-date user to make sure that we are not checking for outdated verified against cached user.
-			const user = await this.noncachingEntityClient.load(UserTypeRef, userId)
+			const user = await this.entityClient.load(UserTypeRef, userId, { cacheMode: CacheMode.WriteOnly })
 			await this.checkOutdatedVerifier(user, accessToken, userPassphraseKey)
 
 			// this may be the second time we set user in case we had a partial offline login before

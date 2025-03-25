@@ -10,9 +10,11 @@ import {
 	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64UrlToBase64,
+	getFirstOrThrow,
 	getTypeId,
-	groupByAndMapUniquely,
+	groupByAndMap,
 	mapNullable,
+	parseTypeId,
 	splitInChunks,
 	TypeRef,
 } from "@tutao/tutanota-utils"
@@ -22,7 +24,6 @@ import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "../rest/CustomCacheHandler.js"
-import { EntityRestClient } from "../rest/EntityRestClient.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
@@ -360,6 +361,9 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	async put(originalEntity: SomeEntity): Promise<void> {
+		const handler = this.getCustomCacheHandlerMap().get<typeof originalEntity>(originalEntity._type)
+		await handler?.onBeforeUpdate?.(originalEntity)
+
 		const serializedEntity = this.serialize(originalEntity)
 		const { listId, elementId } = expandId(originalEntity._id)
 		const type = getTypeId(originalEntity._type)
@@ -571,7 +575,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		return this.putMetadata(`${model}-version`, version)
 	}
 
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
+	getCustomCacheHandlerMap(): CustomCacheHandlerMap {
 		return this.customCacheHandler
 	}
 
@@ -588,21 +592,29 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		}
 		{
 			// first, check which list Ids contain entities owned by the lost group
-			const { query, params } = sql`SELECT listId, type
+			const { query, params } = sql`SELECT elementId, listId, type
                                         FROM list_entities
                                         WHERE ownerGroup = ${owner}`
 			const rangeRows = await this.sqlCipherFacade.all(query, params)
-			const rows = rangeRows.map((row) => untagSqlObject(row) as { listId: string; type: string })
-			const listIdsByType: Map<string, Set<Id>> = groupByAndMapUniquely(
+			type Row = { elementId: Id; listId: Id; type: string }
+			const rows = rangeRows.map((row) => untagSqlObject(row) as Row)
+			const listIdsByType: Map<string, Array<Row>> = groupByAndMap(
 				rows,
-				(row) => row.type,
-				(row) => row.listId,
+				(row) => row.type + row.listId,
+				(row) => row,
 			)
+
 			// delete the ranges for those listIds
-			for (const [type, listIds] of listIdsByType.entries()) {
+			for (const [_, rows] of listIdsByType.entries()) {
+				const { type } = getFirstOrThrow(rows)
+				const typeRef = parseTypeId(type) as TypeRef<ListElementEntity>
+				const handler = this.getCustomCacheHandlerMap().get(typeRef)
+				for (const row of rows) {
+					handler?.onBeforeDelete?.([row.listId, row.elementId])
+				}
 				// this particular query uses one other SQL var for the type.
 				const safeChunkSize = MAX_SAFE_SQL_VARS - 1
-				const listIdArr = Array.from(listIds)
+				const listIdArr = rows.map((row) => row.listId)
 				await this.runChunked(
 					safeChunkSize,
 					listIdArr,
