@@ -52,17 +52,28 @@ import {
 import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
-import type { EncryptedParsedInstance, Entity, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import type { Entity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
-import { Aes256Key, aes256RandomKey, aesEncrypt, AesKey, decryptKey, EccPublicKey, encryptKey, isPqKeyPairs, sha256Hash } from "@tutao/tutanota-crypto"
+import {
+	Aes256Key,
+	aes256RandomKey,
+	aesEncrypt,
+	AesKey,
+	bitArrayToUint8Array,
+	decryptKey,
+	EccPublicKey,
+	encryptKey,
+	isPqKeyPairs,
+	sha256Hash,
+} from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { elementIdPart, getElementId, getListId, isSameId } from "../../common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -72,7 +83,6 @@ import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
 import { PublicKeyProvider, PublicKeys } from "../facades/PublicKeyProvider.js"
 import { KeyVersion, Nullable } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
-import { AttributeModel } from "../../common/AttributeModel"
 import { typeRefToRestPath } from "../rest/EntityRestClient"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
@@ -178,6 +188,12 @@ export class CryptoFacade {
 				throw e
 			}
 		}
+	}
+
+	/** Helper for the rare cases when we needed it on the client side. */
+	async resolveSessionKeyForInstanceBinary(instance: Entity): Promise<Uint8Array | null> {
+		const key = await this.resolveSessionKey(instance)
+		return key == null ? null : bitArrayToUint8Array(key)
 	}
 
 	/**

@@ -17,7 +17,6 @@ import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import modelInfo from "../../api/entities/sys/ModelInfo.js"
 import { ExtendedNotificationMode } from "../common/generatedipc/ExtendedNotificationMode.js"
 import { AppType } from "../../misc/ClientConstants.js"
-import { bitArrayToUint8Array } from "@tutao/tutanota-crypto"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts
@@ -125,11 +124,8 @@ export class NativePushServiceApp {
 
 	private async storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = this.logins.getUserController().user._id
-
-		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(pushIdentifier))
-		const sk = bitArrayToUint8Array(sessionKey)
-
 		const origin = assertNotNull(env.staticUrl)
+		const sk = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier))
 		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, userId, origin, getElementId(pushIdentifier), sk)
 	}
 
