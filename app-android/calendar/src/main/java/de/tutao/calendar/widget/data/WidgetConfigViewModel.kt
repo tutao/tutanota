@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.Date
 
 class WidgetConfigViewModel(
 	application: Application,
@@ -126,6 +127,7 @@ class WidgetConfigViewModel(
 		_isLoading.value = true
 
 		return viewModelScope.launch {
+			repository.storeLastSyncInBatch(context, intArrayOf(widgetId), Date())
 			repository.storeSettings(
 				context,
 				widgetId,
