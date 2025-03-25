@@ -16,7 +16,6 @@ import { CalendarFacade } from "../../../common/api/worker/facades/lazy/Calendar
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../../../common/api/worker/facades/lazy/CounterFacade.js"
-import { SearchFacade } from "../index/SearchFacade.js"
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
@@ -43,6 +42,7 @@ import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyP
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import { Indexer } from "../index/Indexer"
+import { SearchFacade } from "../index/SearchFacade"
 
 assertWorkerOrNode()
 

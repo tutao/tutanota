@@ -22,8 +22,6 @@ import { CalendarFacade } from "../common/api/worker/facades/lazy/CalendarFacade
 import { MailFacade } from "../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../common/api/worker/facades/lazy/CounterFacade.js"
-import { IndexedDbIndexer } from "./workerUtils/index/IndexedDbIndexer.js"
-import { SearchFacade } from "./workerUtils/index/SearchFacade.js"
 import { BookingFacade } from "../common/api/worker/facades/lazy/BookingFacade.js"
 import { MailAddressFacade } from "../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { BlobFacade } from "../common/api/worker/facades/lazy/BlobFacade.js"
@@ -114,8 +112,6 @@ import { MobilePaymentsFacade } from "../common/native/common/generatedipc/Mobil
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
-import { locator } from "../common/api/main/CommonLocator.js"
-import { showSnackBar } from "../common/gui/base/SnackBar.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { SearchCategoryTypes } from "./search/model/SearchUtils.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
@@ -135,6 +131,7 @@ import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { Indexer } from "./workerUtils/index/Indexer"
+import { SearchFacade } from "./workerUtils/index/SearchFacade"
 
 assertMainOrNode()
 

@@ -65,7 +65,6 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../common/api/worker/crypt
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import type { SearchFacade } from "../index/SearchFacade.js"
 import { Challenge, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { ConnectionError, ServiceUnavailableError } from "../../../common/api/common/error/RestError.js"
@@ -99,6 +98,8 @@ import { IndexerCore } from "../index/IndexerCore"
 import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler, CustomMailEventCacheHandler } from "../../../common/api/worker/rest/CustomCacheHandler"
 import { CalendarEventTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { CustomUserCacheHandler } from "../../../common/api/worker/facades/CustomUserCacheHandler"
+import { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade"
+import { SearchFacade } from "../index/SearchFacade"
 
 assertWorkerOrNode()
 
@@ -483,10 +484,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 
 	locator.search = lazyMemoized(async () => {
-		const { SearchFacade } = await import("../index/SearchFacade.js")
-		// FIXME
-		const suggestionFacades: readonly SuggestionFacade<any>[] = [] //[indexer._contact.suggestionFacade]
-		return new SearchFacade(locator.user, db, await mailIndexer(), suggestionFacades, browserData, locator.cachingEntityClient, locator.sqlCipherFacade)
+		if (isOfflineStorageAvailable()) {
+			const { SqliteSearchFacade } = await import("../index/SqliteSearchFacade.js")
+			return new SqliteSearchFacade(locator.sqlCipherFacade, await mailIndexer())
+		} else {
+			const { IndexedDbSearchFacade } = await import("../index/IndexedDbSearchFacade.js")
+			// FIXME
+			const suggestionFacades: readonly SuggestionFacade<any>[] = [] //[indexer._contact.suggestionFacade]
+			return new IndexedDbSearchFacade(locator.user, db, await mailIndexer(), suggestionFacades, browserData, locator.cachingEntityClient)
+		}
 	})
 	locator.userManagement = lazyMemoized(async () => {
 		const { UserManagementFacade } = await import("../../../common/api/worker/facades/lazy/UserManagementFacade.js")

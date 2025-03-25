@@ -1,5 +1,4 @@
 import o from "@tutao/otest"
-import { SearchFacade } from "../../../../../src/mail-app/workerUtils/index/SearchFacade.js"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import type { TypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils.js"
@@ -29,6 +28,7 @@ import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
@@ -50,7 +50,7 @@ o.spec("SearchFacade test", () => {
 	let id3 = "L0YED5d----3"
 
 	function createSearchFacade(transaction: DbStubTransaction, currentIndexTimestamp: number) {
-		return new SearchFacade(
+		return new IndexedDbSearchFacade(
 			{
 				getLoggedInUser: () => user,
 			} as any,

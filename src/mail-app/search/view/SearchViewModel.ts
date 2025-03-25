@@ -55,9 +55,7 @@ import {
 } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { SearchFacade } from "../../workerUtils/index/SearchFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { IndexedDbIndexer } from "../../workerUtils/index/IndexedDbIndexer.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
@@ -82,6 +80,7 @@ import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
 import { Indexer } from "../../workerUtils/index/Indexer"
+import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 
 const SEARCH_PAGE_SIZE = 100
 
