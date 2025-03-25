@@ -151,7 +151,7 @@ export class IndexedDbIndexer implements Indexer {
 			const loadedIdForGroup = this._initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
 
 			if (loadedIdForGroup == null || firstBiggerThanSecond(nextElement.batchId, loadedIdForGroup)) {
-				this._realtimeEventQueue.addBatches([nextElement])
+				this.eventQueue.addBatches([nextElement])
 			}
 
 			return Promise.resolve()
@@ -172,6 +172,7 @@ export class IndexedDbIndexer implements Indexer {
 
 		try {
 			await this.db.dbFacade.open(this.getDbId(user))
+			await this._mail.init(user._id)
 			const metaData = await getIndexerMetaData(this.db.dbFacade, MetaDataOS)
 			if (metaData == null) {
 				const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()

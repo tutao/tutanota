@@ -53,7 +53,7 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../common/api/worker/crypt
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import { Challenge } from "../../../common/api/entities/sys/TypeRefs.js"
+import { Challenge, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
@@ -75,8 +75,10 @@ import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/Asymme
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
-import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler, CustomMailEventCacheHandler } from "../../../common/api/worker/rest/CustomCacheHandler"
-import { CalendarEventTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/CustomCacheHandler"
+import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { CustomUserCacheHandler } from "../../../common/api/worker/facades/CustomUserCacheHandler"
+import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
 
 assertWorkerOrNode()
 
@@ -194,9 +196,21 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
-	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(async (error: Error) => {
-		await worker.sendError(error)
-	}, offlineStorageProvider)
+	const ephemeralStorageProvider = async () => {
+		const customCacheHandler = new CustomCacheHandlerMap({
+			ref: UserTypeRef,
+			handler: new CustomUserCacheHandler(locator.cacheStorage),
+		})
+		return new EphemeralCacheStorage(customCacheHandler)
+	}
+
+	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(
+		async (error: Error) => {
+			await worker.sendError(error)
+		},
+		offlineStorageProvider,
+		ephemeralStorageProvider,
+	)
 
 	locator.cacheStorage = maybeUninitializedStorage
 

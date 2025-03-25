@@ -160,9 +160,6 @@ export interface ExposedCacheStorage {
 	 * we must maintain the integrity of our list ranges.
 	 * */
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
-
-	/** delete all instances of the given type that share {@param listId}. also deletes the range of that list. */
-	deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -781,8 +778,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
-					const handler = this.storage.getCustomCacheHandlerMap()?.get(typeRef)
-					handler?.onBeforeDelete?.(getEntityUpdateId(update))
 					if (
 						isSameTypeRef(MailSetEntryTypeRef, typeRef) &&
 						containsEventOfType(updatesArray as Readonly<EntityUpdateData[]>, OperationType.CREATE, instanceId)

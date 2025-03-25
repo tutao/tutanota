@@ -1,8 +1,8 @@
 import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import { EntityRestClient, typeRefToPath } from "./EntityRestClient.js"
+import { typeRefToPath } from "./EntityRestClient.js"
 import { firstBiggerThanSecond } from "../../common/utils/EntityUtils.js"
-import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
-import { assertNotNull, clone, getFromMap, remove, TypeRef } from "@tutao/tutanota-utils"
+import { CacheStorage, expandId, LastUpdateTime } from "./DefaultEntityRestCache.js"
+import { assert, assertNotNull, clone, getFromMap, remove, TypeRef } from "@tutao/tutanota-utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { resolveTypeReference } from "../../common/EntityFunctions.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
@@ -39,10 +39,11 @@ export class EphemeralCacheStorage implements CacheStorage {
 	private readonly entities: Map<string, Map<Id, ElementEntity>> = new Map()
 	private readonly lists: Map<string, ListTypeCache> = new Map()
 	private readonly blobEntities: Map<string, BlobElementTypeCache> = new Map()
-	private readonly customCacheHandlerMap: CustomCacheHandlerMap = new CustomCacheHandlerMap()
 	private lastUpdateTime: number | null = null
 	private userId: Id | null = null
 	private lastBatchIdPerGroup = new Map<Id, Id>()
+
+	constructor(private readonly customCacheHandlerMap: CustomCacheHandlerMap) {}
 
 	init({ userId }: EphemeralStorageInitArgs) {
 		this.userId = userId
@@ -77,17 +78,26 @@ export class EphemeralCacheStorage implements CacheStorage {
 		}
 	}
 
-	async deleteIfExists<T>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+	async deleteIfExists<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
+		elementId: Id,
+	): Promise<void> {
 		const path = typeRefToPath(typeRef)
 		let typeModel: TypeModel
 		typeModel = await resolveTypeReference(typeRef)
 		elementId = ensureBase64Ext(typeModel, elementId)
+
+		const handler = this.customCacheHandlerMap.get(typeRef)
+		const id: T["_id"] = listId == null ? elementId : [listId, elementId]
+		await handler?.onBeforeDelete?.(id)
+
 		switch (typeModel.type) {
 			case TypeId.Element:
 				this.entities.get(path)?.delete(elementId)
 				break
 			case TypeId.ListElement: {
-				const cache = this.lists.get(path)?.get(assertNotNull(listId))
+				const cache = this.lists.get(path)?.get(assertNotNull(listId) as Id)
 				if (cache != null) {
 					cache.elements.delete(elementId)
 					remove(cache.allRange, elementId)
@@ -95,7 +105,10 @@ export class EphemeralCacheStorage implements CacheStorage {
 				break
 			}
 			case TypeId.BlobElement:
-				this.blobEntities.get(path)?.get(assertNotNull(listId))?.elements.delete(elementId)
+				this.blobEntities
+					.get(path)
+					?.get(assertNotNull(listId) as Id)
+					?.elements.delete(elementId)
 				break
 			default:
 				throw new ProgrammingError("must be a persistent type")
@@ -120,6 +133,10 @@ export class EphemeralCacheStorage implements CacheStorage {
 		const typeModel = await resolveTypeReference(typeRef)
 		let { listId, elementId } = expandId(originalEntity._id)
 		elementId = ensureBase64Ext(typeModel, elementId)
+
+		const handler = this.customCacheHandlerMap.get(typeRef as TypeRef<SomeEntity>)
+		await handler?.onBeforeUpdate?.(originalEntity)
+
 		switch (typeModel.type) {
 			case TypeId.Element: {
 				const elementEntity = entity as ElementEntity
@@ -254,7 +271,13 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return result
 	}
 
-	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<{ lower: Id; upper: Id } | null> {
+	async getRangeForList<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+	): Promise<{
+		lower: Id
+		upper: Id
+	} | null> {
 		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
 
 		if (listCache == null) {
@@ -369,24 +392,22 @@ export class EphemeralCacheStorage implements CacheStorage {
 		for (const typeMap of this.entities.values()) {
 			for (const [id, entity] of typeMap.entries()) {
 				if (entity._ownerGroup === owner) {
+					const handler = this.customCacheHandlerMap.get(entity._type)
+					await handler?.onBeforeDelete?.(entity._id)
 					typeMap.delete(id)
 				}
 			}
 		}
 		for (const cacheForType of this.lists.values()) {
-			this.deleteAllOwnedByFromCache(cacheForType, owner)
+			await this.deleteAllOwnedByFromCache(cacheForType, owner)
 		}
 		for (const cacheForType of this.blobEntities.values()) {
-			this.deleteAllOwnedByFromCache(cacheForType, owner)
+			await this.deleteAllOwnedByFromCache(cacheForType, owner)
 		}
 		this.lastBatchIdPerGroup.delete(owner)
 	}
 
-	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
-		this.lists.get(typeRef.type)?.delete(listId)
-	}
-
-	private deleteAllOwnedByFromCache(cacheForType: Map<Id, ListCache | BlobElementCache>, owner: string) {
+	private async deleteAllOwnedByFromCache(cacheForType: Map<Id, ListCache | BlobElementCache>, owner: string) {
 		// If we find at least one element in the list that is owned by our target owner, we delete the entire list.
 		// This is OK in most cases because the vast majority of lists are single owner.
 		// For the other cases, we are just clearing the cache a bit sooner than needed.
@@ -394,6 +415,8 @@ export class EphemeralCacheStorage implements CacheStorage {
 		for (const [listId, listCache] of cacheForType.entries()) {
 			for (const [id, element] of listCache.elements.entries()) {
 				if (element._ownerGroup === owner) {
+					const handler = this.customCacheHandlerMap.get(element._type)
+					await handler?.onBeforeDelete?.(element._id)
 					listIdsToDelete.push(listId)
 					break
 				}

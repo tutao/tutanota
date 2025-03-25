@@ -1,6 +1,6 @@
-import { ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId } from "../../common/utils/EntityUtils.js"
-import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
+import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
+import { CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId, listIdPart } from "../../common/utils/EntityUtils.js"
+import { CacheStorage, collapseId, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
 import {
@@ -12,7 +12,9 @@ import {
 	base64UrlToBase64,
 	getFirstOrThrow,
 	getTypeId,
+	groupBy,
 	groupByAndMap,
+	isEmpty,
 	mapNullable,
 	parseTypeId,
 	splitInChunks,
@@ -162,36 +164,13 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		await this.sqlCipherFacade.closeDb()
 	}
 
-	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
-		const type = getTypeId(typeRef)
-		const typeModel: TypeModel = await resolveTypeReference(typeRef)
-		const encodedElementId = ensureBase64Ext(typeModel, elementId)
-		let formattedQuery
-		switch (typeModel.type) {
-			case TypeId.Element:
-				formattedQuery = sql`DELETE
-                                     FROM element_entities
-                                     WHERE type = ${type}
-                                       AND elementId = ${encodedElementId}`
-				break
-			case TypeId.ListElement:
-				formattedQuery = sql`DELETE
-                                     FROM list_entities
-                                     WHERE type = ${type}
-                                       AND listId = ${listId}
-                                       AND elementId = ${encodedElementId}`
-				break
-			case TypeId.BlobElement:
-				formattedQuery = sql`DELETE
-                                     FROM blob_element_entities
-                                     WHERE type = ${type}
-                                       AND listId = ${listId}
-                                       AND elementId = ${encodedElementId}`
-				break
-			default:
-				throw new Error("must be a persistent type")
-		}
-		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
+	async deleteIfExists<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
+		elementId: Id,
+	): Promise<void> {
+		const fullId: T["_id"] = listId == null ? elementId : [listId, elementId]
+		await this.deleteByIds(typeRef, [fullId])
 	}
 
 	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
@@ -201,26 +180,29 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
-				formattedQuery = sql`DELETE
+				formattedQuery = sql`SELECT elementId
                                      FROM element_entities
                                      WHERE type = ${type}`
 				break
 			case TypeId.ListElement:
-				formattedQuery = sql`DELETE
-                                     FROM list_entities
+				formattedQuery = sql`SELECT listId, elementId
+                                     FROM list_element_entities
                                      WHERE type = ${type}`
 				await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 				await this.deleteAllRangesForType(type)
 				return
 			case TypeId.BlobElement:
-				formattedQuery = sql`DELETE
+				formattedQuery = sql`SELECT listId, elementId
                                      FROM blob_element_entities
                                      WHERE type = ${type}`
 				break
 			default:
 				throw new Error("must be a persistent type")
 		}
-		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
+		const taggedRows = await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)
+		const rows = taggedRows.map(untagSqlObject) as { listId?: Id; elementId: Id }[]
+		const ids = rows.map((row) => collapseId(row.listId ?? null, row.elementId))
+		await this.deleteByIds(typeRef, ids)
 	}
 
 	/**
@@ -584,61 +566,9 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	async deleteAllOwnedBy(owner: Id): Promise<void> {
-		{
-			const { query, params } = sql`DELETE
-                                        FROM element_entities
-                                        WHERE ownerGroup = ${owner}`
-			await this.sqlCipherFacade.run(query, params)
-		}
-		{
-			// first, check which list Ids contain entities owned by the lost group
-			const { query, params } = sql`SELECT elementId, listId, type
-                                        FROM list_entities
-                                        WHERE ownerGroup = ${owner}`
-			const rangeRows = await this.sqlCipherFacade.all(query, params)
-			type Row = { elementId: Id; listId: Id; type: string }
-			const rows = rangeRows.map((row) => untagSqlObject(row) as Row)
-			const listIdsByType: Map<string, Array<Row>> = groupByAndMap(
-				rows,
-				(row) => row.type + row.listId,
-				(row) => row,
-			)
-
-			// delete the ranges for those listIds
-			for (const [_, rows] of listIdsByType.entries()) {
-				const { type } = getFirstOrThrow(rows)
-				const typeRef = parseTypeId(type) as TypeRef<ListElementEntity>
-				const handler = this.getCustomCacheHandlerMap().get(typeRef)
-				for (const row of rows) {
-					handler?.onBeforeDelete?.([row.listId, row.elementId])
-				}
-				// this particular query uses one other SQL var for the type.
-				const safeChunkSize = MAX_SAFE_SQL_VARS - 1
-				const listIdArr = rows.map((row) => row.listId)
-				await this.runChunked(
-					safeChunkSize,
-					listIdArr,
-					(c) => sql`DELETE
-                               FROM ranges
-                               WHERE type = ${type}
-                                 AND listId IN ${paramList(c)}`,
-				)
-				await this.runChunked(
-					safeChunkSize,
-					listIdArr,
-					(c) => sql`DELETE
-                               FROM list_entities
-                               WHERE type = ${type}
-                                 AND listId IN ${paramList(c)}`,
-				)
-			}
-		}
-		{
-			const { query, params } = sql`DELETE
-                                        FROM blob_element_entities
-                                        WHERE ownerGroup = ${owner}`
-			await this.sqlCipherFacade.run(query, params)
-		}
+		await this.deleteAllElementTypesOwnedBy(owner)
+		await this.deleteAllListElementTypesOwnedBy(owner)
+		await this.deleteAllBlobElementTypesOwnedBy(owner)
 		{
 			const { query, params } = sql`DELETE
                                         FROM lastUpdateBatchIdPerGroupId
@@ -647,14 +577,73 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		}
 	}
 
-	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
-		await this.lockRangesDbAccess(listId)
-		await this.deleteRange(typeRef, listId)
-		const { query, params } = sql`DELETE
+	private async deleteAllBlobElementTypesOwnedBy(owner: string) {
+		const { query, params } = sql`SELECT listId, elementId, type
+                                    FROM blob_element_entities
+                                    WHERE ownerGroup = ${owner}`
+		const taggedRows = await this.sqlCipherFacade.all(query, params)
+		const rows = taggedRows.map(untagSqlObject) as { listId: Id; elementId: Id; type: string }[]
+		const groupedByType = groupBy(rows, (row) => row.type)
+		for (const [type, rows] of groupedByType) {
+			const typeRef = parseTypeId(type) as TypeRef<BlobElementEntity>
+			await this.deleteByIds(
+				typeRef,
+				rows.map((row) => [row.listId, row.elementId]),
+			)
+		}
+	}
+
+	private async deleteAllListElementTypesOwnedBy(owner: string) {
+		// first, check which list Ids contain entities owned by the lost group
+		const { query, params } = sql`SELECT elementId, listId, type
                                     FROM list_entities
-                                    WHERE listId = ${listId}`
-		await this.sqlCipherFacade.run(query, params)
-		await this.unlockRangesDbAccess(listId)
+                                    WHERE ownerGroup = ${owner}`
+		const rangeRows = await this.sqlCipherFacade.all(query, params)
+		type Row = { elementId: Id; listId: Id; type: string }
+		const rows = rangeRows.map((row) => untagSqlObject(row) as Row)
+		const listIdsByType: Map<string, Array<Row>> = groupByAndMap(
+			rows,
+			(row) => row.type + row.listId,
+			(row) => row,
+		)
+
+		// delete the ranges for those listIds
+		for (const [_, rows] of listIdsByType.entries()) {
+			const { type } = getFirstOrThrow(rows)
+			const typeRef = parseTypeId(type) as TypeRef<ListElementEntity>
+			// this particular query uses one other SQL var for the type.
+			const safeChunkSize = MAX_SAFE_SQL_VARS - 1
+			const listIdArr = rows.map((row) => row.listId)
+			await this.runChunked(
+				safeChunkSize,
+				listIdArr,
+				(c) => sql`DELETE
+                           FROM ranges
+                           WHERE type = ${type}
+                             AND listId IN ${paramList(c)}`,
+			)
+			await this.deleteByIds(
+				typeRef,
+				rows.map((row) => [row.listId, row.elementId]),
+			)
+		}
+	}
+
+	private async deleteAllElementTypesOwnedBy(owner: string) {
+		const { query, params } = sql`SELECT elementId, type
+                                    FROM element_entities
+                                    WHERE ownerGroup = ${owner}`
+		const taggedRows = await this.sqlCipherFacade.all(query, params)
+		const rows = taggedRows.map(untagSqlObject) as { elementId: Id; type: string }[]
+		const groupedByType = groupByAndMap(
+			rows,
+			(row) => row.type,
+			(row) => row.elementId,
+		)
+		for (const [type, ids] of groupedByType) {
+			const typeRef = parseTypeId(type) as TypeRef<ElementEntity>
+			await this.deleteByIds(typeRef, ids)
+		}
 	}
 
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
@@ -714,43 +703,78 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		return mapNullable(row, untagSqlObject) as Range | null
 	}
 
-	async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
-		if (elementIds.length === 0) return
+	/**
+	 * A neat helper which can delete types in any lists as long as they belong to the same type.
+	 * Will invoke {@link CustomCacheHandler#onBeforeDelete}.
+	 */
+	private async deleteByIds<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]) {
+		if (isEmpty(ids)) {
+			return
+		}
+		const handler = this.getCustomCacheHandlerMap().get(typeRef)
+		if (handler && handler.onBeforeDelete) {
+			for (const id of ids) {
+				await handler.onBeforeDelete(id)
+			}
+		}
 		const typeModel = await resolveTypeReference(typeRef)
-		const encodedElementIds = elementIds.map((elementIds) => ensureBase64Ext(typeModel, elementIds))
 		switch (typeModel.type) {
 			case TypeId.Element:
-				return await this.runChunked(
+				await this.runChunked(
 					MAX_SAFE_SQL_VARS - 1,
-					encodedElementIds,
+					(ids as Id[]).map((id) => ensureBase64Ext(typeModel, id)),
 					(c) => sql`DELETE
                                FROM element_entities
                                WHERE type = ${getTypeId(typeRef)}
                                  AND elementId IN ${paramList(c)}`,
 				)
+				break
 			case TypeId.ListElement:
-				return await this.runChunked(
-					MAX_SAFE_SQL_VARS - 2,
-					encodedElementIds,
-					(c) => sql`DELETE
-                               FROM list_entities
-                               WHERE type = ${getTypeId(typeRef)}
-                                 AND listId = ${listId}
-                                 AND elementId IN ${paramList(c)}`,
-				)
+				{
+					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => ensureBase64Ext(typeModel, elementIdPart(id)))
+					for (const [listId, elementIds] of byListId) {
+						await this.runChunked(
+							MAX_SAFE_SQL_VARS - 2,
+							elementIds,
+							(c) => sql`DELETE
+                                   FROM list_entities
+                                   WHERE type = ${getTypeId(typeRef)}
+                                     AND listId = ${listId}
+                                     AND elementId IN ${paramList(c)}`,
+						)
+					}
+				}
+				break
 			case TypeId.BlobElement:
-				return await this.runChunked(
-					MAX_SAFE_SQL_VARS - 2,
-					encodedElementIds,
-					(c) => sql`DELETE
-                               FROM blob_element_entities
-                               WHERE type = ${getTypeId(typeRef)}
-                                 AND listId = ${listId}
-                                 AND elementId IN ${paramList(c)}`,
-				)
+				{
+					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => ensureBase64Ext(typeModel, elementIdPart(id)))
+					for (const [listId, elementIds] of byListId) {
+						await this.runChunked(
+							MAX_SAFE_SQL_VARS - 2,
+							elementIds,
+							(c) => sql`DELETE
+                                   FROM blob_element_entities
+                                   WHERE type = ${getTypeId(typeRef)}
+                                     AND listId = ${listId}
+                                     AND elementId IN ${paramList(c)}`,
+						)
+					}
+				}
+				break
 			default:
 				throw new Error("must be a persistent type")
 		}
+	}
+
+	async deleteIn<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
+		elementIds: Id[],
+	): Promise<void> {
+		if (elementIds.length === 0) return
+
+		const fullIds: T["_id"][] = listId == null ? elementIds : elementIds.map((id) => [listId, id])
+		await this.deleteByIds(typeRef, fullIds)
 	}
 
 	/**

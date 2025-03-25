@@ -44,7 +44,11 @@ type SomeStorage = OfflineStorage | EphemeralCacheStorage
 export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
 	private _inner: SomeStorage | null = null
 
-	constructor(private readonly sendError: (error: Error) => Promise<void>, private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>) {}
+	constructor(
+		private readonly sendError: (error: Error) => Promise<void>,
+		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
+		private readonly ephemeralStorageProvider: () => Promise<EphemeralCacheStorage>,
+	) {}
 
 	private get inner(): CacheStorage {
 		if (this._inner == null) {
@@ -90,8 +94,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 			}
 		}
 		// both "else" case and fallback for unavailable storage and error cases
-		const storage = new EphemeralCacheStorage()
-		await storage.init(args)
+		const storage = await this.ephemeralStorageProvider()
+		storage.init(args)
 		return {
 			storage,
 			isPersistent: false,
@@ -177,10 +181,6 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	async deleteAllOwnedBy(owner: Id): Promise<void> {
 		return this.inner.deleteAllOwnedBy(owner)
-	}
-
-	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
-		return this.inner.deleteWholeList(typeRef, listId)
 	}
 
 	clearExcludedData(): Promise<void> {

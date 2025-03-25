@@ -83,6 +83,7 @@ export class MailIndexer {
 
 	async init(userId: Id): Promise<void> {
 		this._backend = this.backendFactory(userId)
+		await this.backend.init()
 		this.mailIndexingEnabled = await this.backend.isMailIndexingEnabled()
 	}
 
