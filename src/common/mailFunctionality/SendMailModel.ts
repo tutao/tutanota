@@ -16,6 +16,7 @@ import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType }
 import {
 	assertNotNull,
 	cleanMatch,
+	contains,
 	deduplicate,
 	defer,
 	DeferredObject,
@@ -71,7 +72,7 @@ import { MailboxDetail, MailboxModel } from "./MailboxModel.js"
 import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
-import { UnverifiedRecipientError } from "../api/common/error/UnverifiedRecipientError"
+import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificationMismatchError"
 
 assertMainOrNode()
 
@@ -825,11 +826,17 @@ export class SendMailModel {
 				}),
 			)
 			.catch(
-				ofClass(UnverifiedRecipientError, (e) => {
+				ofClass(KeyVerificationMismatchError, async (e) => {
+					// Mark all recipients that have a KeyVerificationMismatch after hitting "Send"
+					for (const recipient of this.allRecipients()) {
+						if (contains(e.data, recipient.address)) {
+							await recipient.markAsKeyVerificationMismatch()
+						}
+					}
 					throw new UserError(
 						lang.makeTranslation(
-							"unverified_recipient_error",
-							() => lang.get("keyManagement.unverifiedRecipient_msg") + "\n" + e.recipientMailAddress,
+							"keyverification_mismatch_error",
+							() => lang.get("keyManagement.recipientsVerificationMismatchError_msg") + "\n" + e.data.join("\n"),
 						),
 					)
 				}),

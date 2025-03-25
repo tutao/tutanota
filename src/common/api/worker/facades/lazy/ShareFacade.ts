@@ -20,6 +20,7 @@ import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
 
@@ -75,9 +76,16 @@ export class ShareFacade {
 			internalKeyData: [],
 		})
 		const notFoundRecipients: Array<string> = []
+		const keyVerificationMismatchRecipients: Array<string> = []
 
 		for (let mailAddress of recipientMailAddresses) {
-			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupInfo.group, bucketKey, mailAddress, notFoundRecipients)
+			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(
+				userGroupInfo.group,
+				bucketKey,
+				mailAddress,
+				notFoundRecipients,
+				keyVerificationMismatchRecipients,
+			)
 			if (keyData && isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
 				invitationData.internalKeyData.push(keyData as InternalRecipientKeyData)
 			}
@@ -86,6 +94,11 @@ export class ShareFacade {
 		if (notFoundRecipients.length > 0) {
 			throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
 		}
+
+		if (keyVerificationMismatchRecipients.length > 0) {
+			throw new KeyVerificationMismatchError("key verification mismatch when sending group invitation").setData(keyVerificationMismatchRecipients)
+		}
+
 		return invitationData
 	}
 
