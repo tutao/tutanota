@@ -192,6 +192,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 			locator.logins.logout(false).then(() => {
 				a.data.credentialsMethod = method
 				emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+				m.redraw()
 			})
 		}
 
