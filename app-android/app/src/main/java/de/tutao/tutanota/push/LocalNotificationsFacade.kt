@@ -33,11 +33,12 @@ import de.tutao.tutanota.getMimeType
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
-import java.security.SecureRandom
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 import kotlin.math.abs
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
 const val EMAIL_NOTIFICATION_CHANNEL_ID = "notifications"
@@ -90,14 +91,14 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	fun sendEmailNotifications(mailMetadatas: List<Pair<NotificationInfo, MailMetadata?>>) {
 		for ((notificationInfo, metadata) in mailMetadatas) {
 			val notificationMode = sseStorage.getExtendedNotificationConfig(notificationInfo.userId)
-			val notificationId = 1 + SecureRandom().nextInt(Int.MAX_VALUE - 1)
+			val notificationId = generateNotificationId()
 
 			val intentTrashMailAction: Intent =
 				MailNotificationActionReceiver.makeTrashIntent(context, notificationId, notificationInfo)
 			val pendingDeleteAction: PendingIntent =
 				PendingIntent.getBroadcast(
 					context,
-					notificationId + 1,
+					generateNotificationId(),
 					intentTrashMailAction,
 					PendingIntent.FLAG_IMMUTABLE
 				)
@@ -105,7 +106,12 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 			val intentReadAction: Intent =
 				MailNotificationActionReceiver.makeReadIntent(context, notificationId, notificationInfo)
 			val pendingReadAction: PendingIntent =
-				PendingIntent.getBroadcast(context, notificationId + 2, intentReadAction, PendingIntent.FLAG_IMMUTABLE)
+				PendingIntent.getBroadcast(
+					context,
+					generateNotificationId(),
+					intentReadAction,
+					PendingIntent.FLAG_IMMUTABLE
+				)
 
 			@ColorInt val redColor = context.resources.getColor(R.color.red, context.theme)
 			val notificationBuilder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
@@ -305,6 +311,9 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		return this
 	}
 
+
+	private fun generateNotificationId(): Int = Random.nextInt(1..Int.MAX_VALUE)
+
 	private fun mailNotificationId(address: String): Int =
 		abs(1 + address.hashCode())
 
@@ -340,7 +349,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		}
 		return PendingIntent.getActivity(
 			context.applicationContext,
-			mailNotificationId(notificationInfo.mailAddress),
+			generateNotificationId(),
 			openMailboxIntent,
 			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 		)
