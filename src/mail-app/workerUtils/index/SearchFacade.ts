@@ -209,20 +209,20 @@ export class SearchFacade {
 		}
 
 		return asyncFind(attributeIds, async (attributeId) => {
-			const attributeName = model.values[attributeId].name
-			const value = model.values[attributeId]
-			if (value && value.type === ValueType.String && entity[attributeName]) {
+			const modelValue = model.values[attributeId]
+			if (modelValue && modelValue.type === ValueType.String && entity[modelValue.name]) {
+				const attributeValue = entity[modelValue.name]
 				if (matchWordOrder) {
-					return Promise.resolve(normalizeQuery(entity[attributeName]).indexOf(suggestionToken) !== -1)
+					return Promise.resolve(normalizeQuery(attributeValue).indexOf(suggestionToken) !== -1)
 				} else {
-					let words = tokenize(entity[attributeName])
+					let words = tokenize(attributeValue)
 					return Promise.resolve(words.some((w) => w.startsWith(suggestionToken)))
 				}
 			} else {
-				const association = model.associations[attributeId]
-				if (association && association.type === AssociationType.Aggregation && entity[attributeName]) {
-					let aggregates = association.cardinality === Cardinality.Any ? entity[attributeName] : [entity[attributeName]]
-					const refModel = await resolveTypeReference(new TypeRef(model.app, association.refTypeId))
+				const modelAssociation = model.associations[attributeId]
+				if (modelAssociation && modelAssociation.type === AssociationType.Aggregation && entity[modelAssociation.name]) {
+					let aggregates = modelAssociation.cardinality === Cardinality.Any ? entity[modelAssociation.name] : [entity[modelAssociation.name]]
+					const refModel = await resolveTypeReference(new TypeRef(model.app, modelAssociation.refTypeId))
 					return asyncFind(aggregates, (aggregate) => {
 						return this._containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)
 					}).then((found) => found != null)
