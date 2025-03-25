@@ -17,6 +17,7 @@ import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	GroupType,
+	KeyVerificationState,
 	PermissionType,
 	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
@@ -106,6 +107,7 @@ import { KeyVerificationFacade } from "../../../../../src/common/api/worker/faca
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
+import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 
 const { captor, anything, argThat } = matchers
 
@@ -673,6 +675,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(keyLoaderFacade.loadCurrentKeyPair(senderUserGroup._id)).thenResolve({ version: 0, object: senderKeyPairs })
 
 		const notFoundRecipients = []
+		const keyVerificationMismatchRecipients = []
 		const pqEncapsulation: PQBucketKeyEncapsulation = {
 			kyberCipherText: new Uint8Array([1]),
 			kekEncBucketKey: new Uint8Array([2]),
@@ -733,6 +736,7 @@ o.spec("CryptoFacadeTest", function () {
 			bk,
 			recipientMailAddress,
 			notFoundRecipients,
+			keyVerificationMismatchRecipients,
 		)) as InternalRecipientKeyData
 
 		o(internalRecipientKeyData!.recipientKeyVersion).equals("0")
@@ -779,6 +783,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(keyLoaderFacade.loadCurrentKeyPair(senderUserGroup._id)).thenResolve(senderAsymmetricKeyPair)
 
 		const notFoundRecipients = []
+		const keyVerificationMismatchRecipients = []
 
 		const recipientPublicKeys: Versioned<RsaPublicKey> = {
 			version: 0,
@@ -821,6 +826,7 @@ o.spec("CryptoFacadeTest", function () {
 			bk,
 			recipientMailAddress,
 			notFoundRecipients,
+			keyVerificationMismatchRecipients,
 		)) as InternalRecipientKeyData
 
 		o(internalRecipientKeyData!.recipientKeyVersion).equals("0")
@@ -828,6 +834,71 @@ o.spec("CryptoFacadeTest", function () {
 		o(internalRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.RSA)
 		o(internalRecipientKeyData.pubEncBucketKey).deepEquals(pubEncBucketKey)
 		verify(publicKeyProvider, { times: 0 })
+	})
+
+	o("encryptBucketKeyForInternalRecipient for non-existing recipients", async function () {
+		let notFoundRecipientMailAddress = "notfound@tutanota.com"
+		let bk = aes256RandomKey()
+
+		const notFoundRecipients: string[] = []
+		const keyVerificationMismatchRecipients: string[] = []
+
+		const recipientPublicKeys: Versioned<RsaPublicKey> = {
+			version: 0,
+			object: object(),
+		}
+
+		when(
+			publicKeyProvider.loadCurrentPubKey({
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				identifier: notFoundRecipientMailAddress,
+			}),
+		).thenReject(new NotFoundError(""))
+
+		await crypto.encryptBucketKeyForInternalRecipient(
+			"senderGroupId",
+			bk,
+			notFoundRecipientMailAddress,
+			notFoundRecipients,
+			keyVerificationMismatchRecipients,
+		)
+
+		o(notFoundRecipients).deepEquals(["notfound@tutanota.com"])
+		o(keyVerificationMismatchRecipients).deepEquals([])
+		verify(userFacade.getUser(), { times: 0 })
+	})
+
+	o("encryptBucketKeyForInternalRecipient for verification-failing recipients", async function () {
+		let verificationFailureRecipientMailAddress = "bob@tutanota.com"
+		let bk = aes256RandomKey()
+
+		const notFoundRecipients: string[] = []
+		const keyVerificationMismatchRecipients: string[] = []
+
+		const recipientPublicKeys: Versioned<RsaPublicKey> = {
+			version: 0,
+			object: object(),
+		}
+		when(
+			publicKeyProvider.loadCurrentPubKey({
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				identifier: verificationFailureRecipientMailAddress,
+			}),
+		).thenResolve(recipientPublicKeys)
+
+		when(keyVerificationFacade.resolveVerificationState(anything(), anything())).thenResolve(KeyVerificationState.MISMATCH)
+
+		await crypto.encryptBucketKeyForInternalRecipient(
+			"senderGroupId",
+			bk,
+			verificationFailureRecipientMailAddress,
+			notFoundRecipients,
+			keyVerificationMismatchRecipients,
+		)
+
+		o(notFoundRecipients).deepEquals([])
+		o(keyVerificationMismatchRecipients).deepEquals(["bob@tutanota.com"])
+		verify(userFacade.getUser(), { times: 0 })
 	})
 
 	o("authenticateSender | sender is authenticated for correct SenderIdentityKey", async function () {

@@ -89,7 +89,6 @@ import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
 import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
-import { UnverifiedRecipientError } from "../../common/error/UnverifiedRecipientError"
 import { PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
@@ -265,7 +264,7 @@ export class CryptoFacade {
 	public async resolveWithBucketKey(bucketKey: BucketKey, instance: Record<string, any>, typeModel: TypeModel): Promise<ResolvedSessionKeys> {
 		const instanceElementId = this.getElementIdFromInstance(instance)
 		let decryptedBucketKey: AesKey
-		let encryptionAuthStatus: EncryptionAuthStatus | null = null
+		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
 		let pqMessageSenderKey: EccPublicKey | null = null
 		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
 			// bucket key is encrypted with public key for internal recipient
@@ -291,7 +290,7 @@ export class CryptoFacade {
 			}
 
 			decryptedBucketKey = await this.resolveWithGroupReference(keyGroup, groupKeyVersion, bucketKey.groupEncBucketKey)
-			encryptionAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
+			unencryptedSenderAuthStatus = EncryptionAuthStatus.AES_NO_AUTHENTICATION
 		} else {
 			throw new SessionKeyNotFoundError(`encrypted bucket key not set on instance ${typeModel.name}`)
 		}
@@ -301,7 +300,7 @@ export class CryptoFacade {
 			instanceElementId,
 			instance,
 			typeModel,
-			encryptionAuthStatus,
+			unencryptedSenderAuthStatus,
 			pqMessageSenderKey,
 		)
 
@@ -721,22 +720,24 @@ export class CryptoFacade {
 		bucketKey: AesKey,
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
+		keyVerificationMismatchRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
 		try {
 			const publicKey = await this.publicKeyProvider.loadCurrentPubKey({
 				identifier: recipientMailAddress,
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 			})
-			// We do not create any key data in case there is one not found recipient, but we want to
-			// collect ALL not found recipients when iterating a recipient list.
-			if (notFoundRecipients.length !== 0) {
-				return null
-			}
 
 			// Check if recipient is still verified for recipientMailAddress
 			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
 			if ((await keyVerificationFacade.resolveVerificationState(recipientMailAddress, publicKey)) == KeyVerificationState.MISMATCH) {
-				throw new UnverifiedRecipientError(recipientMailAddress)
+				keyVerificationMismatchRecipients.push(recipientMailAddress)
+			}
+
+			// We do not create any key data in case there is one not found recipient or not verified, but we want to
+			// collect ALL failed recipients when iterating a recipient list.
+			if (notFoundRecipients.length !== 0 || keyVerificationMismatchRecipients.length !== 0) {
+				return null
 			}
 
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
