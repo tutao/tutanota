@@ -3,7 +3,9 @@ package de.tutao.calendar.widget.data
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
+import de.tutao.calendar.widget.WidgetUpdateTrigger.APP
 import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
@@ -12,6 +14,7 @@ import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.PersistedCredentials
 import de.tutao.tutashared.push.toSdkCredentials
 import kotlinx.serialization.encodeToString
+import java.util.Date
 
 class WidgetConfigRepository : WidgetRepository() {
 	override suspend fun storeSettings(context: Context, widgetId: Int, settings: SettingsDao) {
@@ -21,6 +24,20 @@ class WidgetConfigRepository : WidgetRepository() {
 
 		context.widgetDataStore.edit { preferences ->
 			preferences[preferencesKey] = serializedSettings
+		}
+	}
+
+	override suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, lastSync: Date) {
+		val lastSyncTimestamp = lastSync.time
+
+		context.widgetDataStore.edit { preferences ->
+			widgetIds.forEach {
+				val lastSyncIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$it"
+				val preferencesKey = stringPreferencesKey(lastSyncIdentifier)
+
+				preferences[preferencesKey] =
+					json.encodeToString(LastSyncDao(lastSyncTimestamp, APP))
+			}
 		}
 	}
 

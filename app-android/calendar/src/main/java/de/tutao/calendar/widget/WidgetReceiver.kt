@@ -9,6 +9,7 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import de.tutao.calendar.widget.data.WidgetDataRepository
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
@@ -17,6 +18,13 @@ const val WIDGET_LAST_SYNC_PREFIX = "calendar_widget_last_sync"
 const val WIDGET_SETTINGS_DATASTORE_FILE = "tuta_calendar_widget_settings"
 
 val Context.widgetDataStore: DataStore<Preferences> by preferencesDataStore(WIDGET_SETTINGS_DATASTORE_FILE)
+val Context.widgetDataRepository: WidgetDataRepository
+	get() = WidgetDataRepository.getInstance()
+
+enum class WidgetUpdateTrigger {
+	WORKER,
+	APP
+}
 
 class WidgetReceiver : GlanceAppWidgetReceiver() {
 	companion object {

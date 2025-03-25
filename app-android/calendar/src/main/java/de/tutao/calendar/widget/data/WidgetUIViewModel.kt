@@ -3,6 +3,7 @@ package de.tutao.calendar.widget.data
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
@@ -26,6 +27,7 @@ data class UIEvent(
 	val endTime: String,
 	val isAllDay: Boolean,
 	val startTimestamp: ULong,
+	val endTimestamp: ULong,
 )
 
 data class WidgetUIData(
@@ -38,7 +40,7 @@ class WidgetUIViewModel(
 	private val repository: WidgetRepository,
 	private val widgetId: Int,
 	private val credentialsFacade: NativeCredentialsFacade,
-	private val sdk: Sdk
+	private val sdk: Sdk?
 ) : ViewModel() {
 	private val _isLoading = MutableStateFlow<Boolean>(false);
 	val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -55,8 +57,6 @@ class WidgetUIViewModel(
 	}
 
 	suspend fun loadUIState(context: Context): WidgetUIData? {
-		Log.d(TAG, "loadUIState start")
-
 		val allDayEvents: MutableList<UIEvent> = mutableListOf()
 		val normalEvents: MutableList<UIEvent> = mutableListOf()
 
@@ -74,6 +74,7 @@ class WidgetUIViewModel(
 		tomorrowMidnight.set(Calendar.MILLISECOND, 0)
 
 		val settings = repository.loadSettings(context, widgetId) ?: return WidgetUIData(normalEvents, allDayEvents)
+		val lastSync = repository.loadLastSync(context, widgetId)
 		val credentials = this.credentialsFacade.loadByUserId(settings.userId)?.toSdkCredentials()
 
 		//FIXME Think about a better error handling
@@ -82,10 +83,24 @@ class WidgetUIViewModel(
 			return null
 		}
 
-		val loggedInSdk = this.sdk.login(credentials)
+		val lastSyncTime = LocalDateTime.ofInstant(
+			Instant.ofEpochMilli(lastSync?.lastSync ?: 0),
+			Calendar.getInstance().timeZone.toZoneId()
+		)
+
+		val forceRemoteEventsFetch = lastSyncTime.dayOfYear < LocalDateTime.now().dayOfYear
 		val calendarToEventsListMap =
-			repository.loadEvents(settings.userId, settings.calendars.keys.toList(), credentialsFacade, loggedInSdk)
-		Log.d(TAG, "calendarToEventsListMap $calendarToEventsListMap")
+			if ((lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || forceRemoteEventsFetch) && this.sdk != null) {
+				try {
+					val loggedInSdk = this.sdk.login(credentials)
+					repository.loadEvents(settings.userId, settings.calendars.keys.toList(), credentialsFacade, loggedInSdk)
+				} catch (e: Exception) {
+					// Fallback to cached events
+					repository.loadEvents()
+				}
+			} else {
+				repository.loadEvents()
+			}
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			eventList.shortEvents.plus(eventList.longEvents).forEach { loadedEvent ->
@@ -106,6 +121,7 @@ class WidgetUIViewModel(
 					end.format(formatter),
 					isAllDay,
 					loadedEvent.startTime,
+					loadedEvent.endTime
 				)
 
 				if (isAllDay) {
@@ -125,7 +141,6 @@ class WidgetUIViewModel(
 		})
 
 		_uiState.value = WidgetUIData(normalEvents, allDayEvents)
-		Log.d(TAG, "loadUIState coroutine end")
 
 		return uiState.value
 	}
