@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.graphics.ColorUtils
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
@@ -62,7 +61,6 @@ import androidx.glance.unit.ColorProvider
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.UIEvent
-import de.tutao.calendar.widget.data.WidgetDataRepository
 import de.tutao.calendar.widget.data.WidgetStateDefinition
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.data.WidgetUIViewModel
@@ -89,7 +87,7 @@ class Agenda : GlanceAppWidget() {
 		val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
 
 		// We can't access the model from here, only the repository directly
-		val repository = WidgetDataRepository()
+		val repository = context.widgetDataRepository
 
 		repository.eraseLastSyncForWidget(context, widgetId)
 		repository.eraseSettingsForWidget(context, widgetId)
@@ -101,13 +99,20 @@ class Agenda : GlanceAppWidget() {
 		val sseStorage = SseStorage(db, keyStoreFacade)
 		val crypto = AndroidNativeCryptoFacade(context)
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
-		val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()) // FIXME Change SSE Origin for something else
+		val sdk = try {
+			Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()) // FIXME Change SSE Origin for something else
+		} catch (e: Exception) {
+			Log.e(TAG, "Failed to initialize SDK, falling back to cached events if available. $e")
+			null
+		}
+
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
-		val widgetUIViewModel = WidgetUIViewModel(WidgetDataRepository(), appWidgetId, nativeCredentialsFacade, sdk)
+		val widgetUIViewModel =
+			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, sdk)
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
 		val settingsPreferencesKey = stringPreferencesKey("${WIDGET_SETTINGS_PREFIX}_$appWidgetId")
-		val lastSyncPreferencesKey = longPreferencesKey("${WIDGET_LAST_SYNC_PREFIX}_$appWidgetId")
+		val lastSyncPreferencesKey = stringPreferencesKey("${WIDGET_LAST_SYNC_PREFIX}_$appWidgetId")
 
 		widgetUIViewModel.loadUIState(context)
 
@@ -116,7 +121,6 @@ class Agenda : GlanceAppWidget() {
 			val preferences = currentState<Preferences>()
 
 			LaunchedEffect(preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]) {
-				Log.d(TAG, "Launching effect ;)")
 				widgetUIViewModel.loadUIState(context)
 			}
 
@@ -425,6 +429,7 @@ class Agenda : GlanceAppWidget() {
 					"17:00",
 					isAllDay = false,
 					startTimestamp = 0UL,
+					endTimestamp = 0UL
 				)
 			)
 		}
@@ -438,6 +443,7 @@ class Agenda : GlanceAppWidget() {
 				"End Time",
 				isAllDay = false,
 				startTimestamp = 0UL,
+				endTimestamp = 0UL
 			)
 		)
 
@@ -450,6 +456,7 @@ class Agenda : GlanceAppWidget() {
 				"End Time",
 				isAllDay = false,
 				startTimestamp = 0UL,
+				endTimestamp = 0UL
 			)
 		)
 

@@ -14,12 +14,14 @@ import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.fragment.app.FragmentActivity
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.updateAll
 import de.tutao.calendar.widget.Agenda
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
+import de.tutao.calendar.widget.WidgetUpdateTrigger
+import de.tutao.calendar.widget.data.LastSyncDao
 import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutashared.CredentialAuthenticationException
 import de.tutao.tutashared.SystemUtils
@@ -31,6 +33,8 @@ import de.tutao.tutashared.ipc.MobileSystemFacade
 import de.tutao.tutashared.ipc.PermissionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
@@ -226,7 +230,6 @@ class AndroidMobileSystemFacade(
 
 	override suspend fun requestWidgetRefresh() {
 		try {
-			Log.d(TAG, "Refreshing widget....")
 			val glanceIds = GlanceAppWidgetManager(activity).getGlanceIds(Agenda::class.java)
 			val widgetIds =
 				glanceIds.map { glanceId -> GlanceAppWidgetManager(activity).getAppWidgetId(glanceId) }.toIntArray()
@@ -234,11 +237,11 @@ class AndroidMobileSystemFacade(
 
 			activity.widgetDataStore.edit { preferences ->
 				widgetIds.forEach {
-					Log.d(TAG, "Updating id $it")
 					val lastSyncIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$it"
-					val preferencesKey = longPreferencesKey(lastSyncIdentifier)
+					val preferencesKey = stringPreferencesKey(lastSyncIdentifier)
 
-					preferences[preferencesKey] = lastSyncTimestamp
+					preferences[preferencesKey] =
+						Json.encodeToString(LastSyncDao(lastSyncTimestamp, WidgetUpdateTrigger.APP))
 				}
 			}
 
