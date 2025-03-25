@@ -302,7 +302,11 @@ export class ConversationViewModel {
 		return isOfTypeOrSubfolderOf(folders, mailFolder, MailSetKind.TRASH)
 	}
 
-	conversationItems(): ReadonlyArray<ConversationItem> {
+	conversationMails(): readonly Mail[] {
+		return this.conversationItems().map((conversationItem) => conversationItem.viewModel.mail)
+	}
+
+	conversationItems(): readonly ConversationItem[] {
 		return this.conversation ?? this.conversationItemsForSelectedMailOnly()
 	}
 
