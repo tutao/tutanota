@@ -1,3 +1,7 @@
+use std::sync::Arc;
+
+use serde::{Deserialize, Serialize};
+
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 #[cfg_attr(test, mockall_double::double)]
@@ -12,7 +16,7 @@ use crate::entities::generated::tutanota::Mail;
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
-use crate::id::id_tuple::IdType;
+use crate::id::id_tuple::{BaseIdType, IdType};
 use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
@@ -23,8 +27,6 @@ use crate::tutanota_constants::{
 use crate::util::{convert_version_to_u64, Versioned};
 use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 // A high level interface to manipulate encrypted entities/instances via the REST API
 pub struct CryptoEntityClient {
@@ -315,10 +317,10 @@ impl CryptoEntityClient {
 	}
 
 	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
-	pub async fn load_range<T: Entity + Deserialize<'static>>(
+	pub async fn load_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
 		&self,
 		list_id: &GeneratedId,
-		start_id: &GeneratedId,
+		start_id: &Id,
 		count: usize,
 		direction: ListLoadDirection,
 	) -> Result<Vec<T>, ApiCallError> {
@@ -355,6 +357,11 @@ impl CryptoEntityClient {
 
 #[cfg(test)]
 mod tests {
+	use std::sync::Arc;
+
+	use mockall::predicate::eq;
+	use rand::random;
+
 	use crate::crypto::asymmetric_crypto_facade::MockAsymmetricCryptoFacade;
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
 	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
@@ -380,9 +387,6 @@ mod tests {
 	use crate::util::test_utils::{create_test_entity, leak};
 	use crate::util::Versioned;
 	use crate::{GeneratedId, IdTupleGenerated, TypeRef};
-	use mockall::predicate::eq;
-	use rand::random;
-	use std::sync::Arc;
 
 	#[tokio::test]
 	async fn no_auth_for_encrypted_instances_except_mail() {

@@ -137,7 +137,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			let eventFacade = EventFacade()
 			let byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
 			let generatedEvents = eventFacade.generateFutureInstances(
-				date: progenitorTime,
+				date: progenitorTime * 1000,  // To Milliseconds
 				repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules)
 			)
 			self.expandedEvents.append(contentsOf: generatedEvents)
@@ -166,19 +166,20 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			.map { (_, event) in event }.sorted { $1 < $0 }
 
 		if let date = expandedEvents.popLast() {
+			let dateInSeconds = date / 1000
 			occurrenceNumber += 1
 
-			if let endDate, date >= UInt64(endDate.timeIntervalSince1970) { return nil }
+			if let endDate, dateInSeconds >= UInt64(endDate.timeIntervalSince1970) { return nil }
 
-			while exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) < date {
+			while exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) < dateInSeconds {
 				exclusionNumber += 1
 			}
 
-			if exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) == date {
+			if exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) == dateInSeconds {
 				return self.next()
 			}
 
-			return EventOccurrence(occurrenceNumber: occurrenceNumber, occurenceDate: Date(timeIntervalSince1970: Double(date)))
+			return EventOccurrence(occurrenceNumber: occurrenceNumber, occurenceDate: Date(timeIntervalSince1970: Double(dateInSeconds)))
 		} else {
 			return self.next()
 		}

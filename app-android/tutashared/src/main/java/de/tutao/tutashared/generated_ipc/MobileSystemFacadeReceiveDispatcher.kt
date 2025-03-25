@@ -97,6 +97,11 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"requestWidgetRefresh" -> {
+				val result: Unit = this.facade.requestWidgetRefresh(
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for MobileSystemFacade: $method")
 		}
 	}

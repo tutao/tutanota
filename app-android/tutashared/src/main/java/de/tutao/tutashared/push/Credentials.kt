@@ -1,4 +1,4 @@
-package de.tutao.tutanota.push
+package de.tutao.tutashared.push
 
 import de.tutao.tutasdk.CredentialType
 import de.tutao.tutasdk.Credentials
