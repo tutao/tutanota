@@ -162,12 +162,7 @@ export class CryptoMapper {
 				throw new CryptoError(`Encrypting ${typeModel.app}/${typeModel.name}.${valueName} requires a session key!`)
 			}
 
-			if (typeModel.type === Type.Aggregated && valueName === "_id" && encryptedValue == null) {
-				// fixme: should the cryptomapper really handle this?
-				encrypted[valueId] = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
-			} else {
-				encrypted[valueId] = encryptedValue
-			}
+			encrypted[valueId] = encryptedValue
 		}
 
 		for (const associationId of Object.keys(typeModel.associations).map(Number)) {

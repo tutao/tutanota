@@ -11,8 +11,8 @@ import {
 	valueToDefault,
 } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { AssociationType, Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
-import { downcast, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { dummyResolver, TestAggregateRef, TestEntity, testTypeModel, TestTypeRef } from "./InstancePipelineTestUtils"
+import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, testTypeModel, TestTypeRef } from "./InstancePipelineTestUtils"
 import { ModelAssociation, ParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
@@ -143,9 +143,8 @@ o.spec("ModelMapper", function () {
 				testAssociation: {
 					_type: TestAggregateRef,
 					_finalIvs: {},
-					_id: "someCustomId",
 					testNumber: "123456",
-				},
+				} as TestAggregate,
 				testBoolean: false,
 				testDate: new Date("2025-01-01T13:00:00.000Z"),
 				testListAssociation: "associatedListId",
@@ -157,13 +156,10 @@ o.spec("ModelMapper", function () {
 			o(serverInstance[1]).equals("some encrypted string")
 			o(serverInstance[7]).equals(false)
 			o((serverInstance[5] as Date).toISOString()).equals("2025-01-01T13:00:00.000Z")
-			o(serverInstance[3]).deepEquals([
-				{
-					_finalIvs: {},
-					2: "123456",
-					6: "someCustomId",
-				} as ParsedInstance,
-			])
+			const testAssociation = assertNotNull(serverInstance[3])[0]
+			o(testAssociation[2]).equals("123456")
+			o(testAssociation[6].length).deepEquals(6) // custom generated id
+			o(testAssociation._finalIvs).deepEquals({})
 			o(serverInstance[4]).deepEquals(["associatedListId"])
 			o(serverInstance._finalIvs).deepEquals(instance._finalIvs!)
 			o(typeof serverInstance._errors).equals("undefined")
@@ -176,9 +172,8 @@ o.spec("ModelMapper", function () {
 				testAssociation: {
 					_type: TestAggregateRef,
 					_finalIvs: {},
-					_id: "someCustomId",
 					testNumber: "123456",
-				},
+				} as TestAggregate,
 				testBoolean: false,
 				testDate: new Date("2025-01-01T13:00:00.000Z"),
 				testListAssociation: "associatedListId",
@@ -207,7 +202,15 @@ o.spec("ModelMapper", function () {
 	o.spec("cardinality assertions", function () {
 		o("assertCorrectAssociationClientCardinality", async function () {
 			const f = (type, cardinality, value) =>
-				assertCorrectAssociationClientCardinality(TestTypeRef, "1", downcast<ModelAssociation>({ type, cardinality }), value)
+				assertCorrectAssociationClientCardinality(
+					TestTypeRef,
+					"1",
+					downcast<ModelAssociation>({
+						type,
+						cardinality,
+					}),
+					value,
+				)
 			o(f(AssociationType.ListAssociation, Cardinality.One, ["v"])).deepEquals("v")
 			o(f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, ["v"])).deepEquals("v")
 			o(f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, [])).deepEquals(null)

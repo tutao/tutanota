@@ -243,7 +243,7 @@ o.spec("CryptoMapper", function () {
 			5: new Date("2025-01-01T13:00:00.000Z"),
 			7: true,
 			// 6 is _id and will be generated
-			3: [{ 2: "123" }],
+			3: [{ 2: "123", 6: "aggregateId" }],
 			4: ["associatedListId"],
 			_finalIvs: { 1: new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233]) },
 		}
@@ -258,7 +258,7 @@ o.spec("CryptoMapper", function () {
 		o((encryptedInstance[5] as Date).toISOString()).deepEquals((parsedInstance[5] as Date).toISOString())
 		const encryptedAggregate = encryptedInstance[3]![0]
 		o(encryptedAggregate[2]).equals(parsedInstance[3]![0][2] as string)
-		o(encryptedAggregate[6].length).equals(6)
+		o(encryptedAggregate[6]).equals("aggregateId")
 		o(encryptedAggregate[2])
 		o(encryptedInstance[4]![0]).equals("associatedListId")
 	})

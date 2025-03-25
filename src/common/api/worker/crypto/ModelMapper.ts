@@ -1,11 +1,12 @@
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants.js"
+import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
 import type { Entity, ModelAssociation, ParsedAssociation, ParsedInstance, ParsedValue } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { TypeReferenceResolver } from "../../common/EntityFunctions"
+import { random } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -231,10 +232,13 @@ export class ModelMapper {
 
 			assertCompatibleModelTypes(typeRef, attrIdStr, clientType.type, serverType.type)
 			const clientValue = ((instance as any)[clientType.name] as Nullable<ParsedValue>) ?? null
-			// while setting up new element,
-			// these fields can & should be null. While update, they should not but it's ok for now ( might not be ok with partial patch )
-			const isIdOrPermission = serverType.name === "_id" || serverType.name === "_permissions"
-			if (serverType.cardinality === Cardinality.One && clientValue == null && !isIdOrPermission) {
+			if (serverTypeModel.type === Type.Aggregated && serverType.name === "_id" && clientValue === null) {
+				serverInstance[attrId] = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
+			} else if (
+				serverType.cardinality === Cardinality.One &&
+				clientValue == null &&
+				!(serverType.name === "_id" || serverType.name === "_permissions") // these fields can/should be null while update
+			) {
 				// no value with Cardinality Any. A ZeroOrOne to One transformation needs a default value
 				try {
 					serverInstance[attrId] = valueToDefault(serverType.type)
@@ -249,7 +253,6 @@ export class ModelMapper {
 				serverInstance[attrId] = clientValue
 			}
 		}
-
 		for (const [assocIdStr, modelAssoc] of Object.entries(serverTypeModel.associations)) {
 			const assocId = parseInt(assocIdStr)
 			const appName = modelAssoc.dependency ?? clientTypeModel.app
