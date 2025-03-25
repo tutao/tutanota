@@ -37,7 +37,7 @@ import { modal } from "../../../common/gui/base/Modal";
 import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
 import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js"
 
-export const API_BASE_URL = "https://sdptutanota.onrender.com";
+export const API_BASE_URL = "http://3.88.110.172:3000";
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

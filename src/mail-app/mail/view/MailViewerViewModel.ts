@@ -88,7 +88,7 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
-export const API_BASE_URL = "https://sdptutanota.onrender.com";
+export const API_BASE_URL = "http://3.88.110.172:3000";
 
 export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
