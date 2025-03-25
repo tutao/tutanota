@@ -43,6 +43,6 @@ export class MonospaceTextDisplay implements Component<MonospaceTextDisplayAttrs
 		// Display `formattedText` unless it is empty and a placeholder is given
 		const contents = splitText != "" ? splitText : placeholder !== undefined ? placeholder : ""
 
-		return m("pre.text-break.monospace.selectable.flex.flex-wrap.flex-center" + extraClasses, contents)
+		return m(".text-break.monospace.selectable.flex.flex-wrap.flex-center" + extraClasses, contents)
 	}
 }
