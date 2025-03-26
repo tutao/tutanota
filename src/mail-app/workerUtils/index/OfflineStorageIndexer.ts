@@ -7,6 +7,7 @@ import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
+import { ContactIndexer } from "./ContactIndexer"
 
 function TODO(message = "(empty)"): never {
 	throw new Error(`FIXME: not implemented: ${message}`)
@@ -18,6 +19,7 @@ export class OfflineStorageIndexer implements Indexer {
 		private readonly persistence: OfflineStoragePersistence,
 		private readonly mailIndexer: MailIndexer,
 		private readonly infoMessageHandler: InfoMessageHandler,
+		private readonly contactIndexer: ContactIndexer,
 	) {}
 
 	async init() {

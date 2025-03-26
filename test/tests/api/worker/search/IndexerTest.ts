@@ -120,8 +120,8 @@ o.spec("IndexerTest", () => {
 		o(metadata[Metadata.mailIndexingEnabled]).equals(false)
 		o(decryptKey(userGroupKey.object, metadata[Metadata.userEncDbKey])).deepEquals(indexer.db.key)
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
-		o(indexer._contact.indexFullContactList.callCount).equals(1)
-		o(indexer._contact.indexFullContactList.args).deepEquals([contactList])
+		o(indexer._contactIndexer.indexFullContactList.callCount).equals(1)
+		o(indexer._contactIndexer.indexFullContactList.args).deepEquals([contactList])
 		verify(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything()), { times: 1 })
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
@@ -192,10 +192,10 @@ o.spec("IndexerTest", () => {
 		o(indexer._loadGroupDiff.args).deepEquals([user])
 		o(indexer._updateGroups.args).deepEquals([user, groupDiff])
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
-		o(indexer._contact.indexFullContactList.callCount).equals(0)
+		o(indexer._contactIndexer.indexFullContactList.callCount).equals(0)
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
-		o(indexer._contact.suggestionFacade.load.callCount).equals(1)
+		o(indexer._contactIndexer.suggestionFacade.load.callCount).equals(1)
 	})
 
 	o("init existing db out of sync", async () => {
@@ -264,7 +264,7 @@ o.spec("IndexerTest", () => {
 		o(indexer._loadGroupDiff.args).deepEquals([user])
 		o(indexer._updateGroups.args).deepEquals([user, groupDiff])
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
-		o(indexer._contact.indexFullContactList.callCount).equals(0)
+		o(indexer._contactIndexer.indexFullContactList.callCount).equals(0)
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
 	})
@@ -1045,8 +1045,8 @@ o.spec("IndexerTest", () => {
 		o(indexer._mail.processEntityEvents.callCount).equals(1)
 		o(indexer._mail.processEntityEvents.args).deepEquals([[events[0]], groupId, batchId, indexUpdateMail])
 		let indexUpdateContact = indexer._core.writeIndexUpdateWithBatchId.invocations[1][2]
-		o(indexer._contact.processEntityEvents.callCount).equals(1)
-		o(indexer._contact.processEntityEvents.args).deepEquals([[events[1]], groupId, batchId, indexUpdateContact])
+		o(indexer._contactIndexer.processEntityEvents.callCount).equals(1)
+		o(indexer._contactIndexer.processEntityEvents.args).deepEquals([[events[1]], groupId, batchId, indexUpdateContact])
 	})
 	o("processEntityEvents non indexed group", async function () {
 		let user = createTestEntity(UserTypeRef)
@@ -1090,7 +1090,7 @@ o.spec("IndexerTest", () => {
 		await indexer._processEntityEvents(batch)
 		o(indexer._core.writeIndexUpdateWithIndexTimestamps.callCount).equals(0)
 		o(indexer._mail.processEntityEvents.callCount).equals(0)
-		o(indexer._contact.processEntityEvents.callCount).equals(0)
+		o(indexer._contactIndexer.processEntityEvents.callCount).equals(0)
 		o(indexer._processUserEntityEvents.callCount).equals(0)
 	})
 
@@ -1167,7 +1167,7 @@ o.spec("IndexerTest", () => {
 		// @ts-ignore
 		o(indexer._mail.processEntityEvents.callCount).equals(2)
 		// @ts-ignore
-		o(indexer._contact.processEntityEvents.callCount).equals(0)
+		o(indexer._contactIndexer.processEntityEvents.callCount).equals(0)
 	})
 
 	o("_getStartIdForLoadingMissedEventBatches", function () {
@@ -1245,21 +1245,21 @@ o.spec("IndexerTest", () => {
 		})
 
 		o("When init() is called and contacts have already been indexed they are not indexed again", async function () {
-			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade })
-			verify(indexer._contact.indexFullContactList(contactList), { times: 0 })
+			verify(indexer._contactIndexer.indexFullContactList(contactList), { times: 0 })
 		})
 
 		o("When init() is called and contacts have not been indexed before, they are indexed", async function () {
-			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade })
-			verify(indexer._contact.indexFullContactList(contactList))
+			verify(indexer._contactIndexer.indexFullContactList(contactList))
 		})
 
 		o("When init() is called with a fresh db and contacts have not been indexed, they will be downloaded", async function () {
-			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
 				isNewOfflineDb: true,
@@ -1275,7 +1275,7 @@ o.spec("IndexerTest", () => {
 		})
 
 		o("When init() is called with a fresh db and contacts are not yet indexed, they will be indexed and not downloaded", async function () {
-			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
 				isNewOfflineDb: true,
@@ -1287,12 +1287,12 @@ o.spec("IndexerTest", () => {
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade, cacheInfo })
 
-			verify(indexer._contact.indexFullContactList(contactList))
+			verify(indexer._contactIndexer.indexFullContactList(contactList))
 			verify(indexer._entity.loadAll(ContactTypeRef, contactList.contacts), { times: 0 })
 		})
 
 		o("When init() is called with a fresh db and the cache is not persisted the indexing is not enabled", async function () {
-			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
 			const cacheInfo: CacheInfo = {
 				isPersistent: false,
 				isNewOfflineDb: true,

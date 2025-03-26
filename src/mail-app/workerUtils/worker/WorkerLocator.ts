@@ -93,16 +93,18 @@ import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { Indexer } from "../index/Indexer"
 import { SuggestionFacade } from "../index/SuggestionFacade"
-import { IndexerCore } from "../index/IndexerCore"
 import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { CalendarEventTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
-import { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade"
 import { SearchFacade } from "../index/SearchFacade"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
 import { IndexedDbMailIndexerBackend } from "../index/IndexedDbMailIndexerBackend"
 import { OfflineStorageMailIndexerBackend } from "../index/OfflineStorageMailIndexerBackend"
+import { ContactIndexer } from "../index/ContactIndexer"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { IndexedDbContactIndexerBackend } from "../index/IndexedDbContactIndexerBackend"
+import { OfflineStorageContactIndexerBackend } from "../index/OfflineStorageContactIndexerBackend"
 
 assertWorkerOrNode()
 
@@ -202,6 +204,20 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new BookingFacade(locator.serviceExecutor)
 	})
 
+	const db = {
+		dbFacade: newSearchIndexDB(),
+		key: downcast<BitArray>(null),
+		iv: downcast<Uint8Array>(null),
+	}
+
+	const indexerCore = lazyMemoized(async () => {
+		if (isOfflineStorageAvailable()) {
+			throw new ProgrammingError("getting indexerCore when we should be using SQLite (offline storage)")
+		}
+		const { IndexerCore } = await import("../index/IndexerCore.js")
+		return new IndexerCore(db, browserData)
+	})
+
 	const mailIndexer = lazyMemoized(async () => {
 		const { MailIndexer } = await import("../index/MailIndexer.js")
 		const bulkLoaderFactory = await prepareBulkLoaderFactory()
@@ -227,6 +243,20 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				mailFacade,
 				(userId) => new IndexedDbMailIndexerBackend(newSearchIndexDB(), core, userId),
 			)
+		}
+	})
+
+	const contactIndexer = lazyMemoized(async (): Promise<ContactIndexer> => {
+		const { ContactIndexer } = await import("../index/ContactIndexer.js")
+
+		if (isOfflineStorageAvailable()) {
+			const backend = new OfflineStorageContactIndexerBackend()
+			return new ContactIndexer(locator.cachingEntityClient, backend)
+		} else {
+			const core = await indexerCore()
+			const suggestionFacade = new SuggestionFacade(ContactTypeRef, db)
+			const backend = new IndexedDbContactIndexerBackend(core, db, locator.cachingEntityClient, suggestionFacade)
+			return new ContactIndexer(locator.cachingEntityClient, backend)
 		}
 	})
 
@@ -313,41 +343,23 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return factory()
 	}
 
-	const db = {
-		dbFacade: newSearchIndexDB(),
-		key: downcast<BitArray>(null),
-		iv: downcast<Uint8Array>(null),
-	}
-
-	const indexerCore = lazyMemoized(async () => {
-		// FIXME
-		// if (isOfflineStorageAvailable()) {
-		// 	throw new ProgrammingError()
-		// }
-		const { IndexerCore } = await import("../index/IndexerCore.js")
-		return new IndexerCore(db, browserData)
-	})
-
 	const offlineStorageIndexerPersistence = lazyMemoized(async () => {
 		const { OfflineStoragePersistence } = await import("../index/OfflineStoragePersistence.js")
 		return new OfflineStoragePersistence(locator.sqlCipherFacade)
 	})
 
 	locator.indexer = lazyMemoized(async () => {
+		const contact = await contactIndexer()
+		const mail = await mailIndexer()
+
 		if (isOfflineStorageAvailable()) {
 			const { OfflineStorageIndexer } = await import("../index/OfflineStorageIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
-			return new OfflineStorageIndexer(locator.user, persistence, await mailIndexer(), mainInterface.infoMessageHandler)
+			return new OfflineStorageIndexer(locator.user, persistence, mail, mainInterface.infoMessageHandler, contact)
 		} else {
 			const { IndexedDbIndexer } = await import("../index/IndexedDbIndexer.js")
-			return new IndexedDbIndexer(
-				entityRestClient,
-				db,
-				await indexerCore(),
-				mainInterface.infoMessageHandler,
-				locator.cache as DefaultEntityRestCache,
-				await mailIndexer(),
-			)
+			const core = await indexerCore()
+			return new IndexedDbIndexer(entityRestClient, db, core, mainInterface.infoMessageHandler, locator.cachingEntityClient, mail, contact)
 		}
 	})
 
