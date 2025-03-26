@@ -250,7 +250,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { ContactIndexer } = await import("../index/ContactIndexer.js")
 
 		if (isOfflineStorageAvailable()) {
-			const backend = new OfflineStorageContactIndexerBackend()
+			const persistence = await offlineStorageIndexerPersistence()
+			const backend = new OfflineStorageContactIndexerBackend(persistence)
 			return new ContactIndexer(locator.cachingEntityClient, backend)
 		} else {
 			const core = await indexerCore()

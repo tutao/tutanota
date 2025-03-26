@@ -1,29 +1,34 @@
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
 import { Contact, ContactList } from "../../../common/api/entities/tutanota/TypeRefs"
+import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
-// FIXME
 export class OfflineStorageContactIndexerBackend implements ContactIndexerBackend {
+	constructor(private readonly persistence: OfflineStoragePersistence) {}
+
 	async init(): Promise<void> {
 		return Promise.resolve(undefined)
 	}
 
 	async getIndexTimestamp(contactList: ContactList): Promise<number | null> {
-		return null
+		// FIXME
+		throw new ProgrammingError("TODO: getIndexTimestamp")
 	}
 
 	async indexContactList(contactList: ContactList): Promise<void> {
-		return Promise.resolve(undefined)
+		// FIXME
+		throw new ProgrammingError("TODO: getIndexTimestamp")
 	}
 
 	async onContactCreated(contact: Contact): Promise<void> {
-		return Promise.resolve(undefined)
+		await this.persistence.storeContactData([contact])
 	}
 
 	async onContactDeleted(contact: IdTuple): Promise<void> {
-		return Promise.resolve(undefined)
+		await this.persistence.deleteContactData(contact)
 	}
 
 	async onContactUpdated(contact: Contact): Promise<void> {
-		return Promise.resolve(undefined)
+		await this.persistence.storeContactData([contact])
 	}
 }

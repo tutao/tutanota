@@ -5,7 +5,6 @@ import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacad
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { TaggedSqlValue, tagSqlObject, untagSqlValue } from "../../api/worker/offline/SqlValue.js"
-import { Mode } from "../../api/common/Env.js"
 
 export class DesktopSqlCipher implements SqlCipherFacade {
 	private _db: Database | null = null
