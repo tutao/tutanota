@@ -1,6 +1,3 @@
-// FIXME: this file is a clean room, top-down sketch of what a top-level of offline-based
-//   indexer would look like.
-
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { MailIndexer } from "./MailIndexer"
 import { assertNotNull, difference } from "@tutao/tutanota-utils"
@@ -75,7 +72,7 @@ export class OfflineStorageIndexer implements Indexer {
 	}
 
 	async deleteIndex(userId: string) {
-		// FIXME: do we need to do anything?
+		/* no-op */
 	}
 
 	async cancelMailIndexing() {

@@ -1,10 +1,8 @@
-import { File as TutanotaFile, Mail, MailAddress, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { sql } from "../../../common/api/worker/offline/Sql"
-import { assertNotNull, getTypeId, groupByAndMap } from "@tutao/tutanota-utils"
+import { File as TutanotaFile, Mail, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import {
 	elementIdPart,
 	getElementId,
-	getListId,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
@@ -12,13 +10,11 @@ import {
 } from "../../../common/api/common/utils/EntityUtils"
 import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
-import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { IndexerCore } from "./IndexerCore"
 import { IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade"
 import { Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
-import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 
 export interface MailWithDetailsAndAttachments {
@@ -202,7 +198,7 @@ export class SqliteMailIndexerBackend implements MailIndexerBackend {
 	}
 
 	async deleteIndex() {
-		// FIXME: do we need to do anything?
+		/* no-op */
 	}
 
 	async isMailIndexingEnabled(): Promise<boolean> {

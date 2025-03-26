@@ -354,14 +354,14 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery: FormattedQuery
 
-		// Note that we have to also select and re-insert the rowId or else it will not match search index.
+		// Note that we have to also select and re-insert the rowid or else it will not match search index.
 		//
-		// A null rowId (i.e. not found) is fine if this is an insertion.
+		// A null rowid (i.e. not found) is fine if this is an insertion.
 		switch (typeModel.type) {
 			case TypeId.Element:
 				formattedQuery = sql`INSERT
-                OR REPLACE INTO element_entities (rowId, type, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowId FROM element_entities WHERE type =
+                OR REPLACE INTO element_entities (rowid, type, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowid FROM element_entities WHERE type =
                 ${type}
                 AND
                 elementId
@@ -378,8 +378,8 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				break
 			case TypeId.ListElement:
 				formattedQuery = sql`INSERT
-                OR REPLACE INTO list_entities (rowId, type, listId, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowId FROM list_entities WHERE type =
+                OR REPLACE INTO list_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowid FROM list_entities WHERE type =
                 ${type}
                 AND
                 listId
@@ -401,8 +401,8 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				break
 			case TypeId.BlobElement:
 				formattedQuery = sql`INSERT
-                OR REPLACE INTO blob_element_entities (rowId, type, listId, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowId FROM blob_element_entities WHERE type =
+                OR REPLACE INTO blob_element_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowid FROM blob_element_entities WHERE type =
                 ${type}
                 AND
                 listId
@@ -577,7 +577,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		}
 	}
 
-	private async deleteAllBlobElementTypesOwnedBy(owner: string) {
+	private async deleteAllBlobElementTypesOwnedBy(owner: Id) {
 		const { query, params } = sql`SELECT listId, elementId, type
                                     FROM blob_element_entities
                                     WHERE ownerGroup = ${owner}`
@@ -593,7 +593,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		}
 	}
 
-	private async deleteAllListElementTypesOwnedBy(owner: string) {
+	private async deleteAllListElementTypesOwnedBy(owner: Id) {
 		// first, check which list Ids contain entities owned by the lost group
 		const { query, params } = sql`SELECT elementId, listId, type
                                     FROM list_entities
@@ -629,7 +629,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		}
 	}
 
-	private async deleteAllElementTypesOwnedBy(owner: string) {
+	private async deleteAllElementTypesOwnedBy(owner: Id) {
 		const { query, params } = sql`SELECT elementId, type
                                     FROM element_entities
                                     WHERE ownerGroup = ${owner}`
@@ -771,7 +771,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
 		elementIds: Id[],
 	): Promise<void> {
-		if (elementIds.length === 0) return
+		if (isEmpty(elementIds)) return
 
 		const fullIds: T["_id"][] = listId == null ? elementIds : elementIds.map((id) => [listId, id])
 		await this.deleteByIds(typeRef, fullIds)

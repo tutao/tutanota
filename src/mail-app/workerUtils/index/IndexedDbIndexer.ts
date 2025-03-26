@@ -10,7 +10,7 @@ import type { EntityUpdate, GroupMembership, User } from "../../../common/api/en
 import { EntityEventBatch, EntityEventBatchTypeRef, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import { contains, daysToMillis, defer, DeferredObject, downcast, isNotNull, millisToDays, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { contains, daysToMillis, defer, downcast, isNotNull, millisToDays, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import {
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -34,20 +34,10 @@ import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { EventQueue } from "../../../common/api/worker/EventQueue.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import { MembershipRemovedError } from "../../../common/api/common/error/MembershipRemovedError.js"
-import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
-import {
-	aes256EncryptSearchIndexEntry,
-	aes256RandomKey,
-	AesKey,
-	BitArray,
-	decryptKey,
-	IV_BYTE_LENGTH,
-	random,
-	unauthenticatedAesDecrypt,
-} from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aes256RandomKey, AesKey, decryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache.js"
 import { CacheInfo } from "../../../common/api/worker/facades/LoginFacade.js"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
@@ -104,11 +94,6 @@ export function newSearchIndexDB(): DbFacade {
  *  - Allows enabling/disabling mail indexing
  *  - Coordinates loading of events and dispatching of realtime events
  */
-// FIXME: I'm not sure if it makes sense to try to keep a generic Indexer or if we should have two completely
-//  independent ones. sqlite-based indexer will probably not need to keep track of and download its own entity events
-//  since this is already handled by the cache. Same goes for out-of-sync detection. It would still need to coordinate
-//  between indexing process and realtime events though but this is pretty straightforward. It would also need to
-//  keep track of group diff.
 export class IndexedDbIndexer implements Indexer {
 	private initDeferred = defer<void>()
 	private _initParams!: InitParams

@@ -968,7 +968,7 @@ export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	}
 }
 
-export function getUpdateInstanceId(update: EntityUpdate | EntityUpdateData): {
+export function getUpdateInstanceId(update: EntityUpdateData): {
 	instanceListId: Id | null
 	instanceId: Id
 } {

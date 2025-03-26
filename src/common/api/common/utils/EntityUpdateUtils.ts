@@ -37,7 +37,7 @@ export function getEventOfType<T extends EntityUpdateData | EntityUpdate>(events
 }
 
 export function getEntityUpdateId(update: EntityUpdateData): Id | IdTuple {
-	if (update.instanceListId) {
+	if (update.instanceListId !== "") {
 		return [update.instanceListId, update.instanceId]
 	} else {
 		return update.instanceId

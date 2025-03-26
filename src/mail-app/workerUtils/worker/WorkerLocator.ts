@@ -91,7 +91,7 @@ import { EphemeralCacheStorage } from "../../../common/api/worker/rest/Ephemeral
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
-import { IndexedDbMailIndexerBackend, MailIndexerBackend, SqliteMailIndexerBackend } from "../index/MailIndexerBackend"
+import { IndexedDbMailIndexerBackend, SqliteMailIndexerBackend } from "../index/MailIndexerBackend"
 import { Indexer } from "../index/Indexer"
 import { SuggestionFacade } from "../index/SuggestionFacade"
 import { IndexerCore } from "../index/IndexerCore"
@@ -222,11 +222,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.cachingEntityClient,
 				dateProvider,
 				mailFacade,
-				// FIXME: Does this need to be a factory? Maybe we just pass userId into makeMailIndexer, and we'll have
-				//        our backend immediately without needing a subsequent call to init()
-				(userId): MailIndexerBackend => {
-					return new IndexedDbMailIndexerBackend(newSearchIndexDB(), core, userId)
-				},
+				(userId) => new IndexedDbMailIndexerBackend(newSearchIndexDB(), core, userId),
 			)
 		}
 	})
@@ -256,7 +252,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		offlineStorageProvider = async () => null
 	}
 	const ephemeralStorageProvider = async () => {
-		const customCacheHandler = new CustomCacheHandlerMap({ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage) })
+		const customCacheHandler = new CustomCacheHandlerMap({
+			ref: UserTypeRef,
+			handler: new CustomUserCacheHandler(locator.cacheStorage),
+		})
 		return new EphemeralCacheStorage(customCacheHandler)
 	}
 
