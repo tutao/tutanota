@@ -40,6 +40,11 @@ export class MonospaceTextDisplay implements Component<MonospaceTextDisplayAttrs
 			extraClasses += ".border.pt.pb.plr"
 		}
 
+		// in case the chunkSize parameter is set we want to preserve the line break to display the monospace content in multiple rows.
+		if (chunkSize) {
+			extraClasses += ".text-pre"
+		}
+
 		// Display `formattedText` unless it is empty and a placeholder is given
 		const contents = splitText != "" ? splitText : placeholder !== undefined ? placeholder : ""
 
