@@ -201,7 +201,7 @@ export type ParsedInstance = Record<AttributeId, Nullable<ParsedValue> | ParsedA
 export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
-	_finalIvs: Record<number, Nullable<Uint8Array>>
+	_finalIvs?: Record<number, Nullable<Uint8Array>>
 	bucketKey?: null | BucketKey
 	_ownerGroup?: null | Id
 	_ownerEncSessionKey?: null | Uint8Array

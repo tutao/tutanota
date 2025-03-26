@@ -30,6 +30,8 @@ import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { EntityAdapter } from "../crypto/EntityAdapter"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
+import { AttributeModel } from "../../common/AttributeModel"
+import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
 
 assertWorkerOrNode()
 
@@ -411,16 +413,17 @@ export class EntityRestClient implements EntityRestInterface {
 		} else {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
-		const sk: Promise<Nullable<AesKey>> = this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
+		const sk: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
 		const untypedInstance = await this.instancePipeline.encryptAndMapToLiteral(downcast<TypeRef<Entity>>(instance._type), instance, sk)
-		const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
+		const persistencePostReturn: string = await this.restClient.request(path, HttpMethod.POST, {
 			baseUrl: options?.baseUrl,
 			queryParams,
 			headers,
 			body: JSON.stringify(untypedInstance),
 			responseType: MediaType.Json,
 		})
-		return JSON.parse(persistencePostReturn).generatedId
+		const postReturnTypeModel = await resolveTypeReference(PersistenceResourcePostReturnTypeRef)
+		return AttributeModel.getAttribute<Id>(JSON.parse(persistencePostReturn), "generatedId", postReturnTypeModel)
 	}
 
 	async setupMultiple<T extends SomeEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
@@ -458,7 +461,8 @@ export class EntityRestClient implements EntityRestInterface {
 					body: JSON.stringify(encryptedEntities),
 					responseType: MediaType.Json,
 				})
-				return this.parseSetupMultiple(persistencePostReturn)
+				const untypedPersistencePostReturn = JSON.parse(persistencePostReturn)
+				return await this.parseSetupMultiple(untypedPersistencePostReturn)
 			} catch (e) {
 				if (e instanceof PayloadTooLargeError) {
 					// If we try to post too many large instances then we get PayloadTooLarge
@@ -584,9 +588,12 @@ export class EntityRestClient implements EntityRestInterface {
 		return this.restClient
 	}
 
-	private parseSetupMultiple(result: any): Id[] {
+	private async parseSetupMultiple(result: any): Promise<Array<Id>> {
 		try {
-			return JSON.parse(result).map((r: any) => r.generatedId)
+			return await promiseMap(Array.from(result), async (untypedPostReturn: any) => {
+				const parsedInstance = await this.instancePipeline.decryptAndMapToInstance(PersistenceResourcePostReturnTypeRef, untypedPostReturn, null)
+				return assertNotNull(parsedInstance.generatedId)
+			})
 		} catch (e) {
 			throw new Error(`Invalid response: ${result}, ${e}`)
 		}
