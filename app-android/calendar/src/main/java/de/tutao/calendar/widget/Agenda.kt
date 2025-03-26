@@ -114,8 +114,6 @@ class Agenda : GlanceAppWidget() {
 		val settingsPreferencesKey = stringPreferencesKey("${WIDGET_SETTINGS_PREFIX}_$appWidgetId")
 		val lastSyncPreferencesKey = stringPreferencesKey("${WIDGET_LAST_SYNC_PREFIX}_$appWidgetId")
 
-		widgetUIViewModel.loadUIState(context)
-
 		provideContent {
 			val data by widgetUIViewModel.uiState.collectAsState()
 			val preferences = currentState<Preferences>()
