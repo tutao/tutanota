@@ -42,6 +42,7 @@ import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.absolutePadding
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -76,6 +77,7 @@ import de.tutao.tutashared.parseColor
 import de.tutao.tutashared.push.SseStorage
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.random.Random
 
 const val TAG = "AgendaWidget"
 
@@ -255,29 +257,29 @@ class Agenda : GlanceAppWidget() {
 
 			if (isEmpty) {
 				return@Column Column(
-					verticalAlignment = Alignment.Vertical.Bottom,
+					verticalAlignment = Alignment.Vertical.CenterVertically,
 					horizontalAlignment = Alignment.CenterHorizontally,
 					modifier = GlanceModifier
 						.fillMaxSize()
 				) {
 					Column(
-						modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
-						verticalAlignment = Alignment.Top,
+						modifier = GlanceModifier.fillMaxWidth().defaultWeight().fillMaxHeight(),
+						verticalAlignment = Alignment.CenterVertically,
 						horizontalAlignment = Alignment.CenterHorizontally
 					) {
 						Text(
-							"No Events",
+							"No Events here.",
 							style = TextStyle(
 								fontSize = 16.sp,
 								color = GlanceTheme.colors.onBackground,
 								textAlign = TextAlign.Center
 							),
 							maxLines = 2,
-							modifier = GlanceModifier.padding(bottom = 8.dp)
+							modifier = GlanceModifier.padding(bottom = 12.dp, top = 4.dp)
 						)
 						Image(
-							provider = ImageProvider(R.drawable.dog),
-							contentDescription = "No events",
+							provider = ImageProvider(getEmptyResource()),
+							contentDescription = "No Events here.",
 							contentScale = ContentScale.Fit,
 							modifier = GlanceModifier.fillMaxWidth().defaultWeight().wrapContentHeight()
 						)
@@ -295,6 +297,14 @@ class Agenda : GlanceAppWidget() {
 					}
 				}
 			}
+		}
+	}
+
+	private fun getEmptyResource(): Int {
+		return if (Random.nextBoolean()) {
+			R.drawable.dog
+		} else {
+			R.drawable.music
 		}
 	}
 
