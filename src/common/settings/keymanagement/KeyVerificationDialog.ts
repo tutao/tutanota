@@ -16,11 +16,11 @@ import { VerificationErrorPage } from "./dialogpages/VerificationErrorPage"
 import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 
 enum KeyVerificationDialogPages {
-	CHOOSE_METHOD = "CHOOSE_METHOD",
-	MANUAL_INPUT_METHOD = "MANUAL_INPUT_METHOD",
-	QR_CODE_INPUT_METHOD = "QR_CODE_INPUT_METHOD",
-	SUCCESS = "SUCCESS",
-	ERROR = "ERROR",
+	CHOOSE_METHOD,
+	MANUAL_INPUT_METHOD,
+	QR_CODE_INPUT_METHOD,
+	SUCCESS,
+	ERROR,
 }
 
 /**
@@ -39,111 +39,90 @@ export async function showKeyVerificationDialog(
 
 	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade, keyVerificationUsageTestUtils)
 	let lastError: QrCodePageErrorType | null = null
-	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationDialogPages>(
-		KeyVerificationDialogPages.CHOOSE_METHOD,
-		(dialog, navigateToPage, goBack) => ({
-			[KeyVerificationDialogPages.CHOOSE_METHOD]: {
-				content: m(MethodSelectionPage, {
-					model,
-					goToEmailInputPage: () => {
-						navigateToPage(KeyVerificationDialogPages.MANUAL_INPUT_METHOD)
-					},
-					goToQrScanPage: () => navigateToPage(KeyVerificationDialogPages.QR_CODE_INPUT_METHOD),
-				}),
-				title: lang.get("keyManagement.keyVerification_label"),
-				leftAction: {
-					type: ButtonType.Secondary,
-					click: () => dialog.close(),
-					label: "back_action",
-					title: "back_action",
+	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationDialogPages>(KeyVerificationDialogPages.CHOOSE_METHOD)
+		.buildDialog(
+			(currentPage, dialog, navigateToPage, _) => {
+				switch (currentPage) {
+					case KeyVerificationDialogPages.CHOOSE_METHOD:
+						return m(MethodSelectionPage, {
+							model,
+							goToEmailInputPage: () => {
+								navigateToPage(KeyVerificationDialogPages.MANUAL_INPUT_METHOD)
+							},
+							goToQrScanPage: () => navigateToPage(KeyVerificationDialogPages.QR_CODE_INPUT_METHOD),
+						})
+					case KeyVerificationDialogPages.MANUAL_INPUT_METHOD:
+						return m(VerificationByManualInputPage, {
+							model,
+							goToSuccessPage: async () => {
+								await reloadParent()
+								navigateToPage(KeyVerificationDialogPages.SUCCESS)
+							},
+						})
+					case KeyVerificationDialogPages.QR_CODE_INPUT_METHOD:
+						return m(VerificationByQrCodeInputPage, {
+							model,
+							goToSuccessPage: async () => {
+								await reloadParent()
+								navigateToPage(KeyVerificationDialogPages.SUCCESS)
+							},
+							goToErrorPage: (err: QrCodePageErrorType) => {
+								lastError = err
+								navigateToPage(KeyVerificationDialogPages.ERROR)
+							},
+						})
+					case KeyVerificationDialogPages.SUCCESS: {
+						return m(VerificationResultPage, {
+							model,
+							close: () => {
+								dialog.close()
+							},
+						})
+					}
+					case KeyVerificationDialogPages.ERROR:
+						return m(VerificationErrorPage, {
+							model,
+							error: lastError,
+							retryAction: () => navigateToPage(KeyVerificationDialogPages.QR_CODE_INPUT_METHOD),
+						})
+				}
+			},
+			{
+				getPageTitle: (currentPage) => {
+					return {
+						testId: "keyManagement.keyVerification_label",
+						text: lang.get("keyManagement.keyVerification_label"),
+					}
 				},
-				rightAction: {
-					type: ButtonType.Secondary,
-					click: () => dialog.close(),
-					label: "close_alt",
-					title: "close_alt",
+				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
+					switch (currentPage) {
+						case KeyVerificationDialogPages.CHOOSE_METHOD:
+							return {
+								type: ButtonType.Secondary,
+								click: () => dialog.close(),
+								label: "back_action",
+								title: "back_action",
+							}
+						case KeyVerificationDialogPages.MANUAL_INPUT_METHOD:
+						case KeyVerificationDialogPages.QR_CODE_INPUT_METHOD:
+							return {
+								type: ButtonType.Secondary,
+								click: () => goBack(KeyVerificationDialogPages.CHOOSE_METHOD),
+								label: "back_action",
+								title: "back_action",
+							}
+					}
+				},
+				getRightAction: (currentPage, dialog, navigateToPage, goBack) => {
+					return {
+						type: ButtonType.Secondary,
+						click: () => dialog.close(),
+						label: "close_alt",
+						title: "close_alt",
+					}
 				},
 			},
-			[KeyVerificationDialogPages.MANUAL_INPUT_METHOD]: {
-				content: m(VerificationByManualInputPage, {
-					model,
-					goToSuccessPage: async () => {
-						await reloadParent()
-						navigateToPage(KeyVerificationDialogPages.SUCCESS)
-					},
-				}),
-				title: lang.get("keyManagement.keyVerification_label"),
-				leftAction: {
-					type: ButtonType.Secondary,
-					click: () => goBack(KeyVerificationDialogPages.CHOOSE_METHOD),
-					label: "back_action",
-					title: "back_action",
-				},
-				rightAction: {
-					type: ButtonType.Secondary,
-					click: () => dialog.close(),
-					label: "close_alt",
-					title: "close_alt",
-				},
-			},
-			[KeyVerificationDialogPages.QR_CODE_INPUT_METHOD]: {
-				content: m(VerificationByQrCodeInputPage, {
-					model,
-					goToSuccessPage: async () => {
-						await reloadParent()
-						navigateToPage(KeyVerificationDialogPages.SUCCESS)
-					},
-					goToErrorPage: (err: QrCodePageErrorType) => {
-						lastError = err
-						navigateToPage(KeyVerificationDialogPages.ERROR)
-					},
-				}),
-				title: lang.get("keyManagement.keyVerification_label"),
-				leftAction: {
-					type: ButtonType.Secondary,
-					click: () => goBack(KeyVerificationDialogPages.CHOOSE_METHOD),
-					label: "back_action",
-					title: "back_action",
-				},
-				rightAction: {
-					type: ButtonType.Secondary,
-					click: () => dialog.close(),
-					label: "close_alt",
-					title: "close_alt",
-				},
-			},
-			[KeyVerificationDialogPages.SUCCESS]: {
-				content: m(VerificationResultPage, {
-					model,
-					close: () => {
-						dialog.close()
-					},
-				}),
-				title: lang.get("keyManagement.keyVerification_label"),
-				rightAction: {
-					type: ButtonType.Secondary,
-					click: () => dialog.close(),
-					label: "close_alt",
-					title: "close_alt",
-				},
-			},
-			[KeyVerificationDialogPages.ERROR]: {
-				content: m(VerificationErrorPage, {
-					model,
-					error: lastError,
-					retryAction: () => navigateToPage(KeyVerificationDialogPages.QR_CODE_INPUT_METHOD),
-				}),
-				title: lang.get("keyManagement.keyVerification_label"),
-				rightAction: {
-					type: ButtonType.Secondary,
-					click: () => dialog.close(),
-					label: "close_alt",
-					title: "close_alt",
-				},
-			},
-		}),
-	)
-		.getDialog()
+		)
 		.addShortcut({
 			help: "close_alt",
 			key: Keys.ESC,
