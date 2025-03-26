@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { getLocalisedCategoryName, getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
+import { getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
 import { DataFile } from "../../api/common/DataFile.js"
 import { Thunk } from "@tutao/tutanota-utils"
@@ -39,9 +39,17 @@ export class ContactSupportPage implements Component<Props> {
 		})
 	}
 
-	async oncreate(): Promise<void> {
+	async oncreate({ attrs: { data } }: Vnode<Props>): Promise<void> {
 		const { HtmlEditor } = await import("../../gui/editor/HtmlEditor")
 		this.htmlEditor = new HtmlEditor().setMinHeight(250).setEnabled(true)
+
+		// "Technical Issues" -> Other -> use contactTemplate from category - "Technical Issues"
+		// "Technical Issues" -> "I cannot log in" -> use contactTemplate from topic - "I cannot log in"
+
+		if (data.contactTemplate().trim() !== "") {
+			this.htmlEditor.setValue(data.contactTemplate())
+		}
+
 		this.sendMailModel = await createSendMailModel()
 		await this.sendMailModel.initWithTemplate(
 			{
@@ -78,13 +86,13 @@ export class ContactSupportPage implements Component<Props> {
 		const selectedTopic = data.selectedTopic()
 
 		if (selectedCategory != null && selectedTopic != null) {
-			const localizedTopic = getLocalisedTopicIssue(selectedTopic, lang.languageTag)
+			const localizedTopic = getTopicIssue(selectedTopic, lang.languageTag)
 			const issue = localizedTopic.length > MAX_ISSUE_LENGTH ? localizedTopic.substring(0, MAX_ISSUE_LENGTH) + "..." : localizedTopic
-			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}: ${issue}`
+			subject += ` - ${getCategoryName(selectedCategory, lang.languageTag)}: ${issue}`
 		}
 
 		if (selectedCategory != null && selectedTopic == null) {
-			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}`
+			subject += ` - ${getCategoryName(selectedCategory, lang.languageTag)}`
 		}
 
 		return subject
@@ -93,7 +101,7 @@ export class ContactSupportPage implements Component<Props> {
 	view({ attrs: { data, goToSuccessPage } }: Vnode<Props>): Children {
 		return m(
 			".flex.flex-column.pt.height-100p.gap-vpad",
-			m(Card, m("", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-s", lang.get("supportForm_msg")))),
+			m(Card, m("", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-s", data.helpText()))),
 			m(
 				Card,
 				{

@@ -27,6 +27,8 @@ export interface SupportDialogState {
 	canHaveEmailSupport: boolean
 	selectedCategory: Stream<SupportCategory | null>
 	selectedTopic: Stream<SupportTopic | null>
+	contactTemplate: Stream<string>
+	helpText: Stream<string>
 	categories: SupportCategory[]
 	supportRequest: string
 	shouldIncludeLogs: Stream<boolean>
@@ -38,6 +40,8 @@ export async function showSupportDialog(logins: LoginController) {
 		canHaveEmailSupport: logins.isInternalUserLoggedIn() && logins.getUserController().isPaidAccount(),
 		selectedCategory: Stream<SupportCategory | null>(null),
 		selectedTopic: Stream<SupportTopic | null>(null),
+		contactTemplate: Stream<string>(""),
+		helpText: Stream<string>(lang.get("supportForm_msg")),
 		categories: [],
 		supportRequest: "",
 		shouldIncludeLogs: Stream(true),
@@ -58,7 +62,16 @@ export async function showSupportDialog(logins: LoginController) {
 									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
 								}
 							},
-							goToTopicDetailPage: () => navigateToPage(SupportPages.TOPIC_DETAIL),
+							goToTopicDetailPage: () => {
+								const selectedTopic = data.selectedTopic()
+
+								if (selectedTopic) {
+									data.contactTemplate(getTopicContactTemplate(selectedTopic, lang.languageTag))
+									data.helpText(getTopicHelpText(selectedTopic, lang.languageTag))
+								}
+
+								navigateToPage(SupportPages.TOPIC_DETAIL)
+							},
 						})
 					case SupportPages.TOPIC_DETAIL:
 						return m(SupportTopicPage, {
@@ -85,13 +98,15 @@ export async function showSupportDialog(logins: LoginController) {
 					case SupportPages.CATEGORIES:
 						return m(SupportLandingPage, {
 							data,
-							toCategoryDetail: () => navigateToPage(SupportPages.CATEGORY_DETAIL),
-							goToContactSupport: () => {
-								if (data.canHaveEmailSupport) {
-									navigateToPage(SupportPages.CONTACT_SUPPORT)
-								} else {
-									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+							toCategoryDetail: () => {
+								const selectedCategory = data.selectedCategory()
+
+								if (selectedCategory) {
+									data.contactTemplate(getCategoryContactTemplate(selectedCategory, lang.languageTag))
+									data.helpText(getCategoryHelpText(selectedCategory, lang.languageTag))
 								}
+
+								navigateToPage(SupportPages.CATEGORY_DETAIL)
 							},
 						})
 					case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
@@ -114,7 +129,21 @@ export async function showSupportDialog(logins: LoginController) {
 						case SupportPages.TOPIC_DETAIL:
 						case SupportPages.CATEGORY_DETAIL:
 						case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
-							return { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" }
+							return {
+								type: ButtonType.Secondary,
+								click: () => {
+									goBack()
+
+									// going back from topic -> use category template
+									const selectedCategory = data.selectedCategory()
+									if (currentPage === SupportPages.TOPIC_DETAIL && selectedCategory != null) {
+										data.contactTemplate(getCategoryContactTemplate(selectedCategory, lang.languageTag))
+										data.helpText(getCategoryHelpText(selectedCategory, lang.languageTag))
+									}
+								},
+								label: "back_action",
+								title: "back_action",
+							}
 						case SupportPages.CONTACT_SUPPORT:
 							return {
 								type: ButtonType.Secondary,
@@ -154,15 +183,59 @@ export async function showSupportDialog(logins: LoginController) {
 	m.redraw()
 }
 
-export function getLocalisedTopicIssue(topic: SupportTopic, languageTag: string): string {
+/**
+ * Gets the button text showed to direct users to the contact form based on the users' current language.
+ * Some topics require contacting the support directly.
+ */
+export function getContactSupportText(topic: SupportTopic, languageTag: string): string | null {
+	return languageTag.includes("de") ? topic.contactSupportTextDE : topic.contactSupportTextEN
+}
+
+/**
+ * Gets the contact form default value for the provided category, based on the users' current language.
+ * It is being used when the user cannot fully identify an issue from the list, so they click on "Other" in the list of issues within one category.
+ */
+export function getCategoryContactTemplate(category: SupportCategory, languageTag: string): string {
+	return languageTag.includes("de") ? category.contactTemplateHtmlDE : category.contactTemplateHtmlEN
+}
+
+/**
+ * Gets the contact form default value for the provided topic, based on the users' current language.
+ * It is being used when the user did not find a solution helpful and being redirected to the contact form.
+ */
+export function getTopicContactTemplate(topic: SupportTopic, languageTag: string): string {
+	return languageTag.includes("de") ? topic.contactTemplateHtmlDE : topic.contactTemplateHtmlEN
+}
+
+/**
+ * Gets the help text further explaining the issue the user faced, usually displayed in the contact support form. It is based on the users' current language.
+ */
+export function getTopicHelpText(topic: SupportTopic, languageTag: string): string {
+	return languageTag.includes("de") ? topic.helpTextDE : topic.helpTextEN
+}
+
+export function getCategoryHelpText(category: SupportCategory, languageTag: string): string {
+	return languageTag.includes("de") ? category.helpTextDE : category.helpTextEN
+}
+
+/**
+ * Gets the issue a user may face based on the users' current language.
+ */
+export function getTopicIssue(topic: SupportTopic, languageTag: string): string {
 	return languageTag.includes("de") ? topic.issueDE : topic.issueEN
 }
 
-export function getLocalisedCategoryName(category: SupportCategory, languageTag: string): string {
+/**
+ * Gets the categories' name based on the users' current language.
+ */
+export function getCategoryName(category: SupportCategory, languageTag: string): string {
 	return languageTag.includes("de") ? category.nameDE : category.nameEN
 }
 
-export function getLocalisedCategoryIntroduction(category: SupportCategory, languageTag: string): string {
+/**
+ * Gets the categories' introduction text based on the users' current language.
+ */
+export function getCategoryIntroduction(category: SupportCategory, languageTag: string): string {
 	return languageTag.includes("de") ? category.introductionDE : category.introductionEN
 }
 

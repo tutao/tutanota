@@ -2594,6 +2594,10 @@ impl Entity for Subfiles {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SupportCategory {
 	pub _id: Option<CustomId>,
+	pub contactTemplateHtmlDE: String,
+	pub contactTemplateHtmlEN: String,
+	pub helpTextDE: String,
+	pub helpTextEN: String,
 	pub icon: String,
 	pub introductionDE: String,
 	pub introductionEN: String,
@@ -2634,6 +2638,12 @@ impl Entity for SupportData {
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SupportTopic {
 	pub _id: Option<CustomId>,
+	pub contactSupportTextDE: Option<String>,
+	pub contactSupportTextEN: Option<String>,
+	pub contactTemplateHtmlDE: String,
+	pub contactTemplateHtmlEN: String,
+	pub helpTextDE: String,
+	pub helpTextEN: String,
 	pub issueDE: String,
 	pub issueEN: String,
 	pub lastUpdated: DateTime,

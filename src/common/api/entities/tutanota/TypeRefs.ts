@@ -2056,6 +2056,10 @@ export type SupportCategory = {
 	_type: TypeRef<SupportCategory>;
 
 	_id: Id;
+	contactTemplateHtmlDE: string;
+	contactTemplateHtmlEN: string;
+	helpTextDE: string;
+	helpTextEN: string;
 	icon: string;
 	introductionDE: string;
 	introductionEN: string;
@@ -2090,6 +2094,12 @@ export type SupportTopic = {
 	_type: TypeRef<SupportTopic>;
 
 	_id: Id;
+	contactSupportTextDE: null | string;
+	contactSupportTextEN: null | string;
+	contactTemplateHtmlDE: string;
+	contactTemplateHtmlEN: string;
+	helpTextDE: string;
+	helpTextEN: string;
 	issueDE: string;
 	issueEN: string;
 	lastUpdated: Date;

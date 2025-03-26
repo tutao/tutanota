@@ -575,6 +575,61 @@
 					"info": "RemoveValue MailFolder/isMailSet/1458."
 				}
 			]
+		},
+		{
+			"version": 86,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "SupportTopic",
+					"info": "AddValue SupportTopic/contactTemplateHtmlEN/1652."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportTopic",
+					"info": "AddValue SupportTopic/contactTemplateHtmlDE/1653."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportTopic",
+					"info": "AddValue SupportTopic/helpTextEN/1654."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportTopic",
+					"info": "AddValue SupportTopic/helpTextDE/1655."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportTopic",
+					"info": "AddValue SupportTopic/contactSupportTextEN/1656."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportTopic",
+					"info": "AddValue SupportTopic/contactSupportTextDE/1657."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportCategory",
+					"info": "AddValue SupportCategory/contactTemplateHtmlEN/1658."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportCategory",
+					"info": "AddValue SupportCategory/contactTemplateHtmlDE/1659."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportCategory",
+					"info": "AddValue SupportCategory/helpTextEN/1660."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "SupportCategory",
+					"info": "AddValue SupportCategory/helpTextDE/1661."
+				}
+			]
 		}
 	]
 }

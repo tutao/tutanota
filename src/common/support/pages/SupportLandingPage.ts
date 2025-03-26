@@ -1,9 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
-import { getLocalisedCategoryName, SupportDialogState } from "../SupportDialog.js"
+import { getCategoryName, SupportDialogState } from "../SupportDialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
-import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { px } from "../../gui/size.js"
 import { AllIcons, progressIcon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -13,14 +12,12 @@ import { TitleSection } from "../../gui/TitleSection"
 type Props = {
 	data: SupportDialogState
 	toCategoryDetail: Thunk
-	goToContactSupport: Thunk
 }
 
 export class SupportLandingPage implements Component<Props> {
 	view({
 		attrs: {
 			data: { categories, selectedCategory },
-			goToContactSupport,
 			toCategoryDetail,
 		},
 	}: Vnode<Props>): Children {
@@ -49,16 +46,13 @@ export class SupportLandingPage implements Component<Props> {
 							categories.map((category) =>
 								m(SectionButton, {
 									leftIcon: { icon: category.icon as AllIcons, title: "close_alt", fill: theme.content_accent },
-									text: { text: getLocalisedCategoryName(category, lang.languageTag), testId: "" },
+									text: { text: getCategoryName(category, lang.languageTag), testId: "" },
 									onclick: () => {
 										selectedCategory(category)
 										toCategoryDetail()
 									},
 								}),
 							),
-							m(NoSolutionSectionButton, {
-								onClick: goToContactSupport,
-							}),
 						),
 				  ]),
 		)
