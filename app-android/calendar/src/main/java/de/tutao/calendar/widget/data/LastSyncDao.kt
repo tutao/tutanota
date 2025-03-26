@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LastSyncDao(
 	val lastSync: Long,
-	val trigger: WidgetUpdateTrigger
+	val trigger: WidgetUpdateTrigger,
+	val force: Boolean
 )
