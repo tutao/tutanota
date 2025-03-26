@@ -17,10 +17,12 @@ import org.apache.commons.io.IOUtils
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.*
+import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
+import kotlin.random.Random
 
 fun SecureRandom.bytes(numBytes: Int): ByteArray {
 	val array = ByteArray(numBytes)
@@ -170,4 +172,28 @@ fun isAllDayEventByTimes(startDate: Date, endDate: Date): Boolean {
 	calendar.time = endDate
 	val endFits = calendar[Calendar.HOUR] == 0 && calendar[Calendar.MINUTE] == 0 && calendar[Calendar.SECOND] == 0
 	return startFits && endFits
+}
+
+fun getLogcat(rootDir: File, filePrefix: String = "log"): String {
+	val logFile = File(rootDir, "$filePrefix-${System.currentTimeMillis()}-${Random.nextInt()}.txt")
+	logFile.delete()
+	logFile.createNewFile()
+
+	// -d means print and exit without blocking, -T gets last lines, -f outputs to file
+	val process = Runtime.getRuntime().exec(arrayOf("logcat", "-d", "-T", "1500", "-f", logFile.absolutePath))
+	try {
+		process.waitFor()
+	} catch (ignored: InterruptedException) {
+	}
+	if (process.exitValue() != 0) {
+		val error = IOUtils.toString(process.errorStream, Charset.defaultCharset())
+		logFile.delete()
+		throw RuntimeException("Reading logs failed: " + process.exitValue() + ", " + error)
+	}
+
+	val text = logFile.readText()
+
+	logFile.delete()
+
+	return text
 }

@@ -74,4 +74,10 @@ interface CommonNativeFacade {
 	suspend fun openSettings(
 		path: String,
 	): Unit
+	/**
+	 * Open the Logs dialog on login page
+	 */
+	suspend fun openLogs(
+		logs: String,
+	): Unit
 }

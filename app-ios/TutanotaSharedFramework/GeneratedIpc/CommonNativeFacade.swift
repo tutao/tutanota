@@ -71,4 +71,10 @@ public protocol CommonNativeFacade {
 	func openSettings(
 		_ path: String
 	) async throws -> Void
+	/**
+	 * Open the Logs dialog on login page
+	 */
+	func openLogs(
+		_ logs: String
+	) async throws -> Void
 }
