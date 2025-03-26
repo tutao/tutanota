@@ -143,7 +143,29 @@ impl JsonSerializer {
 					let ids = self.parse_id_tuple_list_custom(type_ref, &association_name, vec)?;
 					mapped.insert(association_name.to_owned(), ElementValue::Array(ids));
 				},
-				_ => {},
+				(
+					AssociationType::ListAssociation | AssociationType::ElementAssociation,
+					_,
+					JsonElement::Array(vec),
+				) => {
+					let element_values = vec
+						.into_iter()
+						.map(|j| {
+							if let JsonElement::String(id) = j {
+								// Note: it's not always generated id, but it's fine probably
+								ElementValue::IdGeneratedId(GeneratedId(id))
+							} else {
+								panic!("id not a string? wow")
+							}
+						})
+						.collect::<Vec<ElementValue>>();
+
+					mapped.insert(
+						association_name.to_owned(),
+						ElementValue::Array(element_values),
+					);
+				},
+				_ => panic!("Unknown Association/cardinality/valueType combination: association id = {association_id}"),
 			}
 		}
 

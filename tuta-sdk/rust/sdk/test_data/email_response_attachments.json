@@ -1,20 +1,22 @@
 {
-	"1308": ["O3lYN70--B-0", "O3lYUQK----0"],
+	"1308": [["O3lYN70--B-0", "O3lYUQK----0"]],
 	"1465": [],
 	"115": [["O3lYN71--J-0", "O3lYUQI----0"]],
 	"1022": null,
-	"1309": null,
-	"1310": null,
+	"1309": [],
+	"1310": [],
 	"1395": "0",
 	"100": "O3lYUQH--g-0",
 	"1307": "1",
-	"117": ["O3lYUQH--3-0", "O3lYUQH--7-0"],
-	"1306": {
-		"96": null,
-		"95": "map-free@tutanota.de",
-		"94": "AYOKFnie29GjgBC1ZOem6yOL69I0bRx3DXuxSJqt5qs34a6LAgqmzll8ToEuQyLLaN4TXUT3KdfqGioM1pDxyNw=",
-		"93": "HvHzbg"
-	},
+	"117": [["O3lYUQH--3-0", "O3lYUQH--7-0"]],
+	"1306": [
+		{
+			"96": [],
+			"95": "map-free@tutanota.de",
+			"94": "AYOKFnie29GjgBC1ZOem6yOL69I0bRx3DXuxSJqt5qs34a6LAgqmzll8ToEuQyLLaN4TXUT3KdfqGioM1pDxyNw=",
+			"93": "HvHzbg"
+		}
+	],
 	"1346": "Af715Yrdyl42FlYixEThz/flGIYo0gXFzpSp+H5rkMNLmaCZlP5d759VYf5U3aBVs8AE+N4URjk9RIPKM3ozlyY=",
 	"108": "2",
 	"617": null,
@@ -24,12 +26,14 @@
 	"1120": "AQfY+SB4qfB0Eo2Mz7N6pseQIFhKPr39aV5j7n0VB9jwN4mWSeXfK53FhdCfeYHc61IPWR4lyEipwS8yGcNGawc=",
 	"109": "0",
 	"99": ["O3lYN72--R-0", "O3lYUQH----0"],
-	"111": {
-		"94": "Aa9WzeZU8eovYX3G6i+5pAk5odHi3cSFvkzQmdQjeyJIBHzw3rf1xkpWCt0TTpZkhA1bw5aqxaJe/EXSHX5PUHg=",
-		"93": "k5gjqA",
-		"96": null,
-		"95": "bed-free@tutanota.de"
-	},
+	"111": [
+		{
+			"94": "Aa9WzeZU8eovYX3G6i+5pAk5odHi3cSFvkzQmdQjeyJIBHzw3rf1xkpWCt0TTpZkhA1bw5aqxaJe/EXSHX5PUHg=",
+			"93": "k5gjqA",
+			"96": [],
+			"95": "bed-free@tutanota.de"
+		}
+	],
 	"866": "",
 	"101": "0",
 	"105": "AT2IjiolQ+E36x1w8sEC37OUTNxDdhO66UNb33JJ0DfwQE56pz+qPaLD2hoRRs+gDjMlAHwUVXAjmzfN1kjTTv7vfGVQzy6gp9+FVksoMoNW",

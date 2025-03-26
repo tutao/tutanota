@@ -198,4 +198,17 @@ impl TypeModel {
 				"did not find association with attributeName {attribute_name}"
 			)))
 	}
+
+	pub fn get_association_by_name(
+		&self,
+		attribute_name: String,
+	) -> Result<&ModelAssociation, TypeModelError> {
+		self.associations
+			.iter()
+			.find(|(association_id, association)| association.name == attribute_name)
+			.ok_or(TypeModelError(format!(
+				"did not find association with attributeName {attribute_name}"
+			)))
+			.map(|(_, association)| association)
+	}
 }
