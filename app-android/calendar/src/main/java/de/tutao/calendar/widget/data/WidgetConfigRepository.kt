@@ -27,8 +27,8 @@ class WidgetConfigRepository : WidgetRepository() {
 		}
 	}
 
-	override suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, lastSync: Date) {
-		val lastSyncTimestamp = lastSync.time
+	override suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
+		val lastSyncTimestamp = now.time
 
 		context.widgetDataStore.edit { preferences ->
 			widgetIds.forEach {
@@ -36,7 +36,7 @@ class WidgetConfigRepository : WidgetRepository() {
 				val preferencesKey = stringPreferencesKey(lastSyncIdentifier)
 
 				preferences[preferencesKey] =
-					json.encodeToString(LastSyncDao(lastSyncTimestamp, APP))
+					json.encodeToString(LastSyncDao(lastSyncTimestamp, APP, false))
 			}
 		}
 	}
