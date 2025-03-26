@@ -1,24 +1,25 @@
+import m from "mithril"
 import { assertMainOrNode, isWebClient } from "../api/common/Env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
 import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
-import { locator } from "../api/main/CommonLocator.js"
-import { DataFile } from "../api/common/DataFile.js"
-import { client } from "../misc/ClientDetector"
-import { SupportVisibilityMask } from "./SupportVisibilityMask"
-import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog"
-import m from "mithril"
+import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
 import { SupportLandingPage } from "./pages/SupportLandingPage.js"
-import { lang } from "../misc/LanguageViewModel.js"
-import { CacheMode } from "../api/worker/rest/EntityRestClient.js"
-import { ButtonType } from "../gui/base/Button.js"
+import { locator } from "../api/main/CommonLocator.js"
 import { SupportCategoryPage } from "./pages/SupportCategoryPage.js"
 import { SupportTopicPage } from "./pages/SupportTopicPage.js"
 import { ContactSupportPage } from "./pages/ContactSupportPage.js"
 import { SupportSuccessPage } from "./pages/SupportSuccessPage.js"
-import { SupportRequestSentPage } from "./pages/SupportRequestSentPage.js"
-import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage.js"
+import { ButtonType } from "../gui/base/Button.js"
 import { Keys } from "../api/common/TutanotaConstants.js"
+import { DataFile } from "../api/common/DataFile.js"
+import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage.js"
+import { Dialog } from "../gui/base/Dialog.js"
+import { client } from "../misc/ClientDetector"
+import { SupportVisibilityMask } from "./SupportVisibilityMask"
+import { SupportRequestSentPage } from "./pages/SupportRequestSentPage.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import { CacheMode } from "../api/worker/rest/EntityRestClient.js"
 
 assertMainOrNode()
 
@@ -43,100 +44,107 @@ export async function showSupportDialog(logins: LoginController) {
 		logs: Stream([]),
 	}
 
-	const dialog = new MultiPageDialog<
-		"home" | "categoryDetail" | "topicDetail" | "contactSupport" | "solutionWasHelpful" | "supportRequestSent" | "emailSupportBehindPaywall"
-	>("home", (dialog, navigateToPage, goBack) => ({
-		home: {
-			title: lang.get("supportMenu_label"),
-			content: m(SupportLandingPage, {
-				data,
-				toCategoryDetail: () => navigateToPage("categoryDetail"),
-				goToContactSupport: () => {
-					if (data.canHaveEmailSupport) {
-						navigateToPage("contactSupport")
-					} else {
-						navigateToPage("emailSupportBehindPaywall")
+	const multiPageDialog: Dialog = new MultiPageDialog<SupportPages>(SupportPages.CATEGORIES)
+		.buildDialog(
+			(currentPage, dialog, navigateToPage, _) => {
+				switch (currentPage) {
+					case SupportPages.CATEGORY_DETAIL:
+						return m(SupportCategoryPage, {
+							data,
+							goToContactSupport: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
+							goToTopicDetailPage: () => navigateToPage(SupportPages.TOPIC_DETAIL),
+						})
+					case SupportPages.TOPIC_DETAIL:
+						return m(SupportTopicPage, {
+							data,
+							dialog,
+							goToSolutionWasHelpfulPage: () => {
+								navigateToPage(SupportPages.SOLUTION_WAS_HELPFUL)
+							},
+							goToContactSupportPage: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
+						})
+					case SupportPages.CONTACT_SUPPORT:
+						return m(ContactSupportPage, { data, goToSuccessPage: () => navigateToPage(SupportPages.SUPPORT_REQUEST_SENT) })
+					case SupportPages.SOLUTION_WAS_HELPFUL:
+						return m(SupportSuccessPage)
+					case SupportPages.SUPPORT_REQUEST_SENT: {
+						return m(SupportRequestSentPage)
+					}
+					case SupportPages.CATEGORIES:
+						return m(SupportLandingPage, {
+							data,
+							toCategoryDetail: () => navigateToPage(SupportPages.CATEGORY_DETAIL),
+							goToContactSupport: () => {
+								if (data.canHaveEmailSupport) {
+									navigateToPage(SupportPages.CONTACT_SUPPORT)
+								} else {
+									navigateToPage(SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL)
+								}
+							},
+						})
+					case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
+						return m(EmailSupportUnavailablePage, {
+							data,
+							goToContactSupportPage: () => {
+								navigateToPage(SupportPages.CONTACT_SUPPORT)
+							},
+						})
+				}
+			},
+			{
+				getPageTitle: (_) => {
+					return { testId: "back_action", text: lang.get("supportMenu_label") }
+				},
+				getLeftAction: (currentPage, dialog, navigateToPage, goBack) => {
+					switch (currentPage) {
+						case SupportPages.CATEGORIES:
+							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
+						case SupportPages.TOPIC_DETAIL:
+						case SupportPages.CATEGORY_DETAIL:
+						case SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL:
+							return { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" }
+						case SupportPages.CONTACT_SUPPORT:
+							return {
+								type: ButtonType.Secondary,
+								click: () => goBack(),
+								label: "back_action",
+								title: "back_action",
+							}
+						case SupportPages.SOLUTION_WAS_HELPFUL:
+						case SupportPages.SUPPORT_REQUEST_SENT:
+							return { type: ButtonType.Secondary, click: () => dialog.close(), label: "close_alt", title: "close_alt" }
 					}
 				},
-			}),
-			leftAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "close_alt", title: "close_alt" },
-		},
-		categoryDetail: {
-			content: m(SupportCategoryPage, {
-				data,
-				goToContactSupport: () => {
-					if (data.canHaveEmailSupport) {
-						navigateToPage("contactSupport")
-					} else {
-						navigateToPage("emailSupportBehindPaywall")
+				getRightAction: (currentPage, dialog, _, __) => {
+					if (currentPage === SupportPages.EMAIL_SUPPORT_BEHIND_PAYWALL) {
+						return {
+							type: ButtonType.Secondary,
+							label: "close_alt",
+							title: "close_alt",
+							click: () => {
+								dialog.close()
+							},
+						}
 					}
-				},
-				goToTopicDetailPage: () => navigateToPage("topicDetail"),
-			}),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
-		},
-		topicDetail: {
-			content: m(SupportTopicPage, {
-				data,
-				dialog,
-				goToSolutionWasHelpfulPage: () => {
-					navigateToPage("solutionWasHelpful")
-				},
-				goToContactSupportPage: () => {
-					if (data.canHaveEmailSupport) {
-						navigateToPage("contactSupport")
-					} else {
-						navigateToPage("emailSupportBehindPaywall")
-					}
-				},
-			}),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
-		},
-		contactSupport: {
-			content: m(ContactSupportPage, { data, goToSuccessPage: () => navigateToPage("supportRequestSent") }),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
-		},
-		solutionWasHelpful: {
-			content: m(SupportSuccessPage),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "close_alt", title: "close_alt" },
-		},
-		supportRequestSent: {
-			content: m(SupportRequestSentPage),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "close_alt", title: "close_alt" },
-		},
-		emailSupportBehindPaywall: {
-			content: m(EmailSupportUnavailablePage, {
-				data,
-				goToContactSupportPage: () => {
-					navigateToPage("contactSupport")
-				},
-			}),
-			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
-			rightAction: {
-				type: ButtonType.Secondary,
-				label: "close_alt",
-				title: "close_alt",
-				click: () => {
-					dialog.onClose()
 				},
 			},
-		},
-	})).getDialog()
-
-	dialog
+		)
 		.addShortcut({
 			help: "close_alt",
 			key: Keys.ESC,
-			exec: () => {
-				console.info("Closing from ESC key")
-				dialog.onClose()
-			},
+			exec: () => multiPageDialog.close(),
 		})
 		.show()
 
@@ -186,6 +194,16 @@ function filterCategories(supportData: SupportData) {
 	}
 
 	return categories.filter((cat) => cat.topics.length > 0)
+}
+
+enum SupportPages {
+	CATEGORIES,
+	CATEGORY_DETAIL,
+	TOPIC_DETAIL,
+	CONTACT_SUPPORT,
+	SUPPORT_REQUEST_SENT,
+	EMAIL_SUPPORT_BEHIND_PAYWALL,
+	SOLUTION_WAS_HELPFUL,
 }
 
 function isEnabled(visibility: number, mask: SupportVisibilityMask) {
