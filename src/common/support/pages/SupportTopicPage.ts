@@ -2,13 +2,15 @@ import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
-import { getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
+import { getContactSupportText, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
 import { Card } from "../../gui/base/Card.js"
 import { theme } from "../../gui/theme.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { locator } from "../../api/main/CommonLocator.js"
 
 type Props = {
 	data: SupportDialogState
@@ -29,7 +31,10 @@ export class SupportTopicPage implements Component<Props> {
 		const sanitisedSolution = htmlSanitizer.sanitizeHTML(convertTextToHtml(solution), {
 			blockExternalContent: true,
 		}).html
-		const issue = getLocalisedTopicIssue(topic, languageTag)
+		const issue = getTopicIssue(topic, languageTag)
+
+		const buttonText = getContactSupportText(topic, languageTag)
+
 		return m(
 			".flex.flex-column.pt.pb",
 			{
@@ -47,6 +52,16 @@ export class SupportTopicPage implements Component<Props> {
 					},
 					m(".h4.m-0.pb", issue),
 					m.trust(sanitisedSolution),
+					buttonText &&
+						!locator.logins.getUserController().isFreeAccount() &&
+						m(
+							".flex.center-horizontally.mt",
+							m(Button, {
+								label: lang.makeTranslation("", buttonText),
+								type: ButtonType.Primary,
+								click: () => goToContactSupportPage(),
+							}),
+						),
 				),
 			],
 			m(WasThisHelpful, { goToContactSupportPage, goToSolutionWasHelpfulPage }),
