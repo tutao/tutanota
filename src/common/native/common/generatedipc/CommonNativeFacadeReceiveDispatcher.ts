@@ -58,6 +58,10 @@ export class CommonNativeFacadeReceiveDispatcher {
 				const path: string = arg[0]
 				return this.facade.openSettings(path)
 			}
+			case "openLogs": {
+				const logs: string = arg[0]
+				return this.facade.openLogs(logs)
+			}
 		}
 	}
 }

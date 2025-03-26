@@ -5,11 +5,10 @@ import { InfoLink, lang } from "../misc/LanguageViewModel.js"
 import { createDropdown } from "./base/Dropdown.js"
 import { mapNullable } from "@tutao/tutanota-utils"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
-import { Dialog } from "./base/Dialog.js"
-import { ButtonType } from "./base/Button.js"
-import { copyToClipboard } from "../misc/ClipboardUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
+
+import { showLogsDialog } from "./LogDialogUtils.js"
 
 export function renderInfoLinks(): Children {
 	const privacyPolicyLink = getPrivacyStatementLink()
@@ -64,39 +63,10 @@ function showVersionDropdown(e: MouseEvent) {
 		lazyButtons: () => [
 			{
 				label: "getLogs_action",
-				click: () => showLogsDialog(),
+				click: () => prepareLogContent().then((logInfo) => showLogsDialog(logInfo)),
 			},
 		],
 	})(e, e.target as HTMLElement)
-}
-
-async function showLogsDialog() {
-	const logContent = await prepareLogContent()
-
-	const dialog: Dialog = Dialog.editDialog(
-		{
-			middle: lang.makeTranslation("logs", "Logs"),
-			right: () => [
-				{
-					type: ButtonType.Secondary,
-					label: "copy_action",
-					click: () => copyToClipboard(logContent),
-				},
-				{
-					type: ButtonType.Primary,
-					label: "ok_action",
-					click: () => dialog.close(),
-				},
-			],
-		},
-		class {
-			view() {
-				return m(".fill-absolute.selectable.scroll.white-space-pre.plr.pt.pb", logContent)
-			}
-		},
-		{},
-	)
-	dialog.show()
 }
 
 async function prepareLogContent() {

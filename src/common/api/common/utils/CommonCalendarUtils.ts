@@ -232,3 +232,16 @@ export function prepareCalendarDescription(description: string, sanitizer: (s: s
 
 	return sanitizer(prepared)
 }
+
+/**
+ * Receives a native JS date and parse it returning a date string in the yyyy-mm-dd format
+ * @param date The JS date
+ * @returns string
+ */
+export function formatJSDate(date: Date) {
+	const year = date.getFullYear()
+	const month = date.getMonth() + 1
+	const day = date.getDate()
+
+	return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
+}

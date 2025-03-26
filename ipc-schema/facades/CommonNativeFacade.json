@@ -119,6 +119,15 @@
 				}
 			],
 			"ret": "void"
+		},
+		"openLogs": {
+			"doc": "Open the Logs dialog on login page",
+			"arg": [
+				{
+					"logs": "string"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }

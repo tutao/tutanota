@@ -50,4 +50,9 @@ export interface CommonNativeFacade {
 	 * Open a specified path inside settings
 	 */
 	openSettings(path: string): Promise<void>
+
+	/**
+	 * Open the Logs dialog on login page
+	 */
+	openLogs(logs: string): Promise<void>
 }

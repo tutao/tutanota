@@ -1,9 +1,8 @@
 import m from "mithril"
 import { LoginController } from "../../api/main/LoginController.js"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
-import { DateTime } from "luxon"
 import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import { EventEditorDialog } from "../../../calendar-app/calendar/gui/eventeditor-view/CalendarEventEditDialog.js"
+import { formatJSDate } from "../../api/common/utils/CommonCalendarUtils.js"
 
 /**
  * Handles requests for opening calendar paths from native.
@@ -15,7 +14,8 @@ export class OpenCalendarHandler {
 	) {}
 
 	async openCalendar(userId: Id, action: CalendarOpenAction, date: string | null): Promise<void> {
-		const parsedDate = date ? DateTime.fromISO(date).toISODate() : DateTime.now().toISODate()
+		const dt = date ? new Date(Date.parse(date)) : new Date()
+		const parsedDate = formatJSDate(dt)
 
 		this.handleAgendaOpening(userId, parsedDate)
 

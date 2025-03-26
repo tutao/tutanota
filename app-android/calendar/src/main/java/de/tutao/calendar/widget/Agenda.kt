@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.graphics.ColorUtils
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -23,10 +22,12 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
@@ -50,8 +51,6 @@ import androidx.glance.layout.width
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.layout.wrapContentWidth
 import androidx.glance.material3.ColorProviders
-import androidx.glance.preview.ExperimentalGlancePreviewApi
-import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -64,6 +63,8 @@ import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.data.WidgetStateDefinition
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.data.WidgetUIViewModel
+import de.tutao.calendar.widget.error.WidgetError
+import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.SdkRestClient
@@ -94,28 +95,17 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
-		val db = AppDatabase.getDatabase(context, true)
-		val keyStoreFacade = createAndroidKeyStoreFacade()
-		val sseStorage = SseStorage(db, keyStoreFacade)
-		val crypto = AndroidNativeCryptoFacade(context)
-		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
-		val sdk = try {
-			Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()) // FIXME Change SSE Origin for something else
-		} catch (e: Exception) {
-			Log.e(TAG, "Failed to initialize SDK, falling back to cached events if available. $e")
-			null
-		}
-
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
-		val widgetUIViewModel =
-			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, sdk)
-		val userId = widgetUIViewModel.getLoggedInUser(context)
+
+		val (widgetUIViewModel, userId) = setupWidget(context, appWidgetId)
 
 		val settingsPreferencesKey = stringPreferencesKey("${WIDGET_SETTINGS_PREFIX}_$appWidgetId")
 		val lastSyncPreferencesKey = stringPreferencesKey("${WIDGET_LAST_SYNC_PREFIX}_$appWidgetId")
 
 		provideContent {
 			val data by widgetUIViewModel.uiState.collectAsState()
+			val error by widgetUIViewModel.error.collectAsState()
+
 			val preferences = currentState<Preferences>()
 
 			LaunchedEffect(preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]) {
@@ -125,47 +115,116 @@ class Agenda : GlanceAppWidget() {
 			GlanceTheme(
 				colors = AppTheme.colors
 			) {
+				if (error != null) {
+					return@GlanceTheme ErrorBody(
+						error,
+						action = actionStartActivity(WidgetErrorHandler.buildLogsIntent(context, error))
+					)
+				}
+
 				WidgetBody(
 					data,
-					headerCallback = { openCalendarAgenda(context, userId) },
-					newEventCallback = { openCalendarEditor(context, userId) }
+					headerCallback = openCalendarAgenda(context, userId),
+					newEventCallback = openCalendarEditor(context, userId)
 				)
 			}
 		}
 	}
 
-	private fun openCalendarEditor(context: Context, userId: String? = "") {
-		val openCalendarEventIntent = Intent(context, MainActivity::class.java)
-		openCalendarEventIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-		openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
-		openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
-		openCalendarEventIntent.putExtra(
+	private suspend fun setupWidget(
+		context: Context,
+		appWidgetId: Int
+	): Pair<WidgetUIViewModel, String?> {
+		val db = AppDatabase.getDatabase(context, true)
+		val keyStoreFacade = createAndroidKeyStoreFacade()
+		val sseStorage = SseStorage(db, keyStoreFacade)
+		val crypto = AndroidNativeCryptoFacade(context)
+		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
+
+		val sdk = try {
+			Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()) // FIXME Change SSE Origin for something else
+		} catch (e: Exception) {
+			Log.e(TAG, "Failed to initialize SDK, falling back to cached events if available. $e")
+			null
+		}
+
+		val widgetUIViewModel =
+			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, sdk)
+		val userId = widgetUIViewModel.getLoggedInUser(context)
+
+		return Pair(widgetUIViewModel, userId)
+	}
+
+	private fun openCalendarEditor(context: Context, userId: String? = ""): Action {
+		val openCalendarEventEditor = Intent(context, MainActivity::class.java)
+		openCalendarEventEditor.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		openCalendarEventEditor.action = MainActivity.OPEN_CALENDAR_ACTION
+		openCalendarEventEditor.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+		openCalendarEventEditor.putExtra(
 			MainActivity.OPEN_CALENDAR_IN_APP_ACTION_KEY,
 			CalendarOpenAction.EVENT_EDITOR.value
 		)
-		openCalendarEventIntent.putExtra(
+		openCalendarEventEditor.putExtra(
 			MainActivity.OPEN_CALENDAR_DATE_KEY,
 			LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
 		)
 
-		startActivity(context, openCalendarEventIntent, null)
+		return actionStartActivity(openCalendarEventEditor)
 	}
 
-	private fun openCalendarAgenda(context: Context, userId: String? = "") {
-		val openCalendarEventIntent = Intent(context, MainActivity::class.java)
-		openCalendarEventIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-		openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
-		openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
-		openCalendarEventIntent.putExtra(
+	private fun openCalendarAgenda(context: Context, userId: String? = ""): Action {
+		val openCalendarAgenda = Intent(context, MainActivity::class.java)
+		openCalendarAgenda.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		openCalendarAgenda.action = MainActivity.OPEN_CALENDAR_ACTION
+		openCalendarAgenda.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+		openCalendarAgenda.putExtra(
 			MainActivity.OPEN_CALENDAR_DATE_KEY,
 			LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
 		)
 
-		startActivity(context, openCalendarEventIntent, null)
+		return actionStartActivity(openCalendarAgenda)
 	}
 
 	@Composable
-	fun WidgetBody(data: WidgetUIData?, headerCallback: () -> Unit, newEventCallback: () -> Unit) {
+	fun ErrorBody(error: WidgetError?, action: Action) {
+		Column(
+			modifier = GlanceModifier.padding(12.dp).background(GlanceTheme.colors.background).fillMaxSize()
+				.appWidgetBackground().cornerRadius(8.dp),
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			if (error == null) {
+				return@Column LoadingSpinner()
+			}
+
+			Text(
+				error.friendlyMessage,
+				style = TextStyle(
+					fontSize = 16.sp,
+					color = GlanceTheme.colors.onBackground,
+					textAlign = TextAlign.Center,
+					fontWeight = FontWeight.Normal
+				),
+				maxLines = 2,
+				modifier = GlanceModifier.padding(bottom = 8.dp)
+			)
+			// FIXME Replace with translation
+			Box(
+				contentAlignment = Alignment.Center,
+				modifier = GlanceModifier
+					.fillMaxWidth()
+					.height(44.dp)
+					.background(GlanceTheme.colors.primary)
+					.cornerRadius(8.dp)
+					.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = action)
+			) {
+				Text("Send Logs", style = TextStyle(color = GlanceTheme.colors.onPrimary))
+			}
+		}
+	}
+
+	@Composable
+	fun WidgetBody(data: WidgetUIData?, headerCallback: Action, newEventCallback: Action) {
 		println(data)
 
 		val isEmpty = data?.allDayEvents?.isEmpty() ?: true && data?.normalEvents?.isEmpty() ?: true
@@ -184,16 +243,7 @@ class Agenda : GlanceAppWidget() {
 		) {
 
 			if (data == null) {
-				return@Column Column(
-					verticalAlignment = Alignment.CenterVertically,
-					horizontalAlignment = Alignment.CenterHorizontally,
-					modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.background)
-				) {
-					CircularProgressIndicator(
-						modifier = GlanceModifier.width(48.dp),
-						color = GlanceTheme.colors.primary,
-					)
-				}
+				return@Column LoadingSpinner()
 			}
 
 			Header(
@@ -249,10 +299,24 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
+	private fun LoadingSpinner() {
+		Column(
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalAlignment = Alignment.CenterHorizontally,
+			modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.background)
+		) {
+			CircularProgressIndicator(
+				modifier = GlanceModifier.width(48.dp),
+				color = GlanceTheme.colors.primary,
+			)
+		}
+	}
+
+	@Composable
 	private fun Header(
 		allDayEvents: List<UIEvent>,
-		onTap: () -> Unit,
-		onNewEvent: () -> Unit,
+		onTap: Action,
+		onNewEvent: Action,
 		hasAllDayEvents: Boolean
 	) {
 		val hasAllDayEvent = allDayEvents.isNotEmpty()
@@ -265,7 +329,7 @@ class Agenda : GlanceAppWidget() {
 		) {
 			Column(
 				modifier = GlanceModifier
-					.clickable(rippleOverride = R.drawable.transparent_ripple) { onTap() }.defaultWeight()
+					.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = onTap).defaultWeight()
 			) {
 				Text(
 					style = TextStyle(
@@ -339,9 +403,7 @@ class Agenda : GlanceAppWidget() {
 						.size(48.dp)
 						.background(GlanceTheme.colors.primary)
 						.cornerRadius(8.dp)
-						.clickable(rippleOverride = R.drawable.transparent_ripple) {
-							onNewEvent()
-						}
+						.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = onNewEvent)
 				) {
 					Image(
 						provider = ImageProvider(R.drawable.ic_add),
@@ -410,86 +472,86 @@ class Agenda : GlanceAppWidget() {
 		) { }
 	}
 
-	@OptIn(ExperimentalGlancePreviewApi::class)
-	@Preview(widthDp = 200, heightDp = 422)
-	@Preview(widthDp = 400, heightDp = 500)
-	@Composable
-	fun VerticalWidgetPreview() {
-		val eventData = ArrayList<UIEvent>()
-		val allDayEvents = ArrayList<UIEvent>()
-		for (i in 1..7) {
-			eventData.add(
-				UIEvent(
-					"previewCalendar",
-					"2196f3",
-					"Hello Widget $i",
-					"08:00",
-					"17:00",
-					isAllDay = false,
-					startTimestamp = 0UL,
-					endTimestamp = 0UL
-				)
-			)
-		}
+//	@OptIn(ExperimentalGlancePreviewApi::class)
+//	@Preview(widthDp = 200, heightDp = 422)
+//	@Preview(widthDp = 400, heightDp = 500)
+//	@Composable
+//	fun VerticalWidgetPreview() {
+//		val eventData = ArrayList<UIEvent>()
+//		val allDayEvents = ArrayList<UIEvent>()
+//		for (i in 1..7) {
+//			eventData.add(
+//				UIEvent(
+//					"previewCalendar",
+//					"2196f3",
+//					"Hello Widget $i",
+//					"08:00",
+//					"17:00",
+//					isAllDay = false,
+//					startTimestamp = 0UL,
+//					endTimestamp = 0UL
+//				)
+//			)
+//		}
+//
+//		eventData.add(
+//			UIEvent(
+//				"previewCalendar",
+//				"2196f3",
+//				"Summery",
+//				"Start Time",
+//				"End Time",
+//				isAllDay = false,
+//				startTimestamp = 0UL,
+//				endTimestamp = 0UL
+//			)
+//		)
+//
+//		allDayEvents.add(
+//			UIEvent(
+//				"previewCalendar",
+//				"2196f3",
+//				"Summery",
+//				"Start Time",
+//				"End Time",
+//				isAllDay = false,
+//				startTimestamp = 0UL,
+//				endTimestamp = 0UL
+//			)
+//		)
+//
+//		GlanceTheme(colors = AppTheme.colors) {
+//			WidgetBody(
+//				WidgetUIData(
+//					allDayEvents = allDayEvents,
+//					normalEvents = eventData,
+//				),
+//				headerCallback = {},
+//				newEventCallback = {},
+//			)
+//		}
+//	}
 
-		eventData.add(
-			UIEvent(
-				"previewCalendar",
-				"2196f3",
-				"Summery",
-				"Start Time",
-				"End Time",
-				isAllDay = false,
-				startTimestamp = 0UL,
-				endTimestamp = 0UL
-			)
-		)
-
-		allDayEvents.add(
-			UIEvent(
-				"previewCalendar",
-				"2196f3",
-				"Summery",
-				"Start Time",
-				"End Time",
-				isAllDay = false,
-				startTimestamp = 0UL,
-				endTimestamp = 0UL
-			)
-		)
-
-		GlanceTheme(colors = AppTheme.colors) {
-			WidgetBody(
-				WidgetUIData(
-					allDayEvents = allDayEvents,
-					normalEvents = eventData,
-				),
-				headerCallback = {},
-				newEventCallback = {},
-			)
-		}
-	}
-
-	@OptIn(ExperimentalGlancePreviewApi::class)
-	@Preview(widthDp = 200, heightDp = 200)
-	@Preview(widthDp = 400, heightDp = 500)
-	@Preview(widthDp = 800, heightDp = 500)
-	@Composable
-	fun VerticalWidgetPreviewNoEvents() {
-		val eventData = ArrayList<UIEvent>()
-		val allDayEvents = ArrayList<UIEvent>()
-
-		GlanceTheme(colors = AppTheme.colors) {
-			WidgetBody(
-				WidgetUIData(
-					allDayEvents = allDayEvents,
-					normalEvents = eventData,
-				),
-				headerCallback = {},
-				newEventCallback = {},
-			)
-		}
-	}
+//	@OptIn(ExperimentalGlancePreviewApi::class)
+//	@Preview(widthDp = 200, heightDp = 200)
+//	@Preview(widthDp = 400, heightDp = 500)
+//	@Preview(widthDp = 800, heightDp = 500)
+//	@Composable
+//	fun VerticalWidgetPreviewNoEvents() {
+//		val eventData = ArrayList<UIEvent>()
+//		val allDayEvents = ArrayList<UIEvent>()
+//
+//		GlanceTheme(colors = AppTheme.colors) {
+//			WidgetBody(
+//				WidgetUIData(
+//					allDayEvents = allDayEvents,
+//					normalEvents = eventData,
+//				),
+//				headerCallback = {},
+//				newEventCallback = {},
+//			)
+//		}
+//	}
 }
 
 
