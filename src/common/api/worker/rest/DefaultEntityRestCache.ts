@@ -10,12 +10,11 @@ import {
 } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
 	EntityEventBatchTypeRef,
-	EntityUpdate,
 	GroupKeyTypeRef,
 	KeyRotationTypeRef,
 	PermissionTypeRef,
@@ -23,10 +22,8 @@ import {
 	RejectedSenderTypeRef,
 	SecondFactorTypeRef,
 	SessionTypeRef,
-	User,
 	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
-	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
@@ -37,8 +34,8 @@ import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
-import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { containsEventOfType, EntityUpdateData, getEntityUpdateId, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
+import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
+import { containsEventOfType, EntityUpdateData, getEventOfType } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
 
 assertWorkerOrNode()
@@ -839,7 +836,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// If there is a custom handler we follow its decision.
 				// Otherwise, we do a range check to see if we need to keep the range up-to-date.
 				const shouldLoad =
-					(await this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)) ??
+					this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update) ??
 					(await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
 				if (shouldLoad) {
 					// No need to try to download something that's not there anymore

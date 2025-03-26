@@ -4,7 +4,7 @@ import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
-import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
+import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
 	type: "ephemeral"
@@ -14,7 +14,7 @@ export type OfflineStorageArgs = OfflineStorageInitArgs & {
 	type: "offline"
 }
 
-interface CacheStorageInitReturn {
+export interface CacheStorageInitReturn {
 	/** If the created storage is an OfflineStorage */
 	isPersistent: boolean
 	/** If a OfflineStorage was created, whether or not the backing database was created fresh or already existed */
@@ -27,7 +27,7 @@ export interface CacheStorageLateInitializer {
 	deInitialize(): Promise<void>
 }
 
-type SomeStorage = OfflineStorage | EphemeralCacheStorage
+export type SomeStorage = OfflineStorage | EphemeralCacheStorage
 
 /**
  * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that

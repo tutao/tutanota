@@ -95,11 +95,13 @@ import { IndexedDbMailIndexerBackend, SqliteMailIndexerBackend } from "../index/
 import { Indexer } from "../index/Indexer"
 import { SuggestionFacade } from "../index/SuggestionFacade"
 import { IndexerCore } from "../index/IndexerCore"
-import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler, CustomMailEventCacheHandler } from "../../../common/api/worker/rest/CustomCacheHandler"
+import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { CalendarEventTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { CustomUserCacheHandler } from "../../../common/api/worker/facades/CustomUserCacheHandler"
+import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade"
 import { SearchFacade } from "../index/SearchFacade"
+import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
+import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
 
 assertWorkerOrNode()
 

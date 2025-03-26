@@ -75,10 +75,11 @@ import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/Asymme
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
-import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/CustomCacheHandler"
+import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { CustomUserCacheHandler } from "../../../common/api/worker/facades/CustomUserCacheHandler"
+import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
+import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 
 assertWorkerOrNode()
 

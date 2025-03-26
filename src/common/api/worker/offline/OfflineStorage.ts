@@ -25,7 +25,7 @@ import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.j
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
-import { CustomCacheHandlerMap } from "../rest/CustomCacheHandler.js"
+import { CustomCacheHandlerMap } from "../rest/cacheHandler/CustomCacheHandler.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"

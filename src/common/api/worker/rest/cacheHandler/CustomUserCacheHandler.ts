@@ -1,9 +1,12 @@
-import { CustomCacheHandler } from "../rest/CustomCacheHandler"
-import { User, UserTypeRef } from "../../entities/sys/TypeRefs"
-import { CacheStorage } from "../rest/DefaultEntityRestCache"
-import { isSameId } from "../../common/utils/EntityUtils"
+import { CustomCacheHandler } from "./CustomCacheHandler"
+import { User, UserTypeRef } from "../../../entities/sys/TypeRefs"
+import { CacheStorage } from "../DefaultEntityRestCache"
+import { isSameId } from "../../../common/utils/EntityUtils"
 import { difference } from "@tutao/tutanota-utils"
 
+/**
+ * Handles tracking dropped memberships for users by clearing entities the user no longer has access to.
+ */
 export class CustomUserCacheHandler implements CustomCacheHandler<User> {
 	constructor(private readonly storage: CacheStorage) {}
 
