@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { getLocalisedCategoryIntroduction, getLocalisedCategoryName, getLocalisedTopicIssue, SupportDialogState } from "../SupportDialog.js"
+import { getCategoryIntroduction, getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Thunk } from "@tutao/tutanota-utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { Card } from "../../gui/base/Card.js"
@@ -27,14 +27,14 @@ export class SupportCategoryPage implements Component<Props> {
 			m(Card, [
 				m(
 					"",
-					m(".h4.mb-0", getLocalisedCategoryName(currentlySelectedCategory!, languageTag)),
-					m("p.mt-xs.mb-s", getLocalisedCategoryIntroduction(currentlySelectedCategory!, languageTag)),
+					m(".h4.mb-0", getCategoryName(currentlySelectedCategory!, languageTag)),
+					m("p.mt-xs.mb-s", getCategoryIntroduction(currentlySelectedCategory!, languageTag)),
 				),
 			]),
 			m(Card, { shouldDivide: true }, [
 				currentlySelectedCategory!.topics.map((topic) =>
 					m(SectionButton, {
-						text: { text: getLocalisedTopicIssue(topic, languageTag), testId: "" },
+						text: { text: getTopicIssue(topic, languageTag), testId: "" },
 						onclick: () => {
 							selectedTopic(topic)
 							goToTopicDetailPage()
