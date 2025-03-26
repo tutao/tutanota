@@ -124,7 +124,7 @@ class MainActivity : FragmentActivity() {
 		Log.d(TAG, "App started")
 
 		// App is handling a redelivered intent, ignoring as we probably already handled it
-		if (savedInstanceState != null && intent.action == OPEN_CALENDAR_ACTION) {
+		if (savedInstanceState != null && (intent.action == OPEN_CALENDAR_ACTION || intent.action == OPEN_LOGS_ACTION)) {
 			intent.putExtra(ALREADY_HANDLED_INTENT, true)
 		}
 
@@ -308,7 +308,7 @@ class MainActivity : FragmentActivity() {
 			val queryParameters = mutableMapOf<String, String>()
 			// If opened from notifications, tell Web app to not login automatically, we will pass
 			// mailbox later when loaded (in handleIntent())
-			if (intent != null && OPEN_CALENDAR_ACTION == intent.action) {
+			if (intent != null && (OPEN_CALENDAR_ACTION == intent.action || OPEN_LOGS_ACTION == intent.action)) {
 				queryParameters["noAutoLogin"] = "true"
 			}
 
@@ -465,6 +465,7 @@ class MainActivity : FragmentActivity() {
 					intent
 				)
 
+				OPEN_LOGS_ACTION -> openLogs(intent)
 				OPEN_CALENDAR_ACTION -> openCalendar(intent)
 				Intent.ACTION_VIEW -> {
 					when (intent.scheme) {
@@ -719,6 +720,11 @@ class MainActivity : FragmentActivity() {
 		commonNativeFacade.openCalendar(userId, action, date)
 	}
 
+	private suspend fun openLogs(intent: Intent) {
+		val log = intent.getStringExtra(OPEN_LOGS_DATA_KEY) ?: return
+		commonNativeFacade.openLogs(log)
+	}
+
 	private fun onBackPressedCallback() {
 		if (commonSystemFacade.initialized) {
 			lifecycleScope.launch {
@@ -772,6 +778,8 @@ class MainActivity : FragmentActivity() {
 		// don't remove the trailing slash because otherwise longer domains might match our asset check
 		const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"
 		const val OPEN_CALENDAR_ACTION = "de.tutao.calendar.OPEN_CALENDAR_ACTION"
+		const val OPEN_LOGS_ACTION = "de.tutao.calendar.OPEN_CALENDAR_LOGS"
+		const val OPEN_LOGS_DATA_KEY = "logs"
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
 		const val OPEN_CALENDAR_IN_APP_ACTION_KEY = "inAppAction"

@@ -2,8 +2,10 @@ package de.tutao.calendar.widget.data
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.core.IOException
 import androidx.lifecycle.ViewModel
 import de.tutao.calendar.widget.WidgetUpdateTrigger
+import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.isAllDayEventByTimes
@@ -24,18 +26,14 @@ class WidgetUIViewModel(
 	private val credentialsFacade: NativeCredentialsFacade,
 	private val sdk: Sdk?
 ) : ViewModel() {
-	private val _isLoading = MutableStateFlow<Boolean>(false);
-	val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
 	private val _uiState = MutableStateFlow<WidgetUIData?>(null)
 	val uiState: StateFlow<WidgetUIData?> = _uiState.asStateFlow()
 
+	private val _error = MutableStateFlow<WidgetError?>(null)
+	val error: StateFlow<WidgetError?> = _error.asStateFlow()
+
 	companion object {
 		private const val TAG = "WidgetUIViewModel"
-	}
-
-	init {
-		_isLoading.value = true
 	}
 
 	suspend fun loadUIState(context: Context): WidgetUIData? {
@@ -59,9 +57,15 @@ class WidgetUIViewModel(
 		val lastSync = repository.loadLastSync(context, widgetId)
 		val credentials = this.credentialsFacade.loadByUserId(settings.userId)?.toSdkCredentials()
 
-		//FIXME Think about a better error handling
 		if (credentials == null) {
+			// FIXME Replace by translation
+			_error.value = WidgetError(
+				"Missing credentials for user ${settings.userId} during widget setup",
+				"Missing credentials for user ${settings.userId}",
+				""
+			)
 			Log.w(TAG, "Missing credentials for user ${settings.userId} during widget setup")
+
 			return null
 		}
 
@@ -78,7 +82,12 @@ class WidgetUIViewModel(
 						loggedInSdk
 					)
 				} catch (e: Exception) {
-					// Fallback to cached events
+					// Fallback to cached events. We don't set an error here because we still able to display "something"
+					// to the user.
+					Log.w(
+						TAG,
+						"Missing credentials for user ${settings.userId} during widget setup. ${e.stackTraceToString()}"
+					)
 					repository.loadEvents()
 				}
 			} else {
@@ -129,6 +138,24 @@ class WidgetUIViewModel(
 	}
 
 	suspend fun getLoggedInUser(context: Context): String? {
-		return repository.loadSettings(context, widgetId)?.userId
+		try {
+			return repository.loadSettings(context, widgetId)?.userId
+		} catch (e: IOException) {
+			// FIXME Replace by translation
+			_error.value = WidgetError("Failed to read stored Widget Settings", e.message ?: "", e.stackTraceToString())
+			Log.e(
+				WidgetConfigViewModel.TAG,
+				"Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}"
+			)
+		} catch (e: Exception) {
+			// FIXME Replace by translation
+			_error.value = WidgetError("Failed to read stored Widget Settings", e.message ?: "", e.stackTraceToString())
+			Log.e(
+				WidgetConfigViewModel.TAG,
+				"Unexpected error while loading Widget Settings: ${e.stackTraceToString()}"
+			)
+		}
+
+		return null
 	}
 }

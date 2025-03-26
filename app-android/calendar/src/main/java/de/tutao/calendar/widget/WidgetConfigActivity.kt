@@ -2,10 +2,8 @@ package de.tutao.calendar.widget
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -36,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -70,7 +69,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -85,6 +83,8 @@ import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.tutao.calendar.widget.data.WidgetConfigRepository
 import de.tutao.calendar.widget.data.WidgetConfigViewModel
+import de.tutao.calendar.widget.error.WidgetError
+import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.SdkRestClient
@@ -103,15 +103,23 @@ class WidgetConfigActivity : AppCompatActivity() {
 	val rippleConfiguration =
 		RippleConfiguration(color = Color(0xFF8B8B8B), rippleAlpha = RippleAlpha(0.38f, 0.38f, .38f, .38f))
 
-	private fun modelFactoryExtras(context: Context): MutableCreationExtras {
+	private fun modelFactoryExtras(): MutableCreationExtras {
 		return MutableCreationExtras().apply {
 			val db = AppDatabase.getDatabase(baseContext, true)
 			val keyStoreFacade = createAndroidKeyStoreFacade()
 			val sseStorage = SseStorage(db, keyStoreFacade)
 
+			// FIXME Handle null sseOrigin / no saved accounts
+			val serverURL = sseStorage.getSseOrigin()
+
 			val crypto = AndroidNativeCryptoFacade(baseContext)
 			val sdk =
-				Sdk(sseStorage.getSseOrigin()!!, SdkRestClient()) // FIXME Handle null sseOrigin / no saved accounts
+				if (serverURL == null) {
+					null
+				} else {
+					Sdk(serverURL, SdkRestClient())
+				}
+
 			val credentialsFacade = CredentialsEncryptionFactory.create(baseContext, crypto, db)
 
 			set(WidgetConfigViewModel.APPLICATION_EXTRA_KEY, application)
@@ -145,14 +153,14 @@ class WidgetConfigActivity : AppCompatActivity() {
 		// So we must pass them to the factory through Extras.
 
 		// Gets the existing ViewModel or creates a new one using the factory if it doesn't exist yet.
-		val viewModel: WidgetConfigViewModel by viewModels(extrasProducer = { modelFactoryExtras(context) }) { WidgetConfigViewModel.Factory }
+		val viewModel: WidgetConfigViewModel by viewModels(extrasProducer = { modelFactoryExtras() }) { WidgetConfigViewModel.Factory }
 		viewModel.loadCredentials()
 		viewModel.loadWidgetSettings(context, appWidgetId)
 
 		// Use Jetpack Compose to build the configuration UI.
 		setContent {
-
 			val isDarkMode = isSystemInDarkTheme()
+			val error by viewModel.error.collectAsState()
 
 			DisposableEffect(isDarkMode) {
 				context.enableEdgeToEdge(
@@ -185,6 +193,12 @@ class WidgetConfigActivity : AppCompatActivity() {
 				}
 			) {
 				CompositionLocalProvider(LocalRippleConfiguration provides rippleConfiguration) {
+					if (error != null) {
+						return@CompositionLocalProvider ErrorMessage(error, {
+							startActivity(WidgetErrorHandler.buildLogsIntent(context, error))
+						})
+					}
+
 					WidgetConfig(
 						finishAction = {
 							finish()
@@ -195,17 +209,12 @@ class WidgetConfigActivity : AppCompatActivity() {
 								val storeJob = viewModel.storeSettings(this, appWidgetId)
 								storeJob.invokeOnCompletion {
 									GlobalScope.launch { //FIXME handle coroutine properly
-										Log.d("WidgetConfigActivity", "GlobalScope coroutine start")
-
 										val manager = GlanceAppWidgetManager(activityContext)
 										val widget = Agenda()
 										val glanceIds = manager.getGlanceIds(widget.javaClass)
 										glanceIds.forEach { glanceId ->
 											widget.update(context, glanceId)
 										}
-
-										// FIXME Remove LOG
-										Log.d("WidgetConfigActivity", "GlobalScope coroutine end")
 									}
 								}
 								setResult(Activity.RESULT_OK, resultValue)
@@ -234,51 +243,22 @@ class WidgetConfigActivity : AppCompatActivity() {
 	) {
 		val model: WidgetConfigViewModel =
 			viewModel(
-				extras = this.modelFactoryExtras(context = LocalContext.current),
+				extras = this.modelFactoryExtras(),
 				factory = WidgetConfigViewModel.Factory
 			)
 		val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+		val credentials by model.credentials.collectAsState()
 		val isLoading by model.isLoading.collectAsState()
 
 		Scaffold(
 			topBar = {
-				Row(
-					modifier = Modifier.padding(start = 0.dp, end = 8.dp),
-					verticalAlignment = Alignment.CenterVertically
-				) {
-					TextButton(
-						shape = RoundedCornerShape(8.dp),
-						onClick = finishAction, modifier = Modifier
-							.width(44.dp)
-							.height(44.dp),
-						contentPadding = PaddingValues(0.dp)
-					) {
-						Icon(
-							Icons.Default.ChevronLeft,
-							"Back",
-							tint = MaterialTheme.colorScheme.onBackground,
-							modifier = Modifier
-								.size(28.dp)
-						)
+				TopBar(
+					finishAction, if (credentials.isEmpty()) {
+						null
+					} else {
+						okAction
 					}
-					Text("Widget Settings", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-					Row(
-						verticalAlignment = Alignment.CenterVertically,
-						modifier = Modifier.fillMaxWidth(),
-						horizontalArrangement = Arrangement.End
-					) {
-						TextButton(
-							okAction,
-							shape = RoundedCornerShape(8.dp),
-						) {
-							Text(
-								"Confirm",
-								fontWeight = FontWeight.Bold,
-								textAlign = TextAlign.End,
-							)
-						}
-					}
-				}
+				)
 			},
 			modifier = Modifier
 				.nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -311,9 +291,52 @@ class WidgetConfigActivity : AppCompatActivity() {
 	}
 
 	@Composable
+	private fun TopBar(finishAction: () -> Unit, okAction: (() -> Unit)?) {
+		Row(
+			modifier = Modifier.padding(start = 0.dp, end = 8.dp),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			TextButton(
+				shape = RoundedCornerShape(8.dp),
+				onClick = finishAction, modifier = Modifier
+					.width(44.dp)
+					.height(44.dp),
+				contentPadding = PaddingValues(0.dp)
+			) {
+				Icon(
+					Icons.Default.ChevronLeft,
+					"Back",
+					tint = MaterialTheme.colorScheme.onBackground,
+					modifier = Modifier
+						.size(28.dp)
+				)
+			}
+			Text("Widget Settings", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+			if (okAction != null) {
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.End
+				) {
+					TextButton(
+						okAction,
+						shape = RoundedCornerShape(8.dp),
+					) {
+						Text(
+							"Confirm",
+							fontWeight = FontWeight.Bold,
+							textAlign = TextAlign.End,
+						)
+					}
+				}
+			}
+		}
+	}
+
+	@Composable
 	private fun SettingsBody(innerPadding: PaddingValues) {
 		val model: WidgetConfigViewModel =
-			viewModel(extras = this.modelFactoryExtras(LocalContext.current), factory = WidgetConfigViewModel.Factory)
+			viewModel(extras = this.modelFactoryExtras(), factory = WidgetConfigViewModel.Factory)
 		val credentials by model.credentials.collectAsState()
 		var showDropdown by remember { mutableStateOf(false) }
 		val selectedLogin =
@@ -333,6 +356,29 @@ class WidgetConfigActivity : AppCompatActivity() {
 					end = 8.dp
 				),
 		) {
+			if (credentials.isEmpty()) {
+				return@Column Column(
+					modifier = Modifier
+						.padding(8.dp)
+						.fillMaxSize(),
+					verticalArrangement = Arrangement.Center,
+					horizontalAlignment = Alignment.CenterHorizontally
+				) {
+					// FIXME Add Translation
+					Column(
+						verticalArrangement = Arrangement.Center,
+						horizontalAlignment = Alignment.CenterHorizontally,
+						modifier = Modifier.padding(16.dp)
+					) {
+						Text(
+							"No credentials available",
+							fontWeight = FontWeight.Bold,
+							fontSize = 24.sp,
+						)
+					}
+				}
+			}
+
 			Column(
 				modifier = Modifier
 					.padding(8.dp)
@@ -481,6 +527,58 @@ class WidgetConfigActivity : AppCompatActivity() {
 					.size(24.dp)
 			)
 			Text(calendarName, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+		}
+	}
+
+	@OptIn(ExperimentalMaterial3Api::class)
+	@Composable
+	private fun ErrorMessage(error: WidgetError?, action: () -> Unit) {
+		val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+		Scaffold(
+			topBar = {
+				TopBar({ finish() }, null)
+			},
+			modifier = Modifier
+				.nestedScroll(scrollBehavior.nestedScrollConnection)
+				.fillMaxSize()
+				.background(MaterialTheme.colorScheme.background)
+				.safeDrawingPadding()
+		) { innerPadding ->
+			Column(
+				modifier = Modifier
+					.padding(
+						top = innerPadding.calculateTopPadding().value.coerceAtLeast(8F).dp,
+						bottom = innerPadding.calculateBottomPadding().value.coerceAtLeast(8F).dp,
+						start = 16.dp,
+						end = 16.dp
+					)
+					.fillMaxSize(),
+				verticalArrangement = Arrangement.Center,
+				horizontalAlignment = Alignment.CenterHorizontally
+			) {
+				Card(
+					colors = CardDefaults.cardColors(
+						containerColor = MaterialTheme.colorScheme.surface,
+					),
+					modifier = Modifier
+						.fillMaxWidth(),
+				) {
+					Column(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(8.dp),
+						verticalArrangement = Arrangement.Center,
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
+						// FIXME Add Translation
+						Text(error?.friendlyMessage ?: "Unexpected error", modifier = Modifier.padding(bottom = 8.dp))
+						Button(action, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
+							Text("Send Logs")
+						}
+					}
+				}
+			}
 		}
 	}
 

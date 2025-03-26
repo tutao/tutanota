@@ -137,4 +137,14 @@ class CommonNativeFacadeSendDispatcher (
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
+	override suspend fun openLogs(
+		logs: String,
+	): Unit
+	{
+		val encodedMethod = json.encodeToString("openLogs")
+		val args : MutableList<String> = mutableListOf()
+		args.add(json.encodeToString(logs))
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+	}
+	
 }
