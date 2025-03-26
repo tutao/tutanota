@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import de.tutao.calendar.widget.WidgetUpdateTrigger
-import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.isAllDayEventByTimes
@@ -18,23 +17,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
-
-data class UIEvent(
-	val calendarId: GeneratedId,
-	val calendarColor: String,
-	val summary: String,
-	val startTime: String,
-	val endTime: String,
-	val isAllDay: Boolean,
-	val startTimestamp: ULong,
-	val endTimestamp: ULong,
-)
-
-data class WidgetUIData(
-	val normalEvents: List<UIEvent>,
-	val allDayEvents: List<UIEvent>,
-	val allDayEventsCount: Int = allDayEvents.size
-)
 
 class WidgetUIViewModel(
 	private val repository: WidgetRepository,
@@ -83,17 +65,18 @@ class WidgetUIViewModel(
 			return null
 		}
 
-		val lastSyncTime = LocalDateTime.ofInstant(
-			Instant.ofEpochMilli(lastSync?.lastSync ?: 0),
-			Calendar.getInstance().timeZone.toZoneId()
-		)
-
-		val forceRemoteEventsFetch = lastSyncTime.dayOfYear < LocalDateTime.now().dayOfYear
+		// Force is set as True when worker detects that it's a new day
+		val forceRemoteEventsFetch = lastSync?.force ?: false
 		val calendarToEventsListMap =
 			if ((lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || forceRemoteEventsFetch) && this.sdk != null) {
 				try {
 					val loggedInSdk = this.sdk.login(credentials)
-					repository.loadEvents(settings.userId, settings.calendars.keys.toList(), credentialsFacade, loggedInSdk)
+					repository.loadEvents(
+						settings.userId,
+						settings.calendars.keys.toList(),
+						credentialsFacade,
+						loggedInSdk
+					)
 				} catch (e: Exception) {
 					// Fallback to cached events
 					repository.loadEvents()

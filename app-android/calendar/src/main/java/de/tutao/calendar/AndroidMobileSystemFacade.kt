@@ -241,7 +241,7 @@ class AndroidMobileSystemFacade(
 					val preferencesKey = stringPreferencesKey(lastSyncIdentifier)
 
 					preferences[preferencesKey] =
-						Json.encodeToString(LastSyncDao(lastSyncTimestamp, WidgetUpdateTrigger.APP))
+						Json.encodeToString(LastSyncDao(lastSyncTimestamp, WidgetUpdateTrigger.APP, false))
 				}
 			}
 

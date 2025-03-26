@@ -21,7 +21,7 @@ abstract class WidgetRepository {
 	protected val json = Json { ignoreUnknownKeys = true }
 	protected var cachedEvents: Map<GeneratedId, CalendarEventsList> = mapOf()
 
-	open suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, lastSync: Date) {
+	open suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
 		throw NotImplementedError()
 	}
 
