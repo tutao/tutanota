@@ -6,7 +6,10 @@ import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlC
 import { MailIndexer } from "./MailIndexer"
 import { getSearchEndTimestamp } from "../../../common/api/worker/search/IndexUtils"
 
-export class SqliteSearchFacade implements SearchFacade {
+/**
+ * Handles preparing and running SQLite+FTS5 search queries
+ */
+export class OfflineStorageSearchFacade implements SearchFacade {
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade, private readonly mailIndexer: MailIndexer) {}
 
 	async search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {

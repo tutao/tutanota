@@ -36,7 +36,9 @@ export interface IndexedGroupData {
 	indexedTimestamp: number
 }
 
-// FIXME: add doc
+/**
+ * Handles directly indexing mail data as well as storing mail groups' indexing timestamps.
+ */
 export class OfflineStoragePersistence {
 	private static readonly MAIL_INDEXING_ENABLED = "mailIndexingEnabled"
 
@@ -108,22 +110,27 @@ export class OfflineStoragePersistence {
 			const rowid = untagSqlObject(rowIdResult).rowid
 			// FIXME: attachment names is just an empty string right now
 			const { query, params } = sql`
-				INSERT
-				OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
+                INSERT
+                OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
                                        body, attachments)
                 VALUES (
-				${rowid},
-				${mail.subject},
-				${serializeMailAddresses(recipients.toRecipients)},
-				${serializeMailAddresses(recipients.ccRecipients)},
-				${serializeMailAddresses(recipients.bccRecipients)},
-				${serializeMailAddresses([mail.sender])},
-				${htmlToText(getMailBodyText(body))},
-				${attachments.map((f) => f.name).join(" ")}
-				)`
+                ${rowid},
+                ${mail.subject},
+                ${serializeMailAddresses(recipients.toRecipients)},
+                ${serializeMailAddresses(recipients.ccRecipients)},
+                ${serializeMailAddresses(recipients.bccRecipients)},
+                ${serializeMailAddresses([mail.sender])},
+                ${htmlToText(getMailBodyText(body))},
+                ${attachments.map((f) => f.name).join(" ")}
+                )`
 			await this.sqlCipherFacade.run(query, params)
 			const serializedSets = mail.sets.map((set) => set.join("/")).join(" ")
-			const contentQuery = sql`INSERT OR REPLACE INTO content_mail_index(rowId, sets, receivedDate) VALUES (${rowid}, ${serializedSets}, ${mail.receivedDate.getTime()})`
+			const contentQuery = sql`INSERT
+            OR REPLACE INTO content_mail_index(rowId, sets, receivedDate) VALUES (
+            ${rowid},
+            ${serializedSets},
+            ${mail.receivedDate.getTime()}
+            )`
 			await this.sqlCipherFacade.run(contentQuery.query, contentQuery.params)
 		}
 	}

@@ -91,7 +91,6 @@ import { EphemeralCacheStorage } from "../../../common/api/worker/rest/Ephemeral
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
-import { IndexedDbMailIndexerBackend, SqliteMailIndexerBackend } from "../index/MailIndexerBackend"
 import { Indexer } from "../index/Indexer"
 import { SuggestionFacade } from "../index/SuggestionFacade"
 import { IndexerCore } from "../index/IndexerCore"
@@ -102,6 +101,8 @@ import { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade"
 import { SearchFacade } from "../index/SearchFacade"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
+import { IndexedDbMailIndexerBackend } from "../index/IndexedDbMailIndexerBackend"
+import { OfflineStorageMailIndexerBackend } from "../index/OfflineStorageMailIndexerBackend"
 
 assertWorkerOrNode()
 
@@ -214,7 +215,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.cachingEntityClient,
 				dateProvider,
 				mailFacade,
-				() => new SqliteMailIndexerBackend(persistence),
+				() => new OfflineStorageMailIndexerBackend(persistence),
 			)
 		} else {
 			const core = await indexerCore()
@@ -486,8 +487,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.search = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
-			const { SqliteSearchFacade } = await import("../index/SqliteSearchFacade.js")
-			return new SqliteSearchFacade(locator.sqlCipherFacade, await mailIndexer())
+			const { OfflineStorageSearchFacade } = await import("../index/OfflineStorageSearchFacade.js")
+			return new OfflineStorageSearchFacade(locator.sqlCipherFacade, await mailIndexer())
 		} else {
 			const { IndexedDbSearchFacade } = await import("../index/IndexedDbSearchFacade.js")
 			// FIXME
