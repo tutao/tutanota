@@ -35,7 +35,7 @@ pub struct CryptoFacade {
 
 /// Session key that encrypts an entity and the same key encrypted with the owner group.
 /// owner_enc_session_key is stored on entities to avoid public key encryption on subsequent loads.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ResolvedSessionKey {
 	pub session_key: GenericAesKey,
 	pub owner_enc_session_key: Vec<u8>,
@@ -78,11 +78,11 @@ impl CryptoFacade {
 		// Derive the session key from the bucket key
 		if let Some(bucket_key_value) = entity.get(BUCKET_KEY_FIELD) {
 			match bucket_key_value {
-				ElementValue::Dict(_) => {
+				ElementValue::Array(array) if array.is_empty() => {},
+				ElementValue::Array(_) => {
 					let resolved_key = self.resolve_bucket_key(entity, model).await?;
 					return Ok(Some(resolved_key));
 				},
-				ElementValue::Null => {},
 				_ => {
 					return Err(SessionKeyResolutionError {
 						reason: "bucketKey is invalid!".to_string(),
@@ -122,11 +122,20 @@ impl CryptoFacade {
 		entity: &ParsedEntity,
 		model: &TypeModel,
 	) -> Result<ResolvedSessionKey, SessionKeyResolutionError> {
-		let Some(ElementValue::Dict(bucket_key_map)) = entity.get(BUCKET_KEY_FIELD) else {
-			return Err(SessionKeyResolutionError {
-				reason: format!("{BUCKET_KEY_FIELD} is not a dictionary type"),
-			});
-		};
+		let bucket_key_map =
+			if let Some(ElementValue::Array(bucket_keys)) = entity.get(BUCKET_KEY_FIELD) {
+				if let Some(ElementValue::Dict(bucket_key_map)) = bucket_keys.first() {
+					bucket_key_map
+				} else {
+					return Err(SessionKeyResolutionError {
+						reason: format!("{BUCKET_KEY_FIELD} is empty"),
+					});
+				}
+			} else {
+				return Err(SessionKeyResolutionError {
+					reason: format!("{BUCKET_KEY_FIELD} is not a array type"),
+				});
+			};
 
 		let bucket_key: BucketKey =
 			match self.instance_mapper.parse_entity(bucket_key_map.to_owned()) {
@@ -368,6 +377,7 @@ mod test {
 			.expect("should not have errored")
 			.expect("where is the key");
 
+		println!("{:?}", key);
 		assert_eq!(
 			constants.mail_session_key.as_bytes(),
 			key.session_key.as_bytes()

@@ -279,38 +279,15 @@ impl EntityFacadeImpl {
 			})?;
 		let instance_association = instance.get(&association_name.to_string()).unwrap();
 
-		match (&association.cardinality, instance_association) {
-			(Cardinality::ZeroOrOne, ElementValue::Null) => Ok(ElementValue::Null),
-
-			(_, ElementValue::Null) => Err(ApiCallError::internal(format!(
-				"Undefined attribute {}:{association_name}",
-				type_model.name
-			))),
-
-			(Cardinality::Any, _) => {
-				let aggregates = instance_association.assert_array();
-				let mut encrypted_aggregates = Vec::with_capacity(aggregates.len());
-				for aggregate in &aggregates {
-					let parsed_entity = self.encrypt_and_map_inner(
-						aggregated_type_model,
-						&aggregate.assert_dict(),
-						sk,
-					)?;
-					encrypted_aggregates.push(ElementValue::Dict(parsed_entity));
-				}
-
-				Ok(ElementValue::Array(encrypted_aggregates))
-			},
-
-			(Cardinality::One | Cardinality::ZeroOrOne, _) => {
-				let parsed_entity = self.encrypt_and_map_inner(
-					aggregated_type_model,
-					&instance_association.assert_dict(),
-					sk,
-				)?;
-				Ok(ElementValue::Dict(parsed_entity))
-			},
+		let aggregates = instance_association.assert_array();
+		let mut encrypted_aggregates = Vec::with_capacity(aggregates.len());
+		for aggregate in &aggregates {
+			let parsed_entity =
+				self.encrypt_and_map_inner(aggregated_type_model, &aggregate.assert_dict(), sk)?;
+			encrypted_aggregates.push(ElementValue::Dict(parsed_entity));
 		}
+
+		Ok(ElementValue::Array(encrypted_aggregates))
 	}
 
 	fn decrypt_and_map_inner(
@@ -342,7 +319,7 @@ impl EntityFacadeImpl {
 			let association_name = &association_type.name;
 			let association_entry = entity
 				.remove(association_name)
-				.unwrap_or(ElementValue::Null);
+				.unwrap_or(ElementValue::Array(vec![]));
 			let (mapped_association, errors) = self.map_associations(
 				type_model,
 				association_entry,
@@ -389,69 +366,42 @@ impl EntityFacadeImpl {
 					panic!("Undefined type_model {}", association_model.ref_type_id)
 				});
 
-			match (association_data, association_model.cardinality.borrow()) {
-				(ElementValue::Null, Cardinality::ZeroOrOne) => Ok((ElementValue::Null, errors)),
-				(ElementValue::Null, Cardinality::One) => Err(ApiCallError::InternalSdkError {
+			let mut aggregate_vec = Vec::with_capacity(association_data.assert_array_ref().len());
+			let ElementValue::Array(association_data) = association_data else {
+				return Err(ApiCallError::InternalSdkError {
 					error_message: format!(
-						"Value {association_name} with cardinality ONE can't be null"
+						"Invalid aggregate format. {} isn't an array",
+						association_name
 					),
-				}),
-				(ElementValue::Array(arr), Cardinality::Any) => {
-					let mut aggregate_vec: Vec<ElementValue> = Vec::with_capacity(arr.len());
-					for (index, aggregate) in arr.into_iter().enumerate() {
-						match aggregate {
-							ElementValue::Dict(entity) => {
-								let mut decrypted_aggregate = self.decrypt_and_map_inner(
-									aggregate_type_model,
-									entity,
-									session_key,
-								)?;
+				});
+			};
+			for (index, aggregate) in association_data.into_iter().enumerate() {
+				match aggregate {
+					ElementValue::Dict(entity) => {
+						let mut decrypted_aggregate =
+							self.decrypt_and_map_inner(aggregate_type_model, entity, session_key)?;
 
-								// Errors should be grouped inside the top-most object, so they should be
-								// extracted and removed from aggregates
-								if decrypted_aggregate.contains_key("_errors") {
-									let error_key = &format!("{}_{}", association_name, index);
-									self.extract_errors(
-										error_key,
-										&mut errors,
-										&mut decrypted_aggregate,
-									);
-								}
-
-								aggregate_vec.push(ElementValue::Dict(decrypted_aggregate));
-							},
-							_ => {
-								return Err(ApiCallError::InternalSdkError {
-									error_message: format!(
-										"Invalid aggregate format. {} isn't a dict",
-										association_name
-									),
-								})
-							},
+						// Errors should be grouped inside the top-most object, so they should be
+						// extracted and removed from aggregates
+						if decrypted_aggregate.contains_key("_errors") {
+							let error_key = &format!("{}_{}", association_name, index);
+							self.extract_errors(error_key, &mut errors, &mut decrypted_aggregate);
 						}
-					}
 
-					Ok((ElementValue::Array(aggregate_vec), errors))
-				},
-				(ElementValue::Dict(dict), Cardinality::One | Cardinality::ZeroOrOne) => {
-					let decrypted_aggregate =
-						self.decrypt_and_map_inner(aggregate_type_model, dict, session_key);
-					match decrypted_aggregate {
-						Ok(mut dec_aggregate) => {
-							self.extract_errors(association_name, &mut errors, &mut dec_aggregate);
-							Ok((ElementValue::Dict(dec_aggregate), errors))
-						},
-						Err(_) => Err(ApiCallError::InternalSdkError {
+						aggregate_vec.push(ElementValue::Dict(decrypted_aggregate));
+					},
+					_ => {
+						return Err(ApiCallError::InternalSdkError {
 							error_message: format!(
-								"Failed to decrypt association {association_name}"
+								"Invalid aggregate format. {} isn't a dict",
+								association_name
 							),
-						}),
-					}
-				},
-				_ => Err(ApiCallError::InternalSdkError {
-					error_message: format!("Invalid association {association_name}"),
-				}),
+						})
+					},
+				}
 			}
+
+			Ok((ElementValue::Array(aggregate_vec), errors))
 		} else {
 			Ok((association_data, errors))
 		}
@@ -837,9 +787,7 @@ mod tests {
 		);
 		assert_eq!(
 			"Matthias",
-			decrypted_mail
-				.get("sender")
-				.unwrap()
+			decrypted_mail.get("sender").unwrap().assert_array_ref()[0]
 				.assert_dict()
 				.get("name")
 				.unwrap()
@@ -847,9 +795,7 @@ mod tests {
 		);
 		assert_eq!(
 			"map-free@tutanota.de",
-			decrypted_mail
-				.get("sender")
-				.unwrap()
+			decrypted_mail.get("sender").unwrap().assert_array_ref()[0]
 				.assert_dict()
 				.get("address")
 				.unwrap()
@@ -877,6 +823,7 @@ mod tests {
 			decrypted_mail
 				.get("sender")
 				.expect("has sender")
+				.assert_array_ref()[0]
 				.assert_dict()
 				.get("_finalIvs")
 				.expect("has _finalIvs")
@@ -1157,38 +1104,41 @@ mod tests {
 			expected_encrypted_mail
 				.get_mut("sender")
 				.unwrap()
+				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
 				.remove("_finalIvs")
 				.unwrap();
 			expected_encrypted_mail
 				.get_mut("sender")
 				.unwrap()
+				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
 				.insert(ID_FIELD.to_string(), expected_aggregate_id.clone());
 			expected_encrypted_mail
 				.get_mut("firstRecipient")
 				.unwrap()
+				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
 				.remove("_finalIvs")
 				.unwrap();
 			expected_encrypted_mail
 				.get_mut("firstRecipient")
 				.unwrap()
+				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
-				.insert("_id".to_string(), expected_aggregate_id.clone());
+				.insert(ID_FIELD.to_string(), expected_aggregate_id.clone());
 		}
 
 		{
 			// generate_email_entity generates aggregate ids for us, but the entity_facade is supposed to set
 			// them on the fly if they're missing. by removing them here we test that they're re-created
-			raw_mail
-				.get_mut("sender")
-				.unwrap()
+			raw_mail.get_mut("sender").unwrap().assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
 				.insert(String::from(ID_FIELD), ElementValue::Null);
 			raw_mail
 				.get_mut("firstRecipient")
 				.unwrap()
+				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
 				.insert(String::from(ID_FIELD), ElementValue::Null);
 		}
@@ -1206,11 +1156,13 @@ mod tests {
 				original_mail
 					.get_mut("sender")
 					.unwrap()
+					.assert_array_mut_ref()[0]
 					.assert_dict_mut_ref()
 					.insert(String::from(ID_FIELD), expected_aggregate_id.clone());
 				original_mail
 					.get_mut("firstRecipient")
 					.unwrap()
+					.assert_array_mut_ref()[0]
 					.assert_dict_mut_ref()
 					.insert(String::from(ID_FIELD), expected_aggregate_id.clone());
 			}
@@ -1249,6 +1201,14 @@ mod tests {
 				decrypted_mail.remove("_errors")
 			);
 
+			for key in ["sender"] {
+				assert_eq!(
+					original_mail.get(key).unwrap(),
+					decrypted_mail.get(key).unwrap(),
+					"failed for {key:?}"
+				);
+			}
+
 			// comparison with sorted fields. only for easy for debugging
 			assert_eq!(
 				map_to_string(&original_mail),
@@ -1281,7 +1241,7 @@ mod tests {
 				"2008" => JsonElement::String("O2TT2Aj--2-1".to_string()),
 				"2012" => JsonElement::String(dummy_date.as_millis().to_string()),
 				"2013" => JsonElement::String(dummy_date.as_millis().to_string()),
-				"2011" => JsonElement::String("customId".to_string()),
+				"2011" => JsonElement::Array(vec![JsonElement::String("customId".to_string())]),
 		};
 		let parsed_entity = json_serializer.parse(&type_ref, raw_entity).unwrap();
 
@@ -1349,14 +1309,13 @@ mod tests {
 		assert_eq!(new_iv, subject_and_iv.iv);
 
 		// other fields should be encrypted with origin_iv
-		let encrypted_recipient_name = encrypted_mail
-			.get("firstRecipient")
-			.unwrap()
-			.assert_dict()
-			.get("name")
-			.unwrap()
-			.assert_bytes()
-			.clone();
+		let encrypted_recipient_name = encrypted_mail.get("firstRecipient").unwrap().assert_array()
+			[0]
+		.assert_dict()
+		.get("name")
+		.unwrap()
+		.assert_bytes()
+		.clone();
 		let recipient_and_iv = sk.decrypt_data_and_iv(&encrypted_recipient_name).unwrap();
 		assert_eq!(original_iv, recipient_and_iv.iv)
 	}
@@ -1400,8 +1359,12 @@ mod tests {
 		let sorted_map: BTreeMap<String, ElementValue> = map.clone().into_iter().collect();
 		for (key, value) in &sorted_map {
 			match value {
-				ElementValue::Dict(aggregate) => {
-					out.push_str(&format!("{}: {}\n", key, map_to_string(aggregate)))
+				ElementValue::Array(aggregates) => {
+					for aggregate in aggregates {
+						if let ElementValue::Dict(aggregate) = aggregate {
+							out.push_str(&format!("{}: {}\n", key, map_to_string(aggregate)))
+						}
+					}
 				},
 				_ => out.push_str(&format!("{}: {:?}\n", key, value)),
 			}
@@ -1419,8 +1382,17 @@ mod tests {
 					value_map.clear();
 				},
 
-				ElementValue::Dict(value_map) => verify_final_ivs_and_clear(iv, value_map),
-				_ => {},
+				ElementValue::Array(value_map) => {
+					for aggregate in value_map {
+						if let ElementValue::Dict(aggregate) = aggregate {
+							verify_final_ivs_and_clear(iv, aggregate)
+						}
+					}
+				},
+				_ => {
+					name;
+					println!("here {name}")
+				},
 			}
 		}
 	}
@@ -1435,8 +1407,8 @@ mod tests {
 			"1120"=> JsonElement::String(
 				"AROQNb+N33nEk9+C+fCuy0vPwMWzqDcnZP48St2Jm1obAvKux3xZwnq1mdqpZmcUQEUL3USwYoJ80Ef8gmqmFgk=".to_string(),
 			),
-			"1310"=> JsonElement::Null,
-			"117"=> JsonElement::Array(
+			"1310"=> JsonElement::Array(vec![]),
+			"117"=>  JsonElement::Array(vec![JsonElement::Array(
 				vec![
 					JsonElement::String(
 						"O1RT2Dj--3-0".to_string(),
@@ -1445,17 +1417,17 @@ mod tests {
 						"O1RT2Dj--7-0".to_string(),
 					),
 				],
-			),
+			)]),
 			"100"=> JsonElement::String(
 				"O1RT2Dj--g-0".to_string(),
 			),
-			"1309"=> JsonElement::Null,
-			"111"=> JsonElement::Dict(
+			"1309"=> JsonElement::Array(vec![]),
+			"111"=>  JsonElement::Array(vec![JsonElement::Dict(
 				collection! {
 					"95"=> JsonElement::String(
 						"map-free@tutanota.de".to_string(),
 					),
-					"96"=> JsonElement::Null,
+					"96"=> JsonElement::Array(vec![]),
 					"93"=> JsonElement::String(
 						"0y7Pgw".to_string(),
 					),
@@ -1463,7 +1435,7 @@ mod tests {
 						"AQLHPJe+eDYk6eRtBsmtpNBGllFzNvfb7gUuMjxsiJGinYAStt4nHO4L1PLChTZL63ifyZd87IqJ7DpVNFkpPNQ=".to_string(),
 					),
 				},
-			),
+			)]),
 			"105"=> JsonElement::String(
 				"AVRYAouCyrii0gGUpQ9TcgbBdzQiFUc8n0I32fO5pA0wk+0i6vNke8uML5vPy09NQEzUiozrSYDl3bEzHCdrD9rjQgvrJhaygZiAF5bv8eX/".to_string(),
 			),
@@ -1481,7 +1453,7 @@ mod tests {
 			),
 			"1346"=> JsonElement::Null,
 			"1022"=> JsonElement::Null,
-			"1306"=> JsonElement::Dict(
+			"1306"=> JsonElement::Array(vec![JsonElement::Dict(
 				collection! {
 					"95"=> JsonElement::String(
 						"bed-free@tutanota.de".to_string(),
@@ -1492,9 +1464,9 @@ mod tests {
 					"94"=> JsonElement::String(
 						"AcCA59dQjq0y32zLYtBYvZZ84DXe3ftn4fBplPt9KAkdRBauIaKN2jiSqNa7wvcb5TTyeLz7tdTt9sKyM9Y+tx0=".to_string(),
 					),
-					"96"=> JsonElement::Null,
+					"96"=> JsonElement::Array(vec![]),
 				},
-			),
+			)]),
 			"617"=> JsonElement::Null,
 			"866"=> JsonElement::String(
 				"".to_string(),
@@ -1536,7 +1508,7 @@ mod tests {
 			"1346"=> JsonElement::String(
 				"AfrN1BgMCYxVksEHHVYnJCMrBK+59cgsu2S84Vvc57YbwV3NvuzFMXq8fMkTZB7vtLBiZdc2ZwLKrxTGwPWqk7w=".to_string(),
 			),
-			"1308"=> JsonElement::Array(
+			"1308"=>  JsonElement::Array(vec![JsonElement::Array(
 				vec![
 					JsonElement::String(
 						"O1RT1m5-0--0".to_string(),
@@ -1545,7 +1517,7 @@ mod tests {
 						"O1RT2Dk----0".to_string(),
 					),
 				],
-			),
+			)]),
 		"1465"=> JsonElement::Array(vec![]),}
 	}
 

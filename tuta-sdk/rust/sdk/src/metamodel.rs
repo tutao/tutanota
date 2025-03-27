@@ -190,13 +190,17 @@ impl TypeModel {
 		&self,
 		attribute_name: String,
 	) -> Result<&Cardinality, TypeModelError> {
+		eprintln!("Looking for {attribute_name} in type: {}", self.name);
 		self.associations
 			.iter()
 			.find(|(association_id, association)| association.name == attribute_name)
 			.map(|(_, association)| &association.cardinality)
-			.ok_or(TypeModelError(format!(
-				"did not find association with attributeName {attribute_name}"
-			)))
+			.ok_or_else(|| {
+				eprintln!("Backtrace: {:#?}", std::backtrace::Backtrace::capture());
+				TypeModelError(format!(
+					"[1] did not find association with attributeName {attribute_name}",
+				))
+			})
 	}
 
 	pub fn get_association_by_name(
@@ -206,9 +210,11 @@ impl TypeModel {
 		self.associations
 			.iter()
 			.find(|(association_id, association)| association.name == attribute_name)
-			.ok_or(TypeModelError(format!(
-				"did not find association with attributeName {attribute_name}"
-			)))
+			.ok_or_else(|| {
+				TypeModelError(format!(
+					"[2] did not find association with attributeName {attribute_name}"
+				))
+			})
 			.map(|(_, association)| association)
 	}
 }

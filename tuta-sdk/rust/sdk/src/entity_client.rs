@@ -370,6 +370,7 @@ mod tests {
 	use crate::bindings::rest_client::{MockRestClient, RestResponse};
 	use crate::entities::Entity;
 	use crate::metamodel::{Cardinality, ModelValue, ValueType};
+	use crate::services::test_services::extend_model_resolver;
 	use crate::CustomId;
 	use crate::{collection, str_map, IdTupleCustom, IdTupleGenerated};
 	use mockall::predicate::{always, eq};
@@ -390,7 +391,7 @@ mod tests {
 	impl Entity for TestListGeneratedElementIdEntity {
 		fn type_ref() -> TypeRef {
 			TypeRef {
-				app: "test",
+				app: "entityClientTestApp",
 				type_id: 10,
 			}
 		}
@@ -399,7 +400,7 @@ mod tests {
 	impl Entity for TestListCustomElementIdEntity {
 		fn type_ref() -> TypeRef {
 			TypeRef {
-				app: "test",
+				app: "entityClientTestApp",
 				type_id: 20,
 			}
 		}
@@ -407,7 +408,9 @@ mod tests {
 
 	#[tokio::test]
 	async fn test_load_range_generated_element_id() {
-		let type_model_provider = mock_type_model_provider();
+		let mut type_provider = TypeModelProvider::new();
+		mock_type_model_provider(&mut type_provider);
+		let type_model_provider = Arc::new(type_provider);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -415,7 +418,7 @@ mod tests {
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
-		let url = "http://test.com/rest/test/TestListGeneratedElementIdEntity/list_id?start=zzzzzzzzzzzz&count=100&reverse=true";
+		let url = "http://test.com/rest/entityClientTestApp/TestListGeneratedElementIdEntity/list_id?start=zzzzzzzzzzzz&count=100&reverse=true";
 		let json_folder = JsonSerializer::new(type_model_provider.clone())
 			.serialize(
 				&TestListGeneratedElementIdEntity::type_ref(),
@@ -457,7 +460,9 @@ mod tests {
 
 	#[tokio::test]
 	async fn test_load_range_custom_element_id() {
-		let type_model_provider = mock_type_model_provider();
+		let mut type_provider = TypeModelProvider::new();
+		mock_type_model_provider(&mut type_provider);
+		let type_model_provider = Arc::new(type_provider);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -465,7 +470,7 @@ mod tests {
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
-		let url = "http://test.com/rest/test/TestListCustomElementIdEntity/list_id?start=zzzzzzzzzzzz&count=100&reverse=true";
+		let url = "http://test.com/rest/entityClientTestApp/TestListCustomElementIdEntity/list_id?start=zzzzzzzzzzzz&count=100&reverse=true";
 		let json_folder = JsonSerializer::new(type_model_provider.clone())
 			.serialize(
 				&TestListCustomElementIdEntity::type_ref(),
@@ -507,7 +512,9 @@ mod tests {
 
 	#[tokio::test]
 	async fn test_load_range_asc_generated_element_id() {
-		let type_model_provider = mock_type_model_provider();
+		let mut type_provider = TypeModelProvider::new();
+		mock_type_model_provider(&mut type_provider);
+		let type_model_provider = Arc::new(type_provider);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -515,7 +522,7 @@ mod tests {
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
-		let url = "http://test.com/rest/test/TestListGeneratedElementIdEntity/list_id?start=------------&count=100&reverse=false";
+		let url = "http://test.com/rest/entityClientTestApp/TestListGeneratedElementIdEntity/list_id?start=------------&count=100&reverse=false";
 		let json_folder = JsonSerializer::new(type_model_provider.clone())
 			.serialize(
 				&TestListGeneratedElementIdEntity::type_ref(),
@@ -557,7 +564,9 @@ mod tests {
 
 	#[tokio::test]
 	async fn test_load_range_asc_custom_element_id() {
-		let type_model_provider = mock_type_model_provider();
+		let mut type_provider = TypeModelProvider::new();
+		mock_type_model_provider(&mut type_provider);
+		let type_model_provider = Arc::new(type_provider);
 
 		let list_id = GeneratedId("list_id".to_owned());
 		let entity_map: ParsedEntity = collection! {
@@ -565,7 +574,7 @@ mod tests {
 			"field" => ElementValue::Bytes(vec![1, 2, 3])
 		};
 		let mut rest_client = MockRestClient::new();
-		let url = "http://test.com/rest/test/TestListCustomElementIdEntity/list_id?start=------------&count=100&reverse=false";
+		let url = "http://test.com/rest/entityClientTestApp/TestListCustomElementIdEntity/list_id?start=------------&count=100&reverse=false";
 		let json_folder = JsonSerializer::new(type_model_provider.clone())
 			.serialize(
 				&TestListCustomElementIdEntity::type_ref(),
@@ -605,11 +614,13 @@ mod tests {
 		assert_eq!(result_entity, vec![entity_map]);
 	}
 
-	fn mock_type_model_provider() -> Arc<TypeModelProvider> {
+	// note:
+	// maybe we should have only one of this and test_services#extend_model_resolver
+	fn mock_type_model_provider(type_model_provider: &mut TypeModelProvider) {
 		let list_entity_generated_type_model: TypeModel = TypeModel {
 			id: 10,
 			since: 1,
-			app: "test",
+			app: "entityClientTestApp",
 			version: "1",
 			name: "TestListGeneratedElementIdEntity",
 			element_type: ElementType::ListElement,
@@ -641,7 +652,7 @@ mod tests {
 		let list_entity_custom_type_model: TypeModel = TypeModel {
 			id: 20,
 			since: 1,
-			app: "test",
+			app: "entityClientTestApp",
 			version: "1",
 			name: "TestListCustomElementIdEntity",
 			element_type: ElementType::ListElement,
@@ -670,12 +681,26 @@ mod tests {
 			associations: HashMap::default(),
 		};
 
-		let type_model_provider = Arc::new(TypeModelProvider::new(str_map! {
-			"test" => str_map! {
-				10 => list_entity_generated_type_model,
-				20 => list_entity_custom_type_model,
-			}
-		}));
-		type_model_provider
+		let test_types = [
+			(
+				list_entity_generated_type_model.id,
+				list_entity_generated_type_model,
+			),
+			(
+				list_entity_custom_type_model.id,
+				list_entity_custom_type_model,
+			),
+		]
+		.into_iter()
+		.collect();
+
+		unsafe {
+			let app_models_mut = std::ptr::from_ref(type_model_provider.app_models)
+				.cast_mut()
+				.as_mut()
+				.expect("Should be Not null");
+
+			app_models_mut.insert("entityClientTestApp", test_types);
+		}
 	}
 }

@@ -27,8 +27,6 @@ impl InstanceMapper {
 		&self,
 		map: ParsedEntity,
 	) -> Result<E, DeError> {
-		eprintln!("Valueee::::");
-		eprintln!("{map:?}");
 		let de = DictionaryDeserializer::<_>::from_iterable(map, E::type_ref());
 		E::deserialize(de)
 	}
@@ -146,7 +144,6 @@ where
 	where
 		V: Visitor<'de>,
 	{
-		// println!("0 {:?}", self.value);
 		visitor.visit_map(self)
 	}
 }
@@ -161,7 +158,6 @@ where
 	where
 		K: DeserializeSeed<'de>,
 	{
-		// println!("2 : {:?}", self.value);
 		match self.iter.next() {
 			Some((k, v)) => {
 				let result = seed.deserialize(k.as_str().into_deserializer());
@@ -176,7 +172,6 @@ where
 	where
 		V: DeserializeSeed<'de>,
 	{
-		// println!("3 : {:?}", self.value);
 		let (key, value) = self.value.take().expect("next_key must be called first!");
 		let deserializer = ElementValueDeserializer {
 			attribute_id: key.as_str(),
@@ -195,7 +190,6 @@ where
 		K: DeserializeSeed<'de>,
 		V: DeserializeSeed<'de>,
 	{
-		// println!("1 : {:?}", self.value);
 		match self.iter.next() {
 			Some((key, value)) => {
 				let key_result = kseed.deserialize(key.as_str().into_deserializer())?;
@@ -291,7 +285,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 	where
 		V: Visitor<'de>,
 	{
-		// println!("self.value : {:?}", self.value);
 		match self.value {
 			ElementValue::String(str) => visitor.visit_string(str),
 			ElementValue::IdGeneratedId(GeneratedId(id))
@@ -324,7 +317,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 	where
 		V: Visitor<'de>,
 	{
-		println!("deserialize_option Value : {:?}", self.value);
 		match &self.value {
 			ElementValue::Null => visitor.visit_none(),
 			// case when association with cardinality zero or one have empty arreay, that is
@@ -334,6 +326,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 					.resolve_type_ref(&self.type_ref)
 					.unwrap()
 					.is_attribute_name_association(self.attribute_id.to_string());
+				// only associations are stored in arrays
 				if is_association && arr.is_empty() {
 					visitor.visit_none()
 				} else {
@@ -350,7 +343,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 	where
 		V: Visitor<'de>,
 	{
-		// println!("6 : {:?}", self.value);
 		if let ElementValue::Array(arr) = self.value {
 			let array_deserializer = ArrayDeserializer::<_> {
 				attribute_id: self.attribute_id,
@@ -372,7 +364,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 	where
 		V: Visitor<'de>,
 	{
-		// println!("7.struct :  {} : {:?}", name, self.value);
 		struct IdTupleMapAccess<I: Iterator<Item = (&'static str, String)>> {
 			iter: I,
 			value: Option<String>,
@@ -417,20 +408,13 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 					"could not resolve type model for {}",
 					self.type_ref
 				)))?;
-
-		let is_association =
-			type_model.is_attribute_name_association(self.attribute_id.to_string());
-		// .map(|association_model| {
-		// 	let association_typeref = TypeRef {
-		// 		app: association_model.dependency.unwrap_or(type_model.app),
-		// 		type_id: association_model.ref_type_id,
-		// 	};
-		// 	type_model_provider
-		// 		.resolve_type_ref(&association_typeref)
-		// 		.unwrap()
-		// 		.is_attribute_name_association(self.attribute_id.to_string())
-		// })
-		// .expect("no association");
+		/**
+		mail
+			- assoc [bucketKey]
+					- assoc [bucketEncSessionKeys] <-
+						- typeInfo [TypeInfo]
+		*/
+		let is_association = type_model.is_attribute_name_association(self.attribute_id.to_string());
 
 		if name == crate::id::id_tuple::ID_TUPLE_GENERATED_NAME {
 			match self.value {
@@ -489,51 +473,52 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 				_ => Err(self.wrong_type_err(crate::id::id_tuple::ID_TUPLE_CUSTOM_NAME)),
 			}
 		} else if let ElementValue::Dict(dict) = self.value {
-			println!("{:?}", self.attribute_id);
 			let deserializer =
 				DictionaryDeserializer::<_>::from_iterable(dict, self.type_ref.clone());
 			deserializer.deserialize_struct(name, fields, visitor)
 		} else if let ElementValue::Array(mut arr) = self.value {
-			let cardinality = type_model
-				.get_attribute_name_cardinality(self.attribute_id.to_string())
-				.unwrap();
+			let Ok(cardinality) =
+				type_model.get_attribute_name_cardinality(self.attribute_id.to_string())
+			else {
+				panic!("no association");
+			};
 
+			let attr_assoc = type_model
+				.get_association_by_name(self.attribute_id.to_string())
+				.unwrap();
+			let ref_type_ref = TypeRef {
+				app: attr_assoc.dependency.unwrap_or(type_model.app),
+				type_id: attr_assoc.ref_type_id,
+			};
 			match cardinality {
 				Cardinality::One if arr.is_empty() => {
 					return Err(DeError(
 						"None value for association with Cardinality One".to_string(),
 					))
 				},
-				Cardinality::ZeroOrOne if arr.is_empty() => return visitor.visit_none(),
+				Cardinality::ZeroOrOne if arr.is_empty() => visitor.visit_none(),
 				Cardinality::ZeroOrOne | Cardinality::One => {
-					let element_value = arr.pop().unwrap();
+					let element_value = arr.first().unwrap().clone();
 					if let ElementValue::Dict(aggregated_entity) = element_value {
-						let attr_assoc = type_model
-							.get_association_by_name(self.attribute_id.to_string())
-							.unwrap();
-						let ref_type_ref = TypeRef {
-							app: attr_assoc.dependency.unwrap_or(type_model.app),
-							type_id: attr_assoc.ref_type_id,
-						};
-
 						let deserializer = DictionaryDeserializer::<_>::from_iterable(
 							aggregated_entity,
 							ref_type_ref,
 						);
-						return deserializer.deserialize_struct(name, fields, visitor);
+						visitor.visit_map(deserializer)
 					} else {
-						panic!()
+						// fixme: add message why this is unreachable
+						unreachable!()
 					}
 				},
-				Cardinality::Any => {},
+				Cardinality::Any => {
+					let array_deserializer = ArrayDeserializer::<_> {
+						attribute_id: self.attribute_id,
+						iter: arr.into_iter(),
+						type_ref: ref_type_ref,
+					};
+					visitor.visit_seq(array_deserializer)
+				},
 			}
-
-			let array_deserializer = ArrayDeserializer::<_> {
-				attribute_id: self.attribute_id,
-				iter: arr.into_iter(),
-				type_ref: self.type_ref.clone(),
-			};
-			return visitor.visit_seq(array_deserializer);
 		} else {
 			Err(self.wrong_type_err("dict"))
 		}
@@ -980,29 +965,22 @@ impl SerializeStruct for ElementValueStructSerializer {
 				}
 
 				let type_model_provider = init_type_model_provider();
-				let typemodel = type_model_provider
+				let type_model = type_model_provider
 					.resolve_type_ref(parent_type_ref)
 					.unwrap();
-				let aggregation_info = typemodel.get_association_by_name(key.to_string()).ok();
+				let aggregation_info = type_model.get_association_by_name(key.to_string()).ok();
 
 				if let Some(aggregation_info) = aggregation_info {
 					let aggregation_typeref = TypeRef {
-						app: aggregation_info.dependency.unwrap_or(typemodel.app),
+						app: aggregation_info.dependency.unwrap_or(type_model.app),
 						type_id: aggregation_info.ref_type_id,
 					};
 
 					let serialized_value =
 						value.serialize(ElementValueSerializer::new(Some(aggregation_typeref)))?;
 
-					let type_model = type_model_provider
-						.resolve_type_ref(parent_type_ref)
-						.ok_or(SerError(format!(
-							"no type model found for {}",
-							parent_type_ref
-						)))?;
-
 					let cardinality: Cardinality = type_model
-						.get_attribute_name_cardinality(key.parse().unwrap())
+						.get_attribute_name_cardinality(key.to_string())
 						.map_err(|e| SerError(e.to_string()))?
 						.clone();
 					match cardinality {
@@ -1337,7 +1315,7 @@ mod tests {
 	use crate::entities::entity_facade::{
 		FORMAT_FIELD, ID_FIELD, OWNER_GROUP_FIELD, PERMISSIONS_FIELD,
 	};
-	use crate::entities::generated::sys::{Group, GroupInfo};
+	use crate::entities::generated::sys::{BucketKey, Group, GroupInfo, InstanceSessionKey};
 	use crate::entities::generated::tutanota::{
 		CalendarEventUidIndex, Mail, MailDetailsBlob, MailboxGroupRoot, OutOfOfficeNotification,
 		OutOfOfficeNotificationRecipientList,
@@ -1356,7 +1334,6 @@ mod tests {
 	fn test_de_group() {
 		let json = include_str!("../test_data/group_response.json");
 		let parsed_entity = get_parsed_entity::<Group>(json);
-		println!("{:?}", parsed_entity);
 		let mapper = InstanceMapper::new();
 		let group: Group = mapper.parse_entity(parsed_entity).unwrap();
 		assert_eq!(5_i64, group.r#type);
@@ -1376,7 +1353,6 @@ mod tests {
 	fn test_de_calendar_event_uid_index() {
 		let json = include_str!("../test_data/calendar_event_uid_index_response.json");
 		let parsed_entity = get_parsed_entity::<CalendarEventUidIndex>(json);
-		println!("{:?}", parsed_entity);
 		let mapper = InstanceMapper::new();
 		let uid_index: CalendarEventUidIndex = mapper.parse_entity(parsed_entity).unwrap();
 		assert_eq!(
@@ -1629,6 +1605,11 @@ mod tests {
 	#[test]
 	fn test_serde_mail() {
 		let mut mail = create_test_entity::<Mail>();
+		let mut bucket_key = create_test_entity::<BucketKey>();
+		let instance_session_key = create_test_entity::<InstanceSessionKey>();
+		bucket_key.bucketEncSessionKeys.push(instance_session_key);
+		mail.bucketKey = Some(bucket_key);
+
 		let _id = IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
 		let mail_details_id =
 			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());

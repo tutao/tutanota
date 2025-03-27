@@ -652,15 +652,19 @@ impl JsonSerializer {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
-	use crate::entities::entity_facade::EntityFacadeImpl;
+	use crate::entities::entity_facade::{EntityFacade, EntityFacadeImpl};
 	use crate::entities::generated::sys::User;
 	use crate::entities::generated::tutanota;
+	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
-	use crate::services::test_services::HelloEncOutput;
+	use crate::services::test_services;
+	use crate::services::test_services::{extend_model_resolver, HelloEncOutput};
 	use crate::type_model_provider::{init_type_model_provider, AppName, TypeId};
+	use crate::util::test_utils::create_test_entity;
 
 	#[test]
 	fn test_parse_mail() {
@@ -746,9 +750,9 @@ mod tests {
 	fn serialization_for_encrypted_works() {
 		use crate::entities::entity_facade::EntityFacade;
 
-		let mut type_provider: HashMap<AppName, HashMap<TypeId, TypeModel>> = HashMap::new();
-		crate::services::test_services::extend_model_resolver(&mut type_provider);
-		let type_provider = Arc::new(TypeModelProvider::new(type_provider));
+		let mut type_provider = TypeModelProvider::new();
+		let _ok_if_overwritten = extend_model_resolver(&mut type_provider);
+		let type_provider = Arc::new(type_provider);
 
 		let entity_to_serialize = HelloEncOutput {
 			answer: "".to_string(),

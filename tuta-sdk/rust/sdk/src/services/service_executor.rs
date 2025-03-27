@@ -562,10 +562,9 @@ mod tests {
 	}
 
 	fn setup() -> ResolvingServiceExecutor {
-		let mut model_provider_map = HashMap::new();
-		test_services::extend_model_resolver(&mut model_provider_map);
-		let type_model_provider: Arc<TypeModelProvider> =
-			Arc::new(TypeModelProvider::new(model_provider_map));
+		let mut type_model_provider: TypeModelProvider = TypeModelProvider::new();
+		let _ok_if_overwritten = test_services::extend_model_resolver(&mut type_model_provider);
+		let type_model_provider = Arc::new(type_model_provider);
 
 		let crypto_facade = Arc::new(CryptoFacade::default());
 		let entity_facade = Arc::new(MockEntityFacade::default());

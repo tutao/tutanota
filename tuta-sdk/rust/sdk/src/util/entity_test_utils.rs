@@ -133,37 +133,21 @@ fn encrypt_test_entity_dict_with_provider(
 
 	for (&_association_id, association_type) in &model.associations {
 		let association_name = &association_type.name;
-		let Some(data) = entity.get_mut(association_name) else {
+		let Some(ElementValue::Array(data)) = entity.get_mut(association_name) else {
 			continue;
 		};
-		match data {
-			ElementValue::Null => {},
-			ElementValue::Dict(d) => {
-				encrypt_test_entity_dict_with_provider(
-					d,
-					provider,
-					association_type.dependency.unwrap_or(app),
-					association_type.ref_type_id,
-					session_key,
-					iv,
-				);
-			},
-			ElementValue::Array(a) => {
-				for i in a {
-					let ElementValue::Dict(d) = i else {
-						break;
-					};
-					encrypt_test_entity_dict_with_provider(
-						d,
-						provider,
-						association_type.dependency.unwrap_or(app),
-						association_type.ref_type_id,
-						session_key,
-						iv,
-					);
-				}
-			},
-			_ => (),
+		for i in data {
+			let ElementValue::Dict(ref mut d) = i else {
+				break;
+			};
+			encrypt_test_entity_dict_with_provider(
+				d,
+				provider,
+				association_type.dependency.unwrap_or(app),
+				association_type.ref_type_id,
+				session_key,
+				iv,
+			);
 		}
 	}
 }

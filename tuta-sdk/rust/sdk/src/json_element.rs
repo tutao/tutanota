@@ -15,6 +15,11 @@ pub enum JsonElement {
 	Bool(bool),
 }
 
+// downloadoing
+// server -> json serialize -> instane mapper/crypto
+// uploading
+// crypto -> instance -> json
+
 /// Encrypted raw entity/instance (JSON object) using attributeIds as keys.
 pub type RawEntity = HashMap<String, JsonElement>;
 
@@ -150,10 +155,15 @@ mod tests {
 	fn can_deserialize_email() {
 		let json = include_str!("../test_data/email_response.json");
 		let raw_entity = serde_json::from_str::<RawEntity>(json).unwrap();
-		let JsonElement::Dict(address_map) = raw_entity.get("1306").unwrap() else {
-			panic!("Not a map!")
+
+		let JsonElement::Array(first_recipient) = raw_entity.get("1306").unwrap() else {
+			panic!("first recipient association should be an array at this stage")
 		};
-		let JsonElement::String(address) = address_map.get("95").unwrap() else {
+
+		let JsonElement::Dict(ref first_recipient_value) = first_recipient[0] else {
+			panic!("there is no first recipient association")
+		};
+		let JsonElement::String(address) = first_recipient_value.get("95").unwrap() else {
 			panic!("Not a string")
 		};
 		assert_eq!("bed-free@tutanota.de", address);

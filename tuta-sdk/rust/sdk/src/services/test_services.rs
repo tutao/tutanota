@@ -1,7 +1,7 @@
 use crate::date::DateTime;
 use crate::entities::{Entity, FinalIv};
 use crate::metamodel::TypeModel;
-use crate::type_model_provider::{AppName, TypeId};
+use crate::type_model_provider::TypeModelProvider;
 use crate::{service_impl, TypeRef};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -156,9 +156,8 @@ impl Entity for HelloUnEncInput {
 	}
 }
 
-pub fn extend_model_resolver(model_resolver: &mut HashMap<AppName, HashMap<TypeId, TypeModel>>) {
-	assert!(model_resolver.get("test").is_none());
-
+#[must_use]
+pub fn extend_model_resolver(type_model_provider: &mut TypeModelProvider) -> bool {
 	let enc_input_type_model = serde_json::from_str::<TypeModel>(HELLO_INPUT_ENCRYPTED).unwrap();
 	let enc_output_type_model = serde_json::from_str::<TypeModel>(HELLO_OUTPUT_ENCRYPTED).unwrap();
 	let unenc_input_type_model =
@@ -177,7 +176,15 @@ pub fn extend_model_resolver(model_resolver: &mut HashMap<AppName, HashMap<TypeI
 	]
 	.into_iter()
 	.collect();
-	model_resolver.insert("test", test_types);
+
+	unsafe {
+		let app_models_mut = std::ptr::from_ref(type_model_provider.app_models)
+			.cast_mut()
+			.as_mut()
+			.expect("Should be Not null");
+
+		app_models_mut.insert("test", test_types).is_some()
+	}
 }
 
 pub struct HelloEncryptedService;
