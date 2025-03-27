@@ -110,6 +110,7 @@ export class BulkMailLoader {
 		const filesByList = groupBy(attachmentIds, listIdPart)
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
 		for (const [listId, fileIds] of filesByList.entries()) {
+			// FIXME: shouldn't we do session key resolution like MailFacade does?
 			fileLoadingPromises.push(this.loadInChunks(FileTypeRef, listId, fileIds.map(elementIdPart), undefined, options))
 		}
 		const filesResults = await Promise.all(fileLoadingPromises)

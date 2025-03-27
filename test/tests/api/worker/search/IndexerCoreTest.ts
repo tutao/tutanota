@@ -74,15 +74,15 @@ o.spec("IndexerCore test", () => {
 		const ContactModel = await resolveTypeReference(ContactTypeRef)
 		let entries = core.createIndexEntriesForAttributes(contact, [
 			{
-				attribute: ContactModel.values["firstName"],
+				id: ContactModel.values["firstName"].id,
 				value: () => contact.firstName,
 			},
 			{
-				attribute: ContactModel.values["company"],
+				id: ContactModel.values["company"].id,
 				value: () => contact.company,
 			},
 			{
-				attribute: ContactModel.values["comment"],
+				id: ContactModel.values["comment"].id,
 				value: () => contact.comment,
 			},
 		])
@@ -1023,12 +1023,9 @@ o.spec("IndexerCore test", () => {
 
 		const instanceId = "L-dNNLe----1"
 		const instanceIdTimestamp = generatedIdToTimestamp(instanceId)
-		const event = createTestEntity(EntityUpdateTypeRef)
-		event.application = MailTypeRef.app
-		event.type = MailTypeRef.type
+
 		const metaRowId = 3
 		const anotherMetaRowId = 4
-		event.instanceId = instanceId
 		const transaction: any = {
 			get: (os, key) => {
 				o(os).equals(ElementDataOS)
@@ -1055,7 +1052,7 @@ o.spec("IndexerCore test", () => {
 				timestamp: 1,
 			},
 		])
-		await core._processDeleted(event, indexUpdate)
+		await core._processDeleted(MailTypeRef, instanceId, indexUpdate)
 		o(indexUpdate.delete.encInstanceIds).deepEquals([encInstanceId])
 		o(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(2)
 		o(JSON.stringify(indexUpdate.delete.searchMetaRowToEncInstanceIds.get(metaRowId))).equals(
@@ -1081,15 +1078,9 @@ o.spec("IndexerCore test", () => {
 		o(Array.from(indexUpdate.delete.encInstanceIds[0])).deepEquals(Array.from(encInstanceId))
 	})
 	o("processDeleted already deleted", async function () {
-		let groupId = "my-group"
-
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
 		let instanceId = "123"
-		let event = createTestEntity(EntityUpdateTypeRef)
-		event.instanceId = instanceId
-		event.application = MailTypeRef.app
-		event.type = MailTypeRef.type
 		let transaction: any = {
 			get: (os, key) => {
 				o(os).equals(ElementDataOS)
@@ -1104,7 +1095,7 @@ o.spec("IndexerCore test", () => {
 			transaction,
 		})
 		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId, core.db.iv)
-		await core._processDeleted(event, indexUpdate)
+		await core._processDeleted(MailTypeRef, instanceId, indexUpdate)
 		o(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(0)
 		o(indexUpdate.delete.encInstanceIds.length).equals(0)
 	})
@@ -1125,7 +1116,6 @@ o.spec("IndexerCore test", () => {
 				dbFacade: {
 					createTransaction: () => deferred.promise,
 				} as any,
-				initialized: Promise.resolve(),
 			},
 		})
 

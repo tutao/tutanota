@@ -87,47 +87,47 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		const ContactModel = tutanotaModels.Contact
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(contact, [
 			{
-				attribute: ContactModel.values["firstName"],
+				id: ContactModel.values["firstName"].id,
 				value: () => contact.firstName,
 			},
 			{
-				attribute: ContactModel.values["lastName"],
+				id: ContactModel.values["lastName"].id,
 				value: () => contact.lastName,
 			},
 			{
-				attribute: ContactModel.values["nickname"],
+				id: ContactModel.values["nickname"].id,
 				value: () => contact.nickname || "",
 			},
 			{
-				attribute: ContactModel.values["role"],
+				id: ContactModel.values["role"].id,
 				value: () => contact.role,
 			},
 			{
-				attribute: ContactModel.values["title"],
+				id: ContactModel.values["title"].id,
 				value: () => contact.title || "",
 			},
 			{
-				attribute: ContactModel.values["comment"],
+				id: ContactModel.values["comment"].id,
 				value: () => contact.comment,
 			},
 			{
-				attribute: ContactModel.values["company"],
+				id: ContactModel.values["company"].id,
 				value: () => contact.company,
 			},
 			{
-				attribute: ContactModel.associations["addresses"],
+				id: ContactModel.associations["addresses"].id,
 				value: () => contact.addresses.map((a) => a.address).join(","),
 			},
 			{
-				attribute: ContactModel.associations["mailAddresses"],
+				id: ContactModel.associations["mailAddresses"].id,
 				value: () => contact.mailAddresses.map((cma) => cma.address).join(","),
 			},
 			{
-				attribute: ContactModel.associations["phoneNumbers"],
+				id: ContactModel.associations["phoneNumbers"].id,
 				value: () => contact.phoneNumbers.map((pn) => pn.number).join(","),
 			},
 			{
-				attribute: ContactModel.associations["socialIds"],
+				id: ContactModel.associations["socialIds"].id,
 				value: () => contact.socialIds.map((s) => s.socialId).join(","),
 			},
 		])

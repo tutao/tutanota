@@ -103,11 +103,13 @@ export class IndexedDbIndexer implements Indexer {
 	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>
 
-	private eventQueue = new EventQueue("indexer", true, (batch) => this._processEntityEvents(batch))
+	// FIXME: should not be public
+	readonly eventQueue = new EventQueue("indexer", true, (batch) => this._processEntityEvents(batch))
 
 	constructor(
 		entityRestClient: EntityRestClient,
-		private db: Db,
+		// FIXME: should not be public but the tests are awful right now
+		readonly db: Db,
 		readonly _core: IndexerCore,
 		private readonly infoMessageHandler: InfoMessageHandler,
 		_entity: EntityClient,
@@ -146,7 +148,7 @@ export class IndexedDbIndexer implements Indexer {
 
 		try {
 			await this.db.dbFacade.open(this.getDbId(user))
-			await this.mailIndexer.init(user._id)
+			await this.mailIndexer.init(user)
 			const metaData = await getIndexerMetaData(this.db.dbFacade, MetaDataOS)
 			if (metaData == null) {
 				const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
@@ -224,13 +226,12 @@ export class IndexedDbIndexer implements Indexer {
 		}
 	}
 
-	enableMailIndexing(): Promise<void> {
-		return this.initDeferred.promise.then(() => {
-			return this.mailIndexer.enableMailIndexing(this._initParams.user).then(() => {
-				// We don't have to disable mail indexing when it's stopped now
-				this.mailIndexer.mailboxIndexingPromise.catch(ofClass(CancelledError, noOp))
-			})
-		})
+	async enableMailIndexing(): Promise<void> {
+		await this.initDeferred.promise
+		const enabled = await this.mailIndexer.enableMailIndexing()
+		if (enabled) {
+			this.mailIndexer.doInitialMailIndexing(this._initParams.user).catch(ofClass(CancelledError, noOp))
+		}
 	}
 
 	async disableMailIndexing(): Promise<void> {

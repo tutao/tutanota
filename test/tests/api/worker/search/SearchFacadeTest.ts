@@ -60,7 +60,6 @@ o.spec("SearchFacade test", () => {
 				dbFacade: {
 					createTransaction: () => Promise.resolve(transaction),
 				} as any,
-				initialized: Promise.resolve(),
 			},
 			{
 				mailboxIndexingPromise: Promise.resolve(),

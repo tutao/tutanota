@@ -14,8 +14,6 @@ export const enum IndexResult {
 export type GroupTimestamps = Map<Id, number>
 
 export interface MailIndexerBackend {
-	init(): Promise<void>
-
 	indexMails(dataPerGroup: GroupTimestamps, mailsWithDetails: readonly MailWithDetailsAndAttachments[]): Promise<void>
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>>
@@ -37,7 +35,7 @@ export interface MailIndexerBackend {
 	 */
 	onMailDeleted(mailId: IdTuple): Promise<void>
 
-	enableIndexing(): Promise<boolean>
+	enableIndexing(): Promise<void>
 
 	deleteIndex(): Promise<void>
 

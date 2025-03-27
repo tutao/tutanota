@@ -37,12 +37,13 @@ export type GroupData = {
 }
 // runtime types
 export type B64EncIndexKey = Base64
-type EncIndexKey = Uint8Array
-type EncInstanceId = Uint8Array
+
 export type B64EncInstanceId = Base64
+
 export type AttributeHandler = {
-	attribute: ModelValue | ModelAssociation
-	value: lazy<string>
+	// id of the attribute that will uniquely identify it. Used to be if of ModelValue / ModelAssociation
+	id: number
+	value: () => string
 }
 export type ElementDataSurrogate = {
 	listId: Id

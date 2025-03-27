@@ -1,6 +1,6 @@
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { MailIndexer } from "./MailIndexer"
-import { assertNotNull, difference } from "@tutao/tutanota-utils"
+import { assertNotNull, difference, noOp, ofClass } from "@tutao/tutanota-utils"
 import { filterIndexMemberships } from "../../../common/api/worker/search/IndexUtils"
 import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
@@ -8,6 +8,7 @@ import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
+import { CancelledError } from "../../../common/api/common/error/CancelledError"
 
 export class OfflineStorageIndexer implements Indexer {
 	constructor(
@@ -21,7 +22,7 @@ export class OfflineStorageIndexer implements Indexer {
 	async init() {
 		const user = assertNotNull(this.userFacade.getUser())
 		await this.persistence.init()
-		await this.mailIndexer.init(user._id)
+		await this.mailIndexer.init(user)
 
 		const indexedGroups = (await this.persistence.getIndexedGroups()).map((data) => data.groupId)
 		const userGroups = filterIndexMemberships(user).map((membership) => membership.group)
@@ -55,7 +56,8 @@ export class OfflineStorageIndexer implements Indexer {
 
 	async enableMailIndexing() {
 		const user = assertNotNull(this.userFacade.getUser(), "enableMailIndexing user")
-		await this.mailIndexer.enableMailIndexing(user)
+		await this.mailIndexer.enableMailIndexing()
+		this.mailIndexer.doInitialMailIndexing(user).catch(ofClass(CancelledError, noOp))
 	}
 
 	async disableMailIndexing() {

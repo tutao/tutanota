@@ -4,8 +4,6 @@ import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } fr
 export class OfflineStorageMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly persistence: OfflineStoragePersistence) {}
 
-	async init(): Promise<void> {}
-
 	async getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
 		const groupData = await this.persistence.getIndexedGroups()
 		const map = new Map<Id, number>()
@@ -22,10 +20,8 @@ export class OfflineStorageMailIndexerBackend implements MailIndexerBackend {
 		}
 	}
 
-	async enableIndexing(): Promise<boolean> {
-		const wasEnabled = await this.isMailIndexingEnabled()
+	async enableIndexing(): Promise<void> {
 		await this.persistence.setMailIndexingEnabled(true)
-		return wasEnabled
 	}
 
 	async deleteIndex() {

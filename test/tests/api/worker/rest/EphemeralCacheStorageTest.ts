@@ -2,13 +2,14 @@ import o from "@tutao/otest"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
 import { createMailDetailsBlob, MailDetailsBlobTypeRef, MailDetailsTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 
 o.spec("EphemeralCacheStorageTest", function () {
 	const userId = "userId"
 	const archiveId = "archiveId"
 	const blobElementId = "blobElementId1"
 
-	const storage = new EphemeralCacheStorage()
+	const storage = new EphemeralCacheStorage(new CustomCacheHandlerMap())
 
 	o.spec("BlobElementType", function () {
 		o("cache roundtrip: put, get, delete", async function () {

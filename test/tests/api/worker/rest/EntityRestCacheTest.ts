@@ -61,6 +61,8 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
 import { createTestEntity } from "../../../TestUtils.js"
+import { CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
+import { EntityUpdateData, entityUpdatesAsData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const { anything } = matchers
 
@@ -87,13 +89,20 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
 	const offlineStorageCleanerMock = object<OfflineStorageCleaner>()
-	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock, offlineStorageCleanerMock)
+	const offlineStorage = new OfflineStorage(
+		sqlCipherFacade,
+		interWindowEventSender,
+		new NoZoneDateProvider(),
+		migratorMock,
+		offlineStorageCleanerMock,
+		new CustomCacheHandlerMap(),
+	)
 	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false })
 	return offlineStorage
 }
 
 async function getEphemeralStorage(): Promise<EphemeralCacheStorage> {
-	return new EphemeralCacheStorage()
+	return new EphemeralCacheStorage(new CustomCacheHandlerMap())
 }
 
 testEntityRestCache("ephemeral", getEphemeralStorage)
@@ -234,7 +243,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o(loadMultiple.callCount).equals(1)("loadMultiple is called")
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).notEquals(null)
-					o(updates).deepEquals(batch)
+					o(updates).deepEquals(entityUpdatesAsData(batch))
 				})
 
 				if (name === "offline") {
@@ -261,7 +270,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						o(loadMultiple.callCount).equals(1)("loadMultiple is called")
 						o(await storage.get(CalendarEventTypeRef, calendarEventListId, calendarEventIds[0])).notEquals(null)
 						o(await storage.get(CalendarEventTypeRef, calendarEventListId, calendarEventIds[1])).notEquals(null)
-						o(updates).deepEquals(batch)
+						o(updates).deepEquals(entityUpdatesAsData(batch))
 					})
 				}
 
@@ -367,7 +376,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o(await storage.get(CustomerTypeRef, null, id5)).equals(null)
 					o(filteredUpdates.length).equals(batch.length)
 					for (const update of batch) {
-						o(filteredUpdates.includes(update)).equals(true)
+						o(filteredUpdates.includes(update as EntityUpdateData)).equals(true)
 					}
 				})
 
@@ -405,7 +414,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId2, id3)).equals(null)
 					o(await storage.get(ContactTypeRef, contactListId2, id4)).equals(null)
-					o(updates).deepEquals(batch.slice(0, 2))
+					o(updates).deepEquals(entityUpdatesAsData(batch.slice(0, 2)))
 				})
 			})
 			o.spec("post  multiple cache range", function () {
@@ -418,7 +427,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).equals(null)
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).equals(null)
-					o(updates).deepEquals(batch)
+					o(updates).deepEquals(entityUpdatesAsData(batch))
 				})
 
 				o("updates partially not loaded by loadMultiple", async function () {
@@ -446,7 +455,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).equals(null)
 					o(filteredUpdates.length).equals(batch.length - 1)
 					for (const update of batch.slice(0, 1)) {
-						o(filteredUpdates.includes(update)).equals(true)
+						o(filteredUpdates.includes(update as EntityUpdateData)).equals(true)
 					}
 				})
 
@@ -490,7 +499,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o(await storage.get(ContactTypeRef, contactListId2, id4)).notEquals(null)
 					o(filteredUpdates.length).equals(batch.length)
 					for (const update of batch) {
-						o(filteredUpdates.includes(update)).equals(true)
+						o(filteredUpdates.includes(update as EntityUpdateData)).equals(true)
 					}
 				})
 				o("update  partially results in NotAuthorizedError ", async function () {
@@ -528,7 +537,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o(await storage.get(ContactTypeRef, contactListId2, id4)).equals(null)
 					o(filteredUpdates.length).equals(batch.length - 1)
 					for (const update of batch.slice(0, 3)) {
-						o(filteredUpdates.includes(update)).equals(true)
+						o(filteredUpdates.includes(update as EntityUpdateData)).equals(true)
 					}
 					unmockAttribute(loadMultipleMock)
 				})
@@ -2017,7 +2026,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 	function makeBatch(updates: Array<EntityUpdate>): QueuedBatch {
 		return {
-			events: updates,
+			events: entityUpdatesAsData(updates),
 			groupId: groupId,
 			batchId: "batchId",
 		}

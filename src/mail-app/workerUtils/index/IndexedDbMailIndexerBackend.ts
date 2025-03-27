@@ -20,8 +20,6 @@ import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } fr
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly dbFacade: DbFacade, private readonly core: IndexerCore, private readonly userId: Id) {}
 
-	async init() {}
-
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
 		return this.core.getGroupIndexTimestamps(groupIds)
 	}
@@ -66,15 +64,12 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		// no-op: does processing in  onMailDeleted()
 	}
 
-	async enableIndexing(): Promise<boolean> {
-		const enabled = await this.isMailIndexingEnabled()
-		if (!enabled) {
-			const t2 = await this.dbFacade.createTransaction(false, [MetaDataOS])
-			t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
-			t2.put(MetaDataOS, Metadata.excludedListIds, [])
-			await t2.wait()
-		}
-		return enabled
+	async enableIndexing(): Promise<void> {
+		const t2 = await this.dbFacade.createTransaction(false, [MetaDataOS])
+		t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
+		// FIXME: do we use this anywhere still?
+		t2.put(MetaDataOS, Metadata.excludedListIds, [])
+		await t2.wait()
 	}
 
 	async isMailIndexingEnabled(): Promise<boolean> {
@@ -90,7 +85,8 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		return _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 	}
 
-	private createMailIndexEntries(mail: Mail, mailDetails: MailDetails, files: readonly TutanotaFile[]): Map<string, SearchIndexEntry[]> {
+	/** @private visibleForTesting */
+	createMailIndexEntries(mail: Mail, mailDetails: MailDetails, files: readonly TutanotaFile[]): Map<string, SearchIndexEntry[]> {
 		let startTimeIndex = getPerformanceTimestamp()
 
 		// avoid caching system@tutanota.de since the user wouldn't be searching for this
@@ -104,35 +100,35 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		const RecipientModel = typeModels.Recipients
 		let keyToIndexEntries = this.core.createIndexEntriesForAttributes(mail, [
 			{
-				attribute: MailModel.values["subject"],
+				id: MailModel.values["subject"].id,
 				value: () => mail.subject,
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["toRecipients"], { id: LEGACY_TO_RECIPIENTS_ID }),
+				id: LEGACY_TO_RECIPIENTS_ID,
 				value: () => mailDetails.recipients.toRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["ccRecipients"], { id: LEGACY_CC_RECIPIENTS_ID }),
+				id: LEGACY_CC_RECIPIENTS_ID,
 				value: () => mailDetails.recipients.ccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, RecipientModel.associations["bccRecipients"], { id: LEGACY_BCC_RECIPIENTS_ID }),
+				id: LEGACY_BCC_RECIPIENTS_ID,
 				value: () => mailDetails.recipients.bccRecipients.map((r) => r.name + " <" + r.address + ">").join(","),
 			},
 			{
-				attribute: MailModel.associations["sender"],
+				id: MailModel.associations["sender"].id,
 				value: () => (hasSender ? senderToIndex.name + " <" + senderToIndex.address + ">" : ""),
 			},
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
-				attribute: Object.assign({}, MailDetailsModel.associations["body"], { id: LEGACY_BODY_ID }),
+				id: LEGACY_BODY_ID,
 				value: () => htmlToText(getMailBodyText(mailDetails.body)),
 			},
 			{
-				attribute: MailModel.associations["attachments"],
+				id: MailModel.associations["attachments"].id,
 				value: () => files.map((file) => file.name).join(" "),
 			},
 		])

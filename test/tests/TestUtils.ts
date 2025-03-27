@@ -36,14 +36,13 @@ export function makeCore(
 		key: aes256RandomKey(),
 		iv: fixedIv,
 		dbFacade: { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>,
-		initialized: Promise.resolve(),
 	} as Partial<Db> as Db
 	const defaultQueue = {} as Partial<EventQueue> as EventQueue
 	const { db, queue, browserData } = {
 		...{ db: defaultDb, browserData: browserDataStub, queue: defaultQueue },
 		...safeArgs,
 	}
-	const core = new IndexerCore(db, queue, browserData)
+	const core = new IndexerCore(db, browserData)
 	if (mocker) mock(core, mocker)
 	return core
 }

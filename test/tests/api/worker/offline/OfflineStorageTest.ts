@@ -49,6 +49,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 import Id from "../../../../../src/mail-app/translations/id.js"
+import { CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -112,7 +113,15 @@ o.spec("OfflineStorageDb", function () {
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 		offlineStorageCleanerMock = new MailOfflineCleaner()
 		when(dateProviderMock.now()).thenReturn(now.getTime())
-		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, offlineStorageCleanerMock)
+		// FIXME: tests for CustomCacheHandler
+		storage = new OfflineStorage(
+			dbFacade,
+			interWindowEventSenderMock,
+			dateProviderMock,
+			migratorMock,
+			offlineStorageCleanerMock,
+			new CustomCacheHandlerMap(),
+		)
 	})
 
 	o.afterEach(async function () {
@@ -254,33 +263,6 @@ o.spec("OfflineStorageDb", function () {
 					o(mail).equals(null)
 					const rangeAfter = await storage.getRangeForList(MailTypeRef, listId)
 					o(rangeAfter).equals(null)
-				})
-
-				o("deleteWholeList", async function () {
-					const listOne = "listId1"
-					const listTwo = "listId2"
-					await storage.init({ userId: "user", databaseKey, timeRangeDays, forceNewDatabase: false })
-
-					const listOneMailOne = createTestEntity(MailTypeRef, { _id: [listOne, "id1"] })
-					const listOneMailTwo = createTestEntity(MailTypeRef, { _id: [listOne, "id2"] })
-					const listTwoMail = createTestEntity(MailTypeRef, { _id: [listTwo, "id3"] })
-					await storage.put(listOneMailOne)
-					await storage.put(listOneMailTwo)
-					await storage.put(listTwoMail)
-					await storage.setNewRangeForList(MailTypeRef, listOne, "id1", "id2")
-					await storage.setNewRangeForList(MailTypeRef, listTwo, "id3", "id3")
-
-					await storage.deleteWholeList(MailTypeRef, listOne)
-
-					const mailsInListOne = await storage.getWholeList(MailTypeRef, listOne)
-					const mailsInListTwo = await storage.getWholeList(MailTypeRef, listTwo)
-					const rangeListOne = await storage.getRangeForList(MailTypeRef, listOne)
-					const rangeListTwo = await storage.getRangeForList(MailTypeRef, listTwo)
-
-					o(mailsInListOne).deepEquals([])
-					o(mailsInListTwo).deepEquals([listTwoMail])
-					o(rangeListOne).equals(null)
-					o(rangeListTwo).deepEquals({ lower: "id3", upper: "id3" })
 				})
 
 				o("provideMultiple", async function () {

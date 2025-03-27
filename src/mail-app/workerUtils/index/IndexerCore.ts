@@ -1,5 +1,5 @@
 import type { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
-import type { $Promisable, DeferredObject, PromiseMapFn } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, DeferredObject, PromiseMapFn } from "@tutao/tutanota-utils"
 import {
 	arrayHash,
 	byteLength,
@@ -127,32 +127,33 @@ export class IndexerCore {
 	 * Converts an instances into a map from words to a list of SearchIndexEntries.
 	 */
 	createIndexEntriesForAttributes(instance: Record<string, any>, attributes: AttributeHandler[]): Map<string, SearchIndexEntry[]> {
-		let indexEntries: Map<string, SearchIndexEntry>[] = attributes.map((attributeHandler) => {
+		// We go over each attribute and collect the positions where each token occurs.
+		// At this stage each map is a map from token to positions where the attribute occurs.
+		const indexEntries: Map<string, SearchIndexEntry>[] = attributes.map((attributeHandler) => {
 			if (typeof attributeHandler.value !== "function") {
-				throw new ProgrammingError("Value for attributeHandler is not a function: " + JSON.stringify(attributeHandler.attribute))
+				throw new ProgrammingError("Value for attributeHandler is not a function: " + JSON.stringify(attributeHandler.id))
 			}
 
-			let value = attributeHandler.value()
-			let tokens = tokenize(value)
+			const value = attributeHandler.value()
+			const tokens = tokenize(value)
 			this._stats.indexedBytes += byteLength(value)
-			let attributeKeyToIndexMap: Map<string, SearchIndexEntry> = new Map()
 
-			for (let index = 0; index < tokens.length; index++) {
-				let token = tokens[index]
-
-				if (!attributeKeyToIndexMap.has(token)) {
-					attributeKeyToIndexMap.set(token, {
-						id: instance._id instanceof Array ? instance._id[1] : instance._id,
-						attribute: attributeHandler.attribute.id,
+			const tokenToEntry: Map<string, SearchIndexEntry> = new Map()
+			for (const [index, token] of tokens.entries()) {
+				if (!tokenToEntry.has(token)) {
+					tokenToEntry.set(token, {
+						id: Array.isArray(instance._id) ? instance._id[1] : instance._id,
+						attribute: attributeHandler.id,
 						positions: [index],
 					})
 				} else {
-					neverNull(attributeKeyToIndexMap.get(token)).positions.push(index)
+					assertNotNull(tokenToEntry.get(token)).positions.push(index)
 				}
 			}
 
-			return attributeKeyToIndexMap
+			return tokenToEntry
 		})
+		// then we merge all attributes together so that we have a map from token to attributes and positions where it occurs.
 		return mergeMaps(indexEntries)
 	}
 
