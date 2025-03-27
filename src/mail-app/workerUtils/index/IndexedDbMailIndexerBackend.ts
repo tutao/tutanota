@@ -62,6 +62,10 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		await this.core.writeIndexUpdate(indexUpdate)
 	}
 
+	async onBeforeMailDeleted(_: IdTuple): Promise<void> {
+		// no-op: does processing in  onMailDeleted()
+	}
+
 	async enableIndexing(): Promise<boolean> {
 		const enabled = await this.isMailIndexingEnabled()
 		if (!enabled) {

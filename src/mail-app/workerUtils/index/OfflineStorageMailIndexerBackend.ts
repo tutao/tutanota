@@ -44,7 +44,11 @@ export class OfflineStorageMailIndexerBackend implements MailIndexerBackend {
 		await this.persistence.storeMailData([mailData])
 	}
 
-	async onMailDeleted(mailId: IdTuple): Promise<void> {
+	async onMailDeleted(_: IdTuple): Promise<void> {
+		// no-op: processed in onBeforeMailDeleted()
+	}
+
+	async onBeforeMailDeleted(mailId: IdTuple): Promise<void> {
 		await this.persistence.deleteMailData(mailId)
 	}
 }

@@ -580,15 +580,6 @@ export class IndexedDbIndexer implements Indexer {
 				// 	return Promise.resolve()
 				// }
 
-				// FIXME: not sure if this should be done here, there's also another check below
-				if (
-					!filterIndexMemberships(this._initParams.user)
-						.map((m) => m.group)
-						.includes(groupId)
-				) {
-					return
-				}
-
 				if (!this._indexedGroupIds.includes(groupId)) {
 					return
 				}

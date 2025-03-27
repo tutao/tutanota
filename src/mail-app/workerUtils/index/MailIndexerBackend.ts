@@ -26,6 +26,15 @@ export interface MailIndexerBackend {
 
 	onMailUpdated(mailData: MailWithDetailsAndAttachments): Promise<void>
 
+	/**
+	 * Called before the mail is deleted from the cache.
+	 * Useful if updating the index requires using the cached data.
+	 */
+	onBeforeMailDeleted(mailId: IdTuple): Promise<void>
+
+	/**
+	 * Called when processing entity event that deletes mail
+	 */
 	onMailDeleted(mailId: IdTuple): Promise<void>
 
 	enableIndexing(): Promise<boolean>

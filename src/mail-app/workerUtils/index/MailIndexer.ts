@@ -503,7 +503,7 @@ export class MailIndexer {
 	 * Prepare IndexUpdate in response to the new entity events.
 	 */
 	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
-		if (!this._mailIndexingEnabled) return Promise.resolve()
+		if (!this._mailIndexingEnabled) return
 
 		for (const event of events) {
 			if (isUpdateForTypeRef(MailTypeRef, event)) {
@@ -522,8 +522,7 @@ export class MailIndexer {
 						}
 					}
 				} else if (event.operation === OperationType.DELETE) {
-					// FIXME: this should not be called from sqlite backend
-					// await this.backend.onMailDeleted(mailId)
+					await this.backend.onMailDeleted(mailId)
 				}
 			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, event)) {
 				await this.processImportStateEntityEvents(event)
@@ -532,7 +531,7 @@ export class MailIndexer {
 	}
 
 	async beforeMailDeleted(mailId: IdTuple) {
-		await this.backend.onMailDeleted(mailId)
+		await this.backend.onBeforeMailDeleted(mailId)
 	}
 
 	private get backend(): MailIndexerBackend {
