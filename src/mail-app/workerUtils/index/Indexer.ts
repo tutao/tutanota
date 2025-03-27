@@ -2,7 +2,6 @@ import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateU
 import type { User } from "../../../common/api/entities/sys/TypeRefs"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade"
 import { CacheInfo } from "../../../common/api/worker/facades/LoginFacade"
-import { MailIndexer } from "./MailIndexer"
 
 export interface IndexerInitParams {
 	user: User

@@ -9,10 +9,6 @@ import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
 
-function TODO(message = "(empty)"): never {
-	throw new Error(`FIXME: not implemented: ${message}`)
-}
-
 export class OfflineStorageIndexer implements Indexer {
 	constructor(
 		private readonly userFacade: UserFacade,
