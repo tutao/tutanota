@@ -1,8 +1,8 @@
 import { ContactListTypeRef, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { lazyMemoized, promiseMap } from "@tutao/tutanota-utils"
+import { lazyMemoized } from "@tutao/tutanota-utils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
-import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
 import { collapseId } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
@@ -26,7 +26,10 @@ export class ContactIndexer {
 	}
 
 	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
-		await promiseMap(events, async (event) => {
+		for (const event of events) {
+			if (!isUpdateForTypeRef(ContactTypeRef, event)) {
+				continue
+			}
 			const contactId = collapseId(event.instanceListId, event.instanceId) as IdTuple
 			if (event.operation === OperationType.CREATE) {
 				const contact = await this.entityClient.load(ContactTypeRef, contactId)
@@ -37,7 +40,7 @@ export class ContactIndexer {
 			} else if (event.operation === OperationType.DELETE) {
 				await this.backend.onContactDeleted(contactId)
 			}
-		})
+		}
 	}
 
 	private userContactList = lazyMemoized(() => {
