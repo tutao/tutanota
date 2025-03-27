@@ -43,7 +43,7 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 		WorkManager.getInstance(context).enqueueUniquePeriodicWork(
 			WIDGET_WORKER_TAG,
 			ExistingPeriodicWorkPolicy.UPDATE,
-			PeriodicWorkRequestBuilder<WidgetWorkManager>(30, TimeUnit.MINUTES)
+			PeriodicWorkRequestBuilder<WidgetWorkManager>(15, TimeUnit.MINUTES)
 				.addTag(WIDGET_WORKER_TAG).setInitialDelay(Duration.ofMinutes(1)).build()
 		)
 	}

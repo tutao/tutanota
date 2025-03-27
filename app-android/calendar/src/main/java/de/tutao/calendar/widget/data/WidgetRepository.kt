@@ -19,7 +19,7 @@ import java.util.Date
 
 abstract class WidgetRepository {
 	protected val json = Json { ignoreUnknownKeys = true }
-	protected var cachedEvents: Map<GeneratedId, CalendarEventsList> = mapOf()
+	protected var cachedEvents: MutableMap<GeneratedId, CalendarEventsList> = mutableMapOf()
 
 	open suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
 		throw NotImplementedError()
@@ -50,7 +50,7 @@ abstract class WidgetRepository {
 		throw NotImplementedError()
 	}
 
-	open suspend fun loadEvents(): Map<GeneratedId, CalendarEventsList> {
+	open suspend fun loadEvents(calendars: List<GeneratedId>): Map<GeneratedId, CalendarEventsList> {
 		throw NotImplementedError()
 	}
 

@@ -56,6 +56,7 @@ class WidgetUIViewModel(
 		val settings = repository.loadSettings(context, widgetId) ?: return WidgetUIData(normalEvents, allDayEvents)
 		val lastSync = repository.loadLastSync(context, widgetId)
 		val credentials = this.credentialsFacade.loadByUserId(settings.userId)?.toSdkCredentials()
+		val calendars = settings.calendars.keys.toList()
 
 		if (credentials == null) {
 			// FIXME Replace by translation
@@ -77,7 +78,7 @@ class WidgetUIViewModel(
 					val loggedInSdk = this.sdk.login(credentials)
 					repository.loadEvents(
 						settings.userId,
-						settings.calendars.keys.toList(),
+						calendars,
 						credentialsFacade,
 						loggedInSdk
 					)
@@ -88,10 +89,10 @@ class WidgetUIViewModel(
 						TAG,
 						"Missing credentials for user ${settings.userId} during widget setup. ${e.stackTraceToString()}"
 					)
-					repository.loadEvents()
+					repository.loadEvents(calendars)
 				}
 			} else {
-				repository.loadEvents()
+				repository.loadEvents(calendars)
 			}
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
