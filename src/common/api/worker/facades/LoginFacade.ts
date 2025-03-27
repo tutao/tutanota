@@ -83,7 +83,6 @@ import {
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { ModelMapper } from "../crypto/ModelMapper"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
@@ -100,9 +99,8 @@ import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 import { encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
-import { CryptoMapper } from "../crypto/CryptoMapper"
-import { TypeMapper } from "../crypto/TypeMapper"
 import { InstancePipeline } from "../crypto/InstancePipeline"
+import { AttributeModel } from "../../common/AttributeModel"
 
 assertWorkerOrNode()
 
@@ -137,8 +135,8 @@ export type InitCacheOptions = {
 	forceNewDatabase: boolean
 }
 
-type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData; asyncResumeSession?: Promise<void> }
-type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason; asyncResumeSession?: Promise<void> }
+type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData }
+type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason }
 type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
 type AsyncLoginState =
@@ -599,7 +597,6 @@ export class LoginFacade {
 				} catch (e) {
 					console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
 					if (e instanceof LoginIncompleteError) {
-						console.log("calling finishResumeSession 2")
 						// await before return to catch the errors here
 						return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 					} else {
@@ -609,13 +606,13 @@ export class LoginFacade {
 				}
 
 				// Start full login async
-				const asyncResumeSession = Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
+				Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
 				const data = {
 					user,
 					userGroupInfo,
 					sessionId,
 				}
-				return { type: "success", data, asyncResumeSession }
+				return { type: "success", data }
 			} else {
 				// await before return to catch errors here
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
@@ -908,10 +905,13 @@ export class LoginFacade {
 				responseType: MediaType.Json,
 			})
 			.then((instance) => {
-				let session = JSON.parse(instance)
+				let untypedSession = JSON.parse(instance)
+				// Intentionally passing an UntypedInstance to AttributeModel to circumvent sessionkey resolution during login.
+				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
+				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]
 				return {
-					userId: session.user,
-					accessKey: session.accessKey ? base64ToKey(session.accessKey) : null,
+					userId,
+					accessKey: accessKey ? base64ToKey(accessKey) : null,
 				}
 			})
 	}
