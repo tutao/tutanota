@@ -214,13 +214,13 @@ export class IndexedDbIndexer implements Indexer {
 
 	private async indexOrLoadContactListIfNeeded(user: User, cacheInfo: CacheInfo | undefined) {
 		try {
-			const contactList: ContactList = await this._entity.loadRoot(ContactListTypeRef, user.userGroup.group)
-			const indexTimestamp = await this._contactIndexer.getIndexTimestamp(contactList)
+			const indexTimestamp = await this._contactIndexer.getIndexTimestamp()
 			if (indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
-				await this._contactIndexer.indexFullContactList(contactList)
+				await this._contactIndexer.indexFullContactList()
 			}
 			//If we do not have to index the contact list we might still need to download it so we cache it in the offline storage
 			else if (cacheInfo?.isNewOfflineDb) {
+				const contactList: ContactList = await this._entity.loadRoot(ContactListTypeRef, user.userGroup.group)
 				await this._entity.loadAll(ContactTypeRef, contactList.contacts)
 			}
 		} catch (e) {

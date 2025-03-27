@@ -86,11 +86,12 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		const resultIds = resultRows.map(({ listId, elementId }) => {
 			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
 		})
+		const indexTimestamp = await this.contactIndexer.getIndexTimestamp()
 		const result: SearchResult = {
 			query: originalQuery,
 			restriction,
 			results: resultIds,
-			currentIndexTimestamp: getSearchEndTimestamp(this.contactIndexer.currentIndexTimestamp, restriction),
+			currentIndexTimestamp: getSearchEndTimestamp(indexTimestamp, restriction),
 			lastReadSearchIndexRow: [],
 			matchWordOrder: false,
 			moreResults: [],

@@ -252,12 +252,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		if (isOfflineStorageAvailable()) {
 			const persistence = await offlineStorageIndexerPersistence()
 			const backend = new OfflineStorageContactIndexerBackend(persistence)
-			return new ContactIndexer(locator.cachingEntityClient, backend)
+			return new ContactIndexer(locator.cachingEntityClient, locator.user, backend)
 		} else {
 			const core = await indexerCore()
 			const suggestionFacade = new SuggestionFacade(ContactTypeRef, db)
 			const backend = new IndexedDbContactIndexerBackend(core, db, locator.cachingEntityClient, suggestionFacade)
-			return new ContactIndexer(locator.cachingEntityClient, backend)
+			return new ContactIndexer(locator.cachingEntityClient, locator.user, backend)
 		}
 	})
 
@@ -501,7 +501,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.search = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {
 			const { OfflineStorageSearchFacade } = await import("../index/OfflineStorageSearchFacade.js")
-			return new OfflineStorageSearchFacade(locator.sqlCipherFacade, await mailIndexer())
+			return new OfflineStorageSearchFacade(locator.sqlCipherFacade, await mailIndexer(), await contactIndexer())
 		} else {
 			const { IndexedDbSearchFacade } = await import("../index/IndexedDbSearchFacade.js")
 			// FIXME

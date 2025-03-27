@@ -8,7 +8,7 @@ import { neverNull, tokenize } from "@tutao/tutanota-utils"
 import { elementIdPart, getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { typeModels as tutanotaModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils"
-import { FULL_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { GroupDataOS, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
 
@@ -29,11 +29,11 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		await this.suggestionFacade.load()
 	}
 
-	async getIndexTimestamp(contactList: ContactList): Promise<number | null> {
+	async getIndexTimestamp(contactList: ContactList): Promise<number> {
 		const t = await this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
 		const groupId = neverNull(contactList._ownerGroup)
 		const groupData = await t.get<GroupData>(GroupDataOS, groupId)
-		return groupData ? groupData.indexTimestamp : null
+		return groupData ? groupData.indexTimestamp : NOTHING_INDEXED_TIMESTAMP
 	}
 
 	async indexContactList(contactList: ContactList): Promise<void> {

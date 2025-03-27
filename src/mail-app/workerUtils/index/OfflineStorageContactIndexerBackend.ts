@@ -10,7 +10,7 @@ export class OfflineStorageContactIndexerBackend implements ContactIndexerBacken
 		return Promise.resolve(undefined)
 	}
 
-	async getIndexTimestamp(contactList: ContactList): Promise<number | null> {
+	async getIndexTimestamp(contactList: ContactList): Promise<number> {
 		// FIXME
 		throw new ProgrammingError("TODO: getIndexTimestamp")
 	}
