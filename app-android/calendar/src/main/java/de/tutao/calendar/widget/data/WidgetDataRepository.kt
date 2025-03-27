@@ -30,9 +30,6 @@ class WidgetDataRepository : WidgetRepository() {
 		credentialsFacade: NativeCredentialsFacade,
 		loggedInSdk: LoggedInSdk
 	): Map<GeneratedId, CalendarEventsList> {
-		// Clear our cached events
-		cachedEvents = mapOf()
-
 		val calendarFacade = loggedInSdk.calendarFacade()
 		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
 
@@ -41,27 +38,23 @@ class WidgetDataRepository : WidgetRepository() {
 		calendars.forEach { calendarId ->
 			val events = calendarFacade.getCalendarEvents(calendarId, (systemCalendar.timeInMillis).toULong())
 
-			cachedEvents = cachedEvents.plus(calendarId to events)
+			cachedEvents[calendarId] = events
 			calendarEventsList = calendarEventsList.plus(calendarId to events)
 		}
 
 		return calendarEventsList
 	}
 
-	override suspend fun loadEvents(): Map<GeneratedId, CalendarEventsList> {
+	override suspend fun loadEvents(calendars: List<GeneratedId>): Map<GeneratedId, CalendarEventsList> {
 		val now = Calendar.getInstance(TimeZone.getDefault()).timeInMillis.toULong()
-		var filteredCache: Map<GeneratedId, CalendarEventsList> = mapOf()
+		val cache = cachedEvents.filterKeys { calendars.contains(it) }
 
-		for ((id, events) in cachedEvents.entries) {
-			filteredCache = filteredCache.plus(
-				id to CalendarEventsList(
-					shortEvents = events.shortEvents.filter { it.startTime >= now || it.endTime >= now },
-					longEvents = events.longEvents.filter { it.startTime >= now || it.endTime >= now },
-				)
+		for ((id, events) in cache.entries) {
+			cachedEvents[id] = CalendarEventsList(
+				shortEvents = events.shortEvents.filter { it.startTime >= now || it.endTime >= now },
+				longEvents = events.longEvents.filter { it.startTime >= now || it.endTime >= now },
 			)
 		}
-
-		cachedEvents = filteredCache
-		return filteredCache
+		return cachedEvents.filterKeys { calendars.contains(it) }
 	}
 }
