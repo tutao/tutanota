@@ -262,8 +262,8 @@ export class IndexedDbIndexer implements Indexer {
 		return this.mailIndexer.extendIndexIfNeeded(this._initParams.user, newOldestTimestamp)
 	}
 
-	cancelMailIndexing(): Promise<void> {
-		return this.mailIndexer.cancelMailIndexing()
+	cancelMailIndexing() {
+		this.mailIndexer.cancelMailIndexing()
 	}
 
 	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {

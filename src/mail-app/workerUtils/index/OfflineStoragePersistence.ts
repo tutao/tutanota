@@ -14,7 +14,7 @@ const searchTables = Object.freeze([
 	"CREATE TABLE IF NOT EXISTS search_group_data (groupId TEXT NOT NULL PRIMARY KEY, groupType NUMBER NOT NULL, indexedTimestamp NUMBER NOT NULL)",
 	"CREATE TABLE IF NOT EXISTS search_metadata (key TEXT NOT NULL PRIMARY KEY, value)",
 
-	// full-text index of mails.
+	// Full-text index of mails (contentless)
 	// list_entities.rowid = mail_index.rowid = content_mail_index = rowid
 	`CREATE VIRTUAL TABLE IF NOT EXISTS mail_index USING fts5(
        subject,
@@ -31,6 +31,12 @@ const searchTables = Object.freeze([
 	// we would love to use the contentless_unindexed option, but it's only available from SQLite 3.47.0 onwards
 	"CREATE TABLE IF NOT EXISTS content_mail_index (receivedDate NUMBER NOT NULL, sets STRING NOT NULL)",
 
+	// Full-text index of contact names and addresses (NOT contentless)
+	// list_entities.rowid = contact_index.rowid
+	//
+	// This is not contentless because we want to be able to sort search results by first/last name inside the query,
+	// itself, while still using the LIMIT clause. This means duplicate data will be stored, but only a small portion of
+	// the contact in this case.
 	`CREATE VIRTUAL TABLE IF NOT EXISTS contact_index USING fts5(
        firstName,
        lastName,

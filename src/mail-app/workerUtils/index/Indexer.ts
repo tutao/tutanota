@@ -24,5 +24,5 @@ export interface Indexer {
 
 	deleteIndex(userId: string): Promise<void>
 
-	cancelMailIndexing(): Promise<void>
+	cancelMailIndexing(): void
 }

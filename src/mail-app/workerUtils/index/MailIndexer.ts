@@ -168,9 +168,8 @@ export class MailIndexer {
 		await this.backend.deleteIndex()
 	}
 
-	cancelMailIndexing(): Promise<void> {
+	cancelMailIndexing() {
 		this._indexingCancelled = true
-		return Promise.resolve()
 	}
 
 	/**

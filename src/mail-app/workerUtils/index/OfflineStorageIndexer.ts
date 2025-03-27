@@ -81,7 +81,7 @@ export class OfflineStorageIndexer implements Indexer {
 		/* no-op */
 	}
 
-	async cancelMailIndexing() {
-		TODO("cancelMailIndexing")
+	cancelMailIndexing() {
+		this.mailIndexer.cancelMailIndexing()
 	}
 }
