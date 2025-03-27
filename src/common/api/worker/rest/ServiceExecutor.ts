@@ -10,7 +10,7 @@ import {
 	PutService,
 	ReturnTypeFromRef,
 } from "../../common/ServiceRequest.js"
-import { Entity } from "../../common/EntityTypes"
+import { Entity, UntypedInstance } from "../../common/EntityTypes"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/tutanota-utils"
 import { RestClient } from "./RestClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
@@ -19,6 +19,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { InstancePipeline } from "../crypto/InstancePipeline"
+import { EntityAdapter } from "../crypto/EntityAdapter"
 
 assertWorkerOrNode()
 
@@ -154,8 +155,11 @@ export class ServiceExecutor implements IServiceExecutor {
 
 	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | undefined): Promise<T> {
 		// Filter out __proto__ to avoid prototype pollution.
-		const instance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
-		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(instance)) ?? params?.sessionKey ?? null
+		const instance: UntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
+		const typeModel = await resolveTypeReference(typeRef)
+		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, instance)
+		const entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
+		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
 
 		return await this.instancePipeline.decryptAndMapToInstance(typeRef, instance, sessionKey)
 	}

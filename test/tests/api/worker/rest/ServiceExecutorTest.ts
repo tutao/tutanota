@@ -6,13 +6,16 @@ import { matchers, object, when } from "testdouble"
 import { DeleteService, GetService, PostService, PutService } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { deepEqual } from "@tutao/tutanota-utils"
+import { deepEqual, downcast } from "@tutao/tutanota-utils"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { CustomerAccountReturnTypeRef } from "../../../../../src/common/api/entities/accounting/TypeRefs"
+import { aes256RandomKey } from "@tutao/tutanota-crypto"
+import { CustomerAccountService } from "../../../../../src/common/api/entities/accounting/Services"
 
 const { anything } = matchers
 
@@ -22,25 +25,25 @@ o.spec("ServiceExecutor", function () {
 		name: "testservice",
 	}
 	let restClient: RestClient
-	let authHeaders: Record<string, string>
+	let authHeaders: Record<string, string> = {}
 	let instancePipeline: InstancePipeline
 	let cryptoFacade: CryptoFacade
 	let executor: ServiceExecutor
-	let fullyLoggedIn: boolean
+	let fullyLoggedIn: boolean = true
+	const authDataProvider: AuthDataProvider = {
+		createAuthHeaders(): Dict {
+			return authHeaders
+		},
+		isFullyLoggedIn(): boolean {
+			return fullyLoggedIn
+		},
+	}
 
 	o.beforeEach(function () {
 		restClient = object()
 		authHeaders = {}
 		fullyLoggedIn = true
 
-		const authDataProvider: AuthDataProvider = {
-			createAuthHeaders(): Dict {
-				return authHeaders
-			},
-			isFullyLoggedIn(): boolean {
-				return fullyLoggedIn
-			},
-		}
 		instancePipeline = object()
 		cryptoFacade = object()
 		executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade)
@@ -518,29 +521,32 @@ o.spec("ServiceExecutor", function () {
 		})
 	})
 
-	o.spec("keys", function () {
-		o("uses resolved key to decrypt response", async function () {
-			const getService: GetService = {
-				...service,
-				get: {
-					data: null,
-					return: SaltDataTypeRef,
-				},
-			}
-			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" }
-			const sessionKey = [1, 2, 3]
-			when(cryptoFacade.resolveServiceSessionKey(literal)).thenResolve(sessionKey)
-			when(instancePipeline.decryptAndMapToInstance(SaltDataTypeRef, literal, sessionKey)).thenResolve(returnData)
+	o.spec("keys decrypt", function () {
+		o.beforeEach(() => {
+			instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
+			executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade)
+		})
 
-			respondWith(`{"literal":"1"}`)
+		o("uses resolved key to decrypt response x", async function () {
+			const customerAccountReturn = createTestEntity(CustomerAccountReturnTypeRef, {
+				outstandingBookingsPrice: "42",
+				balance: "123",
+				postings: [],
+			})
 
-			const response = await executor.get(getService, null)
+			const sk = aes256RandomKey()
+			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(CustomerAccountReturnTypeRef, customerAccountReturn, sk)
+			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(sk)
 
-			o(response).equals(returnData)
+			respondWith(JSON.stringify(untypedInstance))
+
+			const response = await executor.get(CustomerAccountService, null)
+
+			delete downcast(response)._finalIvs
+			o(response).deepEquals(customerAccountReturn)
 			verify(
 				restClient.request(
-					"/rest/testapp/testservice",
+					"/rest/accounting/customeraccountservice",
 					HttpMethod.GET,
 					matchers.argThat((p) => p.responseType === MediaType.Json),
 				),
@@ -548,33 +554,33 @@ o.spec("ServiceExecutor", function () {
 		})
 
 		o("uses passed key to decrypt response", async function () {
-			const getService: GetService = {
-				...service,
-				get: {
-					data: null,
-					return: SaltDataTypeRef,
-				},
-			}
-			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" }
-			const sessionKey = [1, 2, 3]
-			when(cryptoFacade.resolveServiceSessionKey(literal)).thenResolve(null)
-			when(instancePipeline.decryptAndMapToInstance(SaltDataTypeRef, literal, sessionKey)).thenResolve(returnData)
+			const customerAccountReturn = createTestEntity(CustomerAccountReturnTypeRef, {
+				outstandingBookingsPrice: "42",
+				balance: "123",
+				postings: [],
+			})
 
-			respondWith(`{"literal":"1"}`)
+			const sessionKey = aes256RandomKey()
+			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(CustomerAccountReturnTypeRef, customerAccountReturn, sessionKey)
+			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(null)
 
-			const response = await executor.get(getService, null, { sessionKey })
+			respondWith(JSON.stringify(untypedInstance))
 
-			o(response).equals(returnData)
+			const response = await executor.get(CustomerAccountService, null, { sessionKey })
+
+			delete downcast(response)._finalIvs
+
+			o(response).deepEquals(customerAccountReturn)
 			verify(
 				restClient.request(
-					"/rest/testapp/testservice",
+					"/rest/accounting/customeraccountservice",
 					HttpMethod.GET,
 					matchers.argThat((p) => p.responseType === MediaType.Json),
 				),
 			)
 		})
-
+	})
+	o.spec("keys encrypt", function () {
 		o("uses passed key to encrypt request data", async function () {
 			const getService: GetService = {
 				...service,

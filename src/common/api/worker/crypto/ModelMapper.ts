@@ -28,7 +28,9 @@ export function assertCorrectValueCardinality(
 	if (cardinality === Cardinality.ZeroOrOne || (cardinality === Cardinality.One && parsedValue != null)) {
 		return parsedValue
 	}
-	throw new ProgrammingError(`invalid value / cardinality combination for value ${attrId} on type ${typeRef.typeId}: ${cardinality}, isNull: ${!parsedValue}`)
+	throw new ProgrammingError(
+		`invalid value / cardinality combination for value ${attrId} on type ${typeRef.app}/${typeRef.typeId}: ${cardinality}, isNull: ${!parsedValue}`,
+	)
 }
 
 /**
@@ -59,7 +61,7 @@ export function assertCorrectAssociationClientCardinality(
 	}
 
 	throw new ProgrammingError(
-		`invalid association / cardinality combination for association ${attrId} on type ${typeRef.typeId}: ${cardinality}, val.len: ${parsedValue.length}`,
+		`invalid association / cardinality combination for association ${attrId} on type ${typeRef.app}/${typeRef.typeId}: ${cardinality}, val.len: ${parsedValue.length}`,
 	)
 }
 
@@ -107,9 +109,9 @@ export function assertCorrectAssociationServerCardinality(
 	}
 
 	throw new ProgrammingError(
-		`invalid association / cardinality combination for association ${attrId} on type ${typeRef.typeId}: ${cardinality}, isArray: ${Array.isArray(
-			parsedValue,
-		)}, isNull ${parsedValue == null}, parsedValue: ${parsedValue}`,
+		`invalid association / cardinality combination for association ${attrId} on type ${typeRef.app}/${
+			typeRef.typeId
+		}: ${cardinality}, isArray: ${Array.isArray(parsedValue)}, isNull ${parsedValue == null}, parsedValue: ${parsedValue}`,
 	)
 }
 
@@ -125,7 +127,7 @@ export function assertCorrectAssociationServerCardinality(
 function assertCompatibleModelTypes(typeRef: TypeRef<unknown>, attrId: string, fromType: Values<typeof ValueType>, toType: Values<typeof ValueType>) {
 	if (fromType === toType) return
 	throw new ProgrammingError(
-		`cannot map from server to client type: types of field ${attrId} on type ${typeRef.typeId} are incompatible. This client is not compatible with the current server model.`,
+		`cannot map from server to client type: types of field ${attrId} on type ${typeRef.app}/${typeRef.typeId} are incompatible. This client is not compatible with the current server model.`,
 	)
 }
 

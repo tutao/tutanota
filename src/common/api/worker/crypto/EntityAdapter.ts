@@ -78,4 +78,11 @@ export class EntityAdapter implements Entity {
 	get _listEncSessionKey(): null | Uint8Array {
 		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "_listEncSessionKey", this.typeModel)
 	}
+	get _ownerPublicEncSessionKey(): null | Uint8Array {
+		return AttributeModel.getAttributeorNull<Uint8Array>(this.encryptedParsedInstance, "_ownerPublicEncSessionKey", this.typeModel)
+	}
+
+	get _publicCryptoProtocolVersion(): null | NumberString {
+		return AttributeModel.getAttributeorNull<NumberString>(this.encryptedParsedInstance, "_publicCryptoProtocolVersion", this.typeModel)
+	}
 }

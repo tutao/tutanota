@@ -619,16 +619,16 @@ export class CryptoFacade {
 	 * @param instance The unencrypted (client-side) or encrypted (server-side) instance
 	 *
 	 */
-	async resolveServiceSessionKey(instance: Record<string, any>): Promise<Aes256Key | null> {
+	async resolveServiceSessionKey(instance: EntityAdapter): Promise<Aes256Key | null> {
 		if (instance._ownerPublicEncSessionKey) {
 			// we assume the server uses the current key pair of the recipient
-			const keypair = await this.keyLoaderFacade.loadCurrentKeyPair(instance._ownerGroup)
+			const keypair = await this.keyLoaderFacade.loadCurrentKeyPair(assertNotNull(instance._ownerGroup))
 			// we do not authenticate as we could remove data transfer type encryption altogether and only rely on tls
 			return (
 				await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
 					keypair.object,
-					assertEnumValue(CryptoProtocolVersion, instance._publicCryptoProtocolVersion),
-					base64ToUint8Array(instance._ownerPublicEncSessionKey),
+					assertEnumValue(CryptoProtocolVersion, assertNotNull(instance._publicCryptoProtocolVersion)),
+					assertNotNull(instance._ownerPublicEncSessionKey),
 				)
 			).decryptedAesKey
 		}
