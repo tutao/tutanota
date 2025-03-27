@@ -30,7 +30,7 @@ class WidgetConfigViewModel(
 	private val sdk: Sdk?,
 	private val repository: WidgetRepository
 ) :
-	AndroidViewModel(application) {
+	AndroidViewModel(application), WidgetConfigModel {
 	private val _credentials = MutableStateFlow<List<PersistedCredentials>>(listOf())
 	private val _isLoading = MutableStateFlow(true)
 	private val _selectedCredential = MutableStateFlow<PersistedCredentials?>(null)
@@ -38,11 +38,11 @@ class WidgetConfigViewModel(
 	private val _selectedCalendars: MutableStateFlow<Map<GeneratedId, CalendarRenderData>> = MutableStateFlow(HashMap())
 	private val _error = MutableStateFlow<WidgetError?>(null)
 
-	val credentials: StateFlow<List<PersistedCredentials>> = _credentials.asStateFlow()
-	val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-	val selectedCredential: StateFlow<PersistedCredentials?> = _selectedCredential.asStateFlow()
-	val calendars: StateFlow<Map<GeneratedId, CalendarRenderData>> = _calendars.asStateFlow()
-	val error: StateFlow<WidgetError?> = _error.asStateFlow()
+	override val credentials: StateFlow<List<PersistedCredentials>> = _credentials.asStateFlow()
+	override val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+	override val selectedCredential: StateFlow<PersistedCredentials?> = _selectedCredential.asStateFlow()
+	override val calendars: StateFlow<Map<GeneratedId, CalendarRenderData>> = _calendars.asStateFlow()
+	override val error: StateFlow<WidgetError?> = _error.asStateFlow()
 
 	companion object {
 		val APPLICATION_EXTRA_KEY = object : CreationExtras.Key<Application> {}
@@ -83,7 +83,7 @@ class WidgetConfigViewModel(
 		}
 	}
 
-	fun setSelectedCredential(credential: PersistedCredentials): Job? {
+	override fun setSelectedCredential(credential: PersistedCredentials): Job? {
 		if (_selectedCredential.value == credential) {
 			return null
 		}
@@ -95,7 +95,7 @@ class WidgetConfigViewModel(
 		}
 	}
 
-	fun toggleCalendarSelection(calendarId: GeneratedId, isSelected: Boolean) {
+	override fun toggleCalendarSelection(calendarId: GeneratedId, isSelected: Boolean) {
 		if (!isSelected) {
 			_selectedCalendars.value = _selectedCalendars.value.minus(calendarId)
 			return
@@ -105,7 +105,7 @@ class WidgetConfigViewModel(
 		_selectedCalendars.value = _selectedCalendars.value.plus(calendarId to renderData)
 	}
 
-	fun isCalendarSelected(calendarId: GeneratedId): Boolean {
+	override fun isCalendarSelected(calendarId: GeneratedId): Boolean {
 		return _selectedCalendars.value[calendarId] != null
 	}
 

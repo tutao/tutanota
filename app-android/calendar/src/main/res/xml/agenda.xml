@@ -7,6 +7,7 @@
 					android:resizeMode="horizontal|vertical"
 					android:widgetCategory="home_screen"
 					android:configure="de.tutao.calendar.widget.WidgetConfigActivity"
+					android:previewImage="@drawable/widget_preview"
 		>
 
 </appwidget-provider>
