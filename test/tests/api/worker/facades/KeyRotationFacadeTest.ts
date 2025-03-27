@@ -490,7 +490,10 @@ o.spec("KeyRotationFacadeTest", function () {
 	o.spec("initialize", function () {
 		o("When a key rotation for the admin group exists on the server, the password key is saved in the facade", async function () {
 			when(serviceExecutorMock.get(GroupKeyRotationInfoService, anything())).thenResolve(
-				createTestEntity(GroupKeyRotationInfoGetOutTypeRef, { userOrAdminGroupKeyRotationScheduled: true, groupKeyUpdates: [] }),
+				createTestEntity(GroupKeyRotationInfoGetOutTypeRef, {
+					userOrAdminGroupKeyRotationScheduled: true,
+					groupKeyUpdates: [],
+				}),
 			)
 			await keyRotationFacade.initialize(pwKey, true)
 
@@ -499,7 +502,10 @@ o.spec("KeyRotationFacadeTest", function () {
 
 		o("When a key rotation for the admin group does not exist on the server, the password key is not saved in the facade", async function () {
 			when(serviceExecutorMock.get(GroupKeyRotationInfoService, anything())).thenResolve(
-				createTestEntity(GroupKeyRotationInfoGetOutTypeRef, { userOrAdminGroupKeyRotationScheduled: false, groupKeyUpdates: [] }),
+				createTestEntity(GroupKeyRotationInfoGetOutTypeRef, {
+					userOrAdminGroupKeyRotationScheduled: false,
+					groupKeyUpdates: [],
+				}),
 			)
 			await keyRotationFacade.initialize(pwKey, true)
 
@@ -762,7 +768,7 @@ o.spec("KeyRotationFacadeTest", function () {
 					const recipientKeyVersion = "0"
 					const pubEncBucketKeyMock = object<Uint8Array>()
 					const protocolVersion = CryptoProtocolVersion.TUTA_CRYPT
-					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [])).thenResolve(
+					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [], [])).thenResolve(
 						createTestEntity(InternalRecipientKeyDataTypeRef, {
 							protocolVersion,
 							senderKeyVersion: user.userGroup.groupKeyVersion,
@@ -837,7 +843,7 @@ o.spec("KeyRotationFacadeTest", function () {
 							mailAddress: memberMailAddress,
 						}),
 					])
-					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [])).thenDo(
+					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [], [])).thenDo(
 						(senderUserGroupId: Id, bucketKey: AesKey, recipientMailAddress: string, notFoundRecipients: Array<string>) => {
 							notFoundRecipients.push(memberMailAddress)
 							return null
@@ -1078,7 +1084,10 @@ o.spec("KeyRotationFacadeTest", function () {
 				const additionalUserGroupId = "additionalUserGroupId"
 				const additionalUserGroupInfo = createTestEntity(GroupInfoTypeRef, { group: additionalUserGroupId })
 				when(entityClientMock.loadAll(GroupInfoTypeRef, customer.userGroups)).thenResolve([adminUserGroupInfo, additionalUserGroupInfo])
-				when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve({ version: 0, object: groupKeyVersion0 })
+				when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve({
+					version: 0,
+					object: groupKeyVersion0,
+				})
 				let additionalUserGroupKey: VersionedKey = { version: 0, object: groupKeyVersion0 }
 				when(keyLoaderFacadeMock.getCurrentSymGroupKey(additionalUserGroupId)).thenResolve(additionalUserGroupKey)
 				const macTag = object<MacTag>()
@@ -1162,7 +1171,10 @@ o.spec("KeyRotationFacadeTest", function () {
 					const distributionKeys = []
 					const userGroupIdsMissingDistributionKeys = ["missing"]
 					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
-						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
+							distributionKeys,
+							userGroupIdsMissingDistributionKeys,
+						}),
 					)
 
 					await keyRotationFacade.processPendingKeyRotation(user)
@@ -1216,7 +1228,10 @@ o.spec("KeyRotationFacadeTest", function () {
 					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId })]
 					const userGroupIdsMissingDistributionKeys = ["missing"]
 					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
-						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
+							distributionKeys,
+							userGroupIdsMissingDistributionKeys,
+						}),
 					)
 
 					await keyRotationFacade.processPendingKeyRotation(user)
@@ -1243,11 +1258,17 @@ o.spec("KeyRotationFacadeTest", function () {
 					const otherAdmin = "otherAdmin"
 					const distributionKeys = [
 						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin, pubKeyMac: object() }),
-						createTestEntity(PubDistributionKeyTypeRef, { userGroupId: user.userGroup.group, pubKeyMac: object() }),
+						createTestEntity(PubDistributionKeyTypeRef, {
+							userGroupId: user.userGroup.group,
+							pubKeyMac: object(),
+						}),
 					]
 					const userGroupIdsMissingDistributionKeys = []
 					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
-						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
+							distributionKeys,
+							userGroupIdsMissingDistributionKeys,
+						}),
 					)
 
 					const encryptedAdminGroupKeyForThisAdmin = object<PubEncSymKey>()
@@ -1343,7 +1364,10 @@ o.spec("KeyRotationFacadeTest", function () {
 					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin })]
 					const userGroupIdsMissingDistributionKeys = [user.userGroup.group]
 					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
-						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
+							distributionKeys,
+							userGroupIdsMissingDistributionKeys,
+						}),
 					)
 
 					const currentAdminGroupKey: VersionedKey = {
@@ -1376,10 +1400,18 @@ o.spec("KeyRotationFacadeTest", function () {
 					})
 
 					const otherAdmin = "otherAdmin"
-					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin, pubKeyMac: object() })]
+					const distributionKeys = [
+						createTestEntity(PubDistributionKeyTypeRef, {
+							userGroupId: otherAdmin,
+							pubKeyMac: object(),
+						}),
+					]
 					const userGroupIdsMissingDistributionKeys = [user.userGroup.group]
 					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything())).thenResolve(
-						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, { distributionKeys, userGroupIdsMissingDistributionKeys }),
+						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
+							distributionKeys,
+							userGroupIdsMissingDistributionKeys,
+						}),
 					)
 
 					when(keyLoaderFacadeMock.getCurrentSymGroupKey(anything())).thenResolve(CURRENT_ADMIN_GROUP_KEY)

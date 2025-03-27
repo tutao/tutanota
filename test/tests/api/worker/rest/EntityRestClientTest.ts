@@ -80,7 +80,7 @@ o.spec("EntityRestClient", function () {
 			return Promise.resolve({ ...decryptedInstance, migratedForInstance: true })
 		})
 		when(cryptoFacadeMock.setNewOwnerEncSessionKey(anything(), anything())).thenResolve([])
-		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything(), anything())).thenResolve(
+		when(cryptoFacadeMock.encryptBucketKeyForInternalRecipient(anything(), anything(), anything(), anything(), anything())).thenResolve(
 			createTestEntity(InternalRecipientKeyDataTypeRef),
 		)
 		when(cryptoFacadeMock.resolveSessionKey(anything(), anything())).thenResolve([])

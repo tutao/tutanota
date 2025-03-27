@@ -53,6 +53,11 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 		}
 	}
 
+	markAsKeyVerificationMismatch(): Promise<void> {
+		// noop in mock implementation
+		return Promise.resolve()
+	}
+
 	isResolved(): boolean {
 		return this._resolved
 	}

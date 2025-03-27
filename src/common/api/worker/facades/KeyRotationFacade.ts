@@ -748,12 +748,15 @@ export class KeyRotationFacade {
 				// always pass an empty list because we don't want the encryption to be skipped in case other recipients weren't found
 				// recipients that are not found will be null anyway, and added to membersToRemove
 				const notFoundRecipients: Array<string> = []
+				const keyVerificationMismatchRecipients: Array<string> = []
+
 				const senderGroupId = this.userFacade.getUserGroupId()
 				const recipientKeyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(
 					senderGroupId,
 					bucketKey,
 					memberMailAddress,
 					notFoundRecipients,
+					keyVerificationMismatchRecipients,
 				)
 				if (recipientKeyData != null && isSameTypeRef(recipientKeyData._type, InternalRecipientKeyDataTypeRef)) {
 					const keyData = recipientKeyData as InternalRecipientKeyData
