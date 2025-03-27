@@ -588,11 +588,11 @@ export class EntityRestClient implements EntityRestInterface {
 		return this.restClient
 	}
 
-	private async parseSetupMultiple(result: any): Promise<Array<Id>> {
+	private async parseSetupMultiple(result: Array<UntypedInstance>): Promise<Array<Id>> {
 		try {
 			return await promiseMap(Array.from(result), async (untypedPostReturn: any) => {
 				const parsedInstance = await this.instancePipeline.decryptAndMapToInstance(PersistenceResourcePostReturnTypeRef, untypedPostReturn, null)
-				return assertNotNull(parsedInstance.generatedId)
+				return parsedInstance.generatedId as Id // is null for customIds
 			})
 		} catch (e) {
 			throw new Error(`Invalid response: ${result}, ${e}`)

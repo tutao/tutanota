@@ -135,8 +135,16 @@ export type InitCacheOptions = {
 	forceNewDatabase: boolean
 }
 
-type ResumeSessionSuccess = { type: "success"; data: ResumeSessionResultData }
-type ResumeSessionFailure = { type: "error"; reason: ResumeSessionErrorReason }
+type ResumeSessionSuccess = {
+	type: "success"
+	data: ResumeSessionResultData
+	asyncResumeCompleted: Promise<void> | null
+}
+type ResumeSessionFailure = {
+	type: "error"
+	reason: ResumeSessionErrorReason
+	asyncResumeCompleted: Promise<void> | null
+}
 type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
 type AsyncLoginState =
@@ -581,7 +589,7 @@ export class LoginFacade {
 					return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo).catch(
 						ofClass(ConnectionError, async () => {
 							await this.resetSession()
-							return { type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree }
+							return { type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree, asyncResumeCompleted: null }
 						}),
 					)
 				}
@@ -606,13 +614,13 @@ export class LoginFacade {
 				}
 
 				// Start full login async
-				Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
+				const asyncResumeSession = Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
 				const data = {
 					user,
 					userGroupInfo,
 					sessionId,
 				}
-				return { type: "success", data }
+				return { type: "success", data, asyncResumeCompleted: env.mode === "Test" ? asyncResumeSession : null }
 			} else {
 				// await before return to catch errors here
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
@@ -706,7 +714,7 @@ export class LoginFacade {
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
 		}
 
-		return { type: "success", data }
+		return { type: "success", data, asyncResumeCompleted: null }
 	}
 
 	private async initSession(

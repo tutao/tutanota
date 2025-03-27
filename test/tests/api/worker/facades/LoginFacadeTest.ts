@@ -6,11 +6,22 @@ import {
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
 	SaltReturnTypeRef,
+	SessionTypeRef,
 	User,
 	UserExternalAuthInfoTypeRef,
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs"
-import { AesKey, createAuthVerifier, encryptKey, KEY_LENGTH_BYTES_AES_256, keyToBase64, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import {
+	aes256RandomKey,
+	AesKey,
+	bitArrayToUint8Array,
+	createAuthVerifier,
+	encryptKey,
+	KEY_LENGTH_BYTES_AES_256,
+	keyToBase64,
+	sha256Hash,
+	uint8ArrayToBitArray,
+} from "@tutao/tutanota-crypto"
 import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../../../src/common/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
@@ -25,7 +36,7 @@ import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils
 import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/common/api/common/error/RestError"
 import { SessionType } from "../../../../../src/common/api/common/SessionType"
-import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions"
+import { HttpMethod, resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { ConnectMode, EventBusClient } from "../../../../../src/common/api/worker/EventBusClient"
 import { TutanotaPropertiesTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
@@ -83,13 +94,22 @@ async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, user
 	})
 }
 
+async function createSession(userId: string, accessKey: number[], instancePipeline: InstancePipeline) {
+	const session = createTestEntity(SessionTypeRef, {
+		user: userId,
+		accessKey: bitArrayToUint8Array(accessKey),
+	})
+	const untypedSession = await instancePipeline.encryptAndMapToLiteral(SessionTypeRef, session, aes256RandomKey())
+	return untypedSession
+}
+
 o.spec("LoginFacadeTest", function () {
 	let facade: LoginFacade
 	let serviceExecutor: IServiceExecutor
 	let restClientMock: RestClient
 	let entityClientMock: EntityClient
 	let loginListener: LoginListener
-	let instancePipelineMock: InstancePipeline
+	let instancePipeline: InstancePipeline
 	let cryptoFacadeMock: CryptoFacade
 	let cacheStorageInitializerMock: CacheStorageLateInitializer
 	let eventBusClientMock: EventBusClient
@@ -115,7 +135,7 @@ o.spec("LoginFacadeTest", function () {
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
 		loginListener = object<LoginListener>()
-		instancePipelineMock = instance(InstancePipeline)
+		instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 		cryptoFacadeMock = object<CryptoFacade>()
 		usingOfflineStorage = false
 		cacheStorageInitializerMock = object()
@@ -148,7 +168,7 @@ o.spec("LoginFacadeTest", function () {
 			restClientMock,
 			entityClientMock,
 			loginListener,
-			instancePipelineMock,
+			instancePipeline,
 			cryptoFacadeMock,
 			instance(KeyRotationFacade),
 			cacheStorageInitializerMock,
@@ -271,7 +291,7 @@ o.spec("LoginFacadeTest", function () {
 						HttpMethod.GET,
 						anything(),
 					),
-				).thenResolve(JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }))
+				).thenResolve(JSON.stringify(await createSession(userId, accessKey, instancePipeline)))
 			})
 
 			o.test("When resuming a session and there is a database key, it is passed to offline storage initialization", async function () {
@@ -406,10 +426,6 @@ o.spec("LoginFacadeTest", function () {
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
-				// // The call to /sys/session/...
-				// when(restClientMock.request(anything(), HttpMethod.GET, anything()))
-				// 	.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
-
 				calls = []
 				// .thenReturn(sessionServiceDefer)
 				when(userFacade.setUser(anything())).thenDo(() => {
@@ -449,7 +465,7 @@ o.spec("LoginFacadeTest", function () {
 						calls.push("return")
 					})
 
-				o(result).deepEquals({ type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree })
+				o(result).deepEquals({ type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree, asyncResumeCompleted: null })
 				o(calls).deepEquals(["sessionService", "return"])
 			})
 
@@ -458,7 +474,7 @@ o.spec("LoginFacadeTest", function () {
 				user.accountType = AccountType.PAID
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
-					return JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) })
+					return JSON.stringify(await createSession(userId, accessKey, instancePipeline))
 				})
 
 				const deferred = defer()
@@ -506,7 +522,7 @@ o.spec("LoginFacadeTest", function () {
 				)
 
 				// wait for async resume session
-				await result.asyncResumeSession
+				await result.asyncResumeCompleted
 
 				console.log("after resolve " + calls.toString())
 
@@ -543,7 +559,7 @@ o.spec("LoginFacadeTest", function () {
 			async function testSuccessfulSyncLogin() {
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
-					return JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) })
+					return JSON.stringify(await createSession(userId, accessKey, instancePipeline))
 				})
 
 				await facade
@@ -618,10 +634,6 @@ o.spec("LoginFacadeTest", function () {
 
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
-				// // The call to /sys/session/...
-				// when(restClientMock.request(anything(), HttpMethod.GET, anything()))
-				// 	.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
-
 				calls = []
 				// .thenReturn(sessionServiceDefer)
 				when(userFacade.setUser(anything())).thenDo(() => {
@@ -637,7 +649,7 @@ o.spec("LoginFacadeTest", function () {
 				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }),
+					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
 				)
 
 				await facade.resumeSession(
@@ -669,15 +681,7 @@ o.spec("LoginFacadeTest", function () {
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything()))
 					// @ts-ignore
 					// the type definitions for testdouble are lacking, but we can do this
-					.thenReturn(
-						Promise.reject(connectionError),
-						Promise.resolve(
-							JSON.stringify({
-								user: userId,
-								accessKey: keyToBase64(accessKey),
-							}),
-						),
-					)
+					.thenReturn(Promise.reject(connectionError), Promise.resolve(JSON.stringify(await createSession(userId, accessKey, instancePipeline))))
 
 				await facade.resumeSession(
 					credentials,
@@ -746,10 +750,6 @@ o.spec("LoginFacadeTest", function () {
 					createSaltReturn({ salt: SALT, kdfVersion: KdfType.Bcrypt }),
 				)
 
-				// // The call to /sys/session/...
-				// when(restClientMock.request(anything(), HttpMethod.GET, anything()))
-				// 	.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
-
 				calls = []
 				// .thenReturn(sessionServiceDefer)
 				when(userFacade.setUser(anything())).thenDo(() => {
@@ -765,7 +765,7 @@ o.spec("LoginFacadeTest", function () {
 				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }),
+					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
 				)
 
 				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
@@ -810,7 +810,7 @@ o.spec("LoginFacadeTest", function () {
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }),
+					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
 				)
 			})
 
@@ -898,7 +898,7 @@ o.spec("LoginFacadeTest", function () {
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					JSON.stringify({ user: userId, accessKey: keyToBase64(accessKey) }),
+					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
 				)
 			})
 
