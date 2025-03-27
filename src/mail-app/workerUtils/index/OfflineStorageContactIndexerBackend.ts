@@ -6,9 +6,7 @@ import { EntityClient } from "../../../common/api/common/EntityClient"
 export class OfflineStorageContactIndexerBackend implements ContactIndexerBackend {
 	constructor(private readonly entityClient: EntityClient, private readonly persistence: OfflineStoragePersistence) {}
 
-	async init(): Promise<void> {
-		return Promise.resolve(undefined)
-	}
+	async init(): Promise<void> {}
 
 	async areContactsIndexed(_contactList: ContactList): Promise<boolean> {
 		return this.persistence.areContactsIndexed()
@@ -20,7 +18,6 @@ export class OfflineStorageContactIndexerBackend implements ContactIndexerBacken
 		}
 
 		const allContacts = await this.entityClient.loadAll(ContactTypeRef, contactList.contacts)
-		console.log(`indexing ${allContacts.length} contact(s)`)
 		await this.persistence.storeContactData(allContacts)
 		await this.persistence.setContactsIndexed(true)
 	}

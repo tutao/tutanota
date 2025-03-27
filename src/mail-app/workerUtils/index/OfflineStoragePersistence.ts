@@ -115,7 +115,6 @@ export class OfflineStoragePersistence {
 				return
 			}
 
-			// FIXME: attachment names is just an empty string right now
 			const { query, params } = sql`
                 INSERT
                 OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
