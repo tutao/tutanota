@@ -72,6 +72,13 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
+	async updateIndexingTimestamp(groupId: Id, timestamp: number): Promise<void> {
+		const { query, params } = sql`UPDATE search_group_data
+                                    SET indexedTimestamp = ${timestamp}
+                                    WHERE groupId = ${groupId}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
 	async removeIndexedGroup(id: Id): Promise<void> {
 		const { query, params } = sql`DELETE
                                     FROM search_group_data
@@ -173,17 +180,17 @@ export class OfflineStoragePersistence {
 
 	async deleteContactData(contactId: IdTuple): Promise<void> {
 		const { query, params } = sql`DELETE
-									  FROM contact_index
-									  WHERE rowId = (SELECT rowId
-													 FROM list_entities
-													 WHERE type =
-														   ${getTypeId(ContactTypeRef)}
-													   AND listId
-														 =
-														   ${listIdPart(contactId)}
-													   AND elementId
-														 =
-														   ${elementIdPart(contactId)} LIMIT 1)`
+                                    FROM contact_index
+                                    WHERE rowId = (SELECT rowId
+                                                   FROM list_entities
+                                                   WHERE type =
+                                                         ${getTypeId(ContactTypeRef)}
+                                                     AND listId
+                                                       =
+                                                         ${listIdPart(contactId)}
+                                                     AND elementId
+                                                       =
+                                                         ${elementIdPart(contactId)} LIMIT 1)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 

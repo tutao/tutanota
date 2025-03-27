@@ -17,6 +17,9 @@ export class OfflineStorageMailIndexerBackend implements MailIndexerBackend {
 
 	async indexMails(dataPerGroup: GroupTimestamps, mailData: readonly MailWithDetailsAndAttachments[]): Promise<void> {
 		await this.persistence.storeMailData(mailData)
+		for (const [groupId, timestamp] of dataPerGroup) {
+			await this.persistence.updateIndexingTimestamp(groupId, timestamp)
+		}
 	}
 
 	async enableIndexing(): Promise<boolean> {

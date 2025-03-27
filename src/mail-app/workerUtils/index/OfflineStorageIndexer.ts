@@ -55,7 +55,7 @@ export class OfflineStorageIndexer implements Indexer {
 	}
 
 	async enableMailIndexing() {
-		const user = assertNotNull(this.userFacade.getUser())
+		const user = assertNotNull(this.userFacade.getUser(), "enableMailIndexing user")
 		await this.mailIndexer.enableMailIndexing(user)
 	}
 
@@ -70,7 +70,7 @@ export class OfflineStorageIndexer implements Indexer {
 	}
 
 	async extendMailIndex(time: number) {
-		TODO("extendMailIndex")
+		await this.mailIndexer.indexMailboxes(assertNotNull(this.userFacade.getUser(), "extendMailIndex user"), time)
 	}
 
 	async deleteIndex(userId: string) {
