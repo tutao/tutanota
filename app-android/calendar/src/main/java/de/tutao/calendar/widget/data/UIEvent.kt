@@ -9,6 +9,5 @@ data class UIEvent(
 	val startTime: String,
 	val endTime: String,
 	val isAllDay: Boolean,
-	val startTimestamp: ULong,
-	val endTimestamp: ULong,
+	val startTimestamp: ULong
 )

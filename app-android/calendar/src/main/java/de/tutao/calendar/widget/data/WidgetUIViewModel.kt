@@ -112,8 +112,7 @@ class WidgetUIViewModel(
 					start.format(formatter),
 					end.format(formatter),
 					isAllDay,
-					loadedEvent.startTime,
-					loadedEvent.endTime
+					loadedEvent.startTime
 				)
 
 				if (isAllDay) {

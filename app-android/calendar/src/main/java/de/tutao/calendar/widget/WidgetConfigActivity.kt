@@ -80,17 +80,23 @@ import androidx.compose.ui.unit.toSize
 import androidx.core.graphics.toColorInt
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.viewmodel.MutableCreationExtras
-import androidx.lifecycle.viewmodel.compose.viewModel
+import de.tutao.calendar.widget.data.WidgetConfigModel
 import de.tutao.calendar.widget.data.WidgetConfigRepository
 import de.tutao.calendar.widget.data.WidgetConfigViewModel
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
+import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
+import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.CredentialType
 import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.ipc.CredentialsInfo
+import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.PersistedCredentials
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -200,6 +206,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 					}
 
 					WidgetConfig(
+						viewModel,
 						finishAction = {
 							finish()
 						},
@@ -238,14 +245,10 @@ class WidgetConfigActivity : AppCompatActivity() {
 	@OptIn(ExperimentalMaterial3Api::class)
 	@Composable
 	fun WidgetConfig(
+		model: WidgetConfigModel,
 		finishAction: () -> Unit,
 		okAction: () -> Unit
 	) {
-		val model: WidgetConfigViewModel =
-			viewModel(
-				extras = this.modelFactoryExtras(),
-				factory = WidgetConfigViewModel.Factory
-			)
 		val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 		val credentials by model.credentials.collectAsState()
 		val isLoading by model.isLoading.collectAsState()
@@ -253,7 +256,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 		Scaffold(
 			topBar = {
 				TopBar(
-					finishAction, if (credentials.isEmpty()) {
+					finishAction, if (credentials.isEmpty() || isLoading) {
 						null
 					} else {
 						okAction
@@ -285,7 +288,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 					)
 				}
 			} else {
-				SettingsBody(innerPadding)
+				SettingsBody(innerPadding, model)
 			}
 		}
 	}
@@ -334,9 +337,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 	}
 
 	@Composable
-	private fun SettingsBody(innerPadding: PaddingValues) {
-		val model: WidgetConfigViewModel =
-			viewModel(extras = this.modelFactoryExtras(), factory = WidgetConfigViewModel.Factory)
+	private fun SettingsBody(innerPadding: PaddingValues, model: WidgetConfigModel) {
 		val credentials by model.credentials.collectAsState()
 		var showDropdown by remember { mutableStateOf(false) }
 		val selectedLogin =
@@ -385,7 +386,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 					.wrapContentWidth()
 			) {
 				Text(
-					"Account".uppercase(),
+					"Account".uppercase(), // FIXME Add Translation
 					color = MaterialTheme.colorScheme.onBackground,
 					fontWeight = FontWeight.Bold,
 					fontSize = 12.sp,
@@ -441,7 +442,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 					.padding(8.dp)
 			) {
 				Text(
-					"Calendars".uppercase(),
+					"Calendars".uppercase(), // FIXME Add Translation
 					color = MaterialTheme.colorScheme.onBackground,
 					fontWeight = FontWeight.Bold,
 					fontSize = 12.sp,
@@ -582,9 +583,9 @@ class WidgetConfigActivity : AppCompatActivity() {
 		}
 	}
 
-	@Preview(widthDp = 500, heightDp = 500)
+	@Preview(widthDp = 424, heightDp = 943)
 	@Composable
-	fun WidgetConfigPreview() {
+	fun ConfigPreviewNoCredentials() {
 		MaterialTheme(
 			colorScheme = if (isSystemInDarkTheme()) {
 				AppTheme.DarkColors
@@ -592,7 +593,93 @@ class WidgetConfigActivity : AppCompatActivity() {
 				AppTheme.LightColors
 			}
 		) {
-//		WidgetConfig(WidgetConfigViewModel(get), {})
+			WidgetConfig(
+				WidgetConfigTestViewModel(listOf()),
+				finishAction = {},
+				okAction = {}
+			)
+		}
+	}
+
+	@Preview(widthDp = 424, heightDp = 943)
+	@Composable
+	fun ConfigPreviewWithCredentials() {
+		val credential = PersistedCredentials(
+			CredentialsInfo(
+				"foo@bar.com",
+				"",
+				CredentialType.INTERNAL
+			),
+			DataWrapper(ByteArray(0)),
+			null,
+			"",
+			null
+		)
+
+		MaterialTheme(
+			colorScheme = if (isSystemInDarkTheme()) {
+				AppTheme.DarkColors
+			} else {
+				AppTheme.LightColors
+			}
+		) {
+			WidgetConfig(
+				WidgetConfigTestViewModel(listOf(credential)),
+				finishAction = {},
+				okAction = {}
+			)
+		}
+	}
+
+	@Preview(widthDp = 424, heightDp = 943)
+	@Composable
+	fun ConfigPreviewWithCalendars() {
+		val credential = PersistedCredentials(
+			CredentialsInfo(
+				"foo@bar.com",
+				"",
+				CredentialType.INTERNAL
+			),
+			DataWrapper(ByteArray(0)),
+			null,
+			"",
+			null
+		)
+
+		MaterialTheme(
+			colorScheme = if (isSystemInDarkTheme()) {
+				AppTheme.DarkColors
+			} else {
+				AppTheme.LightColors
+			}
+		) {
+			WidgetConfig(
+				WidgetConfigTestViewModel(
+					listOf(credential),
+					credential,
+					mapOf(
+						"0" to CalendarRenderData(name = "Foo", color = "013E85"),
+						"1" to CalendarRenderData(name = "Bar", color = "A1C1FF")
+					),
+					listOf("1")
+				),
+				finishAction = {},
+				okAction = {}
+			)
+		}
+	}
+
+	@Preview(widthDp = 424, heightDp = 943)
+	@Composable
+	fun ConfigPreviewWithError() {
+		MaterialTheme(
+			colorScheme = if (isSystemInDarkTheme()) {
+				AppTheme.DarkColors
+			} else {
+				AppTheme.LightColors
+			}
+		) {
+			ErrorMessage(WidgetError("Wow, something is wrong here", "Failed", "")) { }
 		}
 	}
 }

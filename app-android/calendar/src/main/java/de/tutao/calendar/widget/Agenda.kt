@@ -1,5 +1,7 @@
 package de.tutao.calendar.widget
 
+import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -27,6 +29,8 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
@@ -52,6 +56,8 @@ import androidx.glance.layout.width
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.layout.wrapContentWidth
 import androidx.glance.material3.ColorProviders
+import androidx.glance.preview.ExperimentalGlancePreviewApi
+import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -227,8 +233,6 @@ class Agenda : GlanceAppWidget() {
 
 	@Composable
 	fun WidgetBody(data: WidgetUIData?, headerCallback: Action, newEventCallback: Action) {
-		println(data)
-
 		val isEmpty = data?.allDayEvents?.isEmpty() ?: true && data?.normalEvents?.isEmpty() ?: true
 
 		Column(
@@ -482,86 +486,132 @@ class Agenda : GlanceAppWidget() {
 		) { }
 	}
 
-//	@OptIn(ExperimentalGlancePreviewApi::class)
-//	@Preview(widthDp = 200, heightDp = 422)
-//	@Preview(widthDp = 400, heightDp = 500)
-//	@Composable
-//	fun VerticalWidgetPreview() {
-//		val eventData = ArrayList<UIEvent>()
-//		val allDayEvents = ArrayList<UIEvent>()
-//		for (i in 1..7) {
-//			eventData.add(
-//				UIEvent(
-//					"previewCalendar",
-//					"2196f3",
-//					"Hello Widget $i",
-//					"08:00",
-//					"17:00",
-//					isAllDay = false,
-//					startTimestamp = 0UL,
-//					endTimestamp = 0UL
-//				)
-//			)
-//		}
-//
-//		eventData.add(
-//			UIEvent(
-//				"previewCalendar",
-//				"2196f3",
-//				"Summery",
-//				"Start Time",
-//				"End Time",
-//				isAllDay = false,
-//				startTimestamp = 0UL,
-//				endTimestamp = 0UL
-//			)
-//		)
-//
-//		allDayEvents.add(
-//			UIEvent(
-//				"previewCalendar",
-//				"2196f3",
-//				"Summery",
-//				"Start Time",
-//				"End Time",
-//				isAllDay = false,
-//				startTimestamp = 0UL,
-//				endTimestamp = 0UL
-//			)
-//		)
-//
-//		GlanceTheme(colors = AppTheme.colors) {
-//			WidgetBody(
-//				WidgetUIData(
-//					allDayEvents = allDayEvents,
-//					normalEvents = eventData,
-//				),
-//				headerCallback = {},
-//				newEventCallback = {},
-//			)
-//		}
-//	}
+	@OptIn(ExperimentalGlancePreviewApi::class)
+	@Preview(widthDp = 250, heightDp = 250)
+	@Preview(widthDp = 250, heightDp = 400)
+	@Composable
+	fun AgendaPreviewWithAllDay() {
+		val eventData = ArrayList<UIEvent>()
+		val allDayEvents = ArrayList<UIEvent>()
+		for (i in 1..7) {
+			eventData.add(
+				UIEvent(
+					"previewCalendar",
+					"2196f3",
+					"Hello Widget $i",
+					"08:00",
+					"17:00",
+					isAllDay = false,
+					startTimestamp = 0UL
+				)
+			)
+		}
 
-//	@OptIn(ExperimentalGlancePreviewApi::class)
-//	@Preview(widthDp = 200, heightDp = 200)
-//	@Preview(widthDp = 400, heightDp = 500)
-//	@Preview(widthDp = 800, heightDp = 500)
-//	@Composable
-//	fun VerticalWidgetPreviewNoEvents() {
-//		val eventData = ArrayList<UIEvent>()
-//		val allDayEvents = ArrayList<UIEvent>()
-//
-//		GlanceTheme(colors = AppTheme.colors) {
-//			WidgetBody(
-//				WidgetUIData(
-//					allDayEvents = allDayEvents,
-//					normalEvents = eventData,
-//				),
-//				headerCallback = {},
-//				newEventCallback = {},
-//			)
-//		}
-//	}
+		allDayEvents.add(
+			UIEvent(
+				"previewCalendar",
+				"2196f3",
+				"Summery",
+				"Start Time",
+				"End Time",
+				isAllDay = true,
+				startTimestamp = 0UL,
+			)
+		)
+
+		allDayEvents.add(
+			UIEvent(
+				"previewCalendar",
+				"2196f3",
+				"Summery",
+				"Start Time",
+				"End Time",
+				isAllDay = true,
+				startTimestamp = 0UL
+			)
+		)
+
+		GlanceTheme(colors = AppTheme.colors) {
+			WidgetBody(
+				WidgetUIData(
+					allDayEvents = allDayEvents,
+					normalEvents = eventData,
+				),
+				headerCallback = actionRunCallback<ActionCallback>(),
+				newEventCallback = actionRunCallback<ActionCallback>(),
+			)
+		}
+	}
+
+	@OptIn(ExperimentalGlancePreviewApi::class)
+	@Preview(widthDp = 250, heightDp = 250)
+	@Preview(widthDp = 250, heightDp = 400)
+	@Composable
+	fun AgendaPreview() {
+		val eventData = ArrayList<UIEvent>()
+		val allDayEvents = ArrayList<UIEvent>()
+		for (i in 1..7) {
+			eventData.add(
+				UIEvent(
+					"previewCalendar",
+					"2196f3",
+					"Hello Widget $i",
+					"08:00",
+					"17:00",
+					isAllDay = false,
+					startTimestamp = 0UL
+				)
+			)
+		}
+
+		GlanceTheme(colors = AppTheme.colors) {
+			WidgetBody(
+				WidgetUIData(
+					allDayEvents = allDayEvents,
+					normalEvents = eventData,
+				),
+				headerCallback = actionRunCallback<ActionCallback>(),
+				newEventCallback = actionRunCallback<ActionCallback>(),
+			)
+		}
+	}
+
+	@OptIn(ExperimentalGlancePreviewApi::class)
+	@Preview(widthDp = 200, heightDp = 200)
+	@Preview(widthDp = 200, heightDp = 400)
+	@Preview(widthDp = 800, heightDp = 500)
+	@Composable
+	fun AgendaPreviewNoEvents() {
+		val eventData = ArrayList<UIEvent>()
+		val allDayEvents = ArrayList<UIEvent>()
+
+		GlanceTheme(colors = AppTheme.colors) {
+			WidgetBody(
+				WidgetUIData(
+					allDayEvents = allDayEvents,
+					normalEvents = eventData,
+				),
+				headerCallback = actionRunCallback<ActionCallback>(),
+				newEventCallback = actionRunCallback<ActionCallback>(),
+			)
+		}
+	}
+
+	@OptIn(ExperimentalGlancePreviewApi::class)
+	@Preview(widthDp = 200, heightDp = 200)
+	@Preview(widthDp = 200, heightDp = 400)
+	@Preview(widthDp = 800, heightDp = 500)
+	@Composable
+	fun AgendaPreviewError() {
+		val eventData = ArrayList<UIEvent>()
+		val allDayEvents = ArrayList<UIEvent>()
+
+		GlanceTheme(colors = AppTheme.colors) {
+			ErrorBody(
+				WidgetError("Wow, something is wrong here", "Failed", ""),
+				action = actionRunCallback<ActionCallback>()
+			)
+		}
+	}
 }
-
 
