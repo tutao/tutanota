@@ -1245,21 +1245,21 @@ o.spec("IndexerTest", () => {
 		})
 
 		o("When init() is called and contacts have already been indexed they are not indexed again", async function () {
-			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.areContactsIndexed(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade })
 			verify(indexer._contactIndexer.indexFullContactList(contactList), { times: 0 })
 		})
 
 		o("When init() is called and contacts have not been indexed before, they are indexed", async function () {
-			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.areContactsIndexed(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade })
 			verify(indexer._contactIndexer.indexFullContactList(contactList))
 		})
 
 		o("When init() is called with a fresh db and contacts have not been indexed, they will be downloaded", async function () {
-			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.areContactsIndexed(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
 				isNewOfflineDb: true,
@@ -1275,7 +1275,7 @@ o.spec("IndexerTest", () => {
 		})
 
 		o("When init() is called with a fresh db and contacts are not yet indexed, they will be indexed and not downloaded", async function () {
-			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.areContactsIndexed(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
 				isNewOfflineDb: true,
@@ -1292,7 +1292,7 @@ o.spec("IndexerTest", () => {
 		})
 
 		o("When init() is called with a fresh db and the cache is not persisted the indexing is not enabled", async function () {
-			when(indexer._contactIndexer.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+			when(indexer._contactIndexer.areContactsIndexed(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
 			const cacheInfo: CacheInfo = {
 				isPersistent: false,
 				isNewOfflineDb: true,

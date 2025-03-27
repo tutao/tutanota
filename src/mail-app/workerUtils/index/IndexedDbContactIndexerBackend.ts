@@ -29,11 +29,11 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		await this.suggestionFacade.load()
 	}
 
-	async getIndexTimestamp(contactList: ContactList): Promise<number> {
+	async areContactsIndexed(contactList: ContactList): Promise<boolean> {
 		const t = await this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
 		const groupId = neverNull(contactList._ownerGroup)
 		const groupData = await t.get<GroupData>(GroupDataOS, groupId)
-		return groupData ? groupData.indexTimestamp : NOTHING_INDEXED_TIMESTAMP
+		return groupData != null
 	}
 
 	async indexContactList(contactList: ContactList): Promise<void> {

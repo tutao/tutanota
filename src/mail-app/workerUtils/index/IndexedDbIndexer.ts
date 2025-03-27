@@ -214,8 +214,8 @@ export class IndexedDbIndexer implements Indexer {
 
 	private async indexOrLoadContactListIfNeeded(user: User, cacheInfo: CacheInfo | undefined) {
 		try {
-			const indexTimestamp = await this._contactIndexer.getIndexTimestamp()
-			if (indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
+			const contactsIndexed = await this._contactIndexer.areContactsIndexed()
+			if (!contactsIndexed) {
 				await this._contactIndexer.indexFullContactList()
 			}
 			//If we do not have to index the contact list we might still need to download it so we cache it in the offline storage

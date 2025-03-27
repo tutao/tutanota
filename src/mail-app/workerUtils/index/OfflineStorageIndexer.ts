@@ -39,6 +39,9 @@ export class OfflineStorageIndexer implements Indexer {
 			const groupType = assertNotNull(membership.groupType) as GroupType
 			await this.persistence.addIndexedGroup(addedGroup, groupType, NOTHING_INDEXED_TIMESTAMP)
 		}
+
+		await this.contactIndexer.indexFullContactList()
+
 		// Added mail groups will be indexed when extendMailIndex() will be called later
 
 		// FIXME: start indexing process for non-mail groups

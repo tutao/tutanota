@@ -19,5 +19,5 @@ export interface ContactIndexerBackend {
 
 	onContactDeleted(contact: IdTuple): Promise<void>
 
-	getIndexTimestamp(contactList: ContactList): Promise<number>
+	areContactsIndexed(contactList: ContactList): Promise<boolean>
 }

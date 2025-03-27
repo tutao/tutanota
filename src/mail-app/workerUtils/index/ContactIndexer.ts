@@ -14,8 +14,8 @@ export class ContactIndexer {
 		await this.backend.init()
 	}
 
-	async getIndexTimestamp(): Promise<number> {
-		return this.backend.getIndexTimestamp(await this.userContactList())
+	async areContactsIndexed(): Promise<boolean> {
+		return this.backend.areContactsIndexed(await this.userContactList())
 	}
 
 	/**

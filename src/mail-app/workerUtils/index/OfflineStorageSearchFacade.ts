@@ -9,6 +9,7 @@ import { isSameTypeRef } from "@tutao/tutanota-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries
@@ -86,7 +87,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		const resultIds = resultRows.map(({ listId, elementId }) => {
 			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
 		})
-		const indexTimestamp = await this.contactIndexer.getIndexTimestamp()
+		const indexTimestamp = (await this.contactIndexer.areContactsIndexed()) ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
 		const result: SearchResult = {
 			query: originalQuery,
 			restriction,

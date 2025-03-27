@@ -172,8 +172,9 @@ export class OfflineStoragePersistence {
                 ${rowid},
                 ${contact.firstName},
                 ${contact.lastName},
-                ${contact.addresses.join(" ")},
+                ${contact.mailAddresses.map((a) => a.address).join(" ")}
                 )`
+
 			await this.sqlCipherFacade.run(query, params)
 		}
 	}
@@ -191,6 +192,22 @@ export class OfflineStoragePersistence {
                                                      AND elementId
                                                        =
                                                          ${elementIdPart(contactId)} LIMIT 1)`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async areContactsIndexed(): Promise<boolean> {
+		const { query, params } = sql`SELECT CAST(value as NUMBER)
+                                    FROM search_metadata
+                                    WHERE key = 'contacts_indexed'`
+		const value = await this.sqlCipherFacade.get(query, params)
+		return value != null && untagSqlObject(value).value === 1
+	}
+
+	async setContactsIndexed(indexed: boolean): Promise<void> {
+		const { query, params } = sql`INSERT
+        OR REPLACE INTO search_metadata (key, value) VALUES ('contacts_indexed',
+        ${indexed ? 1 : 0}
+        )`
 		await this.sqlCipherFacade.run(query, params)
 	}
 

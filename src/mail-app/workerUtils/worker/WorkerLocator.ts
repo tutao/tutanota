@@ -251,7 +251,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 		if (isOfflineStorageAvailable()) {
 			const persistence = await offlineStorageIndexerPersistence()
-			const backend = new OfflineStorageContactIndexerBackend(persistence)
+			const backend = new OfflineStorageContactIndexerBackend(locator.cachingEntityClient, persistence)
 			return new ContactIndexer(locator.cachingEntityClient, locator.user, backend)
 		} else {
 			const core = await indexerCore()
