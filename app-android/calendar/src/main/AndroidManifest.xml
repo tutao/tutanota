@@ -125,6 +125,8 @@
 				>
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+				<action android:name="android.appwidget.action.APPWIDGET_DISABLED"/>
+				<action android:name="android.appwidget.action.APPWIDGET_ENABLED"/>
 			</intent-filter>
 			<meta-data
 					android:name="android.appwidget.provider"
@@ -138,7 +140,7 @@
 				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
 			</intent-filter>
 		</activity>
-
+		<!--widget-->
 
 		<meta-data
 				android:name="android.webkit.WebView.MetricsOptOut"

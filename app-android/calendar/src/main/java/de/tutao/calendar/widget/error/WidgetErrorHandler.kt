@@ -23,7 +23,7 @@ class WidgetErrorHandler {
 			}
 
 			fullLog = fullLog
-				.append("===== LOGCAT =====")
+				.append("== LOGCAT ==")
 				.append(NEW_LINE)
 				.append(logCat)
 
