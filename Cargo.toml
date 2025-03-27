@@ -14,6 +14,7 @@ publish = false
 resolver = "2" # todo: can use resolver 3 after 1.84.0+
 members = [
     "tuta-sdk/rust/sdk",
+    "tuta-sdk/rust/wasm-crypto-binding",
     "packages/node-mimimi",
     # uniffi-bindgen is a seperate crate as uniffi-bindgen does not have a cli yet:
     # https://github.com/mozilla/uniffi-rs/blob/fbe146f/docs/manual/src/tutorial/foreign_language_bindings.md#creating-the-bindgen-binary

@@ -3,6 +3,7 @@ use ed25519_dalek::{
 	SecretKey, Signature, SignatureError, Signer, SigningKey, Verifier, VerifyingKey,
 	PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH,
 };
+use serde::{Deserialize, Serialize, Serializer};
 use zeroize::ZeroizeOnDrop;
 
 const SIGNATURE_SIZE: usize = Signature::BYTE_SIZE; // from dalek library see COMPONENT_SIZE, to bytes
@@ -14,14 +15,18 @@ pub struct Ed25519SignatureVerificationError(#[from] SignatureError);
 #[derive(ZeroizeOnDrop, Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct Ed25519Signature([u8; SIGNATURE_SIZE]); // should we add 0 to 0 initialize the array ?
-
+impl Serialize for Ed25519Signature {
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		self.0.as_slice().serialize(serializer)
+	}
+}
 impl Ed25519Signature {
 	fn from(value: [u8; SIGNATURE_SIZE]) -> Self {
 		Ed25519Signature(value)
 	}
 }
 
-#[derive(ZeroizeOnDrop, Clone, PartialEq)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct Ed25519PrivateKey([u8; SECRET_KEY_LENGTH]);
 
@@ -44,7 +49,7 @@ impl Ed25519PrivateKey {
 	}
 }
 
-#[derive(ZeroizeOnDrop, Clone, PartialEq)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct Ed25519PublicKey([u8; PUBLIC_KEY_LENGTH]);
 
@@ -72,7 +77,7 @@ impl Ed25519PublicKey {
 	}
 }
 
-#[derive(ZeroizeOnDrop, Clone, PartialEq)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
 pub struct Ed25519KeyPair {
 	pub public_key: Ed25519PublicKey,
