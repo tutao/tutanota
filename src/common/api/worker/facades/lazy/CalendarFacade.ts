@@ -1,11 +1,7 @@
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
 	AlarmInfo,
-	AlarmInfoTypeRef,
 	AlarmNotification,
-	AlarmNotificationTypeRef,
-	AlarmServicePost,
-	AlarmServicePostTypeRef,
 	createAlarmInfo,
 	createAlarmNotification,
 	createAlarmServicePost,
@@ -55,9 +51,8 @@ import { TutanotaError } from "@tutao/tutanota-error"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { AlarmService } from "../../../entities/sys/Services.js"
 import { CalendarService } from "../../../entities/tutanota/Services.js"
-import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { UserFacade } from "../UserFacade.js"
-import { EncryptedAlarmInfo, EncryptedAlarmNotification, NotificationSessionKey } from "../../../../native/common/EncryptedAlarmNotification.js"
+import { EncryptedAlarmNotification } from "../../../../native/common/EncryptedAlarmNotification.js"
 import { NativePushFacade } from "../../../../native/common/generatedipc/NativePushFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../../../../gui/InfoMessageHandler.js"
@@ -74,9 +69,8 @@ import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils.js"
-import { EncryptedParsedInstance, TypeModel, UntypedInstance } from "../../../common/EntityTypes"
+import { EncryptedParsedInstance, TypeModel } from "../../../common/EntityTypes"
 import { AttributeModel } from "../../../common/AttributeModel"
-import { InstancePipeline } from "../../crypto/InstancePipeline"
 
 assertWorkerOrNode()
 
@@ -365,39 +359,42 @@ export class CalendarFacade {
 
 		const encryptedAlarmNotifications = alarmNotifications.map((alarmNotification) => {
 			const { operation, alarmInfo, notificationSessionKeys, user } = alarmNotification
-			return {
-				operation: downcast<OperationType>(operation),
-				notificationSessionKeys: notificationSessionKeys.map((n) => {
-					const { pushIdentifierSessionEncSessionKey, pushIdentifier } = n
-					return {
-						pushIdentifier,
-						pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentifierSessionEncSessionKey),
-					} satisfies NotificationSessionKey
-				}),
-				alarmInfo: {
-					alarmIdentifier: alarmInfo.alarmIdentifier,
-				} satisfies EncryptedAlarmInfo,
-				user,
-			} satisfies EncryptedAlarmNotification
+			// FIXME: an
+			return {} as any
+			// return {
+			// 	operation: downcast<OperationType>(operation),
+			// 	notificationSessionKeys: notificationSessionKeys.map((n) => {
+			// 		const { pushIdentifierSessionEncSessionKey, pushIdentifier } = n
+			// 		return {
+			// 			pushIdentifier,
+			// 			pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentifierSessionEncSessionKey),
+			// 		} satisfies NotificationSessionKey
+			// 	}),
+			// 	alarmInfo: {
+			// 		alarmIdentifier: alarmInfo.alarmIdentifier,
+			// 	} satisfies EncryptedAlarmInfo,
+			// 	user,
+			// } satisfies EncryptedAlarmNotification
 		})
 
 		await this.nativePushFacade.scheduleAlarms(encryptedAlarmNotifications)
 	}
 
-	private mapNotificationSessionKey(notificationSessionKeyModel: TypeModel, encryptedParsedNotificationSk: EncryptedParsedInstance): NotificationSessionKey {
-		const pushIdentSk = downcast<Uint8Array>(
-			assertNotNull(
-				encryptedParsedNotificationSk[assertNotNull(AttributeModel.getAttributeId(notificationSessionKeyModel, "pushIdentifierSessionEncSessionKey"))],
-			),
-		)
-		const pushIdentifier = downcast<IdTuple>(
-			assertNotNull(encryptedParsedNotificationSk[assertNotNull(AttributeModel.getAttributeId(notificationSessionKeyModel, "pushIdentifier"))]),
-		)
-		return {
-			pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentSk),
-			pushIdentifier,
-		} satisfies NotificationSessionKey
-	}
+	// FIXME: an
+	// private mapNotificationSessionKey(notificationSessionKeyModel: TypeModel, encryptedParsedNotificationSk: EncryptedParsedInstance): NotificationSessionKey {
+	// 	const pushIdentSk = downcast<Uint8Array>(
+	// 		assertNotNull(
+	// 			encryptedParsedNotificationSk[assertNotNull(AttributeModel.getAttributeId(notificationSessionKeyModel, "pushIdentifierSessionEncSessionKey"))],
+	// 		),
+	// 	)
+	// 	const pushIdentifier = downcast<IdTuple>(
+	// 		assertNotNull(encryptedParsedNotificationSk[assertNotNull(AttributeModel.getAttributeId(notificationSessionKeyModel, "pushIdentifier"))]),
+	// 	)
+	// 	return {
+	// 		pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentSk),
+	// 		pushIdentifier,
+	// 	} satisfies NotificationSessionKey
+	// }
 
 	/**
 	 * Load all events that have an alarm assigned.

@@ -76,6 +76,8 @@ import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
+import { resolveTypeReference } from "../api/common/EntityFunctions"
 
 mp()
 
@@ -173,6 +175,8 @@ async function createComponents(): Promise<Components> {
 	})
 	const keychainManager = new KeychainEncryption(appPassHandler, desktopCrypto, keyStoreFacade)
 	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(desktopCrypto, credentialsDb, keychainManager)
+	// fixme: we need to use different typeRefResolvers here
+	const instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 
 	updater.setUpdateDownloadedListener(() => {
 		for (let applicationWindow of wm.getAll()) {
@@ -217,7 +221,7 @@ async function createComponents(): Promise<Components> {
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const schedulerImpl = new SchedulerImpl(dateProvider, global, global)
 	const alarmScheduler = new AlarmScheduler(dateProvider, schedulerImpl)
-	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
+	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler, instancePipeline)
 	desktopAlarmScheduler.rescheduleAll().catch((e) => {
 		log.error("Could not reschedule alarms", e)
 		return pushFacade.resetStoredState()

@@ -1,6 +1,5 @@
 import { OperationType } from "../../api/common/TutanotaConstants"
-import type { AlarmNotification } from "../../api/entities/sys/TypeRefs.js"
-import { AlarmNotificationTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { AlarmNotification, AlarmNotificationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import type { DesktopNotifier } from "../DesktopNotifier"
 import { NotificationResult } from "../DesktopNotifier"
 import type { WindowManager } from "../DesktopWindowManager"
@@ -9,12 +8,12 @@ import type { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { log } from "../DesktopLog"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
-import { resolveTypeReference } from "../../api/common/EntityFunctions"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
-import { base64ToUint8Array, isSameDay } from "@tutao/tutanota-utils"
+import { downcast, isSameDay } from "@tutao/tutanota-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { hasError } from "../../api/common/utils/ErrorUtils.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
+import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 
 export interface NativeAlarmScheduler {
 	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void>
@@ -31,6 +30,7 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 		private readonly alarmStorage: DesktopAlarmStorage,
 		private readonly desktopCrypto: DesktopNativeCryptoFacade,
 		private readonly alarmScheduler: AlarmScheduler,
+		private readonly instancePipeline: InstancePipeline,
 	) {}
 
 	/**
@@ -38,23 +38,21 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 	 * @param an the AlarmNotification to handle
 	 */
 	async handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void> {
-		if (an.operation === OperationType.CREATE) {
+		if (an.getOperation() === OperationType.CREATE) {
 			await this.handleCreateAlarm(an)
-		} else if (an.operation === OperationType.DELETE) {
-			log.debug(`deleting alarm notifications for ${an.alarmInfo.alarmIdentifier}!`)
+		} else if (an.getOperation() === OperationType.DELETE) {
+			log.debug(`deleting alarm notifications for ${an.getAlarmId()}!`)
 
 			this.handleDeleteAlarm(an)
 		} else {
-			console.warn(
-				`received AlarmNotification (alarmInfo identifier ${an.alarmInfo.alarmIdentifier}) with unsupported operation ${an.operation}, ignoring`,
-			)
+			console.warn(`received AlarmNotification (alarmInfo identifier ${an.getAlarmId()}) with unsupported operation ${an.getOperation()}, ignoring`)
 		}
 	}
 
 	async unscheduleAllAlarms(userId: Id | null = null): Promise<void> {
 		const alarms = await this.alarmStorage.getScheduledAlarms()
 		for (const alarm of alarms) {
-			if (userId == null || alarm.user === userId) {
+			if (userId == null || alarm.getUser() === userId) {
 				this.cancelAlarms(alarm)
 			}
 		}
@@ -73,8 +71,9 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 	}
 
 	private async decryptAndSchedule(an: EncryptedAlarmNotification): Promise<void> {
-		for (const currentKey of an.notificationSessionKeys) {
-			const pushIdentifierSessionKey = await this.alarmStorage.getPushIdentifierSessionKey(currentKey)
+		const pushIdentifier = await an.getPushIdentifier()
+		for (const pushId of pushIdentifier) {
+			const pushIdentifierSessionKey = await this.alarmStorage.getPushIdentifierSessionKey(pushId)
 
 			if (!pushIdentifierSessionKey) {
 				// this key is either not for us (we don't have the right PushIdentifierSessionKey in our local storage)
@@ -83,22 +82,22 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 				continue
 			}
 
-			const decAn: AlarmNotification = await this.desktopCrypto.decryptAndMapToInstance(
-				await resolveTypeReference(AlarmNotificationTypeRef),
-				an,
+			// const sk = uint8ArrayToBitArray(assertNotNull(pushIdentifierSessionKey))
+			const decAn: AlarmNotification = await this.instancePipeline.decryptAndMapToInstance(
+				AlarmNotificationTypeRef,
+				an.untypedInstance,
 				pushIdentifierSessionKey,
-				base64ToUint8Array(currentKey.pushIdentifierSessionEncSessionKey),
 			)
 
 			if (hasError(decAn)) {
 				// some property of the AlarmNotification couldn't be decrypted with the selected key
 				// throw away the key that caused the error and try the next one
-				await this.alarmStorage.removePushIdentifierKey(elementIdPart(currentKey.pushIdentifier))
+				await this.alarmStorage.removePushIdentifierKey(elementIdPart(pushId))
 				continue
 			}
 
 			// we just want to keep the key that can decrypt the AlarmNotification
-			an.notificationSessionKeys = [currentKey]
+			an.discardOtherNotificationSessionKeys(pushId)
 			return this.scheduleAlarms(decAn)
 		}
 
@@ -112,7 +111,7 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 	private handleDeleteAlarm(an: EncryptedAlarmNotification) {
 		this.cancelAlarms(an)
 
-		this.alarmStorage.deleteAlarm(an.alarmInfo.alarmIdentifier)
+		this.alarmStorage.deleteAlarm(an.getAlarmId())
 	}
 
 	private async handleCreateAlarm(an: EncryptedAlarmNotification) {
@@ -122,7 +121,11 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 	}
 
 	private cancelAlarms(an: AlarmNotification | EncryptedAlarmNotification): void {
-		this.alarmScheduler.cancelAlarm(an.alarmInfo.alarmIdentifier)
+		if (typeof downcast(an)["alarmInfo"] !== "undefined") {
+			this.alarmScheduler.cancelAlarm(downcast<AlarmNotification>(an).alarmInfo.alarmIdentifier)
+		} else {
+			this.alarmScheduler.cancelAlarm(downcast<EncryptedAlarmNotification>(an).getAlarmId())
+		}
 	}
 
 	private scheduleAlarms(decAn: AlarmNotification): void {

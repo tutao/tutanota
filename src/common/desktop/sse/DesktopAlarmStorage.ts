@@ -6,7 +6,9 @@ import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import type { Base64 } from "@tutao/tutanota-utils"
 import { base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog"
-import { EncryptedAlarmNotification, NotificationSessionKey } from "../../native/common/EncryptedAlarmNotification.js"
+import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
+import { AesKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { UntypedInstance } from "../../api/common/EntityTypes"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -59,12 +61,12 @@ export class DesktopAlarmStorage {
 	 * @param notificationSessionKey one notificationSessionKey from an alarmNotification.
 	 * @return {Promise<?Base64>} a stored pushIdentifierSessionKey that should be able to decrypt the given notificationSessionKey
 	 */
-	async getPushIdentifierSessionKey(notificationSessionKey: NotificationSessionKey): Promise<Uint8Array | null> {
+	async getPushIdentifierSessionKey(pushIdentifier: IdTuple): Promise<AesKey | null> {
 		const pw = await this.keyStoreFacade.getDeviceKey()
-		const pushIdentifierId = elementIdPart(notificationSessionKey.pushIdentifier)
+		const pushIdentifierId = elementIdPart(pushIdentifier)
 
 		if (this.sessionKeys[pushIdentifierId]) {
-			return base64ToUint8Array(this.sessionKeys[pushIdentifierId])
+			return uint8ArrayToBitArray(base64ToUint8Array(this.sessionKeys[pushIdentifierId]))
 		} else {
 			const keys: Record<string, Base64> = (await this.conf.getVar(DesktopConfigKey.pushEncSessionKeys)) || {}
 			const sessionKeyFromConf = keys[pushIdentifierId]
@@ -77,7 +79,7 @@ export class DesktopAlarmStorage {
 			try {
 				const decryptedKey = this.cryptoFacade.unauthenticatedAes256DecryptKey(pw, base64ToUint8Array(sessionKeyFromConf))
 				this.sessionKeys[pushIdentifierId] = uint8ArrayToBase64(decryptedKey)
-				return decryptedKey
+				return uint8ArrayToBitArray(decryptedKey)
 			} catch (e) {
 				console.warn("could not decrypt pushIdentifierSessionKey")
 				return null
@@ -87,14 +89,14 @@ export class DesktopAlarmStorage {
 
 	async storeAlarm(alarm: EncryptedAlarmNotification): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
-		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === alarm.alarmInfo.alarmIdentifier)
+		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === alarm.getAlarmId())
 		allAlarms.push(alarm)
 		await this._saveAlarms(allAlarms)
 	}
 
 	async deleteAlarm(identifier: string): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
-		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === identifier)
+		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === identifier)
 		await this._saveAlarms(allAlarms)
 	}
 
@@ -106,7 +108,7 @@ export class DesktopAlarmStorage {
 			return this._saveAlarms([])
 		} else {
 			const allScheduledAlarms = await this.getScheduledAlarms()
-			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.user === userId)
+			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.getUser() === userId)
 			return this._saveAlarms(allScheduledAlarms)
 		}
 	}
@@ -116,17 +118,22 @@ export class DesktopAlarmStorage {
 		// excludedDates field.
 		// to be able to decrypt & map these we need to at least add a plausible value there
 		// we'll unschedule, redownload and reschedule the fixed instances after login.
-		const alarms: Array<EncryptedAlarmNotification & { repeatRule?: Record<string, unknown> }> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
-		return (
-			alarms?.map((a) => {
-				if (!a.repeatRule) return a
-				a.repeatRule = { excludedDates: [], ...a.repeatRule }
-				return a
-			}) || []
-		)
+		const alarms: Array<UntypedInstance> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
+		if (!alarms) {
+			return []
+		} else if (alarms.length > 0 && typeof alarms[0]["_format"] === "string") {
+			// Legacy code path before migration to type and attribute ids
+			// CalendarFacade.scheduleAlarmsForNewDevice is anyway invoked if SystemModel has changed.
+			return []
+		} else {
+			return Promise.all(alarms.map(async (untypedInstance) => await EncryptedAlarmNotification.from(untypedInstance)))
+		}
 	}
 
 	_saveAlarms(alarms: ReadonlyArray<EncryptedAlarmNotification>): Promise<void> {
-		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, alarms)
+		return this.conf.setVar(
+			DesktopConfigKey.scheduledAlarms,
+			alarms.map((alarm) => alarm.untypedInstance),
+		)
 	}
 }

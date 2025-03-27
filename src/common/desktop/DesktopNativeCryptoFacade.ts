@@ -95,11 +95,6 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return this.cryptoFns.aesEncrypt(encryptionKey, data, undefined, true, true)
 	}
 
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, piSessionKey: Uint8Array, piSessionKeyEncSessionKey: Uint8Array): Promise<T> {
-		const sk = this.cryptoFns.decryptKey(uint8ArrayToKey(piSessionKey), piSessionKeyEncSessionKey)
-		return this.cryptoFns.decryptAndMapToInstance(model, instance, sk)
-	}
-
 	generateId(byteLength: number): string {
 		return base64ToBase64Url(uint8ArrayToBase64(this.cryptoFns.randomBytes(byteLength)))
 	}

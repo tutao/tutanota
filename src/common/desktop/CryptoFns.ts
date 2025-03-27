@@ -2,7 +2,7 @@
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
 import crypto from "node:crypto"
-import type { TypeModel } from "../api/common/EntityTypes"
+import type { TypeModel, UntypedInstance } from "../api/common/EntityTypes"
 import type { Base64 } from "@tutao/tutanota-utils"
 import {
 	Aes256Key,
@@ -55,8 +55,6 @@ export interface CryptoFunctions {
 	randomBytes(nbrOfBytes: number): Uint8Array
 
 	aes256RandomKey(): Aes256Key
-
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T>
 }
 
 export const cryptoFns: CryptoFunctions = {
@@ -103,11 +101,5 @@ export const cryptoFns: CryptoFunctions = {
 
 	aes256RandomKey(): Aes256Key {
 		return aes256RandomKey()
-	},
-
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, sk: AesKey | null): Promise<T> {
-		// fixme: why is instance Record<string, any>. Is it ParsedInstance?
-		// todo need whole pipeline here
-		return Promise.reject("not yet implemented!")
 	},
 }
