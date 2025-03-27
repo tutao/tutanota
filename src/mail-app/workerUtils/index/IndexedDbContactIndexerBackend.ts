@@ -33,7 +33,7 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		const t = await this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
 		const groupId = neverNull(contactList._ownerGroup)
 		const groupData = await t.get<GroupData>(GroupDataOS, groupId)
-		return groupData != null
+		return groupData != null && groupData.indexTimestamp === FULL_INDEXED_TIMESTAMP
 	}
 
 	async indexContactList(contactList: ContactList): Promise<void> {
