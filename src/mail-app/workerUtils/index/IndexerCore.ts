@@ -919,7 +919,7 @@ export class IndexerCore {
 				console.warn("Abort transaction on updating group data: concurrent access", groupId, batchId)
 				transaction.abort()
 			} else {
-				let newIndex = groupData.lastBatchIds.findIndex((indexedBatchId) => firstBiggerThanSecond(batchId, indexedBatchId))
+				const newIndex = groupData.lastBatchIds.findIndex((indexedBatchId) => firstBiggerThanSecond(batchId, indexedBatchId))
 
 				if (newIndex !== -1) {
 					groupData.lastBatchIds.splice(newIndex, 0, batchId)
@@ -927,9 +927,8 @@ export class IndexerCore {
 					groupData.lastBatchIds.push(batchId) // new batch is oldest of all stored batches
 				}
 
-				if (groupData.lastBatchIds.length > 1000) {
-					groupData.lastBatchIds = groupData.lastBatchIds.slice(0, 1000)
-				}
+				// We keep the last 1000 batch IDs
+				groupData.lastBatchIds = groupData.lastBatchIds.slice(0, 1000)
 
 				return transaction.put(GroupDataOS, groupId, groupData)
 			}

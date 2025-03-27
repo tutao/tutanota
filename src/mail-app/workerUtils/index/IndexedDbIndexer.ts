@@ -10,15 +10,8 @@ import type { EntityUpdate, GroupMembership, User } from "../../../common/api/en
 import { EntityEventBatch, EntityEventBatchTypeRef, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import { contains, daysToMillis, defer, downcast, isNotNull, millisToDays, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import {
-	firstBiggerThanSecond,
-	GENERATED_MAX_ID,
-	generatedIdToTimestamp,
-	getElementId,
-	isSameId,
-	timestampToGeneratedId,
-} from "../../../common/api/common/utils/EntityUtils.js"
+import { contains, daysToMillis, defer, downcast, first, isNotNull, last, millisToDays, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { filterIndexMemberships } from "../../../common/api/worker/search/IndexUtils.js"
 import type { Db, GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
@@ -180,7 +173,7 @@ export class IndexedDbIndexer implements Indexer {
 			await this.mailIndexer.mailboxIndexingPromise
 			await this.mailIndexer.indexMailboxes(user, this.mailIndexer.currentIndexTimestamp)
 			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
-			await this._loadNewEntities(groupIdToEventBatches).catch(ofClass(OutOfSyncError, (e) => this.disableMailIndexing()))
+			await this._loadAndQueueMissedEntityUpdates(groupIdToEventBatches).catch(ofClass(OutOfSyncError, (e) => this.disableMailIndexing()))
 		} catch (e) {
 			if (retryOnError !== false && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 				// in case of MembershipRemovedError mail or contact group has been removed from user.
@@ -487,7 +480,12 @@ export class IndexedDbIndexer implements Indexer {
 		return t2.wait()
 	}
 
-	async _loadNewEntities(
+	/**
+	 * Load entity events since the last processed event for each group. Add them to the {@link this.eventQueue}.
+	 * It is similar to what {@link EventBusClient} doeson reconnect or after login with offline.
+	 * @private visibleForTesting
+	 */
+	async _loadAndQueueMissedEntityUpdates(
 		groupIdToEventBatches: {
 			groupId: Id
 			eventBatchIds: Id[]
@@ -495,67 +493,39 @@ export class IndexedDbIndexer implements Indexer {
 	): Promise<void> {
 		const batchesOfAllGroups: QueuedBatch[] = []
 		const lastLoadedBatchIdInGroup = new Map<Id, Id>()
-		const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
-		const lastIndexTimeMs: number | null = await transaction.get(MetaDataOS, Metadata.lastEventIndexTimeMs)
-		await this._throwIfOutOfDate()
+		await this.throwIfOutOfDate()
 
-		try {
-			for (let groupIdToEventBatch of groupIdToEventBatches) {
-				if (groupIdToEventBatch.eventBatchIds.length > 0) {
-					let startId = this._getStartIdForLoadingMissedEventBatches(groupIdToEventBatch.eventBatchIds)
+		for (let { eventBatchIds, groupId } of groupIdToEventBatches) {
+			// We keep the last 1000 eventBatchIds. This was done in the past to detect out of sync situations,
+			// but now it is done based on timestamp (see throwIfOutOfDate()).
+			const startId = first(eventBatchIds)
+			if (startId == null) {
+				continue
+			}
 
-					let eventBatchesOnServer: EntityEventBatch[] = []
-					eventBatchesOnServer = await this._entity.loadAll(EntityEventBatchTypeRef, groupIdToEventBatch.groupId, startId)
-					const batchesToQueue: QueuedBatch[] = []
-
-					for (let batch of eventBatchesOnServer) {
-						const batchId = getElementId(batch)
-
-						if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1 && firstBiggerThanSecond(batchId, startId)) {
-							batchesToQueue.push({
-								groupId: groupIdToEventBatch.groupId,
-								batchId,
-								events: entityUpdatesAsData(batch.events),
-							})
-							const lastBatch = lastLoadedBatchIdInGroup.get(groupIdToEventBatch.groupId)
-
-							if (lastBatch == null || firstBiggerThanSecond(batchId, lastBatch)) {
-								lastLoadedBatchIdInGroup.set(groupIdToEventBatch.groupId, batchId)
-							}
-						}
-					}
-
-					// Good scenario: we know when we stopped, we can process events we did not process yet and catch up the server
-					//
-					//
-					// [4, 3, 2, 1]                          - processed events, lastBatchId =1
-					// load from lowest id 1 -1
-					// [0.9, 1, 2, 3, 4, 5, 6, 7, 8]         - last X events from server
-					// => [5, 6, 7, 8]                       - batches to queue
-					//
-					// Bad scenario: we don' know where we stopped, server doesn't have events to fill the gap anymore, we cannot fix the index.
-					// [4, 3, 2, 1] - processed events, lastBatchId = 1
-					// [7, 5, 9, 10] - last events from server
-					// => [7, 5, 9, 10] - batches to queue - nothing has been processed before so we are out of sync
-					// We only want to do this check for clients that haven't yet saved the index time
-					// This can be removed in the future
-					if (lastIndexTimeMs == null && eventBatchesOnServer.length === batchesToQueue.length) {
-						// Bad scenario happened.
-						// None of the events we want to process were processed before, we're too far away, stop the process and delete
-						// the index.
-						throw new OutOfSyncError(`We lost entity events for group ${groupIdToEventBatch.groupId}. start id was ${startId}`)
-					}
-
-					batchesOfAllGroups.push(...batchesToQueue)
+			let eventBatchesOnServer: EntityEventBatch[]
+			try {
+				eventBatchesOnServer = await this._entity.loadAll(EntityEventBatchTypeRef, groupId, startId)
+			} catch (e) {
+				if (e instanceof NotAuthorizedError) {
+					console.log(`could not download entity updates for group ${groupId} => lost permission on list`)
+					continue
 				}
+
+				throw e
 			}
-		} catch (e) {
-			if (e instanceof NotAuthorizedError) {
-				console.log("could not download entity updates => lost permission on list")
-				return
+			const batchesToQueue: QueuedBatch[] = eventBatchesOnServer.map((entityEventBatch) => ({
+				groupId: groupId,
+				batchId: getElementId(entityEventBatch),
+				events: entityUpdatesAsData(entityEventBatch.events),
+			}))
+
+			const lastBatch = last(batchesToQueue)
+			if (lastBatch != null) {
+				lastLoadedBatchIdInGroup.set(groupId, lastBatch.batchId)
 			}
 
-			throw e
+			batchesOfAllGroups.push(...batchesToQueue)
 		}
 
 		// add all batches of all groups in one step to avoid that just some groups are added when a ServiceUnavailableError occurs
@@ -571,24 +541,8 @@ export class IndexedDbIndexer implements Indexer {
 		await this._writeServerTimestamp()
 	}
 
-	_getStartIdForLoadingMissedEventBatches(lastEventBatchIds: Id[]): Id {
-		let newestBatchId = lastEventBatchIds[0]
-		let oldestBatchId = lastEventBatchIds[lastEventBatchIds.length - 1]
-		// load all EntityEventBatches which are not older than 1 minute before the newest batch
-		// to be able to get batches that were overtaken by the newest batch and therefore missed before
-		let startId = timestampToGeneratedId(generatedIdToTimestamp(newestBatchId) - 1000 * 60)
-
-		// do not load events that are older than the stored events
-		if (!firstBiggerThanSecond(startId, oldestBatchId)) {
-			// reduce the generated id by a millisecond in order to fetch the instance with lastBatchId, too (would throw OutOfSync, otherwise if the instance with lasBatchId is the only one in the list)
-			startId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
-		}
-
-		return startId
-	}
-
 	/**
-	 * @private a map from group id to event batches
+	 * @private
 	 */
 	_loadPersistentGroupData(user: User): Promise<
 		{
@@ -678,7 +632,7 @@ export class IndexedDbIndexer implements Indexer {
 		}
 	}
 
-	async _throwIfOutOfDate(): Promise<void> {
+	private async throwIfOutOfDate(): Promise<void> {
 		const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
 		const lastIndexTimeMs = await transaction.get(MetaDataOS, Metadata.lastEventIndexTimeMs)
 

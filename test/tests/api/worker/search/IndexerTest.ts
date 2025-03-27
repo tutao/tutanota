@@ -124,7 +124,7 @@ o.spec("IndexerTest", () => {
 		o(indexer._contactIndexer.indexFullContactList.args).deepEquals([contactList])
 		verify(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything()), { times: 1 })
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
-		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
+		o(indexer._loadAndQueueMissedEntityUpdates.args).deepEquals([persistentGroupData])
 	})
 
 	o("init existing db", async function () {
@@ -194,7 +194,7 @@ o.spec("IndexerTest", () => {
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
 		o(indexer._contactIndexer.indexFullContactList.callCount).equals(0)
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
-		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
+		o(indexer._loadAndQueueMissedEntityUpdates.args).deepEquals([persistentGroupData])
 		o(indexer._contactIndexer.suggestionFacade.load.callCount).equals(1)
 	})
 
@@ -266,7 +266,7 @@ o.spec("IndexerTest", () => {
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
 		o(indexer._contactIndexer.indexFullContactList.callCount).equals(0)
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
-		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
+		o(indexer._loadAndQueueMissedEntityUpdates.args).deepEquals([persistentGroupData])
 	})
 	o("_loadGroupDiff", async function () {
 		let user = createTestEntity(UserTypeRef)
@@ -607,7 +607,7 @@ o.spec("IndexerTest", () => {
 		downcast(indexer)._processEntityEvents = spy(() => Promise.resolve())
 		const queue = indexer._core.queue
 		downcast(queue).addBatches = spy()
-		await indexer._loadNewEntities(groupIdToEventBatches)
+		await indexer._loadAndQueueMissedEntityUpdates(groupIdToEventBatches)
 		// two asserts, otherwise Node doesn't print deeply nested objects
 		// @ts-ignore
 		o(queue.addBatches.invocations.length).equals(1)
@@ -661,7 +661,7 @@ o.spec("IndexerTest", () => {
 		downcast(indexer)._processEntityEvents = spy(() => Promise.resolve())
 		const queue = indexer._core.queue
 		downcast(queue).addBatches = spy()
-		await indexer._loadNewEntities(groupIdToEventBatches)
+		await indexer._loadAndQueueMissedEntityUpdates(groupIdToEventBatches)
 		// Check that we actually added loaded batch
 		// two asserts, otherwise Node doesn't print deeply nested objects
 		o(queue.addBatches.invocations.length).equals(1)
@@ -724,7 +724,7 @@ o.spec("IndexerTest", () => {
 		downcast(indexer)._processEntityEvents = spy(() => Promise.resolve())
 		const queue = indexer._core.queue
 		downcast(queue).addBatches = spy()
-		await indexer._loadNewEntities(groupIdToEventBatches)
+		await indexer._loadAndQueueMissedEntityUpdates(groupIdToEventBatches)
 		// Check that we actually added loaded batch
 		// two asserts, otherwise Node doesn't print deeply nested objects
 		// @ts-ignore
@@ -796,7 +796,7 @@ o.spec("IndexerTest", () => {
 		const queue = indexer._core.queue
 		downcast(queue).addBatches = spy()
 
-		const loadPromise = indexer._loadNewEntities(groupIdToEventBatches)
+		const loadPromise = indexer._loadAndQueueMissedEntityUpdates(groupIdToEventBatches)
 
 		const realtimeUpdates = [
 			createTestEntity(EntityUpdateTypeRef, {
@@ -871,7 +871,7 @@ o.spec("IndexerTest", () => {
 			}
 			mock.db.initialized = Promise.resolve()
 		})
-		await indexer._loadNewEntities(groupIdToEventBatches)
+		await indexer._loadAndQueueMissedEntityUpdates(groupIdToEventBatches)
 		// @ts-ignore
 		o(indexer._processEntityEvents.callCount).equals(0)
 		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
@@ -913,7 +913,7 @@ o.spec("IndexerTest", () => {
 			}
 			mock.db.initialized = Promise.resolve()
 		})
-		await assertThrows(OutOfSyncError, () => indexer._loadNewEntities(groupIdToEventBatches))
+		await assertThrows(OutOfSyncError, () => indexer._loadAndQueueMissedEntityUpdates(groupIdToEventBatches))
 		// @ts-ignore
 		o(indexer._processEntityEvents.callCount).equals(0)
 		o(transaction.put.callCount).equals(0)
@@ -946,7 +946,7 @@ o.spec("IndexerTest", () => {
 			}
 			mock.db.initialized = Promise.resolve()
 		})
-		await assertThrows(OutOfSyncError, () => indexer._loadNewEntities(groupIdToEventBatches))
+		await assertThrows(OutOfSyncError, () => indexer._loadAndQueueMissedEntityUpdates(groupIdToEventBatches))
 		o(indexer._processEntityEvents.callCount).equals(0)
 		o(transaction.put.callCount).equals(0)
 	})
