@@ -185,10 +185,11 @@ export class CalendarModel {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
 
-		const syncStatus = syncTracker.isSyncDone.map((isDone) => {
+		let syncStatus: Stream<void> | undefined = undefined
+		syncStatus = syncTracker.isSyncDone.map((isDone) => {
 			if (isDone) {
 				this.requestWidgetRefresh()
-				syncStatus.end()
+				syncStatus?.end()
 			}
 		})
 	}

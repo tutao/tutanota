@@ -223,69 +223,67 @@ impl CalendarFacade {
 			let events_facade = EventFacade {};
 			let mut advanced_instances: Vec<CalendarEvent> = Vec::new();
 
-			unwraped_long_events
+			let event_with_repeat_rules = unwraped_long_events
 				.iter()
 				.filter(|event| event.repeatRule.is_some())
-				.for_each(|event| {
-					let repeat_rule = event.repeatRule.as_ref().unwrap();
+				.collect::<Vec<&CalendarEvent>>();
 
-					let event_instances = match events_facade.create_event_instances(
-						event.startTime,
-						event.endTime,
-						EventRepeatRule {
-							frequency: RepeatPeriod::try_from_primitive(
-								repeat_rule.frequency as u8,
-							)
+			for event in event_with_repeat_rules.iter() {
+				let repeat_rule = event.repeatRule.as_ref().unwrap();
+				let event_instances = match events_facade.create_event_instances(
+					event.startTime,
+					event.endTime,
+					EventRepeatRule {
+						frequency: RepeatPeriod::try_from_primitive(repeat_rule.frequency as u8)
 							.unwrap(),
-							by_rules: repeat_rule
-								.advancedRules
-								.iter()
-								.map(|adv| ByRule {
-									by_rule: ByRuleType::try_from_primitive(adv.ruleType as u8)
-										.unwrap(),
-									interval: adv.interval.to_owned(),
-								})
-								.collect(),
-						},
-						repeat_rule.interval as u8,
-						EndType::try_from_primitive(repeat_rule.endType as u8).unwrap(),
-						repeat_rule
-							.endValue
-							.and_then(|val| Some(val.unsigned_abs())),
-						repeat_rule
-							.excludedDates
+						by_rules: repeat_rule
+							.advancedRules
 							.iter()
-							.map(|date| date.date)
+							.map(|adv| ByRule {
+								by_rule: ByRuleType::try_from_primitive(adv.ruleType as u8)
+									.unwrap(),
+								interval: adv.interval.to_owned(),
+							})
 							.collect(),
-						None,
-						Some(DateTime::from_millis(timestamp_start)),
-						Some(DateTime::from_millis(timestamp_end)),
-					) {
-						Ok(ev) => ev,
-						Err(e) => {
-							log::error!(
-								"Failed to parse advanced repeat rules for event {:?}: {e}",
-								event._id
-							);
+					},
+					repeat_rule.interval as u8,
+					EndType::try_from_primitive(repeat_rule.endType as u8).unwrap(),
+					repeat_rule
+						.endValue
+						.and_then(|val| Some(val.unsigned_abs())),
+					repeat_rule
+						.excludedDates
+						.iter()
+						.map(|date| date.date)
+						.collect(),
+					None,
+					Some(DateTime::from_millis(timestamp_end)),
+				) {
+					Ok(ev) => ev,
+					Err(e) => {
+						log::error!(
+							"Failed to parse advanced repeat rules for event {:?}: {e}",
+							event._id
+						);
 
-							Vec::new()
-						},
-					};
+						Vec::new()
+					},
+				};
 
-					for ev in event_instances {
-						if ev.as_millis() == event.startTime.as_millis() {
-							continue;
-						}
-
-						let mut generic_event = event.clone();
-						let end_time = self.calculate_new_end_time(&generic_event, &ev);
-
-						generic_event.startTime = ev;
-						generic_event.endTime = end_time;
-
-						advanced_instances.push(generic_event);
+				for ev in event_instances {
+					if ev.as_millis() == event.startTime.as_millis() {
+						continue;
 					}
-				});
+
+					let mut generic_event = event.to_owned().to_owned();
+					let end_time = self.calculate_new_end_time(event, &ev);
+
+					generic_event.startTime = ev;
+					generic_event.endTime = end_time;
+
+					advanced_instances.push(generic_event);
+				}
+			}
 
 			unwraped_long_events.append(&mut advanced_instances);
 			let mut filtered_long_events = self.filter_events_in_range(
