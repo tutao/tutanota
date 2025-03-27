@@ -54,7 +54,7 @@ o.spec("IndexerTest", () => {
 
 	o.beforeEach(function () {
 		mailIndexer = object()
-		mailIndexer.mailIndexingEnabled = false
+		mailIndexer._mailIndexingEnabled = false
 	})
 
 	o("init new db", async function () {

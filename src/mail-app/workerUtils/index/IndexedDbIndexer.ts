@@ -163,6 +163,7 @@ export class IndexedDbIndexer implements Indexer {
 				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
 				await this.loadIndexTables(user, userGroupKey, metaData)
 			}
+			this.initDeferred.resolve()
 
 			await this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
@@ -180,7 +181,6 @@ export class IndexedDbIndexer implements Indexer {
 			await this.mailIndexer.indexMailboxes(user, this.mailIndexer.currentIndexTimestamp)
 			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
 			await this._loadNewEntities(groupIdToEventBatches).catch(ofClass(OutOfSyncError, (e) => this.disableMailIndexing()))
-			this.initDeferred.resolve()
 		} catch (e) {
 			if (retryOnError !== false && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 				// in case of MembershipRemovedError mail or contact group has been removed from user.
@@ -282,10 +282,6 @@ export class IndexedDbIndexer implements Indexer {
 		this.eventQueue.start()
 	}
 
-	async onVisibilityChanged(visible: boolean): Promise<void> {
-		this._core.onVisibilityChanged(visible)
-	}
-
 	_reCreateIndex(): Promise<void> {
 		const mailIndexingWasEnabled = this.mailIndexer.mailIndexingEnabled
 		return this.mailIndexer.disableMailIndexing().then(() => {
@@ -320,7 +316,6 @@ export class IndexedDbIndexer implements Indexer {
 	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
 		this.db.key = decryptKey(userGroupKey, metaData.userEncDbKey)
 		this.db.iv = unauthenticatedAesDecrypt(this.db.key, neverNull(metaData.encDbIv), true)
-		this.mailIndexer.mailIndexingEnabled = metaData.mailIndexingEnabled
 		const groupDiff = await this._loadGroupDiff(user)
 		await this._updateGroups(user, groupDiff)
 		await this.mailIndexer.updateCurrentIndexTimestamp(user)

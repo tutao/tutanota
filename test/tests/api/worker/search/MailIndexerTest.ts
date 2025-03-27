@@ -407,7 +407,7 @@ o.spec("MailIndexer test", () => {
 		})
 		await indexer.enableMailIndexing(user)
 		o(indexer.indexMailboxes.invocations[0]).deepEquals([user, beforeNowInterval])
-		o(indexer.mailIndexingEnabled).equals(true)
+		o(indexer._mailIndexingEnabled).equals(true)
 		o(JSON.stringify(metadata)).equals(
 			JSON.stringify({
 				[MetaData.mailIndexingEnabled]: true,

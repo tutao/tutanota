@@ -59,7 +59,12 @@ export class MailIndexer {
 	//    	=> mail will not be indexed
 	currentIndexTimestamp: number
 
-	mailIndexingEnabled: boolean
+	private _mailIndexingEnabled: boolean
+
+	get mailIndexingEnabled(): boolean {
+		return this._mailIndexingEnabled
+	}
+
 	mailboxIndexingPromise: Promise<void>
 	isIndexing: boolean = false
 	_indexingCancelled: boolean
@@ -75,7 +80,7 @@ export class MailIndexer {
 		private readonly backendFactory: (user: Id) => MailIndexerBackend,
 	) {
 		this.currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
-		this.mailIndexingEnabled = false
+		this._mailIndexingEnabled = false
 		this.mailboxIndexingPromise = Promise.resolve()
 		this._indexingCancelled = false
 		this._dateProvider = dateProvider
@@ -84,7 +89,7 @@ export class MailIndexer {
 	async init(userId: Id): Promise<void> {
 		this._backend = this.backendFactory(userId)
 		await this.backend.init()
-		this.mailIndexingEnabled = await this.backend.isMailIndexingEnabled()
+		this._mailIndexingEnabled = await this.backend.isMailIndexingEnabled()
 	}
 
 	/** @private visibleForTesting */
@@ -144,7 +149,7 @@ export class MailIndexer {
 
 	async enableMailIndexing(user: User): Promise<void> {
 		const wasEnabled = await this.backend.enableIndexing()
-		this.mailIndexingEnabled = true
+		this._mailIndexingEnabled = true
 		if (!wasEnabled) {
 			// create index in background, termination is handled in Indexer.enableMailIndexing
 			const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
@@ -158,7 +163,7 @@ export class MailIndexer {
 	}
 
 	async disableMailIndexing(): Promise<void> {
-		this.mailIndexingEnabled = false
+		this._mailIndexingEnabled = false
 		this._indexingCancelled = true
 		await this.backend.deleteIndex()
 	}
@@ -190,7 +195,7 @@ export class MailIndexer {
 	 * If the mailboxes are already fully indexed, they are not indexed again.
 	 */
 	async indexMailboxes(user: User, oldestTimestamp: number): Promise<void> {
-		if (!this.mailIndexingEnabled) {
+		if (!this._mailIndexingEnabled) {
 			return
 		}
 
@@ -202,7 +207,7 @@ export class MailIndexer {
 
 		await this.infoMessageHandler.onSearchIndexStateUpdate({
 			initializing: false,
-			mailIndexEnabled: this.mailIndexingEnabled,
+			mailIndexEnabled: this._mailIndexingEnabled,
 			progress: 1,
 			currentMailIndexTimestamp: this.currentIndexTimestamp,
 			aimedMailIndexTimestamp: oldestTimestamp,
@@ -251,7 +256,7 @@ export class MailIndexer {
 
 			await this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
-				mailIndexEnabled: this.mailIndexingEnabled,
+				mailIndexEnabled: this._mailIndexingEnabled,
 				progress: 0,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
 				aimedMailIndexTimestamp: oldestTimestamp,
@@ -276,7 +281,7 @@ export class MailIndexer {
 
 			await this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
-				mailIndexEnabled: this.mailIndexingEnabled,
+				mailIndexEnabled: this._mailIndexingEnabled,
 				progress: 0,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
 				aimedMailIndexTimestamp: oldestTimestamp,
@@ -304,7 +309,7 @@ export class MailIndexer {
 		const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
 			this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
-				mailIndexEnabled: this.mailIndexingEnabled,
+				mailIndexEnabled: this._mailIndexingEnabled,
 				progress,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
 				aimedMailIndexTimestamp: oldestTimestamp,
@@ -440,7 +445,7 @@ export class MailIndexer {
 	}
 
 	private async processImportStateEntityEvents(event: EntityUpdateData): Promise<void> {
-		if (!this.mailIndexingEnabled) return
+		if (!this._mailIndexingEnabled) return
 		// we can only process create and update events (create is because of EntityEvent optimization
 		// (CREATE + UPDATE = CREATE) which requires us to process CREATE events with imported mails)
 		if (event.operation === OperationType.CREATE || event.operation === OperationType.UPDATE) {
@@ -499,7 +504,7 @@ export class MailIndexer {
 	 * Prepare IndexUpdate in response to the new entity events.
 	 */
 	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
-		if (!this.mailIndexingEnabled) return Promise.resolve()
+		if (!this._mailIndexingEnabled) return Promise.resolve()
 
 		for (const event of events) {
 			if (isUpdateForTypeRef(MailTypeRef, event)) {
