@@ -1,8 +1,12 @@
-import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { TypeModel, UntypedInstance } from "../../api/common/EntityTypes"
-import no from "../../../mail-app/translations/no"
 import { resolveTypeReference } from "../../api/common/EntityFunctions"
-import { AlarmInfoTypeRef, AlarmNotificationTypeRef, NotificationSessionKeyTypeRef } from "../../api/entities/sys/TypeRefs"
+import {
+	AlarmInfoTypeRef,
+	AlarmNotificationTypeRef,
+	createNotificationSessionKey,
+	NotificationSessionKey,
+	NotificationSessionKeyTypeRef,
+} from "../../api/entities/sys/TypeRefs"
 import { AttributeModel } from "../../api/common/AttributeModel"
 import { isSameId } from "../../api/common/utils/EntityUtils"
 import { assertNotNull } from "@tutao/tutanota-utils"
@@ -33,14 +37,21 @@ export class EncryptedAlarmNotification {
 		return new EncryptedAlarmNotification(untypedInstance, alarmNotificationTypeModel, notificationSessionKeyTypeModel, alarmInfoTypeModel)
 	}
 
-	getPushIdentifier(): Array<IdTuple> {
+	getPushIdentifier(): Array<NotificationSessionKey> {
 		const notificationSessionKeys = AttributeModel.getAttribute<UntypedInstance[]>(
 			this.untypedInstance,
 			"notificationSessionKeys",
 			this.alarmNotificationTypeModel,
 		)
 		return notificationSessionKeys.map((nsk) => {
-			return AttributeModel.getAttribute<IdTuple[]>(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)[0]
+			return createNotificationSessionKey({
+				pushIdentifier: AttributeModel.getAttribute<IdTuple[]>(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)[0],
+				pushIdentifierSessionEncSessionKey: AttributeModel.getAttribute<IdTuple[]>(
+					nsk,
+					"pushIdentifierSessionEncSessionKey",
+					this.notificationSessionKeyTypeModel,
+				),
+			})
 		})
 	}
 

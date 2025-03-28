@@ -187,10 +187,9 @@ export class TutaSseFacade implements SseEventHandler {
 
 		const lastProcessedNotificationId = AttributeModel.getAttribute<Id>(encryptedParsedInstance, "lastProcessedNotificationId", missedNotificationTypeModel)
 		const alarmNotifications = await Promise.all(
-			downcast<Array<EncryptedParsedInstance>>(
-				AttributeModel.getAttribute(encryptedParsedInstance, "alarmNotifications", missedNotificationTypeModel),
-				// FIXME: an
-			).map(async (an) => await EncryptedAlarmNotification.from(an as any)),
+			downcast<Array<UntypedInstance>>(AttributeModel.getAttribute(encryptedParsedInstance, "alarmNotifications", missedNotificationTypeModel)).map(
+				async (an) => await EncryptedAlarmNotification.from(an),
+			),
 		)
 		const notificationInfos = await Promise.all(
 			downcast<Array<EncryptedParsedInstance>>(
@@ -230,30 +229,27 @@ export class TutaSseFacade implements SseEventHandler {
 		const operation = AttributeModel.getAttribute<OperationType>(an, "operation", alarmNotificationTypeModel)
 		const alarmInfoArray = AttributeModel.getAttribute<EncryptedParsedInstance[]>(an, "alarmInfo", alarmNotificationTypeModel)
 		const alarmInfo = downcast<EncryptedParsedInstance>(alarmInfoArray[0])
-		// FIXME: an
-		// const notificationSessionKeys = downcast<Array<EncryptedParsedInstance>>(
-		// 	AttributeModel.getAttribute(an, "notificationSessionKeys", alarmNotificationTypeModel),
-		// ).map((ns): NotificationSessionKey => {
-		// 	const pushIdentifier = downcast<IdTuple[]>(AttributeModel.getAttribute(ns, "pushIdentifier", notificationSessionKeyModel))[0]
-		// 	const pushIdentifierSessionEncSessionKey = uint8ArrayToBase64(
-		// 		AttributeModel.getAttribute<Uint8Array>(ns, "pushIdentifierSessionEncSessionKey", notificationSessionKeyModel),
-		// 	)
-		//
-		// 	return {
-		// 		pushIdentifier,
-		// 		pushIdentifierSessionEncSessionKey,
-		// 	}
-		// })
+		const notificationSessionKeys = downcast<Array<EncryptedParsedInstance>>(
+			AttributeModel.getAttribute(an, "notificationSessionKeys", alarmNotificationTypeModel),
+		).map((ns): NotificationSessionKey => {
+			const pushIdentifier = downcast<IdTuple[]>(AttributeModel.getAttribute(ns, "pushIdentifier", notificationSessionKeyModel))[0]
+			const pushIdentifierSessionEncSessionKey = uint8ArrayToBase64(
+				AttributeModel.getAttribute<Uint8Array>(ns, "pushIdentifierSessionEncSessionKey", notificationSessionKeyModel),
+			)
+
+			return {
+				pushIdentifier,
+				pushIdentifierSessionEncSessionKey,
+			}
+		})
 
 		const alarmInfoIdentifier = AttributeModel.getAttribute<Id>(alarmInfo, "alarmIdentifier", alarmInfoTypeModel)
-		// FIXME: an
-		return {} as any
-		// return {
-		// 	operation,
-		// 	alarmInfo: { alarmIdentifier: alarmInfoIdentifier },
-		// 	user: userId,
-		// 	notificationSessionKeys,
-		// }
+		return {
+			operation,
+			alarmInfo: { alarmIdentifier: alarmInfoIdentifier },
+			user: userId,
+			notificationSessionKeys,
+		}
 	}
 
 	private makeMissedNotificationUrl(sseInfo: SseInfo): string {

@@ -2,6 +2,7 @@ import { assertWorkerOrNode } from "../../../common/Env.js"
 import {
 	AlarmInfo,
 	AlarmNotification,
+	AlarmNotificationTypeRef,
 	createAlarmInfo,
 	createAlarmNotification,
 	createAlarmServicePost,
@@ -21,7 +22,6 @@ import {
 import {
 	assertNotNull,
 	DAY_IN_MILLIS,
-	downcast,
 	flatMap,
 	getFromMap,
 	groupBy,
@@ -33,7 +33,6 @@ import {
 	promiseMap,
 	Require,
 	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
@@ -69,8 +68,7 @@ import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils.js"
-import { EncryptedParsedInstance, TypeModel } from "../../../common/EntityTypes"
-import { AttributeModel } from "../../../common/AttributeModel"
+import { InstancePipeline } from "../../crypto/InstancePipeline"
 
 assertWorkerOrNode()
 
@@ -107,6 +105,7 @@ export class CalendarFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly infoMessageHandler: InfoMessageHandler,
+		private readonly instancePipeline: InstancePipeline,
 	) {
 		this.cachingEntityClient = new EntityClient(this.entityRestCache)
 	}
@@ -352,49 +351,21 @@ export class CalendarFacade {
 		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({ event, userAlarmInfos }) =>
 			userAlarmInfos.map((userAlarmInfo) => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)),
 		)
-		// Theoretically we don't need to encrypt anything if we are sending things locally but we use already encrypted data on the client
+		// Theoretically we don't need to encrypt anything if we are sending things locally, but we use already encrypted data on the client
 		// to store alarms securely.
 		const notificationKey = aes256RandomKey()
 		await this.encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
 
-		const encryptedAlarmNotifications = alarmNotifications.map((alarmNotification) => {
-			const { operation, alarmInfo, notificationSessionKeys, user } = alarmNotification
-			// FIXME: an
-			return {} as any
-			// return {
-			// 	operation: downcast<OperationType>(operation),
-			// 	notificationSessionKeys: notificationSessionKeys.map((n) => {
-			// 		const { pushIdentifierSessionEncSessionKey, pushIdentifier } = n
-			// 		return {
-			// 			pushIdentifier,
-			// 			pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentifierSessionEncSessionKey),
-			// 		} satisfies NotificationSessionKey
-			// 	}),
-			// 	alarmInfo: {
-			// 		alarmIdentifier: alarmInfo.alarmIdentifier,
-			// 	} satisfies EncryptedAlarmInfo,
-			// 	user,
-			// } satisfies EncryptedAlarmNotification
-		})
+		const encryptedAlarmNotifications = await Promise.all(
+			alarmNotifications.map(async (alarmNotification) => {
+				const sk = this.cryptoFacade.resolveSessionKey()
+				const parsedInstance = await this.instancePipeline.encryptAndMapToLiteral(AlarmNotificationTypeRef, alarmNotification)
+				return EncryptedAlarmNotification.from(parsedInstance)
+			}),
+		)
 
 		await this.nativePushFacade.scheduleAlarms(encryptedAlarmNotifications)
 	}
-
-	// FIXME: an
-	// private mapNotificationSessionKey(notificationSessionKeyModel: TypeModel, encryptedParsedNotificationSk: EncryptedParsedInstance): NotificationSessionKey {
-	// 	const pushIdentSk = downcast<Uint8Array>(
-	// 		assertNotNull(
-	// 			encryptedParsedNotificationSk[assertNotNull(AttributeModel.getAttributeId(notificationSessionKeyModel, "pushIdentifierSessionEncSessionKey"))],
-	// 		),
-	// 	)
-	// 	const pushIdentifier = downcast<IdTuple>(
-	// 		assertNotNull(encryptedParsedNotificationSk[assertNotNull(AttributeModel.getAttributeId(notificationSessionKeyModel, "pushIdentifier"))]),
-	// 	)
-	// 	return {
-	// 		pushIdentifierSessionEncSessionKey: uint8ArrayToBase64(pushIdentSk),
-	// 		pushIdentifier,
-	// 	} satisfies NotificationSessionKey
-	// }
 
 	/**
 	 * Load all events that have an alarm assigned.

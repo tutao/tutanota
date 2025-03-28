@@ -74,6 +74,7 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 		const pushIdentifier = await an.getPushIdentifier()
 		for (const pushId of pushIdentifier) {
 			const pushIdentifierSessionKey = await this.alarmStorage.getPushIdentifierSessionKey(pushId)
+			//			const pushIdentifierSessionKey = await this.alarmStorage.getPushIdentifierSessionKey(currentKey)
 
 			if (!pushIdentifierSessionKey) {
 				// this key is either not for us (we don't have the right PushIdentifierSessionKey in our local storage)
@@ -88,6 +89,13 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 				an.untypedInstance,
 				pushIdentifierSessionKey,
 			)
+
+			// const decAn: AlarmNotification = await this.desktopCrypto.decryptAndMapToInstance(
+			// 	await resolveTypeReference(AlarmNotificationTypeRef),
+			// 	an,
+			// 	pushIdentifierSessionKey,
+			// 	base64ToUint8Array(currentKey.pushIdentifierSessionEncSessionKey),
+			// )
 
 			if (hasError(decAn)) {
 				// some property of the AlarmNotification couldn't be decrypted with the selected key
