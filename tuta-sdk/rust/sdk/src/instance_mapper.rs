@@ -13,7 +13,7 @@ use crate::element_value::ElementValue::Array;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Entity;
 use crate::metamodel::{Cardinality, TypeModel};
-use crate::type_model_provider::init_type_model_provider;
+use crate::type_model_provider::{init_type_model_provider, TypeModelProvider};
 use crate::{CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated, TypeRef};
 
 /// Converter between untyped representations of API Entities and generated structures
@@ -290,7 +290,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 			ElementValue::IdGeneratedId(GeneratedId(id))
 			| ElementValue::IdCustomId(CustomId(id)) => visitor.visit_string(id),
 
-			// associated Id's will be wrapped around array for all cardinality
+			// associated ids will be wrapped around by an array for all cardinalities
 			ElementValue::Array(ref arr) => match arr.first().clone() {
 				Some(ElementValue::String(str)) => visitor.visit_string(str.clone()),
 				Some(ElementValue::IdGeneratedId(GeneratedId(id)))
@@ -319,10 +319,10 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 	{
 		match &self.value {
 			ElementValue::Null => visitor.visit_none(),
-			// case when association with cardinality zero or one have empty arreay, that is
+			// case when association with cardinality ZeroOrOne has empty array, that is
 			// same as having null
 			ElementValue::Array(arr) => {
-				let is_association = init_type_model_provider()
+				let is_association = TypeModelProvider::new()
 					.resolve_type_ref(&self.type_ref)
 					.unwrap()
 					.is_attribute_name_association(self.attribute_id.to_string());
@@ -399,7 +399,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 			}
 		}
 
-		let type_model_provider = init_type_model_provider();
+		let type_model_provider = TypeModelProvider::new();
 
 		let type_model: &TypeModel =
 			type_model_provider
@@ -408,13 +408,8 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 					"could not resolve type model for {}",
 					self.type_ref
 				)))?;
-		/**
-		mail
-			- assoc [bucketKey]
-					- assoc [bucketEncSessionKeys] <-
-						- typeInfo [TypeInfo]
-		*/
-		let is_association = type_model.is_attribute_name_association(self.attribute_id.to_string());
+		let is_association =
+			type_model.is_attribute_name_association(self.attribute_id.to_string());
 
 		if name == crate::id::id_tuple::ID_TUPLE_GENERATED_NAME {
 			match self.value {
@@ -430,7 +425,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 							value: None,
 						})
 					} else {
-						panic!();
+						unreachable!();
 					}
 				},
 
@@ -458,7 +453,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 							value: None,
 						})
 					} else {
-						panic!();
+						unreachable!();
 					}
 				},
 
@@ -473,8 +468,14 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 				_ => Err(self.wrong_type_err(crate::id::id_tuple::ID_TUPLE_CUSTOM_NAME)),
 			}
 		} else if let ElementValue::Dict(dict) = self.value {
-			let deserializer =
-				DictionaryDeserializer::<_>::from_iterable(dict, self.type_ref.clone());
+			let attr_assoc = type_model
+				.get_association_by_name(self.attribute_id.to_string())
+				.unwrap();
+			let ref_type_ref = TypeRef {
+				app: attr_assoc.dependency.unwrap_or(type_model.app),
+				type_id: attr_assoc.ref_type_id,
+			};
+			let deserializer = DictionaryDeserializer::<_>::from_iterable(dict, ref_type_ref);
 			deserializer.deserialize_struct(name, fields, visitor)
 		} else if let ElementValue::Array(mut arr) = self.value {
 			let Ok(cardinality) =
@@ -506,8 +507,9 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 						);
 						visitor.visit_map(deserializer)
 					} else {
-						// fixme: add message why this is unreachable
-						unreachable!()
+						unreachable!(
+							"ElementValue should be a ParsedEntity for One or ZeroOrOne aggregates"
+						)
 					}
 				},
 				Cardinality::Any => {
@@ -520,10 +522,12 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'_> {
 				},
 			}
 		} else {
+			//fixme what should the error here
 			Err(self.wrong_type_err("dict"))
 		}
 	}
 
+	/// Only used for _finalIvs
 	fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
 	where
 		V: Visitor<'de>,
@@ -971,13 +975,13 @@ impl SerializeStruct for ElementValueStructSerializer {
 				let aggregation_info = type_model.get_association_by_name(key.to_string()).ok();
 
 				if let Some(aggregation_info) = aggregation_info {
-					let aggregation_typeref = TypeRef {
+					let aggregation_type_ref = TypeRef {
 						app: aggregation_info.dependency.unwrap_or(type_model.app),
 						type_id: aggregation_info.ref_type_id,
 					};
 
 					let serialized_value =
-						value.serialize(ElementValueSerializer::new(Some(aggregation_typeref)))?;
+						value.serialize(ElementValueSerializer::new(Some(aggregation_type_ref)))?;
 
 					let cardinality: Cardinality = type_model
 						.get_attribute_name_cardinality(key.to_string())
@@ -1609,7 +1613,6 @@ mod tests {
 		let instance_session_key = create_test_entity::<InstanceSessionKey>();
 		bucket_key.bucketEncSessionKeys.push(instance_session_key);
 		mail.bucketKey = Some(bucket_key);
-
 		let _id = IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());
 		let mail_details_id =
 			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random());

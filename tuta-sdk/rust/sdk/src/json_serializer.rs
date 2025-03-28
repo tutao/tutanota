@@ -116,7 +116,7 @@ impl JsonSerializer {
 			match (
 				&association_type.association_type,
 				&association_type.cardinality,
-				value,
+				value.clone(),
 			) {
 				(AssociationType::Aggregation, _, JsonElement::Array(elements)) => {
 					let parsed_aggregates = self.parse_aggregated_array(
@@ -165,7 +165,7 @@ impl JsonSerializer {
 						ElementValue::Array(element_values),
 					);
 				},
-				_ => panic!("Unknown Association/cardinality/valueType combination: association id = {association_id}"),
+				_ => panic!("Unknown Association/cardinality/valueType combination: association id = {} cardinality = {:?} valueType = {:?} value {:?}", association_id, association_type.cardinality, association_type.association_type, value),
 			}
 		}
 
@@ -295,7 +295,7 @@ impl JsonSerializer {
 					ElementValue::Dict(dict),
 				) => {
 					let serialized = self.serialize(&association_type_ref, dict)?;
-					JsonElement::Dict(serialized)
+					JsonElement::Array(vec![JsonElement::Dict(serialized)])
 				},
 				(
 					AssociationType::Aggregation
@@ -318,25 +318,25 @@ impl JsonSerializer {
 					ElementValue::IdGeneratedId(id),
 				) => {
 					// Note: it's not always generated id, but it's fine probably
-					JsonElement::String(id.into())
+					JsonElement::Array(vec![JsonElement::String(id.into())])
 				},
 				(
 					AssociationType::ListElementAssociationGenerated
 					| AssociationType::BlobElementAssociation,
 					Cardinality::One | Cardinality::ZeroOrOne,
 					ElementValue::IdTupleGeneratedElementId(id_tuple),
-				) => JsonElement::Array(vec![
+				) => JsonElement::Array(vec![JsonElement::Array(vec![
 					JsonElement::String(id_tuple.list_id.into()),
 					JsonElement::String(id_tuple.element_id.into()),
-				]),
+				])]),
 				(
 					AssociationType::ListElementAssociationCustom,
 					Cardinality::One | Cardinality::ZeroOrOne,
 					ElementValue::IdTupleCustomElementId(id_tuple),
-				) => JsonElement::Array(vec![
+				) => JsonElement::Array(vec![JsonElement::Array(vec![
 					JsonElement::String(id_tuple.list_id.into()),
 					JsonElement::String(id_tuple.element_id.into()),
-				]),
+				])]),
 				(AssociationType::BlobElementAssociation, _, ElementValue::Array(elements)) => {
 					// Blobs are copied as-is for now
 					let serialized_aggregates = self.make_serialized_aggregated_array(
