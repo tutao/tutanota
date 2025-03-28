@@ -71,4 +71,10 @@ interface MobileSystemFacade {
 	 */
 	suspend fun requestWidgetRefresh(
 	): Unit
+	/**
+	 * Sends the URL from the remote origin to be stored on the device
+	 */
+	suspend fun storeServerRemoteOrigin(
+		origin: String,
+	): Unit
 }

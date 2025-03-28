@@ -43,7 +43,7 @@ public class CommonNativeFacadeSendDispatcher : CommonNativeFacade {
 	
 	 public func openCalendar(
 		_ userId: String,
-		_ action: CalendarOpenAction,
+		_ action: CalendarOpenAction?,
 		_ dateIso: String?
 	) async throws -> Void
 		{

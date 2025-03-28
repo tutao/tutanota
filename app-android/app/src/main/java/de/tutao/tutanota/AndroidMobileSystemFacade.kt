@@ -20,6 +20,7 @@ import de.tutao.tutashared.atLeastTiramisu
 import de.tutao.tutashared.credentials.AuthenticationPrompt
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.ipc.*
+import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -218,5 +219,10 @@ class AndroidMobileSystemFacade(
 
 	override suspend fun requestWidgetRefresh() {
 		TODO("Not yet implemented")
+	}
+
+	override suspend fun storeServerRemoteOrigin(origin: String) {
+		val remoteStorage = RemoteStorage(db)
+		remoteStorage.storeRemoteUrl(origin)
 	}
 }

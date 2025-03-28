@@ -714,7 +714,6 @@ class MainActivity : FragmentActivity() {
 	private suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
 		val action = CalendarOpenAction.fromValue(intent.getStringExtra(OPEN_CALENDAR_IN_APP_ACTION_KEY) ?: "")
-			?: CalendarOpenAction.AGENDA
 		val date = intent.getStringExtra(OPEN_CALENDAR_DATE_KEY)
 
 		commonNativeFacade.openCalendar(userId, action, date)

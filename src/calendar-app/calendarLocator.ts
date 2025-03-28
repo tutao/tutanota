@@ -695,6 +695,8 @@ class CalendarLocator {
 				const { SystemPermissionHandler } = await import("../common/native/main/SystemPermissionHandler.js")
 				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
 				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), isApp())
+
+				this.systemFacade.storeServerRemoteOrigin(assertNotNull(env.staticUrl)).catch((e) => console.log("Failed to store remote URL: ", e))
 			}
 		}
 

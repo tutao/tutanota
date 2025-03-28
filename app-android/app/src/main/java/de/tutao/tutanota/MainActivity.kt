@@ -61,6 +61,7 @@ import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
+import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
 import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
 import de.tutao.tutashared.ipc.MobileFacade
@@ -755,7 +756,10 @@ class MainActivity : FragmentActivity() {
 
 	private suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
-		commonNativeFacade.openCalendar(userId)
+		val action = CalendarOpenAction.fromValue(intent.getStringExtra(OPEN_CALENDAR_IN_APP_ACTION_KEY) ?: "")
+		val date = intent.getStringExtra(OPEN_CALENDAR_DATE_KEY)
+
+		commonNativeFacade.openCalendar(userId, action, date)
 	}
 
 	private suspend fun openContactEditor(data: Uri?) {
@@ -818,6 +822,8 @@ class MainActivity : FragmentActivity() {
 		const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"
 		const val OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION"
 		const val OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION"
+		const val OPEN_CALENDAR_DATE_KEY = "targetDate"
+		const val OPEN_CALENDAR_IN_APP_ACTION_KEY = "inAppAction"
 		const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
 		const val OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"

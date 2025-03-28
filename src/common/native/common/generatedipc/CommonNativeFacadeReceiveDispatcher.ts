@@ -23,7 +23,7 @@ export class CommonNativeFacadeReceiveDispatcher {
 			}
 			case "openCalendar": {
 				const userId: string = arg[0]
-				const action: CalendarOpenAction = arg[1]
+				const action: CalendarOpenAction | null = arg[1]
 				const dateIso: string | null = arg[2]
 				return this.facade.openCalendar(userId, action, dateIso)
 			}

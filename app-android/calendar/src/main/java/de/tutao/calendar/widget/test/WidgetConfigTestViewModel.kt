@@ -1,6 +1,6 @@
 package de.tutao.calendar.widget.test
 
-import de.tutao.calendar.widget.data.WidgetConfigModel
+import de.tutao.calendar.widget.model.WidgetConfigModel
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId

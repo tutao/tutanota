@@ -103,6 +103,15 @@
 			"doc": "Sends a refresh signal to the native side, updating widget last sync",
 			"arg": [],
 			"ret": "void"
+		},
+		"storeServerRemoteOrigin": {
+			"doc": "Sends the URL from the remote origin to be stored on the device",
+			"arg": [
+				{
+					"origin": "string"
+				}
+			],
+			"ret": "void"
 		}
 	}
 }
