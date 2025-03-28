@@ -219,39 +219,6 @@ export class TutaSseFacade implements SseEventHandler {
 		}
 	}
 
-	private mapAlarmNotification(
-		alarmNotificationTypeModel: TypeModel,
-		alarmInfoTypeModel: TypeModel,
-		notificationSessionKeyModel: TypeModel,
-		an: EncryptedParsedInstance,
-	): EncryptedAlarmNotification {
-		const userId = AttributeModel.getAttribute<Id[]>(an, "user", alarmNotificationTypeModel)[0]
-		const operation = AttributeModel.getAttribute<OperationType>(an, "operation", alarmNotificationTypeModel)
-		const alarmInfoArray = AttributeModel.getAttribute<EncryptedParsedInstance[]>(an, "alarmInfo", alarmNotificationTypeModel)
-		const alarmInfo = downcast<EncryptedParsedInstance>(alarmInfoArray[0])
-		const notificationSessionKeys = downcast<Array<EncryptedParsedInstance>>(
-			AttributeModel.getAttribute(an, "notificationSessionKeys", alarmNotificationTypeModel),
-		).map((ns): NotificationSessionKey => {
-			const pushIdentifier = downcast<IdTuple[]>(AttributeModel.getAttribute(ns, "pushIdentifier", notificationSessionKeyModel))[0]
-			const pushIdentifierSessionEncSessionKey = uint8ArrayToBase64(
-				AttributeModel.getAttribute<Uint8Array>(ns, "pushIdentifierSessionEncSessionKey", notificationSessionKeyModel),
-			)
-
-			return {
-				pushIdentifier,
-				pushIdentifierSessionEncSessionKey,
-			}
-		})
-
-		const alarmInfoIdentifier = AttributeModel.getAttribute<Id>(alarmInfo, "alarmIdentifier", alarmInfoTypeModel)
-		return {
-			operation,
-			alarmInfo: { alarmIdentifier: alarmInfoIdentifier },
-			user: userId,
-			notificationSessionKeys,
-		}
-	}
-
 	private makeMissedNotificationUrl(sseInfo: SseInfo): string {
 		const { identifier, sseOrigin } = sseInfo
 		const customId = uint8ArrayToBase64(stringToUtf8Uint8Array(identifier))

@@ -9,7 +9,7 @@ import {
 } from "../../api/entities/sys/TypeRefs"
 import { AttributeModel } from "../../api/common/AttributeModel"
 import { isSameId } from "../../api/common/utils/EntityUtils"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
 
 export class EncryptedAlarmNotification {
 	public readonly untypedInstance: UntypedInstance
@@ -46,10 +46,8 @@ export class EncryptedAlarmNotification {
 		return notificationSessionKeys.map((nsk) => {
 			return createNotificationSessionKey({
 				pushIdentifier: AttributeModel.getAttribute<IdTuple[]>(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)[0],
-				pushIdentifierSessionEncSessionKey: AttributeModel.getAttribute<IdTuple[]>(
-					nsk,
-					"pushIdentifierSessionEncSessionKey",
-					this.notificationSessionKeyTypeModel,
+				pushIdentifierSessionEncSessionKey: base64ToUint8Array(
+					AttributeModel.getAttribute<Base64>(nsk, "pushIdentifierSessionEncSessionKey", this.notificationSessionKeyTypeModel),
 				),
 			})
 		})

@@ -358,12 +358,10 @@ export class CalendarFacade {
 
 		const encryptedAlarmNotifications = await Promise.all(
 			alarmNotifications.map(async (alarmNotification) => {
-				const sk = this.cryptoFacade.resolveSessionKey()
-				const parsedInstance = await this.instancePipeline.encryptAndMapToLiteral(AlarmNotificationTypeRef, alarmNotification)
+				const parsedInstance = await this.instancePipeline.encryptAndMapToLiteral(AlarmNotificationTypeRef, alarmNotification, notificationKey)
 				return EncryptedAlarmNotification.from(parsedInstance)
 			}),
 		)
-
 		await this.nativePushFacade.scheduleAlarms(encryptedAlarmNotifications)
 	}
 

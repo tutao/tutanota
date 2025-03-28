@@ -14,6 +14,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { hasError } from "../../api/common/utils/ErrorUtils.js"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
+import { uint8ArrayToKey } from "@tutao/tutanota-crypto"
 
 export interface NativeAlarmScheduler {
 	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void>
@@ -72,9 +73,8 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 
 	private async decryptAndSchedule(an: EncryptedAlarmNotification): Promise<void> {
 		const pushIdentifier = await an.getPushIdentifier()
-		for (const pushId of pushIdentifier) {
-			const pushIdentifierSessionKey = await this.alarmStorage.getPushIdentifierSessionKey(pushId)
-			//			const pushIdentifierSessionKey = await this.alarmStorage.getPushIdentifierSessionKey(currentKey)
+		for (const current of pushIdentifier) {
+			const pushIdentifierSessionKey = await this.alarmStorage.getPushIdentifierSessionKey(current.pushIdentifier)
 
 			if (!pushIdentifierSessionKey) {
 				// this key is either not for us (we don't have the right PushIdentifierSessionKey in our local storage)
@@ -83,29 +83,19 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 				continue
 			}
 
-			// const sk = uint8ArrayToBitArray(assertNotNull(pushIdentifierSessionKey))
-			const decAn: AlarmNotification = await this.instancePipeline.decryptAndMapToInstance(
-				AlarmNotificationTypeRef,
-				an.untypedInstance,
-				pushIdentifierSessionKey,
-			)
+			const sk = this.desktopCrypto.decryptKey(pushIdentifierSessionKey, current.pushIdentifierSessionEncSessionKey)
 
-			// const decAn: AlarmNotification = await this.desktopCrypto.decryptAndMapToInstance(
-			// 	await resolveTypeReference(AlarmNotificationTypeRef),
-			// 	an,
-			// 	pushIdentifierSessionKey,
-			// 	base64ToUint8Array(currentKey.pushIdentifierSessionEncSessionKey),
-			// )
+			const decAn: AlarmNotification = await this.instancePipeline.decryptAndMapToInstance(AlarmNotificationTypeRef, an.untypedInstance, sk)
 
 			if (hasError(decAn)) {
 				// some property of the AlarmNotification couldn't be decrypted with the selected key
 				// throw away the key that caused the error and try the next one
-				await this.alarmStorage.removePushIdentifierKey(elementIdPart(pushId))
+				await this.alarmStorage.removePushIdentifierKey(elementIdPart(current.pushIdentifier))
 				continue
 			}
 
 			// we just want to keep the key that can decrypt the AlarmNotification
-			an.discardOtherNotificationSessionKeys(pushId)
+			an.discardOtherNotificationSessionKeys(current.pushIdentifier)
 			return this.scheduleAlarms(decAn)
 		}
 
