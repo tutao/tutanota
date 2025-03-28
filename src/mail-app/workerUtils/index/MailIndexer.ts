@@ -140,10 +140,10 @@ export class MailIndexer {
 			}
 		} catch (e) {
 			if (e instanceof NotFoundError) {
-				console.log("tried to index non existing mail", e)
+				console.log("tried to index non existing mail", mailId)
 				return null
 			} else if (e instanceof NotAuthorizedError) {
-				console.log("tried to index mail without permission", e)
+				console.log("tried to index mail without permission", mailId)
 				return null
 			} else {
 				throw e
@@ -229,6 +229,8 @@ export class MailIndexer {
 				if (groupTimestamp) {
 					const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
 					const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+					// if nothing was indexed set highest (read: later) end to be the beginning of tomorrow so that
+					// the entirety of today is included.
 					const newestTimestamp =
 						groupTimestamp === NOTHING_INDEXED_TIMESTAMP ? this._dateProvider.getStartOfDayShiftedBy(1).getTime() : groupTimestamp
 
