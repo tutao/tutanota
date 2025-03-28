@@ -17,7 +17,11 @@ export class OpenCalendarHandler {
 		const dt = date ? new Date(Date.parse(date)) : new Date()
 		const parsedDate = formatJSDate(dt)
 
-		this.handleAgendaOpening(userId, parsedDate)
+		if (action === CalendarOpenAction.Agenda) {
+			this.handleAgendaOpening(userId, parsedDate)
+		} else {
+			this.handleDefaultOpening(userId)
+		}
 
 		if (parsedDate && action === CalendarOpenAction.EventEditor) {
 			return this.openCalendarEventEditor(parsedDate)
@@ -29,6 +33,14 @@ export class OpenCalendarHandler {
 			m.route.set(`/calendar/agenda/${parsedDate}`)
 		} else {
 			m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent(`/calendar/agenda/${parsedDate}`)}`)
+		}
+	}
+
+	private handleDefaultOpening(userId: string) {
+		if (this.logins.isUserLoggedIn() && this.logins.getUserController().user._id === userId) {
+			m.route.set(`/calendar`)
+		} else {
+			m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent(`/calendar`)}`)
 		}
 	}
 

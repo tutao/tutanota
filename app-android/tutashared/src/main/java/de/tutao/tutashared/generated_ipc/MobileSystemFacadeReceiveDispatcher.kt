@@ -102,6 +102,13 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"storeServerRemoteOrigin" -> {
+				val origin: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.storeServerRemoteOrigin(
+					origin,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for MobileSystemFacade: $method")
 		}
 	}

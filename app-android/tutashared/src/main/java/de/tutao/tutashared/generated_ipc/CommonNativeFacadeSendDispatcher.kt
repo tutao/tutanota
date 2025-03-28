@@ -45,7 +45,7 @@ class CommonNativeFacadeSendDispatcher (
 	
 	override suspend fun openCalendar(
 		userId: String,
-		action: CalendarOpenAction,
+		action: CalendarOpenAction?,
 		dateIso: String?,
 	): Unit
 	{

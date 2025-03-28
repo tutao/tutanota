@@ -15,7 +15,7 @@ export interface CommonNativeFacade {
 	 */
 	openMailBox(userId: string, address: string, requestedPath: string | null): Promise<void>
 
-	openCalendar(userId: string, action: CalendarOpenAction, dateIso: string | null): Promise<void>
+	openCalendar(userId: string, action: CalendarOpenAction | null, dateIso: string | null): Promise<void>
 
 	openContactEditor(contactId: string): Promise<void>
 

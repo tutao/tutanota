@@ -47,7 +47,7 @@
 					"userId": "string"
 				},
 				{
-					"action": "CalendarOpenAction"
+					"action": "CalendarOpenAction?"
 				},
 				{
 					"dateIso": "string?"

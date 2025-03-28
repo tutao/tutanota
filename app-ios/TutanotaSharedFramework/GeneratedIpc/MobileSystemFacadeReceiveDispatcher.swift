@@ -84,6 +84,12 @@ public class MobileSystemFacadeReceiveDispatcher {
 			try await self.facade.requestWidgetRefresh(
 			)
 			return "null"
+		case "storeServerRemoteOrigin":
+			let origin = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.storeServerRemoteOrigin(
+				origin
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}
