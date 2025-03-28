@@ -21,7 +21,7 @@ export class ContactIndexer {
 	/**
 	 * Indexes the contact list if it is not yet indexed.
 	 */
-	async indexFullContactList(): Promise<any> {
+	async indexFullContactList(): Promise<void> {
 		await this.backend.indexContactList(await this.userContactList())
 	}
 
