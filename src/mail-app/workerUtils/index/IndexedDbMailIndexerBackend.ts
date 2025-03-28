@@ -18,7 +18,7 @@ import { typeModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
-	constructor(private readonly dbFacade: DbFacade, private readonly core: IndexerCore, private readonly userId: Id) {}
+	constructor(private readonly core: IndexerCore, private readonly userId: Id) {}
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
 		return this.core.getGroupIndexTimestamps(groupIds)
@@ -65,20 +65,16 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	}
 
 	async enableIndexing(): Promise<void> {
-		const t2 = await this.dbFacade.createTransaction(false, [MetaDataOS])
-		t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
-		// FIXME: do we use this anywhere still?
-		t2.put(MetaDataOS, Metadata.excludedListIds, [])
-		await t2.wait()
+		await this.core.storeMetadata(Metadata.mailIndexingEnabled, true)
 	}
 
 	async isMailIndexingEnabled(): Promise<boolean> {
-		const t = await this.dbFacade.createTransaction(true, [MetaDataOS])
-		return (await t.get(MetaDataOS, Metadata.mailIndexingEnabled)) ?? false
+		const storedValue = (await this.core.getMetadata(Metadata.mailIndexingEnabled)) as boolean | null
+		return storedValue ?? false
 	}
 
-	deleteIndex(): Promise<void> {
-		return this.dbFacade.deleteDatabase(b64UserIdHash(this.userId))
+	async deleteIndex(): Promise<void> {
+		await this.core.deleteDatabase(this.userId)
 	}
 
 	private createIndexUpdate(): IndexUpdate {
@@ -96,8 +92,6 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		if (hasSender) senderToIndex = getDisplayedSender(mail)
 
 		const MailModel = typeModels.Mail
-		const MailDetailsModel = typeModels.MailDetails
-		const RecipientModel = typeModels.Recipients
 		let keyToIndexEntries = this.core.createIndexEntriesForAttributes(mail, [
 			{
 				id: MailModel.values["subject"].id,

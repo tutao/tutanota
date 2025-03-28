@@ -1,111 +1,117 @@
 /*
-             ########%#%%%%#%##*#             
-       ###%%%                       %%###%#%  
-%#%%%%                                   ##   
- ######%             = -=====       #######   
-       %%%      ======-#-=========   ##       
-       %%#% =*========-%-=======*-==%%%%      
-       %%%==+=========-#--=====*--===%%%      
-       %%==-*===========#-=====+--====*%==    
-       ====*============*======*-=-========   
-      ====*==========+%%%%%%%++==+==========  
-     ====*=========#%##*++**##%*+=*========== 
+             ########%#%%%%#%##*#
+       ###%%%                       %%###%#%
+%#%%%%                                   ##
+ ######%             = -=====       #######
+       %%%      ======-#-=========   ##
+       %%#% =*========-%-=======*-==%%%%
+       %%%==+=========-#--=====*--===%%%
+       %%==-*===========#-=====+--====*%==
+       ====*============*======*-=-========
+      ====*==========+%%%%%%%++==+==========
+     ====*=========#%##*++**##%*+=*==========
     +===*====#====%##**++++++*##%==*=========+
     +==+=========##**++*%%%#+++*##=*=========+
     +==+====+====%#**++%@@@%*+++#%=*=========+
     ++++=========##*+++%%@%#+++*#%=*=====+=++*
     ++++=========*%#*+++++++++*#%==*=====+++++
     ++++*++++++=+=+%#**++++***##==+*====++++++
-     ++++*+++++++++=+#%#####%#*=++*+=++++++++ 
-      ++++*++++++++++===----==+++*++++++++++  
-      +++++#++++++++++++++@++++#++++++++++++  
-       %+++*++++++++++++++#+++++#++++++%++    
-       %%#++#+++++++++++++**++++#++++*%%+     
-       %%%@*#**++++++++++++#++++#+++%%%%      
-        %%   #********+*+++%+****#+**##       
- ######%#         *********@****    #####*#   
-%#%                                       #%  
- #%    ###%%%                       #####%##  
+     ++++*+++++++++=+#%#####%#*=++*+=++++++++
+      ++++*++++++++++===----==+++*++++++++++
+      +++++#++++++++++++++@++++#++++++++++++
+       %+++*++++++++++++++#+++++#++++++%++
+       %%#++#+++++++++++++**++++#++++*%%+
+       %%%@*#**++++++++++++#++++#+++%%%%
+        %%   #********+*+++%+****#+**##
+ ######%#         *********@****    #####*#
+%#%                                       #%
+ #%    ###%%%                       #####%##
             %%%%%%##########%###%
 
   SPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACE
 
 */
 
-import type { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
+import {b64UserIdHash, DbTransaction} from "../../../common/api/worker/search/DbFacade.js"
 import {
-	$Promisable,
-	arrayHash,
-	assertNotNull,
-	byteLength,
-	defer,
-	DeferredObject,
-	findLastIndex,
-	getFromMap,
-	groupByAndMap,
-	lastThrow,
-	mergeMaps,
-	neverNull,
-	noOp,
-	PromisableWrapper,
-	promiseMapCompat,
-	PromiseMapFn,
-	tokenize,
-	TypeRef,
-	uint8ArrayToBase64,
+    $Promisable,
+    arrayHash,
+    assertNotNull,
+    byteLength,
+    defer,
+    DeferredObject,
+    findLastIndex,
+    getFromMap,
+    groupByAndMap,
+    lastThrow,
+    mergeMaps,
+    neverNull,
+    noOp,
+    PromisableWrapper,
+    promiseMapCompat,
+    PromiseMapFn,
+    tokenize,
+    TypeRef,
+    uint8ArrayToBase64
 } from "@tutao/tutanota-utils"
-import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import {
-	compareMetaEntriesOldest,
-	decryptIndexKey,
-	decryptMetaData,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	encryptSearchIndexEntry,
-	getIdFromEncSearchIndexEntry,
-	getPerformanceTimestamp,
-	typeRefToTypeInfo,
+    elementIdPart,
+    firstBiggerThanSecond,
+    generatedIdToTimestamp,
+    listIdPart
+} from "../../../common/api/common/utils/EntityUtils.js"
+import {
+    compareMetaEntriesOldest,
+    decryptIndexKey,
+    decryptMetaData,
+    encryptIndexKeyBase64,
+    encryptIndexKeyUint8Array,
+    encryptMetaData,
+    encryptSearchIndexEntry,
+    getIdFromEncSearchIndexEntry,
+    getPerformanceTimestamp,
+    typeRefToTypeInfo,
 } from "../../../common/api/worker/search/IndexUtils.js"
 import type {
-	AttributeHandler,
-	B64EncIndexKey,
-	Db,
-	EncInstanceIdWithTimestamp,
-	EncryptedSearchIndexEntry,
-	EncSearchIndexEntryWithTimestamp,
-	EncWordToMetaRow,
-	GroupData,
-	IndexUpdate,
-	SearchIndexDbRow,
-	SearchIndexEntry,
-	SearchIndexMetaDataDbRow,
-	SearchIndexMetadataEntry,
-	SearchIndexMetaDataRow,
+    AttributeHandler,
+    B64EncIndexKey,
+    Db,
+    EncInstanceIdWithTimestamp,
+    EncryptedSearchIndexEntry,
+    EncSearchIndexEntryWithTimestamp,
+    EncWordToMetaRow,
+    GroupData,
+    IndexUpdate,
+    SearchIndexDbRow,
+    SearchIndexEntry,
+    SearchIndexMetaDataDbRow,
+    SearchIndexMetadataEntry,
+    SearchIndexMetaDataRow,
 } from "../../../common/api/worker/search/SearchTypes.js"
-import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import type { BrowserData } from "../../../common/misc/ClientConstants.js"
-import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
+import {CancelledError} from "../../../common/api/common/error/CancelledError.js"
+import {ProgrammingError} from "../../../common/api/common/error/ProgrammingError.js"
+import type {BrowserData} from "../../../common/misc/ClientConstants.js"
+import {InvalidDatabaseStateError} from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import {
-	appendBinaryBlocks,
-	calculateNeededSpaceForNumbers,
-	decodeNumbers,
-	encodeNumbers,
-	iterateBinaryBlocks,
-	removeBinaryBlockRanges,
+    appendBinaryBlocks,
+    calculateNeededSpaceForNumbers,
+    decodeNumbers,
+    encodeNumbers,
+    iterateBinaryBlocks,
+    removeBinaryBlockRanges,
 } from "../../../common/api/worker/search/SearchIndexEncoding.js"
-import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import {aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt} from "@tutao/tutanota-crypto"
 import {
-	ElementDataOS,
-	GroupDataOS,
-	MetaDataOS,
-	SearchIndexMetaDataOS,
-	SearchIndexOS,
-	SearchIndexWordsIndex,
+    ElementDataOS,
+    GroupDataOS,
+    Metadata,
+    MetaDataOS,
+    SearchIndexMetaDataOS,
+    SearchIndexOS,
+    SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
-import { ContactList } from "../../../common/api/entities/tutanota/TypeRefs"
+import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../../common/api/common/TutanotaConstants"
+import {ContactList} from "../../../common/api/entities/tutanota/TypeRefs"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -136,7 +142,6 @@ export class IndexerCore {
 	private _promiseMapCompat: PromiseMapFn
 	private _needsExplicitIds: boolean
 	private _explicitIdStart: number
-	private _currentWriteOperation: WriteOperation | null = null
 	_stats!: {
 		indexingTime: number
 		storageTime: number
@@ -157,6 +162,21 @@ export class IndexerCore {
 		this._needsExplicitIds = browserData.needsExplicitIDBIds
 		this._explicitIdStart = Date.now()
 		this.resetStats()
+	}
+
+	async storeMetadata(key: keyof typeof Metadata, value: unknown): Promise<void> {
+		const t2 = await this.db.dbFacade.createTransaction(false, [MetaDataOS])
+		t2.put(MetaDataOS, key, value)
+		await t2.wait()
+	}
+
+	async getMetadata(key: keyof typeof Metadata): Promise<unknown> {
+		const t = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
+		return await t.get(MetaDataOS, key)
+	}
+
+	async deleteDatabase(userId: Id) {
+		await this.db.dbFacade.deleteDatabase(b64UserIdHash(userId))
 	}
 
 	/****************************************** Preparing the update ***********************************************/
@@ -347,13 +367,11 @@ export class IndexerCore {
 	}
 
 	_executeOperation(operation: WriteOperation): Promise<void> {
-		this._currentWriteOperation = operation
 		return operation.transactionFactory().then((transaction) => {
 			operation.transaction = transaction
 			operation
 				.operation(transaction)
 				.then((it) => {
-					this._currentWriteOperation = null
 					operation.deferred.resolve()
 					return it
 				})
@@ -370,29 +388,6 @@ export class IndexerCore {
 				})
 			return operation.deferred.promise
 		})
-	}
-
-	onVisibilityChanged(visible: boolean) {
-		const operation = this._currentWriteOperation
-
-		if (!visible && operation && operation.transaction) {
-			console.log("abort indexedDb transaction operation because background mode")
-
-			try {
-				neverNull(operation.transaction).abort()
-			} catch (e) {
-				console.log("Error when aborting on visibility change", e)
-			}
-
-			operation.isAbortedForBackgroundMode = true
-		}
-
-		if (visible && operation) {
-			console.log("restart indexedDb transaction operation after background mode")
-			operation.isAbortedForBackgroundMode = false
-
-			this._executeOperation(operation)
-		}
 	}
 
 	_moveIndexedInstance(indexUpdate: IndexUpdate, transaction: DbTransaction): PromisableWrapper<void> {

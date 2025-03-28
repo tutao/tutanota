@@ -3,93 +3,95 @@ import { createTestEntity } from "../../../TestUtils"
 import {
 	BodyTypeRef,
 	FileTypeRef,
+	Mail,
 	MailAddressTypeRef,
+	MailDetails,
 	MailDetailsTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
+	File as TutanotaFile,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import {
+	getElementId,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
 } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { IndexedDbMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/IndexedDbMailIndexerBackend"
-import { DbFacade, IndexedDbTransaction } from "../../../../../src/common/api/worker/search/DbFacade"
 import { matchers, object, verify, when } from "testdouble"
-import { AttributeHandler } from "../../../../../src/common/api/worker/search/SearchTypes"
-import { Metadata, MetaDataOS } from "../../../../../src/common/api/worker/search/IndexTables"
+import { AttributeHandler, SearchIndexEntry } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables"
+import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 o.spec("IndexedDbMailIndexerBackend", function () {
-	let dbFacade: DbFacade
 	let core: IndexerCore
 	const userId = "userId1"
 	let backend: IndexedDbMailIndexerBackend
 	o.beforeEach(() => {
-		dbFacade = object()
 		core = object()
-		backend = new IndexedDbMailIndexerBackend(dbFacade, core, userId)
+		backend = new IndexedDbMailIndexerBackend(core, userId)
 	})
 
-	o.spec("enableMailIndexing", function () {
-		o.test("when wasn't enabled it enables it", async function () {
-			const readTransaction = object<IndexedDbTransaction>()
-			when(dbFacade.createTransaction(true, [MetaDataOS])).thenResolve(readTransaction)
-			when(readTransaction.get(MetaDataOS, Metadata.mailIndexingEnabled)).thenResolve(false)
+	o.test("enableMailIndexing", async function () {
+		await backend.enableIndexing()
+		verify(core.storeMetadata(Metadata.mailIndexingEnabled, true))
+	})
 
-			const writeTransaction = object<IndexedDbTransaction>()
-			when(dbFacade.createTransaction(false, [MetaDataOS])).thenResolve(writeTransaction)
+	o.spec("isMailIndexingEnabled", function () {
+		o.test("enabled", async function () {
+			when(core.getMetadata(Metadata.mailIndexingEnabled)).thenResolve(true)
+			o.check(await backend.isMailIndexingEnabled()).equals(true)
+		})
 
-			// // There was a timezone shift in Germany in this time range
-			// const now = 1554720827674 // 2019-04-08T10:53:47.674Z
-
-			// const beforeNowInterval = 1552262400000 // 2019-03-11T00:00:00.000Z
-			//
-			// const dateProvider = new FixedDateProvider(now)
-			await backend.enableIndexing()
-			verify(writeTransaction.put(MetaDataOS, Metadata.mailIndexingEnabled, true))
+		o.test("disabled", async function () {
+			when(core.getMetadata(Metadata.mailIndexingEnabled)).thenResolve(false)
+			o.check(await backend.isMailIndexingEnabled()).equals(false)
 		})
 	})
 
-	// FIXME: isMailIndexingEnabled()
-	// o.test("when was enabled it does nothing", async function () {
-	// 	const readTransaction = object<IndexedDbTransaction>()
-	// 	when(dbFacade.createTransaction(true, [MetaDataOS])).thenResolve(readTransaction)
-	// 	when(readTransaction.get(MetaDataOS, Metadata.mailIndexingEnabled)).thenResolve(false)
-	//
-	// 	const wasEnabled = await backend.enableIndexing()
-	// 	o.check(wasEnabled).equals(true)
-	// 	verify(dbFacade.createTransaction(matchers.anything(), matchers.anything()), { times: 1 })
-	// })
-
 	o.spec("createMailIndexEntries", function () {
-		o.test("createMailIndexEntries without entries", function () {
+		o.test("without entries", function () {
 			let mail = createTestEntity(MailTypeRef)
 			let mailDetails = createTestEntity(MailDetailsTypeRef, {
 				body: createTestEntity(BodyTypeRef),
 				recipients: createTestEntity(RecipientsTypeRef),
 			})
 			let files = [createTestEntity(FileTypeRef)]
+			when(core.createIndexEntriesForAttributes(mail, matchers.anything())).thenReturn(new Map())
 
 			const keyToIndexEntries = backend.createMailIndexEntries(mail, mailDetails, files)
 			o.check(keyToIndexEntries.size).equals(0)
 		})
 
-		o.test("createMailIndexEntries with one entry", function () {
+		o.test("with one entry", function () {
 			let mail = createTestEntity(MailTypeRef)
-			mail.subject = "Hello"
 			let mailDetails = createTestEntity(MailDetailsTypeRef, {
 				body: createTestEntity(BodyTypeRef),
 				recipients: createTestEntity(RecipientsTypeRef),
 			})
 			let files = [createTestEntity(FileTypeRef)]
+			const returnedEntries: Map<string, SearchIndexEntry[]> = new Map([
+				[
+					"token",
+					[
+						{
+							id: "1",
+							attribute: 2,
+							positions: [4, 5, 6],
+						},
+					],
+				],
+			])
+			when(core.createIndexEntriesForAttributes(mail, matchers.anything())).thenReturn(returnedEntries)
 			const keyToIndexEntries = backend.createMailIndexEntries(mail, mailDetails, files)
-			o(keyToIndexEntries.size).equals(1)
+			o.check(keyToIndexEntries).deepEquals(returnedEntries)
 		})
 
-		o.test("createMailIndexEntries", async function () {
+		o.test("contents", async function () {
 			const toRecipients = [
 				createTestEntity(MailAddressTypeRef, {
 					address: "tr0A",
@@ -131,7 +133,7 @@ o.spec("IndexedDbMailIndexerBackend", function () {
 
 			const mail = createTestEntity(MailTypeRef, {
 				differentEnvelopeSender: "ES", // not indexed
-				subject: "Se",
+				subject: "Su",
 				sender,
 				mailDetails: ["details-list-id", "details-id"],
 			})
@@ -189,6 +191,65 @@ o.spec("IndexedDbMailIndexerBackend", function () {
 					value: "FN",
 				},
 			])
+		})
+	})
+
+	o.spec("entityUpdates", function () {
+		const ownerGroup = "mailGroup"
+		let mail: Mail
+		let mailDetails: MailDetails
+		let attachments: [TutanotaFile]
+		let indexEntries: Map<string, SearchIndexEntry[]>
+
+		o.beforeEach(function () {
+			mail = createTestEntity(MailTypeRef, {
+				_id: ["mailLidId", "mailElementId"],
+				_ownerGroup: ownerGroup,
+			})
+			mailDetails = createTestEntity(MailDetailsTypeRef)
+			attachments = [createTestEntity(FileTypeRef)]
+			indexEntries = new Map([
+				[
+					"token",
+					[
+						{
+							id: "1",
+							attribute: 2,
+							positions: [4, 5, 6],
+						},
+					],
+				],
+			])
+		})
+
+		o.test("onMailCreated", async function () {
+			when(core.createIndexEntriesForAttributes(mail, matchers.anything())).thenReturn(indexEntries)
+
+			await backend.onMailCreated({ mail, mailDetails, attachments })
+
+			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+			verify(core.encryptSearchIndexEntries(mail._id, ownerGroup, indexEntries, indexUpdate))
+			verify(core.writeIndexUpdate(indexUpdate))
+		})
+
+		o.test("onMailUpdated", async function () {
+			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+			when(core.createIndexEntriesForAttributes(mail, matchers.anything())).thenReturn(indexEntries)
+
+			await backend.onMailUpdated({ mail, mailDetails, attachments })
+
+			verify(core._processDeleted(MailTypeRef, getElementId(mail), indexUpdate))
+			verify(core.encryptSearchIndexEntries(mail._id, ownerGroup, indexEntries, indexUpdate))
+			verify(core.writeIndexUpdate(indexUpdate))
+		})
+
+		o.test("onMailDeleted", async function () {
+			const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
+
+			await backend.onMailDeleted(mail._id)
+
+			verify(core._processDeleted(MailTypeRef, getElementId(mail), indexUpdate))
+			verify(core.writeIndexUpdate(indexUpdate))
 		})
 	})
 })

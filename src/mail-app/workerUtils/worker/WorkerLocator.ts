@@ -241,7 +241,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.cachingEntityClient,
 				dateProvider,
 				mailFacade,
-				(userId) => new IndexedDbMailIndexerBackend(newSearchIndexDB(), core, userId),
+				(userId) => new IndexedDbMailIndexerBackend(core, userId),
 			)
 		}
 	})
