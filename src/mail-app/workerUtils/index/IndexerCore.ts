@@ -1,9 +1,45 @@
+/*
+             ########%#%%%%#%##*#             
+       ###%%%                       %%###%#%  
+%#%%%%                                   ##   
+ ######%             = -=====       #######   
+       %%%      ======-#-=========   ##       
+       %%#% =*========-%-=======*-==%%%%      
+       %%%==+=========-#--=====*--===%%%      
+       %%==-*===========#-=====+--====*%==    
+       ====*============*======*-=-========   
+      ====*==========+%%%%%%%++==+==========  
+     ====*=========#%##*++**##%*+=*========== 
+    +===*====#====%##**++++++*##%==*=========+
+    +==+=========##**++*%%%#+++*##=*=========+
+    +==+====+====%#**++%@@@%*+++#%=*=========+
+    ++++=========##*+++%%@%#+++*#%=*=====+=++*
+    ++++=========*%#*+++++++++*#%==*=====+++++
+    ++++*++++++=+=+%#**++++***##==+*====++++++
+     ++++*+++++++++=+#%#####%#*=++*+=++++++++ 
+      ++++*++++++++++===----==+++*++++++++++  
+      +++++#++++++++++++++@++++#++++++++++++  
+       %+++*++++++++++++++#+++++#++++++%++    
+       %%#++#+++++++++++++**++++#++++*%%+     
+       %%%@*#**++++++++++++#++++#+++%%%%      
+        %%   #********+*+++%+****#+**##       
+ ######%#         *********@****    #####*#   
+%#%                                       #%  
+ #%    ###%%%                       #####%##  
+            %%%%%%##########%###%
+
+  SPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACE
+
+*/
+
 import type { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
-import { $Promisable, assertNotNull, DeferredObject, PromiseMapFn } from "@tutao/tutanota-utils"
 import {
+	$Promisable,
 	arrayHash,
+	assertNotNull,
 	byteLength,
 	defer,
+	DeferredObject,
 	findLastIndex,
 	getFromMap,
 	groupByAndMap,
@@ -13,6 +49,7 @@ import {
 	noOp,
 	PromisableWrapper,
 	promiseMapCompat,
+	PromiseMapFn,
 	tokenize,
 	TypeRef,
 	uint8ArrayToBase64,
@@ -67,7 +104,8 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { ContactList } from "../../../common/api/entities/tutanota/TypeRefs"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -963,5 +1001,12 @@ export class IndexerCore {
 			downloadingTime: this._stats.preparingTime - this._stats.indexingTime - this._stats.encryptionTime,
 		})
 		console.log(JSON.stringify(statsWithDownloading), "total time: ", totalTime)
+	}
+
+	async areContactsIndexed(contactList: ContactList): Promise<boolean> {
+		const t = await this.db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
+		const groupId = neverNull(contactList._ownerGroup)
+		const groupData = await t.get<GroupData>(GroupDataOS, groupId)
+		return groupData != null && groupData.indexTimestamp === FULL_INDEXED_TIMESTAMP
 	}
 }

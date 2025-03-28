@@ -1,26 +1,23 @@
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
 import { Contact, ContactList, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { IndexerCore } from "./IndexerCore"
-import type { Db, GroupData, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
+import type { SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { SuggestionFacade } from "./SuggestionFacade"
 import { neverNull, tokenize } from "@tutao/tutanota-utils"
 import { elementIdPart, getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { typeModels as tutanotaModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { FULL_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
-import { GroupDataOS, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
 
 export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 	private _core: IndexerCore
-	private _db: Db
 	private _entity: EntityClient
 	private suggestionFacade: SuggestionFacade<Contact>
 
-	constructor(core: IndexerCore, db: Db, entity: EntityClient, suggestionFacade: SuggestionFacade<Contact>) {
+	constructor(core: IndexerCore, entity: EntityClient, suggestionFacade: SuggestionFacade<Contact>) {
 		this._core = core
-		this._db = db
 		this._entity = entity
 		this.suggestionFacade = suggestionFacade
 	}
@@ -30,19 +27,16 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 	}
 
 	async areContactsIndexed(contactList: ContactList): Promise<boolean> {
-		const t = await this._db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
-		const groupId = neverNull(contactList._ownerGroup)
-		const groupData = await t.get<GroupData>(GroupDataOS, groupId)
-		return groupData != null && groupData.indexTimestamp === FULL_INDEXED_TIMESTAMP
+		return this._core.areContactsIndexed(contactList)
 	}
 
 	async indexContactList(contactList: ContactList): Promise<void> {
 		const groupId = neverNull(contactList._ownerGroup)
-		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
+		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		try {
 			const contacts = await this._entity.loadAll(ContactTypeRef, contactList.contacts)
 			for (const contact of contacts) {
-				let keyToIndexEntries = this.createContactIndexEntries(contact)
+				let keyToIndexEntries = this._createContactIndexEntries(contact)
 				this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 			}
 			await Promise.all([
@@ -67,8 +61,7 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 
 	async onContactCreated(contact: Contact): Promise<void> {
 		await this.suggestionFacade.store()
-
-		const keyToIndexEntries = this.createContactIndexEntries(contact)
+		const keyToIndexEntries = this._createContactIndexEntries(contact)
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 	}
@@ -83,7 +76,8 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		await Promise.all([this._core._processDeleted(ContactTypeRef, getElementId(contact), indexUpdate), this.onContactCreated(contact)])
 	}
 
-	private createContactIndexEntries(contact: Contact): Map<string, SearchIndexEntry[]> {
+	// @VisibleForTests
+	_createContactIndexEntries(contact: Contact): Map<string, SearchIndexEntry[]> {
 		const ContactModel = tutanotaModels.Contact
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(contact, [
 			{

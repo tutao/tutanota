@@ -256,7 +256,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		} else {
 			const core = await indexerCore()
 			const suggestionFacade = new SuggestionFacade(ContactTypeRef, db)
-			const backend = new IndexedDbContactIndexerBackend(core, db, locator.cachingEntityClient, suggestionFacade)
+			const backend = new IndexedDbContactIndexerBackend(core, locator.cachingEntityClient, suggestionFacade)
 			return new ContactIndexer(locator.cachingEntityClient, locator.user, backend)
 		}
 	})
