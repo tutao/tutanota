@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.error.WidgetError
+import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoginException
@@ -72,13 +73,12 @@ class WidgetConfigViewModel(
 			try {
 				_credentials.value = repository.loadCredentials(credentialsFacade)
 			} catch (e: Exception) {
-				// FIXME Replace by translation
 				_error.value = WidgetError(
-					"Failed to read stored credentials",
-					"Failed to read stored credentials from database",
-					e.stackTraceToString()
+					"Failed to read stored credentials from credentials facade",
+					e.stackTraceToString(),
+					WidgetErrorType.CREDENTIALS
 				)
-				Log.e(TAG, "Failed to read stored credentials from database: ${e.stackTraceToString()}")
+				Log.e(TAG, "Failed to read stored credentials from credentials facade: ${e.stackTraceToString()}")
 			} finally {
 				_isLoading.value = false
 			}
@@ -139,20 +139,18 @@ class WidgetConfigViewModel(
 				}
 			} catch (e: IOException) {
 				_isLoading.value = false
-				// FIXME Replace by translation
 				_error.value = WidgetError(
-					"Failed to read stored Widget Settings",
 					"Error on Data Store while loading Widget Settings",
-					e.stackTraceToString()
+					e.stackTraceToString(),
+					WidgetErrorType.UNEXPECTED
 				)
 				Log.e(TAG, "Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}")
 			} catch (e: Exception) {
 				_isLoading.value = false
-				// FIXME Replace by translation
 				_error.value = WidgetError(
-					"Failed to read stored Widget Settings",
 					"Unexpected error while loading Widget Settings",
-					e.stackTraceToString()
+					e.stackTraceToString(),
+					WidgetErrorType.UNEXPECTED
 				)
 				Log.e(TAG, "Unexpected error while loading Widget Settings: ${e.stackTraceToString()}")
 			}
@@ -176,21 +174,19 @@ class WidgetConfigViewModel(
 					)
 				)
 			} catch (e: IOException) {
-				// FIXME Replace by translation
 				_error.value =
 					WidgetError(
-						"Failed to write Widget Settings, please try again later",
 						"Unexpected error while saving Widget Settings",
-						e.stackTraceToString()
+						e.stackTraceToString(),
+						WidgetErrorType.UNEXPECTED
 					)
 				Log.e(TAG, "Unexpected error while saving Widget Settings: ${e.message}")
 			} catch (e: Exception) {
-				// FIXME Replace by translation
 				_error.value =
 					WidgetError(
-						"Unexpected error, please try again later",
 						"Unexpected error while saving Widget Settings",
-						e.stackTraceToString()
+						e.stackTraceToString(),
+						WidgetErrorType.UNEXPECTED
 					)
 				Log.e(TAG, "Unexpected error while saving Widget Settings: ${e.message}")
 			} finally {
@@ -201,9 +197,7 @@ class WidgetConfigViewModel(
 
 	private suspend fun loadCalendars(credential: PersistedCredentials) {
 		if (sdk == null) {
-			_error.value = WidgetError(
-				"Unexpected error while loading calendars", "Missing initialized SDK", ""
-			)
+			_error.value = WidgetError("Missing initialized SDK", "", WidgetErrorType.CREDENTIALS)
 			Log.e(TAG, "Missing initialized SDK")
 
 			return
@@ -213,20 +207,18 @@ class WidgetConfigViewModel(
 			_isLoading.value = true
 			_calendars.value = repository.loadCalendars(credential.credentialInfo.userId, credentialsFacade, sdk)
 		} catch (e: LoginException) {
-			// FIXME Replace by translation
 			_error.value = WidgetError(
-				"Failed to login in with the selected credentials, try removing and adding the account in Calendar App",
 				e.message ?: "",
-				e.stackTraceToString()
+				e.stackTraceToString(),
+				WidgetErrorType.CREDENTIALS
 			)
 			Log.e(TAG, "Failed to load credentials: ${e.message}")
 		} catch (e: Exception) {
-			// FIXME Replace by translation
 			_error.value =
 				WidgetError(
-					"Missing credentials/permissions for the selected account",
 					e.message ?: "",
-					e.stackTraceToString()
+					e.stackTraceToString(),
+					WidgetErrorType.CREDENTIALS
 				)
 			Log.e(TAG, "Missing credentials/permissions for the selected account: ${e.message}")
 		} finally {

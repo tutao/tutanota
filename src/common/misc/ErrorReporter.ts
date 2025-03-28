@@ -61,6 +61,29 @@ export async function showErrorNotification(e: ErrorInfo): Promise<{ ignored: bo
 	return { ignored: ignore }
 }
 
+/**
+ * Prepares and display the report error Dialog
+ */
+export async function showSendErrorDialog(e: ErrorInfo): Promise<void> {
+	const loggedIn = locator.logins.isUserLoggedIn()
+
+	const logs = await getLogAttachments()
+
+	const preparedContent = prepareFeedbackContent(e, loggedIn)
+
+	const reportDialogResult = await showReportDialog(preparedContent.subject, preparedContent.message, logs)
+
+	if (reportDialogResult.decision === "cancel") {
+		return
+	}
+
+	preparedContent.logs = reportDialogResult.sendLogs ? logs : []
+	preparedContent.message = reportDialogResult.userMessage + "\n" + preparedContent.message
+
+	sendToServer(e, reportDialogResult.userMessage, reportDialogResult.sendLogs ? logs : [])
+	sendFeedbackMail(preparedContent)
+}
+
 async function showErrorOverlay(): Promise<{ decision: "send" | "cancel"; ignore: boolean }> {
 	let ignore = false
 	const decision: "send" | "cancel" = await new Promise((resolve) => {

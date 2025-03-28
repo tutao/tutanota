@@ -1,3 +1,7 @@
 package de.tutao.calendar.widget.error
 
-data class WidgetError(val friendlyMessage: String, val message: String, val stackTrace: String)
+data class WidgetError(
+	val message: String,
+	val stackTrace: String,
+	val type: WidgetErrorType
+)

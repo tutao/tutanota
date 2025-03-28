@@ -52,7 +52,7 @@ export interface CommonNativeFacade {
 	openSettings(path: string): Promise<void>
 
 	/**
-	 * Open the Logs dialog on login page
+	 * Open the Send Logs dialog
 	 */
-	openLogs(logs: string): Promise<void>
+	sendLogs(logs: string): Promise<void>
 }
