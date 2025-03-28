@@ -601,6 +601,7 @@ export class CalendarModel {
 		const { calendarEventUpdates } = mailboxGroupRoot
 		if (calendarEventUpdates == null) return
 
+		console.log("CalendarModel - loadAndProcessCalendarUpdates")
 		const invites = await this.entityClient.loadAll(CalendarEventUpdateTypeRef, calendarEventUpdates.list)
 		for (const invite of invites) {
 			await this.handleCalendarEventUpdate(invite)

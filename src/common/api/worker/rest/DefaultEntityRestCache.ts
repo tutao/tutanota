@@ -17,6 +17,7 @@ import {
 	EntityEventBatchTypeRef,
 	EntityUpdate,
 	GroupKeyTypeRef,
+	GroupTypeRef,
 	KeyRotationTypeRef,
 	PermissionTypeRef,
 	RecoverCodeTypeRef,
@@ -887,6 +888,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// or throwing out the update drops us onto the login page and into the session recovery flow if the user
 				// clicks their saved credentials again, but lets them still use offline login if they try to use the
 				// outdated credentials while not connected to the internet.
+
+				if (isSameTypeRef(typeRef, GroupTypeRef)) {
+					console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + instanceId)
+				}
 				const newEntity = await this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
 				if (isSameTypeRef(typeRef, UserTypeRef)) {
 					await this.handleUpdatedUser(cached, newEntity)

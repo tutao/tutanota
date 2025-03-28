@@ -80,7 +80,7 @@ export class KeyLoaderFacade {
 		return this.userFacade.getCurrentUserGroupKey()
 	}
 
-	async loadKeypair(keyPairGroupId: Id, requestedVersion: KeyVersion): Promise<AsymmetricKeyPair> {
+	async loadKeypair(keyPairGroupId: Id, requestedVersion: KeyVersion, forType: string = "???"): Promise<AsymmetricKeyPair> {
 		let group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
 		let currentGroupKey = await this.getCurrentSymGroupKey(keyPairGroupId)
 
@@ -88,7 +88,7 @@ export class KeyLoaderFacade {
 			group = (await (await this.cacheManagementFacade()).refreshKeyCache(keyPairGroupId)).group
 			currentGroupKey = await this.getCurrentSymGroupKey(keyPairGroupId)
 		}
-		return await this.loadKeyPairImpl(group, requestedVersion, currentGroupKey)
+		return await this.loadKeyPairImpl(group, requestedVersion, currentGroupKey, forType)
 	}
 
 	async loadCurrentKeyPair(groupId: Id): Promise<Versioned<AsymmetricKeyPair>> {
@@ -106,13 +106,20 @@ export class KeyLoaderFacade {
 				throw new Error(`inconsistent key version state in cache and key cache for group ${groupId}`)
 			}
 		}
-		return { object: this.validateAndDecryptKeyPair(group.currentKeys, groupId, currentGroupKey), version: parseKeyVersion(group.groupKeyVersion) }
+		return {
+			object: this.validateAndDecryptKeyPair(group.currentKeys, groupId, currentGroupKey),
+			version: parseKeyVersion(group.groupKeyVersion),
+		}
 	}
 
-	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey) {
+	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey, forType: string) {
 		const keyPairGroupId = group._id
 		let keyPair: KeyPair | null
 		let symGroupKey: VersionedKey
+		console.log(
+			`KeyLoaderFacade - loadKeyPairImpl for group:${group._id}. group.groupKeyVersion:${group.groupKeyVersion}, requestedVersion: ${requestedVersion}, currentGroupKey.version:${currentGroupKey.version}, forType:${forType}`,
+		)
+
 		if (requestedVersion > currentGroupKey.version) {
 			throw new Error(`Not possible to get newer key version than is cached for group ${keyPairGroupId}`)
 		} else if (requestedVersion === currentGroupKey.version) {
@@ -120,6 +127,14 @@ export class KeyLoaderFacade {
 			if (parseKeyVersion(group.groupKeyVersion) === currentGroupKey.version) {
 				keyPair = group.currentKeys
 			} else {
+				if (parseKeyVersion(group.groupKeyVersion) < currentGroupKey.version) {
+					// this should not happen we want to find out where we actuall call this from
+					try {
+						throw new Error()
+					} catch (e) {
+						console.log("get stack", e)
+					}
+				}
 				// we load by the version and thus can be sure that we are able to decrypt this key
 				const formerGroupKey = await this.loadFormerGroupKeyInstance(group, currentGroupKey.version)
 				keyPair = formerGroupKey.keyPair

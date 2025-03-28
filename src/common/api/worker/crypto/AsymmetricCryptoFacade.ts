@@ -184,8 +184,9 @@ export class AsymmetricCryptoFacade {
 		recipientKeyVersion: KeyVersion,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 		pubEncSymKey: Uint8Array,
+		forType: string = "!!!!",
 	): Promise<DecapsulatedAesKey> {
-		const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(recipientKeyPairGroupId, recipientKeyVersion)
+		const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(recipientKeyPairGroupId, recipientKeyVersion, forType)
 		return await this.decryptSymKeyWithKeyPair(keyPair, cryptoProtocolVersion, pubEncSymKey)
 	}
 
@@ -255,8 +256,8 @@ export class AsymmetricCryptoFacade {
 	 * or creates a new one and writes it to the respective Group.
 	 * @param senderKeyPair
 	 * @param keyGroupId Id for the Group that Public Key Service might write a new IdentityKeyPair for.
-	 * 						This is necessary as a User might send an E-Mail from a shared mailbox,
-	 * 						for which the KeyPair should be created.
+	 *                        This is necessary as a User might send an E-Mail from a shared mailbox,
+	 *                        for which the KeyPair should be created.
 	 */
 	private async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<X25519KeyPair> {
 		const algo = senderKeyPair.keyPairType
@@ -269,7 +270,11 @@ export class AsymmetricCryptoFacade {
 			const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
 			const newIdentityKeyPair = this.cryptoWrapper.generateEccKeyPair()
 			const symEncPrivEccKey = this.cryptoWrapper.encryptEccKey(symGroupKey.object, newIdentityKeyPair.privateKey)
-			const data = createPublicKeyPutIn({ pubEccKey: newIdentityKeyPair.publicKey, symEncPrivEccKey, keyGroup: keyGroupId })
+			const data = createPublicKeyPutIn({
+				pubEccKey: newIdentityKeyPair.publicKey,
+				symEncPrivEccKey,
+				keyGroup: keyGroupId,
+			})
 			await this.serviceExecutor.put(PublicKeyService, data)
 			return newIdentityKeyPair
 		} else {

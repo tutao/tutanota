@@ -183,6 +183,7 @@ async function prepareBucketKeyInstance(
 			parseKeyVersion(bucketKey.recipientKeyVersion),
 			asCryptoProtoocolVersion(bucketKey.protocolVersion),
 			pubEncBucketKey,
+			anything(),
 		),
 	).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderPubEccKey?.object ?? null })
 
@@ -335,6 +336,7 @@ o.spec("CryptoFacadeTest", function () {
 				parseKeyVersion(bucketPermission.pubKeyVersion!),
 				protocolVersion,
 				pubEncBucketKey,
+				anything(),
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: null })
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
@@ -423,6 +425,7 @@ o.spec("CryptoFacadeTest", function () {
 				parseKeyVersion(bucketPermission.pubKeyVersion!),
 				protocolVersion,
 				pubEncBucketKey,
+				anything(),
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
 
@@ -506,6 +509,7 @@ o.spec("CryptoFacadeTest", function () {
 				parseKeyVersion(bucketPermission.pubKeyVersion!),
 				protocolVersion,
 				pubEncBucketKey,
+				anything(),
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
 		when(userFacade.createAuthHeaders()).thenReturn({})
@@ -1615,6 +1619,7 @@ o.spec("CryptoFacadeTest", function () {
 				parseKeyVersion(bucketKey.recipientKeyVersion),
 				asCryptoProtoocolVersion(bucketKey.protocolVersion),
 				pubEncBucketKey,
+				anything(),
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: null })
 
@@ -1728,6 +1733,7 @@ o.spec("CryptoFacadeTest", function () {
 				parseKeyVersion(bucketKey.recipientKeyVersion),
 				asCryptoProtoocolVersion(bucketKey.protocolVersion),
 				pubEncBucketKey,
+				anything(),
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
 
