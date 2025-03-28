@@ -65,7 +65,9 @@ impl CalendarFacade {
 		let memberships: Vec<&GroupMembership> = user
 			.memberships
 			.iter()
-			.filter(|membership| membership.group_type() == GroupType::Calendar)
+			.filter(|membership| {
+				membership.group_type() == GroupType::Calendar && membership.capability == None
+			})
 			.collect();
 
 		if memberships.is_empty() {
@@ -81,6 +83,11 @@ impl CalendarFacade {
 			.await?;
 		let mut calendars_data: HashMap<GeneratedId, CalendarData> = HashMap::new();
 		for membership in memberships {
+			log::info!(
+				"Membership: {:?} {:?}",
+				membership.clone()._id.unwrap().as_str(),
+				membership.clone().capability
+			);
 			let group_info: GroupInfo = self
 				.crypto_entity_client
 				.load(&membership.groupInfo)
