@@ -1,17 +1,17 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
+import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { EventPreviewView } from "../gui/eventpopup/EventPreviewView.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { styles } from "../../../common/gui/styles.js"
-import { CalendarPreviewModels } from "./CalendarViewModel.js"
 
 export interface EventDetailsViewAttrs {
 	eventPreviewModel: CalendarEventPreviewViewModel
+	deleteCallback?: () => void
+	editCallback?: () => void
 }
 
 export class EventDetailsView implements Component<EventDetailsViewAttrs> {
@@ -35,25 +35,25 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 					calendarEventPreviewModel: this.model,
 				}),
 			),
-			m(".flex.mt-xs", [this.renderSendUpdateButton(), this.renderEditButton(), this.renderDeleteButton()]),
+			m(".flex.mt-xs", [this.renderSendUpdateButton(), this.renderEditButton(attrs.editCallback), this.renderDeleteButton(attrs.deleteCallback)]),
 		])
 	}
 
-	private renderEditButton(): Children {
+	private renderEditButton(callback?: () => void): Children {
 		if (this.model == null || !this.model.canEdit || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
 			title: "edit_action",
 			icon: Icons.Edit,
-			click: (event, dom) => handleEventEditButtonClick(this.model, event, dom),
+			click: (event, dom) => handleEventEditButtonClick(this.model, event, dom, callback),
 		})
 	}
 
-	private renderDeleteButton(): Children {
+	private renderDeleteButton(callback?: () => void): Children {
 		if (this.model == null || !this.model.canDelete || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
 			title: "delete_action",
 			icon: Icons.Trash,
-			click: (event, dom) => handleEventDeleteButtonClick(this.model, event, dom),
+			click: (event, dom) => handleEventDeleteButtonClick(this.model, event, dom, callback),
 		})
 	}
 
@@ -77,7 +77,13 @@ export async function handleSendUpdatesClick(previewModel: CalendarEventPreviewV
 	if (confirmed) await previewModel?.sendUpdates()
 }
 
-export function handleEventEditButtonClick(previewModel: CalendarEventPreviewViewModel | null, ev: MouseEvent, receiver: HTMLElement) {
+export function handleEventEditButtonClick(previewModel: CalendarEventPreviewViewModel | null, ev: MouseEvent, receiver: HTMLElement, cb?: () => unknown) {
+	const handleCallback = () => {
+		if (cb) {
+			cb()
+		}
+	}
+
 	if (previewModel?.isRepeatingForEditing) {
 		createAsyncDropdown({
 			lazyButtons: () =>
@@ -87,6 +93,7 @@ export function handleEventEditButtonClick(previewModel: CalendarEventPreviewVie
 						click: () => {
 							// noinspection JSIgnoredPromiseFromCall
 							previewModel?.editSingle()
+							handleCallback()
 						},
 					},
 					{
@@ -94,6 +101,7 @@ export function handleEventEditButtonClick(previewModel: CalendarEventPreviewVie
 						click: () => {
 							// noinspection JSIgnoredPromiseFromCall
 							previewModel?.editAll()
+							handleCallback()
 						},
 					},
 				]),
@@ -102,10 +110,22 @@ export function handleEventEditButtonClick(previewModel: CalendarEventPreviewVie
 	} else {
 		// noinspection JSIgnoredPromiseFromCall
 		previewModel?.editAll()
+		handleCallback()
 	}
 }
 
-export async function handleEventDeleteButtonClick(previewModel: CalendarEventPreviewViewModel | null, ev: MouseEvent, receiver: HTMLElement) {
+export async function handleEventDeleteButtonClick(
+	previewModel: CalendarEventPreviewViewModel | null,
+	ev: MouseEvent,
+	receiver: HTMLElement,
+	cb?: () => unknown,
+): Promise<void> {
+	const handleCallback = () => {
+		if (cb) {
+			cb()
+		}
+	}
+
 	if (await previewModel?.isRepeatingForDeleting()) {
 		createAsyncDropdown({
 			lazyButtons: () =>
@@ -114,22 +134,29 @@ export async function handleEventDeleteButtonClick(previewModel: CalendarEventPr
 						label: "deleteSingleEventRecurrence_action",
 						click: async () => {
 							await previewModel?.deleteSingle()
+							handleCallback()
 						},
 					},
 					{
 						label: "deleteAllEventRecurrence_action",
-						click: () => confirmDeleteClose(previewModel),
+						click: async () => {
+							if (await confirmDeleteClose(previewModel)) {
+								handleCallback()
+							}
+						},
 					},
 				]),
 			width: 300,
 		})(ev, receiver)
 	} else {
-		// noinspection JSIgnoredPromiseFromCall, ES6MissingAwait
-		confirmDeleteClose(previewModel)
+		if (await confirmDeleteClose(previewModel)) {
+			handleCallback()
+		}
 	}
 }
 
-async function confirmDeleteClose(previewModel: CalendarEventPreviewViewModel | null): Promise<void> {
-	if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
+async function confirmDeleteClose(previewModel: CalendarEventPreviewViewModel | null): Promise<boolean> {
+	if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return false
 	await previewModel?.deleteAll()
+	return true
 }

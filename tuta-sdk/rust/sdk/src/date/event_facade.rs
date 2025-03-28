@@ -6,7 +6,6 @@ use crate::ApiCallError;
 use regex::{Match, Regex};
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Weekday};
-use tokio::time::interval;
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
 #[repr(u8)]

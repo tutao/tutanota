@@ -758,8 +758,9 @@ class MainActivity : FragmentActivity() {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
 		val action = CalendarOpenAction.fromValue(intent.getStringExtra(OPEN_CALENDAR_IN_APP_ACTION_KEY) ?: "")
 		val date = intent.getStringExtra(OPEN_CALENDAR_DATE_KEY)
+		val eventId = intent.getStringExtra(OPEN_CALENDAR_EVENT_KEY)
 
-		commonNativeFacade.openCalendar(userId, action, date)
+		commonNativeFacade.openCalendar(userId, action, date, eventId)
 	}
 
 	private suspend fun openContactEditor(data: Uri?) {
@@ -828,6 +829,7 @@ class MainActivity : FragmentActivity() {
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
 		const val OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
 		const val OPEN_USER_MAILBOX_MAILID_KEY = "mailId"
+		const val OPEN_CALENDAR_EVENT_KEY = "eventId"
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
 		const val TUTA_INTENT_ACTION = "TUTA_INTEROP"
 

@@ -840,7 +840,7 @@ class MailLocator {
 					async () => this.pushService,
 					this.handleFileImport.bind(this),
 					(userId, address, requestedPath) => openMailboxHandler.openMailbox(userId, address, requestedPath),
-					(userId, action, date) => openCalendarHandler.openCalendar(userId, action, date),
+					(userId, action, date, eventId) => openCalendarHandler.openCalendar(userId, action, date, eventId),
 					AppType.Integrated,
 					(path) => openSettingsHandler.openSettings(path),
 				),

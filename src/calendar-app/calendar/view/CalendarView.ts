@@ -6,10 +6,22 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import type { Key, Shortcut } from "../../../common/misc/KeyManager"
 import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { decodeBase64, downcast, getStartOfDay, isSameDayOfDate, last, noOp, ofClass } from "@tutao/tutanota-utils"
+import {
+	base64ToBase64Url,
+	base64UrlToBase64,
+	decodeBase64,
+	downcast,
+	getStartOfDay,
+	isSameDayOfDate,
+	last,
+	noOp,
+	ofClass,
+	stringToBase64,
+} from "@tutao/tutanota-utils"
 import {
 	CalendarEvent,
 	CalendarGroupRootTypeRef,
+	Contact,
 	ContactTypeRef,
 	createDefaultAlarmInfo,
 	createGroupSettings,
@@ -31,6 +43,7 @@ import {
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	CalendarType,
+	extractContactIdFromEvent,
 	findFirstPrivateCalendar,
 	getCalendarType,
 	getStartOfTheWeekOffset,
@@ -90,7 +103,7 @@ import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
-import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
+import { Icon, IconSize, progressIcon } from "../../../common/gui/base/Icon.js"
 import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
 import { getExternalCalendarName, parseCalendarStringData, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
@@ -101,6 +114,20 @@ import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactEditor } from "../../../mail-app/contacts/ContactEditor.js"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
+import { MobileHeader } from "../../../common/gui/MobileHeader.js"
+import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
+import {
+	EventDetailsView,
+	EventDetailsViewAttrs,
+	handleEventDeleteButtonClick,
+	handleEventEditButtonClick,
+	handleSendUpdatesClick,
+} from "./EventDetailsView.js"
+import { DesktopViewerToolbar } from "../../../common/gui/DesktopToolbars.js"
+import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
+import { calendarLocator } from "../../calendarLocator.js"
+import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
+import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 
 export type GroupColors = Map<Id, string>
 
@@ -117,6 +144,7 @@ const CalendarViewTypeByValue = reverse(CalendarViewType)
 export class CalendarView extends BaseTopLevelView implements TopLevelView<CalendarViewAttrs> {
 	private readonly sidebarColumn: ViewColumn
 	private readonly contentColumn: ViewColumn
+	private readonly eventDetails?: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private currentViewType: CalendarViewType
 	private readonly viewModel: CalendarViewModel
@@ -383,6 +411,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onEventClicked: (event, domEvent) => {
 										if (styles.isDesktopLayout()) {
 											this.viewModel.updatePreviewedEvent(event)
+										} else if (isApp()) {
+											this.viewModel.updatePreviewedEvent(event).then(() => {
+												const eventId = base64ToBase64Url(stringToBase64(event._id.join("/")))
+												this.setUrl(this.currentViewType, this.viewModel.selectedDate(), false, false, eventId)
+											})
 										} else {
 											this.onEventSelected(event, domEvent, this.htmlSanitizer)
 										}
@@ -432,7 +465,26 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				maxWidth: size.third_col_max_width,
 			},
 		)
-		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn])
+
+		const columns = [this.sidebarColumn, this.contentColumn]
+
+		// Adds eventDetails column to show events at agenda view as full page instead of a popover
+		if (isApp()) {
+			this.eventDetails = new ViewColumn(
+				{
+					view: () => this.renderEventDetailsColumn(attrs),
+				},
+				ColumnType.Background,
+				{
+					minWidth: size.third_col_min_width,
+					maxWidth: size.third_col_max_width,
+				},
+			)
+
+			columns.push(this.eventDetails)
+		}
+
+		this.viewSlider = new ViewSlider(columns)
 
 		const shortcuts = this.setupShortcuts()
 
@@ -455,6 +507,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				}),
 			)
 			streamListeners.push(this.viewModel.redraw.map(m.redraw))
+			this.viewSlider.focus(this.contentColumn)
 		}
 
 		this.onremove = () => {
@@ -473,6 +526,152 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 
 		deviceConfig.getLastSyncStream().map(redraw)
+	}
+
+	private renderEventDetailsColumn(attrs: CalendarViewAttrs) {
+		const isEventDetailsColumnVisible = this.viewSlider.focusedColumn === this.eventDetails
+		if (!isEventDetailsColumnVisible) {
+			return null
+		}
+
+		if (!isApp()) {
+			this.viewSlider.focus(this.viewSlider.getMainColumn())
+			return null
+		}
+
+		if (!this.viewModel.eventPreviewModel) {
+			return m(".flex-center.items-center.full-height", progressIcon())
+		}
+
+		const children: Array<Children> = []
+		if (this.viewModel.eventPreviewModel instanceof CalendarContactPreviewViewModel) {
+			const id = this.viewModel.eventPreviewModel.event._id
+			const idParts = id[1].split("#")
+
+			const contactId = extractContactIdFromEvent(last(idParts))
+			if (contactId == null) {
+				return null
+			}
+
+			children.push(this.renderContactPreview(this.viewModel.eventPreviewModel.contact))
+		} else {
+			children.push(this.renderEventPreview())
+		}
+
+		const header = m(MobileHeader, {
+			...attrs.header,
+			backAction: this.exitEventDetails.bind(this),
+			columnType: "other",
+			title: "agenda_label",
+			actions: styles.isSingleColumnLayout() ? this.renderEventDetailsActions() : null,
+			multicolumnActions: () => [],
+			primaryAction: () => null,
+			useBackButton: true,
+		})
+
+		return m(BackgroundColumnLayout, {
+			backgroundColor: theme.navigation_bg,
+			desktopToolbar: () => header,
+			mobileHeader: () => header,
+			columnLayout: children,
+		})
+	}
+
+	private renderEventPreview(): Children {
+		if (!(this.viewModel.eventPreviewModel instanceof CalendarEventPreviewViewModel)) {
+			return null
+		}
+
+		const eventPreviewModel: CalendarEventPreviewViewModel | undefined = this.viewModel.eventPreviewModel
+
+		return m(
+			".height-100p.overflow-y-scroll.mb-l.fill-absolute.pb-l",
+			m(
+				".border-radius-big.flex.col.flex-grow.content-bg",
+				{
+					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
+					style: {
+						"min-width": styles.isDesktopLayout() ? px(size.third_col_min_width) : null,
+						"max-width": styles.isDesktopLayout() ? px(size.third_col_max_width) : null,
+					},
+				},
+				m(EventDetailsView, {
+					eventPreviewModel: this.viewModel.eventPreviewModel,
+					editCallback: () => {
+						if (this.eventDetails && eventPreviewModel?.calendarEvent) {
+							this.viewSlider.focus(this.eventDetails)
+						} else {
+							this.exitEventDetails()
+						}
+					},
+					deleteCallback: () => this.exitEventDetails(),
+				} satisfies EventDetailsViewAttrs),
+			),
+		)
+	}
+
+	private renderContactPreview(contact: Contact) {
+		return m(
+			".fill-absolute.flex.col.overflow-y-scroll",
+			m(ContactCardViewer, {
+				contact: contact,
+				editAction: async (contact) => {
+					if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
+
+					const query = `contactId=${stringToBase64(contact._id.join("/"))}`
+					calendarLocator.systemFacade.openMailApp(stringToBase64(query))
+				},
+				onWriteMail: (to: PartialRecipient) => simulateMailToClick(to.address),
+				extendedActions: true,
+			}),
+		)
+	}
+
+	private renderEventDetailsActions(): Array<Children> {
+		const previewModel = this.viewModel.eventPreviewModel
+		const actions: Array<Children> = []
+
+		if (previewModel instanceof CalendarEventPreviewViewModel) {
+			if (previewModel.canSendUpdates) {
+				actions.push(
+					m(IconButton, {
+						icon: BootIcons.Mail,
+						title: "sendUpdates_label",
+						click: () => handleSendUpdatesClick(previewModel),
+					}),
+				)
+			}
+			if (previewModel.canEdit) {
+				actions.push(
+					m(IconButton, {
+						icon: Icons.Edit,
+						title: "edit_action",
+						click: (ev: MouseEvent, receiver: HTMLElement) => {
+							handleEventEditButtonClick(previewModel, ev, receiver, () => {
+								if (this.eventDetails && previewModel.calendarEvent) {
+									this.viewSlider.focus(this.eventDetails)
+								} else {
+									this.exitEventDetails()
+								}
+							})
+						},
+					}),
+				)
+			}
+			if (previewModel.canDelete) {
+				actions.push(
+					m(IconButton, {
+						icon: Icons.Trash,
+						title: "delete_action",
+						click: async (ev: MouseEvent, receiver: HTMLElement) => {
+							await handleEventDeleteButtonClick(previewModel, ev, receiver, () => this.exitEventDetails())
+						},
+					}),
+				)
+			}
+		}
+
+		return actions
 	}
 
 	private renderFab(): Children {
@@ -1135,10 +1334,19 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		if (!args.view) {
 			this.setUrl(this.currentViewType, this.viewModel.selectedDate(), true)
 			if (this.currentViewType === CalendarViewType.WEEK || this.currentViewType === CalendarViewType.THREE_DAY) {
-				this.viewModel.setSelectedTime(Time.fromDateTime(DateTime.fromObject({ hour: deviceConfig.getScrollTime(), minute: 0 })))
+				this.viewModel.setSelectedTime(
+					Time.fromDateTime(
+						DateTime.fromObject({
+							hour: deviceConfig.getScrollTime(),
+							minute: 0,
+						}),
+					),
+				)
 			}
 		} else {
 			this.currentViewType = CalendarViewTypeByValue[args.view as CalendarViewType] ? args.view : CalendarViewType.MONTH
+
+			const eventIdParam = args.eventId
 			const urlDateParam = args.date
 
 			if (urlDateParam) {
@@ -1153,13 +1361,33 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 				if (this.viewModel.selectedDate().getTime() !== date.getTime()) {
 					this.viewModel.selectedDate(date)
-
 					m.redraw()
+				}
+
+				if (eventIdParam && isApp() && this.eventDetails) {
+					try {
+						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
+						this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]])
+						if (this.viewSlider.focusedColumn != this.eventDetails) {
+							this.viewSlider.focus(this.eventDetails)
+						}
+					} catch (e) {
+						console.warn("Failed to open event", eventIdParam)
+					}
+				} else if (!eventIdParam && this.viewSlider.focusedColumn === this.eventDetails) {
+					this.viewSlider.focus(this.viewSlider.getMainColumn())
 				}
 
 				const today = new Date()
 				if (args.view === "week" || args.view === "three") {
-					this.viewModel.setSelectedTime(Time.fromDateTime(DateTime.fromObject({ hour: deviceConfig.getScrollTime(), minute: 0 })))
+					this.viewModel.setSelectedTime(
+						Time.fromDateTime(
+							DateTime.fromObject({
+								hour: deviceConfig.getScrollTime(),
+								minute: 0,
+							}),
+						),
+					)
 				} else if (isSameDayOfDate(today, date)) {
 					const time = Time.fromDate(today)
 					this.viewModel.setSelectedTime(time)
@@ -1176,14 +1404,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return this.viewSlider
 	}
 
-	private setUrl(view: string, date: Date, replace: boolean = false, resetState: boolean = false) {
+	private setUrl(view: string, date: Date, replace: boolean = false, resetState: boolean = false, eventId?: string) {
 		const dateString = DateTime.fromJSDate(date).toISODate() ?? DateTime.now().toISODate()
-
+		const route = eventId != null ? "/calendar/:view/:date/:eventId" : "/calendar/:view/:date"
 		m.route.set(
-			"/calendar/:view/:date",
+			route,
 			{
 				view,
 				date: dateString,
+				...(eventId ? { eventId } : {}),
 			},
 			{
 				replace,
@@ -1311,5 +1540,27 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	private hasEventsOn(date: Date): boolean {
 		return daysHaveEvents(this.viewModel.getEventsOnDaysToRender([date]))
+	}
+
+	private exitEventDetails() {
+		this.viewModel.setPreviewedEventId(null) // Make sure there is no event to show
+		this.setUrl(this.currentViewType, this.viewModel.selectedDate())
+	}
+
+	handleBackButton() {
+		if (this.viewSlider.focusedColumn === this.eventDetails) {
+			this.exitEventDetails()
+			return true
+		}
+
+		// Handles back navigation when user entered Agenda view from Month view
+		if (this.currentViewType === CalendarViewType.AGENDA && history.state?.origin === CalendarViewType.MONTH) {
+			const date = history.state.dateString ?? DateTime.now().toISODate()
+			this.setUrl(CalendarViewType.MONTH, date, true)
+			return true
+		}
+
+		// We do not want to consume the event, just append one action to it
+		return false
 	}
 }

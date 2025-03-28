@@ -32,6 +32,7 @@ interface CommonNativeFacade {
 		userId: String,
 		action: CalendarOpenAction?,
 		dateIso: String?,
+		eventId: String?,
 	): Unit
 	suspend fun openContactEditor(
 		contactId: String,

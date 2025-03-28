@@ -111,6 +111,7 @@ class WidgetUIViewModel(
 
 				val event = UIEvent(
 					calendarId,
+					loadedEvent.id,
 					settings.calendars[calendarId]?.color ?: "2196f3",
 					loadedEvent.summary,
 					start.format(formatter),

@@ -762,7 +762,6 @@ mod tests {
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::entity_test_utils::generate_email_entity;
 	use crate::{collection, ApiCallError};
-	use core::str;
 	use std::collections::{BTreeMap, HashMap};
 	use std::sync::Arc;
 	use std::time::SystemTime;
