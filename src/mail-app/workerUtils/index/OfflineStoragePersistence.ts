@@ -5,7 +5,7 @@ import { GroupType } from "../../../common/api/common/TutanotaConstants"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeId, TypeRef } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { elementIdPart, getElementId, getListId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
@@ -54,7 +54,8 @@ export interface IndexedGroupData {
  * Handles directly indexing mail data as well as storing mail groups' indexing timestamps.
  */
 export class OfflineStoragePersistence {
-	private static readonly MAIL_INDEXING_ENABLED = "mailIndexingEnabled"
+	static readonly MAIL_INDEXING_ENABLED = "mailIndexingEnabled"
+	static readonly CONTACTS_INDEXED = "contactsIndexed"
 
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
 
@@ -65,7 +66,7 @@ export class OfflineStoragePersistence {
 	}
 
 	async getIndexedGroups(): Promise<readonly IndexedGroupData[]> {
-		const { query, params } = sql`SELECT groupId, groupType, indexedTimestamp
+		const { query, params } = sql`SELECT groupId, CAST(groupType as TEXT) as type, indexedTimestamp
                                     FROM search_group_data`
 		const rows = await this.sqlCipherFacade.all(query, params)
 		return rows.map(untagSqlObject).map((row) => row as unknown as IndexedGroupData)
@@ -107,7 +108,7 @@ export class OfflineStoragePersistence {
                                     FROM search_metadata
                                     WHERE key = ${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}`
 		const row = await this.sqlCipherFacade.get(query, params)
-		return row != null && untagSqlValue(row["value"]) === 1
+		return row != null && untagSqlValue(row.value) === 1
 	}
 
 	async storeMailData(mailData: readonly MailWithDetailsAndAttachments[]) {
@@ -116,7 +117,7 @@ export class OfflineStoragePersistence {
 			mailDetails: { recipients, body },
 			attachments,
 		} of mailData) {
-			const rowid = await this.getRowid(MailTypeRef, mail)
+			const rowid = await this.getRowid(MailTypeRef, mail._id)
 			if (rowid == null) {
 				return
 			}
@@ -148,26 +149,26 @@ export class OfflineStoragePersistence {
 	}
 
 	async deleteMailData(mailId: IdTuple): Promise<void> {
-		const { query, params } = sql`DELETE
-                                    FROM mail_index
-                                    WHERE rowId = (SELECT rowId
-                                                   FROM list_entities
-                                                   WHERE type =
-                                                         ${getTypeId(MailTypeRef)}
-                                                     AND listId
-                                                       =
-                                                         ${listIdPart(mailId)}
-                                                     AND elementId
-                                                       =
-                                                         ${elementIdPart(mailId)} LIMIT 1)`
-		await this.sqlCipherFacade.run(query, params)
+		const rowid = await this.getRowid(MailTypeRef, mailId)
+		{
+			const { query, params } = sql`DELETE
+										  FROM mail_index
+										  WHERE rowId = ${rowid}`
+			await this.sqlCipherFacade.run(query, params)
+		}
+		{
+			const { query, params } = sql`DELETE
+                                          FROM content_mail_index
+                                          WHERE rowId = ${rowid}`
+			await this.sqlCipherFacade.run(query, params)
+		}
 	}
 
 	async storeContactData(contacts: Contact[]): Promise<void> {
 		for (const contact of contacts) {
-			const rowid = await this.getRowid(ContactTypeRef, contact)
+			const rowid = await this.getRowid(ContactTypeRef, contact._id)
 			if (rowid == null) {
-				return
+				continue
 			}
 
 			const { query, params } = sql`
@@ -201,32 +202,33 @@ export class OfflineStoragePersistence {
 	}
 
 	async areContactsIndexed(): Promise<boolean> {
-		const { query, params } = sql`SELECT CAST(value as NUMBER)
+		const { query, params } = sql`SELECT CAST(value as NUMBER) as value
                                     FROM search_metadata
-                                    WHERE key = 'contacts_indexed'`
+                                    WHERE key = ${OfflineStoragePersistence.CONTACTS_INDEXED}`
 		const value = await this.sqlCipherFacade.get(query, params)
 		return value != null && untagSqlObject(value).value === 1
 	}
 
 	async setContactsIndexed(indexed: boolean): Promise<void> {
 		const { query, params } = sql`INSERT
-        OR REPLACE INTO search_metadata (key, value) VALUES ('contacts_indexed',
+        OR REPLACE INTO search_metadata (key, value) VALUES (
+        ${OfflineStoragePersistence.CONTACTS_INDEXED},
         ${indexed ? 1 : 0}
         )`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, element: T): Promise<SqlValue | null> {
+	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
 		// Find rowid from the offline storage.
 		// We could have done it in a single query but we need to insert into two tables.
 		const rowIdQuery = sql`SELECT rowid
                                FROM list_entities
                                WHERE type = ${getTypeId(typeRef)}
-                                 AND listId = ${getListId(element)}
-                                 AND elementId = ${getElementId(element)}`
+                                 AND listId = ${listIdPart(id)}
+                                 AND elementId = ${elementIdPart(id)}`
 		const rowIdResult = await this.sqlCipherFacade.get(rowIdQuery.query, rowIdQuery.params)
 		if (rowIdResult == null) {
-			console.warn(`Did not find row id for ${typeRef.type} ${element._id.join(",")}`)
+			console.warn(`Did not find row id for ${typeRef.type} ${id.join(",")}`)
 			return null
 		}
 		return untagSqlObject(rowIdResult).rowid
