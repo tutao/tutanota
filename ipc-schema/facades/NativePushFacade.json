@@ -53,7 +53,7 @@
 		"scheduleAlarms": {
 			"arg": [
 				{
-					"alarms": "List<EncryptedAlarmNotification>"
+					"alarms": "List<AlarmNotification>"
 				}
 			],
 			"ret": "void"

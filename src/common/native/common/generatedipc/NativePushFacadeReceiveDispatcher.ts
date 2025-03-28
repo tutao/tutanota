@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { EncryptedAlarmNotification } from "./EncryptedAlarmNotification.js"
+import { AlarmNotification } from "./AlarmNotification.js"
 import { ExtendedNotificationMode } from "./ExtendedNotificationMode.js"
 import { NativePushFacade } from "./NativePushFacade.js"
 
@@ -31,7 +31,7 @@ export class NativePushFacadeReceiveDispatcher {
 				return this.facade.closePushNotifications(addressesArray)
 			}
 			case "scheduleAlarms": {
-				const alarms: ReadonlyArray<EncryptedAlarmNotification> = arg[0]
+				const alarms: ReadonlyArray<AlarmNotification> = arg[0]
 				return this.facade.scheduleAlarms(alarms)
 			}
 			case "invalidateAlarmsForUser": {

@@ -351,18 +351,8 @@ export class CalendarFacade {
 		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({ event, userAlarmInfos }) =>
 			userAlarmInfos.map((userAlarmInfo) => createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)),
 		)
-		// Theoretically we don't need to encrypt anything if we are sending things locally, but we use already encrypted data on the client
-		// to store alarms securely.
-		const notificationKey = aes256RandomKey()
-		await this.encryptNotificationKeyForDevices(notificationKey, alarmNotifications, [pushIdentifier])
 
-		const encryptedAlarmNotifications = await Promise.all(
-			alarmNotifications.map(async (alarmNotification) => {
-				const parsedInstance = await this.instancePipeline.encryptAndMapToLiteral(AlarmNotificationTypeRef, alarmNotification, notificationKey)
-				return EncryptedAlarmNotification.from(parsedInstance)
-			}),
-		)
-		await this.nativePushFacade.scheduleAlarms(encryptedAlarmNotifications)
+		await this.nativePushFacade.scheduleAlarms(alarmNotifications)
 	}
 
 	/**

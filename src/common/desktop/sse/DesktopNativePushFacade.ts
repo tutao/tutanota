@@ -1,10 +1,10 @@
 import { NativePushFacade } from "../../native/common/generatedipc/NativePushFacade.js"
-import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import { NativeAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode.js"
 import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
+import { AlarmNotification } from "../../api/entities/sys/TypeRefs"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
@@ -45,11 +45,9 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		await this.sse.connect()
 	}
 
-	// FIXME: should probably take Array<AlarmNotification>
-	async scheduleAlarms(alarms: ReadonlyArray<EncryptedAlarmNotification>): Promise<void> {
+	async scheduleAlarms(alarms: ReadonlyArray<AlarmNotification>): Promise<void> {
 		for (const alarm of alarms) {
-			// FIXME
-			await this.alarmScheduler.handleAlarmNotification(alarm as any)
+			await this.alarmScheduler.handleAlarmNotification(alarm)
 		}
 	}
 

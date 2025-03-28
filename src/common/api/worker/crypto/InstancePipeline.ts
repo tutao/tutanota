@@ -1,9 +1,9 @@
 import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper } from "./CryptoMapper"
 import { resolveTypeReference, TypeReferenceResolver } from "../../common/EntityFunctions"
-import {Entity, ParsedInstance, SomeEntity, UntypedInstance} from "../../common/EntityTypes"
+import { Entity, ParsedInstance, SomeEntity, UntypedInstance } from "../../common/EntityTypes"
 import { ModelMapper } from "./ModelMapper"
-import {downcast, TypeRef} from "@tutao/tutanota-utils"
+import { downcast, TypeRef } from "@tutao/tutanota-utils"
 import { AesKey } from "@tutao/tutanota-crypto"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 

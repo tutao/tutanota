@@ -37,7 +37,7 @@ export class EncryptedAlarmNotification {
 		return new EncryptedAlarmNotification(untypedInstance, alarmNotificationTypeModel, notificationSessionKeyTypeModel, alarmInfoTypeModel)
 	}
 
-	getNotificationSessionKey(): Array<NotificationSessionKey> {
+	getNotificationSessionKeys(): Array<NotificationSessionKey> {
 		const notificationSessionKeys = AttributeModel.getAttribute<UntypedInstance[]>(
 			this.untypedInstance,
 			"notificationSessionKeys",

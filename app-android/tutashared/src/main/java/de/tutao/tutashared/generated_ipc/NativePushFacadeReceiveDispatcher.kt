@@ -54,7 +54,7 @@ class NativePushFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"scheduleAlarms" -> {
-				val alarms: List<EncryptedAlarmNotification> = json.decodeFromString(arg[0])
+				val alarms: List<AlarmNotification> = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.scheduleAlarms(
 					alarms,
 				)

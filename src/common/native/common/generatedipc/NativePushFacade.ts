@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { EncryptedAlarmNotification } from "./EncryptedAlarmNotification.js"
+import { AlarmNotification } from "./AlarmNotification.js"
 import { ExtendedNotificationMode } from "./ExtendedNotificationMode.js"
 /**
  * Push notifications and alarms operations
@@ -25,7 +25,7 @@ export interface NativePushFacade {
 
 	closePushNotifications(addressesArray: ReadonlyArray<string>): Promise<void>
 
-	scheduleAlarms(alarms: ReadonlyArray<EncryptedAlarmNotification>): Promise<void>
+	scheduleAlarms(alarms: ReadonlyArray<AlarmNotification>): Promise<void>
 
 	/**
 	 * Unschedule and remove alarms belonging to a specific user from the persistent storage

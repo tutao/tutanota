@@ -6,13 +6,13 @@ import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { assertNotNull, Base64, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog"
 import { AesKey, decryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
-import { EncryptedParsedInstance, UntypedInstance } from "../../api/common/EntityTypes"
-import { AlarmNotification, AlarmNotificationTypeRef, createNotificationSessionKey, NotificationSessionKeyTypeRef } from "../../api/entities/sys/TypeRefs"
+import { UntypedInstance } from "../../api/common/EntityTypes"
+import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "../../api/entities/sys/TypeRefs"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 import { resolveTypeReference } from "../../api/common/EntityFunctions"
-import { AttributeModel } from "../../api/common/AttributeModel"
 import { hasError } from "../../api/common/utils/ErrorUtils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -67,7 +67,6 @@ export class DesktopAlarmStorage {
 	 * @return {Promise<?Base64>} a stored pushIdentifierSessionKey that should be able to decrypt the given notificationSessionKey
 	 */
 	async getPushIdentifierSessionKey(pushIdentifier: IdTuple): Promise<AesKey | null> {
-		const pw = await this.keyStoreFacade.getDeviceKey()
 		const pushIdentifierId = elementIdPart(pushIdentifier)
 
 		if (this.sessionKeys[pushIdentifierId]) {
@@ -82,6 +81,7 @@ export class DesktopAlarmStorage {
 			}
 
 			try {
+				const pw = await this.keyStoreFacade.getDeviceKey()
 				const decryptedKey = this.cryptoFacade.unauthenticatedAes256DecryptKey(pw, base64ToUint8Array(sessionKeyFromConf))
 				this.sessionKeys[pushIdentifierId] = uint8ArrayToBase64(decryptedKey)
 				return uint8ArrayToBitArray(decryptedKey)
@@ -92,11 +92,26 @@ export class DesktopAlarmStorage {
 		}
 	}
 
+	public async getNotificationSessionKey(notificationSessionKeys: Array<NotificationSessionKey>): Promise<{
+		sessionKey: AesKey
+		notificationSessionKey: NotificationSessionKey
+	} | null> {
+		for (const notificationSessionKey of notificationSessionKeys) {
+			const pushIdentifierSessionKey = await this.getPushIdentifierSessionKey(notificationSessionKey.pushIdentifier)
+			if (pushIdentifierSessionKey) {
+				return {
+					sessionKey: decryptKey(pushIdentifierSessionKey, notificationSessionKey.pushIdentifierSessionEncSessionKey),
+					notificationSessionKey,
+				}
+			}
+		}
+		return null
+	}
+
 	async storeAlarm(alarm: AlarmNotification): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
 		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === alarm.alarmInfo.alarmIdentifier)
 		allAlarms.push(alarm)
-		// FIXME encryptAndMapToLiteral
 		const encryptedAlarms = await Promise.all(
 			allAlarms.map(async (alarm) => {
 				return await this.encryptAlarmNotification(alarm)
@@ -108,7 +123,6 @@ export class DesktopAlarmStorage {
 	async deleteAlarm(identifier: string): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
 		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === identifier)
-		// FIXME encryptAndMapToLiteral
 		const encryptedAlarms = await Promise.all(
 			allAlarms.map(async (alarm) => {
 				return await this.encryptAlarmNotification(alarm)
@@ -151,8 +165,7 @@ export class DesktopAlarmStorage {
 		} else {
 			return Promise.all(
 				alarms.map(async (untypedInstance) => {
-					const encryptedParsedInstace = await this.instancePipeline.typeMapper.applyJsTypes(alarmNotificationTypeModel, untypedInstance)
-					return await this.decryptAlarmNotification(encryptedParsedInstace)
+					return await this.decryptAlarmNotification(untypedInstance)
 				}),
 			)
 		}
@@ -163,51 +176,22 @@ export class DesktopAlarmStorage {
 	}
 
 	async encryptAlarmNotification(an: AlarmNotification): Promise<UntypedInstance> {
-		// FIXME the AlarmNotification instance at this point should have only one relevant encrypted session key. Other are discarded in TutaSse
-		const notificationSessionKey = an.notificationSessionKeys[0]
-		const sessionKeyForPushId = assertNotNull(await this.getPushIdentifierSessionKey(notificationSessionKey.pushIdentifier))
-		const sk = decryptKey(sessionKeyForPushId, notificationSessionKey.pushIdentifierSessionEncSessionKey)
-		return await this.instancePipeline.encryptAndMapToLiteral(AlarmNotificationTypeRef, an, sk)
+		const notificationSessionKey = await this.getNotificationSessionKey(an.notificationSessionKeys)
+		return await this.instancePipeline.encryptAndMapToLiteral(AlarmNotificationTypeRef, an, assertNotNull(notificationSessionKey).sessionKey)
 	}
 
-	// FIXME this could probably take an UntypedInstance directly.
-
-	public async decryptAlarmNotification(an: EncryptedParsedInstance): Promise<AlarmNotification> {
-		const notificationSessionKeyModel = await resolveTypeReference(NotificationSessionKeyTypeRef)
-		const alarmNotificationTypeModel = await resolveTypeReference(AlarmNotificationTypeRef)
-
-		const notificationSessionKeys = AttributeModel.getAttribute<EncryptedParsedInstance[]>(an, "notificationSessionKeys", alarmNotificationTypeModel)
-		for (const nsk of notificationSessionKeys) {
-			const pushIdForKey = AttributeModel.getAttribute<IdTuple>(nsk, "pushIdentifier", notificationSessionKeyModel)
-			const sessionKeyforPushId = await this.getPushIdentifierSessionKey(pushIdForKey)
-			if (!sessionKeyforPushId) {
-				// could not resolve session key for current notificationSessionKey. Continue iteration...
-				continue
-			}
-			// now we can decrypt the session key
-			const encSessionKey = AttributeModel.getAttribute<Base64>(nsk, "pushIdentifierSessionEncSessionKey", notificationSessionKeyModel)
-
-			const sk = decryptKey(sessionKeyforPushId, base64ToUint8Array(encSessionKey))
-			// sk can decrypt the an instance
-			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(alarmNotificationTypeModel, an, sk)
-
-			const alarmNotification: AlarmNotification = await this.instancePipeline.modelMapper.applyClientModel(AlarmNotificationTypeRef, parsedInstance)
-
+	public async decryptAlarmNotification(an: UntypedInstance): Promise<AlarmNotification> {
+		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an)
+		const skResult = await this.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
+		if (skResult) {
+			const alarmNotification = await this.instancePipeline.decryptAndMapToInstance(AlarmNotificationTypeRef, an, skResult.sessionKey)
 			if (hasError(alarmNotification)) {
 				// some property of the AlarmNotification couldn't be decrypted with the selected key
 				// throw away the key that caused the error and try the next one
-				await this.removePushIdentifierKey(elementIdPart(pushIdForKey))
-				continue
+				await this.removePushIdentifierKey(elementIdPart(skResult.notificationSessionKey.pushIdentifier))
 			}
-
 			// discard irrelevant session keys, keep currect encrypted session key
-			alarmNotification.notificationSessionKeys = [
-				createNotificationSessionKey({
-					pushIdentifier: pushIdForKey,
-					pushIdentifierSessionEncSessionKey: base64ToUint8Array(encSessionKey),
-				}),
-			]
-			return alarmNotification
+			alarmNotification.notificationSessionKeys = [skResult.notificationSessionKey]
 		}
 		throw new CryptoError("could not decrypt alarmNotification")
 	}
