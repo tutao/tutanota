@@ -32,7 +32,7 @@ class WidgetWorkerRepository : WidgetRepository() {
 				Calendar.getInstance().timeZone.toZoneId()
 			)
 
-			val force = storedLastSyncAsLocalDateTime.dayOfYear < nowAsLocalDateTime.dayOfYear
+			val force = storedLastSyncAsLocalDateTime.dayOfYear != nowAsLocalDateTime.dayOfYear
 			val lastSyncIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$id"
 			val preferencesKey = stringPreferencesKey(lastSyncIdentifier)
 

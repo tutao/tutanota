@@ -2,6 +2,7 @@ package de.tutao.calendar.widget
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -10,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -68,8 +71,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,10 +86,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.core.graphics.toColorInt
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.MutableCreationExtras
+import de.tutao.calendar.MainActivity
+import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.WidgetConfigRepository
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
+import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetConfigModel
 import de.tutao.calendar.widget.model.WidgetConfigViewModel
 import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
@@ -93,13 +104,15 @@ import de.tutao.tutashared.CredentialType
 import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CredentialsInfo
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.PersistedCredentials
 import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -130,6 +143,22 @@ class WidgetConfigActivity : AppCompatActivity() {
 			set(WidgetConfigViewModel.SDK_EXTRA_KEY, sdk)
 			set(WidgetConfigViewModel.REPOSITORY_EXTRA_KEY, WidgetConfigRepository())
 		}
+	}
+
+	private fun buildOpenAgendaIntent(context: Context): Intent {
+		val openCalendarAgenda = Intent(context, MainActivity::class.java)
+		openCalendarAgenda.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		openCalendarAgenda.action = MainActivity.OPEN_CALENDAR_ACTION
+		openCalendarAgenda.putExtra(
+			MainActivity.OPEN_CALENDAR_IN_APP_ACTION_KEY,
+			CalendarOpenAction.AGENDA.value
+		)
+		openCalendarAgenda.putExtra(
+			MainActivity.OPEN_CALENDAR_DATE_KEY,
+			LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+		)
+
+		return openCalendarAgenda
 	}
 
 	@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
@@ -197,8 +226,12 @@ class WidgetConfigActivity : AppCompatActivity() {
 			) {
 				CompositionLocalProvider(LocalRippleConfiguration provides rippleConfiguration) {
 					if (error != null) {
-						return@CompositionLocalProvider ErrorMessage(error, {
-							startActivity(WidgetErrorHandler.buildLogsIntent(context, error))
+						return@CompositionLocalProvider ErrorMessage(error as WidgetError, {
+							if (error!!.type == WidgetErrorType.CREDENTIALS) {
+								startActivity(buildOpenAgendaIntent(context))
+							} else {
+								startActivity(WidgetErrorHandler.buildLogsIntent(context, error))
+							}
 						})
 					}
 
@@ -212,7 +245,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 								val activityContext = this
 								val storeJob = viewModel.storeSettings(this, appWidgetId)
 								storeJob.invokeOnCompletion {
-									GlobalScope.launch { //FIXME handle coroutine properly
+									lifecycleScope.launch {
 										val manager = GlanceAppWidgetManager(activityContext)
 										val widget = Agenda()
 										val glanceIds = manager.getGlanceIds(widget.javaClass)
@@ -342,6 +375,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 		val calendars by model.calendars.collectAsState()
 
 		var rowSize by remember { mutableStateOf(Size.Zero) }
+		val context = LocalContext.current
 
 		Column(
 			modifier = Modifier
@@ -362,17 +396,32 @@ class WidgetConfigActivity : AppCompatActivity() {
 					verticalArrangement = Arrangement.Center,
 					horizontalAlignment = Alignment.CenterHorizontally
 				) {
-					// FIXME Add Translation
 					Column(
 						verticalArrangement = Arrangement.Center,
 						horizontalAlignment = Alignment.CenterHorizontally,
 						modifier = Modifier.padding(16.dp)
 					) {
 						Text(
-							"No credentials available",
+							context.getString(R.string.widgetNoCredentialsInfo_msg),
 							fontWeight = FontWeight.Bold,
 							fontSize = 24.sp,
+							modifier = Modifier.padding(bottom = 16.dp)
 						)
+						Button(
+							{ startActivity(buildOpenAgendaIntent(context)) },
+							modifier = Modifier
+								.padding(horizontal = 16.dp)
+								.height(44.dp),
+							shape = RoundedCornerShape(8.dp)
+						) {
+							Text(
+								context.getString(R.string.widgetOpenApp_action),
+								style = TextStyle(
+									fontWeight = FontWeight.Medium,
+									color = MaterialTheme.colorScheme.onPrimary
+								)
+							)
+						}
 					}
 				}
 			}
@@ -383,7 +432,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 					.wrapContentWidth()
 			) {
 				Text(
-					"Account".uppercase(), // FIXME Add Translation
+					context.getString(R.string.account_label).uppercase(),
 					color = MaterialTheme.colorScheme.onBackground,
 					fontWeight = FontWeight.Bold,
 					fontSize = 12.sp,
@@ -439,7 +488,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 					.padding(8.dp)
 			) {
 				Text(
-					"Calendars".uppercase(), // FIXME Add Translation
+					context.getString(R.string.calendars_label).uppercase(),
 					color = MaterialTheme.colorScheme.onBackground,
 					fontWeight = FontWeight.Bold,
 					fontSize = 12.sp,
@@ -530,8 +579,13 @@ class WidgetConfigActivity : AppCompatActivity() {
 
 	@OptIn(ExperimentalMaterial3Api::class)
 	@Composable
-	private fun ErrorMessage(error: WidgetError?, action: () -> Unit) {
+	private fun ErrorMessage(error: WidgetError, action: () -> Unit) {
 		val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+		val buttonLabel = if (error.type == WidgetErrorType.UNEXPECTED) {
+			LocalContext.current.getString(R.string.sendLogs_action)
+		} else {
+			LocalContext.current.getString(R.string.widgetOpenApp_action)
+		}
 
 		Scaffold(
 			topBar = {
@@ -555,26 +609,33 @@ class WidgetConfigActivity : AppCompatActivity() {
 				verticalArrangement = Arrangement.Center,
 				horizontalAlignment = Alignment.CenterHorizontally
 			) {
-				Card(
-					colors = CardDefaults.cardColors(
-						containerColor = MaterialTheme.colorScheme.surface,
-					),
+				Image(
+					painter = painterResource(id = R.drawable.error),
+					contentDescription = null,
+					contentScale = ContentScale.Fit,
 					modifier = Modifier
-						.fillMaxWidth(),
+						.fillMaxWidth(0.6f)
+						.aspectRatio(1.375f)
+				)
+				Text(
+					WidgetErrorHandler.getErrorMessage(LocalContext.current, error),
+					modifier = Modifier.padding(vertical = 16.dp),
+					style = TextStyle(color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp)
+				)
+				Button(
+					action,
+					modifier = Modifier
+						.padding(horizontal = 16.dp)
+						.height(44.dp),
+					shape = RoundedCornerShape(8.dp)
 				) {
-					Column(
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(8.dp),
-						verticalArrangement = Arrangement.Center,
-						horizontalAlignment = Alignment.CenterHorizontally
-					) {
-						// FIXME Add Translation
-						Text(error?.friendlyMessage ?: "Unexpected error", modifier = Modifier.padding(bottom = 8.dp))
-						Button(action, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
-							Text("Send Logs")
-						}
-					}
+					Text(
+						buttonLabel,
+						style = TextStyle(
+							fontWeight = FontWeight.Medium,
+							color = MaterialTheme.colorScheme.onPrimary
+						)
+					)
 				}
 			}
 		}
@@ -676,7 +737,21 @@ class WidgetConfigActivity : AppCompatActivity() {
 				AppTheme.LightColors
 			}
 		) {
-			ErrorMessage(WidgetError("Wow, something is wrong here", "Failed", "")) { }
+			ErrorMessage(WidgetError("Failed", "", WidgetErrorType.UNEXPECTED)) { }
+		}
+	}
+
+	@Preview(widthDp = 424, heightDp = 943)
+	@Composable
+	fun ConfigPreviewWithLoginError() {
+		MaterialTheme(
+			colorScheme = if (isSystemInDarkTheme()) {
+				AppTheme.DarkColors
+			} else {
+				AppTheme.LightColors
+			}
+		) {
+			ErrorMessage(WidgetError("Failed", "", WidgetErrorType.CREDENTIALS)) { }
 		}
 	}
 }

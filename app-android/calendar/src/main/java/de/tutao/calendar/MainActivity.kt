@@ -308,7 +308,7 @@ class MainActivity : FragmentActivity() {
 			val queryParameters = mutableMapOf<String, String>()
 			// If opened from notifications, tell Web app to not login automatically, we will pass
 			// mailbox later when loaded (in handleIntent())
-			if (intent != null && (OPEN_CALENDAR_ACTION == intent.action || OPEN_LOGS_ACTION == intent.action)) {
+			if (intent != null && (OPEN_CALENDAR_ACTION == intent.action)) {
 				queryParameters["noAutoLogin"] = "true"
 			}
 
@@ -465,7 +465,7 @@ class MainActivity : FragmentActivity() {
 					intent
 				)
 
-				OPEN_LOGS_ACTION -> openLogs(intent)
+				OPEN_LOGS_ACTION -> sendLogs(intent)
 				OPEN_CALENDAR_ACTION -> openCalendar(intent)
 				Intent.ACTION_VIEW -> {
 					when (intent.scheme) {
@@ -719,9 +719,9 @@ class MainActivity : FragmentActivity() {
 		commonNativeFacade.openCalendar(userId, action, date)
 	}
 
-	private suspend fun openLogs(intent: Intent) {
+	private suspend fun sendLogs(intent: Intent) {
 		val log = intent.getStringExtra(OPEN_LOGS_DATA_KEY) ?: return
-		commonNativeFacade.openLogs(log)
+		commonNativeFacade.sendLogs(log)
 	}
 
 	private fun onBackPressedCallback() {

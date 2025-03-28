@@ -9,6 +9,7 @@ import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
+import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.isAllDayEventByTimes
@@ -62,11 +63,10 @@ class WidgetUIViewModel(
 		val calendars = settings.calendars.keys.toList()
 
 		if (credentials == null) {
-			// FIXME Replace by translation
 			_error.value = WidgetError(
-				"Missing credentials for user ${settings.userId} during widget setup",
 				"Missing credentials for user ${settings.userId}",
-				""
+				"",
+				WidgetErrorType.CREDENTIALS
 			)
 			Log.w(TAG, "Missing credentials for user ${settings.userId} during widget setup")
 
@@ -144,15 +144,13 @@ class WidgetUIViewModel(
 		try {
 			return repository.loadSettings(context, widgetId)?.userId
 		} catch (e: IOException) {
-			// FIXME Replace by translation
-			_error.value = WidgetError("Failed to read stored Widget Settings", e.message ?: "", e.stackTraceToString())
+			WidgetError(e.message ?: "", e.stackTraceToString(), WidgetErrorType.UNEXPECTED)
 			Log.e(
 				WidgetConfigViewModel.TAG,
 				"Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}"
 			)
 		} catch (e: Exception) {
-			// FIXME Replace by translation
-			_error.value = WidgetError("Failed to read stored Widget Settings", e.message ?: "", e.stackTraceToString())
+			_error.value = WidgetError(e.message ?: "", e.stackTraceToString(), WidgetErrorType.UNEXPECTED)
 			Log.e(
 				WidgetConfigViewModel.TAG,
 				"Unexpected error while loading Widget Settings: ${e.stackTraceToString()}"
