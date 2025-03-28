@@ -96,7 +96,7 @@ impl JsonSerializer {
 					})
 				},
 			};
-			mapped.insert(value_name.to_owned(), mapped_value);
+			mapped.insert(value_id.to_string().to_owned(), mapped_value);
 		}
 
 		for (&association_id, association_type) in &type_model.associations {
@@ -125,7 +125,7 @@ impl JsonSerializer {
 						elements,
 					)?;
 					mapped.insert(
-						association_name.to_owned(),
+						association_id.to_string().to_owned(),
 						ElementValue::Array(parsed_aggregates),
 					);
 				},
@@ -137,11 +137,11 @@ impl JsonSerializer {
 				) => {
 					let ids =
 						self.parse_id_tuple_list_generated(type_ref, &association_name, vec)?;
-					mapped.insert(association_name.to_owned(), ElementValue::Array(ids));
+					mapped.insert(association_id.to_string().to_owned(), ElementValue::Array(ids));
 				},
 				(AssociationType::ListElementAssociationCustom, _, JsonElement::Array(vec)) => {
 					let ids = self.parse_id_tuple_list_custom(type_ref, &association_name, vec)?;
-					mapped.insert(association_name.to_owned(), ElementValue::Array(ids));
+					mapped.insert(association_id.to_string().to_owned(), ElementValue::Array(ids));
 				},
 				(
 					AssociationType::ListAssociation | AssociationType::ElementAssociation,
@@ -161,7 +161,7 @@ impl JsonSerializer {
 						.collect::<Vec<ElementValue>>();
 
 					mapped.insert(
-						association_name.to_owned(),
+						association_id.to_string().to_owned(),
 						ElementValue::Array(element_values),
 					);
 				},
@@ -259,7 +259,7 @@ impl JsonSerializer {
 			// we take out of the map to reuse the values
 			let (value_name, value) =
 				entity
-					.remove_entry(value_name)
+					.remove_entry(&value_id.to_string())
 					.ok_or_else(|| InvalidValue {
 						type_ref: type_ref.clone(),
 						field: value_name.to_owned(),
@@ -273,7 +273,7 @@ impl JsonSerializer {
 		for (&association_id, association_type) in &type_model.associations {
 			let association_name = &association_type.name;
 			let (association_name, association) = entity
-				.remove_entry(association_name)
+				.remove_entry(&association_id.to_string())
 				.ok_or_else(|| InvalidValue {
 					type_ref: type_ref.clone(),
 					field: association_name.to_owned(),
@@ -652,23 +652,18 @@ impl JsonSerializer {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::entities::entity_facade::{EntityFacade, EntityFacadeImpl};
 	use crate::entities::generated::sys::User;
 	use crate::entities::generated::tutanota;
-	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
-	use crate::services::test_services;
 	use crate::services::test_services::{extend_model_resolver, HelloEncOutput};
-	use crate::type_model_provider::{init_type_model_provider, AppName, TypeId};
-	use crate::util::test_utils::create_test_entity;
 
 	#[test]
 	fn test_parse_mail() {
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let mapper = JsonSerializer {
 			type_model_provider,
 		};
@@ -682,7 +677,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_mail_with_attachments() {
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let mapper = JsonSerializer {
 			type_model_provider,
 		};
@@ -703,7 +698,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_user() {
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let mapper = JsonSerializer {
 			type_model_provider,
 		};
@@ -724,7 +719,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_user_with_empty_group_key() {
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let mapper = JsonSerializer {
 			type_model_provider,
 		};

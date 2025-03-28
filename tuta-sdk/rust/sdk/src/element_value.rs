@@ -25,7 +25,7 @@ pub enum ElementValue {
 	IdTupleCustomElementId(IdTupleCustom),
 }
 
-/// Encrypted/Unencrypted parsed entity/instance using attributeNames as keys.
+/// Encrypted/Unencrypted parsed entity/instance using attributeIds as keys.
 pub type ParsedEntity = HashMap<String, ElementValue>;
 
 impl ElementValue {

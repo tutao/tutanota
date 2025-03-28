@@ -234,7 +234,7 @@ fn create_test_entity_dict_with_provider(
 			},
 		};
 
-		object.insert(value_name.to_string(), element_value);
+		object.insert(_value_id.to_string(), element_value);
 	}
 
 	for (&_association_id, association) in &model.associations {
@@ -279,7 +279,7 @@ fn create_test_entity_dict_with_provider(
 				ElementValue::Array(vec![element_value])
 			},
 		};
-		object.insert(association_name.to_string(), association_value);
+		object.insert(_association_id.to_string(), association_value);
 	}
 
 	if model.is_encrypted() {

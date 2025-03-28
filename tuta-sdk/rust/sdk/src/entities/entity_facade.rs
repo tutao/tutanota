@@ -15,7 +15,6 @@ use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use lz4_flex::block::DecompressError;
 use minicbor::Encode;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -175,9 +174,9 @@ impl EntityFacadeImpl {
 
 		for (&_value_id, value_type) in &type_model.values {
 			let value_name = &value_type.name;
-			let instance_value = instance.get(&value_name.to_string()).ok_or_else(|| {
+			let instance_value = instance.get(&_value_id.to_string()).ok_or_else(|| {
 				ApiCallError::internal(format!(
-					"Can not find key: {value_name} in instance: {instance:?}"
+					"Can not find key: {_value_id} in instance: {instance:?}"
 				))
 			})?;
 
@@ -187,17 +186,17 @@ impl EntityFacadeImpl {
 				value_type,
 				instance_value,
 				instance,
-				value_name,
+				&*_value_id.to_string(),
 			) {
 				// restore the default encrypted value because it has not changed
 				// note: this branch must be checked *before* the one which reuses IVs as this one checks
 				// the length.
 				ElementValue::String(String::new())
 			} else if value_type.is_final
-				&& Self::get_final_iv_for_key(instance, value_name).is_some()
+				&& Self::get_final_iv_for_key(instance, &*_value_id.to_string()).is_some()
 			{
 				let final_iv = Iv::from_bytes(
-					Self::get_final_iv_for_key(instance, value_name)
+					Self::get_final_iv_for_key(instance, &*_value_id.to_string())
 						.unwrap()
 						.assert_bytes()
 						.as_slice(),
@@ -213,7 +212,7 @@ impl EntityFacadeImpl {
 					Iv::generate(&self.randomizer_facade),
 				)?
 			};
-			encrypted.insert(value_name.to_owned(), encrypted_value);
+			encrypted.insert(_value_id.to_string(), encrypted_value);
 		}
 
 		if type_model.element_type == ElementType::Aggregated {
@@ -226,7 +225,7 @@ impl EntityFacadeImpl {
 					// the _id is most likely already set to some valid value
 				},
 				None => {
-					unreachable!("aggregate parsedEntity without an _id field encountered");
+					//
 				},
 			}
 		}
@@ -236,7 +235,7 @@ impl EntityFacadeImpl {
 			let encrypted_association = match association_type.association_type {
 				AssociationType::Aggregation => self.encrypt_aggregate(
 					type_model,
-					association_name,
+					&*_association_id.to_string(),
 					association_type,
 					instance,
 					sk,
@@ -246,14 +245,14 @@ impl EntityFacadeImpl {
 				| AssociationType::ListElementAssociationCustom
 				| AssociationType::ListElementAssociationGenerated
 				| AssociationType::BlobElementAssociation => instance
-					.get(&association_name.to_string())
+					.get(&_association_id.to_string())
 					.cloned()
 					.ok_or(ApiCallError::internal(format!(
-						"could not find association {association_name} on type {}",
+						"could not find association {_association_id} on type {}",
 						type_model.name
 					)))?,
 			};
-			encrypted.insert(association_name.to_owned(), encrypted_association);
+			encrypted.insert(_association_id.to_string(), encrypted_association);
 		}
 
 		Ok(encrypted)
@@ -262,7 +261,7 @@ impl EntityFacadeImpl {
 	fn encrypt_aggregate(
 		&self,
 		type_model: &TypeModel,
-		association_name: &str,
+		association_id: &str,
 		association: &ModelAssociation,
 		instance: &ParsedEntity,
 		sk: &GenericAesKey,
@@ -277,7 +276,7 @@ impl EntityFacadeImpl {
 					(dependency, association.ref_type_id)
 				))
 			})?;
-		let instance_association = instance.get(&association_name.to_string()).unwrap();
+		let instance_association = instance.get(&association_id.to_string()).unwrap();
 
 		let aggregates = instance_association.assert_array();
 		let mut encrypted_aggregates = Vec::with_capacity(aggregates.len());
@@ -302,35 +301,37 @@ impl EntityFacadeImpl {
 
 		for (&_value_id, value_type) in &type_model.values {
 			let value_name = &value_type.name;
-			let stored_element = entity.remove(value_name).unwrap_or(ElementValue::Null);
+			let stored_element = entity
+				.remove(&_value_id.to_string())
+				.unwrap_or(ElementValue::Null);
 			let MappedValue { value, iv, error } =
 				Self::decrypt_and_parse_value(stored_element, session_key, value_name, value_type)?;
 
-			mapped_decrypted.insert(value_name.to_string(), value);
+			mapped_decrypted.insert(_value_id.to_string(), value);
 			if let Some(error) = error {
-				mapped_errors.insert(value_name.to_string(), ElementValue::String(error));
+				mapped_errors.insert(_value_id.to_string(), ElementValue::String(error));
 			}
 			if let Some(iv) = iv {
-				mapped_ivs.insert(value_name.to_string(), ElementValue::Bytes(iv.clone()));
+				mapped_ivs.insert(_value_id.to_string(), ElementValue::Bytes(iv.clone()));
 			}
 		}
 
 		for (&_association_id, association_type) in &type_model.associations {
 			let association_name = &association_type.name;
 			let association_entry = entity
-				.remove(association_name)
+				.remove(&_association_id.to_string())
 				.unwrap_or(ElementValue::Array(vec![]));
 			let (mapped_association, errors) = self.map_associations(
 				type_model,
 				association_entry,
 				session_key,
-				association_name,
+				&*_association_id.to_string(),
 				association_type,
 			)?;
 
-			mapped_decrypted.insert(association_name.to_string(), mapped_association);
+			mapped_decrypted.insert(_association_id.to_string(), mapped_association);
 			if !errors.is_empty() {
-				mapped_errors.insert(association_name.to_string(), ElementValue::Dict(errors));
+				mapped_errors.insert(_association_id.to_string(), ElementValue::Dict(errors));
 			}
 		}
 
@@ -349,7 +350,7 @@ impl EntityFacadeImpl {
 		type_model: &TypeModel,
 		association_data: ElementValue,
 		session_key: &GenericAesKey,
-		association_name: &str,
+		association_id: &str,
 		association_model: &ModelAssociation,
 	) -> Result<(ElementValue, Errors), ApiCallError> {
 		let mut errors: Errors = Default::default();
@@ -371,7 +372,7 @@ impl EntityFacadeImpl {
 				return Err(ApiCallError::InternalSdkError {
 					error_message: format!(
 						"Invalid aggregate format. {} isn't an array",
-						association_name
+						association_id
 					),
 				});
 			};
@@ -384,7 +385,7 @@ impl EntityFacadeImpl {
 						// Errors should be grouped inside the top-most object, so they should be
 						// extracted and removed from aggregates
 						if decrypted_aggregate.contains_key("_errors") {
-							let error_key = &format!("{}_{}", association_name, index);
+							let error_key = &format!("{}_{}", association_id, index);
 							self.extract_errors(error_key, &mut errors, &mut decrypted_aggregate);
 						}
 
@@ -394,7 +395,7 @@ impl EntityFacadeImpl {
 						return Err(ApiCallError::InternalSdkError {
 							error_message: format!(
 								"Invalid aggregate format. {} isn't a dict",
-								association_name
+								association_id
 							),
 						})
 					},
@@ -408,13 +409,13 @@ impl EntityFacadeImpl {
 	}
 	fn extract_errors(
 		&self,
-		association_name: &str,
+		association_id: &str,
 		errors: &mut Errors,
 		dec_aggregate: &mut ParsedEntity,
 	) {
 		if let Some(ElementValue::Dict(err_dict)) = dec_aggregate.remove("_errors") {
 			if !err_dict.is_empty() {
-				errors.insert(association_name.to_string(), ElementValue::Dict(err_dict));
+				errors.insert(association_id.to_string(), ElementValue::Dict(err_dict));
 			}
 		}
 	}
@@ -594,11 +595,17 @@ impl EntityFacade for EntityFacadeImpl {
 		let mut mapped_decrypted =
 			self.decrypt_and_map_inner(type_model, entity, &resolved_session_key.session_key)?;
 		mapped_decrypted.insert(
-			OWNER_ENC_SESSION_KEY_FIELD.to_owned(),
+			type_model
+				.get_attribute_id_by_name(OWNER_ENC_SESSION_KEY_FIELD)
+				.unwrap()
+				.to_owned(),
 			ElementValue::Bytes(resolved_session_key.owner_enc_session_key.clone()),
 		);
 		mapped_decrypted.insert(
-			OWNER_KEY_VERSION_FIELD.to_owned(),
+			type_model
+				.get_attribute_id_by_name(OWNER_KEY_VERSION_FIELD)
+				.unwrap()
+				.to_owned(),
 			ElementValue::Number(resolved_session_key.owner_key_version as i64),
 		);
 		Ok(mapped_decrypted)
@@ -710,14 +717,16 @@ mod tests {
 		MAX_UNCOMPRESSED_INPUT_LZ4, OWNER_ENC_SESSION_KEY_FIELD, OWNER_KEY_VERSION_FIELD,
 	};
 	use crate::entities::generated::sys::CustomerAccountTerminationRequest;
+	use crate::entities::generated::tutanota;
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::json_element::{JsonElement, RawEntity};
 	use crate::json_serializer::JsonSerializer;
 	use crate::metamodel::{Cardinality, ModelValue, ValueType};
-	use crate::type_model_provider::init_type_model_provider;
+	use crate::type_model_provider::TypeModelProvider;
 	use crate::util::entity_test_utils::generate_email_entity;
+	use crate::util::get_attribute_id_by_attribute_name;
 	use crate::{collection, ApiCallError};
 	use std::collections::{BTreeMap, HashMap};
 	use std::sync::Arc;
@@ -744,7 +753,7 @@ mod tests {
 		let sk = GenericAesKey::Aes256(Aes256Key::from_bytes(KNOWN_SK.as_slice()).unwrap());
 		let owner_enc_session_key = vec![0, 1, 2];
 		let owner_key_version = 0u64;
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let raw_entity: RawEntity = make_mail_raw_entity();
 		let json_serializer = JsonSerializer::new(type_model_provider.clone());
 		let encrypted_mail: ParsedEntity = json_serializer
@@ -771,6 +780,8 @@ mod tests {
 				},
 			)
 			.unwrap();
+
+		println!("{:?}", decrypted_mail);
 		let instance_mapper = InstanceMapper::new();
 		let _mail: Mail = instance_mapper
 			.parse_entity(decrypted_mail.clone())
@@ -778,31 +789,55 @@ mod tests {
 
 		assert_eq!(
 			&DateTime::from_millis(1720612041643),
-			decrypted_mail.get("receivedDate").unwrap().assert_date()
+			decrypted_mail
+				.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "receivedDate").unwrap())
+				.unwrap()
+				.assert_date()
 		);
-		assert!(decrypted_mail.get("confidential").unwrap().assert_bool());
+		assert!(decrypted_mail
+			.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "confidential").unwrap())
+			.unwrap()
+			.assert_bool());
 		assert_eq!(
 			"Html email features",
-			decrypted_mail.get("subject").unwrap().assert_str()
+			decrypted_mail
+				.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "subject").unwrap())
+				.unwrap()
+				.assert_str()
 		);
 		assert_eq!(
 			"Matthias",
-			decrypted_mail.get("sender").unwrap().assert_array_ref()[0]
+			decrypted_mail
+				.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "sender").unwrap())
+				.unwrap()
+				.assert_array_ref()[0]
 				.assert_dict()
-				.get("name")
+				.get(
+					&get_attribute_id_by_attribute_name(tutanota::MailAddress::type_ref(), "name")
+						.unwrap()
+				)
 				.unwrap()
 				.assert_str()
 		);
 		assert_eq!(
 			"map-free@tutanota.de",
-			decrypted_mail.get("sender").unwrap().assert_array_ref()[0]
+			decrypted_mail
+				.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "sender").unwrap())
+				.unwrap()
+				.assert_array_ref()[0]
 				.assert_dict()
-				.get("address")
+				.get(
+					&get_attribute_id_by_attribute_name(
+						tutanota::MailAddress::type_ref(),
+						"address"
+					)
+					.unwrap()
+				)
 				.unwrap()
 				.assert_str()
 		);
 		assert!(decrypted_mail
-			.get("attachments")
+			.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "attachments").unwrap())
 			.unwrap()
 			.assert_array()
 			.is_empty());
@@ -811,7 +846,7 @@ mod tests {
 				.get("_finalIvs")
 				.expect("has_final_ivs")
 				.assert_dict()
-				.get("subject")
+				.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "subject").unwrap())
 				.expect("has_subject")
 				.assert_bytes(),
 			&vec![
@@ -821,7 +856,7 @@ mod tests {
 		);
 		assert_eq!(
 			decrypted_mail
-				.get("sender")
+				.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "sender").unwrap())
 				.expect("has sender")
 				.assert_array_ref()[0]
 				.assert_dict()
@@ -1077,7 +1112,7 @@ mod tests {
 		let expected_aggregate_id = make_random_aggregate_id(&random);
 
 		let iv = Iv::generate(&random);
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 
 		let type_ref = Mail::type_ref();
 		let type_model = type_model_provider
@@ -1102,45 +1137,85 @@ mod tests {
 		{
 			expected_encrypted_mail.remove("_finalIvs").unwrap();
 			expected_encrypted_mail
-				.get_mut("sender")
+				.get_mut(&get_attribute_id_by_attribute_name(Mail::type_ref(), "sender").unwrap())
 				.unwrap()
 				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
 				.remove("_finalIvs")
 				.unwrap();
 			expected_encrypted_mail
-				.get_mut("sender")
+				.get_mut(&get_attribute_id_by_attribute_name(Mail::type_ref(), "sender").unwrap())
 				.unwrap()
 				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
-				.insert(ID_FIELD.to_string(), expected_aggregate_id.clone());
+				.insert(
+					get_attribute_id_by_attribute_name(
+						tutanota::MailAddress::type_ref(),
+						&*ID_FIELD.to_string(),
+					)
+					.unwrap(),
+					expected_aggregate_id.clone(),
+				);
 			expected_encrypted_mail
-				.get_mut("firstRecipient")
+				.get_mut(
+					&get_attribute_id_by_attribute_name(Mail::type_ref(), "firstRecipient")
+						.unwrap(),
+				)
 				.unwrap()
 				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
 				.remove("_finalIvs")
 				.unwrap();
 			expected_encrypted_mail
-				.get_mut("firstRecipient")
+				.get_mut(
+					&get_attribute_id_by_attribute_name(Mail::type_ref(), "firstRecipient")
+						.unwrap(),
+				)
 				.unwrap()
 				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
-				.insert(ID_FIELD.to_string(), expected_aggregate_id.clone());
+				.insert(
+					get_attribute_id_by_attribute_name(
+						tutanota::MailAddress::type_ref(),
+						&*ID_FIELD.to_string(),
+					)
+					.unwrap(),
+					expected_aggregate_id.clone(),
+				);
 		}
 
 		{
 			// generate_email_entity generates aggregate ids for us, but the entity_facade is supposed to set
 			// them on the fly if they're missing. by removing them here we test that they're re-created
-			raw_mail.get_mut("sender").unwrap().assert_array_mut_ref()[0]
-				.assert_dict_mut_ref()
-				.insert(String::from(ID_FIELD), ElementValue::Null);
 			raw_mail
-				.get_mut("firstRecipient")
+				.get_mut(&get_attribute_id_by_attribute_name(Mail::type_ref(), "sender").unwrap())
 				.unwrap()
 				.assert_array_mut_ref()[0]
 				.assert_dict_mut_ref()
-				.insert(String::from(ID_FIELD), ElementValue::Null);
+				.insert(
+					get_attribute_id_by_attribute_name(
+						tutanota::MailAddress::type_ref(),
+						&*ID_FIELD.to_string(),
+					)
+					.unwrap(),
+					ElementValue::Null,
+				);
+			raw_mail
+				.get_mut(
+					&get_attribute_id_by_attribute_name(Mail::type_ref(), "firstRecipient")
+						.unwrap(),
+				)
+				.unwrap()
+				.assert_array_mut_ref()[0]
+				.assert_dict_mut_ref()
+				.insert(
+					get_attribute_id_by_attribute_name(
+						tutanota::MailAddress::type_ref(),
+						&*ID_FIELD.to_string(),
+					)
+					.unwrap(),
+					ElementValue::Null,
+				);
 		}
 
 		let encrypted_mail = entity_facade
@@ -1154,13 +1229,18 @@ mod tests {
 			let mut original_mail = raw_mail;
 			{
 				original_mail
-					.get_mut("sender")
+					.get_mut(
+						&get_attribute_id_by_attribute_name(Mail::type_ref(), "sender").unwrap(),
+					)
 					.unwrap()
 					.assert_array_mut_ref()[0]
 					.assert_dict_mut_ref()
 					.insert(String::from(ID_FIELD), expected_aggregate_id.clone());
 				original_mail
-					.get_mut("firstRecipient")
+					.get_mut(
+						&get_attribute_id_by_attribute_name(Mail::type_ref(), "firstRecipient")
+							.unwrap(),
+					)
 					.unwrap()
 					.assert_array_mut_ref()[0]
 					.assert_dict_mut_ref()
@@ -1201,14 +1281,6 @@ mod tests {
 				decrypted_mail.remove("_errors")
 			);
 
-			for key in ["sender"] {
-				assert_eq!(
-					original_mail.get(key).unwrap(),
-					decrypted_mail.get(key).unwrap(),
-					"failed for {key:?}"
-				);
-			}
-
 			// comparison with sorted fields. only for easy for debugging
 			assert_eq!(
 				map_to_string(&original_mail),
@@ -1220,7 +1292,7 @@ mod tests {
 
 	#[test]
 	fn encrypt_unencrypted_to_db_literal() {
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let json_serializer = JsonSerializer::new(type_model_provider.clone());
 		let entity_facade = EntityFacadeImpl::new(
 			Arc::clone(&type_model_provider),
@@ -1253,7 +1325,7 @@ mod tests {
 
 	#[test]
 	fn encryption_final_ivs_will_be_reused() {
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 
 		let rng = DeterministicRng(13);
 		let entity_facade = EntityFacadeImpl::new(
@@ -1282,7 +1354,9 @@ mod tests {
 
 		// set separate finalIv for some field
 		let final_iv_for_subject = [(
-			"subject".to_string(),
+			get_attribute_id_by_attribute_name(Mail::type_ref(), "subject")
+				.unwrap()
+				.to_string(),
 			ElementValue::Bytes(new_iv.get_inner().to_vec()),
 		)]
 		.into_iter()
@@ -1297,7 +1371,9 @@ mod tests {
 			.encrypt_and_map_inner(type_model, &unencrypted_mail, &sk)
 			.unwrap();
 
-		let encrypted_subject = encrypted_mail.get("subject").unwrap();
+		let encrypted_subject = encrypted_mail
+			.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "subject").unwrap())
+			.unwrap();
 		let subject_and_iv = sk
 			.decrypt_data_and_iv(encrypted_subject.assert_bytes())
 			.unwrap();
@@ -1309,13 +1385,18 @@ mod tests {
 		assert_eq!(new_iv, subject_and_iv.iv);
 
 		// other fields should be encrypted with origin_iv
-		let encrypted_recipient_name = encrypted_mail.get("firstRecipient").unwrap().assert_array()
-			[0]
-		.assert_dict()
-		.get("name")
-		.unwrap()
-		.assert_bytes()
-		.clone();
+		let encrypted_recipient_name = encrypted_mail
+			.get(&get_attribute_id_by_attribute_name(Mail::type_ref(), "firstRecipient").unwrap())
+			.unwrap()
+			.assert_array()[0]
+			.assert_dict()
+			.get(
+				&get_attribute_id_by_attribute_name(tutanota::MailAddress::type_ref(), "name")
+					.unwrap(),
+			)
+			.unwrap()
+			.assert_bytes()
+			.clone();
 		let recipient_and_iv = sk.decrypt_data_and_iv(&encrypted_recipient_name).unwrap();
 		assert_eq!(original_iv, recipient_and_iv.iv)
 	}
@@ -1324,7 +1405,7 @@ mod tests {
 	#[ignore = "todo: Right now we will anyway try to encrypt the default value even for final fields.\
 	This is however not intended. We skip the implementation because we did not need it for service call?"]
 	fn empty_final_iv_and_default_value_should_be_preserved() {
-		let type_model_provider = Arc::new(init_type_model_provider());
+		let type_model_provider = Arc::new(TypeModelProvider::new());
 		let entity_facade = EntityFacadeImpl::new(
 			Arc::clone(&type_model_provider),
 			RandomizerFacade::from_core(rand_core::OsRng),

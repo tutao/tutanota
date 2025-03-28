@@ -13,12 +13,13 @@ use crate::entities::entity_facade::{
 	OWNER_KEY_VERSION_FIELD,
 };
 use crate::entities::generated::sys::BucketKey;
+use crate::entities::Entity;
 use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
 use crate::tutanota_constants::{CryptoProtocolVersion, EncryptionAuthStatus};
-use crate::util::{convert_version_to_u64, ArrayCastingError};
+use crate::util::{convert_version_to_u64, get_attribute_id_by_attribute_name, ArrayCastingError};
 use crate::GeneratedId;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
@@ -74,9 +75,11 @@ impl CryptoFacade {
 		if !model.marked_encrypted() {
 			return Ok(None);
 		}
-
+		println!("{:?}", entity);
 		// Derive the session key from the bucket key
-		if let Some(bucket_key_value) = entity.get(BUCKET_KEY_FIELD) {
+		if let Some(bucket_key_value) =
+			entity.get(&model.get_attribute_id_by_name(BUCKET_KEY_FIELD).unwrap())
+		{
 			match bucket_key_value {
 				ElementValue::Array(array) if array.is_empty() => {},
 				ElementValue::Array(_) => {
@@ -95,7 +98,7 @@ impl CryptoFacade {
 			owner_enc_session_key: Some(owner_enc_session_key),
 			owner_key_version: Some(owner_key_version),
 			owner_group: Some(owner_group),
-		} = EntityOwnerKeyData::extract_owner_key_data(entity)?
+		} = EntityOwnerKeyData::extract_owner_key_data(entity, model)?
 		else {
 			return Err(SessionKeyResolutionError {
 				reason: "instance missing owner key/group data".to_string(),
@@ -147,7 +150,7 @@ impl CryptoFacade {
 				},
 			};
 
-		let owner_key_data = EntityOwnerKeyData::extract_owner_key_data(entity)?;
+		let owner_key_data = EntityOwnerKeyData::extract_owner_key_data(entity, model)?;
 		let Some(owner_group) = owner_key_data.owner_group else {
 			return Err(SessionKeyResolutionError {
 				reason: "entity has no ownerGroup".to_owned(),
@@ -249,6 +252,7 @@ struct EntityOwnerKeyData<'a> {
 impl<'a> EntityOwnerKeyData<'a> {
 	fn extract_owner_key_data(
 		entity: &'a ParsedEntity,
+		type_model: &TypeModel,
 	) -> Result<EntityOwnerKeyData<'a>, SessionKeyResolutionError> {
 		macro_rules! get_nullable_field {
 			($entity:expr, $field:expr, $type:tt) => {
@@ -260,13 +264,30 @@ impl<'a> EntityOwnerKeyData<'a> {
 			};
 		}
 
-		let owner_enc_session_key =
-			get_nullable_field!(entity, OWNER_ENC_SESSION_KEY_FIELD, Bytes)?;
+		let owner_enc_session_key = get_nullable_field!(
+			entity,
+			&type_model
+				.get_attribute_id_by_name(OWNER_ENC_SESSION_KEY_FIELD)
+				.unwrap(),
+			Bytes
+		)?;
 
-		let owner_key_version_i64 =
-			get_nullable_field!(entity, OWNER_KEY_VERSION_FIELD, Number)?.copied();
+		let owner_key_version_i64 = get_nullable_field!(
+			entity,
+			&type_model
+				.get_attribute_id_by_name(OWNER_KEY_VERSION_FIELD)
+				.unwrap(),
+			Number
+		)?
+		.copied();
 		let owner_key_version: Option<u64> = owner_key_version_i64.map(convert_version_to_u64);
-		let owner_group = get_nullable_field!(entity, OWNER_GROUP_FIELD, IdGeneratedId)?;
+		let owner_group = get_nullable_field!(
+			entity,
+			&type_model
+				.get_attribute_id_by_name(OWNER_GROUP_FIELD)
+				.unwrap(),
+			IdGeneratedId
+		)?;
 
 		Ok(EntityOwnerKeyData {
 			owner_enc_session_key,
@@ -377,7 +398,6 @@ mod test {
 			.expect("should not have errored")
 			.expect("where is the key");
 
-		println!("{:?}", key);
 		assert_eq!(
 			constants.mail_session_key.as_bytes(),
 			key.session_key.as_bytes()

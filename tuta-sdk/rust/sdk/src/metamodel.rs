@@ -163,6 +163,19 @@ impl TypeModel {
 		}
 	}
 
+	pub fn is_attribute_id_association(&self, attribute_id: String) -> bool {
+		self.associations
+			.get(&(attribute_id.parse::<AttributeId>().unwrap()))
+			.is_some()
+	}
+
+	pub fn is_attribute_name_association(&self, attribute_name: String) -> bool {
+		self.associations
+			.iter()
+			.find(|(association_id, association)| association.name == attribute_name)
+			.is_some()
+	}
+
 	pub fn get_attribute_id_cardinality(
 		&self,
 		attribute_id: String,
@@ -173,17 +186,6 @@ impl TypeModel {
 			.ok_or(TypeModelError(format!(
 				"did not find association with attributeId {attribute_id}"
 			)))
-	}
-
-	pub fn is_attribute_id_association(&self, attribute_id: &AttributeId) -> bool {
-		self.associations.get(attribute_id).is_some()
-	}
-
-	pub fn is_attribute_name_association(&self, attribute_name: String) -> bool {
-		self.associations
-			.iter()
-			.find(|(association_id, association)| association.name == attribute_name)
-			.is_some()
 	}
 
 	pub fn get_attribute_name_cardinality(
@@ -214,5 +216,48 @@ impl TypeModel {
 				))
 			})
 			.map(|(_, association)| association)
+	}
+
+	pub fn get_association_by_id(
+		&self,
+		attribute_id: &str,
+	) -> Result<&ModelAssociation, TypeModelError> {
+		// to skip in case of _finalIvs
+		let parsed_id = attribute_id.parse::<AttributeId>().map_err(|_| {
+			TypeModelError(format!(
+				"invalid attribute_id format: '{}' (expected a number)",
+				attribute_id
+			))
+		})?;
+
+		self.associations.get(&parsed_id).ok_or_else(|| {
+			TypeModelError(format!(
+				"no association found with attribute_id '{}'",
+				attribute_id
+			))
+		})
+	}
+
+	pub fn get_attribute_id_by_name(&self, attribute_name: &str) -> Result<String, TypeModelError> {
+		if let Some((attr_id, model_value)) = self
+			.values
+			.iter()
+			.find(|(_, value)| value.name == attribute_name)
+		{
+			return Ok(attr_id.to_string());
+		}
+
+		if let Some((attr_id, model_association)) = self
+			.associations
+			.iter()
+			.find(|(_, association)| association.name == attribute_name)
+		{
+			return Ok(attr_id.to_string());
+		}
+
+		Err(TypeModelError(format!(
+			"did not find attribute with name '{}' in values or associations",
+			attribute_name
+		)))
 	}
 }
