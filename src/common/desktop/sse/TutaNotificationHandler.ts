@@ -2,7 +2,7 @@ import type { WindowManager } from "../DesktopWindowManager"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
 import { DesktopNotifier, NotificationResult } from "../DesktopNotifier"
 import { LanguageViewModel } from "../../misc/LanguageViewModel"
-import { IdTupleWrapper, NotificationInfo } from "../../api/entities/sys/TypeRefs"
+import { AlarmNotification, IdTupleWrapper, NotificationInfo } from "../../api/entities/sys/TypeRefs"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
 import { assertNotNull, base64ToBase64Url, downcast, neverNull } from "@tutao/tutanota-utils"
@@ -147,7 +147,7 @@ export class TutaNotificationHandler {
 		return url
 	}
 
-	async onAlarmNotification(alarmNotification: EncryptedAlarmNotification) {
+	async onAlarmNotification(alarmNotification: AlarmNotification) {
 		await this.alarmScheduler.handleAlarmNotification(alarmNotification)
 	}
 

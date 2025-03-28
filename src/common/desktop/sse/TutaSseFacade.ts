@@ -1,44 +1,53 @@
 import { SseClient, SseEventHandler } from "./SseClient.js"
 import { TutaNotificationHandler } from "./TutaNotificationHandler.js"
-import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
 import { typeModels } from "../../api/entities/sys/TypeModels.js"
-import { assertNotNull, base64ToBase64Url, downcast, filterInt, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	Base64,
+	base64ToBase64Url,
+	base64ToUint8Array,
+	downcast,
+	filterInt,
+	neverNull,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+} from "@tutao/tutanota-utils"
 import { handleRestError } from "../../api/common/error/RestError.js"
 import {
 	AlarmInfoTypeRef,
+	AlarmNotification,
 	AlarmNotificationTypeRef,
 	createGeneratedIdWrapper,
+	createMissedNotification,
+	createNotificationSessionKey,
 	createSseConnectData,
 	IdTupleWrapper,
 	IdTupleWrapperTypeRef,
+	MissedNotification,
 	MissedNotificationTypeRef,
 	NotificationInfo,
 	NotificationInfoTypeRef,
 	NotificationSessionKeyTypeRef,
 	SseConnectDataTypeRef,
 } from "../../api/entities/sys/TypeRefs.js"
-import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
 import { SseStorage } from "./SseStorage.js"
 import { DateProvider } from "../../api/common/DateProvider.js"
 import { SseInfo } from "./SseInfo.js"
 import { FetchImpl } from "../net/NetAgent"
 import { EncryptedParsedInstance, TypeModel, UntypedInstance } from "../../api/common/EntityTypes"
 import { resolveTypeReference } from "../../api/common/EntityFunctions"
-import { StrippedEntity } from "../../api/common/utils/EntityUtils"
-import { OperationType } from "../../api/common/TutanotaConstants"
+import { elementIdPart, StrippedEntity } from "../../api/common/utils/EntityUtils"
 import { AttributeModel } from "../../api/common/AttributeModel"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
+import { DesktopAlarmStorage } from "./DesktopAlarmStorage"
+import { decryptKey } from "@tutao/tutanota-crypto"
+import { hasError } from "../../api/common/utils/ErrorUtils"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
 export const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
-export type EncryptedMissedNotification = {
-	lastProcessedNotificationId: Id
-	notificationInfos: Array<StrippedEntity<NotificationInfo>>
-	alarmNotifications: readonly EncryptedAlarmNotification[]
-}
-
 const instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 
 export class TutaSseFacade implements SseEventHandler {
@@ -48,7 +57,7 @@ export class TutaSseFacade implements SseEventHandler {
 		private readonly sseStorage: SseStorage,
 		private readonly notificationHandler: TutaNotificationHandler,
 		private readonly sseClient: SseClient,
-		private readonly crypto: DesktopNativeCryptoFacade,
+		private readonly alarmStorage: DesktopAlarmStorage,
 		private readonly appVersion: string,
 		private readonly fetch: FetchImpl,
 		private readonly date: DateProvider,
@@ -147,7 +156,7 @@ export class TutaSseFacade implements SseEventHandler {
 		}
 	}
 
-	private async downloadMissedNotification(): Promise<EncryptedMissedNotification> {
+	private async downloadMissedNotification(): Promise<MissedNotification> {
 		const sseInfo = assertNotNull(this.currentSseInfo)
 		const url = this.makeMissedNotificationUrl(sseInfo)
 
@@ -169,39 +178,40 @@ export class TutaSseFacade implements SseEventHandler {
 			throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
 		} else {
 			const untypedInstance = (await res.json()) as UntypedInstance
-			const encryptedMissedNotification = await this.parseEncryptedMissedNotification(untypedInstance)
+			const missedNotification = await this.parseEncryptedMissedNotification(untypedInstance)
 
 			log.debug("downloaded missed notification")
-			return encryptedMissedNotification
+			return missedNotification
 		}
 	}
 
-	private async parseEncryptedMissedNotification(untypedInstance: UntypedInstance): Promise<EncryptedMissedNotification> {
+	private async parseEncryptedMissedNotification(untypedInstance: UntypedInstance): Promise<MissedNotification> {
 		const missedNotificationTypeModel = await resolveTypeReference(MissedNotificationTypeRef)
 		const notificationInfoTypeModel = await resolveTypeReference(NotificationInfoTypeRef)
-		const alarmNotificationTypeModel = await resolveTypeReference(AlarmNotificationTypeRef)
 		const alarmInfoTypeModel = await resolveTypeReference(AlarmInfoTypeRef)
-		const notificationSessionKeyModel = await resolveTypeReference(NotificationSessionKeyTypeRef)
 
 		const encryptedParsedInstance = await instancePipeline.typeMapper.applyJsTypes(missedNotificationTypeModel, untypedInstance)
 
 		const lastProcessedNotificationId = AttributeModel.getAttribute<Id>(encryptedParsedInstance, "lastProcessedNotificationId", missedNotificationTypeModel)
+		// decrypt alarmnotifications:
+		const encryptedAlarmNotifications = AttributeModel.getAttribute<EncryptedParsedInstance[]>(
+			encryptedParsedInstance,
+			"alarmNotifications",
+			missedNotificationTypeModel,
+		)
+
 		const alarmNotifications = await Promise.all(
-			downcast<Array<UntypedInstance>>(AttributeModel.getAttribute(encryptedParsedInstance, "alarmNotifications", missedNotificationTypeModel)).map(
-				async (an) => await EncryptedAlarmNotification.from(an),
-			),
+			encryptedAlarmNotifications.map(async (an) => {
+				return await this.alarmStorage.decryptAlarmNotification(an)
+			}),
 		)
 		const notificationInfos = await Promise.all(
 			downcast<Array<EncryptedParsedInstance>>(
 				AttributeModel.getAttribute(encryptedParsedInstance, "notificationInfos", missedNotificationTypeModel),
-			).map(async (ni) => await this.mapNotificationInfo(notificationInfoTypeModel, ni)),
+			).map(async (ni) => downcast<NotificationInfo>(await this.mapNotificationInfo(notificationInfoTypeModel, ni))),
 		)
 
-		return {
-			lastProcessedNotificationId,
-			notificationInfos,
-			alarmNotifications,
-		}
+		return createMissedNotification({ lastProcessedNotificationId, notificationInfos, alarmNotifications })
 	}
 
 	private async mapNotificationInfo(typeModel: TypeModel, ni: EncryptedParsedInstance): Promise<StrippedEntity<NotificationInfo>> {

@@ -165,7 +165,9 @@ async function createComponents(): Promise<Components> {
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DefaultDateProvider()
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
+	// fixme: we need to use different typeRefResolvers here
+	const instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, instancePipeline)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, makeDbPath("credentials"), app)
@@ -175,8 +177,6 @@ async function createComponents(): Promise<Components> {
 	})
 	const keychainManager = new KeychainEncryption(appPassHandler, desktopCrypto, keyStoreFacade)
 	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(desktopCrypto, credentialsDb, keychainManager)
-	// fixme: we need to use different typeRefResolvers here
-	const instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
 
 	updater.setUpdateDownloadedListener(() => {
 		for (let applicationWindow of wm.getAll()) {
@@ -253,7 +253,7 @@ async function createComponents(): Promise<Components> {
 		app.getVersion(),
 	)
 	const sseClient = new SseClient(desktopNet, new DesktopSseDelay(), schedulerImpl)
-	const sse = new TutaSseFacade(sseStorage, notificationHandler, sseClient, desktopCrypto, app.getVersion(), suspensionAwareFetch, dateProvider)
+	const sse = new TutaSseFacade(sseStorage, notificationHandler, sseClient, alarmStorage, app.getVersion(), suspensionAwareFetch, dateProvider)
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
 

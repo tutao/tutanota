@@ -45,9 +45,11 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		await this.sse.connect()
 	}
 
+	// FIXME: should probably take Array<AlarmNotification>
 	async scheduleAlarms(alarms: ReadonlyArray<EncryptedAlarmNotification>): Promise<void> {
 		for (const alarm of alarms) {
-			await this.alarmScheduler.handleAlarmNotification(alarm)
+			// FIXME
+			await this.alarmScheduler.handleAlarmNotification(alarm as any)
 		}
 	}
 

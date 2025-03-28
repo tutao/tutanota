@@ -476,6 +476,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.serviceExecutor,
 			locator.crypto,
 			mainInterface.infoMessageHandler,
+			locator.instancePipeline,
 		)
 	})
 
