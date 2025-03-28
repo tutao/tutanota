@@ -40,9 +40,9 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		const cutoffTimestamp = now - timeRangeMillisSafe
 
 		const mailBoxes = await offlineStorage.getElementsOfType(MailBoxTypeRef)
-		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 		for (const mailBox of mailBoxes) {
-			const isMailsetMigrated = mailBox.currentMailBag != null
+			const currentMailBag = mailBox.currentMailBag
+			const isMailsetMigrated = currentMailBag != null
 			const folders = await offlineStorage.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
 			if (isMailsetMigrated) {
 				// Deleting MailSetEntries first to make sure that once we start deleting Mail
@@ -56,17 +56,23 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, customCutoffId)
 					}
 				}
+
+				// We should never write cached ranges for mail bags, but we used to do that in the past in some cases
+				// (e.g. mail indexing) so we clean them up here.
+				// It is just important to remove the ranges so that the cache does not attempt to keep it up-to-date,
+				// actual email contents are already handled above.
+				for (const mailBag of [currentMailBag, ...mailBox.archivedMailBags]) {
+					await offlineStorage.deleteRange(MailTypeRef, mailBag.mails)
+				}
 			}
 		}
 	}
 
 	/**
-	 * delete all mail set entries of a mail set that reference some mail with a receivedDate older than
-	 * cutoffTimestamp. this doesn't clean up mails or their associated data because we could be breaking the
-	 * offline list range invariant by deleting data from the middle of a mail range. cleaning up mails is done
-	 * the legacy way currently even for mailset users.
+	 * Clean all mail data references by MailSetEntry's in {@param entriesListId} that are older than {@param cutoffId}.
 	 */
 	private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffId: Id) {
+		assertNotNull(entriesListId)
 		const mailIdsToDelete: IdTuple[] = []
 
 		await offlineStorage.lockRangesDbAccess(entriesListId)
