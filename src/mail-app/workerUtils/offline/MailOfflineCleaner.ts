@@ -14,6 +14,7 @@ import {
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	FileTypeRef,
+	Mail,
 	MailBoxTypeRef,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
@@ -39,9 +40,9 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		const cutoffTimestamp = now - timeRangeMillisSafe
 
 		const mailBoxes = await offlineStorage.getElementsOfType(MailBoxTypeRef)
-		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 		for (const mailBox of mailBoxes) {
-			const isMailsetMigrated = mailBox.currentMailBag != null
+			const currentMailBag = mailBox.currentMailBag
+			const isMailsetMigrated = currentMailBag != null
 			const folders = await offlineStorage.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
 			if (isMailsetMigrated) {
 				// Deleting MailSetEntries first to make sure that once we start deleting Mail
@@ -55,87 +56,25 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, customCutoffId)
 					}
 				}
-				// TODO MailSet cleanup
-				const mailListIds = [mailBox.currentMailBag!, ...mailBox.archivedMailBags].map((mailbag) => mailbag.mails)
-				for (const mailListId of mailListIds) {
-					await this.deleteMailListLegacy(offlineStorage, mailListId, cutoffId)
+
+				// We should never write cached ranges for mail bags, but we used to do that in the past in some cases
+				// (e.g. mail indexing) so we clean them up here.
+				// It is just important to remove the ranges so that the cache does not attempt to keep it up-to-date,
+				// actual email contents are already handled above.
+				for (const mailBag of [currentMailBag, ...mailBox.archivedMailBags]) {
+					await offlineStorage.deleteRange(MailTypeRef, mailBag.mails)
 				}
 			}
 		}
 	}
 
 	/**
-	 * This method deletes mails from {@param listId} what are older than {@param cutoffId} as well as associated data.
-	 *
-	 * it's considered legacy because once we start importing mail into mail bags, maintaining mail list ranges doesn't make
-	 * sense anymore - mail order in a list is arbitrary at that point.
-	 *
-	 * For each mail we delete the mail, its body, headers, all references mail set entries and all referenced attachments.
-	 *
-	 * When we delete the Files, we also delete the whole range for the user's File list. We need to delete the whole
-	 * range because we only have one file list per mailbox, so if we delete something from the middle of it, the range
-	 * will no longer be valid. (this is future proofing, because as of now there is not going to be a Range set for the
-	 * File list anyway, since we currently do not do range requests for Files.
-	 *
-	 * We do not delete ConversationEntries because:
-	 *  1. They are in the same list for the whole conversation so we can't adjust the range
-	 *  2. We might need them in the future for showing the whole thread
-	 */
-	private async deleteMailListLegacy(offlineStorage: OfflineStorage, listId: Id, cutoffId: Id): Promise<void> {
-		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.
-		await offlineStorage.lockRangesDbAccess(listId)
-		try {
-			// This must be done before deleting mails to know what the new range has to be
-			await offlineStorage.updateRangeForList(MailTypeRef, listId, cutoffId)
-		} finally {
-			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-			await offlineStorage.unlockRangesDbAccess(listId)
-		}
-
-		const mailsToDelete: IdTuple[] = []
-		const attachmentsToDelete: IdTuple[] = []
-		const mailDetailsBlobToDelete: IdTuple[] = []
-		const mailDetailsDraftToDelete: IdTuple[] = []
-
-		const mails = await offlineStorage.getWholeList(MailTypeRef, listId)
-		for (let mail of mails) {
-			if (firstBiggerThanSecond(cutoffId, getElementId(mail))) {
-				mailsToDelete.push(mail._id)
-				for (const id of mail.attachments) {
-					attachmentsToDelete.push(id)
-				}
-
-				if (isDraft(mail)) {
-					const mailDetailsId = assertNotNull(mail.mailDetailsDraft)
-					mailDetailsDraftToDelete.push(mailDetailsId)
-				} else {
-					// mailDetailsBlob
-					const mailDetailsId = assertNotNull(mail.mailDetails)
-					mailDetailsBlobToDelete.push(mailDetailsId)
-				}
-			}
-		}
-		for (let [listId, elementIds] of groupByAndMap(mailDetailsBlobToDelete, listIdPart, elementIdPart).entries()) {
-			await offlineStorage.deleteIn(MailDetailsBlobTypeRef, listId, elementIds)
-		}
-		for (let [listId, elementIds] of groupByAndMap(mailDetailsDraftToDelete, listIdPart, elementIdPart).entries()) {
-			await offlineStorage.deleteIn(MailDetailsDraftTypeRef, listId, elementIds)
-		}
-		for (let [listId, elementIds] of groupByAndMap(attachmentsToDelete, listIdPart, elementIdPart).entries()) {
-			await offlineStorage.deleteIn(FileTypeRef, listId, elementIds)
-			await offlineStorage.deleteRange(FileTypeRef, listId)
-		}
-
-		await offlineStorage.deleteIn(MailTypeRef, listId, mailsToDelete.map(elementIdPart))
-	}
-
-	/**
-	 * delete all mail set entries of a mail set that reference some mail with a receivedDate older than
-	 * cutoffTimestamp. this doesn't clean up mails or their associated data because we could be breaking the
-	 * offline list range invariant by deleting data from the middle of a mail range. cleaning up mails is done
-	 * the legacy way currently even for mailset users.
+	 * Clean all mail data references by MailSetEntry's in {@param entriesListId} that are older than {@param cutoffId}.
 	 */
 	private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffId: Id) {
+		assertNotNull(entriesListId)
+		const mailIdsToDelete: IdTuple[] = []
+
 		await offlineStorage.lockRangesDbAccess(entriesListId)
 		try {
 			await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
@@ -149,9 +88,66 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		for (let mailSetEntry of mailSetEntries) {
 			if (firstBiggerThanSecondCustomId(cutoffId, getElementId(mailSetEntry))) {
 				mailSetEntriesToDelete.push(mailSetEntry._id)
+				mailIdsToDelete.push(mailSetEntry.mail)
 			}
 		}
 
 		await offlineStorage.deleteIn(MailSetEntryTypeRef, entriesListId, mailSetEntriesToDelete.map(elementIdPart))
+
+		const mailsToDelete: Mail[] = []
+		for (let [listId, elementIds] of groupByAndMap(mailIdsToDelete, listIdPart, elementIdPart).entries()) {
+			mailsToDelete.push(...(await offlineStorage.provideMultiple(MailTypeRef, listId, elementIds)))
+		}
+		await this.deleteMails(offlineStorage, mailsToDelete)
+	}
+
+	/**
+	 *
+	 * For each mail we delete the mail, its body, headers, all references mail set entries and all referenced attachments.
+	 *
+	 * When we delete the Files, we also delete the whole range for the user's File list. We need to delete the whole
+	 * range because we only have one file list per mailbox, so if we delete something from the middle of it, the range
+	 * will no longer be valid. (this is future proofing, because as of now there is not going to be a Range set for the
+	 * File list anyway, since we currently do not do range requests for Files.
+	 *
+	 * We do not delete ConversationEntries because:
+	 *  1. They are in the same list for the whole conversation so we can't adjust the range
+	 *  2. We might need them in the future for showing the whole thread
+	 */
+	private async deleteMails(offlineStorage: OfflineStorage, mails: Mail[]) {
+		const mailsToDelete: IdTuple[] = []
+		const attachmentsToDelete: IdTuple[] = []
+		const mailDetailsBlobToDelete: IdTuple[] = []
+		const mailDetailsDraftToDelete: IdTuple[] = []
+
+		for (let mail of mails) {
+			mailsToDelete.push(mail._id)
+			for (const id of mail.attachments) {
+				attachmentsToDelete.push(id)
+			}
+
+			if (isDraft(mail)) {
+				const mailDetailsId = assertNotNull(mail.mailDetailsDraft)
+				mailDetailsDraftToDelete.push(mailDetailsId)
+			} else {
+				// mailDetailsBlob
+				const mailDetailsId = assertNotNull(mail.mailDetails)
+				mailDetailsBlobToDelete.push(mailDetailsId)
+			}
+		}
+
+		for (let [listId, elementIds] of groupByAndMap(mailDetailsBlobToDelete, listIdPart, elementIdPart).entries()) {
+			await offlineStorage.deleteIn(MailDetailsBlobTypeRef, listId, elementIds)
+		}
+		for (let [listId, elementIds] of groupByAndMap(mailDetailsDraftToDelete, listIdPart, elementIdPart).entries()) {
+			await offlineStorage.deleteIn(MailDetailsDraftTypeRef, listId, elementIds)
+		}
+		for (let [listId, elementIds] of groupByAndMap(attachmentsToDelete, listIdPart, elementIdPart).entries()) {
+			await offlineStorage.deleteIn(FileTypeRef, listId, elementIds)
+			await offlineStorage.deleteRange(FileTypeRef, listId)
+		}
+		for (let [listId, elementIds] of groupByAndMap(mailsToDelete, listIdPart, elementIdPart).entries()) {
+			await offlineStorage.deleteIn(MailTypeRef, listId, elementIds)
+		}
 	}
 }
