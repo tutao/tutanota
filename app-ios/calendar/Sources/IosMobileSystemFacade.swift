@@ -7,6 +7,12 @@ import TutanotaSharedFramework
 private let APP_LOCK_METHOD = "AppLockMethod"
 
 class IosMobileSystemFacade: MobileSystemFacade {
+	func requestWidgetRefresh() async throws {
+		// TODO: Implement widget refresh for iOS Widget
+	}
+	func storeServerRemoteOrigin(_ origin: String) async throws {
+		// TODO: Implement store server remote origin for iOS Widget
+	}
 	private let viewController: ViewController
 	private let userPreferencesProvider: UserPreferencesProvider
 	private let appLockHandler: AppLockHandler

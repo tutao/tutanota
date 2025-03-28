@@ -715,8 +715,9 @@ class MainActivity : FragmentActivity() {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
 		val action = CalendarOpenAction.fromValue(intent.getStringExtra(OPEN_CALENDAR_IN_APP_ACTION_KEY) ?: "")
 		val date = intent.getStringExtra(OPEN_CALENDAR_DATE_KEY)
+		val eventId = intent.getStringExtra(OPEN_CALENDAR_EVENT_KEY)
 
-		commonNativeFacade.openCalendar(userId, action, date)
+		commonNativeFacade.openCalendar(userId, action, date, eventId)
 	}
 
 	private suspend fun sendLogs(intent: Intent) {
@@ -783,6 +784,7 @@ class MainActivity : FragmentActivity() {
 		const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
 		const val OPEN_CALENDAR_IN_APP_ACTION_KEY = "inAppAction"
 		const val OPEN_CALENDAR_DATE_KEY = "targetDate"
+		const val OPEN_CALENDAR_EVENT_KEY = "eventId"
 
 		private const val TAG = "MainActivity"
 		private var requestId = 0

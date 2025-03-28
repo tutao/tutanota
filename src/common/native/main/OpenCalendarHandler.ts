@@ -13,12 +13,12 @@ export class OpenCalendarHandler {
 		private readonly eventModelFactory: (mode: CalendarOperation, date: Date) => Promise<CalendarEventModel | null>,
 	) {}
 
-	async openCalendar(userId: Id, action: CalendarOpenAction, date: string | null): Promise<void> {
+	async openCalendar(userId: Id, action: CalendarOpenAction, date: string | null, eventId: string | null): Promise<void> {
 		const dt = date ? new Date(Date.parse(date)) : new Date()
 		const parsedDate = formatJSDate(dt)
 
 		if (action === CalendarOpenAction.Agenda) {
-			this.handleAgendaOpening(userId, parsedDate)
+			this.handleAgendaOpening(userId, parsedDate, eventId ?? "")
 		} else {
 			this.handleDefaultOpening(userId)
 		}
@@ -28,11 +28,11 @@ export class OpenCalendarHandler {
 		}
 	}
 
-	private handleAgendaOpening(userId: string, parsedDate: string | null) {
+	private handleAgendaOpening(userId: string, parsedDate: string | null, eventId: string) {
 		if (this.logins.isUserLoggedIn() && this.logins.getUserController().user._id === userId) {
-			m.route.set(`/calendar/agenda/${parsedDate}`)
+			m.route.set(`/calendar/agenda/${parsedDate}/${eventId}`)
 		} else {
-			m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent(`/calendar/agenda/${parsedDate}`)}`)
+			m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent(`/calendar/agenda/${parsedDate}/${eventId}`)}`)
 		}
 	}
 

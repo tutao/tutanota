@@ -73,14 +73,17 @@ import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetUIViewModel
+import de.tutao.tutasdk.IdTupleCustom
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.parseColor
 import de.tutao.tutashared.remote.RemoteStorage
+import de.tutao.tutashared.toBase64
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
@@ -127,13 +130,14 @@ class Agenda : GlanceAppWidget() {
 					return@GlanceTheme ErrorBody(
 						error,
 						logsAction = actionStartActivity(WidgetErrorHandler.buildLogsIntent(context, error)),
-						loginAction = openCalendarAgenda(context, userId)
+						loginAction = openCalendarAgenda(context, userId, null)
 					)
 				}
 
 				WidgetBody(
 					data,
-					headerCallback = openCalendarAgenda(context, userId),
+					userId,
+					headerCallback = openCalendarAgenda(context, userId, null),
 					newEventCallback = openCalendarEditor(context, userId)
 				)
 			}
@@ -180,7 +184,7 @@ class Agenda : GlanceAppWidget() {
 		return actionStartActivity(openCalendarEventEditor)
 	}
 
-	private fun openCalendarAgenda(context: Context, userId: String? = ""): Action {
+	private fun openCalendarAgenda(context: Context, userId: String? = "", eventId: IdTupleCustom? = null): Action {
 		val openCalendarAgenda = Intent(context, MainActivity::class.java)
 		openCalendarAgenda.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 		openCalendarAgenda.action = MainActivity.OPEN_CALENDAR_ACTION
@@ -193,6 +197,13 @@ class Agenda : GlanceAppWidget() {
 			MainActivity.OPEN_CALENDAR_DATE_KEY,
 			LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
 		)
+
+		if (eventId != null) {
+			openCalendarAgenda.putExtra(
+				MainActivity.OPEN_CALENDAR_EVENT_KEY,
+				"${eventId.listId}/${eventId.elementId}".toByteArray().toBase64().base64ToBase64Url()
+			)
+		}
 
 		return actionStartActivity(openCalendarAgenda)
 	}
@@ -261,7 +272,7 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	fun WidgetBody(data: WidgetUIData?, headerCallback: Action, newEventCallback: Action) {
+	fun WidgetBody(data: WidgetUIData?, userId: String?, headerCallback: Action, newEventCallback: Action) {
 		val isEmpty = data?.allDayEvents?.isEmpty() ?: true && data?.normalEvents?.isEmpty() ?: true
 
 		Column(
@@ -325,7 +336,7 @@ class Agenda : GlanceAppWidget() {
 					data.normalEvents.ifEmpty { data.allDayEvents },
 					itemId = { index, _ -> index.toLong() }) { _, event ->
 					Column {
-						EventCard(event)
+						EventCard(event, this@Agenda.openCalendarAgenda(LocalContext.current, userId, event.eventId))
 						Spacer(modifier = GlanceModifier.height(4.dp))
 					}
 				}
@@ -467,12 +478,13 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	fun EventCard(event: UIEvent) {
+	fun EventCard(event: UIEvent, action: Action) {
 		Row(
 			modifier = GlanceModifier.padding(horizontal = 8.dp, vertical = 4.dp)
 				.background(GlanceTheme.colors.surface)
 				.cornerRadius(8.dp)
-				.fillMaxWidth(),
+				.fillMaxWidth()
+				.clickable(action),
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			CalendarIndicator(color = Color(parseColor("#${event.calendarColor}")))
@@ -480,7 +492,7 @@ class Agenda : GlanceAppWidget() {
 			// event title and time
 			Column(
 				modifier = GlanceModifier.padding(start = 8.dp)
-					.clickable(rippleOverride = R.drawable.transparent_ripple) { }) {
+			) {
 				Text(
 					event.summary.ifEmpty { "<No title>" },
 					style = TextStyle(
@@ -488,7 +500,7 @@ class Agenda : GlanceAppWidget() {
 						fontWeight = FontWeight.Bold,
 						fontSize = 14.sp
 					),
-					maxLines = 1
+					maxLines = 1,
 				)
 
 				Text(
@@ -526,6 +538,7 @@ class Agenda : GlanceAppWidget() {
 			eventData.add(
 				UIEvent(
 					"previewCalendar",
+					IdTupleCustom("", ""),
 					"2196f3",
 					"Hello Widget $i",
 					"08:00",
@@ -539,6 +552,7 @@ class Agenda : GlanceAppWidget() {
 		allDayEvents.add(
 			UIEvent(
 				"previewCalendar",
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Summery",
 				"Start Time",
@@ -551,6 +565,7 @@ class Agenda : GlanceAppWidget() {
 		allDayEvents.add(
 			UIEvent(
 				"previewCalendar",
+				IdTupleCustom("", ""),
 				"2196f3",
 				"Summery",
 				"Start Time",
@@ -566,6 +581,7 @@ class Agenda : GlanceAppWidget() {
 					allDayEvents = allDayEvents,
 					normalEvents = eventData,
 				),
+				"",
 				headerCallback = actionRunCallback<ActionCallback>(),
 				newEventCallback = actionRunCallback<ActionCallback>(),
 			)
@@ -583,6 +599,7 @@ class Agenda : GlanceAppWidget() {
 			eventData.add(
 				UIEvent(
 					"previewCalendar",
+					IdTupleCustom("", ""),
 					"2196f3",
 					"Hello Widget $i",
 					"08:00",
@@ -599,6 +616,7 @@ class Agenda : GlanceAppWidget() {
 					allDayEvents = allDayEvents,
 					normalEvents = eventData,
 				),
+				"",
 				headerCallback = actionRunCallback<ActionCallback>(),
 				newEventCallback = actionRunCallback<ActionCallback>(),
 			)
@@ -620,6 +638,7 @@ class Agenda : GlanceAppWidget() {
 					allDayEvents = allDayEvents,
 					normalEvents = eventData,
 				),
+				"",
 				headerCallback = actionRunCallback<ActionCallback>(),
 				newEventCallback = actionRunCallback<ActionCallback>(),
 			)

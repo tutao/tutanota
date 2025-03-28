@@ -8,6 +8,7 @@ import {
 	findAndRemove,
 	getStartOfDay,
 	groupByAndMapUniquely,
+	identity,
 	last,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -92,7 +93,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 *
 	 * We keep track of event separately to avoid races with selecting multiple events shortly one after another.
 	 */
-	private previewedEvent: { event: CalendarEvent; model: CalendarPreviewModels | null } | null = null
+	private previewedEvent: Stream<{ event: CalendarEvent; model: CalendarPreviewModels | null } | null> = stream(null)
+	private previewedEventId: IdTuple | null = null
 
 	private _hiddenCalendars: Set<Id>
 	/** Events that have been dropped but still need to be rendered as temporary while waiting for entity updates. */
@@ -140,13 +142,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._hiddenCalendars = new Set(this.deviceConfig.getHiddenCalendars(userId))
 
 		this.selectedDate.map(() => {
+			console.log("selectedDate.map")
 			this.updatePreviewedEvent(null)
 			this.preloadMonthsAroundSelectedDate()
 		})
 		this.selectedTime = Time.fromDate(today)
 		this.ignoreNextValidTimeSelection = false
 		this.calendarModel.getCalendarInfosStream().map((newInfos) => {
-			const event = this.previewedEvent?.event ?? null
+			const event = this.previewedEvent()?.event ?? null
 			if (event != null) {
 				// redraw if we lost access to the events' list
 				const groupRoots = Array.from(newInfos.values()).map((i) => i.groupRoot)
@@ -176,6 +179,22 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				this._isNewPaidPlan = isNewPaidPlan
 				this.prepareClientCalendars()
 			})
+	}
+
+	setPreviewedEventId(id: IdTuple | null) {
+		this.previewedEventId = id
+
+		if (id == null) {
+			this.updatePreviewedEvent(null)
+			return
+		}
+
+		const date = this.selectedDate().getTime()
+		const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev._id, id))
+
+		if (event) {
+			this.updatePreviewedEvent(event)
+		}
 	}
 
 	isDaySelectorExpanded(): boolean {
@@ -256,6 +275,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		} finally {
 			progressMonitor.completed()
 			this.doRedraw()
+
+			if (this.previewedEventId != null) {
+				const date = this.selectedDate().getTime()
+				const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev._id, this.previewedEventId))
+
+				if (event) {
+					this.updatePreviewedEvent(event)
+				}
+			}
 		}
 	})
 
@@ -500,7 +528,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get eventPreviewModel(): CalendarPreviewModels | null {
-		return this.previewedEvent?.model ?? null
+		return this.previewedEvent()?.model ?? null
+	}
+
+	get previewedEventTuple(): Stream<{ event: CalendarEvent; model: CalendarPreviewModels | null } | null> {
+		return this.previewedEvent.map(identity)
 	}
 
 	/**
@@ -518,10 +550,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 */
 	async updatePreviewedEvent(event: CalendarEvent | null) {
 		if (event == null) {
-			this.previewedEvent = null
+			this.previewedEvent(null)
 			this.doRedraw()
 		} else {
-			const previewedEvent = (this.previewedEvent = { event, model: null })
 			const calendarInfos = await this.calendarModel.getCalendarInfosCreateIfNeeded()
 			let previewModel: CalendarPreviewModels
 			if (isClientOnlyCalendar(listIdPart(event._id))) {
@@ -533,11 +564,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			} else {
 				previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos)
 			}
-			// check that we didn't start previewing another event or changed the date in the meantime
-			if (this.previewedEvent === previewedEvent) {
-				this.previewedEvent.model = previewModel
-				this.doRedraw()
-			}
+
+			this.previewedEvent({ event, model: previewModel })
+			this.doRedraw()
 		}
 	}
 
@@ -545,9 +574,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				const eventId: IdTuple = [update.instanceListId, update.instanceId]
-				if (this.previewedEvent != null && isUpdateFor(this.previewedEvent.event, update)) {
+				const previewedEvent = this.previewedEvent()
+				if (previewedEvent != null && isUpdateFor(previewedEvent.event, update)) {
 					if (update.operation === OperationType.DELETE) {
-						this.previewedEvent = null
+						this.previewedEvent(null)
+						this.previewedEventId = null
 						this.doRedraw()
 					} else {
 						try {

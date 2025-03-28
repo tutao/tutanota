@@ -391,6 +391,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		return this.getPreviousColumn() != null
 	}
 
+	/**
+	 * Executes a slide animation for the background buttons.
+	 */
 	focusPreviousColumn(): Promise<unknown> {
 		if (this.isFocusPreviousPossible()) {
 			window.getSelection()?.empty() // try to deselect text

@@ -1,16 +1,14 @@
 import m from "mithril"
 import { assertMainOrNode } from "../../api/common/Env"
 import { modal } from "../../gui/base/Modal"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../misc/RouteChange"
 import { last } from "@tutao/tutanota-utils"
-import { CloseEventBusOption, MailSetKind, SECOND_MS } from "../../api/common/TutanotaConstants.js"
+import { CloseEventBusOption, SECOND_MS } from "../../api/common/TutanotaConstants.js"
 import { MobileFacade } from "../common/generatedipc/MobileFacade.js"
 import { styles } from "../../gui/styles"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
-import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { TopLevelView } from "../../../TopLevelView.js"
 import stream from "mithril/stream"
-import { CalendarViewType } from "../../api/common/utils/CommonCalendarUtils.js"
 
 assertMainOrNode()
 
@@ -58,23 +56,9 @@ export class WebMobileFacade implements MobileFacade {
 				// current view can navigate back, a region column is focused (not main) and is in singleColumnLayout
 				viewSlider.focusPreviousColumn()
 				return true
-			} else if (currentRoute.startsWith(CALENDAR_PREFIX)) {
-				if (history.state?.origin === CalendarViewType.MONTH) {
-					const date = history.state.dateString ?? new Date().toISOString().substring(0, 10)
-					m.route.set("/calendar/:view/:date", {
-						view: CalendarViewType.MONTH,
-						date,
-					})
-					return true
-				}
-
-				if (this.baseViewPrefix === CALENDAR_PREFIX) {
-					// we are at the main view and want to exit the app
-					return false
-				} else {
-					m.route.set(this.baseViewPrefix)
-					return true
-				}
+			} else if (currentRoute.startsWith(CALENDAR_PREFIX) && this.baseViewPrefix !== CALENDAR_PREFIX) {
+				m.route.set(this.baseViewPrefix)
+				return true
 			} else if (currentRoute.startsWith(CONTACTS_PREFIX) || currentRoute.startsWith(SETTINGS_PREFIX) || currentRoute.startsWith(SEARCH_PREFIX)) {
 				// go back to mail or calendar from other paths
 				m.route.set(this.baseViewPrefix)
