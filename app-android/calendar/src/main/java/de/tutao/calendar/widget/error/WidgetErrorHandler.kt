@@ -3,6 +3,7 @@ package de.tutao.calendar.widget.error
 import android.content.Context
 import android.content.Intent
 import de.tutao.calendar.MainActivity
+import de.tutao.calendar.R
 import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.getLogcat
 
@@ -31,9 +32,16 @@ class WidgetErrorHandler {
 			openCalendarLogs.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 			openCalendarLogs.action = MainActivity.OPEN_LOGS_ACTION
 			openCalendarLogs.putExtra(MainActivity.OPEN_LOGS_DATA_KEY, fullLog.toString())
-			println(fullLog.toString())
 
 			return openCalendarLogs
+		}
+
+		fun getErrorMessage(context: Context, error: WidgetError): String {
+			if (error.type == WidgetErrorType.CREDENTIALS) {
+				return context.getString(R.string.widgetCredentialsError_msg)
+			}
+
+			return context.getString(R.string.widgetUnexpectedError_msg)
 		}
 	}
 }

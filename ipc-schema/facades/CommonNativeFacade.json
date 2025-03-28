@@ -120,8 +120,8 @@
 			],
 			"ret": "void"
 		},
-		"openLogs": {
-			"doc": "Open the Logs dialog on login page",
+		"sendLogs": {
+			"doc": "Open the Send Logs dialog",
 			"arg": [
 				{
 					"logs": "string"

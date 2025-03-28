@@ -40,7 +40,7 @@ export class CommonNativeFacadeSendDispatcher implements CommonNativeFacade {
 	async openSettings(...args: Parameters<CommonNativeFacade["openSettings"]>) {
 		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "openSettings", ...args])
 	}
-	async openLogs(...args: Parameters<CommonNativeFacade["openLogs"]>) {
-		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "openLogs", ...args])
+	async sendLogs(...args: Parameters<CommonNativeFacade["sendLogs"]>) {
+		return this.transport.invokeNative("ipc", ["CommonNativeFacade", "sendLogs", ...args])
 	}
 }

@@ -33,10 +33,15 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		readonly openSettings: (path: string) => Promise<void>,
 	) {}
 
-	async openLogs(logs: string): Promise<void> {
-		const { prepareWidgetLogs, showLogsDialog } = await import("../../gui/LogDialogUtils.js")
-		const fullLog = await prepareWidgetLogs(logs)
-		return await showLogsDialog(fullLog)
+	async sendLogs(logs: string): Promise<void> {
+		const { showSendErrorDialog } = await import("../../misc/ErrorReporter.js")
+
+		await this.logins.waitForFullLogin()
+		return await showSendErrorDialog({
+			name: "Widget Error",
+			message: logs,
+			stack: null,
+		})
 	}
 
 	async openContactEditor(contactId: string): Promise<void> {

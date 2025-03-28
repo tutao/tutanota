@@ -22,6 +22,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
@@ -52,6 +53,7 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.layout.wrapContentHeight
+import androidx.glance.layout.wrapContentSize
 import androidx.glance.layout.wrapContentWidth
 import androidx.glance.material3.ColorProviders
 import androidx.glance.preview.ExperimentalGlancePreviewApi
@@ -69,6 +71,7 @@ import de.tutao.calendar.widget.data.WidgetStateDefinition
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
+import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
@@ -123,7 +126,8 @@ class Agenda : GlanceAppWidget() {
 				if (error != null) {
 					return@GlanceTheme ErrorBody(
 						error,
-						action = actionStartActivity(WidgetErrorHandler.buildLogsIntent(context, error))
+						logsAction = actionStartActivity(WidgetErrorHandler.buildLogsIntent(context, error)),
+						loginAction = openCalendarAgenda(context, userId)
 					)
 				}
 
@@ -194,7 +198,7 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	fun ErrorBody(error: WidgetError?, action: Action) {
+	fun ErrorBody(error: WidgetError?, logsAction: Action, loginAction: Action) {
 		Column(
 			modifier = GlanceModifier.padding(12.dp).background(GlanceTheme.colors.background).fillMaxSize()
 				.appWidgetBackground().cornerRadius(8.dp),
@@ -205,29 +209,54 @@ class Agenda : GlanceAppWidget() {
 				return@Column LoadingSpinner()
 			}
 
-			Text(
-				error.friendlyMessage,
-				style = TextStyle(
-					fontSize = 16.sp,
-					color = GlanceTheme.colors.onBackground,
-					textAlign = TextAlign.Center,
-					fontWeight = FontWeight.Normal
-				),
-				maxLines = 2,
-				modifier = GlanceModifier.padding(bottom = 8.dp)
-			)
-			// FIXME Replace with translation
-			Box(
-				contentAlignment = Alignment.Center,
-				modifier = GlanceModifier
-					.fillMaxWidth()
-					.height(44.dp)
-					.background(GlanceTheme.colors.primary)
-					.cornerRadius(8.dp)
-					.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = action)
+			Column(
+				modifier = GlanceModifier.wrapContentSize().fillMaxWidth().wrapContentSize(),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalAlignment = Alignment.CenterHorizontally
 			) {
-				Text("Send Logs", style = TextStyle(color = GlanceTheme.colors.onPrimary))
+				Image(
+					provider = ImageProvider(R.drawable.error),
+					contentDescription = null,
+					contentScale = ContentScale.Fit,
+					modifier = GlanceModifier.fillMaxWidth().defaultWeight()
+				)
+				Text(
+					WidgetErrorHandler.getErrorMessage(LocalContext.current, error),
+					style = TextStyle(
+						fontSize = 14.sp,
+						color = GlanceTheme.colors.onBackground,
+						textAlign = TextAlign.Center,
+						fontWeight = FontWeight.Normal
+					),
+					maxLines = 2,
+					modifier = GlanceModifier.padding(vertical = 16.dp)
+				)
+				ErrorButton(error, if (error.type == WidgetErrorType.CREDENTIALS) loginAction else logsAction)
 			}
+		}
+	}
+
+	@Composable
+	fun ErrorButton(error: WidgetError, action: Action) {
+		val buttonLabel = if (error.type == WidgetErrorType.UNEXPECTED) {
+			LocalContext.current.getString(R.string.sendLogs_action)
+		} else {
+			LocalContext.current.getString(R.string.widgetOpenApp_action)
+		}
+
+		return Box(
+			contentAlignment = Alignment.Center,
+			modifier = GlanceModifier
+				.padding(horizontal = 16.dp)
+				.height(44.dp)
+				.background(GlanceTheme.colors.primary)
+				.cornerRadius(8.dp)
+				.clickable(
+					rippleOverride = R.drawable.transparent_ripple,
+					onClick = action
+				)
+		) {
+			Text(buttonLabel, style = TextStyle(color = GlanceTheme.colors.onPrimary, fontWeight = FontWeight.Medium))
 		}
 	}
 
@@ -272,7 +301,7 @@ class Agenda : GlanceAppWidget() {
 						horizontalAlignment = Alignment.CenterHorizontally
 					) {
 						Text(
-							"No Events here.",
+							LocalContext.current.getString(R.string.widgetNoEvents_msg),
 							style = TextStyle(
 								fontSize = 16.sp,
 								color = GlanceTheme.colors.onBackground,
@@ -283,7 +312,7 @@ class Agenda : GlanceAppWidget() {
 						)
 						Image(
 							provider = ImageProvider(getEmptyResource()),
-							contentDescription = "No Events here.",
+							contentDescription = null,
 							contentScale = ContentScale.Fit,
 							modifier = GlanceModifier.fillMaxWidth().defaultWeight().wrapContentHeight()
 						)
@@ -603,13 +632,24 @@ class Agenda : GlanceAppWidget() {
 	@Preview(widthDp = 800, heightDp = 500)
 	@Composable
 	fun AgendaPreviewError() {
-		val eventData = ArrayList<UIEvent>()
-		val allDayEvents = ArrayList<UIEvent>()
-
 		GlanceTheme(colors = AppTheme.colors) {
 			ErrorBody(
-				WidgetError("Wow, something is wrong here", "Failed", ""),
-				action = actionRunCallback<ActionCallback>()
+				WidgetError("Failed", "", WidgetErrorType.UNEXPECTED),
+				logsAction = actionRunCallback<ActionCallback>(),
+				loginAction = actionRunCallback<ActionCallback>()
+			)
+		}
+	}
+
+	@OptIn(ExperimentalGlancePreviewApi::class)
+	@Preview(widthDp = 200, heightDp = 200)
+	@Composable
+	fun AgendaPreviewCredentialError() {
+		GlanceTheme(colors = AppTheme.colors) {
+			ErrorBody(
+				WidgetError("Failed", "", WidgetErrorType.CREDENTIALS),
+				logsAction = actionRunCallback<ActionCallback>(),
+				loginAction = actionRunCallback<ActionCallback>()
 			)
 		}
 	}
