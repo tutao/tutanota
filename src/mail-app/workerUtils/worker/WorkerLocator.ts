@@ -573,6 +573,7 @@ async function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo, keyLoaderFa
 			return initIndexer(worker, cacheInfo, keyLoaderFacade)
 		} else {
 			// not awaiting
+			console.log("send indexer error to main thread", e)
 			worker.sendError(e)
 			return
 		}

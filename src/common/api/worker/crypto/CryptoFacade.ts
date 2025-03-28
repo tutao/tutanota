@@ -274,6 +274,7 @@ export class CryptoFacade {
 				parseKeyVersion(bucketKey.recipientKeyVersion),
 				asCryptoProtoocolVersion(bucketKey.protocolVersion),
 				bucketKey.pubEncBucketKey,
+				typeModel.name,
 			)
 			decryptedBucketKey = decryptedAesKey
 			pqMessageSenderKey = senderIdentityPubKey
@@ -652,6 +653,7 @@ export class CryptoFacade {
 			parseKeyVersion(bucketPermission.pubKeyVersion ?? "0"),
 			asCryptoProtoocolVersion(bucketPermission.protocolVersion),
 			pubEncBucketKey,
+			typeModel.name,
 		)
 
 		const sk = decryptKey(decryptedAesKey, bucketEncSessionKey)
