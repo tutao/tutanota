@@ -500,12 +500,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getSetUnreadStateAction(): ((unread: boolean) => void) | null {
-		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails) || (mails.length === 1 && isDraft(getFirstOrThrow(mails)))) {
+		const conversationMails = this.conversationViewModel?.conversationMails()
+		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		const mailsToCheck = conversationMails ?? selectedMails
+		if (isEmpty(mailsToCheck) || (mailsToCheck.length === 1 && isDraft(getFirstOrThrow(mailsToCheck)))) {
 			return null
 		}
 		return async (unread: boolean) => {
-			const actionableMails = await this.mailViewModel.getActionableMails(mails)
+			const actionableMails = conversationMails?.map((mail) => mail._id) ?? (await this.mailViewModel.getActionableMails(selectedMails))
 			await mailLocator.mailModel.markMails(actionableMails, unread)
 		}
 	}
@@ -696,12 +698,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return
 		}
 
-		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails)) {
-			return
-		}
-
-		const actionableMails = () => this.mailViewModel.getActionableMails(mails)
+		const actionableMails = () => this.mailViewModel.getSelectedActionableMails()
 		const moveMode = this.mailViewModel.getMoveMode(currentFolder)
 		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, actionableMails, moveMode, opts)
 	}
@@ -718,7 +715,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					// conversationViewModel is not there if we are in multiselect or if nothing is selected
 					if (this.conversationViewModel != null) {
 						// when viewing a conversation we need to get the label state for all the mails in that conversation
-						const conversationMails = this.conversationViewModel.conversationItems().map((mailItem) => mailItem.viewModel.mail)
+						const conversationMails = this.conversationViewModel.conversationMails()
 						showLabelsPopup(mailModel, conversationMails, async (mails: Mail[]) => mails.map((mail) => mail._id), dom, opts)
 					} else {
 						showLabelsPopup(mailModel, mailList.getSelectedAsArray(), (mails: Mail[]) => this.mailViewModel.getActionableMails(mails), dom, opts)
@@ -1006,23 +1003,29 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getExportAction(): (() => void) | null {
-		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (!this.mailViewModel.isExportingMailsAllowed() || isEmpty(mails)) {
+		const conversationMails = this.conversationViewModel?.conversationMails()
+		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (!this.mailViewModel.isExportingMailsAllowed() || isEmpty(conversationMails ?? selectedMails)) {
 			return null
 		}
 
-		return () => startExport(() => this.mailViewModel.getActionableMails(mails))
+		return () => startExport(async () => conversationMails?.map((mail) => mail._id) ?? (await this.mailViewModel.getActionableMails(selectedMails)))
 	}
 
 	private async toggleUnreadMails(): Promise<void> {
-		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(selectedMails)) {
-			return
+		if (this.conversationViewModel != null) {
+			const mailIds = this.conversationViewModel.conversationMails().map((mail) => mail._id)
+			// set all selected emails to the opposite of the primary email's unread state
+			await mailLocator.mailModel.markMails(mailIds, !this.conversationViewModel.primaryMail.unread)
+		} else {
+			const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+			if (isEmpty(selectedMails)) {
+				return
+			}
+			const mailIds = await this.mailViewModel.getActionableMails(selectedMails)
+			// set all selected emails to the opposite of the first email's unread state
+			await mailLocator.mailModel.markMails(mailIds, !selectedMails[0].unread)
 		}
-		const mailIds = await this.mailViewModel.getActionableMails(selectedMails)
-
-		// set all selected emails to the opposite of the first email's unread state
-		await mailLocator.mailModel.markMails(mailIds, !selectedMails[0].unread)
 	}
 
 	private async trashSelectedMails() {

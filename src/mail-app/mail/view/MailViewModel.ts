@@ -346,6 +346,10 @@ export class MailViewModel {
 	}
 
 	async getSelectedActionableMails(): Promise<readonly IdTuple[]> {
+		if (this.conversationViewModel != null) {
+			return this.conversationViewModel.conversationItems().map((mailItem) => mailItem.viewModel.mail._id)
+		}
+
 		const mails = this.listModel?.getSelectedAsArray() ?? []
 		if (isEmpty(mails)) {
 			return []
