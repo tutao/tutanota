@@ -671,7 +671,7 @@ class CalendarLocator {
 					async () => this.pushService,
 					this.handleFileImport.bind(this),
 					async (_userId: string, _address: string, _requestedPath: string | null) => {},
-					(userId, action, date) => openCalendarHandler.openCalendar(userId, action, date),
+					(userId, action, date, eventId) => openCalendarHandler.openCalendar(userId, action, date, eventId),
 					AppType.Calendar,
 					(path) => openSettingsHandler.openSettings(path),
 				),

@@ -47,6 +47,7 @@ class CommonNativeFacadeSendDispatcher (
 		userId: String,
 		action: CalendarOpenAction?,
 		dateIso: String?,
+		eventId: String?,
 	): Unit
 	{
 		val encodedMethod = json.encodeToString("openCalendar")
@@ -54,6 +55,7 @@ class CommonNativeFacadeSendDispatcher (
 		args.add(json.encodeToString(userId))
 		args.add(json.encodeToString(action))
 		args.add(json.encodeToString(dateIso))
+		args.add(json.encodeToString(eventId))
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	

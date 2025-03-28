@@ -28,7 +28,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		private readonly pushService: lazyAsync<NativePushServiceApp>,
 		private readonly fileImportHandler: (filesUris: ReadonlyArray<string>) => unknown,
 		readonly openMailBox: (userId: string, address: string, requestedPath: string | null) => Promise<void>,
-		readonly openCalendar: (userId: string, action: CalendarOpenAction, date: string | null) => Promise<void>,
+		readonly openCalendar: (userId: string, action: CalendarOpenAction, date: string | null, eventId: string | null) => Promise<void>,
 		private readonly appType: AppType,
 		readonly openSettings: (path: string) => Promise<void>,
 	) {}

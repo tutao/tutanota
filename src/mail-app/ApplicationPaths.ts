@@ -60,6 +60,7 @@ export function applicationPaths({
 		"/calendar": calendar,
 		"/calendar/:view": calendar,
 		"/calendar/:view/:date": calendar,
+		"/calendar/:view/:date/:eventId": calendar,
 		"/giftcard/": giftcard,
 		"/webauthn": webauthn,
 		"/webauthnmobile": webauthnmobile,

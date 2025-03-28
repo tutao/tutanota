@@ -25,7 +25,8 @@ export class CommonNativeFacadeReceiveDispatcher {
 				const userId: string = arg[0]
 				const action: CalendarOpenAction | null = arg[1]
 				const dateIso: string | null = arg[2]
-				return this.facade.openCalendar(userId, action, dateIso)
+				const eventId: string | null = arg[3]
+				return this.facade.openCalendar(userId, action, dateIso, eventId)
 			}
 			case "openContactEditor": {
 				const contactId: string = arg[0]

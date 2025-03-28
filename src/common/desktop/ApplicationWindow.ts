@@ -519,7 +519,7 @@ export class ApplicationWindow {
 
 	// open at date?
 	async openCalendar(info: UserInfo): Promise<void> {
-		await this._commonNativeFacade.openCalendar(info.userId, CalendarOpenAction.Agenda, null)
+		await this._commonNativeFacade.openCalendar(info.userId, CalendarOpenAction.Agenda, null, null)
 		this.show()
 	}
 
