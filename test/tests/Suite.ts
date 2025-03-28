@@ -210,6 +210,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/credentials/KeychainEncryptionTest.js")
 		await import("./desktop/credentials/DesktopCredentialsStorageTest.js")
 		await import("./desktop/export/DesktopExportFacadeTest.js")
+		await import("./api/worker/search/SqliteMailIndexerBackendTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.

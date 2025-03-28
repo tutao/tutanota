@@ -100,7 +100,7 @@ import { SearchFacade } from "../index/SearchFacade"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
 import { IndexedDbMailIndexerBackend } from "../index/IndexedDbMailIndexerBackend"
-import { OfflineStorageMailIndexerBackend } from "../index/OfflineStorageMailIndexerBackend"
+import { SqliteMailIndexerBackend } from "../index/SqliteMailIndexerBackend"
 import { ContactIndexer } from "../index/ContactIndexer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { IndexedDbContactIndexerBackend } from "../index/IndexedDbContactIndexerBackend"
@@ -231,7 +231,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.cachingEntityClient,
 				dateProvider,
 				mailFacade,
-				() => new OfflineStorageMailIndexerBackend(persistence),
+				() => new SqliteMailIndexerBackend(persistence),
 			)
 		} else {
 			const core = await indexerCore()

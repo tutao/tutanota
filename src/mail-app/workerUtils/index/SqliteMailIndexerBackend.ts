@@ -1,7 +1,7 @@
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 
-export class OfflineStorageMailIndexerBackend implements MailIndexerBackend {
+export class SqliteMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly persistence: OfflineStoragePersistence) {}
 
 	async getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
