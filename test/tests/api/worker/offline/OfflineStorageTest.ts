@@ -43,13 +43,13 @@ import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from 
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 import Id from "../../../../../src/mail-app/translations/id.js"
-import { CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
+import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -104,6 +104,7 @@ o.spec("OfflineStorageDb", function () {
 	let migratorMock: OfflineStorageMigrator
 	let offlineStorageCleanerMock: OfflineStorageCleaner
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
+	let customCacheHandlerMap: CustomCacheHandlerMap
 
 	o.beforeEach(async function () {
 		dbFacade = new DesktopSqlCipher(nativePath, database, false)
@@ -113,15 +114,15 @@ o.spec("OfflineStorageDb", function () {
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 		offlineStorageCleanerMock = new MailOfflineCleaner()
 		when(dateProviderMock.now()).thenReturn(now.getTime())
-		// FIXME: tests for CustomCacheHandler
-		storage = new OfflineStorage(
-			dbFacade,
-			interWindowEventSenderMock,
-			dateProviderMock,
-			migratorMock,
-			offlineStorageCleanerMock,
-			new CustomCacheHandlerMap(),
-		)
+		customCacheHandlerMap = object()
+		// we should stop doing this when we switch to in-memory database again
+		try {
+			await fs.promises.unlink(database)
+		} catch (e) {
+			// ignored
+		}
+
+		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, offlineStorageCleanerMock, customCacheHandlerMap)
 	})
 
 	o.afterEach(async function () {
@@ -214,6 +215,134 @@ o.spec("OfflineStorageDb", function () {
 		o("migrations are run", async function () {
 			await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 			verify(migratorMock.migrate(storage, dbFacade))
+		})
+
+		o.spec("custom cache handlers", function () {
+			const userId = "userId1"
+
+			o.beforeEach(async function () {
+				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+			})
+
+			o.test("put calls the cache handler", async function () {
+				const storableUser = createTestEntity(UserTypeRef, { _id: userId })
+
+				const userCacheHandler: CustomCacheHandler<User> = object()
+				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+				await storage.put(storableUser)
+				verify(userCacheHandler.onBeforeUpdate?.(storableUser))
+			})
+
+			o.test("deleteIfExists calls the cache handler", async function () {
+				const storableUser = createTestEntity(UserTypeRef, { _id: userId })
+
+				const userCacheHandler: CustomCacheHandler<User> = object()
+				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+				await storage.put(storableUser)
+
+				await storage.deleteIfExists(UserTypeRef, null, userId)
+				verify(userCacheHandler.onBeforeDelete?.(userId))
+			})
+
+			o.spec("deleteAllOfType", function () {
+				o.test("calls the cache handler for element types", async function () {
+					const storableUser = createTestEntity(UserTypeRef, { _id: userId })
+
+					const userCacheHandler: CustomCacheHandler<User> = object()
+					when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+
+					await storage.put(storableUser)
+
+					await storage.deleteAllOfType(UserTypeRef)
+					verify(userCacheHandler.onBeforeDelete?.(userId))
+				})
+
+				o.test("calls the cache handler for list element types", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(MailTypeRef, { _id: id })
+
+					const customCacheHandler: CustomCacheHandler<Mail> = object()
+					when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(entityToStore)
+
+					await storage.deleteAllOfType(MailTypeRef)
+					verify(customCacheHandler.onBeforeDelete?.(id))
+				})
+
+				o.test("calls the cache handler for blob element types", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(MailDetailsBlobTypeRef, { _id: id })
+
+					const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+					when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(entityToStore)
+
+					await storage.deleteAllOfType(MailDetailsBlobTypeRef)
+					verify(customCacheHandler.onBeforeDelete?.(id))
+				})
+			})
+
+			o.spec("deleteAllOwnedBy", function () {
+				const userId = "id1"
+				const groupId = "groupId"
+
+				o.test("calls the cache handler for element types", async function () {
+					const storableUser = createTestEntity(UserTypeRef, { _id: userId, _ownerGroup: groupId })
+
+					const userCacheHandler: CustomCacheHandler<User> = object()
+					when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+					await storage.put(storableUser)
+
+					await storage.deleteAllOwnedBy(groupId)
+					verify(userCacheHandler.onBeforeDelete?.(userId))
+				})
+
+				o.test("calls the cache handler for list element types", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(MailTypeRef, { _id: id, _ownerGroup: groupId })
+
+					const customCacheHandler: CustomCacheHandler<Mail> = object()
+					when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(entityToStore)
+
+					await storage.deleteAllOwnedBy(groupId)
+					verify(customCacheHandler.onBeforeDelete?.(id))
+				})
+
+				o.test("calls the cache handler for blob element types", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(MailDetailsBlobTypeRef, { _id: id, _ownerGroup: groupId })
+
+					const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+					when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(entityToStore)
+
+					await storage.deleteAllOwnedBy(groupId)
+					verify(customCacheHandler.onBeforeDelete?.(id))
+				})
+			})
+
+			o.test("deleteIn calls the cache handler", async function () {
+				const id: IdTuple = ["listId", "id1"]
+				const entityToStore = createTestEntity(MailDetailsBlobTypeRef, { _id: id })
+
+				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
+				when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
+
+				await storage.put(entityToStore)
+
+				await storage.deleteIn(MailDetailsBlobTypeRef, "listId", ["id1"])
+				verify(customCacheHandler.onBeforeDelete?.(id))
+			})
 		})
 
 		o.spec("Offline storage round trip", function () {

@@ -4,6 +4,7 @@ import { createMailDetailsBlob, MailDetailsBlobTypeRef, MailDetailsTypeRef } fro
 import { createTestEntity } from "../../../TestUtils.js"
 import { CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 
+// FIXME: tests for cache handlers
 o.spec("EphemeralCacheStorageTest", function () {
 	const userId = "userId"
 	const archiveId = "archiveId"
