@@ -57,4 +57,9 @@ export interface MobileSystemFacade {
 	 * Sends a refresh signal to the native side, updating widget last sync
 	 */
 	requestWidgetRefresh(): Promise<void>
+
+	/**
+	 * Sends the URL from the remote origin to be stored on the device
+	 */
+	storeServerRemoteOrigin(origin: string): Promise<void>
 }

@@ -80,24 +80,23 @@ import androidx.compose.ui.unit.toSize
 import androidx.core.graphics.toColorInt
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.viewmodel.MutableCreationExtras
-import de.tutao.calendar.widget.data.WidgetConfigModel
 import de.tutao.calendar.widget.data.WidgetConfigRepository
-import de.tutao.calendar.widget.data.WidgetConfigViewModel
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
+import de.tutao.calendar.widget.model.WidgetConfigModel
+import de.tutao.calendar.widget.model.WidgetConfigViewModel
 import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
 import de.tutao.tutashared.SdkRestClient
-import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.ipc.CredentialsInfo
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.PersistedCredentials
-import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -112,11 +111,9 @@ class WidgetConfigActivity : AppCompatActivity() {
 	private fun modelFactoryExtras(): MutableCreationExtras {
 		return MutableCreationExtras().apply {
 			val db = AppDatabase.getDatabase(baseContext, true)
-			val keyStoreFacade = createAndroidKeyStoreFacade()
-			val sseStorage = SseStorage(db, keyStoreFacade)
+			val remoteStorage = RemoteStorage(db)
 
-			// FIXME Handle null sseOrigin / no saved accounts
-			val serverURL = sseStorage.getSseOrigin()
+			val serverURL = remoteStorage.getRemoteUrl()
 
 			val crypto = AndroidNativeCryptoFacade(baseContext)
 			val sdk =

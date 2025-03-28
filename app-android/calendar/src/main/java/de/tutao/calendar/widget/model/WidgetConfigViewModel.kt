@@ -1,4 +1,4 @@
-package de.tutao.calendar.widget.data
+package de.tutao.calendar.widget.model
 
 import android.app.Application
 import android.content.Context
@@ -10,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import de.tutao.calendar.widget.data.SettingsDao
+import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId

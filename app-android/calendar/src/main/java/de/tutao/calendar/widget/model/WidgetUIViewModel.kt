@@ -1,10 +1,13 @@
-package de.tutao.calendar.widget.data
+package de.tutao.calendar.widget.model
 
 import android.content.Context
 import android.util.Log
 import androidx.datastore.core.IOException
 import androidx.lifecycle.ViewModel
 import de.tutao.calendar.widget.WidgetUpdateTrigger
+import de.tutao.calendar.widget.data.UIEvent
+import de.tutao.calendar.widget.data.WidgetRepository
+import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.ipc.NativeCredentialsFacade

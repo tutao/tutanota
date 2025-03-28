@@ -1,4 +1,4 @@
-package de.tutao.calendar.widget.data
+package de.tutao.calendar.widget.model
 
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.tutasdk.CalendarRenderData

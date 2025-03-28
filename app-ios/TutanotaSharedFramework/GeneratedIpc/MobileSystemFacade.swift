@@ -68,4 +68,10 @@ public protocol MobileSystemFacade {
 	 */
 	func requestWidgetRefresh(
 	) async throws -> Void
+	/**
+	 * Sends the URL from the remote origin to be stored on the device
+	 */
+	func storeServerRemoteOrigin(
+		_ origin: String
+	) async throws -> Void
 }

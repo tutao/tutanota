@@ -31,6 +31,7 @@ import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.ipc.AppLockMethod
 import de.tutao.tutashared.ipc.MobileSystemFacade
 import de.tutao.tutashared.ipc.PermissionType
+import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -249,5 +250,10 @@ class AndroidMobileSystemFacade(
 		} catch (e: Exception) {
 			Log.e(TAG, "Failed to refresh widgets state ${e.message}")
 		}
+	}
+
+	override suspend fun storeServerRemoteOrigin(origin: String) {
+		val remoteStorage = RemoteStorage(db)
+		remoteStorage.storeRemoteUrl(origin)
 	}
 }
