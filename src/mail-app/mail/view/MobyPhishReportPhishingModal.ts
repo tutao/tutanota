@@ -2,7 +2,7 @@ import m, { Children } from "mithril";
 import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
-import { MailViewerViewModel } from "./MailViewerViewModel";
+import type { MailViewerViewModel } from "./MailViewerViewModel";
 import { API_BASE_URL } from "./MailViewerViewModel";
 
 export class MobyPhishReportPhishingModal implements ModalComponent {
