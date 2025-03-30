@@ -2,8 +2,8 @@ import m, { Children } from "mithril";
 import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
-import { MailViewerViewModel } from "./MailViewerViewModel";
-import { API_BASE_URL } from "./MailViewerViewModel";
+import { MailViewerViewModel } from "./MailViewerViewModel.js";
+import { API_BASE_URL } from "./MailViewerViewModel.js";
 
 export class MobyPhishDenyModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
