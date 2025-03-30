@@ -88,7 +88,7 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
-export const API_BASE_URL = "http://3.88.110.172:3000";
+export const API_BASE_URL = "http://3.84.179.155:3000";
 
 export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
