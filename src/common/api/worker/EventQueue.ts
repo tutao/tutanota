@@ -276,8 +276,11 @@ export class EventQueue {
 		this.start()
 	}
 
-	waitForEmptyQueue(): Promise<void> {
-		return new Promise((resolve) => this.emptyQueueEventTarget.addEventListener("queueempty", () => resolve(), { once: true }))
+	async waitForEmptyQueue(): Promise<void> {
+		if (this.processingBatch == null) {
+			return
+		}
+		await new Promise<void>((resolve) => this.emptyQueueEventTarget.addEventListener("queueempty", () => resolve(), { once: true }))
 	}
 
 	/** @private visibleForTesting */
