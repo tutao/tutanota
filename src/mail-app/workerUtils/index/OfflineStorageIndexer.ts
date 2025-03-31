@@ -41,8 +41,6 @@ export class OfflineStorageIndexer implements Indexer {
 
 		// Added mail groups will be indexed when extendMailIndex() will be called later
 
-		// FIXME: start indexing process for non-mail groups
-
 		await this.infoMessageHandler.onSearchIndexStateUpdate({
 			initializing: false,
 			mailIndexEnabled: this.mailIndexer.mailIndexingEnabled,
@@ -68,7 +66,6 @@ export class OfflineStorageIndexer implements Indexer {
 		// FIXME: dispatch events, but not while indexing
 		await this.mailIndexer.processEntityEvents(updates, groupId, batchId)
 		await this.contactIndexer.processEntityEvents(updates, groupId, batchId)
-		// FIXME: contact indexer
 	}
 
 	async extendMailIndex(time: number) {

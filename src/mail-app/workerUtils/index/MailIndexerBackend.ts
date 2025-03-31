@@ -18,8 +18,6 @@ export interface MailIndexerBackend {
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>>
 
-	// FIXME: previous model was ensuring atomicity for batch processing by having a single IndexedDB transaction for
-	//  the whole batch. We should think how to replicate this with IndexedDB.
 	onMailCreated(mailData: MailWithDetailsAndAttachments): Promise<void>
 
 	onMailUpdated(mailData: MailWithDetailsAndAttachments): Promise<void>

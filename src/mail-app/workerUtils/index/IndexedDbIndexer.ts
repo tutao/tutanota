@@ -103,12 +103,12 @@ export class IndexedDbIndexer implements Indexer {
 	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>
 
-	// FIXME: should not be public
+	/** @private visibelForTesting */
 	readonly eventQueue = new EventQueue("indexer", true, (batch) => this._processEntityEvents(batch))
 
 	constructor(
 		entityRestClient: EntityRestClient,
-		// FIXME: should not be public but the tests are awful right now
+		/** @private visibelForTesting */
 		readonly db: Db,
 		readonly _core: IndexerCore,
 		private readonly infoMessageHandler: InfoMessageHandler,
@@ -252,8 +252,6 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	private async stopProcessing() {
-		// FIXME: have a way to wait for the current op
-		// FIXME:
 		this.eventQueue.pause()
 
 		await this.eventQueue.waitForEmptyQueue()

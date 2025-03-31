@@ -223,7 +223,6 @@ export class MailIndexer {
 			for (let mailGroupMembership of memberships) {
 				const mailGroupId = mailGroupMembership.group
 
-				// FIXME: check that it will be added
 				// group data is not available if group has been added. group will be indexed after login.
 				const groupTimestamp = timestamps.get(mailGroupId)
 				if (groupTimestamp) {
