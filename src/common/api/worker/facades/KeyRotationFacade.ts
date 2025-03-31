@@ -342,6 +342,7 @@ export class KeyRotationFacade {
 		const adminKeyRotationData = await this.prepareKeyRotationForSingleAdmin(keyRotation, user, currentUserGroupKey, currentAdminGroupKey, passphraseKey)
 
 		await this.serviceExecutor.post(AdminGroupKeyRotationService, adminKeyRotationData.keyRotationData)
+		this.userFacade.setNewUserGroupKey(adminKeyRotationData.newUserGroupKeys.symGroupKey)
 		this.groupIdsThatPerformedKeyRotations.add(user.userGroup.group)
 	}
 
@@ -999,6 +1000,7 @@ export class KeyRotationFacade {
 				userGroupKeyData,
 			}),
 		)
+		this.userFacade.setNewUserGroupKey(newUserGroupKeys.symGroupKey)
 		this.groupIdsThatPerformedKeyRotations.add(userGroupId)
 	}
 
@@ -1340,6 +1342,7 @@ export class KeyRotationFacade {
 
 		// call service
 		await this.serviceExecutor.post(AdminGroupKeyRotationService, keyRotationData)
+		this.userFacade.setNewUserGroupKey(symUserGroupKey)
 		this.groupIdsThatPerformedKeyRotations.add(user.userGroup.group)
 	}
 

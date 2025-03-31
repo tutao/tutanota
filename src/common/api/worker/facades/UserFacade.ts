@@ -264,7 +264,16 @@ export class UserFacade implements AuthDataProvider {
 			object: newUserGroupKeyBytes,
 			version: parseKeyVersion(userGroupKeyDistribution.userGroupKeyVersion),
 		}
-		console.log(`updating userGroupKey. new version: ${userGroupKeyDistribution.userGroupKeyVersion}`)
-		this.keyCache.setCurrentUserGroupKey(newUserGroupKey)
+		this.setNewUserGroupKey(newUserGroupKey)
+	}
+
+	/**
+	 * Update the KeyCache with the newest user group key.
+	 * NOTE: should only be used with a freshly generated key. For keys received from the server, use `updateUserGroupKey`
+	 * @param userGroupKey
+	 */
+	public setNewUserGroupKey(userGroupKey: VersionedKey) {
+		console.log(`updating userGroupKey. new version: ${userGroupKey.version}`)
+		this.keyCache.setCurrentUserGroupKey(userGroupKey)
 	}
 }

@@ -1024,6 +1024,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				)
 				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything()), { times: 0 })
 
+				verify(userFacade.setNewUserGroupKey(NEW_USER_GROUP_KEY))
 				o(keyRotationFacade.pendingKeyRotations.adminOrUserGroupKeyRotation).equals(null)
 				o(keyRotationFacade.pendingKeyRotations.pwKey).equals(null)
 
@@ -1339,6 +1340,7 @@ o.spec("KeyRotationFacadeTest", function () {
 							}),
 						),
 					)
+					verify(userFacade.setNewUserGroupKey(NEW_USER_GROUP_KEY))
 
 					const groupIds = await keyRotationFacade.getGroupIdsThatPerformedKeyRotations()
 					o(groupIds).deepEquals([userGroupId])
@@ -1542,6 +1544,7 @@ o.spec("KeyRotationFacadeTest", function () {
 						}),
 					),
 				)
+				verify(userFacade.setNewUserGroupKey(NEW_USER_GROUP_KEY))
 
 				// noinspection JSVoidFunctionReturnValueUsed
 				verify(
