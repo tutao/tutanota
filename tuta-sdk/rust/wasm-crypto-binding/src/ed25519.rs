@@ -3,7 +3,9 @@ use ed25519_dalek::{
 	SecretKey, Signature, SignatureError, Signer, SigningKey, Verifier, VerifyingKey,
 	PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH,
 };
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
+use serde_big_array::BigArray;
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 use zeroize::ZeroizeOnDrop;
 
@@ -13,22 +15,19 @@ const SIGNATURE_SIZE: usize = Signature::BYTE_SIZE; // from dalek library see CO
 #[error("Ed25519SignatureVerificationError")]
 pub struct Ed25519SignatureVerificationError(#[from] SignatureError);
 
-#[derive(ZeroizeOnDrop, Clone, PartialEq)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
-pub struct Ed25519Signature([u8; SIGNATURE_SIZE]); // should we add 0 to 0 initialize the array ?
-impl Serialize for Ed25519Signature {
-	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-		self.0.as_slice().serialize(serializer)
-	}
-}
-impl Ed25519Signature {
+pub struct Ed25519Signature(#[serde(with = "BigArray")] [u8; SIGNATURE_SIZE]);
+
+impl From<[u8; SIGNATURE_SIZE]> for Ed25519Signature {
 	fn from(value: [u8; SIGNATURE_SIZE]) -> Self {
 		Ed25519Signature(value)
 	}
 }
 
-#[derive(ZeroizeOnDrop, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq, Tsify, Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Ed25519PrivateKey([u8; SECRET_KEY_LENGTH]);
 
 impl From<SecretKey> for Ed25519PrivateKey {
@@ -50,9 +49,9 @@ impl Ed25519PrivateKey {
 	}
 }
 
-#[wasm_bindgen]
-#[derive(ZeroizeOnDrop, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq, Tsify, Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Ed25519PublicKey([u8; PUBLIC_KEY_LENGTH]);
 
 impl From<VerifyingKey> for Ed25519PublicKey {
@@ -83,8 +82,9 @@ impl Ed25519PublicKey {
 	}
 }
 
-#[derive(ZeroizeOnDrop, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(ZeroizeOnDrop, Clone, PartialEq, Tsify, Serialize, Deserialize)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Ed25519KeyPair {
 	pub public_key: Ed25519PublicKey,
 	pub private_key: Ed25519PrivateKey,
