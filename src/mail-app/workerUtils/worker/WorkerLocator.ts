@@ -244,6 +244,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		}
 	})
 
+	const contactSuggestionFacade = new SuggestionFacade(ContactTypeRef, db)
 	const contactIndexer = lazyMemoized(async (): Promise<ContactIndexer> => {
 		const { ContactIndexer } = await import("../index/ContactIndexer.js")
 
@@ -253,8 +254,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			return new ContactIndexer(locator.cachingEntityClient, locator.user, backend)
 		} else {
 			const core = await indexerCore()
-			const suggestionFacade = new SuggestionFacade(ContactTypeRef, db)
-			const backend = new IndexedDbContactIndexerBackend(core, locator.cachingEntityClient, suggestionFacade)
+			const backend = new IndexedDbContactIndexerBackend(core, locator.cachingEntityClient, contactSuggestionFacade)
 			return new ContactIndexer(locator.cachingEntityClient, locator.user, backend)
 		}
 	})
@@ -503,8 +503,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		} else {
 			const { IndexedDbSearchFacade } = await import("../index/IndexedDbSearchFacade.js")
 			// FIXME
-			const suggestionFacades: readonly SuggestionFacade<any>[] = [] //[indexer._contact.suggestionFacade]
-			return new IndexedDbSearchFacade(locator.user, db, await mailIndexer(), suggestionFacades, browserData, locator.cachingEntityClient)
+			return new IndexedDbSearchFacade(locator.user, db, await mailIndexer(), contactSuggestionFacade, browserData, locator.cachingEntityClient)
 		}
 	})
 	locator.userManagement = lazyMemoized(async () => {

@@ -58,7 +58,7 @@ import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIn
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding"
 import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
-import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Contact, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { SearchFacade } from "./SearchFacade"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 
@@ -70,7 +70,7 @@ type RowsToReadForIndexKey = {
 export class IndexedDbSearchFacade implements SearchFacade {
 	_db: EncryptedDbWrapper
 	_mailIndexer: MailIndexer
-	_suggestionFacades: readonly SuggestionFacade<any>[]
+	_contactSuggestionFacade: SuggestionFacade<Contact>
 	_promiseMapCompat: PromiseMapFn
 	_entityClient: EntityClient
 
@@ -78,13 +78,13 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		private readonly userFacade: UserFacade,
 		db: EncryptedDbWrapper,
 		mailIndexer: MailIndexer,
-		suggestionFacades: readonly SuggestionFacade<any>[],
+		contactSuggestionFacade: SuggestionFacade<Contact>,
 		browserData: BrowserData,
 		entityClient: EntityClient,
 	) {
 		this._db = db
 		this._mailIndexer = mailIndexer
-		this._suggestionFacades = suggestionFacades
+		this._contactSuggestionFacade = contactSuggestionFacade
 		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
 		this._entityClient = entityClient
 	}
@@ -114,13 +114,11 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			let isFirstWordSearch = searchTokens.length === 1
 			let before = getPerformanceTimestamp()
 
-			let suggestionFacade = this._suggestionFacades.find((f) => isSameTypeRef(f.type, restriction.type))
-
 			let searchPromise
 
-			if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {
+			if (minSuggestionCount > 0 && isFirstWordSearch && isSameTypeRef(ContactTypeRef, restriction.type)) {
 				let addSuggestionBefore = getPerformanceTimestamp()
-				searchPromise = this._addSuggestions(searchTokens[0], suggestionFacade, minSuggestionCount, result).then(() => {
+				searchPromise = this._addSuggestions(searchTokens[0], this._contactSuggestionFacade, minSuggestionCount, result).then(() => {
 					if (result.results.length < minSuggestionCount) {
 						// there may be fields that are not indexed with suggestions but which we can find with the normal search
 						// TODO: let suggestion facade and search facade know which fields are
@@ -133,7 +131,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 						})
 					}
 				})
-			} else if (minSuggestionCount > 0 && !isFirstWordSearch && suggestionFacade) {
+			} else if (minSuggestionCount > 0 && !isFirstWordSearch && isSameTypeRef(ContactTypeRef, restriction.type)) {
 				let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
 				searchPromise = this._startOrContinueSearch(result).then(() => {
 					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
