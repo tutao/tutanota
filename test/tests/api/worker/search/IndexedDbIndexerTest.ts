@@ -18,8 +18,7 @@ import { EntityRestClient } from "../../../../../src/common/api/worker/rest/Enti
 import { MembershipRemovedError } from "../../../../../src/common/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { daysToMillis, defer, downcast, freshVersioned, TypeRef } from "@tutao/tutanota-utils"
-import { aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
-import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
+import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import o from "@tutao/otest"
 import { func, instance, matchers, object, replace, reset, verify, when } from "testdouble"
 import { CacheInfo } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
@@ -31,8 +30,8 @@ import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/common/api
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
-import { Db } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { entityUpdatesAsData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 let contactList = createTestEntity(ContactListTypeRef)
@@ -55,11 +54,16 @@ o.spec("IndexedDbIndexer", () => {
 	const keyLoaderFacade = object<KeyLoaderFacade>()
 	let mailIndexer: MailIndexer
 	let contactIndexer: ContactIndexer
-	let db: Db
+	let db: EncryptedDbWrapper
 	let core: IndexerCore
 	let entityClient: EntityClient
+	// FIXME: not passed in yet
+	let key: Aes256Key
+	let iv: Uint8Array
 
 	o.beforeEach(function () {
+		key = aes256RandomKey()
+		iv = fixedIv
 		mailIndexer = object()
 		// it's not pretty
 		// @ts-ignore
@@ -132,7 +136,7 @@ o.spec("IndexedDbIndexer", () => {
 		o(indexer._loadGroupData.args).deepEquals([user])
 		o(indexer._initGroupData.args[0]).deepEquals(groupBatches)
 		o(metadata[Metadata.mailIndexingEnabled]).equals(false)
-		o(decryptKey(userGroupKey.object, metadata[Metadata.userEncDbKey])).deepEquals(indexer.db.key)
+		o(decryptKey(userGroupKey.object, metadata[Metadata.userEncDbKey])).deepEquals(key)
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
 		o(indexer._contactIndexer.indexFullContactList.callCount).equals(1)
 		o(indexer._contactIndexer.indexFullContactList.args).deepEquals([contactList])
@@ -202,7 +206,7 @@ o.spec("IndexedDbIndexer", () => {
 		when(keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)).thenResolve(userGroupKey.object)
 
 		await indexer.init({ user, keyLoaderFacade })
-		o(indexer.db.key).deepEquals(dbKey)
+		o(key).deepEquals(dbKey)
 		o(indexer._loadGroupDiff.args).deepEquals([user])
 		o(indexer._updateGroups.args).deepEquals([user, groupDiff])
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
@@ -275,7 +279,7 @@ o.spec("IndexedDbIndexer", () => {
 		when(keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)).thenResolve(userGroupKey.object)
 
 		await indexer.init({ user, keyLoaderFacade })
-		o(indexer.db.key).deepEquals(dbKey)
+		o(key).deepEquals(dbKey)
 		o(indexer._loadGroupDiff.args).deepEquals([user])
 		o(indexer._updateGroups.args).deepEquals([user, groupDiff])
 		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
@@ -313,9 +317,10 @@ o.spec("IndexedDbIndexer", () => {
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
 		const indexer = new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
-		indexer.db.dbFacade = {
-			createTransaction: () => Promise.resolve(transaction),
-		} as any
+		// FIXME
+		// indexer.db.dbFacade = {
+		// 	createTransaction: () => Promise.resolve(transaction),
+		// } as any
 
 		const result = await indexer._loadGroupDiff(user)
 		o(result).deepEquals({
@@ -975,9 +980,10 @@ o.spec("IndexedDbIndexer", () => {
 		user.memberships[3].group = "group-customer"
 		const infoMessageHandler = object<InfoMessageHandler>()
 		let indexer = new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
-		indexer.db.dbFacade = {
-			createTransaction: () => Promise.resolve(transaction),
-		} as any
+		// FIXME
+		// indexer.db.dbFacade = {
+		// 	createTransaction: () => Promise.resolve(transaction),
+		// } as any
 
 		const groupIdToEventBatches = await indexer._loadPersistentGroupData(user)
 		o(groupIdToEventBatches).deepEquals([

@@ -18,7 +18,6 @@ import {
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import type {
-	Db,
 	DecryptedSearchIndexEntry,
 	ElementDataDbRow,
 	EncryptedSearchIndexEntry,
@@ -61,6 +60,7 @@ import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchInd
 import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { SearchFacade } from "./SearchFacade"
+import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
@@ -68,7 +68,7 @@ type RowsToReadForIndexKey = {
 }
 
 export class IndexedDbSearchFacade implements SearchFacade {
-	_db: Db
+	_db: EncryptedDbWrapper
 	_mailIndexer: MailIndexer
 	_suggestionFacades: readonly SuggestionFacade<any>[]
 	_promiseMapCompat: PromiseMapFn
@@ -76,7 +76,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 
 	constructor(
 		private readonly userFacade: UserFacade,
-		db: Db,
+		db: EncryptedDbWrapper,
 		mailIndexer: MailIndexer,
 		suggestionFacades: readonly SuggestionFacade<any>[],
 		browserData: BrowserData,
@@ -98,9 +98,6 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
 	async search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
-		// FIXME
-		//   await this._db.initialized
-
 		let searchTokens = tokenize(query)
 		let result: SearchResult = {
 			query,
@@ -333,14 +330,15 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		})
 	}
 
-	_findIndexEntries(searchResult: SearchResult, maxResults: number | null | undefined): Promise<KeyToEncryptedIndexEntries[]> {
+	async _findIndexEntries(searchResult: SearchResult, maxResults: number | null | undefined): Promise<KeyToEncryptedIndexEntries[]> {
 		const typeInfo = typeRefToTypeInfo(searchResult.restriction.type)
 		const firstSearchTokenInfo = searchResult.lastReadSearchIndexRow[0]
+		const { key, iv } = await this._db.encryptionData()
 		// First read all metadata to narrow time range we search in.
 		return this._db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS]).then((transaction) => {
 			return this._promiseMapCompat(searchResult.lastReadSearchIndexRow, (tokenInfo, index) => {
 				const [searchToken] = tokenInfo
-				let indexKey = encryptIndexKeyBase64(this._db.key, searchToken, this._db.iv)
+				let indexKey = encryptIndexKeyBase64(key, searchToken, iv)
 				return transaction.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex).then((metaData: SearchIndexMetaDataDbRow | null) => {
 					if (!metaData) {
 						tokenInfo[1] = 0 // "we've read all" (because we don't have anything
@@ -353,7 +351,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 						}
 					}
 
-					return decryptMetaData(this._db.key, metaData)
+					return decryptMetaData(key, metaData)
 				})
 			})
 				.thenOrApply((metaRows) => {
@@ -517,11 +515,12 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		})
 	}
 
-	_decryptSearchResult(results: KeyToEncryptedIndexEntries[]): KeyToIndexEntries[] {
+	async _decryptSearchResult(results: KeyToEncryptedIndexEntries[]): Promise<KeyToIndexEntries[]> {
+		const { key, iv } = await this._db.encryptionData()
 		return results.map((searchResult) => {
 			return {
 				indexKey: searchResult.indexKey,
-				indexEntries: searchResult.indexEntries.map((entry) => decryptSearchIndexEntry(this._db.key, entry.encEntry, this._db.iv)),
+				indexEntries: searchResult.indexEntries.map((entry) => decryptSearchIndexEntry(key, entry.encEntry, iv)),
 			}
 		})
 	}

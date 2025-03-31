@@ -1,9 +1,6 @@
-import type { DbFacade } from "./DbFacade"
 import type { GroupType } from "../../common/TutanotaConstants"
 import type { TypeInfo } from "./IndexUtils"
-import type { Base64, lazy } from "@tutao/tutanota-utils"
-import { TypeRef } from "@tutao/tutanota-utils"
-import type { ModelAssociation, ModelValue } from "../../common/EntityTypes"
+import { Base64, TypeRef } from "@tutao/tutanota-utils"
 import { Aes256Key } from "@tutao/tutanota-crypto"
 // db types
 
@@ -97,15 +94,12 @@ export type IndexUpdate = {
 		encInstanceIds: B64EncInstanceId[]
 	}
 }
-export type Db = {
+
+export interface DbEncryptionData {
 	key: Aes256Key
-	// @pre: must not be accessed before initialized promise is resolved.
 	iv: Uint8Array
-	// fixed iv for all search index entries
-	dbFacade: DbFacade
-	// FIXME: check if we need to wait for db
-	// initialized: Promise<void>
 }
+
 export type SearchIndexMetaDataRow = {
 	id: number
 	word: B64EncIndexKey

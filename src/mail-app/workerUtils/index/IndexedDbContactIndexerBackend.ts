@@ -37,7 +37,7 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 			const contacts = await this._entity.loadAll(ContactTypeRef, contactList.contacts)
 			for (const contact of contacts) {
 				let keyToIndexEntries = this._createContactIndexEntries(contact)
-				this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
+				await this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 			}
 			await Promise.all([
 				this._core.writeIndexUpdateWithIndexTimestamps(
@@ -63,7 +63,7 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		await this.suggestionFacade.store()
 		const keyToIndexEntries = this._createContactIndexEntries(contact)
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
-		this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
+		await this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 	}
 
 	async onContactDeleted(contact: IdTuple): Promise<void> {

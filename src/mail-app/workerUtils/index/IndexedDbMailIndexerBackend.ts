@@ -28,7 +28,7 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		const indexUpdate = this.createIndexUpdate()
 		for (const element of mailsWithDetails) {
 			const keyToIndexEntries = this.createMailIndexEntries(element.mail, element.mailDetails, element.attachments)
-			this.core.encryptSearchIndexEntries(element.mail._id, assertNotNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
+			await this.core.encryptSearchIndexEntries(element.mail._id, assertNotNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
 		}
 		await this.core.writeIndexUpdateWithIndexTimestamps(
 			Array.from(dataPerGroup).map(([id, timestamp]) => ({
@@ -42,7 +42,7 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	async onMailCreated({ mail, mailDetails, attachments }: MailWithDetailsAndAttachments): Promise<void> {
 		const indexUpdate = this.createIndexUpdate()
 		const indexEntries = this.createMailIndexEntries(mail, mailDetails, attachments)
-		this.core.encryptSearchIndexEntries(mail._id, assertNotNull(mail._ownerGroup), indexEntries, indexUpdate)
+		await this.core.encryptSearchIndexEntries(mail._id, assertNotNull(mail._ownerGroup), indexEntries, indexUpdate)
 		await this.core.writeIndexUpdate(indexUpdate)
 	}
 
@@ -50,7 +50,7 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		const indexUpdate = this.createIndexUpdate()
 		await this.core._processDeleted(MailTypeRef, getElementId(mail), indexUpdate)
 		const indexEntries = this.createMailIndexEntries(mail, mailDetails, attachments)
-		this.core.encryptSearchIndexEntries(mail._id, assertNotNull(mail._ownerGroup), indexEntries, indexUpdate)
+		await this.core.encryptSearchIndexEntries(mail._id, assertNotNull(mail._ownerGroup), indexEntries, indexUpdate)
 		await this.core.writeIndexUpdate(indexUpdate)
 	}
 

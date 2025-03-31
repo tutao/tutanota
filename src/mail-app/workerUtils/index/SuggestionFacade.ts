@@ -1,34 +1,32 @@
-import type { Db } from "../../../common/api/worker/search/SearchTypes.js"
 import { stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/IndexTables.js"
+import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 
 export type SuggestionsType = Record<string, string[]>
 
 export class SuggestionFacade<T> {
-	_db: Db
+	_db: EncryptedDbWrapper
 	type: TypeRef<T>
 	_suggestions: SuggestionsType
 
-	constructor(type: TypeRef<T>, db: Db) {
+	constructor(type: TypeRef<T>, db: EncryptedDbWrapper) {
 		this.type = type
 		this._db = db
 		this._suggestions = {}
 	}
 
-	load(): Promise<void> {
-		// FIXME
-		// return this._db.initialized.then(() => {
+	async load(): Promise<void> {
+		const { key } = await this._db.encryptionData()
 		return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then((t) => {
 			return t.get(SearchTermSuggestionsOS, this.type.type.toLowerCase()).then((encSuggestions) => {
 				if (encSuggestions) {
-					this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(this._db.key, encSuggestions, true)))
+					this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, encSuggestions, true)))
 				} else {
 					this._suggestions = {}
 				}
 			})
 		})
-		// })
 	}
 
 	addSuggestions(words: string[]): void {
@@ -65,14 +63,12 @@ export class SuggestionFacade<T> {
 		}
 	}
 
-	store(): Promise<void> {
-		// FIXME
-		// return this._db.initialized.then(() => {
+	async store(): Promise<void> {
+		const { key } = await this._db.encryptionData()
 		return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then((t) => {
-			let encSuggestions = aes256EncryptSearchIndexEntry(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
+			let encSuggestions = aes256EncryptSearchIndexEntry(key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
 			t.put(SearchTermSuggestionsOS, this.type.type.toLowerCase(), encSuggestions)
 			return t.wait()
 		})
-		// })
 	}
 }

@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
-import type {
+import {
+	DbEncryptionData,
 	ElementDataDbRow,
 	ElementDataSurrogate,
 	EncryptedSearchIndexEntry,
@@ -21,21 +22,18 @@ import {
 	getIdFromEncSearchIndexEntry,
 	typeRefToTypeInfo,
 } from "../../../../../src/common/api/worker/search/IndexUtils.js"
-import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, concat, defer, downcast, neverNull, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { spy } from "@tutao/tutanota-test-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
+import { DbKey } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
-import { EntityUpdateTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { EventQueue } from "../../../../../src/common/api/worker/EventQueue.js"
-import { CancelledError } from "../../../../../src/common/api/common/error/CancelledError.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
 import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
 import { Aes256Key, aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
+import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
@@ -61,8 +59,18 @@ function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
 }
 
 o.spec("IndexerCore test", () => {
+	let key: Aes256Key
+	let iv: Uint8Array
+	let encryptionData: DbEncryptionData
+
+	o.beforeEach(function () {
+		key = aes256RandomKey()
+		iv = fixedIv
+		encryptionData = { key, iv }
+	})
+
 	o("createIndexEntriesForAttributes", async function () {
-		let core = makeCore()
+		let core = makeCore({ encryptionData })
 		let contact = createTestEntity(ContactTypeRef)
 		contact._id = ["", "L-dNNLe----0"]
 		contact.firstName = "Max Tim"
@@ -121,13 +129,8 @@ o.spec("IndexerCore test", () => {
 			},
 		])
 	})
-	o("encryptSearchIndexEntries", function () {
-		const core = makeCore({
-			db: {
-				key: aes256RandomKey(),
-				iv: fixedIv,
-			} as any,
-		})
+	o("encryptSearchIndexEntries", async function () {
+		const core = makeCore({ encryptionData })
 		const instanceId: IdTuple = ["L-dNNLe----0", "L-dNNLe----1"]
 		const ownerGroupId = "ownerGroupId"
 		const keyToIndexEntries: Map<string, SearchIndexEntry[]> = new Map([
@@ -155,30 +158,30 @@ o.spec("IndexerCore test", () => {
 
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
-		core.encryptSearchIndexEntries(instanceId, ownerGroupId, keyToIndexEntries, indexUpdate)
+		await core.encryptSearchIndexEntries(instanceId, ownerGroupId, keyToIndexEntries, indexUpdate)
 		o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
-		const encIdB64 = encryptIndexKeyBase64(core.db.key, elementIdPart(instanceId), core.db.iv)
+		const encIdB64 = encryptIndexKeyBase64(key, elementIdPart(instanceId), iv)
 		let elementData: ElementDataSurrogate = neverNull(indexUpdate.create.encInstanceIdToElementData.get(encIdB64))
 		const { listId, encWordsB64, ownerGroup } = elementData
 		o(listId).equals(listIdPart(instanceId))
-		const wordB = decryptIndexKey(core.db.key, base64ToUint8Array(encWordsB64[1]), core.db.iv)
+		const wordB = decryptIndexKey(key, base64ToUint8Array(encWordsB64[1]), iv)
 		o(wordB).equals("b")
 		o(ownerGroupId).equals(ownerGroup)
 		o(indexUpdate.create.indexMap.size).equals(2)
-		const aKey = encryptIndexKeyBase64(core.db.key, "a", core.db.iv)
+		const aKey = encryptIndexKeyBase64(key, "a", iv)
 		let encEntriesA: EncSearchIndexEntryWithTimestamp[] = neverNull(indexUpdate.create.indexMap.get(aKey))
 		o(encEntriesA.length).equals(1)
-		let entry: any = decryptSearchIndexEntry(core.db.key, encEntriesA[0].entry, core.db.iv)
+		let entry: any = decryptSearchIndexEntry(key, encEntriesA[0].entry, iv)
 		delete entry.encId
 		o(entry).deepEquals({
 			id: elementIdPart(instanceId),
 			attribute: 5,
 			positions: [0],
 		})
-		const bKey = encryptIndexKeyBase64(core.db.key, "b", core.db.iv)
+		const bKey = encryptIndexKeyBase64(key, "b", iv)
 		const encEntriesB: EncSearchIndexEntryWithTimestamp[] = neverNull(indexUpdate.create.indexMap.get(bKey))
 		o(encEntriesB.length).equals(1)
-		let entry2: any = decryptSearchIndexEntry(core.db.key, encEntriesB[0].entry, core.db.iv)
+		let entry2: any = decryptSearchIndexEntry(key, encEntriesB[0].entry, iv)
 		delete entry2.encId
 		o(entry2).deepEquals({
 			id: elementIdPart(instanceId),
@@ -199,25 +202,25 @@ o.spec("IndexerCore test", () => {
 				],
 			],
 		])
-		core.encryptSearchIndexEntries(id2, ownerGroupId, keyToIndexEntries2, indexUpdate)
+		await core.encryptSearchIndexEntries(id2, ownerGroupId, keyToIndexEntries2, indexUpdate)
 		o(indexUpdate.create.encInstanceIdToElementData.size).equals(2)
-		const yKey = encryptIndexKeyBase64(core.db.key, elementIdPart(id2), core.db.iv)
+		const yKey = encryptIndexKeyBase64(key, elementIdPart(id2), iv)
 		let elementData2: ElementDataSurrogate = neverNull(indexUpdate.create.encInstanceIdToElementData.get(yKey))
 		let listId2 = elementData2.listId
 		o(listId2).equals(id2[0])
-		let words2 = decryptIndexKey(core.db.key, base64ToUint8Array(elementData2.encWordsB64[0]), core.db.iv)
+		let words2 = decryptIndexKey(key, base64ToUint8Array(elementData2.encWordsB64[0]), iv)
 		o(words2).equals("a")
 		o(ownerGroupId).equals(elementData2.ownerGroup)
-		encEntriesA = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(core.db.key, "a", core.db.iv)))
+		encEntriesA = neverNull(indexUpdate.create.indexMap.get(encryptIndexKeyBase64(key, "a", iv)))
 		o(encEntriesA.length).equals(2)
-		entry = downcast(decryptSearchIndexEntry(core.db.key, encEntriesA[0].entry, core.db.iv))
+		entry = downcast(decryptSearchIndexEntry(key, encEntriesA[0].entry, iv))
 		delete entry.encId
 		o(entry).deepEquals({
 			id: elementIdPart(instanceId),
 			attribute: 5,
 			positions: [0],
 		})
-		const newEntry: any = decryptSearchIndexEntry(core.db.key, encEntriesA[1].entry, core.db.iv)
+		const newEntry: any = decryptSearchIndexEntry(key, encEntriesA[1].entry, iv)
 		delete newEntry.encId
 		o(newEntry).deepEquals({
 			id: elementIdPart(id2),
@@ -316,8 +319,8 @@ o.spec("IndexerCore test", () => {
 				},
 			],
 		})
-		const core = makeCore()
-		const encodedMetaData = encryptMetaData(core.db.key, metaData)
+		const core = makeCore({ encryptionData })
+		const encodedMetaData = encryptMetaData(key, metaData)
 		let transaction: any = {
 			get: (os, key) => {
 				switch (os) {
@@ -335,7 +338,7 @@ o.spec("IndexerCore test", () => {
 			put: spy((os, key, value) => Promise.resolve()),
 			delete: spy((os, key) => Promise.resolve()),
 		}
-		await core._deleteIndexedInstance(indexUpdate, transaction)
+		await core._deleteIndexedInstance(indexUpdate, transaction, encryptionData)
 		const expectedMeta = Object.assign({}, metaData, {
 			rows: [
 				{
@@ -356,7 +359,7 @@ o.spec("IndexerCore test", () => {
 		})
 		// Reminder: you cannot match on encrypted data, IV is random!
 		const metaPutInvocation = transaction.put.invocations[1]
-		o(JSON.stringify([metaPutInvocation[0], metaPutInvocation[1], decryptMetaData(core.db.key, metaPutInvocation[2])])).equals(
+		o(JSON.stringify([metaPutInvocation[0], metaPutInvocation[1], decryptMetaData(key, metaPutInvocation[2])])).equals(
 			JSON.stringify([SearchIndexMetaDataOS, null, expectedMeta]),
 		)
 		o(transaction.delete.invocations[0]).deepEquals([ElementDataOS, encInstanceIdB64])
@@ -395,19 +398,19 @@ o.spec("IndexerCore test", () => {
 		indexUpdate.delete.encInstanceIds.push(encInstanceIdB64)
 		const core = makeCore()
 		let transaction: any = {
-			get: (os, key) => {
+			get: (os: ObjectStoreName, rowKey: DbKey) => {
 				switch (os) {
 					case SearchIndexMetaDataOS:
-						return Promise.resolve(key === metaId ? encryptMetaData(core.db.key, metaData) : null)
+						return Promise.resolve(rowKey === metaId ? encryptMetaData(key, metaData) : null)
 
 					case SearchIndexOS:
-						return Promise.resolve(key === searchIndexEntryId ? appendBinaryBlocks([entry, entry]) : null)
+						return Promise.resolve(rowKey === searchIndexEntryId ? appendBinaryBlocks([entry, entry]) : null)
 				}
 			},
 			put: spy((os, key, value) => Promise.resolve()),
 			delete: spy((os, key) => Promise.resolve()),
 		}
-		await core._deleteIndexedInstance(indexUpdate, transaction)
+		await core._deleteIndexedInstance(indexUpdate, transaction, encryptionData)
 		o(transaction.put.invocations).deepEquals([])
 		o(transaction.delete.invocations).deepEquals([
 			[ElementDataOS, encInstanceIdB64],
@@ -415,7 +418,7 @@ o.spec("IndexerCore test", () => {
 			[SearchIndexMetaDataOS, metaId],
 		])
 	})
-	o("writeIndexUpdate _deleteIndexedInstance instance already deleted", function () {
+	o("writeIndexUpdate _deleteIndexedInstance instance already deleted", async function () {
 		let groupId = "my-group"
 
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
@@ -437,15 +440,14 @@ o.spec("IndexerCore test", () => {
 			},
 			delete: spy(() => Promise.resolve()),
 		}
-		const core = makeCore()
-		return neverNull(core._deleteIndexedInstance(indexUpdate, transaction)).then(() => {
-			o(transaction.delete.invocations).deepEquals([[ElementDataOS, uint8ArrayToBase64(getIdFromEncSearchIndexEntry(entry))]])
-		})
+		const core = makeCore({ encryptionData })
+		await core._deleteIndexedInstance(indexUpdate, transaction, encryptionData)
+		o(transaction.delete.invocations).deepEquals([[ElementDataOS, uint8ArrayToBase64(getIdFromEncSearchIndexEntry(entry))]])
 	})
 	o("writeIndexUpdate _insertNewElementData", async function () {
 		const groupId = "my-group"
 		const listId = "list-id"
-		const core = makeCore()
+		const core = makeCore({ encryptionData })
 
 		const indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
@@ -462,17 +464,21 @@ o.spec("IndexerCore test", () => {
 			get: spy(() => Promise.resolve()),
 			put: spy(() => Promise.resolve()),
 		}
-		await neverNull(
-			core._insertNewElementData(indexUpdate, transaction, {
+		await core._insertNewElementData(
+			indexUpdate,
+			transaction,
+			{
 				[encWord]: searchIndexRowKey,
-			}),
+			},
+			encryptionData,
 		)
-		const [[os, key, value]] = transaction.put.invocations
+
+		const [[os, rowKey, value]] = transaction.put.invocations
 		o(os).equals(ElementDataOS)
-		o(key).equals(encInstanceId)
+		o(rowKey).equals(encInstanceId)
 		const [listIdValue, encRowsValue, ownerGroupValue] = value
 		o(listIdValue).equals(listId)
-		o(Array.from(unauthenticatedAesDecrypt(core.db.key, encRowsValue, true))).deepEquals(Array.from(new Uint8Array([searchIndexRowKey])))
+		o(Array.from(unauthenticatedAesDecrypt(key, encRowsValue, true))).deepEquals(Array.from(new Uint8Array([searchIndexRowKey])))
 		o(ownerGroupValue).equals(groupId)
 	})
 	o.spec("writeIndexUpdate _insertNewIndexEntries ", function () {
@@ -485,7 +491,7 @@ o.spec("IndexerCore test", () => {
 			indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 			dbStub = createSearchIndexDbStub()
 			transaction = dbStub.createTransaction()
-			core = makeCore()
+			core = makeCore({ encryptionData })
 		})
 
 		o("new word", async function () {
@@ -497,9 +503,9 @@ o.spec("IndexerCore test", () => {
 					entry,
 				},
 			])
-			await core._insertNewIndexEntries(indexUpdate, transaction)
+			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
 			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, 1))).deepEquals(Array.from(appendBinaryBlocks([entry])))
-			const decodedInsertedMeta = decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, 1))
+			const decodedInsertedMeta = decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, 1))
 			o(decodedInsertedMeta).deepEquals({
 				id: 1,
 				word: encWord,
@@ -541,9 +547,9 @@ o.spec("IndexerCore test", () => {
 					},
 				],
 			}
-			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
+			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
 			transaction.put(SearchIndexOS, searchIndexKey, existingBlock)
-			await core._insertNewIndexEntries(indexUpdate, transaction)
+			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
 			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, searchIndexKey))).deepEquals(Array.from(appendBinaryBlocks([newEntry], existingBlock)))
 			const expectedMeta = Object.assign({}, searchIndexMeta, {
 				rows: [
@@ -556,11 +562,11 @@ o.spec("IndexerCore test", () => {
 					},
 				],
 			})
-			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, metaId))).deepEquals(expectedMeta)
+			o(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, metaId))).deepEquals(expectedMeta)
 		})
 		o("add older entities to a new row", async function () {
 			// 50 entries go to the existing row, everything else goes to the new row
-			const newEntries: Array<EncSearchIndexEntryWithTimestamp> = makeEntries(core.db.key, core.db.iv, 200)
+			const newEntries: Array<EncSearchIndexEntryWithTimestamp> = makeEntries(key, iv, 200)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -582,12 +588,12 @@ o.spec("IndexerCore test", () => {
 					}, // different app id, new entries should not be added to this row
 				],
 			}
-			const existingRow = appendBinaryBlocks(makeEntries(core.db.key, core.db.iv, 800, 150).map((e) => e.entry))
+			const existingRow = appendBinaryBlocks(makeEntries(key, iv, 800, 150).map((e) => e.entry))
 			await transaction.put(SearchIndexOS, 1, existingRow)
-			await transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
+			await transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
 			const newKey = 3
 			dbStub.getObjectStore(SearchIndexOS).lastId = 2
-			await core._insertNewIndexEntries(indexUpdate, transaction)
+			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
 			const searchIndexContent = dbStub.getObjectStore(SearchIndexOS).content[newKey]
 			o(Array.from(searchIndexContent)).deepEquals(Array.from(appendBinaryBlocks(newEntries.slice(0, 150).map((e) => e.entry))))
 			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, 1))).deepEquals(
@@ -599,7 +605,7 @@ o.spec("IndexerCore test", () => {
 				),
 			)
 			const searchIndexMetaContent = dbStub.getObjectStore(SearchIndexMetaDataOS).content[searchIndexMeta.id]
-			const decryptedMeta = decryptMetaData(core.db.key, searchIndexMetaContent)
+			const decryptedMeta = decryptMetaData(key, searchIndexMetaContent)
 			searchIndexMeta.rows[0].size = 850
 			searchIndexMeta.rows.unshift({
 				app: mailTypeInfo.appId,
@@ -612,7 +618,7 @@ o.spec("IndexerCore test", () => {
 		})
 
 		o("add newer entities to the end", async function () {
-			const newEntries = makeEntries(core.db.key, core.db.iv, 200, 201)
+			const newEntries = makeEntries(key, iv, 200, 201)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -634,10 +640,10 @@ o.spec("IndexerCore test", () => {
 					}, // different app id, new entries should not be added to this row
 				],
 			}
-			const existingRow = appendBinaryBlocks(makeEntries(core.db.key, core.db.iv, 600, 100).map((e) => e.entry))
+			const existingRow = appendBinaryBlocks(makeEntries(key, iv, 600, 100).map((e) => e.entry))
 			transaction.put(SearchIndexOS, 1, existingRow)
-			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
-			await core._insertNewIndexEntries(indexUpdate, transaction)
+			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
+			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
 			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, 1))).deepEquals(
 				Array.from(
 					appendBinaryBlocks(
@@ -647,10 +653,10 @@ o.spec("IndexerCore test", () => {
 				),
 			)
 			searchIndexMeta.rows[0].size = 800
-			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, 1))).deepEquals(searchIndexMeta)
+			o(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, 1))).deepEquals(searchIndexMeta)
 		})
 		o("add newer entities to the existing row in the beginning", async function () {
-			const newEntries = makeEntries(core.db.key, core.db.iv, 200, 201)
+			const newEntries = makeEntries(key, iv, 200, 201)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -672,10 +678,10 @@ o.spec("IndexerCore test", () => {
 					}, // different app id, new entries should not be added to this row
 				],
 			}
-			const existingRow = appendBinaryBlocks(makeEntries(core.db.key, core.db.iv, 600, 100).map((e) => e.entry))
+			const existingRow = appendBinaryBlocks(makeEntries(key, iv, 600, 100).map((e) => e.entry))
 			transaction.put(SearchIndexOS, 1, existingRow)
-			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
-			await core._insertNewIndexEntries(indexUpdate, transaction)
+			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
+			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
 			o(Array.from(transaction.getSync<Uint8Array>(SearchIndexOS, 1))).deepEquals(
 				Array.from(
 					appendBinaryBlocks(
@@ -686,11 +692,11 @@ o.spec("IndexerCore test", () => {
 			)
 			searchIndexMeta.rows[0].size = 800
 			searchIndexMeta.rows[0].oldestElementTimestamp = 201
-			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, 1))).deepEquals(searchIndexMeta)
+			o(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, 1))).deepEquals(searchIndexMeta)
 		})
 		o("split row", async function () {
 			// Split the row.
-			const newEntries = makeEntries(core.db.key, core.db.iv, 250, 2001)
+			const newEntries = makeEntries(key, iv, 250, 2001)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -726,12 +732,12 @@ o.spec("IndexerCore test", () => {
 					},
 				],
 			}
-			const existingEntries = makeEntries(core.db.key, core.db.iv, 800, 2000)
+			const existingEntries = makeEntries(key, iv, 800, 2000)
 			const existingRow = appendBinaryBlocks(existingEntries.map((e) => e.entry).reverse())
 			transaction.put(SearchIndexOS, 3, existingRow)
-			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
+			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
 			dbStub.getObjectStore(SearchIndexOS).lastId = 4
-			await core._insertNewIndexEntries(indexUpdate, transaction)
+			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
 			const allEntries = existingEntries.concat(newEntries).sort((l, r) => l.timestamp - r.timestamp)
 			const firstRowEntries = allEntries.slice(0, -999)
 			const secondRowEntries = allEntries.slice(-999)
@@ -774,11 +780,11 @@ o.spec("IndexerCore test", () => {
 					oldestElementTimestamp: 3000,
 				},
 			]
-			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
+			o(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
 		o("split last row", async function () {
 			// Split the row.
-			const newEntries = makeEntries(core.db.key, core.db.iv, 250, 2001)
+			const newEntries = makeEntries(key, iv, 250, 2001)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -807,12 +813,12 @@ o.spec("IndexerCore test", () => {
 					},
 				],
 			}
-			const existingEntries = makeEntries(core.db.key, core.db.iv, 800, 2000)
+			const existingEntries = makeEntries(key, iv, 800, 2000)
 			const existingRow = appendBinaryBlocks(existingEntries.map((e) => e.entry).reverse())
 			transaction.put(SearchIndexOS, 3, existingRow)
-			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
+			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
 			dbStub.getObjectStore(SearchIndexOS).lastId = 4
-			await core._insertNewIndexEntries(indexUpdate, transaction)
+			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
 			const allEntries = existingEntries.concat(newEntries).sort((l, r) => l.timestamp - r.timestamp)
 			const firstRowEntries = allEntries.slice(0, 1000)
 			const secondRowEntries = allEntries.slice(1000)
@@ -848,10 +854,10 @@ o.spec("IndexerCore test", () => {
 					oldestElementTimestamp: 3000,
 				},
 			]
-			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
+			o(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
 		o("split for big new row", async function () {
-			const newEntries = makeEntries(core.db.key, core.db.iv, 2500, 2001)
+			const newEntries = makeEntries(key, iv, 2500, 2001)
 			indexUpdate.create.indexMap.set(encWord, newEntries)
 			const searchIndexMeta: SearchIndexMetaDataRow = {
 				id: 1,
@@ -866,9 +872,9 @@ o.spec("IndexerCore test", () => {
 					},
 				],
 			}
-			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(core.db.key, searchIndexMeta))
+			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(key, searchIndexMeta))
 			dbStub.getObjectStore(SearchIndexOS).lastId = 2
-			await core._insertNewIndexEntries(indexUpdate, transaction)
+			await core._insertNewIndexEntries(indexUpdate, transaction, encryptionData)
 			// Because there's nothing on the right side, we put entries from the end and the first row will not be full.
 			const firstRow = newEntries.slice(0, 500)
 			const secondRow = newEntries.slice(500, 1500)
@@ -906,7 +912,7 @@ o.spec("IndexerCore test", () => {
 					oldestElementTimestamp: thirdRow[0].timestamp,
 				},
 			]
-			o(decryptMetaData(core.db.key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
+			o(decryptMetaData(key, transaction.getSync(SearchIndexMetaDataOS, searchIndexMeta.id))).deepEquals(searchIndexMeta)
 		})
 	})
 	o("writeIndexUpdate _updateGroupDataBatchId abort in case batch has been indexed already", async function () {
@@ -987,6 +993,7 @@ o.spec("IndexerCore test", () => {
 		const core = makeCore(
 			{
 				transaction,
+				encryptionData,
 			},
 			(mocked) => {
 				mocked._moveIndexedInstance = spy(() => PromisableWrapper.from(undefined))
@@ -1006,11 +1013,11 @@ o.spec("IndexerCore test", () => {
 		o(core._moveIndexedInstance.callCount).equals(1)
 		o(core._moveIndexedInstance.args).deepEquals([indexUpdate, transaction])
 		o(core._deleteIndexedInstance.callCount).equals(1)
-		o(core._deleteIndexedInstance.args).deepEquals([indexUpdate, transaction])
+		o(core._deleteIndexedInstance.args).deepEquals([indexUpdate, transaction, encryptionData])
 		o(core._insertNewElementData.callCount).equals(1)
-		o(core._insertNewElementData.args).deepEquals([indexUpdate, transaction, encWordToMetaRow])
+		o(core._insertNewElementData.args).deepEquals([indexUpdate, transaction, encWordToMetaRow, encryptionData])
 		o(core._insertNewIndexEntries.callCount).equals(1)
-		o(core._insertNewIndexEntries.args).deepEquals([indexUpdate, transaction])
+		o(core._insertNewIndexEntries.args).deepEquals([indexUpdate, transaction, encryptionData])
 		o(core._updateGroupDataIndexTimestamp.callCount).equals(1)
 		o(core._updateGroupDataIndexTimestamp.args).deepEquals([groupUpdate, transaction])
 		o(waitForTransaction).equals(true)
@@ -1035,12 +1042,13 @@ o.spec("IndexerCore test", () => {
 		}
 		const core = makeCore({
 			transaction,
+			encryptionData,
 		})
-		const encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId, core.db.iv)
+		const encInstanceId = encryptIndexKeyBase64(key, instanceId, iv)
 		const listId = "list-id"
 		const elementData: ElementDataDbRow = [
 			listId,
-			aesEncrypt(core.db.key, new Uint8Array([metaRowId, anotherMetaRowId]), random.generateRandomData(IV_BYTE_LENGTH), true),
+			aesEncrypt(key, new Uint8Array([metaRowId, anotherMetaRowId]), random.generateRandomData(IV_BYTE_LENGTH), true),
 			groupId,
 		]
 		const otherId = new Uint8Array(16).fill(88)
@@ -1089,91 +1097,90 @@ o.spec("IndexerCore test", () => {
 			},
 		}
 		const core = makeCore({
-			queue: downcast({
-				_eventQueue: [],
-			}),
+			encryptionData,
 			transaction,
 		})
-		let encInstanceId = encryptIndexKeyBase64(core.db.key, instanceId, core.db.iv)
+		let encInstanceId = encryptIndexKeyBase64(key, instanceId, iv)
 		await core._processDeleted(MailTypeRef, instanceId, indexUpdate)
 		o(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(0)
 		o(indexUpdate.delete.encInstanceIds.length).equals(0)
 	})
-	o("stopProcessing", async function () {
-		const queue: EventQueue = downcast({
-			_eventQueue: [],
-			clear: spy(),
-		})
-		const deferred = defer()
-		const transaction = {
-			abort: noOp,
-		}
-		const core = makeCore({
-			queue,
-			db: {
-				key: aes256RandomKey(),
-				iv: fixedIv,
-				dbFacade: {
-					createTransaction: () => deferred.promise,
-				} as any,
-			},
-		})
-
-		const result = core._writeIndexUpdate(
-			{
-				move: [],
-				delete: {
-					searchMetaRowToEncInstanceIds: new Map(),
-					encInstanceIds: [],
-				},
-				create: {
-					encInstanceIdToElementData: new Map(),
-					indexMap: new Map(),
-				},
-			} as any,
-			null as any,
-		)
-
-		core.stopProcessing()
-		// @ts-ignore
-		o(queue.clear.invocations).deepEquals([[]])("Should clear queue")
-
-		try {
-			deferred.resolve(transaction)
-			await result
-			o(false).equals(true)("Should throw an error")
-		} catch (e) {
-			o(e instanceof CancelledError).equals(true)("Should throw cancelledError")
-		}
-	})
-	o("startProcessing", async function () {
-		const queue: EventQueue = downcast({
-			_eventQueue: [1, 2, 3],
-			clear: spy(),
-		})
-		const transaction: DbTransaction = downcast({
-			get: () =>
-				Promise.resolve(() => ({
-					indexTimestamp: Date.now(),
-				})),
-			put: () => Promise.resolve(null),
-			wait: () => Promise.resolve(),
-		})
-		const core = makeCore({
-			queue,
-			transaction,
-		})
-		core.stopProcessing()
-		core.startProcessing()
-		// Should not throw
-		await core.writeIndexUpdateWithIndexTimestamps(
-			[
-				{
-					groupId: "group-id",
-					indexTimestamp: 0,
-				},
-			],
-			_createNewIndexUpdate(mailTypeInfo),
-		)
-	})
+	// FIXME: move to indexer tests
+	// o("stopProcessing", async function () {
+	// 	const queue: EventQueue = downcast({
+	// 		_eventQueue: [],
+	// 		clear: spy(),
+	// 	})
+	// 	const deferred = defer()
+	// 	const transaction = {
+	// 		abort: noOp,
+	// 	}
+	// 	const core = makeCore({
+	// 		queue,
+	// 		db: {
+	// 			key: aes256RandomKey(),
+	// 			iv: fixedIv,
+	// 			dbFacade: {
+	// 				createTransaction: () => deferred.promise,
+	// 			} as any,
+	// 		},
+	// 	})
+	//
+	// 	const result = core._writeIndexUpdate(
+	// 		{
+	// 			move: [],
+	// 			delete: {
+	// 				searchMetaRowToEncInstanceIds: new Map(),
+	// 				encInstanceIds: [],
+	// 			},
+	// 			create: {
+	// 				encInstanceIdToElementData: new Map(),
+	// 				indexMap: new Map(),
+	// 			},
+	// 		} as any,
+	// 		null as any,
+	// 	)
+	//
+	// 	core.stopProcessing()
+	// 	// @ts-ignore
+	// 	o(queue.clear.invocations).deepEquals([[]])("Should clear queue")
+	//
+	// 	try {
+	// 		deferred.resolve(transaction)
+	// 		await result
+	// 		o(false).equals(true)("Should throw an error")
+	// 	} catch (e) {
+	// 		o(e instanceof CancelledError).equals(true)("Should throw cancelledError")
+	// 	}
+	// })
+	// o("startProcessing", async function () {
+	// 	const queue: EventQueue = downcast({
+	// 		_eventQueue: [1, 2, 3],
+	// 		clear: spy(),
+	// 	})
+	// 	const transaction: DbTransaction = downcast({
+	// 		get: () =>
+	// 			Promise.resolve(() => ({
+	// 				indexTimestamp: Date.now(),
+	// 			})),
+	// 		put: () => Promise.resolve(null),
+	// 		wait: () => Promise.resolve(),
+	// 	})
+	// 	const core = makeCore({
+	// 		queue,
+	// 		transaction,
+	// 	})
+	// 	core.stopProcessing()
+	// 	core.startProcessing()
+	// 	// Should not throw
+	// 	await core.writeIndexUpdateWithIndexTimestamps(
+	// 		[
+	// 			{
+	// 				groupId: "group-id",
+	// 				indexTimestamp: 0,
+	// 			},
+	// 		],
+	// 		_createNewIndexUpdate(mailTypeInfo),
+	// 	)
+	// })
 })

@@ -9,7 +9,7 @@ import {
 	encryptSearchIndexEntry,
 	typeRefToTypeInfo,
 } from "../../../../../src/common/api/worker/search/IndexUtils.js"
-import type { ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow, SearchRestriction } from "../../../../../src/common/api/worker/search/SearchTypes.js"
+import { ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow, SearchRestriction } from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import {
 	compareOldestFirst,
 	elementIdPart,
@@ -29,6 +29,8 @@ import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../..
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
+import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
+import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
@@ -50,17 +52,16 @@ o.spec("SearchFacade test", () => {
 	let id3 = "L0YED5d----3"
 
 	function createSearchFacade(transaction: DbStubTransaction, currentIndexTimestamp: number) {
+		const dbFacade = {
+			createTransaction: () => Promise.resolve(transaction),
+		} as Partial<DbFacade> as DbFacade
+		const db = new EncryptedDbWrapper(dbFacade)
+		db.init({ key: dbKey, iv: fixedIv })
 		return new IndexedDbSearchFacade(
 			{
 				getLoggedInUser: () => user,
 			} as any,
-			{
-				key: dbKey,
-				iv: fixedIv,
-				dbFacade: {
-					createTransaction: () => Promise.resolve(transaction),
-				} as any,
-			},
+			db,
 			{
 				mailboxIndexingPromise: Promise.resolve(),
 				currentIndexTimestamp: currentIndexTimestamp,

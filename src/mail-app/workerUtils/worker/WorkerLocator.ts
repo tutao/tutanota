@@ -106,6 +106,8 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { IndexedDbContactIndexerBackend } from "../index/IndexedDbContactIndexerBackend"
 import { OfflineStorageContactIndexerBackend } from "../index/OfflineStorageContactIndexerBackend"
 
+import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
+
 assertWorkerOrNode()
 
 export type WorkerLocatorType = {
@@ -204,11 +206,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new BookingFacade(locator.serviceExecutor)
 	})
 
-	const db = {
-		dbFacade: newSearchIndexDB(),
-		key: downcast<BitArray>(null),
-		iv: downcast<Uint8Array>(null),
-	}
+	const db = new EncryptedDbWrapper(newSearchIndexDB())
 
 	const indexerCore = lazyMemoized(async () => {
 		if (isOfflineStorageAvailable()) {

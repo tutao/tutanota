@@ -1,7 +1,6 @@
 import type { BrowserData } from "../../src/common/misc/ClientConstants.js"
-import type { Db } from "../../src/common/api/worker/search/SearchTypes.js"
+import { DbEncryptionData } from "../../src/common/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/mail-app/workerUtils/index/IndexerCore.js"
-import { EventQueue } from "../../src/common/api/worker/EventQueue.js"
 import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFacade.js"
 import { assertNotNull, deepEqual, defer, Thunk, TypeRef } from "@tutao/tutanota-utils"
 import type { DesktopKeyStoreFacade } from "../../src/common/desktop/DesktopKeyStoreFacade.js"
@@ -14,6 +13,7 @@ import { create } from "../../src/common/api/common/utils/EntityUtils.js"
 import { typeModels } from "../../src/common/api/common/EntityFunctions.js"
 import { type fetch as undiciFetch, type Response } from "undici"
 import { Cardinality, ValueType } from "../../src/common/api/common/EntityConstants.js"
+import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -23,8 +23,7 @@ export const browserDataStub: BrowserData = {
 
 export function makeCore(
 	args?: {
-		db?: Db
-		queue?: EventQueue
+		encryptionData?: DbEncryptionData
 		browserData?: BrowserData
 		transaction?: DbTransaction
 	},
@@ -32,14 +31,11 @@ export function makeCore(
 ): IndexerCore {
 	const safeArgs = args ?? {}
 	const { transaction } = safeArgs
-	const defaultDb = {
-		key: aes256RandomKey(),
-		iv: fixedIv,
-		dbFacade: { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>,
-	} as Partial<Db> as Db
-	const defaultQueue = {} as Partial<EventQueue> as EventQueue
-	const { db, queue, browserData } = {
-		...{ db: defaultDb, browserData: browserDataStub, queue: defaultQueue },
+	const dbFacade = { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>
+	const defaultDb = new EncryptedDbWrapper(dbFacade as DbFacade)
+	defaultDb.init(safeArgs.encryptionData ?? { key: aes256RandomKey(), iv: fixedIv })
+	const { db, browserData } = {
+		...{ db: defaultDb, browserData: browserDataStub },
 		...safeArgs,
 	}
 	const core = new IndexerCore(db, browserData)

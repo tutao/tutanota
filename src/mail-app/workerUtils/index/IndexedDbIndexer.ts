@@ -13,7 +13,7 @@ import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFac
 import { contains, daysToMillis, defer, downcast, first, isNotNull, last, millisToDays, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { filterIndexMemberships } from "../../../common/api/worker/search/IndexUtils.js"
-import type { Db, GroupData } from "../../../common/api/worker/search/SearchTypes.js"
+import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
 import { ContactList, ContactListTypeRef, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -48,6 +48,7 @@ import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/ap
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { EntityUpdateData, entityUpdatesAsData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
+import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 
 export type InitParams = {
 	user: User
@@ -109,7 +110,7 @@ export class IndexedDbIndexer implements Indexer {
 	constructor(
 		entityRestClient: EntityRestClient,
 		/** @private visibelForTesting */
-		readonly db: Db,
+		readonly db: EncryptedDbWrapper,
 		readonly _core: IndexerCore,
 		private readonly infoMessageHandler: InfoMessageHandler,
 		_entity: EntityClient,
@@ -291,14 +292,15 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	private async createIndexTables(user: User, userGroupKey: VersionedKey): Promise<void> {
-		this.db.key = aes256RandomKey()
-		this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
+		const key = aes256RandomKey()
+		const iv = random.generateRandomData(IV_BYTE_LENGTH)
+		this.db.init({ key, iv })
 		const groupBatches = await this._loadGroupData(user)
-		const userEncDbKey = encryptKeyWithVersionedKey(userGroupKey, this.db.key)
+		const userEncDbKey = encryptKeyWithVersionedKey(userGroupKey, key)
 		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 		await transaction.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey.key)
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this.mailIndexer.mailIndexingEnabled)
-		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(this.db.key, this.db.iv))
+		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(key, iv))
 		await transaction.put(MetaDataOS, Metadata.userGroupKeyVersion, userEncDbKey.encryptingKeyVersion)
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this._entityRestClient.getRestClient().getServerTimestampMs())
 		await this._initGroupData(groupBatches, transaction)
@@ -306,8 +308,9 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
-		this.db.key = decryptKey(userGroupKey, metaData.userEncDbKey)
-		this.db.iv = unauthenticatedAesDecrypt(this.db.key, neverNull(metaData.encDbIv), true)
+		const key = decryptKey(userGroupKey, metaData.userEncDbKey)
+		const iv = unauthenticatedAesDecrypt(key, neverNull(metaData.encDbIv), true)
+		this.db.init({ key, iv })
 		const groupDiff = await this._loadGroupDiff(user)
 		await this._updateGroups(user, groupDiff)
 		await this.mailIndexer.updateCurrentIndexTimestamp(user)
@@ -574,11 +577,6 @@ export class IndexedDbIndexer implements Indexer {
 
 		return this.initDeferred.promise
 			.then(async () => {
-				// FIXME: this check should be elsewhere
-				// if (!this.db.dbFacade.indexingSupported) {
-				// 	return Promise.resolve()
-				// }
-
 				if (!this._indexedGroupIds.includes(groupId)) {
 					return
 				}
