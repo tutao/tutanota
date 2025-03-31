@@ -1,9 +1,10 @@
-use crate::crypto::randomizer_facade::RandomizerFacade;
+use crate::randomizer_facade::RandomizerFacade;
 use ed25519_dalek::{
 	SecretKey, Signature, SignatureError, Signer, SigningKey, Verifier, VerifyingKey,
 	PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH,
 };
 use serde::{Deserialize, Serialize, Serializer};
+use wasm_bindgen::prelude::*;
 use zeroize::ZeroizeOnDrop;
 
 const SIGNATURE_SIZE: usize = Signature::BYTE_SIZE; // from dalek library see COMPONENT_SIZE, to bytes
@@ -75,6 +76,10 @@ impl Ed25519PublicKey {
 
 	pub fn from_bytes(bytes: [u8; PUBLIC_KEY_LENGTH]) -> Self {
 		Ed25519PublicKey(bytes)
+	}
+
+	pub fn get_bytes(&self) -> Vec<u8> {
+		self.0.to_vec()
 	}
 }
 
