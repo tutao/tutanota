@@ -162,6 +162,40 @@ export class ApplicationWindow {
 							},
 							help: "openNewWindow_action",
 						},
+						{
+							key: Keys["="],
+							ctrl: true,
+							exec: () => {
+								this._browserWindow.webContents.emit("zoom-changed", null, "in")
+							},
+							help: "zoomIn_action",
+						},
+						{
+							key: Keys["="],
+							ctrl: true,
+							shift: true,
+							exec: () => {
+								this._browserWindow.webContents.emit("zoom-changed", null, "in")
+							},
+							help: "zoomIn_action",
+						},
+						{
+							key: Keys["-"],
+							ctrl: true,
+							exec: () => {
+								this._browserWindow.webContents.emit("zoom-changed", null, "out")
+							},
+							help: "zoomOut_action",
+						},
+						{
+							key: Keys["-"],
+							ctrl: true,
+							shift: true,
+							exec: () => {
+								this._browserWindow.webContents.emit("zoom-changed", null, "out")
+							},
+							help: "zoomOut_action",
+						},
 				  ],
 		)
 		log.debug(TAG, "webAssetsPath: ", this.absoluteAssetsPath)
