@@ -11,6 +11,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
+tsify = { version = "0.4.5", features = ["js"] }
 wasm-bindgen = "0.2.100"
 serde-wasm-bindgen = "0.6.5"
 rand = { workspace = true }
@@ -19,6 +20,7 @@ ed25519-dalek = { version = "2", features = ["rand_core", "zeroize"] }
 zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
 serde = { workspace = true, features = ["derive"] }
 thiserror = "2.0"
+serde-big-array = "0.5.1"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
@@ -30,6 +32,6 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 [dev-dependencies]
 wasm-bindgen-test = "0.3.34"
 
-[profile.release]
+# [profile.release]
 # Tell `rustc` to optimize for small code size.
-opt-level = "s"
+# opt-level = "s"
