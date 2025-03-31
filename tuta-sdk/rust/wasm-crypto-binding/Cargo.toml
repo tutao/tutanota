@@ -11,15 +11,21 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-wasm-bindgen = "0.2.84"
-tuta-sdk = { path = "../sdk" }
+wasm-bindgen = "0.2.100"
 serde-wasm-bindgen = "0.6.5"
+rand = { workspace = true }
+getrandom = { version = "0.2", features = ["js"] }
+ed25519-dalek = { version = "2", features = ["rand_core", "zeroize"] }
+zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
+serde = { workspace = true, features = ["derive"] }
+thiserror = "2.0"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
 # code size when deploying.
 console_error_panic_hook = { version = "0.1.7", optional = true }
+rand_core = { version = "0.6.4", features = ["getrandom"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.34"

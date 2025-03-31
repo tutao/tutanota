@@ -868,8 +868,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4567c8db10ae91089c99af84c68c38da3ec2f087c3f82960bcdbf3656b6f4d7"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -2457,6 +2459,7 @@ dependencies = [
  "tokio",
  "tuta-sdk",
  "uniffi",
+ "wasm-bindgen",
  "zeroize",
 ]
 
@@ -2781,10 +2784,16 @@ name = "wasm-crypto-binding"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
+ "ed25519-dalek",
+ "getrandom",
+ "rand",
+ "rand_core",
+ "serde",
  "serde-wasm-bindgen",
- "tuta-sdk",
+ "thiserror 2.0.12",
  "wasm-bindgen",
  "wasm-bindgen-test",
+ "zeroize",
 ]
 
 [[package]]
