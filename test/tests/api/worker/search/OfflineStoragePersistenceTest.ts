@@ -10,13 +10,14 @@ import { getElementId, getListId } from "../../../../../src/common/api/common/ut
 import { createTestEntity } from "../../../TestUtils"
 import {
 	BodyTypeRef,
+	ContactMailAddressTypeRef,
+	ContactTypeRef,
 	FileTypeRef,
 	MailAddressTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { ListElementEntity } from "../../../../../src/common/api/common/EntityTypes"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { ensureBase64Ext } from "../../../../../src/common/api/worker/offline/OfflineStorage"
@@ -47,6 +48,9 @@ o.spec("OfflineStoragePersistence test", () => {
             `,
 			[],
 		)
+	})
+	o.afterEach(async () => {
+		await sqlCipherFacade.closeDb()
 	})
 
 	o.spec("isMailIndexingEnabled", () => {
@@ -168,7 +172,7 @@ o.spec("OfflineStoragePersistence test", () => {
 			}),
 			attachments: [createTestEntity(FileTypeRef)],
 		}
-		await fakeStoreMailDataInOfflineDb(sqlCipherFacade, data)
+		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, data.mail)
 		await persistence.storeMailData([data])
 
 		const content = untagSqlObject(
@@ -234,7 +238,7 @@ o.spec("OfflineStoragePersistence test", () => {
 			}),
 			attachments: [],
 		}
-		await fakeStoreMailDataInOfflineDb(sqlCipherFacade, data)
+		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, data.mail)
 
 		const mailIndexInsert = sql`INSERT INTO mail_index(rowid, subject, body)
                                     VALUES (${1},
@@ -260,13 +264,99 @@ o.spec("OfflineStoragePersistence test", () => {
 		o.check(await sqlCipherFacade.get(indexSearch, [])).equals(null)
 		o.check(await sqlCipherFacade.get(contentTableSearch, [])).equals(null)
 	})
+
+	o.test("storeContactData", async () => {
+		const contact = createTestEntity(ContactTypeRef, {
+			_id: ["I am a list", "z-z-z-z-z"],
+			_ownerGroup: "I am a group",
+			firstName: "first name",
+			lastName: "last name",
+			mailAddresses: [
+				createTestEntity(ContactMailAddressTypeRef, {
+					address: "address1@domain1.tld1",
+				}),
+				createTestEntity(ContactMailAddressTypeRef, {
+					address: "address2@domain2.tld2",
+				}),
+			],
+		})
+
+		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, contact)
+		await persistence.storeContactData([contact])
+
+		const assertFound = async (what: string) => {
+			const { query, params } = sql`SELECT rowid
+                                        from contact_index
+                                        where contact_index = ${what}`
+			const search = untagSqlObject(assertNotNull(await sqlCipherFacade.get(query, params)))
+			o.check(search.rowid).equals(1)
+		}
+
+		const assertNotFound = async (what: string) => {
+			const { query, params } = sql`SELECT rowid
+                                        from contact_index
+                                        where contact_index = ${what}`
+			o.check(await sqlCipherFacade.get(query, params)).equals(null)
+		}
+
+		await assertFound("first")
+		await assertFound("last")
+		await assertFound("first last")
+		await assertFound("address1")
+		await assertFound("address2")
+		await assertFound("address1 domain1")
+		await assertFound("address2 domain1")
+		await assertFound("address1 tld1")
+		await assertFound("tld2")
+		await assertFound('"address1@domain1.tld1"')
+		await assertFound('"address2@domain2.tld2"')
+		await assertFound('"address2@domain2"')
+
+		await assertNotFound("firt")
+		await assertNotFound("firstlast")
+		await assertNotFound("addresss")
+		await assertNotFound("address1 domain")
+		await assertNotFound("address1 tld3")
+		await assertNotFound('"address1@domain1.tld"')
+		await assertNotFound('"address1@domain2"')
+	})
+
+	o.test("deleteContactData", async () => {
+		const contact = createTestEntity(ContactTypeRef, {
+			_id: ["I am a list", "z-z-z-z-z"],
+			_ownerGroup: "I am a group",
+			firstName: "first name",
+			lastName: "last name",
+			mailAddresses: [
+				createTestEntity(ContactMailAddressTypeRef, {
+					address: "address1@domain1.tld1",
+				}),
+			],
+		})
+		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, contact)
+
+		const indexInsert = sql`INSERT INTO contact_index(rowid, firstName, lastName, mailAddresses)
+                                VALUES (${1},
+                                        ${contact.firstName},
+                                        ${contact.lastName},
+                                        ${contact.mailAddresses.map((a) => a.address).join(" ")})`
+		await sqlCipherFacade.run(indexInsert.query, indexInsert.params)
+
+		const indexSearch = `SELECT rowid
+                             FROM contact_index
+                             WHERE contact_index = 'first'`
+
+		o.check(await sqlCipherFacade.get(indexSearch, [])).notEquals(null)
+		await persistence.deleteContactData(contact._id)
+		o.check(await sqlCipherFacade.get(indexSearch, [])).equals(null)
+	})
 })
 
-async function fakeStoreMailDataInOfflineDb(sqlCipherFacade: SqlCipherFacade, mailData: MailWithDetailsAndAttachments) {
+async function fakeStoreListElementEntityInOfflineDb(sqlCipherFacade: SqlCipherFacade, entity: ListElementEntity) {
 	const { query, params } = sql`INSERT INTO list_entities
-                                VALUES (${getTypeId(mailData.mail._type)}, ${getListId(mailData.mail)},
-                                        ${await getElementIdB64ExtEnsured(mailData.mail)},
-                                        ${assertNotNull(mailData.mail._ownerGroup)})`
+                                VALUES (${getTypeId(entity._type)}, ${getListId(entity)},
+                                        ${await getElementIdB64ExtEnsured(entity)},
+                                        ${assertNotNull(entity._ownerGroup)})`
 	await sqlCipherFacade.run(query, params)
 }
 
