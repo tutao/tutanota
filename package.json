@@ -29,7 +29,9 @@
 		"lint:check": "eslint . --cache --cache-location cache/eslint",
 		"lint:fix": "eslint --fix .",
 		"check": "npm run style:check && npm run lint:check",
-		"fix": "npm run style:fix && npm run lint:fix"
+		"fix": "npm run style:fix && npm run lint:fix",
+		"buildWasmCryptoBinding": "wasm-pack build --dev --target web ./tuta-sdk/rust/wasm-crypto-binding",
+		"startWasmCryptoBindingServer": "cd ./tuta-sdk/rust/wasm-crypto-binding && jwebserver"
 	},
 	"dependencies": {
 		"@tutao/node-mimimi": "275.250317.1",
@@ -106,7 +108,8 @@
 		"testdouble": "3.18.0",
 		"typescript": "5.3.3",
 		"xhr2": "0.2.1",
-		"zx": "8.1.5"
+		"zx": "8.1.5",
+		"wasm-pack": "0.13.1"
 	},
 	"workspaces": [
 		"./packages/*"
