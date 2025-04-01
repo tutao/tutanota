@@ -51,18 +51,21 @@ export class DbStub {
 		if (Array.isArray(options.keyPath)) {
 			throw new Error("nested keypaths not supported")
 		}
-		const osObject = {
+		const tableStub: TableStub = {
 			content: {},
 			autoIncrement: options.autoIncrement ?? false,
 			indexes: {},
 			keyPath: options.keyPath,
 			lastId: null,
 		}
-		this._objectStores[osName(name)] = osObject
+		this._objectStores[osName(name)] = tableStub
 
 		const osStub: Partial<IDBObjectStore> = {
 			createIndex(name: string, keyPath: string | string[], options?: IDBIndexParameters): IDBIndex {
-				osObject.indexes[name] = keyPath
+				if (Array.isArray(keyPath)) {
+					throw new Error("nested keypaths not supported")
+				}
+				tableStub.indexes[name] = keyPath
 				return {} as Partial<IDBIndex> as IDBIndex
 			},
 		}
