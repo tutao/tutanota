@@ -1,8 +1,8 @@
 import { AesKey } from "./Aes.js"
 import sjcl from "../internal/sjcl.js"
 import { bitArrayToUint8Array, uint8ArrayToBitArray } from "../misc/Utils.js"
-import { arrayEquals } from "@tutao/tutanota-utils"
 import { CryptoError } from "../misc/CryptoError.js"
+import { constantTimeUint8ArrayEquals } from "../misc/ConstantTime.js"
 
 export type MacTag = Uint8Array & { __brand: "macTag" }
 
@@ -20,7 +20,7 @@ export function hmacSha256(key: AesKey, data: Uint8Array): MacTag {
  */
 export function verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
 	const computedTag = hmacSha256(key, data)
-	if (!arrayEquals(computedTag, tag)) {
+	if (!constantTimeUint8ArrayEquals(computedTag, tag)) {
 		throw new CryptoError("invalid mac")
 	}
 }
