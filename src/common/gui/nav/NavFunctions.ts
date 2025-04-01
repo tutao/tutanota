@@ -1,6 +1,7 @@
 import { FeatureType } from "../../api/common/TutanotaConstants"
 import { locator } from "../../api/main/CommonLocator.js"
 import { LoginController } from "../../api/main/LoginController.js"
+import { getSupportUsageTestStage } from "../../support/SupportUsageTestUtils.js"
 
 /**
  * Opens the upgrade dialog.
@@ -11,7 +12,13 @@ export async function showUpgradeDialog(): Promise<void> {
 }
 
 export function showSupportDialog(logins: LoginController) {
-	import("../../support/SupportDialog.js").then((supportModule) => supportModule.showSupportDialog(logins))
+	import("../../support/SupportDialog.js").then((supportModule) => {
+		const triggerStage = getSupportUsageTestStage(0)
+		triggerStage.setMetric({ name: "Trigger", value: "Sidebar" })
+		void triggerStage.complete()
+
+		return supportModule.showSupportDialog(logins)
+	})
 }
 
 export function isNewMailActionAvailable(): boolean {

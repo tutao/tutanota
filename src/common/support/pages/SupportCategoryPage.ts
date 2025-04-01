@@ -5,6 +5,7 @@ import { getCategoryIntroduction, getCategoryName, getTopicIssue, SupportDialogS
 import { Thunk } from "@tutao/tutanota-utils"
 import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { Card } from "../../gui/base/Card.js"
+import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 
 type Props = {
 	data: SupportDialogState
@@ -42,7 +43,15 @@ export class SupportCategoryPage implements Component<Props> {
 					}),
 				),
 				m(NoSolutionSectionButton, {
-					onClick: () => goToContactSupport(),
+					onClick: () => {
+						if (currentlySelectedCategory) {
+							const topicStage = getSupportUsageTestStage(1)
+							topicStage.setMetric({ name: "Topic", value: `${currentlySelectedCategory.nameEN.replaceAll(" ", "")}_other` })
+							void topicStage.complete()
+						}
+
+						goToContactSupport()
+					},
 				}),
 			]),
 		])

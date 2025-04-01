@@ -9,6 +9,7 @@ import { Card } from "../../gui/base/Card.js"
 import { theme } from "../../gui/theme.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
+import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { locator } from "../../api/main/CommonLocator.js"
 
@@ -64,7 +65,7 @@ export class SupportTopicPage implements Component<Props> {
 						),
 				),
 			],
-			m(WasThisHelpful, { goToContactSupportPage, goToSolutionWasHelpfulPage }),
+			m(WasThisHelpful, { goToContactSupportPage, goToSolutionWasHelpfulPage, topicName: topic.issueEN }),
 		)
 	}
 }
@@ -72,22 +73,35 @@ export class SupportTopicPage implements Component<Props> {
 interface WasThisHelpfulAttrs {
 	goToContactSupportPage: VoidFunction
 	goToSolutionWasHelpfulPage: VoidFunction
+	topicName: string
 }
 
 class WasThisHelpful implements Component<WasThisHelpfulAttrs> {
-	view({ attrs: { goToContactSupportPage, goToSolutionWasHelpfulPage } }: Vnode<WasThisHelpfulAttrs>): Children {
+	view({ attrs: { goToContactSupportPage, goToSolutionWasHelpfulPage, topicName } }: Vnode<WasThisHelpfulAttrs>): Children {
 		return m(
 			".flex.flex-column.gap-vpad-s",
 			m("small.uppercase.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("wasThisHelpful_msg")),
 			m(Card, { shouldDivide: true }, [
 				m(SectionButton, {
 					text: "yes_label",
-					onclick: goToSolutionWasHelpfulPage,
+					onclick: () => {
+						const solutionStage = getSupportUsageTestStage(2)
+						solutionStage.setMetric({ name: "Result", value: topicName.replaceAll(" ", "") + "_helpful" })
+						void solutionStage.complete()
+
+						goToSolutionWasHelpfulPage()
+					},
 					rightIcon: { icon: Icons.Checkmark, title: "yes_label" },
 				}),
 				m(SectionButton, {
 					text: "no_label",
-					onclick: goToContactSupportPage,
+					onclick: () => {
+						const solutionStage = getSupportUsageTestStage(2)
+						solutionStage.setMetric({ name: "Result", value: topicName.replaceAll(" ", "") + "_notHelpful" })
+						void solutionStage.complete()
+
+						goToContactSupportPage()
+					},
 				}),
 			]),
 		)
