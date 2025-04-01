@@ -33,12 +33,15 @@ import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/
 import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { DbStub } from "./DbStub"
 import type { GroupData } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 let contactList = createTestEntity(ContactListTypeRef)
 contactList._ownerGroup = "ownerGroupId"
 contactList.contacts = "contactListId"
 
+// Beware: these tests use partial mocking and other actionable practices. It would be nice to refactor the class to
+// not do this.
 o.spec("IndexedDbIndexer", () => {
 	const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
 	const restClientMock: EntityRestClient = downcast({
@@ -51,7 +54,7 @@ o.spec("IndexedDbIndexer", () => {
 		},
 	})
 
-	let keyLoaderFacade
+	let keyLoaderFacade: KeyLoaderFacade
 	let mailIndexer: MailIndexer
 	let contactIndexer: ContactIndexer
 	let idbStub = new DbStub()
@@ -61,6 +64,7 @@ o.spec("IndexedDbIndexer", () => {
 	let key: Aes256Key
 	let iv: Uint8Array
 	let infoMessageHandler: InfoMessageHandler
+	let indexerTemplate: IndexedDbIndexer
 
 	o.beforeEach(function () {
 		key = aes256RandomKey()
@@ -77,6 +81,8 @@ o.spec("IndexedDbIndexer", () => {
 		contactIndexer = object()
 		infoMessageHandler = object()
 		keyLoaderFacade = object()
+
+		indexerTemplate = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
 	})
 
 	o.spec("init with db", function () {
@@ -140,14 +146,11 @@ o.spec("IndexedDbIndexer", () => {
 			when(loadPersistentGroupData(user)).thenResolve(persistentGroupData)
 			when(loadAndQueueMissedEntityUpdates(matchers.anything())).thenResolve()
 
-			const indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock._loadGroupData = loadGroupData
-					mock._loadPersistentGroupData = loadPersistentGroupData
-					mock._loadAndQueueMissedEntityUpdates = loadAndQueueMissedEntityUpdates
-				},
-			)
+			const indexer = mock(indexerTemplate, (mock) => {
+				mock._loadGroupData = loadGroupData
+				mock._loadPersistentGroupData = loadPersistentGroupData
+				mock._loadAndQueueMissedEntityUpdates = loadAndQueueMissedEntityUpdates
+			})
 			let userGroupKey = freshVersioned(aes256RandomKey())
 
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
@@ -190,15 +193,12 @@ o.spec("IndexedDbIndexer", () => {
 			when(loadPersistentGroupData(user)).thenResolve(persistentGroupData)
 			when(loadAndQueueMissedEntityUpdates(persistentGroupData)).thenResolve()
 
-			const indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock._loadGroupDiff = loadGroupDiff
-					mock._updateGroups = updateGroups
-					mock._loadPersistentGroupData = loadPersistentGroupData
-					mock._loadAndQueueMissedEntityUpdates = loadAndQueueMissedEntityUpdates
-				},
-			)
+			const indexer = mock(indexerTemplate, (mock) => {
+				mock._loadGroupDiff = loadGroupDiff
+				mock._updateGroups = updateGroups
+				mock._loadPersistentGroupData = loadPersistentGroupData
+				mock._loadAndQueueMissedEntityUpdates = loadAndQueueMissedEntityUpdates
+			})
 
 			when(keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)).thenResolve(userGroupKey.object)
 
@@ -234,16 +234,13 @@ o.spec("IndexedDbIndexer", () => {
 			when(loadPersistentGroupData(user)).thenResolve(persistentGroupData)
 			when(loadAndQueueMissedEntityUpdates(matchers.anything())).thenReject(new OutOfSyncError("is out of sync ;-)"))
 
-			const indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock._loadGroupDiff = loadGroupDiff
-					mock._updateGroups = updateGroups
-					mock._loadPersistentGroupData = loadPersistentGroupData
-					mock._loadAndQueueMissedEntityUpdates = loadAndQueueMissedEntityUpdates
-					mock.disableMailIndexing = disableMailIndexing
-				},
-			)
+			const indexer = mock(indexerTemplate, (mock) => {
+				mock._loadGroupDiff = loadGroupDiff
+				mock._updateGroups = updateGroups
+				mock._loadPersistentGroupData = loadPersistentGroupData
+				mock._loadAndQueueMissedEntityUpdates = loadAndQueueMissedEntityUpdates
+				mock.disableMailIndexing = disableMailIndexing
+			})
 
 			when(keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)).thenResolve(userGroupKey.object)
 
@@ -283,7 +280,7 @@ o.spec("IndexedDbIndexer", () => {
 		t.put(GroupDataOS, deletedGroupId, groupData)
 		t.put(GroupDataOS, contactGroupId, { groupType: GroupType.Mail })
 
-		const indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+		const indexer = indexerTemplate
 
 		const result = await indexer._loadGroupDiff(user)
 		o.check(result).deepEquals({
@@ -304,12 +301,9 @@ o.spec("IndexedDbIndexer", () => {
 
 	o.spec("_updateGroups", function () {
 		o.test("disable MailIndexing in case of a deleted mail group", async function () {
-			let indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock.disableMailIndexing = func()
-				},
-			)
+			let indexer = mock(indexerTemplate, (mock) => {
+				mock.disableMailIndexing = func()
+			})
 			let user = createTestEntity(UserTypeRef)
 			let groupDiff = {
 				deletedGroups: [
@@ -324,12 +318,9 @@ o.spec("IndexedDbIndexer", () => {
 		})
 
 		o.test("disable MailIndexing in case of a deleted contact group", async function () {
-			let indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock.disableMailIndexing = func()
-				},
-			)
+			let indexer = mock(indexerTemplate, (mock) => {
+				mock.disableMailIndexing = func()
+			})
 			let user = createTestEntity(UserTypeRef)
 			let groupDiff = {
 				deletedGroups: [
@@ -344,12 +335,9 @@ o.spec("IndexedDbIndexer", () => {
 		})
 
 		o.test("don't disable MailIndexing in case no mail or contact group has been deleted", async function () {
-			let indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock.disableMailIndexing = func()
-				},
-			)
+			let indexer = mock(indexerTemplate, (mock) => {
+				mock.disableMailIndexing = func()
+			})
 			let user = createTestEntity(UserTypeRef)
 			let groupDiff = {
 				deletedGroups: [
@@ -372,13 +360,10 @@ o.spec("IndexedDbIndexer", () => {
 			const initGroupData = func<IndexedDbIndexer["_initGroupData"]>()
 			when(loadGroupData(user), { ignoreExtraArgs: true }).thenResolve(groupBatches)
 
-			let indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock._loadGroupData = loadGroupData
-					mock._initGroupData = initGroupData
-				},
-			)
+			let indexer = mock(indexerTemplate, (mock) => {
+				mock._loadGroupData = loadGroupData
+				mock._initGroupData = initGroupData
+			})
 
 			let groupDiff = {
 				deletedGroups: [],
@@ -404,13 +389,10 @@ o.spec("IndexedDbIndexer", () => {
 			const initGroupData = func<IndexedDbIndexer["_initGroupData"]>()
 			when(loadGroupData(user), { ignoreExtraArgs: true }).thenResolve(groupBatches)
 
-			let indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock._loadGroupData = loadGroupData
-					mock._initGroupData = initGroupData
-				},
-			)
+			let indexer = mock(indexerTemplate, (mock) => {
+				mock._loadGroupData = loadGroupData
+				mock._initGroupData = initGroupData
+			})
 
 			let groupDiff = {
 				deletedGroups: [],
@@ -457,7 +439,7 @@ o.spec("IndexedDbIndexer", () => {
 					_id: ["batch-list-id", "event-batch-id"],
 				}),
 			])
-			let indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+			let indexer = indexerTemplate
 
 			const result = await indexer._loadGroupData(user)
 			o(result).deepEquals([
@@ -509,7 +491,7 @@ o.spec("IndexedDbIndexer", () => {
 			])
 			when(entityClient.loadRange(EntityEventBatchTypeRef, "group-team", GENERATED_MAX_ID, 1, true)).thenReject(new NotAuthorizedError("test"))
 
-			const indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+			const indexer = indexerTemplate
 			const result = await indexer._loadGroupData(user)
 			o.check(result).deepEquals([
 				{
@@ -537,7 +519,7 @@ o.spec("IndexedDbIndexer", () => {
 			},
 		]
 
-		let indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+		let indexer = indexerTemplate
 		const transaction = await idbStub.createTransaction()
 
 		await indexer._initGroupData(groupBatches, transaction)
@@ -568,7 +550,7 @@ o.spec("IndexedDbIndexer", () => {
 			transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME)
 
 			dbWithStub.init({ key, iv })
-			let indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+			let indexer = indexerTemplate
 			when(entityClient.loadAll(EntityEventBatchTypeRef, groupId, newestBatchId)).thenResolve(batches)
 
 			indexer._processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
@@ -619,7 +601,7 @@ o.spec("IndexedDbIndexer", () => {
 			transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME)
 
 			dbWithStub.init({ key, iv })
-			let indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+			let indexer = indexerTemplate
 			when(entityClient.loadAll(EntityEventBatchTypeRef, matchers.anything(), previousNewestBatchId)).thenResolve(batches)
 			indexer._processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
 			const queue = indexer.eventQueue
@@ -677,7 +659,7 @@ o.spec("IndexedDbIndexer", () => {
 			transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME)
 
 			dbWithStub.init({ key, iv })
-			let indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+			let indexer = indexerTemplate
 			when(entityClient.loadAll(EntityEventBatchTypeRef, matchers.anything(), previousNewestBatchId)).thenResolve(batches)
 			indexer._processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
 			const queue = indexer.eventQueue
@@ -733,7 +715,7 @@ o.spec("IndexedDbIndexer", () => {
 			transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME)
 
 			dbWithStub.init({ key, iv })
-			let indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+			let indexer = indexerTemplate
 			const loadCompleted = defer<EntityEventBatch[]>()
 			when(entityClient.loadAll(EntityEventBatchTypeRef, matchers.anything(), matchers.anything())).thenReturn(loadCompleted.promise)
 			indexer._processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
@@ -790,12 +772,9 @@ o.spec("IndexedDbIndexer", () => {
 			const processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
 
 			dbWithStub.init({ key, iv })
-			let indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock._processEntityEvents = processEntityEvents
-				},
-			)
+			let indexer = mock(indexerTemplate, (mock) => {
+				mock._processEntityEvents = processEntityEvents
+			})
 			await assertThrows(OutOfSyncError, () => indexer._loadAndQueueMissedEntityUpdates(groupIdToEventBatches))
 			o.check(idbStub.getValue(MetaDataOS, Metadata.lastEventIndexTimeMs)).deepEquals(OUT_OF_DATE_SERVER_TIME)
 			verify(processEntityEvents(matchers.anything()), { times: 0 })
@@ -849,7 +828,7 @@ o.spec("IndexedDbIndexer", () => {
 			],
 		})
 
-		let indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+		let indexer = indexerTemplate
 
 		const groupIdToEventBatches = await indexer._loadPersistentGroupData(user)
 		o.check(groupIdToEventBatches).deepEquals([
@@ -882,17 +861,14 @@ o.spec("IndexedDbIndexer", () => {
 			})
 
 			dbWithStub.init({ key, iv })
-			const indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(indexerMock) => {
-					indexerMock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
-					indexerMock._initParams = {
-						user,
-					}
-					indexerMock.initDeferred = defer()
-					indexerMock.initDeferred.resolve()
-				},
-			)
+			const indexer = mock(indexerTemplate, (indexerMock) => {
+				indexerMock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
+				indexerMock._initParams = {
+					user,
+				}
+				indexerMock.initDeferred = defer()
+				indexerMock.initDeferred.resolve()
+			})
 
 			function newUpdate<T>(typeRef: TypeRef<T>) {
 				let u = createTestEntity(EntityUpdateTypeRef)
@@ -920,17 +896,14 @@ o.spec("IndexedDbIndexer", () => {
 			const processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
 
 			dbWithStub.init({ key, iv })
-			const indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock._processUserEntityEvents = processUserEntityEvents
-					mock._initParams = {
-						user,
-					}
-					mock.initDeferred = defer()
-					mock.initDeferred.resolve()
-				},
-			)
+			const indexer = mock(indexerTemplate, (mock) => {
+				mock._processUserEntityEvents = processUserEntityEvents
+				mock._initParams = {
+					user,
+				}
+				mock.initDeferred = defer()
+				mock.initDeferred.resolve()
+			})
 
 			function update(typeRef: TypeRef<any>) {
 				let u = createTestEntity(EntityUpdateTypeRef)
@@ -967,17 +940,14 @@ o.spec("IndexedDbIndexer", () => {
 			})
 
 			dbWithStub.init({ key, iv })
-			const indexer = mock(
-				new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer),
-				(mock) => {
-					mock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
-					mock._initParams = {
-						user,
-					}
-					mock.initDeferred = defer()
-					mock.initDeferred.resolve()
-				},
-			)
+			const indexer = mock(indexerTemplate, (mock) => {
+				mock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
+				mock._initParams = {
+					user,
+				}
+				mock.initDeferred = defer()
+				mock.initDeferred.resolve()
+			})
 
 			indexer._indexedGroupIds = ["group-id"]
 
@@ -1043,7 +1013,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			when(entityClient.loadRoot(ContactListTypeRef, user.userGroup.group)).thenResolve(contactList)
 
-			indexer = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+			indexer = indexerTemplate
 		})
 
 		o("When init() is called and contacts have already been indexed they are not indexed again", async function () {
