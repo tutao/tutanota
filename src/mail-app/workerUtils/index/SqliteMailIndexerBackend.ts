@@ -24,10 +24,6 @@ export class SqliteMailIndexerBackend implements MailIndexerBackend {
 		await this.persistence.setMailIndexingEnabled(true)
 	}
 
-	async deleteIndex() {
-		/* no-op */
-	}
-
 	async isMailIndexingEnabled(): Promise<boolean> {
 		return this.persistence.isMailIndexingEnabled()
 	}

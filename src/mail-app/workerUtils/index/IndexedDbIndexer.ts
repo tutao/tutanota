@@ -176,7 +176,11 @@ export class IndexedDbIndexer implements Indexer {
 			this.core.startProcessing()
 			await this.indexOrLoadContactListIfNeeded(user, cacheInfo)
 			await this.mailIndexer.mailboxIndexingPromise
+
+			// pause event processing until mail indexing is finished
+			this.eventQueue.pause()
 			await this.mailIndexer.indexMailboxes(user, this.mailIndexer.currentIndexTimestamp)
+			this.eventQueue.resume()
 			const groupIdToEventBatches = await this._loadPersistentGroupData(user)
 			await this._loadAndQueueMissedEntityUpdates(groupIdToEventBatches).catch(ofClass(OutOfSyncError, (e) => this.disableMailIndexing()))
 		} catch (e) {
@@ -233,7 +237,17 @@ export class IndexedDbIndexer implements Indexer {
 		await this.initDeferred.promise
 		const enabled = await this.mailIndexer.enableMailIndexing()
 		if (enabled) {
-			this.mailIndexer.doInitialMailIndexing(this.initParams.user).catch(ofClass(CancelledError, noOp))
+			this.eventQueue.pause()
+			try {
+				await this.mailIndexer.doInitialMailIndexing(this.initParams.user)
+				this.eventQueue.resume()
+			} catch (e) {
+				if (e instanceof CancelledError) {
+					// no-op
+				} else {
+					throw e
+				}
+			}
 		}
 	}
 
@@ -250,22 +264,43 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	async deleteIndex(userId: string): Promise<void> {
-		await this.stopProcessing()
-		await this.mailIndexer.disableMailIndexing()
+		// pause the queue immediately
+		this.eventQueue.pause()
+		// signal mail indexer that it should stop and abort any processing
+		this.mailIndexer.disableMailIndexing()
+		// make core abort any operations
+		this.core.stopProcessing()
+		// wait for queue to become empty
+		await this.eventQueue.waitForEmptyQueue()
+		// delete the index
+		await this.db.dbFacade.deleteDatabase(b64UserIdHash(userId))
 	}
 
 	private async stopProcessing() {
+		this.core.stopProcessing()
 		this.eventQueue.pause()
+		this.mailIndexer.cancelMailIndexing()
 
 		await this.eventQueue.waitForEmptyQueue()
 	}
 
-	extendMailIndex(newOldestTimestamp: number): Promise<void> {
-		return this.mailIndexer.extendIndexIfNeeded(this.initParams.user, newOldestTimestamp)
+	async extendMailIndex(newOldestTimestamp: number): Promise<void> {
+		try {
+			this.eventQueue.pause()
+			await this.mailIndexer.extendIndexIfNeeded(this.initParams.user, newOldestTimestamp)
+			this.eventQueue.resume()
+		} catch (e) {
+			if (e instanceof CancelledError) {
+				// no-op
+			} else {
+				throw e
+			}
+		}
 	}
 
 	cancelMailIndexing() {
 		this.mailIndexer.cancelMailIndexing()
+		this.eventQueue.resume()
 	}
 
 	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
@@ -283,17 +318,16 @@ export class IndexedDbIndexer implements Indexer {
 
 	private reCreateIndex(): Promise<void> {
 		const mailIndexingWasEnabled = this.mailIndexer.mailIndexingEnabled
-		return this.mailIndexer.disableMailIndexing().then(() => {
-			// do not try to init again on error
-			return this.init({
-				user: this.initParams.user,
-				keyLoaderFacade: this.initParams.keyLoaderFacade,
-				retryOnError: false,
-			}).then(() => {
-				if (mailIndexingWasEnabled) {
-					return this.enableMailIndexing()
-				}
-			})
+		this.mailIndexer.disableMailIndexing()
+		// do not try to init again on error
+		return this.init({
+			user: this.initParams.user,
+			keyLoaderFacade: this.initParams.keyLoaderFacade,
+			retryOnError: false,
+		}).then(() => {
+			if (mailIndexingWasEnabled) {
+				return this.enableMailIndexing()
+			}
 		})
 	}
 

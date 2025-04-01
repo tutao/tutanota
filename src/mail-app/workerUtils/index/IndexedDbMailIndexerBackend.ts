@@ -73,10 +73,6 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		return storedValue ?? false
 	}
 
-	async deleteIndex(): Promise<void> {
-		await this.core.deleteDatabase(this.userId)
-	}
-
 	private createIndexUpdate(): IndexUpdate {
 		return _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 	}

@@ -35,7 +35,5 @@ export interface MailIndexerBackend {
 
 	enableIndexing(): Promise<void>
 
-	deleteIndex(): Promise<void>
-
 	isMailIndexingEnabled(): Promise<boolean>
 }

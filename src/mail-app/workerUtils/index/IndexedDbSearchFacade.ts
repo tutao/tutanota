@@ -237,16 +237,6 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	_startOrContinueSearch(searchResult: SearchResult, maxResults?: number): Promise<void> {
 		markStart("findIndexEntries")
 
-		const nextScheduledIndexingRun = getStartOfDay(getDayShifted(new Date(this._mailIndexer.currentIndexTimestamp), INITIAL_MAIL_INDEX_INTERVAL_DAYS))
-		const theDayAfterTomorrow = getStartOfDay(getDayShifted(new Date(), 1))
-
-		if (searchResult.moreResults.length === 0 && nextScheduledIndexingRun.getTime() > theDayAfterTomorrow.getTime() && !this._mailIndexer.isIndexing) {
-			this._mailIndexer.extendIndexIfNeeded(
-				this.userFacade.getLoggedInUser(),
-				getStartOfDay(getDayShifted(new Date(), -INITIAL_MAIL_INDEX_INTERVAL_DAYS)).getTime(),
-			)
-		}
-
 		let moreResultsEntries: Promise<Array<MoreResultsIndexEntry>>
 
 		if (maxResults && searchResult.moreResults.length >= maxResults) {

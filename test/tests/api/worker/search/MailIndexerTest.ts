@@ -140,7 +140,6 @@ o.spec("MailIndexer test", () => {
 	o.test("disableMailIndexing", async function () {
 		await initWithEnabled(true)
 		await indexer.disableMailIndexing()
-		verify(backend.deleteIndex())
 	})
 
 	o.spec("indexMailboxes", function () {

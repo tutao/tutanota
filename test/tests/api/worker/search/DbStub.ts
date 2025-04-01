@@ -93,6 +93,10 @@ export class DbStub {
 			return this.getObjectStore(objectStore).content[key as any]
 		}
 	}
+
+	async deleteDatabase() {
+		// no-op
+	}
 }
 
 export function createSearchIndexDbStub(): DbStub {

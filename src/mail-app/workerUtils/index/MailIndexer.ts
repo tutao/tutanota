@@ -25,7 +25,7 @@ import {
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { assertNotNull, clamp, DAY_IN_MILLIS, findAllAndRemove, first, isEmpty, isNotNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { benchmarkFunction, filterMailMemberships } from "../../../common/api/worker/search/IndexUtils.js"
+import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
@@ -70,9 +70,9 @@ export class MailIndexer {
 
 	mailboxIndexingPromise: Promise<void>
 	isIndexing: boolean = false
-	_indexingCancelled: boolean
 	_dateProvider: DateProvider
 	_backend: MailIndexerBackend | null = null
+	private abortController: AbortController = new AbortController()
 
 	constructor(
 		private readonly infoMessageHandler: InfoMessageHandler,
@@ -85,7 +85,6 @@ export class MailIndexer {
 		this._currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
 		this._mailIndexingEnabled = false
 		this.mailboxIndexingPromise = Promise.resolve()
-		this._indexingCancelled = false
 		this._dateProvider = dateProvider
 	}
 
@@ -166,14 +165,13 @@ export class MailIndexer {
 		}
 	}
 
-	async disableMailIndexing(): Promise<void> {
+	disableMailIndexing(): void {
 		this._mailIndexingEnabled = false
-		this._indexingCancelled = true
-		await this.backend.deleteIndex()
+		this.abortController.abort("disableMailIndexing")
 	}
 
 	cancelMailIndexing() {
-		this._indexingCancelled = true
+		this.abortController.abort("cancelMailIndexing")
 	}
 
 	async doInitialMailIndexing(user: User): Promise<void> {
@@ -194,8 +192,8 @@ export class MailIndexer {
 
 		const searchIndexStageInfo = this.createSearchIndexStageInfo(oldestTimestamp)
 
+		this.abortController = new AbortController()
 		this.isIndexing = true
-		this._indexingCancelled = false
 
 		// FIXME
 		// this._core.resetStats()
@@ -285,14 +283,14 @@ export class MailIndexer {
 	 */
 	async extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
 		if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
-			this.mailboxIndexingPromise = this.mailboxIndexingPromise
-				.then(() => this.indexMailboxes(user, newOldestTimestamp))
-				.catch(
-					ofClass(CancelledError, (e) => {
-						console.log("extend mail index has been cancelled", e)
-					}),
-				)
-			return this.mailboxIndexingPromise
+			const uncaughtPromise = this.mailboxIndexingPromise.then(() => this.indexMailboxes(user, newOldestTimestamp))
+
+			this.mailboxIndexingPromise = uncaughtPromise.catch(
+				ofClass(CancelledError, (e) => {
+					console.log("extend mail index has been cancelled", e)
+				}),
+			)
+			return uncaughtPromise
 		}
 	}
 
@@ -363,9 +361,9 @@ export class MailIndexer {
 			const timeRange: TimeRange = [batchStart, batchEnd]
 			const finalIteration = batchEnd <= rangeEnd
 
-			const mailsetLoadTime = await benchmarkFunction(async () => {
-				const allMails: MailSetEntry[] = (
-					await promiseMap(
+			const allMails: MailSetEntry[] = (
+				await this.abortAware(() =>
+					promiseMap(
 						mailboxesToWrite,
 						async (mailbox: MboxIndexData) => {
 							const mails = await promiseMap(mailbox.mailSetListDatas, (data) => indexLoader.loadMailSetEntriesForTimeRange(data, timeRange), {
@@ -374,10 +372,11 @@ export class MailIndexer {
 							return mails.flat()
 						},
 						{ concurrency: 2 },
-					)
-				).flat()
-				mailSetEntriesToProcess.push(...allMails)
-			})
+					),
+				)
+			).flat()
+
+			mailSetEntriesToProcess.push(...allMails)
 			// this._core._stats.preparingTime += mailsetLoadTime
 
 			// If we've reached critical mass (MAIL_INDEXER_CHUNK) or it's the last iteration, process mails.
@@ -386,7 +385,7 @@ export class MailIndexer {
 				// 	const mailData = await this.processIndexMails(mailSetEntriesToProcess, indexLoader)
 				// 	// this._core._stats.mailcount += mailData.length
 				// })
-				const mailData = await this.processIndexMails(mailSetEntriesToProcess, indexLoader)
+				const mailData = await this.abortAware(() => this.processIndexMails(mailSetEntriesToProcess, indexLoader))
 
 				// this._core._stats.preparingTime += processTime
 
@@ -409,6 +408,17 @@ export class MailIndexer {
 			progress.workDone(batchStart - batchEnd)
 			batchStart = batchEnd
 		}
+	}
+
+	/** A helper to cancel an async operation with {@link CancelledError} as soon as possible. */
+	private abortAware<T>(loading: () => Promise<T>): Promise<T> {
+		return Promise.race([loading(), this.abortPromise()])
+	}
+
+	private abortPromise(): Promise<any> {
+		return new Promise<void>((_, reject) =>
+			this.abortController.signal.addEventListener("abort", () => reject(new CancelledError("mail indexing canceled"))),
+		)
 	}
 
 	private isMailboxLoadedCompletely(data: MboxIndexData): boolean {
@@ -439,7 +449,7 @@ export class MailIndexer {
 	}
 
 	private assertNotCancelled(where: string) {
-		if (this._indexingCancelled) throw new CancelledError(`cancelled indexing in ${where}`)
+		if (this.abortController.signal.aborted) throw new CancelledError(`cancelled indexing in ${where}`)
 	}
 
 	async updateCurrentIndexTimestamp(user: User): Promise<void> {

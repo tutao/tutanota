@@ -171,10 +171,6 @@ export class IndexerCore {
 		return await t.get(MetaDataOS, key)
 	}
 
-	async deleteDatabase(userId: Id) {
-		await this.db.dbFacade.deleteDatabase(b64UserIdHash(userId))
-	}
-
 	/****************************************** Preparing the update ***********************************************/
 
 	/**
