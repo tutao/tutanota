@@ -268,10 +268,14 @@ export class IndexedDbIndexer implements Indexer {
 
 	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
 		this._realtimeEventQueue.addBatches([{ events: updates, batchId, groupId }])
-		this._realtimeEventQueue.resume()
+		// Trigger event queue processing in case it was stopped due to an error
+		// Realtime queue won't be automatically paused and doesn't need a trigger here. It will be resumed when
+		// we loaded all events.
+		this._startProcessing()
 	}
 
-	startProcessing() {
+	/** @private visibleForTesting */
+	_startProcessing() {
 		this.eventQueue.start()
 	}
 
@@ -539,7 +543,7 @@ export class IndexedDbIndexer implements Indexer {
 
 		this._realtimeEventQueue.resume()
 
-		this.startProcessing()
+		this._startProcessing()
 		await this._writeServerTimestamp()
 	}
 
@@ -572,38 +576,33 @@ export class IndexedDbIndexer implements Indexer {
 		})
 	}
 
-	_processEntityEvents(batch: QueuedBatch): Promise<any> {
+	/** @private visibleForTesting */
+	async _processEntityEvents(batch: QueuedBatch): Promise<any> {
 		const { groupId, batchId, events } = batch
+		try {
+			await this.initDeferred.promise
+			if (!this._indexedGroupIds.includes(groupId)) {
+				return
+			}
 
-		return this.initDeferred.promise
-			.then(async () => {
-				if (!this._indexedGroupIds.includes(groupId)) {
-					return
-				}
+			await this.mailIndexer.processEntityEvents(events, groupId, batchId)
+			await this._contactIndexer.processEntityEvents(events, groupId, batchId)
+			await this._core.writeGroupDataBatchId(groupId, batchId)
+		} catch (e) {
+			if (e instanceof CancelledError) {
+				// no-op
+			} else if (e instanceof DbError && this._core.isStoppedProcessing()) {
+				console.log("Ignoring DBerror when indexing is disabled", e)
+			} else if (e instanceof InvalidDatabaseStateError) {
+				console.log("InvalidDatabaseStateError during _processEntityEvents")
 
-				await this.mailIndexer.processEntityEvents(events, groupId, batchId)
-				await this._contactIndexer.processEntityEvents(events, groupId, batchId)
-				await this._core.writeGroupDataBatchId(groupId, batchId)
-			})
-			.catch(ofClass(CancelledError, noOp))
-			.catch(
-				ofClass(DbError, (e) => {
-					if (this._core.isStoppedProcessing()) {
-						console.log("Ignoring DBerror when indexing is disabled", e)
-					} else {
-						throw e
-					}
-				}),
-			)
-			.catch(
-				ofClass(InvalidDatabaseStateError, (e) => {
-					console.log("InvalidDatabaseStateError during _processEntityEvents")
+				this.stopProcessing()
 
-					this.stopProcessing()
-
-					return this._reCreateIndex()
-				}),
-			)
+				return this._reCreateIndex()
+			} else {
+				throw e
+			}
+		}
 	}
 
 	/**
