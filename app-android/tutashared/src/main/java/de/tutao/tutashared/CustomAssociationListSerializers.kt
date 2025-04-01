@@ -29,7 +29,7 @@ open class ZeroOrOneAssociationSerializer<T>(
 	override val descriptor: SerialDescriptor = listSerializer.descriptor
 	override fun deserialize(decoder: Decoder): T? {
 		val deserializedList = listSerializer.deserialize(decoder)
-		return if(deserializedList.isEmpty()) null else deserializedList.first()
+		return if (deserializedList.isEmpty()) null else deserializedList.first()
 	}
 
 	override fun serialize(encoder: Encoder, value: T?) {
@@ -37,25 +37,3 @@ open class ZeroOrOneAssociationSerializer<T>(
 		listSerializer.serialize(encoder, serializedList)
 	}
 }
-
-// FIXME use this if the above does not work, or remove
-//class FallbackIdTupleWrapperZeroOrOneAssociationSerializer : KSerializer<IdTupleWrapper?> {
-//	override val descriptor: SerialDescriptor =
-//		buildClassSerialDescriptor("package de.tutao.tutanota.push.NotificationInfo.mailId") {
-//			element("mailId", ListSerializer(IdTupleWrapper.serializer()).descriptor)
-//		}
-//
-//	override fun deserialize(decoder: Decoder): IdTupleWrapper? {
-//		val deserializedList = decoder.decodeStructure(descriptor) {
-//			decodeSerializableElement(descriptor, 0, ListSerializer(IdTupleWrapper.serializer())).toList()
-//		}
-//		return if(deserializedList.isEmpty()) null else deserializedList.first()
-//	}
-//
-//	override fun serialize(encoder: Encoder, value: IdTupleWrapper?) {
-//		val serializedList: List<IdTupleWrapper> = if (value == null) listOf() else listOf(value)
-//		encoder.encodeStructure(descriptor) {
-//			encodeSerializableElement(descriptor, 0, ListSerializer(IdTupleWrapper.serializer()), serializedList)
-//		}
-//	}
-//}
