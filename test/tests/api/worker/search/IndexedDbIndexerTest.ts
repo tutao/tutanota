@@ -34,6 +34,8 @@ import { VersionedKey } from "../../../../../src/common/api/worker/crypto/Crypto
 import { DbStub } from "./DbStub"
 import type { GroupData } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
+import { DateProvider } from "../../../../../src/common/api/common/DateProvider"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 let contactList = createTestEntity(ContactListTypeRef)
@@ -44,15 +46,14 @@ contactList.contacts = "contactListId"
 // not do this.
 o.spec("IndexedDbIndexer", () => {
 	const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
-	const restClientMock: EntityRestClient = downcast({
-		getRestClient() {
-			return {
-				getServerTimestampMs() {
-					return SERVER_TIME
-				},
-			}
+	const serverDateProvider: DateProvider = {
+		now() {
+			return SERVER_TIME
 		},
-	})
+		timeZone(): string {
+			throw new ProgrammingError("not supported")
+		},
+	}
 
 	let keyLoaderFacade: KeyLoaderFacade
 	let mailIndexer: MailIndexer
@@ -82,7 +83,7 @@ o.spec("IndexedDbIndexer", () => {
 		infoMessageHandler = object()
 		keyLoaderFacade = object()
 
-		indexerTemplate = new IndexedDbIndexer(restClientMock, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+		indexerTemplate = new IndexedDbIndexer(serverDateProvider, dbWithStub, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
 	})
 
 	o.spec("init with db", function () {
@@ -205,7 +206,7 @@ o.spec("IndexedDbIndexer", () => {
 			await indexer.init({ user, keyLoaderFacade })
 			const { key } = await dbWithStub.encryptionData()
 			o.check(key).deepEquals(dbKey)
-			verify(indexer._loadGroupDiff(user))
+			verify(loadGroupDiff(user))
 			verify(updateGroups(user, groupDiff))
 			verify(contactIndexer.indexFullContactList(), { times: 0 })
 			verify(loadPersistentGroupData(user))

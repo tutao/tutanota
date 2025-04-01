@@ -107,6 +107,7 @@ import { IndexedDbContactIndexerBackend } from "../index/IndexedDbContactIndexer
 import { OfflineStorageContactIndexerBackend } from "../index/OfflineStorageContactIndexerBackend"
 
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
+import { DateProvider } from "../../../common/api/common/DateProvider"
 
 assertWorkerOrNode()
 
@@ -347,6 +348,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new OfflineStoragePersistence(locator.sqlCipherFacade)
 	})
 
+	const serverDateProvider: DateProvider = {
+		now(): number {
+			return locator.restClient.getServerTimestampMs()
+		},
+		timeZone(): string {
+			throw new ProgrammingError("Not supported")
+		},
+	}
+
 	locator.indexer = lazyMemoized(async () => {
 		const contact = await contactIndexer()
 		const mail = await mailIndexer()
@@ -358,7 +368,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		} else {
 			const { IndexedDbIndexer } = await import("../index/IndexedDbIndexer.js")
 			const core = await indexerCore()
-			return new IndexedDbIndexer(entityRestClient, db, core, mainInterface.infoMessageHandler, locator.cachingEntityClient, mail, contact)
+			return new IndexedDbIndexer(serverDateProvider, db, core, mainInterface.infoMessageHandler, locator.cachingEntityClient, mail, contact)
 		}
 	})
 

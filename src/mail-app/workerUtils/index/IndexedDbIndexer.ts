@@ -19,7 +19,6 @@ import { ContactIndexer } from "./ContactIndexer.js"
 import { ContactList, ContactListTypeRef, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
-import type { EntityRestClient } from "../../../common/api/worker/rest/EntityRestClient.js"
 import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError.js"
 import { DbError } from "../../../common/api/common/error/DbError.js"
 import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
@@ -50,6 +49,7 @@ import { EntityUpdateData, entityUpdatesAsData } from "../../../common/api/commo
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
+import { DateProvider } from "../../../common/api/common/DateProvider"
 
 export type InitParams = {
 	user: User
@@ -91,45 +91,43 @@ export function newSearchIndexDB(): DbFacade {
  */
 export class IndexedDbIndexer implements Indexer {
 	private initDeferred = defer<void>()
-	private _initParams!: InitParams
+	private initParams!: InitParams
 
 	/**
 	 * Last batch id per group from initial loading.
 	 * In case we get duplicate events from loading and websocket we want to filter them out to avoid processing duplicates.
 	 * */
-	_initiallyLoadedBatchIdsPerGroup: Map<Id, Id>
+	private initiallyLoadedBatchIdsPerGroup: Map<Id, Id>
 
 	/**
 	 * Queue which gets all the websocket events and dispatches them to the other queue. It is paused until we load initial events to avoid
 	 * putting events from websocket before initial events.
+	 * @private visibleForTesting
 	 */
 	_realtimeEventQueue: EventQueue
-	_entity: EntityClient
-	_entityRestClient: EntityRestClient
+	/** @private visibleForTesting */
 	_indexedGroupIds: Array<Id>
 
-	/** @private visibelForTesting */
+	/** @private visibleForTesting */
 	readonly eventQueue = new EventQueue("indexer", true, (batch) => this._processEntityEvents(batch))
 
 	constructor(
-		entityRestClient: EntityRestClient,
+		private readonly serverDateProvider: DateProvider,
 		/** @private visibelForTesting */
-		readonly db: EncryptedDbWrapper,
-		readonly _core: IndexerCore,
+		private readonly db: EncryptedDbWrapper,
+		private readonly core: IndexerCore,
 		private readonly infoMessageHandler: InfoMessageHandler,
-		_entity: EntityClient,
+		private readonly entity: EntityClient,
 		private readonly mailIndexer: MailIndexer,
-		readonly _contactIndexer: ContactIndexer,
+		private readonly contactIndexer: ContactIndexer,
 	) {
 		// correctly initialized during init()
-		this._entity = _entity
-		this._entityRestClient = entityRestClient
 		this._indexedGroupIds = []
-		this._initiallyLoadedBatchIdsPerGroup = new Map()
+		this.initiallyLoadedBatchIdsPerGroup = new Map()
 		this._realtimeEventQueue = new EventQueue("indexer_realtime", false, (nextElement: QueuedBatch) => {
 			// During initial loading we remember the last batch we loaded
 			// so if we get updates from EventBusClient here for things that are already loaded we discard them
-			const loadedIdForGroup = this._initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
+			const loadedIdForGroup = this.initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
 
 			if (loadedIdForGroup == null || firstBiggerThanSecond(nextElement.batchId, loadedIdForGroup)) {
 				this.eventQueue.addBatches([nextElement])
@@ -145,7 +143,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * Opens a new DbFacade and initializes the metadata if it is not there yet
 	 */
 	async init({ user, keyLoaderFacade, retryOnError, cacheInfo }: IndexerInitParams): Promise<void> {
-		this._initParams = {
+		this.initParams = {
 			user,
 			keyLoaderFacade,
 		}
@@ -175,7 +173,7 @@ export class IndexedDbIndexer implements Indexer {
 				failedIndexingUpTo: null,
 			})
 
-			this._core.startProcessing()
+			this.core.startProcessing()
 			await this.indexOrLoadContactListIfNeeded(user, cacheInfo)
 			await this.mailIndexer.mailboxIndexingPromise
 			await this.mailIndexer.indexMailboxes(user, this.mailIndexer.currentIndexTimestamp)
@@ -189,7 +187,7 @@ export class IndexedDbIndexer implements Indexer {
 				// do not use this.disableMailIndexing() because db.initialized is not yet resolved.
 				// initialized promise will be resolved in this.init later.
 				console.log("disable mail indexing and init again", e)
-				return this._reCreateIndex()
+				return this.reCreateIndex()
 			} else {
 				await this.infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
@@ -214,14 +212,14 @@ export class IndexedDbIndexer implements Indexer {
 
 	private async indexOrLoadContactListIfNeeded(user: User, cacheInfo: CacheInfo | undefined) {
 		try {
-			const contactsIndexed = await this._contactIndexer.areContactsIndexed()
+			const contactsIndexed = await this.contactIndexer.areContactsIndexed()
 			if (!contactsIndexed) {
-				await this._contactIndexer.indexFullContactList()
+				await this.contactIndexer.indexFullContactList()
 			}
 			//If we do not have to index the contact list we might still need to download it so we cache it in the offline storage
 			else if (cacheInfo?.isNewOfflineDb) {
-				const contactList: ContactList = await this._entity.loadRoot(ContactListTypeRef, user.userGroup.group)
-				await this._entity.loadAll(ContactTypeRef, contactList.contacts)
+				const contactList: ContactList = await this.entity.loadRoot(ContactListTypeRef, user.userGroup.group)
+				await this.entity.loadAll(ContactTypeRef, contactList.contacts)
 			}
 		} catch (e) {
 			// external users have no contact list.
@@ -235,18 +233,18 @@ export class IndexedDbIndexer implements Indexer {
 		await this.initDeferred.promise
 		const enabled = await this.mailIndexer.enableMailIndexing()
 		if (enabled) {
-			this.mailIndexer.doInitialMailIndexing(this._initParams.user).catch(ofClass(CancelledError, noOp))
+			this.mailIndexer.doInitialMailIndexing(this.initParams.user).catch(ofClass(CancelledError, noOp))
 		}
 	}
 
 	async disableMailIndexing(): Promise<void> {
 		await this.initDeferred.promise
 
-		if (!this._core.isStoppedProcessing()) {
-			await this.deleteIndex(this._initParams.user._id)
+		if (!this.core.isStoppedProcessing()) {
+			await this.deleteIndex(this.initParams.user._id)
 			await this.init({
-				user: this._initParams.user,
-				keyLoaderFacade: this._initParams.keyLoaderFacade,
+				user: this.initParams.user,
+				keyLoaderFacade: this.initParams.keyLoaderFacade,
 			})
 		}
 	}
@@ -263,7 +261,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	extendMailIndex(newOldestTimestamp: number): Promise<void> {
-		return this.mailIndexer.extendIndexIfNeeded(this._initParams.user, newOldestTimestamp)
+		return this.mailIndexer.extendIndexIfNeeded(this.initParams.user, newOldestTimestamp)
 	}
 
 	cancelMailIndexing() {
@@ -283,13 +281,13 @@ export class IndexedDbIndexer implements Indexer {
 		this.eventQueue.start()
 	}
 
-	_reCreateIndex(): Promise<void> {
+	private reCreateIndex(): Promise<void> {
 		const mailIndexingWasEnabled = this.mailIndexer.mailIndexingEnabled
 		return this.mailIndexer.disableMailIndexing().then(() => {
 			// do not try to init again on error
 			return this.init({
-				user: this._initParams.user,
-				keyLoaderFacade: this._initParams.keyLoaderFacade,
+				user: this.initParams.user,
+				keyLoaderFacade: this.initParams.keyLoaderFacade,
 				retryOnError: false,
 			}).then(() => {
 				if (mailIndexingWasEnabled) {
@@ -310,9 +308,9 @@ export class IndexedDbIndexer implements Indexer {
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this.mailIndexer.mailIndexingEnabled)
 		await transaction.put(MetaDataOS, Metadata.encDbIv, aes256EncryptSearchIndexEntry(key, iv))
 		await transaction.put(MetaDataOS, Metadata.userGroupKeyVersion, userEncDbKey.encryptingKeyVersion)
-		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this._entityRestClient.getRestClient().getServerTimestampMs())
+		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, this.serverDateProvider.now())
 		await this._initGroupData(groupBatches, transaction)
-		await this._updateIndexedGroups()
+		await this.updateIndexedGroups()
 	}
 
 	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
@@ -322,11 +320,11 @@ export class IndexedDbIndexer implements Indexer {
 		const groupDiff = await this._loadGroupDiff(user)
 		await this._updateGroups(user, groupDiff)
 		await this.mailIndexer.updateCurrentIndexTimestamp(user)
-		await this._updateIndexedGroups()
-		await this._contactIndexer.init()
+		await this.updateIndexedGroups()
+		await this.contactIndexer.init()
 	}
 
-	async _updateIndexedGroups(): Promise<void> {
+	private async updateIndexedGroups(): Promise<void> {
 		const t: DbTransaction = await this.db.dbFacade.createTransaction(true, [GroupDataOS])
 		const indexedGroupIds = await promiseMap(await t.getAll(GroupDataOS), (groupDataEntry: DatabaseEntry) => downcast<Id>(groupDataEntry.key))
 
@@ -339,6 +337,7 @@ export class IndexedDbIndexer implements Indexer {
 		this._indexedGroupIds = indexedGroupIds
 	}
 
+	/** @private visibleForTesting */
 	_loadGroupDiff(user: User): Promise<{
 		deletedGroups: {
 			id: Id
@@ -391,9 +390,9 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	/**
-	 *
 	 * Initializes the index db for new groups of the user, but does not start the actual indexing for those groups.
 	 * If the user was removed from a contact or mail group the function throws a CancelledError to delete the complete mail index afterwards.
+	 * @private visibleForTesting
 	 */
 	_updateGroups(
 		user: User,
@@ -433,6 +432,7 @@ export class IndexedDbIndexer implements Indexer {
 
 	/**
 	 * Provides a GroupData object including the last 100 event batch ids for all indexed membership groups of the given user.
+	 * @private visibleForTesting
 	 */
 	_loadGroupData(
 		user: User,
@@ -452,7 +452,7 @@ export class IndexedDbIndexer implements Indexer {
 
 		return promiseMap(memberships, (membership: GroupMembership) => {
 			// we only need the latest EntityEventBatch to synchronize the index state after reconnect. The lastBatchIds are filled up to 100 with each event we receive.
-			return this._entity
+			return this.entity
 				.loadRange(EntityEventBatchTypeRef, membership.group, GENERATED_MAX_ID, 1, true)
 				.then((eventBatches) => {
 					return {
@@ -476,6 +476,7 @@ export class IndexedDbIndexer implements Indexer {
 
 	/**
 	 * creates the initial group data for all provided group ids
+	 * @private visibleForTesting
 	 */
 	_initGroupData(
 		groupBatches: {
@@ -515,7 +516,7 @@ export class IndexedDbIndexer implements Indexer {
 
 			let eventBatchesOnServer: EntityEventBatch[]
 			try {
-				eventBatchesOnServer = await this._entity.loadAll(EntityEventBatchTypeRef, groupId, startId)
+				eventBatchesOnServer = await this.entity.loadAll(EntityEventBatchTypeRef, groupId, startId)
 			} catch (e) {
 				if (e instanceof NotAuthorizedError) {
 					console.log(`could not download entity updates for group ${groupId} => lost permission on list`)
@@ -543,16 +544,16 @@ export class IndexedDbIndexer implements Indexer {
 		this.eventQueue.addBatches(batchesOfAllGroups)
 
 		// Add latest batches per group so that we can filter out overlapping realtime updates later
-		this._initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
+		this.initiallyLoadedBatchIdsPerGroup = lastLoadedBatchIdInGroup
 
 		this._realtimeEventQueue.resume()
 
 		this._startProcessing()
-		await this._writeServerTimestamp()
+		await this.writeServerTimestamp()
 	}
 
 	/**
-	 * @private
+	 * @private visibleForTesting
 	 */
 	_loadPersistentGroupData(user: User): Promise<
 		{
@@ -590,19 +591,19 @@ export class IndexedDbIndexer implements Indexer {
 			}
 
 			await this.mailIndexer.processEntityEvents(events, groupId, batchId)
-			await this._contactIndexer.processEntityEvents(events, groupId, batchId)
-			await this._core.writeGroupDataBatchId(groupId, batchId)
+			await this.contactIndexer.processEntityEvents(events, groupId, batchId)
+			await this.core.writeGroupDataBatchId(groupId, batchId)
 		} catch (e) {
 			if (e instanceof CancelledError) {
 				// no-op
-			} else if (e instanceof DbError && this._core.isStoppedProcessing()) {
+			} else if (e instanceof DbError && this.core.isStoppedProcessing()) {
 				console.log("Ignoring DBerror when indexing is disabled", e)
 			} else if (e instanceof InvalidDatabaseStateError) {
 				console.log("InvalidDatabaseStateError during _processEntityEvents")
 
 				this.stopProcessing()
 
-				return this._reCreateIndex()
+				return this.reCreateIndex()
 			} else {
 				throw e
 			}
@@ -610,16 +611,15 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	/**
-	 * @VisibleForTesting
-	 * @param events
+	 * @private visibleForTesting
 	 */
 	async _processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
 		for (const event of events) {
-			if (!(event.operation === OperationType.UPDATE && isSameId(this._initParams.user._id, event.instanceId))) {
+			if (!(event.operation === OperationType.UPDATE && isSameId(this.initParams.user._id, event.instanceId))) {
 				continue
 			}
-			this._initParams.user = await this._entity.load(UserTypeRef, event.instanceId)
-			await updateEncryptionMetadata(this.db.dbFacade, this._initParams.keyLoaderFacade, MetaDataOS)
+			this.initParams.user = await this.entity.load(UserTypeRef, event.instanceId)
+			await updateEncryptionMetadata(this.db.dbFacade, this.initParams.keyLoaderFacade, MetaDataOS)
 		}
 	}
 
@@ -628,7 +628,7 @@ export class IndexedDbIndexer implements Indexer {
 		const lastIndexTimeMs = await transaction.get(MetaDataOS, Metadata.lastEventIndexTimeMs)
 
 		if (lastIndexTimeMs != null) {
-			const now = this._entityRestClient.getRestClient().getServerTimestampMs()
+			const now = this.serverDateProvider.now()
 
 			const timeSinceLastIndex = now - lastIndexTimeMs
 
@@ -642,10 +642,10 @@ export class IndexedDbIndexer implements Indexer {
 		}
 	}
 
-	async _writeServerTimestamp() {
+	private async writeServerTimestamp() {
 		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS])
 
-		const now = this._entityRestClient.getRestClient().getServerTimestampMs()
+		const now = this.serverDateProvider.now()
 
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, now)
 	}
