@@ -2,6 +2,7 @@ import {
 	FULL_INDEXED_TIMESTAMP,
 	ImportStatus,
 	isFolder,
+	MailSetKind,
 	MailState,
 	NOTHING_INDEXED_TIMESTAMP,
 	OperationType,
@@ -332,7 +333,7 @@ export class MailIndexer {
 		const indexLoader = this.bulkLoaderFactory()
 
 		const mailboxIndexDatas: Array<MboxIndexData> = await promiseMap(mailBoxes, async (mailboxData) => {
-			const mailSetListIds = await this.loadMailFolderListIds(mailboxData.mbox)
+			const mailSetListIds = await this.loadIndexableMailFolderListIds(mailboxData.mbox)
 			return {
 				mailSetListDatas: mailSetListIds.map((listId) => {
 					return { loadedCompletely: false, lastLoadedId: null, loadedButUnusedEntries: [], listId }
@@ -452,9 +453,9 @@ export class MailIndexer {
 	/**
 	 * Provides all mail set list ids of the given mailbox
 	 */
-	private async loadMailFolderListIds(mailbox: MailBox): Promise<Id[]> {
+	private async loadIndexableMailFolderListIds(mailbox: MailBox): Promise<Id[]> {
 		const mailSets = await this.entityClient.loadAll(MailFolderTypeRef, assertNotNull(mailbox.folders).folders)
-		return mailSets.filter(isFolder).map((set) => set.entries)
+		return mailSets.filter((set) => isFolder(set) && set.folderType !== MailSetKind.SPAM).map((set) => set.entries)
 	}
 
 	private async processImportStateEntityEvents(event: EntityUpdateData): Promise<void> {
