@@ -19,6 +19,7 @@ import { SupportSuccessPage } from "./pages/SupportSuccessPage.js"
 import { SupportRequestSentPage } from "./pages/SupportRequestSentPage.js"
 import { EmailSupportUnavailablePage } from "./pages/EmailSupportUnavailablePage.js"
 import { Keys } from "../api/common/TutanotaConstants.js"
+import { getSupportUsageTestStage } from "./SupportUsageTestUtils.js"
 import { Dialog } from "../gui/base/Dialog.js"
 
 assertMainOrNode()
@@ -86,6 +87,9 @@ export async function showSupportDialog(logins: LoginController) {
 					if (selectedTopic) {
 						data.contactTemplate(getTopicContactTemplate(selectedTopic, lang.languageTag))
 						data.helpText(getTopicHelpText(selectedTopic, lang.languageTag))
+						const topicStage = getSupportUsageTestStage(1)
+						topicStage.setMetric({ name: "Topic", value: selectedTopic.issueEN.replaceAll(" ", "") })
+						void topicStage.complete()
 					}
 
 					navigateToPage("topicDetail")
@@ -151,12 +155,23 @@ export async function showSupportDialog(logins: LoginController) {
 			},
 		},
 		solutionWasHelpful: {
-			content: m(SupportSuccessPage),
+			content: m(SupportSuccessPage, { dialog }),
 			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "close_alt", title: "close_alt" },
+			leftAction: {
+				type: ButtonType.Secondary,
+				click: () => {
+					const stage = locator.usageTestController.getTest("support.rating").getStage(0)
+					stage.setMetric({ name: "Result", value: "Dismissed" })
+					void stage.complete()
+
+					dialog.onClose()
+				},
+				label: "close_alt",
+				title: "close_alt",
+			},
 		},
 		supportRequestSent: {
-			content: m(SupportRequestSentPage),
+			content: m(SupportRequestSentPage, { data }),
 			title: lang.get("supportMenu_label"),
 			leftAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "close_alt", title: "close_alt" },
 		},

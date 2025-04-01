@@ -41,6 +41,7 @@ import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils.js"
 import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { showSupportDialog } from "../../../common/support/SupportDialog.js"
+import { getSupportUsageTestStage } from "../../../common/support/SupportUsageTestUtils.js"
 
 assertMainOrNode()
 
@@ -224,7 +225,13 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 						container: "div",
 						style: { fill: theme.navigation_button },
 					}),
-					onclick: () => void showSupportDialog(locator.logins),
+					onclick: () => {
+						const triggerStage = getSupportUsageTestStage(0)
+						triggerStage.setMetric({ name: "Trigger", value: "Settings" })
+						void triggerStage.complete()
+
+						void showSupportDialog(locator.logins)
+					},
 				}),
 				// About button
 				isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,

@@ -21,6 +21,7 @@ import { ButtonColor, getColors } from "../../gui/base/Button.js"
 import { px, size } from "../../gui/size.js"
 import type { HtmlEditor } from "../../gui/editor/HtmlEditor.js"
 import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorViewModel.js"
+import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 
 type Props = {
 	data: SupportDialogState
@@ -38,6 +39,17 @@ export class ContactSupportPage implements Component<Props> {
 			data.logs(logs)
 			m.redraw()
 		})
+
+		const selectedTopic = data.selectedTopic()
+		const selectedCategory = data.selectedCategory()
+
+		if (selectedCategory) {
+			const result = (selectedTopic?.issueEN ?? `${selectedCategory.nameEN}_other`).replaceAll(" ", "")
+
+			const formStage = getSupportUsageTestStage(3)
+			formStage.setMetric({ name: "Result", value: result })
+			void formStage.complete()
+		}
 	}
 
 	async oncreate({ attrs: { data } }: Vnode<Props>): Promise<void> {

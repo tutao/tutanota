@@ -1,4 +1,5 @@
-import m, { Children, Component } from "mithril"
+import m from "mithril"
+import Mithril, { Children, Component } from "mithril"
 import { Card } from "../../gui/base/Card.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { client } from "../../misc/ClientDetector.js"
@@ -7,8 +8,27 @@ import { windowFacade } from "../../misc/WindowFacade.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { isIOSApp } from "../../api/common/Env"
 import { TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "../../api/common/TutanotaConstants"
+import { SupportDialogState } from "../SupportDialog.js"
+import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 
-export class SupportRequestSentPage implements Component {
+type SupportRequestSentPageAttrs = {
+	data: SupportDialogState
+}
+
+export class SupportRequestSentPage implements Component<SupportRequestSentPageAttrs> {
+	async oninit({ attrs: { data } }: Mithril.Vnode<SupportRequestSentPageAttrs>): Promise<void> {
+		const selectedTopic = data.selectedTopic()
+		const selectedCategory = data.selectedCategory()
+
+		if (selectedCategory != null) {
+			const result = (selectedTopic?.issueEN ?? `${selectedCategory.nameEN}_other`).replaceAll(" ", "")
+
+			const sendStage = getSupportUsageTestStage(4)
+			sendStage.setMetric({ name: "Result", value: result })
+			void sendStage.complete()
+		}
+	}
+
 	view(): Children {
 		const isCalendarApp = client.isCalendarApp()
 

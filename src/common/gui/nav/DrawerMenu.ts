@@ -107,7 +107,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								{
 									icon: Icons.SpeechBubbleFill,
 									label: "supportMenu_label",
-									click: () => showSupportDialog(logins),
+									click: () => void showSupportDialog(logins),
 								},
 								{
 									icon: Icons.KeyboardFill,

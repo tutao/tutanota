@@ -10,8 +10,15 @@ export async function showUpgradeDialog(): Promise<void> {
 	await (await import("../../subscription/UpgradeSubscriptionWizard.js")).showUpgradeWizard(locator.logins)
 }
 
-export function showSupportDialog(logins: LoginController) {
-	import("../../support/SupportDialog.js").then((supportModule) => supportModule.showSupportDialog(logins))
+export async function showSupportDialog(logins: LoginController) {
+	const supportModule = await import("../../support/SupportDialog.js")
+	const { getSupportUsageTestStage } = await import("../../support/SupportUsageTestUtils.js")
+
+	const triggerStage = getSupportUsageTestStage(0)
+	triggerStage.setMetric({ name: "Trigger", value: "Sidebar" })
+	void triggerStage.complete()
+
+	return supportModule.showSupportDialog(logins)
 }
 
 export function isNewMailActionAvailable(): boolean {

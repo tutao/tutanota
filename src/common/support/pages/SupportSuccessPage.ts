@@ -1,4 +1,4 @@
-import m, { Children, Component } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { Card } from "../../gui/base/Card.js"
 import { SectionButton } from "../../gui/base/buttons/SectionButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -11,9 +11,15 @@ import {
 	TUTA_MAIL_APP_STORE_URL,
 	TUTA_MAIL_GOOGLE_PLAY_URL,
 } from "../../api/common/TutanotaConstants"
+import { locator } from "../../api/main/CommonLocator.js"
+import { Dialog } from "../../gui/base/Dialog.js"
 
-export class SupportSuccessPage implements Component {
-	view(): Children {
+type SupportSuccessPageAttrs = {
+	dialog: Dialog
+}
+
+export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
+	view(vnode: Vnode<SupportSuccessPageAttrs>): Children {
 		return m(
 			".pt.pb",
 			m(
@@ -35,7 +41,7 @@ export class SupportSuccessPage implements Component {
 						}),
 					),
 				),
-				this.renderAppStoreLinks(),
+				this.renderAppStoreLinks(vnode.attrs.dialog),
 			),
 		)
 	}
@@ -45,28 +51,50 @@ export class SupportSuccessPage implements Component {
 	 * Tuta Mail App -> Rate Tuta Mail on Google Play and App Store
 	 * Tuta Calendar App -> Rate Tuta Calendar on Google Play and App Store
 	 */
-	private renderAppStoreLinks() {
+	private renderAppStoreLinks(dialog: Dialog) {
+		const closeDialog = () => dialog.close()
+
 		if (client.isCalendarApp()) {
-			return m.fragment({}, [this.renderAppStoreLink(TUTA_CALENDAR_APP_STORE_URL), this.renderGooglePlayLink(TUTA_CALENDAR_GOOGLE_PLAY_URL)])
+			return m.fragment({}, [
+				this.renderAppStoreLink(TUTA_CALENDAR_APP_STORE_URL, closeDialog),
+				this.renderGooglePlayLink(TUTA_CALENDAR_GOOGLE_PLAY_URL, closeDialog),
+			])
 		} else {
-			return m.fragment({}, [this.renderAppStoreLink(TUTA_MAIL_APP_STORE_URL), this.renderGooglePlayLink(TUTA_MAIL_GOOGLE_PLAY_URL)])
+			return m.fragment({}, [
+				this.renderAppStoreLink(TUTA_MAIL_APP_STORE_URL, closeDialog),
+				this.renderGooglePlayLink(TUTA_MAIL_GOOGLE_PLAY_URL, closeDialog),
+			])
 		}
 	}
 
-	private renderAppStoreLink(url: string) {
+	private renderAppStoreLink(url: string, onClick: VoidFunction) {
 		return m(SectionButton, {
 			text: "rateAppStore_action",
 			onclick: () => {
+				const usageTest = locator.usageTestController.getTest("support.rating")
+				const stage = usageTest.getStage(0)
+				stage.setMetric({ name: "Result", value: "RatedAppStore" })
+				void stage.complete()
+
+				onClick()
+
 				windowFacade.openLink(url)
 			},
 			rightIcon: { icon: Icons.Open, title: "open_action" },
 		})
 	}
 
-	private renderGooglePlayLink(url: string) {
+	private renderGooglePlayLink(url: string, onClick: VoidFunction) {
 		return m(SectionButton, {
 			text: "rateGooglePlay_action",
 			onclick: () => {
+				const usageTest = locator.usageTestController.getTest("support.rating")
+				const stage = usageTest.getStage(0)
+				stage.setMetric({ name: "Result", value: "RatedGooglePlay" })
+				void stage.complete()
+
+				onClick()
+
 				windowFacade.openLink(url)
 			},
 			rightIcon: { icon: Icons.Open, title: "open_action" },

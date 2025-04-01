@@ -75,6 +75,7 @@ import { BaseButton } from "../../common/gui/base/buttons/BaseButton"
 import { showSupportDialog } from "../../common/support/SupportDialog"
 import { Icon, IconSize } from "../../common/gui/base/Icon"
 import { MailExportViewer } from "./MailExportViewer"
+import { getSupportUsageTestStage } from "../../common/support/SupportUsageTestUtils.js"
 
 assertMainOrNode()
 
@@ -798,7 +799,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					container: "div",
 					style: { fill: theme.navigation_button },
 				}),
-				onclick: () => void showSupportDialog(locator.logins),
+				onclick: () => {
+					const triggerStage = getSupportUsageTestStage(0)
+					triggerStage.setMetric({ name: "Trigger", value: "Settings" })
+					void triggerStage.complete()
+
+					void showSupportDialog(locator.logins)
+				},
 			}),
 			// About button
 			isFirstPartyDomain ? this._aboutThisSoftwareLink() : null,
