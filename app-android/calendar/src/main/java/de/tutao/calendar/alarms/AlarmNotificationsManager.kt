@@ -30,7 +30,6 @@ class AlarmNotificationsManager(
 	private val pushKeyResolver: PushKeyResolver = PushKeyResolver(sseStorage)
 
 	fun reScheduleAlarms() {
-		val pushKeyResolver = PushKeyResolver(sseStorage)
 		val alarmInfos = sseStorage.readAlarmNotifications()
 		for (alarmNotification in alarmInfos) {
 			val sessionKey = resolveNotificationSessionKey(alarmNotification, pushKeyResolver)
@@ -77,13 +76,13 @@ class AlarmNotificationsManager(
 		return null
 	}
 
-	fun scheduleNewAlarms(alarmNotifications: List<EncryptedAlarmNotification>) {
+	fun scheduleNewAlarms(alarmNotifications: List<EncryptedAlarmNotification>, newDeviceSessionKey: ByteArray?) {
 		for (alarmNotification in alarmNotifications) {
 			if (alarmNotification.operation == OperationType.CREATE) {
 				val alarmNotificationEntity = alarmNotification.toEntity()
-				val sessionKey = resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
+				val sessionKey = newDeviceSessionKey ?: resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
 				if (sessionKey == null) {
-					Log.d(TAG, "Failed to resolve session key for alarm notification")
+					Log.d(TAG, "Failed to resolve session key for alarm notification.")
 					return
 				}
 				try {
