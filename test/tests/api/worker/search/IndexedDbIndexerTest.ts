@@ -14,10 +14,9 @@ import { OutOfSyncError } from "../../../../../src/common/api/common/error/OutOf
 import { assertThrows, mock } from "@tutao/tutanota-test-utils"
 import { createTestEntity } from "../../../TestUtils.js"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
-import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { MembershipRemovedError } from "../../../../../src/common/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, getElementId, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { daysToMillis, defer, downcast, freshVersioned, TypeRef } from "@tutao/tutanota-utils"
+import { daysToMillis, defer, freshVersioned, TypeRef } from "@tutao/tutanota-utils"
 import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import o from "@tutao/otest"
 import { func, matchers, object, verify, when } from "testdouble"
@@ -1070,6 +1069,56 @@ o.spec("IndexedDbIndexer", () => {
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 
 			await indexer.init({ user, keyLoaderFacade, cacheInfo })
+		})
+	})
+	o.spec("enable/disable mailIndexing", function () {
+		let indexer: IndexedDbIndexer
+		const userGroupId = "user-group-id"
+		let user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, {
+				group: userGroupId,
+			}),
+		})
+		let userGroupKey: VersionedKey
+
+		o.beforeEach(async function () {
+			userGroupKey = freshVersioned(aes256RandomKey())
+			when(contactIndexer.areContactsIndexed()).thenResolve(true)
+			// for initial init
+			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
+			// for re-init
+			when(keyLoaderFacade.loadSymUserGroupKey(0)).thenResolve(userGroupKey.object)
+			when(mailIndexer.doInitialMailIndexing(matchers.anything())).thenResolve()
+			when(mailIndexer.disableMailIndexing()).thenResolve()
+			indexer = indexerTemplate
+			const t = await idbStub.createTransaction()
+			t.put(GroupDataOS, userGroupId, { groupType: GroupType.User })
+
+			await indexer.init({ user, keyLoaderFacade })
+		})
+
+		o.spec("enableMailIndexing", function () {
+			o.test("when was actually enabled it does initial mail indexing", async function () {
+				when(mailIndexer.enableMailIndexing()).thenResolve(true)
+				await indexer.enableMailIndexing()
+				verify(mailIndexer.enableMailIndexing())
+				verify(mailIndexer.doInitialMailIndexing(user))
+			})
+
+			o.test("when was already enabled it does nothing", async function () {
+				when(mailIndexer.enableMailIndexing()).thenResolve(false)
+				await indexer.enableMailIndexing()
+				verify(mailIndexer.enableMailIndexing())
+				verify(mailIndexer.doInitialMailIndexing(matchers.anything()), { times: 0 })
+			})
+		})
+
+		o.spec("disableMailIndexing", function () {
+			o.test("it deletes the index and initializes again", async function () {
+				await indexer.disableMailIndexing()
+
+				verify(mailIndexer.disableMailIndexing())
+			})
 		})
 	})
 })
