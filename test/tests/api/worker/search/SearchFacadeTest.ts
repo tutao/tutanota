@@ -66,7 +66,7 @@ o.spec("SearchFacade test", () => {
 				mailboxIndexingPromise: Promise.resolve(),
 				currentIndexTimestamp: currentIndexTimestamp,
 			} as any,
-			[],
+			object(),
 			browserData,
 			entityClient,
 		)

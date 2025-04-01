@@ -54,9 +54,9 @@ import { modelInfos } from "../../../common/api/common/EntityFunctions.js"
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
-import { BitArray, random } from "@tutao/tutanota-crypto"
+import { random } from "@tutao/tutanota-crypto"
 import { ExportFacadeSendDispatcher } from "../../../common/native/common/generatedipc/ExportFacadeSendDispatcher.js"
-import { assertNotNull, delay, downcast, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
 import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacadeSendDispatcher } from "../../../common/native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
@@ -502,7 +502,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			return new OfflineStorageSearchFacade(locator.sqlCipherFacade, await mailIndexer(), await contactIndexer())
 		} else {
 			const { IndexedDbSearchFacade } = await import("../index/IndexedDbSearchFacade.js")
-			// FIXME
 			return new IndexedDbSearchFacade(locator.user, db, await mailIndexer(), contactSuggestionFacade, browserData, locator.cachingEntityClient)
 		}
 	})
