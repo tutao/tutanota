@@ -111,12 +111,12 @@ pub struct ModelAssociation {
 	#[serde(rename = "type")]
 	pub association_type: AssociationType,
 	pub cardinality: Cardinality,
-	/// Name of the type it is referencing
+	/// typeId of the type it is referencing
 	pub ref_type_id: TypeId,
 	/// Can it be changed
 	#[serde(rename = "final")]
 	pub is_final: bool,
-	/// From which model we import this association from. Currently the field only exists for aggregates because they are only ones
+	/// From which model we import this association from. Currently, the field only exists for aggregates because they are only ones
 	/// which can be imported across models.
 	pub dependency: Option<&'static str>,
 }

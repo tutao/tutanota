@@ -118,7 +118,11 @@ impl JsonSerializer {
                 &association_type.cardinality,
                 value,
             ) {
-                (AssociationType::Aggregation, _, JsonElement::Array(elements)) => {
+                (
+					AssociationType::Aggregation,
+					_,
+					JsonElement::Array(elements)
+				) => {
                     let parsed_aggregates = self.parse_aggregated_array(
                         association_name,
                         &association_type_ref,
@@ -131,20 +135,23 @@ impl JsonSerializer {
                 }
                 (
                     AssociationType::ListElementAssociationGenerated
-                    | AssociationType::BlobElementAssociation,
+					| AssociationType::BlobElementAssociation,
                     _,
                     JsonElement::Array(vec),
                 ) => {
-                    let ids =
-                        self.parse_id_tuple_list_generated(type_ref, association_name, vec)?;
+                    let ids = self.parse_id_tuple_list_generated(type_ref, association_name, vec)?;
                     mapped.insert(association_id_string.clone(), ElementValue::Array(ids));
                 }
-                (AssociationType::ListElementAssociationCustom, _, JsonElement::Array(vec)) => {
+                (
+					AssociationType::ListElementAssociationCustom,
+					_,
+					JsonElement::Array(vec)
+				) => {
                     let ids = self.parse_id_tuple_list_custom(type_ref, association_name, vec)?;
                     mapped.insert(association_id_string.clone(), ElementValue::Array(ids));
                 }
                 (
-                    AssociationType::ListAssociation | AssociationType::ElementAssociation,
+					AssociationType::ListAssociation | AssociationType::ElementAssociation,
                     _,
                     JsonElement::Array(vec),
                 ) => {
@@ -159,11 +166,7 @@ impl JsonSerializer {
                             }
                         })
                         .collect::<Vec<ElementValue>>();
-
-                    mapped.insert(
-                        association_id_string.clone(),
-                        ElementValue::Array(element_values),
-                    );
+                    mapped.insert(association_id_string.clone(), ElementValue::Array(element_values), );
                 }
                 (_, _, value) => panic!("Unknown Association/cardinality/valueType combination: association id = {} cardinality = {:?} valueType = {:?} value {:?}", association_id, association_type.cardinality, association_type.association_type, value),
             }
@@ -281,61 +284,25 @@ impl JsonSerializer {
 					field: association_name.to_owned(),
 				})?;
 
-			let association_type_ref = TypeRef {
-				// aggregates can be imported across app (e.g. SystemModel, etc.)
-				app: association_type.dependency.unwrap_or(type_ref.app),
-				type_id: association_type.ref_type_id,
-			};
-			let serialized_association = match (
-				&association_type.association_type,
-				&association_type.cardinality,
-				association,
-			) {
-				// all associations are wrapped in ElementValue:Array, ignoring actual
-				// cardinalities up to the instance layer
-				(_, _, ElementValue::Array(elements)) => {
-					let serialized_aggregates = self.make_serialized_aggregated_array(
+			let serialized_association = match association {
+				// all associations are wrapped in ElementValue:Array,
+				// ignoring actual cardinalities up to the instance layer
+				// i.e. for ParsedEntity and RawEntity associations are always arrays
+				ElementValue::Array(elements) => {
+					let association_type_ref = TypeRef {
+						// aggregates can be imported across app (e.g. SystemModel, etc.)
+						app: association_type.dependency.unwrap_or(type_ref.app),
+						type_id: association_type.ref_type_id,
+					};
+					let serialized_associations = self.make_serialized_array(
 						association_name,
 						&association_type_ref,
 						elements,
 					)?;
-					JsonElement::Array(serialized_aggregates)
+					JsonElement::Array(serialized_associations)
 				},
-				(
-					AssociationType::Aggregation,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					ElementValue::Dict(dict),
-				) => {
-					let serialized = self.serialize(&association_type_ref, dict)?;
-					JsonElement::Array(vec![JsonElement::Dict(serialized)])
-				},
-				(
-					AssociationType::ElementAssociation | AssociationType::ListAssociation,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					ElementValue::IdGeneratedId(id),
-				) => {
-					// Note: it's not always generated id, but it's fine probably
-					JsonElement::Array(vec![JsonElement::String(id.into())])
-				},
-				(
-					AssociationType::ListElementAssociationGenerated
-					| AssociationType::BlobElementAssociation,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					ElementValue::IdTupleGeneratedElementId(id_tuple),
-				) => JsonElement::Array(vec![JsonElement::Array(vec![
-					JsonElement::String(id_tuple.list_id.into()),
-					JsonElement::String(id_tuple.element_id.into()),
-				])]),
-				(
-					AssociationType::ListElementAssociationCustom,
-					Cardinality::One | Cardinality::ZeroOrOne,
-					ElementValue::IdTupleCustomElementId(id_tuple),
-				) => JsonElement::Array(vec![JsonElement::Array(vec![
-					JsonElement::String(id_tuple.list_id.into()),
-					JsonElement::String(id_tuple.element_id.into()),
-				])]),
 				_ => {
-					debug_assert!(false, "unknown combination of association");
+					debug_assert!(false, "associations are not wrapped in an array");
 					continue;
 				},
 			};
@@ -346,8 +313,8 @@ impl JsonSerializer {
 		Ok(mapped)
 	}
 
-	/// Creates a JSON array from an aggregated array
-	fn make_serialized_aggregated_array(
+	/// Creates a serialized JSON array from an association array
+	fn make_serialized_array(
 		&self,
 		association_name: &String,
 		association_type_ref: &TypeRef,
@@ -359,6 +326,10 @@ impl JsonSerializer {
 				ElementValue::Dict(a) => {
 					let serialized = self.serialize(association_type_ref, a)?;
 					serialized_elements.push(JsonElement::Dict(serialized));
+				},
+				ElementValue::IdGeneratedId(id) => {
+					// Note: it's not always generated id, but it's fine probably
+					serialized_elements.push(JsonElement::String(id.into()));
 				},
 				ElementValue::String(v) => {
 					serialized_elements.push(JsonElement::String(v));
@@ -651,39 +622,43 @@ mod tests {
 
 	#[test]
 	fn test_parse_mail() {
+		// TODO: Expand this test to cover bucket keys in mail
 		let type_model_provider = Arc::new(TypeModelProvider::new());
-		let mapper = JsonSerializer {
+		let json_serializer = JsonSerializer {
 			type_model_provider,
 		};
-		// TODO: Expand this test to cover bucket keys in mail
 		let email_json = include_str!("../test_data/email_response.json");
 		let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
-		mapper.parse(&Mail::type_ref(), raw_entity).unwrap();
+		json_serializer
+			.parse(&Mail::type_ref(), raw_entity)
+			.unwrap();
 	}
 
 	#[test]
-	fn test_parse_mail_empty_boolean_defaults_to_false() {
+	fn test_parse_mail_empty_encrypted_boolean_defaults_to_false() {
 		let type_model_provider = Arc::new(TypeModelProvider::new());
-		let mapper = JsonSerializer {
+		let json_serializer = JsonSerializer {
 			type_model_provider,
 		};
-		// TODO: Expand this test to cover bucket keys in mail
-		let email_json =
-			include_str!("../test_data/email_response_empty_boolean_defaults_to_false.json");
+		let email_json = include_str!(
+			"../test_data/email_response_empty_encrypted_boolean_defaults_to_false.json"
+		);
 		let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
-		mapper.parse(&Mail::type_ref(), raw_entity).unwrap();
+		json_serializer
+			.parse(&Mail::type_ref(), raw_entity)
+			.unwrap();
 	}
 
 	#[test]
 	fn test_parse_mail_with_attachments() {
 		let type_model_provider = Arc::new(TypeModelProvider::new());
-		let mapper = JsonSerializer {
+		let json_serializer = JsonSerializer {
 			type_model_provider,
 		};
 		let email_json = include_str!("../test_data/email_response_attachments.json");
 		let raw_entity = serde_json::from_str::<RawEntity>(email_json).unwrap();
 		let type_ref = Mail::type_ref();
-		let parsed = mapper.parse(&type_ref, raw_entity).unwrap();
+		let parsed = json_serializer.parse(&type_ref, raw_entity).unwrap();
 		assert_eq!(
 			&ElementValue::Array(vec![ElementValue::IdTupleGeneratedElementId(
 				IdTupleGenerated::new(
@@ -700,13 +675,13 @@ mod tests {
 	#[test]
 	fn test_parse_user() {
 		let type_model_provider = Arc::new(TypeModelProvider::new());
-		let mapper = JsonSerializer {
+		let json_serializer = JsonSerializer {
 			type_model_provider,
 		};
 		let user_json = include_str!("../test_data/user_response.json");
 		let raw_entity = serde_json::from_str::<RawEntity>(user_json).unwrap();
 		let type_ref = User::type_ref();
-		let parsed = mapper.parse(&type_ref, raw_entity).unwrap();
+		let parsed = json_serializer.parse(&type_ref, raw_entity).unwrap();
 		let ship = parsed
 			.get(&get_attribute_id_by_attribute_name(User::type_ref(), "memberships").unwrap())
 			.unwrap()
@@ -740,13 +715,13 @@ mod tests {
 	#[test]
 	fn test_parse_user_with_empty_group_key() {
 		let type_model_provider = Arc::new(TypeModelProvider::new());
-		let mapper = JsonSerializer {
+		let json_serializer = JsonSerializer {
 			type_model_provider,
 		};
 		let user_json = include_str!("../test_data/user_response_empty_group_key.json");
 		let raw_entity = serde_json::from_str::<RawEntity>(user_json).unwrap();
 		let type_ref = User::type_ref();
-		let parsed = mapper.parse(&type_ref, raw_entity).unwrap();
+		let parsed = json_serializer.parse(&type_ref, raw_entity).unwrap();
 		let ship = parsed
 			.get(&get_attribute_id_by_attribute_name(User::type_ref(), "memberships").unwrap())
 			.unwrap()
