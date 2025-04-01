@@ -332,209 +332,213 @@ o.spec("IndexedDbIndexer", () => {
 		})
 	})
 
-	o.test("_updateGroups disable MailIndexing in case of a deleted mail group", async function () {
-		let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
-			mock.disableMailIndexing = spy(() => Promise.resolve())
+	o.spec("_updateGroups", function () {
+		o.test("disable MailIndexing in case of a deleted mail group", async function () {
+			let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
+				mock.disableMailIndexing = spy(() => Promise.resolve())
+			})
+			let user = createTestEntity(UserTypeRef)
+			let groupDiff = {
+				deletedGroups: [
+					{
+						id: "groupId",
+						type: GroupType.Mail,
+					},
+				],
+				newGroups: [],
+			}
+			await o.check(() => indexer._updateGroups(user, groupDiff)).asyncThrows(MembershipRemovedError)
 		})
-		let user = createTestEntity(UserTypeRef)
-		let groupDiff = {
-			deletedGroups: [
+
+		o.test("disable MailIndexing in case of a deleted contact group", async function () {
+			let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
+				mock.disableMailIndexing = spy(() => Promise.resolve())
+			})
+			let user = createTestEntity(UserTypeRef)
+			let groupDiff = {
+				deletedGroups: [
+					{
+						id: "groupId",
+						type: GroupType.Contact,
+					},
+				],
+				newGroups: [],
+			}
+			await o(() => indexer._updateGroups(user, groupDiff)).asyncThrows(MembershipRemovedError)
+		})
+
+		o.test("don't disable MailIndexing in case no mail or contact group has been deleted", async function () {
+			let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
+				mock.disableMailIndexing = spy()
+			})
+			let user = createTestEntity(UserTypeRef)
+			let groupDiff = {
+				deletedGroups: [
+					{
+						id: "groupId",
+						type: GroupType.MailingList,
+					},
+				],
+				newGroups: [],
+			}
+
+			await indexer._updateGroups(user, groupDiff)
+		})
+
+		o.test("do not index new mail groups", async function () {
+			let transaction = "transaction"
+			let groupBatches = "groupBatches"
+
+			let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
+				mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
+				mock._initGroupData = spy(() => Promise.resolve())
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				} as any
+			})
+			let user = createTestEntity(UserTypeRef)
+			let groupDiff = {
+				deletedGroups: [],
+				newGroups: [
+					{
+						id: "groupId",
+						type: GroupType.Mail,
+					},
+				],
+			}
+
+			await indexer._updateGroups(user, groupDiff)
+			o.check(indexer._loadGroupData.callCount).equals(1)
+			o.check(indexer._loadGroupData.args[0]).equals(user)
+			o.check(indexer._initGroupData.callCount).equals(1)
+			o.check(indexer._initGroupData.args).deepEquals([groupBatches, transaction])
+			verify(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o.test("only init group data for non mail groups (do not index)", async function () {
+			let transaction = object<DbTransaction>()
+			let groupBatches = "groupBatches"
+
+			when(dbFacade.createTransaction(matchers.anything(), matchers.anything())).thenResolve(transaction)
+			let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
+				mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
+				mock._initGroupData = spy(() => Promise.resolve())
+			})
+			let user = createTestEntity(UserTypeRef)
+			let groupDiff = {
+				deletedGroups: [],
+				newGroups: [
+					{
+						id: "groupId",
+						type: GroupType.Contact,
+					},
+				],
+			}
+
+			await indexer._updateGroups(user, groupDiff)
+			o.check(indexer._loadGroupData.callCount).equals(1)
+			o.check(indexer._loadGroupData.args[0]).equals(user)
+			o.check(indexer._initGroupData.callCount).equals(1)
+			o.check(indexer._initGroupData.args).deepEquals([groupBatches, transaction])
+			verify(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+	})
+
+	o.spec("_loadGroupData", function () {
+		o.test("_loadGroup on the server", async function () {
+			const user = createTestEntity(UserTypeRef, {
+				memberships: [
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Mail,
+						group: "group-mail",
+					}),
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.MailingList,
+						group: "group-team",
+					}),
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Contact,
+						group: "group-contact",
+					}),
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Customer,
+						group: "group-customer",
+					}),
+				],
+			})
+
+			when(entityClient.loadRange(EntityEventBatchTypeRef, matchers.anything(), GENERATED_MAX_ID, 1, true)).thenResolve([
+				createTestEntity(EntityEventBatchTypeRef, {
+					_id: ["batch-list-id", "event-batch-id"],
+				}),
+			])
+			let indexer = new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+
+			const result = await indexer._loadGroupData(user)
+			o(result).deepEquals([
 				{
-					id: "groupId",
-					type: GroupType.Mail,
+					groupId: "group-mail",
+					groupData: {
+						lastBatchIds: ["event-batch-id"],
+						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+						groupType: GroupType.Mail,
+					},
 				},
-			],
-			newGroups: [],
-		}
-		await o.check(() => indexer._updateGroups(user, groupDiff)).asyncThrows(MembershipRemovedError)
-	})
-
-	o.test("_updateGroups disable MailIndexing in case of a deleted contact group", async function () {
-		let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
-			mock.disableMailIndexing = spy(() => Promise.resolve())
-		})
-		let user = createTestEntity(UserTypeRef)
-		let groupDiff = {
-			deletedGroups: [
 				{
-					id: "groupId",
-					type: GroupType.Contact,
+					groupId: "group-contact",
+					groupData: {
+						lastBatchIds: ["event-batch-id"],
+						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+						groupType: GroupType.Contact,
+					},
 				},
-			],
-			newGroups: [],
-		}
-		await o(() => indexer._updateGroups(user, groupDiff)).asyncThrows(MembershipRemovedError)
-	})
-
-	o.test("_updateGroups don't disable MailIndexing in case no mail or contact group has been deleted", async function () {
-		let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
-			mock.disableMailIndexing = spy()
-		})
-		let user = createTestEntity(UserTypeRef)
-		let groupDiff = {
-			deletedGroups: [
 				{
-					id: "groupId",
-					type: GroupType.MailingList,
+					groupId: "group-customer",
+					groupData: {
+						lastBatchIds: ["event-batch-id"],
+						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+						groupType: GroupType.Customer,
+					},
 				},
-			],
-			newGroups: [],
-		}
-
-		await indexer._updateGroups(user, groupDiff)
-	})
-
-	o.test("_updateGroups do not index new mail groups", async function () {
-		let transaction = "transaction"
-		let groupBatches = "groupBatches"
-
-		// FIXME: no new Date() >.<
-		;(mailIndexer as Writeable<MailIndexer>).currentIndexTimestamp = new Date().getTime()
-		let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
-			mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
-			mock._initGroupData = spy(() => Promise.resolve())
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			} as any
+			])
 		})
-		let user = createTestEntity(UserTypeRef)
-		let groupDiff = {
-			deletedGroups: [],
-			newGroups: [
+
+		o.test("_loadGroupData not authorized", async function () {
+			const user = createTestEntity(UserTypeRef, {
+				memberships: [
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Mail,
+						group: "group-mail",
+					}),
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.MailingList,
+						group: "group-team",
+					}),
+				],
+			})
+
+			when(entityClient.loadRange(EntityEventBatchTypeRef, "group-mail", GENERATED_MAX_ID, 1, true)).thenResolve([
+				createTestEntity(EntityEventBatchTypeRef, {
+					_id: ["batch-list-id", "event-batch-id"],
+				}),
+			])
+			when(entityClient.loadRange(EntityEventBatchTypeRef, "group-team", GENERATED_MAX_ID, 1, true)).thenReject(new NotAuthorizedError("test"))
+
+			const indexer = new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
+			const result = await indexer._loadGroupData(user)
+			o.check(result).deepEquals([
 				{
-					id: "groupId",
-					type: GroupType.Mail,
+					groupId: "group-mail",
+					groupData: {
+						lastBatchIds: ["event-batch-id"],
+						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+						groupType: GroupType.Mail,
+					},
 				},
-			],
-		}
-
-		await indexer._updateGroups(user, groupDiff)
-		o.check(indexer._loadGroupData.callCount).equals(1)
-		o.check(indexer._loadGroupData.args[0]).equals(user)
-		o.check(indexer._initGroupData.callCount).equals(1)
-		o.check(indexer._initGroupData.args).deepEquals([groupBatches, transaction])
-		verify(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything()), { times: 0 })
-	})
-
-	o.test("_updateGroups only init group data for non mail groups (do not index)", async function () {
-		let transaction = object<DbTransaction>()
-		let groupBatches = "groupBatches"
-
-		when(dbFacade.createTransaction(matchers.anything(), matchers.anything())).thenResolve(transaction)
-		let indexer = mock(new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer), (mock) => {
-			mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
-			mock._initGroupData = spy(() => Promise.resolve())
+			])
 		})
-		let user = createTestEntity(UserTypeRef)
-		let groupDiff = {
-			deletedGroups: [],
-			newGroups: [
-				{
-					id: "groupId",
-					type: GroupType.Contact,
-				},
-			],
-		}
-
-		await indexer._updateGroups(user, groupDiff)
-		o.check(indexer._loadGroupData.callCount).equals(1)
-		o.check(indexer._loadGroupData.args[0]).equals(user)
-		o.check(indexer._initGroupData.callCount).equals(1)
-		o.check(indexer._initGroupData.args).deepEquals([groupBatches, transaction])
-		verify(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything()), { times: 0 })
-	})
-	o.test("_loadGroupData", async function () {
-		const user = createTestEntity(UserTypeRef, {
-			memberships: [
-				createTestEntity(GroupMembershipTypeRef, {
-					groupType: GroupType.Mail,
-					group: "group-mail",
-				}),
-				createTestEntity(GroupMembershipTypeRef, {
-					groupType: GroupType.MailingList,
-					group: "group-team",
-				}),
-				createTestEntity(GroupMembershipTypeRef, {
-					groupType: GroupType.Contact,
-					group: "group-contact",
-				}),
-				createTestEntity(GroupMembershipTypeRef, {
-					groupType: GroupType.Customer,
-					group: "group-customer",
-				}),
-			],
-		})
-
-		when(entityClient.loadRange(EntityEventBatchTypeRef, matchers.anything(), GENERATED_MAX_ID, 1, true)).thenResolve([
-			createTestEntity(EntityEventBatchTypeRef, {
-				_id: ["batch-list-id", "event-batch-id"],
-			}),
-		])
-		let indexer = new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
-
-		const result = await indexer._loadGroupData(user)
-		o(result).deepEquals([
-			{
-				groupId: "group-mail",
-				groupData: {
-					lastBatchIds: ["event-batch-id"],
-					indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-					groupType: GroupType.Mail,
-				},
-			},
-			{
-				groupId: "group-contact",
-				groupData: {
-					lastBatchIds: ["event-batch-id"],
-					indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-					groupType: GroupType.Contact,
-				},
-			},
-			{
-				groupId: "group-customer",
-				groupData: {
-					lastBatchIds: ["event-batch-id"],
-					indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-					groupType: GroupType.Customer,
-				},
-			},
-		])
 	})
 
-	o.test("_loadGroupData not authorized", async function () {
-		const user = createTestEntity(UserTypeRef, {
-			memberships: [
-				createTestEntity(GroupMembershipTypeRef, {
-					groupType: GroupType.Mail,
-					group: "group-mail",
-				}),
-				createTestEntity(GroupMembershipTypeRef, {
-					groupType: GroupType.MailingList,
-					group: "group-team",
-				}),
-			],
-		})
-
-		when(entityClient.loadRange(EntityEventBatchTypeRef, "group-mail", GENERATED_MAX_ID, 1, true)).thenResolve([
-			createTestEntity(EntityEventBatchTypeRef, {
-				_id: ["batch-list-id", "event-batch-id"],
-			}),
-		])
-		when(entityClient.loadRange(EntityEventBatchTypeRef, "group-team", GENERATED_MAX_ID, 1, true)).thenReject(new NotAuthorizedError("test"))
-
-		const indexer = new IndexedDbIndexer(restClientMock, db, core, infoMessageHandler, entityClient, mailIndexer, contactIndexer)
-		const result = await indexer._loadGroupData(user)
-		o.check(result).deepEquals([
-			{
-				groupId: "group-mail",
-				groupData: {
-					lastBatchIds: ["event-batch-id"],
-					indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-					groupType: GroupType.Mail,
-				},
-			},
-		])
-	})
 	o.test("_initGroupData", async function () {
 		let groupBatches = [
 			{
