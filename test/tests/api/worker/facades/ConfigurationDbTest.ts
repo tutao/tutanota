@@ -48,7 +48,7 @@ o.spec("ConfigurationDbTest", function () {
 			stub.addObjectStore("ExternalAllowListOS", false, "address")
 
 			for (let entry of allowListTable) {
-				const transaction = stub.createTransaction()
+				const transaction = await stub.createTransaction()
 				const encryptedAddress = await encryptItem(entry.address, key, iv)
 				await transaction.put("ExternalAllowListOS", null, {
 					address: encryptedAddress,

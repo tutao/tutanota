@@ -26,9 +26,15 @@ export class DbStub {
 	_objectStores: { [name: string]: TableStub }
 	indexingSupported: boolean
 
+	private _id!: string
+
 	constructor() {
 		this._objectStores = {}
 		this.indexingSupported = true
+	}
+
+	async open(id: string) {
+		this._id = id
 	}
 
 	addObjectStore(name: ObjectStoreName, autoIncrement: boolean, keyPath?: string, index?: Index) {
@@ -41,12 +47,48 @@ export class DbStub {
 		}
 	}
 
+	createObjectStore(name: ObjectStoreName, options: IDBObjectStoreParameters = {}): IDBObjectStore {
+		if (Array.isArray(options.keyPath)) {
+			throw new Error("nested keypaths not supported")
+		}
+		const osObject = {
+			content: {},
+			autoIncrement: options.autoIncrement ?? false,
+			indexes: {},
+			keyPath: options.keyPath,
+			lastId: null,
+		}
+		this._objectStores[osName(name)] = osObject
+
+		const osStub: Partial<IDBObjectStore> = {
+			createIndex(name: string, keyPath: string | string[], options?: IDBIndexParameters): IDBIndex {
+				osObject.indexes[name] = keyPath
+				return {} as Partial<IDBIndex> as IDBIndex
+			},
+		}
+		return osStub as IDBObjectStore
+	}
+
 	getObjectStore(name: ObjectStoreName): TableStub {
 		return this._objectStores[osName(name)]
 	}
 
-	createTransaction(): DbStubTransaction {
+	async createTransaction(): Promise<DbStubTransaction> {
 		return new DbStubTransaction(this)
+	}
+
+	getValue(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): any {
+		if (indexName) {
+			const table = this.getObjectStore(objectStore)
+			const indexField = table.indexes[indexName]
+			if (!indexField) throw new Error("No such index: " + indexName)
+			const value = Object.values(table.content)
+				.map(downcast)
+				.find((value) => value[indexField] === key)
+			return neverNull(value)
+		} else {
+			return this.getObjectStore(objectStore).content[key as any]
+		}
 	}
 }
 
@@ -80,18 +122,7 @@ export class DbStubTransaction implements DbTransaction {
 	}
 
 	getSync<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): T {
-		if (indexName) {
-			const table = this._dbStub.getObjectStore(objectStore)
-			const indexField = table.indexes[indexName]
-			if (!indexField) throw new Error("No such index: " + indexName)
-			const value = Object.values(table.content)
-				.map(downcast)
-				.find((value) => value[indexField] === key)
-			return neverNull(value)
-		} else {
-			// @ts-ignore[TS2538]
-			return this._dbStub.getObjectStore(objectStore).content[key]
-		}
+		return this._dbStub.getValue(objectStore, key, indexName)
 	}
 
 	async getAsList<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T[]> {

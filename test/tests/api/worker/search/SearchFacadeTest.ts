@@ -167,10 +167,10 @@ o.spec("SearchFacade test", () => {
 
 	let dbStub: DbStub
 	let transaction: DbStubTransaction
-	o.beforeEach(() => {
+	o.beforeEach(async () => {
 		dbKey = aes256RandomKey()
 		dbStub = createSearchIndexDbStub()
-		transaction = dbStub.createTransaction()
+		transaction = await dbStub.createTransaction()
 	})
 	o("empty db", () => {
 		return testSearch([], [], "test", createMailRestriction(), [])

@@ -161,6 +161,7 @@ export function userIsGlobalAdmin(user: User): boolean {
 	return user.memberships.some((m) => m.groupType === GroupType.Admin)
 }
 
+// FIXME: change which groups are index memberships
 export function filterIndexMemberships(user: User): GroupMembership[] {
 	return user.memberships.filter(
 		(m) => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact || m.groupType === GroupType.Customer || m.groupType === GroupType.Admin,

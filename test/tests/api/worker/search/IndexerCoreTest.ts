@@ -487,10 +487,10 @@ o.spec("IndexerCore test", () => {
 		let dbStub: DbStub
 		let transaction: DbStubTransaction
 		let core: IndexerCore
-		o.beforeEach(function () {
+		o.beforeEach(async function () {
 			indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 			dbStub = createSearchIndexDbStub()
-			transaction = dbStub.createTransaction()
+			transaction = await dbStub.createTransaction()
 			core = makeCore({ encryptionData })
 		})
 

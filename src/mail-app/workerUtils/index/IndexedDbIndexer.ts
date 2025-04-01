@@ -49,6 +49,7 @@ import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/wo
 import { EntityUpdateData, entityUpdatesAsData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
+import { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
 
 export type InitParams = {
 	user: User
@@ -57,26 +58,29 @@ export type InitParams = {
 
 const DB_VERSION: number = 3
 
+export function initSearchIndexObjectStores(db: IDBDatabase | DbStub) {
+	db.createObjectStore(SearchIndexOS, {
+		autoIncrement: true,
+	})
+	const metaOS = db.createObjectStore(SearchIndexMetaDataOS, {
+		autoIncrement: true,
+		keyPath: "id",
+	})
+	db.createObjectStore(ElementDataOS)
+	db.createObjectStore(MetaDataOS)
+	db.createObjectStore(GroupDataOS)
+	db.createObjectStore(SearchTermSuggestionsOS)
+	metaOS.createIndex(SearchIndexWordsIndex, "word", {
+		unique: true,
+	})
+}
+
 export function newSearchIndexDB(): DbFacade {
 	return new DbFacade(DB_VERSION, (event, db) => {
 		if (event.oldVersion !== DB_VERSION && event.oldVersion !== 0) {
 			deleteObjectStores(db, SearchIndexOS, ElementDataOS, MetaDataOS, GroupDataOS, SearchTermSuggestionsOS, SearchIndexMetaDataOS)
 		}
-
-		db.createObjectStore(SearchIndexOS, {
-			autoIncrement: true,
-		})
-		const metaOS = db.createObjectStore(SearchIndexMetaDataOS, {
-			autoIncrement: true,
-			keyPath: "id",
-		})
-		db.createObjectStore(ElementDataOS)
-		db.createObjectStore(MetaDataOS)
-		db.createObjectStore(GroupDataOS)
-		db.createObjectStore(SearchTermSuggestionsOS)
-		metaOS.createIndex(SearchIndexWordsIndex, "word", {
-			unique: true,
-		})
+		initSearchIndexObjectStores(db)
 	})
 }
 
