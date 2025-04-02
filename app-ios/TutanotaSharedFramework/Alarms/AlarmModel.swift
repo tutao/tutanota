@@ -136,13 +136,14 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			let progenitorTime = UInt64(nextExpansionProgenitor.timeIntervalSince1970)
 			let eventFacade = EventFacade()
 			let byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
+			let progenitorTimeInMilis = progenitorTime * 1000
 			let generatedEvents = eventFacade.generateFutureInstances(
-				date: progenitorTime * 1000,  // To Milliseconds
+				date: progenitorTimeInMilis,  // To Milliseconds
 				repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules)
 			)
 			self.expandedEvents.append(contentsOf: generatedEvents)
 			// Handle the event 0
-			if self.intervalNumber == 0 && !self.expandedEvents.contains(progenitorTime) { expandedEvents.append(progenitorTime) }
+			if self.intervalNumber == 0 && !self.expandedEvents.contains(progenitorTimeInMilis) { expandedEvents.append(progenitorTimeInMilis) }
 
 			intervalNumber += 1
 		}

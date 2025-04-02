@@ -205,7 +205,12 @@ o.spec("CalendarModel", function () {
 			const calendarFacade = makeCalendarFacade(
 				{
 					getEventsByUid: (loadUid) =>
-						uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
+						uid === loadUid
+							? Promise.resolve({
+									progenitor: existingEvent,
+									alteredInstances: [],
+							  })
+							: Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -266,7 +271,12 @@ o.spec("CalendarModel", function () {
 			const calendarFacade = makeCalendarFacade(
 				{
 					getEventsByUid: (loadUid) =>
-						uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
+						uid === loadUid
+							? Promise.resolve({
+									progenitor: existingEvent,
+									alteredInstances: [],
+							  })
+							: Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -391,7 +401,12 @@ o.spec("CalendarModel", function () {
 			const calendarFacade = makeCalendarFacade(
 				{
 					getEventsByUid: (loadUid) =>
-						uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
+						uid === loadUid
+							? Promise.resolve({
+									progenitor: existingEvent,
+									alteredInstances: [],
+							  })
+							: Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -465,7 +480,12 @@ o.spec("CalendarModel", function () {
 			const calendarFacade = makeCalendarFacade(
 				{
 					getEventsByUid: (loadUid) =>
-						uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
+						uid === loadUid
+							? Promise.resolve({
+									progenitor: existingEvent,
+									alteredInstances: [],
+							  })
+							: Promise.resolve(null),
 				},
 				restClientMock,
 			)
@@ -534,7 +554,12 @@ o.spec("CalendarModel", function () {
 				const calendarFacade = makeCalendarFacade(
 					{
 						getEventsByUid: (loadUid) =>
-							uid === loadUid ? Promise.resolve({ progenitor: existingEvent, alteredInstances: [] }) : Promise.resolve(null),
+							uid === loadUid
+								? Promise.resolve({
+										progenitor: existingEvent,
+										alteredInstances: [],
+								  })
+								: Promise.resolve(null),
 					},
 					restClientMock,
 				)
@@ -739,7 +764,12 @@ function makeMailModel(): MailboxModel {
 	return downcast({})
 }
 
-function makeCalendarFacade(getEventsByUid: { getEventsByUid: (_: any) => unknown }, entityRestClient: EntityRestClientMock): CalendarFacade {
+function makeCalendarFacade(
+	getEventsByUid: {
+		getEventsByUid: (_: any) => unknown
+	},
+	entityRestClient: EntityRestClientMock,
+): CalendarFacade {
 	const saveCalendarEvent = func<CalendarFacade["saveCalendarEvent"]>()
 	when(saveCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything())).thenDo((event) => {
 		// testdouble is very insistent on calling such callbacks even during verification and we get weird args here
@@ -811,5 +841,6 @@ function init({
 			}),
 		}),
 		syncTracker,
+		() => {},
 	)
 }

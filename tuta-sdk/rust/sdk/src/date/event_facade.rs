@@ -1,4 +1,3 @@
-use std::i64;
 use std::ops::{Add, Sub};
 
 use crate::date::DateTime;
@@ -269,10 +268,7 @@ impl EventFacade {
 			.collect();
 
 		let calc_event_start = if is_all_day_event {
-			let all_day_event = match self.get_all_day_time(&event_start_time) {
-				Ok(dt) => dt,
-				Err(e) => return Err(e),
-			};
+			let all_day_event = self.get_all_day_time(&event_start_time)?;
 
 			all_day_event
 		} else {
@@ -282,10 +278,7 @@ impl EventFacade {
 		let end_date = if end_type == EndType::UntilDate {
 			if is_all_day_event {
 				let all_day_event =
-					match self.get_all_day_time(&DateTime::from_millis(end_value.unwrap())) {
-						Ok(dt) => dt,
-						Err(e) => return Err(e),
-					};
+					self.get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
 
 				Some(all_day_event)
 			} else {
@@ -358,9 +351,9 @@ impl EventFacade {
 					};
 
 					if interval < 0 {
-						return (expanded_events.len() as i64) - interval.abs();
+						(expanded_events.len() as i64) - interval.abs()
 					} else {
-						return interval - 1;
+						interval - 1
 					}
 				})
 				.collect();
@@ -379,7 +372,7 @@ impl EventFacade {
 					break;
 				}
 
-				if !(parsed_set_pos.is_empty() && !parsed_set_pos.contains(&(index as i64))) {
+				if !parsed_set_pos.is_empty() || parsed_set_pos.contains(&(index as i64)) {
 					continue;
 				}
 
@@ -389,7 +382,7 @@ impl EventFacade {
 					continue;
 				}
 
-				generated_events.push(expanded_events.get(index).unwrap().clone());
+				generated_events.push(*expanded_events.get(index).unwrap());
 				occurrences += 1;
 			}
 
@@ -1129,10 +1122,10 @@ impl EventFacade {
 
 	fn add_months_to_date(&self, date: &OffsetDateTime, months: u8) -> OffsetDateTime {
 		if months == 0 {
-			return date.clone();
+			return *date;
 		}
 
-		let date = date.clone();
+		let date = *date;
 
 		let target_month = date.month().nth_next(months);
 		let mut sum_years = (months / 12) as i32;
