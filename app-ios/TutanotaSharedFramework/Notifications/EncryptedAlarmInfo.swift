@@ -7,8 +7,8 @@ public struct EncryptedAlarmInfo: Codable {
 		self.trigger = trigger
 	}
 
-    enum CodingKeys: String, CodingKey {
-        case alarmIdentifier = "1539"
-        case trigger = "1538"
-    }
+	enum CodingKeys: String, CodingKey {
+		case alarmIdentifier = "1539"
+		case trigger = "1538"
+	}
 }

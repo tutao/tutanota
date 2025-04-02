@@ -13,15 +13,19 @@ public extension AlarmNotification {
 
 	init(encrypted: EncryptedAlarmNotification, sessionKey: Key) throws {
 		let repeatRule: RepeatRule?
-		if let encRepeatRule = encrypted.repeatRule { repeatRule = try RepeatRule(encrypted: encRepeatRule, sessionKey: sessionKey) } else { repeatRule = nil }
+		if let encRepeatRule = encrypted.getRepeatRule() {
+			repeatRule = try RepeatRule(encrypted: encRepeatRule, sessionKey: sessionKey)
+		} else {
+			repeatRule = nil
+		}
 		self.init(
 			operation: encrypted.operation,
 			summary: try decrypt(base64: encrypted.summary, key: sessionKey),
 			eventStart: try decrypt(base64: encrypted.eventStart, key: sessionKey),
 			eventEnd: try decrypt(base64: encrypted.eventEnd, key: sessionKey),
-			alarmInfo: try AlarmInfo(encrypted: encrypted.alarmInfo, sessionKey: sessionKey),
+			alarmInfo: try AlarmInfo(encrypted: encrypted.getAlarmInfo(), sessionKey: sessionKey),
 			repeatRule: repeatRule,
-			user: encrypted.user
+			user: encrypted.getUser()
 		)
 	}
 }
