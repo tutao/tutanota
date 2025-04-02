@@ -23,7 +23,7 @@ import {
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { assertNotNull, clamp, DAY_IN_MILLIS, findAllAndRemove, first, isEmpty, isNotNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, clamp, DAY_IN_MILLIS, findAllAndRemove, first, isEmpty, isNotNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
@@ -178,7 +178,14 @@ export class MailIndexer {
 		// create index in background, termination is handled in Indexer.enableMailIndexing
 		const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
 		// We don't have to disable mail indexing when it's stopped now
-		this.indexMailboxes(user, oldestTimestamp).catch(ofClass(CancelledError, noOp))
+		try {
+			await this.indexMailboxes(user, oldestTimestamp)
+		} catch (e) {
+			if (e instanceof CancelledError) {
+				return
+			}
+			throw e
+		}
 	}
 
 	/**
