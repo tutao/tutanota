@@ -13,3 +13,4 @@ export type HkdfKeyDerivationDomains =
 	| "newAdminSymKeyAuthKeyForMultiAdminRotationAsUser"
 	| "newUserGroupKeyAuthKeyForRotationAsNonAdminUser"
 	| "versionedUserGroupKeyDistributionKey"
+	| "publicIdentityKey"
