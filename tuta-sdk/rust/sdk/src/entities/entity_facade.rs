@@ -552,9 +552,9 @@ impl EntityFacadeImpl {
 				let mut valid_bytes: Vec<u8> = bytes.clone();
 
 				if let Ok(string) = str::from_utf8(&valid_bytes) {
-					let bytes = string.parse::<u64>().or_else(|e| {
-						Err(ApiCallError::internal_with_err(e, "Invalid date bytes"))
-					})?;
+					let bytes = string
+						.parse::<u64>()
+						.map_err(|e| ApiCallError::internal_with_err(e, "Invalid date bytes"))?;
 					valid_bytes = bytes.to_be_bytes().to_vec();
 				};
 

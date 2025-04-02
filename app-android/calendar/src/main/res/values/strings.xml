@@ -17,4 +17,5 @@
 	<string name="widgetUnexpectedError_msg">Ops! Something went wrong.</string>
 	<string name="widgetCredentialsError_msg">Please login on Calendar App.</string>
 	<string name="widgetOpenApp_action">Open App</string>
+	<string name="widgetDescription_msg">View your upcoming events for today</string>
 </resources>

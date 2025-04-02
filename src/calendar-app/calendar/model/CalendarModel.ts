@@ -261,7 +261,8 @@ export class CalendarModel {
 			newEvent._ownerGroup = groupRoot._id
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest
 			// version
-			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent).then(this.requestWidgetRefresh)
+			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
+			this.requestWidgetRefresh()
 			return newEvent
 		}
 	}

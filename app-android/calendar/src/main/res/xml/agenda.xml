@@ -2,7 +2,7 @@
 					android:minWidth="200dp"
 					android:minHeight="110dp"
 					android:updatePeriodMillis="0"
-					android:description="@string/app_name"
+					android:description="@string/widgetDescription_msg"
 					android:initialLayout="@layout/glance_default_loading_layout"
 					android:resizeMode="horizontal|vertical"
 					android:widgetCategory="home_screen"

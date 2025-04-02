@@ -142,7 +142,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._hiddenCalendars = new Set(this.deviceConfig.getHiddenCalendars(userId))
 
 		this.selectedDate.map(() => {
-			console.log("selectedDate.map")
 			this.updatePreviewedEvent(null)
 			this.preloadMonthsAroundSelectedDate()
 		})
@@ -185,16 +184,17 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.previewedEventId = id
 
 		if (id == null) {
-			this.updatePreviewedEvent(null)
-			return
+			return this.updatePreviewedEvent(null)
 		}
 
 		const date = this.selectedDate().getTime()
 		const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev._id, id))
 
 		if (event) {
-			this.updatePreviewedEvent(event)
+			return this.updatePreviewedEvent(event)
 		}
+
+		return Promise.resolve()
 	}
 
 	isDaySelectorExpanded(): boolean {

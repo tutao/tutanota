@@ -54,9 +54,7 @@ impl CalendarFacade {
 		}
 	}
 
-	/**
-	 * Fetches all user calendars
-	 */
+	///  Fetches all user calendars
 	async fn fetch_calendars_data(
 		&self,
 	) -> Result<HashMap<GeneratedId, CalendarData>, ApiCallError> {
@@ -65,7 +63,7 @@ impl CalendarFacade {
 			.memberships
 			.iter()
 			.filter(|membership| {
-				membership.group_type() == GroupType::Calendar && membership.capability == None
+				membership.group_type() == GroupType::Calendar && membership.capability.is_none()
 			})
 			.collect();
 
@@ -95,10 +93,10 @@ impl CalendarFacade {
 				.groupSettings
 				.iter()
 				.find(|settings| settings.group == membership.group)
-				.and_then(|settings| Some(settings.clone()));
+				.cloned();
 
 			calendars_data.insert(
-				membership.group.to_owned(),
+				membership.group.clone(),
 				CalendarData {
 					group_info,
 					group_settings,
@@ -109,16 +107,13 @@ impl CalendarFacade {
 		Ok(calendars_data)
 	}
 
-	/**
-	 * Fetches calendar events from a given calendar starting on a given Date and Time
-	 * until the end of the same day
-	 */
+	/// Fetches calendar events from a given calendar starting on a given Date and Time
+	/// until the end of the same day
 	async fn fetch_calendar_events_from_date_until_end_of_day(
 		&self,
 		calendar_id: &GeneratedId,
 		date: DateTime,
 	) -> Result<CalendarEventsList, ApiCallError> {
-		let id: GeneratedId = calendar_id.to_owned();
 		let user = self.user_facade.get_user();
 		let memberships: Vec<&GroupMembership> = user
 			.memberships
@@ -133,12 +128,15 @@ impl CalendarFacade {
 			));
 		}
 
-		let membership = match memberships.iter().find(|membership| membership.group == id) {
+		let membership = match memberships
+			.iter()
+			.find(|membership| &membership.group == calendar_id)
+		{
 			Some(membership) => *membership,
 			_ => {
 				return Err(ApiCallError::internal(format!(
 					"Missing membership for id {}",
-					id
+					calendar_id
 				)))
 			},
 		};
@@ -169,7 +167,6 @@ impl CalendarFacade {
 		let max_short_id = get_event_element_max_id(timestamp_end);
 		let mut start_long_id = CustomId("".to_owned());
 		let max_long_id = get_max_timestamp_id();
-
 		let group_root: CalendarGroupRoot =
 			self.crypto_entity_client.load(&membership.group).await?;
 
@@ -234,7 +231,7 @@ impl CalendarFacade {
 				.filter(|event| event.repeatRule.is_some())
 				.collect::<Vec<&CalendarEvent>>();
 
-			for event in event_with_repeat_rules.iter() {
+			for event in &event_with_repeat_rules {
 				log::info!("Processing repeat rules for {:?}", event._id);
 				let repeat_rule = event.repeatRule.as_ref().unwrap();
 
@@ -258,15 +255,13 @@ impl CalendarFacade {
 							.map(|adv| ByRule {
 								by_rule: ByRuleType::try_from_primitive(adv.ruleType as u8)
 									.unwrap(),
-								interval: adv.interval.to_owned(),
+								interval: adv.interval.clone(),
 							})
 							.collect(),
 					},
 					repeat_rule.interval as u8,
 					EndType::try_from_primitive(repeat_rule.endType as u8).unwrap(),
-					repeat_rule
-						.endValue
-						.and_then(|val| Some(val.unsigned_abs())),
+					repeat_rule.endValue.map(|val| val.unsigned_abs()),
 					repeat_rule
 						.excludedDates
 						.iter()
@@ -308,6 +303,8 @@ impl CalendarFacade {
 				&mut unwraped_long_events,
 			);
 
+			filtered_long_events = self.filter_excluded_dates(&mut filtered_long_events);
+
 			long_events.append(&mut filtered_long_events);
 		}
 
@@ -341,7 +338,7 @@ impl CalendarFacade {
 		&self,
 		timestamp_start: u64,
 		timestamp_end: u64,
-		events: &mut Vec<CalendarEvent>,
+		events: &mut [CalendarEvent],
 	) -> Vec<CalendarEvent> {
 		events
 			.iter()
@@ -354,10 +351,34 @@ impl CalendarFacade {
 			.collect()
 	}
 
+	fn filter_excluded_dates(&self, events: &mut [CalendarEvent]) -> Vec<CalendarEvent> {
+		events
+			.iter()
+			.filter(|&event| {
+				if event.repeatRule.is_none() {
+					return true;
+				}
+
+				let repeat_rule = event.repeatRule.as_ref().unwrap();
+				if repeat_rule.excludedDates.is_empty() {
+					return true;
+				}
+
+				!repeat_rule
+					.excludedDates
+					.iter()
+					.map(|date| date.date)
+					.collect::<Vec<DateTime>>()
+					.contains(&event.startTime)
+			})
+			.map(|event| event.to_owned())
+			.collect()
+	}
+
 	fn is_list_load_done(
 		&self,
 		max_id: &CustomId,
-		events: &mut Vec<CalendarEvent>,
+		events: &mut [CalendarEvent],
 	) -> Result<(bool, CustomId), ApiCallError> {
 		if events.last().is_none() {
 			return Ok((true, max_id.to_owned()));
@@ -407,17 +428,17 @@ impl CalendarFacade {
 			} = calendar_data;
 			let name = group_settings
 				.as_ref()
-				.and_then(|settings| settings.name.to_owned())
+				.and_then(|settings| settings.name.clone())
 				.unwrap_or_else(|| {
 					if group_info.name.is_empty() {
 						DEFAULT_CALENDAR_NAME.to_owned()
 					} else {
-						group_info.name.to_owned()
+						group_info.name.clone()
 					}
 				});
 			let color = group_settings
 				.as_ref()
-				.and_then(|settings| Some(settings.color.to_owned()))
+				.map(|settings| settings.color.clone())
 				.unwrap_or_else(|| DEFAULT_CALENDAR_COLOR.to_owned());
 
 			let render_data = CalendarRenderData { name, color };
@@ -462,8 +483,6 @@ fn get_max_timestamp_id() -> CustomId {
 
 #[cfg(test)]
 mod calendar_facade_unit_tests {
-	use std::sync::Arc;
-
 	use crate::crypto_entity_client::MockCryptoEntityClient;
 	use crate::entities::generated::sys::{GroupInfo, GroupMembership, User};
 	use crate::entities::generated::tutanota::{GroupSettings, UserSettingsGroupRoot};
@@ -471,6 +490,7 @@ mod calendar_facade_unit_tests {
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::create_test_entity;
 	use crate::{GeneratedId, IdTupleGenerated};
+	use std::sync::Arc;
 
 	use super::{CalendarFacade, DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME};
 

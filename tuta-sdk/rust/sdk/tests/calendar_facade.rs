@@ -23,6 +23,10 @@ async fn create_calendar_facade() -> CalendarFacade {
 	calendar_facade
 }
 
+#[cfg_attr(
+	not(feature = "test-with-local-http-server"),
+	ignore = "require local http server."
+)]
 #[tokio::test]
 async fn load_user_calendars() {
 	let calendar_facade = create_calendar_facade().await;
@@ -35,6 +39,10 @@ async fn load_user_calendars() {
 	log::info!("Test::Loaded user calendars correctly!");
 }
 
+#[cfg_attr(
+	not(feature = "test-with-local-http-server"),
+	ignore = "require local http server."
+)]
 #[tokio::test]
 async fn load_calendar_events() {
 	let calendar_facade = create_calendar_facade().await;
