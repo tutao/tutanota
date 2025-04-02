@@ -1,12 +1,13 @@
 import o from "@tutao/otest"
 import {
 	AdminSymKeyAuthenticationParams,
+	IdentityPubKeyAuthenticationParams,
 	KeyAuthenticationFacade,
 	NewAdminPubKeyAuthenticationParams,
 	PubDistKeyAuthenticationParams,
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { Aes256Key, aes256RandomKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/tutanota-crypto"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -40,6 +41,8 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	let newAdminGroupKeyVersion: KeyVersion
 	let x25519PublicKey: X25519PublicKey
 	let kyberPublicKey: KyberPublicKey
+	let ed25519PublicKey: Ed25519PublicKey
+	let identityKeyVersion: KeyVersion
 
 	o.beforeEach(async function () {
 		cryptoWrapper = new CryptoWrapper()
@@ -60,6 +63,9 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 
 		kyberPublicKey = { raw: new Uint8Array([1, 2, 3]) }
 		x25519PublicKey = new Uint8Array([4, 5, 6])
+
+		ed25519PublicKey = new Uint8Array([7, 8, 9])
+		identityKeyVersion = 0 as KeyVersion
 	})
 
 	o.spec("user group key authentication system", function () {
@@ -264,6 +270,47 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 				untrustedKey: { newAdminGroupKey: aes256RandomKey() },
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongAdminSymKey, tag))
+		})
+	})
+
+	o.spec("public identity key authentication system", function () {
+		o("should verify computed tag", async function () {
+			const params: IdentityPubKeyAuthenticationParams = {
+				tagType: "IDENTITY_PUB_KEY_TAG",
+				sourceOfTrust: { symmetricGroupKey: currentUserGroupKey },
+				untrustedKey: { identityPubKey: ed25519PublicKey },
+				bindingData: {
+					publicIdentityKeyVersion: identityKeyVersion,
+					groupKeyVersion: currentUserGroupKeyVersion,
+					groupId: userGroupId,
+				},
+			}
+			const tag = keyAuthenticationFacade.computeTag(params)
+
+			keyAuthenticationFacade.verifyTag(params, tag)
+
+			const wrongGroupId: IdentityPubKeyAuthenticationParams = mergeParams(params, "groupId", WRONG_ID)
+			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongGroupId, tag))
+
+			const wrongSymmetricGroupKey: IdentityPubKeyAuthenticationParams = {
+				...params,
+				sourceOfTrust: {
+					symmetricGroupKey: aes256RandomKey(),
+				},
+			}
+			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongSymmetricGroupKey, tag))
+
+			const wrongGroupKeyVersion: IdentityPubKeyAuthenticationParams = mergeParams(params, "groupKeyVersion", 2)
+			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongGroupKeyVersion, tag))
+
+			const wrongPublicIdentityKeyVersion: IdentityPubKeyAuthenticationParams = mergeParams(params, "publicIdentityKeyVersion", 2)
+			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongPublicIdentityKeyVersion, tag))
+
+			const wrongIdentityKey: IdentityPubKeyAuthenticationParams = {
+				...params,
+				untrustedKey: { identityPubKey: new Uint8Array([1, 2, 3]) },
+			}
+			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongIdentityKey, tag))
 		})
 	})
 })
