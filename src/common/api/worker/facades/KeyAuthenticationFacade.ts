@@ -93,10 +93,10 @@ const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKey
 	},
 	generateAuthenticationData({
 		untrustedKey: {
-			newAdminPubKey: { eccPublicKey, kyberPublicKey },
+			newAdminPubKey: { x25519PublicKey, kyberPublicKey },
 		},
 	}) {
-		return concat(eccPublicKey, kyberPublicKey.raw)
+		return concat(x25519PublicKey, kyberPublicKey.raw)
 	},
 }
 
@@ -125,10 +125,10 @@ const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenti
 	},
 	generateAuthenticationData({
 		untrustedKey: {
-			distPubKey: { eccPublicKey, kyberPublicKey },
+			distPubKey: { x25519PublicKey, kyberPublicKey },
 		},
 	}) {
-		return concat(eccPublicKey, kyberPublicKey.raw)
+		return concat(x25519PublicKey, kyberPublicKey.raw)
 	},
 }
 

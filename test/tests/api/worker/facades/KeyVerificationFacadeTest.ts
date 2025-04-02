@@ -31,7 +31,7 @@ const PUBLIC_KEY: Versioned<PQPublicKeys> = {
 	version: 0,
 	object: {
 		keyPairType: KeyPairType.TUTA_CRYPT,
-		eccPublicKey: stringToUtf8Uint8Array("ecc-key"),
+		x25519PublicKey: stringToUtf8Uint8Array("ecc-key"),
 		kyberPublicKey: {
 			raw: stringToUtf8Uint8Array("kyb-key"),
 		},
@@ -221,7 +221,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 			const publicKey: Versioned<PQPublicKeys> = object()
 			publicKey.object.keyPairType = KeyPairType.TUTA_CRYPT
 			publicKey.object.kyberPublicKey.raw = stringToUtf8Uint8Array("kyb-fail-key")
-			publicKey.object.eccPublicKey = stringToUtf8Uint8Array("ecc-fail-key")
+			publicKey.object.x25519PublicKey = stringToUtf8Uint8Array("ecc-fail-key")
 
 			const state = await keyVerification.resolveVerificationState("test@example.com", publicKey)
 			o(state).equals(KeyVerificationState.MISMATCH)
@@ -257,7 +257,12 @@ o.spec("KeyVerificationFacadeTest", function () {
 			const result = await keyVerification.getFingerprint("test@example.com", KeyVerificationSourceOfTruth.PublicKeyService)
 			o(result).deepEquals(PUBLIC_KEY_FINGERPRINT)
 
-			verify(publicKeyProvider.loadCurrentPubKey({ identifier: "test@example.com", identifierType: PublicKeyIdentifierType.MAIL_ADDRESS }))
+			verify(
+				publicKeyProvider.loadCurrentPubKey({
+					identifier: "test@example.com",
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				}),
+			)
 		})
 
 		o("acquire non-existing fingerprint from public key provider", async function () {
@@ -271,7 +276,12 @@ o.spec("KeyVerificationFacadeTest", function () {
 			const result = await keyVerification.getFingerprint("missing@example.com", KeyVerificationSourceOfTruth.PublicKeyService)
 			o(result).equals(null)
 
-			verify(publicKeyProvider.loadCurrentPubKey({ identifier: "missing@example.com", identifierType: PublicKeyIdentifierType.MAIL_ADDRESS }))
+			verify(
+				publicKeyProvider.loadCurrentPubKey({
+					identifier: "missing@example.com",
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				}),
+			)
 		})
 	})
 
@@ -315,7 +325,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 				version: 0,
 				object: {
 					keyPairType: KeyPairType.TUTA_CRYPT,
-					eccPublicKey: new Uint8Array([]),
+					x25519PublicKey: new Uint8Array([]),
 					kyberPublicKey: { raw: new Uint8Array([]) },
 				},
 			}
@@ -336,9 +346,9 @@ o.spec("KeyVerificationFacadeTest", function () {
 				},
 			}
 
-			publicKey.object.keyPairType = KeyPairType.RSA_AND_ECC
+			publicKey.object.keyPairType = KeyPairType.RSA_AND_X25519
 			concatenation = keyVerification.concatenateFingerprint(publicKey)
-			verifyKeyMetadata(concatenation, 0, KeyPairType.RSA_AND_ECC)
+			verifyKeyMetadata(concatenation, 0, KeyPairType.RSA_AND_X25519)
 		})
 	})
 

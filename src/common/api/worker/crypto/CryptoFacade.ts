@@ -68,7 +68,7 @@ import {
 	AesKey,
 	bitArrayToUint8Array,
 	decryptKey,
-	EccPublicKey,
+	X25519PublicKey,
 	encryptKey,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
@@ -265,7 +265,7 @@ export class CryptoFacade {
 		const instanceElementId = this.getElementIdFromInstance(instance)
 		let decryptedBucketKey: AesKey
 		let unencryptedSenderAuthStatus: EncryptionAuthStatus | null = null
-		let pqMessageSenderKey: EccPublicKey | null = null
+		let pqMessageSenderKey: X25519PublicKey | null = null
 		if (bucketKey.keyGroup && bucketKey.pubEncBucketKey) {
 			// bucket key is encrypted with public key for internal recipient
 			const { decryptedAesKey, senderIdentityPubKey } = await this.asymmetricCryptoFacade.loadKeyPairAndDecryptSymKey(
@@ -471,7 +471,7 @@ export class CryptoFacade {
 		instance: Record<string, any>,
 		typeModel: TypeModel,
 		encryptionAuthStatus: EncryptionAuthStatus | null,
-		pqMessageSenderKey: EccPublicKey | null,
+		pqMessageSenderKey: X25519PublicKey | null,
 	): Promise<ResolvedSessionKeys> {
 		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {

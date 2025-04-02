@@ -68,12 +68,10 @@ import {
 	AesKey,
 	bitArrayToUint8Array,
 	decryptKey,
-	EccKeyPair,
-	EccPublicKey,
 	ENABLE_MAC,
 	encryptKey,
 	encryptRsaKey,
-	generateEccKeyPair,
+	generateX25519KeyPair,
 	IV_BYTE_LENGTH,
 	KeyPairType,
 	kyberPrivateKeyToBytes,
@@ -84,6 +82,8 @@ import {
 	RsaKeyPair,
 	RsaPublicKey,
 	rsaPublicKeyToHex,
+	X25519KeyPair,
+	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
 import { InstanceMapper } from "../../../../../src/common/api/worker/crypto/InstanceMapper.js"
 import type { TypeModel } from "../../../../../src/common/api/common/EntityTypes.js"
@@ -138,7 +138,7 @@ async function prepareBucketKeyInstance(
 	recipientUser: TestUser,
 	instanceMapper: InstanceMapper,
 	mailLiteral: Record<string, any>,
-	senderPubEccKey: Versioned<EccPublicKey> | undefined,
+	senderPubEccKey: Versioned<X25519PublicKey> | undefined,
 	recipientKeyVersion: NumberString,
 	protocolVersion: CryptoProtocolVersion,
 	asymmetricCryptoFacade: AsymmetricCryptoFacade,
@@ -366,7 +366,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		let pqKeyPairs = await pqFacade.generateKeyPairs()
 
-		const senderIdentityKeyPair = generateEccKeyPair()
+		const senderIdentityKeyPair = generateX25519KeyPair()
 
 		// configure test mail
 		let sk = aes256RandomKey()
@@ -395,7 +395,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
-			generateEccKeyPair(),
+			generateX25519KeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs),
 			bitArrayToUint8Array(bk),
 		)
@@ -449,7 +449,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const pqKeyPairs_v1 = await pqFacade.generateKeyPairs()
 
-		const senderIdentityKeyPair = generateEccKeyPair()
+		const senderIdentityKeyPair = generateX25519KeyPair()
 
 		// configure test mail
 		const sk = aes256RandomKey()
@@ -478,7 +478,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
-			generateEccKeyPair(),
+			generateX25519KeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs_v1),
 			bitArrayToUint8Array(bk),
 		)
@@ -531,7 +531,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const pqKeyPairs_v1 = await pqFacade.generateKeyPairs()
 
-		const senderIdentityKeyPair = generateEccKeyPair()
+		const senderIdentityKeyPair = generateX25519KeyPair()
 
 		// configure test mail
 		const sk = aes256RandomKey()
@@ -541,7 +541,7 @@ o.spec("CryptoFacadeTest", function () {
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
-			generateEccKeyPair(),
+			generateX25519KeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs_v1),
 			bitArrayToUint8Array(bk),
 		)
@@ -570,7 +570,7 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
 				{
 					keyPairType: pqKeyPairs_v1.keyPairType,
-					eccKeyPair: pqKeyPairs_v1.eccKeyPair,
+					x25519KeyPair: pqKeyPairs_v1.x25519KeyPair,
 					kyberKeyPair: pqKeyPairs_v1.kyberKeyPair,
 				},
 				protocolVersion,
@@ -629,7 +629,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const recipientKeyPair = createKeyPair({
 			_id: "recipientKeyPairId",
-			pubEccKey: recipientKeyPairs.eccKeyPair.publicKey,
+			pubEccKey: recipientKeyPairs.x25519KeyPair.publicKey,
 			symEncPrivEccKey: null,
 			pubKyberKey: kyberPublicKeyToBytes(recipientKeyPairs.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: null,
@@ -643,8 +643,8 @@ o.spec("CryptoFacadeTest", function () {
 			_id: "senderKeyPairId",
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
-			pubEccKey: senderKeyPairs.eccKeyPair.publicKey,
-			symEncPrivEccKey: aesEncrypt(senderGroupKey, senderKeyPairs.eccKeyPair.privateKey),
+			pubEccKey: senderKeyPairs.x25519KeyPair.publicKey,
+			symEncPrivEccKey: aesEncrypt(senderGroupKey, senderKeyPairs.x25519KeyPair.privateKey),
 			pubKyberKey: kyberPublicKeyToBytes(senderKeyPairs.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: aesEncrypt(senderGroupKey, kyberPrivateKeyToBytes(senderKeyPairs.kyberKeyPair.privateKey)),
 		})
@@ -691,7 +691,7 @@ o.spec("CryptoFacadeTest", function () {
 			version: 0,
 			object: {
 				keyPairType: KeyPairType.TUTA_CRYPT,
-				eccPublicKey: recipientKeyPair.pubEccKey!,
+				x25519PublicKey: recipientKeyPair.pubEccKey!,
 				kyberPublicKey: {
 					raw: recipientKeyPair.pubKyberKey!,
 				},
@@ -715,7 +715,7 @@ o.spec("CryptoFacadeTest", function () {
 			version: 0,
 			object: {
 				keyPairType: KeyPairType.TUTA_CRYPT,
-				eccPublicKey: senderKeyPair.pubEccKey!,
+				x25519PublicKey: senderKeyPair.pubEccKey!,
 				kyberPublicKey: { raw: senderKeyPair.pubKyberKey! },
 			},
 		})
@@ -1031,7 +1031,7 @@ o.spec("CryptoFacadeTest", function () {
 			object: {
 				keyPairType: KeyPairType.TUTA_CRYPT,
 				kyberKeyPair: object(),
-				eccKeyPair: object(),
+				x25519KeyPair: object(),
 			},
 		})
 
@@ -1062,7 +1062,7 @@ o.spec("CryptoFacadeTest", function () {
 			object: {
 				keyPairType: KeyPairType.TUTA_CRYPT,
 				kyberKeyPair: object(),
-				eccKeyPair: object(),
+				x25519KeyPair: object(),
 			},
 		})
 
@@ -1648,7 +1648,7 @@ o.spec("CryptoFacadeTest", function () {
 		bk: AesKey
 		mailGroupKey: AesKey
 		MailTypeModel: TypeModel
-		senderIdentityKeyPair: EccKeyPair
+		senderIdentityKeyPair: X25519KeyPair
 	}> {
 		// create test user
 		const recipientUser = createTestUser("Bob", entityClient)
@@ -1658,8 +1658,8 @@ o.spec("CryptoFacadeTest", function () {
 
 		const recipientKeyPair = createKeyPair({
 			_id: "keyPairId",
-			pubEccKey: pqKeyPairs.eccKeyPair.publicKey,
-			symEncPrivEccKey: aesEncrypt(recipientUser.userGroupKey, pqKeyPairs.eccKeyPair.privateKey),
+			pubEccKey: pqKeyPairs.x25519KeyPair.publicKey,
+			symEncPrivEccKey: aesEncrypt(recipientUser.userGroupKey, pqKeyPairs.x25519KeyPair.privateKey),
 			pubKyberKey: kyberPublicKeyToBytes(pqKeyPairs.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: aesEncrypt(recipientUser.userGroupKey, kyberPrivateKeyToBytes(pqKeyPairs.kyberKeyPair.privateKey)),
 			pubRsaKey: null,
@@ -1668,7 +1668,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		recipientUser.userGroup.currentKeys = recipientKeyPair
 
-		const senderIdentityKeyPair = generateEccKeyPair()
+		const senderIdentityKeyPair = generateX25519KeyPair()
 
 		// create test mail
 		let subject = "this is our subject"
@@ -1691,7 +1691,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const pubEncBucketKey = await pqFacade.encapsulateAndEncode(
 			senderIdentityKeyPair,
-			generateEccKeyPair(),
+			generateX25519KeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs),
 			bitArrayToUint8Array(bk),
 		)
@@ -1714,7 +1714,7 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
 				{
 					keyPairType: pqKeyPairs.keyPairType,
-					eccKeyPair: pqKeyPairs.eccKeyPair,
+					x25519KeyPair: pqKeyPairs.x25519KeyPair,
 					kyberKeyPair: pqKeyPairs.kyberKeyPair,
 				},
 				CryptoProtocolVersion.TUTA_CRYPT,

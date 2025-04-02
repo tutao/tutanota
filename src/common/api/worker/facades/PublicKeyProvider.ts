@@ -13,10 +13,10 @@ import {
 	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
 	isVersionedPqPublicKey,
-	isVersionedRsaOrRsaEccPublicKey,
+	isVersionedRsaOrRsaX25519PublicKey,
 	KeyPairType,
 	PQPublicKeys,
-	RsaEccPublicKey,
+	RsaX25519PublicKey,
 } from "@tutao/tutanota-crypto"
 
 export type PublicKeyIdentifier = {
@@ -63,7 +63,7 @@ export class PublicKeyProvider {
 	 * Receiving a higher version would indicate a protocol downgrade/ MITM attack, and we reject such keys.
 	 */
 	private enforceRsaKeyVersionConstraint(pubKeys: Versioned<PublicKey>) {
-		if (pubKeys.version !== 0 && isVersionedRsaOrRsaEccPublicKey(pubKeys)) {
+		if (pubKeys.version !== 0 && isVersionedRsaOrRsaX25519PublicKey(pubKeys)) {
 			throw new CryptoError("rsa key in a version that is not 0")
 		}
 	}
@@ -133,7 +133,7 @@ export class PublicKeyProvider {
 			if (publicKeys.pubEccKey) {
 				const eccPublicKey = publicKeys.pubEccKey
 				const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(publicKeys.pubRsaKey))
-				const rsaEccPublicKey: RsaEccPublicKey = Object.assign(rsaPublicKey, { keyPairType: KeyPairType.RSA_AND_ECC, publicEccKey: eccPublicKey })
+				const rsaEccPublicKey: RsaX25519PublicKey = Object.assign(rsaPublicKey, { keyPairType: KeyPairType.RSA_AND_X25519, publicEccKey: eccPublicKey })
 				return {
 					version,
 					object: rsaEccPublicKey,
@@ -149,7 +149,7 @@ export class PublicKeyProvider {
 			const kyberPublicKey = bytesToKyberPublicKey(publicKeys.pubKyberKey)
 			const pqPublicKey: PQPublicKeys = {
 				keyPairType: KeyPairType.TUTA_CRYPT,
-				eccPublicKey,
+				x25519PublicKey: eccPublicKey,
 				kyberPublicKey,
 			}
 			return {

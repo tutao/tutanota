@@ -6,7 +6,7 @@ import {
 	PubDistKeyAuthenticationParams,
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { Aes256Key, aes256RandomKey, EccPublicKey, KeyPairType, KyberPublicKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/tutanota-crypto"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -38,7 +38,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	let currentAdminGroupKeyVersion: KeyVersion
 	let newAdminGroupKey: Aes256Key
 	let newAdminGroupKeyVersion: KeyVersion
-	let eccPublicKey: EccPublicKey
+	let x25519PublicKey: X25519PublicKey
 	let kyberPublicKey: KyberPublicKey
 
 	o.beforeEach(async function () {
@@ -59,7 +59,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 		newAdminGroupKeyVersion = 1 as KeyVersion
 
 		kyberPublicKey = { raw: new Uint8Array([1, 2, 3]) }
-		eccPublicKey = new Uint8Array([4, 5, 6])
+		x25519PublicKey = new Uint8Array([4, 5, 6])
 	})
 
 	o.spec("user group key authentication system", function () {
@@ -93,10 +93,16 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 			)
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongNewAdminGroupKeyVersion, tag))
 
-			const wrongCurrentUserGroupKey: UserGroupKeyAuthenticationParams = { ...params, sourceOfTrust: { currentUserGroupKey: aes256RandomKey() } }
+			const wrongCurrentUserGroupKey: UserGroupKeyAuthenticationParams = {
+				...params,
+				sourceOfTrust: { currentUserGroupKey: aes256RandomKey() },
+			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongCurrentUserGroupKey, tag))
 
-			const wrongNewUserGroupKey: UserGroupKeyAuthenticationParams = { ...params, untrustedKey: { newUserGroupKey: aes256RandomKey() } }
+			const wrongNewUserGroupKey: UserGroupKeyAuthenticationParams = {
+				...params,
+				untrustedKey: { newUserGroupKey: aes256RandomKey() },
+			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongNewUserGroupKey, tag))
 		})
 	})
@@ -110,7 +116,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 					newAdminPubKey: {
 						keyPairType: KeyPairType.TUTA_CRYPT,
 						kyberPublicKey,
-						eccPublicKey,
+						x25519PublicKey,
 					},
 				},
 				bindingData: {
@@ -138,18 +144,26 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongNewAdminGroupKeyVersion, tag))
 
-			const wrongCurrentUserGroupKey: NewAdminPubKeyAuthenticationParams = { ...params, sourceOfTrust: { receivingUserGroupKey: aes256RandomKey() } }
+			const wrongCurrentUserGroupKey: NewAdminPubKeyAuthenticationParams = {
+				...params,
+				sourceOfTrust: { receivingUserGroupKey: aes256RandomKey() },
+			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongCurrentUserGroupKey, tag))
 
 			const wrongPubEccKey: NewAdminPubKeyAuthenticationParams = {
 				...params,
-				untrustedKey: { newAdminPubKey: { ...params.untrustedKey.newAdminPubKey, eccPublicKey: WRONG_BYTES } },
+				untrustedKey: { newAdminPubKey: { ...params.untrustedKey.newAdminPubKey, x25519PublicKey: WRONG_BYTES } },
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongPubEccKey, tag))
 
 			const wrongPubKyberKey: NewAdminPubKeyAuthenticationParams = {
 				...params,
-				untrustedKey: { newAdminPubKey: { ...params.untrustedKey.newAdminPubKey, kyberPublicKey: { raw: WRONG_BYTES } } },
+				untrustedKey: {
+					newAdminPubKey: {
+						...params.untrustedKey.newAdminPubKey,
+						kyberPublicKey: { raw: WRONG_BYTES },
+					},
+				},
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongPubKyberKey, tag))
 		})
@@ -160,7 +174,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 			const params: PubDistKeyAuthenticationParams = {
 				tagType: "PUB_DIST_KEY_TAG",
 				sourceOfTrust: { currentAdminGroupKey },
-				untrustedKey: { distPubKey: { keyPairType: KeyPairType.TUTA_CRYPT, kyberPublicKey, eccPublicKey } },
+				untrustedKey: { distPubKey: { keyPairType: KeyPairType.TUTA_CRYPT, kyberPublicKey, x25519PublicKey } },
 				bindingData: {
 					adminGroupId,
 					userGroupId,
@@ -185,12 +199,15 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 			)
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongCurrentUserGroupKeyVersion, tag))
 
-			const wrongCurrentAdminGroupKey: PubDistKeyAuthenticationParams = { ...params, sourceOfTrust: { currentAdminGroupKey: aes256RandomKey() } }
+			const wrongCurrentAdminGroupKey: PubDistKeyAuthenticationParams = {
+				...params,
+				sourceOfTrust: { currentAdminGroupKey: aes256RandomKey() },
+			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongCurrentAdminGroupKey, tag))
 
 			const wrongPubEccKey: PubDistKeyAuthenticationParams = {
 				...params,
-				untrustedKey: { distPubKey: { ...params.untrustedKey.distPubKey, eccPublicKey: WRONG_BYTES } },
+				untrustedKey: { distPubKey: { ...params.untrustedKey.distPubKey, x25519PublicKey: WRONG_BYTES } },
 			}
 
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongPubEccKey, tag))

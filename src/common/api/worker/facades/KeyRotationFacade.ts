@@ -71,7 +71,7 @@ import {
 	PublicKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
-	EccKeyPair,
+	X25519KeyPair,
 	EncryptedPqKeyPairs,
 	getKeyLengthBytes,
 	isEncryptedPqKeyPairs,
@@ -864,8 +864,8 @@ export class KeyRotationFacade {
 		return {
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
-			pubEccKey: newPqPairs.eccKeyPair.publicKey,
-			symEncPrivEccKey: this.cryptoWrapper.encryptEccKey(symmmetricEncryptionKey, newPqPairs.eccKeyPair.privateKey),
+			pubEccKey: newPqPairs.x25519KeyPair.publicKey,
+			symEncPrivEccKey: this.cryptoWrapper.encryptEccKey(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
 			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
 		}
@@ -1134,7 +1134,7 @@ export class KeyRotationFacade {
 
 		const pubEncSymKey = await this.asymmetricCryptoFacade.tutaCryptEncryptSymKey(newUserGroupKeys.symGroupKey.object, adminPubKeys, {
 			version: newUserGroupKeys.symGroupKey.version,
-			object: pqKeyPair.eccKeyPair,
+			object: pqKeyPair.x25519KeyPair,
 		})
 
 		const tag = this.keyAuthenticationFacade.computeTag({
@@ -1257,7 +1257,7 @@ export class KeyRotationFacade {
 		const { symGroupKey: symUserGroupKey, encryptedKeyPair: encryptedUserKeyPair } = newUserGroupKeys
 		const generatedPrivateEccKey = this.cryptoWrapper.aesDecrypt(symUserGroupKey.object, assertNotNull(encryptedUserKeyPair?.symEncPrivEccKey), true)
 		const generatedPublicEccKey = assertNotNull(encryptedUserKeyPair?.pubEccKey)
-		const generatedEccKeyPair: Versioned<EccKeyPair> = {
+		const generatedEccKeyPair: Versioned<X25519KeyPair> = {
 			version: symUserGroupKey.version,
 			object: {
 				privateKey: generatedPrivateEccKey,

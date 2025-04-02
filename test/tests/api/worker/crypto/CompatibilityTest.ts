@@ -7,8 +7,6 @@ import {
 	bytesToKyberPublicKey,
 	decapsulateKyber,
 	decryptKey,
-	eccDecapsulate,
-	eccEncapsulate,
 	encapsulateKyber,
 	encryptKey,
 	generateKeyFromPassphraseArgon2id,
@@ -31,6 +29,8 @@ import {
 	rsaEncrypt,
 	uint8ArrayToBitArray,
 	verifyHmacSha256,
+	x25519Decapsulate,
+	x25519Encapsulate,
 } from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
@@ -254,8 +254,8 @@ o.spec("CompatibilityTest", function () {
 			const bobPublicKeyBytes = hexToUint8Array(td.bobPublicKeyHex)
 			const bobKeyPair = { priv: bobPrivateKeyBytes, pub: bobPublicKeyBytes }
 
-			const aliceToBob = eccEncapsulate(aliceKeyPair.priv, ephemeralKeyPair.priv, bobKeyPair.pub)
-			const bobToAlice = eccDecapsulate(aliceKeyPair.pub, ephemeralKeyPair.pub, bobKeyPair.priv)
+			const aliceToBob = x25519Encapsulate(aliceKeyPair.priv, ephemeralKeyPair.priv, bobKeyPair.pub)
+			const bobToAlice = x25519Decapsulate(aliceKeyPair.pub, ephemeralKeyPair.pub, bobKeyPair.priv)
 			o(aliceToBob).deepEquals(bobToAlice)
 			o(td.ephemeralSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.ephemeralSharedSecret))
 			o(td.authSharedSecretHex).equals(uint8ArrayToHex(aliceToBob.authSharedSecret))
@@ -309,7 +309,7 @@ o.spec("CompatibilityTest", function () {
 
 			const bucketKey = hexToUint8Array(td.bucketKey)
 
-			const eccKeyPair = {
+			const x25519KeyPair = {
 				publicKey: hexToUint8Array(td.publicX25519Key),
 				privateKey: hexToUint8Array(td.privateX25519Key),
 			}
@@ -326,13 +326,13 @@ o.spec("CompatibilityTest", function () {
 
 			const pqPublicKeys: PQPublicKeys = {
 				keyPairType: KeyPairType.TUTA_CRYPT,
-				eccPublicKey: eccKeyPair.publicKey,
+				x25519PublicKey: x25519KeyPair.publicKey,
 				kyberPublicKey: kyberKeyPair.publicKey,
 			}
-			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair, kyberKeyPair }
+			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair, kyberKeyPair }
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
 
-			const encapsulation = await pqFacade.encapsulateAndEncode(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
+			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
 			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
 			//
 			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
@@ -340,7 +340,7 @@ o.spec("CompatibilityTest", function () {
 
 			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
 			o(decapsulation.decryptedSymKeyBytes).deepEquals(bucketKey)
-			o(decapsulation.senderIdentityPubKey).deepEquals(eccKeyPair.publicKey)
+			o(decapsulation.senderIdentityPubKey).deepEquals(x25519KeyPair.publicKey)
 		}
 	})
 
@@ -350,7 +350,7 @@ o.spec("CompatibilityTest", function () {
 
 			const bucketKey = hexToUint8Array(td.bucketKey)
 
-			const eccKeyPair = {
+			const x25519KeyPair = {
 				publicKey: hexToUint8Array(td.publicX25519Key),
 				privateKey: hexToUint8Array(td.privateX25519Key),
 			}
@@ -367,14 +367,14 @@ o.spec("CompatibilityTest", function () {
 
 			const pqPublicKeys: PQPublicKeys = {
 				keyPairType: KeyPairType.TUTA_CRYPT,
-				eccPublicKey: eccKeyPair.publicKey,
+				x25519PublicKey: x25519KeyPair.publicKey,
 				kyberPublicKey: kyberKeyPair.publicKey,
 			}
-			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair, kyberKeyPair }
+			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair, kyberKeyPair }
 			const liboqsFallback = (await (await import("liboqs.wasm")).loadWasm({ forceFallback: true })) as LibOQSExports
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqsFallback))
 
-			const encapsulation = await pqFacade.encapsulateAndEncode(eccKeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
+			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
 			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
 			//
 			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
@@ -382,7 +382,7 @@ o.spec("CompatibilityTest", function () {
 
 			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
 			o(decapsulation.decryptedSymKeyBytes).deepEquals(bucketKey)
-			o(decapsulation.senderIdentityPubKey).deepEquals(eccKeyPair.publicKey)
+			o(decapsulation.senderIdentityPubKey).deepEquals(x25519KeyPair.publicKey)
 		}
 	})
 

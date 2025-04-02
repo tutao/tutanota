@@ -10,15 +10,15 @@ import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import {
 	AesKey,
 	bitArrayToUint8Array,
-	EccKeyPair,
 	KeyPairType,
 	KyberPublicKey,
 	PQKeyPairs,
 	PQPublicKeys,
-	RsaEccPublicKey,
 	RsaKeyPair,
 	RsaPublicKey,
+	RsaX25519PublicKey,
 	uint8ArrayToBitArray,
+	X25519KeyPair,
 } from "@tutao/tutanota-crypto"
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
@@ -81,20 +81,27 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_SUCCEEDED if the key matches", async function () {
-			const versionedRsaEccPublicKey: Versioned<RsaEccPublicKey> = {
+			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
 				version: 0,
 				object: {
 					keyLength: 0,
 					modulus: "",
 					publicExponent: 0,
 					version: 0,
-					keyPairType: KeyPairType.RSA_AND_ECC,
+					keyPairType: KeyPairType.RSA_AND_X25519,
 					publicEccKey: senderIdentityPubKey,
 				},
 			}
 			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaEccPublicKey)
 
-			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
+			const result = await asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier,
+					identifierType,
+				},
+				senderIdentityPubKey,
+				senderKeyVersion,
+			)
 
 			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 		})
@@ -112,26 +119,40 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			}
 			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaPublicKey)
 
-			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
+			const result = await asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier,
+					identifierType,
+				},
+				senderIdentityPubKey,
+				senderKeyVersion,
+			)
 
 			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if the key does not match", async function () {
-			const versionedRsaEccPublicKey: Versioned<RsaEccPublicKey> = {
+			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
 				version: 0,
 				object: {
 					keyLength: 0,
 					modulus: "",
 					publicExponent: 0,
 					version: 0,
-					keyPairType: KeyPairType.RSA_AND_ECC,
+					keyPairType: KeyPairType.RSA_AND_X25519,
 					publicEccKey: new Uint8Array([4, 5, 6]),
 				},
 			}
 			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaEccPublicKey)
 
-			const result = await asymmetricCryptoFacade.authenticateSender({ identifier, identifierType }, senderIdentityPubKey, senderKeyVersion)
+			const result = await asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier,
+					identifierType,
+				},
+				senderIdentityPubKey,
+				senderKeyVersion,
+			)
 
 			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
 		})
@@ -156,14 +177,14 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				recipientIdentifier,
 				recipientIdentifierType,
 			})
-			const versionedRsaEccPublicKey: Versioned<RsaEccPublicKey> = {
+			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
 				version: 0,
 				object: {
 					keyLength: 0,
 					modulus: "",
 					publicExponent: 0,
 					version: 0,
-					keyPairType: KeyPairType.RSA_AND_ECC,
+					keyPairType: KeyPairType.RSA_AND_X25519,
 					publicEccKey: new Uint8Array([4, 5, 6]),
 				},
 			}
@@ -272,14 +293,14 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		let pubEncSymKeyBytes: Uint8Array
 		let recipientKyberPublicKey: KyberPublicKey
 		let senderPqKeyPair: Versioned<PQKeyPairs>
-		let ephemeralKeyPair: EccKeyPair
+		let ephemeralKeyPair: X25519KeyPair
 
 		o.beforeEach(function () {
 			recipientKyberPublicKey = object<KyberPublicKey>()
 			symKey = [1, 2, 3, 4]
 			pubEncSymKeyBytes = object<Uint8Array>()
 			senderPqKeyPair = {
-				object: { keyPairType: KeyPairType.TUTA_CRYPT, eccKeyPair: object(), kyberKeyPair: object() },
+				object: { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair: object(), kyberKeyPair: object() },
 				version: senderKeyVersion,
 			}
 			ephemeralKeyPair = object()
@@ -299,7 +320,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			recipientPublicKeys.object.keyPairType = KeyPairType.TUTA_CRYPT
 
 			when(
-				pqFacade.encapsulateAndEncode(senderPqKeyPair.object.eccKeyPair, ephemeralKeyPair, recipientPublicKeys.object, matchers.anything()),
+				pqFacade.encapsulateAndEncode(senderPqKeyPair.object.x25519KeyPair, ephemeralKeyPair, recipientPublicKeys.object, matchers.anything()),
 			).thenResolve(pubEncSymKeyBytes)
 
 			const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
@@ -315,7 +336,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		o(
 			"should encrypt the sym key with the recipient PQ public key and generate new sender ecc identity key pair (sender has only RSA key pair)",
 			async function () {
-				const newIdentityEccPair: EccKeyPair = { publicKey: object(), privateKey: object() }
+				const newIdentityEccPair: X25519KeyPair = { publicKey: object(), privateKey: object() }
 				when(cryptoWrapper.generateEccKeyPair()).thenReturn(newIdentityEccPair, ephemeralKeyPair)
 				const senderRsaKeyPair: Versioned<RsaKeyPair> = { object: RSA_TEST_KEYPAIR, version: senderKeyVersion }
 				when(keyLoaderFacade.loadCurrentKeyPair(senderGroupId)).thenResolve(senderRsaKeyPair)
@@ -328,7 +349,10 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					pubEncSymKeyBytes,
 				)
 				const senderUserGroupKey = object<AesKey>()
-				when(keyLoaderFacade.getCurrentSymGroupKey(senderGroupId)).thenResolve({ object: senderUserGroupKey, version: senderKeyVersion })
+				when(keyLoaderFacade.getCurrentSymGroupKey(senderGroupId)).thenResolve({
+					object: senderUserGroupKey,
+					version: senderKeyVersion,
+				})
 				const encryptedEccSenderPrivateKey = object<Uint8Array>()
 				when(cryptoWrapper.encryptEccKey(senderUserGroupKey, newIdentityEccPair.privateKey)).thenReturn(encryptedEccSenderPrivateKey)
 

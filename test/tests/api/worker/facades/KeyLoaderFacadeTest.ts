@@ -7,9 +7,9 @@ import {
 	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
-	encryptEccKey,
 	encryptKey,
 	encryptRsaKey,
+	encryptX25519Key,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
@@ -93,9 +93,9 @@ o.spec("KeyLoaderFacadeTest", function () {
 			const pqKeyPair = formerKeyPairsDecrypted[i]
 
 			key.keyPair = createTestEntity(KeyPairTypeRef, {
-				pubEccKey: pqKeyPair.eccKeyPair.publicKey,
+				pubEccKey: pqKeyPair.x25519KeyPair.publicKey,
 				pubKyberKey: kyberPublicKeyToBytes(pqKeyPair.kyberKeyPair.publicKey),
-				symEncPrivEccKey: encryptEccKey(formerKeysDecrypted[i], pqKeyPair.eccKeyPair.privateKey),
+				symEncPrivEccKey: encryptX25519Key(formerKeysDecrypted[i], pqKeyPair.x25519KeyPair.privateKey),
 				symEncPrivKyberKey: aesEncrypt(formerKeysDecrypted[i], kyberPrivateKeyToBytes(pqKeyPair.kyberKeyPair.privateKey)),
 			})
 			lastKey = formerKeysDecrypted[i]
@@ -104,8 +104,8 @@ o.spec("KeyLoaderFacadeTest", function () {
 		currentKeyPair = await pqFacade.generateKeyPairs()
 
 		currentKeys = createTestEntity(KeyPairTypeRef, {
-			pubEccKey: currentKeyPair.eccKeyPair.publicKey,
-			symEncPrivEccKey: encryptEccKey(currentGroupKey.object, currentKeyPair.eccKeyPair.privateKey),
+			pubEccKey: currentKeyPair.x25519KeyPair.publicKey,
+			symEncPrivEccKey: encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
 			pubKyberKey: kyberPublicKeyToBytes(currentKeyPair.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: aesEncrypt(currentGroupKey.object, kyberPrivateKeyToBytes(currentKeyPair.kyberKeyPair.privateKey)),
 			pubRsaKey: null,
@@ -185,7 +185,12 @@ o.spec("KeyLoaderFacadeTest", function () {
 			when(entityClient.load(GroupKeyTypeRef, [assertNotNull(group.formerGroupKeys).list, stringToCustomId(String(requestedVersion))])).thenResolve(
 				formerKeys[requestedVersion],
 			)
-			await keyCache.getCurrentGroupKey(group._id, () => Promise.resolve({ version: requestedVersion, object: formerKeysDecrypted[requestedVersion] }))
+			await keyCache.getCurrentGroupKey(group._id, () =>
+				Promise.resolve({
+					version: requestedVersion,
+					object: formerKeysDecrypted[requestedVersion],
+				}),
+			)
 			const keypair = (await keyLoaderFacade.loadKeypair(group._id, requestedVersion)) as PQKeyPairs
 			o(keypair).deepEquals(formerKeyPairsDecrypted[requestedVersion])
 			verify(cacheManagementFacade.refreshKeyCache(matchers.anything()), { times: 0 })
@@ -195,8 +200,8 @@ o.spec("KeyLoaderFacadeTest", function () {
 			currentGroupKey.version = 1
 			group.groupKeyVersion = String(currentGroupKey.version)
 			group.currentKeys = createKeyPair({
-				pubEccKey: currentKeyPair.eccKeyPair.publicKey,
-				symEncPrivEccKey: encryptEccKey(currentGroupKey.object, currentKeyPair.eccKeyPair.privateKey),
+				pubEccKey: currentKeyPair.x25519KeyPair.publicKey,
+				symEncPrivEccKey: encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
 				pubKyberKey: null,
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
@@ -214,8 +219,8 @@ o.spec("KeyLoaderFacadeTest", function () {
 			currentGroupKey.version = 0
 			group.groupKeyVersion = String(currentGroupKey.version)
 			group.currentKeys = createKeyPair({
-				pubEccKey: currentKeyPair.eccKeyPair.publicKey,
-				symEncPrivEccKey: encryptEccKey(currentGroupKey.object, currentKeyPair.eccKeyPair.privateKey),
+				pubEccKey: currentKeyPair.x25519KeyPair.publicKey,
+				symEncPrivEccKey: encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
 				pubKyberKey: null,
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
@@ -243,8 +248,8 @@ o.spec("KeyLoaderFacadeTest", function () {
 			currentGroupKey.version = 1
 			group.groupKeyVersion = String(currentGroupKey.version)
 			group.currentKeys = createKeyPair({
-				pubEccKey: currentKeyPair.eccKeyPair.publicKey,
-				symEncPrivEccKey: encryptEccKey(currentGroupKey.object, currentKeyPair.eccKeyPair.privateKey),
+				pubEccKey: currentKeyPair.x25519KeyPair.publicKey,
+				symEncPrivEccKey: encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
 				pubKyberKey: null,
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),

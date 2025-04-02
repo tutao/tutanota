@@ -185,8 +185,8 @@ export class GroupManagementFacade {
 		return createInternalGroupData({
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
-			pubEccKey: keyPair.eccKeyPair.publicKey,
-			groupEncPrivEccKey: this.cryptoWrapper.encryptEccKey(groupKey, keyPair.eccKeyPair.privateKey),
+			pubEccKey: keyPair.x25519KeyPair.publicKey,
+			groupEncPrivEccKey: this.cryptoWrapper.encryptEccKey(groupKey, keyPair.x25519KeyPair.privateKey),
 			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
 			groupEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(groupKey, keyPair.kyberKeyPair.privateKey),
 			adminGroup: adminGroupId,

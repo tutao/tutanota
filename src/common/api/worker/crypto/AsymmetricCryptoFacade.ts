@@ -3,14 +3,14 @@ import {
 	AesKey,
 	AsymmetricKeyPair,
 	bitArrayToUint8Array,
-	EccKeyPair,
-	EccPublicKey,
+	X25519KeyPair,
+	X25519PublicKey,
 	isPqKeyPairs,
-	isRsaEccKeyPair,
-	isRsaOrRsaEccKeyPair,
+	isRsaX25519KeyPair,
+	isRsaOrRsaX25519KeyPair,
 	isVersionedPqPublicKey,
-	isVersionedRsaEccPublicKey,
-	isVersionedRsaOrRsaEccPublicKey,
+	isVersionedRsaX25519PublicKey,
+	isVersionedRsaOrRsaX25519PublicKey,
 	PQPublicKeys,
 	PublicKey,
 	RsaPrivateKey,
@@ -41,7 +41,7 @@ assertWorkerOrNode()
 
 export type DecapsulatedAesKey = {
 	decryptedAesKey: AesKey
-	senderIdentityPubKey: EccPublicKey | null // for authentication: null for rsa only
+	senderIdentityPubKey: X25519PublicKey | null // for authentication: null for rsa only
 }
 
 export type PubEncSymKey = {
@@ -66,10 +66,10 @@ export class AsymmetricCryptoFacade {
 		private readonly publicKeyProvider: PublicKeyProvider,
 	) {}
 
-	getSenderEccKey(publicKey: Versioned<PublicKey>): EccPublicKey | null {
+	getSenderEccKey(publicKey: Versioned<PublicKey>): X25519PublicKey | null {
 		if (isVersionedPqPublicKey(publicKey)) {
-			return publicKey.object.eccPublicKey
-		} else if (isVersionedRsaEccPublicKey(publicKey)) {
+			return publicKey.object.x25519PublicKey
+		} else if (isVersionedRsaX25519PublicKey(publicKey)) {
 			return publicKey.object.publicEccKey
 		} else {
 			return null
@@ -151,7 +151,7 @@ export class AsymmetricCryptoFacade {
 	): Promise<DecapsulatedAesKey> {
 		switch (cryptoProtocolVersion) {
 			case CryptoProtocolVersion.RSA: {
-				if (!isRsaOrRsaEccKeyPair(recipientKeyPair)) {
+				if (!isRsaOrRsaX25519KeyPair(recipientKeyPair)) {
 					throw new CryptoError("wrong key type. expected rsa. got " + recipientKeyPair.keyPairType)
 				}
 				const privateKey: RsaPrivateKey = recipientKeyPair.privateKey
@@ -203,7 +203,7 @@ export class AsymmetricCryptoFacade {
 				object: senderEccKeyPair,
 				version: senderKeyPair.version,
 			})
-		} else if (isVersionedRsaOrRsaEccPublicKey(recipientPublicKey)) {
+		} else if (isVersionedRsaOrRsaX25519PublicKey(recipientPublicKey)) {
 			const pubEncSymKeyBytes = await this.rsa.encrypt(recipientPublicKey.object, bitArrayToUint8Array(symKey))
 			return {
 				pubEncSymKeyBytes,
@@ -222,7 +222,7 @@ export class AsymmetricCryptoFacade {
 	 * @param senderEccKeyPair the sender's key pair (needed for authentication)
 	 * @throws ProgrammingError if the recipientPublicKeys are not suitable for TutaCrypt
 	 */
-	async tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKey: Versioned<PublicKey>, senderEccKeyPair: Versioned<EccKeyPair>): Promise<PubEncSymKey> {
+	async tutaCryptEncryptSymKey(symKey: AesKey, recipientPublicKey: Versioned<PublicKey>, senderEccKeyPair: Versioned<X25519KeyPair>): Promise<PubEncSymKey> {
 		if (!isVersionedPqPublicKey(recipientPublicKey)) {
 			throw new ProgrammingError("the recipient does not have pq key pairs")
 		}
@@ -232,7 +232,7 @@ export class AsymmetricCryptoFacade {
 	private async tutaCryptEncryptSymKeyImpl(
 		recipientPublicKey: Versioned<PQPublicKeys>,
 		symKey: AesKey,
-		senderEccKeyPair: Versioned<EccKeyPair>,
+		senderEccKeyPair: Versioned<X25519KeyPair>,
 	): Promise<PubEncSymKey> {
 		const ephemeralKeyPair = this.cryptoWrapper.generateEccKeyPair()
 		const pubEncSymKeyBytes = await this.pqFacade.encapsulateAndEncode(
@@ -258,13 +258,13 @@ export class AsymmetricCryptoFacade {
 	 * 						This is necessary as a User might send an E-Mail from a shared mailbox,
 	 * 						for which the KeyPair should be created.
 	 */
-	private async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<EccKeyPair> {
+	private async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<X25519KeyPair> {
 		const algo = senderKeyPair.keyPairType
 		if (isPqKeyPairs(senderKeyPair)) {
-			return senderKeyPair.eccKeyPair
-		} else if (isRsaEccKeyPair(senderKeyPair)) {
+			return senderKeyPair.x25519KeyPair
+		} else if (isRsaX25519KeyPair(senderKeyPair)) {
 			return { publicKey: senderKeyPair.publicEccKey, privateKey: senderKeyPair.privateEccKey }
-		} else if (isRsaOrRsaEccKeyPair(senderKeyPair)) {
+		} else if (isRsaOrRsaX25519KeyPair(senderKeyPair)) {
 			// there is no ecc key pair yet, so we have to genrate and upload one
 			const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
 			const newIdentityKeyPair = this.cryptoWrapper.generateEccKeyPair()

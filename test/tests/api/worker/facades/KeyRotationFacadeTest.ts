@@ -310,7 +310,7 @@ function prepareUserKeyRotation(
 	const adminPublicKey: Versioned<PQPublicKeys> = {
 		version: 1, // admin is rotated
 		object: {
-			eccPublicKey: adminPubEccKeyBytes,
+			x25519PublicKey: adminPubEccKeyBytes,
 			kyberPublicKey: { raw: adminPubKyberKeyBytes },
 			keyPairType: KeyPairType.TUTA_CRYPT,
 		},
@@ -638,7 +638,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				const update = sentData.groupKeyUpdates[0]
 
 				const sentKeyPairs = createTestEntity(KeyPairTypeRef, {
-					pubEccKey: generatedKeyPair.encodedEccPublicKey,
+					pubEccKey: generatedKeyPair.encodedx25519PublicKey,
 					symEncPrivEccKey: generatedKeyPair.encryptedEccPrivKey,
 					pubKyberKey: generatedKeyPair.encodedKyberPublicKey,
 					symEncPrivKyberKey: generatedKeyPair.encryptedKyberPrivKey,
@@ -1162,7 +1162,7 @@ o.spec("KeyRotationFacadeTest", function () {
 						keyAuthenticationFacade.computeTag(
 							matchers.argThat((params: PubDistKeyAuthenticationParams) => {
 								o(params.tagType).equals("PUB_DIST_KEY_TAG")
-								o(params.untrustedKey.distPubKey.eccPublicKey).equals(mockedDistKeyPair.decodedPublicKey.object.eccPublicKey)
+								o(params.untrustedKey.distPubKey.x25519PublicKey).equals(mockedDistKeyPair.decodedPublicKey.object.x25519PublicKey)
 								o(params.untrustedKey.distPubKey.kyberPublicKey.raw).equals(mockedDistKeyPair.decodedPublicKey.object.kyberPublicKey.raw)
 								return true
 							}),
@@ -1191,7 +1191,7 @@ o.spec("KeyRotationFacadeTest", function () {
 
 								o(arg.adminDistKeyPair.pubRsaKey).equals(null)
 								o(arg.adminDistKeyPair.symEncPrivRsaKey).equals(null)
-								o(arg.adminDistKeyPair.pubEccKey).deepEquals(mockedDistKeyPair.encodedEccPublicKey)
+								o(arg.adminDistKeyPair.pubEccKey).deepEquals(mockedDistKeyPair.encodedx25519PublicKey)
 								o(arg.adminDistKeyPair.symEncPrivEccKey).deepEquals(mockedDistKeyPair.encryptedEccPrivKey!)
 								o(arg.adminDistKeyPair.pubKyberKey).deepEquals(mockedDistKeyPair.encodedKyberPublicKey)
 								o(arg.adminDistKeyPair.symEncPrivKyberKey).deepEquals(mockedDistKeyPair.encryptedKyberPrivKey!)
@@ -1852,7 +1852,7 @@ o.spec("KeyRotationFacadeTest", function () {
 				const update = sentData.groupKeyUpdates[0]
 
 				const sentKeyPairs = createTestEntity(KeyPairTypeRef, {
-					pubEccKey: generatedKeyPairs.encodedEccPublicKey,
+					pubEccKey: generatedKeyPairs.encodedx25519PublicKey,
 					symEncPrivEccKey: generatedKeyPairs.encryptedEccPrivKey,
 					pubKyberKey: generatedKeyPairs.encodedKyberPublicKey,
 					symEncPrivKyberKey: generatedKeyPairs.encryptedKyberPrivKey,
@@ -2246,14 +2246,14 @@ type MockedKeyPairs = {
 	encryptedKyberPrivKey: Uint8Array
 	encryptedPqKeyPairs: EncryptedPqKeyPairs
 	encodedKyberPublicKey: Uint8Array // encoded as stored in the db
-	encodedEccPublicKey: Uint8Array // encoded as stored in the db
+	encodedx25519PublicKey: Uint8Array // encoded as stored in the db
 }
 
 function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoWrapper, ...newKeys: AesKey[]): Map<AesKey, MockedKeyPairs> {
 	const results = new Map<AesKey, MockedKeyPairs>()
 	for (const newKey of newKeys) {
 		const newKeyPairs: PQKeyPairs = object()
-		newKeyPairs.eccKeyPair = {
+		newKeyPairs.x25519KeyPair = {
 			publicKey: object<Uint8Array>(),
 			privateKey: object<Uint8Array>(),
 		}
@@ -2263,10 +2263,10 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 		}
 
 		const encodedKyberPublicKey = object<Uint8Array>()
-		const encodedEccPublicKey = newKeyPairs.eccKeyPair.publicKey // encoded and decoded ecc public keys are the same.
+		const encodedx25519PublicKey = newKeyPairs.x25519KeyPair.publicKey // encoded and decoded ecc public keys are the same.
 
 		const encryptedEccPrivKey: Uint8Array = object()
-		when(cryptoWrapperMock.encryptEccKey(newKey, newKeyPairs.eccKeyPair.privateKey)).thenReturn(encryptedEccPrivKey)
+		when(cryptoWrapperMock.encryptEccKey(newKey, newKeyPairs.x25519KeyPair.privateKey)).thenReturn(encryptedEccPrivKey)
 		const encryptedKyberPrivKey: Uint8Array = object()
 		when(cryptoWrapperMock.encryptKyberKey(newKey, newKeyPairs.kyberKeyPair.privateKey)).thenReturn(encryptedKyberPrivKey)
 		when(cryptoWrapperMock.kyberPublicKeyToBytes(newKeyPairs.kyberKeyPair.publicKey)).thenReturn(encodedKyberPublicKey)
@@ -2274,13 +2274,13 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 		const publicKey: Versioned<PQPublicKeys> = object()
 		const pqPublicKey: PQPublicKeys = object()
 		pqPublicKey.keyPairType = KeyPairType.TUTA_CRYPT
-		pqPublicKey.eccPublicKey = object()
+		pqPublicKey.x25519PublicKey = object()
 		pqPublicKey.kyberPublicKey = object()
 		publicKey.version = 1
 		publicKey.object = pqPublicKey
 
 		const encryptedPqKeyPairs: EncryptedPqKeyPairs = {
-			pubEccKey: newKeyPairs.eccKeyPair.publicKey,
+			pubEccKey: newKeyPairs.x25519KeyPair.publicKey,
 			pubKyberKey: newKeyPairs.kyberKeyPair.publicKey.raw,
 			pubRsaKey: null,
 			symEncPrivEccKey: encryptedEccPrivKey,
@@ -2295,7 +2295,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 			encryptedKyberPrivKey,
 			encryptedPqKeyPairs,
 			encodedKyberPublicKey,
-			encodedEccPublicKey,
+			encodedx25519PublicKey,
 		})
 		when(
 			cryptoWrapperMock.decryptKeyPair(
@@ -2306,7 +2306,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 						arg.symEncPrivKyberKey === encryptedKyberPrivKey &&
 						arg.symEncPrivRsaKey == null &&
 						arg.pubKyberKey === encodedKyberPublicKey &&
-						arg.pubEccKey === encodedEccPublicKey
+						arg.pubEccKey === encodedx25519PublicKey
 					)
 				}),
 			),
@@ -2322,7 +2322,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 function verifyKeyPair(keyPair: KeyPair | null | undefined, mockedKeyPairs: MockedKeyPairs) {
 	o(keyPair).notEquals(null)
 	o(keyPair?.symEncPrivEccKey).deepEquals(mockedKeyPairs.encryptedEccPrivKey)
-	o(keyPair?.pubEccKey).deepEquals(mockedKeyPairs.encodedEccPublicKey)
+	o(keyPair?.pubEccKey).deepEquals(mockedKeyPairs.encodedx25519PublicKey)
 	o(keyPair?.symEncPrivKyberKey).deepEquals(mockedKeyPairs.encryptedKyberPrivKey)
 	o(keyPair?.pubKyberKey).deepEquals(mockedKeyPairs.encodedKyberPublicKey)
 	o(keyPair?.symEncPrivRsaKey).equals(null)

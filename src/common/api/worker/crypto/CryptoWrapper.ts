@@ -7,17 +7,15 @@ import {
 	AsymmetricKeyPair,
 	decryptKey,
 	decryptKeyPair,
-	EccKeyPair,
-	EccPrivateKey,
 	ENABLE_MAC,
-	encryptEccKey,
 	EncryptedKeyPairs,
 	EncryptedPqKeyPairs,
-	EncryptedRsaEccKeyPairs,
 	EncryptedRsaKeyPairs,
+	EncryptedRsaX25519KeyPairs,
 	encryptKey,
 	encryptKyberKey,
-	generateEccKeyPair,
+	encryptX25519Key,
+	generateX25519KeyPair,
 	hkdf,
 	HkdfKeyDerivationDomains,
 	hmacSha256,
@@ -30,11 +28,13 @@ import {
 	MacTag,
 	type PQKeyPairs,
 	random,
-	type RsaEccKeyPair,
 	type RsaKeyPair,
+	type RsaX25519KeyPair,
 	sha256Hash,
 	uint8ArrayToKey,
 	verifyHmacSha256,
+	X25519KeyPair,
+	X25519PrivateKey,
 } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
@@ -71,8 +71,8 @@ export class CryptoWrapper {
 		return decryptKey(encryptionKey, key)
 	}
 
-	encryptEccKey(encryptionKey: AesKey, privateKey: EccPrivateKey): Uint8Array {
-		return encryptEccKey(encryptionKey, privateKey)
+	encryptEccKey(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array {
+		return encryptX25519Key(encryptionKey, privateKey)
 	}
 
 	encryptKey(encryptingKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
@@ -83,8 +83,8 @@ export class CryptoWrapper {
 		return encryptKeyWithVersionedKey(encryptingKey, key)
 	}
 
-	generateEccKeyPair(): EccKeyPair {
-		return generateEccKeyPair()
+	generateEccKeyPair(): X25519KeyPair {
+		return generateX25519KeyPair()
 	}
 
 	encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array {
@@ -105,7 +105,7 @@ export class CryptoWrapper {
 
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedPqKeyPairs): PQKeyPairs
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaKeyPairs): RsaKeyPair
-	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaEccKeyPairs): RsaEccKeyPair
+	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaX25519KeyPairs): RsaX25519KeyPair
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): AsymmetricKeyPair
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): AsymmetricKeyPair {
 		return decryptKeyPair(encryptionKey, keyPair)

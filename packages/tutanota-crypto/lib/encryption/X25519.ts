@@ -2,17 +2,17 @@
 import { x25519 } from "../internal/noble-curves-1.3.0.js"
 import { random } from "../random/Randomizer.js"
 
-export type EccPrivateKey = Uint8Array
-export type EccPublicKey = Uint8Array
+export type X25519PrivateKey = Uint8Array
+export type X25519PublicKey = Uint8Array
 
 /**
  * Contains a public key and its corresponding private key
  *
  * NOTE: Keys should be cleared from memory once they are no longer needed!
  */
-export type EccKeyPair = {
-	publicKey: EccPublicKey
-	privateKey: EccPrivateKey
+export type X25519KeyPair = {
+	publicKey: X25519PublicKey
+	privateKey: X25519PrivateKey
 }
 
 /**
@@ -21,7 +21,7 @@ export type EccKeyPair = {
  * The shared secret MUST NEVER be used as a key directly as it is a biased (some bits are more likely to be set than others).
  * The involved public keys should also be included when deriving an AES key from these shared secrets.
  */
-export type EccSharedSecrets = {
+export type X25519SharedSecrets = {
 	ephemeralSharedSecret: Uint8Array
 	authSharedSecret: Uint8Array
 }
@@ -33,7 +33,7 @@ const X25519_N_BYTE_LENGTH = 32
 /**
  * @return randomly generated X25519 key pair
  */
-export function generateEccKeyPair(): EccKeyPair {
+export function generateX25519KeyPair(): X25519KeyPair {
 	// noble-curves appears to clamp the private key when using it, but not when generating it, so for safety,
 	// we do not want to store it un-clamped in case we use a different implementation later
 	const privateKey = clampPrivateKey(random.generateRandomData(X25519_N_BYTE_LENGTH))
@@ -51,11 +51,11 @@ export function generateEccKeyPair(): EccKeyPair {
  * @param recipientIdentityPublicKey the recipient's public identity key
  * @return the shared secrets
  */
-export function eccEncapsulate(
-	senderIdentityPrivateKey: EccPrivateKey,
-	ephemeralPrivateKey: EccPrivateKey,
-	recipientIdentityPublicKey: EccPublicKey,
-): EccSharedSecrets {
+export function x25519Encapsulate(
+	senderIdentityPrivateKey: X25519PrivateKey,
+	ephemeralPrivateKey: X25519PrivateKey,
+	recipientIdentityPublicKey: X25519PublicKey,
+): X25519SharedSecrets {
 	const ephemeralSharedSecret = generateSharedSecret(ephemeralPrivateKey, recipientIdentityPublicKey)
 	const authSharedSecret = generateSharedSecret(senderIdentityPrivateKey, recipientIdentityPublicKey)
 	return { ephemeralSharedSecret, authSharedSecret }
@@ -68,11 +68,11 @@ export function eccEncapsulate(
  * @param recipientIdentityPrivateKey the recipient's private identity key
  * @return shared secret and the sender's public key
  */
-export function eccDecapsulate(
-	senderIdentityPublicKey: EccPublicKey,
-	ephemeralPublicKey: EccPublicKey,
-	recipientIdentityPrivateKey: EccPrivateKey,
-): EccSharedSecrets {
+export function x25519Decapsulate(
+	senderIdentityPublicKey: X25519PublicKey,
+	ephemeralPublicKey: X25519PublicKey,
+	recipientIdentityPrivateKey: X25519PrivateKey,
+): X25519SharedSecrets {
 	const ephemeralSharedSecret = generateSharedSecret(recipientIdentityPrivateKey, ephemeralPublicKey)
 	const authSharedSecret = generateSharedSecret(recipientIdentityPrivateKey, senderIdentityPublicKey)
 	return { ephemeralSharedSecret, authSharedSecret }
@@ -81,7 +81,7 @@ export function eccDecapsulate(
 /**
  * Diffie-Hellman key exchange; works by combining one party's private key and the other party's public key to form a shared secret between both parties
  */
-function generateSharedSecret(localPrivateKey: EccPrivateKey, remotePublicKey: EccPublicKey): Uint8Array {
+function generateSharedSecret(localPrivateKey: X25519PrivateKey, remotePublicKey: X25519PublicKey): Uint8Array {
 	const sharedSecret = x25519.getSharedSecret(localPrivateKey, remotePublicKey)
 
 	// if every byte somehow happens to be 0, we can't use this as a secret; this is astronomically unlikely to happen by chance
@@ -93,7 +93,7 @@ function generateSharedSecret(localPrivateKey: EccPrivateKey, remotePublicKey: E
 }
 
 // see https://www.jcraige.com/an-explainer-on-ed25519-clamping for an explanation on why we do this
-function clampPrivateKey(privateKey: EccPrivateKey): EccPrivateKey {
+function clampPrivateKey(privateKey: X25519PrivateKey): X25519PrivateKey {
 	// First, we want to unset the highest bit but set the second-highest bit to 1. This prevents potential timing and brute-force attacks, respectively.
 	privateKey[privateKey.length - 1] = (privateKey[privateKey.length - 1] & 0b01111111) | 0b01000000
 
@@ -103,6 +103,6 @@ function clampPrivateKey(privateKey: EccPrivateKey): EccPrivateKey {
 	return privateKey
 }
 
-function derivePublicKey(privateKey: EccPrivateKey): EccPublicKey {
+function derivePublicKey(privateKey: X25519PrivateKey): X25519PublicKey {
 	return x25519.getPublicKey(privateKey)
 }

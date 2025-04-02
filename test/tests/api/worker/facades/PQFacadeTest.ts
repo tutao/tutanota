@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { aes256RandomKey, bitArrayToUint8Array, generateEccKeyPair, pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, bitArrayToUint8Array, generateX25519KeyPair, pqKeyPairsToPublicKeys } from "@tutao/tutanota-crypto"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
@@ -10,8 +10,8 @@ o.spec("PQFacade test", function () {
 			const kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
 			const pqFacade: PQFacade = new PQFacade(kyberFacade)
 
-			const senderIdentityKeyPair = generateEccKeyPair()
-			const ephemeralKeyPair = generateEccKeyPair()
+			const senderIdentityKeyPair = generateX25519KeyPair()
+			const ephemeralKeyPair = generateX25519KeyPair()
 
 			const recipientKeys = await pqFacade.generateKeyPairs()
 			const bucketKey = bitArrayToUint8Array(aes256RandomKey())

@@ -1,5 +1,5 @@
 import { EntityClient } from "../../common/EntityClient.js"
-import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs, isRsaOrRsaEccKeyPair } from "@tutao/tutanota-crypto"
+import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs, isRsaOrRsaX25519KeyPair } from "@tutao/tutanota-crypto"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "../../entities/sys/TypeRefs.js"
 import { isKeyVersion, KeyVersion, Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
@@ -204,7 +204,7 @@ export class KeyLoaderFacade {
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
 		const decryptedKeyPair = decryptKeyPair(groupKey.object, keyPair as EncryptedKeyPairs)
-		if (groupKey.version !== 0 && isRsaOrRsaEccKeyPair(decryptedKeyPair)) {
+		if (groupKey.version !== 0 && isRsaOrRsaX25519KeyPair(decryptedKeyPair)) {
 			throw new CryptoError("received an rsa key pair in a version other than 0: " + groupKey.version)
 		}
 		return decryptedKeyPair

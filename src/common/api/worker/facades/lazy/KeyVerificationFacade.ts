@@ -1,7 +1,7 @@
 import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
 import { FeatureType, KeyVerificationSourceOfTruth, KeyVerificationState, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { assertNotNull, base64ToUint8Array, concat, Hex, lazyAsync, stringToUtf8Uint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { isVersionedPqPublicKey, isVersionedRsaEccPublicKey, isVersionedRsaPublicKey, KeyPairType, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { isVersionedPqPublicKey, isVersionedRsaX25519PublicKey, isVersionedRsaPublicKey, KeyPairType, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { NotFoundError } from "../../../common/error/RestError"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../offline/Sql"
@@ -171,10 +171,10 @@ export class KeyVerificationFacade {
 
 		if (isVersionedRsaPublicKey(publicKey)) {
 			return concat(keyMetadata, base64ToUint8Array(publicKey.object.modulus))
-		} else if (isVersionedRsaEccPublicKey(publicKey)) {
+		} else if (isVersionedRsaX25519PublicKey(publicKey)) {
 			return concat(keyMetadata, base64ToUint8Array(publicKey.object.modulus), publicKey.object.publicEccKey)
 		} else if (isVersionedPqPublicKey(publicKey)) {
-			return concat(keyMetadata, publicKey.object.kyberPublicKey.raw, publicKey.object.eccPublicKey)
+			return concat(keyMetadata, publicKey.object.kyberPublicKey.raw, publicKey.object.x25519PublicKey)
 		}
 
 		throw new ProgrammingError("invalid key type")

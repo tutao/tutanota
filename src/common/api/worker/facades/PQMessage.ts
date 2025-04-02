@@ -1,9 +1,9 @@
-import { EccPublicKey } from "@tutao/tutanota-crypto"
+import { X25519PublicKey } from "@tutao/tutanota-crypto"
 import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
 
 export type PQMessage = {
-	senderIdentityPubKey: EccPublicKey
-	ephemeralPubKey: EccPublicKey
+	senderIdentityPubKey: X25519PublicKey
+	ephemeralPubKey: X25519PublicKey
 	encapsulation: PQBucketKeyEncapsulation
 }
 

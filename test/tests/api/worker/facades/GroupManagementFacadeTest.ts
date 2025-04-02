@@ -9,7 +9,7 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "..
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, EccPublicKey, MacTag, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { AesKey, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Group,
@@ -83,7 +83,7 @@ o.spec("GroupManagementFacadeTest", function () {
 
 		const groupKeyVersion = 2
 
-		const pubUserGroupEccKey = object<EccPublicKey>()
+		const pubUserGroupEccKey = object<X25519PublicKey>()
 		const groupKeyBytes = object<AesKey>()
 		const adminGroupEncGKey = object<Uint8Array>()
 		const pubAdminGroupEncSymKey = object<Uint8Array>()
@@ -152,10 +152,10 @@ o.spec("GroupManagementFacadeTest", function () {
 
 			o("user group key - successful - former group key is symmetrically encrypted for the admin", async function () {
 				/*
-					Scenario:
-					Current group key version is 2, and it is asymmetrically encrypted for the admin with admin group key version 2.
-					Group key version 1 is symmetrically encrypted for the admin with admin group key version 1.
-				 */
+                    Scenario:
+                    Current group key version is 2, and it is asymmetrically encrypted for the admin with admin group key version 2.
+                    Group key version 1 is symmetrically encrypted for the admin with admin group key version 1.
+                 */
 
 				group.pubAdminGroupEncGKey = pubAdminGroupEncGKey
 
@@ -202,14 +202,14 @@ o.spec("GroupManagementFacadeTest", function () {
 
 			o.spec("former group key is asymmetrically encrypted for the admin", function () {
 				/*
-					The setup for this case should be as follows:
-					The admin wants to use userGroupKeyV2.
-					The userGroupKeyV2 is asymmetrically encrypted for the admin with adminGroupPubKeyV2, therefore it must be authenticated after decryption.
-					It is authenticated using userGroupKeyV1.
-					The userGroupKeyV1 itself is asymmetrically encrypted for the admin with adminGroupPubKeyV1, therefore it must be authenticated after decryption too.
-					It is authenticated using userGroupKeyV0.
-					The userGroupKeyV0 is symmetrically encrypted for/by the admin with adminGroupSymKeyV0, therefore it is already trusted.
-				 */
+                    The setup for this case should be as follows:
+                    The admin wants to use userGroupKeyV2.
+                    The userGroupKeyV2 is asymmetrically encrypted for the admin with adminGroupPubKeyV2, therefore it must be authenticated after decryption.
+                    It is authenticated using userGroupKeyV1.
+                    The userGroupKeyV1 itself is asymmetrically encrypted for the admin with adminGroupPubKeyV1, therefore it must be authenticated after decryption too.
+                    It is authenticated using userGroupKeyV0.
+                    The userGroupKeyV0 is symmetrically encrypted for/by the admin with adminGroupSymKeyV0, therefore it is already trusted.
+                 */
 				let userGroupSymKeyV0: AesKey
 				let groupKeysV0: GroupKey
 				let groupKeysV1: GroupKey

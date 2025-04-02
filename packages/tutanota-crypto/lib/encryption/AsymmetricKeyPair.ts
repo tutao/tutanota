@@ -1,20 +1,20 @@
-import { RsaEccKeyPair, RsaEccPublicKey, RsaKeyPair, RsaPublicKey } from "./RsaKeyPair.js"
+import { RsaX25519KeyPair, RsaX25519PublicKey, RsaKeyPair, RsaPublicKey } from "./RsaKeyPair.js"
 import { PQKeyPairs, PQPublicKeys } from "./PQKeyPairs.js"
 import { Versioned } from "@tutao/tutanota-utils"
 
 export enum KeyPairType {
 	RSA,
-	RSA_AND_ECC,
+	RSA_AND_X25519,
 	TUTA_CRYPT,
 }
 
-export type AsymmetricKeyPair = RsaKeyPair | RsaEccKeyPair | PQKeyPairs
+export type AsymmetricKeyPair = RsaKeyPair | RsaX25519KeyPair | PQKeyPairs
 
 export type AbstractKeyPair = {
 	keyPairType: KeyPairType
 }
 
-export type PublicKey = RsaPublicKey | RsaEccPublicKey | PQPublicKeys
+export type PublicKey = RsaPublicKey | RsaX25519PublicKey | PQPublicKeys
 
 export type AbstractPublicKey = {
 	keyPairType: KeyPairType
@@ -24,12 +24,12 @@ export function isPqKeyPairs(keyPair: AbstractKeyPair): keyPair is PQKeyPairs {
 	return keyPair.keyPairType === KeyPairType.TUTA_CRYPT
 }
 
-export function isRsaOrRsaEccKeyPair(keyPair: AbstractKeyPair): keyPair is RsaKeyPair {
-	return keyPair.keyPairType === KeyPairType.RSA || keyPair.keyPairType === KeyPairType.RSA_AND_ECC
+export function isRsaOrRsaX25519KeyPair(keyPair: AbstractKeyPair): keyPair is RsaKeyPair {
+	return keyPair.keyPairType === KeyPairType.RSA || keyPair.keyPairType === KeyPairType.RSA_AND_X25519
 }
 
-export function isRsaEccKeyPair(keyPair: AbstractKeyPair): keyPair is RsaEccKeyPair {
-	return keyPair.keyPairType === KeyPairType.RSA_AND_ECC
+export function isRsaX25519KeyPair(keyPair: AbstractKeyPair): keyPair is RsaX25519KeyPair {
+	return keyPair.keyPairType === KeyPairType.RSA_AND_X25519
 }
 
 export function isPqPublicKey(publicKey: AbstractPublicKey): publicKey is PQPublicKeys {
@@ -48,14 +48,14 @@ export function isVersionedRsaPublicKey(versionedPublicKey: Versioned<PublicKey>
 	return isRsaPublicKey(versionedPublicKey.object)
 }
 
-export function isRsaEccPublicKey(publicKey: AbstractPublicKey): publicKey is RsaEccPublicKey {
-	return publicKey.keyPairType === KeyPairType.RSA_AND_ECC
+export function isRsaX25519PublicKey(publicKey: AbstractPublicKey): publicKey is RsaX25519PublicKey {
+	return publicKey.keyPairType === KeyPairType.RSA_AND_X25519
 }
 
-export function isVersionedRsaEccPublicKey(versionedPublicKey: Versioned<PublicKey>): versionedPublicKey is Versioned<RsaEccPublicKey> {
-	return isRsaEccPublicKey(versionedPublicKey.object)
+export function isVersionedRsaX25519PublicKey(versionedPublicKey: Versioned<PublicKey>): versionedPublicKey is Versioned<RsaX25519PublicKey> {
+	return isRsaX25519PublicKey(versionedPublicKey.object)
 }
 
-export function isVersionedRsaOrRsaEccPublicKey(versionedPublicKey: Versioned<PublicKey>): versionedPublicKey is Versioned<RsaPublicKey> {
-	return isVersionedRsaPublicKey(versionedPublicKey) || isVersionedRsaEccPublicKey(versionedPublicKey)
+export function isVersionedRsaOrRsaX25519PublicKey(versionedPublicKey: Versioned<PublicKey>): versionedPublicKey is Versioned<RsaPublicKey> {
+	return isVersionedRsaPublicKey(versionedPublicKey) || isVersionedRsaX25519PublicKey(versionedPublicKey)
 }
