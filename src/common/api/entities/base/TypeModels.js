@@ -45,6 +45,6 @@ export const typeModels = {
 		},
 		"associations": {},
 		"app": "base",
-		"version": "1"
+		"version": "2"
 	}
 }
