@@ -30,7 +30,7 @@ import {
 	TimeFormat,
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
-import { DateTime, Duration, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
+import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,
@@ -259,12 +259,17 @@ function expandByDayRuleForMonthlyEvents(
 	if (weekChange != 0) {
 		let dt = baseDate
 
+		console.log("Week change: ", weekChange, targetWeekDay)
 		// Check for negative week changes e.g -1TH last thursday
 		if (weekChange < 0) {
 			dt = dt
 				.set({ day: dt.daysInMonth })
 				.set({ weekday: targetWeekDay })
 				.minus({ week: Math.abs(weekChange) - 1 })
+
+			if (dt.month > baseDate.month) {
+				dt = dt.minus({ week: 1 })
+			}
 		} else {
 			while (dt.weekday != targetWeekDay) {
 				dt = dt.plus({ day: 1 })

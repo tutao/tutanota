@@ -539,7 +539,9 @@ export const createRepetitionValuesForWeekday = (
 	if (numberOfWeekdaysInMonth > 4) {
 		options.splice(4, 0, {
 			value: 4,
-			ariaValue: "fourth",
+			ariaValue: lang.get("fourthOfPeriod_label", {
+				"{day}": weekdayLabel,
+			}),
 			name: lang.get("fourthOfPeriod_label", {
 				"{day}": weekdayLabel,
 			}),
