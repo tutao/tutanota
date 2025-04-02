@@ -10,10 +10,10 @@ import {
 	ModelMapper,
 	valueToDefault,
 } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
-import { AssociationType, Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
-import { assertNotNull, downcast, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { AssociationType, Cardinality, Type, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
+import { assertNotNull, downcast, TypeRef, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, testTypeModel, TestTypeRef } from "./InstancePipelineTestUtils"
-import { ModelAssociation, ParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { ModelAssociation, ParsedInstance, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
@@ -82,7 +82,7 @@ o.spec("ModelMapper", function () {
 				3: [{ 2: "123", 6: "123456", _finalIvs: {} } as ParsedInstance],
 				4: ["associatedListId"],
 				7: true,
-				8: ["listId", "listElementId"],
+				8: [["listId", "listElementId"]],
 				_finalIvs: {},
 			}
 			const mappedInstance = (await modelMapper.applyClientModel(TestTypeRef, parsedInstance)) as any
@@ -98,6 +98,7 @@ o.spec("ModelMapper", function () {
 				_id: "123456",
 			})
 			o(mappedInstance.testListAssociation).equals("associatedListId")
+			o(mappedInstance.testListElementAssociation).deepEquals(["listId", "listElementId"])
 			o(mappedInstance._finalIvs).deepEquals(parsedInstance._finalIvs)
 			o(typeof mappedInstance._errors).equals("undefined")
 		})

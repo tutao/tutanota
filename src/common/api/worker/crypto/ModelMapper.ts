@@ -1,8 +1,16 @@
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import {
+	base64ToBase64Url,
+	base64ToUint8Array,
+	downcast,
+	stringToUtf8Uint8Array,
+	TypeRef,
+	uint8ArrayToBase64,
+	utf8Uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
-import type { Entity, ModelAssociation, ParsedAssociation, ParsedInstance, ParsedValue } from "../../common/EntityTypes"
+import type { Entity, ModelAssociation, ModelValue, ParsedAssociation, ParsedInstance, ParsedValue } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { TypeReferenceResolver } from "../../common/EntityFunctions"
@@ -50,14 +58,25 @@ export function assertCorrectAssociationClientCardinality(
 	{ type, cardinality }: ModelAssociation,
 	parsedValue: Array<unknown>,
 ): unknown {
-	if (cardinality === Cardinality.ZeroOrOne && parsedValue.length < 2) {
+	if (cardinality === Cardinality.ZeroOrOne && !parsedValue) {
+		return null
+	} else if (cardinality === Cardinality.ZeroOrOne && parsedValue.length < 2) {
 		return parsedValue[0] ?? null
+	} else if (cardinality === Cardinality.One && !parsedValue) {
+		throw new ProgrammingError(
+			`invalid association / cardinality combination for association ${attrId} on type ${typeRef.app}/${typeRef.typeId}: ${cardinality}, no parsedValue`,
+		)
 	} else if (cardinality === Cardinality.One && parsedValue.length === 1) {
 		return parsedValue[0]
-	} else if (cardinality !== Cardinality.Any && (parsedValue.length === 2 || parsedValue.length === 0) && idTupleAssociations.includes(type)) {
-		return parsedValue
+	} else if (
+		cardinality !== Cardinality.Any &&
+		idTupleAssociations.includes(type) &&
+		parsedValue.length === 1 &&
+		downcast<Array<Id | IdTuple>>(parsedValue)[0].length === 2
+	) {
+		return parsedValue[0]
 	} else if (cardinality === Cardinality.Any) {
-		return parsedValue
+		return parsedValue ?? []
 	}
 
 	throw new ProgrammingError(
@@ -100,11 +119,19 @@ export function assertCorrectAssociationServerCardinality(
 		cardinality !== Cardinality.Any &&
 		parsedValue != null &&
 		Array.isArray(parsedValue) &&
-		(parsedValue.length === 2 || parsedValue.length === 0) &&
-		idTupleAssociations.includes(type)
+		idTupleAssociations.includes(type) &&
+		(parsedValue.length === 2 || parsedValue.length === 0)
 	) {
-		return [parsedValue]
+		return parsedValue.length === 0 ? [] : [parsedValue]
 	} else if (cardinality === Cardinality.Any && Array.isArray(parsedValue)) {
+		return parsedValue
+	} else if (
+		cardinality !== Cardinality.Any &&
+		Array.isArray(parsedValue) &&
+		idTupleAssociations.includes(type) &&
+		parsedValue.length === 1 &&
+		parsedValue[0].length === 2
+	) {
 		return parsedValue
 	}
 
@@ -117,15 +144,53 @@ export function assertCorrectAssociationServerCardinality(
 
 /**
  * check that the types on the server model and client model are compatible. if this doesn't pass for a pair of
- * type models, it's likely that the old client version needs to be disabled to roll out that change.
+ * type models, it's likely that the old client version needs to be disabled to roll out that change. We need to
+ * have different functions for different directions of transformations such as BooleanToNumber or NumberToString.
+ *
+ * @param typeRef the reference to the client and server type the field is on
+ * @param attrId the attribute id the field has in the models
+ * @param fromType modelValue for the type we would like to map the field into
+ * @param toType the type the field currently has
+ */
+function assertCompatibleModelTypesForApplyingClientModel(
+	typeRef: TypeRef<unknown>,
+	attrId: string,
+	fromType: Values<typeof ValueType>,
+	toType: Values<typeof ValueType>,
+) {
+	if (
+		fromType === toType ||
+		(fromType === ValueType.Number && toType === ValueType.Boolean) ||
+		(fromType === ValueType.String && toType === ValueType.Number)
+	)
+		return
+	throw new ProgrammingError(
+		`cannot map from server to client type: types of field ${attrId} on type ${typeRef.app}/${typeRef.typeId} are incompatible. This client is not compatible with the current server model.`,
+	)
+}
+
+/**
+ * check that the types on the server model and client model are compatible. if this doesn't pass for a pair of
+ * type models, it's likely that the old client version needs to be disabled to roll out that change. We need to
+ * have different functions for different directions for transformations such as BooleanToNumber or NumberToString.
  *
  * @param typeRef the reference to the client and server type the field is on
  * @param attrId the attribute id the field has in the models
  * @param fromType the type we would like to map the field into
  * @param toType the type the field currently has
  */
-function assertCompatibleModelTypes(typeRef: TypeRef<unknown>, attrId: string, fromType: Values<typeof ValueType>, toType: Values<typeof ValueType>) {
-	if (fromType === toType) return
+function assertCompatibleModelTypesForApplyingServerModel(
+	typeRef: TypeRef<unknown>,
+	attrId: string,
+	fromType: Values<typeof ValueType>,
+	toType: Values<typeof ValueType>,
+) {
+	if (
+		fromType === toType ||
+		(fromType === ValueType.Boolean && toType === ValueType.Number) ||
+		(fromType === ValueType.Number && toType === ValueType.String)
+	)
+		return
 	throw new ProgrammingError(
 		`cannot map from server to client type: types of field ${attrId} on type ${typeRef.app}/${typeRef.typeId} are incompatible. This client is not compatible with the current server model.`,
 	)
@@ -170,16 +235,31 @@ export class ModelMapper {
 			clientInstance._errors = parsedInstance._errors
 		}
 
-		for (const [attrIdStr, modelValue] of Object.entries(clientTypeModel.values)) {
+		for (const [attrIdStr, clientType] of Object.entries(clientTypeModel.values)) {
 			const attrId = parseInt(attrIdStr)
 			const serverType = serverTypeModel.values[attrId]
-			assertCompatibleModelTypes(typeRef, attrIdStr, serverType.type, modelValue.type)
-			clientInstance[modelValue.name] = assertCorrectValueCardinality(
-				typeRef,
-				attrIdStr,
-				modelValue.cardinality,
-				parsedInstance[attrId] as Nullable<ParsedValue>,
-			)
+			if (!serverType) {
+				if (clientType.cardinality === Cardinality.One) {
+					clientInstance[clientType.name] = valueToDefault(clientType.type)
+				} else if (clientType.cardinality === Cardinality.ZeroOrOne) {
+					clientInstance[clientType.name] = null
+				}
+			} else {
+				assertCompatibleModelTypesForApplyingClientModel(typeRef, attrIdStr, serverType.type, clientType.type)
+				let parsedValue = parsedInstance[attrId] as Nullable<ParsedValue>
+
+				if (serverType.type === ValueType.Number && clientType.type === ValueType.Boolean) {
+					parsedValue = parsedValue !== "0"
+				} else if (serverType.type === ValueType.String && clientType.type === ValueType.Number) {
+					if (typeof parsedValue === "string") {
+						parsedValue = parseInt(parsedValue as string)
+						if (isNaN(parsedValue)) {
+							throw new ProgrammingError("string sent by the server cannot be converted to a number")
+						}
+					}
+				}
+				clientInstance[clientType.name] = assertCorrectValueCardinality(typeRef, attrIdStr, clientType.cardinality, parsedValue)
+			}
 		}
 
 		for (const [assocIdStr, modelAssoc] of Object.entries(clientTypeModel.associations)) {
@@ -189,8 +269,10 @@ export class ModelMapper {
 				const assocTypeRef = new TypeRef(appName, modelAssoc.refTypeId)
 				const values = parsedInstance[assocId] as Array<ParsedInstance>
 				const clientValues = []
-				for (const value of values) {
-					clientValues.push(await this.applyClientModel(assocTypeRef, value))
+				if (values) {
+					for (const value of values) {
+						clientValues.push(await this.applyClientModel(assocTypeRef, value))
+					}
 				}
 				clientInstance[modelAssoc.name] = assertCorrectAssociationClientCardinality(typeRef, assocIdStr, modelAssoc, clientValues)
 			} else {
@@ -232,8 +314,13 @@ export class ModelMapper {
 				continue
 			}
 
-			assertCompatibleModelTypes(typeRef, attrIdStr, clientType.type, serverType.type)
-			const clientValue = ((instance as any)[clientType.name] as Nullable<ParsedValue>) ?? null
+			assertCompatibleModelTypesForApplyingServerModel(typeRef, attrIdStr, clientType.type, serverType.type)
+			let clientValue = ((instance as any)[clientType.name] as Nullable<ParsedValue>) ?? null
+			if (serverType.type === ValueType.Number && clientType.type === ValueType.Boolean) {
+				clientValue = clientValue ? "1" : "0"
+			} else if (serverType.type === ValueType.String && clientType.type === ValueType.Number) {
+				clientValue = String(clientValue)
+			}
 			if (serverTypeModel.type === Type.Aggregated && serverType.name === "_id" && clientValue === null) {
 				serverInstance[attrId] = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
 			} else if (
@@ -263,22 +350,35 @@ export class ModelMapper {
 				if (modelAssoc.cardinality === Cardinality.Any) {
 					const values = (instance as any)[modelAssoc.name] as Array<Entity>
 					const clientValues: Array<ParsedInstance> = []
-					for (const value of values) {
-						clientValues.push(await this.applyServerModel(assocTypeRef, value))
+					if (values) {
+						for (const value of values) {
+							clientValues.push(await this.applyServerModel(assocTypeRef, value))
+						}
 					}
 					serverInstance[assocId] = assertCorrectAssociationServerCardinality(typeRef, assocIdStr, modelAssoc, clientValues)
 				} else {
-					const value = (instance as any)[modelAssoc.name] as Nullable<Entity>
-					const parsedMappedValue = value != null ? await this.applyServerModel(assocTypeRef, value) : null
-					serverInstance[assocId] = assertCorrectAssociationServerCardinality(typeRef, assocIdStr, modelAssoc, parsedMappedValue)
+					const value = (instance as any)[modelAssoc.name] as Nullable<Entity | Array<Entity>>
+					let parsedValue: Nullable<ParsedInstance> = null
+					if (value instanceof Array && value.length === 0) {
+						parsedValue = null
+					} else if (value != null) {
+						parsedValue = await this.applyServerModel(assocTypeRef, value)
+					}
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(typeRef, assocIdStr, modelAssoc, parsedValue)
 				}
 			} else {
-				serverInstance[assocId] = assertCorrectAssociationServerCardinality(
-					typeRef,
-					assocIdStr,
-					modelAssoc,
-					(instance as any)[modelAssoc.name] as ParsedAssociation,
-				)
+				if (modelAssoc.cardinality === Cardinality.Any) {
+					const values = (instance as any)[modelAssoc.name] as Array<Id | IdTuple>
+					const clientValues: Array<Id | IdTuple> = values ? values : []
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(typeRef, assocIdStr, modelAssoc, clientValues)
+				} else {
+					serverInstance[assocId] = assertCorrectAssociationServerCardinality(
+						typeRef,
+						assocIdStr,
+						modelAssoc,
+						(instance as any)[modelAssoc.name] as ParsedAssociation,
+					)
+				}
 			}
 		}
 		return serverInstance as ParsedInstance
