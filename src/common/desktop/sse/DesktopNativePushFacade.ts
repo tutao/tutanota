@@ -54,7 +54,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		const alarms: UntypedInstance[] = JSON.parse(alarmNotificationWireFormat)
 		for (const alarm of alarms) {
 			const sk = uint8ArrayToBitArray(base64ToUint8Array(newDeviceSessionKey))
-			const alarmNotification = await this.instancePipeline.decryptAndMapToInstance(AlarmNotificationTypeRef, alarm, sk)
+			const alarmNotification = await this.instancePipeline.decryptAndMapToClient(AlarmNotificationTypeRef, alarm, sk)
 			await this.alarmScheduler.handleCreateAlarm(alarmNotification, sk)
 		}
 	}

@@ -1,7 +1,7 @@
 import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper } from "./CryptoMapper"
 import { resolveTypeReference, TypeReferenceResolver } from "../../common/EntityFunctions"
-import { Entity, ParsedInstance, SomeEntity, UntypedInstance } from "../../common/EntityTypes"
+import { Entity, ParsedInstance, UntypedInstance } from "../../common/EntityTypes"
 import { ModelMapper } from "./ModelMapper"
 import { downcast, TypeRef } from "@tutao/tutanota-utils"
 import { AesKey } from "@tutao/tutanota-crypto"
@@ -18,7 +18,7 @@ export class InstancePipeline {
 		this.modelMapper = new ModelMapper(serverTypeModel, clientTypeModel)
 	}
 
-	async encryptAndMapToLiteral<T extends Entity>(
+	async mapToServerAndEncrypt<T extends Entity>(
 		typeRef: TypeRef<T>,
 		instance: T,
 		sk: Promise<Nullable<AesKey>> | Nullable<AesKey>,
@@ -32,10 +32,6 @@ export class InstancePipeline {
 		return await this.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
 	}
 
-	async a() {
-		await this.encryptAndMapToLiteral(null as any, null as any, Promise.resolve(null))
-	}
-
 	/**
 	 * Decrypts an object literal as received from the server and maps it to an entity instance (e.g. Mail)
 	 * @param model The TypeModel of the instance
@@ -43,7 +39,7 @@ export class InstancePipeline {
 	 * @param sk The session key, must be provided for encrypted instances
 	 * @returns The decrypted and mapped instance
 	 */
-	async decryptAndMapToInstance<T extends Entity>(typeRef: TypeRef<T>, instance: UntypedInstance, sk: AesKey | null): Promise<T> {
+	async decryptAndMapToClient<T extends Entity>(typeRef: TypeRef<T>, instance: UntypedInstance, sk: AesKey | null): Promise<T> {
 		const typeModel = await resolveTypeReference(typeRef)
 		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(typeModel, instance)
 		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(typeModel, encryptedParsedInstance, sk)

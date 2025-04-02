@@ -106,7 +106,7 @@ export class TutaSseFacade implements SseEventHandler {
 				}),
 			],
 		})
-		const untypedInstance = await instancePipeline.encryptAndMapToLiteral(SseConnectDataTypeRef, connectData, null)
+		const untypedInstance = await instancePipeline.mapToServerAndEncrypt(SseConnectDataTypeRef, connectData, null)
 		return JSON.stringify(untypedInstance)
 	}
 
@@ -133,7 +133,7 @@ export class TutaSseFacade implements SseEventHandler {
 		const sseInfo = this.currentSseInfo
 		if (sseInfo == null) return
 		for (const notificationInfoUntyped of encryptedMissedNotification.notificationInfos) {
-			const notificationInfo = await instancePipeline.decryptAndMapToInstance(NotificationInfoTypeRef, notificationInfoUntyped, null)
+			const notificationInfo = await instancePipeline.decryptAndMapToClient(NotificationInfoTypeRef, notificationInfoUntyped, null)
 			await this.notificationHandler.onMailNotification(sseInfo, notificationInfo)
 		}
 		await this.handleAlarmNotification(encryptedMissedNotification)
@@ -158,7 +158,7 @@ export class TutaSseFacade implements SseEventHandler {
 						// our pushEncSessionKeys.
 						throw new CryptoError("could not find session key to decrypt alarm notification")
 					}
-					const alarmNotification = await instancePipeline.decryptAndMapToInstance(
+					const alarmNotification = await instancePipeline.decryptAndMapToClient(
 						AlarmNotificationTypeRef,
 						alarmNotificationUntyped,
 						assertNotNull(sk).sessionKey,

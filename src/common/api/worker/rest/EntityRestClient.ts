@@ -414,7 +414,7 @@ export class EntityRestClient implements EntityRestInterface {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
 		const sk: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
-		const untypedInstance = await this.instancePipeline.encryptAndMapToLiteral(downcast<TypeRef<Entity>>(instance._type), instance, sk)
+		const untypedInstance = await this.instancePipeline.mapToServerAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, sk)
 		const persistencePostReturn: string = await this.restClient.request(path, HttpMethod.POST, {
 			baseUrl: options?.baseUrl,
 			queryParams,
@@ -449,7 +449,7 @@ export class EntityRestClient implements EntityRestInterface {
 			try {
 				const encryptedEntities = await promiseMap(instanceChunk, async (instance) => {
 					const sk = await this._crypto.setNewOwnerEncSessionKey(typeModel, instance)
-					return await this.instancePipeline.encryptAndMapToLiteral(downcast<TypeRef<Entity>>(instance._type), instance, sk)
+					return await this.instancePipeline.mapToServerAndEncrypt(downcast<TypeRef<Entity>>(instance._type), instance, sk)
 				})
 				// informs the server that this is a POST_MULTIPLE request
 				const queryParams = {
@@ -504,7 +504,7 @@ export class EntityRestClient implements EntityRestInterface {
 			options?.ownerKeyProvider,
 		)
 		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instance)
-		const untypedInstance = await this.instancePipeline.encryptAndMapToLiteral(downcast(instance._type), instance, sessionKey)
+		const untypedInstance = await this.instancePipeline.mapToServerAndEncrypt(downcast(instance._type), instance, sessionKey)
 		await this.restClient.request(path, HttpMethod.PUT, {
 			baseUrl: options?.baseUrl,
 			queryParams,
@@ -591,7 +591,7 @@ export class EntityRestClient implements EntityRestInterface {
 	private async parseSetupMultiple(result: Array<UntypedInstance>): Promise<Array<Id>> {
 		try {
 			return await promiseMap(Array.from(result), async (untypedPostReturn: any) => {
-				const parsedInstance = await this.instancePipeline.decryptAndMapToInstance(PersistenceResourcePostReturnTypeRef, untypedPostReturn, null)
+				const parsedInstance = await this.instancePipeline.decryptAndMapToClient(PersistenceResourcePostReturnTypeRef, untypedPostReturn, null)
 				return parsedInstance.generatedId as Id // is null for customIds
 			})
 		} catch (e) {

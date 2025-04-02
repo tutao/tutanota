@@ -282,7 +282,7 @@ export class EventBusClient {
 	}
 
 	private async decodeEntityEventValue<E extends Entity>(messageType: TypeRef<E>, untypedInstance: UntypedInstance): Promise<E> {
-		return await this.instancePipeline.decryptAndMapToInstance(messageType, untypedInstance, null)
+		return await this.instancePipeline.decryptAndMapToClient(messageType, untypedInstance, null)
 	}
 
 	private onError(error: any) {

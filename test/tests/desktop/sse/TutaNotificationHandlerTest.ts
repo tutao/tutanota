@@ -183,7 +183,7 @@ o.spec("TutaNotificationHandler", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const mailLiteral = await mapper.encryptAndMapToLiteral(MailTypeRef, mailMetadata, sk)
+			const mailLiteral = await mapper.mapToServerAndEncrypt(MailTypeRef, mailMetadata, sk)
 
 			const requestDefer = mockFetchRequest(
 				fetch,

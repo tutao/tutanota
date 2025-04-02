@@ -157,7 +157,7 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
-			const untypedCalendarInstance = await instancePipeline.encryptAndMapToLiteral(CalendarEventTypeRef, calendar, sk)
+			const untypedCalendarInstance = await instancePipeline.mapToServerAndEncrypt(CalendarEventTypeRef, calendar, sk)
 			when(
 				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
@@ -181,7 +181,7 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
-			const untypedAccountingInfo = await instancePipeline.encryptAndMapToLiteral(AccountingInfoTypeRef, accountingInfo, sk)
+			const untypedAccountingInfo = await instancePipeline.mapToServerAndEncrypt(AccountingInfoTypeRef, accountingInfo, sk)
 			when(
 				restClient.request(`${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(sysModelInfo.version) },
@@ -208,7 +208,7 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
-			const untypedCalendarInstance = await instancePipeline.encryptAndMapToLiteral(CalendarEventTypeRef, calendar, sk)
+			const untypedCalendarInstance = await instancePipeline.mapToServerAndEncrypt(CalendarEventTypeRef, calendar, sk)
 			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify(untypedCalendarInstance))
 
 			await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
@@ -244,7 +244,7 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: ownerKeyProviderEncryptedSessionKey.key,
 				_ownerKeyVersion: ownerKeyProviderEncryptedSessionKey.encryptingKeyVersion.toString(),
 			})
-			const untypedCalendarInstance = await instancePipeline.encryptAndMapToLiteral(CalendarEventTypeRef, calendar, ownerKeyProviderSk)
+			const untypedCalendarInstance = await instancePipeline.mapToServerAndEncrypt(CalendarEventTypeRef, calendar, ownerKeyProviderSk)
 
 			when(
 				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
@@ -287,8 +287,8 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
-			const untypedCal1 = await instancePipeline.encryptAndMapToLiteral(CalendarEventTypeRef, calendar1, sk)
-			const untypedCal2 = await instancePipeline.encryptAndMapToLiteral(CalendarEventTypeRef, calendar2, sk)
+			const untypedCal1 = await instancePipeline.mapToServerAndEncrypt(CalendarEventTypeRef, calendar1, sk)
+			const untypedCal2 = await instancePipeline.mapToServerAndEncrypt(CalendarEventTypeRef, calendar2, sk)
 			when(
 				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${listId}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
@@ -325,8 +325,8 @@ o.spec("EntityRestClient", function () {
 				_id: "2",
 				_permissions: "another id",
 			})
-			const untypedSupportData1 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData1, null)
-			const untypedSupportData2 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData2, null)
+			const untypedSupportData1 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const untypedSupportData2 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData2, null)
 			when(
 				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
@@ -357,8 +357,8 @@ o.spec("EntityRestClient", function () {
 				_id: "2",
 				_permissions: "another id",
 			})
-			const untypedSupportData1 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData1, null)
-			const untypedSupportData2 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData2, null)
+			const untypedSupportData1 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const untypedSupportData2 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData2, null)
 			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify([untypedSupportData1, untypedSupportData2]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
@@ -389,8 +389,8 @@ o.spec("EntityRestClient", function () {
 				_id: "100",
 				_permissions: "another id",
 			})
-			const untypedSupportData1 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData1, null)
-			const untypedSupportData2 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData2, null)
+			const untypedSupportData1 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const untypedSupportData2 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData2, null)
 			when(
 				restClient.request(`${await typeRefToRestPath(SupportDataTypeRef)}`, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
@@ -438,9 +438,9 @@ o.spec("EntityRestClient", function () {
 				_id: "200",
 				_permissions: "third id",
 			})
-			const untypedSupportData1 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData1, null)
-			const untypedSupportData2 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData2, null)
-			const untypedSupportData3 = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, supportData3, null)
+			const untypedSupportData1 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const untypedSupportData2 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData2, null)
+			const untypedSupportData3 = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, supportData3, null)
 
 			when(
 				restClient.request(await typeRefToRestPath(SupportDataTypeRef), HttpMethod.GET, {
@@ -521,8 +521,8 @@ o.spec("EntityRestClient", function () {
 				}),
 			})
 
-			const untypedBlob1 = await instancePipeline.encryptAndMapToLiteral(MailDetailsBlobTypeRef, blob1, sk)
-			const untypedBlob2 = await instancePipeline.encryptAndMapToLiteral(MailDetailsBlobTypeRef, blob2, sk)
+			const untypedBlob1 = await instancePipeline.mapToServerAndEncrypt(MailDetailsBlobTypeRef, blob1, sk)
+			const untypedBlob2 = await instancePipeline.mapToServerAndEncrypt(MailDetailsBlobTypeRef, blob2, sk)
 
 			const blobAccessToken = "123"
 			let blobServerAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
@@ -611,8 +611,8 @@ o.spec("EntityRestClient", function () {
 				}),
 			})
 
-			const untypedBlob1 = await instancePipeline.encryptAndMapToLiteral(MailDetailsBlobTypeRef, blob1, sk)
-			const untypedBlob2 = await instancePipeline.encryptAndMapToLiteral(MailDetailsBlobTypeRef, blob2, sk)
+			const untypedBlob1 = await instancePipeline.mapToServerAndEncrypt(MailDetailsBlobTypeRef, blob1, sk)
+			const untypedBlob2 = await instancePipeline.mapToServerAndEncrypt(MailDetailsBlobTypeRef, blob2, sk)
 
 			const blobAccessToken = "123"
 			const otherServer = "otherServer"
@@ -710,7 +710,7 @@ o.spec("EntityRestClient", function () {
 				permissionListId: "permissionListId",
 			})
 
-			const untypedPersistentPostReturn = await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
+			const untypedPersistentPostReturn = await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 			when(
 				restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, {
 					baseUrl: undefined,
@@ -723,7 +723,7 @@ o.spec("EntityRestClient", function () {
 							AttributeModel.getAttribute<Base64>(untypedInstance, "_ownerEncSessionKey", await resolveTypeReference(AccountingInfoTypeRef)),
 						)
 						const sk = decryptKey(ownerGroupKey.object, ownerEncSk)
-						const calendarInstance = await instancePipeline.decryptAndMapToInstance(CalendarEventTypeRef, untypedInstance, sk)
+						const calendarInstance = await instancePipeline.decryptAndMapToClient(CalendarEventTypeRef, untypedInstance, sk)
 						return deepEqual(newCalendar, calendarInstance)
 					}),
 				}),
@@ -748,14 +748,14 @@ o.spec("EntityRestClient", function () {
 				_permissions: "another id",
 				_ownerGroup: "ownerGroupId",
 			})
-			const untypedSupportData = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, newSupportData, null)
+			const untypedSupportData = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, newSupportData, null)
 			const resultId = "resultId"
 			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
 				generatedId: resultId,
 				permissionListId: "permissionListId",
 			})
 
-			const untypedPersistentPostReturn = await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
+			const untypedPersistentPostReturn = await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 
 			when(
 				restClient.request(`/rest/tutanota/supportdata`, HttpMethod.POST, {
@@ -791,7 +791,7 @@ o.spec("EntityRestClient", function () {
 				_ownerGroup: ownerGroupId,
 			})
 
-			const untypedPersistentPostReturn = await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
+			const untypedPersistentPostReturn = await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 
 			when(restClient.request(anything(), anything(), anything()), { times: 1 }).thenResolve(JSON.stringify(untypedPersistentPostReturn))
 			await entityRestClient.setup("listId", newCalendar, undefined, { baseUrl: "some url", ownerKey: ownerGroupKey })
@@ -820,7 +820,7 @@ o.spec("EntityRestClient", function () {
 				permissionListId: "permissionListId",
 			})
 
-			const untypedPersistentPostReturn = await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
+			const untypedPersistentPostReturn = await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 
 			when(
 				restClient.request(`/rest/sys/accountinginfo`, HttpMethod.POST, {
@@ -834,7 +834,7 @@ o.spec("EntityRestClient", function () {
 							AttributeModel.getAttribute<Base64>(untypedInstance, "_ownerEncSessionKey", await resolveTypeReference(AccountingInfoTypeRef)),
 						)
 						const sk = decryptKey(ownerGroupKey.object, ownerEncSk)
-						const actualAccountingInfo = await instancePipeline.decryptAndMapToInstance(AccountingInfoTypeRef, untypedInstance, sk)
+						const actualAccountingInfo = await instancePipeline.decryptAndMapToClient(AccountingInfoTypeRef, untypedInstance, sk)
 						return deepEqual(newAccountingInfo, actualAccountingInfo)
 					}),
 				}),
@@ -855,14 +855,14 @@ o.spec("EntityRestClient", function () {
 			const resultId = "resultId"
 
 			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
-				return instancePipeline.encryptAndMapToLiteral(GroupMemberTypeRef, group, null)
+				return instancePipeline.mapToServerAndEncrypt(GroupMemberTypeRef, group, null)
 			})
 
 			const persistentPostReturn = createTestEntity(PersistenceResourcePostReturnTypeRef, {
 				generatedId: resultId,
 				permissionListId: "permissionListId",
 			})
-			const untypedPersistentPostReturn = await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
+			const untypedPersistentPostReturn = await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
@@ -884,7 +884,7 @@ o.spec("EntityRestClient", function () {
 			const resultIds = countFrom(0, 100).map(String)
 			const { version } = await resolveTypeReference(GroupMemberTypeRef)
 			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
-				return instancePipeline.encryptAndMapToLiteral(GroupMemberTypeRef, group, null)
+				return instancePipeline.mapToServerAndEncrypt(GroupMemberTypeRef, group, null)
 			})
 
 			const untypedPostReturns = await promiseMap(resultIds, async (id) => {
@@ -892,7 +892,7 @@ o.spec("EntityRestClient", function () {
 					generatedId: id,
 					permissionListId: "permissionListId",
 				})
-				return await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, instance, null)
+				return await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
 			})
 
 			when(
@@ -914,7 +914,7 @@ o.spec("EntityRestClient", function () {
 			const resultIds = countFrom(0, 101).map(String)
 			const { version } = await resolveTypeReference(GroupMemberTypeRef)
 			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
-				return instancePipeline.encryptAndMapToLiteral(GroupMemberTypeRef, group, null)
+				return instancePipeline.mapToServerAndEncrypt(GroupMemberTypeRef, group, null)
 			})
 
 			const untypedPostReturns = await promiseMap(resultIds, async (id) => {
@@ -922,7 +922,7 @@ o.spec("EntityRestClient", function () {
 					generatedId: id,
 					permissionListId: "permissionListId",
 				})
-				return await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, instance, null)
+				return await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
 			})
 
 			when(
@@ -965,7 +965,7 @@ o.spec("EntityRestClient", function () {
 			const resultIds = countFrom(0, 400).map(String)
 			const { version } = await resolveTypeReference(GroupMemberTypeRef)
 			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
-				return instancePipeline.encryptAndMapToLiteral(GroupMemberTypeRef, group, null)
+				return instancePipeline.mapToServerAndEncrypt(GroupMemberTypeRef, group, null)
 			})
 
 			const untypedPostReturns = await promiseMap(resultIds, async (id) => {
@@ -973,7 +973,7 @@ o.spec("EntityRestClient", function () {
 					generatedId: id,
 					permissionListId: "permissionListId",
 				})
-				return await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, instance, null)
+				return await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
 			})
 			let requestCounter = 0
 			when(restClient.request(anything(), anything(), anything())).thenDo(() => {
@@ -1005,7 +1005,7 @@ o.spec("EntityRestClient", function () {
 					generatedId: id,
 					permissionListId: "permissionListId",
 				})
-				return await instancePipeline.encryptAndMapToLiteral(PersistenceResourcePostReturnTypeRef, instance, null)
+				return await instancePipeline.mapToServerAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
 			})
 
 			let step = 0
@@ -1039,7 +1039,7 @@ o.spec("EntityRestClient", function () {
 			const newSupportData = createTestEntity(SupportDataTypeRef, {
 				_id: "id",
 			})
-			const untypedSupportData = await instancePipeline.encryptAndMapToLiteral(SupportDataTypeRef, newSupportData, null)
+			const untypedSupportData = await instancePipeline.mapToServerAndEncrypt(SupportDataTypeRef, newSupportData, null)
 			when(
 				restClient.request("/rest/tutanota/supportdata/id", HttpMethod.PUT, {
 					headers: { ...authHeader, v: version },
@@ -1084,7 +1084,7 @@ o.spec("EntityRestClient", function () {
 					HttpMethod.PUT,
 					argThat(async (options) => {
 						const untypedInstance = JSON.parse(options.body)
-						const updatedAccountingInfo = await instancePipeline.decryptAndMapToInstance(AccountingInfoTypeRef, untypedInstance, ownerKeyProviderSk)
+						const updatedAccountingInfo = await instancePipeline.decryptAndMapToClient(AccountingInfoTypeRef, untypedInstance, ownerKeyProviderSk)
 						return deepEqual(options.headers, { ...authHeader, v: version }) && deepEqual(newAccountingInfo, updatedAccountingInfo)
 					}),
 				),

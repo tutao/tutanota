@@ -1649,7 +1649,7 @@ o.spec("CryptoFacadeTest", function () {
 			bucketEncSessionKeys: bucketEncSessionKeys,
 		})
 
-		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.encryptAndMapToLiteral(BucketKeyTypeRef, bucketKey, null)
+		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapToServerAndEncrypt(BucketKeyTypeRef, bucketKey, null)
 
 		mailUntypedInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
 		const mailEncryptedParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, mailUntypedInstance)
@@ -1739,7 +1739,7 @@ o.spec("CryptoFacadeTest", function () {
 			senderKeyVersion: null,
 		})
 
-		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.encryptAndMapToLiteral(BucketKeyTypeRef, bucketKey, null)
+		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapToServerAndEncrypt(BucketKeyTypeRef, bucketKey, null)
 
 		untypedMailInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
 
@@ -1800,7 +1800,7 @@ o.spec("CryptoFacadeTest", function () {
 			sets: [],
 		})
 
-		return await instancePipeline.encryptAndMapToLiteral(MailTypeRef, mail, sessionKey)
+		return await instancePipeline.mapToServerAndEncrypt(MailTypeRef, mail, sessionKey)
 	}
 })
 

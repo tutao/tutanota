@@ -145,7 +145,7 @@ export class ServiceExecutor implements IServiceExecutor {
 				throw new ProgrammingError("Must provide a session key for an encrypted data transfer type!: " + service)
 			}
 
-			const encryptedUntypedInstance = await this.instancePipeline.encryptAndMapToLiteral(requestEntity._type, requestEntity, params?.sessionKey ?? null)
+			const encryptedUntypedInstance = await this.instancePipeline.mapToServerAndEncrypt(requestEntity._type, requestEntity, params?.sessionKey ?? null)
 
 			return JSON.stringify(encryptedUntypedInstance)
 		} else {
@@ -161,6 +161,6 @@ export class ServiceExecutor implements IServiceExecutor {
 		const entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
 		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
 
-		return await this.instancePipeline.decryptAndMapToInstance(typeRef, instance, sessionKey)
+		return await this.instancePipeline.decryptAndMapToClient(typeRef, instance, sessionKey)
 	}
 }

@@ -86,7 +86,7 @@ o.spec("TutaSseFacade", () => {
 					matchers.argThat(async (opts: SseConnectOptions) => {
 						const actualUrl = opts.url
 						const actualBody: UntypedInstance = JSON.parse(assertNotNull(actualUrl.searchParams.get("_body")))
-						const connectData = await instancePipeline.decryptAndMapToInstance(SseConnectDataTypeRef, actualBody, null)
+						const connectData = await instancePipeline.decryptAndMapToClient(SseConnectDataTypeRef, actualBody, null)
 						return (
 							actualUrl.origin === expectedUrl.origin &&
 							connectData.identifier === "id" &&
@@ -175,7 +175,7 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await instancePipeline.mapToServerAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
 			const strippedEncryptedNotificationInfo: StrippedEntity<NotificationInfo> = {
 				mailAddress: notificationInfo.mailAddress,
 				userId: notificationInfo.userId,
@@ -249,7 +249,7 @@ o.spec("TutaSseFacade", () => {
 					pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("dummy"),
 				}),
 			})
-			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await instancePipeline.mapToServerAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
 			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance)
 			await sseFacade.handleAlarmNotification(encryptedMissedNotification)
 			verify(alarmScheduler.handleDeleteAlarm("alarmId"))
@@ -281,7 +281,7 @@ o.spec("TutaSseFacade", () => {
 
 			const sk = aes256RandomKey()
 			when(alarmStorage.getNotificationSessionKey(anything())).thenResolve(null)
-			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await instancePipeline.mapToServerAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
 			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance)
 
 			await assertThrows(CryptoError, () => sseFacade.handleAlarmNotification(encryptedMissedNotification))
@@ -324,7 +324,7 @@ o.spec("TutaSseFacade", () => {
 				when(alarmStorage.getNotificationSessionKey(anything())).thenResolve(null)
 			})
 
-			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await instancePipeline.mapToServerAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
 			const missedNotificationTypeModel = await resolveTypeReference(MissedNotificationTypeRef)
 			const alarmNotificationTypeModel = await resolveTypeReference(AlarmNotificationTypeRef)
 			const anAttrId = assertNotNull(AttributeModel.getAttributeId(missedNotificationTypeModel, "alarmNotifications"))
@@ -359,7 +359,7 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await instancePipeline.encryptAndMapToLiteral(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await instancePipeline.mapToServerAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
 
 			await sseFacade.connect()
 
@@ -438,7 +438,7 @@ o.spec("TutaSseFacade", () => {
 			const url = captor.values![1].url
 			const body = url.searchParams.get("_body")!
 
-			const instance = await instancePipeline.decryptAndMapToInstance(SseConnectDataTypeRef, JSON.parse(body), null)
+			const instance = await instancePipeline.decryptAndMapToClient(SseConnectDataTypeRef, JSON.parse(body), null)
 			o(instance.userIds.length).equals(1)
 			o(instance.userIds[0].value).equals("user1")
 		})

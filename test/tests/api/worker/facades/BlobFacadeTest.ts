@@ -95,7 +95,7 @@ o.spec("BlobFacade test", function () {
 			})
 			when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
 			let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
-			when(instancePipelineMock.decryptAndMapToInstance(anything(), anything(), anything())).thenResolve(blobServiceResponse)
+			when(instancePipelineMock.decryptAndMapToClient(anything(), anything(), anything())).thenResolve(blobServiceResponse)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify(blobServiceResponse))
 
 			const referenceTokens = await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroup, sessionKey)
@@ -125,7 +125,7 @@ o.spec("BlobFacade test", function () {
 			let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
 			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
-			when(instancePipelineMock.decryptAndMapToInstance(anything(), anything(), anything())).thenResolve(blobServiceResponse)
+			when(instancePipelineMock.decryptAndMapToClient(anything(), anything(), anything())).thenResolve(blobServiceResponse)
 			when(fileAppMock.splitFile(uploadedFileUri, MAX_BLOB_SIZE_BYTES)).thenResolve(chunkUris)
 			let encryptedFileInfo = {
 				uri: "encryptedChunkUri",
@@ -172,7 +172,7 @@ o.spec("BlobFacade test", function () {
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			const requestBody = { "request-body": "1" }
-			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.mapToServerAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -222,7 +222,7 @@ o.spec("BlobFacade test", function () {
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			const requestBody = { "request-body": "1" }
-			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.mapToServerAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -271,7 +271,7 @@ o.spec("BlobFacade test", function () {
 			const decryptedUri = "decryptedUri"
 			const size = 3
 
-			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.mapToServerAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
 			when(fileAppMock.download(anything(), anything(), anything())).thenResolve({
 				statusCode: 200,
 				encryptedFileUri,
@@ -324,7 +324,7 @@ o.spec("BlobFacade test", function () {
 			const decryptedUri = "decryptedUri"
 			const size = 3
 
-			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.mapToServerAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
 			when(fileAppMock.download(anything(), blobs[0].blobId + ".blob", anything())).thenResolve({
 				statusCode: 200,
 				encryptedFileUri,
@@ -380,7 +380,7 @@ o.spec("BlobFacade test", function () {
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			const requestBody = { "request-body": "1" }
-			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.mapToServerAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -464,7 +464,7 @@ o.spec("BlobFacade test", function () {
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			const requestBody1 = { body: "1" }
 			when(
-				instancePipelineMock.encryptAndMapToLiteral(
+				instancePipelineMock.mapToServerAndEncrypt(
 					anything(),
 					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId1" && inData.blobIds.length == 2),
 					anything(),
@@ -472,7 +472,7 @@ o.spec("BlobFacade test", function () {
 			).thenResolve(requestBody1)
 			const requestBody2 = { body: "2" }
 			when(
-				instancePipelineMock.encryptAndMapToLiteral(
+				instancePipelineMock.mapToServerAndEncrypt(
 					anything(),
 					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId2" && inData.blobIds.length == 1),
 					anything(),
@@ -571,7 +571,7 @@ o.spec("BlobFacade test", function () {
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			const requestBody = { "request-body": "1" }
-			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.mapToServerAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -636,7 +636,7 @@ o.spec("BlobFacade test", function () {
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			const requestBody = { "request-body": "1" }
-			when(instancePipelineMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
+			when(instancePipelineMock.mapToServerAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
 			// data size is 65 (16 data block, 16 iv, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(

@@ -423,7 +423,7 @@ o.spec("EventBusClientTest", function () {
 				}),
 			],
 		})
-		const eventData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		const eventData = await instancePipeline.mapToServerAndEncrypt(event._type, event, null)
 		return "entityUpdate;" + JSON.stringify(eventData)
 	}
 
@@ -442,7 +442,7 @@ o.spec("EventBusClientTest", function () {
 				}),
 			],
 		})
-		const instanceAsData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		const instanceAsData = await instancePipeline.mapToServerAndEncrypt(event._type, event, null)
 		return "entityUpdate;" + JSON.stringify(instanceAsData)
 	}
 
@@ -463,7 +463,7 @@ o.spec("EventBusClientTest", function () {
 	}
 
 	async function createCounterMessage(event: WebsocketCounterData): Promise<string> {
-		const instanceAsData = await instancePipeline.encryptAndMapToLiteral(event._type, event, null)
+		const instanceAsData = await instancePipeline.mapToServerAndEncrypt(event._type, event, null)
 		return "unreadCounterUpdate;" + JSON.stringify(instanceAsData)
 	}
 })

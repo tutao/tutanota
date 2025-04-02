@@ -181,14 +181,14 @@ export class DesktopAlarmStorage {
 			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		return await this.instancePipeline.encryptAndMapToLiteral(AlarmNotificationTypeRef, an, sk)
+		return await this.instancePipeline.mapToServerAndEncrypt(AlarmNotificationTypeRef, an, sk)
 	}
 
 	public async decryptAlarmNotification(an: UntypedInstance): Promise<AlarmNotification> {
 		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an)
 		const skResult = await this.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
 		if (skResult) {
-			const alarmNotification = await this.instancePipeline.decryptAndMapToInstance(AlarmNotificationTypeRef, an, skResult.sessionKey)
+			const alarmNotification = await this.instancePipeline.decryptAndMapToClient(AlarmNotificationTypeRef, an, skResult.sessionKey)
 			if (hasError(alarmNotification)) {
 				// some property of the AlarmNotification couldn't be decrypted with the selected key
 				// throw away the key that caused the error and try the next one
