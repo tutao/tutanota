@@ -182,9 +182,10 @@ export class MailIndexer {
 			await this.indexMailboxes(user, oldestTimestamp)
 		} catch (e) {
 			if (e instanceof CancelledError) {
-				return
+				// no-op
+			} else {
+				throw e
 			}
-			throw e
 		}
 	}
 

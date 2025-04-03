@@ -1110,7 +1110,12 @@ o.spec("IndexedDbIndexer", () => {
 
 				// to manually control when initial indexing is done
 				const initialIndexingDone = defer<void>()
-				when(mailIndexer.doInitialMailIndexing(user)).thenReturn(initialIndexingDone.promise)
+				// to listen until initial indexing is called
+				const initialIndexingCalled = defer<void>()
+				when(mailIndexer.doInitialMailIndexing(user)).thenDo(() => {
+					initialIndexingCalled.resolve()
+					return initialIndexingDone.promise
+				})
 
 				// do wait until process will be called on mail indexer
 				const processDeferred = defer<void>()
@@ -1124,9 +1129,15 @@ o.spec("IndexedDbIndexer", () => {
 					},
 				]
 				when(mailIndexer.processEntityEvents(updates, matchers.anything(), matchers.anything())).thenDo(() => processDeferred.resolve())
+				console.log("test, before enableMailIndexing")
 				indexer.enableMailIndexing()
+				console.log("test, after enableMailIndexing")
 
-				indexer.processEntityEvents(updates, "batchId", userGroupId)
+				await initialIndexingCalled.promise
+				// dispatch an event while initial indexing is running and see that it is not immediately processed
+				console.log("test, before processEntityEvents")
+				await indexer.processEntityEvents(updates, "batchId", userGroupId)
+				console.log("test, after processEntityEvents")
 				// not processed yet
 				verify(mailIndexer.processEntityEvents(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 
@@ -1136,6 +1147,45 @@ o.spec("IndexedDbIndexer", () => {
 				await processDeferred.promise
 				verify(mailIndexer.processEntityEvents(updates, userGroupId, "batchId"))
 				verify(mailIndexer.doInitialMailIndexing(user))
+			})
+
+			o.test("does not process events while extending mail Index", async function () {
+				when(mailIndexer.enableMailIndexing()).thenResolve(true)
+
+				const time = new Date("2022-03-31T14:12:00.244Z")
+				// to manually control when extending mail indexing is done
+				const extendMailIndexingDone = defer<void>()
+				const extendingMailIndexingCalled = defer<void>()
+				when(mailIndexer.extendIndexIfNeeded(user, time.getTime())).thenDo(() => {
+					extendingMailIndexingCalled.resolve()
+					return extendMailIndexingDone.promise
+				})
+
+				// do wait until process will be called on extending mail indexer
+				const processDeferred = defer<void>()
+				const updates = [
+					{
+						application: "tutanota",
+						type: "Mail",
+						instanceId: "instanceId",
+						instanceListId: "instanceListId",
+						operation: OperationType.CREATE,
+					},
+				]
+				when(mailIndexer.processEntityEvents(updates, matchers.anything(), matchers.anything())).thenDo(() => processDeferred.resolve())
+				indexer.extendMailIndex(time.getTime())
+
+				await extendingMailIndexingCalled.promise
+				await indexer.processEntityEvents(updates, "batchId", userGroupId)
+				// not processed yet
+				verify(mailIndexer.processEntityEvents(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+
+				// allow extending indexing to finish
+				extendMailIndexingDone.resolve()
+				// wait until process callback is called
+				await processDeferred.promise
+				verify(mailIndexer.processEntityEvents(updates, userGroupId, "batchId"))
+				verify(mailIndexer.extendIndexIfNeeded(user, time.getTime()))
 			})
 
 			o.test("when was already enabled it does nothing", async function () {
@@ -1149,11 +1199,8 @@ o.spec("IndexedDbIndexer", () => {
 		o.spec("disableMailIndexing", function () {
 			o.test("it deletes the index and initializes again", async function () {
 				await indexer.disableMailIndexing()
-
 				verify(mailIndexer.disableMailIndexing())
 			})
 		})
 	})
-
-	// FIXME: test extendMailIndex()
 })
