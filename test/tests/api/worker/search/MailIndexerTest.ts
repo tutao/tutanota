@@ -699,9 +699,6 @@ o.spec("MailIndexer test", () => {
 		const indexPromise = indexer.indexMailboxes(user, endIndexTimestamp)
 		o(indexer.isIndexing).equals(true)
 		await indexPromise
-		// FIXME: should the queue be controlled from here or rather from the indexer?
-		// o(indexer._core.queue.pause.invocations.length).equals(1)
-		// o(indexer._core.queue.resume.invocations.length).equals(1)
 		o(indexer.isIndexing).equals(false)
 
 		if (expectedNewestTimestampForIndexMailListCall) {

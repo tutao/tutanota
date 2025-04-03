@@ -219,9 +219,6 @@ export class MailIndexer {
 
 		const memberships = filterMailMemberships(user)
 
-		// FIXME
-		// this._core.queue.pause()
-
 		try {
 			const mailBoxes: Array<{ mbox: MailBox; newestTimestamp: number }> = []
 			const timestamps = await this.backend.getCurrentIndexTimestamps(memberships.map((ship) => ship.group))
@@ -279,8 +276,6 @@ export class MailIndexer {
 				}),
 			)
 		} finally {
-			// FIXME
-			// this._core.queue.resume()
 			this.isIndexing = false
 		}
 	}
