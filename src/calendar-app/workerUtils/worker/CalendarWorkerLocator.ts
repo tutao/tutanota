@@ -75,6 +75,7 @@ import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyA
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
+import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
@@ -104,6 +105,8 @@ export type CalendarWorkerLocatorType = {
 	keyLoader: KeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
+	ed25519Facade: Ed25519Facade
+	cryptoWrapper: CryptoWrapper
 
 	// login
 	user: UserFacade
@@ -260,6 +263,10 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
+	locator.ed25519Facade = new Ed25519Facade()
+
+	locator.cryptoWrapper = new CryptoWrapper()
+
 	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
@@ -321,6 +328,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			asymmetricCrypto,
 			cryptoWrapper,
 			keyAuthenticationFacade,
+			locator.ed25519Facade,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -424,6 +432,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await locator.recoverCode(),
 			asymmetricCrypto,
 			locator.publicKeyProvider,
+			locator.cryptoWrapper,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
