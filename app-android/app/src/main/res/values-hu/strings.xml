@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Hitelesítő adatok feloldása.</string>
     <string name="delete_action">Törlés</string>
     <string name="markRead_action">Megjelölés olvasottként</string>
+    <string name="sendLogs_action">Naplók küldése</string>
+    <string name="account_label">Felhasználó</string>
 </resources>

@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Déverrouillage des données </string>
     <string name="delete_action">Supprimer</string>
     <string name="markRead_action">Marquer comme lu</string>
+    <string name="sendLogs_action">Envoyer les journaux</string>
+    <string name="account_label">Utilisateur</string>
 </resources>

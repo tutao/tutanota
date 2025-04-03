@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Otključavanje vjerodajnica</string>
     <string name="delete_action">Izbriši</string>
     <string name="markRead_action">Označi pročitanim</string>
+    <string name="sendLogs_action">Pošalji zapise</string>
+    <string name="account_label">Korisnik</string>
 </resources>

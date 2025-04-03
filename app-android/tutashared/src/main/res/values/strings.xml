@@ -9,4 +9,13 @@
     <string name="unlockCredentials_action">Unlock credentials</string>
     <string name="delete_action">Delete</string>
     <string name="markRead_action">Mark read</string>
+    <string name="sendLogs_action">Send Logs</string>
+    <string name="account_label">User</string>
+    <string name="calendars_label">Calendars</string>
+    <string name="widgetNoCredentialsInfo_msg">No credentials available</string>
+    <string name="widgetUnexpectedError_msg">Oops! Something went wrong.</string>
+    <string name="widgetCredentialsError_msg">Please login on the Calendar App</string>
+    <string name="widgetOpenApp_action">Open the app</string>
+    <string name="widgetNoEvents_msg">No events</string>
+    <string name="widgetDescription_msg">Show today\'s upcoming events</string>
 </resources>

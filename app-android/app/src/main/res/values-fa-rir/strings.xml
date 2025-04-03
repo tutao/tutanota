@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">باز کردن قفل داده‌های هویتی</string>
     <string name="delete_action">حذف</string>
     <string name="markRead_action">علامت‌گذاری به عنوان خوانده شده</string>
+    <string name="sendLogs_action">فرستادن لاگ‌ها</string>
+    <string name="account_label">کاربر</string>
 </resources>

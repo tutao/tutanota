@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Mở khoá thông tin đăng nhập</string>
     <string name="delete_action">Xoá</string>
     <string name="markRead_action">Đánh dấu đã đọc</string>
+    <string name="sendLogs_action">Gửi nhật kí</string>
+    <string name="account_label">Người dùng</string>
 </resources>

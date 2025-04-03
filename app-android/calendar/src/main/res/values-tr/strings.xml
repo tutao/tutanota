@@ -8,4 +8,13 @@
     <string name="unlockCredentials_action">Kimlik bilgilerini çöz</string>
     <string name="delete_action">Sil</string>
     <string name="markRead_action">Okunmuş olarak işaretle</string>
+    <string name="sendLogs_action">Sistem Günlüklerini Gönder</string>
+    <string name="account_label">Kullanıcı</string>
+    <string name="calendars_label">Takvimler</string>
+    <string name="widgetNoCredentialsInfo_msg">Giriş bilgileri yok</string>
+    <string name="widgetUnexpectedError_msg">Olamaz, bir şeyler ters gitti.</string>
+    <string name="widgetCredentialsError_msg">Lütfen Takvim uygulamasında oturum açın</string>
+    <string name="widgetOpenApp_action">Uygulamayı aç</string>
+    <string name="widgetNoEvents_msg">Etkinlik yok</string>
+    <string name="widgetDescription_msg">Bugünün yaklaşan etkinliklerini görüntüleyin</string>
 </resources>

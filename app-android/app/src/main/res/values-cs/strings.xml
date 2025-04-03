@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Odemknout přístupové údaje</string>
     <string name="delete_action">Odstranit</string>
     <string name="markRead_action">Označit jako přečtené</string>
+    <string name="sendLogs_action">Odeslat protokol</string>
+    <string name="account_label">Uživatel</string>
 </resources>

@@ -8,4 +8,13 @@
     <string name="unlockCredentials_action">Розблокувати облікові дані</string>
     <string name="delete_action">Видалити</string>
     <string name="markRead_action">Позначити як прочитане</string>
+    <string name="sendLogs_action">Надіслати журнали</string>
+    <string name="account_label">Користувач</string>
+    <string name="calendars_label">Календарі</string>
+    <string name="widgetNoCredentialsInfo_msg">Облікові дані відсутні</string>
+    <string name="widgetUnexpectedError_msg">Уупс! Щось пішло не так.</string>
+    <string name="widgetCredentialsError_msg">Будь ласка, увійдіть у застосунок Календар</string>
+    <string name="widgetOpenApp_action">Відкрити застосунок</string>
+    <string name="widgetNoEvents_msg">Немає подій</string>
+    <string name="widgetDescription_msg">Показати найближчі події на сьогодні</string>
 </resources>

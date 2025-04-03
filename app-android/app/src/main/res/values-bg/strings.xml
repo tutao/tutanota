@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Отключване на данни за идентификация</string>
     <string name="delete_action">Изтрий</string>
     <string name="markRead_action">Отбележи като прочетено</string>
+    <string name="sendLogs_action">Изпращане на журнал</string>
+    <string name="account_label">Потребител</string>
 </resources>

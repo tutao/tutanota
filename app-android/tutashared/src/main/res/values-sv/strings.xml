@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Lås upp inloggningsuppgifter</string>
     <string name="delete_action">Radera</string>
     <string name="markRead_action">Markera som läst</string>
+    <string name="sendLogs_action">Skicka loggar</string>
+    <string name="account_label">Användare</string>
 </resources>

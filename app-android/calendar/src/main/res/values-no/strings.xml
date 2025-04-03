@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Lås opp opplysninger</string>
     <string name="delete_action">Slett</string>
     <string name="markRead_action">Marker som lest</string>
+    <string name="sendLogs_action">Send loggene</string>
+    <string name="account_label">Bruker</string>
 </resources>

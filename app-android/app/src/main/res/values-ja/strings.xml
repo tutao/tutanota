@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">ログイン情報のロックを解除</string>
     <string name="delete_action">削除</string>
     <string name="markRead_action">既読にする</string>
+    <string name="sendLogs_action">ログを送信</string>
+    <string name="account_label">ユーザー</string>
 </resources>

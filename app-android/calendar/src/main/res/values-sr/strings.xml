@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Откључај акредитиве</string>
     <string name="delete_action">Обриши</string>
     <string name="markRead_action">Означи прочитано</string>
+    <string name="sendLogs_action">Пошаљите дневнике</string>
+    <string name="account_label">Корисник</string>
 </resources>

@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Odkleni poverilnice</string>
     <string name="delete_action">Izbriši</string>
     <string name="markRead_action">Označi prebrano</string>
+    <string name="sendLogs_action">Pošlji dnevnike</string>
+    <string name="account_label">Uporabnik</string>
 </resources>

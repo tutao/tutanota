@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">解鎖登入資料</string>
     <string name="delete_action">刪除</string>
     <string name="markRead_action">標記為已讀</string>
+    <string name="sendLogs_action">發送記錄</string>
+    <string name="account_label">用戶</string>
 </resources>

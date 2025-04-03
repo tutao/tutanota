@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">إلغاء بيانات الاعتماد</string>
     <string name="delete_action">حذف</string>
     <string name="markRead_action">علِم كمقروء</string>
+    <string name="sendLogs_action">إرسال السجلات</string>
+    <string name="account_label">مستخدم</string>
 </resources>
