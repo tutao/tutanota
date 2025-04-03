@@ -90,6 +90,7 @@ import type { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
+import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import type { Indexer } from "../index/Indexer"
 import type { SearchFacade } from "../index/SearchFacade"
@@ -132,6 +133,7 @@ export type WorkerLocatorType = {
 	keyLoader: KeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
+	ed25519Facade: Ed25519Facade
 
 	// login
 	user: UserFacade
@@ -434,6 +436,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
+	locator.ed25519Facade = new Ed25519Facade()
+
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
 	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
@@ -495,6 +499,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.asymmetricCrypto,
 			locator.cryptoWrapper,
 			keyAuthenticationFacade,
+			locator.ed25519Facade,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -636,6 +641,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await locator.recoverCode(),
 			locator.asymmetricCrypto,
 			locator.publicKeyProvider,
+			locator.cryptoWrapper,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
