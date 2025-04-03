@@ -653,10 +653,7 @@ impl ImportableMail {
 	pub fn from_parsed_message(parsed_message: &mail_parser::Message) -> Self {
 		let subject = parsed_message.subject().unwrap_or_default().to_string();
 
-		let date = parsed_message
-			.date()
-			.as_ref()
-			.map(|date_time| DateTime::from_millis(date_time.to_timestamp() as u64 * 1000));
+		let date = get_importable_date_time(parsed_message);
 
 		let name_as_address_if_empty_address = |mut address: MailContact| -> MailContact {
 			if address.mail_address.is_empty() && !address.name.is_empty() {
@@ -768,6 +765,22 @@ impl ImportableMail {
 			is_phishing: false,
 		}
 	}
+}
+
+/**
+* convert the "Date:" header value from the parsed message to something we can import.
+* if the value isn't valid (parser returned -1 or the value doesn't fit in an u64
+* when converted to milliseconds), we'll use midnight, 1st of January 1970 as a default.
+*/
+fn get_importable_date_time(message: &mail_parser::Message) -> Option<DateTime> {
+	message
+		.date()
+		.map(mail_parser::DateTime::to_timestamp)
+		.map(|timestamp| timestamp.max(0))
+		.into_iter()
+		.filter_map(|millis| (millis as u64).checked_mul(1000))
+		.map(DateTime::from_millis)
+		.next()
 }
 
 #[cfg(test)]
