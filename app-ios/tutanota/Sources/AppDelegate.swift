@@ -4,6 +4,8 @@ import UIKit
 import tutasdk
 
 public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
+public let TUTA_MAIL_MAILTO_SCHEME = "tutamailto"
+public let MAILTO_SCHEME = "mailto"
 
 @UIApplicationMain class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 	var window: UIWindow?
@@ -116,6 +118,7 @@ public let TUTA_MAIL_INTEROP_SCHEME = "tutamail"
 
 				TUTSLog("Tried to open Mail App from an unknown source!")
 			}
+		case TUTA_MAIL_MAILTO_SCHEME, MAILTO_SCHEME: Task { try? await self.viewController.handleMailto(url) }
 		case nil: TUTSLog("missing scheme!")
 		default: TUTSLog("unknown scheme? \(url.scheme!)")
 		}

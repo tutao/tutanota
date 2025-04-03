@@ -88,9 +88,7 @@ targets:
     type: "bundle.unit-test"
     sources:
       - path: "tutanotaTests"
-        excludes: [ "CompatibilityTest.m" ]
-      - path: "tutanotaTests"
-        includes: [ "CompatibilityTest.m" ]
+        excludes: [ "MailToTest.swift" ]
     settings:
       ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: "YES"
       CODE_SIGN_STYLE: "Automatic"

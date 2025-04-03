@@ -258,6 +258,11 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		}
 	}
 
+	func handleMailto(_ url: URL) async throws {
+		let mailTo = MailtoData(url: url)
+		try await self.bridge.commonNativeFacade.createMailEditor([], mailTo?.body ?? "", mailTo?.toRecipients ?? [], mailTo?.subject ?? "", url.absoluteString)
+	}
+
 	func handleInterop(_ url: URL) async throws {
 		guard let info = await getInteropInfo(url: url) else {
 			TUTSLog("unable to get sharingInfo from url: \(url)")
