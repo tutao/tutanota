@@ -2,7 +2,7 @@ import { CalendarEvent, CalendarEventAttendee } from "../../../../common/api/ent
 import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
-import { CalendarModel } from "../../model/CalendarModel.js"
+import { CalendarModel, CalendarRenderInfo } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus } from "../../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
@@ -230,8 +230,9 @@ export class CalendarEventPreviewViewModel {
 		return this.sanitizedDescription
 	}
 
-	getCalendarRenderInfo() {
-		if (!this.calendarEvent._ownerGroup) throw new Error("Event without an owner group")
+	// Returns null if there is no ownerGroup, which might be the case if an event invitation is being viewed
+	getCalendarRenderInfo(): CalendarRenderInfo | null {
+		if (!this.calendarEvent._ownerGroup) return null
 		return this.calendarModel.getCalendarRenderInfo(this.calendarEvent._ownerGroup)
 	}
 }
