@@ -44,6 +44,7 @@ use crate::entities::generated::sys::GiftCardGetReturn;
 use crate::entities::generated::sys::GiftCardDeleteData;
 use crate::entities::generated::sys::GroupKeyRotationInfoGetOut;
 use crate::entities::generated::sys::GroupKeyRotationPostIn;
+use crate::entities::generated::sys::IdentityKeyPostIn;
 use crate::entities::generated::sys::InvoiceDataGetIn;
 use crate::entities::generated::sys::InvoiceDataGetOut;
 use crate::entities::generated::sys::LocationServiceGetReturn;
@@ -241,6 +242,12 @@ pub struct GroupKeyRotationService;
 
 crate::service_impl!(declare, GroupKeyRotationService, "sys/groupkeyrotationservice", 126);
 crate::service_impl!(POST, GroupKeyRotationService, GroupKeyRotationPostIn, ());
+
+
+pub struct IdentityKeyService;
+
+crate::service_impl!(declare, IdentityKeyService, "sys/identitykeyservice", 126);
+crate::service_impl!(POST, IdentityKeyService, IdentityKeyPostIn, ());
 
 
 pub struct InvoiceDataService;
