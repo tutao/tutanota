@@ -51,6 +51,7 @@ export type Group = {
 	storageCounter: null | Id;
 	formerGroupKeys: null | GroupKeysRef;
 	pubAdminGroupEncGKey: null | PubEncKeyData;
+	identityKeyPair: null | IdentityKeyPair;
 }
 export const GroupInfoTypeRef: TypeRef<GroupInfo> = new TypeRef("sys", 14)
 
@@ -3682,4 +3683,34 @@ export type SurveyDataPostIn = {
 	_format: NumberString;
 
 	surveyData: SurveyData;
+}
+export const IdentityKeyPairTypeRef: TypeRef<IdentityKeyPair> = new TypeRef("sys", 2567)
+
+export function createIdentityKeyPair(values: StrippedEntity<IdentityKeyPair>): IdentityKeyPair {
+	return Object.assign(create(typeModels[IdentityKeyPairTypeRef.typeId], IdentityKeyPairTypeRef), values)
+}
+
+export type IdentityKeyPair = {
+	_type: TypeRef<IdentityKeyPair>;
+
+	_id: Id;
+	identityKeyVersion: NumberString;
+	encryptingKeyVersion: NumberString;
+	publicEd25519Key: Uint8Array;
+	privateEd25519Key: Uint8Array;
+
+	publicKeyMac: KeyMac;
+}
+export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2575)
+
+export function createIdentityKeyPostIn(values: StrippedEntity<IdentityKeyPostIn>): IdentityKeyPostIn {
+	return Object.assign(create(typeModels[IdentityKeyPostInTypeRef.typeId], IdentityKeyPostInTypeRef), values)
+}
+
+export type IdentityKeyPostIn = {
+	_type: TypeRef<IdentityKeyPostIn>;
+
+	_format: NumberString;
+
+	identityKeyPair: IdentityKeyPair;
 }

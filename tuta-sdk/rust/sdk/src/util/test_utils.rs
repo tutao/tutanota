@@ -90,6 +90,7 @@ pub fn generate_random_group(
 		}),
 		storageCounter: None,
 		user: None,
+		identityKeyPair: None,
 	}
 }
 

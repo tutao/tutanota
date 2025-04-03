@@ -84,6 +84,8 @@ pub struct Group {
 	pub formerGroupKeys: Option<GroupKeysRef>,
 	#[serde(rename = "2475")]
 	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
+	#[serde(rename = "2574")]
+	pub identityKeyPair: Option<IdentityKeyPair>,
 }
 
 impl Entity for Group {
@@ -5942,6 +5944,52 @@ impl Entity for SurveyDataPostIn {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2563),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyPair {
+	#[serde(rename = "2568")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2569")]
+	pub identityKeyVersion: i64,
+	#[serde(rename = "2570")]
+	pub encryptingKeyVersion: i64,
+	#[serde(rename = "2571")]
+	#[serde(with = "serde_bytes")]
+	pub publicEd25519Key: Vec<u8>,
+	#[serde(rename = "2572")]
+	#[serde(with = "serde_bytes")]
+	pub privateEd25519Key: Vec<u8>,
+	#[serde(rename = "2573")]
+	pub publicKeyMac: KeyMac,
+}
+
+impl Entity for IdentityKeyPair {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2567),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyPostIn {
+	#[serde(rename = "2576")]
+	pub _format: i64,
+	#[serde(rename = "2577")]
+	pub identityKeyPair: IdentityKeyPair,
+}
+
+impl Entity for IdentityKeyPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2575),
 		}
 	}
 }
