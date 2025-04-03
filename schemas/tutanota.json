@@ -575,6 +575,16 @@
 					"info": "RemoveValue MailFolder/isMailSet/1458."
 				}
 			]
+		},
+		{
+			"version": 86,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "InternalGroupData",
+					"info": "AddAssociation InternalGroupData/identityKeyPair/AGGREGATION/1652."
+				}
+			]
 		}
 	]
 }

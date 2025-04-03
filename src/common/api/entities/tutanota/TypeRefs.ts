@@ -4,6 +4,7 @@ import { typeModels } from "./TypeModels.js"
 import { DateWrapper } from '../sys/TypeRefs.js'
 import { Blob } from '../sys/TypeRefs.js'
 import { StringWrapper } from '../sys/TypeRefs.js'
+import { IdentityKeyPair } from '../sys/TypeRefs.js'
 import { BucketKey } from '../sys/TypeRefs.js'
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
@@ -1234,6 +1235,7 @@ export type InternalGroupData = {
 	pubRsaKey: null | Uint8Array;
 
 	adminGroup: null | Id;
+	identityKeyPair: null | IdentityKeyPair;
 }
 export const InternalRecipientKeyDataTypeRef: TypeRef<InternalRecipientKeyData> = new TypeRef("tutanota", "InternalRecipientKeyData")
 

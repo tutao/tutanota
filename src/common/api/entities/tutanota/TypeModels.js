@@ -5004,6 +5004,16 @@ export const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"refType": "Group",
 				"dependency": null
+			},
+			"identityKeyPair": {
+				"final": false,
+				"name": "identityKeyPair",
+				"id": 1652,
+				"since": 86,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "IdentityKeyPair",
+				"dependency": "sys"
 			}
 		},
 		"app": "tutanota",

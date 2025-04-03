@@ -1558,6 +1558,7 @@ pub struct InternalGroupData {
 	#[serde(with = "serde_bytes")]
 	pub pubRsaKey: Option<Vec<u8>>,
 	pub adminGroup: Option<GeneratedId>,
+	pub identityKeyPair: Option<super::sys::IdentityKeyPair>,
 }
 
 impl Entity for InternalGroupData {
