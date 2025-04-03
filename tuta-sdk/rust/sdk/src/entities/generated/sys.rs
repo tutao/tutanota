@@ -1712,6 +1712,7 @@ pub struct Group {
 	pub customer: Option<GeneratedId>,
 	pub formerGroupKeys: Option<GroupKeysRef>,
 	pub groupInfo: IdTupleGenerated,
+	pub identityKeyPair: Option<IdentityKeyPair>,
 	pub invitations: GeneratedId,
 	pub members: GeneratedId,
 	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
@@ -2044,6 +2045,44 @@ impl Entity for IdTupleWrapper {
 		TypeRef {
 			app: "sys",
 			type_: "IdTupleWrapper",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyPair {
+	pub _id: Option<CustomId>,
+	pub encryptingKeyVersion: i64,
+	pub identityKeyVersion: i64,
+	#[serde(with = "serde_bytes")]
+	pub privateEd25519Key: Vec<u8>,
+	#[serde(with = "serde_bytes")]
+	pub publicEd25519Key: Vec<u8>,
+	pub publicKeyMac: KeyMac,
+}
+
+impl Entity for IdentityKeyPair {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "IdentityKeyPair",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyPostIn {
+	pub _format: i64,
+	pub identityKeyPair: IdentityKeyPair,
+}
+
+impl Entity for IdentityKeyPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "IdentityKeyPostIn",
 		}
 	}
 }

@@ -5444,6 +5444,16 @@ export const typeModels = {
 				"refType": "GroupInfo",
 				"dependency": null
 			},
+			"identityKeyPair": {
+				"final": false,
+				"name": "identityKeyPair",
+				"id": 2563,
+				"since": 126,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refType": "IdentityKeyPair",
+				"dependency": null
+			},
 			"invitations": {
 				"final": true,
 				"name": "invitations",
@@ -6581,6 +6591,110 @@ export const typeModels = {
 			}
 		},
 		"associations": {},
+		"app": "sys",
+		"version": "126"
+	},
+	"IdentityKeyPair": {
+		"name": "IdentityKeyPair",
+		"since": 126,
+		"type": "AGGREGATED_TYPE",
+		"id": 2556,
+		"rootId": "A3N5cwAJ_A",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 2557,
+				"since": 126,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"encryptingKeyVersion": {
+				"final": false,
+				"name": "encryptingKeyVersion",
+				"id": 2559,
+				"since": 126,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"identityKeyVersion": {
+				"final": false,
+				"name": "identityKeyVersion",
+				"id": 2558,
+				"since": 126,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"privateEd25519Key": {
+				"final": false,
+				"name": "privateEd25519Key",
+				"id": 2561,
+				"since": 126,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"publicEd25519Key": {
+				"final": false,
+				"name": "publicEd25519Key",
+				"id": 2560,
+				"since": 126,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"publicKeyMac": {
+				"final": false,
+				"name": "publicKeyMac",
+				"id": 2562,
+				"since": 126,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "KeyMac",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "126"
+	},
+	"IdentityKeyPostIn": {
+		"name": "IdentityKeyPostIn",
+		"since": 126,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2564,
+		"rootId": "A3N5cwAKBA",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 2565,
+				"since": 126,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"identityKeyPair": {
+				"final": false,
+				"name": "identityKeyPair",
+				"id": 2566,
+				"since": 126,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refType": "IdentityKeyPair",
+				"dependency": null
+			}
+		},
 		"app": "sys",
 		"version": "126"
 	},
