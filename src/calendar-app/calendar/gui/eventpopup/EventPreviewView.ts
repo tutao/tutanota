@@ -104,7 +104,9 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
 			this.renderRow(BootIcons.Calendar, [m("span.h3", eventTitle)], true, true),
-			this.renderCalendar(renderInfo.name, renderInfo.color, RENDER_TYPE_TRANSLATION_MAP.get(renderInfo.renderType) ?? "yourCalendars_label"),
+			renderInfo
+				? this.renderCalendar(renderInfo.name, renderInfo.color, RENDER_TYPE_TRANSLATION_MAP.get(renderInfo.renderType) ?? "yourCalendars_label")
+				: null,
 			this.renderRow(
 				Icons.Time,
 				[formatEventDuration(event, getTimeZone(), false), m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event)))],
