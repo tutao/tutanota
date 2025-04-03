@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Разамкнуць даныя ўваходу</string>
     <string name="delete_action">Выдаліць</string>
     <string name="markRead_action">Пазначыць прачытаным</string>
+    <string name="sendLogs_action">Даслаць рапарты</string>
+    <string name="account_label">Карыстальнік</string>
 </resources>

@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Odblokuj poświadczenia</string>
     <string name="delete_action">Usuń</string>
     <string name="markRead_action">Oznacz jako "przeczytane"</string>
+    <string name="sendLogs_action">Wyślij dziennik</string>
+    <string name="account_label">Użytkownik</string>
 </resources>

@@ -5,4 +5,5 @@
     <string name="downloadCompleted_msg">Lejuplāde pabeigta</string>
     <string name="delete_action">Dzēst</string>
     <string name="markRead_action">Atzīmēt kā izlasītu</string>
+    <string name="account_label">Lietotājs</string>
 </resources>

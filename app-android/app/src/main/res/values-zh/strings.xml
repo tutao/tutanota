@@ -6,4 +6,5 @@
     <string name="wantToSendReport_msg">出现未预料的问题。您想要发送错误报告吗？您可以添加消息以帮助我们解决此错误。</string>
     <string name="delete_action">删除</string>
     <string name="markRead_action">标为已读</string>
+    <string name="account_label">用户</string>
 </resources>

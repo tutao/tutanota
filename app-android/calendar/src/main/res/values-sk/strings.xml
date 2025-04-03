@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Odomknúť poverenia</string>
     <string name="delete_action">Odstrániť</string>
     <string name="markRead_action">Označiť ako prečítané</string>
+    <string name="sendLogs_action">Odoslať denníky</string>
+    <string name="account_label">Používateľ</string>
 </resources>

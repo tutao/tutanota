@@ -8,4 +8,5 @@
     <string name="unlockCredentials_action">क्रेडेंशियल अनलॉक करें</string>
     <string name="delete_action">मिटाएँ</string>
     <string name="markRead_action">पढ़ा हुआ चिह्नित करें</string>
+    <string name="account_label">उपयोगकर्ता</string>
 </resources>

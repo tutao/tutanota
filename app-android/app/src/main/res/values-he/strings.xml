@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">שחרר אישורים</string>
     <string name="delete_action">מחיקה</string>
     <string name="markRead_action">סמן כלא נקרא</string>
+    <string name="sendLogs_action">שליחת דו"חות</string>
+    <string name="account_label">משתמש</string>
 </resources>

@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Kimlik bilgilerini çöz</string>
     <string name="delete_action">Sil</string>
     <string name="markRead_action">Okunmuş olarak işaretle</string>
+    <string name="sendLogs_action">Sistem Günlüklerini Gönder</string>
+    <string name="account_label">Kullanıcı</string>
 </resources>

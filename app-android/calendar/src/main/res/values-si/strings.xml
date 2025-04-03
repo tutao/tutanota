@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">අක්තපත්‍ර අගුළුහරින්න</string>
     <string name="delete_action">මකන්න</string>
     <string name="markRead_action">කියවූ ලෙස ලකුණු කරන්න</string>
+    <string name="sendLogs_action">සටහන් යවන්න</string>
+    <string name="account_label">පරිශ්‍රීලක</string>
 </resources>

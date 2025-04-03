@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Lås legitimationsoplysninger op</string>
     <string name="delete_action">Slet</string>
     <string name="markRead_action">Marker som læst</string>
+    <string name="sendLogs_action">Send logfiler</string>
+    <string name="account_label">Bruger</string>
 </resources>

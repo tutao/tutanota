@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Разблокировать учетные данные</string>
     <string name="delete_action">Удалить</string>
     <string name="markRead_action">Пометить как прочитанное</string>
+    <string name="sendLogs_action">Отправить журналы</string>
+    <string name="account_label">Пользователь</string>
 </resources>

@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Desbloquear credenciais.</string>
     <string name="delete_action">Excluir</string>
     <string name="markRead_action">Marcar como lido</string>
+    <string name="sendLogs_action">Enviar registros</string>
+    <string name="account_label">Usuário</string>
 </resources>

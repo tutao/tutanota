@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Membuka kunci kredensial</string>
     <string name="delete_action">Hapus</string>
     <string name="markRead_action">Tandai dibaca</string>
+    <string name="sendLogs_action">Kirim catatan aktivitas</string>
+    <string name="account_label">Pengguna</string>
 </resources>

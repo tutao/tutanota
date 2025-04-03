@@ -8,4 +8,6 @@
     <string name="unlockCredentials_action">Avaa tunnistetiedot</string>
     <string name="delete_action">Poista</string>
     <string name="markRead_action">Merkitse luetuksi</string>
+    <string name="sendLogs_action">Lähetä lokit</string>
+    <string name="account_label">Käyttäjä</string>
 </resources>

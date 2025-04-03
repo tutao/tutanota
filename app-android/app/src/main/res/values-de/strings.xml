@@ -8,4 +8,13 @@
     <string name="unlockCredentials_action">Zugangsdaten Entschlüsseln</string>
     <string name="delete_action">Löschen</string>
     <string name="markRead_action">Gelesen</string>
+    <string name="sendLogs_action">Logs senden</string>
+    <string name="account_label">Benutzer</string>
+    <string name="calendars_label">Kalender</string>
+    <string name="widgetNoCredentialsInfo_msg">Keine Login-Daten vorhanden</string>
+    <string name="widgetUnexpectedError_msg">Etwas ist schief gelaufen.</string>
+    <string name="widgetCredentialsError_msg">Bitte melde dich in der Kalender-App an</string>
+    <string name="widgetOpenApp_action">Die App öffnen</string>
+    <string name="widgetNoEvents_msg">Keine Termine</string>
+    <string name="widgetDescription_msg">Heute anstehenden Termine anzeigen</string>
 </resources>
