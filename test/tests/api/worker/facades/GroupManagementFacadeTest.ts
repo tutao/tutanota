@@ -28,6 +28,7 @@ import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../..
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 
 const { anything, argThat, captor } = matchers
 
@@ -42,6 +43,7 @@ o.spec("GroupManagementFacadeTest", function () {
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 	let cryptoWrapper: CryptoWrapper
 	let keyAuthenticationFacade: KeyAuthenticationFacade
+	let ed25519Facade: Ed25519Facade
 
 	let groupManagementFacade: GroupManagementFacade
 
@@ -60,6 +62,7 @@ o.spec("GroupManagementFacadeTest", function () {
 		asymmetricCryptoFacade = object()
 		cryptoWrapper = object()
 		keyAuthenticationFacade = object()
+		ed25519Facade = object()
 
 		groupManagementFacade = new GroupManagementFacade(
 			userFacade,
@@ -72,6 +75,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			asymmetricCryptoFacade,
 			cryptoWrapper,
 			keyAuthenticationFacade,
+			ed25519Facade,
 		)
 	})
 
