@@ -664,6 +664,7 @@ o.spec("CryptoFacadeTest", function () {
 			groupKeyVersion: "0",
 			formerGroupKeys: null,
 			pubAdminGroupEncGKey: null,
+			identityKeyPair: null,
 		})
 		when(keyLoaderFacade.loadCurrentKeyPair(senderUserGroup._id)).thenResolve({ version: 0, object: senderKeyPairs })
 
@@ -771,6 +772,7 @@ o.spec("CryptoFacadeTest", function () {
 			user: null,
 			formerGroupKeys: null,
 			pubAdminGroupEncGKey: null,
+			identityKeyPair: null,
 		})
 
 		when(keyLoaderFacade.loadCurrentKeyPair(senderUserGroup._id)).thenResolve(senderAsymmetricKeyPair)
