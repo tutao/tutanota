@@ -850,7 +850,6 @@ export type TranslationKeyType =
 	| "keyManagement.qrFingerprintMismatch_msg"
 	| "keyManagement.qrMailAddressNotFound_msg"
 	| "keyManagement.qrVerification_label"
-	| "keyManagement.recipientsVerificationMismatchError_msg"
 	| "keyManagement.selectMethodLong_label"
 	| "keyManagement.selectMethodShort_label"
 	| "keyManagement.showFingerprintAs_label"

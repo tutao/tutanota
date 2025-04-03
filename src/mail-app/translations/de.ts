@@ -871,7 +871,6 @@ export default {
 		"keyManagement.qrFingerprintMismatch_msg": "Dieser öffentliche Schlüssel stimmt nicht mit den Informationen auf dem Server überein. Bitte überprüfe den Typ und die Version der angezeigten Schlüssel. Wenn der Fehler weiterhin besteht, könntest du einem Sicherheitsrisiko ausgesetzt sein.",
 		"keyManagement.qrMailAddressNotFound_msg": "Dieser QR-Code bezieht sich auf eine ungültige E-Mail-Adresse.",
 		"keyManagement.qrVerification_label": "QR-Code-Verifikation",
-		"keyManagement.recipientsVerificationMismatchError_msg": "Die E-Mail konnte nicht gesendet werden. Die öffentlichen Schlüssel der Empfänger haben sich geändert. Bitte überprüfe diese Empfänger, um fortzufahren:",
 		"keyManagement.selectMethodLong_label": "Wähle eine Methode zur Verifikation aus. Wenn du bei einer anderen Person bist und beide über ein Gerät mit Kamerafunktion verfügen, bietet sich die QR-Code-Verifikation an.",
 		"keyManagement.selectMethodShort_label": "Methode auswählen",
 		"keyManagement.showFingerprintAs_label": "Zeige Fingerabdruck als",
