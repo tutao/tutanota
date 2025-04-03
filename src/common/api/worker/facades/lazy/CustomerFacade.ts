@@ -50,8 +50,6 @@ import { CounterFacade } from "./CounterFacade.js"
 import type { Country } from "../../../common/CountryList.js"
 import { getByAbbreviation } from "../../../common/CountryList.js"
 import { LockedError } from "../../../common/error/RestError.js"
-import type { PQKeyPairs } from "@tutao/tutanota-crypto"
-import { aes256RandomKey, bitArrayToUint8Array, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -69,13 +67,16 @@ import type { PdfWriter } from "../../pdf/PdfWriter.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
-import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { CryptoWrapper, encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
 import { PublicKeyProvider } from "../PublicKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
+import { bitArrayToUint8Array, hexToRsaPublicKey, PQKeyPairs, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { locator } from "../../../main/CommonLocator"
+import { SessionType } from "../../../common/SessionType"
 
 assertWorkerOrNode()
 
@@ -100,12 +101,13 @@ export class CustomerFacade {
 		private readonly recoverCodeFacade: RecoverCodeFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
 		const customer = this.getCustomerId()
 		const baseString = domainName.trim().toLowerCase() + customer
-		const hash = sha256Hash(stringToUtf8Uint8Array(baseString)).slice(0, 16)
+		const hash = this.cryptoWrapper.sha256Hash(stringToUtf8Uint8Array(baseString)).slice(0, 16)
 		return "t-verify=" + uint8ArrayToHex(hash)
 	}
 
@@ -138,7 +140,7 @@ export class CustomerFacade {
 		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomainInfo(customerInfo, domainName)
-		let sessionKey = aes256RandomKey()
+		let sessionKey = this.cryptoWrapper.aes256RandomKey()
 
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 		const systemAdminPubKeys = this.publicKeyProvider.convertFromSystemKeysReturn(keyData)
@@ -219,7 +221,7 @@ export class CustomerFacade {
 			cspId = customer.serverProperties
 		} else {
 			// create properties
-			const sessionKey = aes256RandomKey()
+			const sessionKey = this.cryptoWrapper.aes256RandomKey()
 			const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
 			const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
@@ -239,7 +241,7 @@ export class CustomerFacade {
 			value = value.toLowerCase().trim()
 			let newListEntry = createEmailSenderListElement({
 				value,
-				hashedValue: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value))),
+				hashedValue: uint8ArrayToBase64(this.cryptoWrapper.sha256Hash(stringToUtf8Uint8Array(value))),
 				type,
 				field,
 			})
@@ -282,14 +284,14 @@ export class CustomerFacade {
 		currentLanguage: string,
 		app: SubscriptionApp,
 	): Promise<Hex> {
-		const userGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
-		const adminGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
-		const customerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
-		const userGroupInfoSessionKey = aes256RandomKey()
-		const adminGroupInfoSessionKey = aes256RandomKey()
-		const customerGroupInfoSessionKey = aes256RandomKey()
-		const accountingInfoSessionKey = aes256RandomKey()
-		const customerServerPropertiesSessionKey = aes256RandomKey()
+		const userGroupKey: VersionedKey = { object: this.cryptoWrapper.aes256RandomKey(), version: 0 }
+		const adminGroupKey: VersionedKey = { object: this.cryptoWrapper.aes256RandomKey(), version: 0 }
+		const customerGroupKey: VersionedKey = { object: this.cryptoWrapper.aes256RandomKey(), version: 0 }
+		const userGroupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
+		const adminGroupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
+		const customerGroupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
+		const accountingInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
+		const customerServerPropertiesSessionKey = this.cryptoWrapper.aes256RandomKey()
 
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 		const pubRsaKey = keyData.systemAdminPubRsaKey
@@ -370,6 +372,14 @@ export class CustomerFacade {
 			app,
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
+
+		if (!locator.logins.isUserLoggedIn()) {
+			// we do not know the userGroupId at group creation time,
+			// so we log in and create the identity key pair now
+			const login = await locator.logins.createSession(mailAddress, password, SessionType.Temporary)
+			await this.groupManagement.createIdentityKeyPair(login.userGroupInfo.group)
+		}
+
 		return recoverData.hexCode
 	}
 
