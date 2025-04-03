@@ -38,6 +38,7 @@ import {
 } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { Ed25519PrivateKey } from "../facades/Ed25519Facade"
 
 /**
  * An AesKey (usually a group key) and its version.
@@ -71,8 +72,12 @@ export class CryptoWrapper {
 		return decryptKey(encryptionKey, key)
 	}
 
-	encryptEccKey(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array {
+	encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array {
 		return encryptX25519Key(encryptionKey, privateKey)
+	}
+
+	encryptEd25519Key(encryptionKey: AesKey, privateKey: Ed25519PrivateKey): Uint8Array {
+		return aesEncrypt(encryptionKey, privateKey, undefined, true, true) // passing IV as undefined here is fine, as it will generate a new one for each encryption
 	}
 
 	encryptKey(encryptingKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {

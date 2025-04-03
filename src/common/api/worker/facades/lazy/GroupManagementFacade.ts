@@ -9,7 +9,16 @@ import {
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
-import { createMembershipAddData, createMembershipRemoveData, Group, GroupTypeRef, PubEncKeyData, User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import {
+	createMembershipAddData,
+	createMembershipRemoveData,
+	Group,
+	GroupTypeRef,
+	IdentityKeyPair,
+	PubEncKeyData,
+	User,
+	UserTypeRef,
+} from "../../../entities/sys/TypeRefs.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
@@ -178,6 +187,7 @@ export class GroupManagementFacade {
 		adminGroupId: Id | null,
 		adminGroupKey: VersionedKey,
 		ownerGroupKey: VersionedKey,
+		identityKeyPair: IdentityKeyPair | null = null,
 	): InternalGroupData {
 		const adminEncGroupKey = encryptKeyWithVersionedKey(adminGroupKey, groupKey)
 		const ownerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, groupInfoSessionKey)
@@ -186,7 +196,7 @@ export class GroupManagementFacade {
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
 			pubEccKey: keyPair.x25519KeyPair.publicKey,
-			groupEncPrivEccKey: this.cryptoWrapper.encryptEccKey(groupKey, keyPair.x25519KeyPair.privateKey),
+			groupEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(groupKey, keyPair.x25519KeyPair.privateKey),
 			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
 			groupEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(groupKey, keyPair.kyberKeyPair.privateKey),
 			adminGroup: adminGroupId,
@@ -194,6 +204,7 @@ export class GroupManagementFacade {
 			ownerEncGroupInfoSessionKey: ownerEncGroupInfoSessionKey.key,
 			adminKeyVersion: adminEncGroupKey.encryptingKeyVersion.toString(),
 			ownerKeyVersion: ownerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
+			identityKeyPair,
 		})
 	}
 

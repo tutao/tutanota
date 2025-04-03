@@ -76,6 +76,7 @@ import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.j
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
+import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 
 assertWorkerOrNode()
 
@@ -98,6 +99,8 @@ export type CalendarWorkerLocatorType = {
 	keyLoader: KeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
+	ed25519Facade: Ed25519Facade
+	cryptoWrapper: CryptoWrapper
 
 	// login
 	user: UserFacade
@@ -213,6 +216,10 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	}
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
+
+	locator.ed25519Facade = new Ed25519Facade()
+
+	locator.cryptoWrapper = new CryptoWrapper()
 
 	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
 
@@ -374,6 +381,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await locator.recoverCode(),
 			asymmetricCrypto,
 			locator.publicKeyProvider,
+			locator.ed25519Facade,
+			locator.cryptoWrapper,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)

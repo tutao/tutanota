@@ -610,6 +610,16 @@
 					"info": "RemoveAssociation CustomerServerProperties/whitelabelRegistrationDomains."
 				}
 			]
+		},
+		{
+			"version": 126,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "Group",
+					"info": "AddAssociation Group/identityKeyPair/AGGREGATION/2563."
+				}
+			]
 		}
 	]
 }

@@ -269,7 +269,7 @@ export class AsymmetricCryptoFacade {
 			// there is no ecc key pair yet, so we have to genrate and upload one
 			const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
 			const newIdentityKeyPair = this.cryptoWrapper.generateEccKeyPair()
-			const symEncPrivEccKey = this.cryptoWrapper.encryptEccKey(symGroupKey.object, newIdentityKeyPair.privateKey)
+			const symEncPrivEccKey = this.cryptoWrapper.encryptX25519Key(symGroupKey.object, newIdentityKeyPair.privateKey)
 			const data = createPublicKeyPutIn({
 				pubEccKey: newIdentityKeyPair.publicKey,
 				symEncPrivEccKey,

@@ -93,6 +93,7 @@ import { EphemeralCacheStorage } from "../../../common/api/worker/rest/Ephemeral
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
+import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 
 assertWorkerOrNode()
 
@@ -117,6 +118,7 @@ export type WorkerLocatorType = {
 	keyLoader: KeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
+	ed25519Facade: Ed25519Facade
 
 	// login
 	user: UserFacade
@@ -274,6 +276,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	}
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
+
+	locator.ed25519Facade = new Ed25519Facade()
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 
@@ -448,6 +452,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await locator.recoverCode(),
 			locator.asymmetricCrypto,
 			locator.publicKeyProvider,
+			locator.ed25519Facade,
+			locator.cryptoWrapper,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
