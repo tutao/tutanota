@@ -354,7 +354,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					version: senderKeyVersion,
 				})
 				const encryptedEccSenderPrivateKey = object<Uint8Array>()
-				when(cryptoWrapper.encryptEccKey(senderUserGroupKey, newIdentityEccPair.privateKey)).thenReturn(encryptedEccSenderPrivateKey)
+				when(cryptoWrapper.encryptX25519Key(senderUserGroupKey, newIdentityEccPair.privateKey)).thenReturn(encryptedEccSenderPrivateKey)
 
 				const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
 

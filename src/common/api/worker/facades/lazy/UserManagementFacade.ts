@@ -163,6 +163,7 @@ export class UserManagementFacade {
 			),
 		})
 		await this.serviceExecutor.post(UserAccountService, data)
+		// TODO create identity key pair
 		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 	}
 
