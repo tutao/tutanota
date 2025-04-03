@@ -23,10 +23,14 @@
 		"symEncPrivRsaKey": null
 	},
 	"customer": "O0IlmJn--7-0",
-	"formerGroupKeys": { "_id": "123", "list": "list" },
+	"formerGroupKeys": {
+		"_id": "123",
+		"list": "list"
+	},
 	"groupInfo": ["LIopQQI--k-0", "LIopQQN--c-0"],
 	"invitations": "LIopQQN--V-0",
 	"members": "LIopQQN--Z-0",
 	"storageCounter": "NWJVVC_----0",
-	"user": "O0IlmJn----0"
+	"user": "O0IlmJn----0",
+	"identityKeyPair": null
 }
