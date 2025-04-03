@@ -50,8 +50,7 @@ import { CounterFacade } from "./CounterFacade.js"
 import type { Country } from "../../../common/CountryList.js"
 import { getByAbbreviation } from "../../../common/CountryList.js"
 import { LockedError } from "../../../common/error/RestError.js"
-import type { PQKeyPairs } from "@tutao/tutanota-crypto"
-import { aes256RandomKey, bitArrayToUint8Array, hexToRsaPublicKey, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, bitArrayToUint8Array, hexToRsaPublicKey, PQKeyPairs, sha256Hash, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "../../crypto/RsaImplementation.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { DataFile } from "../../../common/DataFile.js"
@@ -69,13 +68,14 @@ import type { PdfWriter } from "../../pdf/PdfWriter.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
-import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { CryptoWrapper, encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
 import { PublicKeyProvider } from "../PublicKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
+import { Ed25519Facade } from "../Ed25519Facade"
 
 assertWorkerOrNode()
 
@@ -100,6 +100,8 @@ export class CustomerFacade {
 		private readonly recoverCodeFacade: RecoverCodeFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly ed25519Facade: Ed25519Facade,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	async getDomainValidationRecord(domainName: string): Promise<string> {
@@ -308,6 +310,10 @@ export class CustomerFacade {
 			// we need to release tuta-crypt by default first before we can encrypt keys for the system admin with PQ public keys.
 			throw new ProgrammingError("system admin having pq key pair is not supported")
 		}
+
+		const identityKeyPair = await this.ed25519Facade.generateKeypair()
+
+		let encPrivateIdentityKey = this.cryptoWrapper.encryptEd25519Key(userGroupKey.object, identityKeyPair.privateKey)
 
 		const userGroupData = this.groupManagement.generateInternalGroupData(
 			keyPairs[0],

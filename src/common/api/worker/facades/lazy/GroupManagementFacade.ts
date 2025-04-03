@@ -196,7 +196,7 @@ export class GroupManagementFacade {
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
 			pubEccKey: keyPair.x25519KeyPair.publicKey,
-			groupEncPrivEccKey: this.cryptoWrapper.encryptEccKey(groupKey, keyPair.x25519KeyPair.privateKey),
+			groupEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(groupKey, keyPair.x25519KeyPair.privateKey),
 			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
 			groupEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(groupKey, keyPair.kyberKeyPair.privateKey),
 			adminGroup: adminGroupId,
