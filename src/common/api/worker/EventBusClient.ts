@@ -519,6 +519,7 @@ export class EventBusClient {
 	 * */
 	async loadMissedEntityEvents(eventQueue: EventQueue): Promise<void> {
 		if (!this.userFacade.isFullyLoggedIn()) {
+			console.log("EventBus: skip loadMissedEntityEvents because not fully logged in yet")
 			return
 		}
 

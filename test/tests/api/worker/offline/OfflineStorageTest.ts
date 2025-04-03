@@ -96,7 +96,7 @@ o.spec("OfflineStorageDb", function () {
 	/** get an id based on a timestamp that is {@param days} days away from the time range cutoff */
 	const offsetId = (days) => timestampToGeneratedId(getDayShifted(now, 0 - timeRangeDays + days).getTime())
 	const offsetMailSetEntryId = (days, mailId) => constructMailSetEntryId(getDayShifted(now, 0 - timeRangeDays + days), mailId)
-	const cuttoffMailSetEntryId = offsetMailSetEntryId(0, GENERATED_MAX_ID)
+	const cutoffMailSetEntryId = offsetMailSetEntryId(0, GENERATED_MAX_ID)
 
 	let dbFacade: DesktopSqlCipher
 	let dateProviderMock: DateProvider
@@ -626,7 +626,7 @@ o.spec("OfflineStorageDb", function () {
 					type: mailSetEntryType,
 					listId: entriesListId,
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-					lower: ensureBase64Ext(mailSetEntryTypeModel, cuttoffMailSetEntryId),
+					lower: ensureBase64Ext(mailSetEntryTypeModel, cutoffMailSetEntryId),
 					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
 				})
 			})
@@ -763,7 +763,7 @@ o.spec("OfflineStorageDb", function () {
 					type: mailSetEntryType,
 					listId: listIdPart(mailSetEntryId),
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-					lower: ensureBase64Ext(mailSetEntryTypeModel, cuttoffMailSetEntryId),
+					lower: ensureBase64Ext(mailSetEntryTypeModel, cutoffMailSetEntryId),
 					upper: ensureBase64Ext(mailSetEntryTypeModel, upperMailSetEntryIdForRange),
 				})
 
@@ -1342,7 +1342,7 @@ o.spec("OfflineStorageDb", function () {
 
 			o(await storage.getRangeForList(MailSetEntryTypeRef, inboxFolder.entries)).deepEquals({
 				// base64Ext encoding is not needed here, as storage.getRangeForList is returning custom elementIds in base64Url already
-				lower: cuttoffMailSetEntryId,
+				lower: cutoffMailSetEntryId,
 				upper: elementIdPart(lastThrow(newInboxMailSetEntries)._id),
 			})("lower range for inbox was set to cutoff")
 			o(await storage.getRangeForList(MailSetEntryTypeRef, trashFolder.entries)).equals(null)("range for trash was deleted")

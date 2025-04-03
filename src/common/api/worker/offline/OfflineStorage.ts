@@ -32,6 +32,7 @@ import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlV
 import { AssociationType, Cardinality, Type as TypeId, ValueType } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -491,13 +492,13 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	async purgeStorage(): Promise<void> {
-		for (let name of Object.keys(TableDefinitions)) {
-			await this.sqlCipherFacade.run(
-				`DELETE
-                 FROM ${name}`,
-				[],
-			)
-		}
+		// Note: unlike recreateDbFile this currently does not re-open the DB (nor does it re-create the tables).
+		// If it's needed for migrations then maybe reopening db file is an option.
+		// We do this instead of just clearing table content because:
+		// 1. there maybe be other tables in the DB that we are not aware here in cache storage (e.g. search index)
+		// 2. it might also make sense to drop the table structure that we have
+		await this.sqlCipherFacade.closeDb()
+		await this.sqlCipherFacade.deleteDb(this.getUserId())
 	}
 
 	async deleteRange(typeRef: TypeRef<unknown>, listId: string): Promise<void> {
