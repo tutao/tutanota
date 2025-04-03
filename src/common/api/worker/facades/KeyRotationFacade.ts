@@ -870,7 +870,7 @@ export class KeyRotationFacade {
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
 			pubEccKey: newPqPairs.x25519KeyPair.publicKey,
-			symEncPrivEccKey: this.cryptoWrapper.encryptEccKey(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
+			symEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
 			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
 		}
