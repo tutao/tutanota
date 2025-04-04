@@ -1,5 +1,4 @@
 import m, { ClassComponent, Vnode } from "mithril"
-import { stateBgActive, stateBgHover } from "./builtinThemes.js"
 import { theme } from "./theme.js"
 import { styles } from "./styles.js"
 import { px, size } from "./size.js"
@@ -44,19 +43,19 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 				// Highlight the row when it is tabbed into
 				onfocus: () => {
 					if (SelectableRowContainer.isUsingKeyboard()) {
-						this.setBackground(stateBgActive)
+						this.setBackground(theme.state_bg_active)
 					}
 				},
 				onblur: () => {
 					if (SelectableRowContainer.isUsingKeyboard()) {
 						if (this.selected && !styles.isSingleColumnLayout()) {
-							this.setBackground(stateBgHover)
+							this.setBackground(theme.state_bg_hover)
 						} else {
 							this.setBackground(theme.surface)
 						}
 					}
 				},
-				onpointerdown: () => this.setBackground(stateBgActive),
+				onpointerdown: () => this.setBackground(theme.state_bg_active),
 				onpointerup: this.updateDomBg,
 				onpointercancel: this.updateDomBg,
 				onpointerleave: this.updateDomBg,
@@ -78,7 +77,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 		// In the single column view, a row may be 'selected' by the URL still linking to a specific mail
 		// So do not highlight in that case but in just multiselect mode and keyboard navigation
 		const highlight = styles.isSingleColumnLayout() ? (this.isInMultiselect || isUsingKeyboard) && this.selected : this.selected
-		this.setBackground(highlight ? stateBgHover : theme.surface)
+		this.setBackground(highlight ? theme.state_bg_hover : theme.surface)
 	}
 }
 

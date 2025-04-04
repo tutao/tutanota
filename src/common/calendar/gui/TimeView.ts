@@ -218,7 +218,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 							"border-top-right-radius": event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
 							"border-bottom-left-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
 							"border-bottom-right-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-							border: event.featured ? `1.5px dashed ${theme.on_success_container}` : "none",
+							border: event.featured ? `1.5px dashed ${hasAnyConflict ? theme.on_warning_container : theme.on_success_container}` : "none",
 							"border-top": event.event.startTime < timeRangeAsDate.start ? "none" : undefined,
 							"border-bottom": event.event.endTime > timeRangeAsDate.end ? "none" : undefined,
 							"-webkit-line-clamp": 2,
@@ -227,15 +227,19 @@ export class TimeView implements Component<TimeViewAttributes> {
 					event.featured
 						? m(".flex.items-start", [
 								m(Icon, {
-									icon: hasAnyConflict ? Icons.ExclamationMark : Icons.Checkmark,
+									icon: hasAnyConflict ? Icons.AlertCircle : Icons.Checkmark,
 									container: "div",
 									class: "mr-xxs",
 									size: IconSize.Normal,
 									style: {
-										fill: hasAnyConflict ? theme.on_error_container : theme.on_success_container,
+										fill: hasAnyConflict ? theme.on_warning_container : theme.on_success_container,
 									},
 								}),
-								m(".break-word.b.text-ellipsis-multi-line.lh", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
+								m(
+									".break-word.b.text-ellipsis-multi-line.lh",
+									{ style: { "-webkit-line-clamp": 2, color: hasAnyConflict ? theme.on_warning_container : theme.on_success_container } },
+									event.event.summary,
+								),
 							])
 						: event.event.summary,
 				)
