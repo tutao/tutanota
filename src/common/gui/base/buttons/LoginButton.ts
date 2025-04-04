@@ -36,7 +36,7 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 			"border-radius",
 			"center",
 			// This makes the button appear "disabled" (grey color, no hover) when disabled is set to true
-			attrs.disabled ? "button-bg" : `accent-bg`,
+			attrs.disabled ? "disabled-button" : `accent-bg`,
 			"flash",
 			attrs.class,
 		]

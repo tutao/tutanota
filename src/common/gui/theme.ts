@@ -1,7 +1,5 @@
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import { isColorLight } from "./base/Color"
-import { logoDefaultGrey, tutaDunkel, tutaRed } from "./builtinThemes"
-import { getTutaLogoSvg } from "./base/Logo.js"
 
 assertMainOrNodeBoot()
 
@@ -22,36 +20,58 @@ export type Theme = {
 	// Basic color tokens
 	primary: string
 	on_primary: string
+	primary_container: string
+	on_primary_container: string
 	secondary: string
 	on_secondary: string
-	error: string
+	secondary_container: string
+	on_secondary_container: string
+	tertiary: string
+	on_tertiary: string
+	tertiary_container: string
+	on_tertiary_container: string
 	surface: string
 	surface_container: string
-	/**
-	 * @deprecated This token should not be used.
-	 * It was created temporarily for the purpose of color theme migration.
-	 */
-	on_surface_fade: string
+	surface_container_high: string
+	surface_container_highest: string
 	on_surface: string
 	on_surface_variant: string
 	outline: string
 	outline_variant: string
 	scrim: string
-	// Campaign colors
+	// semantic colors
+	error: string
+	on_error: string
+	error_container: string
+	on_error_container: string
+	warning: string
+	on_warning: string
+	warning_container: string
+	on_warning_container: string
+	success: string
+	on_success: string
+	success_container: string
+	on_success_container: string
+	// State colors; These are not the Material 3 color tokens. We are not following the M3 guideline to simplify state representations.
+	state_bg_hover: string
+	state_bg_focus: string
+	state_bg_active: string
+	// Campaign colors; These colors are ONLY for campaign use.
 	content_bg_tuta_bday: string
 	content_accent_tuta_bday: string
 	content_accent_secondary_tuta_bday: string
-	error_container: string
-	on_error_container: string
-	success: string
-	success_container: string
-	on_success_container: string
 	tuta_color_nota: string
-	highlight_bg: string
-	highlight_fg: string
-	// Experimental colors; using material 3 color tokens which will be introduced in the future
+	/**
+	 * @deprecated Use not experimental color tokens instead.
+	 */
 	experimental_primary_container: string
+	/**
+	 * @deprecated Use not experimental color tokens instead.
+	 */
 	experimental_on_primary_container: string
+	/**
+	 * @deprecated Use not experimental color tokens instead.
+	 */
 	experimental_tertiary: string
 	go_european: string
 	on_go_european: string
@@ -95,15 +115,5 @@ export function getElevatedBackground(): string {
 }
 
 export function getNavigationMenuBg(): string {
-	return isColorLight(theme.surface) ? theme.secondary : theme.surface
-}
-
-export function getLightOrDarkTutaLogo(isCalendarApp: boolean): string {
-	// Use tuta logo with our brand colors
-	const isCalendarTheme = (theme.themeId === "light" && isCalendarApp) || (theme.themeId === "light_secondary" && !isCalendarApp)
-	if (isColorLight(theme.surface) && !isCalendarTheme) {
-		return getTutaLogoSvg(tutaRed, tutaDunkel)
-	} else {
-		return getTutaLogoSvg(logoDefaultGrey, logoDefaultGrey)
-	}
+	return isColorLight(theme.surface) ? theme.surface_container_high : theme.surface
 }

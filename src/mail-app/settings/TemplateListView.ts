@@ -142,7 +142,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			},
 			this.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
-						color: theme.on_surface_fade,
+						color: theme.on_surface_variant,
 						icon: Icons.ListAlt,
 						message: "noEntries_msg",
 					})
