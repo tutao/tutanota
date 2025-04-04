@@ -10,4 +10,11 @@
     <string name="markRead_action">Označit jako přečtené</string>
     <string name="sendLogs_action">Odeslat protokol</string>
     <string name="account_label">Uživatel</string>
+    <string name="calendars_label">Kalendáře</string>
+    <string name="widgetNoCredentialsInfo_msg">Žádné přihlašovací údaje k dispozici</string>
+    <string name="widgetUnexpectedError_msg">Jejda! Něco se pokazilo.</string>
+    <string name="widgetCredentialsError_msg">Přihlaste se prosím v aplikaci Calendar</string>
+    <string name="widgetOpenApp_action">Otevřít aplikaci</string>
+    <string name="widgetNoEvents_msg">Žádné události</string>
+    <string name="widgetDescription_msg">Zobrazit dnešní nadcházející události</string>
 </resources>

@@ -10,4 +10,11 @@
     <string name="markRead_action">Merkitse luetuksi</string>
     <string name="sendLogs_action">Lähetä lokit</string>
     <string name="account_label">Käyttäjä</string>
+    <string name="calendars_label">Kalenterit</string>
+    <string name="widgetNoCredentialsInfo_msg">Kirjautumistietoja ei saatavilla</string>
+    <string name="widgetUnexpectedError_msg">Hups! Jotain meni pieleen.</string>
+    <string name="widgetCredentialsError_msg">Kirjaudu kalenterisovellukseen</string>
+    <string name="widgetOpenApp_action">Avaa sovellus</string>
+    <string name="widgetNoEvents_msg">Ei tapahtumia</string>
+    <string name="widgetDescription_msg">Näytä tulevat tapahtumat tänään</string>
 </resources>

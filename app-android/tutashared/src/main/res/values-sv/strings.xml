@@ -10,4 +10,11 @@
     <string name="markRead_action">Markera som läst</string>
     <string name="sendLogs_action">Skicka loggar</string>
     <string name="account_label">Användare</string>
+    <string name="calendars_label">Kalendrar</string>
+    <string name="widgetNoCredentialsInfo_msg">Inga inloggningsuppgifter tillgängliga</string>
+    <string name="widgetUnexpectedError_msg">Oops! Något gick fel.</string>
+    <string name="widgetCredentialsError_msg">Logga in på kalenderappen</string>
+    <string name="widgetOpenApp_action">Öppna appen</string>
+    <string name="widgetNoEvents_msg">Inga händelser</string>
+    <string name="widgetDescription_msg">Visa dagens kommande händelser</string>
 </resources>

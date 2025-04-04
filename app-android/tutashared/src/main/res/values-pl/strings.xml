@@ -10,4 +10,11 @@
     <string name="markRead_action">Oznacz jako "przeczytane"</string>
     <string name="sendLogs_action">Wyślij dziennik</string>
     <string name="account_label">Użytkownik</string>
+    <string name="calendars_label">Kalendarze</string>
+    <string name="widgetNoCredentialsInfo_msg">Brak danych uwierzytelniających</string>
+    <string name="widgetUnexpectedError_msg">Oj! Coś poszło nie tak.</string>
+    <string name="widgetCredentialsError_msg">Zaloguj się w aplikacji Kalendarz</string>
+    <string name="widgetOpenApp_action">Otwórz aplikację</string>
+    <string name="widgetNoEvents_msg">Brak wydarzeń</string>
+    <string name="widgetDescription_msg">Pokaż dzisiejsze nadchodzące wydarzenia</string>
 </resources>

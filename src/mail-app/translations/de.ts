@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-04-03T07:44:55Z",
+	"updated_at": "2025-04-04T12:16:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -658,7 +658,7 @@ export default {
 		"finish_action": "Beenden",
 		"firstMergeContact_label": "Kontakt 1",
 		"firstMonthForFreeDetail_msg": "Eine einmonatige Testphase ist für alle unsere kostenpflichtigen Abonnements verfügbar. Der erste Monat ist völlig kostenlos und du kannst jederzeit kündigen.",
-		"firstMonthForFree_msg": "Erhalte den ersten Monat kostenlos!",
+		"firstMonthForFree_msg": "Erhalte bei jährlichen Abos den ersten Monat kostenlos!",
 		"firstName_placeholder": "Vorname",
 		"firstOfPeriod_label": "Ersten {day}",
 		"folderDepth_label": "{folderName}, Ebene {depth}.",

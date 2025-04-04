@@ -10,4 +10,11 @@
     <string name="markRead_action">Megjelölés olvasottként</string>
     <string name="sendLogs_action">Naplók küldése</string>
     <string name="account_label">Felhasználó</string>
+    <string name="calendars_label">Naptárak</string>
+    <string name="widgetNoCredentialsInfo_msg">Nincsenek hitelesítő adatok</string>
+    <string name="widgetUnexpectedError_msg">Hajaj! Valami nem sikerült.</string>
+    <string name="widgetCredentialsError_msg">Kérjük, lépjen be a Naptár Alkalmazásba!</string>
+    <string name="widgetOpenApp_action">Nyissa meg az alkalmazást!</string>
+    <string name="widgetNoEvents_msg">Nincsenek események</string>
+    <string name="widgetDescription_msg">Mutassa a közelgő eseményeket!</string>
 </resources>

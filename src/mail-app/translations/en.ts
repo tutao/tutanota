@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-04-03T07:44:55Z",
+	"updated_at": "2025-04-04T12:11:53Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -654,7 +654,7 @@ export default {
 		"finish_action": "Finish",
 		"firstMergeContact_label": "Contact 1",
 		"firstMonthForFreeDetail_msg": "A one-month trial period is available for all our paid plans. The first month is completely free and you can cancel at any time.",
-		"firstMonthForFree_msg": "Get the first month for free with any paid plan!",
+		"firstMonthForFree_msg": "Get the first month for free with any yearly paid plan!",
 		"firstName_placeholder": "First name",
 		"firstOfPeriod_label": "First {day}",
 		"folderDepth_label": "{folderName}, {depth} layers deep.",
