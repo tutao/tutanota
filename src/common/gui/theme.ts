@@ -19,44 +19,33 @@ export type ThemePreference = ThemeId | "auto:light|dark"
 export type Theme = {
 	themeId: ThemeId
 	logo: string
-	button_bubble_bg: string
-	button_bubble_fg: string
-	content_bg: string
-	content_fg: string
-	content_button: string
-	content_button_selected: string
-	content_button_icon: string
-	content_button_icon_selected: string
-	content_button_icon_bg?: string
-	content_accent: string
-	content_border: string
-	content_message_bg: string
-	header_bg: string
-	header_box_shadow_bg: string
-	header_button: string
-	header_button_selected: string
-	list_bg: string
-	list_alternate_bg: string
-	list_accent_fg: string
-	list_message_bg: string
-	list_border: string
-	modal_bg: string
-	elevated_bg?: string
-	navigation_bg: string
-	navigation_border: string
-	navigation_button: string
-	navigation_button_icon_bg?: string
-	navigation_button_selected: string
-	navigation_button_icon: string
-	navigation_button_icon_selected: string
-	navigation_menu_bg?: string
-	navigation_menu_icon: string
-	error_color: string
-	error_container_color: string
-	on_error_container_color: string
-	success_color: string
-	success_container_color: string
-	on_success_container_color: string
+	// Basic color tokens
+	primary: string
+	on_primary: string
+	secondary: string
+	on_secondary: string
+	error: string
+	surface: string
+	surface_container: string
+	/**
+	 * @deprecated This token should not be used.
+	 * It was created temporarily for the purpose of color theme migration.
+	 */
+	on_surface_fade: string
+	on_surface: string
+	on_surface_variant: string
+	outline: string
+	outline_variant: string
+	scrim: string
+	// Campaign colors
+	content_bg_tuta_bday: string
+	content_accent_tuta_bday: string
+	content_accent_secondary_tuta_bday: string
+	error_container: string
+	on_error_container: string
+	success: string
+	success_container: string
+	on_success_container: string
 	tuta_color_nota: string
 	highlight_bg: string
 	highlight_fg: string
@@ -64,7 +53,6 @@ export type Theme = {
 	experimental_primary_container: string
 	experimental_on_primary_container: string
 	experimental_tertiary: string
-	outline_variant: string
 	go_european: string
 	on_go_european: string
 	// semantic colors
@@ -115,24 +103,12 @@ export const themeOptions = (isCalendarApp: boolean) =>
 		},
 	] as const
 
-export function getContentButtonIconBackground(): string {
-	return theme.content_button_icon_bg || theme.content_button // fallback for the new color content_button_icon_bg
-}
-
-export function getNavButtonIconBackground(): string {
-	return theme.navigation_button_icon_bg || theme.navigation_button // fallback for the new color content_button_icon_bg
-}
-
 export function getElevatedBackground(): string {
-	return theme.elevated_bg || theme.content_bg
+	return isColorLight(theme.surface) ? theme.surface : theme.surface_container
 }
 
 export function getNavigationMenuBg(): string {
-	return theme.navigation_menu_bg || theme.navigation_bg
-}
-
-export function getNavigationMenuIcon(): string {
-	return theme.navigation_menu_icon || theme.navigation_button_icon
+	return isColorLight(theme.surface) ? theme.secondary : theme.surface
 }
 
 export function isLightTheme(): boolean {
@@ -142,7 +118,7 @@ export function isLightTheme(): boolean {
 export function getLightOrDarkTutaLogo(isCalendarApp: boolean): string {
 	// Use tuta logo with our brand colors
 	const isCalendarTheme = (theme.themeId === "light" && isCalendarApp) || (theme.themeId === "light_secondary" && !isCalendarApp)
-	if (isColorLight(theme.content_bg) && !isCalendarTheme) {
+	if (isColorLight(theme.surface) && !isCalendarTheme) {
 		return getTutaLogoSvg(tutaRed, tutaDunkel)
 	} else {
 		return getTutaLogoSvg(logoDefaultGrey, logoDefaultGrey)

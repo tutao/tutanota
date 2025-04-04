@@ -59,7 +59,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							icon: BootIcons.Search,
 							size: IconSize.Medium,
 							style: {
-								fill: theme.content_button,
+								fill: theme.on_surface_variant,
 							},
 						} satisfies IconAttrs)
 					: null,
@@ -86,7 +86,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 								icon: attrs.busy ? BootIcons.Progress : Icons.Close,
 								class: "center-h  " + (attrs.busy ? "icon-progress-search icon-progress" : ""),
 								style: {
-									fill: theme.header_button,
+									fill: theme.on_surface_variant,
 								},
 							}),
 							onclick: () => {

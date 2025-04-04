@@ -14,14 +14,14 @@ export class CompletenessIndicator implements Component<CompletenessIndicatorAtt
 			{
 				class: attrs.class,
 				style: {
-					border: `1px solid ${theme.content_button}`,
+					border: `1px solid ${theme.on_surface_variant}`,
 					width: attrs.width ?? "100px",
 					height: "10px",
 				},
 			},
 			m("", {
 				style: {
-					"background-color": theme.content_button,
+					"background-color": theme.on_surface_variant,
 					width: attrs.percentageCompleted + "%",
 					height: "100%",
 				},

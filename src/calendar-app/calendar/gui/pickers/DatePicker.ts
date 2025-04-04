@@ -92,7 +92,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						type: TextFieldType.Date,
 						style: {
 							zIndex: 1,
-							border: `2px solid ${theme.content_message_bg}`,
+							border: `2px solid ${theme.outline}`,
 							width: "auto",
 							height: "auto",
 							padding: 0,
@@ -681,7 +681,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 						height: size,
 						width: size,
 						lineHeight: size,
-						color: theme.navigation_menu_icon,
+						color: theme.on_surface_variant,
 					},
 				},
 				wd,

@@ -85,7 +85,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				type: TextFieldType.Time,
 				style: {
 					zIndex: 1,
-					border: `2px solid ${theme.content_message_bg}`,
+					border: `2px solid ${theme.outline}`,
 					width: "auto",
 					height: "auto",
 					appearance: "none",
