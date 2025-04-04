@@ -162,6 +162,7 @@ export function userIsGlobalAdmin(user: User): boolean {
 }
 
 // FIXME: change which groups are index memberships
+// check if safe to exclude Customer and Admin
 export function filterIndexMemberships(user: User): GroupMembership[] {
 	return user.memberships.filter(
 		(m) => m.groupType === GroupType.Mail || m.groupType === GroupType.Contact || m.groupType === GroupType.Customer || m.groupType === GroupType.Admin,

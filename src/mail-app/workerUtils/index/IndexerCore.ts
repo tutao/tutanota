@@ -32,7 +32,7 @@
 
 */
 
-import { b64UserIdHash, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
+import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
 	$Promisable,
 	arrayHash,
@@ -985,6 +985,7 @@ export class IndexerCore {
 		}
 	}
 
+	// FIXME cleanup stats from core
 	resetStats() {
 		this._stats = {
 			indexingTime: 0,

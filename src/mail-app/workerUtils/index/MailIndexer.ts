@@ -203,9 +203,6 @@ export class MailIndexer {
 		this.abortController = new AbortController()
 		this.isIndexing = true
 
-		// FIXME
-		// this._core.resetStats()
-
 		await this.infoMessageHandler.onSearchIndexStateUpdate(searchIndexStageInfo())
 		await this.infoMessageHandler.onSearchIndexStateUpdate({
 			initializing: false,
@@ -248,9 +245,6 @@ export class MailIndexer {
 			if (mailBoxes.length > 0) {
 				await this._indexMailLists(mailBoxes, oldestTimestamp, searchIndexStageInfo)
 			}
-
-			// FIXME
-			// this._core.printStatus()
 
 			await this.updateCurrentIndexTimestamp(user)
 			await this.infoMessageHandler.onSearchIndexStateUpdate(searchIndexStageInfo({ progress: 0 }))
@@ -535,7 +529,6 @@ export class MailIndexer {
 		for (const event of events) {
 			if (isUpdateForTypeRef(MailTypeRef, event)) {
 				const mailId: IdTuple = [event.instanceListId, event.instanceId]
-				// FIXME: excluded folders?
 				if (event.operation === OperationType.CREATE) {
 					const newMailData = await this.downloadNewMailData(mailId)
 					if (newMailData) {

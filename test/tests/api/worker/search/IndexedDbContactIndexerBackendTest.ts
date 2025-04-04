@@ -130,7 +130,6 @@ o.spec("IndexedDbContactIndexerBackend test", () => {
 
 		when(entityClient.loadAll(ContactTypeRef, contactList.contacts)).thenResolve(contacts)
 
-		// FIXME
 		await backend.indexContactList(contactList)
 		verify(core.encryptSearchIndexEntries(contacts[0]._id, neverNull(contacts[0]._ownerGroup), matchers.anything(), matchers.anything()))
 		verify(core.encryptSearchIndexEntries(contacts[1]._id, neverNull(contacts[1]._ownerGroup), matchers.anything(), matchers.anything()))

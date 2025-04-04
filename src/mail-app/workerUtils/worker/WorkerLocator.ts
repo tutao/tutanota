@@ -678,7 +678,6 @@ async function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo, keyLoaderFa
 			return
 		}
 	}
-	// FIXME: make this work with existing credentials on old db
 	if (cacheInfo.isPersistent && cacheInfo.isNewOfflineDb) {
 		// not awaiting
 		indexer.enableMailIndexing()
