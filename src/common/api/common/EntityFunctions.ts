@@ -1,5 +1,5 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
-import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, TypeRef } from "@tutao/tutanota-utils"
 import type { AttributeId, ModelAssociation, ModelValue, TypeId, TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
@@ -62,63 +62,93 @@ export type ModelInfos = typeof modelInfos
 
 export type TypeReferenceResolver = typeof resolveTypeReference
 
-export type TypeModels = {
-	base: Map<TypeId, TypeModel>
-	sys: Map<TypeId, TypeModel>
-	tutanota: Map<TypeId, TypeModel>
-	monitor: Map<TypeId, TypeModel>
-	accounting: Map<TypeId, TypeModel>
-	gossip: Map<TypeId, TypeModel>
-	storage: Map<TypeId, TypeModel>
-	usage: Map<TypeId, TypeModel>
+export type ServerModels = {
+	base: { version: number; types: typeof baseTypeModels }
+	sys: { version: number; types: typeof sysTypeModels }
+	tutanota: { version: number; types: typeof tutanotaTypeModels }
+	monitor: { version: number; types: typeof monitorTypeModels }
+	accounting: { version: number; types: typeof accountingTypeModels }
+	gossip: { version: number; types: typeof gossipTypeModels }
+	storage: { version: number; types: typeof storageTypeModels }
+	usage: { version: number; types: typeof usageTypeModels }
 }
 
-export const EmptyTypeModels = {
-	base: new Map(),
-	sys: new Map(),
-	tutanota: new Map(),
-	monitor: new Map(),
-	accounting: new Map(),
-	gossip: new Map(),
-	storage: new Map(),
-	usage: new Map(),
+export const EmptyTypeModels: ServerModels = {
+	base: { version: NaN, types: {} },
+	sys: { version: NaN, types: {} },
+	tutanota: { version: NaN, types: {} },
+	monitor: { version: NaN, types: {} },
+	accounting: { version: NaN, types: {} },
+	gossip: { version: NaN, types: {} },
+	storage: { version: NaN, types: {} },
+	usage: { version: NaN, types: {} },
 }
 
 export class ServerModelInfo {
-	public static typeModels: TypeModels = EmptyTypeModels
-	private static computedVersion: number = 0
+	public static typeModels: ServerModels = EmptyTypeModels
+	private static applicationVersionSum: number = NaN
 
 	public static getCurrentVersion(): number {
-		return ServerModelInfo.computedVersion
+		assert(ServerModelInfo.applicationVersionSum > 0, "ServerModelInfo is not yet populated")
+		return ServerModelInfo.applicationVersionSum
 	}
 
 	// given json string,
 	// compute the typeModels in typeSafe manner, i.e validate the json contains all required information
-	public static init(version: number, unparsedJsonString: string): void {
-		const parsedJson = JSON.parse(unparsedJsonString) as Record<string, unknown>
+	public static init(applicationVersionSum: number, parsedJson: Record<string, unknown>): void {
+		assert(applicationVersionSum > 0, "invalid version number")
 
 		let newTypeModels = EmptyTypeModels
 		for (const appName of Object.values(AppNameEnum)) {
-			newTypeModels[appName] = ServerModelInfo.parseAllTypesForModel(parsedJson[appName])
+			const appModels = parsedJson[appName]
+			assert(appModels != null, `app models for ${appModels} not found`)
+
+			newTypeModels[appName] = ServerModelInfo.parseAllTypesForModel(appModels)
 		}
+
+		const computedVersionSum = ServerModelInfo.computeApplicationVersionSum(newTypeModels)
+		assert(applicationVersionSum === computedVersionSum, `version sum mismatch. expected: ${applicationVersionSum}. Got: ${computedVersionSum}`)
 
 		// only update if everything is ok
 		ServerModelInfo.typeModels = newTypeModels
-		ServerModelInfo.computedVersion = version
+		ServerModelInfo.applicationVersionSum = applicationVersionSum
 	}
 
-	private static parseAllTypesForModel(modelTypeInfo: unknown): Map<TypeId, TypeModel> {
+	public static initFromWrittenFile(fileContent: string) {
+		const parsedJson: ServerModels = JSON.parse(fileContent)
+		let versionSum = 0
+		let jsonInServerFormat = {}
+
+		Object.entries(parsedJson).map(([appName, { version, types }]) => {
+			versionSum += version
+
+			const modelInfo = { name: appName, version: version, types: types }
+			Object.assign(jsonInServerFormat, { [appName]: modelInfo })
+		})
+
+		ServerModelInfo.init(versionSum, jsonInServerFormat)
+	}
+
+	public static getStringRepresentationToWrite(): string {
+		assert(ServerModelInfo.applicationVersionSum > 0, "invalid version number")
+		return JSON.stringify(ServerModelInfo.typeModels)
+	}
+
+	private static parseAllTypesForModel(modelTypeInfo: unknown) {
 		const modelInfo = modelTypeInfo as Record<string, unknown>
 		const appName = ServerModelInfo.parseAppName(String(modelInfo.name))
 		const modelTypeInfoRecord = modelInfo.types as Record<string, unknown>
 		const version = parseInt(String(modelInfo.version))
 
-		let typeMaps = new Map<TypeId, TypeModel>()
+		let types: Record<TypeId, TypeModel> = {}
 		for (const typeInfo of Object.values(modelTypeInfoRecord)) {
 			const typeModel = ServerModelInfo.parseSingleTypeModel(appName, version, typeInfo)
-			typeMaps.set(typeModel.id, typeModel)
+			types[typeModel.id] = typeModel
 		}
-		return typeMaps
+		return {
+			types,
+			version,
+		}
 	}
 
 	private static parseSingleTypeModel(app: AppName, appVersion: number, typeInfo: unknown): TypeModel {
@@ -256,6 +286,10 @@ export class ServerModelInfo {
 		)
 	}
 
+	private static computeApplicationVersionSum(models: ServerModels): number {
+		return Object.values(models).reduce((sum, model) => sum + model.version, 0)
+	}
+
 	private static verifyNoNullValueInRecord(record: Record<any, any>) {
 		for (const [keyname, keyValue] of Object.entries(record)) {
 			assertNotNull(keyValue, `null value for typeModel key: ${keyname}`)
@@ -284,7 +318,7 @@ export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeM
 export async function resolveServerTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
 	const modelMap = ServerModelInfo.typeModels[typeRef.app]
 
-	const typeModel = modelMap.get(typeRef.typeId)
+	const typeModel = modelMap.types[typeRef.typeId]
 	if (typeModel == null) {
 		throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
 	} else {
