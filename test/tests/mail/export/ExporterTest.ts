@@ -33,7 +33,7 @@ Date: ${_formatSmtpDateTime(new Date(now))}\r\n\
 Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"\r\n\
 \r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota\r\n\
-Content-Type: text/html; charset=UTF-8\r\n\
+Content-Type: text/plain; charset=UTF-8\r\n\
 Content-transfer-encoding: base64\r\n\
 \r\n\
 \r\n\
@@ -182,7 +182,7 @@ Message-ID: <1234@local.node.example>\r\n\
 Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"\r\n\
 \r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota\r\n\
-Content-Type: text/html; charset=UTF-8\r\n\
+Content-Type: text/plain; charset=UTF-8\r\n\
 Content-transfer-encoding: base64\r\n\
 \r\n\
 \r\n\
