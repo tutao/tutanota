@@ -8,8 +8,8 @@ import { theme } from "../gui/theme.js"
 export function renderSettingsBannerButton(text: TranslationKey, onclick: ClickHandler, isDisabled?: boolean, classes?: string) {
 	return m(BannerButton, {
 		text,
-		borderColor: theme.content_accent,
-		color: theme.content_accent,
+		borderColor: theme.primary,
+		color: theme.primary,
 		class: "b full-width button-content " + classes,
 		click: (event: MouseEvent, dom: HTMLElement) => {
 			onclick(event, dom)

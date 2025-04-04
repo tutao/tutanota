@@ -121,7 +121,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			end: timeRangeStartEnd,
 		}
 
-		const bannerColor = isLightTheme() ? theme.button_bubble_bg : theme.elevated_bg
+		const bannerColor = isLightTheme() ? theme.secondary : theme.surface
 
 		/* Event Banner */
 		return m(
@@ -163,7 +163,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							icon: BootIcons.Calendar,
 							container: "div",
 							class: "mr-xsm",
-							style: { fill: theme.content_fg },
+							style: { fill: theme.on_surface },
 							size: IconSize.Medium,
 						}),
 						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
@@ -193,7 +193,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											icon: Icons.Time,
 											container: "div",
 											class: "mr-xsm mt-xxs",
-											style: { fill: theme.content_fg },
+											style: { fill: theme.on_surface },
 											size: IconSize.Medium,
 										}),
 										m("span.b.h5", lang.get("timeOverview_title")),
@@ -204,7 +204,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
 													container: "div",
 													class: "mr-xsm",
-													style: { fill: hasConflict ? theme.error_color : theme.success_color }, // TODO [colors] Use new material like colors tokens
+													style: { fill: hasConflict ? theme.error : theme.success }, // TODO [colors] Use new material like colors tokens
 													size: IconSize.Medium,
 												}),
 												this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
@@ -268,8 +268,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		const children: Children = [] as ChildArray
 		const viewOnCalendarButton = m(BannerButton, {
-			borderColor: theme.content_fg,
-			color: theme.content_fg,
+			borderColor: theme.on_surface,
+			color: theme.on_surface,
 			click: () => this.handleViewOnCalendarAction(agenda, event),
 			text: {
 				testId: "",
@@ -462,7 +462,7 @@ export async function loadEventsAroundInvite(
 			main: {
 				event: iCalEvent,
 				conflictsWithMainEvent: false,
-				color: theme.success_container_color,
+				color: theme.success_container,
 				featured: true,
 			},
 			allDayEvents: allDayAndLongEvents.map((event) => ({
@@ -535,7 +535,7 @@ export async function loadEventsAroundInvite(
 		}
 
 		if (eventList.conflictCount > 0) {
-			eventList.main.color = theme.error_container_color
+			eventList.main.color = theme.error_container
 		}
 		eventToAgenda.set(iCalEvent.uid ?? "", eventList)
 	}
