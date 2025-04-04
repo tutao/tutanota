@@ -15,7 +15,7 @@ import { styles } from "../gui/styles.js"
 import { FreePlanBox } from "./FreePlanBox.js"
 import { AriaRole } from "../gui/AriaUtils.js"
 import { isKeyPressed } from "../misc/KeyManager.js"
-import { boxShadow } from "../gui/main-styles.js"
+import { boxShadowHigh } from "../gui/main-styles.js"
 import { getPlanSelectorTest } from "./UpgradeSubscriptionWizard.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -187,9 +187,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 								bottom: 0,
 								left: 0,
 								right: 0,
-								"background-color": theme.content_bg,
+								"background-color": theme.surface,
 								"z-index": 1,
-								"box-shadow": boxShadow,
+								"box-shadow": boxShadowHigh,
 							},
 						},
 						m(

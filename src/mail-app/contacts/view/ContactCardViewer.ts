@@ -24,7 +24,7 @@ export class ContactCardViewer implements Component<ContactCardAttrs> {
 				{
 					class: responsiveCardHMargin(),
 					style: {
-						backgroundColor: theme.content_bg,
+						backgroundColor: theme.surface,
 						...attrs.style,
 					},
 				},

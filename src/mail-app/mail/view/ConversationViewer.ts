@@ -174,7 +174,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
 					{
 						style: {
-							color: theme.content_button,
+							color: theme.on_surface_variant,
 						},
 					},
 					lang.get("loading_msg"),
@@ -191,7 +191,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					class: responsiveCardHMargin(),
 					key: elementIdPart(mailViewModel.mail.conversationEntry),
 					style: {
-						backgroundColor: theme.content_bg,
+						backgroundColor: theme.surface,
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 					},
 				},

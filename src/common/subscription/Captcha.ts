@@ -147,9 +147,9 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 				// The captcha is black-on-white, which will not look correct on anything where the background is not
 				// white. We can use CSS filters to fix this.
 				let captchaFilter = {}
-				if (theme.elevated_bg != null && isMonochrome(theme.elevated_bg)) {
+				if (theme.surface != null && isMonochrome(theme.surface)) {
 					captchaFilter = {
-						filter: `invert(${1.0 - getColorLuminance(theme.elevated_bg)}`,
+						filter: `invert(${1.0 - getColorLuminance(theme.surface)}`,
 					}
 				}
 				return [

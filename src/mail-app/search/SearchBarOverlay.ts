@@ -118,7 +118,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			),
 			m(".abs", {
 				style: {
-					backgroundColor: theme.content_accent,
+					backgroundColor: theme.primary,
 					height: "2px",
 					width: state.indexState.progress + "%",
 					bottom: 0,
