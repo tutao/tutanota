@@ -24,7 +24,8 @@ import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorVie
 
 type Props = {
 	data: SupportDialogState
-	goToSuccessPage: Thunk
+	onSuccess: Thunk
+	isRating?: boolean
 }
 
 export class ContactSupportPage implements Component<Props> {
@@ -70,7 +71,7 @@ export class ContactSupportPage implements Component<Props> {
 	 *
 	 * **Example output: `Support Request - Unlimited - Account: I cannot login.`**
 	 */
-	private async getSubject(data: SupportDialogState) {
+	private async getSubject(data: SupportDialogState, isRating: boolean = false) {
 		const MAX_ISSUE_LENGTH = 60
 		let subject = `Support Request (${PlanTypeToName[await locator.logins.getUserController().getPlanType()]})`
 
@@ -87,10 +88,14 @@ export class ContactSupportPage implements Component<Props> {
 			subject += ` - ${getLocalisedCategoryName(selectedCategory, lang.languageTag)}`
 		}
 
+		if (isRating) {
+			subject += ` - Rating`
+		}
+
 		return subject
 	}
 
-	view({ attrs: { data, goToSuccessPage } }: Vnode<Props>): Children {
+	view({ attrs: { data, onSuccess, isRating } }: Vnode<Props>): Children {
 		return m(
 			".flex.flex-column.pt.height-100p.gap-vpad",
 			m(Card, m("", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-s", lang.get("supportForm_msg")))),
@@ -190,7 +195,7 @@ export class ContactSupportPage implements Component<Props> {
 							}).html
 
 							this.sendMailModel.setBody(sanitisedBody)
-							this.sendMailModel.setSubject(await this.getSubject(data))
+							this.sendMailModel.setSubject(await this.getSubject(data, isRating))
 
 							if (data.shouldIncludeLogs()) {
 								this.sendMailModel.attachFiles(data.logs())
@@ -198,7 +203,7 @@ export class ContactSupportPage implements Component<Props> {
 
 							await this.sendMailModel.send(MailMethod.NONE, () => Promise.resolve(true), showProgressDialog)
 
-							goToSuccessPage()
+							onSuccess()
 						},
 					}),
 				),

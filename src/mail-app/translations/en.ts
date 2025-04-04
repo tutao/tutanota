@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-04-09T04:39:13Z",
+	"updated_at": "2025-04-10T09:47:05Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1609,6 +1609,7 @@ export default {
 		"selectTemplate_action": "Select",
 		"sendErrorReport_action": "Send error report",
 		"sender_label": "Sender",
+		"sendingEvaluation_msg": "Submitting feedback...",
 		"sendingUnencrypted_msg": "Your message is being sent.",
 		"sending_msg": "Your message is being encrypted and sent.",
 		"sendLogsInfo_msg": "Attach the log files to the error report. Click below to display the contents.",
@@ -1998,6 +1999,19 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"ratingSupportTuta_title": "Help us spread privacy and fight Big Tech",
+		"donate_action": "Make a Donation",
+		"ratingUpgrade_label": "Upgrade & Support Us",
+		"ratingSupportTuta_msg": "David beat Goliath. You can help us do the same.",
+		"ratingDissatisfied_title": "We are all ears!",
+		"ratingDissatisfied_msg": "Got feedback or facing an issue? We're here for you.",
+		"ratingSuggestion_label": "I have a suggestion",
+		"ratingNeedUrgentHelp_label": "I need urgent help",
+		"ratingSuggestionPage_title": "What's on your mind?",
+		"ratingFeedbackSent_msg": "Thank you for your feedback!",
+		"ratingSuggestion_placeholder": "Have an idea or feedback? Type away...",
+		"ratingSupportContactedSnackbar_msg": "Thank you for reporting your problem! The support team will contact you by email.",
+		"ratingUpgradeFromRevo_label": "Become a Legend"
 	}
 }

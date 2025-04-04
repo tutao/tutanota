@@ -95,7 +95,7 @@ import {
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 
-import { handleRatingByEvent } from "../../../common/ratings/InAppRatingDialog.js"
+import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDialog.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel

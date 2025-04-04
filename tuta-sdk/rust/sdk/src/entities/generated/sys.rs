@@ -3814,6 +3814,22 @@ impl Entity for SurveyData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SurveyDataPostIn {
+	pub _format: i64,
+	pub surveyData: SurveyData,
+}
+
+impl Entity for SurveyDataPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "SurveyDataPostIn",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct SwitchAccountTypePostIn {
 	pub _format: i64,
 	pub accountType: i64,

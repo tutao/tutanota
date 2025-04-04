@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-04-04T12:11:54Z",
+	"updated_at": "2025-04-09T10:56:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -658,7 +658,7 @@ export default {
 		"finish_action": "Tamamla",
 		"firstMergeContact_label": "iletişim 1",
 		"firstMonthForFreeDetail_msg": "Tüm ücretli planlarımız için bir aylık deneme süresi mevcuttur. İlk ay tamamen ücretsizdir ve istediğiniz zaman iptal edebilirsiniz.",
-		"firstMonthForFree_msg": "Herhangi bir ücretli planda ilk ay ücretsiz",
+		"firstMonthForFree_msg": "Herhangi bir yıllık ücretli planla ilk ay ücretsiz!",
 		"firstName_placeholder": "Ad",
 		"firstOfPeriod_label": "İlk {day}",
 		"folderDepth_label": "{folderName}, {depth} kat derinlikte.",
