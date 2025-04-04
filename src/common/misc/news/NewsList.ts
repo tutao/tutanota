@@ -21,7 +21,7 @@ export class NewsList implements Component<NewsListAttrs> {
 			return m(ColumnEmptyMessageBox, {
 				message: "noNews_msg",
 				icon: Icons.Bulb,
-				color: theme.on_surface_fade,
+				color: theme.on_surface_variant,
 			})
 		}
 

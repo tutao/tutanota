@@ -36,7 +36,7 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 
 		if (attrs.disabled) {
 			// This makes the button appear "disabled" (grey color, no hover) when disabled is set to true
-			classes.push("button-bg")
+			classes.push("disabled-button")
 		} else if (attrs.discouraged) {
 			// This makes the button appear outlined with a transparent background
 			classes.push("tutaui-button-outline")

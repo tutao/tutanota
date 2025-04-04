@@ -31,7 +31,6 @@ import {
 } from "../../../../src/common/api/common/utils/EntityUtils"
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
-import { tutaDunkel, tutaRed } from "../../../../src/common/gui/builtinThemes"
 import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
@@ -39,6 +38,7 @@ import { ConnectionError } from "../../../../src/common/api/common/error/RestErr
 import { assertNotNull, clamp, lastThrow, pad } from "@tutao/tutanota-utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
+import { theme } from "../../../../src/common/gui/theme.js"
 import { ListLoadingState } from "../../../../src/common/gui/base/List"
 import { getMailFilterForType, MailFilterType } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 
@@ -61,17 +61,17 @@ o.spec("ConversationListModel", () => {
 
 	const labels: MailFolder[] = [
 		createTestEntity(MailFolderTypeRef, {
-			_id: ["mailFolderList", "tutaRed"],
-			color: tutaRed,
+			_id: ["mailFolderList", "tutaPrimary"],
+			color: theme.primary,
 			folderType: MailSetKind.LABEL,
-			name: "Tuta Red Label",
+			name: "Tuta Primary Label",
 			parentFolder: null,
 		}),
 		createTestEntity(MailFolderTypeRef, {
-			_id: ["mailFolderList", "tutaDunkel"],
-			color: tutaDunkel,
+			_id: ["mailFolderList", "tutaSecondary"],
+			color: theme.secondary,
 			folderType: MailSetKind.LABEL,
-			name: "Tuta Dunkel Label",
+			name: "Tuta Secondary Label",
 			parentFolder: null,
 		}),
 	]

@@ -31,8 +31,8 @@ export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 				},
 				items.map((item) =>
 					m(
-						`button.segmentControlItem.flex.center-horizontally.center-vertically.text-ellipsis.small${
-							item.value === selectedValue ? ".segmentControl-border-active.content-accent-fg" : ".segmentControl-border"
+						`button.segmentControlItem.segmentControl-border.flex.center-horizontally.center-vertically.text-ellipsis.small${
+							item.value === selectedValue ? ".segmentControl-border-active" : ".segmentControl-border"
 						}`,
 						{
 							style: {

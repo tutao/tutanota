@@ -4,6 +4,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "./theme.js"
 import { px, size } from "./size.js"
 import { BaseButton, BaseButtonAttrs } from "./base/buttons/BaseButton.js"
+import { boxShadowLow } from "./main-styles.js"
 
 export interface MainCreateButtonAttrs {
 	label: TranslationKey
@@ -22,10 +23,11 @@ export class MainCreateButton implements Component<MainCreateButtonAttrs> {
 			onclick: vnode.attrs.click,
 			class: `full-width border-radius-big center b flash ${vnode.attrs.class}`,
 			style: {
-				border: `2px solid ${theme.primary}`,
 				// matching toolbar
 				height: px(size.button_height + size.vpad_xs * 2),
-				color: theme.primary,
+				"background-color": theme.primary_container,
+				color: theme.on_primary_container,
+				"box-shadow": boxShadowLow,
 			},
 		} satisfies BaseButtonAttrs)
 	}
