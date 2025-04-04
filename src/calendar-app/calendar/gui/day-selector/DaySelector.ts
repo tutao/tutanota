@@ -9,7 +9,6 @@ import { ExpanderPanel } from "../../../../common/gui/base/Expander.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { styles } from "../../../../common/gui/styles.js"
-import { hexToRGBAString } from "../../../../common/gui/base/Color.js"
 
 export interface DaySelectorAttrs {
 	selectedDate: Date | null
@@ -148,8 +147,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			circleClass = "calendar-selected-day-circle"
 			textClass = "calendar-selected-day-text"
 		} else if (isToday(date) && attrs.highlightToday) {
-			circleClass = "calendar-current-day-circle"
-			textClass = "calendar-current-day-text"
+			circleClass = "calendar-current-day-circle-small"
+			textClass = "calendar-current-day-text-small"
 		}
 
 		const size = this.getElementSize(attrs)
@@ -197,7 +196,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 
 		if (highlight) {
 			style = {
-				backgroundColor: hexToRGBAString(theme.primary, 0.2),
+				backgroundColor: theme.secondary_container,
+				color: theme.on_secondary_container,
 				height: px(styles.isDesktopLayout() ? 19 : 25),
 				borderRadius: px(styles.isDesktopLayout() ? 6 : 25),
 				width: `calc(100% - ${px(size.hpad_small)})`,

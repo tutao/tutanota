@@ -413,7 +413,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				? m(ColumnEmptyMessageBox, {
 						message: getContactListEntriesSelectionMessage(entries),
 						icon: Icons.People,
-						color: theme.on_surface_fade,
+						color: theme.on_surface_variant,
 						bottomContent:
 							entries.length > 0
 								? m(Button, {
