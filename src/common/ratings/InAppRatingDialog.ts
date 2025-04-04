@@ -1,13 +1,5 @@
 import { deviceConfig } from "../misc/DeviceConfig.js"
-import {
-	completeEvaluationStage,
-	completeTriggerStage,
-	createEvent,
-	getRatingAllowed,
-	isEventHappyMoment,
-	RatingCheckResult,
-	TriggerType,
-} from "./InAppRatingUtils.js"
+import { completeEvaluationStage, completeTriggerStage, createEvent, evaluateRatingEligibility, isEventHappyMoment, TriggerType } from "./InAppRatingUtils.js"
 import { isApp } from "../api/common/Env.js"
 import { MultiPageDialog } from "../gui/dialogs/MultiPageDialog.js"
 import { HowAreWeDoingPage } from "./pages/HowAreWeDoingPage.js"
@@ -15,6 +7,8 @@ import m from "mithril"
 import { DateTime } from "luxon"
 import { ButtonType } from "../gui/base/Button.js"
 import { AndroidPlayStorePage } from "./pages/AndroidPlayStorePage.js"
+import { isEmpty } from "@tutao/tutanota-utils"
+import { Const } from "../api/common/TutanotaConstants.js"
 
 export function showAppRatingDialog(triggerType: TriggerType): void {
 	completeTriggerStage(triggerType)
@@ -55,18 +49,23 @@ export function showAppRatingDialog(triggerType: TriggerType): void {
 }
 
 /**
- * If the client is on iOS, we save the current date as an event to determine if we want to trigger a "rate Tuta" dialog.
+ * If the client is on any app (Tuta Mail or Tuta Calendar), we save the current date as an event to determine if we want to trigger a "rate Tuta" dialog.
  */
 export async function handleRatingByEvent(triggerType: TriggerType) {
 	if (isApp()) {
 		createEvent(deviceConfig)
 	}
 
-	const now = new Date()
+	// Allow stubbing the current date via `Const` for testing purposes.
+	const currentDate = Const.CURRENT_DATE ?? new Date()
 
-	if ((await getRatingAllowed(now, deviceConfig, isApp())) === RatingCheckResult.RATING_ALLOWED) {
-		if (isEventHappyMoment(now, deviceConfig)) {
-			showAppRatingDialog(triggerType)
-		}
+	const disallowReasons = await evaluateRatingEligibility(currentDate, deviceConfig, isApp())
+
+	if (!isEmpty(disallowReasons)) {
+		return
+	}
+
+	if (isEventHappyMoment(currentDate, deviceConfig)) {
+		showAppRatingDialog(triggerType)
 	}
 }
