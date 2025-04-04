@@ -75,13 +75,13 @@ function getOutlineColor(isSelected: boolean) {
 		if (isSelected) {
 			return "transparent"
 		} else {
-			return theme.on_surface
+			return theme.outline_variant
 		}
 	} else {
 		if (isSelected) {
 			return "transparent"
 		} else {
-			return theme.on_surface
+			return theme.outline_variant
 		}
 	}
 }

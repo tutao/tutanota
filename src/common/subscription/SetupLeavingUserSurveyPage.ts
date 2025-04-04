@@ -62,7 +62,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 						m(LoginButton, {
 							label: vnode.attrs.nextButtonLabel,
 							onclick: () => vnode.attrs.closeAction(),
-							class: vnode.attrs.nextButtonEnabled ? "no-hover button-bg" : "",
+							class: vnode.attrs.nextButtonEnabled ? "no-hover disabled-button" : "",
 							disabled: vnode.attrs.nextButtonEnabled,
 						}),
 					),

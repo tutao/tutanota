@@ -7,7 +7,7 @@ import { theme, isDarkTheme } from "../theme.js"
 const supportsRelativeHslColors = typeof CSS !== "undefined" ? CSS.supports("color", `hsl(from #ccc h calc(min(50, s)) l)`) : false
 
 export function getLabelColor(backgroundColor: string | null): string {
-	const labelColor = backgroundColor ?? theme.content_accent
+	const labelColor = backgroundColor ?? theme.primary
 	// make a color have the same hue and lightness with saturation capped to 50
 	return isDarkTheme() ? limitedSaturationColor(labelColor) : labelColor
 }

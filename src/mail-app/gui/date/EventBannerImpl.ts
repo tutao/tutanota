@@ -132,12 +132,12 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							"grid-template-columns": "min-content 1fr",
 							"grid-template-rows": "auto 1fr",
 							"max-width": "100%",
-							"border-color": bannerColor,
+							"border-color": theme.surface_container_high,
 						}
 					: {
 							"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content min-content 1fr",
 							"max-width": recipientIsOrganizer ? "max-content" : px(size.two_column_layout_width),
-							"border-color": bannerColor,
+							"border-color": theme.surface_container_high,
 						},
 			},
 			[
@@ -147,7 +147,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					{
 						class: styles.isSingleColumnLayout() ? "plr-vpad" : "pr-vpad-l pl-vpad-l",
 						style: {
-							"background-color": bannerColor,
+							"background-color": theme.surface_container_high,
+							color: theme.on_surface_variant,
 						},
 					},
 					[
@@ -183,7 +184,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							{
 								class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 								style: {
-									"border-color": bannerColor,
+									"border-color": theme.surface_container_high,
+									color: theme.on_surface,
 								},
 							},
 							[
@@ -204,7 +206,9 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
 													container: "div",
 													class: "mr-xsm",
-													style: { fill: hasConflict ? theme.error : theme.success }, // TODO [colors] Use new material like colors tokens
+													style: {
+														fill: hasConflict ? theme.warning : theme.success,
+													}, // TODO [colors] Use new material like colors tokens
 													size: IconSize.Medium,
 												}),
 												this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
@@ -246,10 +250,14 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						)
 					: null,
 				isNotEmpty(allDayEvents)
-					? m("span.border-radius.button-bubble-bg.pt-xxs.pb-xxs.plr-sm.text-break", [
-							m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
-							allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
-						])
+					? m(
+							"span.border-radius.pt-xxs.pb-xxs.plr-sm.text-break",
+							{ style: { color: theme.on_warning_container, "background-color": theme.warning_container } },
+							[
+								m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
+								allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
+							],
+						)
 					: null,
 			],
 		)
@@ -268,7 +276,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		const children: Children = [] as ChildArray
 		const viewOnCalendarButton = m(BannerButton, {
-			borderColor: theme.on_surface,
+			borderColor: theme.outline,
 			color: theme.on_surface,
 			click: () => this.handleViewOnCalendarAction(agenda, event),
 			text: {
@@ -535,7 +543,7 @@ export async function loadEventsAroundInvite(
 		}
 
 		if (eventList.conflictCount > 0) {
-			eventList.main.color = theme.error_container
+			eventList.main.color = theme.warning_container
 		}
 		eventToAgenda.set(iCalEvent.uid ?? "", eventList)
 	}

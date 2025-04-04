@@ -32,7 +32,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 			},
 			contactViewModel.listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
-						color: theme.on_surface_fade,
+						color: theme.on_surface_variant,
 						message: "noContacts_msg",
 						icon: BootIcons.Contacts,
 					})

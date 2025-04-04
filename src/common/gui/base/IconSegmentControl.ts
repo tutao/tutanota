@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
-import { ButtonColor, getColors } from "./Button.js"
 import { px } from "../size.js"
+import { theme } from "../theme.js"
 
 export interface IconSegmentControlItem<T> {
 	icon: AllIcons
@@ -52,7 +52,7 @@ export class IconSegmentControl<T> implements Component<IconSegmentControlAttrs<
 							class: "center-h",
 							size: IconSize.Medium,
 							style: {
-								fill: getColors(ButtonColor.Content).button,
+								fill: item.value === vnode.attrs.selectedValue ? theme.on_secondary_container : theme.on_surface_variant,
 							},
 						}),
 					)

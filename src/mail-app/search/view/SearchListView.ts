@@ -61,7 +61,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 				? m(ColumnEmptyMessageBox, {
 						icon,
 						message: "searchNoResults_msg",
-						color: theme.on_surface_fade,
+						color: theme.on_surface_variant,
 					})
 				: m(List, {
 						state: attrs.listModel.state,

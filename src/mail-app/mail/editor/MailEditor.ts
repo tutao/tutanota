@@ -393,7 +393,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		elementToReplace.replaceWith(quoteWrap)
 
 		const quoteIndicator = document.createElement("div")
-		quoteIndicator.style.borderLeft = `2px solid ${theme.content_border}`
+		quoteIndicator.style.borderLeft = `2px solid ${theme.outline}`
 		quoteIndicator.style.paddingLeft = "2px"
 		quoteIndicator.style.marginTop = px(size.vpad)
 
@@ -404,7 +404,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				{
 					style: {
 						borderRadius: "25%",
-						border: `1px solid ${theme.list_border}`,
+						border: `1px solid ${theme.outline}`,
 					},
 				},
 				m(IconButton, {
