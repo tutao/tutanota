@@ -137,7 +137,10 @@ export class OfflineStoragePersistence {
                 ${attachments.map((f) => f.name).join(" ")}
                 )`
 			await this.sqlCipherFacade.run(query, params)
-			const serializedSets = mail.sets.map((set) => set.join("/")).join(" ")
+
+			// Sets are element IDs surrounded with spaces
+			const serializedSets = mail.sets.map(elementIdPart).join(" ")
+
 			const contentQuery = sql`INSERT
             OR REPLACE INTO content_mail_index(rowId, sets, receivedDate) VALUES (
             ${rowid},
