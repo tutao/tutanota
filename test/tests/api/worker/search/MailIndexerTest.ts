@@ -34,7 +34,7 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { createTestEntity, makeCore } from "../../../TestUtils.js"
+import { createTestEntity } from "../../../TestUtils.js"
 import { DAY_IN_MILLIS, getDayShifted, neverNull } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
@@ -668,6 +668,47 @@ o.spec("MailIndexer test", () => {
 			verify(bulkMailLoader.loadMailDetails(matchers.anything()), { times: loadMailDataRequests })
 			verify(bulkMailLoader.loadAttachments(matchers.anything()), { times: loadMailDataRequests })
 			verify(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything()), { times: loadMailDataRequests })
+		})
+	})
+
+	o.spec("cancelMailIndexing", function () {
+		o.test("when canceled during network request it reports no error", async function () {
+			const indexingTimestampAim = now - 10_000
+			await initWithEnabled(true)
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+				_id: mailGroup1,
+				mailbox: "mailbox-id",
+			})
+			const mailbox = createTestEntity(MailBoxTypeRef, {
+				_id: "mailbox-id",
+				_ownerGroup: mailGroup1,
+				folders: createTestEntity(MailFolderRefTypeRef, {
+					folders: "foldersId",
+				}),
+			})
+			entityMock.addElementInstances(mailbox, mailboxGroupRoot)
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
+
+			const neverResolved = new Promise<MailSetEntry[]>(() => {})
+			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
+			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReturn(neverResolved)
+
+			const mailboxIndexingPromise = indexer.indexMailboxes(user, indexingTimestampAim)
+			indexer.cancelMailIndexing()
+			await mailboxIndexingPromise
+
+			verify(
+				infoMessageHandler.onSearchIndexStateUpdate({
+					failedIndexingUpTo: null,
+					progress: 0,
+					error: null,
+					indexedMailCount: 0,
+					aimedMailIndexTimestamp: indexingTimestampAim,
+					currentMailIndexTimestamp: now,
+					initializing: false,
+					mailIndexEnabled: true,
+				}),
+			)
 		})
 	})
 

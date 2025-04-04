@@ -254,9 +254,8 @@ export class MailIndexer {
 			this.mailboxIndexingPromise = Promise.resolve()
 			await this.updateCurrentIndexTimestamp(user)
 
-			// FIXME
-			const success = true
-			// const success = this._core.isStoppedProcessing() || e instanceof CancelledError
+			// do not treat cancellation as an error during indexing
+			const success = e instanceof CancelledError
 
 			const failedIndexingUpTo = success ? null : oldestTimestamp
 
@@ -413,9 +412,11 @@ export class MailIndexer {
 	}
 
 	private abortPromise(): Promise<any> {
-		return new Promise<void>((_, reject) =>
-			this.abortController.signal.addEventListener("abort", () => reject(new CancelledError("mail indexing canceled"))),
-		)
+		return new Promise<void>((_, reject) => {
+			// return right away if already aborted
+			if (this.abortController.signal.aborted) reject(new CancelledError("mail indexing canceled"))
+			this.abortController.signal.addEventListener("abort", () => reject(new CancelledError("mail indexing canceled")), { once: true })
+		})
 	}
 
 	private isMailboxLoadedCompletely(data: MboxIndexData): boolean {
