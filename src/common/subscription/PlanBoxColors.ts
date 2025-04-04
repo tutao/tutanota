@@ -25,7 +25,7 @@ function getBgColor(isSelected: boolean) {
 		if (isSelected) {
 			return theme.experimental_primary_container
 		} else {
-			return theme.content_bg
+			return theme.surface
 		}
 	} else {
 		if (isSelected) {
@@ -52,7 +52,7 @@ function getBoxShadow() {
  */
 function getTextColor(isSelected: boolean, hasCampaign?: boolean) {
 	const localTheme = hasCampaign ? getBlueTheme() : theme
-	return `${isSelected ? localTheme.experimental_on_primary_container : localTheme.content_fg}`
+	return `${isSelected ? localTheme.experimental_on_primary_container : localTheme.on_surface}`
 }
 
 /**
@@ -63,13 +63,13 @@ function getOutlineColor(isSelected: boolean) {
 		if (isSelected) {
 			return "transparent"
 		} else {
-			return theme.content_border
+			return theme.on_surface
 		}
 	} else {
 		if (isSelected) {
 			return "transparent"
 		} else {
-			return theme.content_fg
+			return theme.on_surface
 		}
 	}
 }
@@ -92,7 +92,7 @@ function getFeatureIconColor(isSelected: boolean, planType: PlanType, hasCampaig
 		if (isSelected) {
 			return localTheme.experimental_tertiary
 		} else {
-			return localTheme.content_accent
+			return localTheme.primary
 		}
 	}
 }

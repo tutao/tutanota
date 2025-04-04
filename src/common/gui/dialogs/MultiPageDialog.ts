@@ -128,7 +128,7 @@ export class MultiPageDialog<PageKey extends string> {
 			},
 			{
 				height: "100%",
-				"background-color": theme.navigation_bg,
+				"background-color": theme.surface_container,
 			},
 		)
 

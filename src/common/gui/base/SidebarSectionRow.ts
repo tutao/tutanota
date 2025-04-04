@@ -71,7 +71,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 						icon: attrs.icon,
 						size: IconSize.Medium,
 						style: {
-							fill: attrs.iconColor ?? (isNavButtonSelected(navButtonAttrs) ? theme.navigation_button_selected : theme.navigation_button),
+							fill: attrs.iconColor ?? (isNavButtonSelected(navButtonAttrs) ? theme.primary : theme.on_surface_variant),
 						},
 					}),
 				),

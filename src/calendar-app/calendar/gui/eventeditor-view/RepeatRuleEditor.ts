@@ -96,7 +96,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			[
 				this.hasUnsupportedRules ? this.renderUnsupportedAdvancedRulesWarning() : null,
 				m(".flex.col", [
-					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.getTranslationText("frequency_title")),
+					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText("frequency_title")),
 					m(
 						Card,
 						{
@@ -137,7 +137,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		}
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("calendarRepeatStopCondition_label")),
+			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("calendarRepeatStopCondition_label")),
 			m(
 				Card,
 				{
@@ -169,7 +169,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		}
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("interval_title")),
+			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("interval_title")),
 			m(
 				Card,
 				{
@@ -188,7 +188,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			this.renderIntervalPicker(attrs),
 			this.repeatRuleType === RepeatPeriod.WEEKLY
 				? [
-						m(Divider, { color: theme.button_bubble_bg }),
+						m(Divider, { color: theme.outline_variant }),
 						m(WeekdaySelector, {
 							items: this.weekdayItems,
 							selectedDays: this.byDayRules?.weekdays ?? [],
@@ -197,7 +197,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					]
 				: this.repeatRuleType === RepeatPeriod.MONTHLY
 					? [
-							m(Divider, { color: theme.button_bubble_bg }),
+							m(Divider, { color: theme.outline_variant }),
 							m(WeekRepetitionSelector, {
 								repetitionOptionsAndWeekday: createRepetitionValuesForWeekday(
 									DateTime.fromJSDate(attrs.model.startDate).weekday,

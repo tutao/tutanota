@@ -23,7 +23,7 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 			{
 				"data-testid": `section:${lang.getTestId(name)}`,
 				style: {
-					color: theme.navigation_button,
+					color: theme.on_surface_variant,
 				},
 			},
 			[

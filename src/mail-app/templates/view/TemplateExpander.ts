@@ -48,7 +48,7 @@ export class TemplateExpander implements Component<TemplateExpanderAttrs> {
 					".text-break.smaller.b.text-center",
 					{
 						style: {
-							"border-bottom": `1px solid ${theme.content_border}`,
+							"border-bottom": `1px solid ${theme.outline}`,
 						},
 					},
 					template.title,

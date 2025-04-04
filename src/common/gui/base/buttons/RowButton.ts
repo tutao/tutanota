@@ -25,7 +25,7 @@ export class RowButton implements Component<RowButtonAttrs> {
 		const attrs = vnode.attrs
 		const label = lang.getTranslationText(attrs.label)
 		const text = lang.getTranslationText(attrs.text ?? attrs.label)
-		const color = attrs.selected ? theme.content_button_selected : theme.content_button
+		const color = attrs.selected ? theme.primary : theme.on_surface_variant
 		return m(BaseButton, {
 			label: attrs.label,
 			text: m(

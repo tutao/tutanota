@@ -1067,7 +1067,7 @@ export function getDisplayEventTitle(title: string): string {
 export type ColorString = string
 
 export function generateRandomColor(): ColorString {
-	const model = new ColorPickerModel(!isColorLight(theme.content_bg))
+	const model = new ColorPickerModel(!isColorLight(theme.surface))
 	return hslToHex(model.getColor(Math.floor(Math.random() * MAX_HUE_ANGLE), 2))
 }
 

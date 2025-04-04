@@ -120,7 +120,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			{
 				view: () => {
 					return m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
+						backgroundColor: theme.surface_container,
 						columnLayout: m(".flex.flex-grow.col.fill-absolute.scroll", [
 							this.renderSettingsNavigation(this.userFolders, "userSettings_label"),
 							this.renderLoggedInNavigationLinks(),
@@ -156,7 +156,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				// are concealed), but there's still room for improvement for scrollbars
 				view: () =>
 					m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
+						backgroundColor: theme.surface_container,
 						classes: this.isTabletView() ? "pr-m pl-vpad-s" : "",
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-m.border-radius-top-right-m",
@@ -214,8 +214,8 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					class: "flash flex justify-center center-vertically pt-s pb-s plr border-radius",
 					style: {
 						marginInline: "auto",
-						border: `1px solid ${theme.navigation_button}`,
-						color: theme.navigation_button,
+						border: `1px solid ${theme.outline}`,
+						color: theme.on_surface_variant,
 					},
 					label: "supportMenu_label",
 					text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
@@ -224,7 +224,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 						size: IconSize.Medium,
 						class: "center-h",
 						container: "div",
-						style: { fill: theme.navigation_button },
+						style: { fill: theme.on_surface_variant },
 					}),
 					onclick: () => {
 						const triggerStage = getSupportUsageTestStage(0)
@@ -376,7 +376,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				class: styles.isSingleColumnLayout() ? "pr-m" : "pr-vpad-s",
 			},
 			[
-				m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.getTranslationText(title)),
+				m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText(title)),
 				m(
 					".flex.col.border-radius-m.list-bg",
 					folders
@@ -528,7 +528,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 						".b",
 						{
 							style: {
-								color: theme.navigation_button_selected,
+								color: theme.primary,
 							},
 						},
 						label,

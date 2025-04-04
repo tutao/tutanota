@@ -75,8 +75,7 @@ o.spec("ApplicationWindow Test", function () {
 			if (theme == null) {
 				theme = {
 					themeId: "light-fallback",
-					content_bg: "#ffffff",
-					header_bg: "#ffffff",
+					surface: "#ffffff",
 				} as Theme
 			}
 

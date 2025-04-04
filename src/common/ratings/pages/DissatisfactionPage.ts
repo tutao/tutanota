@@ -54,7 +54,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 					leftIcon: {
 						icon: Icons.BulbOutline,
 						title: "ratingSuggestion_label",
-						fill: theme.content_accent,
+						fill: theme.primary,
 					},
 					text: "ratingSuggestion_label",
 					onclick: () => {
@@ -65,7 +65,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 					leftIcon: {
 						icon: Icons.AlertCircleOutline,
 						title: "ratingNeedUrgentHelp_label",
-						fill: theme.content_accent,
+						fill: theme.primary,
 					},
 					text: "ratingNeedUrgentHelp_label",
 					onclick: () => {

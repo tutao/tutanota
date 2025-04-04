@@ -306,7 +306,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 												"line-height": isDesktopLayout ? px(size.calendar_hour_height) : "unset",
 												width: px(width),
 												height: px(size.calendar_hour_height),
-												"border-right": `1px solid ${theme.content_border}`,
+												"border-right": `1px solid ${theme.outline}`,
 											},
 										},
 										isDesktopLayout ? formatTime(time.toDate()) : formatShortTime(time.toDate()),

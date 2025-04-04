@@ -304,7 +304,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				style: {
 					visibility: attrs.model.getIsDisabled() ? "hidden" : "visible",
 					display: "inline-block",
-					color: theme.navigation_button_selected,
+					color: theme.primary,
 				},
 				onclick: async () => {
 					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
