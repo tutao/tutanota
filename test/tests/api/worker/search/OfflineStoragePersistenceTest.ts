@@ -186,7 +186,7 @@ o.spec("OfflineStoragePersistence", () => {
 		)
 		o.check(content.rowid).equals(1)
 		o.check(content.receivedDate).equals(1234)
-		o.check(content.sets).equals("mySets/myFavoriteSet")
+		o.check(content.sets).equals("myFavoriteSet")
 
 		const assertFound = async (what: string) => {
 			const { query, params } = sql`SELECT rowid
@@ -202,6 +202,8 @@ o.spec("OfflineStoragePersistence", () => {
                                         where mail_index = ${what}`
 			o.check(await sqlCipherFacade.get(query, params)).equals(null)
 		}
+
+		// test that we've indexed it correctly
 
 		await assertFound("i am smol squishy text")
 		await assertFound("very important email")
