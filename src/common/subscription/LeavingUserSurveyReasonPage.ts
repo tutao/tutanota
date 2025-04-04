@@ -55,7 +55,7 @@ export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurve
 			[
 				m(DropDownSelector, {
 					style: {
-						border: `2px solid ${theme.content_border}`,
+						border: `2px solid ${theme.outline}`,
 						borderRadius: "6px",
 						padding: "4px 8px",
 					},
