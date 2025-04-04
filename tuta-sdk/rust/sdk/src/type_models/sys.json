@@ -3571,117 +3571,6 @@
 		"app": "sys",
 		"version": "125"
 	},
-	"453": {
-		"name": "Authentication",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 453,
-		"rootId": "A3N5cwABxQ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"454": {
-				"final": true,
-				"name": "_id",
-				"id": 454,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"456": {
-				"final": false,
-				"name": "authVerifier",
-				"id": 456,
-				"since": 1,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"968": {
-				"final": false,
-				"name": "externalAuthToken",
-				"id": 968,
-				"since": 15,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"1239": {
-				"final": true,
-				"name": "accessToken",
-				"id": 1239,
-				"since": 23,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"455": {
-				"final": false,
-				"name": "userId",
-				"id": 455,
-				"since": 1,
-				"type": "ELEMENT_ASSOCIATION",
-				"cardinality": "One",
-				"refTypeId": 84,
-				"dependency": null
-			}
-		},
-		"app": "sys",
-		"version": "125"
-	},
-	"457": {
-		"name": "Chat",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 457,
-		"rootId": "A3N5cwAByQ",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"458": {
-				"final": true,
-				"name": "_id",
-				"id": 458,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"459": {
-				"final": false,
-				"name": "sender",
-				"id": 459,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"460": {
-				"final": false,
-				"name": "recipient",
-				"id": 460,
-				"since": 1,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"461": {
-				"final": false,
-				"name": "text",
-				"id": 461,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "sys",
-		"version": "125"
-	},
 	"462": {
 		"name": "EntityUpdate",
 		"since": 1,
@@ -3751,47 +3640,6 @@
 				"id": 2555,
 				"since": 125,
 				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "sys",
-		"version": "125"
-	},
-	"468": {
-		"name": "Exception",
-		"since": 1,
-		"type": "AGGREGATED_TYPE",
-		"id": 468,
-		"rootId": "A3N5cwAB1A",
-		"versioned": false,
-		"encrypted": false,
-		"values": {
-			"469": {
-				"final": true,
-				"name": "_id",
-				"id": 469,
-				"since": 1,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"470": {
-				"final": false,
-				"name": "type",
-				"id": 470,
-				"since": 1,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"471": {
-				"final": false,
-				"name": "msg",
-				"id": 471,
-				"since": 1,
-				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			}
@@ -9160,12 +9008,21 @@
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2556": {
+				"final": false,
+				"name": "currentApplicationVersionSum",
+				"id": 2556,
+				"since": 125,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
 			"1487": {
 				"final": false,
-				"name": "eventBatch",
+				"name": "entityUpdates",
 				"id": 1487,
 				"since": 41,
 				"type": "AGGREGATION",

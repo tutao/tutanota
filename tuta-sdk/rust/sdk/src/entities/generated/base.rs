@@ -23,3 +23,23 @@ impl Entity for PersistenceResourcePostReturn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ApplicationTypesGetOut {
+	#[serde(rename = "5")]
+	pub _format: i64,
+	#[serde(rename = "6")]
+	pub jsonAllApplicationTypesString: String,
+	#[serde(rename = "7")]
+	pub currentApplicationVersionSum: i64,
+}
+
+impl Entity for ApplicationTypesGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "base",
+			type_id: 4,
+		}
+	}
+}

@@ -1241,52 +1241,6 @@ impl Entity for UpdatePermissionKeyData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct Authentication {
-	#[serde(rename = "454")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "456")]
-	pub authVerifier: Option<String>,
-	#[serde(rename = "968")]
-	pub externalAuthToken: Option<String>,
-	#[serde(rename = "1239")]
-	pub accessToken: Option<String>,
-	#[serde(rename = "455")]
-	pub userId: GeneratedId,
-}
-
-impl Entity for Authentication {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_id: 453,
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct Chat {
-	#[serde(rename = "458")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "459")]
-	pub sender: GeneratedId,
-	#[serde(rename = "460")]
-	pub recipient: GeneratedId,
-	#[serde(rename = "461")]
-	pub text: String,
-}
-
-impl Entity for Chat {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_id: 457,
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct EntityUpdate {
 	#[serde(rename = "463")]
 	pub _id: Option<CustomId>,
@@ -1309,26 +1263,6 @@ impl Entity for EntityUpdate {
 		TypeRef {
 			app: "sys",
 			type_id: 462,
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct SysException {
-	#[serde(rename = "469")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "470")]
-	pub r#type: String,
-	#[serde(rename = "471")]
-	pub msg: String,
-}
-
-impl Entity for SysException {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: "sys",
-			type_id: 468,
 		}
 	}
 }
@@ -3448,8 +3382,10 @@ pub struct WebsocketEntityData {
 	pub eventBatchId: GeneratedId,
 	#[serde(rename = "1486")]
 	pub eventBatchOwner: GeneratedId,
+	#[serde(rename = "2556")]
+	pub currentApplicationVersionSum: i64,
 	#[serde(rename = "1487")]
-	pub eventBatch: Vec<EntityUpdate>,
+	pub entityUpdates: Vec<EntityUpdate>,
 }
 
 impl Entity for WebsocketEntityData {

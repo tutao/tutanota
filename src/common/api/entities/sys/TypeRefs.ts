@@ -741,36 +741,6 @@ export type UpdatePermissionKeyData = {
 	permission: IdTuple;
 	bucketPermission: IdTuple;
 }
-export const AuthenticationTypeRef: TypeRef<Authentication> = new TypeRef("sys", 453)
-
-export function createAuthentication(values: StrippedEntity<Authentication>): Authentication {
-	return Object.assign(create(typeModels[AuthenticationTypeRef.typeId], AuthenticationTypeRef), values)
-}
-
-export type Authentication = {
-	_type: TypeRef<Authentication>;
-
-	_id: Id;
-	authVerifier: null | string;
-	externalAuthToken: null | string;
-	accessToken: null | string;
-
-	userId: Id;
-}
-export const ChatTypeRef: TypeRef<Chat> = new TypeRef("sys", 457)
-
-export function createChat(values: StrippedEntity<Chat>): Chat {
-	return Object.assign(create(typeModels[ChatTypeRef.typeId], ChatTypeRef), values)
-}
-
-export type Chat = {
-	_type: TypeRef<Chat>;
-
-	_id: Id;
-	sender: Id;
-	recipient: Id;
-	text: string;
-}
 export const EntityUpdateTypeRef: TypeRef<EntityUpdate> = new TypeRef("sys", 462)
 
 export function createEntityUpdate(values: StrippedEntity<EntityUpdate>): EntityUpdate {
@@ -787,19 +757,6 @@ export type EntityUpdate = {
 	instanceId: string;
 	operation: NumberString;
 	typeId: NumberString;
-}
-export const ExceptionTypeRef: TypeRef<Exception> = new TypeRef("sys", 468)
-
-export function createException(values: StrippedEntity<Exception>): Exception {
-	return Object.assign(create(typeModels[ExceptionTypeRef.typeId], ExceptionTypeRef), values)
-}
-
-export type Exception = {
-	_type: TypeRef<Exception>;
-
-	_id: Id;
-	type: string;
-	msg: string;
 }
 export const VersionTypeRef: TypeRef<Version> = new TypeRef("sys", 480)
 
@@ -2147,8 +2104,9 @@ export type WebsocketEntityData = {
 	_format: NumberString;
 	eventBatchId: Id;
 	eventBatchOwner: Id;
+	currentApplicationVersionSum: NumberString;
 
-	eventBatch: EntityUpdate[];
+	entityUpdates: EntityUpdate[];
 }
 export const WebsocketCounterValueTypeRef: TypeRef<WebsocketCounterValue> = new TypeRef("sys", 1488)
 
