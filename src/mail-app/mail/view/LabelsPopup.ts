@@ -64,7 +64,7 @@ export class LabelsPopup implements ModalComponent {
 				".pb-s.scroll",
 				this.labels.map((labelState) => {
 					const { label, state } = labelState
-					const color = theme.content_button
+					const color = theme.on_surface_variant
 					const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.isMaxLabelsReached
 					const opacity = !canToggleLabel ? 0.5 : undefined
 

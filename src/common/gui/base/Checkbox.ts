@@ -52,7 +52,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 						class: getOperatingClasses(a.disabled, "click"),
 						style: {
 							cursor: a.disabled ? "default" : "pointer",
-							"background-color": theme.content_accent,
+							"background-color": theme.primary,
 							"mask-image": `url("${a.checked ? Checkbox.checkedIcon : Checkbox.uncheckedIcon}")`,
 						},
 						disabled: a.disabled,
