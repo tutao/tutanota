@@ -54,7 +54,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						? m(Icon, {
 								icon: Icons.Warning,
 								style: {
-									fill: a.color ? a.color : theme.content_button,
+									fill: a.color ? a.color : theme.on_surface_variant,
 								},
 						  })
 						: null,
@@ -62,7 +62,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						`${a.isBig ? "span" : "small"}`,
 						{
 							style: {
-								color: a.color || theme.content_button,
+								color: a.color || theme.on_surface_variant,
 							},
 						},
 						a.isUnformattedLabel ? label : label.toUpperCase(),
@@ -72,7 +72,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						class: "flex-center items-center",
 						size: a.isBig ? IconSize.Medium : IconSize.Normal,
 						style: {
-							fill: a.color ? a.color : theme.content_button,
+							fill: a.color ? a.color : theme.on_surface_variant,
 							"margin-right": px(-4),
 							// icon is has 4px whitespace to the right,
 							transform: `rotateZ(${a.expanded ? 180 : 0}deg)`,
