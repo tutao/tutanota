@@ -442,7 +442,7 @@ o.spec("IndexedDbIndexer", () => {
 			let indexer = indexerTemplate
 
 			const result = await indexer._loadGroupData(user)
-			o(result).deepEquals([
+			o.check(result).deepEquals([
 				{
 					groupId: "group-mail",
 					groupData: {
@@ -524,7 +524,7 @@ o.spec("IndexedDbIndexer", () => {
 
 		await indexer._initGroupData(groupBatches, transaction)
 
-		o(idbStub.getValue(GroupDataOS, groupId)).deepEquals(groupBatches[0].groupData)
+		o.check(idbStub.getValue(GroupDataOS, groupId)).deepEquals(groupBatches[0].groupData)
 	})
 
 	o.spec("_loadAndQueueMissedEntityUpdates", function () {
@@ -567,7 +567,7 @@ o.spec("IndexedDbIndexer", () => {
 					},
 				]),
 			)
-			o(idbStub.getValue(MetaDataOS, Metadata.lastEventIndexTimeMs)).deepEquals(SERVER_TIME)
+			o.check(idbStub.getValue(MetaDataOS, Metadata.lastEventIndexTimeMs)).deepEquals(SERVER_TIME)
 		})
 
 		o.test("when loading the events and receiving one of the loaded ones via ws it will only process it once", async function () {
@@ -1016,21 +1016,21 @@ o.spec("IndexedDbIndexer", () => {
 			indexer = indexerTemplate
 		})
 
-		o("When init() is called and contacts have already been indexed they are not indexed again", async function () {
+		o.test("When init() is called and contacts have already been indexed they are not indexed again", async function () {
 			when(contactIndexer.areContactsIndexed()).thenResolve(true)
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade })
 			verify(contactIndexer.indexFullContactList(), { times: 0 })
 		})
 
-		o("When init() is called and contacts have not been indexed before, they are indexed", async function () {
+		o.test("When init() is called and contacts have not been indexed before, they are indexed", async function () {
 			when(contactIndexer.areContactsIndexed()).thenResolve(false)
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 			await indexer.init({ user, keyLoaderFacade })
 			verify(contactIndexer.indexFullContactList())
 		})
 
-		o("When init() is called with a fresh db and contacts have not been indexed, they will be downloaded", async function () {
+		o.test("When init() is called with a fresh db and contacts have not been indexed, they will be downloaded", async function () {
 			when(contactIndexer.areContactsIndexed()).thenResolve(true)
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
@@ -1043,7 +1043,7 @@ o.spec("IndexedDbIndexer", () => {
 			verify(entityClient.loadAll(ContactTypeRef, contactList.contacts))
 		})
 
-		o("When init() is called with a fresh db and contacts are not yet indexed, they will be indexed and not downloaded", async function () {
+		o.test("When init() is called with a fresh db and contacts are not yet indexed, they will be indexed and not downloaded", async function () {
 			when(contactIndexer.areContactsIndexed()).thenResolve(false)
 			const cacheInfo: CacheInfo = {
 				isPersistent: true,
@@ -1058,7 +1058,7 @@ o.spec("IndexedDbIndexer", () => {
 			verify(entityClient.loadAll(ContactTypeRef, contactList.contacts), { times: 0 })
 		})
 
-		o("When init() is called with a fresh db and the cache is not persisted the indexing is not enabled", async function () {
+		o.test("When init() is called with a fresh db and the cache is not persisted the indexing is not enabled", async function () {
 			when(contactIndexer.areContactsIndexed()).thenResolve(true)
 			const cacheInfo: CacheInfo = {
 				isPersistent: false,
