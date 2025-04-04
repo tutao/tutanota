@@ -2,9 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { isNavButtonSelected, NavButton, NavButtonAttrs } from "./NavButton"
 import { ClickHandler } from "./GuiUtils"
-import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
-import type { lazy } from "@tutao/tutanota-utils"
-import { stateBgHover } from "../builtinThemes"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { client } from "../../misc/ClientDetector"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { theme } from "../theme"
@@ -47,6 +45,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 			label: attrs.label,
 			href: () => attrs.path,
 			disableHoverBackground: true,
+			disableSelectedBackground: true,
 			click: attrs.onClick,
 			onfocus: onHover,
 			onkeydown: handleBackwardsTab,
@@ -57,7 +56,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 		return m(
 			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg.border-radius-small",
 			{
-				style: { background: isNavButtonSelected(navButtonAttrs) ? stateBgHover : "" },
+				style: { background: isNavButtonSelected(navButtonAttrs) ? theme.state_bg_hover : "" },
 				onmouseenter: onHover,
 				onmouseleave: () => {
 					this.hovered = false

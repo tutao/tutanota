@@ -727,7 +727,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						? m(ColumnEmptyMessageBox, {
 								message: "noEventSelect_msg",
 								icon: BootIcons.Calendar,
-								color: theme.on_surface_fade,
+								color: theme.on_surface_variant,
 								backgroundColor: theme.surface_container,
 						  })
 						: this.renderEventPreview(selectedEvent),
@@ -741,7 +741,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					".flex-grow.rel.overflow-hidden",
 					m(ColumnEmptyMessageBox, {
 						message: "noSelection_msg",
-						color: theme.on_surface_fade,
+						color: theme.on_surface_variant,
 						backgroundColor: theme.surface_container,
 					}),
 				),
