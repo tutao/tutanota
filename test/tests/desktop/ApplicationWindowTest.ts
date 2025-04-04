@@ -259,7 +259,10 @@ o.spec("ApplicationWindow Test", function () {
 			minimized: boolean
 			focused: boolean
 		}
-		type BrowserWindowMock = Class<Electron.BrowserWindow> & { mockedInstances: BrowserWindowInstanceMock[]; lastId: number }
+		type BrowserWindowMock = Class<Electron.BrowserWindow> & {
+			mockedInstances: BrowserWindowInstanceMock[]
+			lastId: number
+		}
 		type ElectronMock = typeof import("electron") & { BrowserWindow: BrowserWindowMock }
 
 		const electronMock = n.mock<ElectronMock>("electron", electron).set()
@@ -410,6 +413,10 @@ o.spec("ApplicationWindow Test", function () {
 			"Alt+Left",
 			"Control+H",
 			"Control+N",
+			"Control+=",
+			"Control+Shift+=",
+			"Control+-",
+			"Control+Shift+-",
 		])
 	})
 	o.test("shortcut creation, windows", function () {
@@ -428,6 +435,10 @@ o.spec("ApplicationWindow Test", function () {
 			"Alt+Left",
 			"Control+H",
 			"Control+N",
+			"Control+=",
+			"Control+Shift+=",
+			"Control+-",
+			"Control+Shift+-",
 		])
 	})
 	o.test("shortcut creation, mac", function () {

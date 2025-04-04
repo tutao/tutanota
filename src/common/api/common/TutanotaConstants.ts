@@ -817,6 +817,14 @@ export const Keys = Object.freeze({
 		code: "delete",
 		name: "DEL",
 	},
+	"=": {
+		code: "=",
+		name: "=",
+	},
+	"-": {
+		code: "-",
+		name: "-",
+	},
 	"0": {
 		code: "0",
 		name: "0",
