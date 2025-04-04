@@ -13,6 +13,7 @@ interface ImageWithOptionsDialogAttrs {
 	mainActionClick: () => unknown
 	subActionText: TranslationKey | null
 	subActionClick: () => unknown
+	imageStyle?: Partial<CSSStyleDeclaration>
 }
 
 // Returns the layout for this dialog type
@@ -31,6 +32,7 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 						decoding: "async",
 						style: {
 							width: "80%",
+							...attrs.imageStyle,
 						},
 					}),
 				),

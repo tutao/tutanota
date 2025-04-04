@@ -86,6 +86,7 @@ use crate::entities::generated::sys::SecondFactorAuthDeleteData;
 use crate::entities::generated::sys::CreateSessionData;
 use crate::entities::generated::sys::CreateSessionReturn;
 use crate::entities::generated::sys::SignOrderProcessingAgreementData;
+use crate::entities::generated::sys::SurveyDataPostIn;
 use crate::entities::generated::sys::SwitchAccountTypePostIn;
 use crate::entities::generated::sys::SystemKeysReturn;
 use crate::entities::generated::sys::TakeOverDeletedAddressData;
@@ -367,6 +368,12 @@ pub struct SignOrderProcessingAgreementService;
 
 crate::service_impl!(declare, SignOrderProcessingAgreementService, "sys/signorderprocessingagreementservice", 126);
 crate::service_impl!(POST, SignOrderProcessingAgreementService, SignOrderProcessingAgreementData, ());
+
+
+pub struct SurveyService;
+
+crate::service_impl!(declare, SurveyService, "sys/surveyservice", 126);
+crate::service_impl!(POST, SurveyService, SurveyDataPostIn, ());
 
 
 pub struct SwitchAccountTypeService;
