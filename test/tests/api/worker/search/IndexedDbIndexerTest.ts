@@ -459,14 +459,6 @@ o.spec("IndexedDbIndexer", () => {
 						groupType: GroupType.Contact,
 					},
 				},
-				{
-					groupId: "group-customer",
-					groupData: {
-						lastBatchIds: ["event-batch-id"],
-						indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-						groupType: GroupType.Customer,
-					},
-				},
 			])
 		})
 
@@ -839,10 +831,6 @@ o.spec("IndexedDbIndexer", () => {
 			{
 				groupId: contactGroupId,
 				eventBatchIds: [lastContactBatch],
-			},
-			{
-				groupId: customerGroupId,
-				eventBatchIds: [lastCustomerBatch],
 			},
 		])
 	})
