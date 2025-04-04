@@ -1,6 +1,6 @@
-import { Type } from "./EntityConstants.js"
-import { TypeRef } from "@tutao/tutanota-utils"
-import type { TypeModel } from "./EntityTypes"
+import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
+import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
+import type { AttributeId, ModelAssociation, ModelValue, TypeId, TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
 import { typeModels as tutanotaTypeModels } from "../entities/tutanota/TypeModels.js"
@@ -17,6 +17,7 @@ import accountingModelInfo from "../entities/accounting/ModelInfo.js"
 import gossipModelInfo from "../entities/gossip/ModelInfo.js"
 import storageModelInfo from "../entities/storage/ModelInfo.js"
 import usageModelInfo from "../entities/usage/ModelInfo.js"
+import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
 
 export const enum HttpMethod {
 	GET = "GET",
@@ -61,6 +62,219 @@ export type ModelInfos = typeof modelInfos
 
 export type TypeReferenceResolver = typeof resolveTypeReference
 
+export type TypeModels = {
+	base: Map<TypeId, TypeModel>
+	sys: Map<TypeId, TypeModel>
+	tutanota: Map<TypeId, TypeModel>
+	monitor: Map<TypeId, TypeModel>
+	accounting: Map<TypeId, TypeModel>
+	gossip: Map<TypeId, TypeModel>
+	storage: Map<TypeId, TypeModel>
+	usage: Map<TypeId, TypeModel>
+}
+
+export const EmptyTypeModels = {
+	base: new Map(),
+	sys: new Map(),
+	tutanota: new Map(),
+	monitor: new Map(),
+	accounting: new Map(),
+	gossip: new Map(),
+	storage: new Map(),
+	usage: new Map(),
+}
+
+export class ServerModelInfo {
+	public static typeModels: TypeModels = EmptyTypeModels
+	private static computedVersion: number = 0
+
+	public static getCurrentVersion(): number {
+		return ServerModelInfo.computedVersion
+	}
+
+	// given json string,
+	// compute the typeModels in typeSafe manner, i.e validate the json contains all required information
+	public static init(version: number, unparsedJsonString: string): void {
+		const parsedJson = JSON.parse(unparsedJsonString) as Record<string, unknown>
+
+		let newTypeModels = EmptyTypeModels
+		for (const appName of Object.values(AppNameEnum)) {
+			newTypeModels[appName] = ServerModelInfo.parseAllTypesForModel(parsedJson[appName])
+		}
+
+		// only update if everything is ok
+		ServerModelInfo.typeModels = newTypeModels
+		ServerModelInfo.computedVersion = version
+	}
+
+	private static parseAllTypesForModel(modelTypeInfo: unknown): Map<TypeId, TypeModel> {
+		const modelInfo = modelTypeInfo as Record<string, unknown>
+		const appName = ServerModelInfo.parseAppName(String(modelInfo.name))
+		const modelTypeInfoRecord = modelInfo.types as Record<string, unknown>
+		const version = parseInt(String(modelInfo.version))
+
+		let typeMaps = new Map<TypeId, TypeModel>()
+		for (const typeInfo of Object.values(modelTypeInfoRecord)) {
+			const typeModel = ServerModelInfo.parseSingleTypeModel(appName, version, typeInfo)
+			typeMaps.set(typeModel.id, typeModel)
+		}
+		return typeMaps
+	}
+
+	private static parseSingleTypeModel(app: AppName, appVersion: number, typeInfo: unknown): TypeModel {
+		const typeInfoRecord = typeInfo as Record<string, any>
+
+		const id = parseInt(typeInfoRecord.id)
+		const since = parseInt(typeInfoRecord.since)
+		const name = String(typeInfoRecord.name)
+		const version = appVersion.toString()
+		const rootId = String(typeInfoRecord.rootId)
+		const versioned = Boolean(typeInfoRecord.versioned)
+		const encrypted = typeInfoRecord.encrypted.toString() === "true"
+
+		const type = ServerModelInfo.parseEntityType(String(typeInfoRecord.type))
+
+		const valuesRecord = typeInfoRecord.values as Record<string, unknown>
+		const associationsRecord = typeInfoRecord.associations as Record<string, unknown>
+		const values = ServerModelInfo.parseModelValues(valuesRecord)
+		const associations = ServerModelInfo.parseModelAssociations(associationsRecord)
+
+		const typeModel = {
+			id,
+			since,
+			app,
+			version,
+			name,
+			type,
+			versioned,
+			encrypted,
+			rootId,
+			values,
+			associations,
+		} satisfies TypeModel
+
+		ServerModelInfo.verifyNoNullValueInRecord(typeModel)
+		return typeModel
+	}
+
+	private static parseModelValues(valuesRecord: Record<number, unknown>): Record<AttributeId, ModelValue> {
+		let values = {}
+
+		for (const modelValueInfo of Object.values(valuesRecord)) {
+			const modelValueInfoRecord = modelValueInfo as Record<string, unknown>
+
+			const final = Boolean(modelValueInfoRecord.final)
+			const since = parseInt(assertNotNull(String(modelValueInfoRecord.since)))
+			const name = String(modelValueInfoRecord.name)
+			const id = Number(modelValueInfoRecord.id)
+			const type = ServerModelInfo.parseValueType(String(modelValueInfoRecord.type))
+			const cardinality = ServerModelInfo.parseCardinality(String(modelValueInfoRecord.cardinality))
+			const encrypted = Boolean(modelValueInfoRecord.encrypted)
+
+			const modelValue = {
+				id,
+				name,
+				final,
+				type,
+				encrypted,
+				cardinality,
+				since,
+			} satisfies ModelValue
+
+			ServerModelInfo.verifyNoNullValueInRecord(modelValue)
+			Object.assign(values, { [modelValue.id]: modelValue })
+		}
+
+		return values
+	}
+
+	private static parseModelAssociations(modelAssociations: Record<number, unknown>): Record<AttributeId, ModelAssociation> {
+		let associations = {}
+
+		for (const associationInfo of Object.values(modelAssociations)) {
+			const associationInfoRecord = associationInfo as Record<string, unknown>
+
+			const final = Boolean(associationInfoRecord.final)
+			const since = parseInt(assertNotNull(String(associationInfoRecord.since)))
+			const name = String(associationInfoRecord.name)
+			const id = Number(associationInfoRecord.id)
+			const type = ServerModelInfo.parseAssociationType(String(associationInfoRecord.type))
+			const cardinality = ServerModelInfo.parseCardinality(String(associationInfoRecord.cardinality))
+			const refTypeId = Number(associationInfoRecord.refTypeId)
+
+			const modelAssociation = {
+				id,
+				name,
+				final,
+				type,
+				cardinality,
+				refTypeId,
+				since,
+			} satisfies ModelAssociation
+
+			// dependency can be null or undefined
+			let nullDependency = false
+			if (typeof associationInfoRecord.dependency === "string") {
+				const dependency = ServerModelInfo.parseAppName(associationInfoRecord.dependency)
+				Object.assign(modelAssociation, { dependency })
+			} else {
+				nullDependency = true
+			}
+
+			ServerModelInfo.verifyNoNullValueInRecord(modelAssociation)
+
+			if (nullDependency) {
+				Object.assign(modelAssociation, { dependency: null })
+			}
+
+			Object.assign(associations, { [modelAssociation.id]: modelAssociation })
+		}
+
+		return associations
+	}
+
+	private static parseAppName(appnameStr: string): AppName {
+		return assertNotNull(
+			Object.values(AppNameEnum).find((app) => app.toString() === appnameStr),
+			`Invalid app name in server model. Found: ${appnameStr}`,
+		)
+	}
+
+	private static parseEntityType(typeStr: string): Values<typeof Type> {
+		return assertNotNull(
+			Object.values(Type).find((elType) => elType.toString() === typeStr),
+			"Invalid entity type in server model",
+		)
+	}
+
+	private static parseValueType(typeStr: string): Values<typeof ValueType> {
+		return assertNotNull(
+			Object.values(ValueType).find((vType) => vType.toString() === typeStr),
+			"Invalid value type in server model",
+		)
+	}
+
+	private static parseAssociationType(typeStr: string): Values<typeof AssociationType> {
+		return assertNotNull(
+			Object.values(AssociationType).find((aType) => aType.toString() === typeStr),
+			"Invalid association type in server model",
+		)
+	}
+
+	private static parseCardinality(cardinalityStr: string): Values<typeof Cardinality> {
+		return assertNotNull(
+			Object.values(Cardinality).find((cardinality) => cardinality.toString() === cardinalityStr),
+			`Invalid cardinality type in server model. found: ${cardinalityStr}`,
+		)
+	}
+
+	private static verifyNoNullValueInRecord(record: Record<any, any>) {
+		for (const [keyname, keyValue] of Object.entries(record)) {
+			assertNotNull(keyValue, `null value for typeModel key: ${keyname}`)
+		}
+	}
+}
+
 /**
  * Convert a {@link TypeRef} to a {@link TypeModel} that it refers to.
  *
@@ -69,10 +283,20 @@ export type TypeReferenceResolver = typeof resolveTypeReference
  * @param typeRef the typeRef for which we will return the typeModel.
  */
 export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
-	// @ts-ignore
 	const modelMap = typeModels[typeRef.app]
 
 	const typeModel = modelMap[typeRef.typeId]
+	if (typeModel == null) {
+		throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
+	} else {
+		return typeModel
+	}
+}
+
+export async function resolveServerTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
+	const modelMap = ServerModelInfo.typeModels[typeRef.app]
+
+	const typeModel = modelMap.get(typeRef.typeId)
 	if (typeModel == null) {
 		throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
 	} else {

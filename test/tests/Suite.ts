@@ -6,6 +6,7 @@ import "./api/common/mail/CommonMailUtilsTest.js"
 import "./api/common/utils/BirthdayUtilsTest.js"
 import "./api/common/utils/CommonFormatterTest.js"
 import "./api/common/utils/EntityUtilsTest.js"
+import "./api/common/EntityFunctionsTest.js"
 import "./api/common/utils/FileUtilsTest.js"
 import "./api/common/utils/LoggerTest.js"
 import "./api/common/utils/PlainTextSearchTest.js"
@@ -180,7 +181,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
-		//await import("./api/worker/offline/OfflineStorageTest.js")
+		await import("./api/worker/offline/OfflineStorageTest.js")
 		await import("./api/worker/rest/RestClientTest.js")
 		await import("./desktop/ApplicationWindowTest.js")
 		await import("./desktop/DesktopContextMenuTest.js")

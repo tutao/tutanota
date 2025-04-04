@@ -54,6 +54,9 @@ export type ModelValue = {
 	name: AttributeName
 	/* the basic data type contained in the field*/
 	type: Values<typeof ValueType>
+	/* version since when this value was added to this typeModel*/
+	// fixme: should this be non-optional?
+	since?: number
 	/* how many values can be assigned to the field */
 	cardinality: Values<typeof Cardinality>
 	/* whether the client is allowed to update the field */
@@ -88,6 +91,8 @@ export type ModelAssociation = {
 	 * which can be imported across models.
 	 */
 	dependency?: AppName | null
+	// FIXME see ModelValue
+	since?: number
 }
 
 /**

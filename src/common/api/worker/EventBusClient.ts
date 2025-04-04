@@ -294,8 +294,8 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
-				const { eventBatchId, eventBatchOwner, eventBatch } = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
-				const filteredEntityUpdates = await this.removeUnknownTypes(eventBatch)
+				const { eventBatchId, eventBatchOwner, entityUpdates } = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
+				const filteredEntityUpdates = await this.removeUnknownTypes(entityUpdates)
 				this.entityUpdateMessageQueue.add(eventBatchId, eventBatchOwner, filteredEntityUpdates)
 				break
 			}

@@ -404,7 +404,7 @@ o.spec("EventBusClientTest", function () {
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
-			eventBatch: [
+			entityUpdates: [
 				createTestEntity(EntityUpdateTypeRef, {
 					_id: "eventBatchId",
 					application: "tutanota",
@@ -431,7 +431,7 @@ o.spec("EventBusClientTest", function () {
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
-			eventBatch: [
+			entityUpdates: [
 				createTestEntity(EntityUpdateTypeRef, {
 					_id: "eventbatchid",
 					application: "tutanota",

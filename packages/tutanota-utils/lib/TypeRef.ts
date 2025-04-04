@@ -1,4 +1,14 @@
-export type AppName = "base" | "sys" | "tutanota" | "usage" | "monitor" | "accounting" | "gossip" | "storage"
+export type AppName = Values<typeof AppNameEnum>
+export const AppNameEnum = Object.freeze({
+	Base: "base",
+	Sys: "sys",
+	Tutanota: "tutanota",
+	Usage: "usage",
+	Monitor: "monitor",
+	Accounting: "accounting",
+	Gossip: "gossip",
+	Storage: "storage",
+})
 
 /**
  * T should be restricted to Entity.
