@@ -104,7 +104,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			{
 				view: () => {
 					return m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
+						backgroundColor: theme.surface_container,
 						desktopToolbar: () => m(DesktopListToolbar, [m(".button-height")]),
 						mobileHeader: () => this.renderMobileListHeader(vnode.attrs.header),
 						columnLayout: this.getResultColumnLayout(),
@@ -208,7 +208,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
 		return m(BackgroundColumnLayout, {
-			backgroundColor: theme.navigation_bg,
+			backgroundColor: theme.surface_container,
 			desktopToolbar: () => m(DesktopViewerToolbar, []),
 			mobileHeader: () =>
 				m(MobileHeader, {
@@ -225,8 +225,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					? m(ColumnEmptyMessageBox, {
 							message: "noEventSelect_msg",
 							icon: BootIcons.Calendar,
-							color: theme.content_message_bg,
-							backgroundColor: theme.navigation_bg,
+							color: theme.on_surface_fade,
+							backgroundColor: theme.surface_container,
 					  })
 					: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
 					? null
