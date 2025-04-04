@@ -5,7 +5,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
-import { goEuropeanBlue, stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
+import { goEuropeanBlue, on_secondaryFixed, secondaryFixed } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -32,9 +32,9 @@ export function getFonts(): string {
 	return fonts.join(", ")
 }
 
-export const boxShadowHigh = `0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)`
-const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.22)"
-const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
+export const boxShadowHigh = `0 10px 20px rgba(0,0,0,0.10), 0 6px 6px rgba(0,0,0,0.10)`
+export const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.12)"
+export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 
 const scrollbarWidthHeight = px(18)
 styles.registerStyle("main", () => {
@@ -233,7 +233,7 @@ styles.registerStyle("main", () => {
 			"font-weight": "normal",
 		},
 		".navigation-menu-bg": {
-			background: theme.secondary,
+			background: theme.surface_container_high,
 		},
 		".navigation-menu-icon-bg": {
 			background: theme.on_secondary,
@@ -303,7 +303,7 @@ styles.registerStyle("main", () => {
 			border: `1px solid ${theme.outline}`,
 		},
 		".border-top": {
-			"border-top": `1px solid ${theme.outline}`,
+			"border-top": `1px solid ${theme.outline_variant}`,
 		},
 		"#shadow-mail-body.break-pre pre": {
 			"white-space": "pre-wrap",
@@ -788,13 +788,13 @@ styles.registerStyle("main", () => {
 		},
 		// borders
 		".border-bottom": {
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".border-right": {
 			"border-right": `1px solid ${theme.outline}`,
 		},
 		".border-left": {
-			"border-left": `1px solid ${theme.outline}`,
+			"border-left": `1px solid ${theme.outline_variant}`,
 		},
 		// colors
 		".bg-transparent": {
@@ -840,7 +840,7 @@ styles.registerStyle("main", () => {
 			"pointer-events": "none",
 		},
 		".content-message-bg": {
-			"background-color": theme.on_surface_fade,
+			"background-color": theme.on_surface_variant,
 		},
 		".button-bubble-bg": {
 			"background-color": theme.secondary,
@@ -1024,7 +1024,7 @@ styles.registerStyle("main", () => {
 			"padding-right": "16px",
 		},
 		".dropdown-info + .dropdown-button": {
-			"border-top": `1px solid ${theme.outline}`,
+			"border-top": `1px solid ${theme.outline_variant}`,
 		},
 		".dropdown-info + .dropdown-info": {
 			"padding-top": "0",
@@ -1406,10 +1406,10 @@ styles.registerStyle("main", () => {
 		},
 		".search-bar": {
 			transition: "all 200ms",
-			"background-color": stateBgLike,
+			"background-color": theme.surface_container_high,
 		},
 		".search-bar:hover": {
-			"background-color": stateBgHover,
+			"background-color": theme.state_bg_hover,
 		},
 		".search-bar[focused=true]": {
 			"background-color": theme.surface,
@@ -1529,7 +1529,7 @@ styles.registerStyle("main", () => {
 			"will-change": "border-width, border-color, color, background-color",
 		},
 		".wizard-breadcrumb-line": {
-			"border-top": `3px dotted ${theme.outline}`,
+			"border-top": `3px dotted ${theme.outline_variant}`,
 			height: 0,
 			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
 			"will-change": "border-top-style, border-top-color",
@@ -1557,22 +1557,25 @@ styles.registerStyle("main", () => {
 			// undoing our default button styling
 			opacity: "1 !important",
 		},
+		".state-bg.selected": {
+			background: theme.state_bg_focus,
+		},
 		// Only enable hover for mouse and keyboard navigation (not touch) because
 		// :hover will bet stuck after the touch on mobile.
 		// Use :where() to not count towards specificity, otherwise this is more specific
 		// than :active (which is unconditional
 		":where(.mouse-nav) .state-bg:hover, :where(.keyboard-nav) .state-bg:hover": {
-			background: stateBgHover,
+			background: theme.state_bg_hover,
 			"transition-duration": ".3s",
 		},
 		":where(.keyboard-nav) .state-bg:focus": {
-			background: stateBgFocus,
+			background: theme.state_bg_focus,
 			"transition-duration": ".3s",
 			// disable default focus indicator because we have our own for this element
 			outline: "none",
 		},
 		".state-bg:active, .state-bg[pressed=true]": {
-			background: stateBgActive,
+			background: theme.state_bg_active,
 			"transition-duration": ".3s",
 		},
 		// State layer roughly like in Material 3.
@@ -1664,7 +1667,7 @@ styles.registerStyle("main", () => {
             to set all nav elements to border-box, we must make sure to not break any existing styling
             */
 			"box-sizing": "border-box",
-			"border-top": `1px solid ${theme.outline}`,
+			"border-top": `1px solid ${theme.outline_variant}`,
 			height: `calc(${size.bottom_nav_bar}px + env(safe-area-inset-bottom))`,
 			background: theme.surface,
 			"padding-bottom": "env(safe-area-inset-bottom)",
@@ -1710,7 +1713,7 @@ styles.registerStyle("main", () => {
 			width: "0px",
 			height: "22px",
 			"margin-left": "2px",
-			"border-color": theme.outline,
+			"border-color": theme.outline_variant,
 			"border-width": "1px",
 			"border-style": "solid",
 		},
@@ -1731,7 +1734,7 @@ styles.registerStyle("main", () => {
 			"max-width": px(350),
 		},
 		".dialog-header": {
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 			height: px(size.button_height + 1),
 		},
 		".dialog-header-line-height": {
@@ -1755,13 +1758,13 @@ styles.registerStyle("main", () => {
 			height: "auto",
 		},
 		".dialog-buttons": {
-			"border-top": `1px solid ${theme.outline}`,
+			"border-top": `1px solid ${theme.outline_variant}`,
 		},
 		".dialog-buttons > button": {
 			flex: "1",
 		},
 		".dialog-buttons > button:not(:first-child)": {
-			"border-left": `1px solid ${theme.outline}`,
+			"border-left": `1px solid ${theme.outline_variant}`,
 			"margin-left": "0",
 		},
 		".dialog-height-small": {
@@ -1825,6 +1828,9 @@ styles.registerStyle("main", () => {
 		},
 		".input": {
 			outline: "none",
+		},
+		".input::placeholder": {
+			color: theme.on_surface_variant,
 		},
 		"blockquote.tutanota_quote, blockquote[type=cite]": {
 			"border-left": `1px solid ${theme.primary}`,
@@ -2006,26 +2012,28 @@ styles.registerStyle("main", () => {
 		},
 		".bubble": {
 			"border-radius": px(size.border_radius),
-			"background-color": theme.secondary,
-			color: theme.on_secondary,
+			"background-color": theme.surface_container_highest,
+			color: theme.on_surface_variant,
 		},
 		".keyword-bubble": {
 			"max-width": "300px",
 			"border-radius": px(size.border_radius),
 			"margin-bottom": px(size.vpad_small / 2),
 			"margin-right": px(size.vpad_small / 2),
-			"background-color": theme.secondary,
+			"background-color": theme.surface_container_highest,
+			color: theme.on_surface_variant,
 			padding: `${px(size.vpad_small / 2)} ${px(size.vpad_small)} ${px(size.vpad_small / 2)} ${px(size.vpad_small)}`,
 		},
 		".keyword-bubble-no-padding": {
 			"max-width": "300px",
 			"border-radius": px(size.border_radius),
 			margin: px(size.vpad_small / 2),
-			"background-color": theme.secondary,
+			"background-color": theme.surface_container_highest,
+			color: theme.on_surface_variant,
 		},
 		".bubble-color": {
-			"background-color": theme.secondary,
-			color: theme.on_secondary,
+			"background-color": theme.surface_container_highest,
+			color: theme.on_surface_variant,
 		},
 		mark: {
 			"background-color": theme.primary,
@@ -2069,27 +2077,27 @@ styles.registerStyle("main", () => {
 		},
 		".icon-segment-control-item": {
 			// Make thin border between items via border-right
-			"border-top": `1px solid ${stateBgHover}`,
-			"border-bottom": `1px solid ${stateBgHover}`,
-			"border-right": `0.5px solid ${stateBgHover}`,
+			"border-top": `1px solid ${theme.state_bg_hover}`,
+			"border-bottom": `1px solid ${theme.state_bg_hover}`,
+			"border-right": `0.5px solid ${theme.state_bg_hover}`,
 			width: px(size.icon_segment_control_button_width),
 			height: px(size.icon_segment_control_button_height),
 			cursor: "pointer",
 			background: "transparent",
 		},
 		".icon-segment-control-item[active]": {
-			background: stateBgHover,
+			background: theme.state_bg_hover,
 			"transition-duration": ".3s",
 		},
 		".icon-segment-control-item:first-child": {
 			"border-bottom-left-radius": px(size.border_radius),
 			"border-top-left-radius": px(size.border_radius),
-			"border-left": `1px solid ${stateBgHover}`,
+			"border-left": `1px solid ${theme.state_bg_hover}`,
 		},
 		".icon-segment-control-item:last-child": {
 			"border-bottom-right-radius": px(size.border_radius),
 			"border-top-right-radius": px(size.border_radius),
-			"border-right": `1px solid ${stateBgHover}`,
+			"border-right": `1px solid ${theme.state_bg_hover}`,
 		},
 		".payment-logo": {
 			// that's the size of the SVG and it seems to be a good size
@@ -2161,7 +2169,7 @@ styles.registerStyle("main", () => {
 			width: "100%",
 		},
 		".table-header-border tr:first-child": {
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".table td": {
 			"vertical-align": "middle",
@@ -2414,10 +2422,10 @@ styles.registerStyle("main", () => {
 			left: "-15px",
 		},
 		".checkbox:hover:before": {
-			background: stateBgHover,
+			background: theme.state_bg_hover,
 		},
 		".checkbox:active:before": {
-			background: stateBgActive,
+			background: theme.state_bg_active,
 		},
 		".list-checkbox": {
 			opacity: "0.4",
@@ -2435,7 +2443,7 @@ styles.registerStyle("main", () => {
 			opacity: 0,
 		},
 		".calendar-hour": {
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 			height: px(size.calendar_hour_height),
 			flex: "1 0 auto",
 		},
@@ -2488,10 +2496,13 @@ styles.registerStyle("main", () => {
 			"box-sizing": "content-box",
 		},
 		".calendar-current-day-circle": {
-			"background-color": theme.on_surface_variant,
+			"background-color": theme.primary,
+		},
+		".calendar-current-day-circle-small": {
+			"background-color": theme.primary,
 		},
 		".calendar-selected-day-circle": {
-			"background-color": theme.primary,
+			"background-color": theme.surface_container_highest,
 		},
 		".weekday-button-unselected-circle": {
 			border: `${px(1)} solid ${theme.primary}`,
@@ -2504,11 +2515,15 @@ styles.registerStyle("main", () => {
 			height: "44px",
 		},
 		".calendar-current-day-text": {
-			color: theme.surface,
+			color: theme.on_primary,
+			"font-weight": "bold",
+		},
+		".calendar-current-day-text-small": {
+			color: theme.on_primary,
 			"font-weight": "bold",
 		},
 		".calendar-selected-day-text": {
-			color: theme.surface,
+			color: theme.on_surface_variant,
 			"font-weight": "bold",
 		},
 		".animation-reverse": {
@@ -2612,7 +2627,7 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-long-events-header": {
 			overflow: "hidden",
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".calendar-month-week-number": {
 			"font-size": "12px",
@@ -2646,7 +2661,7 @@ styles.registerStyle("main", () => {
 		".custom-color-container .inputWrapper:before": {
 			// slash in content is content alt. so that it's ignored by screen readers
 			content: '"#" / ""',
-			color: theme.on_surface_fade,
+			color: theme.on_surface_variant,
 		},
 		".success-container": {
 			"background-color": theme.success_container,
@@ -2932,7 +2947,7 @@ styles.registerStyle("main", () => {
 			color: theme.on_surface_variant,
 		},
 		".faded-text": {
-			color: theme.on_surface_fade,
+			color: theme.on_surface_variant,
 		},
 		".svg-text-content-bg text": {
 			fill: theme.surface,
@@ -2983,16 +2998,16 @@ styles.registerStyle("main", () => {
 			outline: "medium invert color",
 		},
 		".tutaui-text-field:focus, .child-text-editor [role='textbox']:focus": {
-			"background-color": theme.secondary,
+			"background-color": theme.surface_container_high,
 		},
 		".tutaui-text-field::placeholder": {
-			color: theme.on_surface_fade,
+			color: theme.on_surface_variant,
 		},
 		".text-editor-placeholder": {
 			position: "absolute",
 			top: px(size.vpad_small),
 			left: px(size.vpad_small),
-			color: theme.on_surface_fade,
+			color: theme.on_surface_variant,
 		},
 		".tutaui-switch": {
 			display: "flex",
@@ -3004,8 +3019,10 @@ styles.registerStyle("main", () => {
 			display: "block",
 			width: "45.5px",
 			height: "28px",
-			"background-color": theme.on_surface_fade,
+			// FIXME: apply border
+			"background-color": theme.surface_container_high,
 			"border-radius": px(size.vpad_small * 4),
+			border: `2px solid ${theme.outline}`,
 			transition: `background-color ${DefaultAnimationTime}ms ease-out`,
 		},
 		".tutaui-toggle-pill:after": {
@@ -3019,7 +3036,7 @@ styles.registerStyle("main", () => {
 			"-ms-transform": "translateY(-50%)",
 			transform: "translateY(-50%)",
 			margin: "0 4px",
-			"background-color": "#fff",
+			"background-color": theme.outline,
 			"border-radius": "50%",
 			left: 0,
 			transition: `left ${DefaultAnimationTime}ms ease-out`,
@@ -3032,9 +3049,11 @@ styles.registerStyle("main", () => {
 		},
 		".tutaui-toggle-pill.checked": {
 			"background-color": theme.primary,
+			border: `2px solid ${theme.primary}`,
 		},
 		".tutaui-toggle-pill.checked:after": {
 			left: "calc(100% - 29px)",
+			"background-color": theme.on_primary,
 		},
 		".tutaui-toggle-pill input[type='checkbox']": {
 			"z-index": "-1",
@@ -3157,21 +3176,21 @@ styles.registerStyle("main", () => {
 		},
 		".search-highlight": {
 			"font-weight": "bold",
-			"background-color": theme.highlight_bg,
-			color: theme.highlight_fg,
+			"background-color": secondaryFixed,
+			color: on_secondaryFixed,
 			"border-radius": "3px",
 		},
 		".clip": {
 			overflow: "clip",
 		},
 		".skeleton-bg-1": {
-			background: theme.outline_variant,
+			background: theme.surface_container_high,
 		},
 		".skeleton-bg-2": {
-			background: theme.surface_container,
+			background: theme.surface,
 		},
 		".skeleton-border-1": {
-			"border-color": theme.outline_variant,
+			"border-color": theme.surface_container_high,
 		},
 		".skeleton:after": {
 			position: "absolute",
@@ -3179,9 +3198,9 @@ styles.registerStyle("main", () => {
 			width: "100%",
 			height: "100%",
 			background: `linear-gradient(90deg,
-				${hexToRGBAString(theme.on_primary, 0)},
-				${hexToRGBAString(theme.on_primary, 0.3)},
-				${hexToRGBAString(theme.on_primary, 0)})`,
+				${hexToRGBAString(theme.on_surface_variant, 0)},
+				${hexToRGBAString(theme.on_surface_variant, 0.3)},
+				${hexToRGBAString(theme.on_surface_variant, 0)})`,
 			transform: "translateX(-100%)",
 			animation: "1.5s loading ease-in-out infinite",
 		},

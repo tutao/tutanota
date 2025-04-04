@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AllIcons, Icon } from "./Icon"
 import { BootIcons } from "./icons/BootIcons"
 import { theme } from "../theme"
-import { on_secondary_fixed, secondary_fixed } from "../builtinThemes"
+import { on_secondaryFixed, secondaryFixed } from "../builtinThemes"
 import { ClickHandler } from "./GuiUtils"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { lang, Translation } from "../../misc/LanguageViewModel"
@@ -32,7 +32,7 @@ export class FilterChip implements Component<FilterChipAttrs> {
 			selectors += ".pr-vpad-m"
 		}
 
-		const contentColor = selected ? on_secondary_fixed : theme.on_surface
+		const contentColor = selected ? on_secondaryFixed : theme.on_surface
 		return m(
 			selectors,
 			{
@@ -40,7 +40,7 @@ export class FilterChip implements Component<FilterChipAttrs> {
 					minHeight: px(size.button_icon_bg_size),
 					...(selected
 						? {
-								background: secondary_fixed,
+								background: secondaryFixed,
 								color: contentColor,
 								"--state-bg-color": contentColor,
 								"border-color": "transparent",
