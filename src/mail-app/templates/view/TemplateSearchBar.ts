@@ -23,7 +23,7 @@ export class TemplateSearchBar implements ClassComponent<TemplateSearchBarAttrs>
 			".inputWrapper.pt-xs.pb-xs",
 			{
 				style: {
-					"border-bottom": `1px solid ${theme.content_border}`,
+					"border-bottom": `1px solid ${theme.outline}`,
 				},
 			},
 			this._getInputField(a),

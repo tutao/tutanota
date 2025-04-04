@@ -105,7 +105,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 									icon: Icons.Cancel,
 									size: IconSize.Medium,
 									style: {
-										fill: theme.content_accent,
+										fill: theme.primary,
 									},
 								}),
 							),

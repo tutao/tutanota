@@ -198,7 +198,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 					icon: getAttachmentIcon(type),
 					class: "pr-s flex items-center",
 					style: {
-						fill: theme.button_bubble_fg,
+						fill: theme.on_surface,
 						"background-color": "initial",
 						minHeight: px(bubbleButtonHeight()),
 					},
