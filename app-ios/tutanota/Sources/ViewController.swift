@@ -234,7 +234,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 	private func getAssetUrl() -> URL { URL(string: "asset://app/index-app.html")! }
 
 	func applyTheme(_ theme: [String: String]) {
-		let contentBgString = theme["content_bg"]!
+		let contentBgString = theme["surface"]!
 		let contentBg = UIColor(hex: contentBgString)!
 		self.isDarkTheme = !contentBg.isLight()
 		self.view.backgroundColor = contentBg

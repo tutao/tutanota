@@ -7,7 +7,6 @@ import { px, size } from "../../../common/gui/size"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { stateBgHover } from "../../../common/gui/builtinThemes.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
@@ -60,7 +59,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg",
 			{
 				style: {
-					background: isNavButtonSelected(button) ? stateBgHover : "",
+					background: isNavButtonSelected(button) ? theme.state_bg_hover : "",
 				},
 				title: lang.getTranslationText(button.label),
 				onmouseenter: onHover,
@@ -116,6 +115,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					...button,
 					onfocus: onHover,
 					onkeydown: handleBackwardsTab,
+					disableSelectedBackground: true,
 				}),
 				// show the edit button in either edit mode or on hover (excluding hover on mobile)
 				rightButton && (editMode || (!client.isMobileDevice() && this.hovered))
@@ -139,7 +139,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 	}
 
 	private renderHierarchyLine({ indentationLevel, numberOfPreviousRows, isLastSibling, onSelectedPath }: MailFolderRowAttrs, indentationMargin: number) {
-		const lineSize = 2
+		const lineSize = 1
 		const border = `${lineSize}px solid ${theme.outline}`
 		const verticalOffsetInsideRow = size.button_height / 2 + 1
 		const verticalOffsetForParent = (size.button_height - size.icon_size_large) / 2

@@ -100,11 +100,10 @@ export class TextArea implements ClassComponent<TextAreaAttrs> {
 		resizable?: boolean,
 		variant?: TextAreaVariant,
 	) {
-		const borderColor = isLightTheme() ? theme.button_bubble_bg : style?.borderColor || theme.elevated_bg
 		return {
 			...style,
 			resize: !resizable ? "none" : "vertical",
-			border: variant === "outlined" ? `2px solid ${borderColor}` : undefined,
+			border: variant === "outlined" ? `2px solid ${theme.outline}` : undefined,
 		}
 	}
 }

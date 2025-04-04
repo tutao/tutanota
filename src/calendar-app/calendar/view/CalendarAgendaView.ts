@@ -161,7 +161,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			return m(ColumnEmptyMessageBox, {
 				icon: BootIcons.Calendar,
 				message: "noEntries_msg",
-				color: theme.on_surface_fade,
+				color: theme.on_surface_variant,
 			})
 		} else {
 			return m(".flex.mb-s.col", this.renderEventsForDay(events, getTimeZone(), attrs.selectedDate, attrs))
@@ -195,7 +195,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			return m(ColumnEmptyMessageBox, {
 				icon: BootIcons.Calendar,
 				message: "noEntries_msg",
-				color: theme.on_surface_fade,
+				color: theme.on_surface_variant,
 				bottomContent: !client.isCalendarApp()
 					? m(MainCreateButton, {
 							label: "newEvent_action",
@@ -262,7 +262,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							m(ColumnEmptyMessageBox, {
 								icon: BootIcons.Calendar,
 								message: "noEventSelect_msg",
-								color: theme.on_surface_fade,
+								color: theme.on_surface_variant,
 							}),
 						)
 					: this.renderEventPreview(attrs),

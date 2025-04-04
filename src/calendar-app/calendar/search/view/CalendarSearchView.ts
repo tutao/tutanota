@@ -224,7 +224,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					? m(ColumnEmptyMessageBox, {
 							message: "noEventSelect_msg",
 							icon: BootIcons.Calendar,
-							color: theme.on_surface_fade,
+							color: theme.on_surface_variant,
 							backgroundColor: theme.surface_container,
 						})
 					: !this.getSanitizedPreviewData(selectedEvent).isLoaded()

@@ -60,7 +60,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 											top: px(0),
 											right: px(3),
 										},
-										color: "white",
+										color: theme.on_primary,
 										background: theme.primary,
 									})
 								: null,
