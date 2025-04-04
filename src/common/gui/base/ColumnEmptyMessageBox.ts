@@ -20,7 +20,7 @@ export type InfoMessaggeBoxAttrs = {
 /** Displays a big message with an option icon above it. */
 export class IconMessageBox implements Component<InfoMessaggeBoxAttrs> {
 	view({ attrs }: Vnode<InfoMessaggeBoxAttrs>): Children {
-		return m(".flex.col.items-center.justify-center.mlr", [
+		return m(".flex.col.items-center.justify-center.mlr.translucent", [
 			attrs.icon
 				? m(Icon, {
 						icon: attrs.icon,

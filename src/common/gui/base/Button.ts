@@ -30,37 +30,37 @@ export function getColors(buttonColors: ButtonColor | null | undefined): {
 	switch (buttonColors) {
 		case ButtonColor.Nav:
 			return {
-				button: theme.on_surface_variant,
+				button: theme.on_surface,
 				border: theme.surface_container,
 			}
 
 		case ButtonColor.DrawerNav:
 			return {
-				button: theme.on_surface_variant,
+				button: theme.on_surface,
 				border: getElevatedBackground(),
 			}
 
 		case ButtonColor.Elevated:
 			return {
-				button: theme.on_surface_variant,
+				button: theme.on_surface,
 				border: getElevatedBackground(),
 			}
 
 		case ButtonColor.Fab:
 			return {
-				button: theme.surface,
+				button: theme.on_primary,
 				border: getElevatedBackground(),
 			}
 
 		case ButtonColor.Dialog:
 			return {
-				button: theme.content_button,
-				border: theme.content_border,
+				button: theme.on_surface,
+				border: theme.outline,
 			}
 		case ButtonColor.Content:
 		default:
 			return {
-				button: theme.on_surface_variant,
+				button: theme.on_surface,
 				border: theme.surface,
 			}
 	}
