@@ -125,7 +125,6 @@ export class IndexedDbIndexer implements Indexer {
 		this._indexedGroupIds = []
 		this.initiallyLoadedBatchIdsPerGroup = new Map()
 		this._realtimeEventQueue = new EventQueue("indexer_realtime", false, (nextElement: QueuedBatch) => {
-			console.log("Inside _realtimeEventQueue")
 			// During initial loading we remember the last batch we loaded
 			// so if we get updates from EventBusClient here for things that are already loaded we discard them
 			const loadedIdForGroup = this.initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)
@@ -243,7 +242,6 @@ export class IndexedDbIndexer implements Indexer {
 				await this.mailIndexer.doInitialMailIndexing(this.initParams.user)
 				this.eventQueue.resume()
 			} catch (e) {
-				console.log("throw something")
 				if (e instanceof CancelledError) {
 					// no-op
 				} else {
@@ -307,15 +305,11 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
-		console.log("Before addBatches")
 		this._realtimeEventQueue.addBatches([{ events: updates, batchId, groupId }])
-		console.log("After addBatches")
 		// Trigger event queue processing in case it was stopped due to an error
 		// Realtime queue won't be automatically paused and doesn't need a trigger here. It will be resumed when
 		// we loaded all events.
-		console.log("Before _startProcessing")
 		this._startProcessing()
-		console.log("After _startProcessing")
 	}
 
 	/** @private visibleForTesting */
@@ -624,8 +618,6 @@ export class IndexedDbIndexer implements Indexer {
 
 	/** @private visibleForTesting */
 	async _processEntityEvents(batch: QueuedBatch): Promise<any> {
-		console.log("Inside Index queue doAction")
-
 		const { groupId, batchId, events } = batch
 		try {
 			await this.initDeferred.promise
@@ -636,8 +628,6 @@ export class IndexedDbIndexer implements Indexer {
 			await this.mailIndexer.processEntityEvents(events, groupId, batchId)
 			await this.contactIndexer.processEntityEvents(events, groupId, batchId)
 			await this.core.writeGroupDataBatchId(groupId, batchId)
-
-			console.log("inside index queue doAction after mailIndexer processing")
 		} catch (e) {
 			if (e instanceof CancelledError) {
 				// no-op

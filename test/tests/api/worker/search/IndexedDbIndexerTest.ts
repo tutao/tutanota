@@ -1129,15 +1129,11 @@ o.spec("IndexedDbIndexer", () => {
 					},
 				]
 				when(mailIndexer.processEntityEvents(updates, matchers.anything(), matchers.anything())).thenDo(() => processDeferred.resolve())
-				console.log("test, before enableMailIndexing")
 				indexer.enableMailIndexing()
-				console.log("test, after enableMailIndexing")
 
 				await initialIndexingCalled.promise
 				// dispatch an event while initial indexing is running and see that it is not immediately processed
-				console.log("test, before processEntityEvents")
 				await indexer.processEntityEvents(updates, "batchId", userGroupId)
-				console.log("test, after processEntityEvents")
 				// not processed yet
 				verify(mailIndexer.processEntityEvents(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 
