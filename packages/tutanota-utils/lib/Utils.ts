@@ -1,5 +1,5 @@
 import { TypeRef } from "./TypeRef.js"
-import { arrayEquals } from "./ArrayUtils.js"
+import { arrayEquals, last } from "./ArrayUtils.js"
 
 export interface ErrorInfo {
 	readonly name: string | null
@@ -313,6 +313,24 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
 		}
 
 		lastInvoked = Date.now()
+	})
+}
+
+/**
+ * Returns a debounced function. When invoked for the first time, will just invoke
+ * {@param toThrottle}. On subsequent invocations it will either invoke it right away
+ * (if {@param timeout} has passed or the timeout has been cancelled) or discard the function call.
+ * So the first invocation in a series of invocations does always take place,
+ * but the ones afterward (which happen too often) until the {@param timeout} are discarded.
+ */
+export function debounceStartAndDiscard<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
+	let lastInvoked = 0
+	return downcast((...args: any) => {
+		if (Date.now() - lastInvoked > timeout) {
+			lastInvoked = Date.now()
+			toThrottle.apply(null, args)
+			lastInvoked = 0
+		}
 	})
 }
 

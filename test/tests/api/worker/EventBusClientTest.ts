@@ -31,6 +31,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { resolveTypeReference } from "../../../../src/common/api/common/EntityFunctions"
+import { ApplicationTypesFacade } from "../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 
 const { anything } = matchers
 
@@ -46,11 +47,13 @@ o.spec("EventBusClientTest", function () {
 	let progressTrackerMock: ExposedProgressTracker
 	let syncTrackerMock: SyncTracker
 	let instancePipeline: InstancePipeline
-	let socketFactory
+	let socketFactory: (path: string) => WebSocket
+	let applicationTypesFacadeMock: ApplicationTypesFacade
 
 	function initEventBus() {
 		const entityClient = new EntityClient(restClient)
 		instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
+		applicationTypesFacadeMock = object()
 
 		ebc = new EventBusClient(
 			listenerMock,
@@ -62,6 +65,7 @@ o.spec("EventBusClientTest", function () {
 			sleepDetector,
 			progressTrackerMock,
 			syncTrackerMock,
+			applicationTypesFacadeMock,
 		)
 	}
 
@@ -362,6 +366,16 @@ o.spec("EventBusClientTest", function () {
 		o(updateCaptor.values).deepEquals([expectedCounterUpdate])
 	})
 
+	o("verify ApplicationTypesService is called when the ApplicationVersionSum increases on WebSocketEntityData", async function () {
+		when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenReturn(Promise.resolve())
+		await ebc.connect(ConnectMode.Initial)
+		await socket.onmessage?.({
+			data: await createEntityMessage(1, 1),
+		} as MessageEvent<string>)
+
+		verify(applicationTypesFacadeMock.getServerApplicationTypesJson())
+	})
+
 	o.spec("sleep detection", function () {
 		o("on connect it starts", async function () {
 			verify(sleepDetector.start(matchers.anything()), { times: 0 })
@@ -427,7 +441,7 @@ o.spec("EventBusClientTest", function () {
 		return "entityUpdate;" + JSON.stringify(eventData)
 	}
 
-	async function createEntityMessage(eventBatchId: number): Promise<string> {
+	async function createEntityMessage(eventBatchId: number, applicationVersionSum: number = 0): Promise<string> {
 		const event: WebsocketEntityData = createTestEntity(WebsocketEntityDataTypeRef, {
 			eventBatchId: String(eventBatchId),
 			eventBatchOwner: "ownerId",
@@ -441,6 +455,7 @@ o.spec("EventBusClientTest", function () {
 					operation: OperationType.UPDATE,
 				}),
 			],
+			currentApplicationVersionSum: applicationVersionSum.toString(),
 		})
 		const instanceAsData = await instancePipeline.mapToServerAndEncrypt(event._type, event, null)
 		return "entityUpdate;" + JSON.stringify(instanceAsData)

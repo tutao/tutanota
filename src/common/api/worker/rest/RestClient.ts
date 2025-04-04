@@ -5,6 +5,7 @@ import { assertNotNull, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tut
 import { SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
+import { ApplicationTypesFacade } from "../facades/ApplicationTypesFacade"
 
 assertWorkerOrNode()
 
@@ -45,8 +46,13 @@ export class RestClient {
 	private id: number
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
+	public applicationVersionSum: number = 0
 
-	constructor(private readonly suspensionHandler: SuspensionHandler, private readonly domainConfig: DomainConfig) {
+	constructor(
+		private readonly suspensionHandler: SuspensionHandler,
+		private readonly domainConfig: DomainConfig,
+		private readonly applicationTypesFacade: ApplicationTypesFacade,
+	) {
 		this.id = 0
 	}
 
@@ -105,7 +111,7 @@ export class RestClient {
 					console.log(TAG, `${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
 				}
 
-				xhr.onload = () => {
+				xhr.onload = async () => {
 					// XMLHttpRequestProgressEvent, but not needed
 					if (verbose) {
 						console.log(TAG, `${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
@@ -114,6 +120,12 @@ export class RestClient {
 					clearTimeout(timeout)
 
 					this.saveServerTimeOffsetFromRequest(xhr)
+
+					// handle new server model and update the application types JSON if applicable
+					// FIXME read value to compare the sv value from filename?
+					if (xhr.getResponseHeader("sv") !== this.applicationVersionSum.toString()) {
+						await this.applicationTypesFacade.getServerApplicationTypesJson()
+					}
 
 					if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
 						if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {

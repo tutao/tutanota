@@ -79,6 +79,7 @@ import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyP
 import { TypeMapper } from "../../../common/api/worker/crypto/TypeMapper"
 import { CryptoMapper } from "../../../common/api/worker/crypto/CryptoMapper"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
+import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 
 assertWorkerOrNode()
 
@@ -88,6 +89,7 @@ export type CalendarWorkerLocatorType = {
 	serviceExecutor: IServiceExecutor
 	crypto: CryptoFacade
 	instancePipeline: InstancePipeline
+	applicationTypesFacade: ApplicationTypesFacade
 	cacheStorage: CacheStorage
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
@@ -155,12 +157,12 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
 	locator.instancePipeline = new InstancePipeline(resolveTypeReference, resolveTypeReference)
-	locator.rsa = await createRsaImplementation(worker)
-
-	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
-
-	locator.restClient = new RestClient(suspensionHandler, domainConfig)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto)
+	locator.applicationTypesFacade = new ApplicationTypesFacade(locator.serviceExecutor)
+
+	locator.rsa = await createRsaImplementation(worker)
+	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
+	locator.restClient = new RestClient(suspensionHandler, domainConfig, locator.applicationTypesFacade)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider)
 	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instancePipeline, locator.blobAccessToken)
@@ -457,6 +459,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
 		mainInterface.syncTracker,
+		locator.applicationTypesFacade,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

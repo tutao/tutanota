@@ -41,6 +41,7 @@ import { SyncTracker } from "../main/SyncTracker.js"
 import { Entity, UntypedInstance } from "../common/EntityTypes"
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 import { InstancePipeline } from "./crypto/InstancePipeline"
+import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
 
 assertWorkerOrNode()
 
@@ -136,6 +137,8 @@ export class EventBusClient {
 	private serviceUnavailableRetry: Promise<void> | null = null
 	private failedConnectionAttempts: number = 0
 
+	private applicationVersionSum: number = 0
+
 	/**
 	 * Represents the last item from the initial missed entity updates batches.
 	 * This will be used to determinate if the queue has finished processing missed updates
@@ -152,6 +155,7 @@ export class EventBusClient {
 		private readonly sleepDetector: SleepDetector,
 		private readonly progressTracker: ExposedProgressTracker,
 		private readonly syncTracker: SyncTracker,
+		private readonly applicationTypesFacade: ApplicationTypesFacade,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
 		this.state = EventBusState.Terminated
@@ -294,7 +298,13 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
-				const { eventBatchId, eventBatchOwner, entityUpdates } = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
+				const { eventBatchId, eventBatchOwner, entityUpdates, currentApplicationVersionSum } = await this.decodeEntityEventValue(
+					WebsocketEntityDataTypeRef,
+					JSON.parse(value),
+				)
+				if (currentApplicationVersionSum !== this.applicationVersionSum.toString()) {
+					await this.applicationTypesFacade.getServerApplicationTypesJson()
+				}
 				const filteredEntityUpdates = await this.removeUnknownTypes(entityUpdates)
 				this.entityUpdateMessageQueue.add(eventBatchId, eventBatchOwner, filteredEntityUpdates)
 				break
