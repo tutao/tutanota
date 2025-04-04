@@ -26,7 +26,7 @@ export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSur
 			},
 			[
 				m(DropDownSelector, {
-					style: { border: `2px solid ${theme.content_border}`, borderRadius: "6px", padding: "4px 8px" },
+					style: { border: `2px solid ${theme.outline}`, borderRadius: "6px", padding: "4px 8px" },
 					doShowBorder: false,
 					label: "surveyUnhappy_label",
 					items: this.getCategoryDropdownItems(vnode.attrs.data.showPriceCategory),

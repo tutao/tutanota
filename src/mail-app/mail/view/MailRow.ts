@@ -112,7 +112,7 @@ export class MailRow implements VirtualRow<Mail> {
 			if (label) {
 				element.style.display = ""
 				element.style.backgroundColor = getLabelColor(label.color)
-				element.style.color = colorForBg(label.color ?? theme.content_accent)
+				element.style.color = colorForBg(label.color ?? theme.primary)
 				element.textContent = label.name
 			} else {
 				element.style.display = "none"
@@ -298,8 +298,8 @@ export class MailRow implements VirtualRow<Mail> {
 			{
 				style: {
 					// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
-					border: `2px solid ${getLabelColor(theme.content_button)}`,
-					color: getLabelColor(theme.content_button),
+					border: `2px solid ${getLabelColor(theme.on_surface_variant)}`,
+					color: getLabelColor(theme.on_surface_variant),
 					padding: `0px ${size.vpad_xsm}px 1px`,
 					marginRight: px(size.vpad_xsm),
 					minWidth: px(16),

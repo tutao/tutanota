@@ -8,8 +8,8 @@ import { isColorLight } from "./Color.js"
 const supportsRelativeHslColors = typeof CSS !== "undefined" ? CSS.supports("color", `hsl(from #ccc h calc(min(50, s)) l)`) : false
 
 export function getLabelColor(backgroundColor: string | null): string {
-	const labelColor = backgroundColor ?? theme.content_accent
-	const isDarkTheme = !isColorLight(theme.content_bg)
+	const labelColor = backgroundColor ?? theme.primary
+	const isDarkTheme = !isColorLight(theme.surface)
 	// make a color have the same hue and lightness with saturation capped to 50
 	return isDarkTheme ? limitedSaturationColor(labelColor) : labelColor
 }
@@ -31,7 +31,7 @@ export const Label = pureComponent(function Label({ text, color }: { text: strin
 			style: {
 				// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
 				backgroundColor: labelColor,
-				color: colorForBg(color ?? theme.content_accent),
+				color: colorForBg(color ?? theme.primary),
 				padding: `1px ${size.vpad_xsm}px`,
 			},
 		},

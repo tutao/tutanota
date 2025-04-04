@@ -49,7 +49,7 @@ export class CustomColorsEditorViewModel {
 		this.builtTheme = stream()
 		const baseThemeId = themeCustomizations.base ?? "light"
 
-		const accentColor = themeCustomizations.content_accent ?? this._themeController.getDefaultTheme().content_accent
+		const accentColor = themeCustomizations.primary ?? this._themeController.getDefaultTheme().primary
 
 		this.changeBaseTheme(baseThemeId)
 		this.changeAccentColor(accentColor)
@@ -98,11 +98,8 @@ export class CustomColorsEditorViewModel {
 
 	changeAccentColor(accentColor: string) {
 		this._accentColor = accentColor
-		this.addCustomization("list_accent_fg", accentColor)
-		this.addCustomization("content_accent", accentColor)
-		this.addCustomization("content_button_selected", accentColor)
-		this.addCustomization("navigation_button_selected", accentColor)
-		this.addCustomization("header_button_selected", accentColor)
+		this.addCustomization("primary", accentColor)
+		this.addCustomization("primary", accentColor)
 
 		this._applyEditedTheme()
 	}
@@ -172,11 +169,8 @@ export class CustomColorsEditorViewModel {
 			"logo",
 			"themeId",
 			"base",
-			"list_accent_fg",
-			"content_button_selected",
-			"navigation_button_selected",
-			"header_button_selected",
-			"content_accent",
+			"primary",
+			"primary",
 			"content_accent_tuta_bday",
 			"content_accent_secondary_tuta_bday",
 			"content_bg_tuta_bday",
