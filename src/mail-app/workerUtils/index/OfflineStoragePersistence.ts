@@ -137,7 +137,10 @@ export class OfflineStoragePersistence {
                 ${attachments.map((f) => f.name).join(" ")}
                 )`
 			await this.sqlCipherFacade.run(query, params)
-			const serializedSets = mail.sets.map((set) => set.join("/")).join(" ")
+
+			// Sets are element IDs surrounded with spaces
+			const serializedSets = mail.sets.map(elementIdPart).join(" ")
+
 			const contentQuery = sql`INSERT
             OR REPLACE INTO content_mail_index(rowId, sets, receivedDate) VALUES (
             ${rowid},
@@ -152,14 +155,14 @@ export class OfflineStoragePersistence {
 		const rowid = await this.getRowid(MailTypeRef, mailId)
 		{
 			const { query, params } = sql`DELETE
-										  FROM mail_index
-										  WHERE rowId = ${rowid}`
+                                        FROM mail_index
+                                        WHERE rowId = ${rowid}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 		{
 			const { query, params } = sql`DELETE
-                                          FROM content_mail_index
-                                          WHERE rowId = ${rowid}`
+                                        FROM content_mail_index
+                                        WHERE rowId = ${rowid}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 	}
@@ -170,6 +173,8 @@ export class OfflineStoragePersistence {
 			if (rowid == null) {
 				continue
 			}
+
+			console.log("OK: ", contact.mailAddresses.map((a) => a.address).join(" "))
 
 			const { query, params } = sql`
                 INSERT

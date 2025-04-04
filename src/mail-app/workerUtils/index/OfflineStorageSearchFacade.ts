@@ -5,7 +5,7 @@ import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { MailIndexer } from "./MailIndexer"
 import { getSearchEndTimestamp } from "../../../common/api/worker/search/IndexUtils"
-import { isSameTypeRef } from "@tutao/tutanota-utils"
+import { first, isSameTypeRef } from "@tutao/tutanota-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
@@ -45,6 +45,25 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 	}
 
 	private async searchMails(originalQuery: string, normalizedQuery: string, restriction: SearchRestriction, maxResults?: number): Promise<SearchResult> {
+		// folderIds always have zero or one IDs for mail search
+		if (restriction.folderIds.length > 1) {
+			throw new ProgrammingError("cannot search mails with more than one mailset search restriction")
+		}
+
+		// An empty string will match any ID
+		const idToSearch = first(restriction.folderIds) ?? ""
+
+		// Wrap in * to allow any number of characters before or after the ID. All set element IDs are the same length,
+		// thus the only characters that will be adjacent to an ID are whitespace characters. "**" will match any
+		// string in case idToSearch is an empty string.
+		//
+		// Mail set element IDs are assumed to not contain any special characters that GLOB cares about, as Base64Ext
+		// does not contain any of such characters, so this is all we need to do.
+		//
+		// Note: We cannot use LIKE because it is case-insensitive, the pragma to make it case-sensitive is deprecated,
+		//       and '_' is present in Base64Ext, which is treated as "match any character" in LIKE.
+		const idMatch = `*${idToSearch}*`
+
 		const preparedSqlQuery = sql`
 			SELECT list_entities.listId,
 				   list_entities.elementId
@@ -54,6 +73,9 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 					 INNER JOIN content_mail_index ON
 				list_entities.rowid = content_mail_index.rowid
 			WHERE mail_index = ${normalizedQuery}
+			  AND content_mail_index.receivedDate <= ${restriction.end ?? Number.MAX_SAFE_INTEGER}
+			  AND content_mail_index.receivedDate >= ${restriction.start ?? 0}
+			  AND content_mail_index.sets GLOB ${idMatch}
 			ORDER BY content_mail_index.receivedDate DESC
 				LIMIT ${maxResults ?? Number.MAX_SAFE_INTEGER}`
 		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
@@ -75,19 +97,20 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 
 	private async searchContacts(originalQuery: string, normalizedQuery: string, restriction: SearchRestriction, maxResults?: number): Promise<SearchResult> {
 		const preparedSqlQuery = sql`
-            SELECT list_entities.listId,
-                   list_entities.elementId
-            FROM contact_index
-                     INNER JOIN list_entities ON
-                contact_index.rowid = list_entities.rowid
-            WHERE contact_index = ${normalizedQuery}
-            ORDER BY contact_index.lastName, contact_index.firstName
-                LIMIT ${maxResults ?? Number.MAX_SAFE_INTEGER}`
+                SELECT list_entities.listId,
+                       list_entities.elementId
+                FROM contact_index
+                         INNER JOIN list_entities ON
+                    contact_index.rowid = list_entities.rowid
+                WHERE contact_index = ${normalizedQuery}
+                ORDER BY contact_index.firstName, contact_index.lastName
+                    LIMIT ${maxResults ?? Number.MAX_SAFE_INTEGER}`
 		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 		const resultIds = resultRows.map(({ listId, elementId }) => {
 			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
 		})
 		const indexTimestamp = (await this.contactIndexer.areContactsIndexed()) ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
+
 		const result: SearchResult = {
 			query: originalQuery,
 			restriction,

@@ -203,6 +203,8 @@ o.spec("OfflineStoragePersistence test", () => {
 			o.check(await sqlCipherFacade.get(query, params)).equals(null)
 		}
 
+		// test that we've indexed it correctly
+
 		await assertFound("i am smol squishy text")
 		await assertFound("very important email")
 		await assertFound("very squishy email")
