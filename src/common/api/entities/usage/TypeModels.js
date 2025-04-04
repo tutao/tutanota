@@ -19,7 +19,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 9,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -28,7 +27,6 @@ export const typeModels = {
 				"final": false,
 				"name": "key",
 				"id": 10,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -37,7 +35,6 @@ export const typeModels = {
 				"final": false,
 				"name": "value",
 				"id": 11,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -60,7 +57,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 13,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -69,7 +65,6 @@ export const typeModels = {
 				"final": true,
 				"name": "name",
 				"id": 14,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -78,7 +73,6 @@ export const typeModels = {
 				"final": true,
 				"name": "type",
 				"id": 15,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -89,7 +83,6 @@ export const typeModels = {
 				"final": false,
 				"name": "configValues",
 				"id": 16,
-				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 8,
@@ -112,7 +105,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 18,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -121,7 +113,6 @@ export const typeModels = {
 				"final": true,
 				"name": "name",
 				"id": 19,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -130,7 +121,6 @@ export const typeModels = {
 				"final": true,
 				"name": "value",
 				"id": 20,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -153,7 +143,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 36,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -162,7 +151,6 @@ export const typeModels = {
 				"final": false,
 				"name": "name",
 				"id": 37,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -171,7 +159,6 @@ export const typeModels = {
 				"final": false,
 				"name": "minPings",
 				"id": 87,
-				"since": 2,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -180,7 +167,6 @@ export const typeModels = {
 				"final": false,
 				"name": "maxPings",
 				"id": 88,
-				"since": 2,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -191,7 +177,6 @@ export const typeModels = {
 				"final": false,
 				"name": "metrics",
 				"id": 38,
-				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 12,
@@ -214,7 +199,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 54,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -223,7 +207,6 @@ export const typeModels = {
 				"final": false,
 				"name": "testDeviceId",
 				"id": 55,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -246,7 +229,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 57,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -255,7 +237,6 @@ export const typeModels = {
 				"final": true,
 				"name": "testId",
 				"id": 58,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -264,7 +245,6 @@ export const typeModels = {
 				"final": false,
 				"name": "name",
 				"id": 59,
-				"since": 1,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -273,7 +253,6 @@ export const typeModels = {
 				"final": true,
 				"name": "variant",
 				"id": 60,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -282,7 +261,6 @@ export const typeModels = {
 				"final": false,
 				"name": "sendPings",
 				"id": 61,
-				"since": 1,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
@@ -293,7 +271,6 @@ export const typeModels = {
 				"final": false,
 				"name": "stages",
 				"id": 62,
-				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 35,
@@ -316,7 +293,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 64,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -325,7 +301,6 @@ export const typeModels = {
 				"final": false,
 				"name": "testDeviceId",
 				"id": 65,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -336,7 +311,6 @@ export const typeModels = {
 				"final": false,
 				"name": "assignments",
 				"id": 66,
-				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 56,
@@ -359,7 +333,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 81,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -368,7 +341,6 @@ export const typeModels = {
 				"final": false,
 				"name": "testId",
 				"id": 82,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -377,7 +349,6 @@ export const typeModels = {
 				"final": false,
 				"name": "stage",
 				"id": 83,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -386,7 +357,6 @@ export const typeModels = {
 				"final": false,
 				"name": "testDeviceId",
 				"id": 84,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -397,7 +367,6 @@ export const typeModels = {
 				"final": false,
 				"name": "metrics",
 				"id": 85,
-				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 17,

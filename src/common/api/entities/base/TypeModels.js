@@ -19,7 +19,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 1,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -28,7 +27,6 @@ export const typeModels = {
 				"final": false,
 				"name": "generatedId",
 				"id": 2,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -37,7 +35,6 @@ export const typeModels = {
 				"final": false,
 				"name": "permissionListId",
 				"id": 3,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -60,7 +57,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 5,
-				"since": 2,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -69,7 +65,6 @@ export const typeModels = {
 				"final": false,
 				"name": "jsonAllApplicationTypesString",
 				"id": 6,
-				"since": 2,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -78,7 +73,6 @@ export const typeModels = {
 				"final": false,
 				"name": "currentApplicationVersionSum",
 				"id": 7,
-				"since": 2,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false

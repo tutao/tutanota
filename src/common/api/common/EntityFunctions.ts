@@ -164,7 +164,6 @@ export class ServerModelInfo {
 			const modelValueInfoRecord = modelValueInfo as Record<string, unknown>
 
 			const final = Boolean(modelValueInfoRecord.final)
-			const since = parseInt(assertNotNull(String(modelValueInfoRecord.since)))
 			const name = String(modelValueInfoRecord.name)
 			const id = Number(modelValueInfoRecord.id)
 			const type = ServerModelInfo.parseValueType(String(modelValueInfoRecord.type))
@@ -178,7 +177,6 @@ export class ServerModelInfo {
 				type,
 				encrypted,
 				cardinality,
-				since,
 			} satisfies ModelValue
 
 			ServerModelInfo.verifyNoNullValueInRecord(modelValue)
@@ -195,7 +193,6 @@ export class ServerModelInfo {
 			const associationInfoRecord = associationInfo as Record<string, unknown>
 
 			const final = Boolean(associationInfoRecord.final)
-			const since = parseInt(assertNotNull(String(associationInfoRecord.since)))
 			const name = String(associationInfoRecord.name)
 			const id = Number(associationInfoRecord.id)
 			const type = ServerModelInfo.parseAssociationType(String(associationInfoRecord.type))
@@ -209,23 +206,14 @@ export class ServerModelInfo {
 				type,
 				cardinality,
 				refTypeId,
-				since,
 			} satisfies ModelAssociation
-
-			// dependency can be null or undefined
-			let nullDependency = false
-			if (typeof associationInfoRecord.dependency === "string") {
-				const dependency = ServerModelInfo.parseAppName(associationInfoRecord.dependency)
-				Object.assign(modelAssociation, { dependency })
-			} else {
-				nullDependency = true
-			}
 
 			ServerModelInfo.verifyNoNullValueInRecord(modelAssociation)
 
-			if (nullDependency) {
-				Object.assign(modelAssociation, { dependency: null })
-			}
+			// dependency can be null, so assign it after above `verifyNoNullValueInRecord` check. and check here instead
+			Object.assign(modelAssociation, {
+				dependency: typeof associationInfoRecord.dependency === "string" ? ServerModelInfo.parseAppName(associationInfoRecord.dependency) : null,
+			})
 
 			Object.assign(associations, { [modelAssociation.id]: modelAssociation })
 		}

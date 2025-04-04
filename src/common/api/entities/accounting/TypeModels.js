@@ -19,7 +19,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 80,
-				"since": 3,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -28,7 +27,6 @@ export const typeModels = {
 				"final": true,
 				"name": "type",
 				"id": 81,
-				"since": 3,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
@@ -37,7 +35,6 @@ export const typeModels = {
 				"final": true,
 				"name": "valueDate",
 				"id": 82,
-				"since": 3,
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": true
@@ -46,7 +43,6 @@ export const typeModels = {
 				"final": true,
 				"name": "invoiceNumber",
 				"id": 83,
-				"since": 3,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true
@@ -55,7 +51,6 @@ export const typeModels = {
 				"final": true,
 				"name": "amount",
 				"id": 84,
-				"since": 3,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
@@ -78,7 +73,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 87,
-				"since": 3,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -87,7 +81,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_ownerGroup",
 				"id": 88,
-				"since": 3,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -96,7 +89,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_ownerPublicEncSessionKey",
 				"id": 89,
-				"since": 3,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -105,7 +97,6 @@ export const typeModels = {
 				"final": false,
 				"name": "outstandingBookingsPrice",
 				"id": 92,
-				"since": 4,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -114,7 +105,6 @@ export const typeModels = {
 				"final": true,
 				"name": "balance",
 				"id": 94,
-				"since": 5,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
@@ -123,7 +113,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_publicCryptoProtocolVersion",
 				"id": 96,
-				"since": 7,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -134,7 +123,6 @@ export const typeModels = {
 				"final": false,
 				"name": "postings",
 				"id": 90,
-				"since": 3,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 79,

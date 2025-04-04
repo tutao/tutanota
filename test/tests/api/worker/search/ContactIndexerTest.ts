@@ -21,7 +21,6 @@ import { fixedIv } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { GroupDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
-import { ModelAssociation, ModelValue, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 const dbMock: any = { iv: fixedIv }

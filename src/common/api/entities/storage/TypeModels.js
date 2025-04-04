@@ -19,7 +19,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 51,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -28,7 +27,6 @@ export const typeModels = {
 				"final": false,
 				"name": "archiveId",
 				"id": 52,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -37,7 +35,6 @@ export const typeModels = {
 				"final": false,
 				"name": "blobId",
 				"id": 110,
-				"since": 3,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -48,7 +45,6 @@ export const typeModels = {
 				"final": true,
 				"name": "blobIds",
 				"id": 193,
-				"since": 8,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 144,
@@ -71,7 +67,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 74,
-				"since": 1,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -80,7 +75,6 @@ export const typeModels = {
 				"final": false,
 				"name": "archiveOwnerGroup",
 				"id": 75,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -103,7 +97,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 78,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -112,7 +105,6 @@ export const typeModels = {
 				"final": false,
 				"name": "archiveDataType",
 				"id": 180,
-				"since": 4,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -123,7 +115,6 @@ export const typeModels = {
 				"final": false,
 				"name": "write",
 				"id": 80,
-				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 73,
@@ -133,7 +124,6 @@ export const typeModels = {
 				"final": true,
 				"name": "read",
 				"id": 181,
-				"since": 4,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 175,
@@ -156,7 +146,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 82,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -167,7 +156,6 @@ export const typeModels = {
 				"final": false,
 				"name": "blobAccessInfo",
 				"id": 161,
-				"since": 4,
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refTypeId": 157,
@@ -190,7 +178,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 95,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -199,7 +186,6 @@ export const typeModels = {
 				"final": false,
 				"name": "instanceListId",
 				"id": 97,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -208,7 +194,6 @@ export const typeModels = {
 				"final": false,
 				"name": "instanceId",
 				"id": 107,
-				"since": 2,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -217,7 +202,6 @@ export const typeModels = {
 				"final": false,
 				"name": "archiveDataType",
 				"id": 123,
-				"since": 4,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -228,7 +212,6 @@ export const typeModels = {
 				"final": true,
 				"name": "referenceTokens",
 				"id": 122,
-				"since": 4,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1990,
@@ -251,7 +234,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 101,
-				"since": 1,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -260,7 +242,6 @@ export const typeModels = {
 				"final": false,
 				"name": "instanceListId",
 				"id": 102,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -269,7 +250,6 @@ export const typeModels = {
 				"final": false,
 				"name": "instanceId",
 				"id": 103,
-				"since": 1,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -278,7 +258,6 @@ export const typeModels = {
 				"final": false,
 				"name": "archiveDataType",
 				"id": 124,
-				"since": 4,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -289,7 +268,6 @@ export const typeModels = {
 				"final": true,
 				"name": "blobs",
 				"id": 105,
-				"since": 1,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1882,
@@ -312,7 +290,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 126,
-				"since": 4,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -321,7 +298,6 @@ export const typeModels = {
 				"final": false,
 				"name": "blobReferenceToken",
 				"id": 127,
-				"since": 4,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -332,7 +308,6 @@ export const typeModels = {
 				"final": true,
 				"name": "blobReferenceTokens",
 				"id": 208,
-				"since": 10,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1990,
@@ -355,7 +330,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 131,
-				"since": 4,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -364,7 +338,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_permissions",
 				"id": 132,
-				"since": 4,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -373,7 +346,6 @@ export const typeModels = {
 				"final": false,
 				"name": "_format",
 				"id": 133,
-				"since": 4,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -382,7 +354,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_ownerGroup",
 				"id": 134,
-				"since": 4,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -393,7 +364,6 @@ export const typeModels = {
 				"final": false,
 				"name": "archive",
 				"id": 135,
-				"since": 4,
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "One",
 				"refTypeId": 22,
@@ -416,7 +386,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 145,
-				"since": 4,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -425,7 +394,6 @@ export const typeModels = {
 				"final": false,
 				"name": "blobId",
 				"id": 146,
-				"since": 4,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -448,7 +416,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 155,
-				"since": 4,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -457,7 +424,6 @@ export const typeModels = {
 				"final": false,
 				"name": "url",
 				"id": 156,
-				"since": 4,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -480,7 +446,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 158,
-				"since": 4,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -489,7 +454,6 @@ export const typeModels = {
 				"final": false,
 				"name": "blobAccessToken",
 				"id": 159,
-				"since": 4,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -498,7 +462,6 @@ export const typeModels = {
 				"final": false,
 				"name": "expires",
 				"id": 192,
-				"since": 6,
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": false
@@ -507,7 +470,6 @@ export const typeModels = {
 				"final": false,
 				"name": "tokenKind",
 				"id": 209,
-				"since": 11,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -518,7 +480,6 @@ export const typeModels = {
 				"final": false,
 				"name": "servers",
 				"id": 160,
-				"since": 4,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 154,
@@ -541,7 +502,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 173,
-				"since": 4,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -550,7 +510,6 @@ export const typeModels = {
 				"final": true,
 				"name": "instanceId",
 				"id": 174,
-				"since": 4,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -573,7 +532,6 @@ export const typeModels = {
 				"final": true,
 				"name": "_id",
 				"id": 176,
-				"since": 4,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
@@ -582,7 +540,6 @@ export const typeModels = {
 				"final": false,
 				"name": "archiveId",
 				"id": 177,
-				"since": 4,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
@@ -591,7 +548,6 @@ export const typeModels = {
 				"final": true,
 				"name": "instanceListId",
 				"id": 178,
-				"since": 4,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -602,7 +558,6 @@ export const typeModels = {
 				"final": true,
 				"name": "instanceIds",
 				"id": 179,
-				"since": 4,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 172,
