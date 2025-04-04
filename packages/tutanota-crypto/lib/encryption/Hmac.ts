@@ -1,8 +1,8 @@
 import { AesKey } from "./Aes.js"
 import sjcl from "../internal/sjcl.js"
 import { bitArrayToUint8Array, uint8ArrayToBitArray } from "../misc/Utils.js"
-import { arrayEquals } from "@tutao/tutanota-utils"
 import { CryptoError } from "../misc/CryptoError.js"
+import { constantTimeUint8ArrayEquals } from "../misc/ConstantTime.js"
 
 export type MacTag = Uint8Array & { __brand: "macTag" }
 
@@ -19,8 +19,32 @@ export function hmacSha256(key: AesKey, data: Uint8Array): MacTag {
  * @throws CryptoError if the tag does not match the data and key.
  */
 export function verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
+	return doubleHmacVerification(key, data, tag)
+}
+
+/**
+ * Verify an HMAC tag using constant-time comparison, as far as this can be trusted in Javascript.
+ */
+function constantTimeHmacVerification(key: AesKey, data: Uint8Array, tag: MacTag) {
 	const computedTag = hmacSha256(key, data)
-	if (!arrayEquals(computedTag, tag)) {
+	if (!constantTimeUint8ArrayEquals(computedTag, tag)) {
 		throw new CryptoError("invalid mac")
 	}
+}
+
+/**
+ * Verify an HMAC tag using the Double HMAC Verification technique to protect against timing-attacks
+ *
+ * @link https://web.archive.org/web/20160203044316/https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2011/february/double-hmac-verification/
+ */
+function doubleHmacVerification(key: AesKey, data: Uint8Array, tag: MacTag) {
+	const hmac = new sjcl.misc.hmac(key, sjcl.hash.sha256)
+
+	const computedTag = hmac.encrypt(uint8ArrayToBitArray(data))
+	const receivedTag = uint8ArrayToBitArray(tag)
+
+	const secondComputedTag = hmac.encrypt(computedTag)
+	const secondReceivedTag = hmac.encrypt(receivedTag)
+
+	if (!sjcl.bitArray.equal(secondComputedTag, secondReceivedTag)) throw new CryptoError("invalid mac")
 }

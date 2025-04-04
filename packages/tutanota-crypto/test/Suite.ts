@@ -13,6 +13,7 @@ import "./TotpVerifierTest.js"
 import "./X25519Test.js"
 import "./KyberTest.js"
 import "./HmacTest.js"
+import "./ConstantTimeTest.js"
 import { bootstrapTests } from "./bootstrap.js"
 
 await bootstrapTests()
