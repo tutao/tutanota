@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { getRatingAllowed, isEventHappyMoment, RatingCheckResult } from "../../../src/common/ratings/InAppRatingUtils.js"
+import { evaluateRatingEligibility, isEventHappyMoment, RatingDisallowReason } from "../../../src/common/ratings/InAppRatingUtils.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 import { object, verify, when } from "testdouble"
 import { CommonLocator, initCommonLocator } from "../../../src/common/api/main/CommonLocator.js"
@@ -9,96 +9,110 @@ o.spec("InAppRatingUtilsTest", () => {
 	let deviceConfigMock: DeviceConfig = object()
 	let locatorMock: CommonLocator = object()
 
+	const now = new Date("2024-10-27T12:34:00Z")
+
 	o.beforeEach(() => {
 		deviceConfigMock = object()
 		locatorMock = object()
-		initCommonLocator(locatorMock)
-	})
 
-	const now = new Date("2024-10-27T12:34:00Z")
+		initCommonLocator(locatorMock)
+		when(deviceConfigMock.getRetryRatingPromptAfter()).thenReturn(null)
+		when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
+		when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(now.getTime()))
+		when(locatorMock.logins.getUserController()).thenReturn(userControllerMock)
+		when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: now })
+	})
 
 	const userControllerMock: UserController = object({
 		// @ts-ignore
 		async loadCustomerInfo() {},
 	})
 
-	o.spec("getRatingAllowed", () => {
-		o("Should not trigger if the app is not on iOS or android", async () => {
+	o.spec("evaluateRatingEligibility", () => {
+		o("platform requirement", async () => {
 			// Arrange
-			const appInstallationDate = new Date("2024-10-11T11:12:04Z")
+			const isApp = false
+
+			// Act
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp)
+
+			// Assert
+			o(res).satisfies((disallowReasons) => ({
+				pass: disallowReasons.includes(RatingDisallowReason.UNSUPPORTED_PLATFORM),
+				message: "Ratings are only available in the Tuta iOS and Android apps",
+			}))
+		})
+
+		o("previous rating", async () => {
+			// Arrange
+			const lastRatingPromptedDate = new Date("2024-06-06T06:06:06Z") // some months ago
 
 			when(deviceConfigMock.getRetryRatingPromptAfter()).thenReturn(null)
-			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
-			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
+			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(lastRatingPromptedDate)
 
 			// Act
-			const res = await getRatingAllowed(now, deviceConfigMock, false)
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
 
 			// Assert
-			o(res).equals(RatingCheckResult.UNSUPPORTED_PLATFORM)
+			o(res).satisfies((disallowReasons) => ({
+				pass: disallowReasons.includes(RatingDisallowReason.LAST_RATING_TOO_YOUNG),
+				message: "Rating prompt was shown less than a year ago",
+			}))
 		})
 
-		o("Should not trigger if the rating dialog was shown less than a year ago", async () => {
+		o("app installation date", async () => {
 			// Arrange
-			const appInstallationDate = new Date("2024-10-11T11:12:04Z")
-
-			when(deviceConfigMock.getRetryRatingPromptAfter()).thenReturn(null)
-			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(new Date("2024-06-06T06:06:06Z"))
-			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
+			const date = new Date("2024-10-24T12:34:00Z") // 3 days ago
+			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(date.getTime()))
 
 			// Act
-			const res = await getRatingAllowed(now, deviceConfigMock, true)
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
 
 			// Assert
-			o(res).equals(RatingCheckResult.LAST_RATING_TOO_YOUNG)
+			o(res).satisfies((disallowReasons) => ({
+				pass: disallowReasons.includes(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG),
+				message: "App installation date is too young",
+			}))
 		})
 
-		o("Should not trigger if the app was installed less than 7 days ago", async () => {
+		o("customer account age", async () => {
 			// Arrange
-			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
-			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(new Date("2024-10-23T11:12:04Z").getTime()))
-
-			// Act
-			const res = await getRatingAllowed(now, deviceConfigMock, true)
-
-			// Assert
-			o(res).equals(RatingCheckResult.APP_INSTALLATION_TOO_YOUNG)
-		})
-
-		o("Should not trigger if the customer account was created less than 7 days ago", async () => {
-			// Arrange
-			const appInstallationDate = new Date("2024-10-11T11:12:04Z") // The app is installed long enough ago.
-			const customerCreationDate = new Date("2024-10-23T11:12:04Z")
-
-			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
+			const customerCreationDate = new Date("2024-10-26T12:34:00Z") // 1 day ago
+			const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
-			when(locatorMock.logins.getUserController()).thenReturn(userControllerMock)
 			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
 
 			// Act
-			const res = await getRatingAllowed(now, deviceConfigMock, true)
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
 
 			// Assert
-			o(res).equals(RatingCheckResult.ACCOUNT_TOO_YOUNG)
+			o(res).satisfies((disallowReasons) => ({
+				pass:
+					disallowReasons.includes(RatingDisallowReason.ACCOUNT_TOO_YOUNG) &&
+					!disallowReasons.includes(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG),
+				message: "Customer account is too young",
+			}))
 		})
 
-		o("Should not trigger if the retry prompt timer has not elapsed", async () => {
+		o("retry timer has not elapsed", async () => {
 			// Arrange
-			const appInstallationDate = new Date("2024-10-11T11:12:04Z")
-			const customerCreationDate = new Date("2024-10-11T11:12:04Z")
+			const customerCreationDate = new Date("2024-09-26T12:34:00Z") // 1 month, 1 day ago
+			const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
+			const retryRatingPromptAfter = new Date("2024-10-28T14:34:00Z") // in a day
 
-			when(deviceConfigMock.getRetryRatingPromptAfter()).thenReturn(new Date("2024-11-27T14:34:00Z"))
-			when(deviceConfigMock.getLastRatingPromptedDate()).thenReturn(null)
+			when(deviceConfigMock.getRetryRatingPromptAfter()).thenReturn(retryRatingPromptAfter)
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
-			when(locatorMock.logins.getUserController()).thenReturn(userControllerMock)
 			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
 
 			// Act
-			const res = await getRatingAllowed(now, deviceConfigMock, true)
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
 
 			// Assert
 			verify(locatorMock.logins.getUserController().loadCustomerInfo(), { times: 1 })
-			o(res).equals(RatingCheckResult.RATING_DISMISSED)
+			o(res).satisfies((disallowReasons) => ({
+				pass: disallowReasons.includes(RatingDisallowReason.RATING_DISMISSED),
+				message: "Retry timer has not elapsed",
+			}))
 		})
 	})
 
