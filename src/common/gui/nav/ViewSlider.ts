@@ -178,10 +178,10 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 						zIndex: LayerType.ForegroundMenu,
 					},
 					oncreate: (vnode) => {
-						this.busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, 0, 0.5)))
+						this.busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.scrim, 0, 0.5)))
 					},
 					onbeforeremove: (vnode) => {
-						return this.busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, 0.5, 0)))
+						return this.busy.then(() => animations.add(vnode.dom as HTMLElement, alpha(AlphaEnum.BackgroundColor, theme.scrim, 0.5, 0)))
 					},
 					onclick: () => {
 						this.focus(this.visibleBackgroundColumns[0])

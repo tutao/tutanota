@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { NavButtonAttrs } from "../../../common/gui/base/NavButton.js"
 import { isNavButtonSelected, NavButton } from "../../../common/gui/base/NavButton.js"
 import { CounterBadge } from "../../../common/gui/base/CounterBadge"
-import { getNavButtonIconBackground, theme } from "../../../common/gui/theme"
+import { theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
@@ -75,7 +75,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 								position: "absolute",
 								bottom: px(9),
 								left: px(5 + indentationMargin + buttonWidth / 2),
-								fill: isNavButtonSelected(button) ? theme.navigation_button_selected : theme.navigation_button,
+								fill: isNavButtonSelected(button) ? theme.primary : theme.on_surface_variant,
 							},
 							icon: Icons.Add,
 							class: "icon-small",
@@ -108,7 +108,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 						icon,
 						size: IconSize.Medium,
 						style: {
-							fill: isNavButtonSelected(button) ? theme.navigation_button_selected : theme.navigation_button,
+							fill: isNavButtonSelected(button) ? theme.primary : theme.on_surface_variant,
 						},
 					}),
 				),
@@ -129,8 +129,8 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					: m("", { style: { marginRight: px(size.hpad_button) } }, [
 							m(CounterBadge, {
 								count,
-								color: theme.navigation_button_icon,
-								background: getNavButtonIconBackground(),
+								color: theme.surface_container,
+								background: theme.on_surface_variant,
 								showFullCount: true,
 							}),
 						]),
@@ -140,7 +140,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 
 	private renderHierarchyLine({ indentationLevel, numberOfPreviousRows, isLastSibling, onSelectedPath }: MailFolderRowAttrs, indentationMargin: number) {
 		const lineSize = 2
-		const border = `${lineSize}px solid ${theme.content_border}`
+		const border = `${lineSize}px solid ${theme.outline}`
 		const verticalOffsetInsideRow = size.button_height / 2 + 1
 		const verticalOffsetForParent = (size.button_height - size.icon_size_large) / 2
 		const lengthOfHorizontalLine = size.hpad - 2
@@ -172,7 +172,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 									top: px(verticalOffsetInsideRow),
 									left: px(leftOffset),
 									width: px(lengthOfHorizontalLine),
-									backgroundColor: theme.content_border,
+									backgroundColor: theme.outline,
 								},
 							}),
 				]

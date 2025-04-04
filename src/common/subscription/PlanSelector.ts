@@ -12,7 +12,7 @@ import stream from "mithril/stream"
 import { theme } from "../gui/theme.js"
 import { styles } from "../gui/styles.js"
 import { FreePlanBox } from "./FreePlanBox.js"
-import { boxShadow } from "../gui/main-styles.js"
+import { boxShadowHigh } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./PaymentIntervalSwitch.js"
@@ -266,9 +266,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 								bottom: 0,
 								left: 0,
 								right: 0,
-								"background-color": theme.content_bg,
+								"background-color": theme.surface,
 								"z-index": 1,
-								"box-shadow": boxShadow,
+								"box-shadow": boxShadowHigh,
 							},
 						},
 						m(

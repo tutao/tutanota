@@ -26,7 +26,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 				{
 					class: responsiveCardHMargin(),
 					style: {
-						backgroundColor: theme.content_bg,
+						backgroundColor: theme.surface,
 					},
 				},
 				m(".plr-l.pt.pb.mlr-safe-inset", m(".h2.selectable.text-break", attrs.entry.emailAddress)),
@@ -46,7 +46,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 						{
 							class: responsiveCardHMargin(),
 							style: {
-								backgroundColor: theme.content_bg,
+								backgroundColor: theme.surface,
 							},
 						},
 						m(

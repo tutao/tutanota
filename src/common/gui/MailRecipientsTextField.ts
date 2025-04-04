@@ -188,7 +188,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 							firstRow: m(Icon, {
 								icon: Icons.People,
 								style: {
-									fill: theme.content_fg,
+									fill: theme.on_surface,
 									"aria-describedby": lang.get("contactListName_label"),
 								},
 							}),

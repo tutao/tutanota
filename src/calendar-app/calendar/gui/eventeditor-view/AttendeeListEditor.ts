@@ -52,7 +52,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			m(".flex-grow.flex.flex-column.gap-vpad.pb.pt.fit-height", { style: { width: px(attrs.width) } }, [
 				this.renderOrganizer(attrs.model, organizer),
 				m(".flex.flex-column.gap-vpad-s", [
-					m("small.uppercase.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("guests_label")),
+					m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("guests_label")),
 					whoModel.canModifyGuests ? this.renderGuestsInput(whoModel, attrs.logins, attrs.recipientsSearch) : null,
 					this.renderSendUpdateCheckbox(attrs.model.editModels.whoModel),
 					this.renderGuestList(attrs, organizer),
@@ -101,7 +101,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 						m(IconMessageBox, {
 							message: "noEntries_msg",
 							icon: Icons.People,
-							color: theme.list_message_bg,
+							color: theme.on_surface_fade,
 						}),
 					]),
 				)
@@ -180,7 +180,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 						"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
 						{
 							class: option.selectable === false ? `no-hover` : "",
-							style: { color: option.value === status ? theme.content_button_selected : undefined },
+							style: { color: option.value === status ? theme.primary : undefined },
 						},
 						option.name,
 					),
@@ -218,7 +218,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const selected = options.find((option) => option.address === address) ?? options[0]
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("organizer_label")),
+			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("organizer_label")),
 			m(Card, { style: { padding: `0` } }, [
 				m(".flex.flex-column", [
 					m(".flex.pl-vpad-s.pr-vpad-s", [
@@ -236,7 +236,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							renderOption: (option) =>
 								m(
 									"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
-									{ style: { color: selected.address === option.address ? theme.content_button_selected : undefined } },
+									{ style: { color: selected.address === option.address ? theme.primary : undefined } },
 									option.address,
 								),
 							renderDisplay: (option) => m("", option.name ? `${option.name} <${option.address}>` : option.address),
@@ -269,7 +269,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							: null,
 					]),
 					isMe && model.operation !== CalendarOperation.EditThis
-						? [m(Divider, { color: theme.button_bubble_bg }), this.renderAttendeeStatus(whoModel, organizer)]
+						? [m(Divider, { color: theme.outline_variant }), this.renderAttendeeStatus(whoModel, organizer)]
 						: null,
 				]),
 			]),
@@ -341,7 +341,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 									},
 								},
 								m(Divider, {
-									color: theme.button_bubble_bg,
+									color: theme.outline_variant,
 								}),
 							),
 							this.renderPasswordField(address, password, strength ?? 0, whoModel),
