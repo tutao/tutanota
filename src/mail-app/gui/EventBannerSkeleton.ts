@@ -3,6 +3,7 @@ import m from "mithril"
 import { styles } from "../../common/gui/styles"
 import { px, size } from "../../common/gui/size"
 import { Skeleton } from "../../common/gui/base/Skeleton"
+import { theme } from "../../common/gui/theme.js"
 
 export const EventBannerSkeleton = pureComponent(() =>
 	m(
@@ -28,18 +29,21 @@ export const EventBannerSkeleton = pureComponent(() =>
 					style: {
 						width: "25px",
 						height: "20px",
+						backgroundColor: theme.surface_container_highest,
 					},
 				}),
 				m(Skeleton, {
 					style: {
 						width: "36px",
 						height: "40px",
+						backgroundColor: theme.surface_container_highest,
 					},
 				}),
 				m(Skeleton, {
 					style: {
 						width: "25px",
 						height: "20px",
+						backgroundColor: theme.surface_container_highest,
 					},
 				}),
 			]),

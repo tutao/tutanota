@@ -13,7 +13,6 @@ import { Keys } from "../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../misc/KeyManager"
 import { DropData, DropHandler, DropType } from "./GuiUtils"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env"
-import { stateBgHover } from "../builtinThemes.js"
 import { fileListToArray } from "../../api/common/utils/FileUtils.js"
 
 assertMainOrNode()
@@ -32,6 +31,7 @@ export type NavButtonAttrs = {
 	centred?: boolean
 	leftInjection?: () => Children
 	disableHoverBackground?: boolean
+	disableSelectedBackground?: boolean
 	disabled?: boolean
 	persistentBackground?: boolean
 	onfocus?: () => unknown
@@ -62,7 +62,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 						icon,
 						class: this._getIconClass(a),
 						style: {
-							fill: isNavButtonSelected(a) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
+							fill: isNavButtonSelected(a) || this._draggedOver ? theme.primary : theme.on_surface_variant,
 						},
 					})
 				: null,
@@ -111,17 +111,16 @@ export class NavButton implements Component<NavButtonAttrs> {
 	}
 
 	createButtonAttributes(a: NavButtonAttrs): RouteLinkAttrs {
-		const isCurrent = isNavButtonSelected(a)
-
+		const isCurrent = this._draggedOver || (isNavButtonSelected(a) && !a.disableSelectedBackground)
 		let attr: RouteLinkAttrs = {
 			role: "button",
 			"aria-current": isCurrent || undefined,
 			// role button for screen readers
 			href: this._getUrl(a.href),
 			style: {
-				color: isCurrent || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
 				"font-size": a.fontSize ? px(a.fontSize) : "",
-				background: (isCurrent && a.persistentBackground) || this._draggedOver ? stateBgHover : "",
+				color: this._draggedOver || isNavButtonSelected(a) ? theme.primary : theme.on_surface_variant,
+				...(isCurrent && { background: theme.state_bg_active }),
 			},
 			title: lang.getTranslationText(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
@@ -211,29 +210,6 @@ export const enum NavButtonColor {
 	Header = "header",
 	Nav = "nav",
 	Content = "content",
-}
-
-function getColors(buttonColors: NavButtonColor | null | undefined) {
-	switch (buttonColors) {
-		case NavButtonColor.Header:
-			return {
-				button: styles.isDesktopLayout() ? theme.on_surface_variant : theme.primary,
-				button_selected: styles.isDesktopLayout() ? theme.primary : theme.primary,
-			}
-
-		case NavButtonColor.Nav:
-			return {
-				button: theme.on_surface_variant,
-				button_selected: theme.primary,
-			}
-
-		default:
-			// for nav buttons in the more dropdown menu
-			return {
-				button: theme.on_surface_variant,
-				button_selected: theme.primary,
-			}
-	}
 }
 
 export function isNavButtonSelected(a: NavButtonAttrs): boolean {
