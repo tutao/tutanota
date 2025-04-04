@@ -6,7 +6,7 @@ import { Stage } from "@tutao/tutanota-usagetests"
 
 export function createEvent(deviceConfig: DeviceConfig): void {
 	const retentionPeriod: number = 30
-	let events = deviceConfig.getEvents().filter((event) => isWithinLastNDays(new Date(), event, retentionPeriod))
+	const events = deviceConfig.getEvents().filter((event) => isWithinLastNDays(new Date(), event, retentionPeriod))
 	events.push(new Date())
 	deviceConfig.writeEvents(events)
 }
@@ -15,8 +15,7 @@ export function isWithinLastNDays(now: Date, date: Date, days: number) {
 	return DateTime.fromJSDate(now).diff(DateTime.fromJSDate(date), "days").days < days
 }
 
-export enum RatingCheckResult {
-	RATING_ALLOWED,
+export enum RatingDisallowReason {
 	UNSUPPORTED_PLATFORM,
 	LAST_RATING_TOO_YOUNG,
 	APP_INSTALLATION_TOO_YOUNG,
@@ -26,40 +25,44 @@ export enum RatingCheckResult {
 
 /**
  * Determines if we are allowed to ask the user for their rating.
- * It is possible that the user delayed his choice or if we already asked them within the past year.
+ * It is possible that the user delayed their choice or if we already asked them within the past year.
  *
- * 1. The app must be running on an iOS device.
+ * 1. The app must be running on a supported platform.
  * 2. The app installation date and customer creation date must both be at least 7 days in the past.
  * 3. The dialog must not have been shown within the last year (When the dialog is dismissed with the cancel button it is not considered being shown).
  * 4. The retry prompt timer (if set) must have expired.
+ *
+ * @returns A list of reasons why the rating prompt is disallowed. If the list is empty, it is allowed to ask the user for their rating.
  */
-export async function getRatingAllowed(now: Date, deviceConfig: DeviceConfig, isApp: boolean): Promise<RatingCheckResult> {
+export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceConfig, isApp: boolean): Promise<RatingDisallowReason[]> {
+	const disallowReasons: RatingDisallowReason[] = []
+
 	if (!isApp) {
-		return RatingCheckResult.UNSUPPORTED_PLATFORM
+		disallowReasons.push(RatingDisallowReason.UNSUPPORTED_PLATFORM)
 	}
 
 	const lastRatingPromptedDate: Date | null = deviceConfig.getLastRatingPromptedDate()
 
 	if (lastRatingPromptedDate != null && DateTime.fromJSDate(now).diff(DateTime.fromJSDate(lastRatingPromptedDate), "years").years < 1) {
-		return RatingCheckResult.LAST_RATING_TOO_YOUNG
+		disallowReasons.push(RatingDisallowReason.LAST_RATING_TOO_YOUNG)
 	}
 
 	const appInstallationDate = await locator.systemFacade.getInstallationDate().then((rawDate) => new Date(Number(rawDate)))
 	if (isWithinLastNDays(now, appInstallationDate, 7)) {
-		return RatingCheckResult.APP_INSTALLATION_TOO_YOUNG
+		disallowReasons.push(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG)
 	}
 
 	const customerCreationDate = (await locator.logins.getUserController().loadCustomerInfo()).creationTime
 	if (isWithinLastNDays(now, customerCreationDate, 7)) {
-		return RatingCheckResult.ACCOUNT_TOO_YOUNG
+		disallowReasons.push(RatingDisallowReason.ACCOUNT_TOO_YOUNG)
 	}
 
 	const retryRatingPromptAfter = deviceConfig.getRetryRatingPromptAfter()
 	if (retryRatingPromptAfter != null && now.getTime() < retryRatingPromptAfter.getTime()) {
-		return RatingCheckResult.RATING_DISMISSED
+		disallowReasons.push(RatingDisallowReason.RATING_DISMISSED)
 	}
 
-	return RatingCheckResult.RATING_ALLOWED
+	return disallowReasons
 }
 
 /**
