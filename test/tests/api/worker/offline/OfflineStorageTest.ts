@@ -329,6 +329,15 @@ o.spec("OfflineStorageDb", function () {
 					await storage.deleteAllOwnedBy(groupId)
 					verify(customCacheHandler.onBeforeDelete?.(id))
 				})
+
+				o.test("removes last batch id for the deleted group", async function () {
+					await storage.putLastBatchIdForGroup("group1", "batch1")
+					await storage.putLastBatchIdForGroup("group2", "batch2")
+
+					await storage.deleteAllOwnedBy("group1")
+					o(await storage.getLastBatchIdForGroup("group1")).equals(null)
+					o(await storage.getLastBatchIdForGroup("group2")).equals("batch2")
+				})
 			})
 
 			o.test("deleteIn calls the cache handler", async function () {
