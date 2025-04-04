@@ -11,7 +11,7 @@ import { appStorePlanName, getPreconditionFailedPaymentMsg, UpgradeType } from "
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { TextField } from "../gui/base/TextField.js"
-import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { base64ExtToBase64, base64ToUint8Array, isEmpty, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -21,7 +21,7 @@ import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePay
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../api/common/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
-import { getRatingAllowed, RatingCheckResult } from "../ratings/InAppRatingUtils.js"
+import { evaluateRatingEligibility, RatingDisallowReason } from "../ratings/InAppRatingUtils.js"
 import { showAppRatingDialog } from "../ratings/InAppRatingDialog.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { isApp, isIOSApp } from "../api/common/Env.js"
@@ -87,8 +87,12 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 				return this.close(data, this.dom)
 			})
 			.then(async () => {
-				const ratingCheckResult = await getRatingAllowed(new Date(), deviceConfig, isApp())
-				if (ratingCheckResult === RatingCheckResult.RATING_ALLOWED) {
+				// We show the rating dialog after a successful upgrade. The account age and app installation age are not checked here.
+				const disallowReasons = (await evaluateRatingEligibility(new Date(), deviceConfig, isApp())).filter(
+					(r) => r !== RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG && r !== RatingDisallowReason.ACCOUNT_TOO_YOUNG,
+				)
+
+				if (isEmpty(disallowReasons)) {
 					setTimeout(async () => {
 						showAppRatingDialog("Upgrade")
 					}, 2000)
