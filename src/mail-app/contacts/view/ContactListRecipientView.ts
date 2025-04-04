@@ -43,7 +43,7 @@ export class ContactListRecipientView implements Component<ContactListViewAttrs>
 			},
 			listModel == null || listModel.isEmptyAndDone()
 				? m(ColumnEmptyMessageBox, {
-						color: theme.on_surface_fade,
+						color: theme.on_surface_variant,
 						message: "noEntries_msg",
 						icon: Icons.People,
 					})
