@@ -270,6 +270,8 @@ export const NewBusinessPlans: AvailablePlanType[] = [PlanType.Essential, PlanTy
 export const NewPersonalPlans: AvailablePlanType[] = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
 
 export const LegacyPlans = [PlanType.Premium, PlanType.PremiumBusiness, PlanType.Teams, PlanType.TeamsBusiness, PlanType.Pro]
+export const LegacyPrivatePlans = [PlanType.Premium, PlanType.Teams]
+export const LegacyBusinessPlans = [PlanType.Pro, PlanType.TeamsBusiness, PlanType.PremiumBusiness]
 export const HighlightedPlans: AvailablePlanType[] = [PlanType.Revolutionary, PlanType.Advanced]
 export const HighestTierPlans: PlanType[] = [PlanType.Legend, PlanType.Unlimited]
 
@@ -1305,3 +1307,11 @@ export const TUTA_MAIL_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/det
 export const TUTA_MAIL_APP_STORE_URL = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
 export const TUTA_CALENDAR_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.calendar"
 export const TUTA_CALENDAR_APP_STORE_URL = "https://apps.apple.com/app/tuta-calendar-planner-app/id6657977811"
+
+/**
+ * Gets the current date defined in the global `Const` object for testing purposes.
+ * If null, fall back to the given parameter which defaults to `new Date()`
+ */
+export function getCurrentDate(fallback = new Date()) {
+	return Const.CURRENT_DATE ?? fallback
+}

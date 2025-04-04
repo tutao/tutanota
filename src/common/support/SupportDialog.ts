@@ -95,7 +95,7 @@ export async function showSupportDialog(logins: LoginController) {
 			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
 		},
 		contactSupport: {
-			content: m(ContactSupportPage, { data, goToSuccessPage: () => navigateToPage("supportRequestSent") }),
+			content: m(ContactSupportPage, { data, onSuccess: () => navigateToPage("supportRequestSent") }),
 			title: lang.get("supportMenu_label"),
 			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
 		},

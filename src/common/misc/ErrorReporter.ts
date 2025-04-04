@@ -380,6 +380,7 @@ function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackCo
 export function clientInfoString(
 	timestamp: Date,
 	loggedIn: boolean,
+	lineBreak = "\n",
 ): {
 	message: string
 	client: string
@@ -399,12 +400,12 @@ export function clientInfoString(
 		}
 	})()
 
-	let message = `\n\n Client: ${client}`
-	message += `\n Type: ${type}`
-	message += `\n Tutanota version: ${env.versionNumber}`
-	message += `\n Timestamp (UTC): ${timestamp.toUTCString()}`
-	message += `\n Time zone: ${getTimeZone()}`
-	message += `\n User agent: ${navigator.userAgent}\n`
+	let message = `${lineBreak}${lineBreak} Client: ${client}`
+	message += `${lineBreak} Type: ${type}`
+	message += `${lineBreak} Tutanota version: ${env.versionNumber}`
+	message += `${lineBreak} Timestamp (UTC): ${timestamp.toUTCString()}`
+	message += `${lineBreak} Time zone: ${getTimeZone()}`
+	message += `${lineBreak} User agent: ${navigator.userAgent}${lineBreak}`
 	return {
 		message,
 		client,

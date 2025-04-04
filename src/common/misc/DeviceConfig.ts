@@ -504,18 +504,12 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 		}
 	}
 
-	/**
-	 * Sets the date of the earliest possible next date from which another rating can be requested from the user.
-	 */
-	public setRetryRatingPromptAfter(date: Date): void {
+	public setNextEvaluationDate(date: Date): void {
 		this.config.retryRatingPromptAfter = date.getTime()
 		this.writeToStorage()
 	}
 
-	/**
-	 * Gets the date of the earliest possible next date from which another rating can be requested from the user.
-	 */
-	public getRetryRatingPromptAfter(): Date | null {
+	public getNextEvaluationDate(): Date | null {
 		if (this.config.retryRatingPromptAfter == null) {
 			return null
 		}
