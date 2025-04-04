@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { CounterBadge } from "../../../common/gui/base/CounterBadge"
-import { getNavButtonIconBackground, theme } from "../../../common/gui/theme"
+import { theme } from "../../../common/gui/theme"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MinimizedEditor, MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewModel"
 import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
@@ -61,8 +61,8 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 					top: COUNTER_POS_OFFSET,
 					right: COUNTER_POS_OFFSET,
 				},
-				color: theme.navigation_button_icon,
-				background: getNavButtonIconBackground(),
+				color: theme.surface_container,
+				background: theme.on_surface_variant,
 			}),
 			m(".flex.justify-between.pb-xs.pt-xs", [
 				m(

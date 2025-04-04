@@ -25,7 +25,7 @@ function getBgColor(isSelected: boolean) {
 		if (isSelected) {
 			return theme.experimental_primary_container
 		} else {
-			return theme.content_bg
+			return theme.surface
 		}
 	} else {
 		if (isSelected) {
@@ -63,7 +63,7 @@ function getTextColor(isSelected: boolean, isDisabled: boolean, hasCampaign?: bo
 	if (isSelected) {
 		return localTheme.experimental_on_primary_container
 	} else {
-		return localTheme.content_fg
+		return localTheme.on_surface
 	}
 }
 
@@ -75,13 +75,13 @@ function getOutlineColor(isSelected: boolean) {
 		if (isSelected) {
 			return "transparent"
 		} else {
-			return theme.content_border
+			return theme.on_surface
 		}
 	} else {
 		if (isSelected) {
 			return "transparent"
 		} else {
-			return theme.content_fg
+			return theme.on_surface
 		}
 	}
 }
@@ -104,7 +104,7 @@ function getFeatureIconColor(isSelected: boolean, isDisabled: boolean, planType:
 		if (isSelected) {
 			return localTheme.experimental_tertiary
 		} else {
-			return localTheme.content_accent
+			return localTheme.primary
 		}
 	}
 }

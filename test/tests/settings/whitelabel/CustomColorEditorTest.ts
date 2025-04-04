@@ -18,11 +18,7 @@ o.spec("SimpleColorEditor", function () {
 	let defaultTheme
 	// These customizations should always be set if no changes are made
 	const defaultCustomizations: ThemeCustomizations = downcast({
-		list_accent_fg: "#850122",
-		content_accent: "#850122",
-		content_button_selected: "#850122",
-		navigation_button_selected: "#850122",
-		header_button_selected: "#850122",
+		primary: "#850122",
 		base: "light",
 	})
 	let entityClient: EntityClient
@@ -68,14 +64,10 @@ o.spec("SimpleColorEditor", function () {
 		o("open Editor with custom theme, all customizations should be applied", async function () {
 			const customizations: ThemeCustomizations = downcast({
 				themeId: "test.domain.com",
-				list_accent_fg: "#ee051f",
-				content_accent: "#ee051f",
-				content_button_selected: "#ee051f",
-				navigation_button_selected: "#ee051f",
-				header_button_selected: "#ee051f",
+				primary: "#ee051f",
 				base: "dark",
-				content_bg: "#1df3ed",
-				modal_bg: "#1aa1aa",
+				surface: "#1df3ed",
+				scrim: "#1aa1aa",
 			})
 			model = new CustomColorsEditorViewModel(
 				defaultTheme,
@@ -86,7 +78,7 @@ o.spec("SimpleColorEditor", function () {
 				entityClient,
 				loginController,
 			)
-			o(model.accentColor).equals(customizations.content_accent!)
+			o(model.accentColor).equals(customizations.primary!)
 			o(model.baseThemeId).equals(customizations.base!)
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
@@ -105,14 +97,14 @@ o.spec("SimpleColorEditor", function () {
 				entityClient,
 				loginController,
 			)
-			model.addCustomization("content_button", "#abcdef")
-			model.addCustomization("modal_bg", "#fedcba")
+			model.addCustomization("on_surface_variant", "#abcdef")
+			model.addCustomization("scrim", "#fedcba")
 			// should only contain 2 customizations here
 			o(model.customizations).deepEquals(
 				downcast(
 					Object.assign({}, defaultCustomizations, {
-						content_button: "#abcdef",
-						modal_bg: "#fedcba",
+						on_surface_variant: "#abcdef",
+						scrim: "#fedcba",
 					}),
 				),
 			)
@@ -121,8 +113,8 @@ o.spec("SimpleColorEditor", function () {
 			// should now equal the themeCustomizations including accentColor and baseTheme
 			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
 				Object.assign({}, defaultCustomizations, {
-					content_button: "#abcdef",
-					modal_bg: "#fedcba",
+					on_surface_variant: "#abcdef",
+					scrim: "#fedcba",
 					themeId: "test.domain.com",
 				}),
 			)
@@ -139,18 +131,18 @@ o.spec("SimpleColorEditor", function () {
 				entityClient,
 				loginController,
 			)
-			model.addCustomization("modal_bg", "#false")
-			model.addCustomization("button_bubble_bg", "#69")
-			model.addCustomization("content_fg", "#zzzzzz")
-			model.addCustomization("navigation_bg", "#abcdefghi")
+			model.addCustomization("scrim", "#false")
+			model.addCustomization("secondary", "#69")
+			model.addCustomization("on_surface", "#zzzzzz")
+			model.addCustomization("surface_container", "#abcdefghi")
 			// Customizations should hold the wrong key
 			o(model.customizations).deepEquals(
 				downcast(
 					Object.assign({}, defaultCustomizations, {
-						modal_bg: "#false",
-						button_bubble_bg: "#69",
-						content_fg: "#zzzzzz",
-						navigation_bg: "#abcdefghi",
+						scrim: "#false",
+						secondary: "#69",
+						on_surface: "#zzzzzz",
+						surface_container: "#abcdefghi",
 					}),
 				),
 			)
@@ -168,27 +160,27 @@ o.spec("SimpleColorEditor", function () {
 				entityClient,
 				loginController,
 			)
-			model.addCustomization("modal_bg", "#fedcba")
-			model.addCustomization("button_bubble_bg", "#69")
-			model.addCustomization("content_fg", "#deffed")
-			model.addCustomization("navigation_bg", "#abcdefghi")
-			model.addCustomization("content_button", "#abcdef")
+			model.addCustomization("scrim", "#fedcba")
+			model.addCustomization("secondary", "#69")
+			model.addCustomization("on_surface", "#deffed")
+			model.addCustomization("surface_container", "#abcdefghi")
+			model.addCustomization("on_surface_variant", "#abcdef")
 			o(model.customizations).deepEquals(
 				downcast(
 					Object.assign({}, defaultCustomizations, {
-						modal_bg: "#fedcba",
-						button_bubble_bg: "#69",
-						content_fg: "#deffed",
-						navigation_bg: "#abcdefghi",
-						content_button: "#abcdef",
+						scrim: "#fedcba",
+						secondary: "#69",
+						on_surface: "#deffed",
+						surface_container: "#abcdefghi",
+						on_surface_variant: "#abcdef",
 					}),
 				),
 			)
 			o(model._filterAndReturnCustomizations()).deepEquals(
 				Object.assign({}, defaultCustomizations, {
-					modal_bg: "#fedcba",
-					content_fg: "#deffed",
-					content_button: "#abcdef",
+					scrim: "#fedcba",
+					on_surface: "#deffed",
+					on_surface_variant: "#abcdef",
 				}),
 			)
 		})
@@ -203,9 +195,9 @@ o.spec("SimpleColorEditor", function () {
 				entityClient,
 				loginController,
 			)
-			model.addCustomization("modal_bg", "")
-			model.addCustomization("content_fg", "")
-			model.addCustomization("content_button", "")
+			model.addCustomization("scrim", "")
+			model.addCustomization("on_surface", "")
+			model.addCustomization("on_surface_variant", "")
 
 			// usually this is called on its own, since theres a debounce however it doesnt work in this test
 			model._removeEmptyCustomizations()
@@ -245,22 +237,18 @@ o.spec("SimpleColorEditor", function () {
 				entityClient,
 				loginController,
 			)
-			model.addCustomization("modal_bg", "#fedcba")
-			model.addCustomization("content_fg", "#deffed")
+			model.addCustomization("scrim", "#fedcba")
+			model.addCustomization("on_surface", "#deffed")
 			model.changeBaseTheme("dark")
 			model.changeAccentColor("#aaaaaa")
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
 			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
 				Object.assign({}, defaultCustomizations, {
-					modal_bg: "#fedcba",
-					content_fg: "#deffed",
+					scrim: "#fedcba",
+					on_surface: "#deffed",
 					base: "dark",
-					list_accent_fg: "#aaaaaa",
-					content_accent: "#aaaaaa",
-					content_button_selected: "#aaaaaa",
-					navigation_button_selected: "#aaaaaa",
-					header_button_selected: "#aaaaaa",
+					primary: "#aaaaaa",
 					themeId: "test.domain.com",
 				}),
 			)
@@ -286,11 +274,7 @@ o.spec("SimpleColorEditor", function () {
 		o("changing accent changed preview", async function () {
 			const customizations: ThemeCustomizations = downcast({})
 			const expectedCustomizations = {
-				list_accent_fg: "#ff00f2",
-				content_accent: "#ff00f2",
-				content_button_selected: "#ff00f2",
-				navigation_button_selected: "#ff00f2",
-				header_button_selected: "#ff00f2",
+				primary: "#ff00f2",
 				themeId: "test.domain.com",
 			}
 			model = new CustomColorsEditorViewModel(

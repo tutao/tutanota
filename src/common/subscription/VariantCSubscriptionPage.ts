@@ -345,7 +345,7 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, upd
 						size: IconSize.Large,
 						class: "mr-xsm",
 						style: {
-							fill: theme.content_accent,
+							fill: theme.primary,
 							"vertical-align": "sub",
 						},
 					}),

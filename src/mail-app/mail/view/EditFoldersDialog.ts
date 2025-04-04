@@ -77,7 +77,7 @@ export class EditFoldersDialog implements ModalComponent {
 					this._domDialog = vnode.dom as HTMLElement
 					let animation: AnimationPromise | null = null
 
-					const bgcolor = theme.navigation_bg
+					const bgcolor = theme.surface_container
 					const children = Array.from(this._domDialog.children) as Array<HTMLElement>
 					for (let child of children) {
 						child.style.opacity = "0"
@@ -115,7 +115,7 @@ export class EditFoldersDialog implements ModalComponent {
 					{
 						onscroll: (e: Event) => {
 							const target = e.target as HTMLElement
-							target.style.borderTop = `1px solid ${theme.content_border}`
+							target.style.borderTop = `1px solid ${theme.outline}`
 						},
 					},
 					this.folderList(),

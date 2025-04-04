@@ -19,7 +19,7 @@ export class MessageBox implements Component<MessageBoxAttrs> {
 					{
 						"white-space": "pre-wrap",
 						"text-align": "center",
-						border: `2px solid ${theme.content_border}`,
+						border: `2px solid ${theme.outline}`,
 					},
 					attrs.style,
 				),

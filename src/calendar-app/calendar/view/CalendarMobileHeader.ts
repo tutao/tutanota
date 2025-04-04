@@ -53,7 +53,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 								"text-decoration": "none",
 							},
 							expanded: attrs.isDaySelectorExpanded,
-							color: theme.content_fg,
+							color: theme.on_surface,
 							isBig: true,
 							isPropagatingEvents: true,
 							onExpandedChange: () => {},

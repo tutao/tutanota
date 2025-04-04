@@ -29,7 +29,7 @@ export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 				".text-pre.flex-grow",
 				{
 					style: {
-						borderBottom: `1px solid ${theme.content_border}`,
+						borderBottom: `1px solid ${theme.outline}`,
 						lineHeight: px(inputLineHeight),
 						minHeight: px(inputLineHeight),
 					},
