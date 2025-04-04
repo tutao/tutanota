@@ -25,6 +25,7 @@ export type TableStub = {
 export class DbStub {
 	_objectStores: { [name: string]: TableStub }
 	indexingSupported: boolean
+	deleted: boolean = false
 
 	private _id!: string
 
@@ -95,7 +96,7 @@ export class DbStub {
 	}
 
 	async deleteDatabase() {
-		// no-op
+		this.deleted = true
 	}
 }
 

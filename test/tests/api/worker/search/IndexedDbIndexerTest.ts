@@ -1203,4 +1203,34 @@ o.spec("IndexedDbIndexer", () => {
 			})
 		})
 	})
+	o.test("when deleteIndex", async function () {
+		const userId = "user-Id"
+		const queue = indexerTemplate.eventQueue
+		queue.pause = func<EventQueue["pause"]>()
+		queue.waitForEmptyQueue = func<EventQueue["waitForEmptyQueue"]>()
+		const queueWaitCalled = defer<void>()
+		const queueWaitDone = defer<void>()
+		when(queue.waitForEmptyQueue()).thenDo(() => {
+			queueWaitCalled.resolve()
+			return queueWaitDone.promise
+		})
+
+		const deletePromise = indexerTemplate.deleteIndex(userId)
+		await queueWaitCalled
+		verify(queue.pause())
+		verify(mailIndexer.disableMailIndexing())
+		verify(core.stopProcessing())
+		o.check(idbStub.deleted).equals(false)
+		queueWaitDone.resolve()
+		await deletePromise
+		o.check(idbStub.deleted).equals(true)
+	})
+
+	o.test("when cancel Indexing", function () {
+		const queue = indexerTemplate.eventQueue
+		queue.resume = func<EventQueue["resume"]>()
+		indexerTemplate.cancelMailIndexing()
+		verify(mailIndexer.cancelMailIndexing())
+		verify(queue.resume())
+	})
 })
