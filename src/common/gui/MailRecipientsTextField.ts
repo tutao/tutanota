@@ -93,7 +93,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 						icon: Icons.Shield,
 						size: IconSize.Normal,
 						style: {
-							fill: theme.content_accent,
+							fill: theme.primary,
 							position: "relative",
 							top: "2px",
 							right: "1px",
@@ -187,7 +187,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 							firstRow: m(Icon, {
 								icon: Icons.People,
 								style: {
-									fill: theme.content_fg,
+									fill: theme.on_surface,
 									"aria-describedby": lang.get("contactListName_label"),
 								},
 							}),
