@@ -773,6 +773,8 @@ styles.registerStyle("main", () => {
 			"align-items": "center",
 			height: "54px !important",
 			gap: px(size.hpad_button),
+			"background-color": theme.primary,
+			color: theme.on_primary,
 		},
 		".go-european-button-legacy": {
 			"background-color": "#FEDC59",
