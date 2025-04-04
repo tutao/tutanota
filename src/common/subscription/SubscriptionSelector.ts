@@ -168,8 +168,9 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
 		}
 
+		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
+
 		function getFootnoteElement(): Children {
-			const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 			if (!isIOSApp() && isTutaBirthdayCampaign && !options.businessUse() && isYearly) {
 				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("pricing.legendAsterisk_msg")))
 			}
@@ -213,7 +214,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				priceInfoTextId,
 				options.businessUse(),
 				isTutaBirthdayCampaign,
-				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan,
+				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && (!currentPlanType || currentPlanType === PlanType.Free),
 			),
 			m(
 				".flex.center-horizontally.wrap",
@@ -340,7 +341,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
 			isYearly &&
 			// Not showing first month free offer for the paid plan switching
-			(selectorAttrs.currentPlanType === null ? true : selectorAttrs.currentPlanType === PlanType.Free) &&
+			(!selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free) &&
 			targetSubscription !== PlanType.Free
 
 		return {
