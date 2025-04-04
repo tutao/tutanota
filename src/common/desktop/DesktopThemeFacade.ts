@@ -7,9 +7,8 @@ import electron from "electron"
 
 const LIGHT_FALLBACK_THEME: Partial<Theme> = {
 	themeId: "light-fallback",
-	content_bg: "#ffffff",
-	header_bg: "#ffffff",
-	navigation_bg: "#f6f6f6",
+	surface: "#ffffff",
+	surface_container: "#f6f6f6",
 }
 
 /**

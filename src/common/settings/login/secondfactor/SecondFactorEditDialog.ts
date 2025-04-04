@@ -204,7 +204,7 @@ export class SecondFactorEditDialog {
 					icon: Icons.Checkmark,
 					size: IconSize.Medium,
 					style: {
-						fill: theme.content_accent,
+						fill: theme.primary,
 					},
 				})
 
@@ -213,7 +213,7 @@ export class SecondFactorEditDialog {
 					icon: Icons.Cancel,
 					size: IconSize.Medium,
 					style: {
-						fill: theme.content_accent,
+						fill: theme.primary,
 					},
 				})
 

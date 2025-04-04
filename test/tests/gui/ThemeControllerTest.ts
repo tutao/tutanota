@@ -35,7 +35,7 @@ o.spec("ThemeController", function () {
 	o("updateCustomTheme", async function () {
 		const theme: ThemeCustomizations = downcast({
 			themeId: "HelloFancyId",
-			content_bg: "#fffeee",
+			surface: "#fffeee",
 			logo: "unsanitized_logo",
 			base: "light",
 		})
@@ -46,9 +46,9 @@ o.spec("ThemeController", function () {
 		verify(themeFacadeMock.setThemes(captor.capture()))
 		const savedTheme = captor.values![0][4]
 		o(savedTheme.themeId).equals("HelloFancyId")
-		o(savedTheme.content_bg).equals("#fffeee")
+		o(savedTheme.surface).equals("#fffeee")
 		o(savedTheme.logo).equals("sanitized")
-		o(savedTheme.content_fg).equals(themeManager.getDefaultTheme().content_fg)
+		o(savedTheme.on_surface).equals(themeManager.getDefaultTheme().on_surface)
 		o(themeManager.getCurrentTheme().logo).equals("sanitized")
 	})
 

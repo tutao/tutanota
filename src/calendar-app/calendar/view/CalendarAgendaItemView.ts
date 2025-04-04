@@ -64,7 +64,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 				if (isFocused) {
 					return stateBgFocus
 				} else {
-					return theme.list_bg
+					return theme.surface
 				}
 			}
 		} else {

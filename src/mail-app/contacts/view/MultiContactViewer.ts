@@ -23,7 +23,7 @@ export class MultiContactViewer implements Component<MultiContactViewerAttrs> {
 			m(ColumnEmptyMessageBox, {
 				message: getContactSelectionMessage(attrs.selectedEntities.length),
 				icon: BootIcons.Contacts,
-				color: theme.content_message_bg,
+				color: theme.on_surface_fade,
 				bottomContent:
 					attrs.selectedEntities.length > 0
 						? m(Button, {
@@ -32,7 +32,7 @@ export class MultiContactViewer implements Component<MultiContactViewerAttrs> {
 								click: () => attrs.selectNone(),
 							})
 						: undefined,
-				backgroundColor: theme.navigation_bg,
+				backgroundColor: theme.surface_container,
 			}),
 		]
 	}
