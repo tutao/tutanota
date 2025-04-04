@@ -37,7 +37,6 @@ import {
 	$Promisable,
 	arrayHash,
 	assertNotNull,
-	byteLength,
 	defer,
 	DeferredObject,
 	findLastIndex,
@@ -64,7 +63,6 @@ import {
 	encryptMetaData,
 	encryptSearchIndexEntry,
 	getIdFromEncSearchIndexEntry,
-	getPerformanceTimestamp,
 	typeRefToTypeInfo,
 } from "../../../common/api/worker/search/IndexUtils.js"
 import type {
@@ -138,18 +136,6 @@ export class IndexerCore {
 	private _promiseMapCompat: PromiseMapFn
 	private _needsExplicitIds: boolean
 	private _explicitIdStart: number
-	_stats!: {
-		indexingTime: number
-		storageTime: number
-		preparingTime: number
-		mailcount: number
-		storedBytes: number
-		encryptionTime: number
-		writeRequests: number
-		largestColumn: number
-		words: number
-		indexedBytes: number
-	}
 
 	constructor(db: EncryptedDbWrapper, browserData: BrowserData) {
 		this.db = db
@@ -157,7 +143,6 @@ export class IndexerCore {
 		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
 		this._needsExplicitIds = browserData.needsExplicitIDBIds
 		this._explicitIdStart = Date.now()
-		this.resetStats()
 	}
 
 	async storeMetadata(key: keyof typeof Metadata, value: unknown): Promise<void> {
@@ -186,7 +171,6 @@ export class IndexerCore {
 
 			const value = attributeHandler.value()
 			const tokens = tokenize(value)
-			this._stats.indexedBytes += byteLength(value)
 
 			const tokenToEntry: Map<string, SearchIndexEntry> = new Map()
 			for (const [index, token] of tokens.entries()) {
@@ -216,7 +200,6 @@ export class IndexerCore {
 	 */
 	async encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): Promise<void> {
 		const { key, iv } = await this.db.encryptionData()
-		const encryptionTimeStart = getPerformanceTimestamp()
 		const listId = listIdPart(id)
 		const encInstanceId = encryptIndexKeyUint8Array(key, elementIdPart(id), iv)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceId)
@@ -237,7 +220,6 @@ export class IndexerCore {
 			encWordsB64,
 			ownerGroup,
 		})
-		this._stats.encryptionTime += getPerformanceTimestamp() - encryptionTimeStart
 	}
 
 	/**
@@ -300,10 +282,6 @@ export class IndexerCore {
 		return this._writeIndexUpdate(indexUpdate, (t) => this._updateGroupDataIndexTimestamp(dataPerGroup, t))
 	}
 
-	writeIndexUpdateWithBatchId(groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
-		return this._writeIndexUpdate(indexUpdate, (t) => this._updateGroupDataBatchId(groupId, batchId, t))
-	}
-
 	writeIndexUpdate(indexUpdate: IndexUpdate): Promise<void> {
 		return this._writeIndexUpdate(indexUpdate, noOp)
 	}
@@ -324,8 +302,6 @@ export class IndexerCore {
 			transaction: null,
 			transactionFactory: () => this.db.dbFacade.createTransaction(false, [SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS]),
 			operation: (transaction) => {
-				let startTimeStorage = getPerformanceTimestamp()
-
 				if (this._isStopped) {
 					return Promise.reject(new CancelledError("mail indexing cancelled"))
 				}
@@ -338,11 +314,8 @@ export class IndexerCore {
 							(rowKeys: EncWordToMetaRow | null) => rowKeys && this._insertNewElementData(indexUpdate, transaction, rowKeys, encryptionData),
 						)
 						.thenOrApply(() => updateGroupData(transaction))
-						.thenOrApply(() => {
-							return transaction.wait().then(() => {
-								this._stats.storageTime += getPerformanceTimestamp() - startTimeStorage
-							})
-						}) // a la catch(). Must be done in the next step because didReject is not invoked for the current Promise, only for the previous one.
+						.thenOrApply(() => transaction.wait())
+						// a la catch(). Must be done in the next step because didReject is not invoked for the current Promise, only for the previous one.
 						// It's probably a bad idea to convert to the Promise first and then catch because it may do Promise.resolve() and this will schedule to
 						// the next event loop iteration and the context will be closed and it will be too late to abort(). Even worse, it will be commited to
 						// IndexedDB already and it will be inconsistent (oops).
@@ -573,10 +546,6 @@ export class IndexerCore {
 				return writeResult.thenOrApply(() => metaData).value
 			})
 			.then((metaData) => {
-				const columnSize = metaData.rows.reduce((result, metaDataEntry) => result + metaDataEntry.size, 0)
-				this._stats.writeRequests += 1
-				this._stats.largestColumn = columnSize > this._stats.largestColumn ? columnSize : this._stats.largestColumn
-				this._stats.storedBytes += encryptedEntries.reduce((sum, e) => sum + e.entry.length, 0)
 				encWordToMetaRow[encWordB64] = metaData.id
 				return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(encryptionData.key, metaData))
 			})
@@ -905,7 +874,6 @@ export class IndexerCore {
 				}
 
 				return transaction.put(SearchIndexMetaDataOS, null, metaTemplate).then((rowId) => {
-					this._stats.words += 1
 					return {
 						id: rowId,
 						word: encWordBase64,
@@ -983,30 +951,6 @@ export class IndexerCore {
 		if (this._isStopped) {
 			throw new CancelledError("indexing cancelled")
 		}
-	}
-
-	// FIXME cleanup stats from core
-	resetStats() {
-		this._stats = {
-			indexingTime: 0,
-			storageTime: 0,
-			preparingTime: 0,
-			mailcount: 0,
-			storedBytes: 0,
-			encryptionTime: 0,
-			writeRequests: 0,
-			largestColumn: 0,
-			words: 0,
-			indexedBytes: 0,
-		}
-	}
-
-	printStatus() {
-		const totalTime = this._stats.storageTime + this._stats.preparingTime
-		const statsWithDownloading = Object.assign({}, this._stats, {
-			downloadingTime: this._stats.preparingTime - this._stats.indexingTime - this._stats.encryptionTime,
-		})
-		console.log(JSON.stringify(statsWithDownloading), "total time: ", totalTime)
 	}
 
 	async areContactsIndexed(contactList: ContactList): Promise<boolean> {

@@ -1,4 +1,3 @@
-import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade"
 import { IndexerCore } from "./IndexerCore"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { File as TutanotaFile, Mail, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
@@ -10,7 +9,7 @@ import {
 	LEGACY_CC_RECIPIENTS_ID,
 	LEGACY_TO_RECIPIENTS_ID,
 } from "../../../common/api/common/utils/EntityUtils"
-import { Metadata, MetaDataOS } from "../../../common/api/worker/search/IndexTables"
+import { Metadata } from "../../../common/api/worker/search/IndexTables"
 import { IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
 import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
@@ -123,7 +122,6 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 			},
 		])
 
-		this.core._stats.indexingTime += getPerformanceTimestamp() - startTimeIndex
 		return keyToIndexEntries
 	}
 }
