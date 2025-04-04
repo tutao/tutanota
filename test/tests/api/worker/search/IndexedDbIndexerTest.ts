@@ -1229,4 +1229,25 @@ o.spec("IndexedDbIndexer", () => {
 		verify(mailIndexer.cancelMailIndexing())
 		verify(queue.resume())
 	})
+
+	o.test("_stopProcessing", async function () {
+		const queue = indexerTemplate.eventQueue
+		queue.waitForEmptyQueue = func<EventQueue["waitForEmptyQueue"]>()
+
+		const queueEmptyPromise = defer<void>()
+		when(queue.waitForEmptyQueue()).thenReturn(queueEmptyPromise.promise)
+
+		let processingStopped = false
+		const stopProcessingPromise = indexerTemplate._stopProcessing()
+		verify(core.stopProcessing())
+		verify(mailIndexer.cancelMailIndexing())
+
+		stopProcessingPromise.then(() => {
+			processingStopped = true
+		})
+		o.check(processingStopped).equals(false)
+		queueEmptyPromise.resolve()
+		await stopProcessingPromise
+		o.check(processingStopped).equals(true)
+	})
 })

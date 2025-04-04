@@ -276,7 +276,8 @@ export class IndexedDbIndexer implements Indexer {
 		await this.db.dbFacade.deleteDatabase(b64UserIdHash(userId))
 	}
 
-	private async stopProcessing() {
+	/** @private VisibleForTesting */
+	async _stopProcessing() {
 		this.core.stopProcessing()
 		this.eventQueue.pause()
 		this.mailIndexer.cancelMailIndexing()
@@ -636,7 +637,7 @@ export class IndexedDbIndexer implements Indexer {
 			} else if (e instanceof InvalidDatabaseStateError) {
 				console.log("InvalidDatabaseStateError during _processEntityEvents")
 
-				this.stopProcessing()
+				this._stopProcessing()
 
 				return this.reCreateIndex()
 			} else {

@@ -22,10 +22,10 @@ import {
 	getIdFromEncSearchIndexEntry,
 	typeRefToTypeInfo,
 } from "../../../../../src/common/api/worker/search/IndexUtils.js"
-import { base64ToUint8Array, concat, defer, downcast, neverNull, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { spy } from "@tutao/tutanota-test-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { DbKey } from "../../../../../src/common/api/worker/search/DbFacade.js"
+import { DbKey, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { appendBinaryBlocks } from "../../../../../src/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore.js"
@@ -34,6 +34,7 @@ import { createTestEntity, makeCore } from "../../../TestUtils.js"
 import { Aes256Key, aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { resolveTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
+import { CancelledError } from "../../../../../src/common/api/common/error/CancelledError.js"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
@@ -1105,82 +1106,69 @@ o.spec("IndexerCore test", () => {
 		o(indexUpdate.delete.searchMetaRowToEncInstanceIds.size).equals(0)
 		o(indexUpdate.delete.encInstanceIds.length).equals(0)
 	})
-	// FIXME: move to indexer tests
-	// o("stopProcessing", async function () {
-	// 	const queue: EventQueue = downcast({
-	// 		_eventQueue: [],
-	// 		clear: spy(),
-	// 	})
-	// 	const deferred = defer()
-	// 	const transaction = {
-	// 		abort: noOp,
-	// 	}
-	// 	const core = makeCore({
-	// 		queue,
-	// 		db: {
-	// 			key: aes256RandomKey(),
-	// 			iv: fixedIv,
-	// 			dbFacade: {
-	// 				createTransaction: () => deferred.promise,
-	// 			} as any,
-	// 		},
-	// 	})
-	//
-	// 	const result = core._writeIndexUpdate(
-	// 		{
-	// 			move: [],
-	// 			delete: {
-	// 				searchMetaRowToEncInstanceIds: new Map(),
-	// 				encInstanceIds: [],
-	// 			},
-	// 			create: {
-	// 				encInstanceIdToElementData: new Map(),
-	// 				indexMap: new Map(),
-	// 			},
-	// 		} as any,
-	// 		null as any,
-	// 	)
-	//
-	// 	core.stopProcessing()
-	// 	// @ts-ignore
-	// 	o(queue.clear.invocations).deepEquals([[]])("Should clear queue")
-	//
-	// 	try {
-	// 		deferred.resolve(transaction)
-	// 		await result
-	// 		o(false).equals(true)("Should throw an error")
-	// 	} catch (e) {
-	// 		o(e instanceof CancelledError).equals(true)("Should throw cancelledError")
-	// 	}
-	// })
-	// o("startProcessing", async function () {
-	// 	const queue: EventQueue = downcast({
-	// 		_eventQueue: [1, 2, 3],
-	// 		clear: spy(),
-	// 	})
-	// 	const transaction: DbTransaction = downcast({
-	// 		get: () =>
-	// 			Promise.resolve(() => ({
-	// 				indexTimestamp: Date.now(),
-	// 			})),
-	// 		put: () => Promise.resolve(null),
-	// 		wait: () => Promise.resolve(),
-	// 	})
-	// 	const core = makeCore({
-	// 		queue,
-	// 		transaction,
-	// 	})
-	// 	core.stopProcessing()
-	// 	core.startProcessing()
-	// 	// Should not throw
-	// 	await core.writeIndexUpdateWithIndexTimestamps(
-	// 		[
-	// 			{
-	// 				groupId: "group-id",
-	// 				indexTimestamp: 0,
-	// 			},
-	// 		],
-	// 		_createNewIndexUpdate(mailTypeInfo),
-	// 	)
-	// })
+
+	o.test("stopProcessing", async function () {
+		const deferred = defer()
+		const transaction = {
+			abort: noOp,
+		}
+		const core = makeCore({
+			encryptionData: {
+				key: aes256RandomKey(),
+				iv: fixedIv,
+			},
+			transaction: {
+				createTransaction: () => deferred.promise,
+			} as any,
+		})
+
+		const result = core._writeIndexUpdate(
+			{
+				move: [],
+				delete: {
+					searchMetaRowToEncInstanceIds: new Map(),
+					encInstanceIds: [],
+				},
+				create: {
+					encInstanceIdToElementData: new Map(),
+					indexMap: new Map(),
+				},
+			} as any,
+			null as any,
+		)
+
+		core.stopProcessing()
+		try {
+			deferred.resolve(transaction)
+			await result
+			o.check(false).equals(true)("Should throw an error")
+		} catch (e) {
+			o.check(e instanceof CancelledError).equals(true)("Should throw cancelledError")
+		}
+	})
+	o.test("startProcessing", async function () {
+		const transaction: DbTransaction = downcast({
+			get: () =>
+				Promise.resolve(() => ({
+					indexTimestamp: Date.now(),
+				})),
+			put: () => Promise.resolve(null),
+			wait: () => Promise.resolve(),
+		})
+		const core = makeCore({
+			transaction,
+		})
+		core.stopProcessing()
+		core.startProcessing()
+		// Should not throw
+		await core.writeIndexUpdateWithIndexTimestamps(
+			[
+				{
+					groupId: "group-id",
+					indexTimestamp: 0,
+				},
+			],
+			_createNewIndexUpdate(mailTypeInfo),
+		)
+	})
 })
