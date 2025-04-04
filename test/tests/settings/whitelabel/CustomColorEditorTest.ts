@@ -18,7 +18,7 @@ o.spec("SimpleColorEditor", function () {
 	let defaultTheme
 	// These customizations should always be set if no changes are made
 	const defaultCustomizations: ThemeCustomizations = downcast({
-		primary: "#850122",
+		primary: "#8F4A4E",
 		base: "light",
 	})
 	let entityClient: EntityClient
@@ -57,7 +57,7 @@ o.spec("SimpleColorEditor", function () {
 				entityClient,
 				loginController,
 			)
-			o(model.accentColor).equals("#850122")
+			o(model.accentColor).equals("#8F4A4E")
 			o(model.baseThemeId).equals("light")
 			o(themeController.applyCustomizations.callCount).equals(1)
 		})
