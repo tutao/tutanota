@@ -5,8 +5,8 @@ import Stream from "mithril/stream"
 import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
-import { BaseThemeId, Theme, ThemeId, ThemePreference } from "./theme"
-import { logoDefaultGrey, themes } from "./builtinThemes"
+import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
+import { themes } from "./builtinThemes"
 import { getWhitelabelCustomizations, ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
@@ -293,10 +293,8 @@ export class ThemeController {
 			// This is a whitelabel theme where logo has not been overwritten.
 			// Generate a logo with muted colors. We do not want to color our logo in
 			// some random color.
-			const grayedLogo =
-				this.app === AppType.Calendar
-					? getCalendarLogoSvg(logoDefaultGrey, logoDefaultGrey, logoDefaultGrey)
-					: getMailLogoSvg(logoDefaultGrey, logoDefaultGrey, logoDefaultGrey)
+			const logoDefaultGrey = "#c5c7c7"
+			const grayedLogo = this.app === AppType.Calendar ? getCalendarLogoSvg(logoDefaultGrey) : getMailLogoSvg(logoDefaultGrey)
 			return { ...themeWithoutLogo, ...{ logo: grayedLogo } }
 		}
 	}
@@ -379,7 +377,7 @@ const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 	content_button_icon_selected: "on_primary",
 	content_accent: "primary",
 	content_border: "outline",
-	content_message_bg: "on_surface_fade",
+	content_message_bg: "on_surface_variant",
 	header_bg: "surface",
 	header_box_shadow_bg: "outline",
 	header_button: "on_surface_variant",
@@ -387,7 +385,7 @@ const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 	list_bg: "surface",
 	list_alternate_bg: "surface_container",
 	list_accent_fg: "primary",
-	list_message_bg: "on_surface_fade",
+	list_message_bg: "on_surface_variant",
 	list_border: "outline_variant",
 	modal_bg: "scrim",
 	elevated_bg: "surface",
@@ -407,11 +405,10 @@ const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
 	on_secondary: ["button_bubble_fg", "navigation_menu_icon"],
 	surface: ["content_bg", "header_bg", "list_bg", "elevated_bg"],
 	on_surface: ["content_fg"],
-	on_surface_variant: ["content_button", "header_button", "navigation_button"],
+	on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg"],
 	primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
 	on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon", "navigation_button_icon_selected"],
 	outline: ["content_border", "header_box_shadow_bg"],
-	on_surface_fade: ["content_message_bg", "list_message_bg"],
 	surface_container: ["list_alternate_bg", "navigation_bg"],
 	outline_variant: ["list_border", "navigation_border"],
 	scrim: ["modal_bg"],
