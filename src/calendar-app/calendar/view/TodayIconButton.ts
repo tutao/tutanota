@@ -22,7 +22,7 @@ export class TodayIconButton implements Component<TodayIconButtonAttrs> {
 				svgParameters: { date: new Date().getDate().toString() },
 				icon: Icons.Today,
 				style: {
-					fill: theme.content_button,
+					fill: theme.on_surface_variant,
 				},
 			}),
 			class: "icon-button state-bg",

@@ -32,7 +32,7 @@ export class FilterChip implements Component<FilterChipAttrs> {
 			selectors += ".pr-vpad-m"
 		}
 
-		const contentColor = selected ? on_secondary_fixed : theme.content_fg
+		const contentColor = selected ? on_secondary_fixed : theme.on_surface
 		return m(
 			selectors,
 			{

@@ -22,10 +22,10 @@ export class MainCreateButton implements Component<MainCreateButtonAttrs> {
 			onclick: vnode.attrs.click,
 			class: `full-width border-radius-big center b flash ${vnode.attrs.class}`,
 			style: {
-				border: `2px solid ${theme.content_accent}`,
+				border: `2px solid ${theme.primary}`,
 				// matching toolbar
 				height: px(size.button_height + size.vpad_xs * 2),
-				color: theme.content_accent,
+				color: theme.primary,
 			},
 		} satisfies BaseButtonAttrs)
 	}

@@ -363,7 +363,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					? m(ColumnEmptyMessageBox, {
 							icon: BootIcons.Mail,
 							message: "noMails_msg",
-							color: theme.list_message_bg,
+							color: theme.on_surface_fade,
 						})
 					: m(List, {
 							state: listModel.stateStream(),

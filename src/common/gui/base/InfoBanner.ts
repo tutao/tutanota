@@ -46,7 +46,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 			".center-vertically.border-bottom.pr-s.pl.border-radius.mt-xs",
 			{
 				style: {
-					border: `solid 2px ${type === BannerType.Warning ? theme.error_color : theme.content_border}`,
+					border: `solid 2px ${type === BannerType.Warning ? theme.error : theme.outline}`,
 					// keep the distance to the bottom of the banner the same in the case that buttons aren't present
 					minHeight: buttons.length > 0 ? undefined : px(37),
 				},
@@ -69,7 +69,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 		return m(Icon, {
 			icon,
 			style: {
-				fill: type === BannerType.Warning ? theme.error_color : theme.content_button,
+				fill: type === BannerType.Warning ? theme.error : theme.on_surface_variant,
 				display: "block",
 			},
 		})

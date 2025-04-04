@@ -2,6 +2,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { lang, MaybeTranslation, TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { ClickHandler } from "../GuiUtils.js"
 import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
+import { theme } from "../../theme.js"
 
 export interface OutlineButtonAttrs {
 	label: TranslationKey
@@ -28,6 +29,10 @@ export class OutlineButton implements ClassComponent<OutlineButtonAttrs> {
 			text: attrs.text ? lang.getTranslationText(attrs.text) : lang.getTranslationText(attrs.label),
 			onclick: attrs.onclick,
 			disabled: attrs.disabled,
+			style: {
+				borderColor: theme.outline,
+				color: theme.on_surface_variant,
+			},
 			class: this.resolveClasses(attrs.expanded, attrs.disabled),
 		} as BaseButtonAttrs)
 	}
