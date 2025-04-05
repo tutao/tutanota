@@ -130,6 +130,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		// Figuring out whether we have a new email assigned.
 		const oldViewModel = this.viewModel
 		this.viewModel = viewModel
+		console.log("💡 MailViewer got ViewModel:", viewModel, "Confirmed?", viewModel.isSenderConfirmed());
+
 		if (this.viewModel !== oldViewModel) {
 			this.loadAllListener.end(true)
 			this.loadAllListener = this.viewModel.loadCompleteNotification.map(async () => {
@@ -425,10 +427,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		// Override link clicks inside Shadow DOM to prevent navigation if sender is not confirmed
 		const isConfirmed = this.viewModel?.isSenderConfirmed?.() ?? false;
-
-		console.log("🔍 isSenderConfirmed:", isConfirmed);
-		console.log("🔍 isSenderTrusted:", this.viewModel?.isSenderTrusted?.());
-		console.log("🔍 senderStatus:", this.viewModel?.senderStatus);
 
 		wrapNode.querySelectorAll("a").forEach((link) => {
 		    const originalHref = link.getAttribute("data-original-href") || link.getAttribute("href") || "";

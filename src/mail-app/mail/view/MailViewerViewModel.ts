@@ -215,7 +215,8 @@ export class MailViewerViewModel {
 	    return this.trustedSenders()?.includes(senderEmail) ?? false;
 	}
 
-	public setSenderConfirmed(confirmed: boolean): void {
+	setSenderConfirmed(confirmed: boolean): void {
+		console.log("✅ setSenderConfirmed called on ViewModel:", this, "→ senderConfirmed =", confirmed);
 		this.senderConfirmed = confirmed;
 	}
 
