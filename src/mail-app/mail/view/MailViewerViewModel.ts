@@ -1236,16 +1236,18 @@ export class MailViewerViewModel {
 	}
 
 	expandMail(delayBodyRendering: Promise<unknown>): void {
-		this.loadAll(delayBodyRendering, { notify: true })
+		// Wait for sender data before loading mail
+		this.fetchSenderData().then(() => {
+			this.loadAll(delayBodyRendering, { notify: true });
+			m.redraw();
+		});
+		
 		if (this.isUnread()) {
-			// When we automatically mark email as read (e.g. opening it from notification) we don't want to run into offline errors, but we still want to mark
-			// the email as read once we log in.l
-			// It is appropriate to show the error when the user marks the email as unread explicitly but less so when they open it and just didn't reach the
-			// full login yet.
-			this.logins.waitForFullLogin().then(() => this.setUnread(false))
+			this.logins.waitForFullLogin().then(() => this.setUnread(false));
 		}
-		this.collapsed = false
+		this.collapsed = false;
 	}
+
 
 	collapseMail(): void {
 		this.collapsed = true
