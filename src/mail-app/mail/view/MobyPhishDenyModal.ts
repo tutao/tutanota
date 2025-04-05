@@ -86,25 +86,22 @@ export class MobyPhishDenyModal implements ModalComponent {
     /** Step 2: Confirmation modal */
     private renderSecondStep(): Children {
         return [
-            m("p", { style: { fontSize: "18px", fontWeight: "bold", textAlign: "center" } }, 
+            m("p", { style: { fontSize: "18px", fontWeight: "bold", textAlign: "center" } },
                 "Do you want to add this person as a known sender?"
             ),
-
             m("button.btn", {
                 onclick: async () => {
                     const senderEmail = this.viewModel.getSender().address;
                     const userEmail = this.viewModel.logins.getUserController().loginUsername;
-
                     try {
                         const response = await fetch(`${API_BASE_URL}/add-trusted`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ user_email: userEmail, trusted_email: senderEmail }),
                         });
-
                         if (response.ok) {
                             console.log(`Added sender: ${senderEmail}`);
-                            await this.viewModel.updateSenderStatus("added_to_trusted", "interacted");
+                            await this.viewModel.updateSenderStatus("added_to_trusted");
                             await this.viewModel.fetchSenderData();
                             if (this.modalHandle) {
                                 modal.remove(this.modalHandle);
@@ -121,11 +118,10 @@ export class MobyPhishDenyModal implements ModalComponent {
                 },
                 style: this.getButtonStyle("#D4EDDA", "#C3E6CB")
             }, "Add"),
-
             m("button.btn", {
                 onclick: async () => {
                     const senderEmail = this.viewModel.getSender().address;
-                    await this.viewModel.updateSenderStatus("denied", "interacted");
+                    await this.viewModel.updateSenderStatus("denied");
                     console.log(`Sender denied: ${senderEmail}`);
                     if (this.modalHandle) {
                         modal.remove(this.modalHandle);
@@ -138,6 +134,7 @@ export class MobyPhishDenyModal implements ModalComponent {
             }, "Continue without adding")
         ];
     }
+
 
     /** Reusable button styling */
     private getButtonStyle(defaultColor: string, hoverColor: string) {

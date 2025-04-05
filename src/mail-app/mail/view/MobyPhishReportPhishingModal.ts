@@ -73,7 +73,6 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                         onclick: async () => {
                             const senderEmail = this.viewModel.getSender().address;
                             const userEmail = this.viewModel.logins.getUserController().loginUsername;
-
                             try {
                                 // Step 1 – Add to trusted senders
                                 const addResponse = await fetch(`${API_BASE_URL}/add-trusted`, {
@@ -84,31 +83,25 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
                                         trusted_email: senderEmail
                                     }),
                                 });
-
                                 if (!addResponse.ok) {
                                     console.error("Failed to add sender to trusted list.");
                                     return;
                                 }
-
                                 console.log(`Sender added to trusted list: ${senderEmail}`);
-
                                 // Step 2 – Let viewModel handle status update, DOM re-render, etc.
-                                await this.viewModel.updateSenderStatus("confirmed", "interacted");
-
+                                await this.viewModel.updateSenderStatus("confirmed");
                                 // Step 3 – Close modal
                                 if (this.modalHandle) {
                                     modal.remove(this.modalHandle);
                                 } else {
                                     console.warn("No modal handle set");
                                 }
-
                                 m.redraw();
                             } catch (error) {
                                 console.error("Error confirming and trusting sender:", error);
                             }
-                        }
-,
-                        style: this.getButtonStyle("#5BC0DE", "#31B0D5") // Blue
+                        },
+                        style: this.getButtonStyle("#5BC0DE", "#31B0D5")
                     }, "Add as Trusted Sender"),
 
                     // "Cancel" button
