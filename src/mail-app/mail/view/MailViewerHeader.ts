@@ -58,7 +58,7 @@ export interface MailViewerHeaderAttrs {
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	oninit({ attrs }: Vnode<MailViewerHeaderAttrs>) {
         console.log("MailViewerHeader initialized");
-        console.log("🌀 MailViewerHeader initialized with trustedSenders:", attrs.viewModel.trustedSenders());
+        console.log("MailViewerHeader initialized with trustedSenders:", attrs.viewModel.trustedSenders());
     }
 
 	private detailsExpanded = false
@@ -739,169 +739,148 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}*/
 
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
-		console.log(viewModel);
-    	const senderEmail = viewModel.getSender().address;
-    	const senderStatus = viewModel.senderStatus; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
-    	const interactionType = viewModel.interactionType; // interacted, no_interaction
+	  const senderEmail = viewModel.getSender().address;
+	  const senderStatus = viewModel.senderStatus; // values: confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing, trusted_once
 
-    	if (interactionType === "interacted") {
-			if (senderStatus === "trusted_once") {
-				return m(InfoBanner, {
-					message: "mobyPhish_trust_once_loaded" as TranslationKey,
-					icon: Icons.Warning,
-					type: BannerType.Info,
-					helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-					buttons: []
-				});
-			}			
-    		return m(InfoBanner, {
-    		    message: `mobyPhish_sender_${String(senderStatus)}` as TranslationKey,
-    		    icon: Icons.CircleCheckmark,
-    		    type: BannerType.Info,
-    		    helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-    		    buttons: []
-    		});
-		}
-		
-
-    	const buttons: BannerButtonAttrs[] = [];
-
-	    if (viewModel.isSenderTrusted()) {
-
-		    const confirmButton: BannerButtonAttrs = {
-		        title: "mobyPhish_confirm",
-		    	label: "mobyPhish_confirm",
-				icon: m(Icon, { icon: Icons.Checkmark }),
-		        click: async () => {
-		        	await viewModel.updateSenderStatus("confirmed", "interacted");		        	
-	            	viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
-		        	m.redraw();
-		        },
-			    style: {
-			        backgroundColor: "green",
-			        color: "white",
-			        fontWeight: "bold",
-			        borderRadius: "8px",
-			        padding: "8px 12px",
-			    }
-		    };
-
-        	const denyButton: BannerButtonAttrs = {
-    	        title: "mobyPhish_deny",
-        	 	label: "mobyPhish_deny",
-    	        icon: m(Icon, { icon: Icons.Close}),
-    	        click: () => {
-					const modalInstance = new MobyPhishDenyModal(viewModel);
-					const handle = modal.display(modalInstance);
-					modalInstance.setModalHandle(handle);
-				},
-    		    style: {
-    		        backgroundColor: "red",
-    		        color: "white",
-    		        fontWeight: "bold",
-    		        borderRadius: "8px",
-    		        padding: "8px 12px",
-    		    }
-    	    };	
-
-    	    buttons.push(confirmButton, denyButton);
-
-	    } else {
-
-		    const confirmButton: BannerButtonAttrs = {
-		        title: "mobyPhish_confirm",
-		    	label: "mobyPhish_confirm",
-				icon: m(Icon, { icon: Icons.Checkmark }),
-		        click: () => {
-		        	const modalInstance = new MobyPhishReportPhishingModal(viewModel);
-		        	const handle = modal.display(modalInstance);
-		        	modalInstance.setModalHandle(handle);
-		        },
-			    style: {
-			        backgroundColor: "green",
-			        color: "white",
-			        fontWeight: "bold",
-			        borderRadius: "8px",
-			        padding: "8px 12px",
-			    }
-		    };
-
-        	const addButton: BannerButtonAttrs = {
-				title: "mobyPhish_add",
-				label: "mobyPhish_add",
-				icon: m(Icon, { icon: Icons.Add }),
-				click: async () => {
-					const senderEmail = viewModel.getSender().address;
-					const userEmail = viewModel.logins.getUserController().loginUsername;
-			
-					try {
-						const response = await fetch(`${API_BASE_URL}/add-trusted`, {
-							method: "POST",
-							headers: { "Content-Type": "application/json" },
-							body: JSON.stringify({
-								user_email: userEmail,
-								trusted_email: senderEmail
-							}),
-						});
-			
-						if (!response.ok) {
-							console.error("Failed to add sender to trusted list.");
-							return;
-						}
-			
-						console.log(`Sender added to trusted list: ${senderEmail}`);
-			
-						// Update email sender status
-						await viewModel.updateSenderStatus("confirmed", "interacted");
-			
-						m.redraw();
-			
-					} catch (error) {
-						console.error("Error adding sender:", error);
-					}
-				},
-				style: {
-					backgroundColor: "red",
-					color: "white",
-					fontWeight: "bold",
-					borderRadius: "8px",
-					padding: "8px 12px",
-				}
-			};
-			
-			const trustOnceButton: BannerButtonAttrs = {
-				title: "mobyPhish_trust_once",
-				label: "mobyPhish_trust_once",
-				icon: m(Icon, { icon: Icons.Unlock }),
-				click: async () => {
-					try {
-						await viewModel.updateSenderStatus("trusted_once", "interacted");
-						console.log("Trusted once: Content unblocked for this email only.");
-						m.redraw();
-					} catch (error) {
-						console.error("Error applying trust-once behavior:", error);
-					}
-				},
-				style: {
-					backgroundColor: "#f0ad4e", // yellow
-					color: "white",
-					fontWeight: "bold",
-					borderRadius: "8px",
-					padding: "8px 12px",
-				}
-			};
-			;
-
-    	    buttons.push(confirmButton, addButton, trustOnceButton);
-	    }  
-
+	  // If the sender is already trusted (via confirmation or trust once), we immediately unblock content.
+	  if (senderStatus === "confirmed" || senderStatus === "trusted_once") {
 	    return m(InfoBanner, {
-	        message: "mobyPhish_is_trusted",
-	        icon: Icons.Warning,
-	        type: BannerType.Warning,
-	        helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-	        buttons: buttons,
+	      message: `mobyPhish_sender_${String(senderStatus)}` as TranslationKey,
+	      icon: Icons.CircleCheckmark,
+	      type: BannerType.Info,
+	      helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+	      buttons: []
 	    });
+	  }
+
+	  const buttons: BannerButtonAttrs[] = [];
+	  
+	  if (viewModel.isSenderTrusted()) {
+	    const confirmButton: BannerButtonAttrs = {
+	      title: "mobyPhish_confirm",
+	      label: "mobyPhish_confirm",
+	      icon: m(Icon, { icon: Icons.Checkmark }),
+	      click: async () => {
+	        await viewModel.updateSenderStatus("confirmed");
+	        viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
+	        m.redraw();
+	      },
+	      style: {
+	        backgroundColor: "green",
+	        color: "white",
+	        fontWeight: "bold",
+	        borderRadius: "8px",
+	        padding: "8px 12px"
+	      }
+	    };
+
+	    const denyButton: BannerButtonAttrs = {
+	      title: "mobyPhish_deny",
+	      label: "mobyPhish_deny",
+	      icon: m(Icon, { icon: Icons.Close }),
+	      click: () => {
+	        const modalInstance = new MobyPhishDenyModal(viewModel);
+	        const handle = modal.display(modalInstance);
+	        modalInstance.setModalHandle(handle);
+	      },
+	      style: {
+	        backgroundColor: "red",
+	        color: "white",
+	        fontWeight: "bold",
+	        borderRadius: "8px",
+	        padding: "8px 12px"
+	      }
+	    };
+
+	    buttons.push(confirmButton, denyButton);
+	  } else {
+	    const confirmButton: BannerButtonAttrs = {
+	      title: "mobyPhish_confirm",
+	      label: "mobyPhish_confirm",
+	      icon: m(Icon, { icon: Icons.Checkmark }),
+	      click: () => {
+	        const modalInstance = new MobyPhishReportPhishingModal(viewModel);
+	        const handle = modal.display(modalInstance);
+	        modalInstance.setModalHandle(handle);
+	      },
+	      style: {
+	        backgroundColor: "green",
+	        color: "white",
+	        fontWeight: "bold",
+	        borderRadius: "8px",
+	        padding: "8px 12px"
+	      }
+	    };
+
+	    const addButton: BannerButtonAttrs = {
+	      title: "mobyPhish_add",
+	      label: "mobyPhish_add",
+	      icon: m(Icon, { icon: Icons.Add }),
+	      click: async () => {
+	        const senderEmail = viewModel.getSender().address;
+	        const userEmail = viewModel.logins.getUserController().loginUsername;
+	        try {
+	          const response = await fetch(`${API_BASE_URL}/add-trusted`, {
+	            method: "POST",
+	            headers: { "Content-Type": "application/json" },
+	            body: JSON.stringify({
+	              user_email: userEmail,
+	              trusted_email: senderEmail
+	            })
+	          });
+	          if (!response.ok) {
+	            console.error("Failed to add sender to trusted list.");
+	            return;
+	          }
+	          console.log(`Sender added to trusted list: ${senderEmail}`);
+	          await viewModel.updateSenderStatus("confirmed");
+	          m.redraw();
+	        } catch (error) {
+	          console.error("Error adding sender:", error);
+	        }
+	      },
+	      style: {
+	        backgroundColor: "red",
+	        color: "white",
+	        fontWeight: "bold",
+	        borderRadius: "8px",
+	        padding: "8px 12px"
+	      }
+	    };
+
+	    const trustOnceButton: BannerButtonAttrs = {
+	      title: "mobyPhish_trust_once",
+	      label: "mobyPhish_trust_once",
+	      icon: m(Icon, { icon: Icons.Unlock }),
+	      click: async () => {
+	        try {
+	          await viewModel.updateSenderStatus("trusted_once");
+	          await viewModel.setContentBlockingStatus(ContentBlockingStatus.Show);
+	          console.log("Trusted once: Content unblocked for this email only.");
+	          m.redraw();
+	        } catch (error) {
+	          console.error("Error applying trust-once behavior:", error);
+	        }
+	      },
+	      style: {
+	        backgroundColor: "#f0ad4e",
+	        color: "white",
+	        fontWeight: "bold",
+	        borderRadius: "8px",
+	        padding: "8px 12px"
+	      }
+	    };
+
+	    buttons.push(confirmButton, addButton, trustOnceButton);
+	  }
+
+	  return m(InfoBanner, {
+	    message: "mobyPhish_is_trusted",
+	    icon: Icons.Warning,
+	    type: BannerType.Warning,
+	    helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+	    buttons: buttons
+	  });
 	}
 
 	

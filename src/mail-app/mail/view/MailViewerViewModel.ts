@@ -186,13 +186,13 @@ export class MailViewerViewModel {
 	        this.senderStatus = statusData.status; // confirmed, denied, etc.
 	        this.interactionType = statusData.interaction_type;
 
-	        console.log("📬 Sender Data Fetched:", {
+	        console.log("Sender Data Fetched:", {
 	            trustedSenders: this.trustedSenders(),
 	            senderStatus: this.senderStatus,
 	            interactionType: this.interactionType
 	        });
 
-	        // 🔐 Logic to auto-confirm sender
+	        // Logic to auto-confirm sender
 	        const senderEmail = this.mail.sender.address;
 	        const isTrusted = this.trustedSenders().includes(senderEmail);
 	        const isConfirmed = this.senderStatus === "confirmed";
@@ -223,50 +223,50 @@ export class MailViewerViewModel {
 		return this.senderConfirmed;
 	}
 
-	async updateSenderStatus(status: string, interactionType: string): Promise<void> {
-	    const userEmail = this.logins.getUserController().loginUsername;
-	    const emailId = this.mail._id[1];
+	async updateSenderStatus(status: string): Promise<void> {
+	  const userEmail = this.logins.getUserController().loginUsername;
+	  const emailId = this.mail._id[1];
 
-	    try {
-	        const response = await fetch(`${API_BASE_URL}/update-email-status`, {
-	            method: "POST",
-	            headers: { "Content-Type": "application/json" },
-	            body: JSON.stringify({
-	                user_email: userEmail,
-	                email_id: emailId,
-	                sender_email: this.mail.sender.address,
-	                status: status,
-	                interaction_type: interactionType,
-	            }),
-	        });
+	  try {
+	    const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+	      method: "POST",
+	      headers: { "Content-Type": "application/json" },
+	      body: JSON.stringify({
+	        user_email: userEmail,
+	        email_id: emailId,
+	        sender_email: this.mail.sender.address,
+	        status: status
+	      }),
+	    });
 
-	        if (!response.ok) throw new Error("Failed to update sender status.");
+	    if (!response.ok) throw new Error("Failed to update sender status.");
 
-	        console.log(`Sender status updated: ${status}`);
-	        this.senderStatus = status;
-	        this.interactionType = interactionType;
+	    console.log(`Sender status updated: ${status}`);
+	    this.senderStatus = status;
 
-	        if (status === "confirmed" || status === "trusted_once") {
-	            this.setSenderConfirmed(true);
-	            this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
+	    await this.fetchSenderData();
 
-	            // Refresh trusted senders list
-	            await this.fetchSenderData();
+	    if (status === "confirmed") {
+	      this.setSenderConfirmed(true);
+	      this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 
-	            // Invalidate DOM + refresh view
-	            this.sanitizeResult = null;
-	            this.renderedMail = null;
+	      this.sanitizeResult = null;
+	      this.renderedMail = null;
 
-	            await this.loadAll(Promise.resolve(), { notify: true });
-	            this.expandMail(Promise.resolve());
+	      await this.loadAll(Promise.resolve(), { notify: true });
+	      this.expandMail(Promise.resolve());
 
-	            m.redraw();
-	        }
-
-	    } catch (error) {
-	        console.error("Error updating sender status:", error);
+	      m.redraw();
+	    } else {
+	      m.redraw();
 	    }
+	  } catch (error) {
+	    console.error("Error updating sender status:", error);
+	    await this.fetchSenderData();
+	    m.redraw();
+	  }
 	}
+
 
 	showPhishingModal(): void {
 		if (this.isSenderConfirmed()) {
@@ -783,7 +783,7 @@ export class MailViewerViewModel {
 		// 
 		if (this.senderStatus === "trusted_once") {
 			console.log("Sender is trusted_once — setting to AlwaysShow for this session only");
-			this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
+			this.contentBlockingStatus = ContentBlockingStatus.Show;
 		} else if (this.isSenderTrusted() && this.isSenderConfirmed()) {
 			console.log("Sender is trusted and confirmed — pre-setting to AlwaysShow BEFORE sanitizing");
 			this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
