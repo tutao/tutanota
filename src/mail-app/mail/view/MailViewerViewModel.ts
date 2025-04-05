@@ -199,10 +199,14 @@ export class MailViewerViewModel {
 	        const isTrusted = this.trustedSenders().includes(senderEmail);
 	        const isConfirmed = this.senderStatus === "confirmed" || this.senderStatus === "trusted_once";
 
-	        if (isTrusted && isConfirmed) {
+	        if (isConfirmed) {
 	            this.setSenderConfirmed(true);
-	            console.log("Sender is trusted AND email is confirmed → senderConfirmed set to true");
+	            console.log(`🔄 Refetched and confirmed sender for viewModelId=${this.viewModelId}`);
+	        } else {
+	            this.setSenderConfirmed(false); // Reset just in case
+	            console.log(`🔄 Refetched but sender is NOT confirmed → viewModelId=${this.viewModelId}`);
 	        }
+
 
 	        m.redraw(); // Update UI
 
