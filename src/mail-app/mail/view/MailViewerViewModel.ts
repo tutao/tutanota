@@ -1104,6 +1104,7 @@ export class MailViewerViewModel {
 		// 	console.warn("Failed to urlify mail body!", e)
 		// 	return rawBody
 		// })
+		console.log("blockExternalContent is", blockExternalContent, "because contentBlockingStatus is", this.contentBlockingStatus);
 		const sanitizeResult = htmlSanitizer.sanitizeFragment(rawBody, {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
