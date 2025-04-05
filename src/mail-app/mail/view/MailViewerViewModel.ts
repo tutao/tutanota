@@ -1248,7 +1248,6 @@ export class MailViewerViewModel {
 		this.collapsed = false;
 	}
 
-
 	collapseMail(): void {
 		this.collapsed = true
 	}
