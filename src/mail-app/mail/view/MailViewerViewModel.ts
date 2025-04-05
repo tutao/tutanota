@@ -134,6 +134,8 @@ export class MailViewerViewModel {
 	public senderStatus: string = ""; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
 	public interactionType: string = ""; // interacted, no_interaction
 
+	private readonly viewModelId = Math.random().toString(36).substring(2, 8);
+
 
 	constructor(
 		private _mail: Mail,
@@ -159,8 +161,6 @@ export class MailViewerViewModel {
 		}
 		this.eventController.addEntityListener(this.entityListener)
 		this.fetchSenderData();
-		private readonly viewModelId = Math.random().toString(36).substring(2, 8);
-
 	}
 
 	async fetchSenderData(): Promise<void> {
