@@ -426,6 +426,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		// Override link clicks inside Shadow DOM to prevent navigation if sender is not confirmed
 		const isConfirmed = this.viewModel?.isSenderConfirmed?.() ?? false;
 
+		console.log("🔍 isSenderConfirmed:", isConfirmed);
+		console.log("🔍 isSenderTrusted:", this.viewModel?.isSenderTrusted?.());
+		console.log("🔍 senderStatus:", this.viewModel?.senderStatus);
+
 		wrapNode.querySelectorAll("a").forEach((link) => {
 		    const originalHref = link.getAttribute("data-original-href") || link.getAttribute("href") || "";
 
