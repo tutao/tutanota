@@ -1031,7 +1031,7 @@ export default {
 		"mobyPhish_sender_denied": "Sender not confirmed", 
 		"mobyPhish_sender_removed_from_trusted": "Sender removed from trusted", 
 		"mobyPhish_sender_reported_phishing": "Sender reported as phishing",
-		"mobyPhish_trust_once": "Trust once",
+		"mobyPhish_trusted_once": "Trust once",
 		"mobyPhish_trust_once_loaded": "Content loaded; we recommend proceeding with caution",
 		"modified_label": "Modified",
 		"months_label": "Months",

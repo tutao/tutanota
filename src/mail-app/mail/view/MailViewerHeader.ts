@@ -849,8 +849,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    };
 
 	    const trustOnceButton: BannerButtonAttrs = {
-	      title: "mobyPhish_trust_once",
-	      label: "mobyPhish_trust_once",
+	      title: "mobyPhish_trusted_once",
+	      label: "mobyPhish_trusted_once",
 	      icon: m(Icon, { icon: Icons.Unlock }),
 	      click: async () => {
 	        try {

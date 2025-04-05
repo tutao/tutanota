@@ -1015,7 +1015,7 @@ export type TranslationKeyType =
 	| "mobyPhish_sender_removed_from_trusted"
 	| "mobyPhish_sender_reported_phishing"
 	| "mobyPhish_trust_once_loaded"
-	| "mobyPhish_trust_once"
+	| "mobyPhish_trusted_once"
 	| "modified_label"
 	| "months_label"
 	| "month_label"
