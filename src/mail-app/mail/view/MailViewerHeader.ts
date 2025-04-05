@@ -57,8 +57,9 @@ export interface MailViewerHeaderAttrs {
 /** The upper part of the mail viewer, everything but the mail body itself. */
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	oninit({ attrs }: Vnode<MailViewerHeaderAttrs>) {
-        //console.log("MailViewerHeader initialized");
-        //console.log("MailViewerHeader initialized with trustedSenders:", attrs.viewModel.trustedSenders());
+        console.log("MailViewerHeader initialized");
+        console.log("MailViewerHeader initialized with trustedSenders:", attrs.viewModel.trustedSenders());
+        (window as any).currentMailViewModel = attrs.viewModel;
     }
 
 	private detailsExpanded = false
