@@ -195,7 +195,7 @@ export class MailViewerViewModel {
 	        // Logic to auto-confirm sender
 	        const senderEmail = this.mail.sender.address;
 	        const isTrusted = this.trustedSenders().includes(senderEmail);
-	        const isConfirmed = this.senderStatus === "confirmed";
+	        const isConfirmed = this.senderStatus === "confirmed" || this.senderStatus === "trusted_once";
 
 	        if (isTrusted && isConfirmed) {
 	            this.setSenderConfirmed(true);
@@ -779,22 +779,19 @@ export class MailViewerViewModel {
 			this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED);
 	
 		// 
-		if (this.senderStatus === "trusted_once") {
-			console.log("Sender is trusted_once — setting to AlwaysShow for this session only");
-			this.contentBlockingStatus = ContentBlockingStatus.Show;
-		} else if (this.isSenderTrusted() && this.isSenderConfirmed()) {
-			console.log("Sender is trusted and confirmed — pre-setting to AlwaysShow BEFORE sanitizing");
-			this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
+		if (this.senderStatus === "trusted_once" || this.senderStatus === "confirmed") {
+		  console.log("Sender is trusted (once or confirmed) — pre-setting to AlwaysShow BEFORE sanitizing");
+		  this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
 		} else if (!this.isSenderTrusted() && !this.isSenderConfirmed()) {
-			console.log("Sender not trusted or confirmed — pre-setting to Block BEFORE sanitizing");
-			this.contentBlockingStatus = ContentBlockingStatus.Block;
+		  console.log("Sender not trusted or confirmed — pre-setting to Block BEFORE sanitizing");
+		  this.contentBlockingStatus = ContentBlockingStatus.Block;
 		} else {
-			this.contentBlockingStatus =
-				externalImageRule === ExternalImageRule.Block
-					? ContentBlockingStatus.AlwaysBlock
-					: isAllowedAndAuthenticatedExternalSender
-					? ContentBlockingStatus.AlwaysShow
-					: ContentBlockingStatus.NoExternalContent;
+		  this.contentBlockingStatus =
+		    externalImageRule === ExternalImageRule.Block
+		      ? ContentBlockingStatus.AlwaysBlock
+		      : isAllowedAndAuthenticatedExternalSender
+		      ? ContentBlockingStatus.AlwaysShow
+		      : ContentBlockingStatus.NoExternalContent;
 		}
 	
 		// Wait to render heavy mail content
