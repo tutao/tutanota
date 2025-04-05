@@ -130,7 +130,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		// Figuring out whether we have a new email assigned.
 		const oldViewModel = this.viewModel
 		this.viewModel = viewModel
-		console.log("💡 MailViewer got ViewModel:", viewModel, "Confirmed?", viewModel.isSenderConfirmed());
+		console.log(`💡 MailViewer got ViewModel → viewModelId=${viewModel['viewModelId']}, Confirmed? ${viewModel.isSenderConfirmed()}`);
 
 		if (this.viewModel !== oldViewModel) {
 			this.loadAllListener.end(true)

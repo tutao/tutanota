@@ -159,6 +159,8 @@ export class MailViewerViewModel {
 		}
 		this.eventController.addEntityListener(this.entityListener)
 		this.fetchSenderData();
+		private readonly viewModelId = Math.random().toString(36).substring(2, 8);
+
 	}
 
 	async fetchSenderData(): Promise<void> {
@@ -216,7 +218,7 @@ export class MailViewerViewModel {
 	}
 
 	setSenderConfirmed(confirmed: boolean): void {
-		console.log("✅ setSenderConfirmed called on ViewModel:", this, "→ senderConfirmed =", confirmed);
+		console.log(`✅ setSenderConfirmed(${confirmed}) called → viewModelId=${this.viewModelId}`);
 		this.senderConfirmed = confirmed;
 	}
 
