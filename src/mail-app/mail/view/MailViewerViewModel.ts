@@ -246,16 +246,13 @@ export class MailViewerViewModel {
 
 	    await this.fetchSenderData();
 
-	    if (status === "confirmed") {
+	    if (status === "confirmed" || status === "trusted_once") {
 	      this.setSenderConfirmed(true);
 	      this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
-
 	      this.sanitizeResult = null;
 	      this.renderedMail = null;
-
 	      await this.loadAll(Promise.resolve(), { notify: true });
 	      this.expandMail(Promise.resolve());
-
 	      m.redraw();
 	    } else {
 	      m.redraw();
@@ -266,6 +263,7 @@ export class MailViewerViewModel {
 	    m.redraw();
 	  }
 	}
+
 
 
 	showPhishingModal(): void {
