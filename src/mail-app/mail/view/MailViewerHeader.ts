@@ -36,6 +36,8 @@ import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
 import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
 import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js"
+import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal";
+
 
 export const API_BASE_URL = "http://3.95.65.190:3000";
 
@@ -800,7 +802,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	      label: "mobyPhish_confirm",
 	      icon: m(Icon, { icon: Icons.Checkmark }),
 	      click: () => {
-	        const modalInstance = new MobyPhishReportPhishingModal(viewModel);
+	        const modalInstance = new MobyPhishConfirmSenderModal(viewModel, viewModel.trustedSenders());
 	        const handle = modal.display(modalInstance);
 	        modalInstance.setModalHandle(handle);
 	      },
