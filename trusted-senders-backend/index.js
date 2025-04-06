@@ -222,6 +222,7 @@ app.post("/update-email-status", (req, res) => {
       sender_email = excluded.sender_email -- Also update sender in case it changed somehow? (Optional)
   `;
 
+
   db.run(sql, [user_email, email_id, sender_email, status], function (err) {
     if (err) {
       console.error(`DB Error updating email status for user '${user_email}', email '${email_id}':`, err.message);
