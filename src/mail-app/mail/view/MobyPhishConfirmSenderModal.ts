@@ -193,7 +193,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 },
                 style: this.getButtonStyle("#28A745", "#218838", this.isLoading), // Green button
                 disabled: this.isLoading
-            }, this.isLoading ? m(Icon, {icon: Icons.Loading, spin: true}) : `Add Actual Sender (${actualSender}) to Trusted List`), // Update label
+            }, `Add Actual Sender (${actualSender}) to Trusted List`), // Update label
 
             // Report Phishing Button
             m("button.btn.btn-danger", {
