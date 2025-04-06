@@ -39,7 +39,7 @@ import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js"
 import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal";
 
 
-export const API_BASE_URL = "http://3.95.65.190:3000";
+export const API_BASE_URL = "http://3.91.56.8:3000";
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
