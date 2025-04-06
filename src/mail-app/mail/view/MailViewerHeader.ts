@@ -37,9 +37,8 @@ import { modal } from "../../../common/gui/base/Modal";
 import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
 import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js"
 import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal";
+import { API_BASE_URL } from "./MailViewerViewModel.js"; 
 
-
-export const API_BASE_URL = "http://3.91.56.8:3000";
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

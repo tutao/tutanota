@@ -1,6 +1,6 @@
 // Add near other imports in MobyPhishConfirmSenderModal.ts
 import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js";
-import { API_BASE_URL } from "../MailViewerHeader.js"; // Or adjust path as needed
+import { API_BASE_URL } from "./MailViewerViewModel.js"; 
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
 import m, { Children } from "mithril";
