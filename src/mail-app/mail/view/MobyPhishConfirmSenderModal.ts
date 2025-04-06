@@ -4,7 +4,7 @@ import { API_BASE_URL } from "./MailViewerViewModel.js";
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
 import m, { Children } from "mithril";
-import { Keys, ContentBlockingStatus } from "../../../common/api/common/TutanotaConstants.js"; // Added ContentBlockingStatus
+import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 import { MailViewerViewModel } from "./MailViewerViewModel.js";
