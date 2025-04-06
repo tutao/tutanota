@@ -1,27 +1,29 @@
 // Add near other imports in MobyPhishConfirmSenderModal.ts
 import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js";
-import { API_BASE_URL } from "./MailViewerViewModel.js"; 
+// Ensure API_BASE_URL is correctly imported or defined if needed within this file
+// import { API_BASE_URL } from "./MailViewerViewModel.js"; // Or appropriate path
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
 import m, { Children } from "mithril";
 import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
-import { MailViewerViewModel } from "./MailViewerViewModel.js";
+import { MailViewerViewModel, API_BASE_URL } from "./MailViewerViewModel.js"; // Import API_BASE_URL from ViewModel
 
 export class MobyPhishConfirmSenderModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
     private modalHandle?: ModalComponent;
     private selectedSender: string = "";
-    private trustedSenders: string[];
+    // No longer need trustedSenders passed to constructor for the primary check
+    // private trustedSenders: string[];
     private modalState: 'initial' | 'warning' = 'initial'; // State to control view
     private isLoading: boolean = false; // State for API calls
     private errorMessage: string | null = null; // State for API errors
 
-    constructor(viewModel: MailViewerViewModel, trustedSenders: string[]) {
+    constructor(viewModel: MailViewerViewModel, trustedSenders: string[]) { // Keep trustedSenders for datalist
         this.viewModel = viewModel;
-        // Normalize trusted senders for comparison
-        this.trustedSenders = (trustedSenders || []).map(s => s?.trim().toLowerCase()).filter(Boolean);
+        // We still need trustedSenders to populate the datalist, but not for the core logic check
+        // this.trustedSenders = (trustedSenders || []).map(s => s?.trim().toLowerCase()).filter(Boolean);
     }
 
     // Main view decides which sub-view to render
@@ -40,7 +42,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
     // --- Render Initial Input View ---
     private renderInitialView(): Children {
         const isConfirmDisabled = !this.selectedSender.trim() || this.isLoading;
-        const enteredSenderNormalized = this.selectedSender.trim().toLowerCase();
+        // We'll get enteredSenderNormalized inside the onclick
 
         return [
             m("p", {
@@ -69,16 +71,16 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 required: true
             }),
             m("datalist#trusted-senders-list",
-              (this.viewModel.trustedSenders() || []).filter(sender => sender && sender.trim()).map(sender => // Use live data from viewmodel if possible
+              (this.viewModel.trustedSenders() || []).filter(sender => sender && sender.trim()).map(sender => // Use live data from viewmodel for datalist
                   m("option", { value: sender })
               )
             ),
 
-            // Optional Error Display (e.g., for API errors if needed later)
+            // Optional Error Display
              this.errorMessage ? m(".error-message", { style: { color: 'red', fontSize: '12px', marginTop: '5px' } }, this.errorMessage) : null,
 
 
-            // Confirm Button
+            // Confirm Button --- LOGIC CORRECTED HERE ---
             m("button.btn", {
                 onclick: async () => {
                     if (isConfirmDisabled) return;
@@ -86,29 +88,29 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                     this.errorMessage = null;
                     m.redraw(); // Show loading state
 
-                    const isTrusted = this.trustedSenders.includes(enteredSenderNormalized);
+                    const enteredSenderNormalized = this.selectedSender.trim().toLowerCase();
+                    // Get the ACTUAL sender of the email from the viewModel
+                    const actualSenderNormalized = this.viewModel.getSender().address.trim().toLowerCase();
 
-                    console.log(`Checking if "${enteredSenderNormalized}" is in trusted list: ${isTrusted}`);
+                    console.log(`Comparing entered sender "${enteredSenderNormalized}" with actual sender "${actualSenderNormalized}"`);
 
-                    if (isTrusted) {
-                        // Sender IS in the trusted list (maybe selected from datalist)
-                        console.log(`Sender "${enteredSenderNormalized}" confirmed as trusted.`);
+                    if (enteredSenderNormalized === actualSenderNormalized) {
+                        // User correctly identified the actual sender.
+                        console.log(`Entered sender matches actual sender. Confirming.`);
                         try {
                             // Treat as confirmed: update status, unblock content
                             await this.viewModel.updateSenderStatus("confirmed");
-                            // No need to explicitly setContentBlockingStatus here, updateSenderStatus handles it
                             modal.remove(this.modalHandle!);
-                            // No need for m.redraw() here, updateSenderStatus triggers it
+                            // updateSenderStatus handles redraw
                         } catch (error) {
-                             console.error("Error updating status after confirming trusted sender:", error);
-                             this.errorMessage = "Failed to update status. Please try again.";
-                             this.isLoading = false;
-                             m.redraw();
+                            console.error("Error updating status after confirming matching sender:", error);
+                            this.errorMessage = "Failed to update status. Please try again.";
+                            this.isLoading = false;
+                            m.redraw();
                         }
-
                     } else {
-                        // Sender IS NOT in the trusted list
-                        console.log(`Sender "${enteredSenderNormalized}" is NOT in the trusted list. Switching to warning view.`);
+                        // User entered a sender that DOES NOT match the actual sender. THIS IS THE WARNING CASE.
+                        console.log(`Entered sender DOES NOT match actual sender. Switching to warning view.`);
                         this.modalState = 'warning';
                         this.isLoading = false; // Stop loading indicator for initial view
                         m.redraw(); // Switch to the warning view
@@ -138,7 +140,8 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
               "Potential Phishing Attempt"
             ),
             m("p", { style: { fontSize: "14px", textAlign: "center", marginBottom: "15px" } },
-                `You indicated this email might be from "${claimedSender}", but they are not on your trusted senders list.`
+                // Clarify the warning message
+                `You indicated this email might be from "${claimedSender}", but the actual sender is different.`
             ),
             m("p", { style: { fontSize: "12px", textAlign: "center", marginBottom: "20px", fontStyle: 'italic' } },
                  `(Actual sender: ${actualSender})`
@@ -148,15 +151,16 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
              this.errorMessage ? m(".error-message", { style: { color: 'red', fontSize: '12px', marginTop: '5px', marginBottom: '10px' } }, this.errorMessage) : null,
 
 
-            // Add to Trusted Senders Button
-            m("button.btn.btn-success", { // Using a success style
+            // Add *Actual* Sender to Trusted Senders Button
+            m("button.btn.btn-success", {
                 onclick: async () => {
                     if (this.isLoading) return;
                     this.isLoading = true;
                     this.errorMessage = null;
                     m.redraw();
 
-                    const senderToAdd = claimedSender; // Use the user-entered name
+                    // IMPORTANT: Add the *ACTUAL* sender, not the one they incorrectly entered
+                    const senderToAdd = actualSender;
                     const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
                     try {
@@ -165,23 +169,23 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 user_email: userEmail,
-                                trusted_email: senderToAdd // Add the one they CLAIMED it was
+                                trusted_email: senderToAdd // Add the ACTUAL sender
                             })
                         });
 
                         if (!response.ok) {
-                             const errorData = await response.json().catch(() => ({})); // Try to get error details
+                             const errorData = await response.json().catch(() => ({}));
                              throw new Error(errorData.message || `Failed to add sender (${response.status})`);
                         }
 
-                        console.log(`Sender "${senderToAdd}" added to trusted list via modal.`);
-                         // Important: Update status to 'confirmed' which triggers data refresh and UI update
+                        console.log(`Actual sender "${senderToAdd}" added to trusted list via warning modal.`);
+                        // Update status to 'confirmed' which refreshes data and UI
                         await this.viewModel.updateSenderStatus("confirmed");
                         modal.remove(this.modalHandle!);
                         // updateSenderStatus will redraw
 
                     } catch (error: any) {
-                        console.error("Error adding sender:", error);
+                        console.error("Error adding actual sender:", error);
                         this.errorMessage = error.message || "An error occurred while adding the sender.";
                         this.isLoading = false;
                         m.redraw();
@@ -189,16 +193,14 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 },
                 style: this.getButtonStyle("#28A745", "#218838", this.isLoading), // Green button
                 disabled: this.isLoading
-            }, "Add Sender to Trusted List"),
+            }, this.isLoading ? m(Icon, {icon: Icons.Loading, spin: true}) : `Add Actual Sender (${actualSender}) to Trusted List`), // Update label
 
             // Report Phishing Button
-            m("button.btn.btn-danger", { // Using a danger style
+            m("button.btn.btn-danger", {
                 onclick: () => {
                     if (this.isLoading) return;
                     console.log("Report Phishing button clicked from warning modal.");
-                    // Close this modal *before* opening the report modal
                     modal.remove(this.modalHandle!);
-                    // Open the report phishing modal
                     const reportModal = new MobyPhishReportPhishingModal(this.viewModel);
                     const handle = modal.display(reportModal);
                     reportModal.setModalHandle(handle);
@@ -207,7 +209,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 disabled: this.isLoading
             }, "Report as Phishing"),
 
-            // Cancel Button (closes the modal without action)
+            // Cancel Button
             m("button.btn", {
                 onclick: () => {
                   if (!this.isLoading) {
@@ -221,9 +223,9 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
     }
 
     // --- Helper Functions (Styles, Lifecycle, etc.) ---
-
-    // Modified style function to handle disabled state
-    private getButtonStyle(defaultColor: string, hoverColor: string, disabled: boolean) {
+    // (Keep the getButtonStyle, getCancelButtonStyle, getModalStyle, hideAnimation, onClose, backgroundClick, popState, callingElement, shortcuts, setModalHandle methods as they were)
+     // Modified style function to handle disabled state
+     private getButtonStyle(defaultColor: string, hoverColor: string, disabled: boolean) {
         const baseStyle: { [key: string]: any } = {
             background: disabled ? "#cccccc" : defaultColor,
             color: disabled ? "#666666" : (defaultColor === "#28A745" || defaultColor === "#DC3545" ? "#ffffff" : "#000"), // White text for colored buttons
