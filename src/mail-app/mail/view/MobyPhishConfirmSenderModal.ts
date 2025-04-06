@@ -44,7 +44,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                     m("button.btn", {
                         onclick: () => {
                             console.log(`📩 User claims this email is from: ${this.selectedSender}`);
-                            this.viewModel.setClaimedSender(this.selectedSender);
+                            //this.viewModel.setClaimedSender(this.selectedSender);
                             modal.remove(this.modalHandle!);
                             m.redraw();
                         },
