@@ -141,7 +141,11 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 
         // Get display info for the ACTUAL sender
         const actualSenderInfo = this.viewModel.getDisplayedSender(); // { name: string|null, address: string }
-        const actualSenderDisplay = getMailAddressDisplayText(actualSenderInfo?.name, actualSenderInfo?.address || 'Unknown', false);
+        const actualSenderDisplay = getMailAddressDisplayText(
+                    actualSenderInfo?.name ?? null, // Use ?? null to handle undefined from optional chain
+                    actualSenderInfo?.address || 'Unknown',
+                    false
+                );
         const actualSenderAddress = actualSenderInfo?.address || 'Unknown'; // For the button
 
         return [
