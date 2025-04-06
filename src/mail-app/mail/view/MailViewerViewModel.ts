@@ -88,6 +88,11 @@ export const enum ContentBlockingStatus {
 
 export const API_BASE_URL = "http://3.91.56.8:3000";
 
+interface TrustedSenderInfo {
+    name: string;
+    address: string;
+}
+
 export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
 	// always sanitized in this.sanitizeMailBody
@@ -129,7 +134,7 @@ export class MailViewerViewModel {
 
 	private mailDetails: MailDetails | null = null
 
-	public trustedSenders = stream<Array<string>>([]);
+	public trustedSenders = stream<Array<TrustedSenderInfo>>([]); 
 	private senderConfirmed: boolean = false;
 	public senderStatus: string = ""; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
 	public interactionType: string = ""; // interacted, no_interaction
@@ -181,9 +186,12 @@ export class MailViewerViewModel {
 	        const statusData = await statusResponse.json();
 
 	        // Store trusted senders list
-	        this.trustedSenders(trustedData.trusted_senders);
-	        console.log("updated trustedSenders:", this.trustedSenders());
-
+	        const trustedSendersList: TrustedSenderInfo[] = Array.isArray(trustedData.trusted_senders)
+	                        ? trustedData.trusted_senders // Assume API returns the correct objects
+	                        : []; // Default to empty array if the format is wrong or missing
+	        this.trustedSenders(trustedSendersList);
+	        console.log("updated trustedSenders (objects):", this.trustedSenders()); // Log the objects
+	        
 	        // Store sender status and interaction type
 	        this.senderStatus = statusData.status; // confirmed, denied, etc.
 	        this.interactionType = statusData.interaction_type;
@@ -196,15 +204,15 @@ export class MailViewerViewModel {
 
 	        // Logic to auto-confirm sender
 	        const senderEmail = this.mail.sender.address;
-	        const isTrusted = this.trustedSenders().includes(senderEmail);
+	        const isTrusted = this.trustedSenders().some(sender => sender.address.toLowerCase() === senderEmail);
 	        const isConfirmed = this.senderStatus === "confirmed" || this.senderStatus === "trusted_once";
 
 	        if (isConfirmed) {
 	            this.setSenderConfirmed(true);
-	            console.log(`🔄 Refetched and confirmed sender for viewModelId=${this.viewModelId}`);
+	            console.log(`Refetched and confirmed sender for viewModelId=${this.viewModelId}`);
 	        } else {
 	            this.setSenderConfirmed(false); // Reset just in case
-	            console.log(`🔄 Refetched but sender is NOT confirmed → viewModelId=${this.viewModelId}`);
+	            console.log(`Refetched but sender is NOT confirmed → viewModelId=${this.viewModelId}`);
 	        }
 
 
@@ -218,7 +226,7 @@ export class MailViewerViewModel {
 
 	isSenderTrusted(): boolean {
 	    const senderEmail = this.getSender().address;
-	    return this.trustedSenders()?.includes(senderEmail) ?? false;
+	    return this.trustedSenders().some(sender => sender.address.toLowerCase() === senderEmail);
 	}
 
 	setSenderConfirmed(confirmed: boolean): void {

@@ -1,7 +1,5 @@
 // Add near other imports in MobyPhishConfirmSenderModal.ts
 import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js";
-// Ensure API_BASE_URL is correctly imported or defined if needed within this file
-// import { API_BASE_URL } from "./MailViewerViewModel.js"; // Or appropriate path
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
 import m, { Children } from "mithril";
@@ -9,21 +7,28 @@ import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 import { MailViewerViewModel, API_BASE_URL } from "./MailViewerViewModel.js"; // Import API_BASE_URL from ViewModel
+import { getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"; // Import helper
+
+// Define the expected structure for trusted senders
+interface TrustedSenderInfo {
+    name: string;
+    address: string;
+}
 
 export class MobyPhishConfirmSenderModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
     private modalHandle?: ModalComponent;
-    private selectedSender: string = "";
-    // No longer need trustedSenders passed to constructor for the primary check
-    // private trustedSenders: string[];
-    private modalState: 'initial' | 'warning' = 'initial'; // State to control view
-    private isLoading: boolean = false; // State for API calls
-    private errorMessage: string | null = null; // State for API errors
+    private selectedSenderEmail: string = ""; // Store the selected/typed EMAIL address
+    private trustedSenderObjects: TrustedSenderInfo[]; // Store the array of {name, address}
+    private modalState: 'initial' | 'warning' = 'initial';
+    private isLoading: boolean = false;
+    private errorMessage: string | null = null;
 
-    constructor(viewModel: MailViewerViewModel, trustedSenders: string[]) { // Keep trustedSenders for datalist
+    // Constructor now expects the array of objects
+    constructor(viewModel: MailViewerViewModel, trustedSenders: TrustedSenderInfo[]) {
         this.viewModel = viewModel;
-        // We still need trustedSenders to populate the datalist, but not for the core logic check
-        // this.trustedSenders = (trustedSenders || []).map(s => s?.trim().toLowerCase()).filter(Boolean);
+        // Ensure trustedSenders is an array, default to empty if not
+        this.trustedSenderObjects = Array.isArray(trustedSenders) ? trustedSenders : [];
     }
 
     // Main view decides which sub-view to render
@@ -41,21 +46,20 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 
     // --- Render Initial Input View ---
     private renderInitialView(): Children {
-        const isConfirmDisabled = !this.selectedSender.trim() || this.isLoading;
-        // We'll get enteredSenderNormalized inside the onclick
+        const isConfirmDisabled = !this.selectedSenderEmail.trim() || this.isLoading;
 
         return [
             m("p", {
                 style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "15px" }
             }, "Who do you believe this email is from?"),
 
-            // Input field
+            // Input field - value is the selected EMAIL address
             m("input[type=text]", {
-                placeholder: "Search or type a known sender...",
-                value: this.selectedSender,
+                placeholder: "Search or type a known sender email...", // Updated placeholder
+                value: this.selectedSenderEmail,
                 oninput: (e: Event) => {
-                    this.selectedSender = (e.target as HTMLInputElement).value;
-                    this.errorMessage = null; // Clear error on input
+                    this.selectedSenderEmail = (e.target as HTMLInputElement).value;
+                    this.errorMessage = null;
                 },
                 list: "trusted-senders-list",
                 style: {
@@ -70,38 +74,38 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 "aria-controls": "trusted-senders-list",
                 required: true
             }),
+            // Datalist - displays Name <Address>, but value is Address
             m("datalist#trusted-senders-list",
-              (this.viewModel.trustedSenders() || []).filter(sender => sender && sender.trim()).map(sender => // Use live data from viewmodel for datalist
-                  m("option", { value: sender })
-              )
+              this.trustedSenderObjects
+                .filter(sender => sender && sender.address) // Basic validation
+                .map(sender =>
+                    // Display Name <Address> format, set value to the address
+                    m("option", { value: sender.address }, `${sender.name || sender.address} <${sender.address}>`)
+                )
             ),
 
             // Optional Error Display
              this.errorMessage ? m(".error-message", { style: { color: 'red', fontSize: '12px', marginTop: '5px' } }, this.errorMessage) : null,
 
 
-            // Confirm Button --- LOGIC CORRECTED HERE ---
+            // Confirm Button - Logic still compares EMAIL addresses
             m("button.btn", {
                 onclick: async () => {
                     if (isConfirmDisabled) return;
                     this.isLoading = true;
                     this.errorMessage = null;
-                    m.redraw(); // Show loading state
+                    m.redraw();
 
-                    const enteredSenderNormalized = this.selectedSender.trim().toLowerCase();
-                    // Get the ACTUAL sender of the email from the viewModel
+                    const enteredSenderNormalized = this.selectedSenderEmail.trim().toLowerCase();
                     const actualSenderNormalized = this.viewModel.getSender().address.trim().toLowerCase();
 
-                    console.log(`Comparing entered sender "${enteredSenderNormalized}" with actual sender "${actualSenderNormalized}"`);
+                    console.log(`Comparing entered email "${enteredSenderNormalized}" with actual email "${actualSenderNormalized}"`);
 
                     if (enteredSenderNormalized === actualSenderNormalized) {
-                        // User correctly identified the actual sender.
-                        console.log(`Entered sender matches actual sender. Confirming.`);
+                        console.log(`Entered email matches actual email. Confirming.`);
                         try {
-                            // Treat as confirmed: update status, unblock content
                             await this.viewModel.updateSenderStatus("confirmed");
                             modal.remove(this.modalHandle!);
-                            // updateSenderStatus handles redraw
                         } catch (error) {
                             console.error("Error updating status after confirming matching sender:", error);
                             this.errorMessage = "Failed to update status. Please try again.";
@@ -109,11 +113,10 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                             m.redraw();
                         }
                     } else {
-                        // User entered a sender that DOES NOT match the actual sender. THIS IS THE WARNING CASE.
-                        console.log(`Entered sender DOES NOT match actual sender. Switching to warning view.`);
+                        console.log(`Entered email DOES NOT match actual email. Switching to warning view.`);
                         this.modalState = 'warning';
-                        this.isLoading = false; // Stop loading indicator for initial view
-                        m.redraw(); // Switch to the warning view
+                        this.isLoading = false;
+                        m.redraw();
                     }
                 },
                 disabled: isConfirmDisabled,
@@ -131,36 +134,48 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 
     // --- Render Warning/Action View ---
     private renderWarningView(): Children {
-        const claimedSender = this.selectedSender.trim(); // Keep original casing for display
-        const actualSender = this.viewModel.getSender().address;
+        // Find the display name for the email the user ENTERED/SELECTED
+        const enteredEmail = this.selectedSenderEmail.trim();
+        const claimedSenderInfo = this.trustedSenderObjects.find(s => s.address.toLowerCase() === enteredEmail.toLowerCase());
+        const claimedSenderDisplay = claimedSenderInfo?.name ? `${claimedSenderInfo.name} <${enteredEmail}>` : enteredEmail;
+
+        // Get display info for the ACTUAL sender
+        const actualSenderInfo = this.viewModel.getDisplayedSender(); // { name: string|null, address: string }
+        const actualSenderDisplay = getMailAddressDisplayText(actualSenderInfo?.name, actualSenderInfo?.address || 'Unknown', false);
+        const actualSenderAddress = actualSenderInfo?.address || 'Unknown'; // For the button
 
         return [
             m("p", { style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "5px" } },
-              m(Icon, { icon: Icons.Warning, style: { fill: '#FFA500', marginRight: '8px', verticalAlign: 'middle' } }), // Warning Icon
+              m(Icon, { icon: Icons.Warning, style: { fill: '#FFA500', marginRight: '8px', verticalAlign: 'middle' } }),
               "Potential Phishing Attempt"
             ),
-            m("p", { style: { fontSize: "14px", textAlign: "center", marginBottom: "15px" } },
-                // Clarify the warning message
-                `You indicated this email might be from "${claimedSender}", but the actual sender is different.`
-            ),
+            // Display names/emails clearly
+            m("p", { style: { fontSize: "14px", textAlign: "center", marginBottom: "15px" } }, [
+                `You indicated this email might be from:`,
+                m("br"),
+                m("strong", claimedSenderDisplay), // Show what user entered/selected
+                m("br"),
+                `However, the actual sender is different.`
+            ]),
             m("p", { style: { fontSize: "12px", textAlign: "center", marginBottom: "20px", fontStyle: 'italic' } },
-                 `(Actual sender: ${actualSender})`
+                 `(Actual sender: ${actualSenderDisplay})` // Show actual sender's name/email
             ),
 
-             // Optional Error Display
              this.errorMessage ? m(".error-message", { style: { color: 'red', fontSize: '12px', marginTop: '5px', marginBottom: '10px' } }, this.errorMessage) : null,
 
 
-            // Add *Actual* Sender to Trusted Senders Button
+            // Add *Actual* Sender to Trusted Senders Button - Label shows name/email
             m("button.btn.btn-success", {
                 onclick: async () => {
-                    if (this.isLoading) return;
+                    if (this.isLoading || actualSenderAddress === 'Unknown') return;
                     this.isLoading = true;
                     this.errorMessage = null;
                     m.redraw();
 
-                    // IMPORTANT: Add the *ACTUAL* sender, not the one they incorrectly entered
-                    const senderToAdd = actualSender;
+                    const senderToAdd = actualSenderAddress; // Use the ACTUAL sender's email
+                    // We potentially need the name to add to the trusted list as well,
+                    // assuming the API expects both. Use name from actualSenderInfo.
+                    const nameToAdd = actualSenderInfo?.name || ''; // Use empty string if name is null
                     const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
                     try {
@@ -169,7 +184,8 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 user_email: userEmail,
-                                trusted_email: senderToAdd // Add the ACTUAL sender
+                                trusted_email: senderToAdd,
+                                trusted_name: nameToAdd // Send name if your API uses it
                             })
                         });
 
@@ -179,10 +195,8 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                         }
 
                         console.log(`Actual sender "${senderToAdd}" added to trusted list via warning modal.`);
-                        // Update status to 'confirmed' which refreshes data and UI
                         await this.viewModel.updateSenderStatus("confirmed");
                         modal.remove(this.modalHandle!);
-                        // updateSenderStatus will redraw
 
                     } catch (error: any) {
                         console.error("Error adding actual sender:", error);
@@ -191,21 +205,21 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                         m.redraw();
                     }
                 },
-                style: this.getButtonStyle("#28A745", "#218838", this.isLoading), // Green button
-                disabled: this.isLoading
-            }, `Add Actual Sender (${actualSender}) to Trusted List`), // Update label
+                style: this.getButtonStyle("#28A745", "#218838", this.isLoading || actualSenderAddress === 'Unknown'),
+                disabled: this.isLoading || actualSenderAddress === 'Unknown',
+                title: actualSenderAddress === 'Unknown' ? 'Cannot determine actual sender' : `Add ${actualSenderDisplay} to your trusted list`
+            }, this.isLoading ? m(Icon, {icon: Icons.Loading, spin: true}) : `Add Actual Sender (${actualSenderDisplay}) to Trusted List`),
 
             // Report Phishing Button
             m("button.btn.btn-danger", {
                 onclick: () => {
                     if (this.isLoading) return;
-                    console.log("Report Phishing button clicked from warning modal.");
                     modal.remove(this.modalHandle!);
                     const reportModal = new MobyPhishReportPhishingModal(this.viewModel);
                     const handle = modal.display(reportModal);
                     reportModal.setModalHandle(handle);
                 },
-                style: this.getButtonStyle("#DC3545", "#C82333", this.isLoading), // Red button
+                style: this.getButtonStyle("#DC3545", "#C82333", this.isLoading),
                 disabled: this.isLoading
             }, "Report as Phishing"),
 
@@ -224,115 +238,115 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 
     // --- Helper Functions (Styles, Lifecycle, etc.) ---
     // (Keep the getButtonStyle, getCancelButtonStyle, getModalStyle, hideAnimation, onClose, backgroundClick, popState, callingElement, shortcuts, setModalHandle methods as they were)
-     // Modified style function to handle disabled state
-     private getButtonStyle(defaultColor: string, hoverColor: string, disabled: boolean) {
-        const baseStyle: { [key: string]: any } = {
-            background: disabled ? "#cccccc" : defaultColor,
-            color: disabled ? "#666666" : (defaultColor === "#28A745" || defaultColor === "#DC3545" ? "#ffffff" : "#000"), // White text for colored buttons
-            border: "none",
-            padding: "12px", // Slightly smaller padding for more buttons
-            borderRadius: "8px",
-            cursor: disabled ? "not-allowed" : "pointer",
-            width: "100%",
-            fontSize: "14px", // Slightly smaller font
-            fontWeight: "bold",
-            textAlign: "center",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "background-color 0.2s ease, opacity 0.2s ease",
-            opacity: disabled ? 0.6 : 1,
-            marginTop: "10px" // Add margin between buttons
-        };
+         // Modified style function to handle disabled state
+         private getButtonStyle(defaultColor: string, hoverColor: string, disabled: boolean) {
+            const baseStyle: { [key: string]: any } = {
+                background: disabled ? "#cccccc" : defaultColor,
+                color: disabled ? "#666666" : (defaultColor === "#28A745" || defaultColor === "#DC3545" ? "#ffffff" : "#000"), // White text for colored buttons
+                border: "none",
+                padding: "12px", // Slightly smaller padding for more buttons
+                borderRadius: "8px",
+                cursor: disabled ? "not-allowed" : "pointer",
+                width: "100%",
+                fontSize: "14px", // Slightly smaller font
+                fontWeight: "bold",
+                textAlign: "center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background-color 0.2s ease, opacity 0.2s ease",
+                opacity: disabled ? 0.6 : 1,
+                marginTop: "10px" // Add margin between buttons
+            };
 
-        if (!disabled) {
-            baseStyle.onmouseover = (e: MouseEvent) => (e.target as HTMLElement).style.background = hoverColor;
-            baseStyle.onmouseout = (e: MouseEvent) => (e.target as HTMLElement).style.background = defaultColor;
+            if (!disabled) {
+                baseStyle.onmouseover = (e: MouseEvent) => (e.target as HTMLElement).style.background = hoverColor;
+                baseStyle.onmouseout = (e: MouseEvent) => (e.target as HTMLElement).style.background = defaultColor;
+            }
+
+            return baseStyle;
         }
 
-        return baseStyle;
-    }
-
-    private getCancelButtonStyle() {
-        return {
-            background: "transparent",
-            color: "#555", // Darker grey for cancel
-            border: "1px solid #ccc",
-            padding: "12px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            width: "100%",
-            fontSize: "14px",
-            fontWeight: "normal",
-            textAlign: "center",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginTop: "10px",
-            transition: "background-color 0.2s ease",
-            onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "#f0f0f0",
-            onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "transparent"
-        };
-    }
-
-    private getModalStyle() {
-        return {
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            padding: "25px",
-            textAlign: "center",
-            background: "#fff",
-            boxShadow: "0px 5px 15px rgba(0,0,0,0.25)",
-            borderRadius: "10px",
-            width: "90%", // Responsive width
-            maxWidth: "420px", // Slightly wider for warning content
-            display: "flex",
-            flexDirection: "column",
-            gap: "0px" // Reduce gap, rely on button margins
-        };
-    }
-
-    hideAnimation(): Promise<void> {
-        return Promise.resolve();
-    }
-
-    onClose(): void {}
-
-    backgroundClick(e: MouseEvent): void {
-        // Prevent closing modal by background click if loading
-        if (!this.isLoading) {
-            modal.remove(this.modalHandle!);
+        private getCancelButtonStyle() {
+            return {
+                background: "transparent",
+                color: "#555", // Darker grey for cancel
+                border: "1px solid #ccc",
+                padding: "12px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                width: "100%",
+                fontSize: "14px",
+                fontWeight: "normal",
+                textAlign: "center",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginTop: "10px",
+                transition: "background-color 0.2s ease",
+                onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "#f0f0f0",
+                onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "transparent"
+            };
         }
-    }
 
-    popState(): boolean {
-        if (!this.isLoading) {
-            modal.remove(this.modalHandle!);
+        private getModalStyle() {
+            return {
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                padding: "25px",
+                textAlign: "center",
+                background: "#fff",
+                boxShadow: "0px 5px 15px rgba(0,0,0,0.25)",
+                borderRadius: "10px",
+                width: "90%", // Responsive width
+                maxWidth: "420px", // Slightly wider for warning content
+                display: "flex",
+                flexDirection: "column",
+                gap: "0px" // Reduce gap, rely on button margins
+            };
         }
-        return false;
-    }
 
-    callingElement(): HTMLElement | null {
-        return null;
-    }
+        hideAnimation(): Promise<void> {
+            return Promise.resolve();
+        }
 
-    shortcuts(): Shortcut[] {
-        return [{
-            key: Keys.ESC,
-            exec: () => {
-                if (!this.isLoading) { // Prevent ESC close during API call
-                   modal.remove(this.modalHandle!);
-                   return true;
-                }
-                return false; // Don't handle ESC if loading
-            },
-            help: "close_alt"
-        }];
-    }
+        onClose(): void {}
 
-    setModalHandle(handle: ModalComponent) {
-        this.modalHandle = handle;
-    }
+        backgroundClick(e: MouseEvent): void {
+            // Prevent closing modal by background click if loading
+            if (!this.isLoading) {
+                modal.remove(this.modalHandle!);
+            }
+        }
+
+        popState(): boolean {
+            if (!this.isLoading) {
+                modal.remove(this.modalHandle!);
+            }
+            return false;
+        }
+
+        callingElement(): HTMLElement | null {
+            return null;
+        }
+
+        shortcuts(): Shortcut[] {
+            return [{
+                key: Keys.ESC,
+                exec: () => {
+                    if (!this.isLoading) { // Prevent ESC close during API call
+                       modal.remove(this.modalHandle!);
+                       return true;
+                    }
+                    return false; // Don't handle ESC if loading
+                },
+                help: "close_alt"
+            }];
+        }
+
+        setModalHandle(handle: ModalComponent) {
+            this.modalHandle = handle;
+        }
 }
