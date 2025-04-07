@@ -6,7 +6,7 @@ import { _formatSmtpDateTime, mailToEml } from "../../../../src/mail-app/mail/ex
 
 o.spec("Exporter", function () {
 	o.spec("mail to eml", function () {
-		o("most minimal eml", function () {
+		o("most minimal eml plaintext", function () {
 			const now = Date.now()
 			const mostMinimalBundle: MailBundle = {
 				mailId: ["", ""],
@@ -42,6 +42,48 @@ Content-transfer-encoding: base64\r\n\
 			const actualLines = actual.split("\r\n")
 			const expectedLines = expected.split("\r\n")
 			o(actualLines.length).equals(expectedLines.length)
+			for (let i = 0; i < Math.min(expectedLines.length, actualLines.length); ++i) {
+				o(actualLines[i]).equals(expectedLines[i])(`Line: ${i}`)
+			}
+		})
+
+		o("minimal eml plaintext", function () {
+			const now = Date.now()
+			const mostMinimalBundle: MailBundle = {
+				mailId: ["", ""],
+				subject: "",
+				body: "I am a plain body!",
+				sender: { address: "complaints@johnbotr.is" },
+				to: [],
+				cc: [],
+				bcc: [],
+				replyTo: [],
+				isDraft: false,
+				isRead: true,
+				sentOn: now,
+				receivedOn: now,
+				headers: null,
+				attachments: [],
+			}
+
+			const actual = mailToEml(mostMinimalBundle)
+			const expected = `From: complaints@johnbotr.is\r\n\
+MIME-Version: 1.0\r\n\
+Subject: \r\n\
+Date: ${_formatSmtpDateTime(new Date(now))}\r\n\
+Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanota"\r\n\
+\r\n\
+--------------79Bu5A16qPEYcVIZL@tutanota\r\n\
+Content-Type: text/plain; charset=UTF-8\r\n\
+Content-transfer-encoding: base64\r\n\
+\r\n\
+SSBhbSBhIHBsYWluIGJvZHkh\r\n\
+\r\n\
+--------------79Bu5A16qPEYcVIZL@tutanota--`
+
+			const actualLines = actual.split("\r\n")
+			const expectedLines = expected.split("\r\n")
+			o(actualLines.length).equals(expectedLines.length)("Actual lines vs expected lines")
 			for (let i = 0; i < Math.min(expectedLines.length, actualLines.length); ++i) {
 				o(actualLines[i]).equals(expectedLines[i])(`Line: ${i}`)
 			}
