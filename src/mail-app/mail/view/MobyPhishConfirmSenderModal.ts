@@ -224,7 +224,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 // Title uses formatted string
                 title: !canAddSender ? 'Cannot determine actual sender' : `Add ${actualSenderDisplay} to your trusted list`
             // Label uses formatted string
-            }, `Add Actual Sender (${actualSenderDisplay}) to Trusted List`),
+            }, `Add ${actualSenderDisplay} to Trusted List`),
 
             // Report Phishing Button
             m("button.btn.btn-danger", {
