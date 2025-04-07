@@ -410,7 +410,7 @@ class AndroidNativeCryptoFacade(
 				val cipherTextWithoutMac = cipherText.copyOfRange(1, cipherText.size - 32)
 				val providedMacBytes = cipherText.copyOfRange(cipherText.size - 32, cipherText.size)
 				val computedMacBytes = hmac256(subKeys.mKey!!, cipherTextWithoutMac)
-				if (!Arrays.equals(computedMacBytes, providedMacBytes)) {
+				if (!MessageDigest.isEqual(computedMacBytes, providedMacBytes)) {
 					throw CryptoError("invalid mac")
 				}
 				inputWithoutMac = ByteArrayInputStream(cipherTextWithoutMac)
