@@ -7,9 +7,10 @@ import m, { Children } from "mithril";
 import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
-import { MailViewerViewModel, API_BASE_URL, TrustedSenderInfo } from "./MailViewerViewModel.js"; // Import API_BASE_URL and TrustedSenderInfo interface from ViewModel
+import { MailViewerViewModel, API_BASE_URL } from "./MailViewerViewModel.js"; // Import API_BASE_URL and TrustedSenderInfo interface from ViewModel
 
 // Note: Removed local TrustedSenderInfo interface definition as it's now imported from ViewModel
+
 
 export class MobyPhishConfirmSenderModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
@@ -254,7 +255,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 style: this.getButtonStyle("#28A745", "#218838", this.isLoading || !canAddSender), // Disable if cannot add
                 disabled: this.isLoading || !canAddSender, // Disable if cannot add
                 title: !canAddSender ? 'Cannot determine actual sender' : `Add ${actualSenderDisplay} to your trusted list`
-            }, this.isLoading ? m(Icon, {icon: Icons.Loading, spin: true}) : `Add Actual Sender (${actualSenderDisplay}) to Trusted List`), // Use formatted string
+            }, `Add Actual Sender (${actualSenderDisplay}) to Trusted List`), // Use formatted string
 
             // Report Phishing Button (logic unchanged)
             m("button.btn.btn-danger", { /* ... */ }),
