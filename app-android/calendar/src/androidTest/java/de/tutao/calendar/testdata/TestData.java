@@ -22,6 +22,8 @@ public class TestData {
 	List<PQCryptTestData> pqCryptEncryptionTests = new LinkedList<>();
 	List<ByteArrayEncodingTestData> byteArrayEncodingTests = new LinkedList<>();
 	List<HkdfTestData> hkdfTests = new LinkedList<>();
+	List<HmacSha256TestData> hmacSha256Tests = new LinkedList<>();
+	List<Ed25519TestData> ed25519Tests = new LinkedList<>();
 
 	public TestData addRsaEncryptionTest(EncryptionTestData test) {
 		this.rsaEncryptionTests.add(test);
@@ -158,6 +160,14 @@ public class TestData {
 
 	public List<HkdfTestData> getHkdfTests() {
 		return hkdfTests;
+	}
+
+	public List<HmacSha256TestData> getHmacSha256Tests() {
+		return hmacSha256Tests;
+	}
+
+	public List<Ed25519TestData> getEd25519Tests() {
+		return ed25519Tests;
 	}
 }
 

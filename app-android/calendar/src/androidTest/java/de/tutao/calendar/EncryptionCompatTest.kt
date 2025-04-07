@@ -1,6 +1,7 @@
 package de.tutao.calendar
 
 import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -21,7 +22,6 @@ import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.mock
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.IOException
@@ -42,7 +42,7 @@ class CompatibilityTest {
 
 	@Before
 	fun setup() {
-		val context = mock(Context::class.java)
+		val context: Context = ApplicationProvider.getApplicationContext()
 		crypto = AndroidNativeCryptoFacade(context, TempDir(context))
 	}
 
