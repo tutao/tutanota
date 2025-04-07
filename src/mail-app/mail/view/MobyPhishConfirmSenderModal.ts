@@ -257,7 +257,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 style: this.getButtonStyle("#28A745", "#218838", this.isLoading || !canAddSender),
                 disabled: this.isLoading || !canAddSender,
                 title: !canAddSender ? 'Cannot determine actual sender' : `Add ${actualSenderDisplay} to your trusted list`
-            }, this.isLoading ? m(Icon, {icon: Icons.Loading, spin: true}) : `Add Actual Sender (${actualSenderDisplay}) to Trusted List`),
+            }, `Add Actual Sender (${actualSenderDisplay}) to Trusted List`),
 
             // Report Phishing Button
             m("button.btn.btn-danger", {
