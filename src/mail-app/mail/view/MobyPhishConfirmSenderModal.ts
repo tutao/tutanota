@@ -7,10 +7,9 @@ import m, { Children } from "mithril";
 import { Keys } from "../../../common/api/common/TutanotaConstants.js";
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
-import { MailViewerViewModel, API_BASE_URL } from "./MailViewerViewModel.js"; // Import API_BASE_URL and TrustedSenderInfo interface from ViewModel
+import { MailViewerViewModel, API_BASE_URL, TrustedSenderInfo } from "./MailViewerViewModel.js"; // Import API_BASE_URL and TrustedSenderInfo interface from ViewModel
 
 // Note: Removed local TrustedSenderInfo interface definition as it's now imported from ViewModel
-
 
 export class MobyPhishConfirmSenderModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
