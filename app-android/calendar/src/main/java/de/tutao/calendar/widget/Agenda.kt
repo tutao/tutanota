@@ -96,13 +96,11 @@ class Agenda : GlanceAppWidget() {
 	override suspend fun onDelete(context: Context, glanceId: GlanceId) {
 		super.onDelete(context, glanceId)
 
-		val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
-
 		// We can't access the model from here, only the repository directly
 		val repository = context.widgetDataRepository
 
-		repository.eraseLastSyncForWidget(context, widgetId)
-		repository.eraseSettingsForWidget(context, widgetId)
+		repository.eraseLastSyncForWidget(context, glanceId)
+		repository.eraseSettingsForWidget(context, glanceId)
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {

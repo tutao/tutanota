@@ -1,8 +1,10 @@
 package de.tutao.calendar.widget.data
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.glance.GlanceId
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.updateAppWidgetState
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
 import de.tutao.calendar.widget.widgetDataStore
@@ -74,21 +76,23 @@ abstract class WidgetRepository {
 		return json.decodeFromString<SettingsDao>(encodedPreference)
 	}
 
-	suspend fun eraseLastSyncForWidget(context: Context, widgetId: Int) {
+	suspend fun eraseLastSyncForWidget(context: Context, glanceId: GlanceId) {
+		val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
 		val databaseWidgetIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 
-		context.widgetDataStore.edit { preferences ->
-			preferences.remove(preferencesKey)
+		updateAppWidgetState(context, glanceId) { prefs ->
+			prefs.remove(preferencesKey)
 		}
 	}
 
-	suspend fun eraseSettingsForWidget(context: Context, widgetId: Int) {
+	suspend fun eraseSettingsForWidget(context: Context, glanceId: GlanceId) {
+		val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
 		val databaseWidgetIdentifier = "${WIDGET_SETTINGS_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 
-		context.widgetDataStore.edit { preferences ->
-			preferences.remove(preferencesKey)
+		updateAppWidgetState(context, glanceId) { prefs ->
+			prefs.remove(preferencesKey)
 		}
 	}
 }

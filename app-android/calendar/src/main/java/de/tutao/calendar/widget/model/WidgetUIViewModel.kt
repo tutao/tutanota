@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.datastore.core.IOException
 import androidx.lifecycle.ViewModel
 import de.tutao.calendar.widget.WidgetUpdateTrigger
+import de.tutao.calendar.widget.data.LastSyncDao
+import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.data.WidgetUIData
@@ -57,11 +59,26 @@ class WidgetUIViewModel(
 		tomorrowMidnight.set(Calendar.SECOND, 0)
 		tomorrowMidnight.set(Calendar.MILLISECOND, 0)
 
-		val settings = repository.loadSettings(context, widgetId) ?: return WidgetUIData(normalEvents, allDayEvents)
-		val lastSync = repository.loadLastSync(context, widgetId)
-		val credentials = this.credentialsFacade.loadByUserId(settings.userId)?.toSdkCredentials()
-		val calendars = settings.calendars.keys.toList()
+		val settings: SettingsDao?
+		val lastSync: LastSyncDao?
+		var calendars = listOf<String>()
 
+		try {
+			settings = repository.loadSettings(context, widgetId) ?: return WidgetUIData(normalEvents, allDayEvents)
+			lastSync = repository.loadLastSync(context, widgetId)
+			calendars = settings.calendars.keys.toList()
+		} catch (e: Exception) {
+			// Fallback to cached events. We don't set an error here because we still able to display "something"
+			// to the user.
+			_error.value = WidgetError(
+				"Something went wrong when reading from DataStore, WidgetId $widgetId",
+				e.stackTraceToString(),
+				WidgetErrorType.UNEXPECTED
+			)
+			return null
+		}
+
+		val credentials = this.credentialsFacade.loadByUserId(settings.userId)?.toSdkCredentials()
 		if (credentials == null) {
 			_error.value = WidgetError(
 				"Missing credentials for user ${settings.userId}",
