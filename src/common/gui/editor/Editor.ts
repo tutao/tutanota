@@ -31,12 +31,13 @@ export class Editor implements ImageHandler, Component {
 	private readOnly = false
 	private createsLists = true
 	private userHasPasted = false
+	private areRelativeLinksAllowed = false
 	private styleActions = Object.freeze({
 		b: [() => this.squire.bold(), () => this.squire.removeBold(), () => this.styles.b],
 		i: [() => this.squire.italic(), () => this.squire.removeItalic(), () => this.styles.i],
 		u: [() => this.squire.underline(), () => this.squire.removeUnderline(), () => this.styles.u],
 		c: [() => this.squire.setFontFace("monospace"), () => this.squire.setFontFace(null), () => this.styles.c],
-		a: [() => this.makeLink(), () => this.squire.removeLink(), () => this.styles.a],
+		a: [() => this.makeLink(this.areRelativeLinksAllowed), () => this.squire.removeLink(), () => this.styles.a],
 	} as const)
 
 	styles: Styles = {
@@ -126,6 +127,10 @@ export class Editor implements ImageHandler, Component {
 
 	setShowOutline(show: boolean) {
 		this.showOutline = show
+	}
+
+	setAreRelativeLinksAllowed(areRelativeLinksAllowed: boolean) {
+		this.areRelativeLinksAllowed = areRelativeLinksAllowed
 	}
 
 	/**
@@ -266,7 +271,12 @@ export class Editor implements ImageHandler, Component {
 		this.styles.i = this.squire.hasFormat("i")
 	}
 
-	makeLink() {
+	/**
+	 * Prompts the user to input a URL and creates a link at the current cursor position in the editor.
+	 *
+	 * @param [areRelativeLinksAllowed=false] - Whether relative links are allowed.
+	 */
+	makeLink(areRelativeLinksAllowed: boolean = false) {
 		Dialog.showTextInputDialog({
 			title: "makeLink_action",
 			label: "url_label",
@@ -274,7 +284,13 @@ export class Editor implements ImageHandler, Component {
 		}).then((url) => {
 			if (isMailAddress(url, false)) {
 				url = "mailto:" + url
-			} else if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("mailto:") && !url.startsWith("{")) {
+			} else if (
+				!areRelativeLinksAllowed &&
+				!url.startsWith("http://") &&
+				!url.startsWith("https://") &&
+				!url.startsWith("mailto:") &&
+				!url.startsWith("{")
+			) {
 				url = "https://" + url
 			}
 
