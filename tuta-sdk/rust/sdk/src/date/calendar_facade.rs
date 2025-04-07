@@ -80,11 +80,6 @@ impl CalendarFacade {
 			.await?;
 		let mut calendars_data: HashMap<GeneratedId, CalendarData> = HashMap::new();
 		for membership in memberships {
-			log::info!(
-				"Membership: {:?} {:?}",
-				membership.clone()._id.unwrap().as_str(),
-				membership.clone().capability
-			);
 			let group_info: GroupInfo = self
 				.crypto_entity_client
 				.load(&membership.groupInfo)
@@ -232,17 +227,7 @@ impl CalendarFacade {
 				.collect::<Vec<&CalendarEvent>>();
 
 			for event in &event_with_repeat_rules {
-				log::info!("Processing repeat rules for {:?}", event._id);
 				let repeat_rule = event.repeatRule.as_ref().unwrap();
-
-				repeat_rule.excludedDates.iter().for_each(|date| {
-					let parsed_date =
-						OffsetDateTime::from_unix_timestamp(date.date.as_seconds() as i64)
-							.unwrap()
-							.date();
-					log::info!("Excluded dates {}", parsed_date);
-				});
-
 				let event_instances = match events_facade.create_event_instances(
 					event.startTime,
 					event.endTime,
