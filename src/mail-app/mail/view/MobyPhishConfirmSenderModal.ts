@@ -146,6 +146,8 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                     actualSenderInfo?.address || 'Unknown',
                     false
                 );
+        console.log(actualSenderInfo, actualSenderDisplay);
+        console.log(this.viewModel);
         const actualSenderAddress = actualSenderInfo?.address || 'Unknown'; // For the button
 
         return [
