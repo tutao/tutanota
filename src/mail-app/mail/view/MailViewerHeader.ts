@@ -38,6 +38,8 @@ import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
 import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js"
 import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal";
 import { API_BASE_URL } from "./MailViewerViewModel.js"; 
+import { MobyPhishAlreadyTrustedModal } from "./MobyPhishAlreadyTrustedModal.js";
+
 
 
 export type MailAddressDropdownCreator = (args: {
@@ -745,143 +747,133 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}*/
 
+
+// Replace the ENTIRE existing private renderMobyPhishBanner function with this one:
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
-	  const senderStatus = viewModel.senderStatus; // values: confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing, trusted_once
+		const senderStatus = viewModel.senderStatus;
 
-	  // If the sender is already trusted (via confirmation or trust once), show confirmation banner
-	  if (senderStatus === "confirmed" || senderStatus === "trusted_once") {
-	    return m(InfoBanner, {
-	      message: `mobyPhish_sender_${String(senderStatus)}` as TranslationKey,
-	      icon: Icons.CircleCheckmark,
-	      type: BannerType.Info,
-	      helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-	      buttons: []
-	    });
-	  }
+		// If the sender status is ALREADY confirmed/trusted_once, show the success banner and exit.
+		if (senderStatus === "confirmed" || senderStatus === "trusted_once") {
+			return m(InfoBanner, {
+				message: `mobyPhish_sender_${String(senderStatus)}` as TranslationKey,
+				icon: Icons.CircleCheckmark,
+				type: BannerType.Info,
+				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+				buttons: []
+			});
+		}
 
-	  const buttons: BannerButtonAttrs[] = [];
+		const isAlreadyTrusted = viewModel.isSenderTrusted(); // Check only once
 
-	  if (viewModel.isSenderTrusted()) {
-	    // --- Case 1: Sender is on the trusted list BUT status isn't 'confirmed'/'trusted_once' yet ---
-	    // This might happen briefly or if the status update failed previously.
-	    // Offer Confirm (to update status/UI) and Deny (which opens MobyPhishDenyModal).
-	    const confirmButton: BannerButtonAttrs = {
-	      title: "mobyPhish_confirm",
-	      label: "mobyPhish_confirm",
-	      icon: m(Icon, { icon: Icons.Checkmark }),
-	      click: async () => {
-	        // Explicitly confirm: updates status, ensures content unblocks, shows success banner
-	        await viewModel.updateSenderStatus("confirmed");
-	        // No need for setContentBlockingStatus, updateSenderStatus handles it
-	        // m.redraw(); // updateSenderStatus handles redraw
-	      },
-	      style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-	    };
+		const confirmButton: BannerButtonAttrs = {
+			title: "mobyPhish_confirm",
+			label: "mobyPhish_confirm",
+			icon: m(Icon, { icon: Icons.Checkmark }),
+			click: async () => {
+				if (isAlreadyTrusted) {
+					// Case 1a: Already trusted -> Just confirm status & UI
+					console.log("Banner Confirm clicked: Sender already trusted, confirming status.");
+					await viewModel.updateSenderStatus("confirmed");
+				} else {
+					// Case 1b: Not trusted -> Open the confirmation/verification modal
+					console.log("Banner Confirm clicked: Sender not trusted, opening verification modal.");
+					const modalInstance = new MobyPhishConfirmSenderModal(viewModel, viewModel.trustedSenders());
+					const handle = modal.display(modalInstance);
+					modalInstance.setModalHandle(handle);
+				}
+			},
+			style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		};
 
-	    const denyButton: BannerButtonAttrs = {
-	      title: "mobyPhish_deny",
-	      label: "mobyPhish_deny",
-	      icon: m(Icon, { icon: Icons.Close }),
-	      click: () => {
-	        const modalInstance = new MobyPhishDenyModal(viewModel);
-	        const handle = modal.display(modalInstance);
-	        modalInstance.setModalHandle(handle);
-	      },
-	      style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-	    };
+		const addButton: BannerButtonAttrs = {
+			title: "mobyPhish_add",
+			label: "mobyPhish_add",
+			icon: m(Icon, { icon: Icons.Add }),
+			click: async () => {
+				if (isAlreadyTrusted) {
+					// Case 2a: Already trusted -> Show info modal
+					console.log("Banner Add clicked: Sender already trusted, showing info modal.");
+					const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
+					const handle = modal.display(modalInstance);
+					modalInstance.setModalHandle(handle);
+				} else {
+					// Case 2b: Not trusted -> Add sender directly via API
+					console.log("Banner Add clicked: Sender not trusted, adding directly.");
+					const senderInfo = viewModel.getDisplayedSender();
+					const senderAddressToAdd = senderInfo?.address;
+					const senderNameToAdd = senderInfo?.name || '';
+					const userEmail = viewModel.logins.getUserController().loginUsername;
 
-	    buttons.push(confirmButton, denyButton);
+					if (!senderAddressToAdd) {
+						console.error("Could not determine sender address to add via banner button.");
+						return;
+					}
+					console.log(`Banner Add Button: Adding User=${userEmail}, Email=${senderAddressToAdd}, Name=${senderNameToAdd}`);
+					try {
+						const response = await fetch(`${API_BASE_URL}/add-trusted`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								user_email: userEmail,
+								trusted_email: senderAddressToAdd,
+								trusted_name: senderNameToAdd
+							})
+						});
+						if (!response.ok) {
+							const errorData = await response.json().catch(() => ({}));
+							console.error("Failed to add sender to trusted list via banner button:", response.status, errorData.message || '');
+							// TODO: Optionally show user error modal/message
+							return;
+						}
+						console.log(`Sender added to trusted list via banner button: ${senderAddressToAdd}`);
+						// Confirm status to refresh UI/data and show success banner
+						await viewModel.updateSenderStatus("confirmed");
+					} catch (error) {
+						console.error("Error adding sender via banner button:", error);
+						// TODO: Optionally show user error modal/message
+					}
+				}
+			},
+			style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		};
 
-	  } else {
-	    // --- Case 2: Sender is NOT on the trusted list ---
-	    // Offer Confirm (opens MobyPhishConfirmSenderModal), Add (direct add), Trust Once
-	    const confirmButton: BannerButtonAttrs = {
-	      title: "mobyPhish_confirm",
-	      label: "mobyPhish_confirm",
-	      icon: m(Icon, { icon: Icons.Checkmark }),
-	      click: () => {
-	        // Pass the array of {name, address} objects to the modal
-	        const modalInstance = new MobyPhishConfirmSenderModal(viewModel, viewModel.trustedSenders());
-	        const handle = modal.display(modalInstance);
-	        modalInstance.setModalHandle(handle);
-	      },
-	      style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-	    };
+		const trustOnceButton: BannerButtonAttrs = {
+			title: "mobyPhish_trusted_once",
+			label: "mobyPhish_trusted_once",
+			icon: m(Icon, { icon: Icons.Unlock }),
+			click: async () => {
+				if (isAlreadyTrusted) {
+					// Case 3a: Already trusted -> Show info modal
+					console.log("Banner Trust Once clicked: Sender already trusted, showing info modal.");
+					const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
+					const handle = modal.display(modalInstance);
+					modalInstance.setModalHandle(handle);
+				} else {
+					// Case 3b: Not trusted -> Update status to trusted_once
+					console.log("Banner Trust Once clicked: Sender not trusted, setting status.");
+					try {
+						await viewModel.updateSenderStatus("trusted_once");
+						console.log("Trusted once: Content unblocked for this email only.");
+					} catch (error) {
+						console.error("Error applying trust-once behavior:", error);
+						// TODO: Optionally show user error modal/message
+					}
+				}
+			},
+			style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		};
 
-	    const addButton: BannerButtonAttrs = {
-	      title: "mobyPhish_add",
-	      label: "mobyPhish_add",
-	      icon: m(Icon, { icon: Icons.Add }),
-	      click: async () => {
-	        const senderInfo = viewModel.getDisplayedSender(); // Get {name, address}
-	        const senderAddressToAdd = senderInfo?.address;
-	        const senderNameToAdd = senderInfo?.name || ''; // Get name, default to empty
-	        const userEmail = viewModel.logins.getUserController().loginUsername;
+		// Always show these three buttons when the status isn't confirmed/trusted_once
+		const buttons: BannerButtonAttrs[] = [confirmButton, addButton, trustOnceButton];
 
-	        if (!senderAddressToAdd) {
-	            console.error("Could not determine sender address to add via banner button.");
-	            // Optionally show a user-facing error here
-	            return;
-	        }
-
-	        console.log(`Banner Add Button: Adding User=${userEmail}, Email=${senderAddressToAdd}, Name=${senderNameToAdd}`);
-
-	        try {
-	          const response = await fetch(`${API_BASE_URL}/add-trusted`, {
-	            method: "POST",
-	            headers: { "Content-Type": "application/json" },
-	            body: JSON.stringify({ // Send name along with email
-	              user_email: userEmail,
-	              trusted_email: senderAddressToAdd,
-	              trusted_name: senderNameToAdd // Send the name
-	            })
-	          });
-	          if (!response.ok) {
-	            const errorData = await response.json().catch(() => ({}));
-	            console.error("Failed to add sender to trusted list via banner button:", response.status, errorData.message || '');
-	            // Optionally show a user-facing error here
-	            return;
-	          }
-	          console.log(`Sender added to trusted list via banner button: ${senderAddressToAdd}`);
-	          // Call updateSenderStatus('confirmed') to refresh data, unblock content, and show success banner
-	          await viewModel.updateSenderStatus("confirmed");
-	          // m.redraw(); // updateSenderStatus handles redraw
-	        } catch (error) {
-	          console.error("Error adding sender via banner button:", error);
-	          // Optionally show a user-facing error here
-	        }
-	      },
-	      style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" } // Style can be adjusted
-	    };
-
-	    const trustOnceButton: BannerButtonAttrs = {
-	      title: "mobyPhish_trusted_once",
-	      label: "mobyPhish_trusted_once",
-	      icon: m(Icon, { icon: Icons.Unlock }),
-	      click: async () => {
-	        try {
-	          await viewModel.updateSenderStatus("trusted_once");
-	          // Note: updateSenderStatus("trusted_once") already handles setContentBlockingStatus and redraw
-	          console.log("Trusted once: Content unblocked for this email only.");
-	        } catch (error) {
-	          console.error("Error applying trust-once behavior:", error);
-	        }
-	      },
-	      style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-	    };
-
-	    buttons.push(confirmButton, addButton, trustOnceButton);
-	  }
-
-	  // The message key "mobyPhish_is_trusted" might be slightly misleading now.
-	  // It's shown when the sender is *not yet confirmed*. Maybe rename this key later.
-	  return m(InfoBanner, {
-	    message: "mobyPhish_is_trusted", // Consider renaming this language key
-	    icon: Icons.Warning,
-	    type: BannerType.Warning,
-	    helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-	    buttons: buttons
-	  });
+		// Render the warning banner with the unified buttons
+		return m(InfoBanner, {
+			message: "mobyPhish_is_trusted", // This message might need adjustment as it's shown always now
+			icon: Icons.Warning,
+			type: BannerType.Warning,
+			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+			buttons: buttons
+		});
 	}
 
 	
