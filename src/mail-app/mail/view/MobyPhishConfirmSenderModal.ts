@@ -241,7 +241,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 disabled: this.isLoading || actualSenderAddress === 'Unknown',
                 title: actualSenderAddress === 'Unknown' ? 'Cannot determine actual sender' : `Add ${actualSenderDisplay} to your trusted list`
             // *** Use formatted string in button label ***
-            }, this.isLoading ? m(Icon, {icon: Icons.Loading, spin: true}) : `Add Actual Sender (${actualSenderDisplay}) to Trusted List`),
+            }, `Add Actual Sender (${actualSenderDisplay}) to Trusted List`),
 
             // Report Phishing Button
             m("button.btn.btn-danger", {
