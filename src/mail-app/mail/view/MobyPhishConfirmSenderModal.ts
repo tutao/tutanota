@@ -14,25 +14,23 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
     private modalHandle?: ModalComponent;
     private selectedSenderEmail: string = ""; // Store the selected/typed EMAIL address
-    private trustedSenderObjects: TrustedSenderInfo[]; // Store the array of {name, address}
-    private modalState: 'initial' | 'warning' = 'initial'; // Default state
+    private trustedSenderObjects: TrustedSenderInfo[];
+    private modalState: 'initial' | 'warning' = 'initial';
     private isLoading: boolean = false;
     private errorMessage: string | null = null;
-    private skippedInitialView: boolean = false; // Flag to track if initial view was skipped
+    private skippedInitialView: boolean = false;
 
     constructor(viewModel: MailViewerViewModel, trustedSenders: TrustedSenderInfo[]) {
         this.viewModel = viewModel;
-        // Ensure it's an array and filter out any potentially bad entries
         this.trustedSenderObjects = Array.isArray(trustedSenders)
             ? trustedSenders.filter(s => s && typeof s.address === 'string')
             : [];
 
-        // Skip Logic: If the list is empty, go directly to warning view
         if (this.trustedSenderObjects.length === 0) {
             console.log("Modal Constructor: No trusted senders, starting in warning state.");
             this.modalState = 'warning';
-            const actualSenderInfo = this.viewModel.getDisplayedSender();
-            this.selectedSenderEmail = actualSenderInfo?.address || '';
+            // Use guaranteed sender address here as well
+            this.selectedSenderEmail = this.viewModel.getSender().address || '';
             this.skippedInitialView = true;
         }
         console.log(`Modal Constructor: Initialized. State='${this.modalState}', SkippedInitial=${this.skippedInitialView}, Trusted count=${this.trustedSenderObjects.length}, SelectedEmail='${this.selectedSenderEmail}'`);
@@ -41,12 +39,13 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
     // Helper for Display Formatting: "Name (address)" or "address"
     private formatSenderDisplay(name: string | null | undefined, address: string | null | undefined): string {
         const trimmedName = name?.trim();
-        const validAddress = address?.trim() || '';
+        const validAddress = address?.trim() || ''; // Use non-empty address
 
         if (!validAddress) {
-            return trimmedName || "Sender Address Unavailable";
+            // Fallback if address is somehow missing (should be very rare)
+            return trimmedName || "Sender Info Unavailable";
         }
-        // Check if name exists and is different from the address
+        // Check if name exists, is not empty, and is different from the address
         if (trimmedName && trimmedName !== validAddress) {
             return `${trimmedName} (${validAddress})`;
         } else {
@@ -55,9 +54,10 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
         }
     }
 
-    // Main view decides which sub-view to render
+    // Main view
     view(): Children {
-        return m(".modal-overlay", { onclick: (e: MouseEvent) => this.backgroundClick(e) }, [
+        // ... (overlay structure remains the same) ...
+         return m(".modal-overlay", { onclick: (e: MouseEvent) => this.backgroundClick(e) }, [
             m(".modal-content", { onclick: (e: MouseEvent) => e.stopPropagation() }, [
                 m(".dialog.elevated-bg.border-radius", { style: this.getModalStyle() }, [
                     this.modalState === 'initial'
@@ -68,94 +68,79 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
         ]);
     }
 
-    // --- Render Initial Input View ---
+    // Render Initial Input View (logic unchanged)
     private renderInitialView(): Children {
         const isConfirmDisabled = !this.selectedSenderEmail.trim() || this.isLoading;
 
         return [
-            m("p", { style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "15px" } },
+             m("p", { style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "15px" } },
               "Who do you believe this email is from?"),
-
-            m("input[type=text]", {
-                placeholder: "Search or type sender email or name...",
-                value: this.selectedSenderEmail,
-                oninput: (e: Event) => {
-                    this.selectedSenderEmail = (e.target as HTMLInputElement).value;
-                    this.errorMessage = null; // Clear errors on input
-                },
-                list: "trusted-senders-list",
-                style: { /* ... styles ... */ padding: "10px", width: "100%", boxSizing: "border-box", borderRadius: "8px", border: "1px solid #ccc" },
-                "aria-label": "Enter or select the trusted sender email", "aria-autocomplete": "list",
-                "aria-controls": "trusted-senders-list", required: true
-            }),
-            m("datalist#trusted-senders-list",
-              this.trustedSenderObjects.map(sender => {
-                  const displayText = this.formatSenderDisplay(sender.name, sender.address);
-                  return m("option", { value: sender.address }, displayText);
-              })
-            ),
-
-            this.errorMessage ? m(".error-message", { style: { color: 'red', fontSize: '12px', marginTop: '5px' } }, this.errorMessage) : null,
-
-            // Confirm Button
-            m("button.btn", {
-                onclick: async () => {
+             m("input[type=text]", {
+                 placeholder: "Search or type sender email or name...",
+                 value: this.selectedSenderEmail,
+                 oninput: (e: Event) => { /* ... */ this.selectedSenderEmail = (e.target as HTMLInputElement).value; this.errorMessage = null; },
+                 list: "trusted-senders-list",
+                 style: { /* ... */ padding: "10px", width: "100%", boxSizing: "border-box", borderRadius: "8px", border: "1px solid #ccc" },
+                 "aria-label": "Enter or select the trusted sender email", "aria-autocomplete": "list",
+                 "aria-controls": "trusted-senders-list", required: true
+             }),
+             m("datalist#trusted-senders-list",
+               this.trustedSenderObjects.map(sender => {
+                   const displayText = this.formatSenderDisplay(sender.name, sender.address);
+                   return m("option", { value: sender.address }, displayText);
+               })
+             ),
+             this.errorMessage ? m(".error-message", { style: { color: 'red', fontSize: '12px', marginTop: '5px' } }, this.errorMessage) : null,
+             m("button.btn", { // Confirm Button
+                 onclick: async () => {
                     if (isConfirmDisabled) return;
                     this.isLoading = true;
                     this.errorMessage = null;
                     m.redraw();
 
                     const enteredSenderNormalized = this.selectedSenderEmail.trim().toLowerCase();
-                    const actualSenderInfo = this.viewModel.getDisplayedSender();
-                    const actualSenderNormalized = actualSenderInfo?.address?.trim().toLowerCase();
+                    // Get guaranteed address directly for comparison
+                    const actualSenderAddress = this.viewModel.getSender().address;
+                    const actualSenderNormalized = actualSenderAddress?.trim().toLowerCase();
 
                     console.log(`Comparing entered email "${enteredSenderNormalized}" with actual email "${actualSenderNormalized}"`);
 
-                    // *** REMOVED the premature check for !actualSenderNormalized ***
-
-                    // Directly compare. If actualSenderNormalized is somehow null/undefined OR doesn't match, go to warning.
+                    // Compare with the guaranteed address
                     if (actualSenderNormalized && enteredSenderNormalized === actualSenderNormalized) {
-                        console.log(`Entered email matches actual email. Confirming.`);
-                        try {
-                            await this.viewModel.updateSenderStatus("confirmed");
-                            modal.remove(this.modalHandle!);
-                        } catch (error) {
-                            console.error("Error updating status after confirming matching sender:", error);
-                            this.errorMessage = "Failed to update status. Please try again.";
-                            this.isLoading = false;
-                            m.redraw();
-                        }
-                    } else {
-                        console.log(`Entered email DOES NOT match actual email OR actual sender unknown. Switching to warning view.`);
-                        this.modalState = 'warning';
-                        this.isLoading = false;
-                        m.redraw();
-                    }
-                },
-                disabled: isConfirmDisabled,
-                style: this.getButtonStyle("#D4EDDA", "#C3E6CB", isConfirmDisabled)
-            }, "Confirm"), // Static text, no loader
-
-            // Cancel Button
-            m("button.btn", {
-                onclick: () => modal.remove(this.modalHandle!),
-                style: this.getCancelButtonStyle(),
-                disabled: this.isLoading
-            }, "Cancel")
-        ];
+                         console.log(`Entered email matches actual email. Confirming.`);
+                         try { /* ... */ await this.viewModel.updateSenderStatus("confirmed"); modal.remove(this.modalHandle!); }
+                         catch (error) { /* ... */ console.error("Error updating status after confirming matching sender:", error); this.errorMessage = "Failed to update status. Please try again."; this.isLoading = false; m.redraw(); }
+                     } else {
+                         console.log(`Entered email DOES NOT match actual email. Switching to warning view.`);
+                         this.modalState = 'warning';
+                         this.isLoading = false;
+                         m.redraw();
+                     }
+                 },
+                 disabled: isConfirmDisabled,
+                 style: this.getButtonStyle("#D4EDDA", "#C3E6CB", isConfirmDisabled)
+             }, "Confirm"),
+             m("button.btn", { // Cancel Button
+                 onclick: () => modal.remove(this.modalHandle!),
+                 style: this.getCancelButtonStyle(),
+                 disabled: this.isLoading
+             }, "Cancel")
+         ];
     }
 
     // --- Render Warning/Action View ---
     private renderWarningView(): Children {
-        // Get info for the *actual* sender
-        const actualSenderInfo = this.viewModel.getDisplayedSender();
-        // Format actual sender display using refined helper
-        const actualSenderDisplay = actualSenderInfo
-             ? this.formatSenderDisplay(actualSenderInfo.name, actualSenderInfo.address)
-             : "Sender information unavailable";
-        const actualSenderAddress = actualSenderInfo?.address;
-        const actualSenderNameToAdd = actualSenderInfo?.name || '';
-        const canAddSender = !!actualSenderAddress;
+        // --- Refined Actual Sender Info ---
+        const actualSenderInfo = this.viewModel.getDisplayedSender(); // Attempt to get {name, address}
+        const guaranteedActualAddress = this.viewModel.getSender().address; // Guaranteed address
+        const actualSenderName = actualSenderInfo?.name; // Get name if possible (null otherwise)
+
+        // Use guaranteed address, potential name from actualSenderInfo
+        const actualSenderDisplay = this.formatSenderDisplay(actualSenderName, guaranteedActualAddress);
+        const actualSenderAddressForLogic = guaranteedActualAddress; // Use guaranteed address for API/logic
+        const actualSenderNameToAdd = actualSenderName || ''; // Use name if available, else ''
+        const canAddSender = !!actualSenderAddressForLogic; // Check based on guaranteed address
+        // --- End Refined Actual Sender Info ---
 
         // Determine display for the 'claimed' sender
         let primaryWarningText = "";
@@ -163,7 +148,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 
         if (this.skippedInitialView) {
             primaryWarningText = "This sender is not on your trusted list:";
-            senderForPrimaryDisplay = actualSenderDisplay; // Display actual sender info
+            senderForPrimaryDisplay = actualSenderDisplay; // Display actual sender info directly
         } else {
             primaryWarningText = "You indicated this email might be from:";
             const enteredEmail = this.selectedSenderEmail.trim().toLowerCase();
@@ -179,29 +164,35 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
               m(Icon, { icon: Icons.Warning, style: { fill: '#FFA500', marginRight: '8px', verticalAlign: 'middle' } }),
               "Potential Phishing Attempt"
             ),
+
+            // Conditional Primary Warning Text uses formatted sender
             m("p", { style: { fontSize: "14px", textAlign: "center", marginBottom: "15px" } }, [
                 primaryWarningText, m("br"), m("strong", senderForPrimaryDisplay),
                 !this.skippedInitialView ? m("br") : null,
                 !this.skippedInitialView ? `However, the actual sender is different.` : null
             ]),
+
+            // Conditional Secondary "(Actual Sender:..)" Text uses formatted sender
             !this.skippedInitialView
               ? m("p", { style: { fontSize: "12px", textAlign: "center", marginBottom: "20px", fontStyle: 'italic' } },
+                 // Display the guaranteed formatted string, which will show at least the address
                  `(Actual sender: ${actualSenderDisplay})`
                )
               : null,
 
-             this.errorMessage ? m(".error-message", { style: { color: 'red', fontSize: '12px', marginTop: '5px', marginBottom: '10px' } }, this.errorMessage) : null,
+             this.errorMessage ? m(".error-message", { /* ... */ }, this.errorMessage) : null,
 
             // Add Actual Sender Button
             m("button.btn.btn-success", {
                 onclick: async () => {
+                    // Use guaranteed address for logic
                     if (this.isLoading || !canAddSender) return;
                     this.isLoading = true;
                     this.errorMessage = null;
                     m.redraw();
 
-                    const senderToAdd = actualSenderAddress!;
-                    const nameToAdd = actualSenderNameToAdd;
+                    const senderToAdd = actualSenderAddressForLogic; // Guaranteed address
+                    const nameToAdd = actualSenderNameToAdd; // Name (or '') from getDisplayedSender
                     const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
                     try {
@@ -230,8 +221,9 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 },
                 style: this.getButtonStyle("#28A745", "#218838", this.isLoading || !canAddSender),
                 disabled: this.isLoading || !canAddSender,
+                // Title uses formatted string
                 title: !canAddSender ? 'Cannot determine actual sender' : `Add ${actualSenderDisplay} to your trusted list`
-            // **REMOVED** Loader Icon from button text
+            // Label uses formatted string
             }, `Add Actual Sender (${actualSenderDisplay}) to Trusted List`),
 
             // Report Phishing Button
