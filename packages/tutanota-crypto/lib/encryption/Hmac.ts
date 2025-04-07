@@ -20,7 +20,7 @@ export function hmacSha256(key: AesKey, data: Uint8Array): MacTag {
  */
 export function verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
 	const computedTag = hmacSha256(key, data)
-	if (!arrayEquals(computedTag, tag)) {
+	if (!sjcl.bitArray.equal(computedTag, tag)) {
 		throw new CryptoError("invalid mac")
 	}
 }
