@@ -832,7 +832,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        const senderAddressToAdd = senderInfo?.address;
 	        const senderNameToAdd = senderInfo?.name || ''; // Get name, default to empty
 	        const userEmail = viewModel.logins.getUserController().loginUsername;
-
+console.log(senderAddressToAdd);
 	        if (!senderAddressToAdd) {
 	            console.error("Could not determine sender address to add via banner button.");
 	            // Optionally show a user-facing error here
