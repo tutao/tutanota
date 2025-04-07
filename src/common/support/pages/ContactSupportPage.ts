@@ -181,10 +181,9 @@ export class ContactSupportPage implements Component<Props> {
 								return
 							}
 
-							const mailBody = data.shouldIncludeLogs()
-								? `${data.supportRequest}${clientInfoString(new Date(), true).message}`
-								: data.supportRequest
+							const customerId = (await locator.logins.getUserController().loadCustomerInfo()).customer
 
+							const mailBody = `${data.supportRequest + clientInfoString(new Date(), true).message}Customer ID: ${customerId}`
 							const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
 								blockExternalContent: true,
 							}).html
