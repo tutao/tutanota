@@ -37,7 +37,7 @@ export class Editor implements ImageHandler, Component {
 		i: [() => this.squire.italic(), () => this.squire.removeItalic(), () => this.styles.i],
 		u: [() => this.squire.underline(), () => this.squire.removeUnderline(), () => this.styles.u],
 		c: [() => this.squire.setFontFace("monospace"), () => this.squire.setFontFace(null), () => this.styles.c],
-		a: [() => this.makeLink(this.areRelativeLinksAllowed), () => this.squire.removeLink(), () => this.styles.a],
+		a: [() => this.makeLink(), () => this.squire.removeLink(), () => this.styles.a],
 	} as const)
 
 	styles: Styles = {
@@ -273,10 +273,8 @@ export class Editor implements ImageHandler, Component {
 
 	/**
 	 * Prompts the user to input a URL and creates a link at the current cursor position in the editor.
-	 *
-	 * @param [areRelativeLinksAllowed=false] - Whether relative links are allowed.
 	 */
-	makeLink(areRelativeLinksAllowed: boolean = false) {
+	makeLink() {
 		Dialog.showTextInputDialog({
 			title: "makeLink_action",
 			label: "url_label",
@@ -285,7 +283,7 @@ export class Editor implements ImageHandler, Component {
 			if (isMailAddress(url, false)) {
 				url = "mailto:" + url
 			} else if (
-				!areRelativeLinksAllowed &&
+				!this.areRelativeLinksAllowed &&
 				!url.startsWith("http://") &&
 				!url.startsWith("https://") &&
 				!url.startsWith("mailto:") &&
