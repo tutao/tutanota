@@ -115,7 +115,8 @@ export class ContactSupportPage implements Component<Props> {
 						padding: "0",
 					},
 				},
-				this.htmlEditor == null ? null : m(this.htmlEditor),
+				this.htmlEditor?.isEmpty() && !this.htmlEditor?.isActive() && m("span.text-editor-placeholder", lang.get("supportForm_whatWentWrong_msg")),
+				this.htmlEditor != null && m(this.htmlEditor),
 			),
 
 			m(
