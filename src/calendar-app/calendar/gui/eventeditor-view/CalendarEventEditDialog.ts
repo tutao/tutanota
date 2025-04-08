@@ -7,7 +7,7 @@
  */
 
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
-import { lang, MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
+import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../common/gui/base/Button.js"
 import { Keys } from "../../../../common/api/common/TutanotaConstants.js"
 import { AlarmInterval, getStartOfTheWeekOffsetForUser, getTimeFormatForUser, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -224,32 +224,39 @@ export class EventEditorDialog {
 			throw new ProgrammingError("tried to edit existing event without uid, this is impossible for certain edit operations.")
 		}
 
-		const okAction: EditDialogOkHandler = async (posRect, finish) => {
-			if (finished || (await this.askUserIfUpdatesAreNeededOrCancel(model)) === ConfirmationResult.Cancel) {
-				return
+		return new Promise((resolve, reject) => {
+			const okAction: EditDialogOkHandler = async (posRect, finish) => {
+				if (finished || (await this.askUserIfUpdatesAreNeededOrCancel(model)) === ConfirmationResult.Cancel) {
+					return
+				}
+
+				try {
+					const result = await model.apply()
+					if (result === EventSaveResult.Saved || result === EventSaveResult.NotFound) {
+						finished = true
+						finish()
+
+						// Inform the user that the event was deleted, avoiding misunderstanding that the event was saved
+						if (result === EventSaveResult.NotFound) Dialog.message("eventNoLongerExists_msg")
+					}
+
+					resolve()
+				} catch (e) {
+					if (e instanceof UserError) {
+						// noinspection ES6MissingAwait
+						showUserError(e)
+					} else if (e instanceof UpgradeRequiredError) {
+						await showPlanUpgradeRequiredDialog(e.plans)
+					} else {
+						throw e
+					}
+
+					reject()
+				}
 			}
 
-			try {
-				const result = await model.apply()
-				if (result === EventSaveResult.Saved || result === EventSaveResult.NotFound) {
-					finished = true
-					finish()
-
-					// Inform the user that the event was deleted, avoiding misunderstanding that the event was saved
-					if (result === EventSaveResult.NotFound) Dialog.message("eventNoLongerExists_msg")
-				}
-			} catch (e) {
-				if (e instanceof UserError) {
-					// noinspection ES6MissingAwait
-					showUserError(e)
-				} else if (e instanceof UpgradeRequiredError) {
-					await showPlanUpgradeRequiredDialog(e.plans)
-				} else {
-					throw e
-				}
-			}
-		}
-		await this.showCalendarEventEditDialog(model, responseMail, okAction)
+			this.showCalendarEventEditDialog(model, responseMail, okAction)
+		})
 	}
 
 	/** if there are update worthy changes on the model, ask the user what to do with them.

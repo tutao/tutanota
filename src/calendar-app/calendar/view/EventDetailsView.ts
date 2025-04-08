@@ -92,16 +92,14 @@ export function handleEventEditButtonClick(previewModel: CalendarEventPreviewVie
 						label: "updateOneCalendarEvent_action",
 						click: () => {
 							// noinspection JSIgnoredPromiseFromCall
-							previewModel?.editSingle()
-							handleCallback()
+							previewModel?.editSingle().finally(handleCallback)
 						},
 					},
 					{
 						label: "updateAllCalendarEvents_action",
 						click: () => {
 							// noinspection JSIgnoredPromiseFromCall
-							previewModel?.editAll()
-							handleCallback()
+							previewModel?.editAll().finally(handleCallback)
 						},
 					},
 				]),
@@ -109,8 +107,7 @@ export function handleEventEditButtonClick(previewModel: CalendarEventPreviewVie
 		})(ev, receiver)
 	} else {
 		// noinspection JSIgnoredPromiseFromCall
-		previewModel?.editAll()
-		handleCallback()
+		previewModel?.editAll().finally(handleCallback)
 	}
 }
 

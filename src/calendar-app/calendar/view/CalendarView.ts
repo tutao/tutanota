@@ -597,11 +597,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				m(EventDetailsView, {
 					eventPreviewModel: this.viewModel.eventPreviewModel,
 					editCallback: () => {
-						if (this.eventDetails && eventPreviewModel?.calendarEvent) {
-							this.viewSlider.focus(this.eventDetails)
-						} else {
-							this.exitEventDetails()
-						}
+						this.exitEventDetails()
 					},
 					deleteCallback: () => this.exitEventDetails(),
 				} satisfies EventDetailsViewAttrs),
@@ -647,11 +643,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						title: "edit_action",
 						click: (ev: MouseEvent, receiver: HTMLElement) => {
 							handleEventEditButtonClick(previewModel, ev, receiver, () => {
-								if (this.eventDetails && previewModel.calendarEvent) {
-									this.viewSlider.focus(this.eventDetails)
-								} else {
-									this.exitEventDetails()
-								}
+								this.exitEventDetails()
 							})
 						},
 					}),

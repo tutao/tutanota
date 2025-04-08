@@ -259,7 +259,6 @@ function expandByDayRuleForMonthlyEvents(
 	if (weekChange != 0) {
 		let dt = baseDate
 
-		console.log("Week change: ", weekChange, targetWeekDay)
 		// Check for negative week changes e.g -1TH last thursday
 		if (weekChange < 0) {
 			dt = dt
