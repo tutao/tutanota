@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-04-04T12:11:54Z",
+	"updated_at": "2025-04-04T15:31:49Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -653,7 +653,7 @@ export default {
 		"finish_action": "完成",
 		"firstMergeContact_label": "聯絡人1",
 		"firstMonthForFreeDetail_msg": "我們所有付費計劃均提供一個月試用期。首月完全免費，而且您可以隨時取消。",
-		"firstMonthForFree_msg": "任何付費計劃下均可獲得首月免費！",
+		"firstMonthForFree_msg": "任何年繳付費計劃下均可獲得首月免費！",
 		"firstName_placeholder": "名字",
 		"firstOfPeriod_label": "第一個{day}",
 		"folderDepth_label": "{folderName}，{depth}層深。",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-04-04T12:11:54Z",
+	"updated_at": "2025-04-04T20:20:00Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -654,7 +654,7 @@ export default {
 		"finish_action": "Valmis",
 		"firstMergeContact_label": "Yhteystieto 1",
 		"firstMonthForFreeDetail_msg": "Tarjoamme kaikilla maksullisilla tilausvaihtoehdoillamme yhden kuukauden pituisen kokeilujakson. Ensimmäinen kuukausi on täysin ilmainen, ja voit perua tilauksen koska tahansa.",
-		"firstMonthForFree_msg": "Ensimmäinen kuukausi ilmaiseksi maksullisella tilauksella!",
+		"firstMonthForFree_msg": "Ensimmäinen kuukausi ilmaiseksi maksullisella vuositilauksella!",
 		"firstName_placeholder": "Etunimi",
 		"firstOfPeriod_label": "Ensimmäisenä {day}",
 		"folderDepth_label": "{folderName}, {depth}. kerroksessa",

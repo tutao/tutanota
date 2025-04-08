@@ -10,4 +10,7 @@
     <string name="markRead_action">Gelezen</string>
     <string name="sendLogs_action">Verstuur de logbestanden</string>
     <string name="account_label">Account</string>
+    <string name="calendars_label">Kalenders</string>
+    <string name="widgetUnexpectedError_msg">Oeps! Er is iets fout gegaan.</string>
+    <string name="widgetOpenApp_action">Open de app</string>
 </resources>

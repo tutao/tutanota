@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-04-04T12:11:54Z",
+	"updated_at": "2025-04-04T15:20:31Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -660,7 +660,7 @@ export default {
 		"finish_action": "Zakończ",
 		"firstMergeContact_label": "Kontakt 1",
 		"firstMonthForFreeDetail_msg": "Dla wszystkich naszych płatnych ofert dostępny jest miesięczny okres próbny. Pierwszy miesiąc jest całkowicie darmowy i można z niego zrezygnować w dowolnym momencie.",
-		"firstMonthForFree_msg": "Otrzymaj pierwszy miesiąc za darmo z dowolną płatną ofertą!",
+		"firstMonthForFree_msg": "Uzyskaj pierwszy miesiąc za darmo z dowolną roczną, płatną ofertą!",
 		"firstName_placeholder": "Imię",
 		"firstOfPeriod_label": "Pierwszy {day}",
 		"folderDepth_label": "{folderName}, {depth} głębokość warstw.",
