@@ -278,7 +278,7 @@ class Agenda : GlanceAppWidget() {
 				top = 12.dp,
 				start = 12.dp,
 				end = 12.dp,
-				bottom = if (isEmpty) 0.dp else 12.dp
+				bottom = 0.dp
 			)
 				.background(GlanceTheme.colors.background)
 				.fillMaxSize()
@@ -329,13 +329,22 @@ class Agenda : GlanceAppWidget() {
 				}
 			}
 
+			val events = data.normalEvents.ifEmpty { data.allDayEvents }
 			LazyColumn {
 				itemsIndexed(
-					data.normalEvents.ifEmpty { data.allDayEvents },
-					itemId = { index, _ -> index.toLong() }) { _, event ->
+					events,
+					itemId = { index, _ -> index.toLong() }) { index, event ->
 					Column {
 						EventCard(event, this@Agenda.openCalendarAgenda(LocalContext.current, userId, event.eventId))
-						Spacer(modifier = GlanceModifier.height(4.dp))
+						Spacer(
+							modifier = GlanceModifier.height(
+								if (index != events.size - 1) {
+									4.dp
+								} else {
+									12.dp
+								}
+							)
+						)
 					}
 				}
 			}
@@ -414,7 +423,7 @@ class Agenda : GlanceAppWidget() {
 							provider = ImageProvider(R.drawable.ic_all_day),
 							contentDescription = "Add event button",
 							colorFilter = androidx.glance.ColorFilter.tint(allDayIconColor),
-							modifier = GlanceModifier.size(16.dp).background(calendarColor).cornerRadius(10.dp)
+							modifier = GlanceModifier.size(16.dp).background(calendarColor).cornerRadius(8.dp)
 								.padding(2.dp)
 						)
 					}

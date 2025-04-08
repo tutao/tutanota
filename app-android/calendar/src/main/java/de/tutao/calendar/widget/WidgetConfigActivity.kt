@@ -436,7 +436,8 @@ class WidgetConfigActivity : AppCompatActivity() {
 					color = MaterialTheme.colorScheme.onBackground,
 					fontWeight = FontWeight.Bold,
 					fontSize = 12.sp,
-					lineHeight = 12.sp
+					lineHeight = 12.sp,
+					modifier = Modifier.padding(bottom = 4.dp)
 				)
 				TextButton(
 					contentPadding = PaddingValues(8.dp),
