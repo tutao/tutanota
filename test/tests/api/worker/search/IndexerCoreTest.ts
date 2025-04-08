@@ -59,7 +59,7 @@ function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
 	o.check(Array.from(expected)).deepEquals(Array.from(actual))
 }
 
-o.spec("IndexerCore test", () => {
+o.spec("IndexerCore", () => {
 	let key: Aes256Key
 	let iv: Uint8Array
 	let encryptionData: DbEncryptionData

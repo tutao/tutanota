@@ -6,7 +6,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
 import { ContactListTypeRef, ContactTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 
-o.spec("OfflineStorageContactIndexerBackend test", () => {
+o.spec("OfflineStorageContactIndexerBackend", () => {
 	let persistence: OfflineStoragePersistence
 	let entityClient: EntityClient
 	let backend: OfflineStorageContactIndexerBackend
