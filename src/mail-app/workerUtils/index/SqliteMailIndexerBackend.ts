@@ -1,5 +1,6 @@
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
+import Id from "../../translations/id"
 
 export class SqliteMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly persistence: OfflineStoragePersistence) {}
@@ -11,6 +12,15 @@ export class SqliteMailIndexerBackend implements MailIndexerBackend {
 			map.set(group.groupId, group.indexedTimestamp)
 		}
 		return map
+	}
+
+	async truncateAllCurrentIndexTimestamps(newTimestamp: number) {
+		const groupData = await this.persistence.getIndexedGroups()
+		for (const group of groupData) {
+			if (group.indexedTimestamp < newTimestamp) {
+				await this.persistence.updateIndexingTimestamp(group.groupId, newTimestamp)
+			}
+		}
 	}
 
 	async indexMails(dataPerGroup: GroupTimestamps, mailData: readonly MailWithDetailsAndAttachments[]): Promise<void> {

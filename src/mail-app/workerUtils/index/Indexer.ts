@@ -21,6 +21,8 @@ export interface Indexer {
 
 	extendMailIndex(time: number): Promise<void>
 
+	resizeMailIndex(time: number): Promise<void>
+
 	deleteIndex(userId: string): Promise<void>
 
 	cancelMailIndexing(): void
