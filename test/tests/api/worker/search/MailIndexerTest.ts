@@ -571,6 +571,42 @@ o.spec("MailIndexer", () => {
 		})
 	})
 
+	o.spec("resizeMailIndex", function () {
+		o.test("truncates if already indexed range", async function () {
+			let newOldTimestamp = 2000
+			const currentIndexTimestamp = newOldTimestamp - 1000
+
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+
+			when(backend.truncateAllCurrentIndexTimestamps(matchers.anything())).thenDo(async (timestamp) => {
+				newOldTimestamp = timestamp
+			})
+
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenDo(async (_: string[]) => {
+				return new Map([[mailGroup1, currentIndexTimestamp]])
+			})
+
+			await initWithEnabled(true)
+			await indexer.resizeMailIndex(user, newOldTimestamp)
+
+			verify(backend.truncateAllCurrentIndexTimestamps(newOldTimestamp))
+			verify(backend.getCurrentIndexTimestamps([mailGroup1]), { times: 2 })
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o.test("extends", async function () {
+			let newOldTimestamp = 2000
+			const currentIndexTimestamp = newOldTimestamp + 1000
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
+			await initWithEnabled(true)
+			// dirty partial mock
+			indexer.indexMailboxes = func<MailIndexer["indexMailboxes"]>()
+			await indexer.resizeMailIndex(user, newOldTimestamp)
+			verify(indexer.indexMailboxes(user, newOldTimestamp))
+		})
+	})
+
 	o.spec("check mail index compatibility with models", function () {
 		// if this test fails, you need to think about migrating (or dropping)
 		// so old mail indexes use the new attribute ids.
