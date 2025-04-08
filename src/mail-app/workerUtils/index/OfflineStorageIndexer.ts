@@ -71,6 +71,10 @@ export class OfflineStorageIndexer implements Indexer {
 		await this.mailIndexer.indexMailboxes(assertNotNull(this.userFacade.getUser(), "extendMailIndex user"), time)
 	}
 
+	async resizeMailIndex(time: number): Promise<void> {
+		await this.mailIndexer.resizeMailIndex(assertNotNull(this.userFacade.getUser(), "resizeMailIndex user"), time)
+	}
+
 	async deleteIndex(userId: string) {
 		/* no-op */
 	}
