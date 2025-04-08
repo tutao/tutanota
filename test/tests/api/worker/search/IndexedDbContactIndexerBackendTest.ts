@@ -20,7 +20,7 @@ import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/
 import { getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 
-o.spec("IndexedDbContactIndexerBackend test", () => {
+o.spec("IndexedDbContactIndexerBackend", () => {
 	let entityClient: EntityClient
 	let backend: IndexedDbContactIndexerBackend
 	let core: IndexerCore
