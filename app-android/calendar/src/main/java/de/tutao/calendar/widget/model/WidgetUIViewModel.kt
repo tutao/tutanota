@@ -68,8 +68,7 @@ class WidgetUIViewModel(
 			lastSync = repository.loadLastSync(context, widgetId)
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
-			// Fallback to cached events. We don't set an error here because we still able to display "something"
-			// to the user.
+			// We couldn't load widget settings, so we must show an error to User
 			_error.value = WidgetError(
 				"Something went wrong when reading from DataStore, WidgetId $widgetId",
 				e.stackTraceToString(),
