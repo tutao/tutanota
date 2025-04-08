@@ -835,6 +835,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					},
 				)
 			}
+		} else if (args.action === "supportMail" && locator.logins.isGlobalAdminUserLoggedIn()) {
+			import("../../../common/support/SupportDialog.js").then(({ showSupportDialog }) => showSupportDialog(locator.logins))
 		}
 
 		if (isApp()) {
