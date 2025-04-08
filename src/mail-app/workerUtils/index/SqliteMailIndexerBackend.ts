@@ -13,6 +13,15 @@ export class SqliteMailIndexerBackend implements MailIndexerBackend {
 		return map
 	}
 
+	async truncateAllCurrentIndexTimestamps(newTimestamp: number) {
+		const groupData = await this.persistence.getIndexedGroups()
+		for (const group of groupData) {
+			if (group.indexedTimestamp < newTimestamp) {
+				await this.persistence.updateIndexingTimestamp(group.groupId, newTimestamp)
+			}
+		}
+	}
+
 	async indexMails(dataPerGroup: GroupTimestamps, mailData: readonly MailWithDetailsAndAttachments[]): Promise<void> {
 		await this.persistence.storeMailData(mailData)
 		for (const [groupId, timestamp] of dataPerGroup) {
