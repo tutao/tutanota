@@ -77,7 +77,12 @@ class WidgetUIViewModel(
 			return null
 		}
 
-		val credentials = this.credentialsFacade.loadByUserId(settings.userId)?.toSdkCredentials()
+		val credentials = try {
+			this.credentialsFacade.loadByUserId(settings.userId)?.toSdkCredentials()
+		} catch (_: Exception) {
+			null
+		}
+
 		if (credentials == null) {
 			_error.value = WidgetError(
 				"Missing credentials for user ${settings.userId}",

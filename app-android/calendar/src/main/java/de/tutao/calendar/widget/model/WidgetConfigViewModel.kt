@@ -138,7 +138,6 @@ class WidgetConfigViewModel(
 					preSelectCalendars()
 				}
 			} catch (e: IOException) {
-				_isLoading.value = false
 				_error.value = WidgetError(
 					"Error on Data Store while loading Widget Settings",
 					e.stackTraceToString(),
@@ -146,13 +145,14 @@ class WidgetConfigViewModel(
 				)
 				Log.e(TAG, "Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}")
 			} catch (e: Exception) {
-				_isLoading.value = false
 				_error.value = WidgetError(
 					"Unexpected error while loading Widget Settings",
 					e.stackTraceToString(),
 					WidgetErrorType.UNEXPECTED
 				)
 				Log.e(TAG, "Unexpected error while loading Widget Settings: ${e.stackTraceToString()}")
+			} finally {
+				_isLoading.value = false
 			}
 		}
 	}
