@@ -11,7 +11,7 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { TypeRef } from "@tutao/tutanota-utils"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
-o.spec("ContactIndexer test", () => {
+o.spec("ContactIndexer", () => {
 	let entityClient: EntityClient
 	let userFacade: UserFacade
 	let backend: ContactIndexerBackend

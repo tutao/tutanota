@@ -45,7 +45,7 @@ const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const browserData: BrowserData = browserDataStub
 const entityClient: EntityClient = object()
-o.spec("SearchFacade test", () => {
+o.spec("SearchFacade", () => {
 	let mail = createTestEntity(MailTypeRef)
 	let user = createTestEntity(UserTypeRef)
 	let id1 = "L0YED5d----1"
@@ -161,9 +161,9 @@ o.spec("SearchFacade test", () => {
 		createDbContent(transaction, dbData, dbListIds)
 		let s = createSearchFacade(transaction, currentIndexTimestamp)
 		return s.search(query, restriction, minSuggestionCount, maxResults).then((result) => {
-			o(result.query).equals(query)
-			o(result.restriction).deepEquals(restriction)
-			o(result.results).deepEquals(expectedResult.sort((idTuple1, idTuple2) => (firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1)))
+			o.check(result.query).equals(query)
+			o.check(result.restriction).deepEquals(restriction)
+			o.check(result.results).deepEquals(expectedResult.sort((idTuple1, idTuple2) => (firstBiggerThanSecond(idTuple1[1], idTuple2[1]) ? -1 : 1)))
 		})
 	}
 
@@ -174,21 +174,21 @@ o.spec("SearchFacade test", () => {
 		dbStub = createSearchIndexDbStub()
 		transaction = await dbStub.createTransaction()
 	})
-	o("empty db", () => {
+	o.test("empty db", () => {
 		return testSearch([], [], "test", createMailRestriction(), [])
 	})
-	o("empty query", () => {
+	o.test("empty query", () => {
 		return testSearch([], [], "", createMailRestriction(), [])
 	})
-	o("no words in query", () => {
+	o.test("no words in query", () => {
 		return testSearch([], [], " %.,:", createMailRestriction(), [])
 	})
-	o("find single entry", () => {
+	o.test("find single entry", () => {
 		return testSearch([createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0])])], [["listId1", id1]], "test", createMailRestriction(), [
 			["listId1", id1],
 		])
 	})
-	o("find two entries", () => {
+	o.test("find two entries", () => {
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])])],
 			[
@@ -203,7 +203,7 @@ o.spec("SearchFacade test", () => {
 			],
 		)
 	})
-	o("find entries from different rows", () => {
+	o.test("find entries from different rows", () => {
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0]), createMailEntry(id3, 0, [0])])],
 			[
@@ -220,7 +220,7 @@ o.spec("SearchFacade test", () => {
 			],
 		)
 	})
-	o("find type", () => {
+	o.test("find type", () => {
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createContactEntry(id2, 0, [0])])],
 			[
@@ -232,7 +232,7 @@ o.spec("SearchFacade test", () => {
 			[["listId1", id1]],
 		)
 	})
-	o("find attribute", () => {
+	o.test("find attribute", () => {
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 1, [0])])],
 			[
@@ -244,7 +244,7 @@ o.spec("SearchFacade test", () => {
 			[["listId2", id2]],
 		)
 	})
-	o("find folderId new MailSets (static mail listIds)", () => {
+	o.test("find folderId new MailSets (static mail listIds)", () => {
 		const mail1 = createTestEntity(MailTypeRef, {
 			_id: ["mailListId", id1],
 			sets: [["setListId", "folderId1"]],
@@ -264,7 +264,7 @@ o.spec("SearchFacade test", () => {
 			[mail2._id],
 		)
 	})
-	o("find with start time", () => {
+	o.test("find with start time", () => {
 		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
 		let start = new Date(2017, 5, 9).getTime()
 		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
@@ -279,7 +279,7 @@ o.spec("SearchFacade test", () => {
 			[["listId1", id1]],
 		)
 	})
-	o("find with end time", () => {
+	o.test("find with end time", () => {
 		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
 		let end = new Date(2017, 5, 9).getTime()
 		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
@@ -294,7 +294,7 @@ o.spec("SearchFacade test", () => {
 			[["listId2", id2]],
 		)
 	})
-	o("find with start and end time", () => {
+	o.test("find with start and end time", () => {
 		let id1 = timestampToGeneratedId(new Date(2017, 5, 8).getTime())
 		let end = new Date(2017, 5, 9).getTime()
 		let id2 = timestampToGeneratedId(new Date(2017, 5, 10).getTime())
@@ -312,7 +312,7 @@ o.spec("SearchFacade test", () => {
 			[["listId2", id2]],
 		)
 	})
-	o("find two search words", () => {
+	o.test("find two search words", () => {
 		return testSearch(
 			[
 				createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id2, 0, [0])]),
@@ -327,7 +327,7 @@ o.spec("SearchFacade test", () => {
 			[["listId1", id1]],
 		)
 	})
-	o("find two search words in multiple rows", () => {
+	o.test("find two search words in multiple rows", () => {
 		const firstWordIds: Array<IdTuple> = numberRange(1, 1500).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
 		const secondWordIds: Array<IdTuple> = numberRange(1, 1500).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
 		const firstWordEntries = firstWordIds.map((idTuple) => createMailEntry(elementIdPart(idTuple), 0, [0]))
@@ -344,7 +344,7 @@ o.spec("SearchFacade test", () => {
 			1000,
 		)
 	})
-	o("find two search words with a time gap", () => {
+	o.test("find two search words with a time gap", () => {
 		const firstWordIds: Array<IdTuple> = numberRange(1, 1200).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
 		const secondWordIds: Array<IdTuple> = numberRange(1, 10).map((i) => ["listId1", timestampToGeneratedId(i, 1)])
 		const firstWordEntries = firstWordIds.map((idTuple) => createMailEntry(elementIdPart(idTuple), 0, [0]))
@@ -361,7 +361,7 @@ o.spec("SearchFacade test", () => {
 			100,
 		)
 	})
-	o("find two search words ordered", () => {
+	o.test("find two search words ordered", () => {
 		return testSearch(
 			[
 				// id1 must be found, id2 does not have the correct order, id3 has the order but in different attributes
@@ -378,7 +378,7 @@ o.spec("SearchFacade test", () => {
 			[["listId1", id1]],
 		)
 	})
-	o("reduce ids", () => {
+	o.test("reduce ids", () => {
 		return testSearch(
 			[createKeyToIndexEntries("test", [createMailEntry(id1, 0, [0]), createMailEntry(id1, 1, [0])])],
 			[["listId1", id1]],

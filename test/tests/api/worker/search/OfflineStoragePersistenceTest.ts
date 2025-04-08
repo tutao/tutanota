@@ -24,7 +24,7 @@ import {ClientModelInfo} from "../../../../../src/common/api/common/EntityFuncti
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
-o.spec("OfflineStoragePersistence test", () => {
+o.spec("OfflineStoragePersistence", () => {
 	let persistence: OfflineStoragePersistence
 	let sqlCipherFacade: SqlCipherFacade
 	const userId = "my user id"

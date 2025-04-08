@@ -519,24 +519,24 @@ o.spec("MailIndexer", () => {
 	})
 
 	o.test("_getCurrentIndexTimestamp", () => {
-		o(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([]))
-		o(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP]))
-		o(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP]))
+		o.check(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([]))
+		o.check(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP]))
+		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP]))
 		let now = new Date().getTime()
 		let past = now - 1000
-		o(now).equals(_getCurrentIndexTimestamp([now]))
-		o(past).equals(_getCurrentIndexTimestamp([now, past]))
-		o(past).equals(_getCurrentIndexTimestamp([past, now]))
-		o(now).equals(_getCurrentIndexTimestamp([now, now]))
-		o(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now]))
-		o(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP]))
-		o(now).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, now]))
-		o(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP]))
-		o(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
-		o(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP]))
-		o(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP, now]))
-		o(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP]))
-		o(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now]))
+		o.check(past).equals(_getCurrentIndexTimestamp([now, past]))
+		o.check(past).equals(_getCurrentIndexTimestamp([past, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP]))
+		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
+		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
 	})
 
 	o.spec("extendIndexIfNeeded", function () {
@@ -674,7 +674,7 @@ o.spec("MailIndexer", () => {
 
 			await indexer._indexMailListsInTimeBatches(mboxData, [rangeStart, rangeEnd], progressMonitor, bulkMailLoader, updateIndexingState)
 
-			o(progress).equals(rangeStart - rangeEnd)
+			o.check(progress).equals(rangeStart - rangeEnd)
 			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: totalMails })
 			verify(bulkMailLoader.loadMailDetails(matchers.anything()), { times: loadMailDataRequests })
 			verify(bulkMailLoader.loadAttachments(matchers.anything()), { times: loadMailDataRequests })
@@ -749,9 +749,9 @@ o.spec("MailIndexer", () => {
 		await initWithEnabled(true)
 
 		const indexPromise = indexer.indexMailboxes(user, endIndexTimestamp)
-		o(indexer.isIndexing).equals(true)
+		o.check(indexer.isIndexing).equals(true)
 		await indexPromise
-		o(indexer.isIndexing).equals(false)
+		o.check(indexer.isIndexing).equals(false)
 
 		if (expectedNewestTimestampForIndexMailListCall) {
 			verify(
