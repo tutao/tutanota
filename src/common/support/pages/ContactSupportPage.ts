@@ -69,8 +69,11 @@ export class ContactSupportPage implements Component<Props> {
 		m.redraw()
 	}
 
-	onupdate(vnode: VnodeDOM<Props>): any {
-		vnode.attrs.data.supportRequest = this.htmlEditor?.getValue() ?? ""
+	onupdate({ attrs: { data } }: VnodeDOM<Props>): void {
+		const supportRequestHtml = this.htmlEditor?.getValue() ?? ""
+
+		data.supportRequestHtml = supportRequestHtml
+		data.isSupportRequestEmpty = supportRequestHtml.trim() === "" || new RegExp(/^<div( dir=["'][A-z]*["'])?><br><\/div>$/).test(supportRequestHtml)
 	}
 
 	/**
@@ -195,9 +198,16 @@ export class ContactSupportPage implements Component<Props> {
 								return
 							}
 
-							const customerId = (await locator.logins.getUserController().loadCustomerInfo()).customer
+							if (data.isSupportRequestEmpty) {
+								this.htmlEditor?.editor.domElement?.focus()
+								return
+							}
 
-							const mailBody = `${data.supportRequest + clientInfoString(new Date(), true).message}Customer ID: ${customerId}`
+							const customerId = (await locator.logins.getUserController().loadCustomerInfo()).customer
+							let mailBody = data.shouldIncludeLogs()
+								? `${data.supportRequestHtml}${clientInfoString(new Date(), true).message}`
+								: data.supportRequestHtml
+							mailBody += `<br>Customer ID: ${customerId}`
 							const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
 								blockExternalContent: true,
 							}).html

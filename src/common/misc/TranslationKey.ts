@@ -2014,3 +2014,4 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "supportForm_whatWentWrong_msg"
