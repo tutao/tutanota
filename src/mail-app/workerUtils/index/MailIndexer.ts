@@ -290,6 +290,27 @@ export class MailIndexer {
 		}
 	}
 
+	/**
+	 * Resize the mail index to the new timestamp
+	 *
+	 * If {@link newTimestamp} is less (older) than the current timestamp, then the index will be extended. If it is
+	 * later (newer), then the timestamps will be updated with no further changes to the mail index (MailOfflineCleaner
+	 * should eventually clean it).
+	 *
+	 * @param user User to update
+	 * @param newTimestamp Timestamp to use
+	 */
+	async resizeMailIndex(user: User, newTimestamp: number): Promise<void> {
+		if (this.currentIndexTimestamp > newTimestamp) {
+			await this.extendIndexIfNeeded(user, newTimestamp)
+		} else if (this.currentIndexTimestamp < newTimestamp) {
+			// Here, we just want to change the timestamp; MailOfflineCleaner will do the actual cleanup
+			const backend = assertNotNull(this._backend, "MailIndexer#init wasn't called yet!")
+			await backend.truncateAllCurrentIndexTimestamps(newTimestamp)
+			await this.updateCurrentIndexTimestamp(user)
+		}
+	}
+
 	private createSearchIndexStageInfo(oldestTimestamp: number) {
 		const update: SearchIndexStateInfo = {
 			initializing: false,
