@@ -18,6 +18,8 @@ export interface MailIndexerBackend {
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>>
 
+	truncateAllCurrentIndexTimestamps(newTimestamp: number): Promise<void>
+
 	onMailCreated(mailData: MailWithDetailsAndAttachments): Promise<void>
 
 	onMailUpdated(mailData: MailWithDetailsAndAttachments): Promise<void>

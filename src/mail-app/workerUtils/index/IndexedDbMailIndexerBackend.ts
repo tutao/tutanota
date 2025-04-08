@@ -16,6 +16,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { AttributeModel } from "../../../common/api/common/AttributeModel"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly core: IndexerCore, private readonly userId: Id, private readonly typeModelResolver: ClientTypeModelResolver) {}
@@ -125,5 +126,9 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		])
 
 		return keyToIndexEntries
+	}
+
+	truncateAllCurrentIndexTimestamps(_newTimestamp: number): Promise<void> {
+		throw new ProgrammingError("truncateAllCurrentIndexTimestamps can only be called with offline storage")
 	}
 }
