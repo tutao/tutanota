@@ -20,7 +20,7 @@ import { getElementId } from "../../../../../src/common/api/common/utils/EntityU
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import {ClientModelInfo} from "../../../../../src/common/api/common/EntityFunctions";
 
-o.spec("IndexedDbContactIndexerBackend test", () => {
+o.spec("IndexedDbContactIndexerBackend", () => {
 	let entityClient: EntityClient
 	let backend: IndexedDbContactIndexerBackend
 	let core: IndexerCore
