@@ -1,7 +1,7 @@
 import m, { Children, Component } from "mithril"
 import stream from "mithril/stream"
 import { Editor } from "./Editor.js"
-import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { px } from "../size"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
@@ -27,13 +27,22 @@ export class HtmlEditor implements Component {
 	private placeholderDomElement: HTMLElement | null = null
 	private value = stream("")
 	private htmlMonospace = true
+	private areRelativeLinksAllowed = false
 	private modeSwitcherLabel: MaybeTranslation | null = null
 	private toolbarEnabled = false
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 	private staticLineAmount: number | null = null // Static amount of lines the editor shall allow at all times
 
 	constructor(private label?: MaybeTranslation, private readonly injections?: () => Children) {
-		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment, null)
+		this.editor = new Editor(
+			null,
+			(html) =>
+				htmlSanitizer.sanitizeFragment(html, {
+					blockExternalContent: false,
+					allowRelativeLinks: this.areRelativeLinksAllowed,
+				}).fragment,
+			null,
+		)
 		this.view = this.view.bind(this)
 		this.initializeEditorListeners()
 	}
@@ -167,6 +176,12 @@ export class HtmlEditor implements Component {
 		return this
 	}
 
+	setAreRelativeLinksAllowed(allowed: boolean): HtmlEditor {
+		this.areRelativeLinksAllowed = allowed
+		this.editor.setAreRelativeLinksAllowed(allowed)
+		return this
+	}
+
 	setMinHeight(height: number): HtmlEditor {
 		this.minHeight = height
 		this.editor.setMinHeight(height)
@@ -198,7 +213,10 @@ export class HtmlEditor implements Component {
 			}
 		} else {
 			if (this.domTextArea) {
-				return htmlSanitizer.sanitizeHTML(this.domTextArea.value, { blockExternalContent: false }).html
+				return htmlSanitizer.sanitizeHTML(this.domTextArea.value, {
+					blockExternalContent: false,
+					allowRelativeLinks: this.areRelativeLinksAllowed,
+				}).html
 			} else {
 				return this.value()
 			}
