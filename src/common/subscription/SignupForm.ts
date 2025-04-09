@@ -32,6 +32,7 @@ import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
 import { SubscriptionApp } from "./SubscriptionViewer"
 import { deviceConfig } from "../misc/DeviceConfig"
+import { SessionType } from "../api/common/SessionType"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -256,36 +257,35 @@ function renderTermsLabel(): Children {
 /**
  * @return Signs the user up, if no captcha is needed or it has been solved correctly
  */
-function signup(
+async function signup(
 	mailAddress: string,
-	pw: string,
+	password: string,
 	registrationCode: string,
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
 	campaign: string | null,
 ): Promise<NewAccountData | void> {
-	const { customerFacade } = locator
+	const { customerFacade, logins, groupManagementFacade } = locator
 	const operation = locator.operationProgressTracker.startNewOperation()
-	return showProgressDialog(
-		"createAccountRunning_msg",
-		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {
-			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(async (regDataId) => {
-				if (regDataId) {
-					const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
-					return customerFacade
-						.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code, app)
-						.then((recoverCode) => {
-							return {
-								mailAddress,
-								password: pw,
-								recoverCode,
-							}
-						})
-				}
-			})
-		}),
-		operation.progress,
-	)
+	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
+		const regDataId = await runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign)
+		if (regDataId) {
+			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
+			const recoverCode = await customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, password, registrationCode, lang.code, app)
+			if (!logins.isUserLoggedIn()) {
+				// we do not know the userGroupId at group creation time,
+				// so we log in and create the identity key pair now
+				const login = await logins.createSession(mailAddress, password, SessionType.Temporary)
+				await groupManagementFacade.createIdentityKeyPair(login.userGroupInfo.group)
+			}
+			return {
+				mailAddress,
+				password,
+				recoverCode,
+			}
+		}
+	})
+	return showProgressDialog("createAccountRunning_msg", signupActionPromise, operation.progress)
 		.catch(
 			ofClass(InvalidDataError, () => {
 				Dialog.message("invalidRegistrationCode_msg")
