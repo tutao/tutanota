@@ -538,19 +538,23 @@ o.spec("MailIndexer", () => {
 
 	o.spec("extendIndexIfNeeded", function () {
 		o.test("not extends if fully indexed", async function () {
+			// shouldn't be used by anything
+			bulkMailLoader = object()
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, FULL_INDEXED_TIMESTAMP]]))
 			await initWithEnabled(true)
-			await indexer.extendIndexIfNeeded(user, Date.now())
+			await indexer.extendIndexIfNeeded(user, 1000)
 			verify(infoMessageHandler.onSearchIndexStateUpdate(matchers.anything()), { times: 0 })
 			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
 		o.test("not extends if already indexed range", async function () {
-			const newOldTimestamp = new Date("2025-03-27T16:32:52.847Z").getTime()
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+			const newOldTimestamp = 2000
 			const currentIndexTimestamp = newOldTimestamp - 1000
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
 			await initWithEnabled(true)
-
+			await indexer.extendIndexIfNeeded(user, newOldTimestamp)
 			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
