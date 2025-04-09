@@ -52,6 +52,7 @@ use crate::entities::generated::tutanota::TranslationGetIn;
 use crate::entities::generated::tutanota::TranslationGetOut;
 use crate::entities::generated::tutanota::UnreadMailStatePostIn;
 use crate::entities::generated::tutanota::UserAccountCreateData;
+use crate::entities::generated::tutanota::UserAccountPostOut;
 pub struct ApplyLabelService;
 
 crate::service_impl!(declare, ApplyLabelService, "tutanota/applylabelservice", 87);
@@ -223,4 +224,4 @@ crate::service_impl!(POST, UnreadMailStateService, UnreadMailStatePostIn, ());
 pub struct UserAccountService;
 
 crate::service_impl!(declare, UserAccountService, "tutanota/useraccountservice", 87);
-crate::service_impl!(POST, UserAccountService, UserAccountCreateData, ());
+crate::service_impl!(POST, UserAccountService, UserAccountCreateData, UserAccountPostOut);

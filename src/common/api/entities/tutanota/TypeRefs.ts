@@ -2337,3 +2337,16 @@ export type ResolveConversationsServiceGetOut = {
 
 	mailIds: IdTupleWrapper[];
 }
+export const UserAccountPostOutTypeRef: TypeRef<UserAccountPostOut> = new TypeRef("tutanota", 1654)
+
+export function createUserAccountPostOut(values: StrippedEntity<UserAccountPostOut>): UserAccountPostOut {
+	return Object.assign(create(typeModels[UserAccountPostOutTypeRef.typeId], UserAccountPostOutTypeRef), values)
+}
+
+export type UserAccountPostOut = {
+	_type: TypeRef<UserAccountPostOut>;
+
+	_format: NumberString;
+	userId: Id;
+	userGroup: Id;
+}

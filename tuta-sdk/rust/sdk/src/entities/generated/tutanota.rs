@@ -3954,3 +3954,23 @@ impl Entity for ResolveConversationsServiceGetOut {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserAccountPostOut {
+	#[serde(rename = "1655")]
+	pub _format: i64,
+	#[serde(rename = "1656")]
+	pub userId: GeneratedId,
+	#[serde(rename = "1657")]
+	pub userGroup: GeneratedId,
+}
+
+impl Entity for UserAccountPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1654),
+		}
+	}
+}
