@@ -8995,6 +8995,47 @@
 		"app": "tutanota",
 		"version": "86"
 	},
+	"UserAccountPostOut": {
+		"name": "UserAccountPostOut",
+		"since": 86,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1652,
+		"rootId": "CHR1dGFub3RhAAZ0",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1653,
+				"since": 86,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"userGroup": {
+				"final": false,
+				"name": "userGroup",
+				"id": 1655,
+				"since": 86,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"userId": {
+				"final": false,
+				"name": "userId",
+				"id": 1654,
+				"since": 86,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "tutanota",
+		"version": "86"
+	},
 	"UserAccountUserData": {
 		"name": "UserAccountUserData",
 		"since": 16,

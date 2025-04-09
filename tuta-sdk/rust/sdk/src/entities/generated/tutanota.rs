@@ -2821,6 +2821,23 @@ impl Entity for UserAccountCreateData {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserAccountPostOut {
+	pub _format: i64,
+	pub userGroup: GeneratedId,
+	pub userId: GeneratedId,
+}
+
+impl Entity for UserAccountPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "UserAccountPostOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserAccountUserData {
 	pub _id: Option<CustomId>,
 	#[serde(with = "serde_bytes")]
