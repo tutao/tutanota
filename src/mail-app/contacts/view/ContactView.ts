@@ -7,7 +7,7 @@ import { ContactEditor } from "../ContactEditor"
 import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { assertNotNull, clear, getFirstOrThrow, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, clear, getFirstOrThrow, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ContactMergeAction, Keys } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -821,8 +821,12 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		}
 	}
 
-	private deleteSelectedContacts(): Promise<void> {
-		return deleteContacts(this.getSelectedContacts(), () => this.contactViewModel.listModel.selectNone())
+	private deleteSelectedContacts() {
+		const selectedContacts = this.getSelectedContacts()
+		if (isNotEmpty(selectedContacts)) {
+			return deleteContacts(selectedContacts, () => this.contactViewModel.listModel.selectNone())
+		}
+		return
 	}
 
 	getViewSlider(): ViewSlider | null {
