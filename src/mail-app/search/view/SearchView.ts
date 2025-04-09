@@ -19,6 +19,7 @@ import {
 	first,
 	getFirstOrThrow,
 	isEmpty,
+	isNotEmpty,
 	isSameTypeRef,
 	last,
 	LazyLoaded,
@@ -1186,7 +1187,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			const selected = this.searchViewModel.getSelectedMails()
 			const deletable = this.searchViewModel.areMailsDeletable()
 
-			if (deletable) {
+			if (deletable && isNotEmpty(selected)) {
 				return {
 					deleteAction: () => {
 						promptAndDeleteMails(mailLocator.mailModel, getIds(selected), null, () => this.searchViewModel.listModel.selectNone())
@@ -1202,16 +1203,20 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				}
 			}
 		} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
-			return { deleteAction: () => this.deleteContacts(), trashAction: null }
+			const selectedContacts = this.searchViewModel.getSelectedContacts()
+			if (isNotEmpty(selectedContacts)) {
+				return { deleteAction: () => this.deleteContacts(selectedContacts), trashAction: null }
+			} else {
+				return { deleteAction: null, trashAction: null }
+			}
 		} else {
 			// Calendar toolbar doesn't have any actions
 			return { deleteAction: null, trashAction: null }
 		}
 	}
 
-	private deleteContacts(): void {
+	private deleteContacts(selected: Contact[]): void {
 		Dialog.confirm("deleteContacts_msg").then((confirmed) => {
-			const selected = this.searchViewModel.getSelectedContacts()
 			if (confirmed) {
 				if (selected.length > 1) {
 					// is needed for correct selection behavior on mobile
