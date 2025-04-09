@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-04-04T12:11:54Z",
+	"updated_at": "2025-04-08T10:18:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -654,7 +654,7 @@ export default {
 		"finish_action": "Avsluta",
 		"firstMergeContact_label": "Kontakt 1",
 		"firstMonthForFreeDetail_msg": "En månads provperiod är tillgänglig för alla våra betalda abonnemang. Den första månaden är helt gratis och du kan avbryta när som helst.",
-		"firstMonthForFree_msg": "Få den första månaden gratis, gäller alla betalda abonnemang!",
+		"firstMonthForFree_msg": "Få den första månaden gratis med alla årligen betalda abonnemang!",
 		"firstName_placeholder": "Förnamn",
 		"firstOfPeriod_label": "Förtsa {day}",
 		"folderDepth_label": "{folderName}, nivå {depth}.",

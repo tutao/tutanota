@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-04-04T12:11:53Z",
+	"updated_at": "2025-04-09T04:39:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1729,6 +1729,7 @@ export default {
 		"supportDownloadMailApp_msg": "You can access the response once support has replied in Tuta Mail using your Tuta Calendar credentials.",
 		"supportForm_msg": "Please provide more details (English or German) so we can assist you better.",
 		"supportForm_title": "Let's get to the bottom of this",
+		"supportForm_whatWentWrong_msg": "What went wrong?",
 		"supportMenu_label": "Support",
 		"supportNoDirectSupport_msg": "You can still get further help through our official FAQ page. Alternatively, you can upgrade to get direct email support.",
 		"supportNoDirectSupport_title": "Sorry, your Free plan doesn't offer direct email support",

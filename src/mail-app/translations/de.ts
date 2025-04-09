@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-04-04T12:16:26Z",
+	"updated_at": "2025-04-09T04:39:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1733,6 +1733,7 @@ export default {
 		"supportDownloadMailApp_msg": "Sobald der Support geantwortet hat, kannst du die Antwort in Tuta Mail mit deinen Tuta-Kalender-Anmeldedaten abrufen.",
 		"supportForm_msg": "Bitte gib uns mehr Details (englisch oder deutsch), damit wir dir besser helfen können.",
 		"supportForm_title": "Gehen wir der Sache auf den Grund",
+		"supportForm_whatWentWrong_msg": "Was ist schiefgelaufen?",
 		"supportMenu_label": "Support",
 		"supportNoDirectSupport_msg": "Du kannst aber weitere Hilfe in unserem offiziellen FAQ bekommen. Alternativ kannst du ein Upgrade machen, um direkten E-Mail-Support zu bekommen.",
 		"supportNoDirectSupport_title": "Leider gibt es im Free-Account keinen direkten E-Mail-Support",

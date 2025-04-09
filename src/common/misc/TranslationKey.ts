@@ -1712,6 +1712,7 @@ export type TranslationKeyType =
 	| "supportDownloadMailApp_msg"
 	| "supportForm_msg"
 	| "supportForm_title"
+	| "supportForm_whatWentWrong_msg"
 	| "supportMenu_label"
 	| "supportNoDirectSupport_msg"
 	| "supportNoDirectSupport_title"
