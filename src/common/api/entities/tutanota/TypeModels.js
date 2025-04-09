@@ -8976,5 +8976,44 @@ export const typeModels = {
 				"dependency": "sys"
 			}
 		}
+	},
+	"1664": {
+		"name": "UserAccountPostOut",
+		"app": "tutanota",
+		"version": 88,
+		"since": 88,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1664,
+		"rootId": "CHR1dGFub3RhAAaA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1665": {
+				"final": false,
+				"name": "_format",
+				"id": 1665,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1666": {
+				"final": false,
+				"name": "userId",
+				"id": 1666,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1667": {
+				"final": false,
+				"name": "userGroup",
+				"id": 1667,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
 	}
 }
