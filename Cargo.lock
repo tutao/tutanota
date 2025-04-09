@@ -1290,9 +1290,9 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "miniz_oxide"
-version = "0.8.7"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff70ce3e48ae43fa075863cef62e8b43b71a4f2382229920e0df362592919430"
+checksum = "3be647b768db090acb35d5ec5db2b0e1f1de11133ca123b9eacf5137868f892a"
 dependencies = [
  "adler2",
 ]
@@ -2390,7 +2390,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tuta-sdk"
-version = "277.250408.0"
+version = "277.250409.0"
 dependencies = [
  "aes",
  "android_log",
@@ -2439,7 +2439,7 @@ dependencies = [
 
 [[package]]
 name = "tutao_node-mimimi"
-version = "277.250408.0"
+version = "277.250409.0"
 dependencies = [
  "base64",
  "log 0.4.27",
