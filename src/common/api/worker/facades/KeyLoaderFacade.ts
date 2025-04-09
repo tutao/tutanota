@@ -226,7 +226,7 @@ export class KeyLoaderFacade {
 	}
 }
 
-function convertKeyVersionToCustomId(version: KeyVersion) {
+function convertKeyVersionToCustomId(version: KeyVersion): Id {
 	return stringToCustomId(String(version))
 }
 

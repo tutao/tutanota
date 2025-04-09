@@ -2266,7 +2266,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 		const encodedx25519PublicKey = newKeyPairs.x25519KeyPair.publicKey // encoded and decoded ecc public keys are the same.
 
 		const encryptedEccPrivKey: Uint8Array = object()
-		when(cryptoWrapperMock.encryptEccKey(newKey, newKeyPairs.x25519KeyPair.privateKey)).thenReturn(encryptedEccPrivKey)
+		when(cryptoWrapperMock.encryptX25519Key(newKey, newKeyPairs.x25519KeyPair.privateKey)).thenReturn(encryptedEccPrivKey)
 		const encryptedKyberPrivKey: Uint8Array = object()
 		when(cryptoWrapperMock.encryptKyberKey(newKey, newKeyPairs.kyberKeyPair.privateKey)).thenReturn(encryptedKyberPrivKey)
 		when(cryptoWrapperMock.kyberPublicKeyToBytes(newKeyPairs.kyberKeyPair.publicKey)).thenReturn(encodedKyberPublicKey)
