@@ -75,8 +75,6 @@ import { PublicKeyProvider } from "../PublicKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
 import { bitArrayToUint8Array, hexToRsaPublicKey, PQKeyPairs, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
-import { locator } from "../../../main/CommonLocator"
-import { SessionType } from "../../../common/SessionType"
 
 assertWorkerOrNode()
 
@@ -372,13 +370,6 @@ export class CustomerFacade {
 			app,
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
-
-		if (!locator.logins.isUserLoggedIn()) {
-			// we do not know the userGroupId at group creation time,
-			// so we log in and create the identity key pair now
-			const login = await locator.logins.createSession(mailAddress, password, SessionType.Temporary)
-			await this.groupManagement.createIdentityKeyPair(login.userGroupInfo.group)
-		}
 
 		return recoverData.hexCode
 	}
