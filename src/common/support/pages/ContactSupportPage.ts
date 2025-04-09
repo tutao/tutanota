@@ -73,6 +73,7 @@ export class ContactSupportPage implements Component<Props> {
 		const supportRequestHtml = this.htmlEditor?.getValue() ?? ""
 
 		data.supportRequestHtml = supportRequestHtml
+		// If we would call `this.htmlEditor.isEmpty()` here, it would always return false because the value from inside is not updated yet, only on blur.
 		data.isSupportRequestEmpty = supportRequestHtml.trim() === "" || new RegExp(/^<div( dir=["'][A-z]*["'])?><br><\/div>$/).test(supportRequestHtml)
 	}
 
