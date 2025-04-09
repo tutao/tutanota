@@ -162,8 +162,10 @@ export class UserManagementFacade {
 				this.recoverCodeFacade.generateRecoveryCode(userGroupKey),
 			),
 		})
-		await this.serviceExecutor.post(UserAccountService, data)
-		// TODO create identity key pair
+		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data)
+
+		await this.groupManagement.createIdentityKeyPair(userGroup)
+
 		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 	}
 
