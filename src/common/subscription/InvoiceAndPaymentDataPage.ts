@@ -73,23 +73,23 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			data.paymentData = this._paymentMethodInput.getPaymentData()
 		}
 
-		let login: Promise<Credentials | null> = Promise.resolve(null)
-
-		if (!locator.logins.isUserLoggedIn()) {
-			login = locator.logins
+		let loginPromise: Promise<Credentials | null> = Promise.resolve(null)
+		const loginController = locator.logins
+		if (!loginController.isUserLoggedIn()) {
+			loginPromise = loginController
 				.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
 				.then((newSessionData) => newSessionData.credentials)
 		}
 
-		login
+		loginPromise
 			.then(() => {
 				if (!data.accountingInfo || !data.customer) {
-					return locator.logins
+					return loginController
 						.getUserController()
 						.loadCustomer()
 						.then((customer) => {
 							data.customer = customer
-							return locator.logins.getUserController().loadCustomerInfo()
+							return loginController.getUserController().loadCustomerInfo()
 						})
 						.then((customerInfo) =>
 							locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
@@ -103,8 +103,8 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, InvoiceDataInputLocation.InWizard)
 				let payPalRequestUrl = getLazyLoadedPayPalUrl()
 
-				if (locator.logins.isUserLoggedIn()) {
-					locator.logins.waitForFullLogin().then(() => payPalRequestUrl.getAsync())
+				if (loginController.isUserLoggedIn()) {
+					loginController.waitForFullLogin().then(() => payPalRequestUrl.getAsync())
 				}
 
 				this._paymentMethodInput = new PaymentMethodInput(
