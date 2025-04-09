@@ -212,16 +212,16 @@ export class GroupManagementFacade {
 
 	/**
 	 * Creates an identity key pair for the given group.
-	 * Encrypts the private key with the group key and tags the public key with the group key.
+	 * Encrypts the private key with the passed encryptingKey or the group key and tags the public key with the group key.
 	 * @param groupId
 	 * @param encryptingKey the key to encrypt the private key. by default the current group key is used.
 	 *        this is useful in case group members must not have access to the private key.
 	 */
 	async createIdentityKeyPair(groupId: Id, encryptingKey: VersionedKey | undefined = undefined): Promise<void> {
-		//TODO sign existing encryption keys with this key pair
 		const newEd25519IdentityKeyPair = await this.ed25519Facade.generateKeypair()
-		const currentGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(groupId)
+		const currentGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
 		if (encryptingKey == null) {
+			// by default, we encrypt the private identity key with the group key.
 			encryptingKey = currentGroupKey
 		}
 		const encPrivateIdentityKey = this.cryptoWrapper.encryptEd25519Key(encryptingKey, newEd25519IdentityKeyPair.privateKey)
