@@ -286,7 +286,7 @@ export class MailViewerViewModel {
 			return;
 		}
 
-		const modalInstance = new MobyPhishConfirmSenderModal(this);
+		const modalInstance = new MobyPhishConfirmSenderModal(this, this.trustedSenders());
 		const handle = modal.display(modalInstance);
 		modalInstance.setModalHandle(handle);
 	}	
