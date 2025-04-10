@@ -49,7 +49,7 @@ export type Group = {
 	members: Id;
 	archives: ArchiveType[];
 	storageCounter: null | Id;
-	formerGroupKeys: null | GroupKeysRef;
+	formerGroupKeys: GroupKeysRef;
 	pubAdminGroupEncGKey: null | PubEncKeyData;
 	identityKeyPair: null | IdentityKeyPair;
 }
@@ -2398,7 +2398,7 @@ export type UserGroupRoot = {
 	_ownerGroup: null | Id;
 
 	invitations: Id;
-	keyRotations: null | KeyRotationsRef;
+	keyRotations: KeyRotationsRef;
 	groupKeyUpdates: null | GroupKeyUpdatesRef;
 }
 export const PaymentErrorInfoTypeRef: TypeRef<PaymentErrorInfo> = new TypeRef("sys", 1632)

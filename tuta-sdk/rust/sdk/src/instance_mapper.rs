@@ -1485,7 +1485,7 @@ mod tests {
 		FORMAT_FIELD, ID_FIELD, OWNER_GROUP_FIELD, PERMISSIONS_FIELD,
 	};
 	use crate::entities::generated::sys;
-	use crate::entities::generated::sys::{BucketKey, Group, GroupInfo, InstanceSessionKey};
+	use crate::entities::generated::sys::{BucketKey, Group, GroupInfo, GroupKeysRef, InstanceSessionKey};
 	use crate::entities::generated::tutanota::{
 		CalendarEventUidIndex, Mail, MailAddress, MailDetailsBlob, MailboxGroupRoot,
 		OutOfOfficeNotification, OutOfOfficeNotificationRecipientList,
@@ -1774,7 +1774,13 @@ mod tests {
 			.resolve_server_type_ref(&sys::PubEncKeyData::type_ref())
 			.unwrap();
 
-		let group = generate_random_group(None, None);
+		let group = generate_random_group(
+			None,
+			GroupKeysRef {
+				_id: Some(CustomId::test_random()),
+				list: GeneratedId::test_random(),
+			},
+		);
 		let result = mapper.serialize_entity(group.clone()).unwrap();
 		assert_eq!(
 			&group.groupInfo,

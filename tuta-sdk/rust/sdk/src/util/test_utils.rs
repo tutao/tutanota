@@ -39,10 +39,7 @@ pub fn generate_random_string<const SIZE: usize>() -> String {
 	BASE64_URL_SAFE_NO_PAD.encode(random_bytes)
 }
 
-pub fn generate_random_group(
-	current_keys: Option<KeyPair>,
-	former_keys: Option<GroupKeysRef>,
-) -> Group {
+pub fn generate_random_group(current_keys: Option<KeyPair>, former_keys: GroupKeysRef) -> Group {
 	let group_id = GeneratedId::test_random();
 	Group {
 		_format: 0,

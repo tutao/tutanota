@@ -257,7 +257,7 @@ export const typeModels = {
 				"name": "formerGroupKeys",
 				"id": 2273,
 				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"refTypeId": 2267,
 				"dependency": null
 			},
@@ -9441,7 +9441,7 @@ export const typeModels = {
 				"name": "keyRotations",
 				"id": 2294,
 				"type": "AGGREGATION",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"refTypeId": 2291,
 				"dependency": null
 			},

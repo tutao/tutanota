@@ -81,7 +81,7 @@ pub struct Group {
 	#[serde(rename = "2092")]
 	pub storageCounter: Option<GeneratedId>,
 	#[serde(rename = "2273")]
-	pub formerGroupKeys: Option<GroupKeysRef>,
+	pub formerGroupKeys: GroupKeysRef,
 	#[serde(rename = "2475")]
 	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
 	#[serde(rename = "2570")]
@@ -3896,7 +3896,7 @@ pub struct UserGroupRoot {
 	#[serde(rename = "1624")]
 	pub invitations: GeneratedId,
 	#[serde(rename = "2294")]
-	pub keyRotations: Option<KeyRotationsRef>,
+	pub keyRotations: KeyRotationsRef,
 	#[serde(rename = "2383")]
 	pub groupKeyUpdates: Option<GroupKeyUpdatesRef>,
 }

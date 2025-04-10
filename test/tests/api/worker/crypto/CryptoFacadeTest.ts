@@ -38,6 +38,7 @@ import {
 	createTypeInfo,
 	CustomerAccountTerminationRequestTypeRef,
 	Group,
+	GroupKeysRefTypeRef,
 	GroupMembershipTypeRef,
 	GroupTypeRef,
 	InstanceSessionKey,
@@ -662,7 +663,7 @@ o.spec("CryptoFacadeTest", function () {
 			_id: "userGroupId",
 			currentKeys: senderKeyPair,
 			groupKeyVersion: "0",
-			formerGroupKeys: null,
+			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef),
 			pubAdminGroupEncGKey: null,
 			identityKeyPair: null,
 		})
@@ -770,7 +771,7 @@ o.spec("CryptoFacadeTest", function () {
 			storageCounter: null,
 			type: "",
 			user: null,
-			formerGroupKeys: null,
+			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef),
 			pubAdminGroupEncGKey: null,
 			identityKeyPair: null,
 		})
