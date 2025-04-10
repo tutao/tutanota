@@ -132,12 +132,12 @@ export class MobyPhishConfirmAddSenderModal implements ModalComponent {
     }
     private getCancelButtonStyle() { /* ... (copy from previous modal) ... */
         return {
-            background: "transparent", color: "#555", border: "1px solid #ccc",
+            background: "transparent", color: "#555", border: "1px solid #850122",
             padding: "12px", borderRadius: "8px", cursor: "pointer",
             width: "100%", fontSize: "14px", fontWeight: "normal",
             textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center",
             marginTop: "10px", transition: "background-color 0.2s ease",
-            onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "#f0f0f0",
+            onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "#850122",
             onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "transparent"
         };
     }
