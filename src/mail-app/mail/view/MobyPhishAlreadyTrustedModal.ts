@@ -10,34 +10,39 @@ import { MailViewerViewModel } from "./MailViewerViewModel.js"; // May not be st
 
 export class MobyPhishAlreadyTrustedModal implements ModalComponent {
     private modalHandle?: ModalComponent;
-    private viewModel: MailViewerViewModel; // Keep viewModel reference if needed later
+    private viewModel: MailViewerViewModel;
 
     constructor(viewModel: MailViewerViewModel) {
-         this.viewModel = viewModel;
+        this.viewModel = viewModel;
     }
 
     view(): Children {
         return m(".modal-overlay", { onclick: (e: MouseEvent) => this.backgroundClick(e) }, [
             m(".modal-content", { onclick: (e: MouseEvent) => e.stopPropagation() }, [
                 m(".dialog.elevated-bg.border-radius", { style: this.getModalStyle() }, [
-                    // Info Icon
-                    m("p", { style: { textAlign: "center", marginBottom: "10px" } },
-                      m(Icon, { icon: Icons.Info, style: { fill: '#17A2B8', width: '24px', height: '24px' } }) // Info Icon Style
-                    ),
                     // Message
                     m("p", {
-                        style: { fontSize: "14px", textAlign: "center", marginBottom: "20px", lineHeight: "1.5" }
+                        style: {
+                            fontSize: "14px",
+                            textAlign: "center",
+                            marginBottom: "20px",
+                            lineHeight: "1.5"
+                        }
                     }, [
                         "This sender is already on your trusted list.",
                         m("br"),
-                        "Please use the ", m("strong", "Confirm"), " button (", m(Icon, {icon: Icons.Checkmark, style: {fill: 'green', verticalAlign: 'middle', height: '1em'}}),") in the banner if you wish to proceed with this email."
+                        "Please use the ", m("strong", "Confirm"), " button (",
+                        m(Icon, {
+                            icon: Icons.Checkmark,
+                            style: { fill: "green", verticalAlign: "middle", height: "1em" }
+                        }),
+                        ") in the banner to proceed with this email."
                     ]),
 
                     // OK Button
                     m("button.btn", {
                         onclick: () => this.closeModal(),
-                        // Use a neutral/info style
-                        style: this.getButtonStyle("#17A2B8", "#138496") // Info color (adjust as needed)
+                        style: this.getButtonStyle("#850122") // Only pass default color now
                     }, "OK")
                 ])
             ])
@@ -50,13 +55,10 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
         }
     }
 
-    // --- Styling and Lifecycle Methods (Copied & adjusted from reference) ---
-
-    private getButtonStyle(defaultColor: string, hoverColor: string) {
-         // Copied from MobyPhishConfirmSenderModal, adjusted color
+    private getButtonStyle(defaultColor: string) {
         const baseStyle: { [key: string]: any } = {
             background: defaultColor,
-            color: "#ffffff", // White text for info button
+            color: "#ffffff",
             border: "none",
             padding: "12px",
             borderRadius: "8px",
@@ -68,30 +70,71 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            transition: "background-color 0.2s ease",
-            marginTop: "10px"
+            transition: "opacity 0.2s ease",
+            marginTop: "10px",
+            opacity: "1"
         };
-        baseStyle.onmouseover = (e: MouseEvent) => (e.target as HTMLElement).style.background = hoverColor;
-        baseStyle.onmouseout = (e: MouseEvent) => (e.target as HTMLElement).style.background = defaultColor;
+
+        baseStyle.onmouseover = (e: MouseEvent) => {
+            (e.target as HTMLElement).style.opacity = "0.7";
+        };
+        baseStyle.onmouseout = (e: MouseEvent) => {
+            (e.target as HTMLElement).style.opacity = "1";
+        };
+
         return baseStyle;
     }
 
-     private getModalStyle() {
-         // Copied from MobyPhishConfirmSenderModal
-         return {
-             position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-             padding: "25px", textAlign: "center", background: "#fff",
-             boxShadow: "0px 5px 15px rgba(0,0,0,0.25)", borderRadius: "10px",
-             width: "90%", maxWidth: "380px", // Adjusted max-width slightly if needed
-             display: "flex", flexDirection: "column", gap: "10px"
-         };
-     }
+    private getModalStyle() {
+        return {
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            padding: "25px",
+            textAlign: "center",
+            background: "#fff",
+            boxShadow: "0px 5px 15px rgba(0,0,0,0.25)",
+            borderRadius: "10px",
+            width: "90%",
+            maxWidth: "380px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px"
+        };
+    }
 
-    hideAnimation(): Promise<void> { return Promise.resolve(); }
+    hideAnimation(): Promise<void> {
+        return Promise.resolve();
+    }
+
     onClose(): void {}
-    backgroundClick(e: MouseEvent): void { this.closeModal(); }
-    popState(): boolean { this.closeModal(); return false; }
-    callingElement(): HTMLElement | null { return null; }
-    shortcuts(): Shortcut[] { return [{ key: Keys.ESC, exec: () => { this.closeModal(); return true; }, help: "close_alt" }]; }
-    setModalHandle(handle: ModalComponent) { this.modalHandle = handle; }
+
+    backgroundClick(e: MouseEvent): void {
+        this.closeModal();
+    }
+
+    popState(): boolean {
+        this.closeModal();
+        return false;
+    }
+
+    callingElement(): HTMLElement | null {
+        return null;
+    }
+
+    shortcuts(): Shortcut[] {
+        return [{
+            key: Keys.ESC,
+            exec: () => {
+                this.closeModal();
+                return true;
+            },
+            help: "close_alt"
+        }];
+    }
+
+    setModalHandle(handle: ModalComponent) {
+        this.modalHandle = handle;
+    }
 }
