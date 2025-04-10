@@ -22,7 +22,6 @@ if (!document.getElementById(styleId)) {
             cursor: pointer;
             width: 100%;
             font-size: 14px;
-            font-weight: bold;
             text-align: center;
             display: flex;
             align-items: center;
@@ -54,7 +53,6 @@ if (!document.getElementById(outlineStyleId)) {
             cursor: pointer;
             width: 100%;
             font-size: 14px;
-            font-weight: bold;
             text-align: center;
             display: flex;
             align-items: center;
