@@ -1026,6 +1026,7 @@ export default {
 		"mobyPhish_confirm": "Confirm", 
 		"mobyPhish_deny": "Deny", 
 		"mobyPhish_is_trusted": "Is this a sender you know?",
+		"mobyPhish_remove": "Remove Sender",
 		"mobyPhish_sender_added_to_trusted": "Sender added to trusted",
 		"mobyPhish_sender_confirmed": "Sender confirmed as known",
 		"mobyPhish_sender_denied": "Sender not confirmed", 
