@@ -43,10 +43,10 @@ rand = { version = "0.8" }
 # [workspace.lints.cargo]
 
 [workspace.lints.clippy]
-new_without_default = "allow"     # we don't want to implement Default for everything
-enum_variant_names = "allow"      # creates more problems than it solves
-let_and_return = "allow"          # we commonly use this style
-too_many_arguments = "allow"      # this is fine
+new_without_default = "allow" # we don't want to implement Default for everything
+enum_variant_names = "allow"  # creates more problems than it solves
+let_and_return = "allow"      # we commonly use this style
+too_many_arguments = "allow"  # this is fine
 
 # "pedantic" lints worth warning on
 manual_let_else = "warn"
