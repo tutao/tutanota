@@ -538,19 +538,23 @@ o.spec("MailIndexer", () => {
 
 	o.spec("extendIndexIfNeeded", function () {
 		o.test("not extends if fully indexed", async function () {
+			// shouldn't be used by anything
+			bulkMailLoader = object()
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, FULL_INDEXED_TIMESTAMP]]))
 			await initWithEnabled(true)
-			await indexer.extendIndexIfNeeded(user, Date.now())
+			await indexer.extendIndexIfNeeded(user, 1000)
 			verify(infoMessageHandler.onSearchIndexStateUpdate(matchers.anything()), { times: 0 })
 			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
 		o.test("not extends if already indexed range", async function () {
-			const newOldTimestamp = new Date("2025-03-27T16:32:52.847Z").getTime()
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+			const newOldTimestamp = 2000
 			const currentIndexTimestamp = newOldTimestamp - 1000
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
 			await initWithEnabled(true)
-
+			await indexer.extendIndexIfNeeded(user, newOldTimestamp)
 			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
@@ -564,6 +568,42 @@ o.spec("MailIndexer", () => {
 			await indexer.extendIndexIfNeeded(user, beforeNowInterval)
 
 			verify(indexer.indexMailboxes(user, beforeNowInterval))
+		})
+	})
+
+	o.spec("resizeMailIndex", function () {
+		o.test("truncates if already indexed range", async function () {
+			let newOldTimestamp = 2000
+			const currentIndexTimestamp = newOldTimestamp - 1000
+
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+
+			when(backend.truncateAllCurrentIndexTimestamps(matchers.anything())).thenDo(async (timestamp) => {
+				newOldTimestamp = timestamp
+			})
+
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenDo(async (_: string[]) => {
+				return new Map([[mailGroup1, currentIndexTimestamp]])
+			})
+
+			await initWithEnabled(true)
+			await indexer.resizeMailIndex(user, newOldTimestamp)
+
+			verify(backend.truncateAllCurrentIndexTimestamps(newOldTimestamp))
+			verify(backend.getCurrentIndexTimestamps([mailGroup1]), { times: 2 })
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o.test("extends", async function () {
+			let newOldTimestamp = 2000
+			const currentIndexTimestamp = newOldTimestamp + 1000
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
+			await initWithEnabled(true)
+			// dirty partial mock
+			indexer.indexMailboxes = func<MailIndexer["indexMailboxes"]>()
+			await indexer.resizeMailIndex(user, newOldTimestamp)
+			verify(indexer.indexMailboxes(user, newOldTimestamp))
 		})
 	})
 
