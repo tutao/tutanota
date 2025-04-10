@@ -1,6 +1,7 @@
 use super::aes::*;
 use super::rsa::*;
 use super::tuta_crypt::*;
+use crate::crypto::X25519PublicKey;
 use crate::util::{ArrayCastingError, Versioned};
 use crate::ApiCallError;
 use std::fmt::{Debug, Formatter};
@@ -14,19 +15,27 @@ pub enum AsymmetricKeyPair {
 	TutaCryptKeyPairs(TutaCryptKeyPairs),
 }
 
-pub enum AsymmetricPublicKey {
-	RsaPublicKey(Box<RSAPublicKey>),
-	TutaCryptPublicKeys(Box<TutaCryptPublicKeys>),
+#[derive(Clone, PartialEq)]
+pub struct RsaX25519PublicKeys {
+	pub rsa_public_key: RSAPublicKey,
+	pub x25519_public_key: X25519PublicKey,
+}
+
+#[cfg_attr(test, derive(Clone, PartialEq))]
+#[allow(clippy::large_enum_variant)]
+pub enum PublicKey {
+	Rsa(RSAPublicKey),
+	RsaX25519(RsaX25519PublicKeys),
+	TutaCrypt(TutaCryptPublicKeys),
 }
 
 // we implement this ourselves to make sure we do not leak anything
-impl Debug for AsymmetricPublicKey {
+impl Debug for PublicKey {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
-			AsymmetricPublicKey::RsaPublicKey(_) => f.debug_struct("RsaPublicKey").finish(),
-			AsymmetricPublicKey::TutaCryptPublicKeys(_) => {
-				f.debug_struct("TutaCryptPublicKeys").finish()
-			},
+			PublicKey::Rsa(_) => f.debug_struct("RsaPublicKey").finish(),
+			PublicKey::TutaCrypt(_) => f.debug_struct("TutaCryptPublicKeys").finish(),
+			PublicKey::RsaX25519(_) => f.debug_struct("RsaX25519PublicKey").finish(),
 		}
 	}
 }

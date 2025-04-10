@@ -42,8 +42,8 @@ impl X25519PrivateKey {
 }
 
 #[derive(ZeroizeOnDrop, Clone, PartialEq)]
-#[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
-pub struct X25519PublicKey([u8; X25519_KEY_SIZE]);
+#[cfg_attr(test, derive(Debug))]
+pub struct X25519PublicKey(pub [u8; X25519_KEY_SIZE]);
 
 #[derive(Clone, PartialEq)]
 #[cfg_attr(test, derive(Debug))] // only allow Debug in tests because this prints the key!
