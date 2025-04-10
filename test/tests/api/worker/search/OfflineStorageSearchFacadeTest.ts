@@ -7,7 +7,7 @@ import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/Co
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { object } from "testdouble"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
-import { assertNotNull, getTypeId } from "@tutao/tutanota-utils"
+import {assertNotNull, getTypeString} from "@tutao/tutanota-utils"
 import { getElementId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import {
@@ -524,7 +524,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			for (const mailData of mails) {
 				let listEntitiesQuery = sql`
                     INSERT INTO list_entities
-                    VALUES (${getTypeId(mailData.mail._type)}, ${getListId(mailData.mail)},
+                    VALUES (${getTypeString(mailData.mail._type)}, ${getListId(mailData.mail)},
                             ${getElementId(mailData.mail)},
                             ${assertNotNull(mailData.mail._ownerGroup)})
                 `
@@ -801,7 +801,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			for (const contactData of contacts) {
 				let listEntitiesQuery = sql`
                     INSERT INTO list_entities
-                    VALUES (${getTypeId(contactData._type)}, ${getListId(contactData)}, ${getElementId(contactData)},
+                    VALUES (${getTypeString(contactData._type)}, ${getListId(contactData)}, ${getElementId(contactData)},
                             ${assertNotNull(contactData._ownerGroup)})
                 `
 				await sqlCipherFacade.run(listEntitiesQuery.query, listEntitiesQuery.params)
