@@ -68,10 +68,8 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./
 import {
 	Aes256Key,
 	AesKey,
-	PublicKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
-	X25519KeyPair,
 	EncryptedPqKeyPairs,
 	getKeyLengthBytes,
 	isEncryptedPqKeyPairs,
@@ -79,7 +77,9 @@ import {
 	KEY_LENGTH_BYTES_AES_256,
 	PQKeyPairs,
 	PQPublicKeys,
+	PublicKey,
 	uint8ArrayToKey,
+	X25519KeyPair,
 } from "@tutao/tutanota-crypto"
 import { PQFacade } from "./PQFacade.js"
 import {
@@ -100,7 +100,7 @@ import { GroupInvitationPostData, type InternalRecipientKeyData, InternalRecipie
 import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
-import { LockedError } from "../../common/error/RestError.js"
+import { LockedError, NotAuthenticatedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
@@ -226,8 +226,9 @@ export class KeyRotationFacade {
 				await this.updateGroupMemberships(this.pendingGroupKeyUpdateIds)
 			}
 		} catch (e) {
-			if (e instanceof LockedError) {
+			if (e instanceof LockedError || e instanceof NotAuthenticatedError) {
 				// we catch here so that we also catch errors in the `finally` block
+				// NotAuthenticated error might happen when signing up (temporary session) and logging out too quickly again
 				console.log("error when processing key rotation or group key update", e)
 			} else {
 				throw e
@@ -687,7 +688,12 @@ export class KeyRotationFacade {
 		const distributionKeyEncNewUserGroupKey = this.cryptoWrapper.encryptKey(legacyUserDistKey, newUserGroupKeys.symGroupKey.object)
 		const authVerifier = createAuthVerifier(passphraseKey)
 		const newGroupKeyEncCurrentGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(newUserGroupKeys.symGroupKey, currentGroupKey.object)
-		return { membershipSymEncNewGroupKey, distributionKeyEncNewUserGroupKey, authVerifier, newGroupKeyEncCurrentGroupKey }
+		return {
+			membershipSymEncNewGroupKey,
+			distributionKeyEncNewUserGroupKey,
+			authVerifier,
+			newGroupKeyEncCurrentGroupKey,
+		}
 	}
 
 	private async handlePendingInvitations(targetGroup: Group, newTargetGroupKey: VersionedKey) {
@@ -825,9 +831,9 @@ export class KeyRotationFacade {
 	}
 
 	/*
-	Gets the userGroupKey for the given userId via the adminEncGKey and symmetrically encrypts the given newGroupKey with it. Note that the logged-in user needs
-	 to be the admin of the same customer that the uer with userId belongs to.
-	 */
+    Gets the userGroupKey for the given userId via the adminEncGKey and symmetrically encrypts the given newGroupKey with it. Note that the logged-in user needs
+     to be the admin of the same customer that the uer with userId belongs to.
+     */
 	private async encryptGroupKeyForOtherUsers(userId: Id, newGroupKey: VersionedKey): Promise<VersionedEncryptedKey> {
 		const groupManagementFacade = await this.groupManagementFacade()
 		const user = await this.entityClient.load(UserTypeRef, userId)
