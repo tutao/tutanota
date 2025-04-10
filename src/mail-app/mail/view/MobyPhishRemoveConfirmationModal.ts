@@ -48,8 +48,6 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
                         "Are you sure you want to remove ",
                         m("strong", this.senderDisplay), // Display formatted name/address
                         " from your trusted senders list?",
-                        m("br"),
-                        m("span", { style: { fontSize: '12px', color: '#6c757d' } }, "(This action cannot be undone easily.)") // Optional warning
                     ]),
 
                     this.errorMessage ? m(".error-message", { style: { color: 'red', fontSize: '12px', marginTop: '5px', marginBottom: '10px' } }, this.errorMessage) : null,
