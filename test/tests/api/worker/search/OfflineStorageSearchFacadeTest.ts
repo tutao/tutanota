@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
 import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
-import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
+import { normalizeQuery, OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { object } from "testdouble"
@@ -419,6 +419,54 @@ o.spec("OfflineStorageSearchFacade", () => {
 				)
 				o.check(result.results).deepEquals([testMail3.mail._id, testMail2.mail._id, testMail1.mail._id])
 			})
+			o.test("exact match", async () => {
+				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
+
+				const resultFound = await offlineStorageSearchFacade.search(
+					`"important spam sender"`,
+					{
+						type: MailTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultFound.results).deepEquals([spamMail.mail._id])
+
+				const resultNotFound = await offlineStorageSearchFacade.search(
+					`"important sender"`,
+					{
+						type: MailTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultNotFound.results).deepEquals([])
+
+				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
+					`"THIS IMPORTANT EMAIL" AMAZING`,
+					{
+						type: MailTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultWithQuotesAndWords.results).deepEquals([testMail3.mail._id])
+			})
 			o.test("subject", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 				const result = await offlineStorageSearchFacade.search(
@@ -523,6 +571,17 @@ o.spec("OfflineStorageSearchFacade", () => {
 			mailAddresses: [
 				createTestEntity(ContactMailAddressTypeRef, {
 					address: "carter@nottutanota.com", // :(
+				}),
+			],
+		})
+		const drStrange = createTestEntity(ContactTypeRef, {
+			_id: ["wow a list", "strange"],
+			_ownerGroup: "AAAAAA",
+			firstName: "Stephen Vincent",
+			lastName: "Strange",
+			mailAddresses: [
+				createTestEntity(ContactMailAddressTypeRef, {
+					address: "dr.strange@alsonottutanota.com", // :(
 				}),
 			],
 		})
@@ -639,6 +698,104 @@ o.spec("OfflineStorageSearchFacade", () => {
 			)
 			o.check(result.results).deepEquals([noFirstName._id, alice._id, bob._id, carter._id, noLastName._id])
 		})
+		o.spec("exact match", () => {
+			o.test("name", async () => {
+				await storeAndIndexContact([alice, bob, carter, drStrange])
+
+				const resultFound = await offlineStorageSearchFacade.search(
+					`"stephen vincent"`,
+					{
+						type: ContactTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultFound.results).deepEquals([drStrange._id])
+
+				const resultNotFound = await offlineStorageSearchFacade.search(
+					`"stephen strange"`,
+					{
+						type: ContactTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultNotFound.results).deepEquals([])
+
+				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
+					`"stephen vincent" strange`,
+					{
+						type: ContactTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultWithQuotesAndWords.results).deepEquals([drStrange._id])
+			})
+			o.test("email", async () => {
+				await storeAndIndexContact([alice, bob, carter, drStrange])
+
+				const resultFound = await offlineStorageSearchFacade.search(
+					`"dr.strange@alsonottutanota.com"`,
+					{
+						type: ContactTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultFound.results).deepEquals([drStrange._id])
+
+				const resultNotFound = await offlineStorageSearchFacade.search(
+					`"dr.strange@alsonottutanota.co"`,
+					{
+						type: ContactTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultNotFound.results).deepEquals([])
+
+				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
+					`"dr.strange" "alsonottutanota.com"`,
+					{
+						type: ContactTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultWithQuotesAndWords.results).deepEquals([drStrange._id])
+			})
+		})
 
 		async function storeAndIndexContact(contacts: Contact[]) {
 			for (const contactData of contacts) {
@@ -652,5 +809,18 @@ o.spec("OfflineStorageSearchFacade", () => {
 			}
 			await persistence.storeContactData(contacts)
 		}
+	})
+
+	o.spec("normalizeQuery", () => {
+		o.test("empty string returns empty string", () => {
+			o.check(normalizeQuery("")).equals("")
+		})
+		o.test("empty quotes are excluded", () => {
+			o.check(normalizeQuery('""')).equals("")
+			o.check(normalizeQuery('"hello" "" "world"')).equals('"hello" "world"')
+		})
+		o.test("asterisks appended if non-quoted", () => {
+			o.check(normalizeQuery('unquoted "quoted" unquoted again "quoted again"')).equals('"unquoted"* "quoted" "unquoted"* "again"* "quoted again"')
+		})
 	})
 })
