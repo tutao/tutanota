@@ -672,7 +672,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	/**
-	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data).
+	 * Clear out unneeded data from the offline database (i.e. old data).
 	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
 	 * @param timeRangeDate the maximum age that mails should be to be kept in the database
 	 * @param userId id of the current user. default, last stored userId
