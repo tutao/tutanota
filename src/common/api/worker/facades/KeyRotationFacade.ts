@@ -245,25 +245,23 @@ export class KeyRotationFacade {
 	 */
 	async loadPendingKeyRotations(user: User) {
 		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, user.userGroup.group)
-		if (userGroupRoot.keyRotations != null) {
-			const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
-			const keyRotationsByType = groupBy(pendingKeyRotations, (keyRotation) => keyRotation.groupKeyRotationType)
-			let adminOrUserGroupKeyRotationArray: Array<KeyRotation> = [
-				keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount),
-				keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount),
-				keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount),
-				keyRotationsByType.get(GroupKeyRotationType.User),
-			]
-				.flat()
-				.filter(isNotNull)
-			let customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
-			const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray[0]
-			this.pendingKeyRotations = {
-				pwKey: this.pendingKeyRotations.pwKey,
-				adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotation ? adminOrUserGroupKeyRotation : null,
-				teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) || []),
-				userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) || [],
-			}
+		const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
+		const keyRotationsByType = groupBy(pendingKeyRotations, (keyRotation) => keyRotation.groupKeyRotationType)
+		let adminOrUserGroupKeyRotationArray: Array<KeyRotation> = [
+			keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount),
+			keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount),
+			keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount),
+			keyRotationsByType.get(GroupKeyRotationType.User),
+		]
+			.flat()
+			.filter(isNotNull)
+		let customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
+		const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray[0]
+		this.pendingKeyRotations = {
+			pwKey: this.pendingKeyRotations.pwKey,
+			adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotation ? adminOrUserGroupKeyRotation : null,
+			teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) || []),
+			userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) || [],
 		}
 	}
 
