@@ -6,23 +6,7 @@ import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
-import { MailViewerViewModel } from "./MailViewerViewModel.js";
-
-// Inject the hover style only once
-if (typeof document !== "undefined") {
-    const style = document.createElement("style");
-    style.textContent = `
-        .btn-opacity-hover {
-            opacity: 1;
-            transition: opacity 0.2s ease;
-        }
-
-        .btn-opacity-hover:hover {
-            opacity: 0.7;
-        }
-    `;
-    document.head.appendChild(style);
-}
+import { MailViewerViewModel } from "./MailViewerViewModel.js"; // May not be strictly needed but good practice
 
 export class MobyPhishAlreadyTrustedModal implements ModalComponent {
     private modalHandle?: ModalComponent;
@@ -36,7 +20,6 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
         return m(".modal-overlay", { onclick: (e: MouseEvent) => this.backgroundClick(e) }, [
             m(".modal-content", { onclick: (e: MouseEvent) => e.stopPropagation() }, [
                 m(".dialog.elevated-bg.border-radius", { style: this.getModalStyle() }, [
-
                     // Message
                     m("p", {
                         style: {
@@ -56,10 +39,10 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
                         ") in the banner to proceed with this email."
                     ]),
 
-                    // OK Button with hover effect
-                    m("button.btn.btn-opacity-hover", {
+                    // OK Button
+                    m("button.btn", {
                         onclick: () => this.closeModal(),
-                        style: this.getButtonStyle("#850122")
+                        style: this.getButtonStyle("#850122") // Only pass default color now
                     }, "OK")
                 ])
             ])
@@ -73,7 +56,7 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
     }
 
     private getButtonStyle(defaultColor: string) {
-        return {
+        const baseStyle: { [key: string]: any } = {
             background: defaultColor,
             color: "#ffffff",
             border: "none",
@@ -87,8 +70,19 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            marginTop: "10px"
+            transition: "opacity 0.2s ease",
+            marginTop: "10px",
+            opacity: "1"
         };
+
+        baseStyle.onmouseover = (e: MouseEvent) => {
+            (e.target as HTMLElement).style.opacity = "0.7";
+        };
+        baseStyle.onmouseout = (e: MouseEvent) => {
+            (e.target as HTMLElement).style.opacity = "1";
+        };
+
+        return baseStyle;
     }
 
     private getModalStyle() {
