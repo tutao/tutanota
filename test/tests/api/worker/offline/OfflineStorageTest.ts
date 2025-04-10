@@ -122,7 +122,7 @@ o.spec("OfflineStorageDb", function () {
 		await dbFacade.closeDb()
 	})
 
-	o.spec("Unit test", function () {
+	o.spec("Unit", function () {
 		/**
 		 * inserts an entity into the offline test database, and ensures
 		 * that all customIds are **base64Ext** encoded before inserting.
@@ -327,8 +327,8 @@ o.spec("OfflineStorageDb", function () {
 					await storage.putLastBatchIdForGroup("group2", "batch2")
 
 					await storage.deleteAllOwnedBy("group1")
-					o(await storage.getLastBatchIdForGroup("group1")).equals(null)
-					o(await storage.getLastBatchIdForGroup("group2")).equals("batch2")
+					o.check(await storage.getLastBatchIdForGroup("group1")).equals(null)
+					o.check(await storage.getLastBatchIdForGroup("group2")).equals("batch2")
 				})
 			})
 
@@ -355,17 +355,17 @@ o.spec("OfflineStorageDb", function () {
 					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let user = await storage.get(UserTypeRef, null, userId)
-					o(user).equals(null)
+					o.check(user).equals(null)
 
 					await storage.put(storableUser)
 
 					user = await storage.get(UserTypeRef, null, userId)
-					o(user!._id).equals(storableUser._id)
+					o.check(user!._id).equals(storableUser._id)
 
 					await storage.deleteAllOfType(UserTypeRef)
 
 					user = await storage.get(UserTypeRef, null, userId)
-					o(user).equals(null)
+					o.check(user).equals(null)
 				})
 			})
 
@@ -378,21 +378,21 @@ o.spec("OfflineStorageDb", function () {
 					await storage.init({ userId: elementId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mail = await storage.get(MailTypeRef, listId, elementId)
-					o(mail).equals(null)
+					o.check(mail).equals(null)
 
 					await storage.put(storableMail)
 					await storage.setNewRangeForList(MailTypeRef, listId, elementId, elementId)
 
 					mail = await storage.get(MailTypeRef, listId, elementId)
-					o(mail!._id).deepEquals(storableMail._id)
+					o.check(mail!._id).deepEquals(storableMail._id)
 					const rangeBefore = await storage.getRangeForList(MailTypeRef, listId)
-					o(rangeBefore).deepEquals({ upper: elementId, lower: elementId })
+					o.check(rangeBefore).deepEquals({ upper: elementId, lower: elementId })
 					await storage.deleteAllOfType(MailTypeRef)
 
 					mail = await storage.get(MailTypeRef, listId, elementId)
-					o(mail).equals(null)
+					o.check(mail).equals(null)
 					const rangeAfter = await storage.getRangeForList(MailTypeRef, listId)
-					o(rangeAfter).equals(null)
+					o.check(rangeAfter).equals(null)
 				})
 
 				o.test("provideMultiple", async function () {
@@ -405,17 +405,17 @@ o.spec("OfflineStorageDb", function () {
 					await storage.init({ userId: elementId1, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1])
-					o(mails).deepEquals([])
+					o.check(mails).deepEquals([])
 
 					await storage.put(storableMail1)
 
 					mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1, elementId2])
-					o(mails).deepEquals([storableMail1])
+					o.check(mails).deepEquals([storableMail1])
 
 					await storage.put(storableMail2)
 
 					mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1, elementId2])
-					o(mails).deepEquals([storableMail1, storableMail2])
+					o.check(mails).deepEquals([storableMail1, storableMail2])
 				})
 			})
 
@@ -428,21 +428,21 @@ o.spec("OfflineStorageDb", function () {
 					await storage.init({ userId: elementId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mailSetEntry = await storage.get(MailSetEntryTypeRef, listId, elementId)
-					o(mailSetEntry).equals(null)
+					o.check(mailSetEntry).equals(null)
 
 					await storage.put(storableMailSetEntry)
 					await storage.setNewRangeForList(MailSetEntryTypeRef, listId, elementId, elementId)
 
 					mailSetEntry = await storage.get(MailSetEntryTypeRef, listId, elementId)
-					o(mailSetEntry!._id).deepEquals(storableMailSetEntry._id)
+					o.check(mailSetEntry!._id).deepEquals(storableMailSetEntry._id)
 					const rangeBefore = await storage.getRangeForList(MailSetEntryTypeRef, listId)
-					o(rangeBefore).deepEquals({ upper: elementId, lower: elementId })
+					o.check(rangeBefore).deepEquals({ upper: elementId, lower: elementId })
 					await storage.deleteAllOfType(MailSetEntryTypeRef)
 
 					mailSetEntry = await storage.get(MailSetEntryTypeRef, listId, elementId)
-					o(mailSetEntry).equals(null)
+					o.check(mailSetEntry).equals(null)
 					const rangeAfter = await storage.getRangeForList(MailSetEntryTypeRef, listId)
-					o(rangeAfter).equals(null)
+					o.check(rangeAfter).equals(null)
 				})
 
 				o.test("provideMultiple", async function () {
@@ -455,17 +455,17 @@ o.spec("OfflineStorageDb", function () {
 					await storage.init({ userId: elementId1, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mails = await storage.provideMultiple(MailSetEntryTypeRef, listId, [elementId1])
-					o(mails).deepEquals([])
+					o.check(mails).deepEquals([])
 
 					await storage.put(storableMailSetEntry1)
 
 					mails = await storage.provideMultiple(MailSetEntryTypeRef, listId, [elementId1, elementId2])
-					o(mails).deepEquals([storableMailSetEntry1])
+					o.check(mails).deepEquals([storableMailSetEntry1])
 
 					await storage.put(storableMailSetEntry2)
 
 					mails = await storage.provideMultiple(MailSetEntryTypeRef, listId, [elementId1, elementId2])
-					o(mails).deepEquals([storableMailSetEntry1, storableMailSetEntry2])
+					o.check(mails).deepEquals([storableMailSetEntry1, storableMailSetEntry2])
 				})
 			})
 
@@ -481,18 +481,18 @@ o.spec("OfflineStorageDb", function () {
 					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 
 					let mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
-					o(mailDetailsBlob).equals(null)
+					o.check(mailDetailsBlob).equals(null)
 
 					await storage.put(storableMailDetails)
 
 					mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
 					mailDetailsBlob!.details._type = MailDetailsTypeRef // we do not set the proper typeRef class on nested aggregates, so we overwrite it here
-					o(mailDetailsBlob).deepEquals(storableMailDetails)
+					o.check(mailDetailsBlob).deepEquals(storableMailDetails)
 
 					await storage.deleteIfExists(MailDetailsBlobTypeRef, archiveId, blobElementId)
 
 					mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
-					o(mailDetailsBlob).equals(null)
+					o.check(mailDetailsBlob).equals(null)
 				})
 
 				o.test("put, get and deleteAllOwnedBy", async function () {
@@ -512,7 +512,7 @@ o.spec("OfflineStorageDb", function () {
 					await storage.deleteAllOwnedBy(_ownerGroup)
 
 					const mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
-					o(mailDetailsBlob).equals(null)
+					o.check(mailDetailsBlob).equals(null)
 				})
 			})
 		})
@@ -590,13 +590,13 @@ o.spec("OfflineStorageDb", function () {
 				await storage.clearExcludedData(timeRangeDate, userId)
 
 				const allRanges = await dbFacade.all("SELECT * FROM ranges", [])
-				o(allRanges).deepEquals([])
+				o.check(allRanges).deepEquals([])
 				const allMails = await getAllIdsForType(MailTypeRef)
-				o(allMails).deepEquals([])
+				o.check(allMails).deepEquals([])
 				const allMailSetEntries = await getAllIdsForType(MailSetEntryTypeRef)
-				o(allMailSetEntries).deepEquals([])
+				o.check(allMailSetEntries).deepEquals([])
 				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
-				o(allBlobDetails).deepEquals([])
+				o.check(allBlobDetails).deepEquals([])
 			})
 			o.test("modified ranges will be shrunk", async function () {
 				const twoDaysBeforeTimeRangeDays = -2
@@ -620,7 +620,7 @@ o.spec("OfflineStorageDb", function () {
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
-				o(mapNullable(newRange, untagSqlObject)).deepEquals({
+				o.check(mapNullable(newRange, untagSqlObject)).deepEquals({
 					type: mailSetEntryType,
 					listId: entriesListId,
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
@@ -649,7 +649,7 @@ o.spec("OfflineStorageDb", function () {
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
-				o(mapNullable(newRange, untagSqlObject)).deepEquals({
+				o.check(mapNullable(newRange, untagSqlObject)).deepEquals({
 					type: mailSetEntryType,
 					listId: entriesListId,
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
@@ -695,7 +695,7 @@ o.spec("OfflineStorageDb", function () {
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
-				o(mapNullable(newRange, untagSqlObject)).deepEquals({
+				o.check(mapNullable(newRange, untagSqlObject)).deepEquals({
 					type: mailSetEntryType,
 					listId: listIdPart(mailSetEntryId),
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
@@ -704,14 +704,14 @@ o.spec("OfflineStorageDb", function () {
 				})
 
 				const allFolderIds = await getAllIdsForType(MailFolderTypeRef)
-				o(allFolderIds).deepEquals(["folderId", spamFolderId, trashFolderId])
+				o.check(allFolderIds).deepEquals(["folderId", spamFolderId, trashFolderId])
 				const allMailIds = await getAllIdsForType(MailTypeRef)
-				o(allMailIds).deepEquals([elementIdPart(mailId)])
+				o.check(allMailIds).deepEquals([elementIdPart(mailId)])
 				const allMailSetEntries = await getAllIdsForType(MailSetEntryTypeRef)
 				// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-				o(allMailSetEntries).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, mailSetEntryElementId)])
+				o.check(allMailSetEntries).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, mailSetEntryElementId)])
 				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
-				o(allBlobDetails).deepEquals([elementIdPart(mailDetailsBlobId)])
+				o.check(allBlobDetails).deepEquals([elementIdPart(mailDetailsBlobId)])
 			})
 			o.test("complete ranges will be modified if some entities are older than cutoff", async function () {
 				const twoDaysBeforeTimeRangeDays = -2
@@ -754,7 +754,7 @@ o.spec("OfflineStorageDb", function () {
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
-				o(mapNullable(newRange, untagSqlObject)).deepEquals({
+				o.check(mapNullable(newRange, untagSqlObject)).deepEquals({
 					type: mailSetEntryType,
 					listId: listIdPart(mailSetEntryId),
 					// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
@@ -763,14 +763,14 @@ o.spec("OfflineStorageDb", function () {
 				})
 
 				const allFolderIds = await getAllIdsForType(MailFolderTypeRef)
-				o(allFolderIds).deepEquals(["folderId", spamFolderId, trashFolderId])
+				o.check(allFolderIds).deepEquals(["folderId", spamFolderId, trashFolderId])
 				const allMailIds = await getAllIdsForType(MailTypeRef)
-				o(allMailIds).deepEquals([])
+				o.check(allMailIds).deepEquals([])
 				const allMailSetEntries = await getAllIdsForType(MailSetEntryTypeRef)
 				// we need to encode with base64Ext, as we read raw data from the database, which stores custom elementIds in base64Ext not base64Url
-				o(allMailSetEntries).deepEquals([])
+				o.check(allMailSetEntries).deepEquals([])
 				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
-				o(allBlobDetails).deepEquals([])
+				o.check(allBlobDetails).deepEquals([])
 			})
 
 			o.test("only mails that are older that cutoff are deleted from trash and spam and their descendents", async function () {
@@ -967,11 +967,11 @@ o.spec("OfflineStorageDb", function () {
 				await storage.clearExcludedData(timeRangeDate, userId)
 				const mailSetEntryTypeModel = await resolveTypeReference(MailSetEntryTypeRef)
 
-				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([inboxFolderId, spamFolderId, trashFolderId])
+				o.check(await getAllIdsForType(MailFolderTypeRef)).deepEquals([inboxFolderId, spamFolderId, trashFolderId])
 				const allMailSetEntryIds = await getAllIdsForType(MailSetEntryTypeRef)
-				o(allMailSetEntryIds).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, twoDaysAfterMailSetEntryElementId)])
-				o(await getAllIdsForType(MailTypeRef)).deepEquals([twoDaysAfterMailId])
-				o(await getAllIdsForType(MailDetailsBlobTypeRef)).deepEquals([afterMailDetailsId].map(elementIdPart))
+				o.check(allMailSetEntryIds).deepEquals([ensureBase64Ext(mailSetEntryTypeModel, twoDaysAfterMailSetEntryElementId)])
+				o.check(await getAllIdsForType(MailTypeRef)).deepEquals([twoDaysAfterMailId])
+				o.check(await getAllIdsForType(MailDetailsBlobTypeRef)).deepEquals([afterMailDetailsId].map(elementIdPart))
 			})
 
 			o.test("normal folder is completely cleared", async function () {
@@ -1036,11 +1036,11 @@ o.spec("OfflineStorageDb", function () {
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDate, userId)
 
-				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([inboxFolderId, spamFolderId, trashFolderId])
+				o.check(await getAllIdsForType(MailFolderTypeRef)).deepEquals([inboxFolderId, spamFolderId, trashFolderId])
 				const allMailSetEntryIds = await getAllIdsForType(MailSetEntryTypeRef)
-				o(allMailSetEntryIds).deepEquals([])
-				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
-				o(await getAllIdsForType(MailDetailsBlobTypeRef)).deepEquals([])
+				o.check(allMailSetEntryIds).deepEquals([])
+				o.check(await getAllIdsForType(MailTypeRef)).deepEquals([])
+				o.check(await getAllIdsForType(MailDetailsBlobTypeRef)).deepEquals([])
 			})
 
 			o.test("when mail is deleted, attachment is also deleted", async function () {
@@ -1112,13 +1112,13 @@ o.spec("OfflineStorageDb", function () {
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDate, userId)
 
-				o(await getAllIdsForType(MailTypeRef)).deepEquals([getElementId(mailAfter)])
-				o(await getAllIdsForType(FileTypeRef)).deepEquals([getElementId(fileAfter)])
+				o.check(await getAllIdsForType(MailTypeRef)).deepEquals([getElementId(mailAfter)])
+				o.check(await getAllIdsForType(FileTypeRef)).deepEquals([getElementId(fileAfter)])
 			})
 		})
 	})
 
-	o.spec("Integration test", function () {
+	o.spec("Integration", function () {
 		const mailBagMailListId = "mailBagMailListId"
 
 		function createMailList(
