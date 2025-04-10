@@ -19,7 +19,7 @@ pub struct DecapsulatedSymKey {
 	pub decrypted_sym_key_bytes: Aes256Key,
 }
 
-#[cfg_attr(test, derive(Debug))]
+#[cfg_attr(test, derive(Debug, Clone, PartialEq))]
 pub struct TutaCryptPublicKeys {
 	pub x25519_public_key: X25519PublicKey,
 	pub kyber_public_key: KyberPublicKey,
