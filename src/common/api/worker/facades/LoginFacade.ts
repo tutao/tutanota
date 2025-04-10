@@ -306,7 +306,7 @@ export class LoginFacade {
 			.onPartialLoginSuccess(sessionType, cacheInfo, credentials)
 			.finally(() => this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials))
 
-		if (!isAdminClient()) {
+		if (!isAdminClient() && sessionType !== SessionType.Temporary) {
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
 		}
 

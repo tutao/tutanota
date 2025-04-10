@@ -5,9 +5,8 @@ import { Dialog } from "../gui/base/Dialog"
 import { Autocomplete, TextField } from "../gui/base/TextField.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView.js"
 import type { NewAccountData } from "./UpgradeSubscriptionWizard"
-import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../../common/settings/SelectMailAddressForm.js"
+import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
 import {
-	AccountType,
 	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
 	DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN,
 	TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
@@ -271,7 +270,7 @@ async function signup(
 		const regDataId = await runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign)
 		if (regDataId) {
 			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
-			const recoverCode = await customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, password, registrationCode, lang.code, app)
+			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
 			if (!logins.isUserLoggedIn()) {
 				// we do not know the userGroupId at group creation time,
 				// so we log in and create the identity key pair now
