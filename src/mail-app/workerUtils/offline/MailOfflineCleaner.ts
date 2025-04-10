@@ -1,7 +1,6 @@
-import {assertNotNull, DAY_IN_MILLIS, groupByAndMap, isSameTypeRef, memoized, TypeRef} from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
-	CUSTOM_MAX_ID,
 	elementIdPart,
 	firstBiggerThanSecondCustomId,
 	GENERATED_MAX_ID,
@@ -18,12 +17,11 @@ import {
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
-import { isDraft, isSpamOrTrashFolder } from "../../mail/model/MailChecks.js"
+import { isDraft } from "../../mail/model/MailChecks.js"
 import { Entity } from "../../../common/api/common/EntityTypes"
-import {UserTypeRef} from "../../../common/api/entities/sys/TypeRefs";
-import {AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../../common/api/common/TutanotaConstants";
+import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs"
+import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../common/api/common/TutanotaConstants"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
 	private cutOffId: Id | null = null
@@ -59,37 +57,32 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 			const currentMailBag = assertNotNull(mailBox.currentMailBag)
 			const folders = await offlineStorage.getWholeList(MailFolderTypeRef, mailBox.folders!.folders)
 			// Deleting MailSetEntries first to make sure that once we start deleting Mail
-            // we don't have any MailSetEntries that reference that Mail anymore.
-            const folderSystem = new FolderSystem(folders)
-            for (const mailSet of folders) {
-                if (isSpamOrTrashFolder(folderSystem, mailSet)) {
-                    await this.deleteMailSetEntries(offlineStorage, mailSet.entries, CUSTOM_MAX_ID)
-                } else {
-					const customCutoffId = await this.calculateCutOffId(offlineStorage, userId, timeRangeDate, now)
-                    await this.deleteMailSetEntries(offlineStorage, mailSet.entries, customCutoffId)
-                }
-            }
+			// we don't have any MailSetEntries that reference that Mail anymore.
+			for (const mailSet of folders) {
+				const customCutoffId = await this.calculateCutOffId(offlineStorage, userId, timeRangeDate, now)
+				await this.deleteMailSetEntries(offlineStorage, mailSet.entries, customCutoffId)
+			}
 
-            // We should never write cached ranges for mail bags, but we used to do that in the past in some cases
-            // (e.g. mail indexing) so we clean them up here.
-            // It is just important to remove the ranges so that the cache does not attempt to keep it up-to-date,
-            // actual email contents are already handled above.
-            for (const mailBag of [currentMailBag, ...mailBox.archivedMailBags]) {
-                await offlineStorage.deleteRange(MailTypeRef, mailBag.mails)
-            }
-        }
-    }
+			// We should never write cached ranges for mail bags, but we used to do that in the past in some cases
+			// (e.g. mail indexing) so we clean them up here.
+			// It is just important to remove the ranges so that the cache does not attempt to keep it up-to-date,
+			// actual email contents are already handled above.
+			for (const mailBag of [currentMailBag, ...mailBox.archivedMailBags]) {
+				await offlineStorage.deleteRange(MailTypeRef, mailBag.mails)
+			}
+		}
+	}
 
-    /**
-     * Clean all mail data references by MailSetEntry's in {@param entriesListId} that are older than {@param cutoffId}.
-     */
-    private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffId: Id) {
-        assertNotNull(entriesListId)
-        const mailIdsToDelete: IdTuple[] = []
+	/**
+	 * Clean all mail data references by MailSetEntry's in {@param entriesListId} that are older than {@param cutoffId}.
+	 */
+	private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffId: Id) {
+		assertNotNull(entriesListId)
+		const mailIdsToDelete: IdTuple[] = []
 
-        await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
+		await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
 
-        const mailSetEntriesToDelete: IdTuple[] = []
+		const mailSetEntriesToDelete: IdTuple[] = []
 		const mailSetEntries = await offlineStorage.getWholeList(MailSetEntryTypeRef, entriesListId)
 		for (let mailSetEntry of mailSetEntries) {
 			if (firstBiggerThanSecondCustomId(cutoffId, getElementId(mailSetEntry))) {
