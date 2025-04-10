@@ -1,12 +1,12 @@
 // src/mail-app/mail/view/MobyPhishRemoveConfirmationModal.ts
 
 import m, { Children } from "mithril";
-import { Keys, ContentBlockingStatus } from "../../../common/api/common/TutanotaConstants.js"; // Import ContentBlockingStatus
+import { Keys } from "../../../common/api/common/TutanotaConstants.js"; // Import ContentBlockingStatus
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
-import { MailViewerViewModel, API_BASE_URL } from "./MailViewerViewModel.js"; // Import ViewModel and API URL
+import { MailViewerViewModel, API_BASE_URL, ContentBlockingStatus } from "./MailViewerViewModel.js"; // Import ViewModel and API URL
 
 // Helper function for consistent display
 function formatSenderDisplay(name: string | null | undefined, address: string | null | undefined): string {
