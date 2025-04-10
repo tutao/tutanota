@@ -1,13 +1,14 @@
 use crate::crypto::aes::{AesEncryptError, Iv};
+use crate::crypto::key::PublicKey::{RsaX25519, TutaCrypt};
 use crate::crypto::key::{
-	AsymmetricKeyPair, AsymmetricPublicKey, GenericAesKey, KeyLoadError, VersionedAesKey,
+	AsymmetricKeyPair, GenericAesKey, KeyLoadError, PublicKey, VersionedAesKey,
 };
-use crate::crypto::kyber::{KyberKeyError, KyberPublicKey};
+use crate::crypto::kyber::KyberKeyError;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::public_key_provider::PublicKeyProvider;
-use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError, PublicKeys};
+use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError};
 use crate::crypto::randomizer_facade::RandomizerFacade;
-use crate::crypto::rsa::{RSAEncryptionError, RSAKeyError, RSAPublicKey, RSAX25519KeyPair};
+use crate::crypto::rsa::{RSAEncryptionError, RSAKeyError, RSAX25519KeyPair};
 use crate::crypto::tuta_crypt::{TutaCryptError, TutaCryptMessage, TutaCryptPublicKeys};
 use crate::crypto::x25519::{X25519KeyPair, X25519PublicKey};
 use crate::crypto::Aes256Key;
@@ -26,6 +27,21 @@ use crate::ApiCallError;
 use crate::GeneratedId;
 use std::sync::Arc;
 use zeroize::Zeroizing;
+
+use super::key::RsaX25519PublicKeys;
+
+fn get_sender_ecc_key(public_key: Versioned<PublicKey>) -> Option<X25519PublicKey> {
+	match public_key.object {
+		RsaX25519(x) => Some(x.x25519_public_key),
+		TutaCrypt(x) => match x {
+			TutaCryptPublicKeys {
+				x25519_public_key,
+				kyber_public_key: _,
+			} => Some(x25519_public_key),
+		},
+		PublicKey::Rsa(_) => None,
+	}
+}
 
 pub struct DecapsulatedAesKey {
 	pub decrypted_aes_key: GenericAesKey,
@@ -100,14 +116,12 @@ impl AsymmetricCryptoFacade {
 			.load_versioned_pub_key(&identifier, sender_identity_pub_key.version)
 			.await?;
 
-		if Option::is_some(&pub_keys.pub_x25519_key)
-			&& pub_keys.pub_x25519_key.unwrap().as_slice()
-				== sender_identity_pub_key.object.as_bytes()
-		{
-			Ok(EncryptionAuthStatus::TutacryptAuthenticationSucceeded)
-		} else {
-			Ok(EncryptionAuthStatus::TutacryptAuthenticationFailed)
-		}
+		Ok(match get_sender_ecc_key(pub_keys) {
+			Some(X25519PublicKey(bytes)) if bytes == sender_identity_pub_key.object.as_bytes() => {
+				EncryptionAuthStatus::TutacryptAuthenticationSucceeded
+			},
+			_ => EncryptionAuthStatus::TutacryptAuthenticationFailed,
+		})
 	}
 
 	/// Decrypts the pubEncSymKey with the recipientKeyPair and authenticates it if the protocol supports authentication.
@@ -222,15 +236,17 @@ impl AsymmetricCryptoFacade {
 	pub async fn asym_encrypt_sym_key(
 		&self,
 		sym_key: GenericAesKey,
-		versioned_recipient_public_keys: Versioned<PublicKeys>,
+		versioned_recipient_public_keys: Versioned<PublicKey>,
 		sender_group_id: &GeneratedId,
 	) -> Result<PubEncSymKey, AsymmetricCryptoError> {
-		let recipient_public_key = AsymmetricCryptoFacade::extract_recipient_public_key(
-			versioned_recipient_public_keys.object,
-		)?;
+		let recipient_public_key = versioned_recipient_public_keys.object;
 
 		match recipient_public_key {
-			AsymmetricPublicKey::RsaPublicKey(rsa_pub_key) => {
+			PublicKey::RsaX25519(RsaX25519PublicKeys {
+				rsa_public_key: rsa_pub_key,
+				x25519_public_key: _,
+			})
+			| PublicKey::Rsa(rsa_pub_key) => {
 				let pub_enc_sym_key_bytes =
 					rsa_pub_key.encrypt(&self.randomizer_facade, sym_key.as_bytes())?;
 				Ok(PubEncSymKey {
@@ -240,7 +256,7 @@ impl AsymmetricCryptoFacade {
 					recipient_key_version: versioned_recipient_public_keys.version,
 				})
 			},
-			AsymmetricPublicKey::TutaCryptPublicKeys(tuta_crypt_keys) => {
+			PublicKey::TutaCrypt(tuta_crypt_keys) => {
 				let sender_key_pair: Versioned<AsymmetricKeyPair> = self
 					.key_loader_facade
 					.load_current_key_pair(sender_group_id)
@@ -258,7 +274,7 @@ impl AsymmetricCryptoFacade {
 					GenericAesKey::Aes256(aes256_sym_key) => Ok(self
 						.tuta_crypt_encrypt_sym_key_impl(
 							Versioned {
-								object: *tuta_crypt_keys,
+								object: tuta_crypt_keys,
 								version: versioned_recipient_public_keys.version,
 							},
 							aes256_sym_key,
@@ -280,27 +296,25 @@ impl AsymmetricCryptoFacade {
 	pub fn tuta_crypt_encrypt_sym_key(
 		&self,
 		sym_key: Aes256Key,
-		recipient_public_keys: Versioned<PublicKeys>,
+		recipient_public_keys: Versioned<PublicKey>,
 		sender_x25519_key_pair: Versioned<X25519KeyPair>,
 	) -> Result<PubEncSymKey, AsymmetricCryptoError> {
-		let recipient_public_key =
-			AsymmetricCryptoFacade::extract_recipient_public_key(recipient_public_keys.object)?;
+		let recipient_public_key = recipient_public_keys.object;
 		match recipient_public_key {
-			AsymmetricPublicKey::RsaPublicKey(_) => {
+			PublicKey::RsaX25519(_) | PublicKey::Rsa(_) => {
 				Err(AsymmetricCryptoError::UnexpectedPublicKeyPairType(format!(
 					"{:? }",
 					recipient_public_key
 				)))
 			},
-			AsymmetricPublicKey::TutaCryptPublicKeys(tuta_crypt_pub_keys) => self
-				.tuta_crypt_encrypt_sym_key_impl(
-					Versioned {
-						object: *tuta_crypt_pub_keys,
-						version: recipient_public_keys.version,
-					},
-					sym_key,
-					sender_x25519_key_pair,
-				),
+			PublicKey::TutaCrypt(tuta_crypt_pub_keys) => self.tuta_crypt_encrypt_sym_key_impl(
+				Versioned {
+					object: tuta_crypt_pub_keys,
+					version: recipient_public_keys.version,
+				},
+				sym_key,
+				sender_x25519_key_pair,
+			),
 		}
 	}
 
@@ -327,34 +341,6 @@ impl AsymmetricCryptoFacade {
 			sender_key_version: Some(sender_x25519_key_pair.version),
 			recipient_key_version: recipient_public_key.version,
 		})
-	}
-
-	fn extract_recipient_public_key(
-		public_keys: PublicKeys,
-	) -> Result<AsymmetricPublicKey, AsymmetricCryptoError> {
-		if Option::is_some(&public_keys.pub_rsa_key) {
-			// we ignore x25519 keys as this is only used for the recipient keys
-			Ok(AsymmetricPublicKey::RsaPublicKey(Box::new(
-				RSAPublicKey::deserialize(public_keys.pub_rsa_key.unwrap().as_slice())?,
-			)))
-		} else if Option::is_some(&public_keys.pub_x25519_key)
-			&& Option::is_some(&public_keys.pub_kyber_key)
-		{
-			let kyber_public_key =
-				KyberPublicKey::deserialize(public_keys.pub_kyber_key.unwrap().as_slice())?;
-			let x25519_public_key =
-				X25519PublicKey::from_bytes(public_keys.pub_x25519_key.unwrap().as_slice())?;
-			return Ok(AsymmetricPublicKey::TutaCryptPublicKeys(Box::new(
-				TutaCryptPublicKeys {
-					x25519_public_key,
-					kyber_public_key,
-				},
-			)));
-		} else {
-			Err(AsymmetricCryptoError::KeyParsing(
-				"Got an unparseable public key".to_string(),
-			))
-		}
 	}
 
 	/// Returns the SenderIdentityKeyPair that is either already on the KeyPair that is being passed in,
@@ -451,10 +437,16 @@ mod tests {
 		use crate::crypto::asymmetric_crypto_facade::tests::{
 			make_asymmetric_crypto_facade, setup_authentication_test,
 		};
-		use crate::crypto::public_key_provider::PublicKeys;
+		use crate::crypto::key::PublicKey;
+		use crate::crypto::kyber::KyberPublicKey;
+		use crate::crypto::rsa::RSAPublicKey;
+		use crate::crypto::tuta_crypt::TutaCryptPublicKeys;
 		use crate::crypto::X25519PublicKey;
 		use crate::services::generated::sys::PublicKeyService;
 		use crate::tutanota_constants::EncryptionAuthStatus;
+		use crate::util::test_utils::{
+			get_kyber_pub_key_bytes, get_rsa_pub_key_bytes, get_x25519_pub_key_bytes,
+		};
 		use crate::util::Versioned;
 		use mockall::predicate::eq;
 
@@ -466,8 +458,9 @@ mod tests {
 				mut service_executor,
 				mut public_key_provider,
 			) = setup_authentication_test();
-			let pub_key = vec![2; 32];
-			let sender_identity_pub_key = X25519PublicKey::from_bytes(pub_key.as_slice()).unwrap();
+			let pub_key = get_x25519_pub_key_bytes();
+			let kyber_public_key = get_kyber_pub_key_bytes();
+			let sender_identity_pub_key = X25519PublicKey::from_bytes(&pub_key.as_slice()).unwrap();
 
 			service_executor.expect_get::<PublicKeyService>().never();
 			service_executor.expect_put::<PublicKeyService>().never();
@@ -475,10 +468,18 @@ mod tests {
 				.expect_load_versioned_pub_key()
 				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
-					Ok(PublicKeys {
-						pub_x25519_key: Some(pub_key.clone()),
-						pub_kyber_key: Some(vec![1, 2, 3]),
-						pub_rsa_key: None,
+					Ok(Versioned {
+						object: PublicKey::TutaCrypt(TutaCryptPublicKeys {
+							x25519_public_key: X25519PublicKey::from_bytes(
+								pub_key.clone().as_slice(),
+							)
+							.unwrap(),
+							kyber_public_key: KyberPublicKey::from_bytes(
+								&kyber_public_key.as_slice(),
+							)
+							.unwrap(),
+						}),
+						version: sender_key_version,
 					})
 				});
 
@@ -510,8 +511,9 @@ mod tests {
 				mut service_executor,
 				mut public_key_provider,
 			) = setup_authentication_test();
-			let pub_key = vec![2; 32];
-			let sender_identity_pub_key = X25519PublicKey::from_bytes(pub_key.as_slice()).unwrap();
+			let pub_x25519_key = get_x25519_pub_key_bytes();
+			let pub_rsa_key = get_rsa_pub_key_bytes();
+			let sender_identity_pub_key = X25519PublicKey::from_bytes(&pub_x25519_key).unwrap();
 
 			service_executor.expect_get::<PublicKeyService>().never();
 			service_executor.expect_put::<PublicKeyService>().never();
@@ -519,10 +521,11 @@ mod tests {
 				.expect_load_versioned_pub_key()
 				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
-					Ok(PublicKeys {
-						pub_x25519_key: None,
-						pub_kyber_key: None,
-						pub_rsa_key: Some(pub_key.clone()),
+					Ok(Versioned {
+						object: PublicKey::Rsa(
+							RSAPublicKey::deserialize(&pub_rsa_key.clone()).unwrap(),
+						),
+						version: sender_key_version,
 					})
 				});
 
@@ -550,8 +553,13 @@ mod tests {
 				mut service_executor,
 				mut public_key_provider,
 			) = setup_authentication_test();
-			let pub_key = vec![5; 32];
-			let sender_identity_pub_key = X25519PublicKey::from_bytes(pub_key.as_slice()).unwrap();
+
+			let bad_pub_x25519_key = get_x25519_pub_key_bytes();
+			let good_pub_x25519_key = vec![5; 32];
+
+			let kyber_pub_key = get_kyber_pub_key_bytes();
+			let sender_identity_pub_key =
+				X25519PublicKey::from_bytes(good_pub_x25519_key.as_slice()).unwrap();
 
 			service_executor.expect_get::<PublicKeyService>().never();
 			service_executor.expect_put::<PublicKeyService>().never();
@@ -559,10 +567,16 @@ mod tests {
 				.expect_load_versioned_pub_key()
 				.with(eq(public_key_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
-					Ok(PublicKeys {
-						pub_x25519_key: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
-						pub_kyber_key: Some(vec![1, 2, 3]),
-						pub_rsa_key: None,
+					Ok(Versioned {
+						object: PublicKey::TutaCrypt(TutaCryptPublicKeys {
+							x25519_public_key: X25519PublicKey::from_bytes(
+								bad_pub_x25519_key.as_slice(),
+							)
+							.unwrap(), // not matching the sender_identity_pub_key
+							kyber_public_key: KyberPublicKey::from_bytes(&kyber_pub_key.as_slice())
+								.unwrap(),
+						}),
+						version: sender_key_version,
 					})
 				});
 
@@ -586,21 +600,22 @@ mod tests {
 
 	mod decrypt_sym_key_with_key_pair_and_authenticate {
 		use crate::crypto::aes::Iv;
-		use crate::crypto::asymmetric_crypto_facade::tests::{
-			make_asymmetric_crypto_facade, setup_authentication_test,
-		};
+		use crate::crypto::asymmetric_crypto_facade::tests::make_asymmetric_crypto_facade;
+		use crate::crypto::asymmetric_crypto_facade::tests::setup_authentication_test;
 		use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
-		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
-		use crate::crypto::public_key_provider::PublicKeys;
+		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, PublicKey};
+		use crate::crypto::kyber::KyberPublicKey;
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
-		use crate::crypto::tuta_crypt::TutaCryptMessage;
+		use crate::crypto::tuta_crypt::{TutaCryptMessage, TutaCryptPublicKeys};
 		use crate::crypto::x25519::X25519KeyPair;
-		use crate::crypto::{Aes256Key, TutaCryptKeyPairs};
+		use crate::crypto::{Aes256Key, TutaCryptKeyPairs, X25519PublicKey};
 		use crate::entities::generated::sys::PubEncKeyData;
 		use crate::services::generated::sys::PublicKeyService;
 		use crate::tutanota_constants::CryptoProtocolVersion;
 		use crate::tutanota_constants::PublicKeyIdentifierType;
+		use crate::util::test_utils::{get_kyber_pub_key_bytes, get_x25519_pub_key_bytes};
+		use crate::util::Versioned;
 		use mockall::predicate::eq;
 
 		#[tokio::test]
@@ -618,10 +633,18 @@ mod tests {
 				.expect_load_versioned_pub_key()
 				.with(eq(sender_identifier.clone()), eq(sender_key_version))
 				.returning(move |_, _| {
-					Ok(PublicKeys {
-						pub_x25519_key: Some(vec![5, 5, 5, 1]), // not matching the sender_identity_pub_key
-						pub_kyber_key: Some(vec![1, 2, 3]),
-						pub_rsa_key: None,
+					Ok(Versioned {
+						object: PublicKey::TutaCrypt(TutaCryptPublicKeys {
+							x25519_public_key: X25519PublicKey::from_bytes(
+								get_x25519_pub_key_bytes().as_slice(), // not matching the sender_identity_pub_key
+							)
+							.unwrap(),
+							kyber_public_key: KyberPublicKey::from_bytes(
+								get_kyber_pub_key_bytes().as_slice(),
+							)
+							.unwrap(),
+						}),
+						version: sender_key_version,
 					})
 				});
 
@@ -829,19 +852,23 @@ mod tests {
 
 	mod encrypt_pub_sym_key {
 		use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
-		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
-		use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeys};
+		use crate::crypto::key::RsaX25519PublicKeys;
+		use crate::crypto::key::{AsymmetricKeyPair, PublicKey};
+		use crate::crypto::public_key_provider::MockPublicKeyProvider;
 		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
+		use crate::crypto::rsa::RSAX25519KeyPair;
+		use crate::crypto::tuta_crypt::TutaCryptPublicKeys;
 		use crate::crypto::{Aes256Key, TutaCryptKeyPairs};
 		use crate::entities::generated::sys::PublicKeyPutIn;
 		use crate::key_loader_facade::MockKeyLoaderFacade;
 		use crate::services::generated::sys::PublicKeyService;
 		use crate::services::service_executor::MockServiceExecutor;
-		use crate::services::ExtraServiceParams;
 		use crate::tutanota_constants::CryptoProtocolVersion;
 		use crate::util::Versioned;
+		use crate::ExtraServiceParams;
 		use crate::GeneratedId;
+		use crate::GenericAesKey;
 		use mockall::predicate::eq;
 		use std::sync::Arc;
 
@@ -880,23 +907,14 @@ mod tests {
 			let sym_key = Aes256Key::generate(&randomizer_facade);
 			let recipient_key_pair = TutaCryptKeyPairs::generate(&randomizer_facade);
 			let recipient_key_version = 3u64;
-			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
+			let versioned_recipient_public_keys: Versioned<PublicKey> = Versioned {
 				version: recipient_key_version,
-				object: PublicKeys {
-					pub_x25519_key: Some(
-						recipient_key_pair
-							.x25519_keys
-							.public_key
-							.clone()
-							.as_bytes()
-							.to_vec(),
-					),
-					pub_kyber_key: Some(
-						recipient_key_pair.kyber_keys.public_key.clone().serialize(),
-					),
-					pub_rsa_key: None,
-				},
+				object: PublicKey::TutaCrypt(TutaCryptPublicKeys {
+					kyber_public_key: recipient_key_pair.kyber_keys.public_key,
+					x25519_public_key: recipient_key_pair.x25519_keys.public_key,
+				}),
 			};
+
 			let pub_enc_sym_key = asymmetric_crypto_facade
 				.asym_encrypt_sym_key(
 					GenericAesKey::Aes256(sym_key),
@@ -972,22 +990,12 @@ mod tests {
 			let sym_key = Aes256Key::generate(&randomizer_facade);
 			let recipient_key_pair = TutaCryptKeyPairs::generate(&randomizer_facade);
 			let recipient_key_version = 3u64;
-			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
+			let versioned_recipient_public_keys: Versioned<PublicKey> = Versioned {
 				version: recipient_key_version,
-				object: PublicKeys {
-					pub_x25519_key: Some(
-						recipient_key_pair
-							.x25519_keys
-							.public_key
-							.clone()
-							.as_bytes()
-							.to_vec(),
-					),
-					pub_kyber_key: Some(
-						recipient_key_pair.kyber_keys.public_key.clone().serialize(),
-					),
-					pub_rsa_key: None,
-				},
+				object: PublicKey::TutaCrypt(TutaCryptPublicKeys {
+					kyber_public_key: recipient_key_pair.kyber_keys.public_key,
+					x25519_public_key: recipient_key_pair.x25519_keys.public_key,
+				}),
 			};
 			let pub_enc_sym_key = asymmetric_crypto_facade
 				.asym_encrypt_sym_key(
@@ -1030,13 +1038,9 @@ mod tests {
 			let sym_key = Aes256Key::generate(&randomizer_facade);
 			let recipient_key_pair = RSAKeyPair::generate(&randomizer_facade);
 			let recipient_key_version = 3u64;
-			let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
+			let versioned_recipient_public_keys: Versioned<PublicKey> = Versioned {
 				version: recipient_key_version,
-				object: PublicKeys {
-					pub_x25519_key: None,
-					pub_kyber_key: None,
-					pub_rsa_key: Some(recipient_key_pair.public_key.serialize()),
-				},
+				object: PublicKey::Rsa(recipient_key_pair.public_key),
 			};
 
 			let pub_enc_sym_key = asymmetric_crypto_facade
@@ -1056,12 +1060,65 @@ mod tests {
 			assert_eq!(pub_enc_sym_key.recipient_key_version, recipient_key_version);
 			assert!(pub_enc_sym_key.pub_enc_sym_key_bytes.len() > 1); // rsa tests will check that this is a valid ciphertext
 		}
+
+		#[tokio::test]
+		async fn encrypt_symetric_key_with_an_rsa_x25519_combo_key_behaves_like_rsa() {
+			let sender_group_id = GeneratedId::test_random();
+
+			let mut service_executor = MockServiceExecutor::default();
+			let public_key_provider = MockPublicKeyProvider::default();
+			service_executor.expect_put::<PublicKeyService>().never();
+			service_executor.expect_get::<PublicKeyService>().never();
+
+			let key_loader_facade = MockKeyLoaderFacade::default();
+
+			let randomizer_facade = make_thread_rng_facade();
+
+			let asymmetric_crypto_facade = AsymmetricCryptoFacade::new(
+				Arc::new(key_loader_facade),
+				make_thread_rng_facade(),
+				Arc::new(service_executor),
+				Arc::new(public_key_provider),
+			);
+
+			let sym_key = Aes256Key::generate(&randomizer_facade);
+			let recipient_key_pair = RSAX25519KeyPair::generate(&randomizer_facade);
+			let recipient_key_version = 3u64;
+			let versioned_recipient_public_keys: Versioned<PublicKey> = Versioned {
+				version: recipient_key_version,
+				object: PublicKey::RsaX25519(RsaX25519PublicKeys {
+					rsa_public_key: recipient_key_pair.rsa_key_pair.public_key,
+					x25519_public_key: recipient_key_pair.x25519_key_pair.public_key,
+				}),
+			};
+
+			let pub_enc_sym_key = asymmetric_crypto_facade
+				.asym_encrypt_sym_key(
+					GenericAesKey::Aes256(sym_key),
+					versioned_recipient_public_keys,
+					&sender_group_id,
+				)
+				.await
+				.unwrap();
+
+			assert_eq!(
+				pub_enc_sym_key.crypto_protocol_version,
+				CryptoProtocolVersion::Rsa
+			);
+			assert_eq!(pub_enc_sym_key.sender_key_version, None);
+			assert_eq!(pub_enc_sym_key.recipient_key_version, recipient_key_version);
+			assert!(pub_enc_sym_key.pub_enc_sym_key_bytes.len() > 1); // rsa tests will check that this is a valid ciphertext
+		}
+
 		mod tuta_crypt_encrypt_sym_key {
 			use crate::crypto::asymmetric_crypto_facade::tests::make_asymmetric_crypto_facade;
 			use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
-			use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeys};
+			use crate::crypto::key::PublicKey;
+			use crate::crypto::key::RsaX25519PublicKeys;
+			use crate::crypto::public_key_provider::MockPublicKeyProvider;
 			use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 			use crate::crypto::rsa::RSAKeyPair;
+			use crate::crypto::rsa::RSAX25519KeyPair;
 			use crate::crypto::x25519::X25519KeyPair;
 			use crate::crypto::Aes256Key;
 			use crate::services::generated::sys::PublicKeyService;
@@ -1083,13 +1140,48 @@ mod tests {
 				let sym_key = Aes256Key::generate(&randomizer_facade);
 				let recipient_key_pair = RSAKeyPair::generate(&randomizer_facade);
 				let recipient_key_version = 3u64;
-				let versioned_recipient_public_keys: Versioned<PublicKeys> = Versioned {
+				let versioned_recipient_public_keys: Versioned<PublicKey> = Versioned {
 					version: recipient_key_version,
-					object: PublicKeys {
-						pub_x25519_key: None,
-						pub_kyber_key: None,
-						pub_rsa_key: Some(recipient_key_pair.public_key.serialize()),
+					object: PublicKey::Rsa(recipient_key_pair.public_key),
+				};
+
+				let result = asymmetric_crypto_facade.tuta_crypt_encrypt_sym_key(
+					sym_key,
+					versioned_recipient_public_keys,
+					Versioned {
+						version: sender_key_version,
+						object: X25519KeyPair::generate(&randomizer_facade),
 					},
+				);
+
+				assert!(result.is_err());
+				assert!(matches!(
+					result.err().unwrap(),
+					AsymmetricCryptoError::UnexpectedPublicKeyPairType { .. }
+				));
+			}
+
+			#[tokio::test]
+			async fn error_when_passing_an_rsa_x25519_public_key() {
+				let sender_key_version = 1u64;
+
+				let mut service_executor = MockServiceExecutor::default();
+				let public_key_provider = MockPublicKeyProvider::default();
+				service_executor.expect_get::<PublicKeyService>().never();
+				let randomizer_facade = make_thread_rng_facade();
+
+				let asymmetric_crypto_facade =
+					make_asymmetric_crypto_facade(service_executor, public_key_provider);
+
+				let sym_key = Aes256Key::generate(&randomizer_facade);
+				let recipient_key_pair = RSAX25519KeyPair::generate(&randomizer_facade);
+				let recipient_key_version = 3u64;
+				let versioned_recipient_public_keys: Versioned<PublicKey> = Versioned {
+					version: recipient_key_version,
+					object: PublicKey::RsaX25519(RsaX25519PublicKeys {
+						rsa_public_key: recipient_key_pair.rsa_key_pair.public_key,
+						x25519_public_key: recipient_key_pair.x25519_key_pair.public_key,
+					}),
 				};
 
 				let result = asymmetric_crypto_facade.tuta_crypt_encrypt_sym_key(
