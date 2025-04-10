@@ -6,7 +6,39 @@ import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
-import { MailViewerViewModel } from "./MailViewerViewModel.js"; // May not be strictly needed but good practice
+import { MailViewerViewModel } from "./MailViewerViewModel.js";
+
+// Inject CSS only once
+const styleId = "moby-phish-hover-style";
+if (!document.getElementById(styleId)) {
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+        .mobyphish-btn {
+            background: #850122;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s ease;
+            margin-top: 10px;
+            opacity: 1;
+        }
+
+        .mobyphish-btn:hover {
+            opacity: 0.7;
+        }
+    `;
+    document.head.appendChild(style);
+}
 
 export class MobyPhishAlreadyTrustedModal implements ModalComponent {
     private modalHandle?: ModalComponent;
@@ -40,9 +72,8 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
                     ]),
 
                     // OK Button
-                    m("button.btn", {
-                        onclick: () => this.closeModal(),
-                        style: this.getButtonStyle("#850122") // Only pass default color now
+                    m("button.mobyphish-btn", {
+                        onclick: () => this.closeModal()
                     }, "OK")
                 ])
             ])
@@ -53,36 +84,6 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
         if (this.modalHandle) {
             modal.remove(this.modalHandle);
         }
-    }
-
-    private getButtonStyle(defaultColor: string) {
-        const baseStyle: { [key: string]: any } = {
-            background: defaultColor,
-            color: "#ffffff",
-            border: "none",
-            padding: "12px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            width: "100%",
-            fontSize: "14px",
-            fontWeight: "bold",
-            textAlign: "center",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "opacity 0.2s ease",
-            marginTop: "10px",
-            opacity: "1"
-        };
-
-        baseStyle.onmouseover = (e: MouseEvent) => {
-            (e.target as HTMLElement).style.opacity = "0.7";
-        };
-        baseStyle.onmouseout = (e: MouseEvent) => {
-            (e.target as HTMLElement).style.opacity = "1";
-        };
-
-        return baseStyle;
     }
 
     private getModalStyle() {
