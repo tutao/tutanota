@@ -7,7 +7,7 @@ import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 import { MailViewerViewModel, API_BASE_URL, TrustedSenderInfo } from "./MailViewerViewModel.js";
 
-// Inject shared CSS class only once
+// Inject primary button style only once
 const styleId = "moby-phish-hover-style";
 if (!document.getElementById(styleId)) {
     const style = document.createElement("style");
@@ -33,6 +33,38 @@ if (!document.getElementById(styleId)) {
         }
 
         .mobyphish-btn:hover {
+            opacity: 0.7;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Inject outline button style only once
+const outlineStyleId = "moby-phish-outline-style";
+if (!document.getElementById(outlineStyleId)) {
+    const style = document.createElement("style");
+    style.id = outlineStyleId;
+    style.textContent = `
+        .mobyphish-outline-btn {
+            background: transparent;
+            color: #850122;
+            border: 1px solid #850122;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s ease;
+            margin-top: 10px;
+            opacity: 1;
+        }
+
+        .mobyphish-outline-btn:hover {
             opacity: 0.7;
         }
     `;
@@ -192,7 +224,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 style: { color: 'red', fontSize: '12px', marginBottom: '10px' }
             }, this.errorMessage) : null,
 
-            // --- Report First (PRIMARY - with hover class)
+            // Report as Phishing (Primary)
             m("button.mobyphish-btn", {
                 onclick: () => {
                     if (this.isLoading) return;
@@ -204,8 +236,8 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 disabled: this.isLoading
             }, "Report as Phishing"),
 
-            // --- Add Sender (gray/outlined)
-            m("button", {
+            // Add to Trusted List (Outlined)
+            m("button.mobyphish-outline-btn", {
                 onclick: async () => {
                     if (this.isLoading || !canAddSender) return;
                     this.isLoading = true;
@@ -231,11 +263,10 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                         m.redraw();
                     }
                 },
-                disabled: this.isLoading || !canAddSender,
-                style: this.getCancelButtonStyle()
+                disabled: this.isLoading || !canAddSender
             }, `Add ${actualDisplay} to Trusted List`),
 
-            // --- Cancel
+            // Cancel
             m("button", {
                 onclick: () => { if (!this.isLoading) modal.remove(this.modalHandle!); },
                 disabled: this.isLoading,
