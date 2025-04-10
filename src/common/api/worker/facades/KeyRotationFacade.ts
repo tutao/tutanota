@@ -100,7 +100,7 @@ import { GroupInvitationPostData, type InternalRecipientKeyData, InternalRecipie
 import { ShareFacade } from "./lazy/ShareFacade.js"
 import { GroupManagementFacade } from "./lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../common/error/RecipientsNotFoundError.js"
-import { LockedError } from "../../common/error/RestError.js"
+import { LockedError, NotAuthenticatedError } from "../../common/error/RestError.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
@@ -226,8 +226,9 @@ export class KeyRotationFacade {
 				await this.updateGroupMemberships(this.pendingGroupKeyUpdateIds)
 			}
 		} catch (e) {
-			if (e instanceof LockedError) {
+			if (e instanceof LockedError || e instanceof NotAuthenticatedError) {
 				// we catch here so that we also catch errors in the `finally` block
+				// NotAuthenticated error might happen when signing up (temporary session) and logging out too quickly again
 				console.log("error when processing key rotation or group key update", e)
 			} else {
 				throw e

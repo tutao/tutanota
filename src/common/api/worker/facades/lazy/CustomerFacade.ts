@@ -271,7 +271,6 @@ export class CustomerFacade {
 
 	async signup(
 		keyPairs: [PQKeyPairs, PQKeyPairs, PQKeyPairs],
-		accountType: AccountType,
 		authToken: string,
 		mailAddress: string,
 		password: string,
