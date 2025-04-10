@@ -828,14 +828,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	      label: "mobyPhish_add",
 	      icon: m(Icon, { icon: Icons.Add }),
 	      click: async () => {
-	        const senderInfo = viewModel.getDisplayedSender(); // Get {name, address}
-	        const senderAddressToAdd = senderInfo?.address;
-	        const senderNameToAdd = senderInfo?.name || ''; // Get name, default to empty
+	        // Directly access the guaranteed sender info from the mail object
+	        const senderAddressToAdd = viewModel.mail.sender.address;
+	        const senderNameToAdd = viewModel.mail.sender.name || ''; // Use name from mail object, default to ''
+
 	        const userEmail = viewModel.logins.getUserController().loginUsername;
-console.log(senderAddressToAdd);
+
+	        // Simplified check - address should always exist based on Mail type
 	        if (!senderAddressToAdd) {
-	            console.error("Could not determine sender address to add via banner button.");
-	            // Optionally show a user-facing error here
+	            // This case should technically be impossible if viewModel.mail is valid
+	            console.error("CRITICAL ERROR: Could not get sender address from mail object.");
 	            return;
 	        }
 
@@ -845,28 +847,25 @@ console.log(senderAddressToAdd);
 	          const response = await fetch(`${API_BASE_URL}/add-trusted`, {
 	            method: "POST",
 	            headers: { "Content-Type": "application/json" },
-	            body: JSON.stringify({ // Send name along with email
+	            body: JSON.stringify({
 	              user_email: userEmail,
-	              trusted_email: senderAddressToAdd,
-	              trusted_name: senderNameToAdd // Send the name
+	              trusted_email: senderAddressToAdd, // Use directly accessed address
+	              trusted_name: senderNameToAdd     // Use directly accessed name
 	            })
 	          });
 	          if (!response.ok) {
 	            const errorData = await response.json().catch(() => ({}));
 	            console.error("Failed to add sender to trusted list via banner button:", response.status, errorData.message || '');
-	            // Optionally show a user-facing error here
 	            return;
 	          }
 	          console.log(`Sender added to trusted list via banner button: ${senderAddressToAdd}`);
-	          // Call updateSenderStatus('confirmed') to refresh data, unblock content, and show success banner
 	          await viewModel.updateSenderStatus("confirmed");
-	          // m.redraw(); // updateSenderStatus handles redraw
+
 	        } catch (error) {
 	          console.error("Error adding sender via banner button:", error);
-	          // Optionally show a user-facing error here
 	        }
 	      },
-	      style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" } // Style can be adjusted
+	      style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 	    };
 
 	    const trustOnceButton: BannerButtonAttrs = {
