@@ -1,4 +1,3 @@
-// At the top of the file (no changes needed to imports)
 import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js";
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
@@ -108,7 +107,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                     }
                 },
                 disabled: isConfirmDisabled,
-                style: this.getButtonStyle("#850122", "#850122", isConfirmDisabled)
+                style: this.getCancelButtonStyle()
             }, "Confirm"),
 
             m("button", {
@@ -162,7 +161,20 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 style: { color: 'red', fontSize: '12px', marginBottom: '10px' }
             }, this.errorMessage) : null,
 
-            // Add Sender Button (dark red)
+            // --- Report First (PRIMARY)
+            m("button", {
+                onclick: () => {
+                    if (this.isLoading) return;
+                    modal.remove(this.modalHandle!);
+                    const reportModal = new MobyPhishReportPhishingModal(this.viewModel);
+                    const handle = modal.display(reportModal);
+                    reportModal.setModalHandle(handle);
+                },
+                disabled: this.isLoading,
+                style: this.getPrimaryButtonStyle(this.isLoading)
+            }, "Report as Phishing"),
+
+            // --- Add Sender (gray/outlined)
             m("button", {
                 onclick: async () => {
                     if (this.isLoading || !canAddSender) return;
@@ -190,23 +202,10 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                     }
                 },
                 disabled: this.isLoading || !canAddSender,
-                style: this.getButtonStyle("#850122", "#850122", this.isLoading || !canAddSender)
+                style: this.getCancelButtonStyle()
             }, `Add ${actualDisplay} to Trusted List`),
 
-            // Report as Phishing (styled like Cancel)
-            m("button", {
-                onclick: () => {
-                    if (this.isLoading) return;
-                    modal.remove(this.modalHandle!);
-                    const reportModal = new MobyPhishReportPhishingModal(this.viewModel);
-                    const handle = modal.display(reportModal);
-                    reportModal.setModalHandle(handle);
-                },
-                disabled: this.isLoading,
-                style: this.getCancelButtonStyle()
-            }, "Report as Phishing"),
-
-            // Cancel
+            // --- Cancel
             m("button", {
                 onclick: () => { if (!this.isLoading) modal.remove(this.modalHandle!); },
                 disabled: this.isLoading,
@@ -215,22 +214,22 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
         ];
     }
 
-    private getButtonStyle(defaultColor: string, hoverColor: string, disabled: boolean) {
-        const baseStyle: { [key: string]: any } = {
-            background: disabled ? "#cccccc" : defaultColor,
+    // --- Button Styles ---
+    private getPrimaryButtonStyle(disabled: boolean) {
+        const color = "#850122";
+        return {
+            background: disabled ? "#cccccc" : color,
             color: disabled ? "#666666" : "#ffffff",
             border: "none", padding: "12px", borderRadius: "8px",
             cursor: disabled ? "not-allowed" : "pointer", width: "100%",
             fontSize: "14px", fontWeight: "bold", textAlign: "center",
             display: "flex", alignItems: "center", justifyContent: "center",
             transition: "opacity 0.2s ease",
-            opacity: disabled ? 0.6 : 1, marginTop: "10px"
+            opacity: disabled ? 0.6 : 1,
+            marginTop: "10px",
+            onmouseover: !disabled ? (e: MouseEvent) => (e.target as HTMLElement).style.opacity = "0.7" : undefined,
+            onmouseout: !disabled ? (e: MouseEvent) => (e.target as HTMLElement).style.opacity = "1" : undefined
         };
-        if (!disabled) {
-            baseStyle.onmouseover = (e: MouseEvent) => (e.target as HTMLElement).style.opacity = "0.7";
-            baseStyle.onmouseout = (e: MouseEvent) => (e.target as HTMLElement).style.opacity = "1";
-        }
-        return baseStyle;
     }
 
     private getCancelButtonStyle() {
@@ -256,9 +255,23 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 
     hideAnimation(): Promise<void> { return Promise.resolve(); }
     onClose(): void {}
-    backgroundClick(e: MouseEvent): void { if (!this.isLoading) { modal.remove(this.modalHandle!); } }
-    popState(): boolean { if (!this.isLoading) { modal.remove(this.modalHandle!); } return false; }
+    backgroundClick(e: MouseEvent): void { if (!this.isLoading) modal.remove(this.modalHandle!); }
+    popState(): boolean { if (!this.isLoading) modal.remove(this.modalHandle!); return false; }
     callingElement(): HTMLElement | null { return null; }
-    shortcuts(): Shortcut[] { return [{ key: Keys.ESC, exec: () => { if (!this.isLoading) { modal.remove(this.modalHandle!); return true; } return false; }, help: "close_alt" }]; }
-    setModalHandle(handle: ModalComponent) { this.modalHandle = handle; }
+    shortcuts(): Shortcut[] {
+        return [{
+            key: Keys.ESC,
+            exec: () => {
+                if (!this.isLoading) {
+                    modal.remove(this.modalHandle!);
+                    return true;
+                }
+                return false;
+            },
+            help: "close_alt"
+        }];
+    }
+    setModalHandle(handle: ModalComponent) {
+        this.modalHandle = handle;
+    }
 }
