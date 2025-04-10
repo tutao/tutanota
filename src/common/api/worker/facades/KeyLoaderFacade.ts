@@ -149,7 +149,7 @@ export class KeyLoaderFacade {
 	}
 
 	async loadFormerGroupKeyInstance(group: Group, version: KeyVersion): Promise<GroupKey> {
-		const formerKeysList = assertNotNull(group.formerGroupKeys).list
+		const formerKeysList = group.formerGroupKeys.list
 		return await this.entityClient.load(GroupKeyTypeRef, [formerKeysList, convertKeyVersionToCustomId(version)])
 	}
 
@@ -175,7 +175,7 @@ export class KeyLoaderFacade {
 		currentGroupKey: VersionedKey,
 		targetKeyVersion: KeyVersion,
 	): Promise<{ symmetricGroupKey: AesKey; groupKeyInstance: GroupKey }> {
-		const formerKeysList = assertNotNull(group.formerGroupKeys).list
+		const formerKeysList = group.formerGroupKeys.list
 		// start id is not included in the result of the range request, so we need to start at current version.
 		const startId = convertKeyVersionToCustomId(currentGroupKey.version)
 		const amountOfKeysIncludingTarget = currentGroupKey.version - targetKeyVersion

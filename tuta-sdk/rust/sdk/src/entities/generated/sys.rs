@@ -1710,7 +1710,7 @@ pub struct Group {
 	pub archives: Vec<ArchiveType>,
 	pub currentKeys: Option<KeyPair>,
 	pub customer: Option<GeneratedId>,
-	pub formerGroupKeys: Option<GroupKeysRef>,
+	pub formerGroupKeys: GroupKeysRef,
 	pub groupInfo: IdTupleGenerated,
 	pub identityKeyPair: Option<IdentityKeyPair>,
 	pub invitations: GeneratedId,
@@ -4331,7 +4331,7 @@ pub struct UserGroupRoot {
 	pub _permissions: GeneratedId,
 	pub groupKeyUpdates: Option<GroupKeyUpdatesRef>,
 	pub invitations: GeneratedId,
-	pub keyRotations: Option<KeyRotationsRef>,
+	pub keyRotations: KeyRotationsRef,
 }
 
 impl Entity for UserGroupRoot {

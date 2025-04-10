@@ -1370,7 +1370,7 @@ export type Group = {
 	archives: ArchiveType[];
 	currentKeys: null | KeyPair;
 	customer: null | Id;
-	formerGroupKeys: null | GroupKeysRef;
+	formerGroupKeys: GroupKeysRef;
 	groupInfo: IdTuple;
 	identityKeyPair: null | IdentityKeyPair;
 	invitations: Id;
@@ -3468,7 +3468,7 @@ export type UserGroupRoot = {
 
 	groupKeyUpdates: null | GroupKeyUpdatesRef;
 	invitations: Id;
-	keyRotations: null | KeyRotationsRef;
+	keyRotations: KeyRotationsRef;
 }
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", "VariableExternalAuthInfo")
 

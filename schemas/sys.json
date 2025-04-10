@@ -618,6 +618,16 @@
 					"name": "AddAssociation",
 					"sourceType": "Group",
 					"info": "AddAssociation Group/identityKeyPair/AGGREGATION/2563."
+				},
+				{
+					"name": "ChangeAssociationCardinality",
+					"sourceType": "UserGroupRoot",
+					"info": "ChangeAssociationCardinality UserGroupRoot/keyRotations/One."
+				},
+				{
+					"name": "ChangeAssociationCardinality",
+					"sourceType": "Group",
+					"info": "ChangeAssociationCardinality Group/formerGroupKeys/One."
 				}
 			]
 		}
