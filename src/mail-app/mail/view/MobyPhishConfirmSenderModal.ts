@@ -22,6 +22,7 @@ if (!document.getElementById(styleId)) {
             cursor: pointer;
             width: 100%;
             font-size: 14px;
+            font-weight: bold;
             text-align: center;
             display: flex;
             align-items: center;
@@ -53,6 +54,7 @@ if (!document.getElementById(outlineStyleId)) {
             cursor: pointer;
             width: 100%;
             font-size: 14px;
+            font-weight: normal;
             text-align: center;
             display: flex;
             align-items: center;
@@ -234,7 +236,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 disabled: this.isLoading
             }, "Report as Phishing"),
 
-            // Add to Trusted List (Outlined)
+            // Add to Trusted List (Outlined, NOT bold)
             m("button.mobyphish-outline-btn", {
                 onclick: async () => {
                     if (this.isLoading || !canAddSender) return;
