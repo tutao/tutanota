@@ -147,7 +147,6 @@ import "./api/worker/facades/MailExportFacadeTest.js"
 import "./api/worker/search/BulkMailLoaderTest.js"
 import "./api/worker/search/IndexedDbContactIndexerBackendTest.js"
 import "./api/worker/search/OfflineStorageContactIndexerBackendTest.js"
-import "./api/worker/search/OfflineStoragePersistenceTest.js"
 import "./api/worker/rest/CustomUserCacheHandlerTest.js"
 
 import * as td from "testdouble"
@@ -214,6 +213,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/credentials/DesktopCredentialsStorageTest.js")
 		await import("./desktop/export/DesktopExportFacadeTest.js")
 		await import("./api/worker/search/SqliteMailIndexerBackendTest.js")
+		await import("./api/worker/search/OfflineStoragePersistenceTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.
