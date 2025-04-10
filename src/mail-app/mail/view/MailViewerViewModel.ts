@@ -76,7 +76,7 @@ import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./M
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { modal } from "../../../common/gui/base/Modal.js";
-import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js";
+import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal.js";
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -286,7 +286,7 @@ export class MailViewerViewModel {
 			return;
 		}
 
-		const modalInstance = new MobyPhishReportPhishingModal(this);
+		const modalInstance = new MobyPhishConfirmSenderModal(this);
 		const handle = modal.display(modalInstance);
 		modalInstance.setModalHandle(handle);
 	}	

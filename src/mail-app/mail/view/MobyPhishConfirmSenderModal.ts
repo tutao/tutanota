@@ -1,4 +1,3 @@
-import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js";
 import { Icon } from "../../../common/gui/base/Icon.js";
 import { Icons } from "../../../common/gui/base/icons/Icons.js";
 import m, { Children } from "mithril";
@@ -226,12 +225,38 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 
             // Report as Phishing (Primary)
             m("button.mobyphish-btn", {
-                onclick: () => {
-                    if (this.isLoading) return;
-                    modal.remove(this.modalHandle!);
-                    const reportModal = new MobyPhishReportPhishingModal(this.viewModel);
-                    const handle = modal.display(reportModal);
-                    reportModal.setModalHandle(handle);
+                onclick: async () => {
+                    const senderEmail = this.viewModel.getSender().address;
+                    const userEmail = this.viewModel.logins.getUserController().loginUsername;
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                user_email: userEmail,
+                                email_id: this.viewModel.mail._id[1],
+                                sender_email: senderEmail,
+                                status: "reported_phishing",
+                                interaction_type: "interacted"
+                            }),
+                        });
+
+                        if (response.ok) {
+                            console.log(`Reported phishing attempt: ${senderEmail}`);
+                            await this.viewModel.fetchSenderData();
+                            if (this.modalHandle) {
+                                modal.remove(this.modalHandle);
+                            } else {
+                                console.warn("No modal handle set");
+                            }
+                            m.redraw();
+                        } else {
+                            console.error("Failed to report phishing.");
+                        }
+                    } catch (error) {
+                        console.error("Error reporting phishing:", error);
+                    }
                 },
                 disabled: this.isLoading
             }, "Report as Phishing"),

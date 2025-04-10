@@ -35,7 +35,6 @@ import { px, size } from "../../../common/gui/size.js"
 import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
 import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
-import { MobyPhishReportPhishingModal } from "./MobyPhishReportPhishingModal.js"
 import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal";
 import { API_BASE_URL } from "./MailViewerViewModel.js"; 
 import { MobyPhishAlreadyTrustedModal } from "./MobyPhishAlreadyTrustedModal.js";
