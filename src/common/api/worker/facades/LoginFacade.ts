@@ -298,7 +298,7 @@ export class LoginFacade {
 		}
 		this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
 
-		if (!isAdminClient()) {
+		if (!isAdminClient() && sessionType !== SessionType.Temporary) {
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
 		}
 
