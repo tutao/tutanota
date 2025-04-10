@@ -7,6 +7,38 @@ import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
 import type { Shortcut } from "../../../common/misc/KeyManager.js";
 import { MailViewerViewModel, API_BASE_URL, TrustedSenderInfo } from "./MailViewerViewModel.js";
 
+// Inject shared CSS class only once
+const styleId = "moby-phish-hover-style";
+if (!document.getElementById(styleId)) {
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+        .mobyphish-btn {
+            background: #850122;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s ease;
+            margin-top: 10px;
+            opacity: 1;
+        }
+
+        .mobyphish-btn:hover {
+            opacity: 0.7;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 export class MobyPhishConfirmSenderModal implements ModalComponent {
     private viewModel: MailViewerViewModel;
     private modalHandle?: ModalComponent;
@@ -55,8 +87,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 
         return [
             m("p", { style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "15px" } },
-                "Who do you believe this email is from?"
-            ),
+                "Who do you believe this email is from?"),
             m("input[type=text]", {
                 placeholder: "Search or type sender email or name...",
                 value: this.selectedSenderEmail,
@@ -161,8 +192,8 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 style: { color: 'red', fontSize: '12px', marginBottom: '10px' }
             }, this.errorMessage) : null,
 
-            // --- Report First (PRIMARY)
-            m("button", {
+            // --- Report First (PRIMARY - with hover class)
+            m("button.mobyphish-btn", {
                 onclick: () => {
                     if (this.isLoading) return;
                     modal.remove(this.modalHandle!);
@@ -170,8 +201,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                     const handle = modal.display(reportModal);
                     reportModal.setModalHandle(handle);
                 },
-                disabled: this.isLoading,
-                style: this.getPrimaryButtonStyle(this.isLoading)
+                disabled: this.isLoading
             }, "Report as Phishing"),
 
             // --- Add Sender (gray/outlined)
@@ -212,24 +242,6 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
                 style: this.getCancelButtonStyle()
             }, "Cancel")
         ];
-    }
-
-    // --- Button Styles ---
-    private getPrimaryButtonStyle(disabled: boolean) {
-        const color = "#850122";
-        return {
-            background: disabled ? "#cccccc" : color,
-            color: disabled ? "#666666" : "#ffffff",
-            border: "none", padding: "12px", borderRadius: "8px",
-            cursor: disabled ? "not-allowed" : "pointer", width: "100%",
-            fontSize: "14px", fontWeight: "bold", textAlign: "center",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "opacity 0.2s ease",
-            opacity: disabled ? 0.6 : 1,
-            marginTop: "10px",
-            onmouseover: !disabled ? (e: MouseEvent) => (e.target as HTMLElement).style.opacity = "0.7" : undefined,
-            onmouseout: !disabled ? (e: MouseEvent) => (e.target as HTMLElement).style.opacity = "1" : undefined
-        };
     }
 
     private getCancelButtonStyle() {
