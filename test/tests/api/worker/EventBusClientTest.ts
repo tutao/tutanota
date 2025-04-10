@@ -30,6 +30,7 @@ import { ExposedProgressTracker } from "../../../../src/common/api/main/Progress
 import { createTestEntity } from "../../TestUtils.js"
 import { TypeModel } from "../../../../src/common/api/common/EntityTypes.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
+import { EntityUpdateData, entityUpdatesAsData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
@@ -79,7 +80,7 @@ o.spec("EventBusClientTest", function () {
 		progressTrackerMock = object()
 		syncTrackerMock = object()
 		cacheMock = object({
-			async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
+			async entityEventsReceived(batch: QueuedBatch): Promise<readonly EntityUpdateData[]> {
 				return batch.events.slice()
 			},
 			async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
@@ -163,9 +164,13 @@ o.spec("EventBusClientTest", function () {
 			restClient.addListInstances(batch)
 
 			const eventsReceivedDefer = defer()
-			when(cacheMock.entityEventsReceived({ events: [update], batchId: getElementId(batch), groupId: mailGroupId })).thenDo(() =>
-				eventsReceivedDefer.resolve(undefined),
-			)
+			when(
+				cacheMock.entityEventsReceived({
+					events: entityUpdatesAsData([update]),
+					batchId: getElementId(batch),
+					groupId: mailGroupId,
+				}),
+			).thenDo(() => eventsReceivedDefer.resolve(undefined))
 
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))

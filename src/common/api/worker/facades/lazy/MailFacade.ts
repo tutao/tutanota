@@ -88,7 +88,6 @@ import { NotFoundError } from "../../../common/error/RestError.js"
 import {
 	BlobReferenceTokenWrapper,
 	createGeneratedIdWrapper,
-	EntityUpdate,
 	ExternalUserReference,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
@@ -154,6 +153,7 @@ import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
+import { EntityUpdateData } from "../../../common/utils/EntityUpdateUtils"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
@@ -893,7 +893,7 @@ export class MailFacade {
 			.catch(ofClass(NotFoundError, () => null))
 	}
 
-	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
+	entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
 		return promiseMap(data, (update) => {
 			if (
 				this.deferredDraftUpdate != null &&

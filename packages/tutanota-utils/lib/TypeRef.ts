@@ -29,6 +29,14 @@ export function getTypeId(typeRef: TypeRef<unknown>) {
 	return typeRef.app + "/" + typeRef.type
 }
 
+export function parseTypeId(typeId: string): TypeRef<unknown> {
+	const parts = typeId.split("/")
+	if (parts.length !== 2) {
+		throw new Error(`Invalid type id: ${typeId}`)
+	}
+	return new TypeRef<unknown>(parts[0], parts[1])
+}
+
 export function isSameTypeRefByAttr(typeRef: TypeRef<unknown>, app: string, typeName: string): boolean {
 	return typeRef.app === app && typeRef.type === typeName
 }

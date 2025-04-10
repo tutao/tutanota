@@ -2,8 +2,6 @@ import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	EntityUpdate,
-	EntityUpdateTypeRef,
 	GroupKeyUpdateTypeRef,
 	GroupMembershipTypeRef,
 	User,
@@ -21,6 +19,7 @@ import { EventController } from "../../../../src/common/api/main/EventController
 import { KeyRotationFacade } from "../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
+import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -36,7 +35,10 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	let cacheManagementFacade: CacheManagementFacade
 
 	o.beforeEach(function () {
-		user = createTestEntity(UserTypeRef, { userGroup: createTestEntity(GroupMembershipTypeRef, { group: userGroupId }), _id: userId })
+		user = createTestEntity(UserTypeRef, {
+			userGroup: createTestEntity(GroupMembershipTypeRef, { group: userGroupId }),
+			_id: userId,
+		})
 		userFacade = object()
 		when(userFacade.getUser()).thenReturn(user)
 		entityClient = object()
@@ -63,19 +65,21 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	})
 
 	o("updateUser and UserGroupKeyDistribution", async function () {
-		const updates: Array<EntityUpdate> = [
-			createTestEntity(EntityUpdateTypeRef, {
+		const updates: Array<EntityUpdateData> = [
+			{
 				application: UserTypeRef.app,
 				type: UserTypeRef.type,
 				instanceId: userId,
 				operation: OperationType.UPDATE,
-			}),
-			createTestEntity(EntityUpdateTypeRef, {
+				instanceListId: "",
+			},
+			{
 				application: UserGroupKeyDistributionTypeRef.app,
 				type: UserGroupKeyDistributionTypeRef.type,
 				instanceId: userGroupId,
 				operation: OperationType.CREATE,
-			}),
+				instanceListId: "",
+			},
 		]
 
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
@@ -87,13 +91,14 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	})
 
 	o("updatUser only user update", async function () {
-		const updates: Array<EntityUpdate> = [
-			createTestEntity(EntityUpdateTypeRef, {
+		const updates: Array<EntityUpdateData> = [
+			{
 				application: UserTypeRef.app,
 				type: UserTypeRef.type,
 				instanceId: userId,
 				operation: OperationType.UPDATE,
-			}),
+				instanceListId: "",
+			},
 		]
 
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
@@ -107,14 +112,14 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	o("groupKeyUpdate", async function () {
 		const instanceListId = "updateListId"
 		const instanceId = "updateElementId"
-		const updates: Array<EntityUpdate> = [
-			createTestEntity(EntityUpdateTypeRef, {
+		const updates: Array<EntityUpdateData> = [
+			{
 				application: GroupKeyUpdateTypeRef.app,
 				type: GroupKeyUpdateTypeRef.type,
 				instanceListId,
 				instanceId,
 				operation: OperationType.CREATE,
-			}),
+			},
 		]
 
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")

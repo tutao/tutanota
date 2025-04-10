@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
 import { instance, matchers, verify, when } from "testdouble"
-import { CalendarEventTypeRef, createCalendarEvent } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { CustomCalendarEventCacheHandler } from "../../../../../src/common/api/worker/rest/CustomCacheHandler.js"
+import { CalendarEventTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { createEventElementId } from "../../../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { LateInitializedCacheStorageImpl } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { numberRange } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../../../TestUtils.js"
+import { CustomCalendarEventCacheHandler } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 
 o.spec("Custom calendar events handler", function () {
 	const entityRestClientMock = instance(EntityRestClient)
@@ -26,7 +26,10 @@ o.spec("Custom calendar events handler", function () {
 	o.spec("Load elements from cache", function () {
 		o.beforeEach(function () {
 			when(offlineStorageMock.getWholeList(CalendarEventTypeRef, listId)).thenResolve(allList)
-			when(offlineStorageMock.getRangeForList(CalendarEventTypeRef, listId)).thenResolve({ lower: CUSTOM_MIN_ID, upper: CUSTOM_MAX_ID })
+			when(offlineStorageMock.getRangeForList(CalendarEventTypeRef, listId)).thenResolve({
+				lower: CUSTOM_MIN_ID,
+				upper: CUSTOM_MAX_ID,
+			})
 		})
 
 		o("load range returns n elements following but excluding start id", async function () {

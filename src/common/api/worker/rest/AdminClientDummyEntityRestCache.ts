@@ -1,13 +1,13 @@
 import { QueuedBatch } from "../EventQueue.js"
-import { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { EntityRestCache } from "./DefaultEntityRestCache.js"
 import { EntityRestClientLoadOptions } from "./EntityRestClient.js"
+import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 
 export class AdminClientDummyEntityRestCache implements EntityRestCache {
-	async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
+	async entityEventsReceived(batch: QueuedBatch): Promise<readonly EntityUpdateData[]> {
 		return batch.events
 	}
 

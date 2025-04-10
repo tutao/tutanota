@@ -220,6 +220,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/misc") ||
 		isIn("src/common/file") ||
 		isIn("src/common/gui") ||
+		isIn("src/common/offline") ||
 		isIn("src/common/serviceworker") ||
 		moduleId.includes(path.normalize("packages/tutanota-usagetests")) ||
 		moduleId.includes("NotificationContentSelector") ||
@@ -261,7 +262,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/api/entities") ||
 		isIn("src/desktop/config/ConfigKeys") ||
 		moduleId.includes("cborg") ||
-		isIn("src/common/offline") ||
 		// CryptoError is needed on the main thread in order to check errors
 		// We have to define both the entry point and the files referenced from it which is annoying
 		isIn("packages/tutanota-crypto/dist/error") ||

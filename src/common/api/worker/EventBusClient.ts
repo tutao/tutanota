@@ -12,7 +12,6 @@ import {
 	createWebsocketLeaderStatus,
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
-	EntityUpdate,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityData,
@@ -40,6 +39,7 @@ import { PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef, Report
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
+import { EntityUpdateData, entityUpdatesAsData } from "../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 
@@ -90,7 +90,7 @@ export interface EventBusListener {
 
 	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): unknown
 
-	onEntityEventsReceived(events: EntityUpdate[], batchId: Id, groupId: Id): Promise<void>
+	onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void>
 
 	/**
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
@@ -294,7 +294,7 @@ export class EventBusClient {
 					JSON.parse(value),
 					null,
 				)
-				const filteredEntityUpdates = await this.removeUnknownTypes(eventBatch)
+				const filteredEntityUpdates = await this.removeUnknownTypes(entityUpdatesAsData(eventBatch))
 				this.entityUpdateMessageQueue.add(eventBatchId, eventBatchOwner, filteredEntityUpdates)
 				break
 			}
@@ -337,7 +337,7 @@ export class EventBusClient {
 	 * Filters out specific types from @param entityUpdates that the client does not actually know about
 	 * (that are not in tutanotaTypes), and which should therefore not be processed.
 	 */
-	private async removeUnknownTypes(eventBatch: EntityUpdate[]): Promise<EntityUpdate[]> {
+	private async removeUnknownTypes(eventBatch: readonly EntityUpdateData[]): Promise<EntityUpdateData[]> {
 		return promiseFilter(eventBatch, async (entityUpdate) => {
 			const typeRef = new TypeRef(entityUpdate.application, entityUpdate.type)
 			try {
@@ -518,6 +518,7 @@ export class EventBusClient {
 	 * */
 	async loadMissedEntityEvents(eventQueue: EventQueue): Promise<void> {
 		if (!this.userFacade.isFullyLoggedIn()) {
+			console.log("EventBus: skip loadMissedEntityEvents because not fully logged in yet")
 			return
 		}
 
@@ -533,7 +534,7 @@ export class EventBusClient {
 		// Count all batches that will actually be processed so that the progress is correct
 		let totalExpectedBatches = 0
 		for (const batch of timeSortedEventBatches) {
-			const filteredEntityUpdates = await this.removeUnknownTypes(batch.events)
+			const filteredEntityUpdates = await this.removeUnknownTypes(entityUpdatesAsData(batch.events))
 			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), filteredEntityUpdates, eventQueue)
 			if (batchWasAddedToQueue) {
 				// Set as last only if it was inserted with success
@@ -648,7 +649,7 @@ export class EventBusClient {
 		}
 	}
 
-	private addBatch(batchId: Id, groupId: Id, events: ReadonlyArray<EntityUpdate>, eventQueue: EventQueue): boolean {
+	private addBatch(batchId: Id, groupId: Id, events: readonly EntityUpdateData[], eventQueue: EventQueue): boolean {
 		const lastForGroup = this.lastEntityEventIds.get(groupId) || []
 		// find the position for inserting into last entity events (negative value is considered as not present in the array)
 		const index = binarySearch(lastForGroup, batchId, compareOldestFirst)
