@@ -64,6 +64,7 @@ export class MailRow implements VirtualRow<Mail> {
 	private checkboxDom!: HTMLInputElement
 	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
 	private selectionSetter!: SelectableRowSelectedSetter
+	private skipSelect: boolean = false
 
 	constructor(
 		private readonly showFolderIcon: boolean,
@@ -225,11 +226,19 @@ export class MailRow implements VirtualRow<Mail> {
 							transformOrigin: "left",
 						},
 						onclick: (e: MouseEvent) => {
-							e.stopPropagation()
-							// e.redraw = false
+							if (e.shiftKey) {
+								// If the shift is pressed, let it bubble up and be handled by List which will do a range select
+								this.skipSelect = true
+							} else {
+								e.stopPropagation()
+							}
 						},
 						onchange: () => {
-							if (this.entity) this.onSelected(this.entity, this.checkboxDom.checked)
+							if (this.skipSelect) {
+								this.skipSelect = false
+							} else {
+								if (this.entity) this.onSelected(this.entity, this.checkboxDom.checked)
+							}
 						},
 						oncreate: (vnode) => {
 							this.checkboxDom = vnode.dom as HTMLInputElement
