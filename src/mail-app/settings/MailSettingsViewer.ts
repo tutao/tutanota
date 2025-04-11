@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isApp } from "../../common/api/common/Env"
+import { assertMainOrNode, isApp, isBrowser } from "../../common/api/common/Env"
 import { lang, type MaybeTranslation } from "../../common/misc/LanguageViewModel"
 import type { MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -368,7 +368,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-l", lang.get("general_label")),
 					m(DropDownSelector, conversationViewDropdownAttrs),
 					m(DropDownSelector, mailListDisplayMode),
-					m(DropDownSelector, enableMailIndexingAttrs),
+					isBrowser() ? m(DropDownSelector, enableMailIndexingAttrs) : null,
 					m(DropDownSelector, behaviorAfterMoveEmailAction),
 					m(".h4.mt-l", lang.get("emailSending_label")),
 					m(DropDownSelector, defaultSenderAttrs),
