@@ -70,7 +70,7 @@ impl KeyLoaderFacade {
 		current_group_key: &VersionedAesKey,
 		target_key_version: u64,
 	) -> Result<FormerGroupKey, KeyLoadError> {
-		let list_id = group.formerGroupKeys.clone().unwrap().list;
+		let list_id = group.formerGroupKeys.clone().list;
 
 		let start_id = CustomId::from_custom_string(&current_group_key.version.to_string());
 		let amount_of_keys_including_target =
@@ -294,7 +294,7 @@ impl KeyLoaderFacade {
 				if convert_version_to_u64(group.groupKeyVersion) == sym_group_key.version {
 					key_pair = group.currentKeys
 				} else {
-					let former_keys_list = group.formerGroupKeys.unwrap().list;
+					let former_keys_list = group.formerGroupKeys.list;
 					// we load by the version and thus can be sure that we are able to decrypt this key
 					let former_group_key: GroupKey = self
 						.entity_client
@@ -385,7 +385,16 @@ mod tests {
 	}
 
 	fn generate_group_data() -> (Group, VersionedAesKey) {
-		(generate_random_group(None, None), generate_group_key(1))
+		(
+			generate_random_group(
+				None,
+				GroupKeysRef {
+					_id: Some(CustomId::test_random()),
+					list: GeneratedId::test_random(),
+				},
+			),
+			generate_group_key(1),
+		)
 	}
 
 	fn generate_group_with_keys(
@@ -441,10 +450,10 @@ mod tests {
 
 		let mut group = generate_random_group(
 			Some(current_keys),
-			Some(GroupKeysRef {
+			GroupKeysRef {
 				_id: Default::default(),
 				list: GeneratedId("list".to_owned()), // Refers to `former_keys`
-			}),
+			},
 		);
 		group.groupKeyVersion = current_group_key.version as i64;
 		group
@@ -559,7 +568,7 @@ mod tests {
 				typed_entity_client_mock
 					.expect_load_range::<GroupKey, CustomId>()
 					.with(
-						predicate::eq(group.formerGroupKeys.unwrap().list),
+						predicate::eq(group.formerGroupKeys.list),
 						predicate::eq(CustomId::from_custom_string(
 							&current_group_key.version.to_string(),
 						)),
@@ -582,7 +591,13 @@ mod tests {
 		randomizer: &RandomizerFacade,
 	) -> (MockUserFacade, MockTypedEntityClient) {
 		let user_group_key = generate_group_key(0);
-		let user_group = generate_random_group(None, None);
+		let user_group = generate_random_group(
+			None,
+			GroupKeysRef {
+				_id: Some(CustomId::test_random()),
+				list: GeneratedId::test_random(),
+			},
+		);
 
 		let mut user_facade_mock = MockUserFacade::default();
 		{

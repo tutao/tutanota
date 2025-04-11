@@ -35,7 +35,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { matchers, object, reset, verify, when } from "testdouble"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { assertNotNull, freshVersioned, hexToUint8Array } from "@tutao/tutanota-utils"
+import { freshVersioned, hexToUint8Array } from "@tutao/tutanota-utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
@@ -121,7 +121,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 		userGroup = createTestEntity(GroupTypeRef, {
 			_id: "my userGroup",
 			groupKeyVersion: String(userGroupKey.version),
-			formerGroupKeys: null,
+			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef),
 		})
 
 		membership = createTestEntity(GroupMembershipTypeRef, {
@@ -182,7 +182,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 
 		o("load key pair when group is updated in cache but key cache still has the old sym key", async function () {
 			const requestedVersion = checkKeyVersionConstraints(currentGroupKeyVersion - 1)
-			when(entityClient.load(GroupKeyTypeRef, [assertNotNull(group.formerGroupKeys).list, stringToCustomId(String(requestedVersion))])).thenResolve(
+			when(entityClient.load(GroupKeyTypeRef, [group.formerGroupKeys.list, stringToCustomId(String(requestedVersion))])).thenResolve(
 				formerKeys[requestedVersion],
 			)
 			await keyCache.getCurrentGroupKey(group._id, () =>

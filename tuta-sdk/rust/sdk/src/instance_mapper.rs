@@ -1114,7 +1114,7 @@ mod tests {
 	use crate::entities::entity_facade::{
 		FORMAT_FIELD, ID_FIELD, OWNER_GROUP_FIELD, PERMISSIONS_FIELD,
 	};
-	use crate::entities::generated::sys::{Group, GroupInfo};
+	use crate::entities::generated::sys::{Group, GroupInfo, GroupKeysRef};
 	use crate::entities::generated::tutanota::{
 		CalendarEventUidIndex, Mail, MailDetailsBlob, MailboxGroupRoot, OutOfOfficeNotification,
 		OutOfOfficeNotificationRecipientList,
@@ -1308,7 +1308,13 @@ mod tests {
 
 	#[test]
 	fn test_ser_group() {
-		let group = generate_random_group(None, None);
+		let group = generate_random_group(
+			None,
+			GroupKeysRef {
+				_id: Some(CustomId::test_random()),
+				list: GeneratedId::test_random(),
+			},
+		);
 		let mapper = InstanceMapper::new();
 		let result = mapper.serialize_entity(group.clone()).unwrap();
 		assert_eq!(

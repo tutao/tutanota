@@ -76,6 +76,7 @@ import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.j
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
+import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 
 assertWorkerOrNode()
 
@@ -98,6 +99,8 @@ export type CalendarWorkerLocatorType = {
 	keyLoader: KeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
+	ed25519Facade: Ed25519Facade
+	cryptoWrapper: CryptoWrapper
 
 	// login
 	user: UserFacade
@@ -214,9 +217,13 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
-	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
+	locator.ed25519Facade = new Ed25519Facade()
+
+	locator.cryptoWrapper = new CryptoWrapper()
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
+	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
+	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor, locator.cachingEntityClient, keyAuthenticationFacade, locator.keyLoader)
 
 	locator.keyVerification = lazyMemoized(async () => {
 		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
@@ -260,7 +267,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		const { CounterFacade } = await import("../../../common/api/worker/facades/lazy/CounterFacade.js")
 		return new CounterFacade(locator.serviceExecutor)
 	})
-	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
+
 	locator.groupManagement = lazyMemoized(async () => {
 		const { GroupManagementFacade } = await import("../../../common/api/worker/facades/lazy/GroupManagementFacade.js")
 		return new GroupManagementFacade(
@@ -274,6 +281,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			asymmetricCrypto,
 			cryptoWrapper,
 			keyAuthenticationFacade,
+			locator.ed25519Facade,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -374,6 +382,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await locator.recoverCode(),
 			asymmetricCrypto,
 			locator.publicKeyProvider,
+			locator.cryptoWrapper,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)

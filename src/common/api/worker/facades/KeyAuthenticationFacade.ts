@@ -3,6 +3,7 @@ import { concat, KeyVersion } from "@tutao/tutanota-utils"
 import { Aes256Key, AesKey, bitArrayToUint8Array, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { KeyMac } from "../../entities/sys/TypeRefs.js"
+import { Ed25519PublicKey } from "./Ed25519Facade"
 
 assertWorkerOrNode()
 
@@ -15,7 +16,7 @@ type BaseKeyAuthenticationParams = {
 	tagType: keyof typeof systemMap
 	sourceOfTrust: { [name: string]: AesKey }
 	// this can be a user group key, an admin group key, an admin group public key or a distribution public key
-	untrustedKey: { [name: string]: AesKey | PQPublicKeys }
+	untrustedKey: { [name: string]: AesKey | PQPublicKeys | Ed25519PublicKey }
 	bindingData: AuthenticationBindingData
 }
 
@@ -160,17 +161,43 @@ const adminSymKeyAuthenticationSystem: KeyAuthenticationSystem<AdminSymKeyAuthen
 	},
 }
 
+export type IdentityPubKeyAuthenticationParams = {
+	tagType: "IDENTITY_PUB_KEY_TAG"
+	untrustedKey: { identityPubKey: Ed25519PublicKey }
+	sourceOfTrust: { symmetricGroupKey: AesKey } // either the user group or the mail group key
+	bindingData: {
+		publicIdentityKeyVersion: KeyVersion
+		groupKeyVersion: KeyVersion
+		groupId: Id
+	}
+}
+
+const identityPubKeyAuthenticationSystem: KeyAuthenticationSystem<IdentityPubKeyAuthenticationParams> = {
+	deriveKey({ bindingData: { publicIdentityKeyVersion, groupKeyVersion, groupId }, sourceOfTrust }, cryptoWrapper) {
+		return cryptoWrapper.deriveKeyWithHkdf({
+			salt: `groupId: ${groupId}, groupKeyVersion: ${groupKeyVersion}, publicIdentityKeyVersion: ${publicIdentityKeyVersion}`,
+			key: sourceOfTrust.symmetricGroupKey,
+			context: "publicIdentityKey",
+		})
+	},
+	generateAuthenticationData({ untrustedKey: { identityPubKey } }) {
+		return identityPubKey
+	},
+}
+
 export type KeyAuthenticationParams =
 	| UserGroupKeyAuthenticationParams
 	| NewAdminPubKeyAuthenticationParams
 	| PubDistKeyAuthenticationParams
 	| AdminSymKeyAuthenticationParams
+	| IdentityPubKeyAuthenticationParams
 
 const systemMap = {
 	USER_GROUP_KEY_TAG: userGroupKeyAuthenticationSystem,
 	NEW_ADMIN_PUB_KEY_TAG: newAdminPubKeyAuthenticationSystem,
 	PUB_DIST_KEY_TAG: pubDistKeyAuthenticationSystem,
 	ADMIN_SYM_KEY_TAG: adminSymKeyAuthenticationSystem,
+	IDENTITY_PUB_KEY_TAG: identityPubKeyAuthenticationSystem,
 }
 
 /**

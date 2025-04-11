@@ -2233,6 +2233,19 @@ export type UserAccountCreateData = {
 	userData: UserAccountUserData;
 	userGroupData: InternalGroupData;
 }
+export const UserAccountPostOutTypeRef: TypeRef<UserAccountPostOut> = new TypeRef("tutanota", "UserAccountPostOut")
+
+export function createUserAccountPostOut(values: StrippedEntity<UserAccountPostOut>): UserAccountPostOut {
+	return Object.assign(create(typeModels.UserAccountPostOut, UserAccountPostOutTypeRef), values)
+}
+
+export type UserAccountPostOut = {
+	_type: TypeRef<UserAccountPostOut>;
+
+	_format: NumberString;
+	userGroup: Id;
+	userId: Id;
+}
 export const UserAccountUserDataTypeRef: TypeRef<UserAccountUserData> = new TypeRef("tutanota", "UserAccountUserData")
 
 export function createUserAccountUserData(values: StrippedEntity<UserAccountUserData>): UserAccountUserData {

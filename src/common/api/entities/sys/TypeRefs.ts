@@ -1370,8 +1370,9 @@ export type Group = {
 	archives: ArchiveType[];
 	currentKeys: null | KeyPair;
 	customer: null | Id;
-	formerGroupKeys: null | GroupKeysRef;
+	formerGroupKeys: GroupKeysRef;
 	groupInfo: IdTuple;
+	identityKeyPair: null | IdentityKeyPair;
 	invitations: Id;
 	members: Id;
 	pubAdminGroupEncGKey: null | PubEncKeyData;
@@ -1636,6 +1637,36 @@ export type IdTupleWrapper = {
 	_id: Id;
 	listElementId: Id;
 	listId: Id;
+}
+export const IdentityKeyPairTypeRef: TypeRef<IdentityKeyPair> = new TypeRef("sys", "IdentityKeyPair")
+
+export function createIdentityKeyPair(values: StrippedEntity<IdentityKeyPair>): IdentityKeyPair {
+	return Object.assign(create(typeModels.IdentityKeyPair, IdentityKeyPairTypeRef), values)
+}
+
+export type IdentityKeyPair = {
+	_type: TypeRef<IdentityKeyPair>;
+
+	_id: Id;
+	encryptingKeyVersion: NumberString;
+	identityKeyVersion: NumberString;
+	privateEd25519Key: Uint8Array;
+	publicEd25519Key: Uint8Array;
+
+	publicKeyMac: KeyMac;
+}
+export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", "IdentityKeyPostIn")
+
+export function createIdentityKeyPostIn(values: StrippedEntity<IdentityKeyPostIn>): IdentityKeyPostIn {
+	return Object.assign(create(typeModels.IdentityKeyPostIn, IdentityKeyPostInTypeRef), values)
+}
+
+export type IdentityKeyPostIn = {
+	_type: TypeRef<IdentityKeyPostIn>;
+
+	_format: NumberString;
+
+	identityKeyPair: IdentityKeyPair;
 }
 export const InstanceSessionKeyTypeRef: TypeRef<InstanceSessionKey> = new TypeRef("sys", "InstanceSessionKey")
 
@@ -3437,7 +3468,7 @@ export type UserGroupRoot = {
 
 	groupKeyUpdates: null | GroupKeyUpdatesRef;
 	invitations: Id;
-	keyRotations: null | KeyRotationsRef;
+	keyRotations: KeyRotationsRef;
 }
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", "VariableExternalAuthInfo")
 

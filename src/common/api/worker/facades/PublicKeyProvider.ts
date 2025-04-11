@@ -1,14 +1,13 @@
-import { createPublicKeyGetIn, PubDistributionKey, PublicKeyGetOut, type SystemKeysReturn } from "../../entities/sys/TypeRefs.js"
+import { createPublicKeyGetIn, GroupTypeRef, PubDistributionKey, PublicKeyGetOut, type SystemKeysReturn } from "../../entities/sys/TypeRefs.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
-import { parseKeyVersion } from "./KeyLoaderFacade.js"
+import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
 import { uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { InvalidDataError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import {
-	PublicKey,
 	bytesToKyberPublicKey,
 	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
@@ -16,8 +15,13 @@ import {
 	isVersionedRsaOrRsaX25519PublicKey,
 	KeyPairType,
 	PQPublicKeys,
+	PublicKey,
 	RsaX25519PublicKey,
 } from "@tutao/tutanota-crypto"
+import { SigningPublicKey } from "./Ed25519Facade"
+import { EntityClient } from "../../common/EntityClient"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade"
 
 export type PublicKeyIdentifier = {
 	identifier: string
@@ -36,7 +40,51 @@ type PublicKeyRawData = {
  * Handle key versioning.
  */
 export class PublicKeyProvider {
-	constructor(private readonly serviceExecutor: IServiceExecutor) {}
+	constructor(
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly entityClient: EntityClient,
+		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
+	) {}
+
+	/**
+	 * Loads the public identity key from the given group and id assuming that there is an existing identity key.
+	 * Authenticates the public data using the symmetric group key.
+	 *
+	 * @param groupId The group the load the identity key for, must be a user group or a shared mail group.
+	 * @throws ProgrammingError if the group does not have an identity key pair.
+	 * @throws CryptoError in case the mac of the public can cannot be verified.
+	 */
+	async loadPublicIdentityKeyFromGroup(groupId: Id): Promise<SigningPublicKey> {
+		const group = await this.entityClient.load(GroupTypeRef, groupId)
+
+		if (!group.identityKeyPair) {
+			throw new ProgrammingError("group without identity key pair")
+		}
+		const publicIdentityKey = group.identityKeyPair.publicEd25519Key
+		const publicIdentityKeyMac = brandKeyMac(group.identityKeyPair.publicKeyMac)
+		const identityKeyVersion = parseKeyVersion(group.identityKeyPair.identityKeyVersion)
+		const taggingGroupKeyVersion = parseKeyVersion(publicIdentityKeyMac.taggingKeyVersion)
+
+		const taggingGroupKey = await this.keyLoaderFacade.loadSymGroupKey(publicIdentityKeyMac.taggingGroup, taggingGroupKeyVersion)
+
+		this.keyAuthenticationFacade.verifyTag(
+			{
+				tagType: "IDENTITY_PUB_KEY_TAG",
+				sourceOfTrust: {
+					symmetricGroupKey: taggingGroupKey,
+				},
+				untrustedKey: { identityPubKey: publicIdentityKey },
+				bindingData: {
+					publicIdentityKeyVersion: identityKeyVersion,
+					groupKeyVersion: taggingGroupKeyVersion,
+					groupId,
+				},
+			},
+			publicIdentityKeyMac.tag,
+		)
+		return publicIdentityKey
+	}
 
 	async loadCurrentPubKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Versioned<PublicKey>> {
 		return this.loadPubKey(pubKeyIdentifier, null)
@@ -133,7 +181,10 @@ export class PublicKeyProvider {
 			if (publicKeys.pubEccKey) {
 				const eccPublicKey = publicKeys.pubEccKey
 				const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(publicKeys.pubRsaKey))
-				const rsaEccPublicKey: RsaX25519PublicKey = Object.assign(rsaPublicKey, { keyPairType: KeyPairType.RSA_AND_X25519, publicEccKey: eccPublicKey })
+				const rsaEccPublicKey: RsaX25519PublicKey = Object.assign(rsaPublicKey, {
+					keyPairType: KeyPairType.RSA_AND_X25519,
+					publicEccKey: eccPublicKey,
+				})
 				return {
 					version,
 					object: rsaEccPublicKey,
