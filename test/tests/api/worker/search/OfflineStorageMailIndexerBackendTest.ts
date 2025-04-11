@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { SqliteMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/SqliteMailIndexerBackend"
+import { OfflineStorageMailIndexerBackend } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageMailIndexerBackend"
 import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { matchers, object, verify, when } from "testdouble"
 import { FULL_INDEXED_TIMESTAMP, GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
@@ -7,13 +7,13 @@ import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/worke
 import { createTestEntity } from "../../../TestUtils"
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 
-o.spec("SqliteMailIndexerBackend", function () {
+o.spec("OfflineStorageMailIndexerBackend", function () {
 	let persistence: OfflineStoragePersistence
-	let backend: SqliteMailIndexerBackend
+	let backend: OfflineStorageMailIndexerBackend
 
 	o.beforeEach(function () {
 		persistence = object()
-		backend = new SqliteMailIndexerBackend(persistence)
+		backend = new OfflineStorageMailIndexerBackend(persistence)
 	})
 
 	o.test("getCurrentIndexTimestamps", async function () {
