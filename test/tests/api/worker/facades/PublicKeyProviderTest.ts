@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { matchers, object, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
@@ -10,7 +10,7 @@ import {
 	Group,
 	GroupTypeRef,
 	IdentityKeyPair,
-	KeyMac,
+	KeyMacTypeRef,
 	PubDistributionKey,
 	PublicKeyGetOut,
 	SystemKeysReturn,
@@ -30,8 +30,9 @@ import {
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { InvalidDataError } from "../../../../../src/common/api/common/error/RestError"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
-import { KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade"
+import { brandKeyMac, IdentityPubKeyAuthenticationParams, KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
+import { createTestEntity } from "../../../TestUtils"
 
 o.spec("PublicKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
@@ -207,18 +208,23 @@ o.spec("PublicKeyProviderTest", function () {
 	})
 
 	o.spec("loadPublicIdentityKeyFromGroup", function () {
-		const requestedVersion = 1
-
 		o("success", async function () {
 			const pubEd25519Key = object<Uint8Array>()
 
 			const userGroup: Group = object()
+			userGroup._id = "userGroup"
 			const identityKeyPair: IdentityKeyPair = object()
 			identityKeyPair.publicEd25519Key = pubEd25519Key
 			identityKeyPair.identityKeyVersion = "0"
-			const identityPublicKeyMac: KeyMac = object()
-			identityPublicKeyMac.taggedKeyVersion = "0"
-			identityPublicKeyMac.taggingKeyVersion = "1"
+			const identityPublicKeyMac = brandKeyMac(
+				createTestEntity(KeyMacTypeRef, {
+					taggedKeyVersion: "0",
+					taggingKeyVersion: "1",
+					taggingGroup: userGroup._id,
+					tag: object(),
+				}),
+			)
+
 			const userGroupKey: Aes256Key = object()
 
 			identityKeyPair.publicKeyMac = identityPublicKeyMac
@@ -226,10 +232,25 @@ o.spec("PublicKeyProviderTest", function () {
 
 			when(entityClient.load(GroupTypeRef, matchers.anything())).thenResolve(userGroup)
 			when(keyLoaderFacade.loadSymGroupKey(matchers.anything(), matchers.anything())).thenResolve(userGroupKey)
-			when(keyAuthenticationFacade.verifyTag(matchers.anything(), matchers.anything()))
 
 			const actualPublicIdentityKey = await publicKeyProvider.loadPublicIdentityKeyFromGroup(userGroup._id)
+
 			o(actualPublicIdentityKey).equals(pubEd25519Key)
+			verify(
+				keyAuthenticationFacade.verifyTag(
+					matchers.argThat((params: IdentityPubKeyAuthenticationParams) => {
+						return (
+							params.tagType == "IDENTITY_PUB_KEY_TAG" &&
+							params.untrustedKey.identityPubKey == pubEd25519Key &&
+							params.sourceOfTrust.symmetricGroupKey == userGroupKey &&
+							params.bindingData.groupId == userGroup._id &&
+							String(params.bindingData.groupKeyVersion) == identityPublicKeyMac.taggingKeyVersion &&
+							String(params.bindingData.publicIdentityKeyVersion) == identityPublicKeyMac.taggedKeyVersion
+						)
+					}),
+					identityPublicKeyMac.tag,
+				),
+			)
 		})
 	})
 })
