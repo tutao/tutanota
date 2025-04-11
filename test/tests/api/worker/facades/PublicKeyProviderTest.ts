@@ -7,6 +7,10 @@ import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Ser
 import {
 	createPublicKeyGetOut,
 	createSystemKeysReturn,
+	Group,
+	GroupTypeRef,
+	IdentityKeyPair,
+	KeyMac,
 	PubDistributionKey,
 	PublicKeyGetOut,
 	SystemKeysReturn,
@@ -14,6 +18,7 @@ import {
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import testData from "../crypto/CompatibilityTestData.json"
 import {
+	Aes256Key,
 	bytesToKyberPublicKey,
 	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
@@ -24,9 +29,15 @@ import {
 } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { InvalidDataError } from "../../../../../src/common/api/common/error/RestError"
+import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
+import { KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade"
+import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 
 o.spec("PublicKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
+	let entityClient: EntityClient
+	let keyAuthenticationFacade: KeyAuthenticationFacade
+	let keyLoaderFacade: KeyLoaderFacade
 	let publicKeyProvider: PublicKeyProvider
 
 	let publicKeyIdentifier: PublicKeyIdentifier
@@ -38,7 +49,10 @@ o.spec("PublicKeyProviderTest", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
-		publicKeyProvider = new PublicKeyProvider(serviceExecutor)
+		entityClient = object()
+		keyAuthenticationFacade = object()
+		keyLoaderFacade = object()
+		publicKeyProvider = new PublicKeyProvider(serviceExecutor, entityClient, keyAuthenticationFacade, keyLoaderFacade)
 
 		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)
@@ -191,6 +205,33 @@ o.spec("PublicKeyProviderTest", function () {
 			o(e.message).equals("key version is not a non-negative integer")
 		})
 	})
+
+	o.spec("loadPublicIdentityKeyFromGroup", function () {
+		const requestedVersion = 1
+
+		o("success", async function () {
+			const pubEd25519Key = object<Uint8Array>()
+
+			const userGroup: Group = object()
+			const identityKeyPair: IdentityKeyPair = object()
+			identityKeyPair.publicEd25519Key = pubEd25519Key
+			identityKeyPair.identityKeyVersion = "0"
+			const identityPublicKeyMac: KeyMac = object()
+			identityPublicKeyMac.taggedKeyVersion = "0"
+			identityPublicKeyMac.taggingKeyVersion = "1"
+			const userGroupKey: Aes256Key = object()
+
+			identityKeyPair.publicKeyMac = identityPublicKeyMac
+			userGroup.identityKeyPair = identityKeyPair
+
+			when(entityClient.load(GroupTypeRef, matchers.anything())).thenResolve(userGroup)
+			when(keyLoaderFacade.loadSymGroupKey(matchers.anything(), matchers.anything())).thenResolve(userGroupKey)
+			when(keyAuthenticationFacade.verifyTag(matchers.anything(), matchers.anything()))
+
+			const actualPublicIdentityKey = await publicKeyProvider.loadPublicIdentityKeyFromGroup(userGroup._id)
+			o(actualPublicIdentityKey).equals(pubEd25519Key)
+		})
+	})
 })
 
 o.spec("PublicKeyProvider - convert keys", function () {
@@ -199,10 +240,16 @@ o.spec("PublicKeyProvider - convert keys", function () {
 	let x25519PublicKey: Uint8Array
 	let kyberPublicKey: Uint8Array
 	let serviceExecutor: ServiceExecutor
+	let entityClient: EntityClient
+	let keyAuthenticationFacade: KeyAuthenticationFacade
+	let keyLoaderFacade: KeyLoaderFacade
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
-		publicKeyProvider = new PublicKeyProvider(serviceExecutor)
+		entityClient = object()
+		keyAuthenticationFacade = object()
+		keyLoaderFacade = object()
+		publicKeyProvider = new PublicKeyProvider(serviceExecutor, entityClient, keyAuthenticationFacade, keyLoaderFacade)
 
 		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)
