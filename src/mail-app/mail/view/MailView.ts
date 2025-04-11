@@ -500,14 +500,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getSetUnreadStateAction(): ((unread: boolean) => void) | null {
-		const conversationMails = this.conversationViewModel?.conversationMails()
+		const stickyMails = this.mailViewModel.getStickyMails()
 		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		const mailsToCheck = conversationMails ?? selectedMails
+		const mailsToCheck = stickyMails ?? selectedMails
 		if (isEmpty(mailsToCheck) || (mailsToCheck.length === 1 && isDraft(getFirstOrThrow(mailsToCheck)))) {
 			return null
 		}
 		return async (unread: boolean) => {
-			const actionableMails = conversationMails?.map((mail) => mail._id) ?? (await this.mailViewModel.getActionableMails(selectedMails))
+			const actionableMails = stickyMails?.map((mail) => mail._id) ?? (await this.mailViewModel.getActionableMails(selectedMails))
 			await mailLocator.mailModel.markMails(actionableMails, unread)
 		}
 	}
@@ -698,7 +698,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return
 		}
 
-		const actionableMails = () => this.mailViewModel.getSelectedActionableMails()
+		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(mails)) {
+			return
+		}
+
+		const actionableMails = () => this.mailViewModel.getActionableMails(mails)
 		const moveMode = this.mailViewModel.getMoveMode(currentFolder)
 		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, actionableMails, moveMode, opts)
 	}
@@ -712,11 +717,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					if (mailList == null) {
 						return
 					}
-					// conversationViewModel is not there if we are in multiselect or if nothing is selected
-					if (this.conversationViewModel != null) {
+					const stickyMails = this.mailViewModel.getStickyMails()
+					// stickyMails are there when viewing a mail/conversation, not if we are in multiselect or if nothing is selected
+					if (stickyMails != null) {
 						// when viewing a conversation we need to get the label state for all the mails in that conversation
-						const conversationMails = this.conversationViewModel.conversationMails()
-						showLabelsPopup(mailModel, conversationMails, async (mails: Mail[]) => mails.map((mail) => mail._id), dom, opts)
+						showLabelsPopup(mailModel, stickyMails, async (mails: Mail[]) => mails.map((mail) => mail._id), dom, opts)
 					} else {
 						showLabelsPopup(mailModel, mailList.getSelectedAsArray(), (mails: Mail[]) => this.mailViewModel.getActionableMails(mails), dom, opts)
 					}
@@ -1003,18 +1008,19 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getExportAction(): (() => void) | null {
-		const conversationMails = this.conversationViewModel?.conversationMails()
+		const stickyMails = this.mailViewModel.getStickyMails()
 		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (!this.mailViewModel.isExportingMailsAllowed() || isEmpty(conversationMails ?? selectedMails)) {
+		if (!this.mailViewModel.isExportingMailsAllowed() || isEmpty(stickyMails ?? selectedMails)) {
 			return null
 		}
 
-		return () => startExport(async () => conversationMails?.map((mail) => mail._id) ?? (await this.mailViewModel.getActionableMails(selectedMails)))
+		const actionableMails = async () => stickyMails?.map((mail) => mail._id) ?? (await this.mailViewModel.getActionableMails(selectedMails))
+		return () => startExport(actionableMails)
 	}
 
 	private async toggleUnreadMails(): Promise<void> {
 		if (this.conversationViewModel != null) {
-			const mailIds = this.conversationViewModel.conversationMails().map((mail) => mail._id)
+			const mailIds = assertNotNull(this.mailViewModel.getStickyMails()).map((mail) => mail._id)
 			// set all selected emails to the opposite of the primary email's unread state
 			await mailLocator.mailModel.markMails(mailIds, !this.conversationViewModel.primaryMail.unread)
 		} else {
