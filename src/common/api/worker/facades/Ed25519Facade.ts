@@ -3,6 +3,9 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 assertWorkerOrNode()
 
+export type SigningKeyPair = Ed25519KeyPair
+export type SigningPublicKey = Ed25519PublicKey
+
 // Dummy types for now
 export type Ed25519PrivateKey = Uint8Array
 export type Ed25519PublicKey = Uint8Array
