@@ -147,6 +147,65 @@ o.spec("OfflineStoragePersistence", () => {
 		o.check(indexedGroups).deepEquals([mailGroupData])
 	})
 
+	o.test("updateMailLocation", async () => {
+		const data = {
+			mail: createTestEntity(MailTypeRef, {
+				_id: ["I am a list", "z-z-z-z-z-z-z-z-z"],
+				_ownerGroup: "I am a group",
+				subject: "very very very important email",
+				sender: createTestEntity(MailAddressTypeRef, {
+					name: "I am a sender",
+					address: "testtesttest@test.test",
+				}),
+				receivedDate: new Date(1234),
+				sets: [["mySets", "myFavoriteSet"]],
+			}),
+			mailDetails: createTestEntity(MailDetailsTypeRef, {
+				body: createTestEntity(BodyTypeRef, {
+					compressedText: "I am squishy smol text!",
+				}),
+				recipients: createTestEntity(RecipientsTypeRef, {
+					toRecipients: [],
+					ccRecipients: [],
+					bccRecipients: [],
+				}),
+			}),
+			attachments: [createTestEntity(FileTypeRef)],
+		}
+		await fakeStoreListElementEntityInOfflineDb(sqlCipherFacade, data.mail)
+		await persistence.storeMailData([data])
+
+		const content = untagSqlObject(
+			assertNotNull(
+				await sqlCipherFacade.get(
+					`SELECT rowid, receivedDate, sets
+                     FROM content_mail_index`,
+					[],
+				),
+			),
+		)
+		o.check(content.rowid).equals(1)
+		o.check(content.receivedDate).equals(1234)
+		o.check(content.sets).equals("myFavoriteSet")
+
+		data.mail.sets = [["mySets", "theBestSetEver"]]
+		data.mail.receivedDate = new Date(1232)
+		await persistence.updateMailLocation(data.mail)
+
+		const contentAfterUpdate = untagSqlObject(
+			assertNotNull(
+				await sqlCipherFacade.get(
+					`SELECT rowid, receivedDate, sets
+                     FROM content_mail_index`,
+					[],
+				),
+			),
+		)
+		o.check(contentAfterUpdate.rowid).equals(1)
+		o.check(contentAfterUpdate.receivedDate).equals(1234) // unchanged
+		o.check(contentAfterUpdate.sets).equals("theBestSetEver") // changed
+	})
+
 	o.test("storeMailData", async () => {
 		const data = {
 			mail: createTestEntity(MailTypeRef, {

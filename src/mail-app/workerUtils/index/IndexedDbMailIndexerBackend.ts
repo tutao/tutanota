@@ -54,6 +54,10 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		await this.core.writeIndexUpdate(indexUpdate)
 	}
 
+	async onPartialMailUpdated(mail: Mail): Promise<void> {
+		// no-op - set filtering is done inside of IndexedDbSearchFacade using mail entities
+	}
+
 	async onMailDeleted(mailId: IdTuple): Promise<void> {
 		const indexUpdate = this.createIndexUpdate()
 		await this.core._processDeleted(MailTypeRef, elementIdPart(mailId), indexUpdate)
