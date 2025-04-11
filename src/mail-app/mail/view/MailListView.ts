@@ -410,7 +410,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async onSwipeLeft(listElement: Mail): Promise<ListSwipeDecision> {
-		const actionableMails = await this.mailViewModel.getActionableMails([listElement])
+		const actionableMails = await this.mailViewModel.getResolvedMails([listElement])
 		const currentFolder = this.mailViewModel.getFolder()
 
 		if (this.mailViewModel.currentFolderDeletesPermanently()) {
@@ -442,7 +442,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					? MailSetKind.INBOX
 					: MailSetKind.ARCHIVE
 
-				const actionableMails = await this.mailViewModel.getActionableMails([listElement])
+				const actionableMails = await this.mailViewModel.getResolvedMails([listElement])
 				const wereMoved = await moveMailsToSystemFolder({
 					mailboxModel: locator.mailboxModel,
 					mailModel: mailLocator.mailModel,
