@@ -266,7 +266,7 @@ o.spec("ClientDetector test", function () {
 		o(client.isSupportedBrowserVersion()).equals(false)
 	})
 	o("newer Chrome is supported", function () {
-		client.init("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2125.104 Safari/537.36", "Linux")
+		client.init("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.4606.61 Safari/537.36", "Linux")
 		o(client.isSupportedBrowserVersion()).equals(true)
 	})
 	o("detect iPadOS", function () {
