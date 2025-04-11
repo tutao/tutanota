@@ -696,9 +696,18 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return
 		}
 
-		const actionableMails = () => this.mailViewModel.getResolvedActionableMails()
+		/** actionableMails must be captured before {@link showMoveMailsFromFolderDropdown}is called.
+		 * This is done to ensure that selected mails are captured before {@link ShowMoveMailsDropdownOpts#onSelected} is called,
+		 * which can be {@link MailListModel#selectNone} in some cases.
+		 */
+		const actionableMails = this.mailViewModel.getActionableMails()
+		if (isEmpty(actionableMails)) {
+			return
+		}
+
+		const resolvedMails = () => this.mailViewModel.getResolvedMails(actionableMails)
 		const moveMode = this.mailViewModel.getMoveMode(currentFolder)
-		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, actionableMails, moveMode, opts)
+		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, resolvedMails, moveMode, opts)
 	}
 
 	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
