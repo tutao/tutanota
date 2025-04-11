@@ -4,7 +4,7 @@ import { SqlValue, untagSqlObject, untagSqlValue } from "../../../common/api/wor
 import { GroupType } from "../../../common/api/common/TutanotaConstants"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/tutanota-utils"
-import { Contact, ContactTypeRef, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
@@ -139,16 +139,31 @@ export class OfflineStoragePersistence {
 			await this.sqlCipherFacade.run(query, params)
 
 			// Sets are element IDs surrounded with spaces
-			const serializedSets = mail.sets.map(elementIdPart).join(" ")
+			const serializedSets = this.formatSetsValue(mail)
 
 			const contentQuery = sql`INSERT
-            OR REPLACE INTO content_mail_index(rowId, sets, receivedDate) VALUES (
+            OR REPLACE INTO content_mail_index(rowid, sets, receivedDate) VALUES (
             ${rowid},
             ${serializedSets},
             ${mail.receivedDate.getTime()}
             )`
 			await this.sqlCipherFacade.run(contentQuery.query, contentQuery.params)
 		}
+	}
+
+	async updateMailLocation(mail: Mail) {
+		const rowid = await this.getRowid(MailTypeRef, mail._id)
+		if (rowid == null) {
+			return
+		}
+		const { query, params } = sql`UPDATE content_mail_index
+                                    SET sets = ${this.formatSetsValue(mail)}
+                                    WHERE rowid = ${rowid}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	private formatSetsValue(mail: Mail): string {
+		return mail.sets.map(elementIdPart).join(" ")
 	}
 
 	async deleteMailData(mailId: IdTuple): Promise<void> {
