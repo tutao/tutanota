@@ -25,6 +25,12 @@ export interface MailIndexerBackend {
 	onMailUpdated(mailData: MailWithDetailsAndAttachments): Promise<void>
 
 	/**
+	 * Called when only the mail entity data is updated.
+	 * Only data that is directly on the Mail entity (e.g. sets) was updated.
+	 */
+	onPartialMailUpdated(mail: Mail): Promise<void>
+
+	/**
 	 * Called before the mail is deleted from the cache.
 	 * Useful if updating the index requires using the cached data.
 	 */
