@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-04-04T15:20:31Z",
+	"updated_at": "2025-04-10T19:26:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1733,6 +1733,7 @@ export default {
 		"supportDownloadMailApp_msg": "Możesz uzyskać dostęp do odpowiedzi, gdy pomoc techniczna odpowie w Tuta Mail przy użyciu poświadczeń Tuta Calendar.",
 		"supportForm_msg": "Podaj więcej szczegółów (w języku angielskim lub niemieckim), abyśmy ci mogli lepiej pomóc.",
 		"supportForm_title": "Przejdźmy do sedna sprawy",
+		"supportForm_whatWentWrong_msg": "Co poszło nie tak?",
 		"supportMenu_label": "Wsparcie",
 		"supportNoDirectSupport_msg": "Nadal możesz uzyskać dalszą pomoc za pośrednictwem naszej oficjalnej strony, sekcja FAQ. Alternatywnie możesz wybrać jedną z naszych płatnych ofert, aby uzyskać bezpośrednie wsparcie e-mail.",
 		"supportNoDirectSupport_title": "Przepraszamy, bezpłatna oferta nie obejmuje bezpośredniego wsparcia przez e-mail",
