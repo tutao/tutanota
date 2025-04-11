@@ -15,6 +15,7 @@ import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTy
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
 import { typeModels } from "../../../common/api/entities/tutanota/TypeModels"
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 	constructor(private readonly core: IndexerCore, private readonly userId: Id) {}
@@ -123,5 +124,9 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 		])
 
 		return keyToIndexEntries
+	}
+
+	truncateAllCurrentIndexTimestamps(_newTimestamp: number): Promise<void> {
+		throw new ProgrammingError("truncateAllCurrentIndexTimestamps can only be called with offline storage")
 	}
 }
