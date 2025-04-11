@@ -469,23 +469,24 @@ o.spec("MailIndexer", () => {
 			verify(backend.onMailDeleted(mailIdTuple))
 		})
 
-		o.test("when UPDATE for draft it should dispatch to backend", async function () {
+		o.test("when UPDATE for draft it should dispatch a full update to backend", async function () {
 			await initWithEnabled(true)
 			const { mail, mailDetailsBlob, files } = addEntities(MailState.DRAFT)
 
 			const events = [createUpdate(OperationType.UPDATE, mailListId, mailId)]
 			await indexer.processEntityEvents(events, "group-id", "batch-id")
 			verify(backend.onMailUpdated({ mail, mailDetails: mailDetailsBlob.details, attachments: files }))
+			verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
 		})
 
-		o.test("when UPDATE for non-draft it shouldn't do anything", async function () {
+		o.test("when UPDATE for non-draft it should dispatch a partial update to backend", async function () {
 			await initWithEnabled(true)
-			addEntities(MailState.RECEIVED)
+			const { mail } = addEntities(MailState.RECEIVED)
 
 			const events = [createUpdate(OperationType.UPDATE, mailListId, mailId)]
 			await indexer.processEntityEvents(events, "group-id", "batch-id")
-
 			verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+			verify(backend.onPartialMailUpdated(mail))
 		})
 
 		o.test("when CREATE but mail not found it is handled", async function () {
