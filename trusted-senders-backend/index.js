@@ -1,4 +1,4 @@
-// index.js (or your main backend file name)
+// index.js (Complete Updated File)
 
 require("dotenv").config();
 const express = require("express");
@@ -15,16 +15,12 @@ const db = new sqlite3.Database("./trusted_senders.db", (err) => {
     console.error("Database connection error:", err.message);
   } else {
     console.log("Connected to SQLite database.");
-    // Optional: You could add a check here to ensure the 'trusted_name' column exists
-    // and run ALTER TABLE if it doesn't, but manual management is often safer for schema changes.
   }
 });
 
 // --- Table Creation ---
 
 // Modified trusted_senders table to include 'trusted_name'
-// The DEFAULT '' ensures existing rows get a default value if ALTER TABLE wasn't run perfectly,
-// and new rows without an explicit name get an empty string.
 db.run(
   `
   CREATE TABLE IF NOT EXISTS trusted_senders (
@@ -83,38 +79,33 @@ db.run(
  * @body { user_email: string, trusted_email: string, trusted_name?: string }
  */
 app.post("/add-trusted", (req, res) => {
-  // Extract user_email, trusted_email, and the optional trusted_name
   const { user_email, trusted_email, trusted_name } = req.body;
 
   if (!user_email || !trusted_email) {
     return res.status(400).json({ error: "Missing user_email or trusted_email" });
   }
 
-  // Use the provided name, or default to an empty string if not provided
   const nameToStore = trusted_name || '';
   console.log(`Attempting to add trusted sender: User='${user_email}', Email='${trusted_email}', Name='${nameToStore}'`);
 
-  // SQL to insert, using ON CONFLICT to gracefully handle duplicates based on the UNIQUE constraint
   const sql = `
     INSERT INTO trusted_senders (user_email, trusted_email, trusted_name)
     VALUES (?, ?, ?)
     ON CONFLICT(user_email, trusted_email) DO UPDATE SET
-      trusted_name = excluded.trusted_name -- Optionally update name if entry exists
+      trusted_name = excluded.trusted_name
     `;
-    // Or use: ON CONFLICT(user_email, trusted_email) DO NOTHING; if you don't want to update the name
 
   db.run(sql, [user_email, trusted_email, nameToStore], function (err) {
     if (err) {
       console.error(`DB Error adding/updating trusted sender for '${user_email}':`, err.message);
       return res.status(500).json({ error: "Failed to add trusted sender." });
     }
-    // this.changes tells if a row was inserted (1) or updated (1) or nothing happened (0 if DO NOTHING)
     if (this.changes > 0) {
         console.log(`Trusted sender added/updated for '${user_email}'. ID: ${this.lastID}, Changes: ${this.changes}`);
-        res.status(201).json({ message: "Trusted sender added or updated!", id: this.lastID }); // 201 Created or 200 OK
+        res.status(201).json({ message: "Trusted sender added or updated!", id: this.lastID });
     } else {
         console.log(`Trusted sender '${trusted_email}' already exists for '${user_email}'. No change made.`);
-        res.status(200).json({ message: "Trusted sender already exists."}); // Send 200 OK even if no change
+        res.status(200).json({ message: "Trusted sender already exists."});
     }
   });
 });
@@ -155,8 +146,7 @@ app.post("/remove-trusted", (req, res) => {
  */
 app.get("/trusted-senders/:user_email", (req, res) => {
   const user_email = req.params.user_email;
-  // Select both the email and the name
-  const sql = `SELECT trusted_email, trusted_name FROM trusted_senders WHERE user_email = ? ORDER BY trusted_name, trusted_email`; // Added ordering
+  const sql = `SELECT trusted_email, trusted_name FROM trusted_senders WHERE user_email = ? ORDER BY trusted_name, trusted_email`;
   console.log(`Fetching trusted senders for: ${user_email}`);
 
   db.all(sql, [user_email], (err, rows) => {
@@ -164,13 +154,12 @@ app.get("/trusted-senders/:user_email", (req, res) => {
       console.error(`DB Error fetching trusted senders for ${user_email}:`, err.message);
       return res.status(500).json({ error: "Failed to retrieve trusted senders." });
     }
-    // Map the database rows to the { name, address } structure expected by the frontend
     const trustedSendersList = rows.map((row) => ({
-      name: row.trusted_name || '', // Provide default empty string if name is null/empty
+      name: row.trusted_name || '',
       address: row.trusted_email
     }));
     console.log(`Returning ${trustedSendersList.length} trusted senders for ${user_email}`);
-    res.json({ trusted_senders: trustedSendersList }); // Return the array of objects
+    res.json({ trusted_senders: trustedSendersList });
   });
 });
 
@@ -190,7 +179,6 @@ app.get("/email-status/:user_email/:email_id", (req, res) => {
       console.error(`DB Error fetching email status for user '${user_email}', email '${email_id}':`, err.message);
       return res.status(500).json({ error: "Failed to retrieve email status." });
     }
-    // Return the row if found, otherwise return an object indicating status is null
     res.json(row || { status: null });
   });
 });
@@ -206,7 +194,6 @@ app.post("/update-email-status", (req, res) => {
     return res.status(400).json({ error: "Missing required fields (user_email, email_id, sender_email, status)." });
   }
 
-  // List of valid statuses from your CHECK constraint
   const validStatuses = ['confirmed', 'denied', 'added_to_trusted', 'removed_from_trusted', 'reported_phishing', 'trusted_once'];
   if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: `Invalid status value. Must be one of: ${validStatuses.join(', ')}`});
@@ -219,9 +206,8 @@ app.post("/update-email-status", (req, res) => {
     VALUES (?, ?, ?, ?)
     ON CONFLICT(user_email, email_id) DO UPDATE SET
       status = excluded.status,
-      sender_email = excluded.sender_email -- Also update sender in case it changed somehow? (Optional)
+      sender_email = excluded.sender_email
   `;
-
 
   db.run(sql, [user_email, email_id, sender_email, status], function (err) {
     if (err) {
@@ -230,6 +216,35 @@ app.post("/update-email-status", (req, res) => {
     }
     console.log(`Email status updated for user '${user_email}', email '${email_id}'. Changes: ${this.changes}`);
     res.json({ message: "Email sender status updated!" });
+  });
+});
+
+/**
+ * @route POST /reset-email-statuses
+ * @description Deletes all stored statuses for emails from a specific sender for a given user.
+ * @body { user_email: string, sender_email: string }
+ */
+app.post("/reset-email-statuses", (req, res) => {
+  const { user_email, sender_email } = req.body;
+
+  if (!user_email || !sender_email) {
+    return res.status(400).json({ error: "Missing user_email or sender_email" });
+  }
+  console.log(`Attempting to reset email statuses for: User='${user_email}', Sender='${sender_email}'`);
+
+  // SQL to delete matching entries from the status table
+  const sql = `DELETE FROM email_sender_status WHERE user_email = ? AND sender_email = ?`;
+
+  db.run(sql, [user_email, sender_email], function (err) {
+    if (err) {
+      console.error(`DB Error resetting statuses for User='${user_email}', Sender='${sender_email}':`, err.message);
+      // Return 500 if the delete fails
+      return res.status(500).json({ error: "Failed to reset email statuses." });
+    }
+    // this.changes provides the number of rows deleted
+    console.log(`Reset ${this.changes} email statuses for User='${user_email}', Sender='${sender_email}'.`);
+    // Send success regardless of whether 0 or more rows were deleted
+    res.json({ message: "Email statuses reset successfully.", count: this.changes });
   });
 });
 
