@@ -572,6 +572,8 @@ export class MailIndexer {
 						if (newMailData) {
 							await this.backend.onMailUpdated(newMailData)
 						}
+					} else {
+						await this.backend.onPartialMailUpdated(updatedMail)
 					}
 				} else if (event.operation === OperationType.DELETE) {
 					await this.backend.onMailDeleted(mailId)
