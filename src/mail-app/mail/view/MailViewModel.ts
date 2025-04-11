@@ -334,6 +334,20 @@ export class MailViewModel {
 	}
 
 	/**
+	 * Displayed mails, independent of the list state.
+	 * @return The conversation mails when mail grouping is enabled, primary mail otherwise.
+	 * @return {null} when no mail is being displayed.
+	 */
+	getStickyMails(): readonly Mail[] | null {
+		// conversationViewModel is not there if we are in multiselect or if nothing is selected
+		if (this.conversationViewModel == null) {
+			return null
+		}
+
+		return this.groupMailsByConversation() ? this.conversationViewModel.conversationMails() : [this.conversationViewModel.primaryMail]
+	}
+
+	/**
 	 * If ConversationInListView is active in the current folder, Ids of all mails in the conversation are returned
 	 * If not, only Id of the primary mail is returned
 	 */
@@ -346,15 +360,16 @@ export class MailViewModel {
 	}
 
 	async getSelectedActionableMails(): Promise<readonly IdTuple[]> {
-		if (this.conversationViewModel != null) {
-			return this.conversationViewModel.conversationItems().map((mailItem) => mailItem.viewModel.mail._id)
+		const stickyMails = this.getStickyMails()
+		if (stickyMails != null) {
+			return stickyMails.map((mail) => mail._id)
 		}
 
-		const mails = this.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails)) {
+		const selectedMails = this.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(selectedMails)) {
 			return []
 		}
-		return await this.getActionableMails(mails)
+		return await this.getActionableMails(selectedMails)
 	}
 
 	currentFolderDeletesPermanently(): boolean {
