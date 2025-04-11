@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-04-08T10:18:42Z",
+	"updated_at": "2025-04-10T12:40:41Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -163,7 +163,7 @@ export default {
 		"behaviorAfterMovingEmail_label": "Beteende efter flytt av ett mejl",
 		"birthdayCalendar_label": "Födelsedagar",
 		"birthdayEventAge_title": "{age} år gammal",
-		"birthdayEvent_title": "{namn} födelsedag",
+		"birthdayEvent_title": "{name} födelsedag",
 		"birthday_alt": "Födelsedag",
 		"blockExternalContentSender_action": "Blockera alltid avsändaren",
 		"blue_label": "Blå",
@@ -1729,6 +1729,7 @@ export default {
 		"supportDownloadMailApp_msg": "Så snart supporten har svarat kan du hämta svaret i Tuta Mail med dina inloggningsuppgifter till Tuta kalendern.",
 		"supportForm_msg": "Ge oss lite mer information (Engelska eller Tyska) så att vi kan hjälpa dig bättre.",
 		"supportForm_title": "Låt oss kolla upp det här",
+		"supportForm_whatWentWrong_msg": "Vad gick fel?",
 		"supportMenu_label": "Support",
 		"supportNoDirectSupport_msg": "Du kan fortfarande få mer hjälp via vår officiella FAQ sida. Alternativt kan du uppgradera för att få direktsupport via e-post.",
 		"supportNoDirectSupport_title": "Tyvärr, din Free plan erbjuder inte direkt e-postsupport",

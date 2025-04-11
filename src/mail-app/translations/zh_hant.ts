@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-04-04T15:31:49Z",
+	"updated_at": "2025-04-10T15:53:49Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1728,6 +1728,7 @@ export default {
 		"supportDownloadMailApp_msg": "支援在Tuta Mail中回覆後，您便可以使用您的Tuta Calendar登入資料來存取該回覆。",
 		"supportForm_msg": "請提供更多詳情（英語或德語），以便我們更好地協助您。",
 		"supportForm_title": "讓我們徹底了解",
+		"supportForm_whatWentWrong_msg": "發生甚麼問題？",
 		"supportMenu_label": "支援",
 		"supportNoDirectSupport_msg": "您仍然可以透過我們的官方常見問答集頁面獲得進一步幫助。您也可以升級以獲得直接電郵支援。",
 		"supportNoDirectSupport_title": "抱歉，您的免費計劃不提供直接電郵支援",
@@ -1864,7 +1865,7 @@ export default {
 		"totpCode_label": "身分驗證碼",
 		"totpSecret_label": "秘密",
 		"totpTransferSecretApp_msg": "請按以下的按鈕或手動輸入密鑰以更新您的身分驗證應用程式。",
-		"totpTransferSecret_msg": "請掃瞄以下的QR碼或手動輸入密鑰以更新您的身分驗證應用程式。",
+		"totpTransferSecret_msg": "請掃描以下的QR碼或手動輸入密鑰以更新您的身分驗證應用程式。",
 		"to_label": "收件人",
 		"trash_action": "垃圾桶",
 		"tuesday_label": "星期二",
