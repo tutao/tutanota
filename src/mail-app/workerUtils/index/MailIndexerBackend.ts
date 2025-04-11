@@ -18,9 +18,17 @@ export interface MailIndexerBackend {
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>>
 
+	truncateAllCurrentIndexTimestamps(newTimestamp: number): Promise<void>
+
 	onMailCreated(mailData: MailWithDetailsAndAttachments): Promise<void>
 
 	onMailUpdated(mailData: MailWithDetailsAndAttachments): Promise<void>
+
+	/**
+	 * Called when only the mail entity data is updated.
+	 * Only data that is directly on the Mail entity (e.g. sets) was updated.
+	 */
+	onPartialMailUpdated(mail: Mail): Promise<void>
 
 	/**
 	 * Called before the mail is deleted from the cache.

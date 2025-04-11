@@ -469,23 +469,24 @@ o.spec("MailIndexer", () => {
 			verify(backend.onMailDeleted(mailIdTuple))
 		})
 
-		o.test("when UPDATE for draft it should dispatch to backend", async function () {
+		o.test("when UPDATE for draft it should dispatch a full update to backend", async function () {
 			await initWithEnabled(true)
 			const { mail, mailDetailsBlob, files } = addEntities(MailState.DRAFT)
 
 			const events = [createUpdate(OperationType.UPDATE, mailListId, mailId)]
 			await indexer.processEntityEvents(events, "group-id", "batch-id")
 			verify(backend.onMailUpdated({ mail, mailDetails: mailDetailsBlob.details, attachments: files }))
+			verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
 		})
 
-		o.test("when UPDATE for non-draft it shouldn't do anything", async function () {
+		o.test("when UPDATE for non-draft it should dispatch a partial update to backend", async function () {
 			await initWithEnabled(true)
-			addEntities(MailState.RECEIVED)
+			const { mail } = addEntities(MailState.RECEIVED)
 
 			const events = [createUpdate(OperationType.UPDATE, mailListId, mailId)]
 			await indexer.processEntityEvents(events, "group-id", "batch-id")
-
 			verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+			verify(backend.onPartialMailUpdated(mail))
 		})
 
 		o.test("when CREATE but mail not found it is handled", async function () {
@@ -538,19 +539,23 @@ o.spec("MailIndexer", () => {
 
 	o.spec("extendIndexIfNeeded", function () {
 		o.test("not extends if fully indexed", async function () {
+			// shouldn't be used by anything
+			bulkMailLoader = object()
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, FULL_INDEXED_TIMESTAMP]]))
 			await initWithEnabled(true)
-			await indexer.extendIndexIfNeeded(user, Date.now())
+			await indexer.extendIndexIfNeeded(user, 1000)
 			verify(infoMessageHandler.onSearchIndexStateUpdate(matchers.anything()), { times: 0 })
 			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
 		o.test("not extends if already indexed range", async function () {
-			const newOldTimestamp = new Date("2025-03-27T16:32:52.847Z").getTime()
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+			const newOldTimestamp = 2000
 			const currentIndexTimestamp = newOldTimestamp - 1000
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
 			await initWithEnabled(true)
-
+			await indexer.extendIndexIfNeeded(user, newOldTimestamp)
 			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
@@ -564,6 +569,42 @@ o.spec("MailIndexer", () => {
 			await indexer.extendIndexIfNeeded(user, beforeNowInterval)
 
 			verify(indexer.indexMailboxes(user, beforeNowInterval))
+		})
+	})
+
+	o.spec("resizeMailIndex", function () {
+		o.test("truncates if already indexed range", async function () {
+			let newOldTimestamp = 2000
+			const currentIndexTimestamp = newOldTimestamp - 1000
+
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+
+			when(backend.truncateAllCurrentIndexTimestamps(matchers.anything())).thenDo(async (timestamp) => {
+				newOldTimestamp = timestamp
+			})
+
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenDo(async (_: string[]) => {
+				return new Map([[mailGroup1, currentIndexTimestamp]])
+			})
+
+			await initWithEnabled(true)
+			await indexer.resizeMailIndex(user, newOldTimestamp)
+
+			verify(backend.truncateAllCurrentIndexTimestamps(newOldTimestamp))
+			verify(backend.getCurrentIndexTimestamps([mailGroup1]), { times: 2 })
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o.test("extends", async function () {
+			let newOldTimestamp = 2000
+			const currentIndexTimestamp = newOldTimestamp + 1000
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
+			await initWithEnabled(true)
+			// dirty partial mock
+			indexer.indexMailboxes = func<MailIndexer["indexMailboxes"]>()
+			await indexer.resizeMailIndex(user, newOldTimestamp)
+			verify(indexer.indexMailboxes(user, newOldTimestamp))
 		})
 	})
 

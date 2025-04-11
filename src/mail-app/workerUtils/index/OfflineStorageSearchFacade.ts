@@ -5,7 +5,7 @@ import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { MailIndexer } from "./MailIndexer"
 import { getSearchEndTimestamp } from "../../../common/api/worker/search/IndexUtils"
-import { isSameTypeRef } from "@tutao/tutanota-utils"
+import { first, isSameTypeRef } from "@tutao/tutanota-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
@@ -21,30 +21,35 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		private readonly contactIndexer: ContactIndexer,
 	) {}
 
-	async search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
-		// For FTS5, tokens with special characters or "AND", "OR", or "NOT" must be escaped with quotes, though we can
-		// also just escape all tokens with quotes for simplicity. Then, to include quotes mid-query like this, we
-		// replace " with "". Lastly, we add a `*` at the end of each token to match prefixes.
-		//
-		// See https://www.sqlite.org/fts5.html
-		//
-		// The code below is from https://github.com/signalapp/Signal-Desktop/blob/a714a31b3990c64801f1c43b3d465877719f30a4/ts/sql/Server.ts#L1873
-		// but simplified (we don't do tokenizing here)
-		const normalizedQuery = query
-			.split(/\s+/)
-			.map((token) => `"${token.replace(/"/g, '""')}"*`)
-			.join(" ")
+	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, _maxResults?: number): Promise<SearchResult> {
+		const normalizedQuery = normalizeQuery(query)
 
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {
-			return this.searchMails(query, normalizedQuery, restriction, maxResults)
+			return this.searchMails(query, normalizedQuery, restriction)
 		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
-			return this.searchContacts(query, normalizedQuery, restriction, maxResults)
+			return this.searchContacts(query, normalizedQuery, restriction)
 		} else {
 			throw new ProgrammingError(`cannot search ${restriction.type.type}`)
 		}
 	}
 
-	private async searchMails(originalQuery: string, normalizedQuery: string, restriction: SearchRestriction, maxResults?: number): Promise<SearchResult> {
+	private async searchMails(originalQuery: string, normalizedQuery: string, restriction: SearchRestriction): Promise<SearchResult> {
+		// folderIds always have zero or one IDs for mail search
+		if (restriction.folderIds.length > 1) {
+			throw new ProgrammingError("cannot search mails with more than one mailset search restriction")
+		}
+
+		// An empty string will match any ID
+		const idToSearch = first(restriction.folderIds) ?? ""
+
+		// Match a field to a column.
+		//
+		// In FTS5, single columns are matched like `column : "token1" "token2"` or, for multiple columns (as OR), you
+		// can use `{column1 column2} : "token1" "token2" (note that matching one column like this is also allowed).
+		//
+		// Otherwise, we pass the query string as-is.
+		const columnList = mailFieldToColumn(restriction.field)?.join(" ")
+		const queryString = columnList != null ? `{${columnList}} : ${normalizedQuery}` : normalizedQuery
 		const preparedSqlQuery = sql`
             SELECT list_entities.listId,
                    list_entities.elementId
@@ -53,14 +58,16 @@ export class OfflineStorageSearchFacade implements SearchFacade {
                 mail_index.rowid = list_entities.rowid
                      INNER JOIN content_mail_index ON
                 list_entities.rowid = content_mail_index.rowid
-            WHERE mail_index = ${normalizedQuery}
-            ORDER BY content_mail_index.receivedDate DESC
-                LIMIT ${maxResults ?? Number.MAX_SAFE_INTEGER}`
+            WHERE mail_index = ${queryString}
+              AND instr(content_mail_index.sets, ${idToSearch}) > 0 -- instr() == 0 means not found, since instr() is 1-indexed
+              AND content_mail_index.receivedDate <= ${restriction.end ?? Number.MAX_SAFE_INTEGER}
+              AND content_mail_index.receivedDate >= ${restriction.start ?? 0}
+            ORDER BY content_mail_index.receivedDate DESC`
 		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 		const resultIds = resultRows.map(({ listId, elementId }) => {
 			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
 		})
-		const result: SearchResult = {
+		return {
 			query: originalQuery,
 			restriction,
 			results: resultIds,
@@ -70,10 +77,9 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			moreResults: [],
 			moreResultsEntries: [],
 		}
-		return result
 	}
 
-	private async searchContacts(originalQuery: string, normalizedQuery: string, restriction: SearchRestriction, maxResults?: number): Promise<SearchResult> {
+	private async searchContacts(originalQuery: string, normalizedQuery: string, restriction: SearchRestriction): Promise<SearchResult> {
 		const preparedSqlQuery = sql`
             SELECT list_entities.listId,
                    list_entities.elementId
@@ -81,14 +87,14 @@ export class OfflineStorageSearchFacade implements SearchFacade {
                      INNER JOIN list_entities ON
                 contact_index.rowid = list_entities.rowid
             WHERE contact_index = ${normalizedQuery}
-            ORDER BY contact_index.lastName, contact_index.firstName
-                LIMIT ${maxResults ?? Number.MAX_SAFE_INTEGER}`
+            ORDER BY contact_index.firstName, contact_index.lastName`
 		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 		const resultIds = resultRows.map(({ listId, elementId }) => {
 			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
 		})
 		const indexTimestamp = (await this.contactIndexer.areContactsIndexed()) ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
-		const result: SearchResult = {
+
+		return {
 			query: originalQuery,
 			restriction,
 			results: resultIds,
@@ -98,11 +104,70 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			moreResults: [],
 			moreResultsEntries: [],
 		}
-		return result
 	}
 
 	async getMoreSearchResults(searchResult: SearchResult, _: number): Promise<SearchResult> {
 		// There isn't really any need in "more" search results, and we never promise any so this is no-op
 		return searchResult
 	}
+}
+
+// Important: This should be kept up-to-date with SEARCH_MAIL_FIELDS
+function mailFieldToColumn(field: string | null): string[] | null {
+	switch (field) {
+		case null:
+			return null
+		case "from":
+			return ["sender"]
+		case "subject":
+			return ["subject"]
+		case "body":
+			return ["body"]
+		case "to":
+			return ["toRecipients", "ccRecipients", "bccRecipients"]
+		case "attachment":
+			return ["attachments"]
+		default:
+			throw new ProgrammingError(`Unknown field "${field}" passed into mailFieldToColumn`)
+	}
+}
+
+/**
+ * Split into FTS5 search tokens and return the query
+ *
+ * For words that are not in quotes, they will match the start of a string.
+ * Otherwise, they will be fully matched.
+ *
+ * For example, `hello world this is "my string"` becomes `"hello"* "world"* "this"* "is"* "my string"`
+ *
+ * See https://sqlite.org/fts5.html
+ *
+ * @param query query to check
+ * @return normalized query that can be used for FTS5
+ * @VisibleForTesting
+ */
+export function normalizeQuery(query: string): string {
+	const normalizedQuery: string[] = []
+
+	let quoted = false
+	for (const block of query.split('"')) {
+		if (quoted) {
+			// in quotes; match an exact token or phrase (e.g. "free" will not match "freedom")
+			const trimmed = block.trim()
+			if (trimmed !== "") {
+				normalizedQuery.push(`"${trimmed}"`)
+			}
+		} else {
+			// split into words and, for each word, match the start of a token (e.g. "free"* will match "freedom")
+			for (const word of block.split(/\s+/)) {
+				if (word !== "") {
+					normalizedQuery.push(`"${word}"*`)
+				}
+			}
+		}
+		quoted = !quoted
+	}
+	// if !quoted here, then the user is likely in the middle of typing a quoted string, which is fine
+
+	return normalizedQuery.join(" ")
 }

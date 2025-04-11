@@ -50,6 +50,7 @@ import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
 import { DateProvider } from "../../../common/api/common/DateProvider"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 export type InitParams = {
 	user: User
@@ -684,5 +685,9 @@ export class IndexedDbIndexer implements Indexer {
 		const now = this.serverDateProvider.now()
 
 		await transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, now)
+	}
+
+	async resizeMailIndex(_: number) {
+		throw new ProgrammingError("resizeMailIndex can only be called with offline storage")
 	}
 }

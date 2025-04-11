@@ -14,6 +14,6 @@ export class SearchOfflineRangePostLoginAction implements PostLoginAction {
 	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {
 		await this.offlineStorageSettings.init()
 		// noinspection ES6MissingAwait
-		this.indexer.extendMailIndex(this.offlineStorageSettings.getTimeRange().getTime())
+		this.indexer.resizeMailIndex(this.offlineStorageSettings.getTimeRange().getTime())
 	}
 }
