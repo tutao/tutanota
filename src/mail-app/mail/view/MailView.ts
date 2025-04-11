@@ -698,7 +698,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return
 		}
 
-		const actionableMails = () => this.mailViewModel.getSelectedActionableMails()
+		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+		if (isEmpty(mails)) {
+			return
+		}
+
+		const actionableMails = () => this.mailViewModel.getActionableMails(mails)
 		const moveMode = this.mailViewModel.getMoveMode(currentFolder)
 		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, actionableMails, moveMode, opts)
 	}
