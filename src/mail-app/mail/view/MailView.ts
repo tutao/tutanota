@@ -500,15 +500,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getSetUnreadStateAction(): ((unread: boolean) => void) | null {
-		const conversationMails = this.conversationViewModel?.conversationMails()
-		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		const mailsToCheck = conversationMails ?? selectedMails
-		if (isEmpty(mailsToCheck) || (mailsToCheck.length === 1 && isDraft(getFirstOrThrow(mailsToCheck)))) {
+		const actionableMails = this.mailViewModel.getActionableMails()
+		if (isEmpty(actionableMails) || (actionableMails.length === 1 && isDraft(getFirstOrThrow(actionableMails)))) {
 			return null
 		}
 		return async (unread: boolean) => {
-			const actionableMails = conversationMails?.map((mail) => mail._id) ?? (await this.mailViewModel.getActionableMails(selectedMails))
-			await mailLocator.mailModel.markMails(actionableMails, unread)
+			const resolvedMails = await this.mailViewModel.getResolvedMails(actionableMails)
+			await mailLocator.mailModel.markMails(resolvedMails, unread)
 		}
 	}
 
@@ -680,7 +678,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (folder == null) {
 			return
 		}
-		const actionableMails = await this.mailViewModel.getSelectedActionableMails()
+		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
 
 		moveMailsToSystemFolder({
 			mailboxModel: locator.mailboxModel,
@@ -698,7 +696,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return
 		}
 
-		const actionableMails = () => this.mailViewModel.getSelectedActionableMails()
+		const actionableMails = () => this.mailViewModel.getResolvedActionableMails()
 		const moveMode = this.mailViewModel.getMoveMode(currentFolder)
 		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, actionableMails, moveMode, opts)
 	}
@@ -708,18 +706,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 		return mailModel.canAssignLabels()
 			? (dom, opts) => {
-					const mailList = this.mailViewModel.listModel
-					if (mailList == null) {
-						return
-					}
-					// conversationViewModel is not there if we are in multiselect or if nothing is selected
-					if (this.conversationViewModel != null) {
-						// when viewing a conversation we need to get the label state for all the mails in that conversation
-						const conversationMails = this.conversationViewModel.conversationMails()
-						showLabelsPopup(mailModel, conversationMails, async (mails: Mail[]) => mails.map((mail) => mail._id), dom, opts)
-					} else {
-						showLabelsPopup(mailModel, mailList.getSelectedAsArray(), (mails: Mail[]) => this.mailViewModel.getActionableMails(mails), dom, opts)
-					}
+					const actionableMails = this.mailViewModel.getActionableMails()
+					// when viewing a conversation we need to get the label state for all the mails in that conversation
+					showLabelsPopup(mailModel, actionableMails, (mails: Mail[]) => this.mailViewModel.getResolvedMails(mails), dom, opts)
 			  }
 			: null
 	}
@@ -910,7 +899,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		if (!isEmpty(mailsToMove)) {
-			const actionableMails = await this.mailViewModel.getActionableMails(mailsToMove)
+			const actionableMails = await this.mailViewModel.getResolvedMails(mailsToMove)
 			moveMails({
 				mailboxModel: locator.mailboxModel,
 				mailModel: mailLocator.mailModel,
@@ -1003,38 +992,32 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getExportAction(): (() => void) | null {
-		const conversationMails = this.conversationViewModel?.conversationMails()
-		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (!this.mailViewModel.isExportingMailsAllowed() || isEmpty(conversationMails ?? selectedMails)) {
+		const actionableMails = this.mailViewModel.getActionableMails()
+		if (!this.mailViewModel.isExportingMailsAllowed() || isEmpty(actionableMails)) {
 			return null
 		}
 
-		return () => startExport(async () => conversationMails?.map((mail) => mail._id) ?? (await this.mailViewModel.getActionableMails(selectedMails)))
+		const resolvedMails = async () => await this.mailViewModel.getResolvedMails(actionableMails)
+		return () => startExport(resolvedMails)
 	}
 
 	private async toggleUnreadMails(): Promise<void> {
-		if (this.conversationViewModel != null) {
-			const mailIds = this.conversationViewModel.conversationMails().map((mail) => mail._id)
-			// set all selected emails to the opposite of the primary email's unread state
-			await mailLocator.mailModel.markMails(mailIds, !this.conversationViewModel.primaryMail.unread)
-		} else {
-			const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-			if (isEmpty(selectedMails)) {
-				return
-			}
-			const mailIds = await this.mailViewModel.getActionableMails(selectedMails)
-			// set all selected emails to the opposite of the first email's unread state
-			await mailLocator.mailModel.markMails(mailIds, !selectedMails[0].unread)
+		const actionableMails = this.mailViewModel.getActionableMails()
+		if (isEmpty(actionableMails)) {
+			return
 		}
+		const resolvedMails = await this.mailViewModel.getResolvedMails(actionableMails)
+		// set all selected emails to the opposite of the first email's unread state
+		await mailLocator.mailModel.markMails(resolvedMails, !actionableMails[0].unread)
 	}
 
 	private async trashSelectedMails() {
-		const actionableMails = await this.mailViewModel.getSelectedActionableMails()
+		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
 		trashMails(mailLocator.mailModel, actionableMails)
 	}
 
 	private async deleteSelectedMails() {
-		const actionableMails = await this.mailViewModel.getSelectedActionableMails()
+		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
 		const currentFolder = assertNotNull(this.mailViewModel.getFolder())
 		await promptAndDeleteMails(mailLocator.mailModel, actionableMails, currentFolder._id, noOp)
 	}

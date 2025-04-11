@@ -334,10 +334,29 @@ export class MailViewModel {
 	}
 
 	/**
+	 * Base mails to apply actions too. To finally apply the action to the whole conversation (if necessary) it is
+	 * still needed to call {@link MailViewModel#getResolvedMails()}.
+	 * @return {Mail[]} that are displayed in the viewer
+	 */
+	getActionableMails(): readonly Mail[] {
+		// conversationViewModel is not there if we are in multiselect or if nothing is selected.
+		// it should also cover sticky mail case.
+		if (this.conversationViewModel == null) {
+			return this.listModel?.getSelectedAsArray() ?? []
+		} else {
+			// conversationMails() might not return the whole conversation if it's still loading, it is fine, we need
+			// this function to be sync to reflect the displayed mails. As long as getResolvedMails() is called to
+			// actually apply the action this does not cause any issues. Once the conversation is loaded the UI will
+			// be updated as well so this only affects displayed state temporarily.
+			return this.groupMailsByConversation() ? this.conversationViewModel.conversationMails() : [this.conversationViewModel.primaryMail]
+		}
+	}
+
+	/**
 	 * If ConversationInListView is active in the current folder, Ids of all mails in the conversation are returned
 	 * If not, only Id of the primary mail is returned
 	 */
-	async getActionableMails(mails: readonly Mail[]): Promise<readonly IdTuple[]> {
+	async getResolvedMails(mails: readonly Mail[]): Promise<readonly IdTuple[]> {
 		if (this.groupMailsByConversation()) {
 			return this.mailModel.resolveConversationsForMails(mails)
 		} else {
@@ -345,16 +364,17 @@ export class MailViewModel {
 		}
 	}
 
-	async getSelectedActionableMails(): Promise<readonly IdTuple[]> {
-		if (this.conversationViewModel != null) {
-			return this.conversationViewModel.conversationItems().map((mailItem) => mailItem.viewModel.mail._id)
-		}
-
-		const mails = this.listModel?.getSelectedAsArray() ?? []
-		if (isEmpty(mails)) {
+	/**
+	 * Returns the mails that the action should finally apply too. This might include the whole conversations if
+	 * grouping by conversation is enabled.
+	 */
+	async getResolvedActionableMails(): Promise<readonly IdTuple[]> {
+		const actionableMails = this.getActionableMails()
+		if (isEmpty(actionableMails)) {
 			return []
 		}
-		return await this.getActionableMails(mails)
+
+		return await this.getResolvedMails(actionableMails)
 	}
 
 	currentFolderDeletesPermanently(): boolean {
