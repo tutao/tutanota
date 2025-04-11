@@ -235,7 +235,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const mailIndexer = lazyMemoized(async () => {
 		const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
-		const { SqliteMailIndexerBackend } = await import("../index/SqliteMailIndexerBackend")
+		const { OfflineStorageMailIndexerBackend } = await import("../index/OfflineStorageMailIndexerBackend")
 		const { MailIndexer } = await import("../index/MailIndexer.js")
 		const bulkLoaderFactory = await prepareBulkLoaderFactory()
 		const dateProvider = new LocalTimeDateProvider()
@@ -248,7 +248,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.cachingEntityClient,
 				dateProvider,
 				mailFacade,
-				() => new SqliteMailIndexerBackend(persistence),
+				() => new OfflineStorageMailIndexerBackend(persistence),
 			)
 		} else {
 			const core = await indexerCore()

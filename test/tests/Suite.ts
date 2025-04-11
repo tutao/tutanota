@@ -217,7 +217,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/sse/SseClientTest.js")
 		await import("./desktop/sse/TutaNotificationHandlerTest.js")
 		await import("./desktop/sse/TutaSseFacadeTest.js")
-		await import("./api/worker/search/SqliteMailIndexerBackendTest.js")
+		await import("./api/worker/search/OfflineStorageMailIndexerBackendTest.js")
 		await import("./api/worker/search/OfflineStoragePersistenceTest.js")
 		await import("./api/worker/search/OfflineStorageSearchFacadeTest.js")
 	}
