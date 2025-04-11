@@ -366,12 +366,13 @@ export class ClientDetector {
 
 	notOldFirefox(): boolean {
 		// issue only occurs for old Firefox browsers
-		// https://github.com/tutao/tutanota/issues/835
-		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 40
+		// Object.hasOwn() is only supported starting in 92
+		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 92
 	}
 
 	notOldChrome(): boolean {
-		return this.browser !== BrowserType.CHROME || this.browserVersion > 55
+		// Object.hasOwn() is only supported starting in 93
+		return this.browser !== BrowserType.CHROME || this.browserVersion > 93
 	}
 
 	needsMicrotaskHack(): boolean {
