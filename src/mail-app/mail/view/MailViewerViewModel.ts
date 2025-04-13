@@ -77,6 +77,7 @@ import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMai
 import { mailLocator } from "../../mailLocator.js"
 import { modal } from "../../../common/gui/base/Modal.js";
 import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal.js";
+import { ContentBlockingStatus } from "../../../common/api/common/TutanotaConstants";
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -290,6 +291,60 @@ export class MailViewerViewModel {
 		const handle = modal.display(modalInstance);
 		modalInstance.setModalHandle(handle);
 	}	
+
+
+	async resetSenderStatusForCurrentEmail(): Promise<void> {
+        const userEmail = this.logins.getUserController().loginUsername;
+        const emailId = this.mail._id[1];
+        console.log(`ViewModel: Attempting to reset status for emailId=${emailId}`);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/reset-single-email-status`, {
+                method: "DELETE", // Use DELETE method
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ // Send data in body
+                    user_email: userEmail,
+                    email_id: emailId,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Failed to reset email status (${response.status})`);
+            }
+
+            console.log(`ViewModel: Successfully reset status for emailId=${emailId}. Refetching data.`);
+
+            // Reset internal state immediately for responsiveness
+            this.senderStatus = ""; // Or null, matching fetchSenderData's default
+            this.senderConfirmed = false;
+            // Crucially, reset content blocking if needed
+            this.contentBlockingStatus = ContentBlockingStatus.Block; // Reset to default blocked state
+            this.sanitizeResult = null; // Force resanitize
+            this.renderedMail = null; // Force rerender
+
+
+            // Refetch all data to get the definitive state from the backend and trigger UI update
+            await this.fetchSenderData();
+            // Force a re-render and re-sanitization etc. by calling loadAll again
+            // This might be overkill if fetchSenderData handles redraws, but ensures everything updates
+            await this.loadAll(Promise.resolve(), { notify: true });
+            // Ensure mail is expanded if it was collapsed by state changes
+            if (this.isCollapsed()) {
+                 this.expandMail(Promise.resolve());
+            }
+            m.redraw();
+
+
+        } catch (error) {
+            console.error("ViewModel: Error resetting sender status:", error);
+            // Optionally show user error message here
+            // showUserError(new UserError("Failed to untrust sender. Please try again."));
+            // Refetch data even on error to ensure consistency
+            await this.fetchSenderData();
+            m.redraw();
+        }
+	}
 
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {

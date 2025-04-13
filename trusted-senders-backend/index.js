@@ -219,34 +219,36 @@ app.post("/update-email-status", (req, res) => {
   });
 });
 
+// *** NEW ENDPOINT ***
 /**
- * @route POST /reset-email-statuses
- * @description Deletes all stored statuses for emails from a specific sender for a given user.
- * @body { user_email: string, sender_email: string }
+ * @route DELETE /reset-single-email-status
+ * @description Deletes the status entry for a specific email for a user.
+ * @body { user_email: string, email_id: string }
  */
-app.post("/reset-email-statuses", (req, res) => {
-  const { user_email, sender_email } = req.body;
+app.delete("/reset-single-email-status", (req, res) => {
+    // Use DELETE method, data typically sent in body for DELETE with body, or query params
+    // Let's assume body for consistency with other POSTs, though DELETE usually uses params
+    const { user_email, email_id } = req.body;
 
-  if (!user_email || !sender_email) {
-    return res.status(400).json({ error: "Missing user_email or sender_email" });
-  }
-  console.log(`Attempting to reset email statuses for: User='${user_email}', Sender='${sender_email}'`);
-
-  // SQL to delete matching entries from the status table
-  const sql = `DELETE FROM email_sender_status WHERE user_email = ? AND sender_email = ?`;
-
-  db.run(sql, [user_email, sender_email], function (err) {
-    if (err) {
-      console.error(`DB Error resetting statuses for User='${user_email}', Sender='${sender_email}':`, err.message);
-      // Return 500 if the delete fails
-      return res.status(500).json({ error: "Failed to reset email statuses." });
+    if (!user_email || !email_id) {
+        return res.status(400).json({ error: "Missing user_email or email_id" });
     }
-    // this.changes provides the number of rows deleted
-    console.log(`Reset ${this.changes} email statuses for User='${user_email}', Sender='${sender_email}'.`);
-    // Send success regardless of whether 0 or more rows were deleted
-    res.json({ message: "Email statuses reset successfully.", count: this.changes });
-  });
+    console.log(`Attempting to reset status for: User='${user_email}', EmailID='${email_id}'`);
+
+    const sql = `DELETE FROM email_sender_status WHERE user_email = ? AND email_id = ?`;
+
+    db.run(sql, [user_email, email_id], function (err) {
+        if (err) {
+            console.error(`DB Error resetting status for User='${user_email}', EmailID='${email_id}':`, err.message);
+            return res.status(500).json({ error: "Failed to reset email status." });
+        }
+        // this.changes will be 1 if a row was deleted, 0 if no matching row found
+        console.log(`Reset status for User='${user_email}', EmailID='${email_id}'. Rows affected: ${this.changes}`);
+        // Send success regardless of whether a row was actually deleted (idempotent)
+        res.json({ message: "Email status reset successfully.", count: this.changes });
+    });
 });
+// *** END NEW ENDPOINT ***
 
 
 // --- Root Route and Server Start ---
