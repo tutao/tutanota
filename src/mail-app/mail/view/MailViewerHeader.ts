@@ -751,137 +751,110 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 
 
+	// Replace the ENTIRE existing private renderMobyPhishBanner function in MailViewerHeader.ts with this one:
+
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
-		const senderStatus = viewModel.senderStatus;
-		const isTrusted = viewModel.isSenderTrusted(); // Check trust status once
+	    const senderStatus = viewModel.senderStatus;
+	    const isTrusted = viewModel.isSenderTrusted(); // Check trust status once
 
-		// --- Define Button Actions ---
+	    // --- Define Button Actions (Keep these reusable actions) ---
+	    const confirmAction = async () => { /* ... (keep existing confirmAction logic) ... */
+	        console.log("Banner Confirm clicked.");
+	        if (isTrusted && !(senderStatus === "confirmed" || senderStatus === "trusted_once")) {
+	            await viewModel.updateSenderStatus("confirmed");
+	        } else if (!isTrusted) {
+	            const modalInstance = new MobyPhishConfirmSenderModal(viewModel, viewModel.trustedSenders());
+	            const handle = modal.display(modalInstance);
+	            modalInstance.setModalHandle(handle);
+	        } else {
+	            console.log("Banner Confirm clicked, but sender already confirmed/trusted_once.");
+	        }
+	    };
+	    const addAction = () => { /* ... (keep existing addAction logic) ... */
+	        console.log("Banner Add clicked.");
+	        if (isTrusted) {
+	            const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
+	            const handle = modal.display(modalInstance);
+	            if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
+	        } else {
+	            const modalInstance = new MobyPhishConfirmAddSenderModal(viewModel);
+	            const handle = modal.display(modalInstance);
+	            modalInstance.setModalHandle(handle);
+	        }
+	    };
+	    const trustOnceAction = async () => { /* ... (keep existing trustOnceAction logic) ... */
+	        console.log("Banner Trust Once clicked.");
+	        if (isTrusted && (senderStatus === "confirmed" || senderStatus === "trusted_once")) {
+	            const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
+	            const handle = modal.display(modalInstance);
+	            if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
+	        } else {
+	            try { await viewModel.updateSenderStatus("trusted_once"); console.log("Trusted once..."); }
+	            catch (error) { console.error("Error applying trust-once behavior:", error); }
+	        }
+	    };
+	    const removeAction = () => { /* ... (keep existing removeAction logic) ... */
+	        console.log("Banner Remove clicked.");
+	        if (isTrusted) {
+	            const modalInstance = new MobyPhishRemoveConfirmationModal(viewModel);
+	            const handle = modal.display(modalInstance);
+	            modalInstance.setModalHandle(handle);
+	        } else {
+	            const modalInstance = new MobyPhishNotTrustedModal();
+	            const handle = modal.display(modalInstance);
+	            modalInstance.setModalHandle(handle);
+	        }
+	    };
 
-		// Action for the CONFIRM button (Green Checkmark)
-		const confirmAction = async () => {
-			console.log("Banner Confirm clicked.");
-			// Only truly acts if sender is trusted but status needs update
-			if (isTrusted && !(senderStatus === "confirmed" || senderStatus === "trusted_once")) {
-			await viewModel.updateSenderStatus("confirmed");
-			} else if (!isTrusted) {
-				// If not trusted, this button opens the verification modal
-				const modalInstance = new MobyPhishConfirmSenderModal(viewModel, viewModel.trustedSenders());
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle(handle);
-			} else {
-				// If trusted AND already confirmed/trusted_once, maybe do nothing or show info?
-				console.log("Banner Confirm clicked, but sender already confirmed/trusted_once.");
-			}
-		};
+	    // --- Define Button Attributes (Keep these) ---
+	    const confirmButtonAttrs: BannerButtonAttrs = { /* ... */ title: "mobyPhish_confirm", label: "mobyPhish_confirm", icon: m(Icon, { icon: Icons.Checkmark }), click: confirmAction, style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" } };
+	    const addButtonAttrs: BannerButtonAttrs = { /* ... */ title: "mobyPhish_add", label: "mobyPhish_add", icon: m(Icon, { icon: Icons.Add }), click: addAction, style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" } };
+	    const trustOnceButtonAttrs: BannerButtonAttrs = { /* ... */ title: "mobyPhish_trusted_once", label: "mobyPhish_trusted_once", icon: m(Icon, { icon: Icons.Unlock }), click: trustOnceAction, style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" } };
+	    const removeButtonAttrs: BannerButtonAttrs = { /* ... */ title: "mobyPhish_remove", label: "mobyPhish_remove", icon: m(Icon, { icon: Icons.CircleReject }), click: removeAction, style: { backgroundColor: "#6c757d", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" } };
 
-		// Action for the ADD button (Red Plus)
-		const addAction = () => {
-			console.log("Banner Add clicked.");
-			if (isTrusted) {
-				// Already trusted -> Show info modal
-				const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
-				const handle = modal.display(modalInstance);
-				if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
-			} else {
-				// Not trusted -> Show confirmation modal to add
-				const modalInstance = new MobyPhishConfirmAddSenderModal(viewModel);
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle(handle);
-			}
-		};
+	    // --- Assemble Buttons Based on State ---
+	    let buttonsToShow: BannerButtonAttrs[] = [];
+	    let messageKey: TranslationKey = "mobyPhish_is_trusted"; // Default
+	    let bannerType: BannerType = BannerType.Warning;
+	    let bannerIcon: Icons = Icons.Warning;
 
-		// Action for the TRUST ONCE button (Orange Unlock)
-		const trustOnceAction = async () => {
-			console.log("Banner Trust Once clicked.");
-			if (isTrusted && (senderStatus === "confirmed" || senderStatus === "trusted_once")) {
-				// Already trusted and confirmed -> Show info modal
-				const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
-				const handle = modal.display(modalInstance);
-				if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
-			} else if (isTrusted) {
-				// Trusted but not confirmed - Trusting once still makes sense maybe? Or show info? Let's allow it.
-				try { await viewModel.updateSenderStatus("trusted_once"); console.log("Trusted once..."); }
-				catch (error) { console.error("Error applying trust-once behavior:", error); }
-			}
-			else {
-				// Not trusted -> Proceed with trust once
-				try { await viewModel.updateSenderStatus("trusted_once"); console.log("Trusted once..."); }
-				catch (error) { console.error("Error applying trust-once behavior:", error); }
-			}
-		};
+	    if (senderStatus === "confirmed") {
+	        // State: Fully Confirmed - Show success banner WITH Remove button
+	        messageKey = "mobyPhish_sender_confirmed";
+	        bannerType = BannerType.Info;
+	        bannerIcon = Icons.CircleCheckmark;
+	        buttonsToShow = [removeButtonAttrs]; // Only show Remove
 
-		// Action for the REMOVE button (Grey Minus/Reject)
-		const removeAction = () => {
-			console.log("Banner Remove clicked.");
-			if (isTrusted) {
-				// Sender IS trusted -> Show REMOVE confirmation modal
-				const modalInstance = new MobyPhishRemoveConfirmationModal(viewModel);
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle(handle);
-			} else {
-				// Sender is NOT trusted -> Show info modal
-				const modalInstance = new MobyPhishNotTrustedModal();
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle(handle);
-			}
-		};
+	    } else if (senderStatus === "trusted_once") {
+	        // State: Trusted Once - Show success banner WITHOUT Remove button
+	        messageKey = "mobyPhish_sender_trusted_once";
+	        bannerType = BannerType.Info;
+	        bannerIcon = Icons.CircleCheckmark;
+	        buttonsToShow = []; // NO buttons shown for trusted_once
 
-		// --- Define Button Attributes (Styles are examples) ---
-		const confirmButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_confirm", label: "mobyPhish_confirm", icon: m(Icon, { icon: Icons.Checkmark }),
-			click: confirmAction, style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-		};
-		const addButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_add", label: "mobyPhish_add", icon: m(Icon, { icon: Icons.Add }),
-			click: addAction, style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-		};
-		const trustOnceButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_trusted_once", label: "mobyPhish_trusted_once", icon: m(Icon, { icon: Icons.Unlock }),
-			click: trustOnceAction, style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-		};
-		const removeButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_remove", label: "mobyPhish_remove", icon: m(Icon, { icon: Icons.CircleReject }), // Changed icon example
-			click: removeAction, style: { backgroundColor: "#6c757d", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-		};
-
-		// --- Assemble Buttons Based on State ---
-		let buttonsToShow: BannerButtonAttrs[] = [];
-		let messageKey: TranslationKey = "mobyPhish_is_trusted"; // Default message key
-		let bannerType: BannerType = BannerType.Warning;
-		let bannerIcon: Icons = Icons.Warning;
+	    } else {
+	        // State: Not yet confirmed or trusted once
+	        if (isTrusted) {
+	             // Sender is on list, but status not updated. Offer Confirm to fix status. Add/TrustOnce show info. Remove opens confirmation.
+	            buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
+	        } else {
+	            // Sender is not on list. Confirm opens check modal. Add opens add confirm modal. TrustOnce acts directly. Remove shows info modal.
+	            buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
+	        }
+	        messageKey = "mobyPhish_is_trusted"; // Generic "check this sender" message
+	        bannerType = BannerType.Warning;
+	        bannerIcon = Icons.Warning;
+	    }
 
 
-		if (senderStatus === "confirmed" || senderStatus === "trusted_once") {
-			// State: Already confirmed or trusted once - show success banner
-			messageKey = `mobyPhish_sender_${String(senderStatus)}` as TranslationKey;
-			bannerType = BannerType.Info;
-			bannerIcon = Icons.CircleCheckmark;
-			buttonsToShow = [removeButtonAttrs]; // Only show Remove button
-
-		} else {
-			// State: Not yet confirmed or trusted once
-			// Always show Add, Trust Once, and Remove. Show Confirm differently based on trust.
-			if (isTrusted) {
-				// Sender is on list, but status not updated. Offer Confirm to fix status.
-				buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
-			} else {
-				// Sender is not on list. Confirm button opens the check modal.
-				buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
-			}
-			messageKey = "mobyPhish_is_trusted"; // Generic "check this sender" message key
-			bannerType = BannerType.Warning;
-			bannerIcon = Icons.Warning;
-		}
-
-
-		// Render the banner
-		return m(InfoBanner, {
-		message: messageKey,
-		icon: bannerIcon,
-		type: bannerType,
-		helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-		buttons: buttonsToShow
-		});
+	    // Render the banner
+	    return m(InfoBanner, {
+	      message: messageKey,
+	      icon: bannerIcon,
+	      type: bannerType,
+	      helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+	      buttons: buttonsToShow
+	    });
 	}
 
 
