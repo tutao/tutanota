@@ -876,33 +876,34 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		let bannerIcon: Icons = Icons.Warning;
 
 		if (senderStatus === "trusted_once") {
-			// ✅ Trusted once → only show Undo
+			// Trusted once → show only Undo
 			messageKey = "mobyPhish_sender_trusted_once";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
 			buttonsToShow = [untrustButtonAttrs];
-
+		
 		} else if (senderStatus === "confirmed") {
-			// ✅ Confirmed manually → show Remove and Undo
+			// Confirmed manually → show Remove and Undo
 			messageKey = "mobyPhish_sender_confirmed";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
 			buttonsToShow = [removeButtonAttrs, untrustButtonAttrs];
-
+		
 		} else if (senderStatus === "added_to_trusted" || (isTrusted && senderStatus === "")) {
-			// ✅ Added via Add Sender → only show Remove
+			// Added to trusted list via modal (or persisted trust) → ONLY show Remove
 			messageKey = "mobyPhish_sender_confirmed";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
 			buttonsToShow = [removeButtonAttrs];
-
+		
 		} else {
-			// ❓ Unconfirmed sender → show all options
+			// No confirmed trust → show full options
 			messageKey = "mobyPhish_is_trusted";
 			bannerType = BannerType.Warning;
 			bannerIcon = Icons.Warning;
 			buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
 		}
+		
 
 		return m(InfoBanner, {
 			message: messageKey,
