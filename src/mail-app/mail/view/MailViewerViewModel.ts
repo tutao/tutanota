@@ -77,7 +77,6 @@ import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMai
 import { mailLocator } from "../../mailLocator.js"
 import { modal } from "../../../common/gui/base/Modal.js";
 import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal.js";
-import { ContentBlockingStatus } from "../../../common/api/common/TutanotaConstants";
 
 export const enum ContentBlockingStatus {
 	Block = "0",

@@ -750,43 +750,107 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}*/
 
 
+	// Replace the ENTIRE existing private renderMobyPhishBanner function in MailViewerHeader.ts with this one:
 
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 	    const senderStatus = viewModel.senderStatus;
 	    const isTrusted = viewModel.isSenderTrusted();
 
-	    // --- Define Button Actions ---
-	    const confirmAction = async () => { /* ... */ };
-	    const addAction = () => { /* ... */ };
-	    const trustOnceAction = async () => { /* ... */ };
-	    const removeAction = () => { /* ... */ };
-	    // *** NEW Action for Untrust button ***
+	    // --- Define Button Actions (These should contain the actual logic) ---
+	    const confirmAction = async () => {
+	        console.log("Banner Confirm clicked.");
+	        if (isTrusted && !(senderStatus === "confirmed" || senderStatus === "trusted_once")) {
+	            await viewModel.updateSenderStatus("confirmed");
+	        } else if (!isTrusted) {
+	            const modalInstance = new MobyPhishConfirmSenderModal(viewModel, viewModel.trustedSenders());
+	            const handle = modal.display(modalInstance);
+	            modalInstance.setModalHandle(handle);
+	        } else {
+	            console.log("Banner Confirm clicked, but sender already confirmed/trusted_once.");
+	        }
+	    };
+	    const addAction = () => {
+	        console.log("Banner Add clicked.");
+	        if (isTrusted) {
+	            const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel); // Ensure this modal exists
+	            const handle = modal.display(modalInstance);
+	            if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
+	        } else {
+	            const modalInstance = new MobyPhishConfirmAddSenderModal(viewModel); // Ensure this modal exists
+	            const handle = modal.display(modalInstance);
+	            modalInstance.setModalHandle(handle);
+	        }
+	    };
+	    const trustOnceAction = async () => {
+	        console.log("Banner Trust Once clicked.");
+	        if (isTrusted && (senderStatus === "confirmed" || senderStatus === "trusted_once")) {
+	            const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel); // Ensure this modal exists
+	            const handle = modal.display(modalInstance);
+	            if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
+	        } else {
+	            try { await viewModel.updateSenderStatus("trusted_once"); console.log("Trusted once..."); }
+	            catch (error) { console.error("Error applying trust-once behavior:", error); }
+	        }
+	    };
+	    const removeAction = () => {
+	        console.log("Banner Remove clicked.");
+	        if (isTrusted) {
+	            const modalInstance = new MobyPhishRemoveConfirmationModal(viewModel); // Ensure this modal exists
+	            const handle = modal.display(modalInstance);
+	            modalInstance.setModalHandle(handle);
+	        } else {
+	            const modalInstance = new MobyPhishNotTrustedModal(); // Ensure this modal exists
+	            const handle = modal.display(modalInstance);
+	            modalInstance.setModalHandle(handle);
+	        }
+	    };
 	    const untrustOnceAction = async () => {
 	        console.log("Banner Untrust Once clicked.");
-	        // Show progress/loading state? Maybe not needed for quick action.
 	        await viewModel.resetSenderStatusForCurrentEmail();
-	        // ViewModel method handles redraw
 	    };
-	    // *** END NEW Action ***
 
-	    // --- Define Button Attributes ---
-	    const confirmButtonAttrs: BannerButtonAttrs = { /* ... */ };
-	    const addButtonAttrs: BannerButtonAttrs = { /* ... */ };
-	    const trustOnceButtonAttrs: BannerButtonAttrs = { /* ... */ };
-	    const removeButtonAttrs: BannerButtonAttrs = { /* ... */ };
-	    // *** NEW Button Attributes ***
+
+	    // --- Define Button Attributes (RESTORED FULL DEFINITIONS) ---
+	    const confirmButtonAttrs: BannerButtonAttrs = {
+	        title: "mobyPhish_confirm",
+	        label: "mobyPhish_confirm", // Language key
+	        icon: m(Icon, { icon: Icons.Checkmark }),
+	        click: confirmAction,
+	        style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	    };
+	    const addButtonAttrs: BannerButtonAttrs = {
+	        title: "mobyPhish_add",
+	        label: "mobyPhish_add", // Language key
+	        icon: m(Icon, { icon: Icons.Add }),
+	        click: addAction,
+	        style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	    };
+	    const trustOnceButtonAttrs: BannerButtonAttrs = {
+	        title: "mobyPhish_trusted_once",
+	        label: "mobyPhish_trusted_once", // Language key
+	        icon: m(Icon, { icon: Icons.Unlock }),
+	        click: trustOnceAction,
+	        style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	    };
+	    const removeButtonAttrs: BannerButtonAttrs = {
+	        title: "mobyPhish_remove",
+	        label: "mobyPhish_remove", // Language key
+	        icon: m(Icon, { icon: Icons.CircleReject }),
+	        click: removeAction,
+	        style: { backgroundColor: "#6c757d", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	    };
 	    const untrustOnceButtonAttrs: BannerButtonAttrs = {
-	        title: "mobyPhish_untrust_once", // Define new language key
-	        label: "mobyPhish_untrust_once", // Define new language key ("Untrust Once"?)
-	        icon: m(Icon, { icon: Icons.Lock }), // Use Lock icon maybe?
+	        // Ensure "mobyPhish_untrust_once" is added to your language files
+	        title: "mobyPhish_untrust_once" as TranslationKey,
+	        label: "mobyPhish_untrust_once" as TranslationKey,
+	        icon: m(Icon, { icon: Icons.Lock }),
 	        click: untrustOnceAction,
-	        // Use a neutral or slightly different style
-	        style: { backgroundColor: "#ffc107", color: "#212529", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" } // Example: Yellow/Amber
+	        style: { backgroundColor: "#ffc107", color: "#212529", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 	    };
-	    // *** END NEW Button Attributes ***
+	    // --- END RESTORED DEFINITIONS ---
 
 
-	    // --- Assemble Buttons Based on State ---
+	    // --- Assemble Buttons Based on State (Logic remains the same) ---
 	    let buttonsToShow: BannerButtonAttrs[] = [];
 	    let messageKey: TranslationKey = "mobyPhish_is_trusted";
 	    let bannerType: BannerType = BannerType.Warning;
@@ -796,19 +860,20 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	        messageKey = "mobyPhish_sender_confirmed";
 	        bannerType = BannerType.Info;
 	        bannerIcon = Icons.CircleCheckmark;
-	        buttonsToShow = [removeButtonAttrs]; // Only Remove for fully confirmed
+	        buttonsToShow = [removeButtonAttrs];
 
 	    } else if (senderStatus === "trusted_once") {
 	        messageKey = "mobyPhish_sender_trusted_once";
 	        bannerType = BannerType.Info;
 	        bannerIcon = Icons.CircleCheckmark;
-	        // *** Show Untrust button instead of Remove ***
-	        buttonsToShow = [untrustOnceButtonAttrs];
+	        buttonsToShow = [untrustOnceButtonAttrs]; // Show Untrust button
 
 	    } else { // Not confirmed OR trusted_once
 	        if (isTrusted) {
+	             // If trusted but not confirmed/once (e.g., status reset but still on list), show all options including confirm
 	            buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
 	        } else {
+	            // If not trusted, show all options
 	            buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
 	        }
 	        messageKey = "mobyPhish_is_trusted";
@@ -827,8 +892,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    });
 	  }
 
-
-	
 	
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
