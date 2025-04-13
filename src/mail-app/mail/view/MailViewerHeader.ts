@@ -857,7 +857,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const untrustButtonAttrs: BannerButtonAttrs = {
 			title: "mobyPhish_untrust",
-			label: "mobyPhish_untrust",
+			label: "Undo trust once",
 			icon: m(Icon, { icon: Icons.Trash }),
 			click: untrustAction,
 			style: {
@@ -869,35 +869,35 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			}
 		};
 
-		// --- Banner Logic ---
+		// --- Determine Banner State ---
 		let buttonsToShow: BannerButtonAttrs[] = [];
 		let messageKey: TranslationKey = "mobyPhish_is_trusted";
 		let bannerType: BannerType = BannerType.Warning;
 		let bannerIcon: Icons = Icons.Warning;
 
 		if (senderStatus === "trusted_once") {
-			// 🟡 Only trusted once → Undo trust once
+			// ✅ Trusted once → only show Undo
 			messageKey = "mobyPhish_sender_trusted_once";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
 			buttonsToShow = [untrustButtonAttrs];
 
 		} else if (senderStatus === "confirmed") {
-			// ✅ Confirmed sender manually
+			// ✅ Confirmed manually → show Remove and Undo
 			messageKey = "mobyPhish_sender_confirmed";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
 			buttonsToShow = [removeButtonAttrs, untrustButtonAttrs];
 
-		} else if (senderStatus === "added_to_trusted") {
-			// ➕ Sender added to trusted → Only show Remove
+		} else if (senderStatus === "added_to_trusted" || (isTrusted && senderStatus === "")) {
+			// ✅ Added via Add Sender → only show Remove
 			messageKey = "mobyPhish_sender_confirmed";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
 			buttonsToShow = [removeButtonAttrs];
 
 		} else {
-			// ❓ Default warning mode
+			// ❓ Unconfirmed sender → show all options
 			messageKey = "mobyPhish_is_trusted";
 			bannerType = BannerType.Warning;
 			bannerIcon = Icons.Warning;
@@ -912,6 +912,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			buttons: buttonsToShow
 		});
 	}
+
 
 	
 
