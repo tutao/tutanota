@@ -752,30 +752,37 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	// Replace the ENTIRE existing private renderMobyPhishBanner function in MailViewerHeader.ts with this one:
 
+	// Replace the ENTIRE existing private renderMobyPhishBanner function in MailViewerHeader.ts with this one:
+
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 	    const senderStatus = viewModel.senderStatus;
-	    const isTrusted = viewModel.isSenderTrusted();
+	    const isTrusted = viewModel.isSenderTrusted(); // Check trust status once
 
-	    // --- Define Button Actions (These should contain the actual logic) ---
+	    // --- Define Button Actions (Keep these reusable actions) ---
 	    const confirmAction = async () => {
 	        console.log("Banner Confirm clicked.");
 	        if (isTrusted && !(senderStatus === "confirmed" || senderStatus === "trusted_once")) {
+	            // If sender is on the list but status is wrong, confirming fixes it
 	            await viewModel.updateSenderStatus("confirmed");
 	        } else if (!isTrusted) {
+	            // If sender is not on the list, confirming opens the verification modal
 	            const modalInstance = new MobyPhishConfirmSenderModal(viewModel, viewModel.trustedSenders());
 	            const handle = modal.display(modalInstance);
 	            modalInstance.setModalHandle(handle);
 	        } else {
+	            // If already confirmed/trusted_once, clicking confirm does nothing extra here
 	            console.log("Banner Confirm clicked, but sender already confirmed/trusted_once.");
 	        }
 	    };
 	    const addAction = () => {
 	        console.log("Banner Add clicked.");
 	        if (isTrusted) {
+	             // If already trusted, show an info modal instead of allowing re-add
 	            const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel); // Ensure this modal exists
 	            const handle = modal.display(modalInstance);
 	            if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
 	        } else {
+	            // If not trusted, open the confirmation modal to add
 	            const modalInstance = new MobyPhishConfirmAddSenderModal(viewModel); // Ensure this modal exists
 	            const handle = modal.display(modalInstance);
 	            modalInstance.setModalHandle(handle);
@@ -783,22 +790,27 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    };
 	    const trustOnceAction = async () => {
 	        console.log("Banner Trust Once clicked.");
-	        if (isTrusted && (senderStatus === "confirmed" || senderStatus === "trusted_once")) {
-	            const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel); // Ensure this modal exists
-	            const handle = modal.display(modalInstance);
-	            if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
+	        // Allow trust once only if not already confirmed or trusted_once
+	        if (!(senderStatus === "confirmed" || senderStatus === "trusted_once")) {
+	             try { await viewModel.updateSenderStatus("trusted_once"); console.log("Trusted once..."); }
+	             catch (error) { console.error("Error applying trust-once behavior:", error); }
 	        } else {
-	            try { await viewModel.updateSenderStatus("trusted_once"); console.log("Trusted once..."); }
-	            catch (error) { console.error("Error applying trust-once behavior:", error); }
+	            console.log("Banner Trust Once clicked, but sender already confirmed/trusted_once.");
+	             // Optionally show the "Already Trusted" modal here too
+	             const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
+	             const handle = modal.display(modalInstance);
+	             if (typeof (modalInstance as any).setModalHandle === 'function') { (modalInstance as any).setModalHandle(handle); }
 	        }
 	    };
 	    const removeAction = () => {
 	        console.log("Banner Remove clicked.");
 	        if (isTrusted) {
+	            // If sender is actually on the list, open the remove confirmation
 	            const modalInstance = new MobyPhishRemoveConfirmationModal(viewModel); // Ensure this modal exists
 	            const handle = modal.display(modalInstance);
 	            modalInstance.setModalHandle(handle);
 	        } else {
+	             // If sender is not on the list, show an info modal
 	            const modalInstance = new MobyPhishNotTrustedModal(); // Ensure this modal exists
 	            const handle = modal.display(modalInstance);
 	            modalInstance.setModalHandle(handle);
@@ -810,77 +822,65 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	    };
 
 
-	    // --- Define Button Attributes (RESTORED FULL DEFINITIONS) ---
+	    // --- Define Button Attributes (Keep these) ---
 	    const confirmButtonAttrs: BannerButtonAttrs = {
-	        title: "mobyPhish_confirm",
-	        label: "mobyPhish_confirm", // Language key
-	        icon: m(Icon, { icon: Icons.Checkmark }),
-	        click: confirmAction,
-	        style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	        title: "mobyPhish_confirm" as TranslationKey, label: "mobyPhish_confirm" as TranslationKey, icon: m(Icon, { icon: Icons.Checkmark }), click: confirmAction, style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 	    };
 	    const addButtonAttrs: BannerButtonAttrs = {
-	        title: "mobyPhish_add",
-	        label: "mobyPhish_add", // Language key
-	        icon: m(Icon, { icon: Icons.Add }),
-	        click: addAction,
-	        style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	        title: "mobyPhish_add" as TranslationKey, label: "mobyPhish_add" as TranslationKey, icon: m(Icon, { icon: Icons.Add }), click: addAction, style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 	    };
 	    const trustOnceButtonAttrs: BannerButtonAttrs = {
-	        title: "mobyPhish_trusted_once",
-	        label: "mobyPhish_trusted_once", // Language key
-	        icon: m(Icon, { icon: Icons.Unlock }),
-	        click: trustOnceAction,
-	        style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	        title: "mobyPhish_trusted_once" as TranslationKey, label: "mobyPhish_trusted_once" as TranslationKey, icon: m(Icon, { icon: Icons.Unlock }), click: trustOnceAction, style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 	    };
 	    const removeButtonAttrs: BannerButtonAttrs = {
-	        title: "mobyPhish_remove",
-	        label: "mobyPhish_remove", // Language key
-	        icon: m(Icon, { icon: Icons.CircleReject }),
-	        click: removeAction,
-	        style: { backgroundColor: "#6c757d", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	        title: "mobyPhish_remove" as TranslationKey, label: "mobyPhish_remove" as TranslationKey, icon: m(Icon, { icon: Icons.CircleReject }), click: removeAction, style: { backgroundColor: "#6c757d", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 	    };
 	    const untrustOnceButtonAttrs: BannerButtonAttrs = {
-	        // Ensure "mobyPhish_untrust_once" is added to your language files
-	        title: "mobyPhish_untrust_once" as TranslationKey,
-	        label: "mobyPhish_untrust_once" as TranslationKey,
-	        icon: m(Icon, { icon: Icons.Lock }),
-	        click: untrustOnceAction,
-	        style: { backgroundColor: "#ffc107", color: "#212529", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+	        title: "mobyPhish_untrust_once" as TranslationKey, label: "mobyPhish_untrust_once" as TranslationKey, icon: m(Icon, { icon: Icons.Lock }), click: untrustOnceAction, style: { backgroundColor: "#ffc107", color: "#212529", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 	    };
-	    // --- END RESTORED DEFINITIONS ---
 
 
-	    // --- Assemble Buttons Based on State (Logic remains the same) ---
+	    // --- Assemble Buttons Based on State ---
 	    let buttonsToShow: BannerButtonAttrs[] = [];
-	    let messageKey: TranslationKey = "mobyPhish_is_trusted";
+	    let messageKey: TranslationKey = "mobyPhish_is_trusted"; // Default message
 	    let bannerType: BannerType = BannerType.Warning;
 	    let bannerIcon: Icons = Icons.Warning;
 
 	    if (senderStatus === "confirmed") {
+	        // State: Fully Confirmed
 	        messageKey = "mobyPhish_sender_confirmed";
 	        bannerType = BannerType.Info;
 	        bannerIcon = Icons.CircleCheckmark;
-	        buttonsToShow = [removeButtonAttrs];
+	        buttonsToShow = [removeButtonAttrs]; // ONLY Remove button
 
 	    } else if (senderStatus === "trusted_once") {
+	        // State: Trusted Once
 	        messageKey = "mobyPhish_sender_trusted_once";
 	        bannerType = BannerType.Info;
 	        bannerIcon = Icons.CircleCheckmark;
-	        buttonsToShow = [untrustOnceButtonAttrs]; // Show Untrust button
+	        buttonsToShow = [untrustOnceButtonAttrs]; // ONLY Untrust Once button
 
-	    } else { // Not confirmed OR trusted_once
+	    } else {
+	        // State: Status is NOT confirmed OR trusted_once
 	        if (isTrusted) {
-	             // If trusted but not confirmed/once (e.g., status reset but still on list), show all options including confirm
-	            buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
+	            // Sender IS on the trusted list, but status isn't set correctly yet.
+	            // Offer 'Confirm' to fix the status, and 'Remove' as they are on the list.
+	            console.log("Render Banner: Sender is trusted, but status not confirmed/trusted_once. Showing Confirm/Remove.");
+	            messageKey = "mobyPhish_is_trusted"; // Still show the warning-like message
+	            bannerType = BannerType.Warning;
+	            bannerIcon = Icons.Warning;
+	            buttonsToShow = [confirmButtonAttrs, removeButtonAttrs];
 	        } else {
-	            // If not trusted, show all options
+	            // Sender is NOT on the trusted list. Offer standard options.
+	            console.log("Render Banner: Sender is not trusted. Showing Confirm/Add/TrustOnce/Remove.");
+	            messageKey = "mobyPhish_is_trusted"; // Warning message
+	            bannerType = BannerType.Warning;
+	            bannerIcon = Icons.Warning;
+	            // In this state, "Remove" should actually open the "Not Trusted" info modal.
+	            // The removeAction function already handles this logic based on isTrusted.
 	            buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
 	        }
-	        messageKey = "mobyPhish_is_trusted";
-	        bannerType = BannerType.Warning;
-	        bannerIcon = Icons.Warning;
 	    }
-
 
 	    // Render the banner
 	    return m(InfoBanner, {
@@ -891,7 +891,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	      buttons: buttonsToShow
 	    });
 	  }
-
 	
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
