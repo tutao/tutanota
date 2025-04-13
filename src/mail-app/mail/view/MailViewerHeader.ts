@@ -778,9 +778,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			}
 		};
 
-		const trustOnceAction = async () => {
-			await viewModel.updateSenderStatus("trusted_once");
+		const trustOnceAction = () => {
+			if (isTrusted) {
+				const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
+				const handle = modal.display(modalInstance);
+				modalInstance.setModalHandle?.(handle);
+			} else {
+				viewModel.updateSenderStatus("trusted_once");
+			}
 		};
+		
 
 		const removeAction = () => {
 			if (isTrusted) {
