@@ -857,7 +857,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const untrustButtonAttrs: BannerButtonAttrs = {
 			title: "mobyPhish_untrust",
-			label: "Undo trust once",
+			label: "mobyPhish_untrust",
 			icon: m(Icon, { icon: Icons.Trash }),
 			click: untrustAction,
 			style: {
