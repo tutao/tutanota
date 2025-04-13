@@ -903,18 +903,18 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}		
 		
 
-		return m(InfoBanner, {
+		return m({ view: () => m(InfoBanner, {
 			message: messageKey,
 			icon: bannerIcon,
 			type: bannerType,
-			//helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
 			helpClick: () => {
-				const modalInstance = new MobyPhishInfoModal(); 
+				const modalInstance = new MobyPhishInfoModal();
 				const handle = modal.display(modalInstance);
 				modalInstance.setModalHandle(handle);
 			},
 			buttons: buttonsToShow
-		});
+		}) });
+		
 	}
 
 
