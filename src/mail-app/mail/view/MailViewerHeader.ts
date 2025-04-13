@@ -41,6 +41,7 @@ import { MobyPhishAlreadyTrustedModal } from "./MobyPhishAlreadyTrustedModal.js"
 import { MobyPhishConfirmAddSenderModal } from "./MobyPhishConfirmAddSenderModal.js";
 import { MobyPhishNotTrustedModal } from "./MobyPhishNotTrustedModal.js";
 import { MobyPhishRemoveConfirmationModal } from "./MobyPhishRemoveConfirmationModal.js";
+import { MobyPhishInfoModal } from "./MobyPhishInfoModal"
 
 
 
@@ -636,21 +637,38 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderPhishingWarning(viewModel: MailViewerViewModel): Children | null {
-		if (viewModel.isMailSuspicious()) {
-			return m(InfoBanner, {
-				message: "phishingMessageBody_msg",
-				icon: Icons.Warning,
-				type: BannerType.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-				buttons: [
-					{
-						label: "markAsNotPhishing_action",
-						click: () => viewModel.markAsNotPhishing().then(() => m.redraw()),
+		if (!viewModel.isMailSuspicious()) return null;
+	
+		return m(InfoBanner, {
+			message: "phishingMessageBody_msg",
+			icon: Icons.Warning,
+			type: BannerType.Warning,
+			buttons: [
+				{
+					label: "markAsNotPhishing_action",
+					click: () => viewModel.markAsNotPhishing().then(() => m.redraw()),
+				},
+				{
+					label: "?",
+					title: "What is phishing?",
+					click: () => {
+						const modalInstance = new MobyPhishInfoModal()
+						const handle = modal.display(modalInstance)
+						modalInstance.setModalHandle(handle)
 					},
-				],
-			})
-		}
+					style: {
+						fontWeight: "bold",
+						fontSize: "14px",
+						backgroundColor: "#ccc",
+						borderRadius: "8px",
+						padding: "6px 12px",
+						color: "#333"
+					}
+				}
+			],
+		})
 	}
+	
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
 		const authFailed =
