@@ -169,59 +169,62 @@ export class MailViewerViewModel {
 	}
 
 	async fetchSenderData(): Promise<void> {
-	    const userEmail = this.logins.getUserController().loginUsername; // Logged-in user's email
-	    const emailId = this.mail._id[1]; // Extract email ID
-
-	    try {
-	        // Fetch both trusted senders and sender status in parallel
-	        const [trustedResponse, statusResponse] = await Promise.all([
-	            fetch(`${API_BASE_URL}/trusted-senders/${userEmail}`),
-	            fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`)
-	        ]);
-
-	        if (!trustedResponse.ok) throw new Error("Failed to fetch trusted senders.");
-	        if (!statusResponse.ok) throw new Error("Failed to fetch sender status.");
-
-	        const trustedData = await trustedResponse.json();
-	        const statusData = await statusResponse.json();
-
-	        // Store trusted senders list
-	        const trustedSendersList: TrustedSenderInfo[] = Array.isArray(trustedData.trusted_senders)
-	                        ? trustedData.trusted_senders // Assume API returns the correct objects
-	                        : []; // Default to empty array if the format is wrong or missing
-	        this.trustedSenders(trustedSendersList);
-	        console.log("updated trustedSenders (objects):", this.trustedSenders()); // Log the objects
-	        
-	        // Store sender status and interaction type
-	        this.senderStatus = statusData.status; // confirmed, denied, etc.
-	        this.interactionType = statusData.interaction_type;
-
-	        console.log("Sender Data Fetched:", {
-	            trustedSenders: this.trustedSenders(),
-	            senderStatus: this.senderStatus,
-	            interactionType: this.interactionType
-	        });
-
-	        // Logic to auto-confirm sender
-	        const senderEmail = this.mail.sender.address;
-	        const isTrusted = this.trustedSenders().some(sender => sender.address.toLowerCase() === senderEmail);
-	        const isConfirmed = this.senderStatus === "confirmed" || this.senderStatus === "trusted_once";
-
-	        if (isConfirmed) {
-	            this.setSenderConfirmed(true);
-	            console.log(`Refetched and confirmed sender for viewModelId=${this.viewModelId}`);
-	        } else {
-	            this.setSenderConfirmed(false); // Reset just in case
-	            console.log(`Refetched but sender is NOT confirmed → viewModelId=${this.viewModelId}`);
-	        }
-
-
-	        m.redraw(); // Update UI
-
-	    } catch (error) {
-	        console.error("Error fetching sender data:", error);
-	    }
+		const userEmail = this.logins.getUserController().loginUsername;
+		const emailId = this.mail._id[1];
+		const senderEmail = this.mail.sender.address.toLowerCase();
+	
+		try {
+			const [trustedResponse, statusResponse] = await Promise.all([
+				fetch(`${API_BASE_URL}/trusted-senders/${userEmail}`),
+				fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`)
+			]);
+	
+			if (!trustedResponse.ok) throw new Error("Failed to fetch trusted senders.");
+			if (!statusResponse.ok) throw new Error("Failed to fetch sender status.");
+	
+			const trustedData = await trustedResponse.json();
+			const statusData = await statusResponse.json();
+	
+			const trustedSendersList: TrustedSenderInfo[] = Array.isArray(trustedData.trusted_senders)
+				? trustedData.trusted_senders
+				: [];
+	
+			this.trustedSenders(trustedSendersList);
+			console.log("updated trustedSenders (objects):", this.trustedSenders());
+	
+			// Check if sender is still in trusted list
+			const isTrusted = trustedSendersList.some(
+				(sender) => sender.address.toLowerCase() === senderEmail
+			);
+	
+			let currentStatus = statusData.status;
+	
+			// FIX: If previously marked as trusted, but now not in the trusted list, override status
+			if (currentStatus === "added_to_trusted" && !isTrusted) {
+				console.log("Sender was removed from trusted list – overriding status.");
+				currentStatus = ""; // Reset it so it behaves like a new/unconfirmed sender
+			}
+	
+			this.senderStatus = currentStatus;
+			this.interactionType = statusData.interaction_type;
+	
+			// Update confirmation flag
+			const isConfirmed = currentStatus === "confirmed" || currentStatus === "trusted_once";
+			this.setSenderConfirmed(isConfirmed);
+	
+			console.log("Sender Data Fetched:", {
+				trustedSenders: this.trustedSenders(),
+				senderStatus: this.senderStatus,
+				senderConfirmed: this.isSenderConfirmed()
+			});
+	
+			m.redraw();
+	
+		} catch (error) {
+			console.error("Error fetching sender data:", error);
+		}
 	}
+	
 
 
 	isSenderTrusted(): boolean {
