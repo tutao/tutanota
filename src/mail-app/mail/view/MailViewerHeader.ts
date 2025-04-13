@@ -857,7 +857,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const untrustButtonAttrs: BannerButtonAttrs = {
 			title: "mobyPhish_untrust",
-			label: "mobyPhish_untrust",
+			label: "Undo trust once",
 			icon: m(Icon, { icon: Icons.Trash }),
 			click: untrustAction,
 			style: {
@@ -869,28 +869,35 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			}
 		};
 
-		// --- Determine Banner Content ---
+		// --- Banner Logic ---
 		let buttonsToShow: BannerButtonAttrs[] = [];
 		let messageKey: TranslationKey = "mobyPhish_is_trusted";
 		let bannerType: BannerType = BannerType.Warning;
 		let bannerIcon: Icons = Icons.Warning;
 
 		if (senderStatus === "trusted_once") {
-			// 🟡 Trust Once applied – show only "Undo trust once"
+			// 🟡 Only trusted once → Undo trust once
 			messageKey = "mobyPhish_sender_trusted_once";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
 			buttonsToShow = [untrustButtonAttrs];
 
 		} else if (senderStatus === "confirmed") {
-			// ✅ Confirmed sender – allow managing
+			// ✅ Confirmed sender manually
 			messageKey = "mobyPhish_sender_confirmed";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
 			buttonsToShow = [removeButtonAttrs, untrustButtonAttrs];
 
+		} else if (senderStatus === "added_to_trusted") {
+			// ➕ Sender added to trusted → Only show Remove
+			messageKey = "mobyPhish_sender_confirmed";
+			bannerType = BannerType.Info;
+			bannerIcon = Icons.CircleCheckmark;
+			buttonsToShow = [removeButtonAttrs];
+
 		} else {
-			// ❓ Not yet trusted
+			// ❓ Default warning mode
 			messageKey = "mobyPhish_is_trusted";
 			bannerType = BannerType.Warning;
 			bannerIcon = Icons.Warning;
@@ -906,8 +913,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		});
 	}
 
-
-	
 	
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
