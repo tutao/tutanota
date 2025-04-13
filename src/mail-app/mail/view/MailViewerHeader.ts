@@ -808,7 +808,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const untrustButtonAttrs: BannerButtonAttrs = {
 			title: "mobyPhish_untrust",
 			label: "mobyPhish_untrust",
-			icon: m(Icon, { icon: Icons.Trash }), // Use an appropriate icon
+			icon: m(Icon, { icon: Icons.Trash }), 
 			click: untrustAction,
 			style: {
 				backgroundColor: "#343a40", // dark gray
