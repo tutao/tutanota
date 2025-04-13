@@ -127,32 +127,39 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private setViewModel(viewModel: MailViewerViewModel, isPrimary: boolean) {
-		// Figuring out whether we have a new email assigned.
-		const oldViewModel = this.viewModel
-		this.viewModel = viewModel
+		const oldViewModel = this.viewModel;
+		this.viewModel = viewModel;
+	
+		const isSameViewModel = oldViewModel === viewModel;
+	
 		console.log(`💡 MailViewer got ViewModel → viewModelId=${viewModel['viewModelId']}, Confirmed? ${viewModel.isSenderConfirmed()}`);
-
-		if (this.viewModel !== oldViewModel) {
-			this.loadAllListener.end(true)
+	
+		// 🧠 If reusing same view model (email opened before), refresh sender data
+		if (isSameViewModel) {
+			console.log("🔁 Reusing viewModel — refetching sender data");
+			this.viewModel.fetchSenderData().then(() => {
+				m.redraw(); // Refresh UI with updated trust state
+			});
+		}
+	
+		if (!isSameViewModel) {
+			this.loadAllListener.end(true);
 			this.loadAllListener = this.viewModel.loadCompleteNotification.map(async () => {
-				// streams are pretty much synchronous, so we could be in the middle of a redraw here and mithril does not just schedule another redraw, it
-				// will error out so before calling m.redraw.sync() we want to make sure that we are not inside a redraw by just scheduling a microtask with
-				// this simple await.
-				await Promise.resolve()
-				// Wait for mail body to be redrawn before replacing images
-				m.redraw.sync()
-				await this.replaceInlineImages()
-				m.redraw()
-			})
-
-			this.lastContentBlockingStatus = null
-			this.delayProgressSpinner = true
+				await Promise.resolve();
+				m.redraw.sync();
+				await this.replaceInlineImages();
+				m.redraw();
+			});
+	
+			this.lastContentBlockingStatus = null;
+			this.delayProgressSpinner = true;
 			setTimeout(() => {
-				this.delayProgressSpinner = false
-				m.redraw()
-			}, 50)
+				this.delayProgressSpinner = false;
+				m.redraw();
+			}, 50);
 		}
 	}
+	
 
 	view(vnode: Vnode<MailViewerAttrs>): Children {
 		this.handleContentBlockingOnRender()
