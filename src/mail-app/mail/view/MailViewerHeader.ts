@@ -639,7 +639,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderPhishingWarning(viewModel: MailViewerViewModel): Children | null {
 		if (!viewModel.isMailSuspicious()) return null;
 	
-		return m(InfoBanner, {
+		return m(InfoBanner as any, {
 			message: "phishingMessageBody_msg",
 			icon: Icons.Warning,
 			type: BannerType.Warning,
@@ -668,6 +668,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			],
 		})
 	}
+	
 	
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
