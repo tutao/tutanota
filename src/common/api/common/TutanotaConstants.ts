@@ -1324,3 +1324,8 @@ export const TUTA_CALENDAR_APP_STORE_URL = "https://apps.apple.com/app/tuta-cale
 export function getCurrentDate(fallback = new Date()) {
 	return Const.CURRENT_DATE ?? fallback
 }
+
+export const enum RolloutType {
+	UserIdentityKeyCreation = "0",
+	SharedMailboxIdentityKeyCreation = "1",
+}
