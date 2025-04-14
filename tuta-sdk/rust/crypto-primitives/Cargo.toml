@@ -12,6 +12,7 @@ default = ["console_error_panic_hook"]
 [workspace]
 
 [dependencies]
+tsify = { version = "0.4.5", features = ["js"] }
 wasm-bindgen = "0.2.100"
 serde = { features = ["derive"], version = "1.0.219" }
 const-hex = { version = "1.12.0", features = ["serde"] }
