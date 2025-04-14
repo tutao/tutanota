@@ -189,6 +189,11 @@ export interface EntityRestInterface {
 	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void>
 
 	/**
+	 * Deletes multiple elements on the server.
+	 */
+	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void>
+
+	/**
 	 * Must be called when entity events are received.
 	 * @param batch The entity events that were received.
 	 * @return Similar to the events in the data parameter, but reduced by the events which are obsolete.
@@ -611,6 +616,29 @@ export class EntityRestClient implements EntityRestInterface {
 			options?.extraHeaders,
 			undefined,
 		)
+		await this.restClient.request(path, HttpMethod.DELETE, {
+			queryParams,
+			headers,
+		})
+	}
+
+	async eraseMultiple<T extends SomeEntity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions | undefined): Promise<void> {
+		if (instances.length == 0) {
+			return
+		}
+
+		const instancesIdsString = instances.map((it) => expandId(it._id).elementId).join(",")
+		const type = instances[0]._type
+
+		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
+			type,
+			listId,
+			null,
+			{ ids: instancesIdsString },
+			options?.extraHeaders,
+			undefined,
+		)
+
 		await this.restClient.request(path, HttpMethod.DELETE, {
 			queryParams,
 			headers,

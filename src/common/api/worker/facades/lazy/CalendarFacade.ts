@@ -576,6 +576,10 @@ export class CalendarFacade {
 			return this.noncachingEntityClient
 		}
 	}
+
+	removeEventFromCache(listId: Id, eventId: Id): Promise<void> {
+		return this.entityRestCache.deleteFromCacheIfExists(CalendarEventTypeRef, listId, eventId)
+	}
 }
 
 export type EventWithUserAlarmInfos = {
