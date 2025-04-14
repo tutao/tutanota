@@ -1,8 +1,8 @@
 mod utils;
 
-mod compatibility_test_utils;
+pub mod compatibility_test_utils;
 mod ed25519;
-mod randomizer_facade;
+pub mod randomizer_facade;
 
 use ed25519::Ed25519KeyPair;
 use randomizer_facade::RandomizerFacade;
