@@ -82,6 +82,7 @@ import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/Type
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
+import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 
 assertWorkerOrNode()
 
@@ -107,6 +108,7 @@ export type CalendarWorkerLocatorType = {
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
 	cryptoWrapper: CryptoWrapper
+	rolloutFacade: RolloutFacade
 
 	// login
 	user: UserFacade
@@ -346,6 +348,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
 	)
+	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
 
 	const loginListener: LoginListener = {
 		async onPartialLoginSuccess(_sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
@@ -397,6 +400,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		},
 		locator.cacheManagement,
 		typeModelResolver,
+		locator.rolloutFacade,
 	)
 
 	locator.userManagement = lazyMemoized(async () => {
