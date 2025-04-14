@@ -1613,6 +1613,7 @@ export default {
 		"selectTemplate_action": "Wybierz",
 		"sendErrorReport_action": "Wyślij raport o błędzie",
 		"sender_label": "Nadawca",
+		"sendingEvaluation_msg": "Przesyłanie opinii...",
 		"sendingUnencrypted_msg": "Wiadomość jest wysyłana.",
 		"sending_msg": "Twoja wiadomość jest szyfrowana i wysyłana.",
 		"sendLogsInfo_msg": "Dołącz pliki dziennika do raportu o błędzie. Kliknij poniżej, aby wyświetlić ich zawartość.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-04-04T20:20:00Z",
+	"updated_at": "2025-04-11T19:11:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1609,6 +1609,7 @@ export default {
 		"selectTemplate_action": "Valitse",
 		"sendErrorReport_action": "Lähetä virheilmoitus",
 		"sender_label": "Lähettäjä",
+		"sendingEvaluation_msg": "Palautetta lähetetään...",
 		"sendingUnencrypted_msg": "Viestiäsi lähetetään.",
 		"sending_msg": "Viestiäsi salataan ja lähetetään.",
 		"sendLogsInfo_msg": "Liitä lokitiedostot vikailmoitukseen. Näytä sisältö napsauttamalla alta.",
@@ -1729,6 +1730,7 @@ export default {
 		"supportDownloadMailApp_msg": "Kun tukemme lähettää sinulle vastauksen, voit lukea sen Tuta Mailissa käyttämällä Tuta Calendar -kirjautumistietojasi.",
 		"supportForm_msg": "Muistathan kuvailla ongelmaasi yksityiskohtaisesti (englanniksi tai saksaksi), jotta voisimme auttaa sinua paremmin.",
 		"supportForm_title": "Selvitetään ongelma",
+		"supportForm_whatWentWrong_msg": "Mikä meni pieleen?",
 		"supportMenu_label": "Tuki",
 		"supportNoDirectSupport_msg": "Voit hakea apua virallisilla sivuiltamme, joissa vastaamme usein kysyttyihin kysymyksiin. Suora sähköpostituki on saatavilla maksullisissa tilauksissa.",
 		"supportNoDirectSupport_title": "Valitettavasti ilmaistileille ei tarjota suoraa sähköpostitukea",

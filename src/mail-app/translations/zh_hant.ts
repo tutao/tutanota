@@ -1608,6 +1608,7 @@ export default {
 		"selectTemplate_action": "選擇",
 		"sendErrorReport_action": "發送錯誤報告",
 		"sender_label": "寄件人",
+		"sendingEvaluation_msg": "提交意見中…",
 		"sendingUnencrypted_msg": "發送您的訊息中。",
 		"sending_msg": "加密發送您的訊息中。",
 		"sendLogsInfo_msg": "將記錄檔案附加到錯誤報告。點擊下面以顯示內容。",
