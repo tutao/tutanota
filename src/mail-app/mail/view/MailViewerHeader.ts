@@ -904,7 +904,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		// phishing info modal
 		buttonsToShow.push({
-			label: "mobyPhish_learn_more", // Or just "Learn more"
+			label: "mobyPhish_learn_more",
 			icon: m(Icon, { icon: Icons.QuestionMark }),
 			click: () => {
 				const modalInstance = new MobyPhishInfoModal();

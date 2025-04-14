@@ -1009,6 +1009,7 @@ export type TranslationKeyType =
 	| "mobyPhish_confirm"
 	| "mobyPhish_deny"
 	| "mobyPhish_is_trusted"
+	| "mobyPhish_learn_more"
 	| "mobyPhish_remove"
 	| "mobyPhish_sender_added_to_trusted"
 	| "mobyPhish_sender_confirmed"
