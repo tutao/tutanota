@@ -1613,6 +1613,7 @@ export default {
 		"selectTemplate_action": "Seç",
 		"sendErrorReport_action": "Hata raporu gönder",
 		"sender_label": "Gönderici",
+		"sendingEvaluation_msg": "Geri bildirim gönderiliyor...",
 		"sendingUnencrypted_msg": "Mesajınız gönderiliyor.",
 		"sending_msg": "Mesajınız şifrelenip gönderiliyor.",
 		"sendLogsInfo_msg": "Sistem günlüğü dosyalarını hata raporuna ekleyin. İçeriği görüntülemek için aşağıya tıklayın.",
