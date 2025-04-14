@@ -16,5 +16,4 @@ data class MobilePlanPrice(
 	val displayMonthlyPerMonth: String,
 	val displayYearlyPerYear: String,
 	val displayYearlyPerMonth: String,
-	val displayZero: String,
 )

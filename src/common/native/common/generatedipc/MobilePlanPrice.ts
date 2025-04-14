@@ -8,5 +8,4 @@ export interface MobilePlanPrice {
 	readonly displayMonthlyPerMonth: string
 	readonly displayYearlyPerYear: string
 	readonly displayYearlyPerMonth: string
-	readonly displayZero: string
 }

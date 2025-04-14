@@ -36,7 +36,6 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 			var displayMonthlyPerMonth: String?
 			var displayYearlyPerYear: String?
 			var displayYearlyPerMonth: String?
-			var displayZero: String?
 		}
 		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in
 			[self.formatPlanType(plan, withInterval: 1), self.formatPlanType(plan, withInterval: 12)]
@@ -53,13 +52,11 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 					rawYearlyPerMonth: nil,
 					displayMonthlyPerMonth: nil,
 					displayYearlyPerYear: nil,
-					displayYearlyPerMonth: nil,
-					displayZero: nil
+					displayYearlyPerMonth: nil
 				)
 
 			let unit = product.subscription!.subscriptionPeriod.unit
 			let formatStyle = product.priceFormatStyle
-			plan.displayZero = Decimal(0).formatted(formatStyle)
 			switch unit {
 			case .year:
 				let priceDivided = product.price / 12
@@ -84,8 +81,7 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				rawYearlyPerMonth: prices.rawYearlyPerMonth!,
 				displayMonthlyPerMonth: prices.displayMonthlyPerMonth!,
 				displayYearlyPerYear: prices.displayYearlyPerYear!,
-				displayYearlyPerMonth: prices.displayYearlyPerMonth!,
-				displayZero: prices.displayZero!
+				displayYearlyPerMonth: prices.displayYearlyPerMonth!
 			)
 		}
 	}
