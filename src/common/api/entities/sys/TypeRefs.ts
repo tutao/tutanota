@@ -3701,7 +3701,7 @@ export type IdentityKeyPair = {
 
 	publicKeyMac: KeyMac;
 }
-export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2575)
+export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2584)
 
 export function createIdentityKeyPostIn(values: StrippedEntity<IdentityKeyPostIn>): IdentityKeyPostIn {
 	return Object.assign(create(typeModels[IdentityKeyPostInTypeRef.typeId], IdentityKeyPostInTypeRef), values)
@@ -3713,4 +3713,29 @@ export type IdentityKeyPostIn = {
 	_format: NumberString;
 
 	identityKeyPair: IdentityKeyPair;
+}
+export const RolloutTypeRef: TypeRef<Rollout> = new TypeRef("sys", 2588)
+
+export function createRollout(values: StrippedEntity<Rollout>): Rollout {
+	return Object.assign(create(typeModels[RolloutTypeRef.typeId], RolloutTypeRef), values)
+}
+
+export type Rollout = {
+	_type: TypeRef<Rollout>;
+
+	_id: Id;
+	rolloutType: NumberString;
+}
+export const RolloutGetOutTypeRef: TypeRef<RolloutGetOut> = new TypeRef("sys", 2591)
+
+export function createRolloutGetOut(values: StrippedEntity<RolloutGetOut>): RolloutGetOut {
+	return Object.assign(create(typeModels[RolloutGetOutTypeRef.typeId], RolloutGetOutTypeRef), values)
+}
+
+export type RolloutGetOut = {
+	_type: TypeRef<RolloutGetOut>;
+
+	_format: NumberString;
+
+	rollouts: Rollout[];
 }

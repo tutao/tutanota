@@ -13994,35 +13994,99 @@ export const typeModels = {
 			}
 		}
 	},
-	"2575": {
+	"2584": {
 		"name": "IdentityKeyPostIn",
 		"app": "sys",
 		"version": 128,
 		"since": 128,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2575,
-		"rootId": "A3N5cwAKDw",
+		"id": 2584,
+		"rootId": "A3N5cwAKGA",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2576": {
+			"2585": {
 				"final": false,
 				"name": "_format",
-				"id": 2576,
+				"id": 2585,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"2577": {
+			"2586": {
 				"final": false,
 				"name": "identityKeyPair",
-				"id": 2577,
+				"id": 2586,
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refTypeId": 2567,
+				"dependency": null
+			}
+		}
+	},
+	"2588": {
+		"name": "Rollout",
+		"app": "sys",
+		"version": 128,
+		"since": 128,
+		"type": "AGGREGATED_TYPE",
+		"id": 2588,
+		"rootId": "A3N5cwAKHA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2589": {
+				"final": true,
+				"name": "_id",
+				"id": 2589,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2590": {
+				"final": false,
+				"name": "rolloutType",
+				"id": 2590,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2591": {
+		"name": "RolloutGetOut",
+		"app": "sys",
+		"version": 128,
+		"since": 128,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2591,
+		"rootId": "A3N5cwAKHw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2592": {
+				"final": false,
+				"name": "_format",
+				"id": 2592,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"2593": {
+				"final": false,
+				"name": "rollouts",
+				"id": 2593,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2588,
 				"dependency": null
 			}
 		}

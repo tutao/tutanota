@@ -70,6 +70,7 @@ import { RegistrationServiceDataTypeRef } from "./TypeRefs.js"
 import { RegistrationReturnTypeRef } from "./TypeRefs.js"
 import { ResetFactorsDeleteDataTypeRef } from "./TypeRefs.js"
 import { ResetPasswordPostInTypeRef } from "./TypeRefs.js"
+import { RolloutGetOutTypeRef } from "./TypeRefs.js"
 import { SaltDataTypeRef } from "./TypeRefs.js"
 import { SaltReturnTypeRef } from "./TypeRefs.js"
 import { SecondFactorAuthAllowedReturnTypeRef } from "./TypeRefs.js"
@@ -424,6 +425,15 @@ export const ResetPasswordService = Object.freeze({
 	name: "ResetPasswordService",
 	get: null,
 	post: { data: ResetPasswordPostInTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
+export const RolloutService = Object.freeze({
+	app: "sys",
+	name: "RolloutService",
+	get: { data: null, return: RolloutGetOutTypeRef },
+	post: null,
 	put: null,
 	delete: null,
 } as const)

@@ -77,6 +77,7 @@ use crate::entities::generated::sys::RegistrationServiceData;
 use crate::entities::generated::sys::RegistrationReturn;
 use crate::entities::generated::sys::ResetFactorsDeleteData;
 use crate::entities::generated::sys::ResetPasswordPostIn;
+use crate::entities::generated::sys::RolloutGetOut;
 use crate::entities::generated::sys::SaltData;
 use crate::entities::generated::sys::SaltReturn;
 use crate::entities::generated::sys::SecondFactorAuthAllowedReturn;
@@ -343,6 +344,12 @@ pub struct ResetPasswordService;
 
 crate::service_impl!(declare, ResetPasswordService, "sys/resetpasswordservice", 128);
 crate::service_impl!(POST, ResetPasswordService, ResetPasswordPostIn, ());
+
+
+pub struct RolloutService;
+
+crate::service_impl!(declare, RolloutService, "sys/rolloutservice", 128);
+crate::service_impl!(GET, RolloutService, (), RolloutGetOut);
 
 
 pub struct SaltService;
