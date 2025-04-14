@@ -89,6 +89,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				acceptedPlans: availablePlans,
 				allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
 				currentPlanType: data.currentPlan,
+				accountingInfo: data.accountingInfo,
 				actionButtons: subscriptionActionButtons,
 				featureListProvider: vnode.attrs.data.featureListProvider,
 				priceAndConfigProvider: vnode.attrs.data.planPrices,
