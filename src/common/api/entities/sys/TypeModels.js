@@ -11368,6 +11368,72 @@ export const typeModels = {
 		"app": "sys",
 		"version": "126"
 	},
+	"Rollout": {
+		"name": "Rollout",
+		"since": 126,
+		"type": "AGGREGATED_TYPE",
+		"id": 2568,
+		"rootId": "A3N5cwAKCA",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_id": {
+				"final": true,
+				"name": "_id",
+				"id": 2569,
+				"since": 126,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"rolloutType": {
+				"final": false,
+				"name": "rolloutType",
+				"id": 2570,
+				"since": 126,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {},
+		"app": "sys",
+		"version": "126"
+	},
+	"RolloutGetOut": {
+		"name": "RolloutGetOut",
+		"since": 126,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2571,
+		"rootId": "A3N5cwAKCw",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 2572,
+				"since": 126,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"rollouts": {
+				"final": false,
+				"name": "rollouts",
+				"id": 2573,
+				"since": 126,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refType": "Rollout",
+				"dependency": null
+			}
+		},
+		"app": "sys",
+		"version": "126"
+	},
 	"RootInstance": {
 		"name": "RootInstance",
 		"since": 1,

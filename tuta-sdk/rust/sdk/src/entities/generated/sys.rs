@@ -3511,6 +3511,38 @@ impl Entity for ResetPasswordPostIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct Rollout {
+	pub _id: Option<CustomId>,
+	pub rolloutType: i64,
+}
+
+impl Entity for Rollout {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "Rollout",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct RolloutGetOut {
+	pub _format: i64,
+	pub rollouts: Vec<Rollout>,
+}
+
+impl Entity for RolloutGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "sys",
+			type_: "RolloutGetOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct RootInstance {
 	pub _format: i64,
 	pub _id: Option<IdTupleCustom>,

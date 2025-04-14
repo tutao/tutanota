@@ -2805,6 +2805,31 @@ export type ResetPasswordPostIn = {
 
 	user: Id;
 }
+export const RolloutTypeRef: TypeRef<Rollout> = new TypeRef("sys", "Rollout")
+
+export function createRollout(values: StrippedEntity<Rollout>): Rollout {
+	return Object.assign(create(typeModels.Rollout, RolloutTypeRef), values)
+}
+
+export type Rollout = {
+	_type: TypeRef<Rollout>;
+
+	_id: Id;
+	rolloutType: NumberString;
+}
+export const RolloutGetOutTypeRef: TypeRef<RolloutGetOut> = new TypeRef("sys", "RolloutGetOut")
+
+export function createRolloutGetOut(values: StrippedEntity<RolloutGetOut>): RolloutGetOut {
+	return Object.assign(create(typeModels.RolloutGetOut, RolloutGetOutTypeRef), values)
+}
+
+export type RolloutGetOut = {
+	_type: TypeRef<RolloutGetOut>;
+
+	_format: NumberString;
+
+	rollouts: Rollout[];
+}
 export const RootInstanceTypeRef: TypeRef<RootInstance> = new TypeRef("sys", "RootInstance")
 
 export function createRootInstance(values: StrippedEntity<RootInstance>): RootInstance {
