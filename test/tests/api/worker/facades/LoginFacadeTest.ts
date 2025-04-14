@@ -48,6 +48,7 @@ import { _encryptString } from "../../../../../src/common/api/worker/crypto/Cryp
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { CacheMode } from "../../../../../src/common/api/worker/rest/EntityRestClient"
+import { RolloutFacade } from "../../../../../src/common/api/worker/facades/RolloutFacade"
 
 const { anything, argThat } = matchers
 
@@ -120,6 +121,7 @@ o.spec("LoginFacadeTest", function () {
 	let argon2idFacade: Argon2idFacade
 	let cacheManagmentFacadeMock: CacheManagementFacade
 	let typeModelResolver: TypeModelResolver
+	let rolloutFacade: RolloutFacade
 
 	const timeRangeDate = new Date("2025-03-21T12:33:40.972Z")
 	const login = "born.slippy@tuta.io"
@@ -165,6 +167,7 @@ o.spec("LoginFacadeTest", function () {
 		argon2idFacade = object()
 		when(argon2idFacade.generateKeyFromPassphrase(anything(), anything())).thenResolve(PASSWORD_KEY)
 		cacheManagmentFacadeMock = object()
+		rolloutFacade = object()
 
 		facade = new LoginFacade(
 			restClientMock,
@@ -184,6 +187,7 @@ o.spec("LoginFacadeTest", function () {
 			async (error: Error) => {},
 			async () => cacheManagmentFacadeMock,
 			typeModelResolver,
+			rolloutFacade,
 		)
 
 		eventBusClientMock = instance(EventBusClient)
