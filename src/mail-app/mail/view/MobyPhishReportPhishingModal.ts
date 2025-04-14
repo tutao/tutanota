@@ -6,227 +6,230 @@ import { MailViewerViewModel } from "./MailViewerViewModel.js";
 import { API_BASE_URL } from "./MailViewerViewModel.js";
 
 export class MobyPhishReportPhishingModal implements ModalComponent {
-    private viewModel: MailViewerViewModel;
-    private modalHandle?: ModalComponent;
+	private viewModel: MailViewerViewModel;
+	private modalHandle?: ModalComponent;
+	private reportSubmitted = false;
 
-    constructor(viewModel: MailViewerViewModel) {
-        this.viewModel = viewModel;
-    }
+	constructor(viewModel: MailViewerViewModel) {
+		this.viewModel = viewModel;
+	}
 
-    view(): Children {
-        return m(".modal-overlay", {
-            onclick: (e: MouseEvent) => this.backgroundClick(e)
-        }, [
-            m(".modal-content", {
-                onclick: (e: MouseEvent) => e.stopPropagation()
-            }, [
-                m(".dialog.elevated-bg.border-radius", {
-                    style: this.getModalStyle()
-                }, [
-                    m("p", { style: { fontSize: "18px", fontWeight: "bold", textAlign: "center", color: "#D9534F" } }, 
-                        "Warning: This sender is NOT in your trusted list."
-                    ),
-                    m("p", { style: { fontSize: "16px", textAlign: "center" } }, 
-                        "Do you want to add this sender to your trusted list?"
-                    ),
+	view(): Children {
+		return m(".modal-overlay", {
+			onclick: (e: MouseEvent) => this.backgroundClick(e)
+		}, [
+			m(".modal-content", {
+				onclick: (e: MouseEvent) => e.stopPropagation()
+			}, [
+				m(".dialog.elevated-bg.border-radius", {
+					style: this.getModalStyle()
+				}, this.reportSubmitted ? this.renderConfirmationContent() : this.renderInitialContent())
+			])
+		]);
+	}
 
-                    // "Report as Phishing" button
-                    m("button.btn", {
-                        onclick: async () => {
-                            const senderEmail = this.viewModel.getSender().address;
-                            const userEmail = this.viewModel.logins.getUserController().loginUsername;
+	private renderInitialContent(): Children {
+		return [
+			m("p", { style: { fontSize: "18px", fontWeight: "bold", textAlign: "center", color: "#D9534F" } }, 
+				"Warning: This sender is NOT in your trusted list."
+			),
+			m("p", { style: { fontSize: "16px", textAlign: "center" } }, 
+				"Do you want to add this sender to your trusted list?"
+			),
 
-                            try {
-                                const response = await fetch(`${API_BASE_URL}/update-email-status`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        user_email: userEmail,
-                                        email_id: this.viewModel.mail._id[1],
-                                        sender_email: senderEmail,
-                                        status: "reported_phishing",
-                                        interaction_type: "interacted"
-                                    }),
-                                });
+			m("button.btn", {
+				onclick: async () => {
+					const senderEmail = this.viewModel.getSender().address;
+					const userEmail = this.viewModel.logins.getUserController().loginUsername;
 
-                                if (response.ok) {
-                                    console.log(`Reported phishing attempt: ${senderEmail}`);
-                                    await this.viewModel.fetchSenderData();
-                                    if (this.modalHandle) {
-                                        modal.remove(this.modalHandle);
-                                    } else {
-                                        console.warn("No modal handle set");
-                                    }
-                                    m.redraw();
-                                } else {
-                                    console.error("Failed to report phishing.");
-                                }
-                            } catch (error) {
-                                console.error("Error reporting phishing:", error);
-                            }
-                        },
-                        style: this.getButtonStyle("#D9534F", "#C9302C") // Red
-                    }, "Report as Phishing"),
+					try {
+						const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								user_email: userEmail,
+								email_id: this.viewModel.mail._id[1],
+								sender_email: senderEmail,
+								status: "reported_phishing",
+								interaction_type: "interacted"
+							}),
+						});
 
-                    // "Confirm Anyway" button
-                    m("button.btn", {
-                        onclick: async () => {
-                            const senderEmail = this.viewModel.getSender().address;
-                            const userEmail = this.viewModel.logins.getUserController().loginUsername;
-                            try {
-                                // Step 1 – Add to trusted senders
-                                const addResponse = await fetch(`${API_BASE_URL}/add-trusted`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        user_email: userEmail,
-                                        trusted_email: senderEmail
-                                    }),
-                                });
-                                if (!addResponse.ok) {
-                                    console.error("Failed to add sender to trusted list.");
-                                    return;
-                                }
-                                console.log(`Sender added to trusted list: ${senderEmail}`);
-                                // Step 2 – Let viewModel handle status update, DOM re-render, etc.
-                                await this.viewModel.updateSenderStatus("confirmed");
-                                // Step 3 – Close modal
-                                if (this.modalHandle) {
-                                    modal.remove(this.modalHandle);
-                                } else {
-                                    console.warn("No modal handle set");
-                                }
-                                m.redraw();
-                            } catch (error) {
-                                console.error("Error confirming and trusting sender:", error);
-                            }
-                        },
-                        style: this.getButtonStyle("#5BC0DE", "#31B0D5")
-                    }, "Add as Trusted Sender"),
+						if (response.ok) {
+							console.log(`Reported phishing attempt: ${senderEmail}`);
+							await this.viewModel.fetchSenderData();
+							this.reportSubmitted = true;
+							m.redraw();
 
-                    // "Cancel" button
-                    m("button.btn", {
-                        onclick: () => {
-                            if (this.modalHandle) {
-                                modal.remove(this.modalHandle);
-                            } else {
-                                console.warn("No modal handle set");
-                            }
-                        },
-                        style: this.getCancelButtonStyle()
-                    }, "Cancel")
-                ])
-            ])
-        ]);
-    }
+							// auto-close after 3 seconds
+							setTimeout(() => {
+								if (this.modalHandle) {
+									modal.remove(this.modalHandle);
+								}
+							}, 3000);
+						} else {
+							console.error("Failed to report phishing.");
+						}
+					} catch (error) {
+						console.error("Error reporting phishing:", error);
+					}
+				},
+				style: this.getButtonStyle("#D9534F", "#C9302C")
+			}, "Report as Phishing"),
 
-    /** Button styling */
-    private getButtonStyle(defaultColor: string, hoverColor: string) {
-        return {
-            background: defaultColor,
-            color: "#FFF",
-            border: "none",
-            padding: "15px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            width: "100%",
-            fontSize: "16px",
-            fontWeight: "bold",
-            textAlign: "center",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = hoverColor,
-            onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = defaultColor
-        };
-    }
+			m("button.btn", {
+				onclick: async () => {
+					const senderEmail = this.viewModel.getSender().address;
+					const userEmail = this.viewModel.logins.getUserController().loginUsername;
+					try {
+						const addResponse = await fetch(`${API_BASE_URL}/add-trusted`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								user_email: userEmail,
+								trusted_email: senderEmail
+							}),
+						});
+						if (!addResponse.ok) {
+							console.error("Failed to add sender to trusted list.");
+							return;
+						}
+						console.log(`Sender added to trusted list: ${senderEmail}`);
+						await this.viewModel.updateSenderStatus("confirmed");
+						if (this.modalHandle) {
+							modal.remove(this.modalHandle);
+						}
+						m.redraw();
+					} catch (error) {
+						console.error("Error confirming and trusting sender:", error);
+					}
+				},
+				style: this.getButtonStyle("#5BC0DE", "#31B0D5")
+			}, "Add as Trusted Sender"),
 
-    /** Cancel button styling */
-    private getCancelButtonStyle() {
-        return {
-            background: "transparent",
-            color: "#000",
-            border: "none",
-            padding: "15px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            width: "100%",
-            fontSize: "16px",
-            fontWeight: "bold",
-            textAlign: "center",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-        };
-    }
+			m("button.btn", {
+				onclick: () => {
+					if (this.modalHandle) {
+						modal.remove(this.modalHandle);
+					}
+				},
+				style: this.getCancelButtonStyle()
+			}, "Cancel")
+		];
+	}
 
-    /** Modal styling */
-    private getModalStyle() {
-        return {
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            padding: "20px",
-            textAlign: "center",
-            background: "#fff",
-            boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
-            borderRadius: "10px",
-            width: "320px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px"
-        };
-    }
+	private renderConfirmationContent(): Children {
+		return [
+			m("p", { style: { fontSize: "18px", fontWeight: "bold", textAlign: "center", color: "green" } },
+				"Phishing Report Submitted"),
+			m("p", { style: { fontSize: "16px", textAlign: "center" } },
+				"Thank you for helping keep your inbox safe."),
+			m("button.btn", {
+				onclick: () => {
+					if (this.modalHandle) {
+						modal.remove(this.modalHandle);
+					}
+				},
+				style: this.getButtonStyle("#5cb85c", "#449d44")
+			}, "Close")
+		];
+	}
 
-    hideAnimation(): Promise<void> {
-        return Promise.resolve();
-    }
+	private getButtonStyle(defaultColor: string, hoverColor: string) {
+		return {
+			background: defaultColor,
+			color: "#FFF",
+			border: "none",
+			padding: "15px",
+			borderRadius: "8px",
+			cursor: "pointer",
+			width: "100%",
+			fontSize: "16px",
+			fontWeight: "bold",
+			textAlign: "center",
+			display: "flex",
+			alignItems: "center",
+			justifyContent: "center",
+			onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.background = hoverColor,
+			onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.background = defaultColor
+		};
+	}
 
-    onClose(): void {}
+	private getCancelButtonStyle() {
+		return {
+			background: "transparent",
+			color: "#000",
+			border: "none",
+			padding: "15px",
+			borderRadius: "8px",
+			cursor: "pointer",
+			width: "100%",
+			fontSize: "16px",
+			fontWeight: "bold",
+			textAlign: "center",
+			display: "flex",
+			alignItems: "center",
+			justifyContent: "center"
+		};
+	}
 
-    backgroundClick(e: MouseEvent): void {
-        console.log("Background clicked, closing modal...");
-        if (this.modalHandle) {
-            modal.remove(this.modalHandle);
-        } else {
-            console.warn("No modal handle set");
-        }
+	private getModalStyle() {
+		return {
+			position: "fixed",
+			top: "50%",
+			left: "50%",
+			transform: "translate(-50%, -50%)",
+			padding: "20px",
+			textAlign: "center",
+			background: "#fff",
+			boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+			borderRadius: "10px",
+			width: "320px",
+			display: "flex",
+			flexDirection: "column",
+			gap: "10px"
+		};
+	}
 
-    }
+	hideAnimation(): Promise<void> {
+		return Promise.resolve();
+	}
 
-    popState(e: Event): boolean {
-        if (this.modalHandle) {
-            modal.remove(this.modalHandle);
-        } else {
-            console.warn("No modal handle set");
-        }
-        return false;
-    }
+	onClose(): void {}
 
-    callingElement(): HTMLElement | null {
-        return null;
-    }
+	backgroundClick(e: MouseEvent): void {
+		if (this.modalHandle) {
+			modal.remove(this.modalHandle);
+		}
+	}
 
-    shortcuts(): Shortcut[] {
-        return [
-            {
-                key: Keys.ESC, 
-                exec: () => {
-                    if (this.modalHandle) {
-                        modal.remove(this.modalHandle);
-                    } else {
-                        console.warn("No modal handle set");
-                    }
-                    return true;
-                },
-                help: "close_alt",
-            }
-        ];
-    }
+	popState(e: Event): boolean {
+		if (this.modalHandle) {
+			modal.remove(this.modalHandle);
+		}
+		return false;
+	}
 
-    setModalHandle(handle: ModalComponent) {
-        this.modalHandle = handle;
-    }
+	callingElement(): HTMLElement | null {
+		return null;
+	}
 
+	shortcuts(): Shortcut[] {
+		return [
+			{
+				key: Keys.ESC,
+				exec: () => {
+					if (this.modalHandle) {
+						modal.remove(this.modalHandle);
+					}
+					return true;
+				},
+				help: "close_alt",
+			}
+		];
+	}
+
+	setModalHandle(handle: ModalComponent) {
+		this.modalHandle = handle;
+	}
 }
