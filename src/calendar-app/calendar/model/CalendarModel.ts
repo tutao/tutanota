@@ -5,11 +5,13 @@ import {
 	deepEqual,
 	defer,
 	DeferredObject,
+	delay,
 	downcast,
 	filterInt,
 	getFromMap,
 	isSameDay,
 	Require,
+	splitInChunks,
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
 import { CalendarMethod, defaultCalendarColor, EXTERNAL_CALENDAR_SYNC_INTERVAL, FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
@@ -49,7 +51,15 @@ import type { IProgressMonitor } from "../../../common/api/common/utils/Progress
 import { NoopProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { elementIdPart, getElementId, isSameId, listIdPart, removeTechnicalFields } from "../../../common/api/common/utils/EntityUtils"
+import {
+	DELETE_MULTIPLE_LIMIT,
+	elementIdPart,
+	getElementId,
+	isSameId,
+	listIdPart,
+	POST_MULTIPLE_LIMIT,
+	removeTechnicalFields,
+} from "../../../common/api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
 import m from "mithril"
@@ -86,7 +96,13 @@ import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { EventImportRejectionReason, parseCalendarStringData, sortOutParsedEvents, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
+import {
+	EventImportRejectionReason,
+	EventWrapper,
+	parseCalendarStringData,
+	sortOutParsedEvents,
+	SyncStatus,
+} from "../../../common/calendar/import/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
@@ -94,6 +110,9 @@ import { getClientOnlyCalendars } from "../gui/CalendarGuiUtils.js"
 import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
 
 const TAG = "[CalendarModel]"
+const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
+const EXTERNAL_CALENDAR_RETRY_DELAY_MS = 1000
+
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot
 	groupInfo: GroupInfo
@@ -163,6 +182,7 @@ export class CalendarModel {
 	 * Stores the queued calendars to be synchronized
 	 */
 	private externalCalendarSyncQueue: ExternalCalendarQueueItem[] = []
+	private externalCalendarRetryCount: Map<Id, number> = new Map()
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -381,8 +401,12 @@ export class CalendarModel {
 		const skippedCalendars: Map<Id, { calendarName: string; error: Error }> = new Map()
 
 		while (this.externalCalendarSyncQueue.length > 0) {
-			const calendar = this.externalCalendarSyncQueue.pop()
+			const calendar = this.externalCalendarSyncQueue.shift()
 			if (!calendar) break
+
+			const retryCount = this.externalCalendarRetryCount.get(calendar.group) ?? 0
+
+			await delay(retryCount * EXTERNAL_CALENDAR_RETRY_DELAY_MS)
 
 			const userController = this.logins.getUserController()
 			const groupRootsPromises: Promise<CalendarGroupRoot>[] = []
@@ -423,17 +447,6 @@ export class CalendarModel {
 
 			const existingEventList = await loadAllEvents(currentCalendarGroupRoot)
 
-			const operationsLog: {
-				skipped: CalendarEvent[]
-				updated: CalendarEvent[]
-				created: CalendarEvent[]
-				deleted: CalendarEvent[]
-			} = {
-				skipped: [],
-				updated: [],
-				created: [],
-				deleted: [],
-			}
 			/**
 			 * Sync strategy
 			 * - Replace duplicates
@@ -442,59 +455,47 @@ export class CalendarModel {
 			 */
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedExternalEvents, existingEventList, currentCalendarGroupRoot, getTimeZone())
 			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
+			const eventsToUpdate = duplicates.filter((event) => {
+				const existingEvent = existingEventList.find((existing) => event.uid === existing.uid)
 
-			// Replacing duplicates with changes
-			for (const duplicatedEvent of duplicates) {
-				const existingEvent = existingEventList.find((event) => event.uid === duplicatedEvent.uid)
 				if (!existingEvent) {
 					console.warn("Found a duplicate without an existing event!")
-					continue
+					return false
 				}
-				if (this.eventHasSameFields(duplicatedEvent, existingEvent)) {
-					operationsLog.skipped.push(duplicatedEvent)
-					continue
-				}
-				await this.updateEventWithExternal(existingEvent, duplicatedEvent)
-				operationsLog.updated.push(duplicatedEvent)
-			}
-			console.log(TAG, `${operationsLog.skipped.length} events skipped (duplication without changes)`)
-			console.log(TAG, `${operationsLog.updated.length} events updated (duplication with changes)`)
 
-			// Add new event
-			for (const { event } of eventsForCreation) {
-				assignEventId(event, getTimeZone(), currentCalendarGroupRoot)
-				// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
-				event._ownerEncSessionKey = null
+				return !this.eventHasSameFields(event, existingEvent)
+			})
 
-				if (event.repeatRule != null) {
-					event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
-				}
-				// Reset permissions because server will assign them
-				downcast(event)._permissions = null
-				event._ownerGroup = currentCalendarGroupRoot._id
-				assertEventValidity(event)
-				operationsLog.created.push(event)
-			}
-			await this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
-			console.log(TAG, `${operationsLog.created.length} events created`)
-
-			// Remove rest
 			const eventsToRemove = existingEventList.filter(
 				(existingEvent) => !parsedExternalEvents.some((externalEvent) => externalEvent.event.uid === existingEvent.uid),
 			)
-			for (const event of eventsToRemove) {
-				await this.deleteEvent(event).catch((err) => {
-					if (err instanceof NotFoundError) {
-						return console.log(`Already deleted event`, event)
+
+			const creationRequests = Math.ceil(eventsForCreation.length / POST_MULTIPLE_LIMIT)
+			const totalRequests = creationRequests + eventsToRemove.length + eventsToUpdate.length
+
+			try {
+				await this.processExternalCalendarOperations(
+					eventsToRemove,
+					eventsToUpdate,
+					existingEventList,
+					duplicates.length,
+					eventsForCreation,
+					currentCalendarGroupRoot,
+					totalRequests > 50,
+				)
+
+				this.deviceConfig.updateLastSync(calendar.group)
+			} catch (err) {
+				this.externalCalendarRetryCount.set(calendar.group, retryCount + 1)
+
+				if (retryCount >= EXTERNAL_CALENDAR_RETRY_LIMIT) {
+					if (!(err instanceof NotFoundError)) {
+						throw err
 					}
-
-					throw err
-				})
-				operationsLog.deleted.push(event)
+				} else {
+					this.externalCalendarSyncQueue.push(calendar)
+				}
 			}
-			console.log(TAG, `${operationsLog.deleted.length} events removed`)
-
-			this.deviceConfig.updateLastSync(calendar.group)
 		}
 
 		if (skippedCalendars.size) {
@@ -505,6 +506,87 @@ export class CalendarModel {
 			}
 			throw new Error(errorMessage)
 		}
+	}
+
+	private async processExternalCalendarOperations(
+		eventsToRemove: CalendarEvent[],
+		eventsToUpdate: CalendarEvent[],
+		existingEventList: Array<CalendarEvent>,
+		duplicatesCount: number,
+		eventsForCreation: Array<EventWrapper>,
+		currentCalendarGroupRoot: CalendarGroupRoot,
+		wipeCalendar: boolean,
+	) {
+		const operationsLog: {
+			skipped: number
+			updated: number
+			created: number
+			deleted: number
+		} = {
+			skipped: 0,
+			updated: 0,
+			created: 0,
+			deleted: 0,
+		}
+
+		if (wipeCalendar && eventsToRemove.length > 0) {
+			const listId = listIdPart(eventsToRemove[0]._id)
+			const events = eventsToRemove.concat(eventsToUpdate)
+			await this.wipeCalendar(listId, events)
+
+			operationsLog.deleted += eventsToRemove.length + eventsToUpdate.length
+			console.log(TAG, `${operationsLog.deleted} events removed`)
+		} else {
+			// Remove events that are not going to be updated
+			for (const event of eventsToRemove) {
+				await this.deleteEvent(event).catch((err) => {
+					if (err instanceof NotFoundError) {
+						console.log(`Already deleted event, removing from cache`, event)
+						return this.calendarFacade.removeEventFromCache(listIdPart(event._id), elementIdPart(event._id))
+					}
+
+					throw err
+				})
+				operationsLog.deleted++
+			}
+			console.log(TAG, `${operationsLog.deleted} events removed`)
+
+			// Replacing duplicates with changes
+			for (const duplicatedEvent of eventsToUpdate) {
+				const existingEvent = existingEventList.find((event) => event.uid === duplicatedEvent.uid)
+				if (!existingEvent) {
+					console.warn("Found a duplicate without an existing event after filtering!")
+					continue
+				}
+
+				if (this.eventHasSameFields(duplicatedEvent, existingEvent)) {
+					continue
+				}
+				await this.updateEventWithExternal(existingEvent, duplicatedEvent)
+				operationsLog.updated++
+			}
+			operationsLog.skipped = duplicatesCount - operationsLog.updated
+			console.log(TAG, `${operationsLog.skipped} events skipped (duplication without changes)`)
+			console.log(TAG, `${operationsLog.updated} events updated (duplication with changes)`)
+		}
+
+		// Add new event
+		for (const { event } of eventsForCreation) {
+			assignEventId(event, getTimeZone(), currentCalendarGroupRoot)
+			// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
+			event._ownerEncSessionKey = null
+
+			if (event.repeatRule != null) {
+				event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+			}
+			// Reset permissions because server will assign them
+			downcast(event)._permissions = null
+			event._ownerGroup = currentCalendarGroupRoot._id
+			assertEventValidity(event)
+			operationsLog.created++
+		}
+		await this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
+		console.log(TAG, `${operationsLog.created} events created`)
 	}
 
 	private eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
@@ -585,6 +667,23 @@ export class CalendarModel {
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
 		return await this.entityClient.erase(event).then(this.requestWidgetRefresh)
+	}
+
+	async wipeCalendar(listId: Id, events: CalendarEvent[]): Promise<void> {
+		const chunks = splitInChunks(DELETE_MULTIPLE_LIMIT, events)
+		let chunksCompleted = 0
+
+		try {
+			for (const chunk of chunks) {
+				await this.entityClient.eraseMultiple(listId, chunk)
+				chunksCompleted++
+			}
+		} catch (e) {
+			console.error("Chunks: ", { chunksCompleted, total: chunks.length }, e.message)
+			throw e
+		}
+
+		return this.requestWidgetRefresh()
 	}
 
 	/**
