@@ -1123,6 +1123,27 @@ o.spec("EntityRestClient", function () {
 
 			await entityRestClient.erase(newCustomer)
 		})
+
+		o("Delete entities", async function () {
+			const { version } = await resolveTypeReference(CustomerTypeRef)
+			const id = "id"
+			const idTwo = "id2"
+
+			const newCustomer = createTestEntity(CalendarEventTypeRef, {
+				_id: ["foo", id],
+			})
+			const secondNewCustomer = createTestEntity(CalendarEventTypeRef, {
+				_id: ["foo", idTwo],
+			})
+
+			when(
+				restClient.request("/rest/tutanota/calendarevent/foo?ids=id,id2", HttpMethod.DELETE, {
+					headers: { ...authHeader, v: version },
+				}),
+			)
+
+			await entityRestClient.eraseMultiple("foo", [newCustomer, secondNewCustomer])
+		})
 	})
 
 	o.spec("tryServers", function () {

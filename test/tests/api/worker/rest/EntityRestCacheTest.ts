@@ -177,6 +177,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				setupMultiple: notToBeCalled("setupMultiple"),
 				update: notToBeCalled("update"),
 				erase: notToBeCalled("erase"),
+				eraseMultiple: notToBeCalled("eraseMultiple"),
 				entityEventsReceived: (e) => Promise.resolve(e),
 				getRestClient: () => restClient,
 			})

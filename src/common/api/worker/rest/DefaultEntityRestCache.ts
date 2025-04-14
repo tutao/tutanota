@@ -9,8 +9,8 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { resolveClientTypeReference, resolveTypeRefFromAppAndTypeNameLegacy } from "../../common/EntityFunctions"
-import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { OperationType, reverse } from "../../common/TutanotaConstants"
+import { assertNotNull, count, difference, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -313,6 +313,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
 		return this.entityRestClient.erase(instance, options)
+	}
+
+	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
+		return this.entityRestClient.eraseMultiple(listId, instances, options)
 	}
 
 	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {

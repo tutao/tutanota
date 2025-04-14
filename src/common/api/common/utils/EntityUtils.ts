@@ -56,6 +56,7 @@ export const CUSTOM_MAX_ID = repeat("_", 340)
 export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
+export const DELETE_MULTIPLE_LIMIT = 100
 
 /**
  * an entity that only contains the actual user data and can not be used to refer to any existing entity.

@@ -181,6 +181,21 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
+	async eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>): Promise<void> {
+		if (instances.length === 0) {
+			return
+		}
+
+		const typeModel = await resolveTypeReference(instances[0]._type)
+		_verifyType(typeModel)
+
+		this._handleDeleteMultiple(
+			instances.map((it) => getIds(it, typeModel).id),
+			listId,
+		)
+		return Promise.resolve()
+	}
+
 	setup<T extends SomeEntity>(listId: Id | null | undefined, instance: T, extraHeaders?: Dict): Promise<Id> {
 		return Promise.reject("Illegal method: setup")
 	}
@@ -191,6 +206,12 @@ export class EntityRestClientMock extends EntityRestClient {
 
 	update<T extends SomeEntity>(instance: T): Promise<void> {
 		return Promise.reject("Illegal method: update")
+	}
+
+	_handleDeleteMultiple(ids: Array<Id>, listId: Id) {
+		for (const id of ids) {
+			delete this._listEntities[listId][id]
+		}
 	}
 
 	_handleDelete(id: Id | null | undefined, listId: Id | null | undefined) {
