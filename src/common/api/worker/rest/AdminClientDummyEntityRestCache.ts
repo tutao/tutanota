@@ -15,6 +15,10 @@ export class AdminClientDummyEntityRestCache implements EntityRestCache {
 		throw new ProgrammingError("erase not implemented")
 	}
 
+	async eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>): Promise<void> {
+		throw new ProgrammingError("eraseMultiple not implemented")
+	}
+
 	async load<T extends SomeEntity>(_typeRef: TypeRef<T>, _id: PropertyType<T, "_id">, _opts: EntityRestClientLoadOptions): Promise<T> {
 		throw new ProgrammingError("load not implemented")
 	}

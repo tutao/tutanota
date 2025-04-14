@@ -131,6 +131,10 @@ export class EntityClient {
 		return this._target.erase(instance, options)
 	}
 
+	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
+		return this._target.eraseMultiple(listId, instances, options)
+	}
+
 	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {
 		const typeModel = await resolveClientTypeReference(typeRef)
 		const rootId = [groupId, typeModel.rootId] as const
