@@ -24,20 +24,7 @@ def downloadFromNexus(Map params) {
 }
 
 def checkGithub() {
-    sh """
-        if test "*/master" != "${params.branch}"; then
-            echo "this build was explicitly requested to not build off master"
-            exit 0
-        fi
-    """
-	sh '''
-	    # this fails if the public repository master's tip is not in our master.
-	    # we may have more commits, though.
-		# get the commit hash of the public repositories master
-		gh=$(git ls-remote git@github.com:tutao/tutanota.git refs/heads/master | awk '{print $1}')
-		# exit with 0 if $gh is an ancestor of the current HEAD, 1 otherwise.
-		git merge-base --is-ancestor $gh HEAD
-	'''
+
 }
 
 
