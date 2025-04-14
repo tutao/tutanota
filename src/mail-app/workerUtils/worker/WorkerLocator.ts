@@ -107,6 +107,7 @@ import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"
 import type { OfflineStorageSearchFacade } from "../index/OfflineStorageSearchFacade.js"
 import { PatchMerger } from "../../../common/api/worker/offline/PatchMerger"
 import { EventInstancePrefetcher } from "../../../common/api/worker/EventInstancePrefetcher"
+import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 
 assertWorkerOrNode()
 
@@ -134,6 +135,7 @@ export type WorkerLocatorType = {
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
+	rolloutFacade: RolloutFacade
 
 	// login
 	user: UserFacade
@@ -518,6 +520,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
 	)
+	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
 
 	const loginListener: LoginListener = {
 		async onPartialLoginSuccess(sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
@@ -578,6 +581,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		},
 		locator.cacheManagement,
 		typeModelResolver,
+		locator.rolloutFacade,
 	)
 
 	locator.search = lazyMemoized(async () => {
