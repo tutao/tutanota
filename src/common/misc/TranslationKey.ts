@@ -1592,6 +1592,7 @@ export type TranslationKeyType =
 	| "selectTemplate_action"
 	| "sendErrorReport_action"
 	| "sender_label"
+	| "sendingEvaluation_msg"
 	| "sendingUnencrypted_msg"
 	| "sending_msg"
 	| "sendLogsInfo_msg"

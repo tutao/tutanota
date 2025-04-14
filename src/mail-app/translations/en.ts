@@ -1609,6 +1609,7 @@ export default {
 		"selectTemplate_action": "Select",
 		"sendErrorReport_action": "Send error report",
 		"sender_label": "Sender",
+		"sendingEvaluation_msg": "Submitting feedback...",
 		"sendingUnencrypted_msg": "Your message is being sent.",
 		"sending_msg": "Your message is being encrypted and sent.",
 		"sendLogsInfo_msg": "Attach the log files to the error report. Click below to display the contents.",

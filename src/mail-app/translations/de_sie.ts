@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-04-09T04:39:13Z",
+	"updated_at": "2025-04-14T08:58:51Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1613,6 +1613,7 @@ export default {
 		"selectTemplate_action": "Auswählen",
 		"sendErrorReport_action": "Fehlerbericht senden",
 		"sender_label": "Absendeadresse",
+		"sendingEvaluation_msg": "Sende Feedback...",
 		"sendingUnencrypted_msg": "Ihre Nachricht wird gesendet.",
 		"sending_msg": "Ihre Nachricht wird verschlüsselt und gesendet.",
 		"sendLogsInfo_msg": "Die Logdateien an den Fehlerbericht anhängen. Klicken Sie auf eine Logdatei, um den Inhalt zu sehen.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-04-06T11:59:34Z",
+	"updated_at": "2025-04-13T17:24:54Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1609,6 +1609,7 @@ export default {
 		"selectTemplate_action": "Válassza ki!",
 		"sendErrorReport_action": "Hibajelentés küldése",
 		"sender_label": "Feladó",
+		"sendingEvaluation_msg": "Visszajelzés küldése...",
 		"sendingUnencrypted_msg": "Az Ön üzenete küldésfolyamatban van.",
 		"sending_msg": "Az üzenete titkosításra, majd elküldésre került.",
 		"sendLogsInfo_msg": "Csatolja a naplófájlokat a hibajelentéshez. Kattintson az alábbi gombra a tartalom megjelenítéséhez.",
@@ -1729,6 +1730,7 @@ export default {
 		"supportDownloadMailApp_msg": "A választ akkor érheti el, ha az ügyfélszolgálat válaszolt a Tuta Mail szolgáltatásban a Tuta Naptár hitelesítő adataival.",
 		"supportForm_msg": "Kérjük, hogy szolgáljon további részletekkel (angolul vagy németül), hogy jobban segíthessünk Önnek!",
 		"supportForm_title": "Járjunk a végére ennek a dolognak",
+		"supportForm_whatWentWrong_msg": "Mi romlott el?",
 		"supportMenu_label": "Támogatás",
 		"supportNoDirectSupport_msg": "További segítséget kaphat a hivatalos GYIK oldalunkon. Alternatívaként frissíthet, hogy közvetlen e-mailes támogatást kapjon.",
 		"supportNoDirectSupport_title": "Sajnáljuk, de az Ön Free terve (ingyenes előfizetése) nem ajánl közvetlen e-mail támogatást!",

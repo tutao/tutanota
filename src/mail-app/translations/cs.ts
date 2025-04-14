@@ -1610,6 +1610,7 @@ export default {
 		"selectTemplate_action": "Zvolit",
 		"sendErrorReport_action": "Odeslat hlášení o chybě",
 		"sender_label": "Odesílatel",
+		"sendingEvaluation_msg": "Zasílání zpětné vazby...",
 		"sendingUnencrypted_msg": "Vaše zpráva se odesílá.",
 		"sending_msg": "Vaše zpráva se šifruje a odesílá.",
 		"sendLogsInfo_msg": "K chybovému hlášení připojte soubor s protokolem.  Kliknutím níže zobrazíte jeho obsah.",
