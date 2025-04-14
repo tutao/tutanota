@@ -13,7 +13,6 @@ import { _verifyType, resolveClientTypeReference, resolveServerTypeReference } f
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
 import { downcast, TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper.js"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { Type } from "../../../../../src/common/api/common/EntityConstants.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
@@ -181,6 +180,21 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
+	async eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>): Promise<void> {
+		if (instances.length === 0) {
+			return
+		}
+
+		const typeModel = await resolveClientTypeReference(instances[0]._type)
+		_verifyType(typeModel)
+
+		this._handleDeleteMultiple(
+			instances.map((it) => getIds(it, typeModel).id),
+			listId,
+		)
+		return Promise.resolve()
+	}
+
 	setup<T extends SomeEntity>(listId: Id | null | undefined, instance: T, extraHeaders?: Dict): Promise<Id> {
 		return Promise.reject("Illegal method: setup")
 	}
@@ -191,6 +205,12 @@ export class EntityRestClientMock extends EntityRestClient {
 
 	update<T extends SomeEntity>(instance: T): Promise<void> {
 		return Promise.reject("Illegal method: update")
+	}
+
+	_handleDeleteMultiple(ids: Array<Id>, listId: Id) {
+		for (const id of ids) {
+			delete this._listEntities[listId][id]
+		}
 	}
 
 	_handleDelete(id: Id | null | undefined, listId: Id | null | undefined) {
