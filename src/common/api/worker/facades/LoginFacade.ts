@@ -101,6 +101,7 @@ import { _encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { AttributeModel } from "../../common/AttributeModel"
+import { RolloutFacade } from "./RolloutFacade"
 
 assertWorkerOrNode()
 
@@ -219,6 +220,7 @@ export class LoginFacade {
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly sendError: (error: Error) => Promise<void>,
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
+		private readonly rolloutFacade: RolloutFacade,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -299,6 +301,7 @@ export class LoginFacade {
 		this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
 
 		if (!isAdminClient() && sessionType !== SessionType.Temporary) {
+			await this.rolloutFacade.initialize()
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
 		}
 
@@ -712,6 +715,7 @@ export class LoginFacade {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
 		if (!isExternalUser && !isAdminClient()) {
+			await this.rolloutFacade.initialize()
 			// We trigger group key rotation only for internal users.
 			// If we have not migrated to argon2 we postpone key rotation until next login
 			// instead of reloading the pwKey, which would be updated by the KDF migration.

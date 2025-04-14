@@ -83,6 +83,7 @@ import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyP
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
+import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 
 assertWorkerOrNode()
 
@@ -108,6 +109,7 @@ export type CalendarWorkerLocatorType = {
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
 	cryptoWrapper: CryptoWrapper
+	rolloutFacade: RolloutFacade
 
 	// login
 	user: UserFacade
@@ -309,6 +311,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
 	)
+	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
 
 	const loginListener: LoginListener = {
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
@@ -356,6 +359,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await worker.sendError(error)
 		},
 		locator.cacheManagement,
+		locator.rolloutFacade,
 	)
 
 	locator.userManagement = lazyMemoized(async () => {

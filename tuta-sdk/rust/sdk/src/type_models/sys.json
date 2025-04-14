@@ -13954,35 +13954,99 @@
 			}
 		}
 	},
-	"2571": {
+	"2580": {
 		"name": "IdentityKeyPostIn",
 		"app": "sys",
 		"version": 127,
 		"since": 127,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2571,
-		"rootId": "A3N5cwAKCw",
+		"id": 2580,
+		"rootId": "A3N5cwAKFA",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2572": {
+			"2581": {
 				"final": false,
 				"name": "_format",
-				"id": 2572,
+				"id": 2581,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"2573": {
+			"2582": {
 				"final": false,
 				"name": "identityKeyPair",
-				"id": 2573,
+				"id": 2582,
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refTypeId": 2563,
+				"dependency": null
+			}
+		}
+	},
+	"2584": {
+		"name": "Rollout",
+		"app": "sys",
+		"version": 127,
+		"since": 127,
+		"type": "AGGREGATED_TYPE",
+		"id": 2584,
+		"rootId": "A3N5cwAKGA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2585": {
+				"final": true,
+				"name": "_id",
+				"id": 2585,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2586": {
+				"final": false,
+				"name": "rolloutType",
+				"id": 2586,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2587": {
+		"name": "RolloutGetOut",
+		"app": "sys",
+		"version": 127,
+		"since": 127,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2587,
+		"rootId": "A3N5cwAKGw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2588": {
+				"final": false,
+				"name": "_format",
+				"id": 2588,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"2589": {
+				"final": false,
+				"name": "rollouts",
+				"id": 2589,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2584,
 				"dependency": null
 			}
 		}

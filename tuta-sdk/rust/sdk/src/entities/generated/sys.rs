@@ -5961,9 +5961,9 @@ impl Entity for IdentityKeyPair {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct IdentityKeyPostIn {
-	#[serde(rename = "2572")]
+	#[serde(rename = "2581")]
 	pub _format: i64,
-	#[serde(rename = "2573")]
+	#[serde(rename = "2582")]
 	pub identityKeyPair: IdentityKeyPair,
 }
 
@@ -5971,7 +5971,43 @@ impl Entity for IdentityKeyPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2571),
+			type_id: TypeId::from(2580),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct Rollout {
+	#[serde(rename = "2585")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2586")]
+	pub rolloutType: i64,
+}
+
+impl Entity for Rollout {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2584),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct RolloutGetOut {
+	#[serde(rename = "2588")]
+	pub _format: i64,
+	#[serde(rename = "2589")]
+	pub rollouts: Vec<Rollout>,
+}
+
+impl Entity for RolloutGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2587),
 		}
 	}
 }
