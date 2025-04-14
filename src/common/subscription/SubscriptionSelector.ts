@@ -27,6 +27,7 @@ import {
 	LegacyPlans,
 	NewBusinessPlans,
 	NewPersonalPlans,
+	PaymentMethodType,
 	PlanType,
 	PlanTypeToName,
 } from "../api/common/TutanotaConstants.js"
@@ -35,6 +36,7 @@ import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.j
 import { isIOSApp } from "../api/common/Env"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { theme } from "../gui/theme.js"
+import { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -62,6 +64,7 @@ export type SubscriptionSelectorAttr = {
 	acceptedPlans: AvailablePlanType[]
 	multipleUsersAllowed: boolean
 	msg: MaybeTranslation | null
+	accountingInfo: AccountingInfo | null
 }
 
 export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: AvailablePlanType): lazy<Children> {
@@ -288,7 +291,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		let priceStr: string
 		let referencePriceStr: string | undefined = undefined
 		let priceType: PriceType
-		if (isIOSApp()) {
+		const paymentMethod = selectorAttrs.accountingInfo?.paymentMethod ?? null
+		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
 				if (isCampaign && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
