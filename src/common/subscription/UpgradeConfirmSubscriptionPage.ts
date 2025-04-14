@@ -178,9 +178,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 								label: lang.getTranslation("priceTill_label", {
 									"{date}": formatDate(DateTime.now().plus({ month: 1 }).toJSDate()),
 								}),
-								value: isIOSApp()
-									? attrs.data.planPrices.getMobilePrices().get(PlanTypeToName[attrs.data.type].toLowerCase())!.displayZero
-									: formatPrice(0, true),
+								value: formatPrice(0, true),
 								isReadOnly: true,
 							}),
 						m(TextField, {
