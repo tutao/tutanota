@@ -901,19 +901,32 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			bannerIcon = Icons.Warning;
 			buttonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
 		}		
-		
 
-		return m({ view: () => m(InfoBanner, {
+		// phishing info modal
+		buttonsToShow.push({
+			label: "mobyPhish_learn_more", // Or just "Learn more"
+			icon: m(Icon, { icon: Icons.QuestionMark }),
+			click: () => {
+				const modalInstance = new MobyPhishInfoModal();
+				const handle = modal.display(modalInstance);
+				modalInstance.setModalHandle?.(handle);
+			},
+			style: {
+				backgroundColor: "#007bff",
+				color: "white",
+				fontWeight: "bold",
+				borderRadius: "8px",
+				padding: "8px 12px"
+			}
+		});
+
+
+		return m(InfoBanner, {
 			message: messageKey,
 			icon: bannerIcon,
 			type: bannerType,
-			helpClick: () => {
-				const modalInstance = new MobyPhishInfoModal();
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle(handle);
-			},
 			buttons: buttonsToShow
-		}) });
+		});
 		
 	}
 
