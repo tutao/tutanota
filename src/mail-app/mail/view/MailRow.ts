@@ -225,8 +225,12 @@ export class MailRow implements VirtualRow<Mail> {
 							transformOrigin: "left",
 						},
 						onclick: (e: MouseEvent) => {
-							e.stopPropagation()
-							// e.redraw = false
+							if (e.shiftKey) {
+								// If the shift is pressed, let it bubble up and be handled by List which will do a range select
+								e.preventDefault()
+							} else {
+								e.stopPropagation()
+							}
 						},
 						onchange: () => {
 							if (this.entity) this.onSelected(this.entity, this.checkboxDom.checked)
