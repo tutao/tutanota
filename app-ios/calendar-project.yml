@@ -83,6 +83,49 @@ targets:
         embed: false
       - framework: StoreKit.framework
         embed: false
+      - target: AgendaWidgetExtension
+  AgendaWidgetExtension:
+    templates: [ "formatAndLint" ]
+    type: "app-extension"
+    platform: "iOS"
+    sources: "AgendaWidgetExtension"
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: "AgendaWidget"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).AgendaWidget"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+      groups:
+        - "codeSigning"
+    dependencies:
+      - sdk: SwiftUI.framework
+      - sdk: WidgetKit.framework
+      - target: TutanotaSharedFramework
+    info:
+      path: "AgendaWidgetExtension/Info.plist"
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        CFDisplayName: Agenda
+  WidgetConfigIntent:
+    templates: [ "formatAndLint" ]
+    type: "app-extension"
+    sources: "WidgetConfigIntent"
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: "WidgetConfigIntent"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).WidgetConfigIntent"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+      groups:
+        - "codeSigning"
+    dependencies:
+      - sdk: Intents.framework
+      - target: TutanotaSharedFramework
+    info:
+      path: "WidgetConfigIntent/Info.plist"
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.intents-service
+        CFDisplayName: WidgetConfig
   tutanotaTests:
     templates: [ "formatAndLint" ]
     type: "bundle.unit-test"
