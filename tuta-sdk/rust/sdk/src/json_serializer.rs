@@ -613,13 +613,13 @@ mod tests {
 	use crate::bindings::file_client::MockFileClient;
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::generated::sys::{GroupMembership, User};
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::util::test_utils::*;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 
 	#[test]
 	fn test_parse_mail() {
