@@ -3,7 +3,7 @@ import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
 import { LayerType } from "../../../RootView"
 import { lazy, MaybeLazy, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { lang, Translation, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -23,6 +23,7 @@ export class ViewColumn implements Component<Attrs> {
 	readonly maxWidth: number
 	private readonly headerCenter: MaybeLazy<MaybeTranslation>
 	private readonly ariaLabel: lazy<string>
+	private readonly testId: string | null
 	width: number
 	offset: number // offset to the left
 
@@ -42,6 +43,7 @@ export class ViewColumn implements Component<Attrs> {
 	 * @param maxWidth The maximum allowed width for the view column.
 	 * @param headerCenter The title of the view column.
 	 * @param ariaLabel The label of the view column to be read by screen readers. Defaults to headerCenter if not specified.
+	 * @param testId testId of the view column used for UI tests.
 	 */
 	constructor(
 		component: Component,
@@ -53,11 +55,13 @@ export class ViewColumn implements Component<Attrs> {
 			// provide separately. We should always require aria description instead.
 			headerCenter,
 			ariaLabel = () => lang.getTranslationText(this.getTitle()),
+			testId,
 		}: {
 			minWidth: number
 			maxWidth: number
 			headerCenter?: MaybeLazy<MaybeTranslation>
 			ariaLabel?: lazy<string>
+			testId?: string
 		},
 	) {
 		this.component = component
@@ -68,6 +72,7 @@ export class ViewColumn implements Component<Attrs> {
 		this.headerCenter = headerCenter || "emptyString_msg"
 
 		this.ariaLabel = ariaLabel ?? null
+		this.testId = testId ?? null
 		this.width = minWidth
 		this.offset = 0
 		this.isInForeground = false
@@ -78,12 +83,12 @@ export class ViewColumn implements Component<Attrs> {
 
 	view() {
 		const zIndex = !this.isVisible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
-		const landmark = this.ariaRole ? landmarkAttrs(this.ariaRole, this.ariaLabel ? this.ariaLabel() : lang.getTranslationText(this.getTitle())) : {}
+		const landmark = this.ariaRole ? landmarkAttrs(this.ariaRole, this.ariaLabel()) : {}
 		return m(
 			".view-column.fill-absolute",
 			{
 				...landmark,
-				"data-testid": lang.getTranslationText(this.getTitle()),
+				"data-testid": `section:${this.testId ?? lang.getTranslationText(this.getTitle())}`,
 				inert: !this.isVisible && !this.isInForeground,
 				oncreate: (vnode) => {
 					this.domColumn = vnode.dom as HTMLElement

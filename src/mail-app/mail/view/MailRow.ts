@@ -241,6 +241,7 @@ export class MailRow implements VirtualRow<Mail> {
 						},
 					}),
 					m(".dot.bg-accent-fg.hidden", {
+						"data-testid": "unread-indicator",
 						style: {
 							marginTop: px(MAIL_ROW_V_MARGIN),
 						},
@@ -283,6 +284,7 @@ export class MailRow implements VirtualRow<Mail> {
 						]),
 						m(".flex.mt-xxs", [
 							m(".smaller.text-ellipsis", {
+								"data-testid": "list-row:mail:subject",
 								oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
 							}),
 							m(".flex-grow"),
@@ -333,6 +335,7 @@ export class MailRow implements VirtualRow<Mail> {
 					// Not using the regular Label component as we have too
 					// many differences and list is a special case anyway.
 					m("span.small.text-center.text-ellipsis.border-radius-m", {
+						"data-testid": "label",
 						style: {
 							padding: `2px ${size.vpad_xsm}px`,
 							minWidth: "4ch",

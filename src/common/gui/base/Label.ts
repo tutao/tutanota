@@ -28,6 +28,7 @@ export const Label = pureComponent(function Label({ text, color }: { text: strin
 	return m(
 		"span.small.text-center.text-ellipsis.border-radius-m",
 		{
+			"data-testid": "label",
 			style: {
 				// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
 				backgroundColor: labelColor,
