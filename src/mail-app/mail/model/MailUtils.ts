@@ -1,12 +1,12 @@
 import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, contains, first, isNotEmpty, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils.js"
-import { MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
-import { isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
 export const MAX_FOLDER_INDENT_LEVEL = 10
@@ -142,4 +142,19 @@ export function allInSameMailbox(mails: readonly Mail[]): boolean {
 
 export function mailInFolder(mail: Mail, folderId: IdTuple): boolean {
 	return mail.sets.some((s) => isSameId(s, folderId))
+}
+
+/**
+ * Compare the mails by receive date for sorting.
+ * @param mail1
+ * @param mail2
+ * @return 0 if same received date and ID, >0 if mail2 is newer, <0 if mail2 is older
+ */
+export function compareMails(mail1: Mail, mail2: Mail): number {
+	const dateDifference = mail2.receivedDate.getTime() - mail1.receivedDate.getTime()
+	if (dateDifference === 0) {
+		return sortCompareByReverseId(mail1, mail2)
+	} else {
+		return dateDifference
+	}
 }

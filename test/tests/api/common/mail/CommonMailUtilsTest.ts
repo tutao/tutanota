@@ -8,6 +8,7 @@ import { getDisplayedSender } from "../../../../../src/common/api/common/CommonM
 import { getConfidentialIcon, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/mail-app/mail/view/MailGuiUtils.js"
 
 import { isSystemNotification } from "../../../../../src/mail-app/mail/view/MailViewerUtils.js"
+import { compareMails } from "../../../../../src/mail-app/mail/model/MailUtils"
 
 o.spec("MailUtilsTest", function () {
 	function createSystemMail(overrides: Partial<Mail> = {}): Mail {
@@ -50,10 +51,25 @@ o.spec("MailUtilsTest", function () {
 		})
 	}
 
-	const tutanotaSender = () => createMailAddress({ address: "sender@tutanota.de", name: "Tutanota sender", contact: null })
+	const tutanotaSender = () =>
+		createMailAddress({
+			address: "sender@tutanota.de",
+			name: "Tutanota sender",
+			contact: null,
+		})
 	const tutaoSender = () => createMailAddress({ address: "sender@tutao.de", name: "Tutao sender", contact: null })
-	const tutanotaNoReplySender = () => createMailAddress({ address: "no-reply@tutanota.de", name: "Tutanota no-reply", contact: null })
-	const tutaoNoReplySender = () => createMailAddress({ address: "no-reply@tutao.de", name: "Tutao no-reply", contact: null })
+	const tutanotaNoReplySender = () =>
+		createMailAddress({
+			address: "no-reply@tutanota.de",
+			name: "Tutanota no-reply",
+			contact: null,
+		})
+	const tutaoNoReplySender = () =>
+		createMailAddress({
+			address: "no-reply@tutao.de",
+			name: "Tutao no-reply",
+			contact: null,
+		})
 
 	o("getDisplayedSender", function () {
 		const mail = createSystemMail()
@@ -70,7 +86,10 @@ o.spec("MailUtilsTest", function () {
 	})
 
 	o("getConfidentialIcon", function () {
-		const mail: Mail = createTestEntity(MailTypeRef, { confidential: true, encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED })
+		const mail: Mail = createTestEntity(MailTypeRef, {
+			confidential: true,
+			encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+		})
 		o(getConfidentialIcon(mail)).equals(Icons.PQLock)
 
 		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
@@ -317,6 +336,44 @@ o.spec("MailUtilsTest", function () {
 				sender: tutanotaNoReplySender(),
 			})
 			o(isSystemNotification(mail)).equals(false)
+		})
+	})
+
+	o.spec("compareMails", () => {
+		o.test("same mail", () => {
+			const mail = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(1000),
+				_id: ["000000000", "000000000"],
+			})
+			o.check(compareMails(mail, mail)).equals(0)
+		})
+		o.test("same date but different IDs", () => {
+			const mail1 = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(1000),
+				_id: ["000000000", "000000000"],
+			})
+			const mail2 = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(1000),
+				_id: ["000000000", "000000001"],
+			})
+
+			// sortCompareByReverseId returns 0, -1, or 1 regardless of the difference
+			o.check(compareMails(mail1, mail2)).equals(1)
+			o.check(compareMails(mail2, mail1)).equals(-1)
+		})
+		o.test("different date", () => {
+			const mail1 = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(1000),
+				_id: ["000000000", "000000000"],
+			})
+			const mail2 = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(2000),
+				_id: ["000000000", "000000001"],
+			})
+
+			// the difference of the mails' dates is returned
+			o.check(compareMails(mail1, mail2)).equals(1000)
+			o.check(compareMails(mail2, mail1)).equals(-1000)
 		})
 	})
 })
