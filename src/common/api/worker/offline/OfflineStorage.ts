@@ -345,7 +345,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async put(originalEntity: SomeEntity): Promise<void> {
 		const handler = this.getCustomCacheHandlerMap().get<typeof originalEntity>(originalEntity._type)
-		await handler?.onBeforeUpdate?.(originalEntity)
+		await handler?.onBeforeCacheUpdate?.(originalEntity)
 
 		const serializedEntity = this.serialize(originalEntity)
 		const { listId, elementId } = expandId(originalEntity._id)
@@ -706,16 +706,16 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	/**
 	 * A neat helper which can delete types in any lists as long as they belong to the same type.
-	 * Will invoke {@link CustomCacheHandler#onBeforeDelete}.
+	 * Will invoke {@link CustomCacheHandler#onBeforeCacheDeletion}.
 	 */
 	private async deleteByIds<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]) {
 		if (isEmpty(ids)) {
 			return
 		}
 		const handler = this.getCustomCacheHandlerMap().get(typeRef)
-		if (handler && handler.onBeforeDelete) {
+		if (handler && handler.onBeforeCacheDeletion) {
 			for (const id of ids) {
-				await handler.onBeforeDelete(id)
+				await handler.onBeforeCacheDeletion(id)
 			}
 		}
 		const typeModel = await resolveTypeReference(typeRef)

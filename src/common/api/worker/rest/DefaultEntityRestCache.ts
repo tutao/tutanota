@@ -805,6 +805,33 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					throw new ProgrammingError("Unknown operation type: " + operation)
 			}
 		}
+
+		// Pass these events to their respective handlers before writing batch ID to ensure that certain methods are not
+		// missed before batch ID is written
+		for (const update of batch.events) {
+			const { operation, type, application } = update
+			const typeRef = new TypeRef<SomeEntity>(application, type)
+
+			const handler = this.storage.getCustomCacheHandlerMap().get(typeRef)
+			if (handler == null) {
+				continue
+			}
+
+			const id = collapseId(update.instanceListId, update.instanceId)
+
+			switch (operation) {
+				case OperationType.CREATE:
+					await handler.onEntityEventCreate?.(id)
+					break
+				case OperationType.UPDATE:
+					await handler.onEntityEventUpdate?.(id)
+					break
+				case OperationType.DELETE:
+					await handler.onEntityEventDelete?.(id)
+					break
+			}
+		}
+
 		// the whole batch has been written successfully
 		await this.storage.putLastBatchIdForGroup(batch.groupId, batch.batchId)
 		// merge the results

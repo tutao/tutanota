@@ -90,7 +90,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 		const handler = this.customCacheHandlerMap.get(typeRef)
 		const id: T["_id"] = listId == null ? elementId : [listId, elementId]
-		await handler?.onBeforeDelete?.(id)
+		await handler?.onBeforeCacheDeletion?.(id)
 
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -135,7 +135,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		elementId = ensureBase64Ext(typeModel, elementId)
 
 		const handler = this.customCacheHandlerMap.get(typeRef as TypeRef<SomeEntity>)
-		await handler?.onBeforeUpdate?.(originalEntity)
+		await handler?.onBeforeCacheUpdate?.(originalEntity)
 
 		switch (typeModel.type) {
 			case TypeId.Element: {
@@ -393,7 +393,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 			for (const [id, entity] of typeMap.entries()) {
 				if (entity._ownerGroup === owner) {
 					const handler = this.customCacheHandlerMap.get(entity._type)
-					await handler?.onBeforeDelete?.(entity._id)
+					await handler?.onBeforeCacheDeletion?.(entity._id)
 					typeMap.delete(id)
 				}
 			}
@@ -416,7 +416,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 			for (const [id, element] of listCache.elements.entries()) {
 				if (element._ownerGroup === owner) {
 					const handler = this.customCacheHandlerMap.get(element._type)
-					await handler?.onBeforeDelete?.(element._id)
+					await handler?.onBeforeCacheDeletion?.(element._id)
 					listIdsToDelete.push(listId)
 					break
 				}

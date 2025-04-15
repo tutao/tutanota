@@ -73,7 +73,7 @@ o.spec("EphemeralCacheStorage", function () {
 			when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
 
 			await storage.put(storableUser)
-			verify(userCacheHandler.onBeforeUpdate?.(storableUser))
+			verify(userCacheHandler.onBeforeCacheUpdate?.(storableUser))
 		})
 
 		o.test("deleteIfExists calls the cache handler", async function () {
@@ -85,7 +85,7 @@ o.spec("EphemeralCacheStorage", function () {
 			await storage.put(storableUser)
 
 			await storage.deleteIfExists(UserTypeRef, null, userId)
-			verify(userCacheHandler.onBeforeDelete?.(userId))
+			verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 		})
 
 		o.spec("deleteAllOwnedBy", function () {
@@ -101,7 +101,7 @@ o.spec("EphemeralCacheStorage", function () {
 				await storage.put(storableUser)
 
 				await storage.deleteAllOwnedBy(groupId)
-				verify(userCacheHandler.onBeforeDelete?.(userId))
+				verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 			})
 
 			o.test("calls the cache handler for list element types", async function () {
@@ -114,7 +114,7 @@ o.spec("EphemeralCacheStorage", function () {
 				await storage.put(entityToStore)
 
 				await storage.deleteAllOwnedBy(groupId)
-				verify(customCacheHandler.onBeforeDelete?.(id))
+				verify(customCacheHandler.onBeforeCacheDeletion?.(id))
 			})
 
 			o.test("calls the cache handler for blob element types", async function () {
@@ -127,7 +127,7 @@ o.spec("EphemeralCacheStorage", function () {
 				await storage.put(entityToStore)
 
 				await storage.deleteAllOwnedBy(groupId)
-				verify(customCacheHandler.onBeforeDelete?.(id))
+				verify(customCacheHandler.onBeforeCacheDeletion?.(id))
 			})
 		})
 	})
