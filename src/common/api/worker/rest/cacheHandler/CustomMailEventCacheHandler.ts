@@ -4,7 +4,7 @@ import { MailIndexer } from "../../../../../mail-app/workerUtils/index/MailIndex
 import { CustomCacheHandler } from "./CustomCacheHandler"
 
 /**
- * Handles telling the indexer to un-index mail data on deletion.
+ * Handles telling the indexer to index or un-index mail data on updates.
  */
 export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 	constructor(private readonly indexer: lazyAsync<MailIndexer>) {}
@@ -17,8 +17,18 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		return true
 	}
 
-	async onBeforeDelete(id: IdTuple): Promise<void> {
+	async onBeforeCacheDeletion(id: IdTuple): Promise<void> {
 		const indexer = await this.indexer()
 		return indexer.beforeMailDeleted(id)
+	}
+
+	async onEntityEventCreate(id: IdTuple) {
+		const indexer = await this.indexer()
+		return indexer.afterMailCreated(id)
+	}
+
+	async onEntityEventUpdate(id: IdTuple) {
+		const indexer = await this.indexer()
+		return indexer.afterMailUpdated(id)
 	}
 }

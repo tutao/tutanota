@@ -36,7 +36,7 @@ o.spec("CustomUserCacheHandler", () => {
 		when(storage.getUserId()).thenReturn(userId)
 		when(storage.get(UserTypeRef, null, userId)).thenResolve(initialUser)
 
-		await cache.onBeforeUpdate(initialUser)
+		await cache.onBeforeCacheUpdate(initialUser)
 
 		verify(storage.deleteAllOwnedBy(matchers.anything()), { times: 0 })
 	})
@@ -72,7 +72,7 @@ o.spec("CustomUserCacheHandler", () => {
 		when(storage.getUserId()).thenReturn(userId)
 		when(storage.get(UserTypeRef, null, userId)).thenResolve(initialUser)
 
-		await cache.onBeforeUpdate(updatedUser)
+		await cache.onBeforeCacheUpdate(updatedUser)
 
 		verify(storage.deleteAllOwnedBy(calendarGroupId), { times: 1 })
 	})
@@ -108,7 +108,7 @@ o.spec("CustomUserCacheHandler", () => {
 		when(storage.getUserId()).thenReturn("anotherUser")
 		when(storage.get(UserTypeRef, null, userId)).thenResolve(initialUser)
 
-		await cache.onBeforeUpdate(updatedUser)
+		await cache.onBeforeCacheUpdate(updatedUser)
 
 		verify(storage.deleteAllOwnedBy(matchers.anything()), { times: 0 })
 	})

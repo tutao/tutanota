@@ -59,7 +59,47 @@ export interface CustomCacheHandler<T extends SomeEntity> {
 
 	shouldLoadOnCreateEvent?: (event: EntityUpdateData) => boolean
 
-	onBeforeUpdate?: (newEntity: T) => Promise<void>
+	/**
+	 * Called when an entity is about to be inserted into the cache.
+	 *
+	 * @param newEntity entity to be inserted
+	 */
+	onBeforeCacheUpdate?: (newEntity: T) => Promise<void>
 
-	onBeforeDelete?: (id: T["_id"]) => Promise<void>
+	/**
+	 * Called when an entity is about to be evicted from the cache.
+	 *
+	 * @param id ID of the entity to be evicted
+	 */
+	onBeforeCacheDeletion?: (id: T["_id"]) => Promise<void>
+
+	/**
+	 * Called after receiving a create event for an entity.
+	 *
+	 * This is called after cache has been updated but before the update batch ID has been written, thus ensuring that
+	 * an update won't get missed.
+	 *
+	 * @param id ID of the entity
+	 */
+	onEntityEventCreate?: (id: T["_id"]) => Promise<void>
+
+	/**
+	 * Called after receiving an update event for an entity.
+	 *
+	 * This is called after cache has been updated but before the update batch ID has been written, thus ensuring that
+	 * an update won't get missed.
+	 *
+	 * @param id ID of the entity
+	 */
+	onEntityEventUpdate?: (id: T["_id"]) => Promise<void>
+
+	/**
+	 * Called after receiving a deletion event for an entity.
+	 *
+	 * This is called after cache has been updated but before the update batch ID has been written, thus ensuring that
+	 * an update won't get missed. As such, the entity will no longer be downloadable.
+	 *
+	 * @param id ID of the entity
+	 */
+	onEntityEventDelete?: (id: T["_id"]) => Promise<void>
 }

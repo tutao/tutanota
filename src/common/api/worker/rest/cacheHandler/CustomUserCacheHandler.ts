@@ -10,7 +10,7 @@ import { difference } from "@tutao/tutanota-utils"
 export class CustomUserCacheHandler implements CustomCacheHandler<User> {
 	constructor(private readonly storage: CacheStorage) {}
 
-	async onBeforeUpdate(newUser: User) {
+	async onBeforeCacheUpdate(newUser: User) {
 		const id = newUser._id
 		const currentId = this.storage.getUserId()
 		if (isSameId(currentId, id)) {

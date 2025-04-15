@@ -1,8 +1,7 @@
 import o from "@tutao/otest"
 import { verify } from "@tutao/tutanota-test-utils"
-import { customTypeEncoders, ensureBase64Ext, OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
-import { instance, matchers, object, when } from "testdouble"
-import * as cborg from "cborg"
+import { ensureBase64Ext, OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
+import { instance, object, when } from "testdouble"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
@@ -201,7 +200,7 @@ o.spec("OfflineStorageDb", function () {
 				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
 
 				await storage.put(UserTypeRef, storableUser)
-				verify(userCacheHandler.onBeforeUpdate?.(user))
+				verify(userCacheHandler.onBeforeCacheUpdate?.(user))
 			})
 
 			o.test("deleteIfExists calls the cache handler", async function () {
@@ -221,7 +220,7 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(UserTypeRef, storableUser)
 
 				await storage.deleteIfExists(UserTypeRef, null, userId)
-				verify(userCacheHandler.onBeforeDelete?.(userId))
+				verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 			})
 
 			o.spec("deleteAllOfType", function () {
@@ -244,7 +243,7 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(UserTypeRef, storableUser)
 
 					await storage.deleteAllOfType(UserTypeRef)
-					verify(userCacheHandler.onBeforeDelete?.(userId))
+					verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 				})
 
 				o.test("calls the cache handler for list element types", async function () {
@@ -265,7 +264,7 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(MailTypeRef, storableMail)
 
 					await storage.deleteAllOfType(MailTypeRef)
-					verify(customCacheHandler.onBeforeDelete?.(id))
+					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
 				})
 
 				o.test("calls the cache handler for blob element types", async function () {
@@ -286,7 +285,7 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(MailDetailsBlobTypeRef, storableDetails)
 
 					await storage.deleteAllOfType(MailDetailsBlobTypeRef)
-					verify(customCacheHandler.onBeforeDelete?.(id))
+					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
 				})
 			})
 
@@ -311,7 +310,7 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(UserTypeRef, storableUser)
 
 					await storage.deleteAllOwnedBy(groupId)
-					verify(userCacheHandler.onBeforeDelete?.(userId))
+					verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 				})
 
 				o.test("calls the cache handler for list element types", async function () {
@@ -332,7 +331,7 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(MailTypeRef, storableMail)
 
 					await storage.deleteAllOwnedBy(groupId)
-					verify(customCacheHandler.onBeforeDelete?.(id))
+					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
 				})
 
 				o.test("calls the cache handler for blob element types", async function () {
@@ -353,7 +352,7 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
 
 					await storage.deleteAllOwnedBy(groupId)
-					verify(customCacheHandler.onBeforeDelete?.(id))
+					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
 				})
 
 				o.test("removes last batch id for the deleted group", async function () {
@@ -368,7 +367,14 @@ o.spec("OfflineStorageDb", function () {
 
 			o.test("deleteIn calls the cache handler", async function () {
 				const id: IdTuple = ["listId", "id1"]
-				const entityToStore = createTestEntity(MailDetailsBlobTypeRef, { _id: id, _ownerGroup: "ownerGroup" }, { populateAggregates: true })
+				const entityToStore = createTestEntity(
+					MailDetailsBlobTypeRef,
+					{
+						_id: id,
+						_ownerGroup: "ownerGroup",
+					},
+					{ populateAggregates: true },
+				)
 				const storableDetailsBlob = await toStorableInstance(entityToStore)
 
 				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
@@ -377,7 +383,7 @@ o.spec("OfflineStorageDb", function () {
 				await storage.put(MailDetailsBlobTypeRef, storableDetailsBlob)
 
 				await storage.deleteIn(MailDetailsBlobTypeRef, "listId", ["id1"])
-				verify(customCacheHandler.onBeforeDelete?.(id))
+				verify(customCacheHandler.onBeforeCacheDeletion?.(id))
 			})
 		})
 
@@ -1709,7 +1715,7 @@ o.spec("OfflineStorageDb", function () {
 			const assertContents = async ({ _id, _type }, expected, msg) => {
 				const { listId, elementId } = expandId(_id)
 				let valueFromDb = await storage.get(_type, listId, elementId)
-				return o(valueFromDb).deepEquals(expected)(msg)
+				return o.check(valueFromDb).deepEquals(expected)(msg)
 			}
 
 			await promiseMap(oldInboxMails, (mail) => assertContents(mail, null, `old mail ${mail._id} was deleted`))
