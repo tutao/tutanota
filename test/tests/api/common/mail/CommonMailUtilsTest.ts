@@ -8,6 +8,7 @@ import { getDisplayedSender } from "../../../../../src/common/api/common/CommonM
 import { getConfidentialIcon, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/mail-app/mail/view/MailGuiUtils.js"
 
 import { isSystemNotification } from "../../../../../src/mail-app/mail/view/MailViewerUtils.js"
+import { compareMails } from "../../../../../src/mail-app/mail/model/MailUtils"
 
 export function createSystemMail(overrides: Partial<Mail> = {}): Mail {
 	return createTestEntity(MailTypeRef, {
@@ -42,7 +43,7 @@ export function createSystemMail(overrides: Partial<Mail> = {}): Mail {
 	})
 }
 
-o.spec("MailUtilsTest", function () {
+o.spec("CommonMailUtils", () => {
 	const tutanotaSender = () =>
 		createMailAddress({
 			address: "sender@tutanota.de",
@@ -328,6 +329,44 @@ o.spec("MailUtilsTest", function () {
 				sender: tutanotaNoReplySender(),
 			})
 			o(isSystemNotification(mail)).equals(false)
+		})
+	})
+
+	o.spec("compareMails", () => {
+		o.test("same mail", () => {
+			const mail = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(1000),
+				_id: ["000000000", "000000000"],
+			})
+			o.check(compareMails(mail, mail)).equals(0)
+		})
+		o.test("same date but different IDs", () => {
+			const mail1 = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(1000),
+				_id: ["000000000", "000000000"],
+			})
+			const mail2 = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(1000),
+				_id: ["000000000", "000000001"],
+			})
+
+			// sortCompareByReverseId returns 0, -1, or 1 regardless of the difference
+			o.check(compareMails(mail1, mail2)).equals(1)
+			o.check(compareMails(mail2, mail1)).equals(-1)
+		})
+		o.test("different date", () => {
+			const mail1 = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(1000),
+				_id: ["000000000", "000000000"],
+			})
+			const mail2 = createTestEntity(MailTypeRef, {
+				receivedDate: new Date(2000),
+				_id: ["000000000", "000000001"],
+			})
+
+			// the difference of the mails' dates is returned
+			o.check(compareMails(mail1, mail2)).equals(1000)
+			o.check(compareMails(mail2, mail1)).equals(-1000)
 		})
 	})
 })
