@@ -332,7 +332,6 @@ async function tryDowngradePremiumToFree(customer: Customer, currentPlanInfo: Cu
 	})
 	try {
 		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData)
-		await locator.customerFacade.switchPremiumToFreeGroup()
 		return PlanType.Free
 	} catch (e) {
 		if (e instanceof PreconditionFailedError) {
