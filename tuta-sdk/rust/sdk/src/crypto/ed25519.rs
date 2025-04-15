@@ -4,6 +4,7 @@ use ed25519_dalek::{
 	PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH,
 };
 use serde::{Deserialize, Serialize, Serializer};
+use wasm_bindgen::prelude::wasm_bindgen;
 use zeroize::ZeroizeOnDrop;
 
 const SIGNATURE_SIZE: usize = Signature::BYTE_SIZE; // from dalek library see COMPONENT_SIZE, to bytes
