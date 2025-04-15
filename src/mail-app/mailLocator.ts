@@ -970,6 +970,10 @@ class MailLocator implements CommonLocator {
 					const { RichNotificationsNews } = await import("../common/misc/news/items/RichNotificationsNews.js")
 					return new RichNotificationsNews(this.newsModel, isApp() || isDesktop() ? this.pushService : null)
 				}
+				case "colorCustomizationUpdate": {
+					const { UpdateColorCustomizationNews } = await import("../common/misc/news/items/UpdateColorCustomizationNews.js")
+					return new UpdateColorCustomizationNews(this.newsModel, this.logins.getUserController())
+				}
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null

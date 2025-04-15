@@ -4,10 +4,12 @@ import { NewsListItem } from "./NewsListItem.js"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../gui/theme.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
+import { Dialog } from "../../gui/base/Dialog.js"
 
 export interface NewsListAttrs {
 	liveNewsListItems: Record<string, NewsListItem>
 	liveNewsIds: NewsId[]
+	dialog: Dialog
 }
 
 /**
@@ -28,7 +30,11 @@ export class NewsList implements Component<NewsListAttrs> {
 			vnode.attrs.liveNewsIds.map((liveNewsId) => {
 				const newsListItem = vnode.attrs.liveNewsListItems[liveNewsId.newsItemName]
 
-				return m(".pt.pl-l.pr-l.flex.fill.border-grey.left.list-border-bottom", { key: liveNewsId.newsItemId }, newsListItem.render(liveNewsId))
+				return m(
+					".pt.pl-l.pr-l.flex.fill.border-grey.left.list-border-bottom",
+					{ key: liveNewsId.newsItemId },
+					newsListItem.render(liveNewsId, vnode.attrs.dialog),
+				)
 			}),
 		)
 	}
