@@ -21,7 +21,7 @@ impl RandomizerFacade {
 	///
 	/// This is useful if you want to make a mutable version of this facade to use in functions that
 	/// directly require a CryptoRngCore.
-	pub(in crate::crypto) fn clone(&self) -> Self {
+	pub(crate) fn clone(&self) -> Self {
 		Self {
 			source: self.source.clone(),
 		}
@@ -62,14 +62,18 @@ impl RngCore for RandomizerFacade {
 	}
 }
 
-#[cfg(test)]
+// when used externally by other crates the feature flag "test"
+// must be active
+// should be declared in the dev dependencies
+// maybe this compatibiility test should be in its own crate too
+#[cfg(feature = "test")]
 pub mod test_util {
 	use super::*;
 
 	/// Used for internal testing using OsRng.
 	#[must_use]
 	pub fn make_thread_rng_facade() -> RandomizerFacade {
-		RandomizerFacade::from_core(rand::rngs::OsRng {})
+		RandomizerFacade::from_core(rand_core::OsRng {})
 	}
 
 	#[derive(Clone)]
