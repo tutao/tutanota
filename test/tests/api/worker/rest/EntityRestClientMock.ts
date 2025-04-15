@@ -72,6 +72,11 @@ export class EntityRestClientMock extends EntityRestClient {
 		this._listEntities[listIdPart(id)][elementIdPart(id)] = error
 	}
 
+	setBlobElementException(id: IdTuple, error: Error) {
+		if (!this._blobEntities[listIdPart(id)]) this._blobEntities[listIdPart(id)] = {}
+		this._blobEntities[listIdPart(id)][elementIdPart(id)] = error
+	}
+
 	_getListEntry(listId: Id, elementId: Id): ListElementEntity | null | undefined {
 		if (!this._listEntities[listId]) {
 			throw new NotFoundError(`Not list ${listId}`)

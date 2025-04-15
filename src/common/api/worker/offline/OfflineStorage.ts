@@ -370,10 +370,9 @@ export class OfflineStorage implements CacheStorage {
 
 	async put(typeRef: TypeRef<SomeEntity>, instance: ServerModelParsedInstance): Promise<void> {
 		const handler = this.getCustomCacheHandlerMap().get(typeRef)
-		if (handler?.onBeforeUpdate) {
-			// FIXME: check if serverParsedInstance is okay here
+		if (handler?.onBeforeCacheUpdate) {
 			const typedInstance = await this.modelMapper.mapToInstance(typeRef, instance)
-			await handler.onBeforeUpdate(typedInstance as SomeEntity)
+			await handler.onBeforeCacheUpdate(typedInstance as SomeEntity)
 		}
 
 		const serializedInstance = await this.serialize(instance)
@@ -712,7 +711,7 @@ export class OfflineStorage implements CacheStorage {
 
 	/**
 	 * A neat helper which can delete types in any lists as long as they belong to the same type.
-	 * Will invoke {@link CustomCacheHandler#onBeforeDelete}.
+	 * Will invoke {@link CustomCacheHandler#onBeforeCacheDeletion}.
 	 */
 	private async deleteByIds<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]) {
 		if (isEmpty(ids)) {
@@ -723,9 +722,9 @@ export class OfflineStorage implements CacheStorage {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		const handler = this.getCustomCacheHandlerMap().get(typeRef)
-		if (handler && handler.onBeforeDelete) {
+		if (handler && handler.onBeforeCacheDeletion) {
 			for (const id of ids) {
-				await handler.onBeforeDelete(id)
+				await handler.onBeforeCacheDeletion(id)
 			}
 		}
 		switch (typeModel.type) {
