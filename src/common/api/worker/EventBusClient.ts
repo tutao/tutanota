@@ -28,7 +28,7 @@ import { EntityClient } from "../common/EntityClient"
 import type { QueuedBatch } from "./EventQueue.js"
 import { EventQueue } from "./EventQueue.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
-import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId } from "../common/utils/EntityUtils"
+import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, isSameId } from "../common/utils/EntityUtils"
 import { InstanceMapper } from "./crypto/InstanceMapper"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
@@ -400,6 +400,7 @@ export class EventBusClient {
 
 	private async initEntityEvents(connectMode: ConnectMode): Promise<void> {
 		// pause processing entity update message while initializing event queue
+
 		this.entityUpdateMessageQueue.pause()
 
 		// pause event queue and add all missed entity events first
@@ -468,6 +469,8 @@ export class EventBusClient {
 	}
 
 	private async initOnNewConnection() {
+		await delay(5000)
+		console.log("EventBusClient - initOnNewConnection")
 		const { lastIds, someIdsWereCached } = await this.retrieveLastEntityEventIds()
 		// First, we record lastEntityEventIds. We need this to know what we need to re-fetch.
 		// This is not the same as the cache because we might have already downloaded them but cache might not have processed them yet.
@@ -502,9 +505,17 @@ export class EventBusClient {
 				someIdsWereCached = true
 			} else {
 				const batches = await this.entity.loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true)
+
 				const batchId = batches.length === 1 ? getElementId(batches[0]) : GENERATED_MIN_ID
 				lastIds.set(groupId, [batchId])
 				// In case we don't receive any events for the group this time we want to still download from this point next time.
+				if (isSameId(this.userFacade.getUserGroupId(), groupId)) {
+					console.log(
+						"EventBusClient - setLastEntityEventBatchForGroup userGroupId:" + groupId,
+						" batch:",
+						batches.length === 1 ? batches[0] : GENERATED_MIN_ID,
+					)
+				}
 				await this.cache.setLastEntityEventBatchForGroup(groupId, batchId)
 			}
 		}
@@ -517,6 +528,7 @@ export class EventBusClient {
 	 * @VisibleForTesting
 	 * */
 	async loadMissedEntityEvents(eventQueue: EventQueue): Promise<void> {
+		console.log("EventBusClient - loadMissedEntityEvents")
 		if (!this.userFacade.isFullyLoggedIn()) {
 			return
 		}

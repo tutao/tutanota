@@ -10,13 +10,15 @@ import {
 } from "./EntityRestClient"
 import { resolveTypeReference } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, difference, downcast, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
 	EntityEventBatchTypeRef,
 	EntityUpdate,
+	Group,
 	GroupKeyTypeRef,
+	GroupTypeRef,
 	KeyRotationTypeRef,
 	PermissionTypeRef,
 	RecoverCodeTypeRef,
@@ -260,16 +262,28 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			return await this.entityRestClient.load(typeRef, id, opts)
 		}
 
+		if (isSameTypeRef(GroupTypeRef, typeRef)) {
+			console.log("DefaultEntityRestCache - loadGroup: " + id)
+		}
+
 		const { listId, elementId } = expandId(id)
 		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
 		const cachedEntity = cachingBehavior.readsFromCache ? await this.storage.get(typeRef, listId, elementId) : null
 
 		if (cachedEntity == null) {
 			const entity = await this.entityRestClient.load(typeRef, id, opts)
+			if (isSameTypeRef(GroupTypeRef, typeRef)) {
+				const group: Group = downcast(entity)
+				console.log("DefaultEntityRestCache - loadGroup (new): ", id, " keyVersion", group.groupKeyVersion)
+			}
 			if (cachingBehavior.writesToCache) {
 				await this.storage.put(entity)
 			}
 			return entity
+		}
+		if (isSameTypeRef(GroupTypeRef, typeRef)) {
+			const group: Group = downcast(cachedEntity)
+			console.log("DefaultEntityRestCache - loadGroup (cached): ", id, " keyVersion", group.groupKeyVersion)
 		}
 
 		return cachedEntity
@@ -878,6 +892,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
 		const cached = await this.storage.get(typeRef, instanceListId, instanceId)
 		// No need to try to download something that's not there anymore
+
 		if (cached != null) {
 			try {
 				// in case this is an update for the user instance: if the password changed we'll be logged out at this point
@@ -888,6 +903,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// clicks their saved credentials again, but lets them still use offline login if they try to use the
 				// outdated credentials while not connected to the internet.
 				const newEntity = await this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
+				if (isSameTypeRef(GroupTypeRef, typeRef)) {
+					const group: Group = downcast(newEntity)
+					console.log("DefaultEntityRestCache - processUpdateEvent for group:", instanceId, " groupKeyVersion:", group.groupKeyVersion)
+				}
 				if (isSameTypeRef(typeRef, UserTypeRef)) {
 					await this.handleUpdatedUser(cached, newEntity)
 				}
@@ -904,6 +923,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					throw e
 				}
 			}
+		} else {
+			console.log("DefaultEntityRestCache - processUpdateEvent for group (not cached anymore):", instanceId)
 		}
 		return update
 	}
