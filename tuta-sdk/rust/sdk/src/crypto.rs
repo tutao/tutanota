@@ -23,7 +23,6 @@ mod hkdf;
 
 pub(crate) mod argon2_id;
 
-mod ed25519;
 pub(crate) mod kyber;
 pub(crate) mod rsa;
 mod x25519;
@@ -33,9 +32,6 @@ mod tuta_crypt;
 pub mod asymmetric_crypto_facade;
 pub mod public_key_provider;
 
-#[cfg(test)]
-pub mod compatibility_test_utils;
 pub mod crypto_facade;
 pub mod key;
 pub mod key_encryption;
-pub mod randomizer_facade;

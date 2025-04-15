@@ -10,7 +10,7 @@ pub fn hkdf(salt: &[u8], input_key_material: &[u8], info: &[u8], length_bytes: u
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::*;
+	use crypto_primitives::compatibility_test_utils::*;
 
 	#[test]
 	fn test_hkdf() {

@@ -2,13 +2,13 @@
 
 use crate::crypto::hmac::{HmacError, HMAC_SHA256_SIZE};
 use crate::crypto::key::GenericAesKey;
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::join_slices;
 use crate::util::{array_cast_size, array_cast_slice, ArrayCastingError};
 use aes::cipher::block_padding::Pkcs7;
 use aes::cipher::{BlockCipher, BlockSizeUser};
 use cbc::cipher::block_padding::UnpadError;
 use cbc::cipher::{BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyIvInit};
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::fmt::Debug;
 use zeroize::ZeroizeOnDrop;
 
@@ -553,8 +553,8 @@ mod tests {
 	use base64::engine::Engine;
 	use base64::prelude::BASE64_STANDARD;
 
-	use crate::crypto::compatibility_test_utils::*;
-	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
+	use crypto_primitives::compatibility_test_utils::*;
+	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 
 	use super::*;
 

@@ -1,6 +1,6 @@
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::x25519::X25519KeyPair;
 use crate::join_slices;
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use rand_core::impls::{next_u32_via_fill, next_u64_via_fill};
 use rand_core::{CryptoRng, Error, RngCore};
 use rsa::traits::{PrivateKeyParts, PublicKeyParts};
@@ -366,7 +366,7 @@ impl CryptoRng for SeedBufferRng {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::get_compatibility_test_data;
+	use crypto_primitives::compatibility_test_utils::get_compatibility_test_data;
 
 	#[test]
 	fn test_rsa_encryption() {

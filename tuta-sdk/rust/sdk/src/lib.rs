@@ -21,7 +21,6 @@ use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::{GenericAesKey, VersionedAesKey};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::public_key_provider::PublicKeyProvider;
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::{aes::Iv, Aes256Key};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
@@ -53,6 +52,7 @@ use crate::typed_entity_client::TypedEntityClient;
 use crate::user_facade::UserFacade;
 use bindings::file_client::FileClient;
 use bindings::rest_client::{RestClient, RestClientError};
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 
 pub mod contacts;
 pub mod crypto;
