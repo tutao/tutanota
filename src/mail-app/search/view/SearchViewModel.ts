@@ -79,6 +79,8 @@ import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStor
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
+import { compareMails } from "../../mail/model/MailUtils"
+import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -959,6 +961,17 @@ export class SearchViewModel {
 					return compareContacts(o1.entry as any, o2.entry as any)
 				} else if (isSameTypeRef(o1.entry._type, CalendarEventTypeRef)) {
 					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
+				} else if (isSameTypeRef(o1.entry._type, MailTypeRef)) {
+					// Ideally we would not need to do this check here, however we can only safely sort by received date
+					// on SQLite results, as we get all results upfront.
+					//
+					// IndexedDb only loads a small amount of results at once, expanding the results as we scroll
+					// through the list, and since it's loaded by ID range, results can jump around mid-scroll.
+					if (isOfflineStorageAvailable()) {
+						return compareMails(downcast(o1.entry), downcast(o2.entry))
+					} else {
+						return sortCompareByReverseId(o1.entry, o2.entry)
+					}
 				} else {
 					return sortCompareByReverseId(o1.entry, o2.entry)
 				}
