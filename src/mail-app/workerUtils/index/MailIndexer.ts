@@ -551,31 +551,7 @@ export class MailIndexer {
 		for (const event of events) {
 			if (isUpdateForTypeRef(MailTypeRef, event)) {
 				const mailId: IdTuple = [event.instanceListId, event.instanceId]
-				if (event.operation === OperationType.CREATE) {
-					const newMailData = await this.downloadNewMailData(mailId)
-					if (newMailData) {
-						await this.backend.onMailCreated(newMailData)
-					}
-				} else if (event.operation === OperationType.UPDATE) {
-					let updatedMail: Mail
-					try {
-						updatedMail = await this.entityClient.load(MailTypeRef, mailId)
-					} catch (e) {
-						if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-							continue
-						} else {
-							throw e
-						}
-					}
-					if (updatedMail.state === MailState.DRAFT) {
-						const newMailData = await this.downloadNewMailData(mailId)
-						if (newMailData) {
-							await this.backend.onMailUpdated(newMailData)
-						}
-					} else {
-						await this.backend.onPartialMailUpdated(updatedMail)
-					}
-				} else if (event.operation === OperationType.DELETE) {
+				if (event.operation === OperationType.DELETE) {
 					await this.backend.onMailDeleted(mailId)
 				}
 			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, event)) {
@@ -586,6 +562,31 @@ export class MailIndexer {
 
 	async beforeMailDeleted(mailId: IdTuple) {
 		await this.backend.onBeforeMailDeleted(mailId)
+	}
+
+	async afterMailCreated(mailId: IdTuple) {
+		if (!this._mailIndexingEnabled) return
+
+		const newMailData = await this.downloadNewMailData(mailId)
+		if (newMailData) {
+			await this.backend.onMailCreated(newMailData)
+		}
+	}
+
+	async afterMailUpdated(mailId: IdTuple) {
+		if (!this._mailIndexingEnabled) return
+
+		// At this point, the mail is cached, so there's no way we could not get it outside of something horrible happening
+		const updatedMail = await this.entityClient.load(MailTypeRef, mailId)
+
+		if (updatedMail.state === MailState.DRAFT) {
+			const newMailData = await this.downloadNewMailData(mailId)
+			if (newMailData) {
+				await this.backend.onMailUpdated(newMailData)
+			}
+		} else {
+			await this.backend.onPartialMailUpdated(updatedMail)
+		}
 	}
 
 	private get backend(): MailIndexerBackend {
