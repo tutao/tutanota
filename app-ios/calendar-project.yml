@@ -91,6 +91,7 @@ targets:
     sources: "AgendaWidgetExtension"
     settings:
       base:
+        PRODUCT_NAME: "AgendaWidget"
         PRODUCT_MODULE_NAME: "AgendaWidget"
         PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).AgendaWidget"
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
@@ -224,3 +225,9 @@ schemes:
       targets: [ "tutanotaTests" ]
     archive:
       config: "Release Production"
+  agendaWidget:
+    build:
+      targets:
+        AgendaWidgetExtension: "all"
+    run:
+      config: "Debug Production"

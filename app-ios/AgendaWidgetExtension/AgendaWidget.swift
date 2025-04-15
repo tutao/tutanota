@@ -7,6 +7,13 @@
 
 import WidgetKit
 import SwiftUI
+import tutasdk
+
+struct SimpleEntry: TimelineEntry {
+	let date: Date
+	let configuration: ConfigurationAppIntent
+	let events: [CalendarEvent] = []
+}
 
 struct Provider: AppIntentTimelineProvider {
 	func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
@@ -15,7 +22,7 @@ struct Provider: AppIntentTimelineProvider {
 		let currentDate = Date()
 		for hourOffset in 0 ..< 5 {
 			let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-			let entry = SimpleEntry(date: entryDate, configuration: ConfigurationAppIntent())
+			let entry = SimpleEntry(date: entryDate, configuration: configuration)
 			entries.append(entry)
 		}
 
@@ -31,21 +38,16 @@ struct Provider: AppIntentTimelineProvider {
     }
 }
 
-struct SimpleEntry: TimelineEntry {
-    let date: Date
-    let configuration: ConfigurationAppIntent
-}
-
 struct AgendaWidgetEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
         VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
+            Text("Account:")
+			Text(entry.configuration.account?.email ?? "No account selected" )
 
-            Text("Favorite Emoji:")
-            Text(entry.configuration.favoriteEmoji)
+            Text("Calendars:")
+			Text(entry.configuration.calendars?.map { $0.name }.joined(separator: ", ") ?? "" )
 		}.containerBackground(for: .widget) { Color.clear }
     }
 }
@@ -60,20 +62,6 @@ struct AgendaWidget: Widget {
 		.configurationDisplayName("Agenda")
 		.description("See the upcoming events for the current day")
 		.supportedFamilies([.systemLarge])
-    }
-}
-
-extension ConfigurationAppIntent {
-    fileprivate static var smiley: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "😀"
-        return intent
-    }
-    
-    fileprivate static var starEyes: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "🤩"
-        return intent
     }
 }
 
