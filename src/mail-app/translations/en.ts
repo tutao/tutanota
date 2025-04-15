@@ -2015,6 +2015,10 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"updateColorCustomizationNews_title": "Please update color customization",
+		"updateColorCustomizationNews_msg": "We have updated the color names in our theme settings. This change may affect your color customization, so please check and update your whitelabel settings.",
+		"updateColorCustomizationNewsButton_label": "Open whitelabel setting",
+
 	}
 }
