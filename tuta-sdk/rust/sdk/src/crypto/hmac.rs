@@ -34,12 +34,12 @@ pub fn verify_hmac_sha256(
 
 #[cfg(test)]
 mod tests {
-	use crate::crypto::compatibility_test_utils::get_compatibility_test_data;
 	use crate::crypto::hmac::hmac_sha256;
 	use crate::crypto::hmac::{verify_hmac_sha256, HMAC_SHA256_SIZE};
 	use crate::crypto::key::GenericAesKey;
 	use crate::crypto::Aes256Key;
 	use crate::util::test_utils::random_aes256_key;
+	use crypto_primitives::compatibility_test_utils::get_compatibility_test_data;
 
 	#[test]
 	fn compatibility_test() {

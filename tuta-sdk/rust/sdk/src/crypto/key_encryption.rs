@@ -114,11 +114,11 @@ fn decrypt_rsa_or_rsa_x25519_key_pair(
 mod tests {
 	use super::*;
 	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
-	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::x25519::X25519KeyPair;
 	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs};
 	use crate::entities::generated::sys::KeyPair;
 	use crate::util::test_utils::generate_random_string;
+	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 
 	#[test]
 	fn tuta_crypt_roundtrip() {
