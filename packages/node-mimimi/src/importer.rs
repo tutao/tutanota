@@ -775,6 +775,21 @@ pub mod tests {
 		assert_eq!(remote_state.successfulMails, 1);
 	}
 
+	#[cfg_attr(
+		not(feature = "test-with-local-http-server"),
+		ignore = "require local http server."
+	)]
+	#[tokio::test]
+	async fn can_import_single_eml_file_with_invalid_date() {
+		let importer = init_file_importer(vec!["brokendate.eml"]).await;
+		importer.start_stateful_import().await.unwrap();
+
+		let remote_state = importer.essentials.load_remote_state().await.unwrap();
+		assert_eq!(remote_state.status, ImportStatus::Finished as i64);
+		assert_eq!(remote_state.failedMails, 0);
+		assert_eq!(remote_state.successfulMails, 1);
+	}
+
 	#[test]
 	fn max_request_size_in_test_is_different() {
 		assert_eq!(1024 * 5, MAX_REQUEST_SIZE);
