@@ -52,6 +52,67 @@ o.spec("ThemeController", function () {
 		o(themeManager.getCurrentTheme().logo).equals("sanitized")
 	})
 
+	o("Mapping the new color tokens to the old tokens", async function () {
+		const newTokenTheme: ThemeCustomizations = downcast({
+			themeId: "HelloFancyId",
+			primary: "#abcdef",
+			surface: "#fffeee",
+			base: "light",
+		})
+
+		o(ThemeController.mapNewToOldColorTokens(newTokenTheme)).deepEquals(
+			downcast({
+				themeId: "HelloFancyId",
+				primary: "#abcdef",
+				surface: "#fffeee",
+				base: "light",
+				content_accent: "#abcdef",
+				content_button_selected: "#abcdef",
+				header_button_selected: "#abcdef",
+				list_accent_fg: "#abcdef",
+				navigation_button_selected: "#abcdef",
+				content_bg: "#fffeee",
+				header_bg: "#fffeee",
+				list_bg: "#fffeee",
+				elevated_bg: "#fffeee",
+			}),
+		)
+	})
+
+	o("Mapping the old color tokens to the new tokens", async function () {
+		const oldTokenTheme: ThemeCustomizations = downcast({
+			themeId: "HelloFancyId",
+			base: "light",
+			content_accent: "#abcdef",
+			content_button_selected: "#abcdef",
+			header_button_selected: "#abcdef",
+			list_accent_fg: "#abcdef",
+			navigation_button_selected: "#abcdef",
+			content_bg: "#fffeee",
+			header_bg: "#fffeee",
+			list_bg: "#fffeee",
+			elevated_bg: "#fffeee",
+		})
+
+		o(ThemeController.mapOldToNewColorTokens(oldTokenTheme)).deepEquals(
+			downcast({
+				themeId: "HelloFancyId",
+				primary: "#abcdef",
+				surface: "#fffeee",
+				base: "light",
+				content_accent: "#abcdef",
+				content_button_selected: "#abcdef",
+				header_button_selected: "#abcdef",
+				list_accent_fg: "#abcdef",
+				navigation_button_selected: "#abcdef",
+				content_bg: "#fffeee",
+				header_bg: "#fffeee",
+				list_bg: "#fffeee",
+				elevated_bg: "#fffeee",
+			}),
+		)
+	})
+
 	o("when using automatic theme and preferring dark, dark theme is applied, and themeId is automatic", async function () {
 		when(themeFacadeMock.getThemePreference()).thenResolve("auto:light|dark")
 		when(themeFacadeMock.prefersDark()).thenResolve(true)
