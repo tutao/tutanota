@@ -236,6 +236,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				minWidth: size.third_col_min_width,
 				maxWidth: size.third_col_max_width,
 				ariaLabel: () => lang.get("email_label"),
+				testId: "mail-area",
 			},
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn])
