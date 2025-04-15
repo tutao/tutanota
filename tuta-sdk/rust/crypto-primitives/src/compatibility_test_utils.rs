@@ -1,3 +1,8 @@
+// when used externally by other crates the feature flag "test_utils" must be active
+// should be declared in the dev dependencies
+// maybe this compatibility test should be in its own crate too
+#![cfg(feature = "test_utils")]
+
 use base64::engine::{general_purpose::STANDARD as BASE64, Engine};
 use serde::{Deserialize, Deserializer, Serializer};
 
@@ -200,9 +205,8 @@ impl Base64 {
 	}
 }
 
-#[must_use]
 pub fn get_compatibility_test_data() -> CompatibilityTestData {
 	let data_json =
-		include_str!("../../../../../test/tests/api/worker/crypto/CompatibilityTestData.json");
+		include_str!("../../../../test/tests/api/worker/crypto/CompatibilityTestData.json");
 	serde_json::from_str(data_json).unwrap()
 }

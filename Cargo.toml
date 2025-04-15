@@ -20,6 +20,7 @@ members = [
 	# note: not to be confused with `bindgen` binary which is from: https://github.com/rust-lang/rust-bindgen
 	"tuta-sdk/rust/uniffi-bindgen",
 ]
+exclude = ["tuta-sdk/rust/crypto-primitives"]
 
 # in most cases, we don't want to build everything.
 # this requires passing --all or --package <package-name> to

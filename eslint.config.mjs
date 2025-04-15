@@ -33,6 +33,7 @@ export default [
 			"native-cache/",
 			"packages/node-mimimi/",
 			"packages/tutanota-crypto/lib/internal/",
+			"packages/tutanota-crypto/lib/encryption/ed25519wasm/",
 			"resources/",
 			"schemas/",
 			"tuta-sdk/",
