@@ -17,7 +17,11 @@ test-with-local-http-server = []
 
 [dependencies]
 # Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
-napi = { version = "2.16.13", default-features = false, features = ["napi9", "async", "tokio_rt"] }
+napi = { version = "2.16.13", default-features = false, features = [
+	"napi9",
+	"async",
+	"tokio_rt",
+] }
 napi-derive = { version = "2.16.13", optional = true }
 mail-parser = { version = "0.10.2", features = ["full_encoding"] }
 tuta-sdk = { workspace = true, features = ["net"] }
@@ -25,6 +29,7 @@ rand = { workspace = true }
 log = { workspace = true }
 base64 = { workspace = true }
 regex = { version = "1.11.1" }
+crypto-primitives = { path = "../../tuta-sdk/rust/crypto-primitives" }
 
 [build-dependencies]
 napi-build = { version = "2.1.4" }
