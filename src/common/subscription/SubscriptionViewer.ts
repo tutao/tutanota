@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isIOSApp } from "../api/common/Env"
+import { assertMainOrNode, isApp, isIOSApp } from "../api/common/Env"
 import {
 	AccountType,
 	AccountTypeNames,
@@ -32,7 +32,17 @@ import {
 	PlanConfiguration,
 	UserTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	base64ExtToBase64,
+	base64ToUint8Array,
+	downcast,
+	incrementDate,
+	isEmpty,
+	neverNull,
+	promiseMap,
+	stringToBase64,
+} from "@tutao/tutanota-utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
 import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./PriceUtils"
@@ -86,6 +96,9 @@ import { client } from "../misc/ClientDetector.js"
 import { AppStoreSubscriptionService } from "../api/entities/sys/Services.js"
 import { AppType } from "../misc/ClientConstants.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
+import { evaluateRatingEligibility, RatingDisallowReason } from "../ratings/UserSatisfactionUtils.js"
+import { deviceConfig } from "../misc/DeviceConfig.js"
+import { showUserSatisfactionDialog } from "../ratings/UserSatisfactionDialog.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -290,6 +303,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleUpgradeSubscription() {
+		const oldPlan = this.currentPlanType
+
 		if (isIOSApp()) {
 			// We pass `null` because we expect no subscription when upgrading
 			const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
@@ -303,7 +318,20 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		return showUpgradeWizard(locator.logins)
+		await showUpgradeWizard(locator.logins)
+
+		const newPlan = await locator.logins.getUserController().getPlanType()
+
+		if (newPlan !== PlanType.Free && newPlan !== oldPlan) {
+			// We show the rating dialog after a successful upgrade. The account age and app installation age are not checked here.
+
+			const disallowReasons = (await evaluateRatingEligibility(new Date(), deviceConfig, isApp())).filter(
+				(r) => r !== RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG && r !== RatingDisallowReason.ACCOUNT_TOO_YOUNG,
+			)
+			if (isEmpty(disallowReasons)) {
+				setTimeout(() => showUserSatisfactionDialog("Upgrade"), 2000)
+			}
+		}
 	}
 
 	private async handleAppStoreSubscriptionChange() {
