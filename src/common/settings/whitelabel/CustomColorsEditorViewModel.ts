@@ -99,8 +99,6 @@ export class CustomColorsEditorViewModel {
 	changeAccentColor(accentColor: string) {
 		this._accentColor = accentColor
 		this.addCustomization("primary", accentColor)
-		this.addCustomization("primary", accentColor)
-
 		this._applyEditedTheme()
 	}
 
@@ -124,7 +122,7 @@ export class CustomColorsEditorViewModel {
 		}
 
 		this.addCustomization("themeId", this._whitelabelDomainInfo.domain)
-		this._whitelabelConfig.jsonTheme = JSON.stringify(this.customizations)
+		this._whitelabelConfig.jsonTheme = JSON.stringify(ThemeController.mapNewToOldColorTokens(this.customizations))
 		await this._entityClient.update(this._whitelabelConfig)
 
 		if (!this._loginController.isWhitelabel()) {
@@ -156,7 +154,7 @@ export class CustomColorsEditorViewModel {
 		this._applyEditedTheme()
 	}
 
-	_isValidColorValue(colorValue: string): boolean {
+	private _isValidColorValue(colorValue: string): boolean {
 		return isValidColorCode(colorValue.trim()) || colorValue.trim() === ""
 	}
 
@@ -164,20 +162,12 @@ export class CustomColorsEditorViewModel {
 	 * These values shall be excluded when rendering the advanced TextFields
 	 * @return boolean, true iff provided parameter 'name' shall be excluded
 	 */
-	_shallBeExcluded(name: CustomizationKey): boolean {
-		const excludedColors = [
-			"logo",
-			"themeId",
-			"base",
-			"primary",
-			"primary",
-			"go_european",
-			"on_go_european",
-		]
+	private _shallBeExcluded(name: CustomizationKey): boolean {
+		const excludedColors = ["logo", "themeId", "base", "go_european", "on_go_european"]
 		return excludedColors.includes(name)
 	}
 
-	_applyEditedTheme: () => void = debounceStart(100, () => {
+	private _applyEditedTheme: () => void = debounceStart(100, () => {
 		this._removeEmptyCustomizations()
 
 		this._themeController.applyCustomizations(this._filterAndReturnCustomizations(), false)
