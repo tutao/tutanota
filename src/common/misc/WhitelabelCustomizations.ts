@@ -1,6 +1,7 @@
-import type { BaseThemeId, Theme } from "../gui/theme"
+import { BaseThemeId, theme, Theme } from "../gui/theme"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import type { WhitelabelConfig } from "../api/entities/sys/TypeRefs.js"
+import { ThemeController } from "../gui/ThemeController.js"
 
 assertMainOrNodeBoot()
 export type ThemeCustomizations = Partial<Theme> & {
@@ -27,5 +28,5 @@ export function getWhitelabelCustomizations(window: Window): WhitelabelCustomiza
 }
 
 export function getThemeCustomizations(whitelabelConfig: WhitelabelConfig): ThemeCustomizations {
-	return JSON.parse(whitelabelConfig.jsonTheme, (k, v) => (k === "__proto__" ? undefined : v))
+	return ThemeController.mapOldToNewColorTokens(JSON.parse(whitelabelConfig.jsonTheme, (k, v) => (k === "__proto__" ? undefined : v)))
 }
