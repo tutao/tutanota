@@ -1,5 +1,4 @@
 import o from "@tutao/otest"
-import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError.js"
 import {
 	FULL_INDEXED_TIMESTAMP,
 	GroupType,
@@ -25,6 +24,7 @@ import {
 	MailBoxTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
+	MailDetailsDraftTypeRef,
 	MailDetailsTypeRef,
 	MailFolder,
 	MailFolderRefTypeRef,
@@ -35,7 +35,7 @@ import {
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { DAY_IN_MILLIS, getDayShifted, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, DAY_IN_MILLIS, getDayShifted, neverNull } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
 	isSameId,
@@ -58,6 +58,7 @@ import { ClientTypeModelResolver } from "../../../../../src/common/api/common/En
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -422,105 +423,142 @@ o.spec("MailIndexer", () => {
 		})
 	})
 
-	o.spec("processEntityEvents", function () {
+	o.spec("entity event handlers", () => {
 		const mailListId = "mail-list"
 		const mailIdTuple: IdTuple = [mailListId, mailId]
 
-		function addEntities(mailState: MailState = MailState.RECEIVED) {
+		function addEntities(mailState: MailState = MailState.RECEIVED): MailWithDetailsAndAttachments {
+			const mailDetailsBlobId = ["details-list-id", "details-id"] as IdTuple
 			const { mail, mailDetailsBlob, files } = createMailInstances({
 				mailSetEntryId: ["mailSetListId", "mailListEntryId"],
 				mailId: mailIdTuple,
-				mailDetailsBlobId: ["details-list-id", "details-id"],
+				mailDetailsBlobId,
 				attachmentIds: [["file-list-id", "file-id"]],
 			})
 			mail.state = mailState
-			entityMock.addListInstances(mail, ...files)
-			entityMock.addBlobInstances(mailDetailsBlob)
+
+			if (mail.state === MailState.DRAFT) {
+				const mailDetailsListEntity = createTestEntity(MailDetailsDraftTypeRef, {
+					_id: mailDetailsBlobId,
+					details: mailDetailsBlob.details,
+				})
+				mail.mailDetailsDraft = mailDetailsBlobId
+				mail.mailDetails = null
+				entityMock.addListInstances(mail, mailDetailsListEntity, ...files)
+			} else {
+				entityMock.addListInstances(mail, ...files)
+				entityMock.addBlobInstances(mailDetailsBlob)
+			}
+
 			when(mailFacade.loadAttachments(mail)).thenResolve(files)
-			return { mail, mailDetailsBlob, files }
+			return { mail, mailDetails: mailDetailsBlob.details, attachments: files }
 		}
 
-		o.test("do nothing if mailIndexing is disabled", async function () {
-			await initWithEnabled(false)
+		o.spec("processEntityEvents", function () {
+			o.test("do not delete if mailIndexing is disabled", async function () {
+				await initWithEnabled(false)
 
-			const events = [
-				createUpdate(OperationType.CREATE, mailListId, "1"),
-				createUpdate(OperationType.UPDATE, mailListId, "2"),
-				createUpdate(OperationType.DELETE, mailListId, "3"),
-			]
-			await indexer.processEntityEvents(events, "group-id", "batch-id")
-			verify(entityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
-			verify(backend.onMailCreated(matchers.anything()), { times: 0 })
-			verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
-			verify(backend.onMailDeleted(matchers.anything()), { times: 0 })
-		})
+				const events = [createUpdate(OperationType.DELETE, mailListId, "3")]
+				await indexer.processEntityEvents(events, "group-id", "batch-id")
+				verify(entityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
+				verify(backend.onMailDeleted(matchers.anything()), { times: 0 })
+			})
 
-		o.test("when CREATE it should dispatch to backend", async function () {
-			await initWithEnabled(true)
+			o.test("deletes if mailIndexing is enabled", async function () {
+				await initWithEnabled(true)
 
-			const { mail, mailDetailsBlob, files } = addEntities()
+			const { mail, mailDetails, attachments } = addEntities()
 			const event: EntityUpdateData = {
-				typeRef: MailTypeRef,
+                typeRef: MailTypeRef,
 				operation: OperationType.CREATE,
 				instanceListId: mailListId,
 				instanceId: mailId,
 			}
 			await indexer.processEntityEvents([event], "groupId", "batchId")
-			verify(backend.onMailCreated({ mail, mailDetails: mailDetailsBlob.details, attachments: files }))
+			verify(backend.onMailCreated({ mail, mailDetails, attachments }))
 		})
 
 		o.test("when DELETE it should dispatch to backend", async function () {
 			await initWithEnabled(true)
 
 			const events = [createUpdate(OperationType.DELETE, mailListId, mailId)]
-			await indexer.processEntityEvents(events, "group-id", "batch-id")
-			verify(backend.onMailDeleted(mailIdTuple))
+				await indexer.processEntityEvents(events, "group-id", "batch-id")
+				verify(backend.onMailDeleted(matchers.anything()))
+			})
 		})
 
-		o.test("when UPDATE for draft it should dispatch a full update to backend", async function () {
-			await initWithEnabled(true)
-			const { mail, mailDetailsBlob, files } = addEntities(MailState.DRAFT)
-
-			const events = [createUpdate(OperationType.UPDATE, mailListId, mailId)]
-			await indexer.processEntityEvents(events, "group-id", "batch-id")
-			verify(backend.onMailUpdated({ mail, mailDetails: mailDetailsBlob.details, attachments: files }))
-			verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+		o.spec("afterMailCreated", () => {
+			o.test("no-op if mailIndexing is disabled", async () => {
+				await initWithEnabled(false)
+				await indexer.afterMailCreated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
+			o.test("creates if mailIndexing is enabled", async () => {
+				const entities = addEntities()
+				await initWithEnabled(true)
+				await indexer.afterMailCreated(mailIdTuple)
+				verify(backend.onMailCreated(entities))
+			})
+			o.test("no-op if draft details fail to download", async () => {
+				const entities = addEntities(MailState.DRAFT)
+				await initWithEnabled(true)
+				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if non-draft details fail to download", async () => {
+				const entities = addEntities(MailState.RECEIVED)
+				await initWithEnabled(true)
+				entityMock.setBlobElementException(assertNotNull(entities.mail.mailDetails), new NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if files fail to download", async () => {
+				const entities = addEntities(MailState.RECEIVED)
+				await initWithEnabled(true)
+				when(mailFacade.loadAttachments(entities.mail)).thenReject(new NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
 		})
 
-		o.test("when UPDATE for non-draft it should dispatch a partial update to backend", async function () {
-			await initWithEnabled(true)
-			const { mail } = addEntities(MailState.RECEIVED)
-
-			const events = [createUpdate(OperationType.UPDATE, mailListId, mailId)]
-			await indexer.processEntityEvents(events, "group-id", "batch-id")
-			verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
-			verify(backend.onPartialMailUpdated(mail))
-		})
-
-		o.test("when CREATE but mail not found it is handled", async function () {
-			await initWithEnabled(true)
-			const events = [createUpdate(OperationType.CREATE, mailListId, "1")]
-			await indexer.processEntityEvents(events, "group-id", "batch-id")
-		})
-
-		o.test("when CREATE but not authorized it is handled", async function () {
-			entityMock.setListElementException(mailIdTuple, new NotAuthorizedError("blah"))
-			await initWithEnabled(true)
-			const events = [createUpdate(OperationType.CREATE, mailListId, "1")]
-			await indexer.processEntityEvents(events, "group-id", "batch-id")
-		})
-
-		o.test("when UPDATE but mail not found it is handled", async function () {
-			await initWithEnabled(true)
-			const events = [createUpdate(OperationType.UPDATE, mailListId, "1")]
-			await indexer.processEntityEvents(events, "group-id", "batch-id")
-		})
-
-		o.test("when UPDATE but not authorized it is handled", async function () {
-			entityMock.setListElementException(mailIdTuple, new NotAuthorizedError("blah"))
-			await initWithEnabled(true)
-			const events = [createUpdate(OperationType.UPDATE, mailListId, "1")]
-			await indexer.processEntityEvents(events, "group-id", "batch-id")
+		o.spec("afterMailUpdated", () => {
+			o.test("no-op if mailIndexing is disabled", async () => {
+				await initWithEnabled(false)
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("full update if draft", async () => {
+				const entities = addEntities(MailState.DRAFT)
+				await initWithEnabled(true)
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(entities))
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if draft details fail to download", async () => {
+				const entities = addEntities(MailState.DRAFT)
+				await initWithEnabled(true)
+				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if draft files fail to download", async () => {
+				const entities = addEntities(MailState.DRAFT)
+				await initWithEnabled(true)
+				when(mailFacade.loadAttachments(entities.mail)).thenReject(new NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("partial update if non-draft", async () => {
+				const entities = addEntities(MailState.RECEIVED)
+				await initWithEnabled(true)
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(entities.mail))
+			})
 		})
 	})
 
