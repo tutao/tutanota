@@ -17,12 +17,6 @@ import { BaseThemeId } from "../../gui/theme"
 export type SimpleCustomColorEditorAttrs = {
 	model: CustomColorsEditorViewModel
 }
-export type ColorCategories = {
-	content: Array<CustomColor>
-	header: Array<CustomColor>
-	navigation: Array<CustomColor>
-	other: Array<CustomColor>
-}
 export const COLOR_PICKER_WIDTH = 400
 export const ADVANCED_TEXTFIELD_WIDTH = 344
 export const CATEGORY_WIDTH = 750
@@ -44,33 +38,14 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 			label: "accentColor_label",
 			value: vnode.attrs.model.accentColor,
 			injectionsRight: () =>
-				renderColorPicker(
-					(inputEvent) => {
-						vnode.attrs.model.changeAccentColor(downcast<HTMLInputElement>(inputEvent.target).value)
-						m.redraw()
-					},
-					vnode.attrs.model.accentColor,
-					({ dom }) => (this._colorPickerDom = dom as HTMLInputElement),
-				),
+				renderColorPicker((inputEvent) => {
+					vnode.attrs.model.changeAccentColor(downcast<HTMLInputElement>(inputEvent.target).value)
+					m.redraw()
+				}, vnode.attrs.model.accentColor),
 			maxWidth: COLOR_PICKER_WIDTH,
 			isReadOnly: true,
 		}
 
-		/*
-	Currently:
-		Button:
-		Content:
-		Elevated:
-		Header:
-		List:
-		Modal:
-		Navigation:
-		Then:
-		Content: Content, List
-		Header: Header
-		Navigation: Navigation
-		Other: Button, Elevated, Modal
-	 */
 		return m("", [
 			m("", [
 				m(".flex", [
@@ -112,51 +87,22 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 					[
 						m(".small.mt", lang.get("customColorsInfo_msg")),
 						m(".flex.flex-column", [
-							Object.entries(this._getGroupedColors(model.customColors)).map(([name, colors]) => {
-								return m("", [
-									m(".h4.mt-l", capitalizeFirstLetterOfString(name)),
-									m(
-										".editor-border.text-break.wrapping-row",
-										{
-											style: {
-												maxWidth: px(CATEGORY_WIDTH),
-											},
+							m("", [
+								m(
+									".editor-border.text-break.wrapping-row",
+									{
+										style: {
+											maxWidth: px(CATEGORY_WIDTH),
 										},
-										[colors.map((c) => renderCustomColorField(model, c))],
-									),
-								])
-							}),
+									},
+									[model.customColors.map((c) => renderCustomColorField(model, c))],
+								),
+							]),
 						]),
 					],
 				),
 			]),
 		])
-	}
-
-	/**
-	 *
-	 */
-	_getGroupedColors(colors: ReadonlyArray<CustomColor>): ColorCategories {
-		const groupedColors: ColorCategories = {
-			content: [],
-			header: [],
-			navigation: [],
-			other: [],
-		}
-
-		for (const color of colors) {
-			if (color.name.startsWith("content") || color.name.startsWith("list")) {
-				groupedColors.content.push(color)
-			} else if (color.name.startsWith("header")) {
-				groupedColors.header.push(color)
-			} else if (color.name.startsWith("navigation")) {
-				groupedColors.navigation.push(color)
-			} else {
-				groupedColors.other.push(color)
-			}
-		}
-
-		return groupedColors
 	}
 }
 
