@@ -62,7 +62,11 @@ impl RngCore for RandomizerFacade {
 	}
 }
 
-#[cfg(test)]
+// when used externally by other crates the feature flag "test"
+// must be active
+// should be declared in the dev dependencies
+// maybe this compatibiility test should be in its own crate too
+#[cfg(feature = "test")]
 pub mod test_util {
 	use super::*;
 

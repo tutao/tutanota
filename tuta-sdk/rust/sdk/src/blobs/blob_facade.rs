@@ -12,7 +12,6 @@ use crate::blobs::blob_access_token_cache::BlobWriteTokenKey;
 use crate::blobs::blob_access_token_facade::BlobAccessTokenFacade;
 use crate::crypto::aes::Iv;
 use crate::crypto::key::GenericAesKey;
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::entities::generated::storage::{BlobGetIn, BlobPostOut, BlobServerAccessInfo};
 use crate::entities::generated::sys::BlobReferenceTokenWrapper;
 use crate::entities::Entity;
@@ -28,6 +27,7 @@ use crate::GeneratedId;
 use crate::{crypto, ApiCallError, HeadersProvider};
 use base64::Engine;
 use crypto::sha256;
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -499,8 +499,6 @@ mod tests {
 	use crate::bindings::rest_client::{encode_query_params, MockRestClient};
 	use crate::blobs::binary_blob_wrapper_serializer::deserialize_new_blobs;
 	use crate::blobs::blob_access_token_facade::MockBlobAccessTokenFacade;
-	use crate::crypto::randomizer_facade::test_util::DeterministicRng;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::entities::generated::storage::BlobPostOut;
 	use crate::entities::generated::storage::{BlobServerAccessInfo, BlobServerUrl};
 	use crate::entities::generated::sys::BlobReferenceTokenWrapper;
@@ -513,6 +511,8 @@ mod tests {
 	use crate::HeadersProvider;
 	use crate::InstanceMapper;
 	use crate::JsonSerializer;
+	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use hyper::Uri;
 	use mockall::predicate;
 	use std::collections::HashMap;

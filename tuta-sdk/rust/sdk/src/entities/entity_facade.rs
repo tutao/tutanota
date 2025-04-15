@@ -1,6 +1,5 @@
 use crate::crypto::crypto_facade::ResolvedSessionKey;
 use crate::crypto::key::GenericAesKey;
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::{aes::Iv, PlaintextAndIv};
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
@@ -14,6 +13,7 @@ use crate::ApiCallError;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use core::str;
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use lz4_flex::block::DecompressError;
 use minicbor::Encode;
 use std::borrow::Borrow;
@@ -742,8 +742,6 @@ mod lz4_compressed_string_compatibility_tests {
 mod tests {
 	use crate::crypto::crypto_facade::ResolvedSessionKey;
 	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::randomizer_facade::test_util::DeterministicRng;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::{aes::Iv, Aes256Key};
 	use crate::date::DateTime;
 	use crate::element_value::{ElementValue, ParsedEntity};
@@ -762,6 +760,8 @@ mod tests {
 	use crate::type_model_provider::init_type_model_provider;
 	use crate::util::entity_test_utils::generate_email_entity;
 	use crate::{collection, ApiCallError};
+	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use std::collections::{BTreeMap, HashMap};
 	use std::sync::Arc;
 	use std::time::SystemTime;

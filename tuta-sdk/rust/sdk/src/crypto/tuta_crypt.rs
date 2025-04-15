@@ -5,12 +5,12 @@ use crate::crypto::hkdf::hkdf;
 use crate::crypto::kyber::{
 	KyberCiphertext, KyberDecapsulationError, KyberKeyPair, KyberPublicKey, KyberSharedSecret,
 };
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::x25519::{
 	x25519_decapsulate, x25519_encapsulate, X25519KeyPair, X25519PublicKey, X25519SharedSecrets,
 };
 use crate::join_slices;
 use crate::util::{decode_byte_arrays, encode_byte_arrays, ArrayCastingError};
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use zeroize::{ZeroizeOnDrop, Zeroizing};
 
 #[cfg_attr(test, derive(Debug))]

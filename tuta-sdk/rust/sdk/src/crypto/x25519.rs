@@ -1,5 +1,5 @@
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::util::{array_cast_slice, ArrayCastingError};
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::ops::Deref;
 use zeroize::*;
 
