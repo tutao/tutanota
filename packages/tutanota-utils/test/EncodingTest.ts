@@ -1,8 +1,6 @@
 import o from "@tutao/otest"
 import {
 	_replaceLoneSurrogates,
-	_stringToUtf8Uint8ArrayLegacy,
-	_utf8Uint8ArrayToStringLegacy,
 	base64ExtToBase64,
 	base64ToBase64Ext,
 	base64ToBase64Url,
@@ -44,21 +42,6 @@ o.spec("Encoding", function () {
 
 		o(_replaceLoneSurrogates("a\uDFFFb")).equals("a\uFFFDb") // lone low surrogate
 	})
-	o("StringToUint8ArrayAndBackLegacy", () => stringToUint8ArrayAndBack(_stringToUtf8Uint8ArrayLegacy, _utf8Uint8ArrayToStringLegacy))
-
-	function stringToUint8ArrayAndBack(encoder, decoder) {
-		o(decoder(encoder("halloTest € à 草"))).equals("halloTest € à 草")
-		o(decoder(encoder(""))).equals("")
-		o(decoder(encoder("1"))).equals("1")
-		o(decoder(encoder("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf"))).equals("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf")
-		o(Array.from(encoder("€"))).deepEquals([226, 130, 172])
-		o(decoder(encoder("b\uDFFFa"))).equals("b\uFFFDa") // lone low surrogate is replaced with REPLACEMENT CHARACTER
-
-		o(decoder(encoder("b\uD800a"))).equals("b\uFFFDa") // lone high surrogate is replace with REPLACEMENT CHARACTER
-
-		o(decoder(encoder("b\uD800\uDFFFa"))).equals("b\uD800\uDFFFa") // high and low surrogate
-	}
-
 	o("HexToArrayBufferAndBack", function () {
 		o(uint8ArrayToHex(hexToUint8Array("ba9012cb349de910924ed81239d18423"))).equals("ba9012cb349de910924ed81239d18423")
 	})
