@@ -3,7 +3,6 @@ use crate::crypto::aes::Iv;
 use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 use crate::crypto::asymmetric_crypto_facade::{AsymmetricCryptoError, DecapsulatedAesKey};
 use crate::crypto::key::{GenericAesKey, KeyLoadError};
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::RSAEncryptionError;
 use crate::crypto::tuta_crypt::TutaCryptError;
 use crate::crypto::x25519::X25519PublicKey;
@@ -24,6 +23,7 @@ use crate::GeneratedId;
 use crate::IdTupleGenerated;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::sync::Arc;
 
 #[derive(uniffi::Object)]
@@ -310,8 +310,6 @@ mod test {
 	use crate::crypto::asymmetric_crypto_facade::{DecapsulatedAesKey, MockAsymmetricCryptoFacade};
 	use crate::crypto::crypto_facade::CryptoFacade;
 	use crate::crypto::key::{GenericAesKey, VersionedAesKey};
-	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::x25519::X25519KeyPair;
 	use crate::element_value::ParsedEntity;
 	use crate::entities::generated::sys::{BucketKey, InstanceSessionKey};
@@ -325,6 +323,8 @@ mod test {
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
 	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
+	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use mockall::predicate::eq;
 	use std::sync::Arc;
 

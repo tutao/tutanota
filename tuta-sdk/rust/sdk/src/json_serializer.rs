@@ -709,13 +709,13 @@ impl JsonSerializer {
 mod tests {
 	use super::*;
 	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::generated::sys::User;
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::services::test_services::HelloEncOutput;
 	use crate::type_model_provider::{init_type_model_provider, AppName, TypeName};
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 
 	#[test]
 	fn test_parse_mail() {

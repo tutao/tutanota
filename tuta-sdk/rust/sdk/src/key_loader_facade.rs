@@ -362,8 +362,6 @@ struct FormerGroupKey {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::rsa::RSAKeyPair;
 	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs};
 	use crate::entities::generated::sys::{GroupKeysRef, GroupMembership, KeyPair};
@@ -374,6 +372,8 @@ mod tests {
 	use crate::util::{convert_version_to_i64, get_vec_reversed};
 	use crate::CustomId;
 	use crate::{IdTupleCustom, IdTupleGenerated};
+	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use mockall::predicate;
 	use std::array::from_fn;
 

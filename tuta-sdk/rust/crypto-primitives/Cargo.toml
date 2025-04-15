@@ -1,0 +1,44 @@
+[package]
+name = "crypto-primitives"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook"]
+test = []
+
+[workspace]
+
+[dependencies]
+tsify = { version = "0.4.5", features = ["js"] }
+wasm-bindgen = "0.2.100"
+serde = { features = ["derive"], version = "1.0.219" }
+const-hex = { version = "1.12.0", features = ["serde"] }
+serde_json = { version = "1.0.117" }
+serde-wasm-bindgen = "0.6.5"
+serde-big-array = "0.5.1"
+
+base64 = { version = "0.22.1" }
+getrandom = { version = "0.2", features = [
+	"js",
+] } # needed for the js feature in rand_core
+rand_core = { version = "0.6.4", features = ["getrandom"] }
+ed25519-dalek = { version = "2.1.1", features = ["rand_core", "zeroize"] }
+zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
+thiserror = "2.0"
+
+# The `console_error_panic_hook` crate provides better debugging of panics by
+# logging them with `console.error`. This is great for development, but requires
+# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
+# code size when deploying.
+console_error_panic_hook = { version = "0.1.7", optional = true }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.34"
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"

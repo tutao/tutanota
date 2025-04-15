@@ -1,5 +1,4 @@
 use crate::blobs::blob_access_token_cache::{BlobAccessTokenCache, BlobWriteTokenKey};
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::date::DateProvider;
 use crate::entities::generated::storage::{
 	BlobAccessTokenPostIn, BlobServerAccessInfo, BlobWriteData,
@@ -14,6 +13,7 @@ use crate::CustomId;
 use crate::GeneratedId;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::sync::Arc;
 
 /// The BlobAccessTokenFacade requests blobAccessTokens from the BlobAccessTokenService to get
@@ -83,7 +83,6 @@ impl BlobAccessTokenFacade {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::date::date_provider::stub::DateProviderStub;
 	use crate::date::DateTime;
 	use crate::entities::generated::storage::{BlobAccessTokenPostOut, BlobServerAccessInfo};
@@ -92,6 +91,7 @@ mod tests {
 	use crate::util::test_utils::create_test_entity;
 	use crate::CustomId;
 	use crate::GeneratedId;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use std::sync::Arc;
 
 	#[tokio::test]
