@@ -59,58 +59,66 @@ export class LabelsPopup implements ModalComponent {
 	}
 
 	view(): void | Children {
-		return m(".flex.col.elevated-bg.abs.dropdown-shadow.pt-s.border-radius", { tabindex: TabIndex.Programmatic, role: AriaRole.Menu }, [
-			m(
-				".pb-s.scroll",
-				this.labels.map((labelState) => {
-					const { label, state } = labelState
-					const color = theme.content_button
-					const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.isMaxLabelsReached
-					const opacity = !canToggleLabel ? 0.5 : undefined
+		return m(
+			".flex.col.elevated-bg.abs.dropdown-shadow.pt-s.border-radius",
+			{
+				tabindex: TabIndex.Programmatic,
+				role: AriaRole.Menu,
+				"data-testid": "dropdown:labels",
+			},
+			[
+				m(
+					".pb-s.scroll",
+					this.labels.map((labelState) => {
+						const { label, state } = labelState
+						const color = theme.content_button
+						const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.isMaxLabelsReached
+						const opacity = !canToggleLabel ? 0.5 : undefined
 
-					return m(
-						"label-item.flex.items-center.plr.state-bg.cursor-pointer",
+						return m(
+							"label-item.flex.items-center.plr.state-bg.cursor-pointer",
 
-						{
-							"data-labelid": getElementId(label),
-							role: AriaRole.MenuItemCheckbox,
-							tabindex: TabIndex.Default,
-							"aria-checked": ariaCheckedForState(state),
-							"aria-disabled": !canToggleLabel,
-							onclick: canToggleLabel ? () => this.toggleLabel(labelState) : noOp,
-						},
-						[
-							m(Icon, {
-								icon: this.iconForState(state),
-								size: IconSize.Medium,
-								style: {
-									fill: getLabelColor(label.color),
-									opacity,
-								},
-							}),
-							m(".button-height.flex.items-center.ml.overflow-hidden", { style: { color, opacity } }, m(".text-ellipsis", label.name)),
-						],
-					)
+							{
+								"data-labelid": getElementId(label),
+								role: AriaRole.MenuItemCheckbox,
+								tabindex: TabIndex.Default,
+								"aria-checked": ariaCheckedForState(state),
+								"aria-disabled": !canToggleLabel,
+								onclick: canToggleLabel ? () => this.toggleLabel(labelState) : noOp,
+							},
+							[
+								m(Icon, {
+									icon: this.iconForState(state),
+									size: IconSize.Medium,
+									style: {
+										fill: getLabelColor(label.color),
+										opacity,
+									},
+								}),
+								m(".button-height.flex.items-center.ml.overflow-hidden", { style: { color, opacity } }, m(".text-ellipsis", label.name)),
+							],
+						)
+					}),
+				),
+				this.isMaxLabelsReached && m(".small.center.pb-s", lang.get("maximumLabelsPerMailReached_msg")),
+				m(BaseButton, {
+					label: "apply_action",
+					text: lang.get("apply_action"),
+					class: "limit-width noselect bg-transparent button-height text-ellipsis content-accent-fg flex items-center plr-button button-content justify-center border-top state-bg",
+					onclick: () => {
+						this.applyLabels()
+					},
+				} satisfies BaseButtonAttrs),
+				m(BaseButton, {
+					label: "close_alt",
+					text: lang.get("close_alt"),
+					class: "hidden-until-focus content-accent-fg button-content",
+					onclick: () => {
+						modal.remove(this)
+					},
 				}),
-			),
-			this.isMaxLabelsReached && m(".small.center.pb-s", lang.get("maximumLabelsPerMailReached_msg")),
-			m(BaseButton, {
-				label: "apply_action",
-				text: lang.get("apply_action"),
-				class: "limit-width noselect bg-transparent button-height text-ellipsis content-accent-fg flex items-center plr-button button-content justify-center border-top state-bg",
-				onclick: () => {
-					this.applyLabels()
-				},
-			} satisfies BaseButtonAttrs),
-			m(BaseButton, {
-				label: "close_alt",
-				text: lang.get("close_alt"),
-				class: "hidden-until-focus content-accent-fg button-content",
-				onclick: () => {
-					modal.remove(this)
-				},
-			}),
-		])
+			],
+		)
 	}
 
 	private iconForState(state: LabelState): AllIcons {
