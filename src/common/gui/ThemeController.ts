@@ -5,9 +5,9 @@ import Stream from "mithril/stream"
 import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
-import type { BaseThemeId, Theme, ThemeId, ThemePreference } from "./theme"
+import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { logoDefaultGrey, themes } from "./builtinThemes"
-import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
+import { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
@@ -68,6 +68,46 @@ export class ThemeController {
 			// theme after that.
 			await this.setThemePreference((await this.themeFacade.getThemePreference()) ?? this._themePreference)
 		}
+	}
+
+	/**
+	 * Color token mapper from the old to the new.
+	 * If there are colors explicitly defined for the new tokens, they will be respected and the mapped colors will be overwritten.
+	 * Since the number of new tokens is less than the number of old tokens, it is impossible to map all colors. Thus, this is just for mitigation purposes.
+	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
+	 */
+	public static mapOldToNewColorTokens(customizations: Partial<ThemeCustomizations>): ThemeCustomizations {
+		let mappedCustomizations: Record<string, string> = {}
+		for (const [oldToken, hex] of Object.entries(customizations)) {
+			if (!oldToken || !hex) continue
+			const newToken: string | undefined = oldToNewColorTokenMap[oldToken]
+			if (newToken) {
+				mappedCustomizations[newToken] = hex
+			}
+			mappedCustomizations[oldToken] = hex
+		}
+		return downcast(mappedCustomizations)
+	}
+
+	/**
+	 * Color token mapper from the new to the old.
+	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
+	 */
+	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): ThemeCustomizations {
+		let mappedCustomizations: Record<string, string> = {}
+
+		for (const [newToken, hex] of Object.entries(customizations)) {
+			if (!newToken || !hex) continue
+			const mappedOldTokens: string[] | undefined = newToOldColorTokenMap[newToken]
+			if (mappedOldTokens) {
+				for (const oldToken of mappedOldTokens) {
+					mappedCustomizations[oldToken] = hex
+				}
+			}
+			mappedCustomizations[newToken] = hex
+		}
+
+		return downcast(mappedCustomizations)
 	}
 
 	/**
@@ -181,7 +221,7 @@ export class ThemeController {
 	 * Apply the custom theme, if permanent === true, then the new theme will be saved
 	 */
 	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<Theme> {
-		const updatedTheme = this.assembleTheme(customizations)
+		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(customizations))
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
@@ -329,3 +369,53 @@ export class WebThemeFacade implements ThemeFacade {
 		this.mediaQuery?.addEventListener("change", listener)
 	}
 }
+
+const oldToNewColorTokenMap: Record<string, string> = {
+	button_bubble_bg: "secondary",
+	button_bubble_fg: "on_secondary",
+	content_bg: "surface",
+	content_fg: "on_surface",
+	content_button: "on_surface_variant",
+	content_button_selected: "primary",
+	content_button_icon: "on_primary",
+	content_button_icon_selected: "on_primary",
+	content_accent: "primary",
+	content_border: "outline",
+	content_message_bg: "on_surface_fade",
+	header_bg: "surface",
+	header_box_shadow_bg: "outline",
+	header_button: "on_surface_variant",
+	header_button_selected: "primary",
+	list_bg: "surface",
+	list_alternate_bg: "surface_container",
+	list_accent_fg: "primary",
+	list_message_bg: "on_surface_fade",
+	list_border: "outline_variant",
+	modal_bg: "scrim",
+	elevated_bg: "surface",
+	navigation_bg: "surface_container",
+	navigation_border: "outline_variant",
+	navigation_button: "on_surface_variant",
+	navigation_button_icon: "on_primary",
+	navigation_button_selected: "primary",
+	navigation_button_icon_selected: "on_primary",
+	navigation_menu_bg: "secondary",
+	navigation_menu_icon: "on_secondary",
+	error_color: "error",
+} as const
+
+const newToOldColorTokenMap: Record<string, string[]> = {
+	secondary: ["button_bubble_bg", "navigation_menu_bg"],
+	on_secondary: ["button_bubble_fg", "navigation_menu_icon"],
+	surface: ["content_bg", "header_bg", "list_bg", "elevated_bg"],
+	on_surface: ["content_fg"],
+	on_surface_variant: ["content_button", "header_button", "navigation_button"],
+	primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
+	on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon", "navigation_button_icon_selected"],
+	outline: ["content_border", "header_box_shadow_bg"],
+	on_surface_fade: ["content_message_bg", "list_message_bg"],
+	surface_container: ["list_alternate_bg", "navigation_bg"],
+	outline_variant: ["list_border", "navigation_border"],
+	scrim: ["modal_bg"],
+	error: ["error_color"],
+} as const

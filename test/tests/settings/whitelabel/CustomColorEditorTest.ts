@@ -82,7 +82,7 @@ o.spec("SimpleColorEditor", function () {
 			o(model.baseThemeId).equals(customizations.base!)
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
-			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(customizations)
+			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(ThemeController.mapNewToOldColorTokens(customizations))
 		})
 	})
 	o.spec("addCustomization", function () {
@@ -112,11 +112,13 @@ o.spec("SimpleColorEditor", function () {
 			o(entityClient.update.callCount).equals(1)
 			// should now equal the themeCustomizations including accentColor and baseTheme
 			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
-				Object.assign({}, defaultCustomizations, {
-					on_surface_variant: "#abcdef",
-					scrim: "#fedcba",
-					themeId: "test.domain.com",
-				}),
+				ThemeController.mapNewToOldColorTokens(
+					Object.assign({}, defaultCustomizations, {
+						on_surface_variant: "#abcdef",
+						scrim: "#fedcba",
+						themeId: "test.domain.com",
+					}),
+				),
 			)
 		})
 		// Invalid practically means 'empty' as well but I created a separate test just for that
@@ -244,13 +246,15 @@ o.spec("SimpleColorEditor", function () {
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
 			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
-				Object.assign({}, defaultCustomizations, {
-					scrim: "#fedcba",
-					on_surface: "#deffed",
-					base: "dark",
-					primary: "#aaaaaa",
-					themeId: "test.domain.com",
-				}),
+				ThemeController.mapNewToOldColorTokens(
+					Object.assign({}, defaultCustomizations, {
+						scrim: "#fedcba",
+						on_surface: "#deffed",
+						base: "dark",
+						primary: "#aaaaaa",
+						themeId: "test.domain.com",
+					}),
+				),
 			)
 		})
 		o("pressed save when on whitelabelDomain, should not revert back to initial theme", async function () {
@@ -291,7 +295,7 @@ o.spec("SimpleColorEditor", function () {
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
 			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
-				Object.assign({}, expectedCustomizations, {
+				Object.assign({}, ThemeController.mapNewToOldColorTokens(expectedCustomizations), {
 					base: "light",
 				}),
 			)
@@ -318,7 +322,9 @@ o.spec("SimpleColorEditor", function () {
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
 			// We have to do base -> customizations because otherwise we would overwrite the 'base' key
-			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(Object.assign({}, defaultCustomizations, expectedCustomizations))
+			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
+				ThemeController.mapNewToOldColorTokens(Object.assign({}, defaultCustomizations, expectedCustomizations)),
+			)
 		})
 	})
 })
