@@ -416,8 +416,6 @@ mod tests {
 	use crate::crypto::crypto_facade::{MockCryptoFacade, ResolvedSessionKey};
 	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 	use crate::crypto::public_key_provider::PublicKeyIdentifier;
-	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::rsa::RSAKeyPair;
 	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs, X25519PublicKey};
 	use crate::crypto_entity_client::CryptoEntityClient;
@@ -437,6 +435,8 @@ mod tests {
 	use crate::util::test_utils::{create_test_entity, leak, mock_type_model_provider};
 	use crate::util::Versioned;
 	use crate::{GeneratedId, IdTupleGenerated};
+	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 
 	#[tokio::test]
 	async fn no_auth_for_encrypted_instances_except_mail() {

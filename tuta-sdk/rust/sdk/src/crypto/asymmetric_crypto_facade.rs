@@ -7,7 +7,6 @@ use crate::crypto::kyber::KyberKeyError;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::public_key_provider::PublicKeyProvider;
 use crate::crypto::public_key_provider::{PublicKeyIdentifier, PublicKeyLoadingError};
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAEncryptionError, RSAKeyError, RSAX25519KeyPair};
 use crate::crypto::tuta_crypt::{TutaCryptError, TutaCryptMessage, TutaCryptPublicKeys};
 use crate::crypto::x25519::{X25519KeyPair, X25519PublicKey};
@@ -25,6 +24,7 @@ use crate::util::ArrayCastingError;
 use crate::util::{convert_version_to_u64, Versioned};
 use crate::ApiCallError;
 use crate::GeneratedId;
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use std::sync::Arc;
 use zeroize::Zeroizing;
 
@@ -393,10 +393,10 @@ impl AsymmetricCryptoFacade {
 mod tests {
 	use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoFacade;
 	use crate::crypto::public_key_provider::{MockPublicKeyProvider, PublicKeyIdentifier};
-	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::services::service_executor::MockServiceExecutor;
 	use crate::tutanota_constants::PublicKeyIdentifierType;
+	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 	use std::sync::Arc;
 
 	fn make_asymmetric_crypto_facade(
@@ -606,7 +606,6 @@ mod tests {
 		use crate::crypto::asymmetric_crypto_facade::AsymmetricCryptoError;
 		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, PublicKey};
 		use crate::crypto::kyber::KyberPublicKey;
-		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::tuta_crypt::{TutaCryptMessage, TutaCryptPublicKeys};
 		use crate::crypto::x25519::X25519KeyPair;
@@ -617,6 +616,7 @@ mod tests {
 		use crate::tutanota_constants::PublicKeyIdentifierType;
 		use crate::util::test_utils::{get_kyber_pub_key_bytes, get_x25519_pub_key_bytes};
 		use crate::util::Versioned;
+		use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 		use mockall::predicate::eq;
 
 		#[tokio::test]
@@ -745,12 +745,12 @@ mod tests {
 			AsymmetricCryptoError, AsymmetricCryptoFacade,
 		};
 		use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
-		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::tuta_crypt::TutaCryptMessage;
 		use crate::crypto::x25519::X25519KeyPair;
 		use crate::crypto::{Aes256Key, TutaCryptKeyPairs};
 		use crate::tutanota_constants::CryptoProtocolVersion;
+		use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 
 		#[tokio::test]
 		async fn error_when_the_protocol_version_is_symmetric() {
@@ -856,7 +856,6 @@ mod tests {
 		use crate::crypto::key::RsaX25519PublicKeys;
 		use crate::crypto::key::{AsymmetricKeyPair, PublicKey};
 		use crate::crypto::public_key_provider::MockPublicKeyProvider;
-		use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 		use crate::crypto::rsa::RSAKeyPair;
 		use crate::crypto::rsa::RSAX25519KeyPair;
 		use crate::crypto::tuta_crypt::TutaCryptPublicKeys;
@@ -870,6 +869,7 @@ mod tests {
 		use crate::ExtraServiceParams;
 		use crate::GeneratedId;
 		use crate::GenericAesKey;
+		use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 		use mockall::predicate::eq;
 		use std::sync::Arc;
 
@@ -1117,7 +1117,6 @@ mod tests {
 			use crate::crypto::key::PublicKey;
 			use crate::crypto::key::RsaX25519PublicKeys;
 			use crate::crypto::public_key_provider::MockPublicKeyProvider;
-			use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 			use crate::crypto::rsa::RSAKeyPair;
 			use crate::crypto::rsa::RSAX25519KeyPair;
 			use crate::crypto::x25519::X25519KeyPair;
@@ -1125,6 +1124,7 @@ mod tests {
 			use crate::services::generated::sys::PublicKeyService;
 			use crate::services::service_executor::MockServiceExecutor;
 			use crate::util::Versioned;
+			use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 
 			#[tokio::test]
 			async fn error_when_passing_an_rsa_public_key() {
