@@ -39,6 +39,7 @@ export function showNewsDialog(newsModel: NewsModel) {
 						? m(NewsList, {
 								liveNewsIds: newsModel.liveNewsIds,
 								liveNewsListItems: newsModel.liveNewsListItems,
+								dialog,
 							})
 						: m(
 								".flex-center.mt-l",
