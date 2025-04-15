@@ -226,9 +226,9 @@ impl Versioned<GenericAesKey> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
 	use crate::crypto::Aes128Key;
 	use crate::util::test_utils::generate_random_string;
+	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 
 	#[test]
 	fn encrypt_data_aes128_roundtrip() {

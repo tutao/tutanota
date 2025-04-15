@@ -2,11 +2,11 @@
 //!
 //! We implement parts of kyber differently than in crypto module to make it more FFI-friendly.
 
-use crate::crypto::randomizer_facade::RandomizerFacade;
 use crate::crypto::rsa::{RSAPrivateKey, RSAPublicKey, SeedBufferRng};
 use crate::crypto::{argon2_id, kyber};
 use crate::util::{array_cast_slice, ArrayCastingError};
 use base64::prelude::*;
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use zeroize::Zeroizing;
 
 /// Error occurred from trying to encapsulate/decapsulate with Kyber

@@ -31,7 +31,7 @@ pub fn generate_key_from_passphrase(password: &str, salt: [u8; 16]) -> Aes256Key
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::get_compatibility_test_data;
+	use crypto_primitives::compatibility_test_utils::get_compatibility_test_data;
 
 	#[test]
 	fn test_argon2() {
