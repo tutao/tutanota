@@ -366,7 +366,7 @@ impl CryptoRng for SeedBufferRng {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::get_compatibility_test_data;
+	use crypto_primitives::compatibility_test_utils::get_compatibility_test_data;
 
 	#[test]
 	fn test_rsa_encryption() {

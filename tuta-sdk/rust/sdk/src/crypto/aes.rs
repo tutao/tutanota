@@ -553,8 +553,8 @@ mod tests {
 	use base64::engine::Engine;
 	use base64::prelude::BASE64_STANDARD;
 
-	use crate::crypto::compatibility_test_utils::*;
 	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
+	use crypto_primitives::compatibility_test_utils::*;
 
 	use super::*;
 

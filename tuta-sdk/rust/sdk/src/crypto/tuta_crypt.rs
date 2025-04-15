@@ -239,11 +239,11 @@ impl TutaCryptErrorType for AesEncryptError {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::compatibility_test_utils::{
-		get_compatibility_test_data, PQCryptEncryptionTest,
-	};
 	use crate::crypto::kyber::KyberPrivateKey;
 	use crate::crypto::x25519::X25519PrivateKey;
+	use crypto_primitives::compatibility_test_utils::{
+		get_compatibility_test_data, PQCryptEncryptionTest,
+	};
 
 	#[test]
 	fn test_bucket_key_serialize_roundtrip() {

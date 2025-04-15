@@ -200,8 +200,11 @@ impl Base64 {
 	}
 }
 
-#[cfg(test)]
-#[must_use]
+// when used externally by other crates the feature flag "test"
+// must be active
+// should be declared in the dev dependencies
+// maybe this compatibiility test should be in its own crate too
+#[cfg(feature = "test")]
 pub fn get_compatibility_test_data() -> CompatibilityTestData {
 	let data_json =
 		include_str!("../../../../test/tests/api/worker/crypto/CompatibilityTestData.json");

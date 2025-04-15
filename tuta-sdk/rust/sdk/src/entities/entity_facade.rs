@@ -665,12 +665,12 @@ fn make_random_aggregate_id(random: &RandomizerFacade) -> ElementValue {
 
 #[cfg(test)]
 mod lz4_compressed_string_compatibility_tests {
-	use crate::crypto::compatibility_test_utils::{
-		get_compatibility_test_data, CompressionTestData,
-	};
 	use crate::entities::entity_facade::EntityFacadeImpl;
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
+	use crypto_primitives::compatibility_test_utils::{
+		get_compatibility_test_data, CompressionTestData,
+	};
 
 	#[test]
 	#[ignore]
