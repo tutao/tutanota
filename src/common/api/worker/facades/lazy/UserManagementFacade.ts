@@ -18,7 +18,7 @@ import { PQFacade } from "../PQFacade.js"
 import { freshVersioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade, RecoverData } from "./RecoverCodeFacade.js"
-import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 assertWorkerOrNode()
 
@@ -148,24 +148,24 @@ export class UserManagementFacade {
 		const fileGroupInfoSessionKey = aes256RandomKey()
 		const tutanotaPropertiesSessionKey = aes256RandomKey()
 
-		const userEncCustomerGroupKey = encryptKeyWithVersionedKey(userGroupKey, customerGroupKey.object)
-		const userEncMailGroupKey = encryptKeyWithVersionedKey(userGroupKey, mailGroupKey.object)
-		const userEncContactGroupKey = encryptKeyWithVersionedKey(userGroupKey, contactGroupKey.object)
-		const userEncFileGroupKey = encryptKeyWithVersionedKey(userGroupKey, fileGroupKey.object)
-		const userEncTutanotaPropertiesSessionKey = encryptKeyWithVersionedKey(userGroupKey, tutanotaPropertiesSessionKey)
-		const userEncEntropy = encryptBytes(userGroupKey.object, random.generateRandomData(32))
+		const userEncCustomerGroupKey = _encryptKeyWithVersionedKey(userGroupKey, customerGroupKey.object)
+		const userEncMailGroupKey = _encryptKeyWithVersionedKey(userGroupKey, mailGroupKey.object)
+		const userEncContactGroupKey = _encryptKeyWithVersionedKey(userGroupKey, contactGroupKey.object)
+		const userEncFileGroupKey = _encryptKeyWithVersionedKey(userGroupKey, fileGroupKey.object)
+		const userEncTutanotaPropertiesSessionKey = _encryptKeyWithVersionedKey(userGroupKey, tutanotaPropertiesSessionKey)
+		const userEncEntropy = _encryptBytes(userGroupKey.object, random.generateRandomData(32))
 
-		const customerEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, mailGroupInfoSessionKey)
-		const customerEncContactGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, contactGroupInfoSessionKey)
-		const customerEncFileGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, fileGroupInfoSessionKey)
+		const customerEncMailGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, mailGroupInfoSessionKey)
+		const customerEncContactGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, contactGroupInfoSessionKey)
+		const customerEncFileGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, fileGroupInfoSessionKey)
 
-		const contactEncContactListSessionKey = encryptKeyWithVersionedKey(contactGroupKey, contactListSessionKey)
-		const fileEncFileSystemSessionKey = encryptKeyWithVersionedKey(fileGroupKey, fileSystemSessionKey)
-		const mailEncMailBoxSessionKey = encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
+		const contactEncContactListSessionKey = _encryptKeyWithVersionedKey(contactGroupKey, contactListSessionKey)
+		const fileEncFileSystemSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, fileSystemSessionKey)
+		const mailEncMailBoxSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
 
 		return createUserAccountUserData({
 			mailAddress: mailAddress,
-			encryptedName: encryptString(userGroupInfoSessionKey, userName),
+			encryptedName: _encryptString(userGroupInfoSessionKey, userName),
 			salt: salt,
 			kdfVersion: kdfType,
 
