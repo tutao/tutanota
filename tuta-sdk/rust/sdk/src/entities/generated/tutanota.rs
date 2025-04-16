@@ -3974,3 +3974,21 @@ impl Entity for UserAccountPostOut {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailGroupPostOut {
+	#[serde(rename = "1659")]
+	pub _format: i64,
+	#[serde(rename = "1660")]
+	pub mailGroup: GeneratedId,
+}
+
+impl Entity for MailGroupPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1658),
+		}
+	}
+}

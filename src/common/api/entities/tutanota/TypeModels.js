@@ -8888,5 +8888,38 @@ export const typeModels = {
 			}
 		},
 		"associations": {}
+	},
+	"1658": {
+		"name": "MailGroupPostOut",
+		"app": "tutanota",
+		"version": 87,
+		"since": 87,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1658,
+		"rootId": "CHR1dGFub3RhAAZ6",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1659": {
+				"final": false,
+				"name": "_format",
+				"id": 1659,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1660": {
+				"final": false,
+				"name": "mailGroup",
+				"id": 1660,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 5,
+				"dependency": null
+			}
+		}
 	}
 }
