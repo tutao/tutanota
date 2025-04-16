@@ -1525,6 +1525,19 @@ export type MailFolderRef = {
 
 	folders: Id;
 }
+export const MailGroupPostOutTypeRef: TypeRef<MailGroupPostOut> = new TypeRef("tutanota", "MailGroupPostOut")
+
+export function createMailGroupPostOut(values: StrippedEntity<MailGroupPostOut>): MailGroupPostOut {
+	return Object.assign(create(typeModels.MailGroupPostOut, MailGroupPostOutTypeRef), values)
+}
+
+export type MailGroupPostOut = {
+	_type: TypeRef<MailGroupPostOut>;
+
+	_format: NumberString;
+
+	mailGroup: Id;
+}
 export const MailSetEntryTypeRef: TypeRef<MailSetEntry> = new TypeRef("tutanota", "MailSetEntry")
 
 export function createMailSetEntry(values: StrippedEntity<MailSetEntry>): MailSetEntry {

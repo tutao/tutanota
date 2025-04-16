@@ -1929,6 +1929,22 @@ impl Entity for MailFolderRef {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailGroupPostOut {
+	pub _format: i64,
+	pub mailGroup: GeneratedId,
+}
+
+impl Entity for MailGroupPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: "tutanota",
+			type_: "MailGroupPostOut",
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailSetEntry {
 	pub _format: i64,
 	pub _id: Option<IdTupleCustom>,

@@ -6277,6 +6277,40 @@
 		"app": "tutanota",
 		"version": "86"
 	},
+	"MailGroupPostOut": {
+		"name": "MailGroupPostOut",
+		"since": 86,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1656,
+		"rootId": "CHR1dGFub3RhAAZ4",
+		"versioned": false,
+		"encrypted": false,
+		"values": {
+			"_format": {
+				"final": false,
+				"name": "_format",
+				"id": 1657,
+				"since": 86,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"mailGroup": {
+				"final": false,
+				"name": "mailGroup",
+				"id": 1658,
+				"since": 86,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refType": "Group",
+				"dependency": null
+			}
+		},
+		"app": "tutanota",
+		"version": "86"
+	},
 	"MailSetEntry": {
 		"name": "MailSetEntry",
 		"since": 74,
