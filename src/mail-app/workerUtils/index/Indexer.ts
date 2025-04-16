@@ -83,7 +83,7 @@ import {
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 
 export type InitParams = {
 	user: User
@@ -337,7 +337,7 @@ export class Indexer {
 		this.db.key = aes256RandomKey()
 		this.db.iv = random.generateRandomData(IV_BYTE_LENGTH)
 		const groupBatches = await this._loadGroupData(user)
-		const userEncDbKey = encryptKeyWithVersionedKey(userGroupKey, this.db.key)
+		const userEncDbKey = _encryptKeyWithVersionedKey(userGroupKey, this.db.key)
 		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 		await transaction.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey.key)
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this._mail.mailIndexingEnabled)

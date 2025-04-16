@@ -18,7 +18,7 @@ import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectS
 import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import type { QueuedBatch } from "../../EventQueue.js"
-import { encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 
 const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -251,7 +251,7 @@ export async function getIndexerMetaData(db: DbFacade, objectStoreName: ObjectSt
 
 async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, dbIv: Uint8Array, db: DbFacade, objectStoreName: string) {
 	const transaction = await db.createTransaction(false, [objectStoreName]) // create a new transaction to avoid timeouts and for writing
-	const groupEncSessionKey = encryptKeyWithVersionedKey(userGroupKey, dbKey)
+	const groupEncSessionKey = _encryptKeyWithVersionedKey(userGroupKey, dbKey)
 	await transaction.put(objectStoreName, Metadata.userEncDbKey, groupEncSessionKey.key)
 	await transaction.put(objectStoreName, Metadata.userGroupKeyVersion, groupEncSessionKey.encryptingKeyVersion)
 	await transaction.put(objectStoreName, Metadata.encDbIv, aesEncrypt(dbKey, dbIv))

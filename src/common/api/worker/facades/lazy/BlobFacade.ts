@@ -36,7 +36,7 @@ import { doBlobRequestWithRetry, tryServers } from "../../rest/EntityRestClient.
 import { BlobAccessTokenFacade } from "../BlobAccessTokenFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { SomeEntity } from "../../../common/EntityTypes.js"
-import { encryptBytes } from "../../crypto/CryptoWrapper.js"
+import { _encryptBytes } from "../../crypto/CryptoWrapper.js"
 import { BlobReferencingInstance } from "../../../common/utils/BlobUtils.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
@@ -283,7 +283,7 @@ export class BlobFacade {
 	}
 
 	private async encryptAndUploadChunk(chunk: Uint8Array, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper> {
-		const encryptedData = encryptBytes(sessionKey, chunk)
+		const encryptedData = _encryptBytes(sessionKey, chunk)
 		const blobHash = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
 		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, { blobHash }, BlobGetInTypeRef)
 

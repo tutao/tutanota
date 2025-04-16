@@ -98,7 +98,7 @@ import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
 import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
-import { encryptString } from "../crypto/CryptoWrapper.js"
+import { _encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 
 assertWorkerOrNode()
@@ -282,7 +282,7 @@ export class LoginFacade {
 		const credentials = {
 			login: mailAddress,
 			accessToken,
-			encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
+			encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(_encryptString(neverNull(accessKey), passphrase)) : null,
 			encryptedPassphraseKey: sessionType === SessionType.Persistent ? encryptKey(neverNull(accessKey), userPassphraseKey) : null,
 			userId: sessionData.userId,
 			type: CredentialType.Internal,
@@ -466,7 +466,7 @@ export class LoginFacade {
 		const credentials = {
 			login: userId,
 			accessToken,
-			encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+			encryptedPassword: accessKey ? uint8ArrayToBase64(_encryptString(accessKey, passphrase)) : null,
 			encryptedPassphraseKey: accessKey ? encryptKey(accessKey, userPassphraseKey) : null,
 			userId,
 			type: CredentialType.External,
@@ -957,7 +957,7 @@ export class LoginFacade {
 		const sessionData = await this.loadSessionData(accessToken)
 		if (sessionData.accessKey != null) {
 			// if we have an accessKey, this means we are storing the encrypted password locally, in which case we need to store the new one
-			const newEncryptedPassphrase = uint8ArrayToBase64(encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
+			const newEncryptedPassphrase = uint8ArrayToBase64(_encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
 			const newEncryptedPassphraseKey = encryptKey(sessionData.accessKey, newUserPassphraseKey)
 			return { newEncryptedPassphrase, newEncryptedPassphraseKey }
 		} else {

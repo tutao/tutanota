@@ -67,7 +67,7 @@ import type { PdfWriter } from "../../pdf/PdfWriter.js"
 import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
-import { CryptoWrapper, encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { CryptoWrapper, _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
@@ -223,7 +223,7 @@ export class CustomerFacade {
 			const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
 			const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
-			const adminGroupEncSessionKey = encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
+			const adminGroupEncSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
 			const data = createCreateCustomerServerPropertiesData({
 				adminGroupEncSessionKey: adminGroupEncSessionKey.key,
 				adminGroupKeyVersion: adminGroupEncSessionKey.encryptingKeyVersion.toString(),
@@ -337,9 +337,9 @@ export class CustomerFacade {
 
 		const recoverData = this.recoverCodeFacade.generateRecoveryCode(userGroupKey)
 
-		const userEncAdminGroupKey = encryptKeyWithVersionedKey(userGroupKey, adminGroupKey.object)
-		const adminEncAccountingInfoSessionKey = encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)
-		const adminEncCustomerServerPropertiesSessionKey = encryptKeyWithVersionedKey(adminGroupKey, customerServerPropertiesSessionKey)
+		const userEncAdminGroupKey = _encryptKeyWithVersionedKey(userGroupKey, adminGroupKey.object)
+		const adminEncAccountingInfoSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)
+		const adminEncCustomerServerPropertiesSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, customerServerPropertiesSessionKey)
 
 		const data = createCustomerAccountCreateData({
 			authToken,
@@ -487,7 +487,7 @@ export class CustomerFacade {
 
 	private async switchAccountGroup(oldGroup: Id, newGroup: Id, newGroupKey: VersionedKey): Promise<void> {
 		const loggedInUser = this.userFacade.getLoggedInUser()
-		const symEncGKey = encryptKeyWithVersionedKey(this.userFacade.getCurrentUserGroupKey(), newGroupKey.object)
+		const symEncGKey = _encryptKeyWithVersionedKey(this.userFacade.getCurrentUserGroupKey(), newGroupKey.object)
 		const membershipAddData = createMembershipAddData({
 			user: loggedInUser._id,
 			group: newGroup,
