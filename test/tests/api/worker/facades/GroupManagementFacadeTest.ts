@@ -23,7 +23,7 @@ import {
 	PubEncKeyDataTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
@@ -31,6 +31,7 @@ import { TutanotaError } from "@tutao/tutanota-error"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Ed25519Facade, Ed25519KeyPair } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { IdentityKeyService } from "../../../../../src/common/api/entities/sys/Services"
+import { freshVersioned, noOp } from "@tutao/tutanota-utils"
 
 const { anything, argThat, captor } = matchers
 
@@ -546,6 +547,26 @@ o.spec("GroupManagementFacadeTest", function () {
 					}),
 				),
 			)
+		})
+
+		o("success admin creates shared mailbox", async function () {
+			// we want to make sure that it is called, but we don't need to test it here; it has its own tests
+			groupManagementFacade.createIdentityKeyPair = spy(noOp)
+
+			when(userFacade.getGroupIds(GroupType.Admin)).thenReturn([adminGroupId])
+			const adminGroupKey = freshVersioned(object<AesKey>())
+			when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
+
+			when(pqFacade.generateKeyPairs()).thenResolve({ x25519KeyPair: object(), kyberKeyPair: object() })
+			when(cryptoWrapper.encryptKeyWithVersionedKey(anything(), anything())).thenReturn(object())
+			let mailGroup = "sharedMailGroupId"
+			when(serviceExecutor.post(anything(), anything())).thenResolve({ mailGroup: mailGroup })
+
+			await groupManagementFacade.createSharedMailGroup("some group", "example@tuta.com")
+
+			o(groupManagementFacade.createIdentityKeyPair.invocations.length).equals(1)
+			o(groupManagementFacade.createIdentityKeyPair.args[0]).equals(mailGroup)
+			o(groupManagementFacade.createIdentityKeyPair.args[1]).deepEquals(adminGroupKey)
 		})
 	})
 })
