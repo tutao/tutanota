@@ -43,7 +43,7 @@ import {
 } from "../../../common/api/worker/search/IndexTables.js"
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
-import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { EntityUpdateData, entityUpdateToUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
@@ -367,7 +367,7 @@ export class IndexedDbIndexer implements Indexer {
 		const iv = random.generateRandomData(IV_BYTE_LENGTH)
 		this.db.init({ key, iv })
 		const groupBatches = await this._loadGroupData(user)
-		const userEncDbKey = encryptKeyWithVersionedKey(userGroupKey, key)
+		const userEncDbKey = _encryptKeyWithVersionedKey(userGroupKey, key)
 		const transaction = await this.db.dbFacade.createTransaction(false, [MetaDataOS, GroupDataOS])
 		await transaction.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey.key)
 		await transaction.put(MetaDataOS, Metadata.mailIndexingEnabled, this.mailIndexer.mailIndexingEnabled)

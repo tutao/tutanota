@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { aes256RandomKey, AesKey } from "@tutao/tutanota-crypto"
-import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
@@ -95,7 +95,7 @@ o.spec("PatchMergerTest", () => {
 
 		sk = aes256RandomKey()
 		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
-		encryptedSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, sk)
+		encryptedSessionKey = _encryptKeyWithVersionedKey(ownerGroupKey, sk)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, ownerGroupKey.version)).thenResolve(ownerGroupKey.object)
 		patchMerger = new PatchMerger(storage, instancePipeline, typeModelResolver, () => cryptoFacadePartialStub)
 	})

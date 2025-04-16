@@ -150,7 +150,7 @@ import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
-import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 import { Entity } from "../../../common/EntityTypes"
@@ -209,7 +209,7 @@ export class MailFacade {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 
 		const sk = aes256RandomKey()
-		const ownerEncSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sk)
+		const ownerEncSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, sk)
 		const newFolder = createCreateMailFolderData({
 			folderName: name,
 			parentFolder: parent,
@@ -279,7 +279,7 @@ export class MailFacade {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(senderMailGroupId)
 
 		const sk = aes256RandomKey()
-		const ownerEncSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sk)
+		const ownerEncSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, sk)
 		const service = createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
@@ -510,7 +510,7 @@ export class MailFacade {
 				// forwarded attachment which was not in the draft before
 				return this.crypto.resolveSessionKey(providedFile).then((fileSessionKey) => {
 					const sessionKey = assertNotNull(fileSessionKey, "filesessionkey was not resolved")
-					const ownerEncFileSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
+					const ownerEncFileSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 					const attachment = createDraftAttachment({
 						existingFile: getLetId(providedFile),
 						ownerEncFileSessionKey: ownerEncFileSessionKey.key,
@@ -540,13 +540,13 @@ export class MailFacade {
 		providedFile: DataFile | FileReference,
 		mailGroupKey: VersionedKey,
 	): DraftAttachment {
-		const ownerEncFileSessionKey = encryptKeyWithVersionedKey(mailGroupKey, fileSessionKey)
+		const ownerEncFileSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, fileSessionKey)
 		return createDraftAttachment({
 			newFile: createNewDraftAttachment({
-				encFileName: encryptString(fileSessionKey, providedFile.name),
-				encMimeType: encryptString(fileSessionKey, providedFile.mimeType),
+				encFileName: _encryptString(fileSessionKey, providedFile.name),
+				encMimeType: _encryptString(fileSessionKey, providedFile.mimeType),
 				referenceTokens: referenceTokens,
-				encCid: providedFile.cid == null ? null : encryptString(fileSessionKey, providedFile.cid),
+				encCid: providedFile.cid == null ? null : _encryptString(fileSessionKey, providedFile.cid),
 			}),
 			ownerEncFileSessionKey: ownerEncFileSessionKey.key,
 			ownerKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
@@ -609,7 +609,7 @@ export class MailFacade {
 
 					await this.addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
 					if (this.isTutaCryptMail(sendDraftData)) {
-						sendDraftData.sessionEncEncryptionAuthStatus = encryptString(sk, EncryptionAuthStatus.TUTACRYPT_SENDER)
+						sendDraftData.sessionEncEncryptionAuthStatus = _encryptString(sk, EncryptionAuthStatus.TUTACRYPT_SENDER)
 					}
 				} else {
 					sendDraftData.mailSessionKey = bitArrayToUint8Array(sk)
@@ -762,7 +762,7 @@ export class MailFacade {
 				const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 				const passwordVerifier = createAuthVerifier(passwordKey)
 				const externalGroupKeys = await this.getExternalGroupKeys(recipient.address, kdfType, passwordKey, passwordVerifier)
-				const ownerEncBucketKey = encryptKeyWithVersionedKey(externalGroupKeys.currentExternalMailGroupKey, bucketKey)
+				const ownerEncBucketKey = _encryptKeyWithVersionedKey(externalGroupKeys.currentExternalMailGroupKey, bucketKey)
 				const data = createSecureExternalRecipientKeyData({
 					mailAddress: recipient.address,
 					kdfVersion: kdfType,
@@ -941,9 +941,9 @@ export class MailFacade {
 		const externalMailGroupInfoSessionKey = aes256RandomKey()
 		const tutanotaPropertiesSessionKey = aes256RandomKey()
 		const mailboxSessionKey = aes256RandomKey()
-		const externalUserEncEntropy = encryptBytes(currentExternalUserGroupKey.object, random.generateRandomData(32))
+		const externalUserEncEntropy = _encryptBytes(currentExternalUserGroupKey.object, random.generateRandomData(32))
 
-		const internalUserEncGroupKey = encryptKeyWithVersionedKey(internalUserGroupKey, currentExternalUserGroupKey.object)
+		const internalUserEncGroupKey = _encryptKeyWithVersionedKey(internalUserGroupKey, currentExternalUserGroupKey.object)
 		const userGroupData = createCreateExternalUserGroupData({
 			mailAddress: cleanedMailAddress,
 			externalPwEncUserGroupKey: encryptKey(externalUserPwKey, currentExternalUserGroupKey.object),
@@ -951,15 +951,15 @@ export class MailFacade {
 			internalUserGroupKeyVersion: internalUserEncGroupKey.encryptingKeyVersion.toString(),
 		})
 
-		const externalUserEncUserGroupInfoSessionKey = encryptKeyWithVersionedKey(currentExternalUserGroupKey, externalUserGroupInfoSessionKey)
-		const externalUserEncMailGroupKey = encryptKeyWithVersionedKey(currentExternalUserGroupKey, currentExternalMailGroupKey.object)
-		const externalUserEncTutanotaPropertiesSessionKey = encryptKeyWithVersionedKey(currentExternalUserGroupKey, tutanotaPropertiesSessionKey)
+		const externalUserEncUserGroupInfoSessionKey = _encryptKeyWithVersionedKey(currentExternalUserGroupKey, externalUserGroupInfoSessionKey)
+		const externalUserEncMailGroupKey = _encryptKeyWithVersionedKey(currentExternalUserGroupKey, currentExternalMailGroupKey.object)
+		const externalUserEncTutanotaPropertiesSessionKey = _encryptKeyWithVersionedKey(currentExternalUserGroupKey, tutanotaPropertiesSessionKey)
 
-		const externalMailEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(currentExternalMailGroupKey, externalMailGroupInfoSessionKey)
-		const externalMailEncMailBoxSessionKey = encryptKeyWithVersionedKey(currentExternalMailGroupKey, mailboxSessionKey)
+		const externalMailEncMailGroupInfoSessionKey = _encryptKeyWithVersionedKey(currentExternalMailGroupKey, externalMailGroupInfoSessionKey)
+		const externalMailEncMailBoxSessionKey = _encryptKeyWithVersionedKey(currentExternalMailGroupKey, mailboxSessionKey)
 
-		const internalMailEncUserGroupInfoSessionKey = encryptKeyWithVersionedKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
-		const internalMailEncMailGroupInfoSessionKey = encryptKeyWithVersionedKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
+		const internalMailEncUserGroupInfoSessionKey = _encryptKeyWithVersionedKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
+		const internalMailEncMailGroupInfoSessionKey = _encryptKeyWithVersionedKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
 
 		const externalUserData = createExternalUserData({
 			verifier,
@@ -1097,7 +1097,7 @@ export class MailFacade {
 	async createLabel(mailGroupId: Id, labelData: { name: string; color: string }) {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 		const sk = aes256RandomKey()
-		const ownerEncSessionKey = encryptKeyWithVersionedKey(mailGroupKey, sk)
+		const ownerEncSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 		await this.serviceExecutor.post(
 			ManageLabelService,
