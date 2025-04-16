@@ -33,11 +33,12 @@ use super::key::RsaX25519PublicKeys;
 fn get_sender_ecc_key(public_key: Versioned<PublicKey>) -> Option<X25519PublicKey> {
 	match public_key.object {
 		RsaX25519(x) => Some(x.x25519_public_key),
-		TutaCrypt(x) => match x {
-			TutaCryptPublicKeys {
+		TutaCrypt(x) => {
+			let TutaCryptPublicKeys {
 				x25519_public_key,
 				kyber_public_key: _,
-			} => Some(x25519_public_key),
+			} = x;
+			Some(x25519_public_key)
 		},
 		PublicKey::Rsa(_) => None,
 	}
