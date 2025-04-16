@@ -61,7 +61,7 @@ export class GroupManagementFacade {
 		return this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(group.customer), group._id)
 	}
 
-	async createMailGroup(name: string, mailAddress: string): Promise<void> {
+	async createSharedMailGroup(name: string, mailAddress: string): Promise<void> {
 		const adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
 		const adminGroupId = getFirstOrThrow(adminGroupIds)
 
@@ -81,15 +81,17 @@ export class GroupManagementFacade {
 			customerGroupKey,
 		)
 
-		const mailEncMailboxSessionKey = encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
+		const mailEncMailboxSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
 
 		const data = createCreateMailGroupData({
 			mailAddress,
-			encryptedName: encryptString(mailGroupInfoSessionKey, name),
+			encryptedName: this.cryptoWrapper.encryptString(mailGroupInfoSessionKey, name),
 			mailEncMailboxSessionKey: mailEncMailboxSessionKey.key,
 			groupData: mailGroupData,
 		})
-		await this.serviceExecutor.post(MailGroupService, data)
+		const mailGroupPostOut = await this.serviceExecutor.post(MailGroupService, data)
+
+		await this.createIdentityKeyPair(mailGroupPostOut.mailGroup, adminGroupKey)
 	}
 
 	/**
@@ -192,8 +194,8 @@ export class GroupManagementFacade {
 		adminGroupKey: VersionedKey,
 		ownerGroupKey: VersionedKey,
 	): InternalGroupData {
-		const adminEncGroupKey = encryptKeyWithVersionedKey(adminGroupKey, groupKey)
-		const ownerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, groupInfoSessionKey)
+		const adminEncGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, groupKey)
+		const ownerEncGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, groupInfoSessionKey)
 
 		return createInternalGroupData({
 			pubRsaKey: null,
