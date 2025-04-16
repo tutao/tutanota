@@ -32,7 +32,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { PQFacade } from "../PQFacade.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
-import { CryptoWrapper, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { CryptoWrapper, _encryptKeyWithVersionedKey, _encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
@@ -120,16 +120,16 @@ export class GroupManagementFacade {
 		const groupRootSessionKey = this.cryptoWrapper.aes256RandomKey()
 		const groupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 
-		const userEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
-		const adminEncGroupKey = adminGroupKey ? encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
-		const customerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
-		const groupEncGroupRootSessionKey = encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
+		const userEncGroupKey = _encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
+		const adminEncGroupKey = adminGroupKey ? _encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
+		const customerEncGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
+		const groupEncGroupRootSessionKey = _encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
 
 		return createUserAreaGroupData({
 			groupEncGroupRootSessionKey: groupEncGroupRootSessionKey.key,
 			customerEncGroupInfoSessionKey: customerEncGroupInfoSessionKey.key,
 			userEncGroupKey: userEncGroupKey.key,
-			groupInfoEncName: encryptString(groupInfoSessionKey, name),
+			groupInfoEncName: _encryptString(groupInfoSessionKey, name),
 			adminEncGroupKey: adminEncGroupKey?.key ?? null,
 			adminGroup: adminGroupId,
 			customerKeyVersion: customerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
@@ -258,7 +258,7 @@ export class GroupManagementFacade {
 	async addUserToGroup(user: User, groupId: Id): Promise<void> {
 		const userGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const groupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
-		const symEncGKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
+		const symEncGKey = _encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
 		const data = createMembershipAddData({
 			user: user._id,
 			group: groupId,
