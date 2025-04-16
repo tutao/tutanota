@@ -22,6 +22,7 @@ pub struct RsaX25519PublicKeys {
 }
 
 #[cfg_attr(test, derive(Clone, PartialEq))]
+#[allow(clippy::large_enum_variant)]
 pub enum PublicKey {
 	Rsa(RSAPublicKey),
 	RsaX25519(RsaX25519PublicKeys),
