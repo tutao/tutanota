@@ -19,7 +19,7 @@ import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
-import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
@@ -58,12 +58,12 @@ export class ShareFacade {
 		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(sharedGroupInfo)
 		const bucketKey = aes256RandomKey()
 		const invitationSessionKey = aes256RandomKey()
-		const sharedGroupEncInviterGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
-		const sharedGroupEncSharedGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
+		const sharedGroupEncInviterGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
+		const sharedGroupEncSharedGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
 		const sharedGroupData = createSharedGroupData({
-			sessionEncInviterName: encryptString(invitationSessionKey, userGroupInfo.name),
-			sessionEncSharedGroupKey: encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey.object)),
-			sessionEncSharedGroupName: encryptString(invitationSessionKey, sharedGroupInfo.name),
+			sessionEncInviterName: _encryptString(invitationSessionKey, userGroupInfo.name),
+			sessionEncSharedGroupKey: _encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey.object)),
+			sessionEncSharedGroupName: _encryptString(invitationSessionKey, sharedGroupInfo.name),
 			bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
 			capability: shareCapability,
 			sharedGroup: sharedGroupInfo.group,
@@ -107,8 +107,8 @@ export class ShareFacade {
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
 		const sharedGroupKey = { object: uint8ArrayToBitArray(invitation.sharedGroupKey), version: parseKeyVersion(invitation.sharedGroupKeyVersion) }
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
-		const userGroupEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
-		const sharedGroupEncInviteeGroupInfoKey = encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
+		const userGroupEncGroupKey = _encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
+		const sharedGroupEncInviteeGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
 		const serviceData = createGroupInvitationPutData({
 			receivedInvitation: invitation._id,
 			userGroupEncGroupKey: userGroupEncGroupKey.key,
