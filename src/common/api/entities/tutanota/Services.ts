@@ -26,6 +26,7 @@ import { CreateMailFolderReturnTypeRef } from "./TypeRefs.js"
 import { UpdateMailFolderDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailFolderDataTypeRef } from "./TypeRefs.js"
 import { CreateMailGroupDataTypeRef } from "./TypeRefs.js"
+import { MailGroupPostOutTypeRef } from "./TypeRefs.js"
 import { DeleteGroupDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailDataTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
@@ -168,7 +169,7 @@ export const MailGroupService = Object.freeze({
 	app: "tutanota",
 	name: "MailGroupService",
 	get: null,
-	post: { data: CreateMailGroupDataTypeRef, return: null },
+	post: { data: CreateMailGroupDataTypeRef, return: MailGroupPostOutTypeRef },
 	put: null,
 	delete: { data: DeleteGroupDataTypeRef, return: null },
 } as const)

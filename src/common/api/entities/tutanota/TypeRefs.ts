@@ -2374,3 +2374,16 @@ export type UserAccountPostOut = {
 	userId: Id;
 	userGroup: Id;
 }
+export const MailGroupPostOutTypeRef: TypeRef<MailGroupPostOut> = new TypeRef("tutanota", 1668)
+
+export function createMailGroupPostOut(values: StrippedEntity<MailGroupPostOut>): MailGroupPostOut {
+	return Object.assign(create(typeModels[MailGroupPostOutTypeRef.typeId], MailGroupPostOutTypeRef), values)
+}
+
+export type MailGroupPostOut = {
+	_type: TypeRef<MailGroupPostOut>;
+
+	_format: NumberString;
+
+	mailGroup: Id;
+}

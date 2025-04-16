@@ -33,6 +33,7 @@ use crate::entities::generated::tutanota::CreateMailFolderReturn;
 use crate::entities::generated::tutanota::UpdateMailFolderData;
 use crate::entities::generated::tutanota::DeleteMailFolderData;
 use crate::entities::generated::tutanota::CreateMailGroupData;
+use crate::entities::generated::tutanota::MailGroupPostOut;
 use crate::entities::generated::tutanota::DeleteGroupData;
 use crate::entities::generated::tutanota::DeleteMailData;
 use crate::entities::generated::tutanota::ManageLabelServicePostIn;
@@ -142,7 +143,7 @@ crate::service_impl!(DELETE, MailFolderService, DeleteMailFolderData, ());
 pub struct MailGroupService;
 
 crate::service_impl!(declare, MailGroupService, "tutanota/mailgroupservice", 88);
-crate::service_impl!(POST, MailGroupService, CreateMailGroupData, ());
+crate::service_impl!(POST, MailGroupService, CreateMailGroupData, MailGroupPostOut);
 crate::service_impl!(DELETE, MailGroupService, DeleteGroupData, ());
 
 

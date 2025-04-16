@@ -9008,5 +9008,38 @@
 			}
 		},
 		"associations": {}
+	},
+	"1668": {
+		"name": "MailGroupPostOut",
+		"app": "tutanota",
+		"version": 88,
+		"since": 88,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1668,
+		"rootId": "CHR1dGFub3RhAAaE",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1669": {
+				"final": false,
+				"name": "_format",
+				"id": 1669,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1670": {
+				"final": false,
+				"name": "mailGroup",
+				"id": 1670,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 5,
+				"dependency": null
+			}
+		}
 	}
 }
