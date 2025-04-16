@@ -98,8 +98,8 @@ export class AddGroupDialogViewModel {
 		this.selectedDomain = getFirstOrThrow(availableDomains)
 	}
 
-	createMailGroup(): Promise<void> {
-		return this._groupManagementFacade.createMailGroup(this.groupName, this.mailAddress)
+	createSharedMailGroup(): Promise<void> {
+		return this._groupManagementFacade.createSharedMailGroup(this.groupName, this.mailAddress)
 	}
 
 	validateAddGroupInput(): TranslationKey | null {
@@ -159,7 +159,7 @@ export function show(): void {
 					}).then((accepted) => {
 						if (accepted) {
 							dialog.close()
-							return viewModel.createMailGroup()
+							return viewModel.createSharedMailGroup()
 						}
 					}),
 				)
