@@ -88,7 +88,7 @@ export class CryptoWrapper {
 	}
 
 	encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey {
-		return encryptKeyWithVersionedKey(encryptingKey, key)
+		return _encryptKeyWithVersionedKey(encryptingKey, key)
 	}
 
 	generateEccKeyPair(): X25519KeyPair {
@@ -104,11 +104,11 @@ export class CryptoWrapper {
 	}
 
 	encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
-		return encryptBytes(sk, value)
+		return _encryptBytes(sk, value)
 	}
 
 	encryptString(sk: AesKey, value: string): Uint8Array {
-		return encryptString(sk, value)
+		return _encryptString(sk, value)
 	}
 
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedPqKeyPairs): PQKeyPairs
@@ -145,20 +145,27 @@ function deriveKey({ salt, key, info, length }: { salt: string; key: number[]; i
 	return uint8ArrayToKey(hkdf(sha256Hash(stringToUtf8Uint8Array(salt)), keyToUint8Array(key), stringToUtf8Uint8Array(info), length))
 }
 
-export function encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
+/**
+ @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
+ */
+export function _encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
 	return aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
-export function encryptString(sk: AesKey, value: string): Uint8Array {
+/**
+ @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
+ */
+export function _encryptString(sk: AesKey, value: string): Uint8Array {
 	return aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
 /**
  * Encrypts the key with the encryptingKey and return the encrypted key and the version of the encryptingKey.
+ * @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
  * @param encryptingKey the encrypting key.
  * @param key the key to be encrypted.
  */
-export function encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey {
+export function _encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey {
 	return {
 		encryptingKeyVersion: encryptingKey.version,
 		key: encryptKey(encryptingKey.object, key),
