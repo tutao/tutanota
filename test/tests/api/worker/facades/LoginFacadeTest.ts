@@ -44,7 +44,7 @@ import { Argon2idFacade } from "../../../../../src/common/api/worker/facades/Arg
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
-import { encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { _encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { CacheMode } from "../../../../../src/common/api/worker/rest/EntityRestClient"
@@ -279,7 +279,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					encryptedPassphraseKey: null,
 					accessToken,
 					userId,
@@ -423,7 +423,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -636,7 +636,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -749,7 +749,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -808,7 +808,7 @@ o.spec("LoginFacadeTest", function () {
 					login: userId,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -895,7 +895,7 @@ o.spec("LoginFacadeTest", function () {
 					login: userId,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
