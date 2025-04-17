@@ -81,6 +81,7 @@ import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { compareMails } from "../../mail/model/MailUtils"
 import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
+import { splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -903,6 +904,7 @@ export class SearchViewModel {
 				mail,
 				showFolder: true,
 				loadLatestMail: false,
+				highlightedTokens: splitQuery(this.currentQuery),
 			})
 			// Notify the admin client about the mail being selected
 			this.mailOpenedListener.onEmailOpened(mail)

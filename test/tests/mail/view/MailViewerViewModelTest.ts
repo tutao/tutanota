@@ -86,6 +86,7 @@ o.spec("MailViewerViewModel", function () {
 			mailFacade,
 			cryptoFacade,
 			async () => contactImporter,
+			[],
 		)
 	}
 

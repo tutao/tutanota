@@ -10,6 +10,7 @@ import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutano
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
+import { splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries
@@ -157,25 +158,13 @@ function mailFieldToColumn(field: string | null): string[] | null {
 export function normalizeQuery(query: string): string {
 	const normalizedQuery: string[] = []
 
-	let quoted = false
-	for (const block of query.split('"')) {
-		if (quoted) {
-			// in quotes; match an exact token or phrase (e.g. "free" will not match "freedom")
-			const trimmed = block.trim()
-			if (trimmed !== "") {
-				normalizedQuery.push(`"${trimmed}"`)
-			}
+	for (const token of splitQuery(query)) {
+		if (token.exact) {
+			normalizedQuery.push(`"${token.token}"`)
 		} else {
-			// split into words and, for each word, match the start of a token (e.g. "free"* will match "freedom")
-			for (const word of block.split(/\s+/)) {
-				if (word !== "") {
-					normalizedQuery.push(`"${word}"*`)
-				}
-			}
+			normalizedQuery.push(`"${token.token}"*`)
 		}
-		quoted = !quoted
 	}
-	// if !quoted here, then the user is likely in the middle of typing a quoted string, which is fine
 
 	return normalizedQuery.join(" ")
 }
