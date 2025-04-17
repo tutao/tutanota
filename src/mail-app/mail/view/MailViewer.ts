@@ -34,6 +34,7 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { createNewContact } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getExistingRuleForType } from "../model/MailUtils.js"
 import { createResizeObserver } from "@tutao/tutanota-utils/dist/Utils"
+import type { SearchToken } from "../../../common/api/worker/search/SearchTypes"
 
 assertMainOrNode()
 
@@ -737,6 +738,7 @@ export type CreateMailViewerOptions = {
 	/** latestMail is needed when conversation actions are preformed on it */
 	loadLatestMail: boolean
 	delayBodyRenderingUntil?: Promise<void>
+	highlightedTokens?: readonly SearchToken[]
 }
 
 /**

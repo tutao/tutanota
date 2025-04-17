@@ -163,3 +163,41 @@ export type SearchIndexStateInfo = {
 	failedIndexingUpTo: number | null
 	error?: IndexingErrorReason | null
 }
+
+// FIXME: This should not be here
+export interface SearchToken {
+	token: string
+	exact: boolean
+}
+
+// FIXME: This should not be here
+export function splitQuery(query: string): SearchToken[] {
+	const tokens: SearchToken[] = []
+
+	let quoted = false
+	for (const block of query.split('"')) {
+		if (quoted) {
+			// in quotes; match an exact token or phrase (e.g. "free" will not match "freedom")
+			const trimmed = block.trim()
+			if (trimmed !== "") {
+				tokens.push({
+					token: trimmed,
+					exact: true,
+				})
+			}
+		} else {
+			// split into words and, for each word, match the start of a token (e.g. "free"* will match "freedom")
+			for (const word of block.split(/\s+/)) {
+				if (word !== "") {
+					tokens.push({
+						token: word,
+						exact: false,
+					})
+				}
+			}
+		}
+		quoted = !quoted
+	}
+
+	return tokens
+}

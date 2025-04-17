@@ -3,6 +3,7 @@ import { downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao
 import { DataFile } from "../api/common/DataFile"
 import { encodeSVG } from "../gui/base/GuiUtils.js"
 import DOMPurify, { Config } from "dompurify"
+import type { SearchToken } from "../api/worker/search/SearchTypes"
 
 /** Data url for an SVG image that will be shown in place of external content. */
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = encodeSVG(ReplacementImage)
@@ -27,12 +28,14 @@ type SanitizeConfigExtra = {
 	blockExternalContent: boolean
 	allowRelativeLinks: boolean
 	usePlaceholderForInlineImages: boolean
+	highlightedStrings: readonly SearchToken[]
 }
 
 const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = Object.freeze({
 	blockExternalContent: true,
 	allowRelativeLinks: false,
 	usePlaceholderForInlineImages: true,
+	highlightedStrings: [],
 })
 
 /** Result of sanitization operation with result in a string form */
@@ -125,6 +128,7 @@ export class HtmlSanitizer {
 			this.purifier = DOMPurify
 			// Do changes in afterSanitizeAttributes and not afterSanitizeElements so that images are not removed again because of the SVGs.
 			this.purifier.addHook("afterSanitizeAttributes", this.afterSanitizeAttributes.bind(this))
+			this.purifier.addHook("beforeSanitizeElements", this.beforeSanitizeElements.bind(this))
 		}
 	}
 
@@ -221,6 +225,10 @@ export class HtmlSanitizer {
 		return Object.assign({}, config, DEFAULT_CONFIG_EXTRA, configExtra)
 	}
 
+	private beforeSanitizeElements(currentNode: Element, data: null, config: Config) {
+		this.highlightText(currentNode as HTMLElement, config as SanitizeConfig)
+	}
+
 	private afterSanitizeAttributes(currentNode: Element, data: null, config: Config) {
 		const typedConfig = config as SanitizeConfig
 		// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
@@ -232,6 +240,7 @@ export class HtmlSanitizer {
 			"MsoListParagraphCxSpFirst",
 			"MsoListParagraphCxSpMiddle",
 			"MsoListParagraphCxSpLast",
+			"search-highlight",
 		]
 
 		if (currentNode.classList) {
@@ -436,6 +445,47 @@ export class HtmlSanitizer {
 			}
 		}
 	}
+
+	private highlightText(currentNode: Node, config: SanitizeConfig) {
+		if (!currentNode.hasChildNodes()) {
+			return
+		}
+		if (currentNode instanceof HTMLElement && currentNode.getAttribute("class") === "search-highlight") {
+			return
+		}
+
+		for (let i = 0; i < currentNode.childNodes.length; i++) {
+			const c = currentNode.childNodes.item(i)
+			if (c instanceof Text) {
+				const dataBefore = c.data
+				let text = dataBefore
+				for (const string of config.highlightedStrings) {
+					let search: RegExp
+					if (string.exact) {
+						search = new RegExp(`\\b${escapeRegExp(string.token)}\\b`, "gi")
+					} else {
+						search = new RegExp(`\\b${escapeRegExp(string.token)}`, "gi")
+					}
+					text = text.replaceAll(search, '<span class="search-highlight">$&</span>')
+				}
+				if (text === dataBefore) {
+					continue
+				}
+
+				const highlighted = document.createElement("span")
+				highlighted.innerHTML = text
+				currentNode.insertBefore(highlighted, c)
+				currentNode.removeChild(c)
+			} else {
+				this.highlightText(c, config)
+			}
+		}
+	}
+}
+
+// see https://stackoverflow.com/a/6969486
+function escapeRegExp(string: string): string {
+	return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") // $& means the whole matched string
 }
 
 function isAllowedLink(link: string): boolean {

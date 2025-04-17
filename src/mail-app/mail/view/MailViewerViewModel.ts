@@ -76,6 +76,7 @@ import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./M
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { isDraft } from "../model/MailChecks"
+import type { SearchToken } from "../../../common/api/worker/search/SearchTypes"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -143,6 +144,7 @@ export class MailViewerViewModel {
 		private readonly mailFacade: MailFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly contactImporter: lazyAsync<ContactImporter>,
+		private readonly highlightedStrings: readonly SearchToken[],
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -986,6 +988,7 @@ export class MailViewerViewModel {
 		const sanitizeResult = htmlSanitizer.sanitizeFragment(rawBody, {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
+			highlightedStrings: this.highlightedStrings,
 		})
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult
 

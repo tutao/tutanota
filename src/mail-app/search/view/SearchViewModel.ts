@@ -1,6 +1,6 @@
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
-import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
+import { SearchRestriction, SearchResult, splitQuery } from "../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity, SomeEntity } from "../../../common/api/common/EntityTypes.js"
@@ -896,6 +896,7 @@ export class SearchViewModel {
 				mail,
 				showFolder: true,
 				loadLatestMail: false,
+				highlightedTokens: splitQuery(this.currentQuery),
 			})
 			// Notify the admin client about the mail being selected
 			this.mailOpenedListener.onEmailOpened(mail)
