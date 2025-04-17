@@ -6,7 +6,7 @@ settings:
   base:
     GCC_C_LANGUAGE_STANDARD: "gnu17"
     CLANG_CXX_LANGUAGE_STANDARD: "gnu++20"
-    bundleIdPrefix: "de.tutao.tutanota"
+    bundleIdPrefix: "com.sdp.mobyphish"
 # Include MUST come after settings because it depends on bundleIdPrefix
 include:
     - path: "../../xcodegen_common.yml"
@@ -14,7 +14,7 @@ targets:
   tutasdk:
     type: "framework.static"
     platform: "iOS"
-    sources: 
+    sources:
       # Excluding tutasdk.a stops the compiled SDK being included as an asset
       - path: "tutasdk/tutasdk.h"
       - path: "tutasdk/generated-src/headers/tutasdkFFI.h"
@@ -32,7 +32,7 @@ targets:
       base:
         ENABLE_USER_SCRIPT_SANDBOXING: "NO"
         INSTALL_PATH: "$(LOCAL_LIBRARY_DIR)/Frameworks"
-        IPHONEOS_DEPLOYMENT_TARGET: "15" 
+        IPHONEOS_DEPLOYMENT_TARGET: "15"
         SKIP_INSTALL: "YES"
         DYLIB_COMPATIBILITY_VERSION: "1"
         DYLIB_CURRENT_VERSION: "1"
@@ -45,26 +45,26 @@ targets:
         LIBRARY_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/tutasdk/generated-src"
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "1.0"
-        PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanota.tutasdk"
+        PRODUCT_BUNDLE_IDENTIFIER: "com.sdp.mobyphish.tutasdk"
         ENABLE_MODULE_VERIFIER: "YES"
         MODULE_VERIFIER_SUPPORTED_LANGUAGES: "objective-c objective-c++"
         MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS: "$(GCC_C_LANGUAGE_STANDARD) $(CLANG_CXX_LANGUAGE_STANDARD)"
       configs:
-        Debug Development: 
+        Debug Development:
           DEVELOPMENT_TEAM: "JKCH89Z3M9" # Tutao GmbH
         Debug Staging:
           DEVELOPMENT_TEAM: "JKCH89Z3M9"
         Debug Production:
           DEVELOPMENT_TEAM: "JKCH89Z3M9"
-        Release Development: 
+        Release Development:
           DEVELOPMENT_TEAM: ""
           PROVISIONING_PROFILE_SPECIFIER: ""
         Release Staging:
           DEVELOPMENT_TEAM: ""
-          PROVISIONING_PROFILE_SPECIFIER: "" 
-        Release Production: 
-          DEVELOPMENT_TEAM: ""
-          PROVISIONING_PROFILE_SPECIFIER: "" 
+          PROVISIONING_PROFILE_SPECIFIER: ""
+        Release Production:
+          DEVELOPMENT_TEAM: "2GGCH4LRB5"
+          PROVISIONING_PROFILE_SPECIFIER: "AH"
     preBuildScripts:
       - path: "build-scripts/make-tutasdk.sh"
         name: "Build Rust Binaries"
@@ -79,5 +79,5 @@ targets:
 schemes:
   tutasdk:
    build:
-      targets: 
+      targets:
         tutasdk: "all"

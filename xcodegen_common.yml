@@ -80,5 +80,3 @@ settings:
       CODE_SIGN_IDENTITY: "Apple Distribution"
       CODE_SIGN_STYLE: "Manual"
       PRODUCT_BUNDLE_IDENTIFIER: "${bundleIdPrefix}"
-      SWIFT_OPTIMIZATION_LEVEL: "-O"
-      VALIDATE_PRODUCT: "YES"

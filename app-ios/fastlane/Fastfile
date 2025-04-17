@@ -19,10 +19,10 @@ platform :ios do
 	desc "Build a new Mail prod release with AppStore configuration"
 	lane :build_mail_prod do |options|
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension"],
+			app_identifier: ["com.sdp.*"],
 			type: "appstore",
 			verbose: true,
-			readonly: true,
+			readonly: false, 
 			generate_apple_certs: false,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
@@ -57,10 +57,10 @@ platform :ios do
 	desc "Build a new prod release for ad-hoc"
 	lane :adhoc_prod do |options|
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension"],
+			app_identifier: ["com.sdp.mobyphish", "com.sdp.mobyphish.TutanotaShareExtension", "com.sdp.mobyphish.TutanotaNotificationExtension"],
 			type: "adhoc",
 			verbose: true,
-			readonly: true,
+			readonly: false,
 			generate_apple_certs: false,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
@@ -68,13 +68,16 @@ platform :ios do
 
 		clear_derived_data
 
-		ipa_name = "tutanota-" + get_version_number(target: "tutanota", xcodeproj: "tutanota.xcodeproj") + "-adhoc"
+		ipa_name = "tuta-" + get_version_number(target: "tutanota", xcodeproj: "tutanota.xcodeproj") + "-adhoc"
 		build_app(
+			workspace: "tuta.xcworkspace",
 			scheme: "tuta prod",
 			output_directory: "releases",
 			output_name: ipa_name,
 			export_options: {
-				method: "ad-hoc"
+				method: "ad-hoc",
+				provisioningProfiles: lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING],
+				teamID: "2GGCH4LRB5"
 			},
 			verbose: true
 		)

@@ -75,8 +75,8 @@ import { MailModel } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import { modal } from "../../../common/gui/base/Modal.js";
-import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal.js";
+import { modal } from "../../../common/gui/base/Modal.js"
+import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -86,11 +86,11 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
-export const API_BASE_URL = "http://98.81.86.226:3000";
+export const API_BASE_URL = "http://localhost:3000"
 
 export interface TrustedSenderInfo {
-    name: string;
-    address: string;
+	name: string
+	address: string
 }
 
 export class MailViewerViewModel {
@@ -134,13 +134,12 @@ export class MailViewerViewModel {
 
 	private mailDetails: MailDetails | null = null
 
-	public trustedSenders = stream<Array<TrustedSenderInfo>>([]); 
-	private senderConfirmed: boolean = false;
-	public senderStatus: string = ""; // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
-	public interactionType: string = ""; // interacted, no_interaction
+	public trustedSenders = stream<Array<TrustedSenderInfo>>([])
+	private senderConfirmed: boolean = false
+	public senderStatus: string = "" // confirmed, denied, added_to_trusted, removed_from_trusted, reported_phishing
+	public interactionType: string = "" // interacted, no_interaction
 
-	private readonly viewModelId = Math.random().toString(36).substring(2, 8);
-
+	private readonly viewModelId = Math.random().toString(36).substring(2, 8)
 
 	constructor(
 		private _mail: Mail,
@@ -165,189 +164,176 @@ export class MailViewerViewModel {
 			this.showFolder()
 		}
 		this.eventController.addEntityListener(this.entityListener)
-		this.fetchSenderData();
+		this.fetchSenderData()
 	}
 
 	async fetchSenderData(): Promise<void> {
-		const userEmail = this.logins.getUserController().loginUsername;
-		const emailId = this.mail._id[1];
-		const senderEmail = this.mail.sender.address.toLowerCase();
-	
+		const userEmail = this.logins.getUserController().loginUsername
+		const emailId = this.mail._id[1]
+		const senderEmail = this.mail.sender.address.toLowerCase()
+
 		try {
 			const [trustedResponse, statusResponse] = await Promise.all([
 				fetch(`${API_BASE_URL}/trusted-senders/${userEmail}`),
-				fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`)
-			]);
-	
-			if (!trustedResponse.ok) throw new Error("Failed to fetch trusted senders.");
-			if (!statusResponse.ok) throw new Error("Failed to fetch sender status.");
-	
-			const trustedData = await trustedResponse.json();
-			const statusData = await statusResponse.json();
-	
-			const trustedSendersList: TrustedSenderInfo[] = Array.isArray(trustedData.trusted_senders)
-				? trustedData.trusted_senders
-				: [];
-	
-			this.trustedSenders(trustedSendersList);
-			console.log("updated trustedSenders (objects):", this.trustedSenders());
-	
+				fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`),
+			])
+
+			if (!trustedResponse.ok) throw new Error("Failed to fetch trusted senders.")
+			if (!statusResponse.ok) throw new Error("Failed to fetch sender status.")
+
+			const trustedData = await trustedResponse.json()
+			const statusData = await statusResponse.json()
+
+			const trustedSendersList: TrustedSenderInfo[] = Array.isArray(trustedData.trusted_senders) ? trustedData.trusted_senders : []
+
+			this.trustedSenders(trustedSendersList)
+			console.log("updated trustedSenders (objects):", this.trustedSenders())
+
 			// Check if sender is still in trusted list
-			const isTrusted = trustedSendersList.some(
-				(sender) => sender.address.toLowerCase() === senderEmail
-			);
-	
-			let currentStatus = statusData.status;
-	
+			const isTrusted = trustedSendersList.some((sender) => sender.address.toLowerCase() === senderEmail)
+
+			let currentStatus = statusData.status
+
 			// FIX: If previously marked as trusted, but now not in the trusted list, override status
 			if (currentStatus === "added_to_trusted" && !isTrusted) {
-				console.log("Sender was removed from trusted list – overriding status.");
-				currentStatus = ""; // Reset it so it behaves like a new/unconfirmed sender
+				console.log("Sender was removed from trusted list – overriding status.")
+				currentStatus = "" // Reset it so it behaves like a new/unconfirmed sender
 			}
-	
-			this.senderStatus = currentStatus;
-			this.interactionType = statusData.interaction_type;
-	
+
+			this.senderStatus = currentStatus
+			this.interactionType = statusData.interaction_type
+
 			// Update confirmation flag
-			const isConfirmed = currentStatus === "confirmed" || currentStatus === "trusted_once";
-			this.setSenderConfirmed(isConfirmed);
-	
+			const isConfirmed = currentStatus === "confirmed" || currentStatus === "trusted_once"
+			this.setSenderConfirmed(isConfirmed)
+
 			console.log("Sender Data Fetched:", {
 				trustedSenders: this.trustedSenders(),
 				senderStatus: this.senderStatus,
-				senderConfirmed: this.isSenderConfirmed()
-			});
-	
-			m.redraw();
-	
+				senderConfirmed: this.isSenderConfirmed(),
+			})
+
+			m.redraw()
 		} catch (error) {
-			console.error("Error fetching sender data:", error);
+			console.error("Error fetching sender data:", error)
 		}
 	}
-	
-
 
 	isSenderTrusted(): boolean {
-	    const senderEmail = this.getSender().address;
-	    return this.trustedSenders().some(sender => sender.address.toLowerCase() === senderEmail);
+		const senderEmail = this.getSender().address
+		return this.trustedSenders().some((sender) => sender.address.toLowerCase() === senderEmail)
 	}
 
 	setSenderConfirmed(confirmed: boolean): void {
-		console.log(`✅ setSenderConfirmed(${confirmed}) called → viewModelId=${this.viewModelId}`);
-		this.senderConfirmed = confirmed;
+		console.log(`✅ setSenderConfirmed(${confirmed}) called → viewModelId=${this.viewModelId}`)
+		this.senderConfirmed = confirmed
 	}
 
 	isSenderConfirmed(): boolean {
-		return this.senderConfirmed;
+		return this.senderConfirmed
 	}
 
 	async updateSenderStatus(status: string): Promise<void> {
-	  const userEmail = this.logins.getUserController().loginUsername;
-	  const emailId = this.mail._id[1];
+		const userEmail = this.logins.getUserController().loginUsername
+		const emailId = this.mail._id[1]
 
-	  try {
-	    const response = await fetch(`${API_BASE_URL}/update-email-status`, {
-	      method: "POST",
-	      headers: { "Content-Type": "application/json" },
-	      body: JSON.stringify({
-	        user_email: userEmail,
-	        email_id: emailId,
-	        sender_email: this.mail.sender.address,
-	        status: status
-	      }),
-	    });
+		try {
+			const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					user_email: userEmail,
+					email_id: emailId,
+					sender_email: this.mail.sender.address,
+					status: status,
+				}),
+			})
 
-	    if (!response.ok) throw new Error("Failed to update sender status.");
+			if (!response.ok) throw new Error("Failed to update sender status.")
 
-	    console.log(`Sender status updated: ${status}`);
-	    this.senderStatus = status;
+			console.log(`Sender status updated: ${status}`)
+			this.senderStatus = status
 
-	    await this.fetchSenderData();
+			await this.fetchSenderData()
 
-	    if (status === "confirmed" || status === "trusted_once") {
-	      this.setSenderConfirmed(true);
-	      this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
-	      this.sanitizeResult = null;
-	      this.renderedMail = null;
-	      await this.loadAll(Promise.resolve(), { notify: true });
-	      this.expandMail(Promise.resolve());
-	      m.redraw();
-	    } else {
-	      m.redraw();
-	    }
-	  } catch (error) {
-	    console.error("Error updating sender status:", error);
-	    await this.fetchSenderData();
-	    m.redraw();
-	  }
+			if (status === "confirmed" || status === "trusted_once") {
+				this.setSenderConfirmed(true)
+				this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow
+				this.sanitizeResult = null
+				this.renderedMail = null
+				await this.loadAll(Promise.resolve(), { notify: true })
+				this.expandMail(Promise.resolve())
+				m.redraw()
+			} else {
+				m.redraw()
+			}
+		} catch (error) {
+			console.error("Error updating sender status:", error)
+			await this.fetchSenderData()
+			m.redraw()
+		}
 	}
-
-
 
 	showPhishingModal(): void {
 		if (this.isSenderConfirmed()) {
-			return;
+			return
 		}
 
-		const modalInstance = new MobyPhishConfirmSenderModal(this, this.trustedSenders());
-		const handle = modal.display(modalInstance);
-		modalInstance.setModalHandle(handle);
-	}	
-
-
-	async resetSenderStatusForCurrentEmail(): Promise<void> {
-        const userEmail = this.logins.getUserController().loginUsername;
-        const emailId = this.mail._id[1];
-        console.log(`ViewModel: Attempting to reset status for emailId=${emailId}`);
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/reset-single-email-status`, {
-                method: "DELETE", // Use DELETE method
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ // Send data in body
-                    user_email: userEmail,
-                    email_id: emailId,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `Failed to reset email status (${response.status})`);
-            }
-
-            console.log(`ViewModel: Successfully reset status for emailId=${emailId}. Refetching data.`);
-
-            // Reset internal state immediately for responsiveness
-            this.senderStatus = ""; // Or null, matching fetchSenderData's default
-            this.senderConfirmed = false;
-            // Crucially, reset content blocking if needed
-            this.contentBlockingStatus = ContentBlockingStatus.Block; // Reset to default blocked state
-            this.sanitizeResult = null; // Force resanitize
-            this.renderedMail = null; // Force rerender
-
-
-            // Refetch all data to get the definitive state from the backend and trigger UI update
-            await this.fetchSenderData();
-            // Force a re-render and re-sanitization etc. by calling loadAll again
-            // This might be overkill if fetchSenderData handles redraws, but ensures everything updates
-            await this.loadAll(Promise.resolve(), { notify: true });
-            // Ensure mail is expanded if it was collapsed by state changes
-            if (this.isCollapsed()) {
-                 this.expandMail(Promise.resolve());
-            }
-            m.redraw();
-
-
-        } catch (error) {
-            console.error("ViewModel: Error resetting sender status:", error);
-            // Optionally show user error message here
-            // showUserError(new UserError("Failed to untrust sender. Please try again."));
-            // Refetch data even on error to ensure consistency
-            await this.fetchSenderData();
-            m.redraw();
-        }
+		const modalInstance = new MobyPhishConfirmSenderModal(this, this.trustedSenders())
+		const handle = modal.display(modalInstance)
+		modalInstance.setModalHandle(handle)
 	}
 
+	async resetSenderStatusForCurrentEmail(): Promise<void> {
+		const userEmail = this.logins.getUserController().loginUsername
+		const emailId = this.mail._id[1]
+		console.log(`ViewModel: Attempting to reset status for emailId=${emailId}`)
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/reset-single-email-status`, {
+				method: "DELETE", // Use DELETE method
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					// Send data in body
+					user_email: userEmail,
+					email_id: emailId,
+				}),
+			})
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}))
+				throw new Error(errorData.message || `Failed to reset email status (${response.status})`)
+			}
+
+			console.log(`ViewModel: Successfully reset status for emailId=${emailId}. Refetching data.`)
+
+			// Reset internal state immediately for responsiveness
+			this.senderStatus = "" // Or null, matching fetchSenderData's default
+			this.senderConfirmed = false
+			// Crucially, reset content blocking if needed
+			this.contentBlockingStatus = ContentBlockingStatus.Block // Reset to default blocked state
+			this.sanitizeResult = null // Force resanitize
+			this.renderedMail = null // Force rerender
+
+			// Refetch all data to get the definitive state from the backend and trigger UI update
+			await this.fetchSenderData()
+			// Force a re-render and re-sanitization etc. by calling loadAll again
+			// This might be overkill if fetchSenderData handles redraws, but ensures everything updates
+			await this.loadAll(Promise.resolve(), { notify: true })
+			// Ensure mail is expanded if it was collapsed by state changes
+			if (this.isCollapsed()) {
+				this.expandMail(Promise.resolve())
+			}
+			m.redraw()
+		} catch (error) {
+			console.error("ViewModel: Error resetting sender status:", error)
+			// Optionally show user error message here
+			// showUserError(new UserError("Failed to untrust sender. Please try again."));
+			// Refetch data even on error to ensure consistency
+			await this.fetchSenderData()
+			m.redraw()
+		}
+	}
 
 	private readonly entityListener = async (events: EntityUpdateData[]) => {
 		for (const update of events) {
@@ -821,67 +807,64 @@ export class MailViewerViewModel {
 
 	/** @return list of inline referenced cid */
 	private async loadAndProcessAdditionalMailInfo(mail: Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
-		const isDraft = mail.state === MailState.DRAFT;
+		const isDraft = mail.state === MailState.DRAFT
 		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraft && this.sanitizeResult != null) {
-			return this.sanitizeResult.inlineImageCids;
+			return this.sanitizeResult.inlineImageCids
 		}
-	
+
 		try {
-			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail);
+			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
-				console.log("could not load mail body as it has been moved/deleted already", e);
-				this.errorOccurred = true;
-				return [];
+				console.log("could not load mail body as it has been moved/deleted already", e)
+				this.errorOccurred = true
+				return []
 			}
 			if (e instanceof NotAuthorizedError) {
-				console.log("could not load mail body as the permission is missing", e);
-				this.errorOccurred = true;
-				return [];
+				console.log("could not load mail body as the permission is missing", e)
+				this.errorOccurred = true
+				return []
 			}
-			throw e;
+			throw e
 		}
-	
-		const externalImageRule = await this.configFacade.getExternalImageRule(mail.sender.address).catch((e) => {
-			console.log("Error getting external image rule:", e);
-			return ExternalImageRule.None;
-		});
-		const isAllowedAndAuthenticatedExternalSender =
-			externalImageRule === ExternalImageRule.Allow &&
-			this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED);
-	
-		// 
-		if (this.senderStatus === "trusted_once" || this.senderStatus === "confirmed") {
-		  console.log("Sender is trusted (once or confirmed) — pre-setting to AlwaysShow BEFORE sanitizing");
-		  this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow;
-		} else if (!this.isSenderTrusted() && !this.isSenderConfirmed()) {
-		  console.log("Sender not trusted or confirmed — pre-setting to Block BEFORE sanitizing");
-		  this.contentBlockingStatus = ContentBlockingStatus.Block;
-		} else {
-		  this.contentBlockingStatus =
-		    externalImageRule === ExternalImageRule.Block
-		      ? ContentBlockingStatus.AlwaysBlock
-		      : isAllowedAndAuthenticatedExternalSender
-		      ? ContentBlockingStatus.AlwaysShow
-		      : ContentBlockingStatus.NoExternalContent;
-		}
-	
-		// Wait to render heavy mail content
-		await delayBodyRenderingUntil;
-		this.renderIsDelayed = false;
-	
-		this.sanitizeResult = await this.sanitizeMailBody(mail, this.isBlockingExternalImages());
-	
-		if (!isDraft) {
-			this.checkMailForPhishing(mail, this.sanitizeResult.links);
-		}
-	
-		m.redraw();
-		this.renderedMail = this.mail;
-		return this.sanitizeResult.inlineImageCids;
-	}
-	
 
+		const externalImageRule = await this.configFacade.getExternalImageRule(mail.sender.address).catch((e) => {
+			console.log("Error getting external image rule:", e)
+			return ExternalImageRule.None
+		})
+		const isAllowedAndAuthenticatedExternalSender =
+			externalImageRule === ExternalImageRule.Allow && this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED)
+
+		//
+		if (this.senderStatus === "trusted_once" || this.senderStatus === "confirmed") {
+			console.log("Sender is trusted (once or confirmed) — pre-setting to AlwaysShow BEFORE sanitizing")
+			this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow
+		} else if (!this.isSenderTrusted() && !this.isSenderConfirmed()) {
+			console.log("Sender not trusted or confirmed — pre-setting to Block BEFORE sanitizing")
+			this.contentBlockingStatus = ContentBlockingStatus.Block
+		} else {
+			this.contentBlockingStatus =
+				externalImageRule === ExternalImageRule.Block
+					? ContentBlockingStatus.AlwaysBlock
+					: isAllowedAndAuthenticatedExternalSender
+					? ContentBlockingStatus.AlwaysShow
+					: ContentBlockingStatus.NoExternalContent
+		}
+
+		// Wait to render heavy mail content
+		await delayBodyRenderingUntil
+		this.renderIsDelayed = false
+
+		this.sanitizeResult = await this.sanitizeMailBody(mail, this.isBlockingExternalImages())
+
+		if (!isDraft) {
+			this.checkMailForPhishing(mail, this.sanitizeResult.links)
+		}
+
+		m.redraw()
+		this.renderedMail = this.mail
+		return this.sanitizeResult.inlineImageCids
+	}
 
 	private async loadAttachments(mail: Mail, inlineCids: string[]): Promise<void> {
 		if (mail.attachments.length === 0) {
@@ -1310,14 +1293,14 @@ export class MailViewerViewModel {
 	expandMail(delayBodyRendering: Promise<unknown>): void {
 		// Wait for sender data before loading mail
 		this.fetchSenderData().then(() => {
-			this.loadAll(delayBodyRendering, { notify: true });
-			m.redraw();
-		});
-		
+			this.loadAll(delayBodyRendering, { notify: true })
+			m.redraw()
+		})
+
 		if (this.isUnread()) {
-			this.logins.waitForFullLogin().then(() => this.setUnread(false));
+			this.logins.waitForFullLogin().then(() => this.setUnread(false))
 		}
-		this.collapsed = false;
+		this.collapsed = false
 	}
 
 	collapseMail(): void {
@@ -1350,5 +1333,4 @@ export class MailViewerViewModel {
 
 		this.loadAll(Promise.resolve(), { notify: true })
 	}
-
 }
