@@ -68,8 +68,8 @@ export class OfflineStorageSearchFacade implements SearchFacade {
                 list_entities.rowid = content_mail_index.rowid
             WHERE mail_index = ${queryString}
               AND instr(content_mail_index.sets, ${idToSearch}) > 0
-              AND content_mail_index.receivedDate <= ${restriction.end ?? Number.MAX_SAFE_INTEGER}
-              AND content_mail_index.receivedDate >= ${restriction.start ?? 0}
+              AND content_mail_index.receivedDate <= ${restriction.start ?? Number.MAX_SAFE_INTEGER}
+              AND content_mail_index.receivedDate >= ${restriction.end ?? 0}
             ORDER BY content_mail_index.receivedDate DESC`
 		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 		const resultIds = resultRows.map(({ listId, elementId }) => {
