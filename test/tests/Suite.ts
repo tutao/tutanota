@@ -148,6 +148,7 @@ import "./api/worker/search/BulkMailLoaderTest.js"
 import "./api/worker/search/IndexedDbContactIndexerBackendTest.js"
 import "./api/worker/search/OfflineStorageContactIndexerBackendTest.js"
 import "./api/worker/rest/CustomUserCacheHandlerTest.js"
+import "./api/common/utils/QueryTokenUtilsTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"

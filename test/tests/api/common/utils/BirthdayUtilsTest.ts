@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { BirthdayTypeRef, createBirthday } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { BirthdayTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/common/api/common/utils/BirthdayUtils.js"
 import { ParsingError } from "../../../../../src/common/api/common/error/ParsingError.js"
 import { TutanotaError } from "@tutao/tutanota-error"

@@ -56,6 +56,8 @@ export type Theme = {
 	navigation_menu_icon: string
 	error_color: string
 	tuta_color_nota: string
+	highlight_bg: string
+	highlight_fg: string
 }
 
 const themeSingleton = {}

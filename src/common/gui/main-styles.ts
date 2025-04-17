@@ -2905,5 +2905,10 @@ styles.registerStyle("main", () => {
 		pre: {
 			margin: 0,
 		},
+		".search-highlight": {
+			"font-weight": "bold",
+			"background-color": theme.highlight_bg,
+			color: theme.highlight_fg,
+		},
 	}
 })

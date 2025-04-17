@@ -129,6 +129,8 @@ export const themes = (): Themes => {
 		navigation_menu_icon: grey,
 		error_color: SONNE,
 		tuta_color_nota: red_nota,
+		highlight_bg: SONNE,
+		highlight_fg: black,
 	})
 	const darkRed = Object.freeze({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -170,6 +172,8 @@ export const themes = (): Themes => {
 		navigation_menu_icon: light_grey,
 		error_color: SONNE_70,
 		tuta_color_nota: red_nota,
+		highlight_bg: SONNE,
+		highlight_fg: black,
 	})
 	const lightBlue = Object.freeze({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -210,6 +214,8 @@ export const themes = (): Themes => {
 		navigation_menu_icon: grey,
 		error_color: SONNE,
 		tuta_color_nota: blue_nota,
+		highlight_bg: SONNE,
+		highlight_fg: black,
 	})
 	const darkBlue = Object.freeze({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -251,6 +257,8 @@ export const themes = (): Themes => {
 		navigation_menu_icon: light_grey,
 		error_color: SONNE_70,
 		tuta_color_nota: blue_nota,
+		highlight_bg: SONNE,
+		highlight_fg: black,
 	})
 
 	return {
