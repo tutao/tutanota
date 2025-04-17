@@ -329,14 +329,14 @@ o.spec("OfflineStorageSearchFacade", () => {
 		})
 
 		o.spec("date", () => {
-			o.test("start only", async () => {
+			o.test("end only", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 				const result = await offlineStorageSearchFacade.search(
 					"common",
 					{
 						type: MailTypeRef,
-						start: 1235,
-						end: null,
+						start: null,
+						end: 1235,
 						field: null,
 						attributeIds: null,
 						folderIds: [],
@@ -347,14 +347,14 @@ o.spec("OfflineStorageSearchFacade", () => {
 				o.check(result.results).deepEquals([testMail3.mail._id, spamMail.mail._id, testMail2.mail._id])
 			})
 
-			o.test("end only", async () => {
+			o.test("start only", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 				const result = await offlineStorageSearchFacade.search(
 					"common",
 					{
 						type: MailTypeRef,
-						start: null,
-						end: 1235,
+						start: 1235,
+						end: null,
 						field: null,
 						attributeIds: null,
 						folderIds: [],
