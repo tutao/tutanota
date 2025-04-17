@@ -22,7 +22,7 @@ platform :ios do
 			app_identifier: ["com.sdp.*"],
 			type: "appstore",
 			verbose: true,
-			readonly: false, 
+			readonly: false,
 			generate_apple_certs: false,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
@@ -57,7 +57,7 @@ platform :ios do
 	desc "Build a new prod release for ad-hoc"
 	lane :adhoc_prod do |options|
 		match(
-			app_identifier: ["com.sdp.mobyphish", "com.sdp.mobyphish.TutanotaShareExtension", "com.sdp.mobyphish.TutanotaNotificationExtension"],
+			app_identifier: ["com.sdp.*"],
 			type: "adhoc",
 			verbose: true,
 			readonly: false,
