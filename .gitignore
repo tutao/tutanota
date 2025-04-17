@@ -1,6 +1,7 @@
 build
 cache
 target
+certs
 build-calendar-app
 dist
 node_modules
