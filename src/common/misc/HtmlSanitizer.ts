@@ -1,8 +1,9 @@
 import { ReplacementImage } from "../gui/base/icons/Icons"
-import { downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { downcast, isEmpty, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { DataFile } from "../api/common/DataFile"
 import { encodeSVG } from "../gui/base/GuiUtils.js"
 import DOMPurify, { Config } from "dompurify"
+import { highlightTextInQuery, SearchToken } from "../api/common/utils/QueryTokenUtils"
 
 /** Data url for an SVG image that will be shown in place of external content. */
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = encodeSVG(ReplacementImage)
@@ -27,12 +28,14 @@ type SanitizeConfigExtra = {
 	blockExternalContent: boolean
 	allowRelativeLinks: boolean
 	usePlaceholderForInlineImages: boolean
+	highlightedStrings: readonly SearchToken[]
 }
 
 const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = Object.freeze({
 	blockExternalContent: true,
 	allowRelativeLinks: false,
 	usePlaceholderForInlineImages: true,
+	highlightedStrings: [],
 })
 
 /** Result of sanitization operation with result in a string form */
@@ -125,6 +128,7 @@ export class HtmlSanitizer {
 			this.purifier = DOMPurify
 			// Do changes in afterSanitizeAttributes and not afterSanitizeElements so that images are not removed again because of the SVGs.
 			this.purifier.addHook("afterSanitizeAttributes", this.afterSanitizeAttributes.bind(this))
+			this.purifier.addHook("beforeSanitizeElements", this.beforeSanitizeElements.bind(this))
 		}
 	}
 
@@ -221,6 +225,10 @@ export class HtmlSanitizer {
 		return Object.assign({}, config, DEFAULT_CONFIG_EXTRA, configExtra)
 	}
 
+	private beforeSanitizeElements(currentNode: Element, data: null, config: Config) {
+		this.highlightText(currentNode as HTMLElement, config as SanitizeConfig)
+	}
+
 	private afterSanitizeAttributes(currentNode: Element, data: null, config: Config) {
 		const typedConfig = config as SanitizeConfig
 		// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
@@ -232,6 +240,7 @@ export class HtmlSanitizer {
 			"MsoListParagraphCxSpFirst",
 			"MsoListParagraphCxSpMiddle",
 			"MsoListParagraphCxSpLast",
+			"search-highlight",
 		]
 
 		if (currentNode.classList) {
@@ -436,6 +445,51 @@ export class HtmlSanitizer {
 			}
 		}
 	}
+
+	private highlightText(currentNode: Node, config: SanitizeConfig) {
+		if (!currentNode.hasChildNodes()) {
+			return
+		}
+
+		// don't match already highlighted text
+		if (currentNode instanceof HTMLElement && currentNode.getAttribute("class") === "search-highlight") {
+			return
+		}
+
+		for (let i = 0; i < currentNode.childNodes.length; i++) {
+			const node = currentNode.childNodes.item(i)
+
+			if (isTextElement(node)) {
+				const dataBefore = node.data
+				const substrings = highlightTextInQuery(dataBefore, config.highlightedStrings)
+
+				// First, check if we even have anything that needs highlighted
+				if (isEmpty(substrings) || (substrings.length === 1 && !substrings[0].highlighted)) {
+					continue
+				}
+
+				// If so, go through and create nodes
+				for (const substring of substrings) {
+					if (substring.highlighted) {
+						// highlighted text that should be placed inside a <mark> element
+						const markNode = document.createElement("mark")
+						markNode.innerText = substring.text
+						markNode.className = "search-highlight"
+						currentNode.insertBefore(markNode, node)
+					} else {
+						// un-highlighted text that can be reinserted as-is
+						const textNode = document.createTextNode(substring.text)
+						currentNode.insertBefore(textNode, node)
+					}
+				}
+
+				// Remove the original node
+				currentNode.removeChild(node)
+			} else {
+				this.highlightText(node, config)
+			}
+		}
+	}
 }
 
 function isAllowedLink(link: string): boolean {
@@ -445,6 +499,14 @@ function isAllowedLink(link: string): boolean {
 	} catch (e) {
 		return false
 	}
+}
+
+// We cannot directly use instanceof here, nor can we use nodeType, since the Text and Node types may not be available,
+// so we check the node name
+function isTextElement(node: Node): node is Text {
+	// The node name of text elements is "#text"
+	// see https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
+	return node.nodeName === "#text"
 }
 
 export const htmlSanitizer: HtmlSanitizer = new HtmlSanitizer()
