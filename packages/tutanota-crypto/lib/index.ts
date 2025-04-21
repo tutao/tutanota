@@ -23,6 +23,7 @@ export {
 	x25519Encapsulate,
 	x25519Decapsulate,
 } from "./encryption/X25519.js"
+export { Ed25519PrivateKey, Ed25519PublicKey, Ed25519KeyPair } from "./encryption/Ed25519.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
 export {
 	LibOQSExports,
