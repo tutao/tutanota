@@ -3,6 +3,7 @@
 require("dotenv").config()
 const express = require("express")
 const sqlite3 = require("sqlite3").verbose()
+const cors = require("cors")
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -16,7 +17,7 @@ const corsOptions = {
 }
 
 //Apply CORS middleware
-//app.use(cors(corsOptions));
+app.use(cors(corsOptions))
 
 app.use(express.json()) // Middleware to parse JSON bodies
 
@@ -26,6 +27,47 @@ const db = new sqlite3.Database("./trusted_senders.db", (err) => {
 		console.error("Database connection error:", err.message)
 	} else {
 		console.log("Connected to SQLite database.")
+	}
+})
+
+// --- Database Migration ---
+// Check if trusted_name column exists and add it if missing
+db.get("PRAGMA table_info(trusted_senders)", [], (err, rows) => {
+	if (err) {
+		console.error("Error checking table schema:", err.message)
+	} else {
+		// Check if the table exists first
+		db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='trusted_senders'", [], (tableErr, tableRow) => {
+			if (tableErr) {
+				console.error("Error checking if table exists:", tableErr.message)
+				return
+			}
+
+			if (tableRow) {
+				// Table exists, check if it has the trusted_name column
+				db.all("PRAGMA table_info(trusted_senders)", [], (pragmaErr, columns) => {
+					if (pragmaErr) {
+						console.error("Error getting column info:", pragmaErr.message)
+						return
+					}
+
+					const hasNameColumn = columns.some((col) => col.name === "trusted_name")
+
+					if (!hasNameColumn) {
+						console.log("Adding missing trusted_name column to existing table...")
+						db.run("ALTER TABLE trusted_senders ADD COLUMN trusted_name TEXT DEFAULT ''", (alterErr) => {
+							if (alterErr) {
+								console.error("Error adding trusted_name column:", alterErr.message)
+							} else {
+								console.log("Successfully added trusted_name column to existing table")
+							}
+						})
+					} else {
+						console.log("trusted_name column already exists in the trusted_senders table")
+					}
+				})
+			}
+		})
 	}
 })
 
