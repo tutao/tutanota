@@ -156,6 +156,7 @@ impl From<MailContact> for MailAddress {
 			name: value.name,
 			contact: None,
 			_finalIvs: Default::default(),
+			_errors: Default::default(),
 		}
 	}
 }
@@ -578,9 +579,10 @@ impl ImportableMail {
 			.into_iter()
 			.map(|reply_to| EncryptedMailAddress {
 				_id: Some(tutasdk::CustomId::from_custom_string(FIXED_CUSTOM_ID)),
-				_finalIvs: Default::default(),
 				name: reply_to.name,
 				address: reply_to.mail_address,
+				_finalIvs: Default::default(),
+				_errors: Default::default(),
 			})
 			.collect();
 
@@ -605,7 +607,6 @@ impl ImportableMail {
 			_format: 0,
 			ownerEncSessionKey: owner_enc_sk,
 			ownerKeyVersion: owner_enc_sk_version,
-			_finalIvs: Default::default(),
 			compressedHeaders: headers_string,
 			subject,
 			compressedBodyText: html_body_text,
@@ -632,7 +633,8 @@ impl ImportableMail {
 			inReplyTo: in_reply_to,
 			references,
 			importedAttachments: vec![],
-			_errors: None,
+			_errors: Default::default(),
+			_finalIvs: Default::default(),
 		}
 	}
 }

@@ -4,6 +4,7 @@ mod tests {
 	use base64::Engine;
 	use std::sync::Arc;
 	use tutasdk::bindings::rest_client::{HttpMethod, RestClient};
+	use tutasdk::bindings::test_file_client::TestFileClient;
 	use tutasdk::bindings::test_rest_client::TestRestClient;
 	use tutasdk::login::{CredentialType, Credentials};
 	use tutasdk::GeneratedId;
@@ -12,6 +13,7 @@ mod tests {
 	#[tokio::test]
 	async fn download_mail_with_logged_in_client() {
 		let rest_client = make_rest_client();
+		let file_client = Arc::new(TestFileClient::default());
 
 		// password is qawsedrftgyh
 		let encrypted_passphrase_key = BASE64_STANDARD.decode("AZWEA/KTrHu0bW52CsctsBTTV4U3jrU51TadSxf6Nqs3xbEs3WfoOpPtxUDCNjHNppt6LHCfgTioejjGUJ2cCsXosZAysUiau5Nvyi8mtjLz").unwrap();
@@ -23,7 +25,11 @@ mod tests {
 			encrypted_passphrase_key,
 			credential_type: CredentialType::Internal,
 		};
-		let sdk = Sdk::new("http://localhost:9000".to_string(), rest_client);
+		let sdk = Sdk::new(
+			"http://localhost:9000".to_string(),
+			rest_client,
+			file_client,
+		);
 		let logged_in_sdk = sdk.login(credentials).await.unwrap();
 		let mail_facade = logged_in_sdk.mail_facade();
 		let mail = mail_facade

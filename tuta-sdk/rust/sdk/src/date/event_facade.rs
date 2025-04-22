@@ -2234,7 +2234,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 
-		let rules = vec![
+		let rules = [
 			ByRule {
 				by_rule: ByRuleType::ByDay,
 				interval: "MO".to_string(),
@@ -2313,7 +2313,7 @@ mod tests {
 
 		let event_recurrence = EventFacade {};
 
-		let rules = vec![
+		let rules = [
 			ByRule {
 				by_rule: ByRuleType::ByDay,
 				interval: "2MO".to_string(),

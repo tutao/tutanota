@@ -65,6 +65,8 @@ pub struct MailImportMessage {
 pub enum PreparationError {
 	/// Can not create a native Rest client
 	NoNativeRestClient,
+	/// Can not create a native file client
+	NoNativeFileClient,
 	/// some error occurred while reading import directory
 	CannotReadOldStateId,
 	/// Error when trying to resume the session passed from client
@@ -134,6 +136,7 @@ impl From<PreparationError> for napi::Error {
 	fn from(prep_err: PreparationError) -> Self {
 		let code = match prep_err {
 			PreparationError::NoNativeRestClient => "NoNativeRestClient",
+			PreparationError::NoNativeFileClient => "NoNativeFileClient",
 			PreparationError::CannotReadOldStateId => "ImportDirectoryPreparation",
 			PreparationError::LoginError => "LoginError",
 			PreparationError::FailedToReadEmls => "FailedToReadEmls",

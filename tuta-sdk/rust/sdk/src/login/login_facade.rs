@@ -13,11 +13,12 @@ use crate::entities::Entity;
 use crate::entity_client::EntityClient;
 use crate::id::generated_id::GENERATED_ID_BYTES_LENGTH;
 use crate::login::credentials::Credentials;
+use crate::type_model_provider::TypeModelProvider;
 #[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::util::{array_cast_slice, get_attribute_id_by_attribute_name, BASE64_EXT};
+use crate::util::{array_cast_slice, BASE64_EXT};
 use crate::ApiCallError::InternalSdkError;
 use crate::CustomId;
 use crate::GeneratedId;
@@ -65,6 +66,7 @@ pub struct LoginFacade {
 	entity_client: Arc<EntityClient>,
 	typed_entity_client: Arc<TypedEntityClient>,
 	user_facade_factory: fn(user: User) -> UserFacade,
+	type_model_provider: Arc<TypeModelProvider>,
 }
 
 impl LoginFacade {
@@ -72,11 +74,13 @@ impl LoginFacade {
 		entity_client: Arc<EntityClient>,
 		typed_entity_client: Arc<TypedEntityClient>,
 		user_facade_factory: fn(user: User) -> UserFacade,
+		type_model_provider: Arc<TypeModelProvider>,
 	) -> Self {
 		LoginFacade {
 			entity_client,
 			typed_entity_client,
 			user_facade_factory,
+			type_model_provider,
 		}
 	}
 
@@ -147,18 +151,21 @@ impl LoginFacade {
 		Ok(user_facade)
 	}
 
-	/// Get access key from session
 	fn get_access_key(&self, session: &ParsedEntity) -> Result<GenericAesKey, LoginError> {
-		let access_key_attribute_id =
-			&get_attribute_id_by_attribute_name(Session::type_ref(), "accessKey").map_err(
-				|_| LoginError::ApiCall {
-					source: InternalSdkError {
-						error_message: "no access key attribute on the session entity!".to_owned(),
-					},
+		let access_key_attribute_id = self
+			.type_model_provider
+			.resolve_client_type_ref(&Session::type_ref())
+			.ok_or(ApiCallError::internal(
+				"failed to resolve session type ref".to_owned(),
+			))?
+			.get_attribute_id_by_attribute_name("accessKey")
+			.map_err(|_| LoginError::ApiCall {
+				source: InternalSdkError {
+					error_message: "no access key attribute on the session entity!".to_owned(),
 				},
-			)?;
+			})?;
 		let access_key_raw = session
-			.get(access_key_attribute_id)
+			.get(access_key_attribute_id.as_str())
 			.ok_or_else(|| LoginError::ApiCall {
 				source: InternalSdkError {
 					error_message: "no access key on session!".to_owned(),
@@ -219,7 +226,9 @@ mod tests {
 	use crate::login::login_facade::LoginFacade;
 	use crate::typed_entity_client::MockTypedEntityClient;
 	use crate::user_facade::MockUserFacade;
-	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
+	use crate::util::test_utils::{
+		create_test_entity, mock_type_model_provider, typed_entity_to_parsed_entity,
+	};
 	use crate::CustomId;
 	use crate::GeneratedId;
 	use crate::{IdTupleCustom, IdTupleGenerated};
@@ -259,12 +268,16 @@ mod tests {
 
 		let entity_client = Arc::new(mock_entity_client);
 		let typed_entity_client = Arc::new(mock_typed_entity_client);
-		let login_facade =
-			LoginFacade::new(entity_client.clone(), typed_entity_client.clone(), |_| {
+		let login_facade = LoginFacade::new(
+			entity_client.clone(),
+			typed_entity_client.clone(),
+			|_| {
 				let mut facade = MockUserFacade::default();
 				facade.expect_unlock_user_group_key().returning(|_| Ok(()));
 				facade
-			});
+			},
+			Arc::new(mock_type_model_provider()),
+		);
 
 		let _user_facade = login_facade
 			.resume_session(&Credentials {

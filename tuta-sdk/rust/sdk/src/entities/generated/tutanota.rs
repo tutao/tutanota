@@ -16,8 +16,8 @@ pub struct Subfiles {
 impl Entity for Subfiles {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 11,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(11),
 		}
 	}
 }
@@ -52,15 +52,18 @@ pub struct TutanotaFile {
 	pub subFiles: Option<Subfiles>,
 	#[serde(rename = "1225")]
 	pub blobs: Vec<super::sys::Blob>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for TutanotaFile {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 13,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(13),
 		}
 	}
 }
@@ -83,15 +86,18 @@ pub struct FileSystem {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "35")]
 	pub files: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for FileSystem {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 28,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(28),
 		}
 	}
 }
@@ -107,14 +113,18 @@ pub struct ContactMailAddress {
 	pub address: String,
 	#[serde(rename = "48")]
 	pub customTypeName: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactMailAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 44,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(44),
 		}
 	}
 }
@@ -130,14 +140,18 @@ pub struct ContactPhoneNumber {
 	pub number: String,
 	#[serde(rename = "53")]
 	pub customTypeName: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactPhoneNumber {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 49,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(49),
 		}
 	}
 }
@@ -153,14 +167,18 @@ pub struct ContactAddress {
 	pub address: String,
 	#[serde(rename = "58")]
 	pub customTypeName: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 54,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(54),
 		}
 	}
 }
@@ -176,14 +194,18 @@ pub struct ContactSocialId {
 	pub socialId: String,
 	#[serde(rename = "63")]
 	pub customTypeName: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactSocialId {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 59,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(59),
 		}
 	}
 }
@@ -258,15 +280,18 @@ pub struct Contact {
 	pub messengerHandles: Vec<ContactMessengerHandle>,
 	#[serde(rename = "1390")]
 	pub pronouns: Vec<ContactPronouns>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Contact {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 64,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(64),
 		}
 	}
 }
@@ -295,8 +320,8 @@ pub struct ConversationEntry {
 impl Entity for ConversationEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 84,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(84),
 		}
 	}
 }
@@ -312,14 +337,18 @@ pub struct MailAddress {
 	pub address: String,
 	#[serde(rename = "96")]
 	pub contact: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 92,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(92),
 		}
 	}
 }
@@ -384,15 +413,18 @@ pub struct Mail {
 	pub bucketKey: Option<super::sys::BucketKey>,
 	#[serde(rename = "1465")]
 	pub sets: Vec<IdTupleGenerated>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Mail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 97,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(97),
 		}
 	}
 }
@@ -433,15 +465,18 @@ pub struct MailBox {
 	pub importedAttachments: GeneratedId,
 	#[serde(rename = "1585")]
 	pub mailImportStates: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailBox {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 125,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(125),
 		}
 	}
 }
@@ -466,8 +501,8 @@ pub struct CreateExternalUserGroupData {
 impl Entity for CreateExternalUserGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 138,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(138),
 		}
 	}
 }
@@ -515,8 +550,8 @@ pub struct ExternalUserData {
 impl Entity for ExternalUserData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 145,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(145),
 		}
 	}
 }
@@ -541,15 +576,18 @@ pub struct ContactList {
 	pub contacts: GeneratedId,
 	#[serde(rename = "856")]
 	pub photos: Option<PhotosRef>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactList {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 153,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(153),
 		}
 	}
 }
@@ -574,8 +612,8 @@ pub struct RemoteImapSyncInfo {
 impl Entity for RemoteImapSyncInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 183,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(183),
 		}
 	}
 }
@@ -598,8 +636,8 @@ pub struct ImapFolder {
 impl Entity for ImapFolder {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 190,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(190),
 		}
 	}
 }
@@ -622,8 +660,8 @@ pub struct ImapSyncState {
 impl Entity for ImapSyncState {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 196,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(196),
 		}
 	}
 }
@@ -648,8 +686,8 @@ pub struct ImapSyncConfiguration {
 impl Entity for ImapSyncConfiguration {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 209,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(209),
 		}
 	}
 }
@@ -699,15 +737,18 @@ pub struct TutanotaProperties {
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
 	#[serde(rename = "578")]
 	pub inboxRules: Vec<InboxRule>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for TutanotaProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 216,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(216),
 		}
 	}
 }
@@ -732,8 +773,8 @@ pub struct NotificationMail {
 impl Entity for NotificationMail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 223,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(223),
 		}
 	}
 }
@@ -752,8 +793,8 @@ pub struct DeleteMailData {
 impl Entity for DeleteMailData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 419,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(419),
 		}
 	}
 }
@@ -784,15 +825,18 @@ pub struct MailFolder {
 	pub parentFolder: Option<IdTupleGenerated>,
 	#[serde(rename = "1459")]
 	pub entries: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailFolder {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 429,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(429),
 		}
 	}
 }
@@ -809,8 +853,8 @@ pub struct MailFolderRef {
 impl Entity for MailFolderRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 440,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(440),
 		}
 	}
 }
@@ -831,8 +875,8 @@ pub struct MoveMailData {
 impl Entity for MoveMailData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 445,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(445),
 		}
 	}
 }
@@ -853,15 +897,18 @@ pub struct CreateMailFolderData {
 	pub ownerKeyVersion: i64,
 	#[serde(rename = "452")]
 	pub parentFolder: Option<IdTupleGenerated>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CreateMailFolderData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 450,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(450),
 		}
 	}
 }
@@ -873,15 +920,18 @@ pub struct CreateMailFolderReturn {
 	pub _format: i64,
 	#[serde(rename = "457")]
 	pub newFolder: IdTupleGenerated,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CreateMailFolderReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 455,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(455),
 		}
 	}
 }
@@ -893,15 +943,18 @@ pub struct DeleteMailFolderData {
 	pub _format: i64,
 	#[serde(rename = "460")]
 	pub folders: Vec<IdTupleGenerated>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DeleteMailFolderData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 458,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(458),
 		}
 	}
 }
@@ -923,8 +976,8 @@ pub struct EncryptTutanotaPropertiesData {
 impl Entity for EncryptTutanotaPropertiesData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 473,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(473),
 		}
 	}
 }
@@ -938,14 +991,18 @@ pub struct DraftRecipient {
 	pub name: String,
 	#[serde(rename = "485")]
 	pub mailAddress: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftRecipient {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 482,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(482),
 		}
 	}
 }
@@ -971,8 +1028,8 @@ pub struct NewDraftAttachment {
 impl Entity for NewDraftAttachment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 486,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(486),
 		}
 	}
 }
@@ -996,8 +1053,8 @@ pub struct DraftAttachment {
 impl Entity for DraftAttachment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 491,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(491),
 		}
 	}
 }
@@ -1033,14 +1090,18 @@ pub struct DraftData {
 	pub removedAttachments: Vec<IdTupleGenerated>,
 	#[serde(rename = "819")]
 	pub replyTos: Vec<EncryptedMailAddress>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 496,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(496),
 		}
 	}
 }
@@ -1061,15 +1122,18 @@ pub struct DraftCreateData {
 	pub ownerKeyVersion: i64,
 	#[serde(rename = "515")]
 	pub draftData: DraftData,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 508,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(508),
 		}
 	}
 }
@@ -1086,8 +1150,8 @@ pub struct DraftCreateReturn {
 impl Entity for DraftCreateReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 516,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(516),
 		}
 	}
 }
@@ -1101,15 +1165,18 @@ pub struct DraftUpdateData {
 	pub draftData: DraftData,
 	#[serde(rename = "522")]
 	pub draft: IdTupleGenerated,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftUpdateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 519,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(519),
 		}
 	}
 }
@@ -1121,15 +1188,18 @@ pub struct DraftUpdateReturn {
 	pub _format: i64,
 	#[serde(rename = "525")]
 	pub attachments: Vec<IdTupleGenerated>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DraftUpdateReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 523,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(523),
 		}
 	}
 }
@@ -1155,8 +1225,8 @@ pub struct InternalRecipientKeyData {
 impl Entity for InternalRecipientKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 527,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(527),
 		}
 	}
 }
@@ -1194,8 +1264,8 @@ pub struct SecureExternalRecipientKeyData {
 impl Entity for SecureExternalRecipientKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 532,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(532),
 		}
 	}
 }
@@ -1218,8 +1288,8 @@ pub struct AttachmentKeyData {
 impl Entity for AttachmentKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 542,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(542),
 		}
 	}
 }
@@ -1261,8 +1331,8 @@ pub struct SendDraftData {
 impl Entity for SendDraftData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 547,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(547),
 		}
 	}
 }
@@ -1285,8 +1355,8 @@ pub struct SendDraftReturn {
 impl Entity for SendDraftReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 557,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(557),
 		}
 	}
 }
@@ -1303,8 +1373,8 @@ pub struct ReceiveInfoServiceData {
 impl Entity for ReceiveInfoServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 570,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(570),
 		}
 	}
 }
@@ -1320,14 +1390,18 @@ pub struct InboxRule {
 	pub value: String,
 	#[serde(rename = "577")]
 	pub targetFolder: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for InboxRule {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 573,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(573),
 		}
 	}
 }
@@ -1341,14 +1415,18 @@ pub struct EncryptedMailAddress {
 	pub name: String,
 	#[serde(rename = "615")]
 	pub address: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for EncryptedMailAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 612,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(612),
 		}
 	}
 }
@@ -1426,8 +1504,8 @@ pub struct UserAccountUserData {
 impl Entity for UserAccountUserData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 622,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(622),
 		}
 	}
 }
@@ -1472,8 +1550,8 @@ pub struct InternalGroupData {
 impl Entity for InternalGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 642,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(642),
 		}
 	}
 }
@@ -1527,8 +1605,8 @@ pub struct CustomerAccountCreateData {
 impl Entity for CustomerAccountCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 648,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(648),
 		}
 	}
 }
@@ -1549,8 +1627,8 @@ pub struct UserAccountCreateData {
 impl Entity for UserAccountCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 663,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(663),
 		}
 	}
 }
@@ -1573,8 +1651,8 @@ pub struct MailboxServerProperties {
 impl Entity for MailboxServerProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 677,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(677),
 		}
 	}
 }
@@ -1607,8 +1685,8 @@ pub struct MailboxGroupRoot {
 impl Entity for MailboxGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 693,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(693),
 		}
 	}
 }
@@ -1633,8 +1711,8 @@ pub struct CreateMailGroupData {
 impl Entity for CreateMailGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 707,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(707),
 		}
 	}
 }
@@ -1653,8 +1731,8 @@ pub struct DeleteGroupData {
 impl Entity for DeleteGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 713,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(713),
 		}
 	}
 }
@@ -1675,8 +1753,8 @@ pub struct Birthday {
 impl Entity for Birthday {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 844,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(844),
 		}
 	}
 }
@@ -1693,8 +1771,8 @@ pub struct PhotosRef {
 impl Entity for PhotosRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 853,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(853),
 		}
 	}
 }
@@ -1715,8 +1793,8 @@ pub struct ListUnsubscribeData {
 impl Entity for ListUnsubscribeData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 867,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(867),
 		}
 	}
 }
@@ -1740,14 +1818,18 @@ pub struct CalendarRepeatRule {
 	pub excludedDates: Vec<super::sys::DateWrapper>,
 	#[serde(rename = "1590")]
 	pub advancedRules: Vec<AdvancedRepeatRule>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarRepeatRule {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 926,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(926),
 		}
 	}
 }
@@ -1797,15 +1879,18 @@ pub struct CalendarEvent {
 	pub attendees: Vec<CalendarEventAttendee>,
 	#[serde(rename = "1092")]
 	pub organizer: Option<EncryptedMailAddress>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarEvent {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 933,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(933),
 		}
 	}
 }
@@ -1832,15 +1917,18 @@ pub struct CalendarGroupRoot {
 	pub longEvents: GeneratedId,
 	#[serde(rename = "1103")]
 	pub index: Option<CalendarEventIndexRef>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 947,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(947),
 		}
 	}
 }
@@ -1878,8 +1966,8 @@ pub struct UserAreaGroupData {
 impl Entity for UserAreaGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 956,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(956),
 		}
 	}
 }
@@ -1896,8 +1984,8 @@ pub struct UserAreaGroupPostData {
 impl Entity for UserAreaGroupPostData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 964,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(964),
 		}
 	}
 }
@@ -1917,14 +2005,18 @@ pub struct GroupSettings {
 	pub group: GeneratedId,
 	#[serde(rename = "1449")]
 	pub defaultAlarmsList: Vec<DefaultAlarmInfo>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GroupSettings {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 968,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(968),
 		}
 	}
 }
@@ -1953,15 +2045,18 @@ pub struct UserSettingsGroupRoot {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "979")]
 	pub groupSettings: Vec<GroupSettings>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for UserSettingsGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 972,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(972),
 		}
 	}
 }
@@ -1978,8 +2073,8 @@ pub struct CalendarDeleteData {
 impl Entity for CalendarDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 982,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(982),
 		}
 	}
 }
@@ -1991,15 +2086,18 @@ pub struct CreateGroupPostReturn {
 	pub _format: i64,
 	#[serde(rename = "987")]
 	pub group: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CreateGroupPostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 985,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(985),
 		}
 	}
 }
@@ -2038,8 +2136,8 @@ pub struct SharedGroupData {
 impl Entity for SharedGroupData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 992,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(992),
 		}
 	}
 }
@@ -2058,8 +2156,8 @@ pub struct GroupInvitationPostData {
 impl Entity for GroupInvitationPostData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1002,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1002),
 		}
 	}
 }
@@ -2080,8 +2178,8 @@ pub struct GroupInvitationPostReturn {
 impl Entity for GroupInvitationPostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1006,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1006),
 		}
 	}
 }
@@ -2108,8 +2206,8 @@ pub struct GroupInvitationPutData {
 impl Entity for GroupInvitationPutData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1011,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1011),
 		}
 	}
 }
@@ -2126,8 +2224,8 @@ pub struct GroupInvitationDeleteData {
 impl Entity for GroupInvitationDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1016,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1016),
 		}
 	}
 }
@@ -2146,8 +2244,8 @@ pub struct ReportedMailFieldMarker {
 impl Entity for ReportedMailFieldMarker {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1023,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1023),
 		}
 	}
 }
@@ -2170,8 +2268,8 @@ pub struct PhishingMarkerWebsocketData {
 impl Entity for PhishingMarkerWebsocketData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1034,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1034),
 		}
 	}
 }
@@ -2193,8 +2291,8 @@ pub struct ReportMailPostData {
 impl Entity for ReportMailPostData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1066,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1066),
 		}
 	}
 }
@@ -2208,14 +2306,18 @@ pub struct CalendarEventAttendee {
 	pub status: i64,
 	#[serde(rename = "1087")]
 	pub address: EncryptedMailAddress,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarEventAttendee {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1084,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1084),
 		}
 	}
 }
@@ -2240,8 +2342,8 @@ pub struct CalendarEventUidIndex {
 impl Entity for CalendarEventUidIndex {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1093,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1093),
 		}
 	}
 }
@@ -2258,8 +2360,8 @@ pub struct CalendarEventIndexRef {
 impl Entity for CalendarEventIndexRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1100,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1100),
 		}
 	}
 }
@@ -2284,15 +2386,18 @@ pub struct CalendarEventUpdate {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1112")]
 	pub file: IdTupleGenerated,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarEventUpdate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1104,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1104),
 		}
 	}
 }
@@ -2309,8 +2414,8 @@ pub struct CalendarEventUpdateList {
 impl Entity for CalendarEventUpdateList {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1113,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1113),
 		}
 	}
 }
@@ -2330,8 +2435,8 @@ pub struct EntropyData {
 impl Entity for EntropyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1122,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1122),
 		}
 	}
 }
@@ -2352,8 +2457,8 @@ pub struct OutOfOfficeNotificationMessage {
 impl Entity for OutOfOfficeNotificationMessage {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1126,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1126),
 		}
 	}
 }
@@ -2382,8 +2487,8 @@ pub struct OutOfOfficeNotification {
 impl Entity for OutOfOfficeNotification {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1131,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1131),
 		}
 	}
 }
@@ -2400,8 +2505,8 @@ pub struct OutOfOfficeNotificationRecipientList {
 impl Entity for OutOfOfficeNotificationRecipientList {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1147,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1147),
 		}
 	}
 }
@@ -2415,14 +2520,18 @@ pub struct EmailTemplateContent {
 	pub text: String,
 	#[serde(rename = "1157")]
 	pub languageCode: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for EmailTemplateContent {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1154,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1154),
 		}
 	}
 }
@@ -2449,15 +2558,18 @@ pub struct EmailTemplate {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1167")]
 	pub contents: Vec<EmailTemplateContent>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for EmailTemplate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1158,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1158),
 		}
 	}
 }
@@ -2469,14 +2581,18 @@ pub struct KnowledgeBaseEntryKeyword {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "1170")]
 	pub keyword: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for KnowledgeBaseEntryKeyword {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1168,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1168),
 		}
 	}
 }
@@ -2503,15 +2619,18 @@ pub struct KnowledgeBaseEntry {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1180")]
 	pub keywords: Vec<KnowledgeBaseEntryKeyword>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for KnowledgeBaseEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1171,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1171),
 		}
 	}
 }
@@ -2536,15 +2655,18 @@ pub struct TemplateGroupRoot {
 	pub templates: GeneratedId,
 	#[serde(rename = "1189")]
 	pub knowledgeBase: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for TemplateGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1181,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1181),
 		}
 	}
 }
@@ -2561,8 +2683,8 @@ pub struct UserAreaGroupDeleteData {
 impl Entity for UserAreaGroupDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1190,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1190),
 		}
 	}
 }
@@ -2587,15 +2709,18 @@ pub struct MailboxProperties {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1267")]
 	pub mailAddressProperties: Vec<MailAddressProperties>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailboxProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1195,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1195),
 		}
 	}
 }
@@ -2612,8 +2737,8 @@ pub struct SpamResults {
 impl Entity for SpamResults {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1217,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1217),
 		}
 	}
 }
@@ -2632,8 +2757,8 @@ pub struct NewsId {
 impl Entity for NewsId {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1245,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1245),
 		}
 	}
 }
@@ -2650,8 +2775,8 @@ pub struct NewsOut {
 impl Entity for NewsOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1256,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1256),
 		}
 	}
 }
@@ -2668,8 +2793,8 @@ pub struct NewsIn {
 impl Entity for NewsIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1259,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1259),
 		}
 	}
 }
@@ -2683,14 +2808,18 @@ pub struct MailAddressProperties {
 	pub mailAddress: String,
 	#[serde(rename = "1266")]
 	pub senderName: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailAddressProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1263,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1263),
 		}
 	}
 }
@@ -2704,14 +2833,18 @@ pub struct Header {
 	pub headers: Option<String>,
 	#[serde(rename = "1272")]
 	pub compressedHeaders: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Header {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1269,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1269),
 		}
 	}
 }
@@ -2725,14 +2858,18 @@ pub struct Body {
 	pub text: Option<String>,
 	#[serde(rename = "1276")]
 	pub compressedText: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Body {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1273,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1273),
 		}
 	}
 }
@@ -2753,8 +2890,8 @@ pub struct Recipients {
 impl Entity for Recipients {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1277,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1277),
 		}
 	}
 }
@@ -2781,8 +2918,8 @@ pub struct MailDetails {
 impl Entity for MailDetails {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1282,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1282),
 		}
 	}
 }
@@ -2805,15 +2942,18 @@ pub struct MailDetailsDraft {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1297")]
 	pub details: MailDetails,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailDetailsDraft {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1290,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1290),
 		}
 	}
 }
@@ -2836,15 +2976,18 @@ pub struct MailDetailsBlob {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1305")]
 	pub details: MailDetails,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MailDetailsBlob {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1298,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1298),
 		}
 	}
 }
@@ -2863,8 +3006,8 @@ pub struct UpdateMailFolderData {
 impl Entity for UpdateMailFolderData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1311,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1311),
 		}
 	}
 }
@@ -2881,8 +3024,8 @@ pub struct MailDetailsDraftsRef {
 impl Entity for MailDetailsDraftsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1315,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1315),
 		}
 	}
 }
@@ -2905,15 +3048,18 @@ pub struct ContactListEntry {
 	pub emailAddress: String,
 	#[serde(rename = "1409")]
 	pub _ownerKeyVersion: Option<i64>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactListEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1325,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1325),
 		}
 	}
 }
@@ -2936,15 +3082,18 @@ pub struct ContactListGroupRoot {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1340")]
 	pub entries: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactListGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1333,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1333),
 		}
 	}
 }
@@ -2968,8 +3117,8 @@ pub struct SymEncInternalRecipientKeyData {
 impl Entity for SymEncInternalRecipientKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1347,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1347),
 		}
 	}
 }
@@ -2985,14 +3134,18 @@ pub struct ContactCustomDate {
 	pub customTypeName: String,
 	#[serde(rename = "1360")]
 	pub dateIso: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactCustomDate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1356,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1356),
 		}
 	}
 }
@@ -3008,14 +3161,18 @@ pub struct ContactWebsite {
 	pub customTypeName: String,
 	#[serde(rename = "1365")]
 	pub url: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactWebsite {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1361,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1361),
 		}
 	}
 }
@@ -3031,14 +3188,18 @@ pub struct ContactRelationship {
 	pub customTypeName: String,
 	#[serde(rename = "1370")]
 	pub person: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactRelationship {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1366,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1366),
 		}
 	}
 }
@@ -3054,14 +3215,18 @@ pub struct ContactMessengerHandle {
 	pub customTypeName: String,
 	#[serde(rename = "1375")]
 	pub handle: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactMessengerHandle {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1371,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1371),
 		}
 	}
 }
@@ -3075,14 +3240,18 @@ pub struct ContactPronouns {
 	pub language: String,
 	#[serde(rename = "1379")]
 	pub pronouns: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ContactPronouns {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1376,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1376),
 		}
 	}
 }
@@ -3099,8 +3268,8 @@ pub struct TranslationGetIn {
 impl Entity for TranslationGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1436,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1436),
 		}
 	}
 }
@@ -3119,8 +3288,8 @@ pub struct TranslationGetOut {
 impl Entity for TranslationGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1439,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1439),
 		}
 	}
 }
@@ -3132,14 +3301,18 @@ pub struct DefaultAlarmInfo {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "1448")]
 	pub trigger: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DefaultAlarmInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1446,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1446),
 		}
 	}
 }
@@ -3162,8 +3335,8 @@ pub struct MailSetEntry {
 impl Entity for MailSetEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1450,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1450),
 		}
 	}
 }
@@ -3180,8 +3353,8 @@ pub struct MailBag {
 impl Entity for MailBag {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1460,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1460),
 		}
 	}
 }
@@ -3200,8 +3373,8 @@ pub struct SimpleMoveMailPostIn {
 impl Entity for SimpleMoveMailPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1469,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1469),
 		}
 	}
 }
@@ -3220,8 +3393,8 @@ pub struct UnreadMailStatePostIn {
 impl Entity for UnreadMailStatePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1474,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1474),
 		}
 	}
 }
@@ -3235,14 +3408,18 @@ pub struct ManageLabelServiceLabelData {
 	pub name: String,
 	#[serde(rename = "1483")]
 	pub color: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ManageLabelServiceLabelData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1480,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1480),
 		}
 	}
 }
@@ -3261,15 +3438,18 @@ pub struct ManageLabelServicePostIn {
 	pub ownerGroup: GeneratedId,
 	#[serde(rename = "1489")]
 	pub data: ManageLabelServiceLabelData,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ManageLabelServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1484,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1484),
 		}
 	}
 }
@@ -3286,8 +3466,8 @@ pub struct ManageLabelServiceDeleteIn {
 impl Entity for ManageLabelServiceDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1500,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1500),
 		}
 	}
 }
@@ -3308,8 +3488,8 @@ pub struct ApplyLabelServicePostIn {
 impl Entity for ApplyLabelServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1504,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1504),
 		}
 	}
 }
@@ -3326,8 +3506,8 @@ pub struct ImportMailDataMailReference {
 impl Entity for ImportMailDataMailReference {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1513,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1513),
 		}
 	}
 }
@@ -3359,8 +3539,8 @@ pub struct NewImportAttachment {
 impl Entity for NewImportAttachment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1516,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1516),
 		}
 	}
 }
@@ -3384,8 +3564,8 @@ pub struct ImportAttachment {
 impl Entity for ImportAttachment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1524,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1524),
 		}
 	}
 }
@@ -3436,15 +3616,18 @@ pub struct ImportMailData {
 	pub recipients: Recipients,
 	#[serde(rename = "1551")]
 	pub importedAttachments: Vec<ImportAttachment>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ImportMailData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1530,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1530),
 		}
 	}
 }
@@ -3467,8 +3650,8 @@ pub struct ImportedMail {
 impl Entity for ImportedMail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1552,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1552),
 		}
 	}
 }
@@ -3501,8 +3684,8 @@ pub struct ImportMailState {
 impl Entity for ImportMailState {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1559,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1559),
 		}
 	}
 }
@@ -3521,8 +3704,8 @@ pub struct ImportMailPostIn {
 impl Entity for ImportMailPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1570,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1570),
 		}
 	}
 }
@@ -3537,8 +3720,8 @@ pub struct ImportMailPostOut {
 impl Entity for ImportMailPostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1579,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1579),
 		}
 	}
 }
@@ -3561,15 +3744,18 @@ pub struct ImportMailGetIn {
 	pub totalMails: i64,
 	#[serde(rename = "1599")]
 	pub targetMailFolder: IdTupleGenerated,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ImportMailGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1582,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1582),
 		}
 	}
 }
@@ -3583,14 +3769,18 @@ pub struct AdvancedRepeatRule {
 	pub ruleType: i64,
 	#[serde(rename = "1589")]
 	pub interval: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AdvancedRepeatRule {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1586,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1586),
 		}
 	}
 }
@@ -3607,8 +3797,8 @@ pub struct ImportMailGetOut {
 impl Entity for ImportMailGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1591,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1591),
 		}
 	}
 }
@@ -3625,8 +3815,8 @@ pub struct MailExportTokenServicePostOut {
 impl Entity for MailExportTokenServicePostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1605,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1605),
 		}
 	}
 }
@@ -3653,8 +3843,8 @@ pub struct SupportTopic {
 impl Entity for SupportTopic {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1618,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1618),
 		}
 	}
 }
@@ -3681,8 +3871,8 @@ pub struct SupportCategory {
 impl Entity for SupportCategory {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1626,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1626),
 		}
 	}
 }
@@ -3705,8 +3895,8 @@ pub struct SupportData {
 impl Entity for SupportData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1634,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1634),
 		}
 	}
 }
@@ -3723,8 +3913,8 @@ pub struct ReceiveInfoServicePostOut {
 impl Entity for ReceiveInfoServicePostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1641,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1641),
 		}
 	}
 }
@@ -3741,8 +3931,8 @@ pub struct ResolveConversationsServiceGetIn {
 impl Entity for ResolveConversationsServiceGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1645,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1645),
 		}
 	}
 }
@@ -3759,8 +3949,8 @@ pub struct ResolveConversationsServiceGetOut {
 impl Entity for ResolveConversationsServiceGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "tutanota",
-			type_id: 1648,
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1648),
 		}
 	}
 }

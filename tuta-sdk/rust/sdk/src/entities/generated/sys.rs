@@ -32,8 +32,8 @@ pub struct KeyPair {
 impl Entity for KeyPair {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 0,
+			app: AppName::Sys,
+			type_id: TypeId::from(0),
 		}
 	}
 }
@@ -89,8 +89,8 @@ pub struct Group {
 impl Entity for Group {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 5,
+			app: AppName::Sys,
+			type_id: TypeId::from(5),
 		}
 	}
 }
@@ -128,15 +128,18 @@ pub struct GroupInfo {
 	pub group: GeneratedId,
 	#[serde(rename = "687")]
 	pub mailAddressAliases: Vec<MailAddressAlias>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GroupInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 14,
+			app: AppName::Sys,
+			type_id: TypeId::from(14),
 		}
 	}
 }
@@ -170,8 +173,8 @@ pub struct GroupMembership {
 impl Entity for GroupMembership {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 25,
+			app: AppName::Sys,
+			type_id: TypeId::from(25),
 		}
 	}
 }
@@ -234,8 +237,8 @@ pub struct Customer {
 impl Entity for Customer {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 31,
+			app: AppName::Sys,
+			type_id: TypeId::from(31),
 		}
 	}
 }
@@ -257,8 +260,8 @@ pub struct AuthenticatedDevice {
 impl Entity for AuthenticatedDevice {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 43,
+			app: AppName::Sys,
+			type_id: TypeId::from(43),
 		}
 	}
 }
@@ -281,8 +284,8 @@ pub struct Login {
 impl Entity for Login {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 48,
+			app: AppName::Sys,
+			type_id: TypeId::from(48),
 		}
 	}
 }
@@ -311,8 +314,8 @@ pub struct SecondFactorAuthentication {
 impl Entity for SecondFactorAuthentication {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 54,
+			app: AppName::Sys,
+			type_id: TypeId::from(54),
 		}
 	}
 }
@@ -347,8 +350,8 @@ pub struct VariableExternalAuthInfo {
 impl Entity for VariableExternalAuthInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 66,
+			app: AppName::Sys,
+			type_id: TypeId::from(66),
 		}
 	}
 }
@@ -374,8 +377,8 @@ pub struct UserExternalAuthInfo {
 impl Entity for UserExternalAuthInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 77,
+			app: AppName::Sys,
+			type_id: TypeId::from(77),
 		}
 	}
 }
@@ -432,8 +435,8 @@ pub struct User {
 impl Entity for User {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 84,
+			app: AppName::Sys,
+			type_id: TypeId::from(84),
 		}
 	}
 }
@@ -458,8 +461,8 @@ pub struct ExternalUserReference {
 impl Entity for ExternalUserReference {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 103,
+			app: AppName::Sys,
+			type_id: TypeId::from(103),
 		}
 	}
 }
@@ -486,8 +489,8 @@ pub struct GroupRoot {
 impl Entity for GroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 110,
+			app: AppName::Sys,
+			type_id: TypeId::from(110),
 		}
 	}
 }
@@ -531,8 +534,8 @@ pub struct BucketPermission {
 impl Entity for BucketPermission {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 118,
+			app: AppName::Sys,
+			type_id: TypeId::from(118),
 		}
 	}
 }
@@ -549,8 +552,8 @@ pub struct Bucket {
 impl Entity for Bucket {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 129,
+			app: AppName::Sys,
+			type_id: TypeId::from(129),
 		}
 	}
 }
@@ -596,8 +599,8 @@ pub struct Permission {
 impl Entity for Permission {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 132,
+			app: AppName::Sys,
+			type_id: TypeId::from(132),
 		}
 	}
 }
@@ -650,15 +653,18 @@ pub struct AccountingInfo {
 	pub invoiceInfo: Option<GeneratedId>,
 	#[serde(rename = "2424")]
 	pub appStoreSubscription: Option<IdTupleGenerated>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AccountingInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 143,
+			app: AppName::Sys,
+			type_id: TypeId::from(143),
 		}
 	}
 }
@@ -735,8 +741,8 @@ pub struct CustomerInfo {
 impl Entity for CustomerInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 148,
+			app: AppName::Sys,
+			type_id: TypeId::from(148),
 		}
 	}
 }
@@ -765,8 +771,8 @@ pub struct SentGroupInvitation {
 impl Entity for SentGroupInvitation {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 195,
+			app: AppName::Sys,
+			type_id: TypeId::from(195),
 		}
 	}
 }
@@ -789,8 +795,8 @@ pub struct MailAddressToGroup {
 impl Entity for MailAddressToGroup {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 204,
+			app: AppName::Sys,
+			type_id: TypeId::from(204),
 		}
 	}
 }
@@ -819,8 +825,8 @@ pub struct GroupMember {
 impl Entity for GroupMember {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 216,
+			app: AppName::Sys,
+			type_id: TypeId::from(216),
 		}
 	}
 }
@@ -843,8 +849,8 @@ pub struct RootInstance {
 impl Entity for RootInstance {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 231,
+			app: AppName::Sys,
+			type_id: TypeId::from(231),
 		}
 	}
 }
@@ -882,8 +888,8 @@ pub struct VersionInfo {
 impl Entity for VersionInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 237,
+			app: AppName::Sys,
+			type_id: TypeId::from(237),
 		}
 	}
 }
@@ -923,8 +929,8 @@ pub struct SystemKeysReturn {
 impl Entity for SystemKeysReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 301,
+			app: AppName::Sys,
+			type_id: TypeId::from(301),
 		}
 	}
 }
@@ -943,8 +949,8 @@ pub struct RegistrationServiceData {
 impl Entity for RegistrationServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 316,
+			app: AppName::Sys,
+			type_id: TypeId::from(316),
 		}
 	}
 }
@@ -961,8 +967,8 @@ pub struct RegistrationReturn {
 impl Entity for RegistrationReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 326,
+			app: AppName::Sys,
+			type_id: TypeId::from(326),
 		}
 	}
 }
@@ -985,8 +991,8 @@ pub struct SendRegistrationCodeData {
 impl Entity for SendRegistrationCodeData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 341,
+			app: AppName::Sys,
+			type_id: TypeId::from(341),
 		}
 	}
 }
@@ -1003,8 +1009,8 @@ pub struct SendRegistrationCodeReturn {
 impl Entity for SendRegistrationCodeReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 347,
+			app: AppName::Sys,
+			type_id: TypeId::from(347),
 		}
 	}
 }
@@ -1023,8 +1029,8 @@ pub struct VerifyRegistrationCodeData {
 impl Entity for VerifyRegistrationCodeData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 351,
+			app: AppName::Sys,
+			type_id: TypeId::from(351),
 		}
 	}
 }
@@ -1045,8 +1051,8 @@ pub struct UserDataDelete {
 impl Entity for UserDataDelete {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 404,
+			app: AppName::Sys,
+			type_id: TypeId::from(404),
 		}
 	}
 }
@@ -1067,8 +1073,8 @@ pub struct PublicKeyGetIn {
 impl Entity for PublicKeyGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 409,
+			app: AppName::Sys,
+			type_id: TypeId::from(409),
 		}
 	}
 }
@@ -1094,8 +1100,8 @@ pub struct PublicKeyGetOut {
 impl Entity for PublicKeyGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 412,
+			app: AppName::Sys,
+			type_id: TypeId::from(412),
 		}
 	}
 }
@@ -1112,8 +1118,8 @@ pub struct SaltData {
 impl Entity for SaltData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 417,
+			app: AppName::Sys,
+			type_id: TypeId::from(417),
 		}
 	}
 }
@@ -1133,8 +1139,8 @@ pub struct SaltReturn {
 impl Entity for SaltReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 420,
+			app: AppName::Sys,
+			type_id: TypeId::from(420),
 		}
 	}
 }
@@ -1153,8 +1159,8 @@ pub struct AutoLoginDataGet {
 impl Entity for AutoLoginDataGet {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 431,
+			app: AppName::Sys,
+			type_id: TypeId::from(431),
 		}
 	}
 }
@@ -1171,8 +1177,8 @@ pub struct AutoLoginDataDelete {
 impl Entity for AutoLoginDataDelete {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 435,
+			app: AppName::Sys,
+			type_id: TypeId::from(435),
 		}
 	}
 }
@@ -1190,8 +1196,8 @@ pub struct AutoLoginDataReturn {
 impl Entity for AutoLoginDataReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 438,
+			app: AppName::Sys,
+			type_id: TypeId::from(438),
 		}
 	}
 }
@@ -1208,8 +1214,8 @@ pub struct AutoLoginPostReturn {
 impl Entity for AutoLoginPostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 441,
+			app: AppName::Sys,
+			type_id: TypeId::from(441),
 		}
 	}
 }
@@ -1233,8 +1239,8 @@ pub struct UpdatePermissionKeyData {
 impl Entity for UpdatePermissionKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 445,
+			app: AppName::Sys,
+			type_id: TypeId::from(445),
 		}
 	}
 }
@@ -1261,8 +1267,8 @@ pub struct EntityUpdate {
 impl Entity for EntityUpdate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 462,
+			app: AppName::Sys,
+			type_id: TypeId::from(462),
 		}
 	}
 }
@@ -1287,8 +1293,8 @@ pub struct Version {
 impl Entity for Version {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 480,
+			app: AppName::Sys,
+			type_id: TypeId::from(480),
 		}
 	}
 }
@@ -1311,8 +1317,8 @@ pub struct VersionData {
 impl Entity for VersionData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 487,
+			app: AppName::Sys,
+			type_id: TypeId::from(487),
 		}
 	}
 }
@@ -1329,8 +1335,8 @@ pub struct VersionReturn {
 impl Entity for VersionReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 493,
+			app: AppName::Sys,
+			type_id: TypeId::from(493),
 		}
 	}
 }
@@ -1356,8 +1362,8 @@ pub struct MembershipAddData {
 impl Entity for MembershipAddData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 505,
+			app: AppName::Sys,
+			type_id: TypeId::from(505),
 		}
 	}
 }
@@ -1393,8 +1399,8 @@ pub struct ChangePasswordPostIn {
 impl Entity for ChangePasswordPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 534,
+			app: AppName::Sys,
+			type_id: TypeId::from(534),
 		}
 	}
 }
@@ -1419,8 +1425,8 @@ pub struct SecondFactorAuthData {
 impl Entity for SecondFactorAuthData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 541,
+			app: AppName::Sys,
+			type_id: TypeId::from(541),
 		}
 	}
 }
@@ -1437,8 +1443,8 @@ pub struct SecondFactorAuthAllowedReturn {
 impl Entity for SecondFactorAuthAllowedReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 546,
+			app: AppName::Sys,
+			type_id: TypeId::from(546),
 		}
 	}
 }
@@ -1468,8 +1474,8 @@ pub struct ResetPasswordPostIn {
 impl Entity for ResetPasswordPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 584,
+			app: AppName::Sys,
+			type_id: TypeId::from(584),
 		}
 	}
 }
@@ -1486,8 +1492,8 @@ pub struct DomainMailAddressAvailabilityData {
 impl Entity for DomainMailAddressAvailabilityData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 599,
+			app: AppName::Sys,
+			type_id: TypeId::from(599),
 		}
 	}
 }
@@ -1504,8 +1510,8 @@ pub struct DomainMailAddressAvailabilityReturn {
 impl Entity for DomainMailAddressAvailabilityReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 602,
+			app: AppName::Sys,
+			type_id: TypeId::from(602),
 		}
 	}
 }
@@ -1546,15 +1552,18 @@ pub struct PushIdentifier {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2426")]
 	pub app: i64,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for PushIdentifier {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 625,
+			app: AppName::Sys,
+			type_id: TypeId::from(625),
 		}
 	}
 }
@@ -1571,8 +1580,8 @@ pub struct PushIdentifierList {
 impl Entity for PushIdentifierList {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 635,
+			app: AppName::Sys,
+			type_id: TypeId::from(635),
 		}
 	}
 }
@@ -1600,8 +1609,8 @@ pub struct DeleteCustomerData {
 impl Entity for DeleteCustomerData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 641,
+			app: AppName::Sys,
+			type_id: TypeId::from(641),
 		}
 	}
 }
@@ -1634,8 +1643,8 @@ pub struct CustomerProperties {
 impl Entity for CustomerProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 656,
+			app: AppName::Sys,
+			type_id: TypeId::from(656),
 		}
 	}
 }
@@ -1658,8 +1667,8 @@ pub struct ExternalPropertiesReturn {
 impl Entity for ExternalPropertiesReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 663,
+			app: AppName::Sys,
+			type_id: TypeId::from(663),
 		}
 	}
 }
@@ -1678,8 +1687,8 @@ pub struct RegistrationCaptchaServiceData {
 impl Entity for RegistrationCaptchaServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 674,
+			app: AppName::Sys,
+			type_id: TypeId::from(674),
 		}
 	}
 }
@@ -1699,8 +1708,8 @@ pub struct RegistrationCaptchaServiceReturn {
 impl Entity for RegistrationCaptchaServiceReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 678,
+			app: AppName::Sys,
+			type_id: TypeId::from(678),
 		}
 	}
 }
@@ -1719,8 +1728,8 @@ pub struct MailAddressAlias {
 impl Entity for MailAddressAlias {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 684,
+			app: AppName::Sys,
+			type_id: TypeId::from(684),
 		}
 	}
 }
@@ -1739,8 +1748,8 @@ pub struct MailAddressAliasServiceData {
 impl Entity for MailAddressAliasServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 688,
+			app: AppName::Sys,
+			type_id: TypeId::from(688),
 		}
 	}
 }
@@ -1763,8 +1772,8 @@ pub struct MailAddressAliasServiceReturn {
 impl Entity for MailAddressAliasServiceReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 692,
+			app: AppName::Sys,
+			type_id: TypeId::from(692),
 		}
 	}
 }
@@ -1785,8 +1794,8 @@ pub struct DomainInfo {
 impl Entity for DomainInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 696,
+			app: AppName::Sys,
+			type_id: TypeId::from(696),
 		}
 	}
 }
@@ -1815,8 +1824,8 @@ pub struct BookingItem {
 impl Entity for BookingItem {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 700,
+			app: AppName::Sys,
+			type_id: TypeId::from(700),
 		}
 	}
 }
@@ -1853,8 +1862,8 @@ pub struct Booking {
 impl Entity for Booking {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 709,
+			app: AppName::Sys,
+			type_id: TypeId::from(709),
 		}
 	}
 }
@@ -1871,8 +1880,8 @@ pub struct BookingsRef {
 impl Entity for BookingsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 722,
+			app: AppName::Sys,
+			type_id: TypeId::from(722),
 		}
 	}
 }
@@ -1889,8 +1898,8 @@ pub struct StringWrapper {
 impl Entity for StringWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 728,
+			app: AppName::Sys,
+			type_id: TypeId::from(728),
 		}
 	}
 }
@@ -1909,8 +1918,8 @@ pub struct CustomDomainReturn {
 impl Entity for CustomDomainReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 731,
+			app: AppName::Sys,
+			type_id: TypeId::from(731),
 		}
 	}
 }
@@ -1929,8 +1938,8 @@ pub struct CustomDomainData {
 impl Entity for CustomDomainData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 735,
+			app: AppName::Sys,
+			type_id: TypeId::from(735),
 		}
 	}
 }
@@ -1977,8 +1986,8 @@ pub struct InvoiceInfo {
 impl Entity for InvoiceInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 752,
+			app: AppName::Sys,
+			type_id: TypeId::from(752),
 		}
 	}
 }
@@ -2009,8 +2018,8 @@ pub struct SwitchAccountTypePostIn {
 impl Entity for SwitchAccountTypePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 772,
+			app: AppName::Sys,
+			type_id: TypeId::from(772),
 		}
 	}
 }
@@ -2031,8 +2040,8 @@ pub struct MailAddressAliasServiceDataDelete {
 impl Entity for MailAddressAliasServiceDataDelete {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 785,
+			app: AppName::Sys,
+			type_id: TypeId::from(785),
 		}
 	}
 }
@@ -2049,8 +2058,8 @@ pub struct PaymentDataServiceGetReturn {
 impl Entity for PaymentDataServiceGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 790,
+			app: AppName::Sys,
+			type_id: TypeId::from(790),
 		}
 	}
 }
@@ -2080,15 +2089,18 @@ pub struct PaymentDataServicePutData {
 	pub confirmedCountry: Option<String>,
 	#[serde(rename = "1320")]
 	pub creditCard: Option<CreditCard>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for PaymentDataServicePutData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 793,
+			app: AppName::Sys,
+			type_id: TypeId::from(793),
 		}
 	}
 }
@@ -2107,8 +2119,8 @@ pub struct PaymentDataServicePutReturn {
 impl Entity for PaymentDataServicePutReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 805,
+			app: AppName::Sys,
+			type_id: TypeId::from(805),
 		}
 	}
 }
@@ -2135,8 +2147,8 @@ pub struct PriceRequestData {
 impl Entity for PriceRequestData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 836,
+			app: AppName::Sys,
+			type_id: TypeId::from(836),
 		}
 	}
 }
@@ -2155,8 +2167,8 @@ pub struct PriceServiceData {
 impl Entity for PriceServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 843,
+			app: AppName::Sys,
+			type_id: TypeId::from(843),
 		}
 	}
 }
@@ -2179,8 +2191,8 @@ pub struct PriceItemData {
 impl Entity for PriceItemData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 847,
+			app: AppName::Sys,
+			type_id: TypeId::from(847),
 		}
 	}
 }
@@ -2203,8 +2215,8 @@ pub struct PriceData {
 impl Entity for PriceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 853,
+			app: AppName::Sys,
+			type_id: TypeId::from(853),
 		}
 	}
 }
@@ -2229,8 +2241,8 @@ pub struct PriceServiceReturn {
 impl Entity for PriceServiceReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 859,
+			app: AppName::Sys,
+			type_id: TypeId::from(859),
 		}
 	}
 }
@@ -2249,8 +2261,8 @@ pub struct MembershipRemoveData {
 impl Entity for MembershipRemoveData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 867,
+			app: AppName::Sys,
+			type_id: TypeId::from(867),
 		}
 	}
 }
@@ -2272,8 +2284,8 @@ pub struct File {
 impl Entity for File {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 917,
+			app: AppName::Sys,
+			type_id: TypeId::from(917),
 		}
 	}
 }
@@ -2291,14 +2303,18 @@ pub struct EmailSenderListElement {
 	pub r#type: i64,
 	#[serde(rename = "1705")]
 	pub field: i64,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for EmailSenderListElement {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 949,
+			app: AppName::Sys,
+			type_id: TypeId::from(949),
 		}
 	}
 }
@@ -2325,15 +2341,18 @@ pub struct CustomerServerProperties {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "959")]
 	pub emailSenderList: Vec<EmailSenderListElement>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CustomerServerProperties {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 954,
+			app: AppName::Sys,
+			type_id: TypeId::from(954),
 		}
 	}
 }
@@ -2353,8 +2372,8 @@ pub struct CreateCustomerServerPropertiesData {
 impl Entity for CreateCustomerServerPropertiesData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 961,
+			app: AppName::Sys,
+			type_id: TypeId::from(961),
 		}
 	}
 }
@@ -2371,8 +2390,8 @@ pub struct CreateCustomerServerPropertiesReturn {
 impl Entity for CreateCustomerServerPropertiesReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 964,
+			app: AppName::Sys,
+			type_id: TypeId::from(964),
 		}
 	}
 }
@@ -2389,8 +2408,8 @@ pub struct UserAreaGroups {
 impl Entity for UserAreaGroups {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 988,
+			app: AppName::Sys,
+			type_id: TypeId::from(988),
 		}
 	}
 }
@@ -2405,8 +2424,8 @@ pub struct DebitServicePutData {
 impl Entity for DebitServicePutData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1041,
+			app: AppName::Sys,
+			type_id: TypeId::from(1041),
 		}
 	}
 }
@@ -2429,8 +2448,8 @@ pub struct EntityEventBatch {
 impl Entity for EntityEventBatch {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1079,
+			app: AppName::Sys,
+			type_id: TypeId::from(1079),
 		}
 	}
 }
@@ -2465,15 +2484,18 @@ pub struct AuditLogEntry {
 	pub groupInfo: Option<IdTupleGenerated>,
 	#[serde(rename = "1307")]
 	pub modifiedGroupInfo: Option<IdTupleGenerated>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AuditLogEntry {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1101,
+			app: AppName::Sys,
+			type_id: TypeId::from(1101),
 		}
 	}
 }
@@ -2490,8 +2512,8 @@ pub struct AuditLogRef {
 impl Entity for AuditLogRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1114,
+			app: AppName::Sys,
+			type_id: TypeId::from(1114),
 		}
 	}
 }
@@ -2528,8 +2550,8 @@ pub struct WhitelabelConfig {
 impl Entity for WhitelabelConfig {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1127,
+			app: AppName::Sys,
+			type_id: TypeId::from(1127),
 		}
 	}
 }
@@ -2559,8 +2581,8 @@ pub struct BrandingDomainData {
 impl Entity for BrandingDomainData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1149,
+			app: AppName::Sys,
+			type_id: TypeId::from(1149),
 		}
 	}
 }
@@ -2577,8 +2599,8 @@ pub struct BrandingDomainDeleteData {
 impl Entity for BrandingDomainDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1155,
+			app: AppName::Sys,
+			type_id: TypeId::from(1155),
 		}
 	}
 }
@@ -2605,8 +2627,8 @@ pub struct U2fRegisteredDevice {
 impl Entity for U2fRegisteredDevice {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1162,
+			app: AppName::Sys,
+			type_id: TypeId::from(1162),
 		}
 	}
 }
@@ -2636,8 +2658,8 @@ pub struct SecondFactor {
 impl Entity for SecondFactor {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1169,
+			app: AppName::Sys,
+			type_id: TypeId::from(1169),
 		}
 	}
 }
@@ -2659,8 +2681,8 @@ pub struct U2fKey {
 impl Entity for U2fKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1178,
+			app: AppName::Sys,
+			type_id: TypeId::from(1178),
 		}
 	}
 }
@@ -2680,8 +2702,8 @@ pub struct U2fChallenge {
 impl Entity for U2fChallenge {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1183,
+			app: AppName::Sys,
+			type_id: TypeId::from(1183),
 		}
 	}
 }
@@ -2702,8 +2724,8 @@ pub struct Challenge {
 impl Entity for Challenge {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1187,
+			app: AppName::Sys,
+			type_id: TypeId::from(1187),
 		}
 	}
 }
@@ -2741,15 +2763,18 @@ pub struct Session {
 	pub challenges: Vec<Challenge>,
 	#[serde(rename = "1205")]
 	pub user: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Session {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1191,
+			app: AppName::Sys,
+			type_id: TypeId::from(1191),
 		}
 	}
 }
@@ -2770,8 +2795,8 @@ pub struct UserAuthentication {
 impl Entity for UserAuthentication {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1206,
+			app: AppName::Sys,
+			type_id: TypeId::from(1206),
 		}
 	}
 }
@@ -2801,8 +2826,8 @@ pub struct CreateSessionData {
 impl Entity for CreateSessionData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1211,
+			app: AppName::Sys,
+			type_id: TypeId::from(1211),
 		}
 	}
 }
@@ -2823,8 +2848,8 @@ pub struct CreateSessionReturn {
 impl Entity for CreateSessionReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1219,
+			app: AppName::Sys,
+			type_id: TypeId::from(1219),
 		}
 	}
 }
@@ -2845,8 +2870,8 @@ pub struct U2fResponseData {
 impl Entity for U2fResponseData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1225,
+			app: AppName::Sys,
+			type_id: TypeId::from(1225),
 		}
 	}
 }
@@ -2863,8 +2888,8 @@ pub struct SecondFactorAuthGetData {
 impl Entity for SecondFactorAuthGetData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1233,
+			app: AppName::Sys,
+			type_id: TypeId::from(1233),
 		}
 	}
 }
@@ -2881,8 +2906,8 @@ pub struct SecondFactorAuthGetReturn {
 impl Entity for SecondFactorAuthGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1236,
+			app: AppName::Sys,
+			type_id: TypeId::from(1236),
 		}
 	}
 }
@@ -2899,8 +2924,8 @@ pub struct OtpChallenge {
 impl Entity for OtpChallenge {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1244,
+			app: AppName::Sys,
+			type_id: TypeId::from(1244),
 		}
 	}
 }
@@ -2917,8 +2942,8 @@ pub struct BootstrapFeature {
 impl Entity for BootstrapFeature {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1249,
+			app: AppName::Sys,
+			type_id: TypeId::from(1249),
 		}
 	}
 }
@@ -2935,8 +2960,8 @@ pub struct Feature {
 impl Entity for Feature {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1253,
+			app: AppName::Sys,
+			type_id: TypeId::from(1253),
 		}
 	}
 }
@@ -2967,15 +2992,18 @@ pub struct WhitelabelChild {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1268")]
 	pub customer: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for WhitelabelChild {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1257,
+			app: AppName::Sys,
+			type_id: TypeId::from(1257),
 		}
 	}
 }
@@ -2992,8 +3020,8 @@ pub struct WhitelabelChildrenRef {
 impl Entity for WhitelabelChildrenRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1269,
+			app: AppName::Sys,
+			type_id: TypeId::from(1269),
 		}
 	}
 }
@@ -3012,8 +3040,8 @@ pub struct WhitelabelParent {
 impl Entity for WhitelabelParent {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1272,
+			app: AppName::Sys,
+			type_id: TypeId::from(1272),
 		}
 	}
 }
@@ -3033,14 +3061,18 @@ pub struct CreditCard {
 	pub expirationMonth: String,
 	#[serde(rename = "1319")]
 	pub expirationYear: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CreditCard {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1313,
+			app: AppName::Sys,
+			type_id: TypeId::from(1313),
 		}
 	}
 }
@@ -3057,8 +3089,8 @@ pub struct LocationServiceGetReturn {
 impl Entity for LocationServiceGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1321,
+			app: AppName::Sys,
+			type_id: TypeId::from(1321),
 		}
 	}
 }
@@ -3089,15 +3121,18 @@ pub struct OrderProcessingAgreement {
 	pub signerUserGroupInfo: IdTupleGenerated,
 	#[serde(rename = "1337")]
 	pub customer: GeneratedId,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for OrderProcessingAgreement {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1326,
+			app: AppName::Sys,
+			type_id: TypeId::from(1326),
 		}
 	}
 }
@@ -3116,8 +3151,8 @@ pub struct SignOrderProcessingAgreementData {
 impl Entity for SignOrderProcessingAgreementData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1342,
+			app: AppName::Sys,
+			type_id: TypeId::from(1342),
 		}
 	}
 }
@@ -3134,8 +3169,8 @@ pub struct GeneratedIdWrapper {
 impl Entity for GeneratedIdWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1349,
+			app: AppName::Sys,
+			type_id: TypeId::from(1349),
 		}
 	}
 }
@@ -3154,8 +3189,8 @@ pub struct SseConnectData {
 impl Entity for SseConnectData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1352,
+			app: AppName::Sys,
+			type_id: TypeId::from(1352),
 		}
 	}
 }
@@ -3176,8 +3211,8 @@ pub struct NotificationInfo {
 impl Entity for NotificationInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1364,
+			app: AppName::Sys,
+			type_id: TypeId::from(1364),
 		}
 	}
 }
@@ -3209,8 +3244,8 @@ pub struct RecoverCode {
 impl Entity for RecoverCode {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1407,
+			app: AppName::Sys,
+			type_id: TypeId::from(1407),
 		}
 	}
 }
@@ -3231,8 +3266,8 @@ pub struct ResetFactorsDeleteData {
 impl Entity for ResetFactorsDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1419,
+			app: AppName::Sys,
+			type_id: TypeId::from(1419),
 		}
 	}
 }
@@ -3253,8 +3288,8 @@ pub struct UpgradePriceServiceData {
 impl Entity for UpgradePriceServiceData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1456,
+			app: AppName::Sys,
+			type_id: TypeId::from(1456),
 		}
 	}
 }
@@ -3295,8 +3330,8 @@ pub struct PlanPrices {
 impl Entity for PlanPrices {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1460,
+			app: AppName::Sys,
+			type_id: TypeId::from(1460),
 		}
 	}
 }
@@ -3343,8 +3378,8 @@ pub struct UpgradePriceServiceReturn {
 impl Entity for UpgradePriceServiceReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1469,
+			app: AppName::Sys,
+			type_id: TypeId::from(1469),
 		}
 	}
 }
@@ -3369,8 +3404,8 @@ pub struct RegistrationCaptchaServiceGetData {
 impl Entity for RegistrationCaptchaServiceGetData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1479,
+			app: AppName::Sys,
+			type_id: TypeId::from(1479),
 		}
 	}
 }
@@ -3395,8 +3430,8 @@ pub struct WebsocketEntityData {
 impl Entity for WebsocketEntityData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1483,
+			app: AppName::Sys,
+			type_id: TypeId::from(1483),
 		}
 	}
 }
@@ -3415,8 +3450,8 @@ pub struct WebsocketCounterValue {
 impl Entity for WebsocketCounterValue {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1488,
+			app: AppName::Sys,
+			type_id: TypeId::from(1488),
 		}
 	}
 }
@@ -3439,8 +3474,8 @@ pub struct WebsocketCounterData {
 impl Entity for WebsocketCounterData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1492,
+			app: AppName::Sys,
+			type_id: TypeId::from(1492),
 		}
 	}
 }
@@ -3463,8 +3498,8 @@ pub struct CertificateInfo {
 impl Entity for CertificateInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1500,
+			app: AppName::Sys,
+			type_id: TypeId::from(1500),
 		}
 	}
 }
@@ -3485,8 +3520,8 @@ pub struct NotificationMailTemplate {
 impl Entity for NotificationMailTemplate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1517,
+			app: AppName::Sys,
+			type_id: TypeId::from(1517),
 		}
 	}
 }
@@ -3505,8 +3540,8 @@ pub struct CalendarEventRef {
 impl Entity for CalendarEventRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1532,
+			app: AppName::Sys,
+			type_id: TypeId::from(1532),
 		}
 	}
 }
@@ -3522,14 +3557,18 @@ pub struct AlarmInfo {
 	pub alarmIdentifier: String,
 	#[serde(rename = "1540")]
 	pub calendarRef: CalendarEventRef,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AlarmInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1536,
+			app: AppName::Sys,
+			type_id: TypeId::from(1536),
 		}
 	}
 }
@@ -3552,15 +3591,18 @@ pub struct UserAlarmInfo {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1548")]
 	pub alarmInfo: AlarmInfo,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for UserAlarmInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1541,
+			app: AppName::Sys,
+			type_id: TypeId::from(1541),
 		}
 	}
 }
@@ -3577,8 +3619,8 @@ pub struct UserAlarmInfoListType {
 impl Entity for UserAlarmInfoListType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1549,
+			app: AppName::Sys,
+			type_id: TypeId::from(1549),
 		}
 	}
 }
@@ -3598,8 +3640,8 @@ pub struct NotificationSessionKey {
 impl Entity for NotificationSessionKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1553,
+			app: AppName::Sys,
+			type_id: TypeId::from(1553),
 		}
 	}
 }
@@ -3623,14 +3665,18 @@ pub struct RepeatRule {
 	pub excludedDates: Vec<DateWrapper>,
 	#[serde(rename = "2525")]
 	pub advancedRules: Vec<CalendarAdvancedRepeatRule>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for RepeatRule {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1557,
+			app: AppName::Sys,
+			type_id: TypeId::from(1557),
 		}
 	}
 }
@@ -3656,14 +3702,18 @@ pub struct AlarmNotification {
 	pub notificationSessionKeys: Vec<NotificationSessionKey>,
 	#[serde(rename = "1573")]
 	pub user: GeneratedId,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AlarmNotification {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1564,
+			app: AppName::Sys,
+			type_id: TypeId::from(1564),
 		}
 	}
 }
@@ -3675,15 +3725,18 @@ pub struct AlarmServicePost {
 	pub _format: i64,
 	#[serde(rename = "1578")]
 	pub alarmNotifications: Vec<AlarmNotification>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for AlarmServicePost {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1576,
+			app: AppName::Sys,
+			type_id: TypeId::from(1576),
 		}
 	}
 }
@@ -3704,8 +3757,8 @@ pub struct DnsRecord {
 impl Entity for DnsRecord {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1581,
+			app: AppName::Sys,
+			type_id: TypeId::from(1581),
 		}
 	}
 }
@@ -3724,8 +3777,8 @@ pub struct CustomDomainCheckGetIn {
 impl Entity for CustomDomainCheckGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1586,
+			app: AppName::Sys,
+			type_id: TypeId::from(1586),
 		}
 	}
 }
@@ -3748,8 +3801,8 @@ pub struct CustomDomainCheckGetOut {
 impl Entity for CustomDomainCheckGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1589,
+			app: AppName::Sys,
+			type_id: TypeId::from(1589),
 		}
 	}
 }
@@ -3768,8 +3821,8 @@ pub struct CloseSessionServicePost {
 impl Entity for CloseSessionServicePost {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1595,
+			app: AppName::Sys,
+			type_id: TypeId::from(1595),
 		}
 	}
 }
@@ -3811,15 +3864,18 @@ pub struct ReceivedGroupInvitation {
 	pub sharedGroup: GeneratedId,
 	#[serde(rename = "1616")]
 	pub sentInvitation: IdTupleGenerated,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for ReceivedGroupInvitation {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1602,
+			app: AppName::Sys,
+			type_id: TypeId::from(1602),
 		}
 	}
 }
@@ -3846,8 +3902,8 @@ pub struct UserGroupRoot {
 impl Entity for UserGroupRoot {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1618,
+			app: AppName::Sys,
+			type_id: TypeId::from(1618),
 		}
 	}
 }
@@ -3868,8 +3924,8 @@ pub struct PaymentErrorInfo {
 impl Entity for PaymentErrorInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1632,
+			app: AppName::Sys,
+			type_id: TypeId::from(1632),
 		}
 	}
 }
@@ -3893,14 +3949,18 @@ pub struct InvoiceItem {
 	pub endDate: Option<DateTime>,
 	#[serde(rename = "1649")]
 	pub singleType: bool,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for InvoiceItem {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1641,
+			app: AppName::Sys,
+			type_id: TypeId::from(1641),
 		}
 	}
 }
@@ -3953,15 +4013,18 @@ pub struct Invoice {
 	pub customer: GeneratedId,
 	#[serde(rename = "1672")]
 	pub bookings: Vec<IdTupleGenerated>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for Invoice {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1650,
+			app: AppName::Sys,
+			type_id: TypeId::from(1650),
 		}
 	}
 }
@@ -3988,15 +4051,18 @@ pub struct MissedNotification {
 	pub notificationInfos: Vec<NotificationInfo>,
 	#[serde(rename = "1703")]
 	pub alarmNotifications: Vec<AlarmNotification>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for MissedNotification {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1693,
+			app: AppName::Sys,
+			type_id: TypeId::from(1693),
 		}
 	}
 }
@@ -4013,8 +4079,8 @@ pub struct BrandingDomainGetReturn {
 impl Entity for BrandingDomainGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1723,
+			app: AppName::Sys,
+			type_id: TypeId::from(1723),
 		}
 	}
 }
@@ -4045,8 +4111,8 @@ pub struct RejectedSender {
 impl Entity for RejectedSender {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1736,
+			app: AppName::Sys,
+			type_id: TypeId::from(1736),
 		}
 	}
 }
@@ -4063,8 +4129,8 @@ pub struct RejectedSendersRef {
 impl Entity for RejectedSendersRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1747,
+			app: AppName::Sys,
+			type_id: TypeId::from(1747),
 		}
 	}
 }
@@ -4081,8 +4147,8 @@ pub struct SecondFactorAuthDeleteData {
 impl Entity for SecondFactorAuthDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1755,
+			app: AppName::Sys,
+			type_id: TypeId::from(1755),
 		}
 	}
 }
@@ -4105,8 +4171,8 @@ pub struct TakeOverDeletedAddressData {
 impl Entity for TakeOverDeletedAddressData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1759,
+			app: AppName::Sys,
+			type_id: TypeId::from(1759),
 		}
 	}
 }
@@ -4127,8 +4193,8 @@ pub struct WebsocketLeaderStatus {
 impl Entity for WebsocketLeaderStatus {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1766,
+			app: AppName::Sys,
+			type_id: TypeId::from(1766),
 		}
 	}
 }
@@ -4159,15 +4225,18 @@ pub struct GiftCard {
 	pub migrated: bool,
 	#[serde(rename = "2238")]
 	pub _ownerKeyVersion: Option<i64>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GiftCard {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1769,
+			app: AppName::Sys,
+			type_id: TypeId::from(1769),
 		}
 	}
 }
@@ -4184,8 +4253,8 @@ pub struct GiftCardsRef {
 impl Entity for GiftCardsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1791,
+			app: AppName::Sys,
+			type_id: TypeId::from(1791),
 		}
 	}
 }
@@ -4202,8 +4271,8 @@ pub struct GiftCardOption {
 impl Entity for GiftCardOption {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1795,
+			app: AppName::Sys,
+			type_id: TypeId::from(1795),
 		}
 	}
 }
@@ -4224,8 +4293,8 @@ pub struct GiftCardGetReturn {
 impl Entity for GiftCardGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1798,
+			app: AppName::Sys,
+			type_id: TypeId::from(1798),
 		}
 	}
 }
@@ -4247,15 +4316,18 @@ pub struct GiftCardCreateData {
 	pub keyHash: Vec<u8>,
 	#[serde(rename = "2275")]
 	pub ownerKeyVersion: i64,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GiftCardCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1803,
+			app: AppName::Sys,
+			type_id: TypeId::from(1803),
 		}
 	}
 }
@@ -4272,8 +4344,8 @@ pub struct GiftCardDeleteData {
 impl Entity for GiftCardDeleteData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1810,
+			app: AppName::Sys,
+			type_id: TypeId::from(1810),
 		}
 	}
 }
@@ -4290,8 +4362,8 @@ pub struct GiftCardCreateReturn {
 impl Entity for GiftCardCreateReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1813,
+			app: AppName::Sys,
+			type_id: TypeId::from(1813),
 		}
 	}
 }
@@ -4313,8 +4385,8 @@ pub struct GiftCardRedeemData {
 impl Entity for GiftCardRedeemData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1817,
+			app: AppName::Sys,
+			type_id: TypeId::from(1817),
 		}
 	}
 }
@@ -4330,15 +4402,18 @@ pub struct GiftCardRedeemGetReturn {
 	pub value: i64,
 	#[serde(rename = "1823")]
 	pub giftCard: IdTupleGenerated,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GiftCardRedeemGetReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1821,
+			app: AppName::Sys,
+			type_id: TypeId::from(1821),
 		}
 	}
 }
@@ -4359,8 +4434,8 @@ pub struct Braintree3ds2Request {
 impl Entity for Braintree3ds2Request {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1828,
+			app: AppName::Sys,
+			type_id: TypeId::from(1828),
 		}
 	}
 }
@@ -4379,8 +4454,8 @@ pub struct Braintree3ds2Response {
 impl Entity for Braintree3ds2Response {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1833,
+			app: AppName::Sys,
+			type_id: TypeId::from(1833),
 		}
 	}
 }
@@ -4397,8 +4472,8 @@ pub struct PaymentDataServicePostData {
 impl Entity for PaymentDataServicePostData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1837,
+			app: AppName::Sys,
+			type_id: TypeId::from(1837),
 		}
 	}
 }
@@ -4415,8 +4490,8 @@ pub struct PaymentDataServiceGetData {
 impl Entity for PaymentDataServiceGetData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1861,
+			app: AppName::Sys,
+			type_id: TypeId::from(1861),
 		}
 	}
 }
@@ -4435,8 +4510,8 @@ pub struct TypeInfo {
 impl Entity for TypeInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1869,
+			app: AppName::Sys,
+			type_id: TypeId::from(1869),
 		}
 	}
 }
@@ -4453,8 +4528,8 @@ pub struct ArchiveRef {
 impl Entity for ArchiveRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1873,
+			app: AppName::Sys,
+			type_id: TypeId::from(1873),
 		}
 	}
 }
@@ -4475,8 +4550,8 @@ pub struct ArchiveType {
 impl Entity for ArchiveType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1876,
+			app: AppName::Sys,
+			type_id: TypeId::from(1876),
 		}
 	}
 }
@@ -4497,8 +4572,8 @@ pub struct Blob {
 impl Entity for Blob {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1882,
+			app: AppName::Sys,
+			type_id: TypeId::from(1882),
 		}
 	}
 }
@@ -4525,8 +4600,8 @@ pub struct WebauthnResponseData {
 impl Entity for WebauthnResponseData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1899,
+			app: AppName::Sys,
+			type_id: TypeId::from(1899),
 		}
 	}
 }
@@ -4543,8 +4618,8 @@ pub struct BlobReferenceTokenWrapper {
 impl Entity for BlobReferenceTokenWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 1990,
+			app: AppName::Sys,
+			type_id: TypeId::from(1990),
 		}
 	}
 }
@@ -4571,8 +4646,8 @@ pub struct CustomerAccountTerminationRequest {
 impl Entity for CustomerAccountTerminationRequest {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2005,
+			app: AppName::Sys,
+			type_id: TypeId::from(2005),
 		}
 	}
 }
@@ -4591,8 +4666,8 @@ pub struct CustomerAccountTerminationPostIn {
 impl Entity for CustomerAccountTerminationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2015,
+			app: AppName::Sys,
+			type_id: TypeId::from(2015),
 		}
 	}
 }
@@ -4609,8 +4684,8 @@ pub struct CustomerAccountTerminationPostOut {
 impl Entity for CustomerAccountTerminationPostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2018,
+			app: AppName::Sys,
+			type_id: TypeId::from(2018),
 		}
 	}
 }
@@ -4629,8 +4704,8 @@ pub struct MailAddressAvailability {
 impl Entity for MailAddressAvailability {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2026,
+			app: AppName::Sys,
+			type_id: TypeId::from(2026),
 		}
 	}
 }
@@ -4647,8 +4722,8 @@ pub struct MultipleMailAddressAvailabilityData {
 impl Entity for MultipleMailAddressAvailabilityData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2030,
+			app: AppName::Sys,
+			type_id: TypeId::from(2030),
 		}
 	}
 }
@@ -4665,8 +4740,8 @@ pub struct MultipleMailAddressAvailabilityReturn {
 impl Entity for MultipleMailAddressAvailabilityReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2033,
+			app: AppName::Sys,
+			type_id: TypeId::from(2033),
 		}
 	}
 }
@@ -4695,8 +4770,8 @@ pub struct InstanceSessionKey {
 impl Entity for InstanceSessionKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2037,
+			app: AppName::Sys,
+			type_id: TypeId::from(2037),
 		}
 	}
 }
@@ -4727,8 +4802,8 @@ pub struct BucketKey {
 impl Entity for BucketKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2043,
+			app: AppName::Sys,
+			type_id: TypeId::from(2043),
 		}
 	}
 }
@@ -4745,8 +4820,8 @@ pub struct UpdateSessionKeysPostIn {
 impl Entity for UpdateSessionKeysPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2049,
+			app: AppName::Sys,
+			type_id: TypeId::from(2049),
 		}
 	}
 }
@@ -4763,8 +4838,8 @@ pub struct ReferralCodeGetIn {
 impl Entity for ReferralCodeGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2062,
+			app: AppName::Sys,
+			type_id: TypeId::from(2062),
 		}
 	}
 }
@@ -4779,8 +4854,8 @@ pub struct ReferralCodePostIn {
 impl Entity for ReferralCodePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2065,
+			app: AppName::Sys,
+			type_id: TypeId::from(2065),
 		}
 	}
 }
@@ -4797,8 +4872,8 @@ pub struct ReferralCodePostOut {
 impl Entity for ReferralCodePostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2067,
+			app: AppName::Sys,
+			type_id: TypeId::from(2067),
 		}
 	}
 }
@@ -4810,14 +4885,18 @@ pub struct DateWrapper {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "2075")]
 	pub date: DateTime,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for DateWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2073,
+			app: AppName::Sys,
+			type_id: TypeId::from(2073),
 		}
 	}
 }
@@ -4834,8 +4913,8 @@ pub struct MailAddressAliasGetIn {
 impl Entity for MailAddressAliasGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2095,
+			app: AppName::Sys,
+			type_id: TypeId::from(2095),
 		}
 	}
 }
@@ -4872,8 +4951,8 @@ pub struct PlanConfiguration {
 impl Entity for PlanConfiguration {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2104,
+			app: AppName::Sys,
+			type_id: TypeId::from(2104),
 		}
 	}
 }
@@ -4890,8 +4969,8 @@ pub struct PlanServiceGetOut {
 impl Entity for PlanServiceGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2115,
+			app: AppName::Sys,
+			type_id: TypeId::from(2115),
 		}
 	}
 }
@@ -4914,8 +4993,8 @@ pub struct PublicKeyPutIn {
 impl Entity for PublicKeyPutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2150,
+			app: AppName::Sys,
+			type_id: TypeId::from(2150),
 		}
 	}
 }
@@ -4942,8 +5021,8 @@ pub struct InvoiceDataItem {
 impl Entity for InvoiceDataItem {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2162,
+			app: AppName::Sys,
+			type_id: TypeId::from(2162),
 		}
 	}
 }
@@ -4984,8 +5063,8 @@ pub struct InvoiceDataGetOut {
 impl Entity for InvoiceDataGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2170,
+			app: AppName::Sys,
+			type_id: TypeId::from(2170),
 		}
 	}
 }
@@ -5002,8 +5081,8 @@ pub struct InvoiceDataGetIn {
 impl Entity for InvoiceDataGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2185,
+			app: AppName::Sys,
+			type_id: TypeId::from(2185),
 		}
 	}
 }
@@ -5034,8 +5113,8 @@ pub struct ChangeKdfPostIn {
 impl Entity for ChangeKdfPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2198,
+			app: AppName::Sys,
+			type_id: TypeId::from(2198),
 		}
 	}
 }
@@ -5070,8 +5149,8 @@ pub struct GroupKey {
 impl Entity for GroupKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2255,
+			app: AppName::Sys,
+			type_id: TypeId::from(2255),
 		}
 	}
 }
@@ -5088,8 +5167,8 @@ pub struct GroupKeysRef {
 impl Entity for GroupKeysRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2267,
+			app: AppName::Sys,
+			type_id: TypeId::from(2267),
 		}
 	}
 }
@@ -5122,8 +5201,8 @@ pub struct KeyRotation {
 impl Entity for KeyRotation {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2283,
+			app: AppName::Sys,
+			type_id: TypeId::from(2283),
 		}
 	}
 }
@@ -5140,8 +5219,8 @@ pub struct KeyRotationsRef {
 impl Entity for KeyRotationsRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2291,
+			app: AppName::Sys,
+			type_id: TypeId::from(2291),
 		}
 	}
 }
@@ -5164,8 +5243,8 @@ pub struct SurveyData {
 impl Entity for SurveyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2295,
+			app: AppName::Sys,
+			type_id: TypeId::from(2295),
 		}
 	}
 }
@@ -5184,8 +5263,8 @@ pub struct IdTupleWrapper {
 impl Entity for IdTupleWrapper {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2315,
+			app: AppName::Sys,
+			type_id: TypeId::from(2315),
 		}
 	}
 }
@@ -5211,8 +5290,8 @@ pub struct UserGroupKeyDistribution {
 impl Entity for UserGroupKeyDistribution {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2320,
+			app: AppName::Sys,
+			type_id: TypeId::from(2320),
 		}
 	}
 }
@@ -5245,8 +5324,8 @@ pub struct GroupKeyRotationData {
 impl Entity for GroupKeyRotationData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2328,
+			app: AppName::Sys,
+			type_id: TypeId::from(2328),
 		}
 	}
 }
@@ -5263,8 +5342,8 @@ pub struct GroupKeyRotationPostIn {
 impl Entity for GroupKeyRotationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2338,
+			app: AppName::Sys,
+			type_id: TypeId::from(2338),
 		}
 	}
 }
@@ -5283,8 +5362,8 @@ pub struct GroupKeyRotationInfoGetOut {
 impl Entity for GroupKeyRotationInfoGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2342,
+			app: AppName::Sys,
+			type_id: TypeId::from(2342),
 		}
 	}
 }
@@ -5310,8 +5389,8 @@ pub struct RecoverCodeData {
 impl Entity for RecoverCodeData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2346,
+			app: AppName::Sys,
+			type_id: TypeId::from(2346),
 		}
 	}
 }
@@ -5356,8 +5435,8 @@ pub struct UserGroupKeyRotationData {
 impl Entity for UserGroupKeyRotationData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2352,
+			app: AppName::Sys,
+			type_id: TypeId::from(2352),
 		}
 	}
 }
@@ -5380,8 +5459,8 @@ pub struct AdminGroupKeyRotationPostIn {
 impl Entity for AdminGroupKeyRotationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2364,
+			app: AppName::Sys,
+			type_id: TypeId::from(2364),
 		}
 	}
 }
@@ -5409,15 +5488,18 @@ pub struct GroupKeyUpdate {
 	pub groupKeyVersion: i64,
 	#[serde(rename = "2379")]
 	pub bucketKey: BucketKey,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for GroupKeyUpdate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2369,
+			app: AppName::Sys,
+			type_id: TypeId::from(2369),
 		}
 	}
 }
@@ -5434,8 +5516,8 @@ pub struct GroupKeyUpdatesRef {
 impl Entity for GroupKeyUpdatesRef {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2380,
+			app: AppName::Sys,
+			type_id: TypeId::from(2380),
 		}
 	}
 }
@@ -5469,8 +5551,8 @@ pub struct PubEncKeyData {
 impl Entity for PubEncKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2384,
+			app: AppName::Sys,
+			type_id: TypeId::from(2384),
 		}
 	}
 }
@@ -5495,8 +5577,8 @@ pub struct GroupKeyUpdateData {
 impl Entity for GroupKeyUpdateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2391,
+			app: AppName::Sys,
+			type_id: TypeId::from(2391),
 		}
 	}
 }
@@ -5520,8 +5602,8 @@ pub struct GroupMembershipKeyData {
 impl Entity for GroupMembershipKeyData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2398,
+			app: AppName::Sys,
+			type_id: TypeId::from(2398),
 		}
 	}
 }
@@ -5538,8 +5620,8 @@ pub struct MembershipPutIn {
 impl Entity for MembershipPutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2404,
+			app: AppName::Sys,
+			type_id: TypeId::from(2404),
 		}
 	}
 }
@@ -5561,8 +5643,8 @@ pub struct GroupMembershipUpdateData {
 impl Entity for GroupMembershipUpdateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2427,
+			app: AppName::Sys,
+			type_id: TypeId::from(2427),
 		}
 	}
 }
@@ -5589,8 +5671,8 @@ pub struct AffiliatePartnerKpiMonthSummary {
 impl Entity for AffiliatePartnerKpiMonthSummary {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2453,
+			app: AppName::Sys,
+			type_id: TypeId::from(2453),
 		}
 	}
 }
@@ -5613,8 +5695,8 @@ pub struct AffiliatePartnerKpiServiceGetOut {
 impl Entity for AffiliatePartnerKpiServiceGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2461,
+			app: AppName::Sys,
+			type_id: TypeId::from(2461),
 		}
 	}
 }
@@ -5631,8 +5713,8 @@ pub struct UserGroupKeyRotationPostIn {
 impl Entity for UserGroupKeyRotationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2471,
+			app: AppName::Sys,
+			type_id: TypeId::from(2471),
 		}
 	}
 }
@@ -5656,8 +5738,8 @@ pub struct KeyMac {
 impl Entity for KeyMac {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2477,
+			app: AppName::Sys,
+			type_id: TypeId::from(2477),
 		}
 	}
 }
@@ -5674,8 +5756,8 @@ pub struct AppStoreSubscriptionGetOut {
 impl Entity for AppStoreSubscriptionGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2497,
+			app: AppName::Sys,
+			type_id: TypeId::from(2497),
 		}
 	}
 }
@@ -5692,8 +5774,8 @@ pub struct AppStoreSubscriptionGetIn {
 impl Entity for AppStoreSubscriptionGetIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2500,
+			app: AppName::Sys,
+			type_id: TypeId::from(2500),
 		}
 	}
 }
@@ -5710,8 +5792,8 @@ pub struct VerifierTokenServiceOut {
 impl Entity for VerifierTokenServiceOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2510,
+			app: AppName::Sys,
+			type_id: TypeId::from(2510),
 		}
 	}
 }
@@ -5729,8 +5811,8 @@ pub struct VerifierTokenServiceIn {
 impl Entity for VerifierTokenServiceIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2517,
+			app: AppName::Sys,
+			type_id: TypeId::from(2517),
 		}
 	}
 }
@@ -5744,14 +5826,18 @@ pub struct CalendarAdvancedRepeatRule {
 	pub ruleType: i64,
 	#[serde(rename = "2524")]
 	pub interval: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CalendarAdvancedRepeatRule {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2521,
+			app: AppName::Sys,
+			type_id: TypeId::from(2521),
 		}
 	}
 }
@@ -5770,8 +5856,8 @@ pub struct AdminGroupKeyDistributionElement {
 impl Entity for AdminGroupKeyDistributionElement {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2531,
+			app: AppName::Sys,
+			type_id: TypeId::from(2531),
 		}
 	}
 }
@@ -5790,8 +5876,8 @@ pub struct AdminGroupKeyRotationPutIn {
 impl Entity for AdminGroupKeyRotationPutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2536,
+			app: AppName::Sys,
+			type_id: TypeId::from(2536),
 		}
 	}
 }
@@ -5816,8 +5902,8 @@ pub struct PubDistributionKey {
 impl Entity for PubDistributionKey {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2540,
+			app: AppName::Sys,
+			type_id: TypeId::from(2540),
 		}
 	}
 }
@@ -5836,8 +5922,8 @@ pub struct AdminGroupKeyRotationGetOut {
 impl Entity for AdminGroupKeyRotationGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "sys",
-			type_id: 2546,
+			app: AppName::Sys,
+			type_id: TypeId::from(2546),
 		}
 	}
 }

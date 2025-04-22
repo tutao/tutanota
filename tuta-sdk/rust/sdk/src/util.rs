@@ -1,6 +1,3 @@
-use crate::metamodel::TypeModelError;
-use crate::type_model_provider::TypeModelProvider;
-use crate::TypeRef;
 use base64::alphabet::Alphabet;
 use base64::engine::GeneralPurpose;
 use std::fmt::Debug;
@@ -183,16 +180,6 @@ pub fn array_cast_slice<T: Copy + Clone, const SIZE: usize>(
 	}
 }
 
-/// Get the attribute id for the attribute name if it exists in the TypeModel for the given TypeRef
-pub fn get_attribute_id_by_attribute_name(
-	type_ref: TypeRef,
-	attribute_name: &str,
-) -> Result<String, TypeModelError> {
-	let type_model_provider = TypeModelProvider::new();
-	let type_model = type_model_provider.resolve_type_ref(&type_ref).unwrap();
-	type_model.get_attribute_id_by_attribute_name(attribute_name)
-}
-
 /// Cast the array into an array of a fixed size.
 ///
 /// If the size is the same, it will be re-returned. Otherwise, returns `Err`.
@@ -326,9 +313,6 @@ mod test {
 		let first_id = CustomId::from_custom_string("1abcc");
 		let second_id = CustomId::from_custom_string("1abcd");
 
-		assert_eq!(
-			first_bigger_than_second_custom_id(&first_id, &second_id),
-			false
-		)
+		assert!(!first_bigger_than_second_custom_id(&first_id, &second_id))
 	}
 }

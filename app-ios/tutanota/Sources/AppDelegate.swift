@@ -180,7 +180,8 @@ public let MAILTO_SCHEME = "mailto"
 			encryptedPassphraseKey: encryptedPassphraseKey.data,
 			credentialType: tutasdk.CredentialType.internal
 		)
-		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession)).login(credentials: credentials)
+		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession), fileClient: SdkFileClient())
+			.login(credentials: credentials)
 		let mail = IdTupleGenerated(listId: mailId[0], elementId: mailId[1])
 		switch actionIdentifier {
 		case MAIL_TRASH_ACTION: try await sdk.mailFacade().trashMails(mails: [mail])

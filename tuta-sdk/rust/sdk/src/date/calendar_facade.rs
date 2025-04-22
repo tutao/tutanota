@@ -44,6 +44,7 @@ pub struct CalendarFacade {
 }
 
 impl CalendarFacade {
+	#[must_use]
 	pub fn new(
 		crypto_entity_client: Arc<CryptoEntityClient>,
 		user_facade: Arc<UserFacade>,
@@ -183,9 +184,7 @@ impl CalendarFacade {
 			);
 
 			if loaded_short_events.is_err() {
-				return Err(loaded_short_events
-					.err()
-					.expect("Failed to load short calendar events"));
+				return Err(loaded_short_events.err().expect("Failed to load short calendar events"));
 			}
 			let mut unwraped_short_events = loaded_short_events?;
 			match self.is_list_load_done(&max_short_id, &mut unwraped_short_events) {
@@ -203,9 +202,7 @@ impl CalendarFacade {
 			short_events.append(&mut filtered_short_events);
 
 			if loaded_long_events.is_err() {
-				return Err(loaded_long_events
-					.err()
-					.expect("Failed to load long calendar events"));
+				return Err(loaded_long_events.err().expect("Failed to load long calendar events"));
 			}
 
 			let mut unwraped_long_events = loaded_long_events?;
@@ -508,8 +505,8 @@ mod calendar_facade_unit_tests {
 			let group_setting = GroupSettings {
 				group: calendar_id.unwrap().to_owned(),
 				color: color.unwrap().to_owned(),
-				name: name.and_then(|s| Some(s.to_owned())),
-				sourceUrl: source_url.and_then(|s| Some(s.to_owned())),
+				name: name.map(|s| s.to_owned()),
+				sourceUrl: source_url.map(|s| s.to_owned()),
 				..create_test_entity()
 			};
 			user_settings_group_root.groupSettings.push(group_setting);
@@ -521,7 +518,7 @@ mod calendar_facade_unit_tests {
 		GroupInfo {
 			groupType: Some(GroupType::Calendar as i64),
 			group: calendar_id.to_owned(),
-			name: name.unwrap_or(&"".to_string()).to_owned(),
+			name: name.unwrap_or("").to_owned(),
 			..create_test_entity()
 		}
 	}
@@ -580,7 +577,7 @@ mod calendar_facade_unit_tests {
 
 		let mock_user_settings_group_root = create_mock_user_settings_group_root(
 			Some(&calendar_id),
-			Some(&custom_color),
+			Some(custom_color),
 			None,
 			None,
 		);
@@ -588,7 +585,7 @@ mod calendar_facade_unit_tests {
 			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
 			.return_const(Ok(mock_user_settings_group_root));
 
-		let mock_group_info = create_mock_group_info(&calendar_id, Some(&custom_name));
+		let mock_group_info = create_mock_group_info(&calendar_id, Some(custom_name));
 		mock_crypto_entity_client
 			.expect_load::<GroupInfo, IdTupleGenerated>()
 			.return_const(Ok(mock_group_info));
@@ -617,7 +614,7 @@ mod calendar_facade_unit_tests {
 		let custom_color = "a5e4ac";
 		let mock_user_settings_group_root = create_mock_user_settings_group_root(
 			Some(&calendar_id),
-			Some(&custom_color),
+			Some(custom_color),
 			None,
 			None,
 		);
@@ -656,8 +653,8 @@ mod calendar_facade_unit_tests {
 
 		let mock_user_settings_group_root = create_mock_user_settings_group_root(
 			Some(&calendar_id),
-			Some(&custom_color),
-			Some(&custom_name),
+			Some(custom_color),
+			Some(custom_name),
 			None,
 		);
 		mock_crypto_entity_client

@@ -4,6 +4,7 @@
  */
 
 import { AssociationType, Type, ValueType } from "../src/common/api/common/EntityConstants.js"
+import { capitalizeFirstLetter } from "@tutao/tutanota-utils"
 
 /**
  * @param models {object}
@@ -55,13 +56,14 @@ pub struct ${typeName} {\n`
 		}
 	}
 
-	if (typeModel.encrypted) {
-		buf += `\tpub _errors: Option<Errors>,\n`
-	}
-
 	// aggregates do not say whether they are encrypted or not. For some reason!
 	if (typeModel.encrypted || Object.values(typeModel.values).some((v) => v.encrypted)) {
-		buf += `\tpub _finalIvs: HashMap<String, FinalIv>,\n`
+		buf += `
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
+	pub _finalIvs: HashMap<String, FinalIv>,
+`
 	}
 
 	buf += "}"
@@ -70,8 +72,8 @@ pub struct ${typeName} {\n`
 impl Entity for ${typeName} {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "${modelName}",
-			type_id: ${typeId},
+			app: AppName::${capitalizeFirstLetter(modelName)},
+			type_id: TypeId::from(${typeId}),
 		}
 	}
 }`

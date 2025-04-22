@@ -33,37 +33,35 @@ class NotificationService: UNNotificationServiceExtension {
 		guard let mailId else { return }
 
 		guard let credentials = try await credentialsFacade.loadByUserId(userId) else { return }
-		guard let mail = try await getMail(credentials, notificationStorage, mailId, userId) else { return }
-		try await populateNotification(content: content, mail: mail, credentials: credentials)
-		try await insertMail(mail: mail, credentials: credentials)
-	}
-
-	private func getMail(_ credentials: UnencryptedCredentials, _ notificationStorage: NotificationStorage, _ mailId: [String], _ userId: String) async throws
-		-> tutasdk.Mail?
-	{
-		guard let origin = notificationStorage.sseInfo?.sseOrigin else { return nil }
-		guard let encryptedPassphraseKey = credentials.encryptedPassphraseKey else { return nil }
-		let credentials = tutasdk.Credentials(
+		guard let origin = notificationStorage.sseInfo?.sseOrigin else { return }
+		guard let encryptedPassphraseKey = credentials.encryptedPassphraseKey else { return }
+		let sdkCredentials = tutasdk.Credentials(
 			login: credentials.credentialInfo.login,
 			userId: userId,
 			accessToken: credentials.accessToken,
 			encryptedPassphraseKey: encryptedPassphraseKey.data,
 			credentialType: tutasdk.CredentialType.internal
 		)
-		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession)).login(credentials: credentials)
-		return try await sdk.mailFacade().loadEmailByIdEncrypted(idTuple: tutasdk.IdTupleGenerated(listId: mailId[0], elementId: mailId[1]))
+		let sdk = Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession), fileClient: SdkFileClient())
+		let loggedInSdk = try await sdk.login(credentials: sdkCredentials)
+		guard let mail = try await getMail(sdk: loggedInSdk, mailId) else { return }
+		try await populateNotification(content: content, mail: mail, credentials: credentials)
+		try await insertMail(sdk: sdk, mail: mail, credentials: credentials)
+	}
+	private func getMail(sdk: LoggedInSdk, _ mailId: [String]) async throws -> tutasdk.Mail? {
+		try await sdk.mailFacade().loadEmailByIdEncrypted(idTuple: tutasdk.IdTupleGenerated(listId: mailId[0], elementId: mailId[1]))
 	}
 	private func getSenderOfMail(_ mail: tutasdk.Mail) -> String {
 		if mail.sender.name.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty { return mail.sender.address } else { return mail.sender.name }
 	}
 
 	/// Places a downloaded mail from the SDK into the offline storage
-	private func insertMail(mail: tutasdk.Mail, credentials: UnencryptedCredentials) async throws {
+	private func insertMail(sdk: Sdk, mail: tutasdk.Mail, credentials: UnencryptedCredentials) async throws {
 		let sqlCipherFacade = IosSqlCipherFacade()
 		guard let databaseKey = credentials.databaseKey else { return }
 
 		try await sqlCipherFacade.openDb(credentials.credentialInfo.userId, databaseKey)
-		let serializedMail = serializeMail(mail: mail)
+		let serializedMail = sdk.serializeMail(mail: mail)
 		do {
 			try await sqlCipherFacade.run(
 				"INSERT OR IGNORE INTO list_entities VALUES (?, ?, ?, ?, ?)",

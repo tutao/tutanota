@@ -20,8 +20,8 @@ pub struct ReadCounterData {
 impl Entity for ReadCounterData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "monitor",
-			type_id: 12,
+			app: AppName::Monitor,
+			type_id: TypeId::from(12),
 		}
 	}
 }
@@ -40,8 +40,8 @@ pub struct ReadCounterReturn {
 impl Entity for ReadCounterReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "monitor",
-			type_id: 16,
+			app: AppName::Monitor,
+			type_id: TypeId::from(16),
 		}
 	}
 }
@@ -64,8 +64,8 @@ pub struct WriteCounterData {
 impl Entity for WriteCounterData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "monitor",
-			type_id: 49,
+			app: AppName::Monitor,
+			type_id: TypeId::from(49),
 		}
 	}
 }
@@ -94,8 +94,8 @@ pub struct ApprovalMail {
 impl Entity for ApprovalMail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "monitor",
-			type_id: 221,
+			app: AppName::Monitor,
+			type_id: TypeId::from(221),
 		}
 	}
 }
@@ -114,8 +114,8 @@ pub struct CounterValue {
 impl Entity for CounterValue {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "monitor",
-			type_id: 300,
+			app: AppName::Monitor,
+			type_id: TypeId::from(300),
 		}
 	}
 }
@@ -134,8 +134,8 @@ pub struct ErrorReportFile {
 impl Entity for ErrorReportFile {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "monitor",
-			type_id: 305,
+			app: AppName::Monitor,
+			type_id: TypeId::from(305),
 		}
 	}
 }
@@ -168,8 +168,8 @@ pub struct ErrorReportData {
 impl Entity for ErrorReportData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "monitor",
-			type_id: 316,
+			app: AppName::Monitor,
+			type_id: TypeId::from(316),
 		}
 	}
 }
@@ -188,8 +188,8 @@ pub struct ReportErrorIn {
 impl Entity for ReportErrorIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "monitor",
-			type_id: 335,
+			app: AppName::Monitor,
+			type_id: TypeId::from(335),
 		}
 	}
 }

@@ -33,7 +33,7 @@ napi-build = { version = "2.1.4" }
 tokio = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true }
-tuta-sdk = { workspace = true, features = ["net", "testing"] }
+tuta-sdk = { workspace = true, features = ["net", "testing", "test-with-local-http-server"] }
 mail-builder = { version = "0.4.0" }
 
 [lints]

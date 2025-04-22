@@ -43,7 +43,7 @@ impl ElementValue {
 	pub fn assert_array(&self) -> Vec<ElementValue> {
 		match self {
 			ElementValue::Array(value) => value.clone(),
-			_ => panic!("Invalid type"),
+			_ => panic!("Invalid type: {self:?}"),
 		}
 	}
 

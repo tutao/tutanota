@@ -83,7 +83,7 @@ impl CryptoFacade {
 		if let Ok(bucket_key_attribute_id) =
 			model.get_attribute_id_by_attribute_name(BUCKET_KEY_FIELD)
 		{
-			if let Some(bucket_key_value) = entity.get(&bucket_key_attribute_id) {
+			if let Some(bucket_key_value) = entity.get(bucket_key_attribute_id.as_str()) {
 				match bucket_key_value {
 					ElementValue::Array(array) if array.is_empty() => {},
 					ElementValue::Array(_) => {
@@ -209,15 +209,14 @@ impl CryptoFacade {
 			let decrypted_session_key = decrypted_bucket_key
 				.decrypt_aes_key(instance_session_key.symEncSessionKey.as_slice())?;
 
-			let id_attribute_id = type_model
+			let id_attribute_id: String = type_model
 				.get_attribute_id_by_attribute_name(ID_FIELD)
 				.map_err(|err| SessionKeyResolutionError {
-					reason: format!(
-							"{ID_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
-							type_model.id,
-							err
-						),
-				})?;
+				reason: format!(
+					"{ID_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+					type_model.id, err
+				),
+			})?;
 
 			let instance_id = parse_generated_id_field(entity.get(&id_attribute_id))?;
 
@@ -292,7 +291,7 @@ impl<'a> EntityOwnerKeyData<'a> {
 			};
 		}
 
-		let owner_enc_session_key_attribute_id = type_model
+		let owner_enc_session_key_attribute_id: String = type_model
 			.get_attribute_id_by_attribute_name(OWNER_ENC_SESSION_KEY_FIELD)
 			.map_err(|err| SessionKeyResolutionError {
 				reason: format!(
@@ -305,7 +304,7 @@ impl<'a> EntityOwnerKeyData<'a> {
 		let owner_enc_session_key =
 			get_nullable_field!(entity, &owner_enc_session_key_attribute_id, Bytes)?;
 
-		let owner_key_version_attribute_id = type_model
+		let owner_key_version_attribute_id: String = type_model
 			.get_attribute_id_by_attribute_name(OWNER_KEY_VERSION_FIELD)
 			.map_err(|err| SessionKeyResolutionError {
 				reason: format!(
@@ -318,7 +317,7 @@ impl<'a> EntityOwnerKeyData<'a> {
 		let owner_key_version_i64 =
 			get_nullable_field!(entity, &owner_key_version_attribute_id, Number)?.copied();
 
-		let owner_key_version_attribute_id = type_model
+		let owner_key_version_attribute_id: String = type_model
 			.get_attribute_id_by_attribute_name(OWNER_GROUP_FIELD)
 			.map_err(|err| SessionKeyResolutionError {
 				reason: format!(
@@ -374,6 +373,8 @@ pub fn create_auth_verifier(user_passphrase_key: Aes256Key) -> String {
 
 #[cfg(test)]
 mod test {
+	use crate::bindings::file_client::MockFileClient;
+	use crate::bindings::rest_client::MockRestClient;
 	use crate::crypto::aes::{Aes256Key, Iv};
 	use crate::crypto::asymmetric_crypto_facade::{DecapsulatedAesKey, MockAsymmetricCryptoFacade};
 	use crate::crypto::crypto_facade::CryptoFacade;
@@ -394,6 +395,7 @@ mod test {
 	use crate::IdTupleGenerated;
 	use crate::TypeModelProvider;
 	use mockall::predicate::eq;
+	use std::ops::Deref;
 	use std::sync::Arc;
 
 	#[tokio::test]
@@ -539,12 +541,18 @@ mod test {
 	}
 
 	fn get_mail_type_model() -> TypeModel {
-		let provider = TypeModelProvider::new();
+		let provider = TypeModelProvider::new(
+			Arc::new(MockRestClient::default()),
+			Arc::new(MockFileClient::default()),
+			"http://localhost:9000".to_string(),
+		);
 		let mail_type_ref = Mail::type_ref();
 		provider
-			.resolve_type_ref(&mail_type_ref)
+			.resolve_server_type_ref(&mail_type_ref)
 			.unwrap()
-			.to_owned()
+			.clone()
+			.deref()
+			.clone()
 	}
 
 	fn make_raw_mail(
@@ -645,9 +653,14 @@ mod test {
 
 		let asymmetric_crypto_facade = asymmetric_crypto_facade.unwrap_or_default();
 
+		let type_model_provider = Arc::new(TypeModelProvider::new(
+			Arc::new(MockRestClient::default()),
+			Arc::new(MockFileClient::default()),
+			"localhost:9000".to_string(),
+		));
 		CryptoFacade {
 			key_loader_facade: Arc::new(key_loader),
-			instance_mapper: Arc::new(InstanceMapper::new()),
+			instance_mapper: Arc::new(InstanceMapper::new(type_model_provider)),
 			randomizer_facade,
 			asymmetric_crypto_facade: Arc::new(asymmetric_crypto_facade),
 		}

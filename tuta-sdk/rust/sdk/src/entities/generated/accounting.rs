@@ -17,14 +17,18 @@ pub struct CustomerAccountPosting {
 	pub invoiceNumber: Option<String>,
 	#[serde(rename = "84")]
 	pub amount: i64,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CustomerAccountPosting {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "accounting",
-			type_id: 79,
+			app: AppName::Accounting,
+			type_id: TypeId::from(79),
 		}
 	}
 }
@@ -47,15 +51,18 @@ pub struct CustomerAccountReturn {
 	pub _publicCryptoProtocolVersion: Option<i64>,
 	#[serde(rename = "90")]
 	pub postings: Vec<CustomerAccountPosting>,
-	pub _errors: Option<Errors>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
 	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 impl Entity for CustomerAccountReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "accounting",
-			type_id: 86,
+			app: AppName::Accounting,
+			type_id: TypeId::from(86),
 		}
 	}
 }

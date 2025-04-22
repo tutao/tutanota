@@ -16,8 +16,9 @@ use crate::services::{
 };
 use crate::type_model_provider::TypeModelProvider;
 use crate::{ApiCallError, HeadersProvider};
-use serde::Deserialize;
+use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::borrow::Borrow;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -207,7 +208,7 @@ impl Executor for ServiceExecutor {
 			},
 			S::PATH,
 		);
-		let model_version: u32 = S::VERSION;
+		let model_version: u64 = S::VERSION;
 		let mut query_params = extra_service_params.query_params.unwrap_or_default();
 
 		let parsed_input_data: Option<RawEntity> = if let Some(input_entity) = data {
@@ -220,7 +221,7 @@ impl Executor for ServiceExecutor {
 			let input_type_ref = I::type_ref();
 			let type_model = self
 				.type_model_provider
-				.get_type_model(input_type_ref.app, input_type_ref.type_id)
+				.resolve_client_type_ref(&input_type_ref)
 				.ok_or(ApiCallError::internal(format!(
 					"type {:?} does not exist",
 					input_type_ref
@@ -310,7 +311,7 @@ impl Executor for ServiceExecutor {
 		body: Option<Vec<u8>>,
 	) -> Result<OutputType, ApiCallError>
 	where
-		OutputType: Entity + Deserialize<'static>,
+		OutputType: Entity + DeserializeOwned,
 	{
 		let response_bytes = body.expect("no body");
 		let response_entity = serde_json::from_slice::<RawEntity>(response_bytes.as_slice())
@@ -319,10 +320,11 @@ impl Executor for ServiceExecutor {
 		let parsed_entity = self
 			.json_serializer
 			.parse(output_type_ref, response_entity)?;
-		let type_model: &TypeModel = self
+		let type_model = self
 			.type_model_provider
-			.get_type_model(output_type_ref.app, output_type_ref.type_id)
+			.resolve_server_type_ref(output_type_ref)
 			.expect("invalid type ref!");
+		let type_model: &TypeModel = type_model.borrow();
 
 		if type_model.marked_encrypted() {
 			let session_key = self
@@ -389,14 +391,10 @@ mod tests {
 	use crate::instance_mapper::InstanceMapper;
 	use crate::json_element::RawEntity;
 	use crate::json_serializer::JsonSerializer;
+	use crate::metamodel::AppName;
 	use crate::services::service_executor::ResolvingServiceExecutor;
-	use crate::services::test_services::{
-		HelloEncInput, HelloEncOutput, HelloEncryptedService, HelloUnEncInput, HelloUnEncOutput,
-		HelloUnEncryptedService, APP_VERSION_STR,
-	};
-	use crate::services::{test_services, ExtraServiceParams};
-	use crate::type_model_provider::TypeModelProvider;
-	use crate::util::get_attribute_id_by_attribute_name;
+	use crate::services::ExtraServiceParams;
+	use crate::util::test_utils::*;
 	use crate::{HeadersProvider, CLIENT_VERSION};
 	use base64::prelude::BASE64_STANDARD;
 	use base64::Engine;
@@ -407,6 +405,7 @@ mod tests {
 	pub async fn post_should_map_unencrypted_data_and_response() {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
+			_errors: Default::default(),
 		};
 		let executor = maps_unencrypted_data_and_response(HttpMethod::POST);
 		let result = executor
@@ -426,6 +425,7 @@ mod tests {
 	pub async fn put_should_map_unencrypted_data_and_response() {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
+			_errors: Default::default(),
 		};
 		let executor = maps_unencrypted_data_and_response(HttpMethod::PUT);
 		let result = executor
@@ -445,6 +445,7 @@ mod tests {
 	pub async fn get_should_map_unencrypted_data_and_response() {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
+			_errors: Default::default(),
 		};
 		let executor = maps_unencrypted_data_and_response(HttpMethod::GET);
 		let result = executor
@@ -464,6 +465,7 @@ mod tests {
 	pub async fn delete_should_map_unencrypted_data_and_response() {
 		let hello_input_data = HelloUnEncInput {
 			message: "Something".to_string(),
+			_errors: Default::default(),
 		};
 		let executor = maps_unencrypted_data_and_response(HttpMethod::DELETE);
 		let result = executor
@@ -589,15 +591,13 @@ mod tests {
 	}
 
 	fn setup() -> ResolvingServiceExecutor {
-		let mut type_model_provider: TypeModelProvider = TypeModelProvider::new();
-		let _ok_if_overwritten = test_services::extend_model_resolver(&mut type_model_provider);
-		let type_model_provider = Arc::new(type_model_provider);
+		let type_model_provider = Arc::new(mock_type_model_provider());
 
 		let crypto_facade = Arc::new(CryptoFacade::default());
 		let entity_facade = Arc::new(MockEntityFacade::default());
 		let auth_headers_provider =
 			Arc::new(HeadersProvider::new(Some("access_token".to_string())));
-		let instance_mapper = Arc::new(InstanceMapper::new());
+		let instance_mapper = Arc::new(InstanceMapper::new(type_model_provider.clone()));
 		let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
 		let rest_client = Arc::new(MockRestClient::new());
 
@@ -763,7 +763,10 @@ mod tests {
 		crypto_facade
 			.expect_resolve_session_key()
 			.returning(move |_entity, model| {
-				assert_eq!(("test", "HelloEncOutput"), (model.app, model.name));
+				assert_eq!(
+					(AppName::Test, "HelloEncOutput"),
+					(model.app, model.name.as_str())
+				);
 				assert!(model.marked_encrypted());
 
 				Ok(Some(ResolvedSessionKey {
@@ -782,16 +785,20 @@ mod tests {
 				Ok(instance.clone())
 			});
 
+		let provider = mock_type_model_provider();
 		let session_key_clone = session_key.clone();
 		entity_facade.expect_decrypt_and_map().return_once(
 			move |_, mut entity, resolved_session_key| {
+				let type_model = provider
+					.resolve_server_type_ref(&HelloEncOutput::type_ref())
+					.expect("missing type");
 				assert_eq!(session_key_clone, resolved_session_key.session_key);
-				let timestamp_attribute_id =
-					&get_attribute_id_by_attribute_name(HelloEncOutput::type_ref(), "timestamp")
-						.unwrap();
-				let answer_attribute_id =
-					&get_attribute_id_by_attribute_name(HelloEncOutput::type_ref(), "answer")
-						.unwrap();
+				let timestamp_attribute_id = &type_model
+					.get_attribute_id_by_attribute_name("timestamp")
+					.unwrap();
+				let answer_attribute_id = &type_model
+					.get_attribute_id_by_attribute_name("answer")
+					.unwrap();
 				assert_eq!(
 					&ElementValue::Bytes(BASE64_STANDARD.decode(r#"MzAwMA=="#).unwrap()),
 					entity.get(timestamp_attribute_id).unwrap()

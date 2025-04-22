@@ -18,8 +18,8 @@ pub struct PersistenceResourcePostReturn {
 impl Entity for PersistenceResourcePostReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "base",
-			type_id: 0,
+			app: AppName::Base,
+			type_id: TypeId::from(0),
 		}
 	}
 }
@@ -40,8 +40,8 @@ pub struct ApplicationTypesGetOut {
 impl Entity for ApplicationTypesGetOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
-			app: "base",
-			type_id: 4,
+			app: AppName::Base,
+			type_id: TypeId::from(4),
 		}
 	}
 }

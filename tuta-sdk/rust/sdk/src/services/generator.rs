@@ -79,7 +79,7 @@ macro_rules! service_impl {
             // This implementation is required to be able to implement any HTTP method
             impl $crate::services::Service for $service_name {
                 const PATH: &'static str = $service_path;
-                const VERSION: u32 = $service_version;
+                const VERSION: u64 = $service_version;
             }
         };
 

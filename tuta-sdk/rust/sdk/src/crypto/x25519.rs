@@ -83,6 +83,7 @@ impl X25519PublicKey {
 
 	/// Convert an array of bytes into an X25519 key.
 	#[cfg(test)]
+	#[must_use]
 	pub const fn from_array(bytes: [u8; X25519_KEY_SIZE]) -> Self {
 		Self(bytes)
 	}

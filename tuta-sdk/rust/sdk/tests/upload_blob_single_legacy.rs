@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
+use tutasdk::bindings::test_file_client::TestFileClient;
 use tutasdk::crypto::key::GenericAesKey;
 use tutasdk::crypto::randomizer_facade::RandomizerFacade;
 use tutasdk::net::native_rest_client::NativeRestClient;
@@ -12,9 +13,14 @@ use tutasdk::Sdk;
 #[tokio::test]
 async fn sdk_can_upload_single_blob_legacy() -> Result<(), Box<dyn Error>> {
 	let rest_client = Arc::new(NativeRestClient::try_new().unwrap());
+	let file_client = Arc::new(TestFileClient::default());
 
 	// this test expects local server with matching model versions to be live at: http://localhost:9000
-	let sdk = Sdk::new("http://localhost:9000".to_string(), rest_client.clone());
+	let sdk = Sdk::new(
+		"http://localhost:9000".to_string(),
+		rest_client.clone(),
+		file_client,
+	);
 
 	let logged_in_sdk = sdk
 		.create_session("map-free@tutanota.de", "map")

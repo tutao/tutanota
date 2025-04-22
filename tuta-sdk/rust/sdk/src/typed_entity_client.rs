@@ -6,6 +6,7 @@ use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::{ElementType, TypeModel};
 use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
+use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use std::sync::Arc;
 
@@ -28,12 +29,12 @@ impl TypedEntityClient {
 	}
 
 	#[allow(clippy::unused_async, unused)]
-	pub async fn load<T: Entity + Deserialize<'static>, Id: IdType>(
+	pub async fn load<T: Entity + DeserializeOwned, Id: IdType>(
 		&self,
 		id: &Id,
 	) -> Result<T, ApiCallError> {
-		let type_model = self.entity_client.get_type_model(&T::type_ref())?;
-		Self::check_if_encrypted(type_model)?;
+		let type_model = self.entity_client.resolve_server_type_ref(&T::type_ref())?;
+		Self::check_if_encrypted(&type_model)?;
 		let parsed_entity = self.entity_client.load::<Id>(&T::type_ref(), id).await?;
 		let typed_entity = self
 			.instance_mapper
@@ -58,15 +59,15 @@ impl TypedEntityClient {
 	}
 
 	#[allow(clippy::unused_async, unused)]
-	pub async fn load_range<T: Entity + Deserialize<'static>, Id: BaseIdType>(
+	pub async fn load_range<T: Entity + DeserializeOwned, Id: BaseIdType>(
 		&self,
 		list_id: &GeneratedId,
 		start_id: &Id,
 		count: usize,
 		direction: ListLoadDirection,
 	) -> Result<Vec<T>, ApiCallError> {
-		let type_model = self.entity_client.get_type_model(&T::type_ref())?;
-		Self::check_if_encrypted(type_model)?;
+		let type_model = self.entity_client.resolve_server_type_ref(&T::type_ref())?;
+		Self::check_if_encrypted(&type_model)?;
 		// TODO: enforce statically?
 		if type_model.element_type != ElementType::ListElement {
 			panic!(

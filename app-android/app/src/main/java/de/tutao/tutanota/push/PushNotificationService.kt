@@ -3,7 +3,6 @@ package de.tutao.tutanota.push
 import android.app.job.JobParameters
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
@@ -12,8 +11,6 @@ import de.tutao.tutanota.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
-import de.tutao.tutashared.atLeastQuinceTart
-import de.tutao.tutashared.atLeastTiramisu
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -25,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 private enum class State {
@@ -99,7 +97,8 @@ class PushNotificationService : LifecycleJobService() {
 				sseStorage,
 				nativeCredentialsFacade,
 				alarmNotificationsManager,
-				NetworkUtils.defaultClient
+				NetworkUtils.defaultClient,
+				this.filesDir
 			),
 			NetworkUtils.defaultClient
 		)
@@ -195,7 +194,8 @@ class PushNotificationService : LifecycleJobService() {
 		sseStorage: SseStorage,
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		alarmNotificationsManager: AlarmNotificationsManager,
-		defaultClient: OkHttpClient
+		defaultClient: OkHttpClient,
+		appDir: File
 	) : SseListener {
 
 		private val tutanotaNotificationsHandler =
@@ -206,7 +206,8 @@ class PushNotificationService : LifecycleJobService() {
 				alarmNotificationsManager,
 				defaultClient,
 				lifecycleScope,
-				{ AndroidSqlCipherFacade(this@PushNotificationService) }
+				{ AndroidSqlCipherFacade(this@PushNotificationService) },
+				appDir
 			)
 
 		override fun onStartingConnection(): Boolean {

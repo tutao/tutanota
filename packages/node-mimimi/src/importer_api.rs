@@ -238,7 +238,7 @@ impl ImporterApi {
 		let import_directory =
 			FileImport::prepare_file_import(config_directory, mailbox_id, source_paths)?;
 
-		let logged_in_sdk = Importer::create_sdk(tuta_credentials).await?;
+		let logged_in_sdk = Importer::create_sdk(config_directory, tuta_credentials).await?;
 		Importer::create_new_file_importer(
 			logged_in_sdk,
 			target_owner_group,
