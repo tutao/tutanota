@@ -81,7 +81,7 @@ public class AlarmModel: AlarmCalculator {
 		var cal = Calendar.current
 		let calendarUnit = calendarUnit(for: repeatRule.frequency)
 
-		let isAllDayEvent = isAllDayEvent(startTime: eventStart, endTime: eventEnd)
+		let isAllDayEvent = isAllDayEvent(startDate: eventStart, endDate: eventEnd)
 		let calcEventStart = isAllDayEvent ? allDayLocalDate(fromUTCDate: eventStart, inZone: localTimeZone) : eventStart
 		let endDate: Date?
 		switch repeatRule.endCondition {
@@ -207,19 +207,6 @@ func allDayLocalDate(fromUTCDate utcDate: Date, inZone localTimeZone: TimeZone) 
 	let components = calendar.dateComponents([.year, .month, .day], from: utcDate)
 	calendar.timeZone = localTimeZone
 	return calendar.date(from: components)!
-}
-
-private func isAllDayEvent(startTime: Date, endTime: Date) -> Bool {
-	var calendar = Calendar.current
-	calendar.timeZone = TimeZone(abbreviation: "UTC")!
-
-	let startComponents = calendar.dateComponents([.hour, .minute, .second], from: startTime)
-	let startsOnZero = startComponents.hour == 0 && startComponents.minute == 0 && startComponents.second == 0
-
-	let endComponents = calendar.dateComponents([.hour, .minute, .second], from: endTime)
-	let endsOnZero = endComponents.hour == 0 && endComponents.minute == 0 && endComponents.second == 0
-
-	return startsOnZero && endsOnZero
 }
 
 private func calendarUnit(for repeatPeriod: RepeatPeriod) -> Calendar.Component {
