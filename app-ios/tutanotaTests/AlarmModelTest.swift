@@ -114,10 +114,10 @@ struct AlarmModelTest {
 	@Test func testIteratedRepeatAlarm() {
 		let timeZone = "Europe/Berlin"
 		dateProvider.timeZone = TimeZone(identifier: timeZone)!
-		dateProvider.now = date(2019, 6, 1, 10, timeZone)
+		dateProvider.now = date(2019, 6, 1, 10, 0, timeZone)
 
-		let eventStart = date(2019, 6, 2, 12, timeZone)
-		let eventEnd = date(2019, 6, 2, 12, timeZone)
+		let eventStart = date(2019, 6, 2, 12, 0, timeZone)
+		let eventEnd = date(2019, 6, 2, 12, 0, timeZone)
 
 		let repeatRule = RepeatRule(frequency: .weekly, interval: 1, timeZone: timeZone, endCondition: .never, excludedDates: [], advancedRules: [])
 
@@ -134,17 +134,17 @@ struct AlarmModelTest {
 		)
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
-		let expected = [date(2019, 6, 2, 12, timeZone), date(2019, 6, 9, 12, timeZone), date(2019, 6, 16, 12, timeZone), date(2019, 6, 23, 12, timeZone)]
+		let expected = [date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 9, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone)]
 		#expect(occurrences == expected)
 	}
 
 	@Test func testIteratedRepeatAlarmWithByRule() {
 		let timeZone = "Europe/Berlin"
 		dateProvider.timeZone = TimeZone(identifier: timeZone)!
-		dateProvider.now = date(2025, 2, 1, 10, timeZone)
+		dateProvider.now = date(2025, 2, 1, 10, 0, timeZone)
 
-		let eventStart = date(2025, 2, 2, 12, timeZone)
-		let eventEnd = date(2025, 2, 2, 15, timeZone)
+		let eventStart = date(2025, 2, 2, 12, 0, timeZone)
+		let eventEnd = date(2025, 2, 2, 15, 0, timeZone)
 
 		let repeatRule = RepeatRule(
 			frequency: .weekly,
@@ -169,8 +169,8 @@ struct AlarmModelTest {
 		let occurrences = prefix(seq: seq, 5).map { $0.eventOccurrenceTime }
 
 		let expected = [
-			date(2025, 2, 2, 12, timeZone), date(2025, 2, 3, 12, timeZone), date(2025, 2, 4, 12, timeZone), date(2025, 2, 10, 12, timeZone),
-			date(2025, 2, 11, 12, timeZone),
+			date(2025, 2, 2, 12, 0, timeZone), date(2025, 2, 3, 12, 0, timeZone), date(2025, 2, 4, 12, 0, timeZone), date(2025, 2, 10, 12, 0, timeZone),
+			date(2025, 2, 11, 12, 0, timeZone),
 		]
 		#expect(occurrences == expected)
 	}
@@ -178,17 +178,17 @@ struct AlarmModelTest {
 	@Test func testIteratedRepeatAlarmWithExclusions() {
 		let timeZone = "Europe/Berlin"
 		dateProvider.timeZone = TimeZone(identifier: timeZone)!
-		dateProvider.now = date(2019, 6, 1, 10, timeZone)
+		dateProvider.now = date(2019, 6, 1, 10, 0, timeZone)
 
-		let eventStart = date(2019, 6, 2, 12, timeZone)
-		let eventEnd = date(2019, 6, 2, 12, timeZone)
+		let eventStart = date(2019, 6, 2, 12, 0, timeZone)
+		let eventEnd = date(2019, 6, 2, 12, 0, timeZone)
 
 		let repeatRule = RepeatRule(
 			frequency: .weekly,
 			interval: 1,
 			timeZone: timeZone,
 			endCondition: .never, /* this is excluded       this is ignored */
-			excludedDates: [date(2019, 6, 9, 12, timeZone), date(2019, 6, 10, 12, timeZone)],
+			excludedDates: [date(2019, 6, 9, 12, 0, timeZone), date(2019, 6, 10, 12, 0, timeZone)],
 			advancedRules: []
 		)
 
@@ -205,19 +205,19 @@ struct AlarmModelTest {
 		)
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
-		let expected = [date(2019, 6, 2, 12, timeZone), date(2019, 6, 16, 12, timeZone), date(2019, 6, 23, 12, timeZone), date(2019, 6, 30, 12, timeZone)]
+		let expected = [date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone), date(2019, 6, 30, 12, 0, timeZone)]
 		#expect(occurrences == expected)
 	}
 
 	@Test func testIteratesAllDayEventWithEnd() {
 		let timeZone = "Europe/Berlin"
 		dateProvider.timeZone = TimeZone(identifier: "Europe/Berlin")!
-		dateProvider.now = date(2019, 4, 20, 0, timeZone)
+		dateProvider.now = date(2019, 4, 20, 0, 0, timeZone)
 
 		let repeatRuleTimeZone = "Asia/Anadyr"
-		let eventStart = allDayUTCDate(fromLocalDate: date(2019, 5, 1, 0, timeZone), inTimeZone: timeZone)
-		let eventEnd = allDayUTCDate(fromLocalDate: date(2019, 5, 2, 0, timeZone), inTimeZone: timeZone)
-		let repeatEnd = allDayUTCDate(fromLocalDate: date(2019, 5, 3, 0, timeZone), inTimeZone: timeZone)
+		let eventStart = allDayUTCDate(fromLocalDate: date(2019, 5, 1, 0, 0, timeZone), inTimeZone: timeZone)
+		let eventEnd = allDayUTCDate(fromLocalDate: date(2019, 5, 2, 0, 0, timeZone), inTimeZone: timeZone)
+		let repeatEnd = allDayUTCDate(fromLocalDate: date(2019, 5, 3, 0, 0, timeZone), inTimeZone: timeZone)
 		let repeatRule = RepeatRule(
 			frequency: .daily,
 			interval: 1,
@@ -241,26 +241,7 @@ struct AlarmModelTest {
 
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
-		let expected = [date(2019, 5, 1, 0, timeZone), date(2019, 5, 2, 0, timeZone)]
+		let expected = [date(2019, 5, 1, 0, 0, timeZone), date(2019, 5, 2, 0, 0, timeZone)]
 		#expect(occurrences == expected)
 	}
-}
-
-private func date(_ year: Int, _ month: Int, _ dayOfMonth: Int, _ hour: Int, _ timeZoneName: String) -> Date {
-	let calendar = Calendar.current
-	let timeZone = TimeZone(identifier: timeZoneName)
-	var components = DateComponents()
-	components.year = year
-	components.month = month
-	components.day = dayOfMonth
-	components.hour = hour
-	components.timeZone = timeZone
-
-	return calendar.date(from: components)!
-}
-
-// MARK: duration helpers
-
-extension Date {
-	func advanced(by amount: Double, _ unit: UnitDuration) -> Date { self + Measurement(value: amount, unit: unit).converted(to: .seconds).value }
 }
