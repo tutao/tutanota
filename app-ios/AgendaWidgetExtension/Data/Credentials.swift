@@ -9,7 +9,7 @@ import AppIntents
 import tutasdk
 import TutanotaSharedFramework
 
-struct Credential : AppEntity {
+struct WidgetCredential : AppEntity {
 	var id: String
 	var email: String
 
@@ -25,14 +25,14 @@ struct Credential : AppEntity {
 		)
 	}
 
-	static func fetchCredentials() async throws -> [Credential] {
+	static func fetchCredentials() async throws -> [WidgetCredential] {
 		do {
 			let credentialsDb = try CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 			let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 			let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
 			let credentialsFacade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: CryptoFunctions())
 			let credentials = try await credentialsFacade.loadAll()
-			return credentials.map { Credential(id: $0.credentialInfo.userId, email: $0.credentialInfo.login) }
+			return credentials.map { WidgetCredential(id: $0.credentialInfo.userId, email: $0.credentialInfo.login) }
 		} catch {
 			TUTSLog("[WidgetConfig] Error: \(error)")
 			return []
@@ -41,15 +41,15 @@ struct Credential : AppEntity {
 }
 
 struct CredentialsQuery : EntityQuery {
-	func entities(for identifiers: [Credential.ID]) async throws -> [Credential] {
-		return try await Credential.fetchCredentials()
+	func entities(for identifiers: [WidgetCredential.ID]) async throws -> [WidgetCredential] {
+		return try await WidgetCredential.fetchCredentials()
 	}
 
-	func suggestedEntities() async throws -> [Credential] {
-		return try await Credential.fetchCredentials()
+	func suggestedEntities() async throws -> [WidgetCredential] {
+		return try await WidgetCredential.fetchCredentials()
 	}
 
-	func defaultResult() async -> Credential? {
+	func defaultResult() async -> WidgetCredential? {
 		nil
 	}
 }

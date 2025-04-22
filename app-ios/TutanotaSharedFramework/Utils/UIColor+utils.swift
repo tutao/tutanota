@@ -36,14 +36,37 @@ extension UIColor {
 		let lightness = 0.299 * r + 0.587 * g + 0.114 * b
 		return lightness >= 0.5
 	}
+
+	/// Calculate color Luminance according to CIE XYZ Colorspace following W3C Accecibility rules
+	/// See: https://www.w3.org/WAI/GL/wiki/Relative_luminance
+	public func getLuminance() -> CGFloat {
+		var r: CGFloat = 0
+		var g: CGFloat = 0
+		var b: CGFloat = 0
+
+		let success: Bool = self.getRed(&r, green: &g, blue: &b, alpha: nil)
+
+		// lines with assertions are removed in release builds
+		assert(success, "Invalid UI Color")
+
+		let xXYZ = getXYZFromRGBChannel(r)
+		let yXYZ = getXYZFromRGBChannel(g)
+		let zXYZ = getXYZFromRGBChannel(b)
+		
+		return  0.2126 * xXYZ + 0.7152 * yXYZ + 0.0722 * zXYZ
+	}
+
+	private func getXYZFromRGBChannel(_ channelValue: CGFloat) -> CGFloat {
+		if channelValue <= 0.04045 { channelValue / 12.92 } else { pow((channelValue + 0.055)/1.055, 2.4) }
+	}
 }
 
-/// Parse a #RGB or #RRGGBB #RRGGBBAA color code into an 0xRRGGBBAA int
+/// Parse colors following the formats (#RGB #RRGGBB #RRGGBBAA), (RGB RRGGBB RRGGBBAA color code into an 0xRRGGBBAA int
 private func parseColorCode(_ code: String) -> UInt64? {
-	if code.first != "#" || (code.count != 4 && code.count != 7 && code.count != 9) { return nil }
+	let cleanColorCode = code.replacingOccurrences(of: "#", with: "")
+	if cleanColorCode.count != 3 && cleanColorCode.count != 6 && cleanColorCode.count != 8 { return nil }
 
-	let start = code.index(code.startIndex, offsetBy: 1)
-	var hexString = String(code[start...]).uppercased()
+	var hexString = cleanColorCode.uppercased()
 
 	// input was #RGB
 	if hexString.count == 3 { hexString = expandShortHex(hex: hexString) }

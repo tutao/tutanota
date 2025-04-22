@@ -14,7 +14,7 @@ struct ConfigurationAppIntent: WidgetConfigurationIntent {
     static var description: IntentDescription { "This is an example widget." }
 
 	@Parameter(title: "User", description: LocalizedStringResource(stringLiteral: "User account to load calendars from"))
-	var account: Credential?
+	var account: WidgetCredential?
 
 	@Parameter(title: "Calendars", description: LocalizedStringResource(stringLiteral: "Calendars to fetch the event from"), optionsProvider: CalendarsProvider())
 	var calendars: [CalendarEntity]?

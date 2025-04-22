@@ -225,9 +225,15 @@ schemes:
       targets: [ "tutanotaTests" ]
     archive:
       config: "Release Production"
-  agendaWidget:
+  AgendaWidget:
     build:
       targets:
         AgendaWidgetExtension: "all"
     run:
-      config: "Debug Production"
+      config: "Debug Development"
+      environmentVariables:
+        _XCWidgetFamily: "systemLarge"
+        _XCWidgetDefaultView: "timeline"
+    archive:
+      config: "Release Production"
+      
