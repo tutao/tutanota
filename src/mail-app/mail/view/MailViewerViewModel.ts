@@ -174,8 +174,16 @@ export class MailViewerViewModel {
 
 		try {
 			const [trustedResponse, statusResponse] = await Promise.all([
-				fetch(`${API_BASE_URL}/trusted-senders/${userEmail}`),
-				fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`),
+				fetch(`${API_BASE_URL}/trusted-senders/${userEmail}`, {
+					headers: { Accept: "application/json" },
+					credentials: "include",
+					mode: "cors",
+				}),
+				fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`, {
+					headers: { Accept: "application/json" },
+					credentials: "include",
+					mode: "cors",
+				}),
 			])
 
 			if (!trustedResponse.ok) throw new Error("Failed to fetch trusted senders.")
@@ -240,13 +248,18 @@ export class MailViewerViewModel {
 		try {
 			const response = await fetch(`${API_BASE_URL}/update-email-status`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
 				body: JSON.stringify({
 					user_email: userEmail,
 					email_id: emailId,
 					sender_email: this.mail.sender.address,
 					status: status,
 				}),
+				credentials: "include",
+				mode: "cors",
 			})
 
 			if (!response.ok) throw new Error("Failed to update sender status.")
@@ -292,12 +305,17 @@ export class MailViewerViewModel {
 		try {
 			const response = await fetch(`${API_BASE_URL}/reset-single-email-status`, {
 				method: "DELETE", // Use DELETE method
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
 				body: JSON.stringify({
 					// Send data in body
 					user_email: userEmail,
 					email_id: emailId,
 				}),
+				credentials: "include",
+				mode: "cors",
 			})
 
 			if (!response.ok) {
@@ -1312,7 +1330,7 @@ export class MailViewerViewModel {
 	}
 
 	private getMailOwnerGroup(): Id | null {
-		return this.mail._ownerGroup
+		return this._mail._ownerGroup
 	}
 
 	private updateMail({ mail, showFolder }: { mail: Mail; showFolder?: boolean }) {

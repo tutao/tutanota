@@ -1,172 +1,205 @@
-import m, { Children } from "mithril";
-import { Keys } from "../../../common/api/common/TutanotaConstants.js";
-import { modal, ModalComponent } from "../../../common/gui/base/Modal.js";
-import type { Shortcut } from "../../../common/misc/KeyManager.js";
-import { MailViewerViewModel, API_BASE_URL, ContentBlockingStatus } from "./MailViewerViewModel.js";
+import m, { Children } from "mithril"
+import { Keys } from "../../../common/api/common/TutanotaConstants.js"
+import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
+import type { Shortcut } from "../../../common/misc/KeyManager.js"
+import { MailViewerViewModel, API_BASE_URL, ContentBlockingStatus } from "./MailViewerViewModel.js"
 
 // Helper function for consistent display
 function formatSenderDisplay(name: string | null | undefined, address: string | null | undefined): string {
-	const trimmedName = name?.trim();
-	const validAddress = address?.trim() || '';
-	if (!validAddress) return "Sender Info Unavailable";
-	if (trimmedName && trimmedName !== validAddress) return `${trimmedName} (${validAddress})`;
-	return validAddress;
+	const trimmedName = name?.trim()
+	const validAddress = address?.trim() || ""
+	if (!validAddress) return "Sender Info Unavailable"
+	if (trimmedName && trimmedName !== validAddress) return `${trimmedName} (${validAddress})`
+	return validAddress
 }
 
 export class MobyPhishRemoveConfirmationModal implements ModalComponent {
-	private modalHandle?: ModalComponent;
-	private viewModel: MailViewerViewModel;
-	private senderDisplay: string;
-	private senderAddress: string;
-	private isLoading: boolean = false;
-	private errorMessage: string | null = null;
+	private modalHandle?: ModalComponent
+	private viewModel: MailViewerViewModel
+	private senderDisplay: string
+	private senderAddress: string
+	private isLoading: boolean = false
+	private errorMessage: string | null = null
 
 	constructor(viewModel: MailViewerViewModel) {
-		this.viewModel = viewModel;
-		const address = this.viewModel.mail.sender.address;
-		const name = this.viewModel.mail.sender.name || '';
-		this.senderAddress = address;
-		this.senderDisplay = formatSenderDisplay(name, address);
+		this.viewModel = viewModel
+		const address = this.viewModel.mail.sender.address
+		const name = this.viewModel.mail.sender.name || ""
+		this.senderAddress = address
+		this.senderDisplay = formatSenderDisplay(name, address)
 	}
 
 	view(): Children {
 		return m(".modal-overlay", { onclick: (e: MouseEvent) => this.backgroundClick(e) }, [
 			m(".modal-content", { onclick: (e: MouseEvent) => e.stopPropagation() }, [
 				m(".dialog.elevated-bg.border-radius", { style: this.getModalStyle() }, [
-					m("p", {
-						style: {
-							fontSize: "16px",
-							fontWeight: "bold",
-							textAlign: "center",
-							marginBottom: "15px"
-						}
-					}, "Remove from Trusted Senders?"),
-					m("p", {
-						style: {
-							fontSize: "14px",
-							textAlign: "center",
-							marginBottom: "20px",
-							lineHeight: "1.5"
-						}
-					}, [
-						"Are you sure you want to remove ",
-						m("strong", this.senderDisplay),
-						" from your trusted senders list?",
-						m("br"),
-						m("span", {
+					m(
+						"p",
+						{
 							style: {
-								fontSize: '12px',
-								color: '#6c757d'
-							}
-						}, "(This action will also reset the status for all previous emails from this sender.)")
-					]),
+								fontSize: "16px",
+								fontWeight: "bold",
+								textAlign: "center",
+								marginBottom: "15px",
+							},
+						},
+						"Remove from Trusted Senders?",
+					),
+					m(
+						"p",
+						{
+							style: {
+								fontSize: "14px",
+								textAlign: "center",
+								marginBottom: "20px",
+								lineHeight: "1.5",
+							},
+						},
+						[
+							"Are you sure you want to remove ",
+							m("strong", this.senderDisplay),
+							" from your trusted senders list?",
+							m("br"),
+							m(
+								"span",
+								{
+									style: {
+										fontSize: "12px",
+										color: "#6c757d",
+									},
+								},
+								"(This action will also reset the status for all previous emails from this sender.)",
+							),
+						],
+					),
 
 					this.errorMessage
-						? m(".error-message", {
-							style: {
-								color: 'red',
-								fontSize: '12px',
-								marginTop: '5px',
-								marginBottom: '10px'
-							}
-						}, this.errorMessage)
+						? m(
+								".error-message",
+								{
+									style: {
+										color: "red",
+										fontSize: "12px",
+										marginTop: "5px",
+										marginBottom: "10px",
+									},
+								},
+								this.errorMessage,
+						  )
 						: null,
 
 					// Confirm Button
-					m("button", {
-						onclick: () => this.confirmRemoveSender(),
-						disabled: this.isLoading,
-						style: this.getConfirmButtonStyle(this.isLoading)
-					}, this.isLoading ? "Removing..." : "Confirm Remove"),
+					m(
+						"button",
+						{
+							onclick: () => this.confirmRemoveSender(),
+							disabled: this.isLoading,
+							style: this.getConfirmButtonStyle(this.isLoading),
+						},
+						this.isLoading ? "Removing..." : "Confirm Remove",
+					),
 
 					// Cancel Button
-					m("button", {
-						onclick: () => this.closeModal(),
-						disabled: this.isLoading,
-						style: this.getCancelButtonStyle()
-					}, "Cancel")
-				])
-			])
-		]);
+					m(
+						"button",
+						{
+							onclick: () => this.closeModal(),
+							disabled: this.isLoading,
+							style: this.getCancelButtonStyle(),
+						},
+						"Cancel",
+					),
+				]),
+			]),
+		])
 	}
 
 	private async confirmRemoveSender(): Promise<void> {
-		if (this.isLoading) return;
-		this.isLoading = true;
-		this.errorMessage = null;
-		m.redraw();
+		if (this.isLoading) return
+		this.isLoading = true
+		this.errorMessage = null
+		m.redraw()
 
-		const userEmail = this.viewModel.logins.getUserController().loginUsername;
-		const senderToRemove = this.senderAddress;
+		const userEmail = this.viewModel.logins.getUserController().loginUsername
+		const senderToRemove = this.senderAddress
 
-		console.log(`Removing User=${userEmail}, Email=${senderToRemove}`);
+		console.log(`Removing User=${userEmail}, Email=${senderToRemove}`)
 
-		let removeSuccess = false;
+		let removeSuccess = false
 
 		try {
 			const removeResponse = await fetch(`${API_BASE_URL}/remove-trusted`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
 				body: JSON.stringify({
 					user_email: userEmail,
-					trusted_email: senderToRemove
-				})
-			});
+					trusted_email: senderToRemove,
+				}),
+				credentials: "include",
+				mode: "cors",
+			})
 
 			if (removeResponse.ok) {
-				console.log(`Sender "${senderToRemove}" removed from trusted list.`);
-				removeSuccess = true;
+				console.log(`Sender "${senderToRemove}" removed from trusted list.`)
+				removeSuccess = true
 			} else if (removeResponse.status === 404) {
-				console.warn("Sender not found in trusted list. Assuming already removed.");
-				removeSuccess = true;
+				console.warn("Sender not found in trusted list. Assuming already removed.")
+				removeSuccess = true
 			} else {
-				const errorData = await removeResponse.json().catch(() => ({}));
-				throw new Error(`Failed to remove sender (${removeResponse.status}): ${errorData.message || 'Unknown error'}`);
+				const errorData = await removeResponse.json().catch(() => ({}))
+				throw new Error(`Failed to remove sender (${removeResponse.status}): ${errorData.message || "Unknown error"}`)
 			}
 
 			if (removeSuccess) {
 				const resetResponse = await fetch(`${API_BASE_URL}/reset-email-statuses`, {
 					method: "POST",
-					headers: { "Content-Type": "application/json" },
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+					},
 					body: JSON.stringify({
 						user_email: userEmail,
-						sender_email: senderToRemove
-					})
-				});
+						sender_email: senderToRemove,
+					}),
+					credentials: "include",
+					mode: "cors",
+				})
 
 				if (!resetResponse.ok) {
-					const errorData = await resetResponse.json().catch(() => ({}));
-					console.error(`Failed to reset email statuses: ${errorData.message}`);
-					this.errorMessage = "Removed sender, but failed to reset email statuses.";
+					const errorData = await resetResponse.json().catch(() => ({}))
+					console.error(`Failed to reset email statuses: ${errorData.message}`)
+					this.errorMessage = "Removed sender, but failed to reset email statuses."
 				} else {
-					console.log("Statuses reset successfully.");
+					console.log("Statuses reset successfully.")
 				}
 			}
 
-			this.closeModal();
-			await this.viewModel.fetchSenderData();
-			this.viewModel.senderStatus = "";
-			this.viewModel.setSenderConfirmed(false);
-			await this.viewModel.setContentBlockingStatus(ContentBlockingStatus.Block);
-			m.redraw();
-
+			this.closeModal()
+			await this.viewModel.fetchSenderData()
+			this.viewModel.senderStatus = ""
+			this.viewModel.setSenderConfirmed(false)
+			await this.viewModel.setContentBlockingStatus(ContentBlockingStatus.Block)
+			m.redraw()
 		} catch (error: any) {
-			console.error("Error during remove process:", error);
-			this.errorMessage = error.message || "An error occurred while removing the sender.";
-			this.isLoading = false;
-			m.redraw();
+			console.error("Error during remove process:", error)
+			this.errorMessage = error.message || "An error occurred while removing the sender."
+			this.isLoading = false
+			m.redraw()
 		}
 	}
 
 	private closeModal(): void {
 		if (this.modalHandle) {
-			modal.remove(this.modalHandle);
+			modal.remove(this.modalHandle)
 		}
 	}
 
 	private getConfirmButtonStyle(disabled: boolean) {
-		const defaultColor = "#850122";
-		const hoverOpacity = 0.7;
+		const defaultColor = "#850122"
+		const hoverOpacity = 0.7
 
 		const baseStyle: any = {
 			background: disabled ? "#cccccc" : defaultColor,
@@ -184,15 +217,15 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 			justifyContent: "center",
 			transition: "opacity 0.2s ease",
 			opacity: disabled ? 0.6 : 1,
-			marginTop: "10px"
-		};
-
-		if (!disabled) {
-			baseStyle.onmouseover = (e: MouseEvent) => (e.target as HTMLElement).style.opacity = hoverOpacity.toString();
-			baseStyle.onmouseout = (e: MouseEvent) => (e.target as HTMLElement).style.opacity = "1";
+			marginTop: "10px",
 		}
 
-		return baseStyle;
+		if (!disabled) {
+			baseStyle.onmouseover = (e: MouseEvent) => ((e.target as HTMLElement).style.opacity = hoverOpacity.toString())
+			baseStyle.onmouseout = (e: MouseEvent) => ((e.target as HTMLElement).style.opacity = "1")
+		}
+
+		return baseStyle
 	}
 
 	private getCancelButtonStyle() {
@@ -212,9 +245,9 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 			justifyContent: "center",
 			marginTop: "10px",
 			transition: "background-color 0.2s ease",
-			onmouseover: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "#f2f2f2",
-			onmouseout: (e: MouseEvent) => (e.target as HTMLElement).style.backgroundColor = "transparent"
-		};
+			onmouseover: (e: MouseEvent) => ((e.target as HTMLElement).style.backgroundColor = "#f2f2f2"),
+			onmouseout: (e: MouseEvent) => ((e.target as HTMLElement).style.backgroundColor = "transparent"),
+		}
 	}
 
 	private getModalStyle() {
@@ -232,44 +265,46 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 			maxWidth: "400px",
 			display: "flex",
 			flexDirection: "column",
-			gap: "0px"
-		};
+			gap: "0px",
+		}
 	}
 
 	hideAnimation(): Promise<void> {
-		return Promise.resolve();
+		return Promise.resolve()
 	}
 
 	onClose(): void {}
 
 	backgroundClick(e: MouseEvent): void {
-		if (!this.isLoading) this.closeModal();
+		if (!this.isLoading) this.closeModal()
 	}
 
 	popState(): boolean {
-		if (!this.isLoading) this.closeModal();
-		return false;
+		if (!this.isLoading) this.closeModal()
+		return false
 	}
 
 	callingElement(): HTMLElement | null {
-		return null;
+		return null
 	}
 
 	shortcuts(): Shortcut[] {
-		return [{
-			key: Keys.ESC,
-			exec: () => {
-				if (!this.isLoading) {
-					this.closeModal();
-					return true;
-				}
-				return false;
+		return [
+			{
+				key: Keys.ESC,
+				exec: () => {
+					if (!this.isLoading) {
+						this.closeModal()
+						return true
+					}
+					return false
+				},
+				help: "close_alt",
 			},
-			help: "close_alt"
-		}];
+		]
 	}
 
 	setModalHandle(handle: ModalComponent) {
-		this.modalHandle = handle;
+		this.modalHandle = handle
 	}
 }

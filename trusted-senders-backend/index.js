@@ -7,6 +7,17 @@ const sqlite3 = require("sqlite3").verbose();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+//CORS Config
+const corsOptions = {
+  origin true, //reflects the request origin
+  credentials: true, //required for cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Authorization']
+};
+
+//Apply CORS middleware
+//app.use(cors(corsOptions));
+
 app.use(express.json()); // Middleware to parse JSON bodies
 
 // --- Database Setup ---
