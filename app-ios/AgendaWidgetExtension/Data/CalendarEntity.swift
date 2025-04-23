@@ -9,6 +9,9 @@ import AppIntents
 import TutanotaSharedFramework
 import tutasdk
 
+let DEFAULT_CALENDAR_NAME = "Private"
+let DEFAULT_CALENDAR_COLOR = "23f520"
+
 struct CalendarEntity: AppEntity {
 	static var defaultQuery: CalendarQuery = CalendarQuery()
 
@@ -63,7 +66,12 @@ struct CalendarEntity: AppEntity {
 		)
 		let sdk = try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: urlSession)).login(credentials: credentials)
 		let calendars = await sdk.calendarFacade().getCalendarsRenderData()
-		return calendars.map { calendarId, renderData in CalendarEntity(id: calendarId, name: renderData.name, color: renderData.color) }
+		return calendars.map { calendarId, renderData in
+			CalendarEntity(
+				id: calendarId,
+				name: renderData.name.isEmpty ? DEFAULT_CALENDAR_NAME : renderData.name,
+				color: renderData.color.isEmpty ? DEFAULT_CALENDAR_COLOR : renderData.color)
+		}
 	}
 }
 
