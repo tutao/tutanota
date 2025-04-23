@@ -1,7 +1,6 @@
 import o from "@tutao/otest"
 import { ClientModelInfo, resolveTypeRefFromAppAndTypeNameLegacy, ServerModelInfo, ServerModels } from "../../../../src/common/api/common/EntityFunctions"
-import fs from "node:fs"
-import { AppName, AppNameEnum } from "@tutao/tutanota-utils/lib/TypeRef"
+import { AppName } from "@tutao/tutanota-utils/lib/TypeRef"
 import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Cardinality, Type, ValueType } from "../../../../src/common/api/common/EntityConstants"
 import { assertThrows } from "@tutao/tutanota-test-utils"
@@ -124,47 +123,48 @@ o.spec("EntityFunctionsTest", function () {
 		})
 	})
 
-	o("can read from saved applicationTypesJson file", async () => {
-		const modelsFilePath = "../../tutanota-next/admin/src/db/generated/models.js"
-		let fileContent = fs.readFileSync(modelsFilePath, { encoding: "utf-8" })
-		const jsonContent = fileContent.substring("export default".length, fileContent.length)
-
-		const applicationVersionSum = 284
-		const applicationTypesHashTruncatedBase64 = serverModelInfo.computeApplicationTypesHash(stringToUtf8Uint8Array(jsonContent))
-		const parsedApplicationTypesJson = JSON.parse(jsonContent)
-		serverModelInfo.init(applicationVersionSum, applicationTypesHashTruncatedBase64, parsedApplicationTypesJson)
-
-		o(applicationTypesHashTruncatedBase64).equals(serverModelInfo.getApplicationTypesHash())
-		o(applicationVersionSum).equals(serverModelInfo.getApplicationVersionSum())
-
-		for (const appName of Object.values(AppNameEnum)) {
-			const filteredTypes = filterTypeModelForPublicTypes(serverModelInfo.typeModels[appName].types)
-			ensureSameTypeModel(filteredTypes, clientModelInfo.typeModels[appName])
-		}
-
-		serverModelInfo.initFromJsonUint8Array(stringToUtf8Uint8Array(jsonContent))
-
-		o(applicationTypesHashTruncatedBase64).equals(serverModelInfo.getApplicationTypesHash())
-		o(applicationVersionSum).equals(serverModelInfo.getApplicationVersionSum())
-
-		for (const appName of Object.values(AppNameEnum)) {
-			const filteredTypes = filterTypeModelForPublicTypes(serverModelInfo.typeModels[appName].types)
-			ensureSameTypeModel(filteredTypes, clientModelInfo.typeModels[appName])
-		}
-	})
-
-	o("will be ok if applicationTypesJson file read is successful", async () => {
-		// start empty
-		const serverModelInfo = new ServerModelInfo(clientModelInfo)
-		serverModelInfo.typeModels = emptyTypeModel
-		o(serverModelInfo.computeApplicationVersionSum(serverModelInfo.typeModels)).equals(0)
-
-		const jsonContent = fs.readFileSync("../../tutanota-next/admin/src/db/generated/models.js", { encoding: "utf-8" }).substring("export default".length)
-		serverModelInfo.initFromJsonUint8Array(stringToUtf8Uint8Array(jsonContent))
-
-		// things should be ok
-		o(serverModelInfo.computeApplicationVersionSum(serverModelInfo.typeModels)).equals(clientModelInfo.applicationVersionSum())
-	})
+	// TODO uncomment these tests when models.js is in the repository directory and therefore accessible from CI
+	// o("can read from saved applicationTypesJson file", async () => {
+	// 	const modelsFilePath = "../../tutanota-next/admin/src/db/generated/models.js"
+	// 	let fileContent = fs.readFileSync(modelsFilePath, { encoding: "utf-8" })
+	// 	const jsonContent = fileContent.substring("export default".length, fileContent.length)
+	//
+	// 	const applicationVersionSum = 284
+	// 	const applicationTypesHashTruncatedBase64 = serverModelInfo.computeApplicationTypesHash(stringToUtf8Uint8Array(jsonContent))
+	// 	const parsedApplicationTypesJson = JSON.parse(jsonContent)
+	// 	serverModelInfo.init(applicationVersionSum, applicationTypesHashTruncatedBase64, parsedApplicationTypesJson)
+	//
+	// 	o(applicationTypesHashTruncatedBase64).equals(serverModelInfo.getApplicationTypesHash())
+	// 	o(applicationVersionSum).equals(serverModelInfo.getApplicationVersionSum())
+	//
+	// 	for (const appName of Object.values(AppNameEnum)) {
+	// 		const filteredTypes = filterTypeModelForPublicTypes(serverModelInfo.typeModels[appName].types)
+	// 		ensureSameTypeModel(filteredTypes, clientModelInfo.typeModels[appName])
+	// 	}
+	//
+	// 	serverModelInfo.initFromJsonUint8Array(stringToUtf8Uint8Array(jsonContent))
+	//
+	// 	o(applicationTypesHashTruncatedBase64).equals(serverModelInfo.getApplicationTypesHash())
+	// 	o(applicationVersionSum).equals(serverModelInfo.getApplicationVersionSum())
+	//
+	// 	for (const appName of Object.values(AppNameEnum)) {
+	// 		const filteredTypes = filterTypeModelForPublicTypes(serverModelInfo.typeModels[appName].types)
+	// 		ensureSameTypeModel(filteredTypes, clientModelInfo.typeModels[appName])
+	// 	}
+	// })
+	//
+	// o("will be ok if applicationTypesJson file read is successful", async () => {
+	// 	// start empty
+	// 	const serverModelInfo = new ServerModelInfo(clientModelInfo)
+	// 	serverModelInfo.typeModels = emptyTypeModel
+	// 	o(serverModelInfo.computeApplicationVersionSum(serverModelInfo.typeModels)).equals(0)
+	//
+	// 	const jsonContent = fs.readFileSync("../../tutanota-next/admin/src/db/generated/models.js", { encoding: "utf-8" }).substring("export default".length)
+	// 	serverModelInfo.initFromJsonUint8Array(stringToUtf8Uint8Array(jsonContent))
+	//
+	// 	// things should be ok
+	// 	o(serverModelInfo.computeApplicationVersionSum(serverModelInfo.typeModels)).equals(clientModelInfo.applicationVersionSum())
+	// })
 
 	o("resolveTypeRefFromAppAndTypeNameLegacy resolves the TypeRef successfully", async () => {
 		const app = "tutanota" as AppName
