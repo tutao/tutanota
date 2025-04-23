@@ -417,6 +417,11 @@ o.spec("MailIndexer", () => {
 	o.spec("entity event handlers", () => {
 		const mailListId = "mail-list"
 		const mailIdTuple: IdTuple = [mailListId, mailId]
+		const receivedDate: Date = new Date(now)
+
+		function setCurrentIndexTimestamp(timestamp: number) {
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, timestamp]]))
+		}
 
 		function addEntities(mailState: MailState = MailState.RECEIVED): MailWithDetailsAndAttachments {
 			const mailDetailsBlobId = ["details-list-id", "details-id"] as IdTuple
@@ -427,6 +432,7 @@ o.spec("MailIndexer", () => {
 				attachmentIds: [["file-list-id", "file-id"]],
 			})
 			mail.state = mailState
+			mail.receivedDate = receivedDate
 
 			if (mail.state === MailState.DRAFT) {
 				const mailDetailsListEntity = createTestEntity(MailDetailsDraftTypeRef, {
@@ -470,14 +476,23 @@ o.spec("MailIndexer", () => {
 				await indexer.afterMailCreated(mailIdTuple)
 				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
 			})
+			o.test("no-op if new email is out of index range", async () => {
+				addEntities()
+				setCurrentIndexTimestamp(now + 1)
+				await initWithEnabled(true)
+				await indexer.afterMailCreated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
 			o.test("creates if mailIndexing is enabled", async () => {
 				const entities = addEntities()
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
 				await indexer.afterMailCreated(mailIdTuple)
 				verify(backend.onMailCreated(entities))
 			})
 			o.test("no-op if draft details fail to download", async () => {
 				const entities = addEntities(MailState.DRAFT)
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
 				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
@@ -485,6 +500,7 @@ o.spec("MailIndexer", () => {
 			})
 			o.test("no-op if non-draft details fail to download", async () => {
 				const entities = addEntities(MailState.RECEIVED)
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
 				entityMock.setBlobElementException(assertNotNull(entities.mail.mailDetails), new NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
@@ -492,6 +508,7 @@ o.spec("MailIndexer", () => {
 			})
 			o.test("no-op if files fail to download", async () => {
 				const entities = addEntities(MailState.RECEIVED)
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
 				when(mailFacade.loadAttachments(entities.mail)).thenReject(new NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
@@ -501,6 +518,14 @@ o.spec("MailIndexer", () => {
 
 		o.spec("afterMailUpdated", () => {
 			o.test("no-op if mailIndexing is disabled", async () => {
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(false)
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if updated email is out of range", async () => {
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(false)
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
@@ -508,6 +533,7 @@ o.spec("MailIndexer", () => {
 			})
 			o.test("full update if draft", async () => {
 				const entities = addEntities(MailState.DRAFT)
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailUpdated(entities))
@@ -515,6 +541,7 @@ o.spec("MailIndexer", () => {
 			})
 			o.test("no-op if draft details fail to download", async () => {
 				const entities = addEntities(MailState.DRAFT)
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
 				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
@@ -523,6 +550,7 @@ o.spec("MailIndexer", () => {
 			})
 			o.test("no-op if draft files fail to download", async () => {
 				const entities = addEntities(MailState.DRAFT)
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
 				when(mailFacade.loadAttachments(entities.mail)).thenReject(new NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
@@ -531,6 +559,7 @@ o.spec("MailIndexer", () => {
 			})
 			o.test("partial update if non-draft", async () => {
 				const entities = addEntities(MailState.RECEIVED)
+				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
