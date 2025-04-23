@@ -265,7 +265,9 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		// CryptoError is needed on the main thread in order to check errors
 		// We have to define both the entry point and the files referenced from it which is annoying
 		isIn("packages/tutanota-crypto/dist/error") ||
-		isIn("packages/tutanota-crypto/dist/misc/CryptoError.js")
+		isIn("packages/tutanota-crypto/dist/misc/CryptoError.js") ||
+		// TODO: Split EntityFunctions to expose crypto only to the worker
+		isIn("packages/tutanota-crypto/dist/")
 	) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway
