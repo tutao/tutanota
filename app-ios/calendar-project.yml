@@ -30,6 +30,8 @@ targets:
         name: "build-calendar-app"
         type: "folder"
         buildPhase: "resources"
+      - path: "AgendaWidgetExtension/WidgetActionsIntent.swift"
+        buildPhase: "sources"
     settings:
       base:
         PRODUCT_MODULE_NAME: "calendar"
@@ -127,6 +129,26 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.intents-service
         CFDisplayName: WidgetConfig
+  WidgetActionsIntent:
+    templates: [ "formatAndLint" ]
+    type: "app-extension"
+    sources: "WidgetActionsIntent"
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: "WidgetActionsIntent"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).WidgetActionsIntent"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+      groups:
+        - "codeSigning"
+    dependencies:
+      - sdk: Intents.framework
+      - target: TutanotaSharedFramework
+    info:
+      path: "WidgetActionsIntent/Info.plist"
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.intents-service
+        CFDisplayName: WidgetActions
   tutanotaTests:
     templates: [ "formatAndLint" ]
     type: "bundle.unit-test"
