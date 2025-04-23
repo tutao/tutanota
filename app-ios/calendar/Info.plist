@@ -34,8 +34,16 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>284.250430.0</string>
+	<key>INIntentsSupported</key>
+	<array>
+		<string>WidgetActionIntent</string>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tutamail</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
