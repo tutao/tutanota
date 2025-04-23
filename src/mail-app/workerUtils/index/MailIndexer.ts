@@ -567,6 +567,12 @@ export class MailIndexer {
 	async afterMailCreated(mailId: IdTuple) {
 		if (!this._mailIndexingEnabled) return
 
+		const newMail = await this.entityClient.load(MailTypeRef, mailId)
+		if (!this.canIndexMail(newMail)) {
+			return
+		}
+
+		// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
 		const newMailData = await this.downloadNewMailData(mailId)
 		if (newMailData) {
 			await this.backend.onMailCreated(newMailData)
@@ -578,6 +584,9 @@ export class MailIndexer {
 
 		// At this point, the mail is cached, so there's no way we could not get it outside of something horrible happening
 		const updatedMail = await this.entityClient.load(MailTypeRef, mailId)
+		if (!this.canIndexMail(updatedMail)) {
+			return
+		}
 
 		if (updatedMail.state === MailState.DRAFT) {
 			const newMailData = await this.downloadNewMailData(mailId)
@@ -587,6 +596,11 @@ export class MailIndexer {
 		} else {
 			await this.backend.onPartialMailUpdated(updatedMail)
 		}
+	}
+
+	private canIndexMail(mail: Mail): boolean {
+		// currentIndexTimestamp should be set at this point, or else backend would still be null
+		return mail.receivedDate.getTime() >= this.currentIndexTimestamp
 	}
 
 	private get backend(): MailIndexerBackend {
