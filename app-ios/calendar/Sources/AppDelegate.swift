@@ -114,8 +114,11 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 		case CALENDAR_SHARE_SCHEME: Task { try! await self.viewController.handleShare(url) }
 		case TUTA_CALENDAR_INTEROP_SCHEME:
 			Task {
-				guard let sourceApp = options[UIApplication.OpenURLOptionsKey.sourceApplication] else { return }
-				if String(describing: sourceApp).starts(with: "de.tutao") { return try! await self.viewController.handleInterop(url) }
+				let sourceApp = options[UIApplication.OpenURLOptionsKey.sourceApplication]
+
+				if (sourceApp == nil) { return }
+
+				if String(describing: sourceApp!).starts(with: "de.tutao") { return try! await self.viewController.handleInterop(url) }
 
 				TUTSLog("Tried to open Mail App from an unknown source!")
 			}

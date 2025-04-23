@@ -5,7 +5,10 @@ import UIKit
 import UserNotifications
 import WebKit
 
-public let OPEN_SETTINGS = "settings"
+public enum InteropActions: String {
+	case openSettings = "settings"
+	case widget = "widget"
+}
 
 /// Main screen of the app.
 class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
@@ -244,21 +247,40 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		}
 	}
 
-	private func getInteropInfo(url: URL) async -> URLQueryItem? {
+	private func getInteropAction(url: URL) async -> URLQueryItem? {
 		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
 
-		return components.queryItems?.first(where: { $0.name == OPEN_SETTINGS })
+		return components.queryItems?.first
 	}
 
 	func handleInterop(_ url: URL) async throws {
-		guard let info = await getInteropInfo(url: url) else {
+		guard let interopAction = await getInteropAction(url: url) else {
 			TUTSLog("unable to get interop info from url: \(url)")
 			return
 		}
 
-		if info.name == OPEN_SETTINGS {
-			do { try await self.bridge.commonNativeFacade.openSettings(info.value!) } catch { TUTSLog("failed to open settings: \(error)") }
+		do {
+			if interopAction.name == InteropActions.openSettings.rawValue {
+				try await self.bridge.commonNativeFacade.openSettings(interopAction.value!)
+			} else if interopAction.name == InteropActions.widget.rawValue {
+				try await handleWidgetActions(url, interopAction)
+			}
+		} catch {
+			TUTSLog("Failed to handle interop comunication for \(interopAction.name)=\(interopAction.value ?? ""): \(error)")
 		}
+	}
+
+	func handleWidgetActions(_ url: URL, _ interopAction: URLQueryItem) async throws {
+		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw TutanotaError(message: "Invalid Widget Action URL") }
+		guard let queryItems = components.queryItems else { throw TutanotaError(message: "Invalid Widget Action URL") }
+
+		guard let userId = queryItems.first(where: {$0.name == "userId"})?.value else { throw TutanotaError(message: "Missing userId for Widget Action URL") }
+		guard let date = queryItems.first(where: {$0.name == "date"})?.value else { throw TutanotaError(message: "Missing date for Widget Action URL") }
+		let eventId = queryItems.first(where: {$0.name == "eventId"})?.value
+
+		let action = interopAction.value == WidgetActions.agenda.rawValue ? CalendarOpenAction.agenda : CalendarOpenAction.event_editor
+
+		try await self.bridge.commonNativeFacade.openCalendar(userId, action, date, eventId)
 	}
 
 	override var preferredStatusBarStyle: UIStatusBarStyle { if self.isDarkTheme { return .lightContent } else { return .darkContent } }

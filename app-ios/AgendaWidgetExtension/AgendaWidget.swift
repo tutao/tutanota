@@ -114,16 +114,20 @@ struct AgendaWidgetEntryView : View {
 		GeometryReader { _ in
 			VStack {
 				HStack(alignment: .top) {
-					VStack(alignment: .leading, spacing: titleBottomPadding) {
-						if(hasAllDayEvents) {
-							AllDayHeader(allDayEvents: allDayEvents, weekday: weekday, day: day)
-						} else {
-							Text(day).fontWeight(.bold).font(.system(size: 40)).padding(.top, -9)
-							Text(weekday).font(.system(size: 16))
+					Button(intent:  WidgetActionsIntent(userId: "OL-HZQV----4", date: Date(), action: WidgetActions.agenda)) {
+						HStack {
+							VStack(alignment: .leading, spacing: titleBottomPadding) {
+								if(hasAllDayEvents) {
+									AllDayHeader(allDayEvents: allDayEvents, weekday: weekday, day: day)
+								} else {
+									Text(day).fontWeight(.bold).font(.system(size: 40)).padding(.top, -9)
+									Text(weekday).font(.system(size: 16))
+								}
+							}.foregroundStyle(Color(.onSurface))
+							Spacer()
 						}
-					}.foregroundStyle(Color(.onSurface))
-					Spacer()
-					Button(action: {}){
+					}.buttonStyle(.plain)
+					Button(intent: WidgetActionsIntent(userId: "OL-HZQV----4", date: Date(), action: WidgetActions.eventEditor)) {
 						Image(systemName: "plus").fontWeight(.medium).foregroundStyle(Color(.onPrimary)).font(.system(size: 20))
 					}.buttonStyle(.plain).frame(width: 44, height: 44).background(Color(.primary)).clipShape(.rect(cornerRadii: .init(topLeading: 8,bottomLeading: 8,bottomTrailing: 8,topTrailing: 8)))
 				}
