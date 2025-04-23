@@ -9,7 +9,9 @@ TARGETS=(
 # XCode tries to be helpful and overwrites the PATH. Reset that.
 PATH="$(bash -l -c 'echo $PATH')"
 
-
+# Export the iOS target version as an environment variable
+# (needed for linking if make_ios.sh is run manually)
+export IPHONEOS_DEPLOYMENT_TARGET="17.2"
 
 for target in "${TARGETS[@]}"; do
   OUT_DIR="out/${target}"
