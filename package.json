@@ -31,9 +31,7 @@
 		"check": "npm run style:check && npm run lint:check",
 		"fix": "npm run style:fix && npm run lint:fix",
 		"trace-imports": "node --import ./buildSrc/review/import-hooks.js",
-		"review-import-trace": "node ./buildSrc/review/review.js import-trace.json",
-		"build-wasm-local-test": "wasm-pack build --dev --target web ./tuta-sdk/rust/crypto-primitives",
-		"start-wasm-web-server": "cd ./tuta-sdk/rust/crypto-primitives && jwebserver"
+		"review-import-trace": "node ./buildSrc/review/review.js import-trace.json"
 	},
 	"dependencies": {
 		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#536bc9bd736986828d5125e0278ba271ebc6006c",

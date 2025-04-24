@@ -7,13 +7,14 @@ import { preludeEnvPlugin } from "./env.js"
 import { fileURLToPath } from "node:url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
-import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { domainConfigs } from "./DomainConfigs.js"
-import { sh } from "./sh.js"
 import { rolldown } from "rolldown"
 import { resolveLibs } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
+import { buildRuntimePackages } from "./packageBuilderFunctions.js"
+import { sh } from "./sh.js"
+import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "./cryptoPrimitivesUtils.js"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -37,10 +38,14 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 	console.log("Building dev for", app)
 
 	if (clean) {
-		await runStep("Clean", async () => {
-			await fs.emptyDir(buildDir)
-			await fs.rm(liboqsIncludeDir, { recursive: true, force: true })
-		})
+		await runStep("Clean", () =>
+			// parallelize rm
+			Promise.all([
+				fs.emptyDir(buildDir),
+				fs.rm(liboqsIncludeDir, { recursive: true, force: true }),
+				fs.rm(WASM_PACK_OUT_DIR, { recursive: true, force: true }),
+			]),
+		)
 	}
 
 	await runStep("Packages", async () => {
@@ -113,6 +118,10 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 	const entryFile = isCalendarBuild ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarBuild ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 
+	// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
+	// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
+	await copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir: resolvedBuildDir })
+
 	await runStep("Web: Rolldown", async () => {
 		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
 		const bundle = await rolldown({
@@ -132,13 +141,13 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 							name: "liboqs.wasm",
 							command: "make -f Makefile_liboqs build",
 							workingDir: "libs/webassembly/",
-							outputPath: path.join(resolvedBuildDir, `/wasm/liboqs.wasm`),
+							outputPath: path.join(resolvedBuildDir, `liboqs.wasm`),
 						},
 						{
 							name: "argon2.wasm",
 							command: "make -f Makefile_argon2 build",
 							workingDir: "libs/webassembly/",
-							outputPath: path.join(resolvedBuildDir, `/wasm/argon2.wasm`),
+							outputPath: path.join(resolvedBuildDir, `argon2.wasm`),
 						},
 					],
 				}),
@@ -162,8 +171,8 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 		await fs.promises.writeFile(
 			`${buildDir}/worker-bootstrap.js`,
 			`import "./polyfill.js"
-import "./worker.js"
-`,
+	import "./worker.js"
+	`,
 		)
 	})
 }
