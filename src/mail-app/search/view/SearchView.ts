@@ -1,10 +1,9 @@
 import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
-import type { MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { lang } from "../../../common/misc/LanguageViewModel"
+import { InfoLink, lang, MaybeTranslation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { NavButton, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
@@ -115,6 +114,7 @@ import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MoveMode } from "../../mail/model/MailModel"
+import { Card } from "../../../common/gui/base/Card"
 
 assertMainOrNode()
 
@@ -305,6 +305,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					name: "filter_label",
 				},
 				this.renderMailFilterSection(),
+				this.renderAppPromo(),
 			)
 		} else if (isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
 			return m(SidebarSection, { name: "filter_label" }, this.renderCalendarFilterSection())
@@ -312,6 +313,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			// contacts don't have filters
 			return null
 		}
+	}
+
+	private renderAppPromo(): Children {
+		const searchText = renderSearchInOurApps()
+		if (searchText == null) {
+			return null
+		}
+		return m("div.ml-button.mt-m.small.plr-button.content-fg", m(Card, searchText))
 	}
 
 	oncreate(): void {
@@ -326,14 +335,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		keyManager.unregisterShortcuts(this.shortcuts())
 	}
 
-	private renderMobileListHeader(header: AppHeaderAttrs) {
+	private renderMobileListHeader(header: AppHeaderAttrs): Children {
 		return this.searchViewModel.listModel && this.searchViewModel.listModel.state.inMultiselect
 			? this.renderMultiSelectMobileHeader()
 			: this.renderMobileListActionsHeader(header)
 	}
 
-	private renderMobileListActionsHeader(header: AppHeaderAttrs) {
-		const rightActions = []
+	private renderMobileListActionsHeader(header: AppHeaderAttrs): Children {
+		const rightActions: Children[] = []
 
 		if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
 			rightActions.push(this.renderFilterButton())
@@ -369,7 +378,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		})
 	}
 
-	private renderMultiSelectMobileHeader() {
+	private renderMultiSelectMobileHeader(): Children {
 		return m(MultiselectMobileHeader, {
 			...selectionAttrsForList(this.searchViewModel.listModel),
 			message:
@@ -632,7 +641,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.getContactPreviewData(contactId).reload().then(m.redraw)
 	}
 
-	private renderEventPreview(event: CalendarEvent) {
+	private renderEventPreview(event: CalendarEvent): Children {
 		if (isBirthdayEvent(event.uid)) {
 			const idParts = event._id[1].split("#")
 
@@ -649,7 +658,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return null
 	}
 
-	private renderContactPreview(contact: Contact) {
+	private renderContactPreview(contact: Contact): Children {
 		return m(
 			".fill-absolute.flex.col.overflow-y-scroll",
 			m(ContactCardViewer, {
@@ -663,7 +672,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		)
 	}
 
-	private renderEventDetails(selectedEvent: CalendarEvent) {
+	private renderEventDetails(selectedEvent: CalendarEvent): Children {
 		return m(
 			".height-100p.overflow-y-scroll.mb-l.fill-absolute.pb-l",
 			m(
@@ -699,7 +708,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		)
 	}
 
-	private renderBottomNav() {
+	private renderBottomNav(): Children {
 		if (!styles.isSingleColumnLayout()) return m(BottomNav)
 
 		const { conversationViewModel } = this.searchViewModel
@@ -822,7 +831,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private searchBarPlaceholder() {
+	private searchBarPlaceholder(): string {
 		const route = m.route.get()
 		if (route.startsWith("/search/calendar")) {
 			return lang.get("searchCalendar_placeholder")
@@ -986,7 +995,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private confirmMailSearch() {
+	private confirmMailSearch(): Promise<boolean> {
 		return Dialog.confirm("continueSearchMailbox_msg", "search_label")
 	}
 
@@ -1325,4 +1334,16 @@ function getCurrentSearchMode(): SearchCategoryTypes {
 async function newMailEditor(): Promise<Dialog> {
 	const [mailboxDetails, { newMailEditor }] = await Promise.all([locator.mailboxModel.getUserMailboxDetails(), import("../../mail/editor/MailEditor")])
 	return newMailEditor(mailboxDetails)
+}
+
+export function renderSearchInOurApps(): Children | null {
+	if (!isBrowser()) {
+		return null
+	} else {
+		return m.trust(
+			lang.get("searchInOurApps_msg", {
+				"{link}": `<a href="${InfoLink.Download}" target="_blank">${lang.get("searchInOurAppsLinkText_msg")}</a>`,
+			}),
+		)
+	}
 }
