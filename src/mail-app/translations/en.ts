@@ -1997,6 +1997,8 @@ export default {
         "yourMessage_label": "Your message",
         "you_label": "You",
         "zoomIn_action": "Zoom In",
-        "zoomOut_action": "Zoom Out"
+        "zoomOut_action": "Zoom Out",
+        "searchInOurApps_msg": "Faster and better email searching is available in {link}!",
+        "searchInOurAppsLinkText_msg": "our apps"
     }
 }

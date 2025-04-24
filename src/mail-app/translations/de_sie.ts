@@ -2002,5 +2002,7 @@ export default {
         "you_label": "Sie",
         "zoomIn_action": "Hereinzoomen",
         "zoomOut_action": "Herauszoomen",
+        "searchInOurApps_msg": "Faster and better email searching is available in {link}!",
+        "searchInOurAppsLinkText_msg": "our apps"
     }
 }
