@@ -16,10 +16,10 @@ import { UsageTestController } from "@tutao/tutanota-usagetests"
 import { TitleSection } from "../../gui/TitleSection"
 import { Card } from "../../gui/base/Card"
 import { renderFingerprintAsQrCode, renderFingerprintAsText } from "./FingerprintRenderers"
-import { locator } from "../../api/main/CommonLocator"
 import { MenuTitle } from "../../gui/titles/MenuTitle"
 import { theme } from "../../gui/theme"
 import { FingerprintRow } from "./FingerprintRow"
+import { styles } from "../../gui/styles.js"
 
 /**
  * Section in user settings to deal with everything related to key verification.
@@ -121,8 +121,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderQrTextMethod(selfMailAddress: string, selfFingerprint: PublicKeyFingerprint): Children {
-		const currentTheme = locator.themeController.getCurrentTheme()
-		const isLightTheme = currentTheme.themeId === "light" || currentTheme.themeId === "light_secondary"
+		const isLightTheme = styles.isLightTheme()
 
 		const qrCodeGraphic = m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))
 		return m(Card, {}, [

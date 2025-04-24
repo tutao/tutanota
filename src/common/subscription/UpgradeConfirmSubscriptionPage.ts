@@ -204,7 +204,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			m(
 				".flex-center.full-width.pt-l",
 				m(LoginButton, {
-					label: isAppStorePayment ? lang.makeTranslation("", "Checkout with App Store") : "buy_action",
+					label: isAppStorePayment ? "checkoutWithAppStore_action" : "buy_action",
 					class: "small-login-button",
 					onclick: () => this.upgrade(attrs.data),
 				}),
