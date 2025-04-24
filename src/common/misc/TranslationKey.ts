@@ -2016,3 +2016,5 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "storedDataDate_label"
 	| "localDataSection_msg"
+	| "searchInOurApps_msg"
+	| "searchInOurAppsLinkText_msg"
