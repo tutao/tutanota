@@ -8,53 +8,58 @@
 import WidgetKit
 import SwiftUI
 import TutanotaSharedFramework
-
-struct CalendarEventData {
-	var id: String
-	var summary: String
-	var startDate: Date
-	var endDate: Date
-	var calendarColor: String
-}
+import tutasdk
 
 struct SimpleEntry: TimelineEntry {
 	let date: Date
 	let configuration: ConfigurationAppIntent
-	let events: [CalendarEventData]
+	let events: ([CalendarEventData], [CalendarEventData])
+	let errors: [String]
 }
 
 struct AgendaProvider: AppIntentTimelineProvider {
 	func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
-		let timeZone = "Etc/GMT"
 		var entries: [SimpleEntry] = []
 
 		let currentDate = Date()
-		for hourOffset in 0 ..< 5 {
-			let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-			let entry = SimpleEntry(date: entryDate, configuration: configuration, events: [
-		  CalendarEventData(id: "ev1", summary: "Gym", startDate: date(2025, 4, 23, 9, 0, timeZone), endDate: date(2025, 4, 23, 10, 0, timeZone), calendarColor: "89cff0"),
-		  CalendarEventData(id: "ev2", summary: "Meeting", startDate: date(2025, 4, 23, 10, 0, timeZone), endDate: date(2025, 4, 23, 11, 0, timeZone), calendarColor: "20c4f0"),
-		  CalendarEventData(id: "ev3", summary: "Lunch", startDate: date(2025, 4, 23, 11, 0, timeZone), endDate: date(2025, 4, 23, 13, 0, timeZone), calendarColor: "89a83b"),
-		  CalendarEventData(id: "ev4", summary: "Concert w/ Mark", startDate: date(2025, 4, 23, 13, 0, timeZone), endDate: date(2025, 4, 23, 19, 0, timeZone), calendarColor: "c476fc"),
-		  CalendarEventData(id: "ev5", summary: "Dinner", startDate: date(2025, 4, 23, 19, 0, timeZone), endDate: date(2025, 4, 23, 20, 0, timeZone), calendarColor: "a91a2f")
-	  ])
-			entries.append(entry)
+		let startOfTomorrow = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: currentDate)!)
+
+		// FIXE Add an entry with missing acount error
+		guard let userId = configuration.account?.id else { return Timeline(entries: [], policy: .never) }
+		guard let calendars = configuration.calendars else { return Timeline(entries: [], policy: .never) }
+
+		do {
+			let model = try await WidgetModel(userId: userId)
+			let (normalEvents, longEvents) = try await model.getEventsForCalendars(calendars, date: currentDate)
+			let frameOffset = 60.0 * 15 // 60 seconds * 15 = 15 minutes
+
+			for date in stride(from: currentDate, to: startOfTomorrow, by: frameOffset) {
+				let filteredNormalEvents = normalEvents.filter { $0.endDate.timeIntervalSince1970 >= date.timeIntervalSince1970 }
+				let entry = SimpleEntry(date: date, configuration: configuration, events: (filteredNormalEvents, longEvents), errors: [])
+				entries.append(entry)
+
+				if filteredNormalEvents.isEmpty { break }
+			}
+		} catch {
+			// FIXE Clear entries and add one with error
+			TUTSLog("Error loading events with user \(userId) for widget: \(error)")
 		}
 
-		return Timeline(entries: entries, policy: .atEnd)
+		return Timeline(entries: entries, policy: .after(startOfTomorrow))
 	}
 
     func placeholder(in context: Context) -> SimpleEntry {
-		SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: [])
+		SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: ([], []), errors: [])
     }
 
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-		SimpleEntry(date: Date(), configuration: configuration, events: [])
+		SimpleEntry(date: Date(), configuration: configuration, events: ([], []), errors: [])
     }
 }
 
 struct AgendaWidgetEntryView : View {
-	var events: [CalendarEventData]
+	var normalEvents: [CalendarEventData]
+	var allDayEvents: [CalendarEventData]
 
 	private let eventTimeFormatter: DateFormatter = {
 			let formatter = DateFormatter()
@@ -63,28 +68,8 @@ struct AgendaWidgetEntryView : View {
 			return formatter
 	}()
 
-	private func isAllDayEventToday(_ event: CalendarEventData) -> Bool {
-		let eventStartDate = event.startDate
-		let eventEndDate = event.endDate
-
-		return isAllDayEvent(startDate: eventStartDate, endDate: eventEndDate) || isAllDayOnReferenceDate(startDate: eventStartDate, endDate: eventEndDate, referenceDate: Date())
-	}
-
-	private func extractNonAndAllDayEvents(events: [CalendarEventData]) -> ([CalendarEventData],
-																			[CalendarEventData]) {
-		var allDayEvents: [CalendarEventData] = []
-		var nonAllDayEvents: [CalendarEventData] = []
-
-		events.forEach {
-			if isAllDayEventToday($0) { allDayEvents.append($0) }
-			else { nonAllDayEvents.append($0) }
-		}
-
-		return (nonAllDayEvents, allDayEvents)
-	}
-
 	private func AllDayHeader(allDayEvents: [CalendarEventData], weekday: String, day: String) -> some View {
-		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEvents.first?.calendarColor ?? "#013E85") ?? UIColor(.primary)
+		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEvents.first?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
 		let foregroundColor: Color = if allDayBackgroundColor.getLuminance() > 0.5 { .black } else { .white }
 
 		return Group {
@@ -102,7 +87,6 @@ struct AgendaWidgetEntryView : View {
 	}
 
 	var body: some View {
-		let (nonAllDayEvents, allDayEvents) = extractNonAndAllDayEvents(events: events)
 		let hasAllDayEvents = !allDayEvents.isEmpty
 		let titleBottomPadding: CGFloat = if (hasAllDayEvents) {0} else {-8}
 
@@ -132,8 +116,8 @@ struct AgendaWidgetEntryView : View {
 					}.buttonStyle(.plain).frame(width: 44, height: 44).background(Color(.primary)).clipShape(.rect(cornerRadii: .init(topLeading: 8,bottomLeading: 8,bottomTrailing: 8,topTrailing: 8)))
 				}
 				LazyVStack(alignment: .leading, spacing: 4){
-					ForEach(nonAllDayEvents, id: \.id){ event in
-						let calendarColor = UIColor(hex: "#" + event.calendarColor) ?? .white
+					ForEach(normalEvents, id: \.id){ event in
+						let calendarColor = UIColor(hex: event.calendarColor) ?? .white
 						VStack {
 							HStack {
 								VStack{
@@ -157,7 +141,7 @@ struct AgendaWidget: Widget {
 
     var body: some WidgetConfiguration {
 		AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: AgendaProvider()) {
-			entry in AgendaWidgetEntryView(events: entry.events)
+			entry in AgendaWidgetEntryView(normalEvents: entry.events.0, allDayEvents: entry.events.1)
 		}
 		.configurationDisplayName("Agenda")
 		.description("See the upcoming events for the current day")
@@ -168,25 +152,23 @@ struct AgendaWidget: Widget {
 #Preview("With All Day Event", as: .systemLarge, widget: { AgendaWidget() }, timeline: {
 	let timeZone = "Etc/GMT"
 
-	SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: [
-		CalendarEventData(id: "ev0", summary: "Mark is in Town", startDate: date(2025, 4, 23, 0, 0, timeZone), endDate: date(2025, 4, 24, 0, 0, timeZone), calendarColor: "ED7D99"),
-		CalendarEventData(id: "ev1", summary: "Gym", startDate: date(2025, 4, 23, 9, 0, timeZone), endDate: date(2025, 4, 23, 10, 0, timeZone), calendarColor: "89cff0"),
-		CalendarEventData(id: "ev2", summary: "Meeting", startDate: date(2025, 4, 23, 10, 0, timeZone), endDate: date(2025, 4, 23, 11, 0, timeZone), calendarColor: "20c4f0"),
-		CalendarEventData(id: "ev3", summary: "Lunch", startDate: date(2025, 4, 23, 11, 0, timeZone), endDate: date(2025, 4, 23, 13, 0, timeZone), calendarColor: "89a83b"),
-		CalendarEventData(id: "ev4", summary: "Concert w/ Mark", startDate: date(2025, 4, 23, 13, 0, timeZone), endDate: date(2025, 4, 23, 19, 0, timeZone), calendarColor: "c476fc"),
-		CalendarEventData(id: "ev5", summary: "Dinner", startDate: date(2025, 4, 23, 19, 0, timeZone), endDate: date(2025, 4, 23, 20, 0, timeZone), calendarColor: "a91a2f"),
-		CalendarEventData(id: "ev6", summary: "Spring Festival", startDate: date(2025, 4, 20, 9, 0, timeZone), endDate: date(2025, 4, 25, 10, 0, timeZone), calendarColor: "89cff0")
-	])
-})
-
-#Preview("Without All Day Event", as: .systemLarge, widget: { AgendaWidget() }, timeline: {
-	let timeZone = "Etc/GMT"
-
-	SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: [
+	SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: ([
 		CalendarEventData(id: "ev1", summary: "Gym", startDate: date(2025, 4, 23, 9, 0, timeZone), endDate: date(2025, 4, 23, 10, 0, timeZone), calendarColor: "89cff0"),
 		CalendarEventData(id: "ev2", summary: "Meeting", startDate: date(2025, 4, 23, 10, 0, timeZone), endDate: date(2025, 4, 23, 11, 0, timeZone), calendarColor: "20c4f0"),
 		CalendarEventData(id: "ev3", summary: "Lunch", startDate: date(2025, 4, 23, 11, 0, timeZone), endDate: date(2025, 4, 23, 13, 0, timeZone), calendarColor: "89a83b"),
 		CalendarEventData(id: "ev4", summary: "Concert w/ Mark", startDate: date(2025, 4, 23, 13, 0, timeZone), endDate: date(2025, 4, 23, 19, 0, timeZone), calendarColor: "c476fc"),
 		CalendarEventData(id: "ev5", summary: "Dinner", startDate: date(2025, 4, 23, 19, 0, timeZone), endDate: date(2025, 4, 23, 20, 0, timeZone), calendarColor: "a91a2f")
-	])
+	], [CalendarEventData(id: "ev0", summary: "Mark is in Town", startDate: date(2025, 4, 23, 0, 0, timeZone), endDate: date(2025, 4, 24, 0, 0, timeZone), calendarColor: "ED7D99"), CalendarEventData(id: "ev6", summary: "Spring Festival", startDate: date(2025, 4, 20, 9, 0, timeZone), endDate: date(2025, 4, 25, 10, 0, timeZone), calendarColor: "89cff0")]), errors: [])
+})
+
+#Preview("Without All Day Event", as: .systemLarge, widget: { AgendaWidget() }, timeline: {
+	let timeZone = "Etc/GMT"
+
+	SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: ([
+		CalendarEventData(id: "ev0", summary: "Gym", startDate: date(2025, 4, 23, 9, 0, timeZone), endDate: date(2025, 4, 23, 10, 0, timeZone), calendarColor: "89cff0"),
+		CalendarEventData(id: "ev1", summary: "Meeting", startDate: date(2025, 4, 23, 10, 0, timeZone), endDate: date(2025, 4, 23, 11, 0, timeZone), calendarColor: "20c4f0"),
+		CalendarEventData(id: "ev2", summary: "Lunch", startDate: date(2025, 4, 23, 11, 0, timeZone), endDate: date(2025, 4, 23, 13, 0, timeZone), calendarColor: "89a83b"),
+		CalendarEventData(id: "ev3", summary: "Concert w/ Mark", startDate: date(2025, 4, 23, 13, 0, timeZone), endDate: date(2025, 4, 23, 19, 0, timeZone), calendarColor: "c476fc"),
+		CalendarEventData(id: "ev4", summary: "Dinner", startDate: date(2025, 4, 23, 19, 0, timeZone), endDate: date(2025, 4, 23, 20, 0, timeZone), calendarColor: "a91a2f")
+	], []), errors: [])
 })

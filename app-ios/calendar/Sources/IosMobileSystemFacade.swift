@@ -3,15 +3,17 @@ import Contacts
 import Foundation
 import StoreKit
 import TutanotaSharedFramework
+import WidgetKit
 
 private let APP_LOCK_METHOD = "AppLockMethod"
 
 class IosMobileSystemFacade: MobileSystemFacade {
 	func requestWidgetRefresh() async throws {
-		// TODO: Implement widget refresh for iOS Widget
+		WidgetCenter.shared.reloadAllTimelines()
 	}
 	func storeServerRemoteOrigin(_ origin: String) async throws {
-		// TODO: Implement store server remote origin for iOS Widget
+		let remoteStorage = RemoteStorage(userPreferencesProvider: UserPreferencesProviderImpl())
+		remoteStorage.storeOrigin(origin)
 	}
 	private let viewController: ViewController
 	private let userPreferencesProvider: UserPreferencesProvider
