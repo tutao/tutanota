@@ -24,6 +24,7 @@ import { getContactListName } from "../../common/contactsFunctionality/ContactUt
 
 import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
 import { mailLocator } from "../mailLocator.js"
+import { renderSearchInOurApps } from "./view/SearchView"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -42,24 +43,37 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	}
 
 	renderResults(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
-		return m("ul.list.click.mail-list", [
-			state.entities.map((result) => {
-				return m(
-					"li.plr-l.flex-v-center.",
-					{
-						style: {
-							height: px(52),
-							"border-left": px(size.border_selection) + " solid transparent",
+		const searchInOurAppsElement = renderSearchInOurApps()
+
+		return [
+			m("ul.list.click.mail-list", [
+				state.entities.map((result) => {
+					return m(
+						"li.plr-l.flex-v-center.",
+						{
+							style: {
+								height: px(52),
+								"border-left": px(size.border_selection) + " solid transparent",
+							},
+							// avoid closing overlay before the click event can be received
+							onmousedown: (e: MouseEvent) => e.preventDefault(),
+							onclick: () => attrs.selectResult(result),
+							class: state.selected === result ? "row-selected" : "",
 						},
+						this.renderResult(state, result),
+					)
+				}),
+			]),
+			searchInOurAppsElement &&
+				m(
+					".bottom.small.pb-s.text-center",
+					{
 						// avoid closing overlay before the click event can be received
 						onmousedown: (e: MouseEvent) => e.preventDefault(),
-						onclick: () => attrs.selectResult(result),
-						class: state.selected === result ? "row-selected" : "",
 					},
-					this.renderResult(state, result),
-				)
-			}),
-		])
+					searchInOurAppsElement,
+				),
+		]
 	}
 
 	_renderIndexingStatus(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
