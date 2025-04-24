@@ -162,12 +162,10 @@ where
 		visitor.visit_map(self)
 	}
 
-	fn deserialize_any<V>(self, value: V) -> Result<V::Value, Self::Error>
+	fn deserialize_any<V>(self, _value: V) -> Result<V::Value, Self::Error>
 	where
 		V: Visitor<'de>,
 	{
-		// value.visit_map(self)
-
 		let type_name = &self.type_model.name;
 		let key = self.value.map(|(k, _)| k).unwrap_or("NO KEY".to_string());
 		Err(de::Error::custom(format_args!(

@@ -183,17 +183,11 @@ impl CalendarFacade {
 				),
 			);
 
-			if loaded_short_events.is_err() {
-				return Err(loaded_short_events.err().expect("Failed to load short calendar events"));
-			}
 			let mut unwraped_short_events = loaded_short_events?;
-			match self.is_list_load_done(&max_short_id, &mut unwraped_short_events) {
-				Ok((is_done, new_start)) => {
-					has_short_events_finished = is_done;
-					start_short_id = new_start;
-				},
-				Err(e) => return Err(e),
-			};
+			let (is_done, new_start) =
+				self.is_list_load_done(&max_short_id, &mut unwraped_short_events)?;
+			has_short_events_finished = is_done;
+			start_short_id = new_start;
 			let mut filtered_short_events = self.filter_events_in_range(
 				date.as_millis(),
 				timestamp_end,
@@ -201,19 +195,12 @@ impl CalendarFacade {
 			);
 			short_events.append(&mut filtered_short_events);
 
-			if loaded_long_events.is_err() {
-				return Err(loaded_long_events.err().expect("Failed to load long calendar events"));
-			}
-
 			let mut unwraped_long_events = loaded_long_events?;
 
-			match self.is_list_load_done(&max_long_id, &mut unwraped_long_events) {
-				Ok((is_done, new_start)) => {
-					has_long_events_finished = is_done;
-					start_long_id = new_start;
-				},
-				Err(e) => return Err(e),
-			};
+			let (is_done, new_start) =
+				self.is_list_load_done(&max_long_id, &mut unwraped_long_events)?;
+			has_long_events_finished = is_done;
+			start_long_id = new_start;
 
 			let events_facade = EventFacade {};
 			let mut advanced_instances: Vec<CalendarEvent> = Vec::new();

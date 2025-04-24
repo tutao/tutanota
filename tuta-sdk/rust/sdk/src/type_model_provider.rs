@@ -54,7 +54,7 @@ pub struct TypeModelProvider {
 	pub server_app_models: std::sync::RwLock<(Option<String>, Cow<'static, ApplicationModels>)>,
 
 	// required to fetch new server model
-	file_client: Arc<dyn FileClient>,
+	_file_client: Arc<dyn FileClient>,
 	rest_client: Arc<dyn RestClient>,
 	base_url: String,
 }
@@ -69,7 +69,7 @@ impl TypeModelProvider {
 			client_app_models: Cow::Borrowed(&CLIENT_TYPE_MODEL),
 			server_app_models: std::sync::RwLock::new((None, Cow::Borrowed(&CLIENT_TYPE_MODEL))),
 			rest_client,
-			file_client,
+			_file_client: file_client,
 			base_url,
 		}
 	}
