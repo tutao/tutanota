@@ -26,21 +26,6 @@ export async function prepareMobileBuild(buildType, app) {
 		fs.rmSync(wasmpath, { force: true, recursive: true })
 	}
 
-	const imagesPath = prefix + "images"
-	const imagesToKeep = ["font.ttf", "logo-solo-red.png"]
-	if (fs.existsSync(imagesPath)) {
-		const imageFiles = await globby(prefix + "images/*")
-		for (let file of imageFiles) {
-			const doDiscard = !imagesToKeep.some((name) => file.endsWith(name))
-			if (doDiscard) {
-				console.log("unlinking ", file)
-				fs.unlinkSync(file)
-			}
-		}
-	} else {
-		console.log("No folder at", imagesPath)
-	}
-
 	const maps = glob.sync(prefix + "*.js.map")
 	for (let file of maps) {
 		console.log("unlinking ", file)
