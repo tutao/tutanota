@@ -128,11 +128,6 @@ export class ServerModelInfo {
 		return this.applicationVersionSum
 	}
 
-	// visibleForTesting
-	_setApplicationVersionSum(newApplicationVersionSum: ApplicationVersionSum) {
-		this.applicationVersionSum = newApplicationVersionSum
-	}
-
 	public getApplicationTypesHash(): ApplicationTypesHash | null {
 		return this.applicationTypesHash
 	}
@@ -142,21 +137,18 @@ export class ServerModelInfo {
 		this.applicationTypesHash = newApplicationTypesHash
 	}
 
-	public init(applicationVersionSum: ApplicationVersionSum, applicationTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
+	public init(expectedTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
 		let newTypeModels = {} as ServerModels
 		for (const appName of Object.values(AppNameEnum)) {
 			newTypeModels[appName] = this.parseAllTypesForModel(assertNotNull(parsedApplicationTypesJson[appName]))
 		}
 
 		const computedApplicationVersionSum = this.computeApplicationVersionSum(newTypeModels)
-		if (computedApplicationVersionSum !== applicationVersionSum) {
-			throw new ProgrammingError(`Computed version ${computedApplicationVersionSum} does not match expected version: ${applicationVersionSum}`)
-		}
 
 		// only override in-memory server typeModel is everything is valid
 		this.typeModels = newTypeModels
-		this.applicationVersionSum = applicationVersionSum
-		this.applicationTypesHash = applicationTypesHash
+		// todo: verify that hash(newTypeModels) is actually expectedTypesHash
+		this.applicationTypesHash = expectedTypesHash
 	}
 
 	public initFromJsonUint8Array(applicationTypesJsonData: Uint8Array) {
@@ -173,7 +165,7 @@ export class ServerModelInfo {
 			applicationVersionSum += this.asNumber(version)
 		})
 
-		this.init(applicationVersionSum, applicationTypesHashTruncatedBase64, parsedJsonData)
+		this.init(applicationTypesHashTruncatedBase64, parsedJsonData)
 	}
 
 	private parseAllTypesForModel(modelInfo: Record<string, unknown>): {

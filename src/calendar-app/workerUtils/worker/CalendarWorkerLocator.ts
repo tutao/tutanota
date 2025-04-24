@@ -177,7 +177,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const fileFacadeSendDispatcher = new FileFacadeSendDispatcher(worker)
 	const fileApp = new NativeFileApp(fileFacadeSendDispatcher, new ExportFacadeSendDispatcher(worker))
-	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(locator.serviceExecutor, fileFacadeSendDispatcher, globalServerModelInfo)
+	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(locator.restClient, fileFacadeSendDispatcher, globalServerModelInfo)
 
 	let offlineStorageProvider
 	if (isOfflineStorageAvailable()) {

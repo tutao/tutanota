@@ -16,17 +16,3 @@ export type PersistenceResourcePostReturn = {
 	generatedId: null | Id;
 	permissionListId: Id;
 }
-export const ApplicationTypesGetOutTypeRef: TypeRef<ApplicationTypesGetOut> = new TypeRef("base", 4)
-
-export function createApplicationTypesGetOut(values: StrippedEntity<ApplicationTypesGetOut>): ApplicationTypesGetOut {
-	return Object.assign(create(typeModels[ApplicationTypesGetOutTypeRef.typeId], ApplicationTypesGetOutTypeRef), values)
-}
-
-export type ApplicationTypesGetOut = {
-	_type: TypeRef<ApplicationTypesGetOut>;
-
-	_format: NumberString;
-	applicationTypesJson: string;
-	applicationVersionSum: NumberString;
-	applicationTypesHash: string;
-}

@@ -36,53 +36,6 @@
 		},
 		"associations": {},
 		"app": "base",
-		"version": "2"
-	},
-	"4": {
-		"name": "ApplicationTypesGetOut",
-		"since": 2,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 4,
-		"rootId": "BGJhc2UABA",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"5": {
-				"final": false,
-				"name": "_format",
-				"id": 5,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"6": {
-				"final": false,
-				"name": "applicationTypesJson",
-				"id": 6,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"7": {
-				"final": false,
-				"name": "applicationVersionSum",
-				"id": 7,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"8": {
-				"final": false,
-				"name": "applicationTypesHash",
-				"id": 8,
-				"type": "String",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {},
-		"app": "base",
-		"version": "2"
+		"version": "3"
 	}
 }

@@ -121,7 +121,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 		let callOrder = new Array<string>()
 		when(fileFacade.writeToAppDir(anything(), anything())).thenDo(async () => callOrder.push("write"))
-		when(serverModelInfo.init(80, mockResponse.applicationTypesHash, anything())).thenDo(() => callOrder.push("assign"))
+		when(serverModelInfo.init(mockResponse.applicationTypesHash, anything())).thenDo(() => callOrder.push("assign"))
 
 		await applicationTypesFacade.getServerApplicationTypesJson()
 		o(callOrder).deepEquals(["assign", "write"])
@@ -131,12 +131,12 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		env.mode = "Desktop"
 
 		when(serviceExecutor.get(ApplicationTypesService, null)).thenResolve(mockResponse)
-		when(serverModelInfo.init(anything(), mockResponse.applicationTypesHash, anything())).thenReturn()
+		when(serverModelInfo.init(mockResponse.applicationTypesHash, anything())).thenReturn()
 		when(fileFacade.writeToAppDir(anything(), anything())).thenReject(Error("writing failed simulation failed"))
 
 		await applicationTypesFacade.getServerApplicationTypesJson()
 		// verify that server model is updated even if writing to disk fails
-		verify(serverModelInfo.init(anything(), anything(), anything()))
+		verify(serverModelInfo.init(anything(), anything()))
 	})
 
 	o("should attempt to read but not fail on read error", async () => {
@@ -156,7 +156,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			env.mode = targetEnv
 
 			when(serviceExecutor.get(ApplicationTypesService, null)).thenResolve(mockResponse)
-			when(serverModelInfo.init(anything(), anything(), anything())).thenResolve()
+			when(serverModelInfo.init(anything(), anything())).thenResolve()
 			when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve(downcast({})))
 
 			await applicationTypesFacade.getServerApplicationTypesJson()

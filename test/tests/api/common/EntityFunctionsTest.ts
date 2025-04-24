@@ -83,9 +83,7 @@ o.spec("EntityFunctionsTest", function () {
 			clientModelInfo.typeModels = Object.assign({}, clientModelInfo.typeModels, { base: clientModel })
 			serverModelInfo = new ServerModelInfo(clientModelInfo)
 			const applicationTypesHashTruncatedBase64 = serverModelInfo.computeApplicationTypesHash(stringToUtf8Uint8Array(serverModelString))
-			const e = await assertThrows(ProgrammingError, () =>
-				Promise.resolve(serverModelInfo.init(serverModelInfo.getApplicationVersionSum(), applicationTypesHashTruncatedBase64, serverModel)),
-			)
+			const e = await assertThrows(ProgrammingError, () => Promise.resolve(serverModelInfo.init(applicationTypesHashTruncatedBase64, serverModel)))
 			o(e.message).equals("Trying to parse encrypted value as unencrypted!")
 		})
 		o("ignore non-existent typeValue on client", async () => {
@@ -120,7 +118,7 @@ o.spec("EntityFunctionsTest", function () {
 			})
 			serverModelInfo = new ServerModelInfo(clientModelInfo)
 			const applicationTypesHashTruncatedBase64 = serverModelInfo.computeApplicationTypesHash(stringToUtf8Uint8Array(serverModelString))
-			serverModelInfo.init(serverModelInfo.getApplicationVersionSum(), applicationTypesHashTruncatedBase64, serverModel)
+			serverModelInfo.init(applicationTypesHashTruncatedBase64, serverModel)
 		})
 	})
 
@@ -171,7 +169,7 @@ o.spec("EntityFunctionsTest", function () {
 		const applicationVersionSum = 284
 		const applicationTypesHashTruncatedBase64 = serverModelInfo.computeApplicationTypesHash(stringToUtf8Uint8Array(combinedTypeModelsJsonString))
 		const parsedApplicationTypesJson = JSON.parse(combinedTypeModelsJsonString)
-		serverModelInfo.init(applicationVersionSum, applicationTypesHashTruncatedBase64, parsedApplicationTypesJson)
+		serverModelInfo.init(applicationTypesHashTruncatedBase64, parsedApplicationTypesJson)
 
 		o(applicationTypesHashTruncatedBase64).equals(serverModelInfo.getApplicationTypesHash())
 		o(applicationVersionSum).equals(serverModelInfo.getApplicationVersionSum())

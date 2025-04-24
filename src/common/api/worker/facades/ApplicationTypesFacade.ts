@@ -1,11 +1,10 @@
 import { assertWorkerOrNode, isApp, isDesktop } from "../../common/Env.js"
-import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { ApplicationTypesService } from "../../entities/base/Services"
 import { defer, DeferredObject } from "@tutao/tutanota-utils/dist/Utils"
-import { ApplicationTypesHash, ClientModelInfo, ServerModelInfo, globalServerModelInfo } from "../../common/EntityFunctions"
-import { ApplicationTypesGetOut } from "../../entities/base/TypeRefs"
+import { ApplicationTypesHash, HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
 import { FileFacade } from "../../../native/common/generatedipc/FileFacade"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { RestClient } from "../rest/RestClient"
+import { decompressString } from "../crypto/ModelMapper"
 
 assertWorkerOrNode()
 
@@ -25,16 +24,12 @@ export class ApplicationTypesFacade {
 
 	private readonly persistenceFilePath: string = "server_type_models.json"
 
-	private constructor(
-		private readonly serviceExecutor: IServiceExecutor,
-		private readonly fileFacade: FileFacade,
-		private readonly serverModelInfo: ServerModelInfo,
-	) {
+	private constructor(private readonly restClient: RestClient, private readonly fileFacade: FileFacade, private readonly serverModelInfo: ServerModelInfo) {
 		this.deferredRequests = []
 	}
 
-	static async getInitialized(serviceExecutor: IServiceExecutor, fileFacade: FileFacade, serverModelInfo: ServerModelInfo): Promise<ApplicationTypesFacade> {
-		return await new ApplicationTypesFacade(serviceExecutor, fileFacade, serverModelInfo).readStoredTypeModels()
+	static async getInitialized(restClient: RestClient, fileFacade: FileFacade, serverModelInfo: ServerModelInfo): Promise<ApplicationTypesFacade> {
+		return await new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).readStoredTypeModels()
 	}
 
 	async getServerApplicationTypesJson(): Promise<void> {
@@ -44,7 +39,10 @@ export class ApplicationTypesFacade {
 		if (Date.now() - this.lastInvoked > this.applicationTypesGetInTimeout) {
 			this.lastInvoked = Date.now()
 			try {
-				const applicationTypesGetOut = await this.serviceExecutor.get(ApplicationTypesService, null)
+				const applicationTypesGetOutCompressed = await this.restClient.request("rest/base/applicationtypesservice", HttpMethod.GET, {
+					responseType: MediaType.Binary,
+				})
+				const applicationTypesGetOut = JSON.parse(decompressString(applicationTypesGetOutCompressed))
 				await this.overrideAndSaveApplicationTypes(applicationTypesGetOut)
 				this.resolvePendingRequests()
 			} finally {
@@ -56,13 +54,12 @@ export class ApplicationTypesFacade {
 		return deferredObject.promise
 	}
 
-	private async overrideAndSaveApplicationTypes(applicationTypesGetOut: ApplicationTypesGetOut) {
-		const newApplicationVersionSum = parseInt(applicationTypesGetOut.applicationVersionSum)
-		const newApplicationTypesHash = applicationTypesGetOut.applicationTypesHash
-		const applicationTypesJsonString = applicationTypesGetOut.applicationTypesJson
+	private async overrideAndSaveApplicationTypes(applicationTypesGetOut: any) {
+		const newApplicationTypesHash = applicationTypesGetOut.currentApplicationHash
+		const applicationTypesJsonString = applicationTypesGetOut.modelTypesAsString
 		const newApplicationTypesJsonData = JSON.parse(applicationTypesJsonString)
 
-		this.serverModelInfo.init(newApplicationVersionSum, newApplicationTypesHash, newApplicationTypesJsonData)
+		this.serverModelInfo.init(newApplicationTypesHash, newApplicationTypesJsonData)
 
 		if (isDesktop() || isApp()) {
 			try {

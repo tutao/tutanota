@@ -192,7 +192,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto)
-	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(locator.serviceExecutor, fileFacadeSendDispatcher, globalServerModelInfo)
+	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(locator.restClient, fileFacadeSendDispatcher, globalServerModelInfo)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider)
 
