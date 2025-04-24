@@ -111,7 +111,6 @@ dependencies = [
  "base64",
  "console_error_panic_hook",
  "const-hex",
- "crypto-primitives",
  "ed25519-dalek",
  "getrandom",
  "rand_core",

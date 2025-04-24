@@ -28,8 +28,8 @@ use crate::IdTupleGenerated;
 use crate::{GeneratedId, ListLoadDirection};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
-use num_enum::TryFromPrimitive;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
+use num_enum::TryFromPrimitive;
 use std::sync::Arc;
 
 #[derive(uniffi::Object)]
