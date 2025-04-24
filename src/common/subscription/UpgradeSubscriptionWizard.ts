@@ -15,7 +15,7 @@ import { getByAbbreviation } from "../api/common/CountryList"
 import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
 import m from "mithril"
 import stream from "mithril/stream"
-import { InfoLink, lang, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
+import { InfoLink, lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
 import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
@@ -31,6 +31,9 @@ import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { DialogType } from "../gui/base/Dialog.js"
+import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
+import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./VariantCSubscriptionPage.js"
+import { styles } from "../gui/styles.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -135,6 +138,25 @@ export async function showUpgradeWizard(logins: LoginController, acceptedPlans: 
 	return deferred.promise
 }
 
+export function getPlanSelectorTest() {
+	const test = locator.usageTestController.getTest(`signup.paywall.${styles.isMobileLayout() ? "mobile" : "desktop"}`)
+	test.recordTime = true
+	return test
+}
+
+export function resolvePlanSelectorVariant(variant: number) {
+	switch (variant) {
+		case 1:
+			return "A"
+		case 2:
+			return "B"
+		case 3:
+			return "C"
+		default:
+			throw new Error("Encountered invalid variant. Expected 1, 2 or 3.")
+	}
+}
+
 export async function loadSignupWizard(
 	subscriptionParameters: SubscriptionParameters | null,
 	registrationDataId: string | null,
@@ -202,8 +224,10 @@ export async function loadSignupWizard(
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
 
+	const plansPage = initPlansPages(signupData)
+
 	const wizardPages = [
-		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
+		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs), // this page will login the user after signing up with newaccount data
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs), // this page will login the user if they are not login for iOS payment through AppStore
@@ -242,4 +266,32 @@ export async function loadSignupWizard(
 	invoiceAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 
 	wizardBuilder.dialog.show()
+}
+
+function initPlansPages(signupData: UpgradeSubscriptionData): {
+	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantBSubscriptionPage> | Class<VariantCSubscriptionPage>
+	attrs: UpgradeSubscriptionPageAttrs | VariantBSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
+} {
+	const test = getPlanSelectorTest()
+	const hasUsageTest = test.active && test.testName !== "obsolete" && !isIOSApp()
+	const pricingData = signupData.planPrices.getRawPricingData()
+	const firstYearDiscount = Number(pricingData.legendaryPrices.firstYearDiscount)
+	const bonusMonth = Number(pricingData.bonusMonthsForYearlyPlan)
+
+	if (hasUsageTest && firstYearDiscount === 0 && bonusMonth === 0) {
+		console.info("Assigned to variant", test.variant, "of test", test.testId, `(${test.testName})`)
+		const pageClass = test.getVariant<Class<UpgradeSubscriptionPage> | Class<VariantBSubscriptionPage> | Class<VariantCSubscriptionPage>>({
+			[1]: () => UpgradeSubscriptionPage,
+			[2]: () => VariantBSubscriptionPage,
+			[3]: () => VariantCSubscriptionPage,
+		})
+		const attrs = test.getVariant<UpgradeSubscriptionPageAttrs | VariantBSubscriptionPageAttrs | VariantCSubscriptionPageAttrs>({
+			[1]: () => new UpgradeSubscriptionPageAttrs(signupData),
+			[2]: () => new VariantBSubscriptionPageAttrs(signupData),
+			[3]: () => new VariantCSubscriptionPageAttrs(signupData),
+		})
+		return { pageClass, attrs }
+	} else {
+		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
+	}
 }

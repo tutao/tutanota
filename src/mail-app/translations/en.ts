@@ -2025,6 +2025,13 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"forBusiness_action": "For business",
+		"privateUse_action": "Private use",
+		"pricing.comparisonFaqSupport_msg": "FAQ support",
+		"startWithFreeAccount_action": "Start with a free account",
+		"checkoutWithAppStore_action": "Checkout with App Store",
+		"mostPopular_label": "Most popular",
+		"allYouNeed_label": "All you need"
 	}
 }

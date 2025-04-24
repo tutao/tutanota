@@ -2,7 +2,7 @@ import { Cat, log, timer } from "../misc/Log"
 import { size } from "./size"
 import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
-import { theme } from "./theme"
+import { Theme, theme, ThemeId } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { client } from "../misc/ClientDetector"
 import { ThemeController } from "./ThemeController.js"
@@ -49,8 +49,18 @@ class Styles {
 		return assertNotNull(this.styleSheets.get(id)).cloneNode(true)
 	}
 
+	/**
+	 * Provides the information if a (wide) desktop width is used. Please note that there is an intermediate width between mobileLayout and desktopLayout.
+	 */
 	isDesktopLayout(): boolean {
 		return this.bodyWidth >= size.desktop_layout_width
+	}
+
+	/**
+	 * Provides the information if a mobile screen (small width) is used. Please note that there is an intermediate width between mobileLayout and desktopLayout.
+	 */
+	public isMobileLayout() {
+		return this.bodyWidth < 640 // 640, inspired by tailwind responsive design system: https://tailwindcss.com/docs/responsive-design
 	}
 
 	isSingleColumnLayout(): boolean {
@@ -120,6 +130,18 @@ class Styles {
 		}
 
 		return styleDomElement as HTMLStyleElement
+	}
+
+	/**
+	 * Determines if the current theme is a light theme.
+	 *
+	 * @param {Theme} [theme=locator.themeController.getCurrentTheme()] - The theme to check.
+	 * If not provided, the current theme from the `ThemeController` is used.
+	 * @returns `true` if the theme is a light theme, otherwise `false`.
+	 */
+	public isLightTheme(theme: Theme = require("../api/main/CommonLocator.js").locator.themeController.getCurrentTheme()) {
+		const lightThemes: Array<ThemeId> = ["light", "light_secondary"]
+		return lightThemes.includes(theme.themeId)
 	}
 }
 

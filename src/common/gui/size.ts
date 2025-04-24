@@ -30,6 +30,7 @@ export const size = {
 	border_radius: 6,
 	border_radius_medium: 8,
 	border_radius_larger: 9,
+	border_radius_large: 12,
 	border_selection: 4,
 	font_size_base: 16,
 	font_size_smaller: 14,

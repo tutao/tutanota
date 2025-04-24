@@ -3,13 +3,13 @@ import stream from "mithril/stream"
 import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import { getPlanSelectorTest, SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
-import { Button, ButtonType } from "../gui/base/Button.js"
+import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 import { UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Const, Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { Const, Keys, NewBusinessPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { locator } from "../api/main/CommonLocator"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -19,8 +19,8 @@ import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
-import { completeSelectedStage } from "./PlanSelector.js"
-import { isIOSApp } from "../api/common/Env.js"
+import { completeSelectedStage, PlanSelector } from "./PlanSelector.js"
+import { getPrivateBusinessSwitchButton } from "./VariantBSubscriptionPage.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -32,7 +32,7 @@ export const PlanTypeParameter = Object.freeze({
 	UNLIMITED: "unlimited",
 })
 
-export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
+export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
@@ -58,6 +58,8 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			vnode.attrs.data.options.paymentInterval = stream(paymentInterval)
 			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
 		}
+
+		console.info("This is variant C (3) shown!")
 
 		const test = getPlanSelectorTest()
 		void test.forceRestart()
@@ -85,21 +87,34 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			[PlanType.Advanced]: this.createUpgradeButton(data, PlanType.Advanced),
 			[PlanType.Unlimited]: this.createUpgradeButton(data, PlanType.Unlimited),
 		}
-		return m(".pt", [
-			m(SubscriptionSelector, {
+
+		if (data.options.businessUse()) {
+			return m(".pt", [
+				m(SubscriptionSelector, {
+					options: data.options,
+					priceInfoTextId: data.priceInfoTextId,
+					boxWidth: 230,
+					boxHeight: 270,
+					acceptedPlans: NewBusinessPlans,
+					allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
+					currentPlanType: data.currentPlan,
+					actionButtons: subscriptionActionButtons,
+					featureListProvider: vnode.attrs.data.featureListProvider,
+					priceAndConfigProvider: vnode.attrs.data.planPrices,
+					multipleUsersAllowed: vnode.attrs.data.multipleUsersAllowed,
+					msg: data.msg,
+				}),
+			])
+		}
+
+		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
+		return m(".", [
+			m(PlanSelector, {
 				options: data.options,
-				priceInfoTextId: data.priceInfoTextId,
-				boxWidth: 230,
-				boxHeight: 270,
-				acceptedPlans: availablePlans,
-				allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
-				currentPlanType: data.currentPlan,
-				accountingInfo: data.accountingInfo,
+				variant: "C",
 				actionButtons: subscriptionActionButtons,
 				featureListProvider: vnode.attrs.data.featureListProvider,
 				priceAndConfigProvider: vnode.attrs.data.planPrices,
-				multipleUsersAllowed: vnode.attrs.data.multipleUsersAllowed,
-				msg: data.msg,
 			}),
 		])
 	}
@@ -122,7 +137,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				data.price = null
 				data.nextYearPrice = null
 
-				if (this.upgradeType === UpgradeType.Signup && !isIOSApp()) {
+				if (this.upgradeType === UpgradeType.Signup) {
 					completeSelectedStage(PlanType.Free)
 				}
 
@@ -166,26 +181,6 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 					console.log("Unknown subscription passed: ", subscriptionParameters)
 					break
 			}
-		} else if (subscriptionType === SubscriptionType.Business) {
-			data.options.businessUse(true)
-
-			switch (subscriptionParameters.subscription) {
-				case PlanTypeParameter.ESSENTIAL:
-					this.setNonFreeDataAndGoToNextPage(data, PlanType.Essential)
-					break
-
-				case PlanTypeParameter.ADVANCED:
-					this.setNonFreeDataAndGoToNextPage(data, PlanType.Advanced)
-					break
-
-				case PlanTypeParameter.UNLIMITED:
-					this.setNonFreeDataAndGoToNextPage(data, PlanType.Unlimited)
-					break
-
-				default:
-					console.log("Unknown subscription passed: ", subscriptionParameters)
-					break
-			}
 		} else {
 			console.log("Unknown subscription type passed: ", subscriptionParameters)
 		}
@@ -214,7 +209,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			return
 		}
 
-		if (this.upgradeType === UpgradeType.Signup && !isIOSApp()) {
+		if (this.upgradeType === UpgradeType.Signup) {
 			completeSelectedStage(planType, data.options.paymentInterval())
 		}
 
@@ -305,7 +300,7 @@ function confirmFreeSubscription(): Promise<boolean> {
 	})
 }
 
-export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
+export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
@@ -321,8 +316,14 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 		return Promise.resolve(true)
 	}
 
+	public readonly hideAllPagingButtons = true
+
 	isSkipAvailable(): boolean {
 		return false
+	}
+
+	public rightAction = (update: VoidFunction): ButtonAttrs => {
+		return getPrivateBusinessSwitchButton(this.data.options.businessUse, update)
 	}
 
 	isEnabled(): boolean {

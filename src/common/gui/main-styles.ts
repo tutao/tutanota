@@ -31,7 +31,7 @@ export function getFonts(): string {
 	return fonts.join(", ")
 }
 
-const boxShadow = `0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)`
+export const boxShadow = `0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)`
 const searchBarShadow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
 
 const scrollbarWidthHeight = px(18)
@@ -106,6 +106,16 @@ styles.registerStyle("main", () => {
 			src: `url('${window.tutao.appState.prefixWithoutFile}/images/font.ttf') format('truetype')`,
 			"font-weight": "normal",
 			"font-style": "normal",
+		},
+		" @font-face": {
+			"font-family": "'MDIO'",
+			src: `url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff2') format('woff2'), url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.woff') format('woff'), url('${window.tutao.appState.prefixWithoutFile}/images/MDIO-Semibold.otf') format('opentype')`,
+			"font-style": "normal",
+			"font-weight": 600,
+			"font-display": "block",
+		},
+		".font-mdio": {
+			"font-family": "'MDIO'",
 		},
 		// Allow long-click contextual actions for iOS
 		".touch-callout *": {
@@ -1008,6 +1018,9 @@ styles.registerStyle("main", () => {
 		},
 		".gap-vpad-xxl": {
 			gap: px(size.vpad_xxl),
+		},
+		".gap-vpad-l": {
+			gap: px(size.vpad_large),
 		},
 		".flex": {
 			display: "flex",
@@ -1961,6 +1974,13 @@ styles.registerStyle("main", () => {
 			width: "100%",
 			padding: px(10),
 		},
+		".buyOptionBox-v2": {
+			position: "relative",
+			display: "flex",
+			transition: "scale 300ms",
+			"flex-direction": "column",
+			width: "50%",
+		},
 		".plans-grid": {
 			display: "grid",
 			"grid-template-columns": "1fr",
@@ -2784,6 +2804,12 @@ styles.registerStyle("main", () => {
 			left: 0,
 			transition: `left ${DefaultAnimationTime}ms ease-out`,
 		},
+		".payment-interval.light:after": {
+			"background-color": "#fff",
+		},
+		".payment-interval.dark:after": {
+			"background-color": "#303030",
+		},
 		".tutaui-toggle-pill.checked": {
 			"background-color": theme.content_accent,
 		},
@@ -2858,6 +2884,7 @@ styles.registerStyle("main", () => {
 		".big-radio": {
 			/* Increase radio button's size */
 			width: "20px",
+			"min-width": "20px",
 			height: "20px",
 		},
 		".outlined": {
