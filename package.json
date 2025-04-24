@@ -29,9 +29,7 @@
 		"lint:check": "eslint . --cache --cache-location cache/eslint",
 		"lint:fix": "eslint --fix .",
 		"check": "npm run style:check && npm run lint:check",
-		"fix": "npm run style:fix && npm run lint:fix",
-		"build-wasm-local-test": "wasm-pack build --dev --target web ./tuta-sdk/rust/crypto-primitives",
-		"start-wasm-web-server": "cd ./tuta-sdk/rust/crypto-primitives && jwebserver"
+		"fix": "npm run style:fix && npm run lint:fix"
 	},
 	"dependencies": {
 		"@tutao/node-mimimi": "284.250430.0",
@@ -103,7 +101,7 @@
 		"node-gyp": "10.2.0",
 		"octokit": "4.0.2",
 		"prettier": "2.8.8",
-		"rolldown": "1.0.0-beta.1",
+		"rolldown": "1.0.0-beta.8",
 		"rollup": "4.24.0",
 		"rollup-plugin-visualizer": "5.12.0",
 		"testdouble": "3.18.0",

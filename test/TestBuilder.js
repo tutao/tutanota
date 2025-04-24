@@ -11,6 +11,7 @@ import { rolldown } from "rolldown"
 import { resolveLibs } from "../buildSrc/RollupConfig.js"
 import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
 import { fileURLToPath } from "node:url"
+import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "../buildSrc/cryptoPrimitivesUtils.js"
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
@@ -19,12 +20,19 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
+			fs.rm(projectRoot + WASM_PACK_OUT_DIR, { recursive: true, force: true })
 		})
 	}
 
 	if (!fast) {
 		await runStep("Packages", async () => {
 			await buildPackages("..")
+			// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
+			// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
+			await copyCryptoPrimitiveCrateIntoWasmDir({
+				wasmOutputDir: "build",
+				pathSourcePrefix: "../",
+			})
 		})
 
 		await runStep("Types", async () => {
@@ -100,28 +108,28 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 					environment: "node",
 				}),
 				rollupWasmLoader({
-					output: `${process.cwd()}/build/wasm`,
+					output: `${process.cwd()}/build`,
 					webassemblyLibraries: [
 						{
 							name: "liboqs.wasm",
 							command: "make -f Makefile_liboqs build",
 							workingDir: `${process.cwd()}/../libs/webassembly/`,
-							outputPath: `${process.cwd()}/build/wasm/liboqs.wasm`,
+							outputPath: `${process.cwd()}/build/liboqs.wasm`,
 							fallback: {
 								command: "make -f Makefile_liboqs fallback",
 								workingDir: `${process.cwd()}/../libs/webassembly/`,
-								outputPath: `${process.cwd()}/build/wasm/liboqs.js`,
+								outputPath: `${process.cwd()}/build/liboqs.js`,
 							},
 						},
 						{
 							name: "argon2.wasm",
 							command: "make -f Makefile_argon2 build",
 							workingDir: `${process.cwd()}/../libs/webassembly/`,
-							outputPath: `${process.cwd()}/build/wasm/argon2.wasm`,
+							outputPath: `${process.cwd()}/build/argon2.wasm`,
 							fallback: {
 								command: "make -f Makefile_argon2 fallback",
 								workingDir: `${process.cwd()}/../libs/webassembly/`,
-								outputPath: `${process.cwd()}/build/wasm/argon2.js`,
+								outputPath: `${process.cwd()}/build/argon2.js`,
 							},
 						},
 					],
@@ -140,7 +148,7 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 				}
 			},
 			// overwrite the files rather than keeping all versions in the build folder
-			chunkFileNames: "[name]-chunk.js",
+			// chunkFileNames: "[name]-chunk.js",
 		})
 		await bundle.write({
 			dir: "./build",
