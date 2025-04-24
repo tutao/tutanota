@@ -56,6 +56,10 @@ export type Theme = {
 	navigation_menu_icon: string
 	error_color: string
 	tuta_color_nota: string
+	// Experimental colors; using material 3 color tokens which will be introduced in the future
+	experimental_primary_container: string
+	experimental_on_primary_container: string
+	experimental_tertiary: string
 }
 
 const themeSingleton = {}

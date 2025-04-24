@@ -35,6 +35,7 @@ import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.j
 import { isIOSApp } from "../api/common/Env"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { theme } from "../gui/theme.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -204,7 +205,19 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			showBusinessSelector
 				? m(SegmentControl, {
 						selectedValue: options.businessUse(),
-						onValueSelected: options.businessUse,
+						onValueSelected: (isBusinessUse: boolean) => {
+							if (isBusinessUse) {
+								const usageTest = locator.usageTestController.getTest("signup.paywall.business")
+								const stage = usageTest.getStage(0)
+								stage.setMetric({
+									name: "variant",
+									value: "A",
+								})
+								void stage.complete()
+							}
+
+							return options.businessUse(isBusinessUse)
+						},
 						items: BusinessUseItems,
 				  })
 				: null,

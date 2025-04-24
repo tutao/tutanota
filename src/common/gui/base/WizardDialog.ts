@@ -33,6 +33,8 @@ export interface WizardPageAttrs<T> {
 	 */
 	isEnabled(): boolean
 
+	rightAction?(update?: VoidFunction): ButtonAttrs
+
 	/**
 	 * The actual data, which is the same for the entire wizard needs to be also accessible to each page
 	 */
@@ -243,15 +245,22 @@ class WizardDialogAttrs<T> {
 			type: ButtonType.Secondary,
 		}
 
+		const getRight = () => {
+			if (typeof this.currentPage?.attrs.rightAction === "function") {
+				return [this.currentPage.attrs.rightAction(() => this.updateHeaderBarAttrs())]
+			}
+
+			return this.currentPage &&
+				this.currentPage.attrs.isSkipAvailable() &&
+				this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
+				? [skipButtonAttrs]
+				: []
+		}
+
 		// the wizard dialog has a reference to this._headerBarAttrs -> changing this object changes the dialog
 		let source: DialogHeaderBarAttrs = {
 			left: currentPageIndex >= 0 && this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex) ? [backButtonAttrs] : [],
-			right: () =>
-				this.currentPage &&
-				this.currentPage.attrs.isSkipAvailable() &&
-				this._getEnabledPages().indexOf(this.currentPage) !== this._getEnabledPages().length - 1
-					? [skipButtonAttrs]
-					: [],
+			right: getRight(),
 			middle: this.currentPage ? this.currentPage.attrs.headerTitle() : "emptyString_msg",
 		}
 		Object.assign(this._headerBarAttrs, source)

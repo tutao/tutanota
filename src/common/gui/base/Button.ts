@@ -1,8 +1,7 @@
 import m, { Children, ClassComponent, CVnode } from "mithril"
-import type { Translation, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { getElevatedBackground, theme } from "../theme"
-import type { lazy } from "@tutao/tutanota-utils"
 import { noOp } from "@tutao/tutanota-utils"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -67,6 +66,8 @@ export interface ButtonAttrs {
 	click?: ClickHandler
 	type: ButtonType
 	colors?: ButtonColor
+	icon?: Children
+	class?: Array<string>
 }
 
 /**
@@ -74,11 +75,12 @@ export interface ButtonAttrs {
  */
 export class Button implements ClassComponent<ButtonAttrs> {
 	view({ attrs }: CVnode<ButtonAttrs>): Children {
-		let classes = this.resolveClasses(attrs.type)
+		const classes = this.resolveClasses(attrs.type, attrs.class)
 
 		return m(BaseButton, {
 			label: attrs.title == null ? attrs.label : attrs.title,
 			text: lang.getTranslationText(attrs.label),
+			icon: attrs.icon,
 			class: classes.join(" "),
 			style: {
 				borderColor: getColors(attrs.colors).border,
@@ -87,15 +89,15 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		})
 	}
 
-	private resolveClasses(type: ButtonType) {
-		let classes = [
+	private resolveClasses(type: ButtonType, customClasses?: Array<string>) {
+		const classes = [
 			"limit-width",
 			"noselect",
 			"bg-transparent",
 			"button-height",
 			"text-ellipsis",
 			"content-accent-fg",
-			"flex",
+			...(!customClasses?.includes("block") ? ["flex"] : []),
 			"items-center",
 			"justify-center",
 			"flash",
@@ -106,6 +108,8 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		} else {
 			classes.push("plr-button", "button-content")
 		}
+
+		classes.push(...(customClasses ?? []))
 
 		return classes
 	}
