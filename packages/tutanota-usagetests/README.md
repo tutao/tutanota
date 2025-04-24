@@ -23,7 +23,7 @@ controller.addTests(await storageAdapter.loadActiveUsageTests())
 This section assumes that active tests as well as the associated assignments for the currently logged-in user have been
 loaded into the `UsageTestController` singleton.
 
-The relevant test has two variants in this case.
+The relevant test has two variants in this case. The variants are not 0-indexed but 1-indexed.
 
 ```typescript
 // Within some mithril view
@@ -33,8 +33,8 @@ class SomeView implements Component {
 		const relevantTest = controller.getTest("relevantTestId")
 
 		return m("div", relevantTest.getVariant({
-			[0]: () => m("p", "This is rendered if the user is assigned to variant 0"),
-			[1]: () => m("p", "This is rendered if the user is assigned to variant 1")
+			[1]: () => m("p", "This is rendered if the user is assigned to variant 0"),
+			[2]: () => m("p", "This is rendered if the user is assigned to variant 1")
 		}))
 	}
 }
