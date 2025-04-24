@@ -15,6 +15,7 @@ import { createHtml } from "./createHtml.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { visualizer } from "rollup-plugin-visualizer"
 import { rollupWasmLoader } from "@tutao/tuta-wasm-loader"
+import { copyCryptoPrimitiveCrateIntoWasmDir } from "./cryptoPrimitivesUtils.js"
 
 /**
  * Builds the web app for production.
@@ -41,6 +42,10 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("started cleaning", measure())
 	await fs.emptyDir(buildDir)
+
+	// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
+	// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
+	await copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir: resolvedBuildDir })
 
 	console.log("bundling polyfill", measure())
 	const polyfillBundle = await rollup({
@@ -96,22 +101,22 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 						name: "liboqs.wasm",
 						command: "make -f Makefile_liboqs build",
 						workingDir: "libs/webassembly/",
-						outputPath: path.join(resolvedBuildDir, "wasm/liboqs.wasm"),
+						outputPath: path.join(resolvedBuildDir, "liboqs.wasm"),
 						fallback: {
 							command: "make -f Makefile_liboqs fallback",
 							workingDir: "libs/webassembly/",
-							outputPath: path.join(resolvedBuildDir, "wasm/liboqs.js"),
+							outputPath: path.join(resolvedBuildDir, "liboqs.js"),
 						},
 					},
 					{
 						name: "argon2.wasm",
 						command: "make -f Makefile_argon2 build fallback",
 						workingDir: "libs/webassembly/",
-						outputPath: path.join(resolvedBuildDir, "wasm/argon2.wasm"),
+						outputPath: path.join(resolvedBuildDir, "argon2.wasm"),
 						fallback: {
 							command: "make -f Makefile_argon2 fallback",
 							workingDir: "libs/webassembly/",
-							outputPath: path.join(resolvedBuildDir, "wasm/argon2.js"),
+							outputPath: path.join(resolvedBuildDir, "argon2.js"),
 						},
 					},
 				],
@@ -169,7 +174,16 @@ import "./${builtWorkerFile}"`,
 		app,
 	)
 	if (stage !== "release") {
-		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs }), app)
+		await createHtml(
+			env.create({
+				staticUrl: restUrl,
+				version,
+				mode: "App",
+				dist: true,
+				domainConfigs,
+			}),
+			app,
+		)
 	}
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)
