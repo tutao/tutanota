@@ -1485,7 +1485,9 @@ mod tests {
 		FORMAT_FIELD, ID_FIELD, OWNER_GROUP_FIELD, PERMISSIONS_FIELD,
 	};
 	use crate::entities::generated::sys;
-	use crate::entities::generated::sys::{BucketKey, Group, GroupInfo, GroupKeysRef, InstanceSessionKey};
+	use crate::entities::generated::sys::{
+		BucketKey, Group, GroupInfo, GroupKeysRef, InstanceSessionKey,
+	};
 	use crate::entities::generated::tutanota::{
 		CalendarEventUidIndex, Mail, MailAddress, MailDetailsBlob, MailboxGroupRoot,
 		OutOfOfficeNotification, OutOfOfficeNotificationRecipientList,

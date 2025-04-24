@@ -18,16 +18,16 @@ export function loadArgon2WASM(): Promise<Argon2IDExports> {
 
 const liboqsWASM: LazyLoaded<LibOQSExports> = new LazyLoaded(() => {
 	if (typeof process !== "undefined") {
-		return loadWasmModuleFromFile("./build/wasm/liboqs.wasm") as Promise<LibOQSExports>
+		return loadWasmModuleFromFile("./build/liboqs.wasm") as Promise<LibOQSExports>
 	} else {
-		return loadWasmModuleFromFile("/wasm/liboqs.wasm") as Promise<LibOQSExports>
+		return loadWasmModuleFromFile("/liboqs.wasm") as Promise<LibOQSExports>
 	}
 })
 
 const argon2WASM: LazyLoaded<Argon2IDExports> = new LazyLoaded(() => {
 	if (typeof process !== "undefined") {
-		return loadWasmModuleFromFile("./build/wasm/argon2.wasm") as Promise<Argon2IDExports>
+		return loadWasmModuleFromFile("./build/argon2.wasm") as Promise<Argon2IDExports>
 	} else {
-		return loadWasmModuleFromFile("/wasm/argon2.wasm") as Promise<Argon2IDExports>
+		return loadWasmModuleFromFile("/argon2.wasm") as Promise<Argon2IDExports>
 	}
 })
