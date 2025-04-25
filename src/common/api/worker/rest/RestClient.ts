@@ -11,7 +11,7 @@ assertWorkerOrNode()
 
 const TAG = "[RestClient]"
 
-const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
+export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
 
 interface ProgressListener {
 	upload(percent: number): void
@@ -124,10 +124,10 @@ export class RestClient {
 
 					// handle new server model and update the applicationTypesJson file if applicable
 					const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
-					if (
-						applicationTypesHashResponseHeader != null &&
-						applicationTypesHashResponseHeader != this.applicationTypesFacade().getApplicationTypesHash()
-					) {
+					console.log(xhr.getAllResponseHeaders())
+					console.log("dsfadslkjdlfks" + applicationTypesHashResponseHeader)
+					if (applicationTypesHashResponseHeader != this.applicationTypesFacade().getApplicationTypesHash()) {
+						console.log("reached here!!!!!!!!!!!")
 						await this.applicationTypesFacade().getServerApplicationTypesJson()
 					}
 

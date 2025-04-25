@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { isSuspensionResponse, RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
+import { APPLICATION_TYPES_HASH_HEADER, isSuspensionResponse, RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { ApplicationTypesHash, HttpMethod, MediaType } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ResourceError } from "../../../../../src/common/api/common/error/RestError.js"
 import { defer, noOp } from "@tutao/tutanota-utils"
@@ -214,48 +214,52 @@ o.spec("RestClient", function () {
 		})
 
 		o("verify ApplicationTypesService is called when the applicationTypesHash is different in the response header, has been null", async () => {
+			reset()
 			o.timeout(400)
+
 			let responseText = '{"msg":"Hello Client"}'
 
 			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn(null)
 			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
 
-			app.get("/get/json", (req, res) => {
+			app.get("/get/json1", (req, res) => {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("app-types-hash", "newApplicationTypesHash")
+				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
+				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 				res.send(responseText)
 			})
-			const res = await restClient.request("/get/json", HttpMethod.GET, {
+			const res = await restClient.request("/get/json1", HttpMethod.GET, {
 				responseType: MediaType.Json,
 				baseUrl,
 			})
-
-			verify(applicationTypesFacadeMock.getServerApplicationTypesJson())
+			verify(applicationTypesFacadeMock.getServerApplicationTypesJson(), { times: 1 })
 			o(res).equals(responseText)
 		})
 
 		o("verify ApplicationTypesService is called when the applicationTypesHash is different in the response header", async () => {
+			reset()
 			o.timeout(400)
+
 			let responseText = '{"msg":"Hello Client"}'
 
-			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash" as ApplicationTypesHash)
+			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash")
 			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
 
-			app.get("/get/json", (req, res) => {
+			app.get("/get/json2", (req, res) => {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("app-types-hash", "newApplicationTypesHash")
+				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
+				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
 				res.send(responseText)
 			})
-			const res = await restClient.request("/get/json", HttpMethod.GET, {
+			const res = await restClient.request("/get/json2", HttpMethod.GET, {
 				responseType: MediaType.Json,
 				baseUrl,
 			})
-
-			verify(applicationTypesFacadeMock.getServerApplicationTypesJson())
+			verify(applicationTypesFacadeMock.getServerApplicationTypesJson(), { times: 1 })
 			o(res).equals(responseText)
 		})
 
@@ -268,14 +272,15 @@ o.spec("RestClient", function () {
 			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash")
 			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
 
-			app.get("/get/jsonn", (req, res) => {
+			app.get("/get/json3", (req, res) => {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("app-types-hash", "existingApplicationTypesHash")
+				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
+				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "existingApplicationTypesHash")
 				res.send(responseText)
 			})
-			const res = await restClient.request("/get/jsonn", HttpMethod.GET, {
+			const res = await restClient.request("/get/json3", HttpMethod.GET, {
 				responseType: MediaType.Json,
 				baseUrl,
 			})

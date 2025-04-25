@@ -54,7 +54,7 @@ export class ApplicationTypesFacade {
 		return JSON.parse(decompressString(applicationTypesGetOutCompressed))
 	}
 
-	async getServerApplicationTypesJson(): Promise<void> {
+	public async getServerApplicationTypesJson(): Promise<void> {
 		let deferredObject: DeferredObject<void> = defer()
 		this.deferredRequests.push(deferredObject)
 
