@@ -32,6 +32,8 @@ targets:
         buildPhase: "resources"
       - path: "AgendaWidgetExtension/WidgetActionsIntent.swift"
         buildPhase: "sources"
+      - path: "AgendaWidgetExtension/Error/WidgetErrorHandler.swift"
+        buildPhase: "sources"
     settings:
       base:
         PRODUCT_MODULE_NAME: "calendar"
