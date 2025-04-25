@@ -24,8 +24,7 @@ class IosCommonSystemFacade: CommonSystemFacade {
 	}
 
 	func getLog() async throws -> String {
-		let entries = TUTLogger.sharedInstance().entries()
-		return entries.joined(separator: "\n")
+		return getLogs()
 	}
 
 	func awaitForInit() async {
