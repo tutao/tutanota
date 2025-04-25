@@ -1,5 +1,6 @@
 //! General purpose functions for testing various objects
 
+use crate::bindings::rest_client::RestResponse;
 use mockall::Any;
 use rand::random;
 use std::borrow::Cow;
@@ -757,4 +758,21 @@ pub fn server_types_hash_header() -> HashMap<String, String> {
 		SERVER_TYPES_JSON_HASH.to_string(),
 	);
 	hash_map
+}
+
+pub fn application_types_response_with_client_model() -> RestResponse {
+	let application_get_out = crate::type_model_provider::ApplicationTypesGetOut {
+		model_types_as_string: serde_json::to_string(
+			&crate::type_model_provider::CLIENT_TYPE_MODEL.apps,
+		)
+		.unwrap(),
+		current_application_hash: "latest-applications-hash".to_string(),
+	};
+	let serialized_json = serde_json::to_string(&application_get_out).unwrap();
+	let compressed_response = lz4_flex::compress(serialized_json.as_bytes());
+	RestResponse {
+		status: 200,
+		headers: HashMap::default(),
+		body: Some(compressed_response),
+	}
 }

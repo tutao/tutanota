@@ -691,7 +691,7 @@ mod tests {
 
                 Ok(RestResponse {
                     status: 200,
-                    headers: HashMap::new(),
+                    headers: server_types_hash_header(),
 					body: Some(
 						br#"{"159":"Response to some request","160":"3000"}"#.to_vec(),
 					),
@@ -755,7 +755,7 @@ mod tests {
                 }
                 assert_eq!(http_method, method);
 
-                let mut headers = vec![
+				let mut headers = vec![
                     ("accessToken", "access_token"),
                     ("cv", CLIENT_VERSION),
                     ("v", APP_VERSION_STR),
@@ -772,7 +772,7 @@ mod tests {
 
                 Ok(RestResponse {
                     status: 200,
-                    headers: HashMap::new(),
+                    headers: server_types_hash_header(),
                     body: Some(
 						br#"{ "459":"bXkgc2VjcmV0IHJlc3BvbnNl","460":"MzAwMA==" }"#
 							.to_vec(),

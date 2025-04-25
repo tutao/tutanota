@@ -49,17 +49,18 @@ impl EntityClient {
 		type_ref: &TypeRef,
 		id: &Id,
 	) -> Result<ParsedEntity, ApiCallError> {
-		let type_model = self
-			.type_model_provider
-			.resolve_server_type_ref(type_ref)
-			.ok_or_else(|| TypeNotFound {
-				type_ref: type_ref.clone(),
-			})?;
-		let type_name = type_model.name.as_str();
-
 		let url = format!(
-			"{}/rest/{}/{}/{}",
-			self.base_url, type_ref.app, type_name, id
+			"{base_url}/rest/{appname}/{typename}/{id}",
+			base_url = self.base_url,
+			appname = type_ref.app,
+			id = id,
+			typename = self
+				.type_model_provider
+				.resolve_client_type_ref(type_ref)
+				.ok_or_else(|| TypeNotFound {
+					type_ref: type_ref.clone(),
+				})?
+				.name,
 		);
 		let response_bytes = self
 			.prepare_and_fire(type_ref, url)
@@ -204,14 +205,14 @@ impl EntityClient {
 		}
 
 		let permissions_field_attribute_id: String = type_model
-            .get_attribute_id_by_attribute_name(PERMISSIONS_FIELD)
-            .map_err(|err| ApiCallError::InternalSdkError {
-                error_message: format!(
-                    "{PERMISSIONS_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
-                    type_model.id,
-                    err
-                ),
-            })?;
+			.get_attribute_id_by_attribute_name(PERMISSIONS_FIELD)
+			.map_err(|err| ApiCallError::InternalSdkError {
+				error_message: format!(
+						"{PERMISSIONS_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+						type_model.id,
+						err
+					),
+			})?;
 
 		if request_type == HttpMethod::POST {
 			raw_entity.insert(id_field_attribute_id, JsonElement::Null);
@@ -369,7 +370,7 @@ impl EntityClient {
 			.map(|a| a.as_str())
 			// if server did not put hash in response header,
 			// always fetch application types again just to be safe
-			.unwrap_or("non-existant-hash");
+			.unwrap_or("");
 
 		self.type_model_provider
 			.clone()

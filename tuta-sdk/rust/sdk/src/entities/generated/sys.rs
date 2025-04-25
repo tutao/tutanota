@@ -1261,7 +1261,7 @@ pub struct EntityUpdate {
 	#[serde(rename = "624")]
 	pub operation: i64,
 	#[serde(rename = "2556")]
-	pub typeId: i64,
+	pub typeId: Option<i64>,
 }
 
 impl Entity for EntityUpdate {

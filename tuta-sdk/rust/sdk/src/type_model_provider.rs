@@ -31,18 +31,19 @@ macro_rules! read_type_models {
     }}
 }
 
-static CLIENT_TYPE_MODEL: std::sync::LazyLock<ApplicationModels> = std::sync::LazyLock::new(|| {
-	read_type_models![
-		"accounting",
-		"base",
-		"gossip",
-		"monitor",
-		"storage",
-		"sys",
-		"tutanota",
-		"usage"
-	]
-});
+pub static CLIENT_TYPE_MODEL: std::sync::LazyLock<ApplicationModels> =
+	std::sync::LazyLock::new(|| {
+		read_type_models![
+			"accounting",
+			"base",
+			"gossip",
+			"monitor",
+			"storage",
+			"sys",
+			"tutanota",
+			"usage"
+		]
+	});
 
 /// Contains a map between backend apps and entity/instance types within them
 pub struct TypeModelProvider {
@@ -84,7 +85,7 @@ impl TypeModelProvider {
 			.read()
 			.expect("Server application model lock poisoned on read")
 			.as_ref()
-			.expect("Tried to resolve server type ref before initilization. Call ensure_latest_server_model first?")
+			.expect("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
 			.1
 			.as_ref()
 			.apps
@@ -193,22 +194,20 @@ impl TypeModelProvider {
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct ApplicationTypesGetOut {
+pub struct ApplicationTypesGetOut {
 	pub current_application_hash: String,
 	pub model_types_as_string: String,
 }
 
 #[cfg(test)]
 mod tests {
-	use super::ApplicationTypesGetOut;
 	use crate::bindings::file_client::{FileClient, MockFileClient};
 	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestClient, RestResponse};
 	use crate::bindings::suspendable_rest_client::SuspensionBehavior;
 	use crate::bindings::test_file_client::TestFileClient;
 	use crate::bindings::test_rest_client::TestRestClient;
-	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::type_model_provider::TypeModelProvider;
-	use std::collections::HashMap;
+	use crate::util::test_utils;
 	use std::sync::Arc;
 	use std::sync::RwLock;
 
@@ -232,14 +231,14 @@ mod tests {
 	#[test]
 	fn read_type_model_only_once() {
 		let first_type_model = TypeModelProvider::new_test(
-			Arc::new(TestRestClient::default()),
-			Arc::new(TestFileClient::default()),
+			Arc::new(MockRestClient::default()),
+			Arc::new(MockFileClient::default()),
 			"localhost:9000".to_string(),
 		);
 
 		let second_type_model = TypeModelProvider::new_test(
-			Arc::new(TestRestClient::default()),
-			Arc::new(TestFileClient::default()),
+			Arc::new(MockRestClient::default()),
+			Arc::new(MockFileClient::default()),
 			"localhost:9000".to_string(),
 		);
 
@@ -276,18 +275,7 @@ mod tests {
 					Some(SuspensionBehavior::Suspend)
 				);
 
-				let application_get_out = ApplicationTypesGetOut {
-					model_types_as_string: serde_json::to_string(&client_apps_models).unwrap(),
-					current_application_hash: "latest-applications-hash".to_string(),
-				};
-				let serialized_json = serde_json::to_string(&application_get_out).unwrap();
-				let compressed_response =
-					EntityFacadeImpl::lz4_compress_plain_bytes(serialized_json.as_bytes()).unwrap();
-				return Ok(RestResponse {
-					status: 200,
-					headers: HashMap::default(),
-					body: Some(compressed_response),
-				});
+				Ok(test_utils::application_types_response_with_client_model())
 			});
 
 		let type_provider = Arc::new(TypeModelProvider::new_test(

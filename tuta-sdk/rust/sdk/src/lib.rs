@@ -81,10 +81,10 @@ pub mod rest_error;
 pub mod services;
 mod simple_crypto;
 pub mod tutanota_constants;
-mod type_model_provider;
+pub mod type_model_provider;
 mod typed_entity_client;
 mod user_facade;
-mod util;
+pub mod util;
 
 use crate::bindings::suspendable_rest_client::SuspendableRestClient;
 use crate::date::calendar_facade::CalendarFacade;
