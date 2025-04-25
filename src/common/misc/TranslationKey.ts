@@ -633,7 +633,6 @@ export type TranslationKeyType =
 	| "filterWithAttachments_label"
 	| "filter_label"
 	| "finallyDeleteEmails_msg"
-	| "finallyDeleteSelectedEmails_msg"
 	| "finish_action"
 	| "firstMergeContact_label"
 	| "firstMonthForFreeDetail_msg"

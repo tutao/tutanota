@@ -57,7 +57,7 @@ export async function promptAndDeleteMails(
 	filterMailSet: IdTuple | null,
 	onConfirm: () => void,
 ): Promise<boolean> {
-	const shouldDeletePermanently = await Dialog.confirm("finallyDeleteSelectedEmails_msg", "ok_action")
+	const shouldDeletePermanently = await Dialog.confirm("finallyDeleteEmails_msg", "ok_action")
 	if (!shouldDeletePermanently) {
 		return false
 	}
