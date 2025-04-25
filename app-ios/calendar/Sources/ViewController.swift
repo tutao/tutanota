@@ -237,12 +237,12 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 	func handleShare(_ url: URL) async throws {
 		guard let info = await getSharingInfo(url: url) else {
-			TUTSLog("unable to get sharingInfo from url: \(url)")
+			printLog("unable to get sharingInfo from url: \(url)")
 			return
 		}
 
 		do { try await self.bridge.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
-			TUTSLog("failed to open mail editor to share: \(error)")
+			printLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
 		}
 	}
@@ -255,7 +255,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 	func handleInterop(_ url: URL) async throws {
 		guard let interopAction = await getInteropAction(url: url) else {
-			TUTSLog("unable to get interop info from url: \(url)")
+			printLog("unable to get interop info from url: \(url)")
 			return
 		}
 
@@ -266,7 +266,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 				try await handleWidgetActions(url, interopAction)
 			}
 		} catch {
-			TUTSLog("Failed to handle interop comunication for \(interopAction.name)=\(interopAction.value ?? ""): \(error)")
+			printLog("Failed to handle interop comunication for \(interopAction.name)=\(interopAction.value ?? ""): \(error)")
 		}
 	}
 
@@ -278,9 +278,17 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		guard let date = queryItems.first(where: {$0.name == "date"})?.value else { throw TutanotaError(message: "Missing date for Widget Action URL") }
 		let eventId = queryItems.first(where: {$0.name == "eventId"})?.value
 
-		let action = interopAction.value == WidgetActions.agenda.rawValue ? CalendarOpenAction.agenda : CalendarOpenAction.event_editor
+		if interopAction.value == WidgetActions.sendLogs.rawValue {
+			return try await sendLogsFromWidget()
+		}
 
+		let action = interopAction.value == WidgetActions.agenda.rawValue ? CalendarOpenAction.agenda : CalendarOpenAction.event_editor
 		try await self.bridge.commonNativeFacade.openCalendar(userId, action, date, eventId)
+	}
+
+	func sendLogsFromWidget() async throws {
+		let logs = readSharingInfo(infoLocation: WIDGET_LOGS_LOCATION)
+		try await self.bridge.commonNativeFacade.sendLogs(logs?.text ?? "")
 	}
 
 	override var preferredStatusBarStyle: UIStatusBarStyle { if self.isDarkTheme { return .lightContent } else { return .darkContent } }
