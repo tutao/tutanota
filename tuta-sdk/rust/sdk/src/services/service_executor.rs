@@ -1,5 +1,5 @@
 use crate::bindings::rest_client::{
-	encode_query_params, HttpMethod, RestClient, RestClientOptions,
+	encode_query_params, HttpMethod, RestClient, RestClientOptions, RestResponse,
 };
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto::crypto_facade::CryptoFacade;
@@ -137,6 +137,24 @@ impl ServiceExecutor {
 		S: DeleteService,
 	{
 		S::DELETE(self, data, params).await
+	}
+
+	async fn ensure_latest_server_model(
+		&self,
+		response: &RestResponse,
+	) -> Result<(), ApiCallError> {
+		let current_model_hash = response
+			.headers
+			.get("app-types-hash")
+			.map(|a| a.as_str())
+			// if server did not put hash in response header,
+			// always fetch application types again just to be safe
+			.unwrap_or("non-existant-hash");
+
+		self.type_model_provider
+			.clone()
+			.ensure_latest_server_model(current_model_hash)
+			.await
 	}
 }
 
@@ -297,6 +315,9 @@ impl Executor for ServiceExecutor {
 				},
 			)
 			.await?;
+
+		self.ensure_latest_server_model(&response).await?;
+
 		let precondition = response.headers.get("precondition");
 		match response.status {
 			200 | 201 => Ok(response.body),
