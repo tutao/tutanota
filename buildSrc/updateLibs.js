@@ -40,7 +40,8 @@ const clientDependencies = [
 	{ src: "../node_modules/cborg/cborg.js", target: "cborg.js", bundling: "rollupWeb" },
 	{ src: "../node_modules/qrcode-svg/lib/qrcode.js", target: "qrcode.js", bundling: "rollupWeb" },
 	{ src: "../node_modules/electron-updater/out/main.js", target: "electron-updater.mjs", bundling: "rollupDesktop" },
-	{ src: "../node_modules/better-sqlite3/lib/index.js", target: "better-sqlite3.mjs", bundling: "rollupDesktop", banner: requireInteropBanner },
+	// FIXME
+	// { src: "../node_modules/better-sqlite3/lib/index.js", target: "better-sqlite3.mjs", bundling: "rollupDesktop", banner: requireInteropBanner },
 	{ src: "../node_modules/winreg/lib/registry.js", target: "winreg.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 ]

@@ -15,9 +15,10 @@ import { normalizeCopyTarget, removeNpmNamespacePrefix } from "./buildUtils.js"
  * @param params.architecture {import("./nativeLibraryProvider.js").InputArch} the instruction set used in the built desktop binary
  * @param params.rootDir {string} path to the root of the project
  * @param params.nodeModule {string} name of the npm module to rebuild
+ * @param params.targetName {string=} name of the gyp target
  * @param log {import("./nativeLibraryProvider.js").Logger}
  */
-export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, environment }, log = console.log.bind(console)) {
+export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, environment, targetName }, log = console.log.bind(console)) {
 	environment = environment ?? "electron"
 	// We do not use emitFile() machinery even though it would probably be more correct.
 	let modulePaths
@@ -31,7 +32,7 @@ export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, env
 				log,
 				platform,
 				architecture,
-				copyTarget: normalizeCopyTarget(nodeModule),
+				copyTarget: targetName ?? normalizeCopyTarget(nodeModule),
 			})
 		},
 		banner() {
@@ -43,7 +44,9 @@ export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, env
 			return `const ${constName} = \`./${unprefixedModuleName}.${platform}-\${typeof process !== 'undefined' ? process.arch : "unknown"}.node\``
 		},
 		async writeBundle(opts) {
-			const dstDir = path.normalize(opts.dir)
+			// FIXME we are doing build/Release subdirectory now to satisfy node-gyp-build but it grabs the first .node file that it finds so it won't work
+			//   if we have multiple binaries. We should probably just get rid of it.
+			const dstDir = path.join(path.normalize(opts.dir), "build", "Release")
 			for (let [architecture, modulePath] of Object.entries(modulePaths)) {
 				const normalDst = path.join(dstDir, `${removeNpmNamespacePrefix(nodeModule)}.${platform}-${architecture}.node`)
 				await fs.promises.mkdir(dstDir, { recursive: true })

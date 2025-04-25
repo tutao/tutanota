@@ -82,7 +82,9 @@ type EventRedraw<T extends Event> = T & { redraw?: boolean }
  */
 declare var LOAD_ASSERTIONS: boolean
 
-/**
- * Should be injected during build time. Only done for desktop
- */
-declare const __NODE_GYP_better_sqlite3: string
+// FIXME
+
+// /**
+//  * Should be injected during build time. Only done for desktop
+//  */
+// declare const __NODE_GYP_better_sqlite3: string
