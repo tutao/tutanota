@@ -79,19 +79,8 @@ class MailSetEntryIdGenerator {
 	}
 }
 
-const nativePath = __NODE_GYP_better_sqlite3
 const databasePath = ":memory:"
 export const offlineDatabaseTestKey = Uint8Array.from([3957386659, 354339016, 3786337319, 3366334248])
-
-/**
- * remove fields from mailDetailsBlobs that are added by the model mapper in order to allow comparing mailDetailsBlobs
- */
-function clearFieldsFromMailDetailsBlob(mailDetailsBlob: MailDetailsBlob) {
-	downcast(mailDetailsBlob).details._id = null
-	downcast(mailDetailsBlob).details.body._id = null
-	downcast(mailDetailsBlob).details.recipients._id = null
-	return mailDetailsBlob
-}
 
 o.spec("OfflineStorageDb", function () {
 	const now = new Date("2022-01-01 00:00:00 UTC")
@@ -116,7 +105,7 @@ o.spec("OfflineStorageDb", function () {
 
 	o.beforeEach(async function () {
 		// integrity checks do not work with in-memory databases
-		dbFacade = new DesktopSqlCipher(nativePath, databasePath, false)
+		dbFacade = new DesktopSqlCipher(databasePath, false)
 
 		dateProviderMock = object<DateProvider>()
 		migratorMock = instance(OfflineStorageMigrator)

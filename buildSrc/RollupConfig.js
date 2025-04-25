@@ -1,6 +1,9 @@
 import path from "node:path"
 
-// These are the vendored dependencies. This map is to help bundler find the resolved path.
+/**
+ * These are the vendored dependencies. This map is to help bundler find the resolved path.
+ * Must stay in sync with ./updateLibs.js
+ */
 export const dependencyMap = {
 	mithril: path.normalize("./libs/mithril.js"),
 	"mithril/stream": path.normalize("./libs/stream.js"),
@@ -14,10 +17,10 @@ export const dependencyMap = {
 	cborg: path.normalize("./libs/cborg.js"),
 	// below this, the modules are only running in the desktop main thread.
 	"electron-updater": path.normalize("./libs/electron-updater.mjs"),
-	"better-sqlite3": path.normalize("./libs/better-sqlite3.mjs"),
 	winreg: path.normalize("./libs/winreg.mjs"),
 	undici: path.normalize("./libs/undici.mjs"),
 	jsqr: path.normalize("./libs/jsQR.js"),
+	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 }
 
 /**

@@ -68,7 +68,7 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 
 	const odbRefCounter = new OfflineDbRefCounter({
 		async create(userid: string, key: Uint8Array, retry?: boolean): Promise<SqlCipherFacade> {
-			const db = new DesktopSqlCipher(__NODE_GYP_better_sqlite3, ":memory:", false)
+			const db = new DesktopSqlCipher(":memory:", false)
 			//integrity check breaks for in memory database
 			await db.openDb(userId, key)
 			return db

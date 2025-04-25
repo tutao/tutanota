@@ -1,5 +1,5 @@
 import path from "node:path"
-import { getTargetTriple, removeNpmNamespacePrefix, resolveArch } from "./buildUtils.js"
+import { getTargetTupleWithLibc, removeNpmNamespacePrefix, resolveArch } from "./buildUtils.js"
 import fs from "node:fs"
 
 /**
@@ -18,8 +18,8 @@ export function napiPlugin({ nodeModule, platform, architecture }) {
 			const modulePath = path.dirname(resolvedModulePath.id)
 			const moduleName = removeNpmNamespacePrefix(nodeModule)
 			for (let arch of resolveArch(architecture)) {
-				const targetTriple = getTargetTriple(platform, arch)
-				const fileName = `${moduleName}.${targetTriple}.node`
+				const targetTuple = getTargetTupleWithLibc(platform, arch)
+				const fileName = `${moduleName}.${targetTuple}.node`
 				const normalizedDstDir = path.normalize(opts.dir)
 				await fs.promises.mkdir(normalizedDstDir, { recursive: true })
 				await fs.promises.copyFile(path.join(modulePath, fileName), path.join(normalizedDstDir, fileName))

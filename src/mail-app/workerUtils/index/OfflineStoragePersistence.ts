@@ -25,7 +25,8 @@ const searchTables = Object.freeze([
        body,
        attachments,
        content='',
-       contentless_delete=1
+       contentless_delete=1,
+       tokenize='signal_tokenizer'
        )`,
 	// Content of the mail that we might need while matching, but that should not be indexed by fts5
 	// we would love to use the contentless_unindexed option, but it's only available from SQLite 3.47.0 onwards

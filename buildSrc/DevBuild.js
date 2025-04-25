@@ -174,8 +174,10 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 					rootDir: projectRoot,
 					platform: getCanonicalPlatformName(process.platform),
 					architecture: getValidArchitecture(process.platform, process.arch),
-					nodeModule: "better-sqlite3",
-					environment: "electron",
+					nodeModule: "@signalapp/sqlcipher",
+					// we build for Electron, but it uses NAPI so it's fine to build for node
+					environment: "node",
+					targetName: "node_sqlcipher",
 				}),
 				napiPlugin({
 					nodeModule: "@tutao/node-mimimi",
