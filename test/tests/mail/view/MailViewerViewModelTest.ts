@@ -122,6 +122,7 @@ o.spec("MailViewerViewModel", function () {
 		when(configFacade.getExternalImageRule(mail.sender.address)).thenResolve(ExternalImageRule.None)
 		when(mailModel.checkMailForPhishing(matchers.anything(), matchers.anything())).thenResolve(false)
 		when(entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)).thenResolve(object())
+		when(workerFacade.urlify(matchers.anything())).thenResolve("")
 	}
 
 	o.spec("unsubscribe", function () {
