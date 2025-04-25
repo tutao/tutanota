@@ -12,24 +12,23 @@ import commonjs from "@rollup/plugin-commonjs"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-// make require() work inside esm module
-const requireInteropBanner = `import { createRequire } from 'node:module';
-const require = createRequire(import.meta.url);`
-
 export async function updateLibs() {
 	await copyToLibs(clientDependencies)
 }
 
 /**
+ * Should correspond to {@link import("./RollupConfig").dependencyMap}
+ *
  * @typedef {"rollupWeb" | "rollupDesktop" | "copy"} BundlingStrategy
  * @typedef {{src: string, target: string, bundling: BundlingStrategy, banner?: string}} DependencyDescription
  * @type Array<DependencyDescription>
+ *
  */
 const clientDependencies = [
 	// mithril is patched manually to remove some unused parts
 	// "../node_modules/mithril/mithril.js",
 	{ src: "../node_modules/mithril/stream/stream.js", target: "stream.js", bundling: "copy" },
-	// squire is patched manually to fix issuesr
+	// squire is patched manually to fix issues
 	// "../node_modules/squire-rte/dist/squire-raw.mjs",
 	{ src: "../node_modules/dompurify/dist/purify.js", target: "purify.js", bundling: "copy" },
 	{ src: "../node_modules/linkifyjs/dist/linkify.mjs", target: "linkify.js", bundling: "copy" },
@@ -40,7 +39,7 @@ const clientDependencies = [
 	{ src: "../node_modules/cborg/cborg.js", target: "cborg.js", bundling: "rollupWeb" },
 	{ src: "../node_modules/qrcode-svg/lib/qrcode.js", target: "qrcode.js", bundling: "rollupWeb" },
 	{ src: "../node_modules/electron-updater/out/main.js", target: "electron-updater.mjs", bundling: "rollupDesktop" },
-	{ src: "../node_modules/better-sqlite3/lib/index.js", target: "better-sqlite3.mjs", bundling: "rollupDesktop", banner: requireInteropBanner },
+	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/winreg/lib/registry.js", target: "winreg.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 ]
@@ -110,16 +109,7 @@ async function rollDesktopDep(src, target, banner) {
 			"util",
 			"zlib",
 		],
-		plugins: [
-			nodeResolve({ preferBuiltins: true }),
-			commonjs({
-				// better-sqlite3 uses dynamic require to load the binary.
-				// if there is ever another dependency that uses dynamic require
-				// to load any javascript, we should revisit this and make sure
-				// it's still correct.
-				ignoreDynamicRequires: true,
-			}),
-		],
+		plugins: [nodeResolve({ preferBuiltins: true }), commonjs()],
 		onwarn: (warning, defaultHandler) => {
 			if (warning.code === "CIRCULAR_DEPENDENCY") {
 				return // Ignore circular dependency warnings

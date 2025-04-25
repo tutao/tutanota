@@ -42,7 +42,7 @@ import { spawn } from "node:child_process"
  * @param params.nodeModule {string} name of the npm module to rebuild
  * @param params.log {Logger}
  * @param params.copyTarget {string | undefined} Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module
- * @returns {Promise<Record<string, string>>} paths to cached native module by architecture
+ * @returns {Promise<Partial<Record<BuildArch, string>>>} paths to cached native module by architecture
  */
 export async function getNativeLibModulePaths({ environment, platform, architecture, rootDir, nodeModule, log, copyTarget }) {
 	const namespaceTrimmedNodeModule = removeNpmNamespacePrefix(nodeModule)
@@ -50,24 +50,13 @@ export async function getNativeLibModulePaths({ environment, platform, architect
 
 	const isCrossCompilation = checkIsCrossCompilation(platform)
 	for (/** @type {[BuildArch, string]} */ const entry of Object.entries(libPaths)) {
-		/** @type BuildArch */
-		// @ts-ignore
-		const architecture = entry[0]
+		const architecture = /** @type BuildArch */ (entry[0])
 		const libPath = entry[1]
 		if (await fileExists(libPath)) {
 			log(`Using cached ${nodeModule} at`, libPath)
 		} else {
-			const moduleDir = await getModuleDir(rootDir, nodeModule)
 			if (isCrossCompilation) {
-				log(`Getting prebuilt ${nodeModule} using prebuild-install...`)
-				await getPrebuiltNativeModuleForWindows({
-					nodeModule,
-					rootDir,
-					platform,
-					log,
-				})
-
-				await fs.promises.copyFile(path.join(moduleDir, "build/Release", `${copyTarget ?? nodeModule}.${platform}-${architecture}.node`), libPath)
+				throw new Error(`Cannot cross-compile for ${platform} from ${process.platform}`)
 			} else {
 				log(`Compiling ${nodeModule} for ${platform}...`)
 				const artifactPath = await buildNativeModule({
@@ -83,7 +72,6 @@ export async function getNativeLibModulePaths({ environment, platform, architect
 			}
 		}
 	}
-
 	return libPaths
 }
 
@@ -201,13 +189,8 @@ export async function getPrebuiltNativeModuleForWindows({ nodeModule, rootDir, p
  * @return {Promise<{ runtime: string, version: string} | null>}
  */
 async function getPrebuildConfiguration(nodeModule, platform, log) {
-	if (nodeModule === "better-sqlite3") {
-		return platform === "electron"
-			? {
-					runtime: "electron",
-					version: await getElectronVersion(log),
-			  }
-			: null
+	if (nodeModule === "@signalapp/sqlcipher") {
+		return null
 	} else {
 		throw new Error(`Unknown prebuild-configuration for node module ${nodeModule}, requires a definition`)
 	}

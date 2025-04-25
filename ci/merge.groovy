@@ -102,11 +102,11 @@ pipeline {
 						}
 						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
 
-						// building better-sqlite3 is not parallelizable on the same directory and doesn't lock; so we
+						// building sqlcipher is not parallelizable on the same directory and doesn't lock; so we
 						// pre-build it while we're not parallel yet. the browser and node tests will pick up the binary
 						// instead of each building it. we can parallelize it with build-packages though.
 						sh '''
-							node buildSrc/getNodeGypLibrary.js better-sqlite3 --copy-target better_sqlite3 --environment node --root-dir . &
+							node buildSrc/getNodeGypLibrary.js @signalapp/sqlcipher --copy-target node_sqlcipher --environment node --root-dir . &
 							PID1=$!
 							npm run build-packages &
 							PID2=$!
