@@ -4,6 +4,8 @@ extern NSString *const TUT_ERROR_DOMAIN;
 extern NSString *const TUT_CRYPTO_ERROR;
 extern NSString *const TUT_FILEVIEWER_ERROR;
 extern NSString *const TUT_NETWORK_ERROR;
+extern NSString *const TUT_WIDGET_ERROR;
+extern NSString *const TUT_WIDGET_CREDENTIAL_ERROR;
 
 @interface TUTErrorFactory : NSObject
 + (NSError *)createError:(NSString*) description;

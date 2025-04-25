@@ -8,7 +8,7 @@ import TutanotaSharedFramework
 class RemoteBridge: NSObject, NativeInterface {
 	private let webView: WKWebView
 	private let viewController: ViewController
-	private let commonSystemFacade: IosCommonSystemFacade
+	let commonSystemFacade: IosCommonSystemFacade
 	var commonNativeFacade: CommonNativeFacade!
 	private var mobileFacade: MobileFacade!
 	private var globalDispatcher: IosGlobalDispatcher!
