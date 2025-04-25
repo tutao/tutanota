@@ -70,3 +70,8 @@ public func printLog(_ message: String, _ file: StaticString = #fileID) {
 	let filename = file
 	TUTSLog("\(filename): \(message)")
 }
+
+public func getLogs() -> String {
+	let entries = TUTLogger.sharedInstance().entries()
+	return entries.joined(separator: "\n")
+}
