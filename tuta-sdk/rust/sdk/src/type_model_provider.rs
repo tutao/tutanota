@@ -1,11 +1,7 @@
 use crate::bindings::file_client::FileClient;
 use crate::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::bindings::suspendable_rest_client::SuspensionBehavior;
-use crate::entities::generated::base::ApplicationTypesGetOut;
-use crate::entities::Entity;
-use crate::instance_mapper::InstanceMapper;
-use crate::json_element::RawEntity;
-use crate::json_serializer::JsonSerializer;
+use crate::entities::entity_facade::EntityFacadeImpl;
 use crate::metamodel::{AppName, ApplicationModel, ApplicationModels, TypeModel};
 use crate::rest_error::HttpError;
 use crate::services::generated::base::ApplicationTypesService;
@@ -51,7 +47,7 @@ static CLIENT_TYPE_MODEL: std::sync::LazyLock<ApplicationModels> = std::sync::La
 /// Contains a map between backend apps and entity/instance types within them
 pub struct TypeModelProvider {
 	pub client_app_models: Cow<'static, ApplicationModels>,
-	pub server_app_models: std::sync::RwLock<(Option<String>, Cow<'static, ApplicationModels>)>,
+	pub server_app_models: std::sync::RwLock<Option<(String, Cow<'static, ApplicationModels>)>>,
 
 	// required to fetch new server model
 	_file_client: Arc<dyn FileClient>,
@@ -67,7 +63,7 @@ impl TypeModelProvider {
 	) -> TypeModelProvider {
 		TypeModelProvider {
 			client_app_models: Cow::Borrowed(&CLIENT_TYPE_MODEL),
-			server_app_models: std::sync::RwLock::new((None, Cow::Borrowed(&CLIENT_TYPE_MODEL))),
+			server_app_models: std::sync::RwLock::new(None),
 			rest_client,
 			_file_client: file_client,
 			base_url,
@@ -87,6 +83,8 @@ impl TypeModelProvider {
 		self.server_app_models
 			.read()
 			.expect("Server application model lock poisoned on read")
+			.as_ref()
+			.expect("Tried to resolve server type ref before initilization. Call ensure_latest_server_model first?")
 			.1
 			.as_ref()
 			.apps
@@ -106,9 +104,8 @@ impl TypeModelProvider {
 			.server_app_models
 			.read()
 			.expect("server_app_models lock is poisoned")
-			.0
 			.as_ref()
-			.map(|old_hash| old_hash == hash_from_response)
+			.map(|(current_hash, _)| current_hash == hash_from_response)
 			.unwrap_or_default();
 		if !is_same_hash {
 			// we do not use service executer here, because this service should also be callable from non-loggedin sdk
@@ -126,7 +123,7 @@ impl TypeModelProvider {
 				.expect("We should have always cleared the poision before writing");
 
 			*writeable_server_models =
-				(Some(hash_from_response.to_string()), Cow::Owned(new_models));
+				Some((hash_from_response.to_string(), Cow::Owned(new_models)));
 		}
 		Ok(())
 	}
@@ -153,34 +150,34 @@ impl TypeModelProvider {
 
 		match (response.status, response_body) {
 			(200..=299, Some(response_bytes)) => {
-				let response_entity =
-					serde_json::from_slice::<RawEntity>(response_bytes.as_slice()).unwrap();
+				let decompressed_get_out =
+					EntityFacadeImpl::lz4_decompress_decrypted_bytes(response_bytes.as_slice())
+						.map_err(|d| {
+							ApiCallError::internal_with_err(
+								d,
+								"Can not decompressed applicationTypesServiceGetOut",
+							)
+						})?;
 
-				// In order to get the latest server model, we rely on ApplicationTypesGetOut. This means that changes
-				// to this type require old client to be deprecated.
-				let parsed_instance = JsonSerializer::new(self.clone())
-					.parse(&ApplicationTypesGetOut::type_ref(), response_entity)?;
-				let application_types_get_out = InstanceMapper::new(self)
-					.parse_entity::<ApplicationTypesGetOut>(parsed_instance)
-					.map_err(|_e| {
-						ApiCallError::internal(
-							"Cannot convert ParsedEntity to valid ApplicationTypesServiceGetOut"
-								.to_string(),
-						)
-					})?;
-
-				let apps = serde_json::from_str::<HashMap<AppName, ApplicationModel>>(
-					&application_types_get_out.applicationTypesJson,
+				let application_types_get_out = serde_json::from_slice::<ApplicationTypesGetOut>(
+					decompressed_get_out.as_slice(),
 				)
 				.map_err(|e| {
-					ApiCallError::internal(
-								format!("Can not parse ApplicationTypesService response to ApplicationModels. error: {e:?}"
-								),
-							)
+					ApiCallError::internal_with_err(e, "Cannot deserialize ApplicationTypesGetOut")
+				})?;
+
+				let apps = serde_json::from_str::<HashMap<AppName, ApplicationModel>>(
+					&application_types_get_out.model_types_as_string,
+				)
+				.map_err(|e| {
+					ApiCallError::internal_with_err(
+						e,
+						"Can not parse ApplicationTypesService response to ApplicationModels",
+					)
 				})?;
 				let application_models = ApplicationModels { apps };
 				Ok((
-					application_types_get_out.applicationTypesHash,
+					application_types_get_out.current_application_hash,
 					application_models,
 				))
 			},
@@ -194,12 +191,24 @@ impl TypeModelProvider {
 	}
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ApplicationTypesGetOut {
+	pub current_application_hash: String,
+	pub model_types_as_string: String,
+}
+
 #[cfg(test)]
 mod tests {
-	use super::Arc;
+	use super::{ApplicationTypesGetOut, Arc};
+	use crate::bindings::file_client::MockFileClient;
+	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestResponse};
+	use crate::bindings::suspendable_rest_client::SuspensionBehavior;
 	use crate::bindings::test_file_client::TestFileClient;
 	use crate::bindings::test_rest_client::TestRestClient;
+	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::type_model_provider::TypeModelProvider;
+	use std::collections::HashMap;
 
 	#[test]
 	fn read_type_model_only_once() {
@@ -219,5 +228,63 @@ mod tests {
 			first_type_model.client_app_models.as_ref(),
 			second_type_model.client_app_models.as_ref()
 		));
+	}
+
+	#[tokio::test]
+	async fn server_can_parse_current_type_models() {
+		let mut rest_client = MockRestClient::new();
+		rest_client
+			.expect_request_binary()
+			.return_once(|url, method, option| {
+				let client_apps_models = TypeModelProvider::new(
+					Arc::new(MockRestClient::new()),
+					Arc::new(MockFileClient::new()),
+					Default::default(),
+				)
+				.client_app_models
+				.apps
+				.clone();
+
+				assert_eq!(url, "localhost:9000/rest/base/applicationtypesservice");
+				assert_eq!(method, HttpMethod::GET);
+				assert_eq!(
+					option.headers.get("cv"),
+					Some(&crate::CLIENT_VERSION.to_string())
+				);
+				assert_eq!(option.body, None);
+				assert_eq!(
+					option.suspension_behavior,
+					Some(SuspensionBehavior::Suspend)
+				);
+
+				let application_get_out = ApplicationTypesGetOut {
+					model_types_as_string: serde_json::to_string(&client_apps_models).unwrap(),
+					current_application_hash: "latest-application-hash".to_string(),
+				};
+				let serialized_json = serde_json::to_string(&application_get_out).unwrap();
+				let compressed_response =
+					EntityFacadeImpl::lz4_compress_plain_bytes(serialized_json.as_bytes()).unwrap();
+				return Ok(RestResponse {
+					status: 200,
+					headers: HashMap::default(),
+					body: Some(compressed_response),
+				});
+			});
+
+		let type_provider = Arc::new(TypeModelProvider::new(
+			Arc::new(rest_client),
+			Arc::new(MockFileClient::new()),
+			"localhost:9000".to_string(),
+		));
+
+		let (applications_hash, updated_type_model) =
+			TypeModelProvider::fetch_server_model(type_provider.clone())
+				.await
+				.unwrap();
+		assert_eq!(applications_hash, "latest-applications-hash");
+		assert_eq!(
+			&updated_type_model,
+			type_provider.client_app_models.as_ref()
+		);
 	}
 }

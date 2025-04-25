@@ -733,34 +733,19 @@ pub fn mock_type_model_provider() -> TypeModelProvider {
 		types: test_types_entity_client,
 	};
 
-	let mut client_map = type_model_provider.client_app_models.into_owned();
-	client_map.apps.insert(
+	let mut default_models = type_model_provider.client_app_models.into_owned();
+	default_models.apps.insert(
 		AppName::EntityClientTestApp,
 		test_types_entity_client.clone(),
 	);
-	client_map
+	default_models
 		.apps
 		.insert(AppName::Test, test_types_hello.clone());
-	type_model_provider.client_app_models = Cow::Owned(client_map);
-
-	let mut server_map = type_model_provider
-		.server_app_models
-		.read()
-		.unwrap()
-		.1
-		.clone()
-		.into_owned();
-	server_map.apps.insert(
-		AppName::EntityClientTestApp,
-		test_types_entity_client.clone(),
-	);
-	server_map
-		.apps
-		.insert(AppName::Test, test_types_hello.clone());
-	type_model_provider.server_app_models = RwLock::new((
-		Some(SERVER_TYPES_JSON_HASH.to_string()),
-		Cow::Owned(server_map),
-	));
+	type_model_provider.client_app_models = Cow::Owned(default_models.clone());
+	type_model_provider.server_app_models = RwLock::new(Some((
+		SERVER_TYPES_JSON_HASH.to_string(),
+		Cow::Owned(default_models.clone()),
+	)));
 
 	type_model_provider
 }
