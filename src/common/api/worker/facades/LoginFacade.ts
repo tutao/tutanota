@@ -868,7 +868,7 @@ export class LoginFacade {
 
 		const headers = {
 			accessToken: neverNull(accessToken),
-			v: sessionTypeModel.version,
+			v: String(sessionTypeModel.version),
 		}
 		const queryParams: Dict = pushIdentifier == null ? {} : { pushIdentifier }
 		return this.restClient
@@ -908,7 +908,7 @@ export class LoginFacade {
 
 		let headers = {
 			accessToken: accessToken,
-			v: SessionTypeModel.version,
+			v: String(SessionTypeModel.version),
 		}
 		// we cannot use the entity client yet because this type is encrypted and we don't have an owner key yet
 		return this.restClient

@@ -597,7 +597,7 @@ export class EntityRestClient implements EntityRestInterface {
 			throw new NotAuthenticatedError("user must be authenticated for entity requests")
 		}
 
-		headers.v = typeModel.version
+		headers.v = String(typeModel.version)
 		return {
 			path,
 			queryParams,

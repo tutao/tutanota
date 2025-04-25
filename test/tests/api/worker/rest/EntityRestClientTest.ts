@@ -6,7 +6,7 @@ import {
 	NotAuthorizedError,
 	PayloadTooLargeError,
 } from "../../../../../src/common/api/common/error/RestError.js"
-import { assertThrows, mock } from "@tutao/tutanota-test-utils"
+import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import { HttpMethod, MediaType, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { AccountingInfoTypeRef, CustomerTypeRef, GroupMemberTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
@@ -714,7 +714,7 @@ o.spec("EntityRestClient", function () {
 			when(
 				restClient.request(`/rest/tutanota/calendarevent/listId`, HttpMethod.POST, {
 					baseUrl: undefined,
-					headers: { ...authHeader, v },
+					headers: { ...authHeader, v: String(v) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
 					body: argThat(async (json) => {
@@ -764,7 +764,7 @@ o.spec("EntityRestClient", function () {
 			when(
 				restClient.request(`/rest/tutanota/supportdata`, HttpMethod.POST, {
 					baseUrl: undefined,
-					headers: { ...authHeader, v },
+					headers: { ...authHeader, v: String(v) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
 					body: JSON.stringify(untypedSupportData),
@@ -832,7 +832,7 @@ o.spec("EntityRestClient", function () {
 			when(
 				restClient.request(`/rest/sys/accountinginfo`, HttpMethod.POST, {
 					baseUrl: undefined,
-					headers: { ...authHeader, v },
+					headers: { ...authHeader, v: String(v) },
 					queryParams: undefined,
 					responseType: MediaType.Json,
 					body: argThat(async (json) => {
@@ -877,7 +877,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
-					headers: { ...authHeader, v: version },
+					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
 					body: JSON.stringify(untypedGroupMembers),
@@ -908,7 +908,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
-					headers: { ...authHeader, v: version },
+					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
 					body: JSON.stringify(untypedGroupMembers),
@@ -938,7 +938,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
-					headers: { ...authHeader, v: version },
+					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "100" },
 					responseType: MediaType.Json,
 					body: JSON.stringify(untypedGroupMembers.slice(0, 100)),
@@ -948,7 +948,7 @@ o.spec("EntityRestClient", function () {
 
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
-					headers: { ...authHeader, v: version },
+					headers: { ...authHeader, v: String(version) },
 					queryParams: { count: "1" },
 					responseType: MediaType.Json,
 					body: JSON.stringify(untypedGroupMembers.slice(100)),
@@ -1053,7 +1053,7 @@ o.spec("EntityRestClient", function () {
 			const untypedSupportData = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, newSupportData, null)
 			when(
 				restClient.request("/rest/tutanota/supportdata/id", HttpMethod.PUT, {
-					headers: { ...authHeader, v: version },
+					headers: { ...authHeader, v: String(version) },
 					body: JSON.stringify(untypedSupportData),
 				}),
 			)
@@ -1099,7 +1099,7 @@ o.spec("EntityRestClient", function () {
 						return (
 							deepEqual(options.headers, {
 								...authHeader,
-								v: version,
+								v: String(version),
 							}) && deepEqual(newAccountingInfo, updatedAccountingInfo)
 						)
 					}),
@@ -1117,7 +1117,7 @@ o.spec("EntityRestClient", function () {
 			})
 			when(
 				restClient.request("/rest/sys/customer/id", HttpMethod.DELETE, {
-					headers: { ...authHeader, v: version },
+					headers: { ...authHeader, v: String(version) },
 				}),
 			)
 

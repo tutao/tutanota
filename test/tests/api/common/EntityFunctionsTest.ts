@@ -44,7 +44,7 @@ o.spec("EntityFunctionsTest", function () {
 					},
 				},
 				associations: {},
-				version: "1",
+				version: 1,
 				versioned: false,
 			},
 		}

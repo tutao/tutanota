@@ -9,6 +9,7 @@ import {
 	PostService,
 	PutService,
 	ReturnTypeFromRef,
+	ServiceDefinition,
 } from "../../common/ServiceRequest.js"
 import { Entity, ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { isSameTypeRef, lazy, TypeRef } from "@tutao/tutanota-utils"
@@ -86,8 +87,8 @@ export class ServiceExecutor implements IServiceExecutor {
 
 		const modelVersion = await this.getModelVersion(methodDefinition)
 
-		const path = `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
-		const headers = { ...this.authDataProvider.createAuthHeaders(), ...params?.extraHeaders, v: modelVersion }
+		const path = getServiceRestPath(service)
+		const headers = { ...this.authDataProvider.createAuthHeaders(), ...params?.extraHeaders, v: String(modelVersion) }
 
 		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
 
@@ -118,8 +119,8 @@ export class ServiceExecutor implements IServiceExecutor {
 		}
 	}
 
-	private async getModelVersion(methodDefinition: MethodDefinition): Promise<string> {
-		// This is some kind of a hack because we don't generate data for the whole model anywhere (unfortunately).
+	private async getModelVersion(methodDefinition: MethodDefinition): Promise<number> {
+		// This is some kind of hack because we don't generate data for the whole model anywhere (unfortunately).
 		const someTypeRef = methodDefinition.data ?? methodDefinition.return
 		if (someTypeRef == null) {
 			throw new ProgrammingError("Need either data or return for the service method!")
@@ -163,4 +164,8 @@ export class ServiceExecutor implements IServiceExecutor {
 
 		return await this.instancePipeline.decryptAndMap(typeRef, instance, sessionKey)
 	}
+}
+
+export function getServiceRestPath(service: ServiceDefinition) {
+	return `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
 }

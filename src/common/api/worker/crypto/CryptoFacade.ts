@@ -812,7 +812,7 @@ export class CryptoFacade {
 		const id = instance._id
 		const path = (await typeRefToRestPath(instance._type)) + "/" + (id instanceof Array ? id.join("/") : id)
 		const headers = this.userFacade.createAuthHeaders()
-		headers.v = typeModel.version
+		headers.v = String(typeModel.version)
 
 		const untypedInstance = await this.instancePipeline.typeMapper.applyDbTypes(
 			instance.typeModel,

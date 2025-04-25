@@ -34,7 +34,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -57,7 +57,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -77,7 +77,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -122,7 +122,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -145,7 +145,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -165,7 +165,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -216,7 +216,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -239,7 +239,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -259,7 +259,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -311,7 +311,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -325,7 +325,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -345,7 +345,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -390,7 +390,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -404,7 +404,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -424,7 +424,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -475,7 +475,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -498,7 +498,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -518,7 +518,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -570,7 +570,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -590,7 +590,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -640,7 +640,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -660,7 +660,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -712,7 +712,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -741,7 +741,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -818,7 +818,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -832,7 +832,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -862,7 +862,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -876,7 +876,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -935,7 +935,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -949,7 +949,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -979,7 +979,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -993,7 +993,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1034,7 +1034,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1048,7 +1048,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1078,7 +1078,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1092,7 +1092,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1140,7 +1140,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1154,7 +1154,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1184,7 +1184,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1198,7 +1198,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1239,7 +1239,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1253,7 +1253,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1283,7 +1283,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1297,7 +1297,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1345,7 +1345,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1359,7 +1359,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1389,7 +1389,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1403,7 +1403,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1452,7 +1452,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1466,7 +1466,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1496,7 +1496,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1510,7 +1510,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1560,7 +1560,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1574,7 +1574,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1604,7 +1604,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1618,7 +1618,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1659,7 +1659,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1673,7 +1673,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1703,7 +1703,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1717,7 +1717,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1767,7 +1767,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1781,7 +1781,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1811,7 +1811,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1825,7 +1825,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1869,7 +1869,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1883,7 +1883,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1913,7 +1913,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1927,7 +1927,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -1975,7 +1975,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -1989,7 +1989,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2019,7 +2019,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -2033,7 +2033,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2082,7 +2082,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2111,7 +2111,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2162,7 +2162,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2191,7 +2191,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2242,7 +2242,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2271,7 +2271,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2312,7 +2312,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2341,7 +2341,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2393,7 +2393,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2422,7 +2422,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2454,7 +2454,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2484,7 +2484,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -2507,7 +2507,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2536,7 +2536,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2566,7 +2566,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -2589,7 +2589,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2632,7 +2632,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2662,7 +2662,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -2685,7 +2685,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2729,7 +2729,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2759,7 +2759,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -2773,7 +2773,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2802,7 +2802,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2832,7 +2832,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -2846,7 +2846,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2889,7 +2889,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2919,7 +2919,7 @@ o.spec("ModelMapperTransformations", function () {
 								dependency: "tutanota",
 							},
 						},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 					"43": {
@@ -2942,7 +2942,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -2987,7 +2987,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -3016,7 +3016,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -3058,7 +3058,7 @@ o.spec("ModelMapperTransformations", function () {
 						isPublic: true,
 						values: {},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
@@ -3087,7 +3087,7 @@ o.spec("ModelMapperTransformations", function () {
 							},
 						},
 						associations: {},
-						version: "0",
+						version: 0,
 						versioned: false,
 					},
 				}
