@@ -12,7 +12,7 @@ export const dependencyMap = {
 	linkifyjs: path.normalize("./libs/linkify.js"),
 	"linkifyjs/html": path.normalize("./libs/linkify-html.js"),
 	cborg: path.normalize("./libs/cborg.js"),
-	// belaw this, the modules are only running in the desktop main thread.
+	// below this, the modules are only running in the desktop main thread.
 	"electron-updater": path.normalize("./libs/electron-updater.mjs"),
 	"better-sqlite3": path.normalize("./libs/better-sqlite3.mjs"),
 	winreg: path.normalize("./libs/winreg.mjs"),
@@ -208,7 +208,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/mail-app/knowledgebase") ||
 		isIn("src/mail-app/mail/press")
 	) {
-		// squire is most often used with mail editor and they are both not too big so we merge them
+		// squire is most often used with mail editor, and they are both not too big so we merge them
 		return "mail-editor"
 	} else if (
 		isIn("src/common/api/main") ||
@@ -265,9 +265,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		// CryptoError is needed on the main thread in order to check errors
 		// We have to define both the entry point and the files referenced from it which is annoying
 		isIn("packages/tutanota-crypto/dist/error") ||
-		isIn("packages/tutanota-crypto/dist/misc/CryptoError.js") ||
-		// TODO: Split EntityFunctions to expose crypto only to the worker
-		isIn("packages/tutanota-crypto/dist/")
+		isIn("packages/tutanota-crypto/dist/misc/CryptoError.js")
 	) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway

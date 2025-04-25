@@ -19,7 +19,6 @@ import usageModelInfo from "../entities/usage/ModelInfo.js"
 import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants"
-import { sha256Hash } from "@tutao/tutanota-crypto"
 
 export const enum HttpMethod {
 	GET = "GET",
@@ -132,11 +131,6 @@ export class ServerModelInfo {
 		return this.applicationTypesHash
 	}
 
-	// visibleForTesting
-	_setApplicationTypesHash(newApplicationTypesHash: ApplicationTypesHash) {
-		this.applicationTypesHash = newApplicationTypesHash
-	}
-
 	public init(expectedTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
 		let newTypeModels = {} as ServerModels
 		for (const appName of Object.values(AppNameEnum)) {
@@ -149,23 +143,6 @@ export class ServerModelInfo {
 		this.typeModels = newTypeModels
 		// todo: verify that hash(newTypeModels) is actually expectedTypesHash
 		this.applicationTypesHash = expectedTypesHash
-	}
-
-	public initFromJsonUint8Array(applicationTypesJsonData: Uint8Array) {
-		console.log("initializing server model from json data")
-
-		const applicationTypesHashTruncatedBase64 = this.computeApplicationTypesHash(applicationTypesJsonData)
-		console.log(applicationTypesHashTruncatedBase64)
-
-		const applicationTypesJsonString = uint8ArrayToString("utf-8", applicationTypesJsonData)
-		const parsedJsonData = assertNotNull(JSON.parse(applicationTypesJsonString))
-
-		let applicationVersionSum = 0
-		Object.entries(parsedJsonData).map(([_, { version }]: [string, any]) => {
-			applicationVersionSum += this.asNumber(version)
-		})
-
-		this.init(applicationTypesHashTruncatedBase64, parsedJsonData)
 	}
 
 	private parseAllTypesForModel(modelInfo: Record<string, unknown>): {
@@ -291,12 +268,7 @@ export class ServerModelInfo {
 		return Object.values(models).reduce((sum, model) => sum + parseInt(model.version.toString()), 0)
 	}
 
-	public computeApplicationTypesHash(applicationTypesJsonData: Uint8Array): string {
-		const applicationTypesHash = sha256Hash(applicationTypesJsonData)
-		return uint8ArrayToBase64(applicationTypesHash.slice(0, 5))
-	}
-
-	// Client Model is storing typeModels and Version info into seperate object
+	// Client Model is storing typeModels and Version info into separate object
 	// ( see ClientModelInfo.typeModels & ClientModelInfo.modelInfos )
 	// when we use clientModel as server we have to adhere to same format the server response is going to be:
 	// as in: { appName: { name: string, types: TypeModel, version: number } }

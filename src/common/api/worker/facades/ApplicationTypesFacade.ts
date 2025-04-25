@@ -1,10 +1,11 @@
 import { assertWorkerOrNode, isApp, isDesktop } from "../../common/Env.js"
-import { defer, DeferredObject } from "@tutao/tutanota-utils/dist/Utils"
+import { assertNotNull, defer, DeferredObject } from "@tutao/tutanota-utils/dist/Utils"
 import { ApplicationTypesHash, HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
 import { FileFacade } from "../../../native/common/generatedipc/FileFacade"
-import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { RestClient } from "../rest/RestClient"
 import { decompressString } from "../crypto/ModelMapper"
+import { sha256Hash } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -23,6 +24,7 @@ type ApplicationTypesGetOut = {
  * * OR timeout is cancelled (lastInvoked = 0), after a request is finished (success or error)
  */
 export class ApplicationTypesFacade {
+	// visibleForTesting
 	public applicationTypesGetInTimeout = 1000
 	private lastInvoked = 0
 	private deferredRequests: Array<DeferredObject<void>>
@@ -34,7 +36,7 @@ export class ApplicationTypesFacade {
 	}
 
 	static async getInitialized(restClient: RestClient, fileFacade: FileFacade, serverModelInfo: ServerModelInfo): Promise<ApplicationTypesFacade> {
-		return await new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).readStoredTypeModels()
+		return await new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).initFromStoredTypeModels()
 	}
 
 	async getServerApplicationTypesJson(): Promise<void> {
@@ -47,8 +49,9 @@ export class ApplicationTypesFacade {
 				const applicationTypesGetOutCompressed = await this.restClient.request("rest/base/applicationtypesservice", HttpMethod.GET, {
 					responseType: MediaType.Binary,
 				})
-				const applicationTypesGetOut = JSON.parse(decompressString(applicationTypesGetOutCompressed)) as ApplicationTypesGetOut
-				await this.overrideAndSaveApplicationTypes(applicationTypesGetOut)
+				const applicationTypesGetOut: ApplicationTypesGetOut = JSON.parse(decompressString(applicationTypesGetOutCompressed))
+				await this.overrideAndStoreNewApplicationTypes(applicationTypesGetOut)
+
 				this.resolvePendingRequests()
 			} finally {
 				// reset lastInvoked in any case (success or error) to ensure that the next request is send again
@@ -59,7 +62,9 @@ export class ApplicationTypesFacade {
 		return deferredObject.promise
 	}
 
-	private async overrideAndSaveApplicationTypes(applicationTypesGetOut: ApplicationTypesGetOut) {
+	private async overrideAndStoreNewApplicationTypes(applicationTypesGetOut: ApplicationTypesGetOut) {
+		console.log("re-initializing server model from new server response data")
+
 		const newApplicationTypesHash = applicationTypesGetOut.currentApplicationHash
 		const applicationTypesJsonString = applicationTypesGetOut.modelTypesAsString
 		const newApplicationTypesJsonData = JSON.parse(applicationTypesJsonString)
@@ -76,6 +81,47 @@ export class ApplicationTypesFacade {
 		}
 	}
 
+	// This function is OK to fail.
+	// In case we fail to read the application types from the stored json file,
+	// we will anyway request it from the server later again, as the in memory applicationTypesHash in the
+	// @ServerModelInfo does not match with the hash announced on any response header.
+	private async initFromStoredTypeModels(): Promise<ApplicationTypesFacade> {
+		// in the web app, we do not have a persistent server model,
+		// therefore we will load it from the server
+		// when the web app is started and store it in memory
+		if (isDesktop() || isApp()) {
+			try {
+				const applicationTypesJsonData = await this.fileFacade.readFromAppDir(this.persistenceFilePath)
+				await this.overrideWithLocalApplicationTypes(applicationTypesJsonData)
+			} catch (e) {
+				console.log(`ignoring error to read typeModel from filesystem: ${e}`)
+			}
+		}
+		return this
+	}
+
+	private async overrideWithLocalApplicationTypes(applicationTypesJsonData: Uint8Array) {
+		console.log("initializing server model from local json data")
+
+		const applicationTypesHashTruncatedBase64 = await this.computeApplicationTypesHash(applicationTypesJsonData)
+		console.log(applicationTypesHashTruncatedBase64)
+
+		const applicationTypesJsonString = uint8ArrayToString("utf-8", applicationTypesJsonData)
+		const parsedJsonData = assertNotNull(JSON.parse(applicationTypesJsonString))
+
+		this.serverModelInfo.init(applicationTypesHashTruncatedBase64, parsedJsonData)
+	}
+
+	// visibleForTesting
+	public async computeApplicationTypesHash(applicationTypesJsonData: Uint8Array): Promise<string> {
+		const applicationTypesHash = sha256Hash(applicationTypesJsonData)
+		return uint8ArrayToBase64(applicationTypesHash.slice(0, 5))
+	}
+
+	public getApplicationTypesHash(): ApplicationTypesHash | null {
+		return this.serverModelInfo.getApplicationTypesHash()
+	}
+
 	private resolvePendingRequests() {
 		const deferredRequests = this.deferredRequests.slice(0, this.deferredRequests.length)
 		this.deferredRequests = []
@@ -83,24 +129,5 @@ export class ApplicationTypesFacade {
 		for (let deferredRequest of deferredRequests) {
 			deferredRequest.resolve()
 		}
-	}
-
-	// this function can be no-fail
-	// if we fail to read from file, we will anyway read from server later on.
-	private async readStoredTypeModels(): Promise<ApplicationTypesFacade> {
-		// in the web app, we don't have a persistent server model. we'll update it if it's needed.
-		try {
-			if (isDesktop() || isApp()) {
-				const fileContent = await this.fileFacade.readFromAppDir(this.persistenceFilePath)
-				this.serverModelInfo.initFromJsonUint8Array(fileContent)
-			}
-		} catch (e) {
-			console.log(`Ignoring error to read typeModel from filesystem: ${e}`)
-		}
-		return this
-	}
-
-	public getApplicationTypesHash(): ApplicationTypesHash | null {
-		return this.serverModelInfo.getApplicationTypesHash()
 	}
 }
