@@ -144,10 +144,12 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 		plugins: [
 			nodeGypPlugin({
 				rootDir: projectRoot,
-				platform,
-				architecture,
-				nodeModule: "better-sqlite3",
-				environment: "electron",
+				platform: platform,
+				architecture: architecture,
+				nodeModule: "@signalapp/sqlcipher",
+				// we build for Electron, but it uses NAPI so it's fine to build for node
+				environment: "node",
+				targetName: "node_sqlcipher",
 			}),
 			napiPlugin({
 				platform,

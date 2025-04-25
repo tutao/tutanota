@@ -1,4 +1,4 @@
-import { Database, default as Sqlite } from "better-sqlite3"
+import { Database } from "@signalapp/sqlcipher"
 import { mapNullable, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
@@ -16,21 +16,16 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 	}
 
 	/**
-	 * @param nativeBindingPath the path to the sqlite native module
 	 * @param dbPath the path to the database file to use
 	 * @param integrityCheck whether to check the integrity of the db file during initialization
 	 */
-	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {
+	constructor(private readonly dbPath: string, private readonly integrityCheck: boolean) {
 		process.on("exit", () => this._db?.close())
 	}
 
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
-		this._db = new Sqlite(this.dbPath, {
-			// Remove ts-ignore once proper definition of Options exists, see https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/59049#
-			// @ts-ignore missing type
-			nativeBinding: this.nativeBindingPath,
-			// verbose: (message, args) => console.log("DB", message, args),
-		})
+		this._db = new Database(this.dbPath)
+		this._db.initTokenizer()
 		try {
 			this.initSqlcipher({ databaseKey: dbKey, enableMemorySecurity: true, integrityCheck: this.integrityCheck })
 		} catch (e) {
@@ -137,7 +132,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		/**
 		 * Throws a CryptoError if MAC verification fails
 		 */
-		const errors: [] = this.db.pragma("cipher_integrity_check")
+		const errors = this.db.pragma("cipher_integrity_check")
 		if (errors.length > 0) {
 			throw new CryptoError(`Integrity check failed with result : ${JSON.stringify(errors)}`)
 		}

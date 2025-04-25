@@ -176,7 +176,7 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline, clientModelInfo)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
-	const credentialsDb = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, makeDbPath("credentials"), app)
+	const credentialsDb = new DesktopCredentialsStorage(makeDbPath("credentials"), app)
 	const appPassHandler = new AppPassHandler(desktopCrypto, conf, loadArgon2(), lang, async () => {
 		const last = await wm.getLastFocused(true)
 		return last.commonNativeFacade
@@ -193,7 +193,7 @@ async function createComponents(): Promise<Components> {
 	/** functions to create and delete the physical db file on disk */
 	const offlineDbFactory: OfflineDbFactory = {
 		async create(userId: string, key: Uint8Array, retry: boolean = true): Promise<SqlCipherFacade> {
-			const db = new WorkerSqlCipher(__NODE_GYP_better_sqlite3, makeDbPath(`offline_${userId}`), true)
+			const db = new WorkerSqlCipher(makeDbPath(`offline_${userId}`), true)
 			try {
 				await db.openDb(userId, key)
 			} catch (e) {

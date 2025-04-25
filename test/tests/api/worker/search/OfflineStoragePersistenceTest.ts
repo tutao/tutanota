@@ -30,7 +30,7 @@ o.spec("OfflineStoragePersistence", () => {
 	const userId = "my user id"
 
 	o.beforeEach(async () => {
-		sqlCipherFacade = new DesktopSqlCipher(__NODE_GYP_better_sqlite3, ":memory:", false)
+		sqlCipherFacade = new DesktopSqlCipher(":memory:", false)
 		persistence = new OfflineStoragePersistence(sqlCipherFacade)
 		await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 		await persistence.init()
