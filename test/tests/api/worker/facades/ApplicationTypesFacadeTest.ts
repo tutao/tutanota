@@ -4,13 +4,12 @@ import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/fac
 import { matchers, object, verify, when } from "testdouble"
 import { ApplicationTypesService } from "../../../../../src/common/api/entities/base/Services"
 import { AssociationType, Cardinality, Type } from "../../../../../src/common/api/common/EntityConstants"
-import { ApplicationTypesGetOut, ApplicationTypesGetOutTypeRef } from "../../../../../src/common/api/entities/base/TypeRefs"
 import { createTestEntity } from "../../../TestUtils"
-import { ClientModelInfo, ClientModels, ServerModelInfo, ServerModels } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo, ServerModelInfo, ServerModels } from "../../../../../src/common/api/common/EntityFunctions"
 import { Mode } from "../../../../../src/common/api/common/Env"
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
+import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ModelAssociation, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
-import { downcast, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
 
 const { anything } = matchers
@@ -22,10 +21,9 @@ o.spec("ApplicationTypesFacadeTest", function () {
 	let applicationTypesFacade: ApplicationTypesFacade
 	let serverModelInfo: ServerModelInfo
 	let clientModelInfo: ClientModelInfo
-	let mockResponse: ApplicationTypesGetOut = createTestEntity(ApplicationTypesGetOutTypeRef, {
-		applicationVersionSum: "80",
-		applicationTypesHash: "applicationTypesHash",
-		applicationTypesJson: JSON.stringify({
+	let mockResponse: any = {
+		currentApplicationHash: "currentApplicationHash",
+		modelTypesAsString: JSON.stringify({
 			tutanota: {
 				version: 10,
 
@@ -65,17 +63,15 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			storage: { version: 10, types: {} },
 			accounting: { version: 10, types: {} },
 		} satisfies ServerModels),
-	})
-	const jsonContentBuffer = stringToUtf8Uint8Array(mockResponse.applicationTypesJson)
+	}
+	const jsonContentBuffer = stringToUtf8Uint8Array(mockResponse.modelTypesAsString)
 
 	o.beforeEach(async function () {
 		serviceExecutor = object()
 		fileFacade = object()
 		serverModelInfo = object()
 		clientModelInfo = object()
-		applicationTypesFacade = await ApplicationTypesFacade.getInitialized(serviceExecutor, fileFacade, serverModelInfo)
-
-		when(serverModelInfo.initFromJsonUint8Array(anything())).thenReturn()
+		applicationTypesFacade = await ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo)
 	})
 
 	o.afterEach(function () {
@@ -146,7 +142,9 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		await ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo)
 
 		// verify nothing changed in ServerModelInfo
-		o(serverModelInfo.getApplicationVersionSum()).equals(clientModelInfo.applicationVersionSum())
+		for (const app in AppNameEnum) {
+			ensureSameTypeModel(serverModelInfo.typeModels[app].types, clientModelInfo.typeModels[app])
+		}
 	})
 
 	for (const targetEnv of Object.values(Mode)) {
@@ -170,5 +168,26 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			await ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo)
 			verify(fileFacade.readFromAppDir(anything()), { times: shouldPersist ? 1 : 0 })
 		})
+	}
+
+	function ensureSameTypeModel(firstTypeModel: Record<string, TypeModel>, secondTypeModel: Record<string, TypeModel>) {
+		// key by comparing. useful for debugging
+		for (const [typeId, expectedTypeInfo] of Object.entries(secondTypeModel)) {
+			const typeModel = assertNotNull(firstTypeModel[typeId], `typeId ${typeId} does not exists`)
+
+			for (const metaKey of Object.keys(typeModel)) {
+				if (metaKey === "associations" || metaKey === "values") {
+					for (const [fieldId, fieldInfo] of Object.entries(typeModel[metaKey])) {
+						const expectedFieldInfo = assertNotNull(expectedTypeInfo[metaKey][fieldId.toString()], `fieldId ${fieldId} does not exists`)
+						o(fieldInfo).deepEquals(expectedFieldInfo)
+					}
+				} else {
+					o(assertNotNull(typeModel[metaKey])).deepEquals(expectedTypeInfo[metaKey])(`key ${metaKey} does not match for type: ${typeModel.name}`)
+				}
+			}
+		}
+
+		// whole object compare
+		o(firstTypeModel).deepEquals(assertNotNull(secondTypeModel))
 	}
 })

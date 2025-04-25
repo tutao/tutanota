@@ -66,14 +66,14 @@ export class ApplicationTypesFacade {
 		console.log("re-initializing server model from new server response data")
 
 		const newApplicationTypesHash = applicationTypesGetOut.currentApplicationHash
-		const applicationTypesJsonString = applicationTypesGetOut.modelTypesAsString
-		const newApplicationTypesJsonData = JSON.parse(applicationTypesJsonString)
+		const newApplicationTypesJsonString = applicationTypesGetOut.modelTypesAsString
+		const newApplicationTypesJsonData = JSON.parse(newApplicationTypesJsonString)
 
 		this.serverModelInfo.init(newApplicationTypesHash, newApplicationTypesJsonData)
 
 		if (isDesktop() || isApp()) {
 			try {
-				const fileContent = stringToUtf8Uint8Array(applicationTypesJsonString)
+				const fileContent = stringToUtf8Uint8Array(newApplicationTypesJsonString)
 				await this.fileFacade.writeToAppDir(fileContent, this.persistenceFilePath)
 			} catch (err_to_ignore) {
 				console.error(`Failed to persist server model: ${err_to_ignore}`)

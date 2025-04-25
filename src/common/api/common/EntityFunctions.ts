@@ -1,4 +1,4 @@
-import { assertNotNull, TypeRef, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
 import type { AttributeId, ModelAssociation, ModelValue, TypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
@@ -42,7 +42,7 @@ export type ModelInfos = {
 	[knownApps in AppName]: { version: ApplicationVersion }
 }
 export type ServerModels = {
-	[knownApps in AppName]: { version: ApplicationVersion; types: Record<string, any> }
+	[knownApps in AppName]: { version: ApplicationVersion; types: Record<string, TypeModel> }
 }
 export type ClientModels = {
 	[knownApps in AppName]: Record<string, TypeModel>
@@ -114,35 +114,25 @@ export class ClientModelInfo {
 
 export class ServerModelInfo {
 	// by default, the serverModel is the same as clientModel
-	private applicationVersionSum: ApplicationVersionSum
 	private applicationTypesHash: ApplicationTypesHash | null = null
 	public typeModels: ServerModels
 
 	constructor(private readonly clientModelInfo: ClientModelInfo) {
-		this.applicationVersionSum = this.clientModelInfo.applicationVersionSum()
 		this.typeModels = this.clientModelAsServerModel()
-	}
-
-	public getApplicationVersionSum(): ApplicationVersionSum {
-		return this.applicationVersionSum
 	}
 
 	public getApplicationTypesHash(): ApplicationTypesHash | null {
 		return this.applicationTypesHash
 	}
 
-	public init(expectedTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
+	public init(newApplicationTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
 		let newTypeModels = {} as ServerModels
 		for (const appName of Object.values(AppNameEnum)) {
 			newTypeModels[appName] = this.parseAllTypesForModel(assertNotNull(parsedApplicationTypesJson[appName]))
 		}
 
-		const computedApplicationVersionSum = this.computeApplicationVersionSum(newTypeModels)
-
-		// only override in-memory server typeModel is everything is valid
 		this.typeModels = newTypeModels
-		// todo: verify that hash(newTypeModels) is actually expectedTypesHash
-		this.applicationTypesHash = expectedTypesHash
+		this.applicationTypesHash = newApplicationTypesHash
 	}
 
 	private parseAllTypesForModel(modelInfo: Record<string, unknown>): {
@@ -186,14 +176,14 @@ export class ServerModelInfo {
 		}
 	}
 
-	private parseModelValues(valuesRecord: Record<number, unknown>, clienModelType: TypeModel | null): Record<AttributeId, ModelValue> {
+	private parseModelValues(valuesRecord: Record<number, unknown>, clientModelType: TypeModel | null): Record<AttributeId, ModelValue> {
 		let values = {}
 
 		for (const modelValueInfo of Object.values(valuesRecord)) {
 			const modelValueInfoRecord = modelValueInfo as Record<string, unknown>
 			const attrId = this.asNumber(modelValueInfoRecord.id)
 			const serverEncrypted = this.asBoolean(modelValueInfoRecord.encrypted)
-			const clientModelValue = clienModelType?.values[attrId]
+			const clientModelValue = clientModelType?.values[attrId]
 			if (clientModelValue) {
 				const isEncrypted = this.asBoolean(clientModelValue.encrypted)
 				if (isEncrypted && !serverEncrypted) {
@@ -264,15 +254,11 @@ export class ServerModelInfo {
 		else throw new Error(`value: ${value} is not boolean compatible`)
 	}
 
-	public computeApplicationVersionSum(models: ServerModels): number {
-		return Object.values(models).reduce((sum, model) => sum + parseInt(model.version.toString()), 0)
-	}
-
 	// Client Model is storing typeModels and Version info into separate object
 	// ( see ClientModelInfo.typeModels & ClientModelInfo.modelInfos )
 	// when we use clientModel as server we have to adhere to same format the server response is going to be:
 	// as in: { appName: { name: string, types: TypeModel, version: number } }
-	// This method takes ClientModelInfo and return a object compatible to ServerModelInfo
+	// This method takes ClientModelInfo and return an object compatible to ServerModelInfo
 	private clientModelAsServerModel(): ServerModels {
 		return Object.values(AppNameEnum).reduce((obj, app) => {
 			const types = {

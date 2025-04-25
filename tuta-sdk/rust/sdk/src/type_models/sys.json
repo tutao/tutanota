@@ -3350,7 +3350,7 @@
 				"name": "typeId",
 				"id": 2556,
 				"type": "Number",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": false
 			}
 		},
