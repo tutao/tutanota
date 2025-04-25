@@ -113,7 +113,6 @@ export class ClientModelInfo {
 }
 
 export class ServerModelInfo {
-	// by default, the serverModel is the same as clientModel
 	private applicationTypesHash: ApplicationTypesHash | null = null
 	public typeModels: ServerModels | null = null
 
@@ -126,7 +125,7 @@ export class ServerModelInfo {
 	public init(newApplicationTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
 		let newTypeModels = {} as ServerModels
 		for (const appName of Object.values(AppNameEnum)) {
-			newTypeModels[appName] = this.parseAllTypesForModel(assertNotNull(parsedApplicationTypesJson[appName]))
+			newTypeModels[appName] = this.parseAllTypesForModel(assertNotNull(parsedApplicationTypesJson[appName], "I failed"))
 		}
 
 		this.typeModels = newTypeModels

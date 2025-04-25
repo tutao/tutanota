@@ -75,19 +75,25 @@ import {
 	X25519KeyPair,
 	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
-import { ClientModelUntypedInstance, ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
+import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../../../src/common/api/common/EntityTypes.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { matchers, object, verify, when } from "testdouble"
 import { UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { elementIdPart, getListId, isSameId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { HttpMethod, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import {
+	globalClientModelInfo,
+	globalServerModelInfo,
+	HttpMethod,
+	resolveClientTypeReference,
+	resolveServerTypeReference,
+} from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../../src/common/api/worker/facades/PQMessage.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
@@ -202,6 +208,7 @@ o.spec("CryptoFacadeTest", function () {
 		when(restClient.request(anything(), anything(), anything())).thenResolve(undefined)
 		userFacade = object()
 		cache = object()
+		clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
 	})
 
 	o.beforeEach(function () {
@@ -1694,7 +1701,7 @@ o.spec("CryptoFacadeTest", function () {
 		const groupEncBucketKey = encryptKey(groupKeyToEncryptBucketKey, bk)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
-		const MailTypeModel = await resolveClientTypeReference(MailTypeRef)
+		const MailTypeModel = await resolveServerTypeReference(MailTypeRef)
 
 		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
 			typeInfo: createTestEntity(TypeInfoTypeRef, {
@@ -1705,7 +1712,7 @@ o.spec("CryptoFacadeTest", function () {
 			instanceList: "mailListId",
 			instanceId: "mailId",
 		})
-		const FileTypeModel = await resolveClientTypeReference(FileTypeRef)
+		const FileTypeModel = await resolveServerTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
 			return createTestEntity(InstanceSessionKeyTypeRef, {
 				typeInfo: createTestEntity(TypeInfoTypeRef, {
@@ -1732,7 +1739,7 @@ o.spec("CryptoFacadeTest", function () {
 		const mailEncryptedParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, mailUntypedInstance)
 
 		return {
-			entityAdapter: await EntityAdapter.from(await resolveClientTypeReference(MailTypeRef), mailEncryptedParsedInstance, instancePipeline),
+			entityAdapter: await EntityAdapter.from(MailTypeModel, mailEncryptedParsedInstance, instancePipeline),
 			bucketKey,
 			sk,
 			bk,
@@ -1792,7 +1799,7 @@ o.spec("CryptoFacadeTest", function () {
 		const groupEncBucketKey = encryptKey(externalUser.mailGroupKey, bk)
 		const bucketEncMailSessionKey = encryptKey(bk, sk)
 
-		const MailTypeModel = await resolveClientTypeReference(MailTypeRef)
+		const MailTypeModel = await resolveServerTypeReference(MailTypeRef)
 		const mailInstanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
 			typeInfo: createTestEntity(TypeInfoTypeRef, {
 				application: MailTypeModel.app,

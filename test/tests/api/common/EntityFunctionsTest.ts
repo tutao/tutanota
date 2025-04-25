@@ -1,13 +1,14 @@
 import o from "@tutao/otest"
 import { ClientModelInfo, resolveTypeRefFromAppAndTypeNameLegacy, ServerModelInfo, ServerModels } from "../../../../src/common/api/common/EntityFunctions"
 import { AppName } from "@tutao/tutanota-utils/lib/TypeRef"
-import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Cardinality, Type, ValueType } from "../../../../src/common/api/common/EntityConstants"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { TypeModel } from "../../../../src/common/api/common/EntityTypes"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
 import { ApplicationTypesFacade } from "../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { object } from "testdouble"
+import { clientModelAsServerModel } from "../../TestUtils"
 
 o.spec("EntityFunctionsTest", function () {
 	let serverModelInfo: ServerModelInfo
@@ -18,6 +19,7 @@ o.spec("EntityFunctionsTest", function () {
 	o.beforeEach(async () => {
 		clientModelInfo = new ClientModelInfo()
 		serverModelInfo = new ServerModelInfo(clientModelInfo)
+		clientModelAsServerModel(serverModelInfo, clientModelInfo)
 		emptyTypeModel = {} as ServerModels
 		applicationTypesFacade = await ApplicationTypesFacade.getInitialized(object(), object(), serverModelInfo)
 	})

@@ -60,8 +60,9 @@ import { createEventElementId } from "../../../../../src/common/api/common/utils
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
+import { globalClientModelInfo, globalServerModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 
 const { anything } = matchers
 
@@ -229,6 +230,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 			o.spec("postMultiple", function () {
 				o.beforeEach(async function () {
+					clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
 					await storage.setNewRangeForList(ContactTypeRef, contactListId1, id1, id7)
 					await storage.setNewRangeForList(ContactTypeRef, contactListId2, id1, id7)
 					//when using offline calendar ids are always in cache range
