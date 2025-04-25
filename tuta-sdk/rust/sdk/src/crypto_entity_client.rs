@@ -445,7 +445,7 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let type_model_provider: &'static TypeModelProvider = leak(TypeModelProvider::new(
+		let type_model_provider: &'static TypeModelProvider = leak(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -561,7 +561,7 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let type_model_provider: &'static TypeModelProvider = leak(TypeModelProvider::new(
+		let type_model_provider: &'static TypeModelProvider = leak(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -616,7 +616,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -699,7 +699,7 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let type_model_provider: &'static TypeModelProvider = leak(TypeModelProvider::new(
+		let type_model_provider: &'static TypeModelProvider = leak(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -756,7 +756,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -839,7 +839,7 @@ mod tests {
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
 		// the callback to `returning` requires returned references to have a static lifetime
-		let my_favorite_leak = TypeModelProvider::new(
+		let my_favorite_leak = TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -893,7 +893,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -969,7 +969,7 @@ mod tests {
 			Some(bucket_key),
 		);
 
-		let type_model_provider = TypeModelProvider::new(
+		let type_model_provider = TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1014,7 +1014,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1103,7 +1103,7 @@ mod tests {
 		);
 
 		// We cause a deliberate memory leak to convert the mail type's lifetime to static because
-		let type_model_provider = TypeModelProvider::new(
+		let type_model_provider = TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1148,7 +1148,7 @@ mod tests {
 			});
 
 		// TODO: it would be nice to mock this
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),

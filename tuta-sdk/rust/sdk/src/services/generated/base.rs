@@ -7,4 +7,4 @@ use crate::bindings::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;
 pub struct ApplicationTypesService;
 
-crate::service_impl!(declare, ApplicationTypesService, "base/applicationtypesservice", 3);
+crate::service_impl!(declare, ApplicationTypesService, "base/applicationtypesservice", 2);

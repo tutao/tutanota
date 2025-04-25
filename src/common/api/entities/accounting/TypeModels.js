@@ -8,6 +8,8 @@
 export const typeModels = {
 	"79": {
 		"name": "CustomerAccountPosting",
+		"app": "accounting",
+		"version": 8,
 		"since": 3,
 		"type": "AGGREGATED_TYPE",
 		"id": 79,
@@ -57,12 +59,12 @@ export const typeModels = {
 				"encrypted": true
 			}
 		},
-		"associations": {},
-		"app": "accounting",
-		"version": "8"
+		"associations": {}
 	},
 	"86": {
 		"name": "CustomerAccountReturn",
+		"app": "accounting",
+		"version": 8,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 86,
@@ -130,8 +132,6 @@ export const typeModels = {
 				"refTypeId": 79,
 				"dependency": null
 			}
-		},
-		"app": "accounting",
-		"version": "8"
+		}
 	}
 }

@@ -8,6 +8,8 @@
 export const typeModels = {
 	"0": {
 		"name": "PersistenceResourcePostReturn",
+		"app": "base",
+		"version": 2,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 0,
@@ -41,8 +43,6 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "base",
-		"version": "3"
+		"associations": {}
 	}
 }

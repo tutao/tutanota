@@ -632,7 +632,7 @@ mod tests {
 			fourth_attachment_token.clone(),
 		];
 
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -769,7 +769,7 @@ mod tests {
 			third_attachment_token.clone(),
 			fourth_attachment_token.clone(),
 		];
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -917,7 +917,7 @@ mod tests {
 		let expected_reference_tokens3 = vec![second_attachment_token.clone()];
 		let expected_reference_tokens4 = vec![third_attachment_token.clone()];
 
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),
@@ -1065,7 +1065,7 @@ mod tests {
 			_id: Some(CustomId("hello_aggregate".to_owned())),
 		}];
 
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"http://localhost:9000".to_string(),

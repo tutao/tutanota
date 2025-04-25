@@ -624,7 +624,7 @@ mod tests {
 	#[test]
 	fn test_parse_mail() {
 		// TODO: Expand this test to cover bucket keys in mail
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -641,7 +641,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_mail_empty_encrypted_boolean_defaults_to_false() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -660,7 +660,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_mail_with_attachments() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -693,7 +693,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_user() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -746,7 +746,7 @@ mod tests {
 
 	#[test]
 	fn test_parse_user_with_empty_group_key() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -838,7 +838,7 @@ mod tests {
 	/// 3. Serialize: ParsedEntity -> jsonSerializer@serialize => RawEntity
 	#[test]
 	fn deserialize_serialize_round_trip_works() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),

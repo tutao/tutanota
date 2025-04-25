@@ -8,6 +8,8 @@
 export const typeModels = {
 	"12": {
 		"name": "ReadCounterData",
+		"app": "monitor",
+		"version": 33,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 12,
@@ -49,12 +51,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "monitor",
-		"version": "33"
+		"associations": {}
 	},
 	"16": {
 		"name": "ReadCounterReturn",
+		"app": "monitor",
+		"version": 33,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 16,
@@ -90,12 +92,12 @@ export const typeModels = {
 				"refTypeId": 300,
 				"dependency": null
 			}
-		},
-		"app": "monitor",
-		"version": "33"
+		}
 	},
 	"49": {
 		"name": "WriteCounterData",
+		"app": "monitor",
+		"version": 33,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 49,
@@ -145,12 +147,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "monitor",
-		"version": "33"
+		"associations": {}
 	},
 	"221": {
 		"name": "ApprovalMail",
+		"app": "monitor",
+		"version": 33,
 		"since": 14,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 221,
@@ -226,12 +228,12 @@ export const typeModels = {
 				"refTypeId": 31,
 				"dependency": null
 			}
-		},
-		"app": "monitor",
-		"version": "33"
+		}
 	},
 	"300": {
 		"name": "CounterValue",
+		"app": "monitor",
+		"version": 33,
 		"since": 22,
 		"type": "AGGREGATED_TYPE",
 		"id": 300,
@@ -265,12 +267,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "monitor",
-		"version": "33"
+		"associations": {}
 	},
 	"305": {
 		"name": "ErrorReportFile",
+		"app": "monitor",
+		"version": 33,
 		"since": 23,
 		"type": "AGGREGATED_TYPE",
 		"id": 305,
@@ -304,12 +306,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "monitor",
-		"version": "33"
+		"associations": {}
 	},
 	"316": {
 		"name": "ErrorReportData",
+		"app": "monitor",
+		"version": 33,
 		"since": 23,
 		"type": "AGGREGATED_TYPE",
 		"id": 316,
@@ -399,12 +401,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "monitor",
-		"version": "33"
+		"associations": {}
 	},
 	"335": {
 		"name": "ReportErrorIn",
+		"app": "monitor",
+		"version": 33,
 		"since": 23,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 335,
@@ -441,8 +443,6 @@ export const typeModels = {
 				"refTypeId": 305,
 				"dependency": null
 			}
-		},
-		"app": "monitor",
-		"version": "33"
+		}
 	}
 }

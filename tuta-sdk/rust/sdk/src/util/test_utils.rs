@@ -613,7 +613,7 @@ pub struct HelloUnEncOutput {
 
 const SERVER_TYPES_JSON_HASH: &str = "default-server-type-model-hash";
 pub fn mock_type_model_provider() -> TypeModelProvider {
-	let mut type_model_provider = TypeModelProvider::new(
+	let mut type_model_provider = TypeModelProvider::new_test(
 		Arc::new(MockRestClient::new()),
 		Arc::new(MockFileClient::new()),
 		"localhost:9000".to_string(),

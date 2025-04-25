@@ -854,7 +854,7 @@ mod tests {
 		let owner_enc_session_key = vec![0, 1, 2];
 		let owner_key_version = 0u64;
 
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1250,7 +1250,7 @@ mod tests {
 		let expected_aggregate_id = make_random_aggregate_id(&random);
 
 		let iv = Iv::generate(&random);
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1476,7 +1476,7 @@ mod tests {
 
 	#[test]
 	fn encrypt_unencrypted_to_db_literal() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1513,7 +1513,7 @@ mod tests {
 
 	#[test]
 	fn encryption_final_ivs_will_be_reused() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1610,7 +1610,7 @@ mod tests {
 	#[ignore = "todo: Right now we will anyway try to encrypt the default value even for final fields.\
 	This is however not intended. We skip the implementation because we did not need it for service call?"]
 	fn empty_final_iv_and_default_value_should_be_preserved() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),

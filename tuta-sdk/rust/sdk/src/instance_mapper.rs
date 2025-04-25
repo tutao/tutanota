@@ -1503,7 +1503,7 @@ mod tests {
 
 	#[test]
 	fn test_de_group() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1527,7 +1527,7 @@ mod tests {
 	/// Test for IdTupleCustom as LET reference (not as id)
 	#[test]
 	fn test_de_calendar_event_uid_index() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -1554,7 +1554,7 @@ mod tests {
 
 	#[test]
 	fn test_de_group_info() {
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::new()),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),
@@ -2063,7 +2063,7 @@ mod tests {
 
 	fn get_parsed_entity<T: Entity>(email_string: &str) -> ParsedEntity {
 		let raw_entity: RawEntity = serde_json::from_str(email_string).unwrap();
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::default()),
 			Arc::new(MockFileClient::default()),
 			"localhost:9000".to_string(),

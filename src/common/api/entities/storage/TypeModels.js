@@ -8,6 +8,8 @@
 export const typeModels = {
 	"50": {
 		"name": "BlobGetIn",
+		"app": "storage",
+		"version": 12,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 50,
@@ -51,12 +53,12 @@ export const typeModels = {
 				"refTypeId": 144,
 				"dependency": null
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	},
 	"73": {
 		"name": "BlobWriteData",
+		"app": "storage",
+		"version": 12,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 73,
@@ -82,12 +84,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "storage",
-		"version": "12"
+		"associations": {}
 	},
 	"77": {
 		"name": "BlobAccessTokenPostIn",
+		"app": "storage",
+		"version": 12,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 77,
@@ -132,12 +134,12 @@ export const typeModels = {
 				"refTypeId": 175,
 				"dependency": null
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	},
 	"81": {
 		"name": "BlobAccessTokenPostOut",
+		"app": "storage",
+		"version": 12,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 81,
@@ -165,12 +167,12 @@ export const typeModels = {
 				"refTypeId": 157,
 				"dependency": null
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	},
 	"94": {
 		"name": "BlobReferencePutIn",
+		"app": "storage",
+		"version": 12,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 94,
@@ -222,12 +224,12 @@ export const typeModels = {
 				"refTypeId": 1990,
 				"dependency": "sys"
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	},
 	"100": {
 		"name": "BlobReferenceDeleteIn",
+		"app": "storage",
+		"version": 12,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 100,
@@ -279,12 +281,12 @@ export const typeModels = {
 				"refTypeId": 1882,
 				"dependency": "sys"
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	},
 	"125": {
 		"name": "BlobPostOut",
+		"app": "storage",
+		"version": 12,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 125,
@@ -320,12 +322,12 @@ export const typeModels = {
 				"refTypeId": 1990,
 				"dependency": "sys"
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	},
 	"129": {
 		"name": "BlobArchiveRef",
+		"app": "storage",
+		"version": 12,
 		"since": 4,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 129,
@@ -377,12 +379,12 @@ export const typeModels = {
 				"refTypeId": 22,
 				"dependency": null
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	},
 	"144": {
 		"name": "BlobId",
+		"app": "storage",
+		"version": 12,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 144,
@@ -408,12 +410,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "storage",
-		"version": "12"
+		"associations": {}
 	},
 	"154": {
 		"name": "BlobServerUrl",
+		"app": "storage",
+		"version": 12,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 154,
@@ -439,12 +441,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "storage",
-		"version": "12"
+		"associations": {}
 	},
 	"157": {
 		"name": "BlobServerAccessInfo",
+		"app": "storage",
+		"version": 12,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 157,
@@ -496,12 +498,12 @@ export const typeModels = {
 				"refTypeId": 154,
 				"dependency": null
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	},
 	"172": {
 		"name": "InstanceId",
+		"app": "storage",
+		"version": 12,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 172,
@@ -527,12 +529,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "storage",
-		"version": "12"
+		"associations": {}
 	},
 	"175": {
 		"name": "BlobReadData",
+		"app": "storage",
+		"version": 12,
 		"since": 4,
 		"type": "AGGREGATED_TYPE",
 		"id": 175,
@@ -576,8 +578,6 @@ export const typeModels = {
 				"refTypeId": 172,
 				"dependency": null
 			}
-		},
-		"app": "storage",
-		"version": "12"
+		}
 	}
 }

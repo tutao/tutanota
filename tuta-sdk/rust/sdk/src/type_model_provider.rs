@@ -155,7 +155,7 @@ impl TypeModelProvider {
 						.map_err(|d| {
 							ApiCallError::internal_with_err(
 								d,
-								"Can not decompressed applicationTypesServiceGetOut",
+								"Could not decompress applicationTypesServiceGetOut",
 							)
 						})?;
 
@@ -200,25 +200,44 @@ struct ApplicationTypesGetOut {
 
 #[cfg(test)]
 mod tests {
-	use super::{ApplicationTypesGetOut, Arc};
-	use crate::bindings::file_client::MockFileClient;
-	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestResponse};
+	use super::ApplicationTypesGetOut;
+	use crate::bindings::file_client::{FileClient, MockFileClient};
+	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestClient, RestResponse};
 	use crate::bindings::suspendable_rest_client::SuspensionBehavior;
 	use crate::bindings::test_file_client::TestFileClient;
 	use crate::bindings::test_rest_client::TestRestClient;
 	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::type_model_provider::TypeModelProvider;
 	use std::collections::HashMap;
+	use std::sync::Arc;
+	use std::sync::RwLock;
+
+	impl TypeModelProvider {
+		pub fn new_test(
+			rest_client: Arc<dyn RestClient>,
+			file_client: Arc<dyn FileClient>,
+			base_url: String,
+		) -> Self {
+			let without_server_models = Self::new(rest_client, file_client, base_url);
+			TypeModelProvider {
+				server_app_models: RwLock::new(Some((
+					"current-server-hash".to_string(),
+					without_server_models.client_app_models.clone(),
+				))),
+				..without_server_models
+			}
+		}
+	}
 
 	#[test]
 	fn read_type_model_only_once() {
-		let first_type_model = TypeModelProvider::new(
+		let first_type_model = TypeModelProvider::new_test(
 			Arc::new(TestRestClient::default()),
 			Arc::new(TestFileClient::default()),
 			"localhost:9000".to_string(),
 		);
 
-		let second_type_model = TypeModelProvider::new(
+		let second_type_model = TypeModelProvider::new_test(
 			Arc::new(TestRestClient::default()),
 			Arc::new(TestFileClient::default()),
 			"localhost:9000".to_string(),
@@ -236,7 +255,7 @@ mod tests {
 		rest_client
 			.expect_request_binary()
 			.return_once(|url, method, option| {
-				let client_apps_models = TypeModelProvider::new(
+				let client_apps_models = TypeModelProvider::new_test(
 					Arc::new(MockRestClient::new()),
 					Arc::new(MockFileClient::new()),
 					Default::default(),
@@ -259,7 +278,7 @@ mod tests {
 
 				let application_get_out = ApplicationTypesGetOut {
 					model_types_as_string: serde_json::to_string(&client_apps_models).unwrap(),
-					current_application_hash: "latest-application-hash".to_string(),
+					current_application_hash: "latest-applications-hash".to_string(),
 				};
 				let serialized_json = serde_json::to_string(&application_get_out).unwrap();
 				let compressed_response =
@@ -271,7 +290,7 @@ mod tests {
 				});
 			});
 
-		let type_provider = Arc::new(TypeModelProvider::new(
+		let type_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(rest_client),
 			Arc::new(MockFileClient::new()),
 			"localhost:9000".to_string(),

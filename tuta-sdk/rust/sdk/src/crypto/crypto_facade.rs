@@ -541,7 +541,7 @@ mod test {
 	}
 
 	fn get_mail_type_model() -> TypeModel {
-		let provider = TypeModelProvider::new(
+		let provider = TypeModelProvider::new_test(
 			Arc::new(MockRestClient::default()),
 			Arc::new(MockFileClient::default()),
 			"http://localhost:9000".to_string(),
@@ -653,7 +653,7 @@ mod test {
 
 		let asymmetric_crypto_facade = asymmetric_crypto_facade.unwrap_or_default();
 
-		let type_model_provider = Arc::new(TypeModelProvider::new(
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(MockRestClient::default()),
 			Arc::new(MockFileClient::default()),
 			"localhost:9000".to_string(),

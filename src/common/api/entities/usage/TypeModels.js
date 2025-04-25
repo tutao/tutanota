@@ -8,6 +8,8 @@
 export const typeModels = {
 	"8": {
 		"name": "UsageTestMetricConfigValue",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 8,
@@ -41,12 +43,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "usage",
-		"version": "3"
+		"associations": {}
 	},
 	"12": {
 		"name": "UsageTestMetricConfig",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 12,
@@ -90,12 +92,12 @@ export const typeModels = {
 				"refTypeId": 8,
 				"dependency": null
 			}
-		},
-		"app": "usage",
-		"version": "3"
+		}
 	},
 	"17": {
 		"name": "UsageTestMetricData",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 17,
@@ -129,12 +131,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "usage",
-		"version": "3"
+		"associations": {}
 	},
 	"35": {
 		"name": "UsageTestStage",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 35,
@@ -186,12 +188,12 @@ export const typeModels = {
 				"refTypeId": 12,
 				"dependency": null
 			}
-		},
-		"app": "usage",
-		"version": "3"
+		}
 	},
 	"53": {
 		"name": "UsageTestAssignmentIn",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 53,
@@ -217,12 +219,12 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {},
-		"app": "usage",
-		"version": "3"
+		"associations": {}
 	},
 	"56": {
 		"name": "UsageTestAssignment",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 56,
@@ -282,12 +284,12 @@ export const typeModels = {
 				"refTypeId": 35,
 				"dependency": null
 			}
-		},
-		"app": "usage",
-		"version": "3"
+		}
 	},
 	"63": {
 		"name": "UsageTestAssignmentOut",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 63,
@@ -323,12 +325,12 @@ export const typeModels = {
 				"refTypeId": 56,
 				"dependency": null
 			}
-		},
-		"app": "usage",
-		"version": "3"
+		}
 	},
 	"80": {
 		"name": "UsageTestParticipationIn",
+		"app": "usage",
+		"version": 3,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 80,
@@ -380,8 +382,6 @@ export const typeModels = {
 				"refTypeId": 17,
 				"dependency": null
 			}
-		},
-		"app": "usage",
-		"version": "3"
+		}
 	}
 }
