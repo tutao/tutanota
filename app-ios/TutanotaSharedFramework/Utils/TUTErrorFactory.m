@@ -5,6 +5,8 @@ NSString *const TUT_ERROR_DOMAIN = @"de.tutao.tutashared";
 NSString *const TUT_CRYPTO_ERROR = @"de.tutao.tutashared.TutCrypto";
 NSString *const TUT_FILEVIEWER_ERROR = @"de.tutao.tutashared.TutFileViewer";
 NSString *const TUT_NETWORK_ERROR = @"de.tutao.tutashared.network";
+NSString *const TUT_WIDGET_ERROR = @"de.tutao.tutashared.Widget";
+NSString *const TUT_WIDGET_CREDENTIAL_ERROR = @"de.tutao.tutashared.Widget.Credential";
 
 @implementation TUTErrorFactory
 

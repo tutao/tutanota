@@ -18,11 +18,13 @@ enum WidgetActions: String, AppEnum {
 		.agenda: DisplayRepresentation(title: LocalizedStringResource(stringLiteral: "agenda")),
 		.eventDetails: DisplayRepresentation(title: LocalizedStringResource(stringLiteral: "eventDetails")),
 		.eventEditor: DisplayRepresentation(title: LocalizedStringResource(stringLiteral: "eventEditor")),
+		.sendLogs: DisplayRepresentation(title: LocalizedStringResource(stringLiteral: "sendLogs"))
 	]
 
 	case eventEditor
 	case agenda
 	case eventDetails
+	case sendLogs
 }
 
 struct WidgetActionsIntent: AppIntent {
@@ -32,11 +34,12 @@ struct WidgetActionsIntent: AppIntent {
 		action = WidgetActions.agenda
 	}
 
-	init(userId: String, date: Date, action: WidgetActions, eventId: String? = nil) {
+	init(userId: String, date: Date, action: WidgetActions, eventId: String? = nil, extras: [String]? = []) {
 		self.userId = userId
 		self.date = date
 		self.action = action
 		self.eventId = eventId
+		self.extras = extras
 	}
 
 	static var title: LocalizedStringResource { "WidgetActionIntent" }
@@ -52,6 +55,8 @@ struct WidgetActionsIntent: AppIntent {
 	var action: WidgetActions
 	@Parameter(title: "EventID")
 	var eventId: String?
+	@Parameter(title: "Extras")
+	var extras: [String]?
 
 	func perform() async throws -> some IntentResult {
 		var components = URLComponents()
@@ -65,6 +70,10 @@ struct WidgetActionsIntent: AppIntent {
 			URLQueryItem(name: "date", value: date.ISO8601Format()),
 			URLQueryItem(name: "eventId", value: eventId)
 		]
+
+		if action == WidgetActions.sendLogs {
+			try await WidgetErrorHandler.writeLogs(logs: extras?.first ?? "")
+		}
 
 		// FIXME Change logger
 		guard let url = components.url else {

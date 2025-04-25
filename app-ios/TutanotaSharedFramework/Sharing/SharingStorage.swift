@@ -4,6 +4,7 @@ import UIKit
 
 public let TUTANOTA_SHARE_SCHEME = "tutashare"
 public let CALENDAR_SHARE_SCHEME = "tutacalshare"
+public let WIDGET_LOGS_LOCATION = "WIDGET_LOGS"
 
 /// this gets shared to the main app and contains all the info
 /// to create a new mail & the cleanup
