@@ -8,6 +8,11 @@ import { decompressString } from "../crypto/ModelMapper"
 
 assertWorkerOrNode()
 
+type ApplicationTypesGetOut = {
+	currentApplicationHash: string
+	modelTypesAsString: string
+}
+
 /**
  * Facade to call the ApplicationTypesService, ensuring that multiple
  * request made in quick succession only lead to a single requests within
@@ -42,7 +47,7 @@ export class ApplicationTypesFacade {
 				const applicationTypesGetOutCompressed = await this.restClient.request("rest/base/applicationtypesservice", HttpMethod.GET, {
 					responseType: MediaType.Binary,
 				})
-				const applicationTypesGetOut = JSON.parse(decompressString(applicationTypesGetOutCompressed))
+				const applicationTypesGetOut = JSON.parse(decompressString(applicationTypesGetOutCompressed)) as ApplicationTypesGetOut
 				await this.overrideAndSaveApplicationTypes(applicationTypesGetOut)
 				this.resolvePendingRequests()
 			} finally {
@@ -54,7 +59,7 @@ export class ApplicationTypesFacade {
 		return deferredObject.promise
 	}
 
-	private async overrideAndSaveApplicationTypes(applicationTypesGetOut: any) {
+	private async overrideAndSaveApplicationTypes(applicationTypesGetOut: ApplicationTypesGetOut) {
 		const newApplicationTypesHash = applicationTypesGetOut.currentApplicationHash
 		const applicationTypesJsonString = applicationTypesGetOut.modelTypesAsString
 		const newApplicationTypesJsonData = JSON.parse(applicationTypesJsonString)
