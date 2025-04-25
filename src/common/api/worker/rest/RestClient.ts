@@ -1,7 +1,7 @@
 import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
 import { ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError } from "../../common/error/RestError"
-import { HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
-import { assertNotNull, lazy, lazyAsync, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
+import { HttpMethod, MediaType } from "../../common/EntityFunctions"
+import { assertNotNull, lazy, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
 import { SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
@@ -10,6 +10,8 @@ import { ApplicationTypesFacade } from "../facades/ApplicationTypesFacade"
 assertWorkerOrNode()
 
 const TAG = "[RestClient]"
+
+const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
 
 interface ProgressListener {
 	upload(percent: number): void
@@ -121,7 +123,11 @@ export class RestClient {
 					this.saveServerTimeOffsetFromRequest(xhr)
 
 					// handle new server model and update the applicationTypesJson file if applicable
-					if (xhr.getResponseHeader("app-types-hash") !== this.applicationTypesFacade().getApplicationTypesHash()) {
+					const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
+					if (
+						applicationTypesHashResponseHeader != null &&
+						applicationTypesHashResponseHeader != this.applicationTypesFacade().getApplicationTypesHash()
+					) {
 						await this.applicationTypesFacade().getServerApplicationTypesJson()
 					}
 

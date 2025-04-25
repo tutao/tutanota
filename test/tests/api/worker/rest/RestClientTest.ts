@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { isSuspensionResponse, RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
-import { HttpMethod, MediaType } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { ApplicationTypesHash, HttpMethod, MediaType } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ResourceError } from "../../../../../src/common/api/common/error/RestError.js"
 import { defer, noOp } from "@tutao/tutanota-utils"
 import http from "node:http"
@@ -217,12 +217,13 @@ o.spec("RestClient", function () {
 			o.timeout(400)
 			let responseText = '{"msg":"Hello Client"}'
 
-			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenReturn(Promise.resolve())
+			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn(null)
+			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
+
 			app.get("/get/json", (req, res) => {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("sv", "271")
 				res.setHeader("app-types-hash", "newApplicationTypesHash")
 				res.send(responseText)
 			})
@@ -230,6 +231,7 @@ o.spec("RestClient", function () {
 				responseType: MediaType.Json,
 				baseUrl,
 			})
+
 			verify(applicationTypesFacadeMock.getServerApplicationTypesJson())
 			o(res).equals(responseText)
 		})
@@ -238,14 +240,13 @@ o.spec("RestClient", function () {
 			o.timeout(400)
 			let responseText = '{"msg":"Hello Client"}'
 
-			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash")
+			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash" as ApplicationTypesHash)
+			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
 
-			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenReturn(Promise.resolve())
 			app.get("/get/json", (req, res) => {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("sv", "271")
 				res.setHeader("app-types-hash", "newApplicationTypesHash")
 				res.send(responseText)
 			})
@@ -253,6 +254,7 @@ o.spec("RestClient", function () {
 				responseType: MediaType.Json,
 				baseUrl,
 			})
+
 			verify(applicationTypesFacadeMock.getServerApplicationTypesJson())
 			o(res).equals(responseText)
 		})
@@ -264,13 +266,12 @@ o.spec("RestClient", function () {
 			let responseText = '{"msg":"Hello Client"}'
 
 			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash")
+			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
 
-			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenDo(() => Promise.resolve())
 			app.get("/get/jsonn", (req, res) => {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("sv", "270")
 				res.setHeader("app-types-hash", "existingApplicationTypesHash")
 				res.send(responseText)
 			})

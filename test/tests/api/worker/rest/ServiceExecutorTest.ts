@@ -481,7 +481,7 @@ o.spec("ServiceExecutor", function () {
 					HttpMethod.GET,
 					matchers.argThat((opts: RestClientOptions) =>
 						deepEqual(opts.headers, {
-							v: saltTypeModel.version,
+							v: String(saltTypeModel.version),
 							myHeader: "2",
 						}),
 					),
@@ -513,7 +513,7 @@ o.spec("ServiceExecutor", function () {
 					HttpMethod.GET,
 					matchers.argThat((opts: RestClientOptions) =>
 						deepEqual(opts.headers, {
-							v: saltTypeModel.version,
+							v: String(saltTypeModel.version),
 							accessToken,
 						}),
 					),

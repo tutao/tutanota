@@ -107,7 +107,7 @@ export type TypeModel = {
 	/**
 	 * the model version this type is defined in.
 	 */
-	version: string
+	version: number
 	/** human-readable name */
 	name: string
 	/** the type of entity. this defines how (and if) the type is persisted. */

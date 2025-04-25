@@ -160,7 +160,7 @@ export class ServerModelInfo {
 		const typeId = this.asNumber(typeInfoRecord.id)
 		return {
 			app,
-			version: appVersion.toString(),
+			version: appVersion,
 			id: typeId,
 			since: this.asNumber(typeInfoRecord.since),
 			name: this.asString(typeInfoRecord.name),

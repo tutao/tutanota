@@ -66,7 +66,7 @@ export const testTypeModel: TypeModel = {
 			dependency: null,
 		},
 	},
-	version: "0",
+	version: 0,
 	versioned: false,
 }
 
@@ -98,7 +98,7 @@ export const testAggregateModel: TypeModel = {
 		},
 	},
 	associations: {},
-	version: "0",
+	version: 0,
 	versioned: false,
 }
 

@@ -7,7 +7,7 @@ import {
 	UsageTestAssignmentTypeRef,
 } from "../api/entities/usage/TypeRefs.js"
 import { PingAdapter, Stage, UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
-import { assertNotNull, filterInt, lazy, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { BadRequestError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError"
 import { UsageTestMetricType } from "../api/common/TutanotaConstants"
 import { SuspensionError } from "../api/common/error/SuspensionError"
@@ -305,7 +305,7 @@ export class UsageTestModel implements PingAdapter {
 
 	private async modelVersion(): Promise<number> {
 		const model = await resolveClientTypeReference(UsageTestAssignmentTypeRef)
-		return filterInt(model.version)
+		return model.version
 	}
 
 	private async loadAssignments(): Promise<UsageTestAssignment[]> {

@@ -6,12 +6,15 @@ import { stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "
 import { RestClient } from "../rest/RestClient"
 import { decompressString } from "../crypto/ModelMapper"
 import { sha256Hash } from "@tutao/tutanota-crypto"
+import { getServiceRestPath } from "../rest/ServiceExecutor"
+import { ApplicationTypesService } from "../../entities/base/Services"
+import { ServiceDefinition } from "../../common/ServiceRequest"
 
 assertWorkerOrNode()
 
-type ApplicationTypesGetOut = {
-	currentApplicationHash: string
-	modelTypesAsString: string
+export type ApplicationTypesGetOut = {
+	applicationTypesHash: ApplicationTypesHash
+	applicationTypesJson: string
 }
 
 /**
@@ -26,6 +29,7 @@ type ApplicationTypesGetOut = {
 export class ApplicationTypesFacade {
 	// visibleForTesting
 	public applicationTypesGetInTimeout = 1000
+
 	private lastInvoked = 0
 	private deferredRequests: Array<DeferredObject<void>>
 
@@ -39,6 +43,17 @@ export class ApplicationTypesFacade {
 		return await new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).initFromStoredTypeModels()
 	}
 
+	private async requestApplicationTypes(): Promise<ApplicationTypesGetOut> {
+		const applicationTypesGetOutCompressed = await this.restClient.request(
+			getServiceRestPath(ApplicationTypesService as ServiceDefinition),
+			HttpMethod.GET,
+			{
+				responseType: MediaType.Binary,
+			},
+		)
+		return JSON.parse(decompressString(applicationTypesGetOutCompressed))
+	}
+
 	async getServerApplicationTypesJson(): Promise<void> {
 		let deferredObject: DeferredObject<void> = defer()
 		this.deferredRequests.push(deferredObject)
@@ -46,10 +61,7 @@ export class ApplicationTypesFacade {
 		if (Date.now() - this.lastInvoked > this.applicationTypesGetInTimeout) {
 			this.lastInvoked = Date.now()
 			try {
-				const applicationTypesGetOutCompressed = await this.restClient.request("rest/base/applicationtypesservice", HttpMethod.GET, {
-					responseType: MediaType.Binary,
-				})
-				const applicationTypesGetOut: ApplicationTypesGetOut = JSON.parse(decompressString(applicationTypesGetOutCompressed))
+				const applicationTypesGetOut = await this.requestApplicationTypes()
 				await this.overrideAndStoreNewApplicationTypes(applicationTypesGetOut)
 
 				this.resolvePendingRequests()
@@ -65,8 +77,8 @@ export class ApplicationTypesFacade {
 	private async overrideAndStoreNewApplicationTypes(applicationTypesGetOut: ApplicationTypesGetOut) {
 		console.log("re-initializing server model from new server response data")
 
-		const newApplicationTypesHash = applicationTypesGetOut.currentApplicationHash
-		const newApplicationTypesJsonString = applicationTypesGetOut.modelTypesAsString
+		const newApplicationTypesHash = applicationTypesGetOut.applicationTypesHash
+		const newApplicationTypesJsonString = applicationTypesGetOut.applicationTypesJson
 		const newApplicationTypesJsonData = JSON.parse(newApplicationTypesJsonString)
 
 		this.serverModelInfo.init(newApplicationTypesHash, newApplicationTypesJsonData)
