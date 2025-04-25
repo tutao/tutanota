@@ -62,7 +62,7 @@ struct AlarmManagerTest {
 		// processNewAlarms will add alarm to the persister but who would think about the poor cryptor?
 		cryptor.alarms[alarm.identifier] = alarm
 
-		try! alarmManager.processNewAlarms([encryptAlarm(alarm: alarm)])
+		try! alarmManager.processNewAlarms([encryptAlarm(alarm: alarm)], nil)
 
 		#expect(persistor.alarms.count == 1)
 		#expect(scheduler.scheduled.map { $0.identifier } == [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
@@ -83,7 +83,7 @@ struct AlarmManagerTest {
 			user: userID
 		)
 
-		try! alarmManager.processNewAlarms([deleteAlarm])
+		try! alarmManager.processNewAlarms([deleteAlarm], nil)
 
 		#expect(persistor.alarms.count == 0)
 		#expect(scheduler.unscheduled == [ocurrenceIdentifier(alarmIdentifier: alarm.identifier, occurrence: 0)])
@@ -165,10 +165,10 @@ class AlarmCryptorStub: AlarmCryptor {
 	var alarms: [String: AlarmNotification] = [:]
 
 	func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification {
-		if let alarm = self.alarms[alarm.alarmInfo.alarmIdentifier] {
+	  if let alarm = self.alarms[alarm.getAlarmInfo().alarmIdentifier] {
 			return alarm
 		} else {
-			throw TutanotaError(message: "Failed to 'decrypt' alarm \(alarm.alarmInfo.alarmIdentifier)")
+		  throw TutanotaError(message: "Failed to 'decrypt' alarm \(alarm.getAlarmInfo().alarmIdentifier)")
 		}
 	}
 
