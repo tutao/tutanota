@@ -1,5 +1,6 @@
 package de.tutao.tutanota.push
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -77,8 +78,10 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 
 	private fun dismissNotification(notificationManager: NotificationManager, notificationIdToDismiss: Int) {
 		notificationManager.cancel(notificationIdToDismiss)
-		val activeNotifications = notificationManager.activeNotifications
+		// Filter manually because cancel might not be quick enough
+		val activeNotifications = notificationManager.activeNotifications.filter { it.id != notificationIdToDismiss }
 		for ((_, notifications) in activeNotifications.groupBy { it.groupKey }) {
+
 			if (notifications.size == 1) {
 				// there's only one notification left: summary
 				notificationManager.cancel(notifications[0].id)
