@@ -1,5 +1,3 @@
-// trusted-senders-backend/cors-proxy.js
-
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
