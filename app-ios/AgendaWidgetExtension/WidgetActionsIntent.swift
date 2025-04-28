@@ -75,7 +75,6 @@ struct WidgetActionsIntent: AppIntent {
 			try await WidgetErrorHandler.writeLogs(logs: logs?.first ?? "")
 		}
 
-		// FIXME Change logger
 		guard let url = components.url else {
 			printLog("Failed to build Widget Action URL: Available query items = \(components.queryItems ?? [])")
 			return .result()
