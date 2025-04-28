@@ -16,7 +16,7 @@ sealed class TaggedSqlValue {
 
 	@Serializable
 	@SerialName("SqlNum")
-	data class Num(val value: Int) : TaggedSqlValue()
+	data class Num(val value: Long) : TaggedSqlValue()
 
 	@Serializable
 	@SerialName("SqlBytes")
