@@ -15,7 +15,7 @@
 	"scripts": {
 		"prepublishOnly": "npm run build",
 		"build": "node make && tsc -b",
-		"test": "tsc -b test && cd build && node test/Suite.js"
+		"test": "node make && tsc -b test && cp -r lib/encryption/ed25519wasm build/lib/encryption && cd build && node test/Suite.js"
 	},
 	"type": "module",
 	"files": [
