@@ -26,7 +26,7 @@ XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, u
 // --- End Proxy Patches ----
 
 
-import { domainConfigs } from "../common/api/main/DomainConfigProvider";
+import { domainConfigs } from "../../common/api/main/DomainConfigProvider";
 
 // --- Patch DomainConfigs dynamically ---
 const hostname = location.hostname;
