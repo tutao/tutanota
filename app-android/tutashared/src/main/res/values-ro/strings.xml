@@ -11,4 +11,11 @@ Puteți adăuga un mesaj pentru a ne ajuta să remediem eroarea.</string>
     <string name="markRead_action">Marchează ca citit.</string>
     <string name="sendLogs_action">Trimite jurnale</string>
     <string name="account_label">Utilizator</string>
+    <string name="calendars_label">Calendare</string>
+    <string name="widgetNoCredentialsInfo_msg">Datele de autentificare nu sunt disponibile</string>
+    <string name="widgetUnexpectedError_msg">Ceva nu a mers bine.</string>
+    <string name="widgetCredentialsError_msg">Autentifică-te în aplicația Calendar</string>
+    <string name="widgetOpenApp_action">Deschide aplicația</string>
+    <string name="widgetNoEvents_msg">Niciun eveniment</string>
+    <string name="widgetDescription_msg">Arată următoarele evenimente de azi</string>
 </resources>

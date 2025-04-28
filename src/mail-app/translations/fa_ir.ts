@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2025-03-25T08:39:13Z",
+	"updated_at": "2025-04-28T09:30:01Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -44,6 +44,7 @@ export default {
 		"addAliasUserDisabled_msg": "به علت غیرفعال بودن کاربر، افزودن ایمیل مستعار به کاربر یا گروه ممکن نیست.",
 		"addCalendar_action": "تقویم اضافه کنید",
 		"addContactList_action": "افزودن لیست مخاطبین",
+		"addCustomDomainAddAdresses_msg": "دامنه به حساب شما اختصاص داده شده است، اکنون می‌توانید یک آدرس ایمیل جدید بسازید.",
 		"addCustomDomainAddresses_title": "افزودن نشانی ایمیل به دامنه شخصی شما",
 		"addCustomDomain_action": "افزودن دامنه سفارشی",
 		"addDNSValue_label": "یک مقدار اضافه کنید",
@@ -794,6 +795,7 @@ export default {
 		"mobile_label": "موبایل",
 		"modified_label": "ویرایش‌شده",
 		"month_label": "ماه",
+		"moreAliasesRequired_msg": "برای افزودن آدرس‌های مستعار ایمیل بیشتر، لطفا به یکی از طرح‌های زیر بروید.",
 		"moreCustomDomainsRequired_msg": "برای افزودن دامنه‌های شخصی بیشتر، لطفا حسابتان را به یکی از طرح‌های زیر تغییر دهید.",
 		"moreInformation_action": "اطلاعات بیش‌تر",
 		"moreInfo_msg": "اطلاعات بیشتر:",
@@ -1120,6 +1122,7 @@ export default {
 		"referralLink_label": "لینک پیشنهاد به دوستان",
 		"referralSettings_label": "معرفی به دوستان",
 		"referralSignupCampaignError_msg": "امکان ثبت نام با کد ارجاع و کد کارزار (کمپین) به صورت همزمان وجود ندارد.",
+		"referralSignupInvalid_msg": "شما سعی کرده‌اید با یک لینک ریفر نامعتبر ثبت‌نام کنید. شما می‌توانید به ثبت‌نام خود ادامه دهید، اما تخفیف ارجاع اعمال نخواهد شد.",
 		"referralSignup_msg": "شما به توتا دعوت شده‌اید! با انتخاب اشتراک سالیانه هر نوع طرح پولی، از یک ماه اشتراک به طور رایگان برخوردار می‌شوید.",
 		"refresh_action": "تازه‌سازی",
 		"refund_label": "پس دادن\n\t\n",
