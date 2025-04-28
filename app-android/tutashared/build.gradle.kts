@@ -1,4 +1,7 @@
 plugins {
+	// IMPORTANT: must be *before* other plugins or you will run into "duplicate sources" error
+	// https://github.com/mozilla/rust-android-gradle/issues/147#issuecomment-2134688017
+	id("org.mozilla.rust-android-gradle.rust-android")
 	id("com.android.library")
 	id("org.jetbrains.kotlin.android")
 	id("com.google.devtools.ksp")
@@ -74,6 +77,55 @@ android {
 	ndkVersion = "26.1.10909125"
 }
 
+val tutanota3Root = layout.projectDirectory
+	.dir("..") // tutanota/tutashared
+	.dir("..") // tutanota
+val ftsCreatePath = tutanota3Root.dir("libs").dir("Signal-FTS5-Extension")
+
+fun getActiveBuildType(): String {
+	var buildType = "debug"
+	val taskNames = gradle.parent?.startParameter?.taskNames
+	if (!taskNames.isNullOrEmpty()) {
+		if (taskNames.size > 0) {
+			val targetTask = taskNames[0].lowercase()
+			if (targetTask.contains("release")) {
+				buildType = "release"
+			}
+		}
+	}
+	return buildType
+}
+
+fun getABITargets(): List<String> {
+	val targetAbiPropertyValue = findProperty("targetABI") as String?
+	if (targetAbiPropertyValue == null) {
+		return listOf("arm", "arm64", "x86_64")
+	}
+	return targetAbiPropertyValue.orEmpty().split(",")
+}
+
+cargo {
+	module = ftsCreatePath.toString()
+	libname = "signal_tokenizer"
+	prebuiltToolchains = true
+	pythonCommand = "python3"
+	targets = getABITargets()
+	profile = getActiveBuildType()
+	verbose = true
+	features {
+		defaultAnd(arrayOf("extension"))
+	}
+}
+
+tasks.whenTaskAdded {
+	when (name) {
+		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders", "mergeReleaseTestJniLibFolders" -> {
+			dependsOn("cargoBuild")
+			mustRunAfter("cargoBuild")
+		}
+	}
+}
+
 dependencies {
 	val room_version = "2.6.1"
 	val lifecycle_version = "2.8.3"
@@ -94,20 +146,15 @@ dependencies {
 	// For Kotlin use kapt instead of annotationProcessor
 	ksp("androidx.room:room-compiler:$room_version")
 
-	if (file("../libs/sqlcipher-android-4.6.0.aar").exists()) {
-		logger.lifecycle("Using prebuild sqlcipher file in ../libs")
-		// If we would build a standalone AAR out of tutashared we would run into this error:
-		// "Direct local .aar file dependencies are not supported when building an AAR. The resulting AAR would be
-		// broken because the classes and Android resources from any local .aar file dependencies would not be packaged
-		// in the resulting AAR. Previous versions of the Android Gradle Plugin produce broken AARs in this case too
-		// (despite not throwing this error)."
-		// This is not really a problem for us because we never build a separate AAR out of tutashared, it is just a
-		// module.
-		compileOnly(files("../libs/sqlcipher-android-4.6.0.aar"))
-	} else {
-		logger.lifecycle("Using sqlcipher from remote repository")
-		implementation("net.zetetic:sqlcipher-android:4.6.0@aar")
-	}
+	// If we would build a standalone AAR out of tutashared we would run into this error:
+	// "Direct local .aar file dependencies are not supported when building an AAR. The resulting AAR would be
+	// broken because the classes and Android resources from any local .aar file dependencies would not be packaged
+	// in the resulting AAR. Previous versions of the Android Gradle Plugin produce broken AARs in this case too
+	// (despite not throwing this error)."
+	// This is not really a problem for us because we never build a separate AAR out of tutashared, it is just a
+	// module.
+	compileOnly(files("../libs/sqlcipher-android-4.7.2-release.aar"))
+
 	implementation("androidx.sqlite:sqlite-ktx:2.4.0")
 
 	implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
