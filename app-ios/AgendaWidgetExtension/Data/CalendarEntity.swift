@@ -9,7 +9,7 @@ import AppIntents
 import TutanotaSharedFramework
 import tutasdk
 
-let DEFAULT_CALENDAR_NAME = "Private"
+let DEFAULT_CALENDAR_NAME = translate("TutaoDefaultCalendarNameTitle", default: "Private")
 let DEFAULT_CALENDAR_COLOR = "23f520"
 
 struct CalendarEntity: AppEntity {

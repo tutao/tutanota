@@ -34,7 +34,7 @@ struct WidgetCredential : AppEntity {
 			let credentials = try await credentialsFacade.loadAll()
 			return credentials.map { WidgetCredential(id: $0.credentialInfo.userId, email: $0.credentialInfo.login) }
 		} catch {
-			TUTSLog("[WidgetConfig] Error: \(error)")
+			printLog("[WidgetConfig] Error: \(error)")
 			return []
 		}
 	}

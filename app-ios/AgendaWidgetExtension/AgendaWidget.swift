@@ -105,7 +105,7 @@ struct AgendaWidgetEntryView : View {
 			HStack(alignment: .center, spacing: 4) {
 				Image(.allDayIcon).foregroundStyle(foregroundColor).padding(2).background(Color(allDayBackgroundColor.cgColor)).clipShape(.rect(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)))
 				// FIXME Add translation
-				Text(allDayEvents.first?.summary ?? "<No Title>").lineLimit(1).font(.system(size: 16))
+				Text(allDayEvents.first?.summary ?? translate("TutaoNoTitleLabel", default: "<No Title>")).lineLimit(1).font(.system(size: 16))
 
 				if (allDayEvents.count > 1) {
 					Text("+\(allDayEvents.count - 1)").lineLimit(1).font(.system(size: 16)).fontWeight(.medium)
@@ -184,7 +184,7 @@ struct AgendaWidget: Widget {
 				return AgendaWidgetEntryView(normalEvents: entry.events.0, allDayEvents: entry.events.1, error: entry.error, userId: userId)
 		}
 		.configurationDisplayName("Agenda")
-		.description("See the upcoming events for the current day")
+		.description(translate("TutaoWidgetDescription", default: "Show today's upcoming events"))
 		.supportedFamilies([.systemMedium, .systemLarge, .systemExtraLarge])
     }
 }
