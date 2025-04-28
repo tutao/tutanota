@@ -140,7 +140,7 @@ public class SqliteStatement {
 	/// return an integer from the current rows column i
 	/// use after checking that the column contains an integer.
 	private func getColumnInteger(_ i: Int32) -> TaggedSqlValue {
-		let integer = sqlite3_column_int(self.stmt, i)
+		let integer: Int64 = sqlite3_column_int64(self.stmt, i)
 		return .number(value: Int(integer))
 	}
 
