@@ -70,13 +70,13 @@ struct ErrorBody : View {
 		}
 	}
 
+	@Environment(\.widgetFamily) var family
 	var body : some View {
-		@Environment(\.widgetFamily) var family
 		ErrorBodyWrapper(isMedium: family == .systemMedium) {
 			VStack(alignment: .center) {
 				Image(.widgetError).imageScale(.large)
 				Text(error.type.getUserFriendlyErrorMessage())
-					.font(.system(size: 14))
+					.font(.system(size: 16))
 					.lineLimit(2)
 					.multilineTextAlignment(.center)
 					.foregroundStyle(Color(.onSurface))

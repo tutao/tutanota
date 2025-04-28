@@ -104,7 +104,6 @@ struct AgendaWidgetEntryView : View {
 			Text(weekday + " " + day).fontWeight(.bold).font(.system(size: 24)).padding(.top, -4)
 			HStack(alignment: .center, spacing: 4) {
 				Image(.allDayIcon).foregroundStyle(foregroundColor).padding(2).background(Color(allDayBackgroundColor.cgColor)).clipShape(.rect(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)))
-				// FIXME Add translation
 				Text(allDayEvents.first?.summary ?? translate("TutaoNoTitleLabel", default: "<No Title>")).lineLimit(1).font(.system(size: 16))
 
 				if (allDayEvents.count > 1) {
@@ -112,6 +111,26 @@ struct AgendaWidgetEntryView : View {
 				}
 			}
 		}
+	}
+
+	private func EmptyList(_ isSmallView: Bool) -> some View {
+		let errorImages = [
+			ImageResource.widgetEmptyDog,
+			ImageResource.widgetEmptyMusic
+		]
+		let imageIndex = Int.random(in: 0...1)
+
+		return VStack(alignment: .center) {
+			Text(translate("TutaoWidgetNoEventsMsg", default: "No Events"))
+				.lineLimit(2)
+				.multilineTextAlignment(.center)
+				.foregroundStyle(Color(.onSurface))
+				.padding([.top, .bottom], 8)
+
+			if !isSmallView {
+				Image(errorImages[imageIndex]).resizable().scaledToFit()
+			}
+		}.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
 	}
 
 	private func EventsList() -> some View {
@@ -135,39 +154,48 @@ struct AgendaWidgetEntryView : View {
 		}
 	}
 
-	var body: some View {
+	private func Header() -> some View {
 		let hasAllDayEvents = !allDayEvents.isEmpty
 		let titleBottomPadding: CGFloat = if (hasAllDayEvents) {0} else {-8}
 
 		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())
-
 		let day = String(dateComponents.day ?? 0)
 		let weekday = DateFormatter().weekdaySymbols[(dateComponents.weekday ?? 0) - 1]
 
+		return HStack(alignment: .top) {
+			Button(intent:  WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.agenda)) {
+				HStack {
+					VStack(alignment: .leading, spacing: titleBottomPadding) {
+						if(hasAllDayEvents) {
+							AllDayHeader(allDayEvents: allDayEvents, weekday: weekday, day: day)
+						} else {
+							Text(day).fontWeight(.bold).font(.system(size: 40)).padding(.top, -9)
+							Text(weekday).font(.system(size: 16))
+						}
+					}.foregroundStyle(Color(.onSurface))
+					Spacer()
+				}
+			}.buttonStyle(.plain)
+			Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor)) {
+				Image(systemName: "plus").fontWeight(.medium).foregroundStyle(Color(.onPrimary)).font(.system(size: 20))
+			}.buttonStyle(.plain).frame(width: 44, height: 44).background(Color(.primary)).clipShape(.rect(cornerRadii: .init(topLeading: 8,bottomLeading: 8,bottomTrailing: 8,topTrailing: 8)))
+		}
+	}
+
+	@Environment(\.widgetFamily) var family
+	var body: some View {
 		GeometryReader { _ in
 			VStack {
 				if let err = error {
 					ErrorBody(error: err)
 				} else {
-					HStack(alignment: .top) {
-						Button(intent:  WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.agenda)) {
-							HStack {
-								VStack(alignment: .leading, spacing: titleBottomPadding) {
-									if(hasAllDayEvents) {
-										AllDayHeader(allDayEvents: allDayEvents, weekday: weekday, day: day)
-									} else {
-										Text(day).fontWeight(.bold).font(.system(size: 40)).padding(.top, -9)
-										Text(weekday).font(.system(size: 16))
-									}
-								}.foregroundStyle(Color(.onSurface))
-								Spacer()
-							}
-						}.buttonStyle(.plain)
-						Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor)) {
-							Image(systemName: "plus").fontWeight(.medium).foregroundStyle(Color(.onPrimary)).font(.system(size: 20))
-						}.buttonStyle(.plain).frame(width: 44, height: 44).background(Color(.primary)).clipShape(.rect(cornerRadii: .init(topLeading: 8,bottomLeading: 8,bottomTrailing: 8,topTrailing: 8)))
+					Header()
+
+					if normalEvents.isEmpty {
+						EmptyList(family == .systemMedium)
+					} else {
+						EventsList()
 					}
-					EventsList()
 				}
 			}.frame(maxHeight: .infinity, alignment: .top)
 		}.containerBackground(for: .widget) { Color(.background) }
