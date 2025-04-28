@@ -23,7 +23,8 @@ XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, u
     }
     return originalOpen.call(this, method, url, async ?? true, username ?? null, password ?? null);
 };
-// --- End Proxy Patches ---
+// --- End Proxy Patches ----
+
 
 
 
