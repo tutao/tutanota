@@ -282,7 +282,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			return try await sendLogsFromWidget()
 		}
 
-		let action = interopAction.value == WidgetActions.agenda.rawValue ? CalendarOpenAction.agenda : CalendarOpenAction.event_editor
+		let action = interopAction.value == WidgetActions.eventEditor.rawValue ? CalendarOpenAction.event_editor : CalendarOpenAction.agenda
 		try await self.bridge.commonNativeFacade.openCalendar(userId, action, date, eventId)
 	}
 

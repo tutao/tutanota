@@ -34,17 +34,17 @@ struct WidgetActionsIntent: AppIntent {
 		action = WidgetActions.agenda
 	}
 
-	init(userId: String, date: Date, action: WidgetActions, eventId: String? = nil, extras: [String]? = []) {
+	init(userId: String, date: Date, action: WidgetActions, eventId: String? = nil, logs: [String]? = []) {
 		self.userId = userId
 		self.date = date
 		self.action = action
 		self.eventId = eventId
-		self.extras = extras
+		self.logs = logs
 	}
 
 	static var title: LocalizedStringResource { "WidgetActionIntent" }
-	static var openAppWhenRun: Bool = true // required
-	static var isDiscoverable: Bool = false // optional, if you want to hide this from the Shortcuts app, Spotlight, etc
+	static var openAppWhenRun: Bool = true
+	static var isDiscoverable: Bool = false
 
 
 	@Parameter(title: "UserId")
@@ -56,11 +56,11 @@ struct WidgetActionsIntent: AppIntent {
 	@Parameter(title: "EventID")
 	var eventId: String?
 	@Parameter(title: "Extras")
-	var extras: [String]?
+	var logs: [String]?
 
 	func perform() async throws -> some IntentResult {
 		var components = URLComponents()
-
+		let encodedEventId = eventId?.data(using: .utf8)?.base64EncodedString()
 		components.scheme = "tutacalendar"
 		components.host = "interop"
 
@@ -68,16 +68,16 @@ struct WidgetActionsIntent: AppIntent {
 			URLQueryItem(name: "widget", value: action.rawValue),
 			URLQueryItem(name: "userId", value: userId),
 			URLQueryItem(name: "date", value: date.ISO8601Format()),
-			URLQueryItem(name: "eventId", value: eventId)
+			URLQueryItem(name: "eventId", value: encodedEventId)
 		]
 
 		if action == WidgetActions.sendLogs {
-			try await WidgetErrorHandler.writeLogs(logs: extras?.first ?? "")
+			try await WidgetErrorHandler.writeLogs(logs: logs?.first ?? "")
 		}
 
 		// FIXME Change logger
 		guard let url = components.url else {
-			TUTSLog("Failed to build Widget Action URL: Available query items = \(components.queryItems ?? [])")
+			printLog("Failed to build Widget Action URL: Available query items = \(components.queryItems ?? [])")
 			return .result()
 		}
 
