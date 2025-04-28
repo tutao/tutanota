@@ -134,7 +134,9 @@ struct AlarmModelTest {
 		)
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
-		let expected = [date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 9, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone)]
+		let expected = [
+			date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 9, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone),
+		]
 		#expect(occurrences == expected)
 	}
 
@@ -205,7 +207,9 @@ struct AlarmModelTest {
 		)
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
-		let expected = [date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone), date(2019, 6, 30, 12, 0, timeZone)]
+		let expected = [
+			date(2019, 6, 2, 12, 0, timeZone), date(2019, 6, 16, 12, 0, timeZone), date(2019, 6, 23, 12, 0, timeZone), date(2019, 6, 30, 12, 0, timeZone),
+		]
 		#expect(occurrences == expected)
 	}
 

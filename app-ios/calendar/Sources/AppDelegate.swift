@@ -116,7 +116,7 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 			Task {
 				let sourceApp = options[UIApplication.OpenURLOptionsKey.sourceApplication]
 
-				if (sourceApp == nil) { return }
+				if sourceApp == nil { return }
 
 				if String(describing: sourceApp!).starts(with: "de.tutao") { return try! await self.viewController.handleInterop(url) }
 
