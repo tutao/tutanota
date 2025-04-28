@@ -113,10 +113,13 @@ export class ClientModelInfo {
 }
 
 export class ServerModelInfo {
+	// by default, the serverModel is the same as clientModel
 	private applicationTypesHash: ApplicationTypesHash | null = null
-	public typeModels: ServerModels | null = null
+	public typeModels: ServerModels
 
-	constructor(private readonly clientModelInfo: ClientModelInfo) {}
+	constructor(private readonly clientModelInfo: ClientModelInfo) {
+		this.typeModels = this.clientModelAsServerModel()
+	}
 
 	public getApplicationTypesHash(): ApplicationTypesHash | null {
 		return this.applicationTypesHash
@@ -125,7 +128,7 @@ export class ServerModelInfo {
 	public init(newApplicationTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
 		let newTypeModels = {} as ServerModels
 		for (const appName of Object.values(AppNameEnum)) {
-			newTypeModels[appName] = this.parseAllTypesForModel(assertNotNull(parsedApplicationTypesJson[appName], "I failed"))
+			newTypeModels[appName] = this.parseAllTypesForModel(assertNotNull(parsedApplicationTypesJson[appName]))
 		}
 
 		this.typeModels = newTypeModels
@@ -251,10 +254,26 @@ export class ServerModelInfo {
 		else throw new Error(`value: ${value} is not boolean compatible`)
 	}
 
+	// Client Model is storing typeModels and Version info into separate object
+	// ( see ClientModelInfo.typeModels & ClientModelInfo.modelInfos )
+	// when we use clientModel as server we have to adhere to same format the server response is going to be:
+	// as in: { appName: { name: string, types: TypeModel, version: number } }
+	// This method takes ClientModelInfo and return an object compatible to ServerModelInfo
+	private clientModelAsServerModel(): ServerModels {
+		return Object.values(AppNameEnum).reduce((obj, app) => {
+			const types = {
+				name: app,
+				version: this.clientModelInfo.modelInfos[app].version,
+				types: this.clientModelInfo.typeModels[app],
+				isPublic: this.clientModelInfo.typeModels[app].isPublic,
+			}
+			Object.assign(obj, { [app]: types })
+
+			return obj
+		}, {}) as ServerModels
+	}
+
 	public async resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
-		if (this.typeModels == null) {
-			throw new ProgrammingError("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
-		}
 		const typeModel = this.typeModels[typeRef.app].types[typeRef.typeId]
 		if (typeModel == null) {
 			throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
