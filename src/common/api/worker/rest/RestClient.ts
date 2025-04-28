@@ -321,6 +321,10 @@ export class RestClient {
 			headers["Network-Debugging"] = "enable-network-debugging"
 		}
 
+		if (env.clientName != null) {
+			headers["Client-Name"] = env.clientName
+		}
+
 		if (responseType) {
 			headers["Accept"] = responseType
 		}

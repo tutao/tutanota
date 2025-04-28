@@ -208,7 +208,8 @@ export class EventBusClient {
 			this.userFacade.getLoggedInUser()._id +
 			"&accessToken=" +
 			authHeaders.accessToken +
-			(this.lastAntiphishingMarkersId ? "&lastPhishingMarkersId=" + this.lastAntiphishingMarkersId : "")
+			(this.lastAntiphishingMarkersId ? "&lastPhishingMarkersId=" + this.lastAntiphishingMarkersId : "") +
+			(env.clientName ? "&clientName=" + env.clientName : "")
 		const path = "/event?" + authQuery
 
 		this.unsubscribeFromOldWebsocket()

@@ -74,6 +74,7 @@ declare var env: {
 	timeout: number
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
+	clientName?: string
 }
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }
