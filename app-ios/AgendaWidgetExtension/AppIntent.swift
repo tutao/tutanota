@@ -12,10 +12,10 @@ import TutanotaSharedFramework
 struct ConfigurationAppIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource { "Select an account and calendars" }
 
-	@Parameter(title: LocalizedStringResource("TutaoAccountLabel", defaultValue: "UsAer", table: "InfoPlist"), description: LocalizedStringResource(stringLiteral: "User account to load calendars from"))
+	@Parameter(title: LocalizedStringResource("TutaoAccountLabel", defaultValue: "User", table: "InfoPlist"), description: LocalizedStringResource(stringLiteral: "User account to load calendars from"))
 	var account: WidgetCredential?
 
-	@Parameter(title: LocalizedStringResource("TutaoCalendarsLabel", defaultValue: "CaAlendars", table: "InfoPlist"), description: LocalizedStringResource(stringLiteral: "Calendars to fetch the event from"), optionsProvider: CalendarsProvider())
+	@Parameter(title: LocalizedStringResource("TutaoCalendarsLabel", defaultValue: "Calendars", table: "InfoPlist"), description: LocalizedStringResource(stringLiteral: "Calendars to fetch the event from"), optionsProvider: CalendarsProvider())
 	var calendars: [CalendarEntity]?
 
 	static var parameterSummary: some ParameterSummary {
