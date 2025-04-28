@@ -53,6 +53,8 @@ import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 const originalRandom = random.generateRandomData
 
 const liboqs = await loadLibOQSWASM()
+const liboqsFallback = (await (await import("liboqs.wasm")).loadWasm({ forceFallback: true })) as LibOQSExports
+const argon2 = await (await import("argon2.wasm")).loadWasm({ forceFallback: true })
 
 o.spec("CompatibilityTest", function () {
 	o.afterEach(function () {
@@ -107,7 +109,6 @@ o.spec("CompatibilityTest", function () {
 
 			const randomizer = object<Randomizer>()
 			when(randomizer.generateRandomData(matchers.anything())).thenReturn(seed)
-			const liboqsFallback = (await (await import("liboqs.wasm")).loadWasm({ forceFallback: true })) as LibOQSExports
 			const encapsulation = encapsulateKyber(liboqsFallback, publicKey, randomizer)
 			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
 			//
@@ -230,7 +231,6 @@ o.spec("CompatibilityTest", function () {
 		}
 	})
 	o("argon2id - fallback", async function () {
-		const argon2 = await (await import("argon2.wasm")).loadWasm({ forceFallback: true })
 		for (let td of testData.argon2idTests) {
 			let key = await generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
@@ -371,7 +371,6 @@ o.spec("CompatibilityTest", function () {
 				kyberPublicKey: kyberKeyPair.publicKey,
 			}
 			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair, kyberKeyPair }
-			const liboqsFallback = (await (await import("liboqs.wasm")).loadWasm({ forceFallback: true })) as LibOQSExports
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqsFallback))
 
 			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
