@@ -73,9 +73,9 @@ import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetUIViewModel
-import de.tutao.tutasdk.IdTupleCustom
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.SdkRestClient
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
@@ -159,7 +159,7 @@ class Agenda : GlanceAppWidget() {
 		}
 
 		val widgetUIViewModel =
-			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, sdk)
+			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, crypto, sdk)
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
 		return Pair(widgetUIViewModel, userId)
@@ -182,7 +182,7 @@ class Agenda : GlanceAppWidget() {
 		return actionStartActivity(openCalendarEventEditor)
 	}
 
-	private fun openCalendarAgenda(context: Context, userId: String? = "", eventId: IdTupleCustom? = null): Action {
+	private fun openCalendarAgenda(context: Context, userId: String? = "", eventId: IdTuple? = null): Action {
 		val openCalendarAgenda = Intent(context, MainActivity::class.java)
 		openCalendarAgenda.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 		openCalendarAgenda.action = MainActivity.OPEN_CALENDAR_ACTION
@@ -545,7 +545,7 @@ class Agenda : GlanceAppWidget() {
 			eventData.add(
 				UIEvent(
 					"previewCalendar",
-					IdTupleCustom("", ""),
+					IdTuple("", ""),
 					"2196f3",
 					"Hello Widget $i",
 					"08:00",
@@ -559,7 +559,7 @@ class Agenda : GlanceAppWidget() {
 		allDayEvents.add(
 			UIEvent(
 				"previewCalendar",
-				IdTupleCustom("", ""),
+				IdTuple("", ""),
 				"2196f3",
 				"Summery",
 				"Start Time",
@@ -572,7 +572,7 @@ class Agenda : GlanceAppWidget() {
 		allDayEvents.add(
 			UIEvent(
 				"previewCalendar",
-				IdTupleCustom("", ""),
+				IdTuple("", ""),
 				"2196f3",
 				"Summery",
 				"Start Time",
@@ -606,7 +606,7 @@ class Agenda : GlanceAppWidget() {
 			eventData.add(
 				UIEvent(
 					"previewCalendar",
-					IdTupleCustom("", ""),
+					IdTuple("", ""),
 					"2196f3",
 					"Hello Widget $i",
 					"08:00",
