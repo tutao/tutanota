@@ -14,9 +14,9 @@ enum WidgetErrors {
 
 	func getUserFriendlyErrorMessage() -> String {
 		switch self {
-			case .credentials: "FIXME: Credentials Login"
-			case .missingConfiguration: "FIXME: Widget not configured"
-			default: "FIXME: Unexpected"
+			case .credentials: translate("TutaoWidgetCredentialsErrorMsg", default: "Please login on the Calendar App")
+			case .missingConfiguration: translate("TutaoWidgetMissingConfigurationErrorMsg", default: "Missing widget configuration")
+			default: translate("TutaoWidgetUnexpectedErrorMsg", default: "Oops! Something went wrong.")
 		}
 	}
 }

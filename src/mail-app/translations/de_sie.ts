@@ -2018,6 +2018,7 @@ export default {
 		"widgetNoEvents_msg": "Keine Termine",
 		"widgetOpenApp_action": "Die App öffnen",
 		"widgetUnexpectedError_msg": "Etwas ist schief gelaufen.",
+		"widgetMissingConfigurationError_msg": "Fehlende Widget-Konfiguration",
 		"withCustomRules_label": "Mit benutzerdefinierten Wiederholungen",
 		"work_label": "Arbeit",
 		"wrongUserCsvFormat_msg": "Das CSV-Format der eingegebenen Daten ist ungültig. Folgendes Format ist gültig:\n{format}",
