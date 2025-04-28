@@ -5,23 +5,25 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
+import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
+import de.tutao.calendar.widget.widgetCacheDataStore
 import de.tutao.calendar.widget.widgetDataStore
-import de.tutao.tutasdk.CalendarEventsList
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoggedInSdk
 import de.tutao.tutasdk.Sdk
+import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.PersistedCredentials
+import de.tutao.tutashared.ipc.UnencryptedCredentials
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import java.util.Date
 
-abstract class WidgetRepository {
+abstract class WidgetRepository() {
 	protected val json = Json { ignoreUnknownKeys = true }
-	protected var cachedEvents: MutableMap<GeneratedId, CalendarEventsList> = mutableMapOf()
 
 	open suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
 		throw NotImplementedError()
@@ -44,16 +46,55 @@ abstract class WidgetRepository {
 	}
 
 	open suspend fun loadEvents(
+		context: Context,
+		widgetId: Int,
 		userId: GeneratedId,
 		calendars: List<GeneratedId>,
-		credentialsFacade: NativeCredentialsFacade,
-		loggedInSdk: LoggedInSdk
-	): Map<GeneratedId, CalendarEventsList> {
+		credentials: UnencryptedCredentials,
+		loggedInSdk: LoggedInSdk,
+		cryptoFacade: AndroidNativeCryptoFacade
+	): Map<GeneratedId, CalendarEventListDao> {
 		throw NotImplementedError()
 	}
 
-	open suspend fun loadEvents(calendars: List<GeneratedId>): Map<GeneratedId, CalendarEventsList> {
+	open suspend fun loadEvents(
+		context: Context,
+		widgetId: Int,
+		calendars: List<GeneratedId>,
+		credentials: UnencryptedCredentials,
+		cryptoFacade: AndroidNativeCryptoFacade
+	): Map<GeneratedId, CalendarEventListDao> {
 		throw NotImplementedError()
+	}
+
+	open suspend fun loadCache(
+		context: Context,
+		widgetId: Int,
+		calendars: List<GeneratedId>,
+		cryptoFacade: AndroidNativeCryptoFacade,
+		credentials: UnencryptedCredentials
+	): Map<GeneratedId, CalendarEventListDao> {
+		throw NotImplementedError()
+	}
+
+	open suspend fun storeCache(
+		context: Context,
+		widgetId: Int,
+		eventsMap: Map<GeneratedId, CalendarEventListDao>,
+		cryptoFacade: AndroidNativeCryptoFacade,
+		credentials: UnencryptedCredentials
+	) {
+		throw NotImplementedError()
+	}
+
+	suspend fun loadCacheCreationDate(context: Context, widgetId: Int): CacheDateDao? {
+		val databaseWidgetIdentifier = "${WIDGET_CACHE_DATE_PREFIX}_$widgetId"
+		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
+
+		val preferences = context.widgetCacheDataStore.data.first()
+		val encodedPreference = preferences[preferencesKey] ?: return null
+
+		return json.decodeFromString<CacheDateDao>(encodedPreference)
 	}
 
 	suspend fun loadLastSync(context: Context, widgetId: Int): LastSyncDao? {

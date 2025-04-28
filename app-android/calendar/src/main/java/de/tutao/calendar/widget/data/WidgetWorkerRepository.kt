@@ -25,14 +25,15 @@ class WidgetWorkerRepository : WidgetRepository() {
 
 		// We can't access the DataStore while writing to it, so we collect the changes before and then apply
 		for (id in widgetIds) {
-			val storedLastSync = this.loadLastSync(context, id)
+			val cacheCreation = this.loadCacheCreationDate(context, id)
 
-			val storedLastSyncAsLocalDateTime = LocalDateTime.ofInstant(
-				Instant.ofEpochMilli(storedLastSync?.lastSync ?: 0),
+			val storedCacheDateAsLocalDateTime = LocalDateTime.ofInstant(
+				Instant.ofEpochMilli(cacheCreation?.createdAt ?: 0),
 				Calendar.getInstance().timeZone.toZoneId()
 			)
 
-			val force = storedLastSyncAsLocalDateTime.dayOfYear != nowAsLocalDateTime.dayOfYear
+			val force =
+				storedCacheDateAsLocalDateTime.dayOfYear != nowAsLocalDateTime.dayOfYear
 			val lastSyncIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$id"
 			val preferencesKey = stringPreferencesKey(lastSyncIdentifier)
 
