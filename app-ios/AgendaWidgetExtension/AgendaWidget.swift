@@ -118,17 +118,19 @@ struct AgendaWidgetEntryView : View {
 		LazyVStack(alignment: .leading, spacing: 4){
 			ForEach(normalEvents, id: \.id){ event in
 				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
-				VStack {
-					HStack {
-						VStack{
-							Circle().fill(Color(calendarColor.cgColor)).frame(width: 20, height: 20)
-						}
-						VStack(alignment: .leading){
-							Text(event.summary).fontWeight(.bold)
-							Text(eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)).font(.system(size: 14))
-						}.foregroundStyle(Color(.onSurface))
-					}.padding(8)
-				}.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface)).clipShape(.rect(cornerRadii: .init(topLeading: 8,bottomLeading: 8,bottomTrailing: 8,topTrailing: 8)))
+				Button(intent:  WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventDetails, eventId: event.id)) {
+					VStack {
+						HStack {
+							VStack{
+								Circle().fill(Color(calendarColor.cgColor)).frame(width: 20, height: 20)
+							}
+							VStack(alignment: .leading){
+								Text(event.summary).fontWeight(.bold)
+								Text(eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)).font(.system(size: 14))
+							}.foregroundStyle(Color(.onSurface))
+						}.padding(8)
+					}.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface)).clipShape(.rect(cornerRadii: .init(topLeading: 8,bottomLeading: 8,bottomTrailing: 8,topTrailing: 8)))
+				}.buttonStyle(.plain)
 			}
 		}
 	}
