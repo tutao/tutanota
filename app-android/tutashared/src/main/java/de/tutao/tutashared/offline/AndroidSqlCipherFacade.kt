@@ -38,6 +38,9 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId), dbKey.data, null, null)
 		}
 
+		// Added in fork!
+		openedDb.loadExtension("libsignal_tokenizer", "signal_fts5_tokenizer_init")
+
 		// We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution
 		// After changing the auto_vacuum mode we need to run "vacuum" once
 		// auto_vacuum mode: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
@@ -46,7 +49,6 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 				if (cursor.getInt(0) != 2) {
 					db?.query("PRAGMA auto_vacuum = incremental")
 					Log.d(TAG, "PRAGMA vacuum")
-					
 				}
 			}
 		}

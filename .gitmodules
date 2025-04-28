@@ -4,3 +4,6 @@
 [submodule "libs/webassembly/liboqs"]
 	path = libs/webassembly/liboqs
 	url = https://github.com/open-quantum-safe/liboqs
+[submodule "libs/Signal-FTS5-Extension"]
+	path = libs/Signal-FTS5-Extension
+	url = git@github.com:tutao/Signal-FTS5-Extension.git
