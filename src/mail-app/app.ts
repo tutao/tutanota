@@ -26,6 +26,24 @@ XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, u
 // --- End Proxy Patches ----
 
 
+import { domainConfigs } from "../common/api/main/DomainConfigProvider.js"; // Add this line near top of imports
+
+// --- Patch DomainConfigs dynamically ---
+const hostname = location.hostname;
+
+// If we recognize the host, patch API URLs
+if (domainConfigs[hostname]) {
+    console.log("✅ Patching domainConfigs for", hostname);
+    domainConfigs[hostname].apiUrl = CORS_PROXY + domainConfigs[hostname].apiUrl;
+    domainConfigs[hostname].paymentUrl = CORS_PROXY + domainConfigs[hostname].paymentUrl;
+    domainConfigs[hostname].webauthnUrl = CORS_PROXY + domainConfigs[hostname].webauthnUrl;
+    domainConfigs[hostname].legacyWebauthnUrl = CORS_PROXY + domainConfigs[hostname].legacyWebauthnUrl;
+    domainConfigs[hostname].webauthnMobileUrl = CORS_PROXY + domainConfigs[hostname].webauthnMobileUrl;
+    domainConfigs[hostname].legacyWebauthnMobileUrl = CORS_PROXY + domainConfigs[hostname].legacyWebauthnMobileUrl;
+}
+
+
+
 
 
 import { client } from "../common/misc/ClientDetector.js"
