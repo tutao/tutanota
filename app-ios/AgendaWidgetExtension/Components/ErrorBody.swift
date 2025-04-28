@@ -46,7 +46,7 @@ struct ErrorBody : View {
 	}
 
 	func ActionButton(isMedium: Bool) -> some View {
-		let buttonText = error.type == .credentials ? "Open App" : "Send Logs"
+		let buttonText = error.type == .credentials ? translate("TutaoWidgetOpenAppAction", default: "Open App") : translate("TutaoWidgetSendLogsAction", default: "Send Logs")
 
 		return VStack {
 			if isMedium && error.type != WidgetErrors.missingConfiguration {

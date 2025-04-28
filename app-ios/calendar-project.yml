@@ -18,6 +18,7 @@ targets:
     templates: [ "formatAndLint" ]
     type: "application"
     sources:
+      - path: "translations"
       - path: "calendar"
         excludes:
           [
@@ -92,7 +93,9 @@ targets:
     templates: [ "formatAndLint" ]
     type: "app-extension"
     platform: "iOS"
-    sources: "AgendaWidgetExtension"
+    sources: 
+      - path: "AgendaWidgetExtension"
+      - path: "translations"
     settings:
       base:
         PRODUCT_NAME: "AgendaWidget"
