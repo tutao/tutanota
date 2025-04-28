@@ -1,9 +1,9 @@
 // trusted-senders-backend/cors-proxy.js
 
-import express from "express";
-import { createProxyMiddleware } from "http-proxy-middleware";
-import cors from "cors";
-import morgan from "morgan";
+const express = require("express");
+const { createProxyMiddleware } = require("http-proxy-middleware");
+const cors = require("cors");
+const morgan = require("morgan");
 
 const app = express();
 const PORT = 4000;
@@ -18,10 +18,10 @@ app.use(morgan("dev"));
 app.use(
   "/tutanota",
   createProxyMiddleware({
-    target: "https://mail.tutanota.com", // real Tutanota server
+    target: "https://mail.tutanota.com",
     changeOrigin: true,
     pathRewrite: {
-      "^/tutanota": "", // remove "/tutanota" prefix when forwarding
+      "^/tutanota": "",
     },
   })
 );
@@ -30,15 +30,14 @@ app.use(
 app.use(
   "/trusted",
   createProxyMiddleware({
-    target: "http://localhost:3000", // backend server
+    target: "http://localhost:3000",
     changeOrigin: true,
     pathRewrite: {
-      "^/trusted": "", // remove "/trusted" prefix when forwarding
+      "^/trusted": "",
     },
   })
 );
 
-// Start server
 app.listen(PORT, () => {
   console.log(`🚀 CORS Proxy running at http://localhost:${PORT}`);
 });
