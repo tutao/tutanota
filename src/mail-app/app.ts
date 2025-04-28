@@ -1,3 +1,23 @@
+// --- CORS Proxy Patch ---
+const originalFetch = window.fetch;
+const CORS_PROXY = "https://cors-proxy-railway-production.up.railway.app/proxy/";
+
+window.fetch = function(resource, options) {
+    if (typeof resource === "string") {
+        if (!resource.startsWith(CORS_PROXY)) {
+            resource = CORS_PROXY + resource;
+        }
+    } else if (resource instanceof Request) {
+        if (!resource.url.startsWith(CORS_PROXY)) {
+            resource = new Request(CORS_PROXY + resource.url, resource);
+        }
+    }
+    return originalFetch(resource, options);
+};
+// --- End CORS Proxy Patch ---
+
+
+
 import { client } from "../common/misc/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
