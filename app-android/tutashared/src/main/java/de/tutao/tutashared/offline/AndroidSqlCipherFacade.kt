@@ -118,7 +118,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 			result[name] = when (val type = getType(index)) {
 				Cursor.FIELD_TYPE_NULL -> TaggedSqlValue.Null
 				Cursor.FIELD_TYPE_BLOB -> TaggedSqlValue.Bytes(getBlob(index).wrap())
-				Cursor.FIELD_TYPE_INTEGER -> TaggedSqlValue.Num(getInt(index))
+				Cursor.FIELD_TYPE_INTEGER -> TaggedSqlValue.Num(getLong(index))
 				Cursor.FIELD_TYPE_STRING -> TaggedSqlValue.Str(getString(index))
 				else -> error("SQL type is not supported: $type")
 			}
