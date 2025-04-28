@@ -168,7 +168,7 @@ impl TypeModelProvider {
 				})?;
 
 				let apps = serde_json::from_str::<HashMap<AppName, ApplicationModel>>(
-					&application_types_get_out.model_types_as_string,
+					&application_types_get_out.application_types_json,
 				)
 				.map_err(|e| {
 					ApiCallError::internal_with_err(
@@ -178,7 +178,7 @@ impl TypeModelProvider {
 				})?;
 				let application_models = ApplicationModels { apps };
 				Ok((
-					application_types_get_out.current_application_hash,
+					application_types_get_out.application_types_hash,
 					application_models,
 				))
 			},
@@ -192,20 +192,22 @@ impl TypeModelProvider {
 	}
 }
 
+/// Do **NOT** change the names of these attributes, they need to match the record found on the
+/// server at ApplicationTypesService#ApplicationTypesGetOut. This is to make sure we can update the
+/// format of the service output in the future. With general schema definitions this would not be
+/// possible as schemas returned by this service are required to read the schemas themselves.
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApplicationTypesGetOut {
-	pub current_application_hash: String,
-	pub model_types_as_string: String,
+	pub application_types_hash: String,
+	pub application_types_json: String,
 }
 
 #[cfg(test)]
 mod tests {
 	use crate::bindings::file_client::{FileClient, MockFileClient};
-	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestClient, RestResponse};
+	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestClient};
 	use crate::bindings::suspendable_rest_client::SuspensionBehavior;
-	use crate::bindings::test_file_client::TestFileClient;
-	use crate::bindings::test_rest_client::TestRestClient;
 	use crate::type_model_provider::TypeModelProvider;
 	use crate::util::test_utils;
 	use std::sync::Arc;
@@ -254,7 +256,7 @@ mod tests {
 		rest_client
 			.expect_request_binary()
 			.return_once(|url, method, option| {
-				let client_apps_models = TypeModelProvider::new_test(
+				let _client_apps_models = TypeModelProvider::new_test(
 					Arc::new(MockRestClient::new()),
 					Arc::new(MockFileClient::new()),
 					Default::default(),

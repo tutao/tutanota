@@ -15,11 +15,11 @@ impl TestRestClient {
 		};
 
 		let application_get_out = crate::type_model_provider::ApplicationTypesGetOut {
-			model_types_as_string: serde_json::to_string(
+			application_types_json: serde_json::to_string(
 				&crate::type_model_provider::CLIENT_TYPE_MODEL.apps,
 			)
 			.unwrap(),
-			current_application_hash: "latest-applications-hash".to_string(),
+			application_types_hash: "latest-applications-hash".to_string(),
 		};
 		let serialized_json = serde_json::to_string(&application_get_out).unwrap();
 		let compressed_response = lz4_flex::compress(serialized_json.as_bytes());
