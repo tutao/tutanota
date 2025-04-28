@@ -44,7 +44,6 @@ if (domainConfigs[hostname]) {
 
 
 
-
 import { client } from "../common/misc/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
