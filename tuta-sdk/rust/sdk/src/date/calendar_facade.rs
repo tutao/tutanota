@@ -1,7 +1,7 @@
 use num_enum::TryFromPrimitive;
 use std::collections::HashMap;
 use std::sync::Arc;
-use time::{OffsetDateTime, Time};
+use time::{OffsetDateTime, Time, UtcOffset};
 
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
@@ -138,9 +138,16 @@ impl CalendarFacade {
 		};
 
 		let date_in_seconds = (date.as_millis() / 1000) as i64;
+		let Ok(offset) = UtcOffset::current_local_offset() else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: "Failed to determine device time offset".to_string(),
+			});
+		};
 
 		let parsed_date = match OffsetDateTime::from_unix_timestamp(date_in_seconds) {
-			Ok(date) => date.date().midnight().assume_utc(),
+			Ok(date) => date
+				.to_offset(offset)
+				.replace_time(Time::from_hms(0, 0, 0).unwrap()),
 			Err(e) => return Err(ApiCallError::internal_with_err(e, "Invalid date")),
 		};
 
@@ -150,6 +157,7 @@ impl CalendarFacade {
 
 		let timestamp_start = (parsed_date.unix_timestamp() * 1000) as u64; // x1000 to get the timestamp in milliseconds
 		let timestamp_end = (OffsetDateTime::new_utc(next_day, Time::from_hms(0, 0, 0).unwrap())
+			.replace_offset(offset)
 			.unix_timestamp()
 			* 1000) as u64; // x1000 to get the timestamp in milliseconds
 
