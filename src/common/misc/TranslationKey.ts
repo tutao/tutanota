@@ -1985,6 +1985,7 @@ export type TranslationKeyType =
 	| "widgetNoEvents_msg"
 	| "widgetOpenApp_action"
 	| "widgetUnexpectedError_msg"
+	| "widgetMissingConfigurationError_msg"
 	| "withCustomRules_label"
 	| "work_label"
 	| "wrongUserCsvFormat_msg"

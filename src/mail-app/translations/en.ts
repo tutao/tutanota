@@ -2002,6 +2002,7 @@ export default {
 		"widgetNoEvents_msg": "No events",
 		"widgetOpenApp_action": "Open the app",
 		"widgetUnexpectedError_msg": "Oops! Something went wrong.",
+		"widgetMissingConfigurationError_msg": "Missing widget configuration",
 		"withCustomRules_label": "With custom repeat rules",
 		"work_label": "Work",
 		"wrongUserCsvFormat_msg": "Please correct the CSV format of your data to:\n{format}",

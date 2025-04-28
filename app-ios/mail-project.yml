@@ -18,6 +18,7 @@ targets:
     templates: ["formatAndLint"]
     type: "application"
     sources:
+      - path: "translations"
       - path: "tutanota"
         excludes:
           [
