@@ -3,7 +3,7 @@ import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import type { Shortcut } from "../../../common/misc/KeyManager.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
-import { API_BASE_URL } from "./MailViewerViewModel.js"
+import { TRUSTED_SENDERS_API_URL } from "./MailViewerViewModel.js"
 
 export class MobyPhishReportPhishingModal implements ModalComponent {
 	private viewModel: MailViewerViewModel
@@ -48,7 +48,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
 											const userEmail = this.viewModel.logins.getUserController().loginUsername
 
 											try {
-												const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+												const response = await fetch(`${TRUSTED_SENDERS_API_URL}/update-email-status`, {
 													method: "POST",
 													headers: { "Content-Type": "application/json" },
 													body: JSON.stringify({
@@ -90,7 +90,7 @@ export class MobyPhishReportPhishingModal implements ModalComponent {
 											const userEmail = this.viewModel.logins.getUserController().loginUsername
 											try {
 												// Step 1 – Add to trusted senders
-												const addResponse = await fetch(`${API_BASE_URL}/add-trusted`, {
+												const addResponse = await fetch(`${TRUSTED_SENDERS_API_URL}/add-trusted`, {
 													method: "POST",
 													headers: {
 														"Content-Type": "application/json",

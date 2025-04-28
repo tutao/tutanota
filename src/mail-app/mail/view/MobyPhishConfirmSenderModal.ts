@@ -4,7 +4,7 @@ import m, { Children } from "mithril"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import type { Shortcut } from "../../../common/misc/KeyManager.js"
-import { MailViewerViewModel, API_BASE_URL, TrustedSenderInfo } from "./MailViewerViewModel.js"
+import { MailViewerViewModel, TRUSTED_SENDERS_API_URL, TrustedSenderInfo } from "./MailViewerViewModel.js"
 
 // Inject primary button style only once
 const styleId = "moby-phish-hover-style"
@@ -266,7 +266,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 						const userEmail = this.viewModel.logins.getUserController().loginUsername
 
 						try {
-							const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+							const response = await fetch(`${TRUSTED_SENDERS_API_URL}/update-email-status`, {
 								method: "POST",
 								headers: { "Content-Type": "application/json" },
 								body: JSON.stringify({
@@ -310,7 +310,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 						m.redraw()
 
 						try {
-							const response = await fetch(`${API_BASE_URL}/add-trusted`, {
+							const response = await fetch(`${TRUSTED_SENDERS_API_URL}/add-trusted`, {
 								method: "POST",
 								headers: { "Content-Type": "application/json" },
 								body: JSON.stringify({

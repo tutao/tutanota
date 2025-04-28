@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import type { Shortcut } from "../../../common/misc/KeyManager.js"
-import { MailViewerViewModel, API_BASE_URL, ContentBlockingStatus } from "./MailViewerViewModel.js"
+import { MailViewerViewModel, TRUSTED_SENDERS_API_URL, ContentBlockingStatus } from "./MailViewerViewModel.js"
 
 // Helper function for consistent display
 function formatSenderDisplay(name: string | null | undefined, address: string | null | undefined): string {
@@ -128,7 +128,7 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 		let removeSuccess = false
 
 		try {
-			const removeResponse = await fetch(`${API_BASE_URL}/remove-trusted`, {
+			const removeResponse = await fetch(`${TRUSTED_SENDERS_API_URL}/remove-trusted`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -154,7 +154,7 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 			}
 
 			if (removeSuccess) {
-				const resetResponse = await fetch(`${API_BASE_URL}/reset-email-statuses`, {
+				const resetResponse = await fetch(`${TRUSTED_SENDERS_API_URL}/reset-email-statuses`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",

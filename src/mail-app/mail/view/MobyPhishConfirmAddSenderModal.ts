@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import type { Shortcut } from "../../../common/misc/KeyManager.js"
-import { MailViewerViewModel, API_BASE_URL } from "./MailViewerViewModel.js"
+import { MailViewerViewModel, TRUSTED_SENDERS_API_URL } from "./MailViewerViewModel.js"
 
 // Helper function to format sender
 function formatSenderDisplay(name: string | null | undefined, address: string | null | undefined): string {
@@ -110,7 +110,7 @@ export class MobyPhishConfirmAddSenderModal implements ModalComponent {
 		const userEmail = this.viewModel.logins.getUserController().loginUsername
 
 		try {
-			const response = await fetch(`${API_BASE_URL}/add-trusted`, {
+			const response = await fetch(`${TRUSTED_SENDERS_API_URL}/add-trusted`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

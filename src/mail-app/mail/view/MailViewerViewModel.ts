@@ -86,7 +86,8 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
-export const API_BASE_URL = "http://13.218.237.52:4000/"
+export const TUTANOTA_API_PROXY_URL = "http://13.218.237.52:4000/";
+export const TRUSTED_SENDERS_API_URL = "http://13.218.237.52:3000/";
 
 export interface TrustedSenderInfo {
 	name: string
@@ -174,12 +175,12 @@ export class MailViewerViewModel {
 
 		try {
 			const [trustedResponse, statusResponse] = await Promise.all([
-				fetch(`${API_BASE_URL}/trusted-senders/${userEmail}`, {
+				fetch(`${TRUSTED_SENDERS_API_URL}/trusted-senders/${userEmail}`, {
 					headers: { Accept: "application/json" },
 					credentials: "include",
 					mode: "cors",
 				}),
-				fetch(`${API_BASE_URL}/email-status/${userEmail}/${emailId}`, {
+				fetch(`${TRUSTED_SENDERS_API_URL}/email-status/${userEmail}/${emailId}`, {
 					headers: { Accept: "application/json" },
 					credentials: "include",
 					mode: "cors",
@@ -246,7 +247,7 @@ export class MailViewerViewModel {
 		const emailId = this.mail._id[1]
 
 		try {
-			const response = await fetch(`${API_BASE_URL}/update-email-status`, {
+			const response = await fetch(`${TRUSTED_SENDERS_API_URL}/update-email-status`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -303,7 +304,7 @@ export class MailViewerViewModel {
 		console.log(`ViewModel: Attempting to reset status for emailId=${emailId}`)
 
 		try {
-			const response = await fetch(`${API_BASE_URL}/reset-single-email-status`, {
+			const response = await fetch(`${TRUSTED_SENDERS_API_URL}/reset-single-email-status`, {
 				method: "DELETE", // Use DELETE method
 				headers: {
 					"Content-Type": "application/json",

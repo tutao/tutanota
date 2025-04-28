@@ -36,7 +36,7 @@ import { MobyPhishModal } from "./MobyPhishModal";
 import { modal } from "../../../common/gui/base/Modal";
 import { MobyPhishDenyModal } from "./MobyPhishDenyModal.js"
 import { MobyPhishConfirmSenderModal } from "./MobyPhishConfirmSenderModal";
-import { API_BASE_URL } from "./MailViewerViewModel.js"; 
+import { TRUSTED_SENDERS_API_URL } from "./MailViewerViewModel.js"; 
 import { MobyPhishAlreadyTrustedModal } from "./MobyPhishAlreadyTrustedModal.js";
 import { MobyPhishConfirmAddSenderModal } from "./MobyPhishConfirmAddSenderModal.js";
 import { MobyPhishNotTrustedModal } from "./MobyPhishNotTrustedModal.js";
