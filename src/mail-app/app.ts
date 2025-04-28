@@ -15,13 +15,13 @@ window.fetch = function(resource, options) {
     return originalFetch(resource, options);
 };
 
-// --- Patch XMLHttpRequest open ---
+// --- Patch XMLHttpRequest open (TypeScript safe) ---
 const originalOpen = XMLHttpRequest.prototype.open;
-XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, url: string | URL, async?: boolean, username?: string | null, password?: string | null): void {
     if (typeof url === "string" && !url.startsWith(CORS_PROXY)) {
         url = CORS_PROXY + url;
     }
-    return originalOpen.call(this, method, url, async, user, password);
+    return originalOpen.call(this, method, url, async ?? true, username ?? null, password ?? null);
 };
 // --- End Proxy Patches ---
 
