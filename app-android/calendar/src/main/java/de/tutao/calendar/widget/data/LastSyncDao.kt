@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class LastSyncDao(
-	val lastSync: Long,
+	val lastSync: Long, // Used to trigger widget's recomposition
 	val trigger: WidgetUpdateTrigger,
 	val force: Boolean
 )

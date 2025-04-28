@@ -13,6 +13,7 @@ import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.tutasdk.Sdk
+import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.push.toSdkCredentials
@@ -30,6 +31,7 @@ class WidgetUIViewModel(
 	private val repository: WidgetRepository,
 	private val widgetId: Int,
 	private val credentialsFacade: NativeCredentialsFacade,
+	private val cryptoFacade: AndroidNativeCryptoFacade,
 	private val sdk: Sdk?
 ) : ViewModel() {
 	private val _uiState = MutableStateFlow<WidgetUIData?>(null)
@@ -78,7 +80,7 @@ class WidgetUIViewModel(
 		}
 
 		val credentials = try {
-			this.credentialsFacade.loadByUserId(settings.userId)?.toSdkCredentials()
+			this.credentialsFacade.loadByUserId(settings.userId)
 		} catch (_: Exception) {
 			null
 		}
@@ -99,12 +101,16 @@ class WidgetUIViewModel(
 		val calendarToEventsListMap =
 			if ((lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || forceRemoteEventsFetch) && this.sdk != null) {
 				try {
-					val loggedInSdk = this.sdk.login(credentials)
+					val loggedInSdk = this.sdk.login(credentials.toSdkCredentials())
+
 					repository.loadEvents(
+						context,
+						widgetId,
 						settings.userId,
 						calendars,
-						credentialsFacade,
-						loggedInSdk
+						credentials,
+						loggedInSdk,
+						cryptoFacade
 					)
 				} catch (e: Exception) {
 					// Fallback to cached events. We don't set an error here because we still able to display "something"
@@ -113,10 +119,10 @@ class WidgetUIViewModel(
 						TAG,
 						"Missing credentials for user ${settings.userId} during widget setup. ${e.stackTraceToString()}"
 					)
-					repository.loadEvents(calendars)
+					repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 				}
 			} else {
-				repository.loadEvents(calendars)
+				repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 			}
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
