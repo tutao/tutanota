@@ -117,7 +117,6 @@ async function buildMailApk({ buildType }) {
 
 async function buildAndroid({ stage, host, buildType, existing, webClient, app }) {
 	log(`Starting ${stage} build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
-	await checkOfflineDatabaseMigrations()
 
 	if (!existing) {
 		if (webClient === "make") {
