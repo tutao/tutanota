@@ -26,7 +26,7 @@ struct ErrorBody : View {
 			printLog("Unknown Widget Error. Consider checking if this type is being handled: \(error.type)")
 			return WidgetActionsIntent()
 		}
-		return WidgetActionsIntent(userId: "", date: Date(), action: intentErrorConfig.0, extras: intentErrorConfig.1)
+		return WidgetActionsIntent(userId: "", date: Date(), action: intentErrorConfig.0, logs: intentErrorConfig.1)
 	}
 
 	func ErrorBodyWrapper(isMedium: Bool, content: () -> some View) -> some View {
