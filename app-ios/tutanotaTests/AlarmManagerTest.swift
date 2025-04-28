@@ -165,10 +165,10 @@ class AlarmCryptorStub: AlarmCryptor {
 	var alarms: [String: AlarmNotification] = [:]
 
 	func decrypt(alarm: EncryptedAlarmNotification) throws -> AlarmNotification {
-	  if let alarm = self.alarms[alarm.getAlarmInfo().alarmIdentifier] {
+		if let alarm = self.alarms[alarm.getAlarmInfo().alarmIdentifier] {
 			return alarm
 		} else {
-		  throw TutanotaError(message: "Failed to 'decrypt' alarm \(alarm.getAlarmInfo().alarmIdentifier)")
+			throw TutanotaError(message: "Failed to 'decrypt' alarm \(alarm.getAlarmInfo().alarmIdentifier)")
 		}
 	}
 
