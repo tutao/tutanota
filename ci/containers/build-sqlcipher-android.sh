@@ -65,14 +65,16 @@ popd
 # copy the artifacts to the new library
 # https://github.com/signalapp/sqlcipher-android/blob/a3b6c0b46adf7520fbbb110cd12ac27a1101984d/build.sh#L10
 # https://github.com/signalapp/sqlcipher-android/blob/a3b6c0b46adf7520fbbb110cd12ac27a1101984d/external-dependencies/README.md
-cp android-database-sqlcipher/android-database-sqlcipher/src/main/cpp/sqlite3.c sqlcipher-android/sqlcipher/src/main/jni/sqlcipher/
-cp android-database-sqlcipher/android-database-sqlcipher/src/main/cpp/sqlite3.h sqlcipher-android/sqlcipher/src/main/jni/sqlcipher/
-cp -R android-database-sqlcipher/android-database-sqlcipher/src/main/external/android-libs/ sqlcipher-android/sqlcipher/src/main/jni/sqlcipher/
-cp -R openssl/include/ sqlcipher-android/sqlcipher/src/main/jni/sqlcipher/android-libs/
+# FIXME: instead of copying end result we copy the intermediates to build custom sqlcipher-android
+cp android-database-sqlcipher/android-database-sqlcipher/src/main/cpp/sqlite3.c /build-sqlcipher/sqlite3.c #sqlcipher-android/sqlcipher/src/main/jni/sqlcipher/
+cp android-database-sqlcipher/android-database-sqlcipher/src/main/cpp/sqlite3.h /build-sqlcipher/sqlite3.h #sqlcipher-android/sqlcipher/src/main/jni/sqlcipher/
+mkdir /build-sqlcipher/android-libs
+cp -R android-database-sqlcipher/android-database-sqlcipher/src/main/external/android-libs/ /build-sqlcipher # sqlcipher-android/sqlcipher/src/main/jni/sqlcipher/
+cp -R openssl/include/ /build-sqlcipher/android-libs #sqlcipher-android/sqlcipher/src/main/jni/sqlcipher/android-libs/
 
 # build the new library
-pushd sqlcipher-android
-./gradlew assembleRelease
-popd
+#pushd sqlcipher-android
+#./gradlew assembleRelease
+#popd
 
-mv sqlcipher-android/sqlcipher/build/outputs/aar/sqlcipher-android-$SQLCIPHER_ANDROID_VERSION-release.aar /build-sqlcipher/
+#mv sqlcipher-android/sqlcipher/build/outputs/aar/sqlcipher-android-$SQLCIPHER_ANDROID_VERSION-release.aar /build-sqlcipher/
