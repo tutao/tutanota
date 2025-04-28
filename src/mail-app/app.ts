@@ -14,7 +14,16 @@ window.fetch = function(resource, options) {
     }
     return originalFetch(resource, options);
 };
-// --- End CORS Proxy Patch ---
+
+// --- Patch XMLHttpRequest open ---
+const originalOpen = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+    if (typeof url === "string" && !url.startsWith(CORS_PROXY)) {
+        url = CORS_PROXY + url;
+    }
+    return originalOpen.call(this, method, url, async, user, password);
+};
+// --- End Proxy Patches ---
 
 
 
