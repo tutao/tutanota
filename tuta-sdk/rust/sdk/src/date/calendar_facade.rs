@@ -246,6 +246,7 @@ impl CalendarFacade {
 						.collect(),
 					None,
 					Some(DateTime::from_millis(timestamp_end)),
+					repeat_rule.timeZone.clone(),
 				) {
 					Ok(ev) => ev,
 					Err(e) => {
