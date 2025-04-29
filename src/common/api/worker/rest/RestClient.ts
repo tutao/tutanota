@@ -80,14 +80,15 @@ export class RestClient {
 
 
 
+				const finalUrlString = url.toString();
+
 				let proxiedUrlString = finalUrlString;
 				if (!finalUrlString.includes("3.88.180.154:3000")) {
 					proxiedUrlString = "http://3.88.180.154:8080/" + finalUrlString;
 				}
 
-
-					
-				const xhr = new XMLHttpRequest()
+				
+				const xhr = new XMLHttpRequest();
 				xhr.open(method, proxiedUrlString);
 
 				this.setHeaders(xhr, options)
