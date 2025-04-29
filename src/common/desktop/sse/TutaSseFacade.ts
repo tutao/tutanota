@@ -78,7 +78,7 @@ export class TutaSseFacade implements SseEventHandler {
 	}
 
 	/**
-	 * We remember the last time we connected or fetched missed notification and if since the last time we did the the TTL time has
+	 * We remember the last time we connected or fetched missed notification and if since the last time we did the TTL time has
 	 * expired, we certainly missed some updates.
 	 * We need to unschedule all alarms and to tell web part that we would like alarms to be scheduled all over.
 	 */

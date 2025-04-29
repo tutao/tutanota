@@ -6,7 +6,7 @@ import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { assertNotNull, Base64, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog"
 import { AesKey, decryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
-import { ServerModelUntypedInstance, UntypedInstance } from "../../api/common/EntityTypes"
+import { ClientModelUntypedInstance, ServerModelUntypedInstance, UntypedInstance } from "../../api/common/EntityTypes"
 import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "../../api/entities/sys/TypeRefs"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 import { hasError } from "../../api/common/utils/ErrorUtils"
@@ -24,7 +24,7 @@ export class DesktopAlarmStorage {
 		private readonly conf: DesktopConfig,
 		private readonly cryptoFacade: DesktopNativeCryptoFacade,
 		private readonly keyStoreFacade: DesktopKeyStoreFacade,
-		private readonly instancePipeline: InstancePipeline,
+		private readonly alarmStorageInstancePipeline: InstancePipeline,
 	) {
 		this.sessionKeys = {}
 	}
@@ -62,8 +62,8 @@ export class DesktopAlarmStorage {
 
 	/**
 	 * try to get a PushIdentifierSessionKey that can decrypt a notificationSessionKey from memory or decrypt it from disk storage
-	 * @param notificationSessionKey one notificationSessionKey from an alarmNotification.
 	 * @return {Promise<?AesKey>} a stored pushIdentifierSessionKey that should be able to decrypt the given notificationSessionKey
+	 * @param pushIdentifier
 	 */
 	async getPushIdentifierSessionKey(pushIdentifier: IdTuple): Promise<AesKey | null> {
 		const pushIdentifierId = elementIdPart(pushIdentifier)
@@ -149,11 +149,11 @@ export class DesktopAlarmStorage {
 	}
 
 	async getScheduledAlarms(): Promise<Array<AlarmNotification>> {
-		// the model for alarm notifications changed and we may have stored some that are missing the
+		// the model for alarm notifications changed, and we may have stored some that are missing the
 		// excludedDates field.
 		// to be able to decrypt & map these we need to at least add a plausible value there
 		// we'll unschedule, redownload and reschedule the fixed instances after login.
-		const alarms: Array<ServerModelUntypedInstance> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
+		const alarms: Array<ClientModelUntypedInstance> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
 		if (!alarms) {
 			return []
 		} else if (alarms.length > 0 && typeof alarms[0]["_format"] === "string") {
@@ -181,14 +181,18 @@ export class DesktopAlarmStorage {
 			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		return await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
+		return await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
 	}
 
-	public async decryptAlarmNotification(an: ServerModelUntypedInstance): Promise<AlarmNotification> {
-		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an)
+	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<AlarmNotification> {
+		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an as unknown as ServerModelUntypedInstance)
 		const skResult = await this.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
 		if (skResult) {
-			const alarmNotification = await this.instancePipeline.decryptAndMap(AlarmNotificationTypeRef, an, skResult.sessionKey)
+			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
+				AlarmNotificationTypeRef,
+				an as unknown as ServerModelUntypedInstance,
+				skResult.sessionKey,
+			)
 			if (hasError(alarmNotification)) {
 				// some property of the AlarmNotification couldn't be decrypted with the selected key
 				// throw away the key that caused the error and try the next one

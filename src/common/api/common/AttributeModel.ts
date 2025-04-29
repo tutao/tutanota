@@ -9,12 +9,10 @@ import {
 	ServerModelUntypedInstance,
 	TypeId,
 	TypeModel,
-	UntypedInstance,
 } from "./EntityTypes"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { Server } from "node:net"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {

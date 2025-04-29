@@ -4,11 +4,11 @@ import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode.js"
 import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
-import { AlarmNotificationTypeRef } from "../../api/entities/sys/TypeRefs"
-import { ServerModelUntypedInstance, UntypedInstance } from "../../api/common/EntityTypes"
+import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "../../api/common/EntityTypes"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 import { Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
 import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { AlarmNotificationTypeRef } from "../../api/entities/sys/TypeRefs"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
@@ -16,7 +16,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		private readonly alarmScheduler: DesktopAlarmScheduler,
 		private readonly alarmStorage: DesktopAlarmStorage,
 		private readonly sseStorage: SseStorage,
-		private readonly instancePipeline: InstancePipeline,
+		private readonly alarmStorageInstancePipeline: InstancePipeline,
 	) {}
 
 	setReceiveCalendarNotificationConfig(userId: string, value: boolean): Promise<void> {
@@ -51,10 +51,14 @@ export class DesktopNativePushFacade implements NativePushFacade {
 	}
 
 	async scheduleAlarms(alarmNotificationWireFormat: string, newDeviceSessionKey: Base64): Promise<void> {
-		const alarms: ServerModelUntypedInstance[] = JSON.parse(alarmNotificationWireFormat)
+		const alarms: ClientModelUntypedInstance[] = JSON.parse(alarmNotificationWireFormat)
 		for (const alarm of alarms) {
 			const sk = uint8ArrayToBitArray(base64ToUint8Array(newDeviceSessionKey))
-			const alarmNotification = await this.instancePipeline.decryptAndMap(AlarmNotificationTypeRef, alarm, sk)
+			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
+				AlarmNotificationTypeRef,
+				alarm as unknown as ServerModelUntypedInstance,
+				sk,
+			)
 			await this.alarmScheduler.handleCreateAlarm(alarmNotification, sk)
 		}
 	}

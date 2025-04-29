@@ -77,7 +77,7 @@ import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
-import { globalClientModelInfo, ClientModelInfo, resolveClientTypeReference, resolveServerTypeReference, ServerModelInfo } from "../api/common/EntityFunctions"
+import { resolveClientTypeReference, ServerTypeReferenceResolver } from "../api/common/EntityFunctions"
 
 mp()
 
@@ -165,9 +165,10 @@ async function createComponents(): Promise<Components> {
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DefaultDateProvider()
-	const instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+	// we need a custom instance pipeline for the alarm storage as the alarm storage only works on the client type model
+	const alarmStorageInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveClientTypeReference as unknown as ServerTypeReferenceResolver)
 	const sseStorage = new SseStorage(conf)
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, instancePipeline)
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, alarmStorageInstancePipeline)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, makeDbPath("credentials"), app)
@@ -269,7 +270,7 @@ async function createComponents(): Promise<Components> {
 		eml: desktopUtils.getIconByName("eml.png"),
 		msg: desktopUtils.getIconByName("msg.png"),
 	}
-	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage, instancePipeline)
+	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage, alarmStorageInstancePipeline)
 	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
 	const desktopImportFacade = new DesktopMailImportFacade(electron, notifier, lang)
 
