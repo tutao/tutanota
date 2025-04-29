@@ -93,7 +93,7 @@ targets:
     templates: [ "formatAndLint" ]
     type: "app-extension"
     platform: "iOS"
-    sources: 
+    sources:
       - path: "AgendaWidgetExtension"
       - path: "translations"
     settings:
@@ -263,4 +263,3 @@ schemes:
         _XCWidgetDefaultView: "timeline"
     archive:
       config: "Release Production"
-      
