@@ -83,11 +83,8 @@ export class RestClient {
 					? finalUrlString
 					: "https://cors-proxy-railway-production.up.railway.app/proxy/" + finalUrlString;
 				
-
 				const xhr = new XMLHttpRequest()
-				//xhr.open(method, url.toString())
 				xhr.open(method, proxiedUrlString);
-
 
 				this.setHeaders(xhr, options)
 
