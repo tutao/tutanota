@@ -294,6 +294,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			isFreeAccount: locator.logins.getUserController().isFreeAccount(),
 			getLabelsForMail: (mail) => this.searchViewModel.getLabelsForMail(mail),
+			highlightedStrings: this.searchViewModel.getHighlightedStrings(),
 		} satisfies SearchListViewAttrs)
 	}
 
