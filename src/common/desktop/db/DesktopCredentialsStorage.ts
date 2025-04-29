@@ -32,10 +32,7 @@ export class DesktopCredentialsStorage {
 		return this._db
 	}
 
-	private readonly _sqliteNativePath: string | null = null
-
-	constructor(sqliteNativePath: string, private readonly dbPath: string, app: Electron.App) {
-		this._sqliteNativePath = sqliteNativePath
+	constructor(private readonly dbPath: string, app: Electron.App) {
 		if (this._db == null) {
 			this.create().then(() => {
 				app.on("will-quit", () => this.closeDb())

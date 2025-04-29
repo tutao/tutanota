@@ -25,7 +25,7 @@ export type WorkerLogCommandNames = "log" | "info" | "error" | "warn" | "trace"
 
 if (parentPort != null) {
 	try {
-		const sqlCipherFacade = new DesktopSqlCipher(workerData.nativeBindingPath, workerData.dbPath, workerData.integrityCheck)
+		const sqlCipherFacade = new DesktopSqlCipher(workerData.dbPath, workerData.integrityCheck)
 		const commands: SqlCipherCommandObject = {
 			all: (msg: Request<"all">) => sqlCipherFacade.all(msg.args[0], msg.args[1]),
 			closeDb: async () => {

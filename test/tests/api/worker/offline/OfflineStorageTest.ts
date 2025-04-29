@@ -81,7 +81,6 @@ function encode(thing) {
 	return cborg.encode(thing, { typeEncoders: customTypeEncoders })
 }
 
-const nativePath = __NODE_GYP_better_sqlite3
 const databasePath = ":memory:"
 export const offlineDatabaseTestKey = Uint8Array.from([3957386659, 354339016, 3786337319, 3366334248])
 
@@ -106,7 +105,7 @@ o.spec("OfflineStorageDb", function () {
 
 	o.beforeEach(async function () {
 		// integrity checks do not work with in-memory databases
-		dbFacade = new DesktopSqlCipher(nativePath, databasePath, false)
+		dbFacade = new DesktopSqlCipher(databasePath, false)
 
 		dateProviderMock = object<DateProvider>()
 		migratorMock = instance(OfflineStorageMigrator)

@@ -89,8 +89,9 @@ export async function runTestBuild({ clean, fast = false }) {
 					rootDir: projectRoot,
 					platform: process.platform,
 					architecture: process.arch,
-					nodeModule: "better-sqlite3",
+					nodeModule: "@signalapp/sqlcipher",
 					environment: "node",
+					targetName: "node_sqlcipher",
 				}),
 				rollupWasmLoader({
 					output: `${process.cwd()}/build/wasm`,
@@ -132,13 +133,13 @@ export async function runTestBuild({ clean, fast = false }) {
 					defaultHandler(warning)
 				}
 			},
-			// overwrite the files rather than keeping all versions in the build folder
-			chunkFileNames: "[name]-chunk.js",
 		})
 		await bundle.write({
 			dir: "./build",
 			format: "esm",
 			sourcemap: true,
+			// overwrite the files rather than keeping all versions in the build folder
+			chunkFileNames: "[name]-chunk.js",
 		})
 	})
 }

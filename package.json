@@ -45,7 +45,7 @@
 		"@types/mithril": "2.0.11",
 		"@types/qrcode-svg": "1.1.4",
 		"@types/winreg": "1.2.36",
-		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#e94359632593e81a4b4a75e9315c4c1bfd28eacd",
+		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#48892fe2d2848f6ef2fb1ba4f2e3e8c7f52a4ddb",
 		"cborg": "4.2.2",
 		"dompurify": "3.2.4",
 		"electron": "34.0.1",
