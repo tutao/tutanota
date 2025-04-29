@@ -31,7 +31,7 @@ targets:
         name: "build-calendar-app"
         type: "folder"
         buildPhase: "resources"
-      - path: "AgendaWidgetExtension/WidgetActionsIntent.swift"
+      - path: "AgendaWidgetExtension/Intents/WidgetActionsIntent.swift"
         buildPhase: "sources"
       - path: "AgendaWidgetExtension/Error/WidgetErrorHandler.swift"
         buildPhase: "sources"
