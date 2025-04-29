@@ -2348,9 +2348,9 @@ checksum = "3da5db5a963e24bc68be8b17b6fa82814bb22ee8660f192bb182771d498f09a3"
 
 [[package]]
 name = "toml_edit"
-version = "0.22.25"
+version = "0.22.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10558ed0bd2a1562e630926a2d1f0b98c827da99fabd3fe20920a59642504485"
+checksum = "310068873db2c5b3e7659d2cc35d21855dbafa50d1ce336397c666e3cb08137e"
 dependencies = [
  "indexmap",
  "toml_datetime",
@@ -2390,7 +2390,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tuta-sdk"
-version = "284.250428.2"
+version = "284.250429.0"
 dependencies = [
  "aes",
  "android_log",
@@ -2439,7 +2439,7 @@ dependencies = [
 
 [[package]]
 name = "tutao_node-mimimi"
-version = "284.250428.2"
+version = "284.250429.0"
 dependencies = [
  "base64",
  "log 0.4.27",
