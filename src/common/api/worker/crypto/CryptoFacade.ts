@@ -25,7 +25,7 @@ import {
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
-import { HttpMethod, resolveClientTypeReference } from "../../common/EntityFunctions"
+import { HttpMethod, resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions"
 import type { BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketPermissionTypeRef,
@@ -53,7 +53,7 @@ import {
 import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
-import type { ClientModelEncryptedParsedInstance, Entity, ServerModelEncryptedParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import type { ClientModelEncryptedParsedInstance, ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
@@ -90,7 +90,6 @@ import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { typeRefToRestPath } from "../rest/EntityRestClient"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
-import Id from "../../../../mail-app/translations/id"
 
 assertWorkerOrNode()
 
@@ -162,12 +161,11 @@ export class CryptoFacade {
 	 * * the decrypted _ownerEncSessionKey, if it is available
 	 * * the public decrypted session key, otherwise
 	 *
-	 * @param typeModel the type model of the instance
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
 	async resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>> {
-		const typeModel = await resolveClientTypeReference(instance._type)
-		if (!typeModel.encrypted) {
+		const clientTypeModel = await resolveClientTypeReference(instance._type)
+		if (!clientTypeModel.encrypted) {
 			return null
 		}
 
@@ -183,7 +181,7 @@ export class CryptoFacade {
 			} else {
 				// See PermissionType jsdoc for more info on permissions
 				const permissions = await this.entityClient.loadAll(PermissionTypeRef, assertNotNull(instance._permissions))
-				return (await this.trySymmetricPermission(permissions)) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
+				return (await this.trySymmetricPermission(permissions)) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance))
 			}
 		} catch (e) {
 			if (e instanceof CryptoError) {
@@ -207,13 +205,13 @@ export class CryptoFacade {
 	 * @param data
 	 * @return the unmapped and still encrypted instance
 	 */
-	async applyMigrations(typeModel: TypeModel, typeRef: TypeRef<Entity>, data: EntityAdapter): Promise<EntityAdapter> {
+	async applyMigrations(typeRef: TypeRef<Entity>, data: EntityAdapter): Promise<EntityAdapter> {
 		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
 			return this.applyCustomerGroupOwnershipToGroupInfo(data)
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
 			return this.encryptTutanotaProperties(data)
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
-			return this.addSessionKeyToPushIdentifier(typeModel, data)
+			return this.addSessionKeyToPushIdentifier(data)
 		} else {
 			return data
 		}
@@ -233,7 +231,7 @@ export class CryptoFacade {
 				parseKeyVersion(bucketKey.recipientKeyVersion),
 				asCryptoProtoocolVersion(bucketKey.protocolVersion),
 				bucketKey.pubEncBucketKey,
-				typeModel.name,
+				typeModel.id,
 			)
 			decryptedBucketKey = decryptedAesKey
 			pqMessageSenderKey = senderIdentityPubKey
@@ -265,7 +263,7 @@ export class CryptoFacade {
 		await this.ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(resolvedSessionKeys.instanceSessionKeys, typeModel)
 
 		// for symmetrically encrypted instances _ownerEncSessionKey is sent from the server.
-		// in this case it is not yet and we need to set it because the rest of the app expects it.
+		// in this case it is not yet, and we need to set it because the rest of the app expects it.
 		const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(assertNotNull(instance._ownerGroup)) // get current key for encrypting
 		const ownerEncSessionKey = encryptKeyWithVersionedKey(groupKey, resolvedSessionKeys.resolvedSessionKeyForInstance)
 		this.setOwnerEncSessionKey(instance, ownerEncSessionKey)
@@ -299,12 +297,12 @@ export class CryptoFacade {
 			const externalMailGroupKeyVersion = groupKeyVersion
 			const externalMailGroup = await this.entityClient.load(GroupTypeRef, externalMailGroupId)
 
-			const externalUserGroupdId = externalMailGroup.admin
-			if (!externalUserGroupdId) {
+			const externalUserGroupId = externalMailGroup.admin
+			if (!externalUserGroupId) {
 				throw new SessionKeyNotFoundError("no admin group on key group: " + externalMailGroupId)
 			}
 			const externalUserGroupKeyVersion = parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
-			const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupdId)
+			const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupId)
 
 			const internalUserGroupId = externalUserGroup.admin
 			const internalUserGroupKeyVersion = parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
@@ -315,7 +313,7 @@ export class CryptoFacade {
 			const internalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(internalUserGroupId, internalUserGroupKeyVersion)
 
 			const currentExternalUserGroupKey = decryptKey(internalUserGroupKey, assertNotNull(externalUserGroup.adminGroupEncGKey))
-			const externalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(externalUserGroupdId, externalUserGroupKeyVersion, {
+			const externalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(externalUserGroupId, externalUserGroupKeyVersion, {
 				object: currentExternalUserGroupKey,
 				version: parseKeyVersion(externalUserGroup.groupKeyVersion),
 			})
@@ -330,11 +328,11 @@ export class CryptoFacade {
 		}
 	}
 
-	private async addSessionKeyToPushIdentifier(typeModel: TypeModel, instance: EntityAdapter): Promise<EntityAdapter> {
+	private async addSessionKeyToPushIdentifier(instance: EntityAdapter): Promise<EntityAdapter> {
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
-		await this.updateOwnerEncSessionKey(typeModel, instance, userGroupKey, aes256RandomKey())
+		await this.updateOwnerEncSessionKey(instance, userGroupKey, aes256RandomKey())
 		return instance
 	}
 
@@ -501,7 +499,7 @@ export class CryptoFacade {
 		if (decryptedInstance.isAdapter) {
 			const entityAdapter = downcast<EntityAdapter>(instance)
 			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
-				await resolveClientTypeReference(instance._type),
+				await resolveServerTypeReference(instance._type),
 				entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 				resolvedSessionKeyForInstance,
 			)
@@ -528,11 +526,11 @@ export class CryptoFacade {
 		}
 	}
 
-	private async resolveWithPublicOrExternalPermission(listPermissions: Permission[], instance: Entity, typeModel: TypeModel): Promise<AesKey> {
+	private async resolveWithPublicOrExternalPermission(listPermissions: Permission[], instance: Entity): Promise<AesKey> {
 		const pubOrExtPermission = listPermissions.find((p) => p.type === PermissionType.Public || p.type === PermissionType.External) ?? null
 
 		if (pubOrExtPermission == null) {
-			const typeName = `${typeModel.app}/${typeModel.name}`
+			const typeName = `${instance._type.app}/${instance._type.typeId}`
 			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${this.getElementIdFromInstance(instance)}`)
 		}
 
@@ -549,7 +547,7 @@ export class CryptoFacade {
 		if (bucketPermission.type === BucketPermissionType.External) {
 			return this.decryptWithExternalBucket(bucketPermission, pubOrExtPermission, instance)
 		} else {
-			return this.decryptWithPublicBucketWithoutAuthentication(bucketPermission, pubOrExtPermission, instance, typeModel)
+			return this.decryptWithPublicBucketWithoutAuthentication(bucketPermission, pubOrExtPermission, instance)
 		}
 	}
 
@@ -582,7 +580,6 @@ export class CryptoFacade {
 		bucketPermission: BucketPermission,
 		pubOrExtPermission: Permission,
 		instance: Entity,
-		typeModel: TypeModel,
 	): Promise<AesKey> {
 		const pubEncBucketKey = bucketPermission.pubEncBucketKey
 		if (pubEncBucketKey == null) {
@@ -602,7 +599,7 @@ export class CryptoFacade {
 			parseKeyVersion(bucketPermission.pubKeyVersion ?? "0"),
 			asCryptoProtoocolVersion(bucketPermission.protocolVersion),
 			pubEncBucketKey,
-			typeModel.name,
+			instance._type.typeId,
 		)
 
 		const sk = decryptKey(decryptedAesKey, bucketEncSessionKey)
@@ -610,7 +607,7 @@ export class CryptoFacade {
 		if (bucketPermission._ownerGroup) {
 			// is not defined for some old AccountingInfos
 			let bucketPermissionOwnerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(neverNull(bucketPermission._ownerGroup)) // get current key for encrypting
-			await this.updateWithSymPermissionKey(typeModel, instance, pubOrExtPermission, bucketPermission, bucketPermissionOwnerGroupKey, sk).catch(
+			await this.updateWithSymPermissionKey(instance, pubOrExtPermission, bucketPermission, bucketPermissionOwnerGroupKey, sk).catch(
 				ofClass(NotFoundError, () => {
 					console.log("w> could not find instance to update permission")
 				}),
@@ -647,12 +644,12 @@ export class CryptoFacade {
 	 * the entity must already have an _ownerGroup
 	 * @returns the generated key
 	 */
-	async setNewOwnerEncSessionKey(model: TypeModel, instance: Entity, keyToEncryptSessionKey?: VersionedKey): Promise<AesKey | null> {
+	async setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey?: VersionedKey): Promise<AesKey | null> {
 		if (!instance._ownerGroup) {
 			throw new Error(`no owner group set  ${JSON.stringify(instance)}`)
 		}
 
-		if (model.encrypted) {
+		if (clientTypeModel.encrypted) {
 			if (instance._ownerEncSessionKey) {
 				throw new Error(`ownerEncSessionKey already set ${JSON.stringify(instance)}`)
 			}
@@ -693,7 +690,7 @@ export class CryptoFacade {
 
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
-			// Clients need to support symmetric decryption from external users. We can always encrypt symmetricly when old clients are deactivated that don't support tuta-crypt.
+			// Clients need to support symmetric decryption from external users. We can always encrypt symmetrically when old clients are deactivated that don't support tuta-crypt.
 			if (isVersionedPqPublicKey(publicKey) && isExternalSender) {
 				return this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
 			} else {
@@ -740,7 +737,6 @@ export class CryptoFacade {
 
 	/**
 	 * Updates the given public permission with the given symmetric key for faster access if the client is the leader and otherwise does nothing.
-	 * @param typeModel The type model of the instance
 	 * @param instance The unencrypted (client-side) or encrypted (server-side) instance
 	 * @param permission The permission.
 	 * @param bucketPermission The bucket permission.
@@ -748,7 +744,6 @@ export class CryptoFacade {
 	 * @param sessionKey The symmetric session key.
 	 */
 	private async updateWithSymPermissionKey(
-		typeModel: TypeModel,
 		instance: Entity,
 		permission: Permission,
 		bucketPermission: BucketPermission,
@@ -762,7 +757,7 @@ export class CryptoFacade {
 		}
 
 		if (!instance._ownerEncSessionKey && permission._ownerGroup === instance._ownerGroup) {
-			return this.updateOwnerEncSessionKey(typeModel, downcast<EntityAdapter>(instance), permissionOwnerGroupKey, sessionKey)
+			return this.updateOwnerEncSessionKey(downcast<EntityAdapter>(instance), permissionOwnerGroupKey, sessionKey)
 		} else {
 			// instances shared via permissions (e.g. body)
 			const encryptedKey = encryptKeyWithVersionedKey(permissionOwnerGroupKey, sessionKey)
@@ -779,7 +774,7 @@ export class CryptoFacade {
 	/**
 	 * Resolves the ownerEncSessionKey of a mail. This might be needed if it wasn't updated yet
 	 * by the OwnerEncSessionKeysUpdateQueue but the file is already downloaded.
-	 * @param mainInstance the instance that has the bucketKey
+	 * @param instance
 	 * @param childInstances the files that belong to the mainInstance
 	 */
 	async enforceSessionKeyUpdateIfNeeded(instance: SomeEntity, childInstances: readonly File[]): Promise<File[]> {
@@ -805,17 +800,17 @@ export class CryptoFacade {
 		)
 	}
 
-	private async updateOwnerEncSessionKey(typeModel: TypeModel, instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
-		const newOwnerEncSessuionKey = encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
-		this.setOwnerEncSessionKey(instance, newOwnerEncSessuionKey)
+	private async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
+		const newOwnerEncSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
+		this.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
 
 		const id = instance._id
 		const path = (await typeRefToRestPath(instance._type)) + "/" + (id instanceof Array ? id.join("/") : id)
 		const headers = this.userFacade.createAuthHeaders()
-		headers.v = String(typeModel.version)
+		headers.v = String(instance.typeModel.version)
 
 		const untypedInstance = await this.instancePipeline.typeMapper.applyDbTypes(
-			instance.typeModel,
+			instance.typeModel as ClientTypeModel,
 			instance.encryptedParsedInstance as ClientModelEncryptedParsedInstance,
 		)
 

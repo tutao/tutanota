@@ -1,4 +1,4 @@
-import { HttpMethod, MediaType, resolveClientTypeReference } from "../../common/EntityFunctions"
+import { HttpMethod, MediaType, resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions"
 import {
 	DeleteService,
 	ExtraServiceParams,
@@ -80,7 +80,7 @@ export class ServiceExecutor implements IServiceExecutor {
 			!this.authDataProvider.isFullyLoggedIn()
 		) {
 			// Short-circuit before we do an actual request which we can't decrypt
-			// If we have a session key passed it doesn't mean that it is for the return type but it is likely
+			// If we have a session key passed it doesn't mean that it is for the return type, but it is likely
 			// so we allow the request.
 			throw new LoginIncompleteError(`Tried to make service request with encrypted return type but is not fully logged in yet, service: ${service.name}`)
 		}
@@ -157,9 +157,9 @@ export class ServiceExecutor implements IServiceExecutor {
 	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | undefined): Promise<T> {
 		// Filter out __proto__ to avoid prototype pollution.
 		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
-		const typeModel = await resolveClientTypeReference(typeRef)
-		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(typeModel, instance)
-		const entityAdapter = await EntityAdapter.from(typeModel, encryptedParsedInstance, this.instancePipeline)
+		const serverTypeModel = await resolveServerTypeReference(typeRef)
+		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, instance)
+		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
 		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
 
 		return await this.instancePipeline.decryptAndMap(typeRef, instance, sessionKey)

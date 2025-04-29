@@ -11,6 +11,7 @@ import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { VersionedKey } from "../crypto/CryptoWrapper.js"
+import { TypeId } from "../../common/EntityTypes"
 
 /**
  * Load symmetric and asymmetric keys and decrypt them.
@@ -80,7 +81,7 @@ export class KeyLoaderFacade {
 		return this.userFacade.getCurrentUserGroupKey()
 	}
 
-	async loadKeypair(keyPairGroupId: Id, requestedVersion: KeyVersion, forType: string = "???"): Promise<AsymmetricKeyPair> {
+	async loadKeypair(keyPairGroupId: Id, requestedVersion: KeyVersion, forTypeId: TypeId = -1): Promise<AsymmetricKeyPair> {
 		let group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
 		let currentGroupKey = await this.getCurrentSymGroupKey(keyPairGroupId)
 
@@ -88,7 +89,7 @@ export class KeyLoaderFacade {
 			group = (await (await this.cacheManagementFacade()).refreshKeyCache(keyPairGroupId)).group
 			currentGroupKey = await this.getCurrentSymGroupKey(keyPairGroupId)
 		}
-		return await this.loadKeyPairImpl(group, requestedVersion, currentGroupKey, forType)
+		return await this.loadKeyPairImpl(group, requestedVersion, currentGroupKey, forTypeId)
 	}
 
 	async loadCurrentKeyPair(groupId: Id): Promise<Versioned<AsymmetricKeyPair>> {
@@ -112,12 +113,12 @@ export class KeyLoaderFacade {
 		}
 	}
 
-	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey, forType: string) {
+	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey, forTypeId: TypeId) {
 		const keyPairGroupId = group._id
 		let keyPair: KeyPair | null
 		let symGroupKey: VersionedKey
 		console.log(
-			`KeyLoaderFacade - loadKeyPairImpl for group:${group._id}. group.groupKeyVersion:${group.groupKeyVersion}, requestedVersion: ${requestedVersion}, currentGroupKey.version:${currentGroupKey.version}, forType:${forType}`,
+			`KeyLoaderFacade - loadKeyPairImpl for group:${group._id}. group.groupKeyVersion:${group.groupKeyVersion}, requestedVersion: ${requestedVersion}, currentGroupKey.version:${currentGroupKey.version}, forTypeId:${forTypeId}`,
 		)
 
 		if (requestedVersion > currentGroupKey.version) {

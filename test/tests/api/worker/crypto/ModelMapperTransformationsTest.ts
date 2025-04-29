@@ -3,16 +3,16 @@ import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMa
 import { AssociationType, Cardinality, Type, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
-import { ClientModelParsedInstance, ServerModelParsedInstance, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { ClientModelParsedInstance, ClientTypeModel, ServerModelParsedInstance, ServerTypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
-import { TypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("ModelMapperTransformations", function () {
 	o.spec("AddAssociation", function () {
 		o("add One aggregation", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -36,7 +36,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -59,13 +59,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -79,13 +79,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [{ 2: "123", _finalIvs: {} } as any as ServerModelParsedInstance],
 				_finalIvs: {},
@@ -99,8 +102,8 @@ o.spec("ModelMapperTransformations", function () {
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
 		o("add ZeroOrOne aggregation", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -124,7 +127,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -147,13 +150,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -167,13 +170,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [{ 2: "123", _finalIvs: {} } as any as ServerModelParsedInstance],
 				_finalIvs: {},
@@ -193,8 +199,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any)
 		})
 		o("add Any aggregation", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -218,7 +224,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -241,13 +247,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -261,13 +267,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [{ 2: "123", _finalIvs: {} } as any as ServerModelParsedInstance],
 				_finalIvs: {},
@@ -288,8 +297,8 @@ o.spec("ModelMapperTransformations", function () {
 		})
 
 		o("add One list element association", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -313,7 +322,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -327,13 +336,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -347,13 +356,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
 				_finalIvs: {},
@@ -367,8 +379,8 @@ o.spec("ModelMapperTransformations", function () {
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
 		o("add ZeroOrOne list element association", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -392,7 +404,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -406,13 +418,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -426,13 +438,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
 				_finalIvs: {},
@@ -452,8 +467,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any as ClientModelParsedInstance)
 		})
 		o("add Any list element association", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -477,7 +492,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -500,13 +515,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -520,13 +535,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
 				_finalIvs: {},
@@ -548,8 +566,8 @@ o.spec("ModelMapperTransformations", function () {
 	})
 	o.spec("AddValue", function () {
 		o("add One Value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -572,13 +590,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -592,13 +610,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "example",
 				_finalIvs: {},
@@ -618,8 +639,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any as ClientModelParsedInstance)
 		})
 		o("add ZeroOrOne Value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -642,13 +663,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -662,13 +683,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "example",
 				_finalIvs: {},
@@ -690,8 +714,8 @@ o.spec("ModelMapperTransformations", function () {
 	})
 	o.spec("BooleanToNumberValue", function () {
 		o("convert boolean to number value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -714,13 +738,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -743,12 +767,15 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 
 			// false
 			const falseParsedInstance: ServerModelParsedInstance = {
@@ -795,8 +822,8 @@ o.spec("ModelMapperTransformations", function () {
 	})
 	o.spec("ChangeAssociationCardinality", function () {
 		o("change aggregation from Any to One", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -820,7 +847,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -834,13 +861,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -864,7 +891,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -878,14 +905,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [
 					{
@@ -912,8 +942,8 @@ o.spec("ModelMapperTransformations", function () {
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
 		})
 		o("change aggregation from One to Any null value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -937,7 +967,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -951,13 +981,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -981,7 +1011,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -995,14 +1025,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
 				_finalIvs: {},
@@ -1011,8 +1044,8 @@ o.spec("ModelMapperTransformations", function () {
 			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("change aggregation from ZeroOrOne to Any null value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1036,7 +1069,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1050,13 +1083,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1080,7 +1113,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1094,14 +1127,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
 				_finalIvs: {},
@@ -1117,8 +1153,8 @@ o.spec("ModelMapperTransformations", function () {
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
 		})
 		o("change aggregation from ZeroOrOne to Any multiple values", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1142,7 +1178,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1156,13 +1192,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1186,7 +1222,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1200,14 +1236,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [{ _finalIvs: {} } as any as ServerModelParsedInstance, { _finalIvs: {} } as any as ServerModelParsedInstance],
 				_finalIvs: {},
@@ -1216,8 +1255,8 @@ o.spec("ModelMapperTransformations", function () {
 			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("change aggregation from Any to ZeroOrOne null value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1241,7 +1280,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1255,13 +1294,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1285,7 +1324,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1299,14 +1338,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
 				_finalIvs: {},
@@ -1322,8 +1364,8 @@ o.spec("ModelMapperTransformations", function () {
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
 		})
 		o("change aggregation from Any to ZeroOrOne one value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1347,7 +1389,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1361,13 +1403,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1391,7 +1433,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1405,14 +1447,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [{ _finalIvs: {} } as any as ServerModelParsedInstance],
 				_finalIvs: {},
@@ -1429,8 +1474,8 @@ o.spec("ModelMapperTransformations", function () {
 		})
 
 		o("change list element association from Any to One", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1454,7 +1499,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1468,13 +1513,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1498,7 +1543,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1512,14 +1557,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
 				_finalIvs: {},
@@ -1537,8 +1585,8 @@ o.spec("ModelMapperTransformations", function () {
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
 		})
 		o("change list element association from One to Any null value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1562,7 +1610,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1576,13 +1624,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1606,7 +1654,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1620,14 +1668,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
 				_finalIvs: {},
@@ -1636,8 +1687,8 @@ o.spec("ModelMapperTransformations", function () {
 			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("change list element association from ZeroOrOne to Any null value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1661,7 +1712,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1675,13 +1726,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1705,7 +1756,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1719,14 +1770,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
 				_finalIvs: {},
@@ -1744,8 +1798,8 @@ o.spec("ModelMapperTransformations", function () {
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
 		})
 		o("change list element association from ZeroOrOne to Any multiple values", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1769,7 +1823,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1783,13 +1837,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1813,7 +1867,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1827,14 +1881,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [
 					["listId", "listElementId1"],
@@ -1846,8 +1903,8 @@ o.spec("ModelMapperTransformations", function () {
 			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("change list element association from Any to ZeroOrOne null value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1871,7 +1928,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1885,13 +1942,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1915,7 +1972,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1929,14 +1986,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
 				_finalIvs: {},
@@ -1952,8 +2012,8 @@ o.spec("ModelMapperTransformations", function () {
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
 		})
 		o("change list element association from Any to ZeroOrOne one value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -1977,7 +2037,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -1991,13 +2051,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2021,7 +2081,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -2035,14 +2095,17 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
 				_finalIvs: {},
@@ -2060,8 +2123,8 @@ o.spec("ModelMapperTransformations", function () {
 	})
 	o.spec("ChangeValueCardinality", function () {
 		o("change value from ZeroOrOne to One", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2084,13 +2147,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2113,13 +2176,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "example",
 				_finalIvs: {},
@@ -2140,8 +2206,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any as ClientModelParsedInstance)
 		})
 		o("change value from One to ZeroOrOne", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2164,13 +2230,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2193,13 +2259,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "example",
 				_finalIvs: {},
@@ -2220,8 +2289,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any as ClientModelParsedInstance)
 		})
 		o("change value from One to ZeroOrOne null value throws", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2244,13 +2313,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2273,13 +2342,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: null,
 				_finalIvs: {},
@@ -2290,8 +2362,8 @@ o.spec("ModelMapperTransformations", function () {
 	})
 	o.spec("NumberToStringValue", function () {
 		o("convert number to string value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2314,13 +2386,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2343,12 +2415,15 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "42",
@@ -2371,8 +2446,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any as ClientModelParsedInstance)
 		})
 		o("convert number to string value throws when server sends non numeric", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2395,13 +2470,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2424,12 +2499,15 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 
 			const wrongParsedInstance: ServerModelParsedInstance = {
 				1: "example",
@@ -2441,8 +2519,8 @@ o.spec("ModelMapperTransformations", function () {
 	})
 	o.spec("RemoveAssociation", function () {
 		o("remove One aggregation", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2456,13 +2534,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2486,7 +2564,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -2509,13 +2587,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
@@ -2523,8 +2604,8 @@ o.spec("ModelMapperTransformations", function () {
 			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("remove ZeroOrOne aggregation", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2538,13 +2619,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2568,7 +2649,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -2591,13 +2672,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
@@ -2619,8 +2703,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any)
 		})
 		o("remove Any aggregation", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2634,13 +2718,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2664,7 +2748,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -2687,13 +2771,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
@@ -2716,8 +2803,8 @@ o.spec("ModelMapperTransformations", function () {
 		})
 
 		o("remove One list element association", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2731,13 +2818,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2761,7 +2848,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -2775,13 +2862,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
@@ -2789,8 +2879,8 @@ o.spec("ModelMapperTransformations", function () {
 			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
 		o("remove ZeroOrOne list element association", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2804,13 +2894,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2834,7 +2924,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -2848,13 +2938,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
@@ -2876,8 +2969,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any)
 		})
 		o("remove Any list element association", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2891,13 +2984,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2921,7 +3014,7 @@ o.spec("ModelMapperTransformations", function () {
 						},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 					"43": {
 						app: "tutanota",
 						encrypted: true,
@@ -2944,13 +3037,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
@@ -2974,8 +3070,8 @@ o.spec("ModelMapperTransformations", function () {
 	})
 	o.spec("RemoveValue", function () {
 		o("Remove One Value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -2989,13 +3085,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -3018,13 +3114,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance
@@ -3045,8 +3144,8 @@ o.spec("ModelMapperTransformations", function () {
 			} as any as ClientModelParsedInstance)
 		})
 		o("remove ZeroOrOne Value", async function () {
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const serverModel: Record<string, TypeModel> = {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -3060,13 +3159,13 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ServerTypeModel,
 				}
 				return serverModel[typeRef.typeId]
 			}
 
-			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<TypeModel> => {
-				const clientModel: Record<string, TypeModel> = {
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
 					"42": {
 						app: "tutanota",
 						encrypted: true,
@@ -3089,13 +3188,16 @@ o.spec("ModelMapperTransformations", function () {
 						associations: {},
 						version: 0,
 						versioned: false,
-					},
+					} as unknown as ClientTypeModel,
 				}
 				return clientModel[typeRef.typeId]
 			}
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(clientModelResolver as TypeReferenceResolver, serverModelResolver as TypeReferenceResolver)
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
 			const parsedInstance: ServerModelParsedInstance = {
 				_finalIvs: {},
 			} as any as ServerModelParsedInstance

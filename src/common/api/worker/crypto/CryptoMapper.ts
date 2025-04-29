@@ -1,19 +1,20 @@
 import {
 	ClientModelEncryptedParsedInstance,
 	ClientModelParsedInstance,
+	ClientTypeModel,
 	ModelValue,
 	ParsedValue,
 	ServerModelEncryptedParsedInstance,
 	ServerModelParsedInstance,
-	TypeModel,
+	ServerTypeModel,
 } from "../../common/EntityTypes"
 import { Base64, base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
-import { TypeReferenceResolver } from "../../common/EntityFunctions"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./ModelMapper"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 
 // Exported for testing
 export function encryptValue(
@@ -59,17 +60,17 @@ export function decryptValue(
 }
 
 export class CryptoMapper {
-	constructor(private readonly clientTypeModel: TypeReferenceResolver, private readonly serverTypeModel: TypeReferenceResolver) {}
+	constructor(private readonly clientTypeModel: ClientTypeReferenceResolver, private readonly serverTypeModel: ServerTypeReferenceResolver) {}
 
 	public async decryptParsedInstance(
-		typeModel: TypeModel,
+		serverTypeModel: ServerTypeModel,
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		sk: Nullable<AesKey>,
 	): Promise<ServerModelParsedInstance> {
 		const decrypted: ServerModelParsedInstance = {
 			_finalIvs: {},
 		} as ServerModelParsedInstance
-		for (const [valueIdStr, valueInfo] of Object.entries(typeModel.values)) {
+		for (const [valueIdStr, valueInfo] of Object.entries(serverTypeModel.values)) {
 			const valueId = parseInt(valueIdStr)
 			const valueName = valueInfo.name
 			const encryptedValue = encryptedInstance[valueId]
@@ -105,15 +106,15 @@ export class CryptoMapper {
 				decrypted[valueId] = valueToDefault(valueInfo.type)
 
 				decrypted._errors[valueId] = JSON.stringify(e)
-				console.log("error when decrypting value on type:", `[${typeModel.app},${typeModel.name}]`, "valueName:", valueName, e)
+				console.log("error when decrypting value on type:", `[${serverTypeModel.app},${serverTypeModel.name}]`, "valueName:", valueName, e)
 			}
 		}
 
-		for (const associationId of Object.keys(typeModel.associations).map(Number)) {
-			let associationType = typeModel.associations[associationId]
+		for (const associationId of Object.keys(serverTypeModel.associations).map(Number)) {
+			let associationType = serverTypeModel.associations[associationId]
 			const encryptedInstanceValue = encryptedInstance[associationId]
 			if (associationType.type === AssociationType.Aggregation) {
-				const appName = associationType.dependency ?? typeModel.app
+				const appName = associationType.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.serverTypeModel(new TypeRef(appName, associationType.refTypeId))
 				decrypted[associationId] = await this.decryptAggregateAssociation(
 					associationTypeModel,
@@ -128,28 +129,28 @@ export class CryptoMapper {
 	}
 
 	private async decryptAggregateAssociation(
-		associationModel: TypeModel,
+		associationServerTypeModel: ServerTypeModel,
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		sk: Nullable<AesKey>,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const decryptedAggregates: Array<ServerModelParsedInstance> = []
 		for (const encryptedAggregate of encryptedInstanceValues) {
-			const decryptedAggregate = await this.decryptParsedInstance(associationModel, encryptedAggregate, sk)
+			const decryptedAggregate = await this.decryptParsedInstance(associationServerTypeModel, encryptedAggregate, sk)
 			decryptedAggregates.push(decryptedAggregate)
 		}
 		return decryptedAggregates
 	}
 
 	public async encryptParsedInstance(
-		typeModel: TypeModel,
+		clientTypeModel: ClientTypeModel,
 		parsedInstance: ClientModelParsedInstance,
 		sk: Nullable<AesKey>,
 	): Promise<ClientModelEncryptedParsedInstance> {
 		let encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
 		const finalIvs = parsedInstance._finalIvs
 
-		for (let valueId of Object.keys(typeModel.values).map(Number)) {
-			let valueType = typeModel.values[valueId]
+		for (let valueId of Object.keys(clientTypeModel.values).map(Number)) {
+			let valueType = clientTypeModel.values[valueId]
 			let valueName = valueType.name
 			let value = parsedInstance[valueId] as Nullable<ParsedValue>
 
@@ -167,16 +168,16 @@ export class CryptoMapper {
 				const iv = finalIvs[valueId] ?? undefined
 				encryptedValue = encryptValue(valueType as ModelValue & { encrypted: true }, value, sk, iv)
 			} else {
-				throw new CryptoError(`Encrypting ${typeModel.app}/${typeModel.name}.${valueName} requires a session key!`)
+				throw new CryptoError(`Encrypting ${clientTypeModel.app}/${clientTypeModel.name}.${valueName} requires a session key!`)
 			}
 
 			encrypted[valueId] = encryptedValue
 		}
 
-		for (const associationId of Object.keys(typeModel.associations).map(Number)) {
-			const associationType = typeModel.associations[associationId]
+		for (const associationId of Object.keys(clientTypeModel.associations).map(Number)) {
+			const associationType = clientTypeModel.associations[associationId]
 			if (associationType.type === AssociationType.Aggregation) {
-				const appName = associationType.dependency ?? typeModel.app
+				const appName = associationType.dependency ?? clientTypeModel.app
 				const aggregateTypeModel = await this.clientTypeModel(new TypeRef(appName, associationType.refTypeId))
 				const aggregate = parsedInstance[associationId] as Array<ClientModelParsedInstance>
 				encrypted[associationId] = await this.encryptAggregateAssociation(aggregateTypeModel, aggregate, sk)
@@ -188,13 +189,13 @@ export class CryptoMapper {
 	}
 
 	private async encryptAggregateAssociation(
-		associationTypeModel: TypeModel,
+		associationClientTypeModel: ClientTypeModel,
 		aggregateValues: Array<ClientModelParsedInstance>,
 		sk: Nullable<AesKey>,
 	): Promise<Array<ClientModelEncryptedParsedInstance>> {
 		let encryptedAggregates: Array<ClientModelEncryptedParsedInstance> = []
 		for (const aggregate of aggregateValues) {
-			encryptedAggregates.push(await this.encryptParsedInstance(associationTypeModel, aggregate, sk))
+			encryptedAggregates.push(await this.encryptParsedInstance(associationClientTypeModel, aggregate, sk))
 		}
 
 		return encryptedAggregates

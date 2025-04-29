@@ -1,4 +1,4 @@
-import { ElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
+import { ClientTypeModel, ElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, get_IdValue, getElementId } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
@@ -171,7 +171,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
 		const type = getTypeId(typeRef)
-		const typeModel: TypeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await resolveClientTypeReference(typeRef)
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery
 		switch (typeModel.type) {
@@ -203,8 +203,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
 		const type = getTypeId(typeRef)
-		let typeModel: TypeModel
-		typeModel = await resolveClientTypeReference(typeRef)
+		let typeModel = await resolveClientTypeReference(typeRef)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -817,7 +816,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		return downcast(this.modelMapper.mapToInstance(typeRef, idMappedEntity))
 	}
 
-	private async fixupTypeRefs(typeModel: TypeModel, deserialized: any): Promise<unknown> {
+	private async fixupTypeRefs(typeModel: ClientTypeModel, deserialized: any): Promise<unknown> {
 		// TypeRef cannot be deserialized back automatically. We could write a codec for it but we don't actually need to store it so we just "patch" it.
 		// Some places rely on TypeRef being a class and not a plain object.
 		// We also have to update all aggregates, recursively.

@@ -1,17 +1,18 @@
 import {
 	ClientModelEncryptedParsedInstance,
 	ClientModelUntypedInstance,
+	ClientTypeModel,
 	EncryptedParsedAssociation,
 	EncryptedParsedValue,
 	ServerModelEncryptedParsedInstance,
 	ServerModelUntypedInstance,
-	TypeModel,
+	ServerTypeModel,
 	UntypedAssociation,
 	UntypedInstance,
 	UntypedValue,
 } from "../../common/EntityTypes"
 import { AssociationType } from "../../common/EntityConstants"
-import { TypeReferenceResolver } from "../../common/EntityFunctions"
+import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { TypeRef, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
@@ -26,11 +27,11 @@ import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
  * The objects are treated according to the server's model version.
  */
 export class TypeMapper {
-	constructor(private readonly clientTypeModel: TypeReferenceResolver, private readonly serverTypeModel: TypeReferenceResolver) {}
+	constructor(private readonly clientTypeModel: ClientTypeReferenceResolver, private readonly serverTypeModel: ServerTypeReferenceResolver) {}
 
-	async applyJsTypes(typeModel: TypeModel, instance: ServerModelUntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
+	async applyJsTypes(serverTypeModel: ServerTypeModel, instance: ServerModelUntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
 		let parsedInstance: ServerModelEncryptedParsedInstance = {} as ServerModelEncryptedParsedInstance
-		for (const [attrIdStr, modelValue] of Object.entries(typeModel.values)) {
+		for (const [attrIdStr, modelValue] of Object.entries(serverTypeModel.values)) {
 			let attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys
 			let attrIdUntypedInstance: string = attrIdStr // used to access untypedInstance which has string keys (attrId:attrName in case of networkDebugging)
 			if (env.networkDebugging) {
@@ -53,7 +54,7 @@ export class TypeMapper {
 			}
 		}
 
-		for (const [attrIdStr, modelAssociation] of Object.entries(typeModel.associations)) {
+		for (const [attrIdStr, modelAssociation] of Object.entries(serverTypeModel.associations)) {
 			let attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys
 			let attrIdUntypedInstance: string = attrIdStr // used to access untypedInstance which has string keys (attrId:attrName in case of networkDebugging)
 			if (env.networkDebugging) {
@@ -68,7 +69,7 @@ export class TypeMapper {
 			}
 
 			if (modelAssociation.type === AssociationType.Aggregation) {
-				const appName = modelAssociation.dependency ?? typeModel.app
+				const appName = modelAssociation.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.serverTypeModel(new TypeRef(appName, modelAssociation.refTypeId))
 
 				const encryptedParsedAssociationValues: Array<ServerModelEncryptedParsedInstance> = []
@@ -84,9 +85,9 @@ export class TypeMapper {
 		return parsedInstance
 	}
 
-	async applyDbTypes(typeModel: TypeModel, instance: ClientModelEncryptedParsedInstance): Promise<ClientModelUntypedInstance> {
+	async applyDbTypes(clientTypeModel: ClientTypeModel, instance: ClientModelEncryptedParsedInstance): Promise<ClientModelUntypedInstance> {
 		let untypedInstance: ClientModelUntypedInstance = {} as ClientModelUntypedInstance
-		for (const [attrIdStr, modelValue] of Object.entries(typeModel.values)) {
+		for (const [attrIdStr, modelValue] of Object.entries(clientTypeModel.values)) {
 			const attrId = parseInt(attrIdStr)
 
 			let attrIdUntypedInstance: string = attrIdStr
@@ -101,7 +102,7 @@ export class TypeMapper {
 				untypedInstance[attrIdUntypedInstance] = value
 			} else if (modelValue.encrypted) {
 				throw new ProgrammingError(
-					`received encrypted value that is not a string, should have been converted already. ${typeModel.name}/${typeModel.id}, ${modelValue.name}`,
+					`received encrypted value that is not a string, should have been converted already. ${clientTypeModel.name}/${clientTypeModel.id}, ${modelValue.name}`,
 				)
 			} else {
 				// unencrypted values don't have to be modified anymore before they're sent to the server
@@ -114,7 +115,7 @@ export class TypeMapper {
 			}
 		}
 
-		for (const [attrIdStr, modelAssociation] of Object.entries(typeModel.associations)) {
+		for (const [attrIdStr, modelAssociation] of Object.entries(clientTypeModel.associations)) {
 			const attrId = parseInt(attrIdStr)
 
 			let attrIdUntypedInstance: string = attrIdStr
@@ -125,7 +126,7 @@ export class TypeMapper {
 
 			const values = instance[attrId] as EncryptedParsedAssociation
 			if (modelAssociation.type === AssociationType.Aggregation) {
-				const appName = modelAssociation.dependency ?? typeModel.app
+				const appName = modelAssociation.dependency ?? clientTypeModel.app
 				const associationTypeModel = await this.clientTypeModel(new TypeRef(appName, modelAssociation.refTypeId))
 
 				const untypedAssociationValues: Array<UntypedInstance> = []

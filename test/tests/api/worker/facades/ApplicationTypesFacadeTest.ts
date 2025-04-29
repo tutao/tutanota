@@ -6,7 +6,7 @@ import { AssociationType, Cardinality, Type } from "../../../../../src/common/ap
 import { ClientModelInfo, HttpMethod, MediaType, ServerModelInfo, ServerModels } from "../../../../../src/common/api/common/EntityFunctions"
 import { Mode } from "../../../../../src/common/api/common/Env"
 import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
-import { ModelAssociation, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { ModelAssociation, ServerTypeModel, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { downcast } from "@tutao/tutanota-utils"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
@@ -55,7 +55,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 							},
 							version: 0,
 							versioned: false,
-						} satisfies TypeModel,
+						} as unknown as ServerTypeModel,
 					},
 				},
 

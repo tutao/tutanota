@@ -36,6 +36,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { TypeId } from "../../common/EntityTypes"
 
 assertWorkerOrNode()
 
@@ -184,9 +185,9 @@ export class AsymmetricCryptoFacade {
 		recipientKeyVersion: KeyVersion,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 		pubEncSymKey: Uint8Array,
-		forType: string = "!!!!",
+		forTypeId: TypeId = -1,
 	): Promise<DecapsulatedAesKey> {
-		const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(recipientKeyPairGroupId, recipientKeyVersion, forType)
+		const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(recipientKeyPairGroupId, recipientKeyVersion, forTypeId)
 		return await this.decryptSymKeyWithKeyPair(keyPair, cryptoProtocolVersion, pubEncSymKey)
 	}
 

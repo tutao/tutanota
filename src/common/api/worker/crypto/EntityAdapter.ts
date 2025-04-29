@@ -6,6 +6,7 @@ import type {
 	Entity,
 	ServerModelEncryptedParsedInstance,
 	ServerModelParsedInstance,
+	ServerTypeModel,
 	TypeModel,
 } from "../../common/EntityTypes"
 import { AttributeModel } from "../../common/AttributeModel"

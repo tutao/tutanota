@@ -90,6 +90,9 @@ export type ModelAssociation = {
 	dependency?: AppName | null
 }
 
+export type ClientTypeModel = Distinct<TypeModel, ClientModelTypeSeparator>
+export type ServerTypeModel = Distinct<TypeModel, ServerModelTypeSeparator>
+
 /**
  * this type models how the main entity types in the model are defined.
  */

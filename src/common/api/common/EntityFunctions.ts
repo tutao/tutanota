@@ -1,5 +1,5 @@
 import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
-import type { AttributeId, ModelAssociation, ModelValue, TypeModel } from "./EntityTypes"
+import type { AttributeId, ClientTypeModel, ModelAssociation, ModelValue, ServerTypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
 import { typeModels as tutanotaTypeModels } from "../entities/tutanota/TypeModels.js"
@@ -36,16 +36,17 @@ export const enum MediaType {
 export type ApplicationTypesHash = string
 export type ApplicationVersionSum = number
 export type ApplicationVersion = number
-export type TypeReferenceResolver = (typeref: TypeRef<any>) => Promise<TypeModel>
+export type ServerTypeReferenceResolver = (typeref: TypeRef<any>) => Promise<ServerTypeModel>
+export type ClientTypeReferenceResolver = (typeref: TypeRef<any>) => Promise<ClientTypeModel>
 
 export type ModelInfos = {
 	[knownApps in AppName]: { version: ApplicationVersion }
 }
 export type ServerModels = {
-	[knownApps in AppName]: { name: AppName; version: ApplicationVersion; types: Record<string, TypeModel> }
+	[knownApps in AppName]: { name: AppName; version: ApplicationVersion; types: Record<string, ServerTypeModel> }
 }
 export type ClientModels = {
-	[knownApps in AppName]: Record<string, TypeModel>
+	[knownApps in AppName]: Record<string, ClientTypeModel>
 }
 
 export class ClientModelInfo {
@@ -81,13 +82,13 @@ export class ClientModelInfo {
 	}
 
 	/**
-	 * Convert a {@link TypeRef} to a {@link TypeModel} that it refers to.
+	 * Convert a {@link TypeRef} to a {@link ClientTypeModel} that it refers to.
 	 *
 	 * This function is async so that we can possibly load typeModels on demand instead of bundling them with the JS files.
 	 *
 	 * @param typeRef the typeRef for which we will return the typeModel.
 	 */
-	public async resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
+	public async resolveTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
 		const typeModel = this.typeModels[typeRef.app][typeRef.typeId]
 		if (typeModel == null) {
 			throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
@@ -134,14 +135,14 @@ export class ServerModelInfo {
 	}
 
 	private parseAllTypesForModel(modelInfo: Record<string, unknown>): {
-		types: Record<string, TypeModel>
+		types: Record<string, ServerTypeModel>
 		version: number
 	} {
 		const appName = this.ensureVariantOf(AppNameEnum, String(modelInfo.name))
 		const version: ApplicationVersion = this.asNumber(modelInfo.version)
 		const modelTypeInfoRecord = assertNotNull(modelInfo.types) as Record<string, unknown>
 
-		let types: Record<string, TypeModel> = {}
+		let types: Record<string, ServerTypeModel> = {}
 		for (const typeInfo of Object.values(modelTypeInfoRecord)) {
 			const typeModel = this.parseSingleTypeModel(appName, version, typeInfo)
 			types[typeModel.id] = typeModel
@@ -152,7 +153,7 @@ export class ServerModelInfo {
 		}
 	}
 
-	private parseSingleTypeModel(app: AppName, appVersion: number, typeInfo: unknown): TypeModel {
+	private parseSingleTypeModel(app: AppName, appVersion: number, typeInfo: unknown): ServerTypeModel {
 		const typeInfoRecord = typeInfo as Record<string, any>
 		const valuesRecord = typeInfoRecord.values as Record<string, unknown>
 		const associationsRecord = typeInfoRecord.associations as Record<string, unknown>
@@ -171,10 +172,10 @@ export class ServerModelInfo {
 			rootId: this.asString(typeInfoRecord.rootId),
 			values: this.parseModelValues(valuesRecord, this.getClientModelType(app, String(typeId))),
 			associations: this.parseModelAssociations(associationsRecord),
-		}
+		} as ServerTypeModel
 	}
 
-	private parseModelValues(valuesRecord: Record<number, unknown>, clientModelType: TypeModel | null): Record<AttributeId, ModelValue> {
+	private parseModelValues(valuesRecord: Record<number, unknown>, clientModelType: ClientTypeModel | null): Record<AttributeId, ModelValue> {
 		let values = {}
 
 		for (const modelValueInfo of Object.values(valuesRecord)) {
@@ -254,7 +255,7 @@ export class ServerModelInfo {
 		else throw new Error(`value: ${value} is not boolean compatible`)
 	}
 
-	public async resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
+	public async resolveTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
 		if (this.typeModels == null) {
 			throw new ProgrammingError("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
 		}
@@ -266,7 +267,7 @@ export class ServerModelInfo {
 		}
 	}
 
-	private getClientModelType(appName: AppName, typeId: string): TypeModel | null {
+	private getClientModelType(appName: AppName, typeId: string): ClientTypeModel | null {
 		const clientApp = this.clientModelInfo.typeModels[appName]
 		if (clientApp) {
 			const clientType = clientApp[typeId]
@@ -278,7 +279,7 @@ export class ServerModelInfo {
 	}
 }
 
-export function _verifyType(typeModel: TypeModel) {
+export function _verifyType(typeModel: ClientTypeModel) {
 	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement && typeModel.type !== Type.BlobElement) {
 		throw new Error("only Element, ListElement and BlobElement types are permitted, was: " + typeModel.type)
 	}

@@ -1,6 +1,6 @@
 import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper } from "./CryptoMapper"
-import { resolveClientTypeReference, TypeReferenceResolver } from "../../common/EntityFunctions"
+import { ClientTypeReferenceResolver, resolveClientTypeReference, resolveServerTypeReference, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { ClientModelParsedInstance, ClientModelUntypedInstance, Entity, ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { ModelMapper } from "./ModelMapper"
 import { downcast, TypeRef } from "@tutao/tutanota-utils"
@@ -12,7 +12,7 @@ export class InstancePipeline {
 	readonly cryptoMapper: CryptoMapper
 	readonly modelMapper: ModelMapper
 
-	constructor(private readonly clientTypeModel: TypeReferenceResolver, private readonly serverTypeModel: TypeReferenceResolver) {
+	constructor(private readonly clientTypeModel: ClientTypeReferenceResolver, private readonly serverTypeModel: ServerTypeReferenceResolver) {
 		this.typeMapper = new TypeMapper(clientTypeModel, serverTypeModel)
 		this.cryptoMapper = new CryptoMapper(clientTypeModel, serverTypeModel)
 		this.modelMapper = new ModelMapper(clientTypeModel, serverTypeModel)
@@ -40,9 +40,9 @@ export class InstancePipeline {
 	 * @returns The decrypted and mapped instance
 	 */
 	async decryptAndMap<T extends Entity>(typeRef: TypeRef<T>, instance: ServerModelUntypedInstance, sk: AesKey | null): Promise<T> {
-		const typeModel = await resolveClientTypeReference(typeRef)
-		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(typeModel, instance)
-		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(typeModel, encryptedParsedInstance, sk)
+		const serverTypeModel = await resolveServerTypeReference(typeRef)
+		const encryptedParsedInstance = await this.typeMapper.applyJsTypes(serverTypeModel, instance)
+		const parsedInstance = await this.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sk)
 		return await this.modelMapper.mapToInstance(typeRef, parsedInstance)
 	}
 }
