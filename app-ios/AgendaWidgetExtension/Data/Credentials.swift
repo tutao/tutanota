@@ -6,10 +6,10 @@
 //
 
 import AppIntents
-import tutasdk
 import TutanotaSharedFramework
+import tutasdk
 
-struct WidgetCredential : AppEntity {
+struct WidgetCredential: AppEntity {
 	var id: String
 	var email: String
 
@@ -19,10 +19,7 @@ struct WidgetCredential : AppEntity {
 
 	var displayRepresentation: DisplayRepresentation {
 		let emailUser = String(email.split(separator: "@").first ?? "")
-		return DisplayRepresentation(
-			title: LocalizedStringResource(stringLiteral: emailUser),
-			subtitle: LocalizedStringResource(stringLiteral: email)
-		)
+		return DisplayRepresentation(title: LocalizedStringResource(stringLiteral: emailUser), subtitle: LocalizedStringResource(stringLiteral: email))
 	}
 
 	static func fetchCredentials() async throws -> [WidgetCredential] {
@@ -30,7 +27,11 @@ struct WidgetCredential : AppEntity {
 			let credentialsDb = try CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 			let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 			let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
-			let credentialsFacade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: CryptoFunctions())
+			let credentialsFacade = IosNativeCredentialsFacade(
+				keychainEncryption: keychainEncryption,
+				credentialsDb: credentialsDb,
+				cryptoFns: CryptoFunctions()
+			)
 			let credentials = try await credentialsFacade.loadAll()
 			return credentials.map { WidgetCredential(id: $0.credentialInfo.userId, email: $0.credentialInfo.login) }
 		} catch {
@@ -40,16 +41,10 @@ struct WidgetCredential : AppEntity {
 	}
 }
 
-struct CredentialsQuery : EntityQuery {
-	func entities(for identifiers: [WidgetCredential.ID]) async throws -> [WidgetCredential] {
-		return try await WidgetCredential.fetchCredentials()
-	}
+struct CredentialsQuery: EntityQuery {
+	func entities(for identifiers: [WidgetCredential.ID]) async throws -> [WidgetCredential] { try await WidgetCredential.fetchCredentials() }
 
-	func suggestedEntities() async throws -> [WidgetCredential] {
-		return try await WidgetCredential.fetchCredentials()
-	}
+	func suggestedEntities() async throws -> [WidgetCredential] { try await WidgetCredential.fetchCredentials() }
 
-	func defaultResult() async -> WidgetCredential? {
-		nil
-	}
+	func defaultResult() async -> WidgetCredential? { nil }
 }

@@ -265,22 +265,18 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			} else if interopAction.name == InteropActions.widget.rawValue {
 				try await handleWidgetActions(url, interopAction)
 			}
-		} catch {
-			printLog("Failed to handle interop comunication for \(interopAction.name)=\(interopAction.value ?? ""): \(error)")
-		}
+		} catch { printLog("Failed to handle interop comunication for \(interopAction.name)=\(interopAction.value ?? ""): \(error)") }
 	}
 
 	func handleWidgetActions(_ url: URL, _ interopAction: URLQueryItem) async throws {
 		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw TutanotaError(message: "Invalid Widget Action URL") }
 		guard let queryItems = components.queryItems else { throw TutanotaError(message: "Invalid Widget Action URL") }
 
-		guard let userId = queryItems.first(where: {$0.name == "userId"})?.value else { throw TutanotaError(message: "Missing userId for Widget Action URL") }
-		guard let date = queryItems.first(where: {$0.name == "date"})?.value else { throw TutanotaError(message: "Missing date for Widget Action URL") }
-		let eventId = queryItems.first(where: {$0.name == "eventId"})?.value
+		guard let userId = queryItems.first(where: { $0.name == "userId" })?.value else { throw TutanotaError(message: "Missing userId for Widget Action URL") }
+		guard let date = queryItems.first(where: { $0.name == "date" })?.value else { throw TutanotaError(message: "Missing date for Widget Action URL") }
+		let eventId = queryItems.first(where: { $0.name == "eventId" })?.value
 
-		if interopAction.value == WidgetActions.sendLogs.rawValue {
-			return try await sendLogsFromWidget()
-		}
+		if interopAction.value == WidgetActions.sendLogs.rawValue { return try await sendLogsFromWidget() }
 
 		let action = interopAction.value == WidgetActions.eventEditor.rawValue ? CalendarOpenAction.event_editor : CalendarOpenAction.agenda
 		try await self.bridge.commonNativeFacade.openCalendar(userId, action, date, eventId)

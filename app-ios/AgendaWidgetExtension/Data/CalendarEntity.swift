@@ -30,7 +30,8 @@ struct CalendarEntity: AppEntity {
 			CalendarEntity(
 				id: calendarId,
 				name: renderData.name.isEmpty ? DEFAULT_CALENDAR_NAME : renderData.name,
-				color: renderData.color.isEmpty ? DEFAULT_CALENDAR_COLOR : renderData.color)
+				color: renderData.color.isEmpty ? DEFAULT_CALENDAR_COLOR : renderData.color
+			)
 		}
 	}
 }
