@@ -14,11 +14,11 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 	private readonly dispatcher: MessageDispatcher<SqlCipherCommandNames, WorkerLogCommandNames>
 	private readonly worker: Worker
 
-	constructor(private readonly nativeBindingPath: string, private readonly dbPath: string, private readonly integrityCheck: boolean) {
+	constructor(dbPath: string, integrityCheck: boolean) {
 		// All entry points are bundled into the same directory
 		const require = createRequire(import.meta.url)
 		const worker = new Worker(require.resolve("./sqlworker.js"), {
-			workerData: { nativeBindingPath, dbPath, integrityCheck },
+			workerData: { dbPath, integrityCheck },
 		}).on("error", (error) => {
 			// this is where uncaught errors in the worker end up.
 			console.log(TAG, `error in sqlcipher-worker-${worker.threadId}:`, error)

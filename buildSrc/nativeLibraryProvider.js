@@ -42,7 +42,7 @@ import { spawn } from "node:child_process"
  * @param params.nodeModule {string} name of the npm module to rebuild
  * @param params.log {Logger}
  * @param params.copyTarget {string | undefined} Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module
- * @returns {Promise<Record<string, string>>} paths to cached native module by architecture
+ * @returns {Promise<Partial<Record<BuildArch, string>>>} paths to cached native module by architecture
  */
 export async function getNativeLibModulePaths({ environment, platform, architecture, rootDir, nodeModule, log, copyTarget }) {
 	const namespaceTrimmedNodeModule = removeNpmNamespacePrefix(nodeModule)
