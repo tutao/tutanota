@@ -629,6 +629,10 @@ export class MailViewerViewModel {
 		}
 	}
 
+	getHighlightedStrings(): readonly SearchToken[] {
+		return this.highlightedStrings
+	}
+
 	private getMailboxDetails(): Promise<MailboxDetail | null> {
 		return this.mailModel.getMailboxDetailsForMail(this.mail)
 	}
