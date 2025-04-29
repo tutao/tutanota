@@ -33,6 +33,7 @@ import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MoveMode } from "../model/MailModel"
+import { highlightTextInQuery } from "../../../common/api/common/utils/QueryTokenUtils"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -157,7 +158,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				displayedSender == null
 					? null
 					: m(".small.flex.flex-wrap.items-start", [
-							m("span.text-break", getMailAddressDisplayText(displayedSender.name, displayedSender.address, false)),
+							m("span.text-break", this.renderAddress(attrs.viewModel, displayedSender.name, displayedSender.address)),
 					  ]),
 				m(".flex", [
 					this.getRecipientEmailAddress(attrs),
@@ -195,6 +196,17 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				]),
 			],
 		)
+	}
+
+	private renderAddress(mailViewerViewModel: MailViewerViewModel, name: string, address: string): Children {
+		const displayed = getMailAddressDisplayText(name, address, false)
+		return highlightTextInQuery(displayed, mailViewerViewModel.getHighlightedStrings()).map((t) => {
+			if (t.highlighted) {
+				return m("mark.search-highlight", t.text)
+			} else {
+				return t.text
+			}
+		})
 	}
 
 	private renderSubjectActionsLine(attrs: MailViewerHeaderAttrs) {
@@ -834,7 +846,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}
 
-	getRecipientEmailAddress({ viewModel }: MailViewerHeaderAttrs) {
+	getRecipientEmailAddress({ viewModel }: MailViewerHeaderAttrs): Children {
 		const relevantRecipient = viewModel.getRelevantRecipient()
 
 		if (relevantRecipient) {
@@ -849,7 +861,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				},
 				[
 					m("", lang.get("mailViewerRecipients_label")),
-					m(".text-ellipsis", relevantRecipient.address),
+					m(".text-ellipsis", this.renderAddress(viewModel, "", relevantRecipient.address)),
 					m(".flex.no-wrap", [
 						numberOfAllRecipients > 1 ? `+ ${numberOfAllRecipients - 1}` : null,
 						m(Icon, {
