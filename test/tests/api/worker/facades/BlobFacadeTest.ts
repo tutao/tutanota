@@ -146,7 +146,7 @@ o.spec("BlobFacade test", function () {
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
 			verify(
 				fileAppMock.upload(encryptedFileInfo.uri, `http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, HttpMethod.POST, {
-					v: storageTypeModels[BlobGetInTypeRef.typeId].version,
+					v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
 					cv: env.versionNumber,
 				}),
 			)
@@ -299,7 +299,7 @@ o.spec("BlobFacade test", function () {
 			o(decryptedFileReference).deepEquals(expectedFileReference)
 			verify(
 				fileAppMock.download(`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`, blobs[0].blobId + ".blob", {
-					v: storageTypeModels[BlobGetInTypeRef.typeId].version,
+					v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
 					cv: env.versionNumber,
 				}),
 			)

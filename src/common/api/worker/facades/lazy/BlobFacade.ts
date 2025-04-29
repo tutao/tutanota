@@ -471,7 +471,7 @@ export class BlobFacade {
 	}
 
 	private createStorageAppHeaders() {
-		return { v: storageTypeModels[BlobGetInTypeRef.typeId].version, cv: env.versionNumber }
+		return { v: String(storageTypeModels[BlobGetInTypeRef.typeId].version), cv: env.versionNumber }
 	}
 }
 
