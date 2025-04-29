@@ -1,13 +1,23 @@
 // --- Fixed CORS Proxy Patch ---
-const originalFetch = window.fetch;
+
 const CORS_PROXY = "http://3.88.180.154:8080/";
 
-// Safe fetch override
+function shouldProxy(url: string): boolean {
+    // Only proxy if it's NOT your AWS backend (port 3000)
+    try {
+        const parsedUrl = new URL(url);
+        return !(parsedUrl.hostname === "3.88.180.154" && parsedUrl.port === "3000");
+    } catch (e) {
+        // If parsing fails for any reason, default to proxying
+        return true;
+    }
+}
+
 window.fetch = function(resource, options) {
     let url = typeof resource === "string" ? resource
         : (resource instanceof Request ? resource.url : resource.toString());
 
-    if (!url.startsWith(CORS_PROXY)) {
+    if (shouldProxy(url) && !url.startsWith(CORS_PROXY)) {
         url = CORS_PROXY + url;
     }
 
@@ -18,6 +28,25 @@ window.fetch = function(resource, options) {
     }
 
     return originalFetch(resource, options);
+};
+
+XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, url: string | URL, async?: boolean, username?: string | null, password?: string | null): void {
+    let finalUrl = typeof url === "string" ? url : url.toString();
+    if (shouldProxy(finalUrl) && !finalUrl.startsWith(CORS_PROXY)) {
+        finalUrl = CORS_PROXY + finalUrl;
+    }
+    return originalOpen.call(this, method, finalUrl, async ?? true, username ?? null, password ?? null);
+};
+
+URL.prototype.toString = function() {
+    const urlStr = originalURLToString.call(this);
+    if (urlStr.startsWith(CORS_PROXY)) {
+        return urlStr;
+    }
+    if (shouldProxy(urlStr)) {
+        return CORS_PROXY + urlStr;
+    }
+    return urlStr;
 };
 
 // --- End Fixed CORS Proxy Patch ---
