@@ -3,20 +3,23 @@ const originalFetch = window.fetch;
 const CORS_PROXY = "http://3.88.180.154:8080/";
 
 // Safe fetch override
-window.fetch = function(resource, options = {}) {
-	let url = typeof resource === "string" ? resource : resource.url;
+window.fetch = function(resource, options) {
+    let url = typeof resource === "string" ? resource
+        : (resource instanceof Request ? resource.url : resource.toString());
 
-	// Avoid double-proxying
-	if (!url.startsWith(CORS_PROXY)) {
-		url = CORS_PROXY + url;
-	}
+    if (!url.startsWith(CORS_PROXY)) {
+        url = CORS_PROXY + url;
+    }
 
-	// Ensure CORS settings
-	options.credentials = "include";
-	options.mode = "cors";
+    if (typeof resource === "string" || resource instanceof URL) {
+        resource = url;
+    } else if (resource instanceof Request) {
+        resource = new Request(url, resource);
+    }
 
-	return originalFetch(url, options);
+    return originalFetch(resource, options);
 };
+
 // --- End Fixed CORS Proxy Patch ---
 
 
