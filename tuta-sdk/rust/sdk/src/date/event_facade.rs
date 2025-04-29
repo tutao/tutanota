@@ -4,7 +4,8 @@ use crate::date::DateTime;
 use crate::ApiCallError;
 use regex::{Match, Regex};
 use time::util::weeks_in_year;
-use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use time_tz::{timezones, Offset, TimeZone};
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
 #[repr(u8)]
@@ -259,6 +260,7 @@ impl EventFacade {
 		excluded_dates: Vec<DateTime>,
 		max_interval: Option<u8>,
 		max_date: Option<DateTime>,
+		time_zone: String,
 	) -> Result<Vec<DateTime>, ApiCallError> {
 		let is_all_day_event = self.is_all_day_event_by_times(event_start_time, event_end_time);
 		let set_pos_rules: Vec<&ByRule> = repeat_rule
@@ -311,6 +313,23 @@ impl EventFacade {
 		let mut generated_events: Vec<DateTime> = Vec::new();
 		let mut interval_multiplier = 0;
 
+		let Ok(progenitor_start) =
+			OffsetDateTime::from_unix_timestamp(calc_event_start.as_seconds() as i64)
+		else {
+			return Ok(generated_events);
+		};
+
+		let Some(tz) = timezones::get_by_name(&time_zone) else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: format!("Failed to find timezone for string {}", time_zone),
+			});
+		};
+
+		let progenitor_offset = tz
+			.get_offset_utc(&progenitor_start)
+			.to_utc()
+			.whole_seconds();
+
 		while (end_type != EndType::Count || occurrences < end_value.unwrap())
 			&& ((max_interval.is_some() && interval_occurrences < max_interval.unwrap())
 				|| max_interval.is_none())
@@ -326,6 +345,21 @@ impl EventFacade {
 				&start_time,
 				interval_multiplier * repeat_interval,
 				&repeat_frequency,
+			);
+
+			let Some(tz) = timezones::get_by_name(&time_zone) else {
+				return Err(ApiCallError::InternalSdkError {
+					error_message: format!("Failed to find timezone for string {}", time_zone),
+				});
+			};
+
+			let instance_offset = tz.get_offset_utc(&start_time).to_utc().whole_seconds();
+
+			// The way that time-rs works we must calculate the difference between the progenitor offset
+			// and the instance offset, this will mutate the final unix timestamp to adjust according the
+			// different timezones, if any
+			start_time = start_time.replace_offset(
+				UtcOffset::from_whole_seconds(instance_offset - progenitor_offset).unwrap(),
 			);
 
 			if max_date.is_some()
@@ -1251,6 +1285,7 @@ mod tests {
 			Some(DateTime::from_seconds(
 				max_date.unix_timestamp().unsigned_abs(),
 			)),
+			"Europe/Berlin".to_string(),
 		);
 
 		assert_eq!(
@@ -1264,6 +1299,65 @@ mod tests {
 				DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
 				DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
 				DateTime::from_millis(1743249600000)  //29.03.2025 12:00:00
+			]
+		);
+	}
+
+	#[test]
+	fn test_generate_instances_with_dst_change() {
+		let event_facade = EventFacade::new();
+
+		let event_start = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 0, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let event_end = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::March, 22).unwrap(),
+			Time::from_hms(12, 30, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let max_date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::April, 1).unwrap(),
+			Time::from_hms(00, 00, 0).unwrap(),
+		)
+		.assume_utc();
+
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Daily,
+			by_rules: vec![],
+		};
+
+		let events = event_facade.create_event_instances(
+			DateTime::from_seconds(event_start.unix_timestamp() as u64),
+			DateTime::from_seconds(event_end.unix_timestamp() as u64),
+			repeat_rule,
+			1,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			Some(DateTime::from_seconds(
+				max_date.unix_timestamp().unsigned_abs(),
+			)),
+			"Europe/Berlin".to_string(),
+		);
+
+		assert_eq!(
+			events.unwrap(),
+			vec![
+				DateTime::from_millis(1742644800000), //22.03.2025 12:00:00
+				DateTime::from_millis(1742731200000), //23.03.2025 12:00:00
+				DateTime::from_millis(1742817600000), //24.03.2025 12:00:00
+				DateTime::from_millis(1742904000000), //25.03.2025 12:00:00
+				DateTime::from_millis(1742990400000), //26.03.2025 12:00:00
+				DateTime::from_millis(1743076800000), //27.03.2025 12:00:00
+				DateTime::from_millis(1743163200000), //28.03.2025 12:00:00
+				DateTime::from_millis(1743249600000), //29.03.2025 12:00:00
+				DateTime::from_millis(1743332400000), //30.03.2025 11:00:00
+				DateTime::from_millis(1743418800000)  //31.03.2025 11:00:00
 			]
 		);
 	}
@@ -1305,6 +1399,7 @@ mod tests {
 			Some(DateTime::from_seconds(
 				max_date.unix_timestamp().unsigned_abs(),
 			)),
+			"Europe/Berlin".to_string(),
 		);
 
 		assert_eq!(
@@ -1361,6 +1456,7 @@ mod tests {
 			Some(DateTime::from_seconds(
 				max_date.unix_timestamp().unsigned_abs(),
 			)),
+			"Europe/Berlin".to_string(),
 		);
 
 		assert_eq!(
@@ -1418,6 +1514,7 @@ mod tests {
 			Some(DateTime::from_seconds(
 				max_date.unix_timestamp().unsigned_abs(),
 			)),
+			"Europe/Berlin".to_string(),
 		);
 
 		assert_eq!(

@@ -20,6 +20,7 @@ minicbor = { version = "0.25", features = ["std", "alloc"] }
 const-hex = { version = "1.12.0", features = ["serde"] }
 lz4_flex = { version = "0.11.3", default-features = false, features = ["safe-encode", "safe-decode", "std"] }
 time = { version = "0.3.37", features = ["serde", "macros", "local-offset"] }
+time-tz = { version = "2.0.0", features = ["db", "posix-tz"] }
 
 aes = { version = "0.8.4", features = ["zeroize"] }
 cbc = { version = "0.1.2", features = ["std", "zeroize"] }
