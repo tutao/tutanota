@@ -612,8 +612,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					this.doRedraw()
 				}
 			} else if (isUpdateForTypeRef(ContactTypeRef, update) && this.isNewPaidPlan) {
-				await this.eventsRepository.loadContactsBirthdays(true)
-				this.eventsRepository.refreshBirthdayCalendar(this.selectedDate())
+				await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId, update.instanceId])
 				this.doRedraw()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 				this.logins

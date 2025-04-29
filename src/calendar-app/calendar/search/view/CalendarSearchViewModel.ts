@@ -514,7 +514,7 @@ export class CalendarSearchViewModel {
 		const listModel = this.createList()
 
 		if (isPossibleABirthdayContactUpdate && (await this.eventsRepository.canLoadBirthdaysCalendar())) {
-			await this.eventsRepository.loadContactsBirthdays(true)
+			await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId, update.instanceId])
 		}
 
 		await listModel.loadInitial()

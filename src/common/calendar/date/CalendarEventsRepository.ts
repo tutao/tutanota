@@ -16,7 +16,7 @@ import {
 	isClientOnlyCalendar,
 } from "./CalendarUtils.js"
 import { Birthday, CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
+import { elementIdPart, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
@@ -160,6 +160,38 @@ export class CalendarEventsRepository {
 		return new Map(Array.from(this.daysToEvents().entries()).map(([day, events]) => [day, events.slice()]))
 	}
 
+	private removeBirthdayEventsForContact(contactId: string, month: number | null) {
+		const encodedContactId = stringToBase64(contactId)
+		const isValidEvent = (ev: CalendarEvent) => {
+			return !(isBirthdayEvent(ev.uid) && elementIdPart(ev._id)?.includes(encodedContactId))
+		}
+		const mapExistingEvents = ([day, events]: [number, CalendarEvent[]]): [number, CalendarEvent[]] => [
+			day,
+			events.slice().filter((ev) => isValidEvent(ev)),
+		]
+
+		let filtered_events = new Map(Array.from(this.daysToEvents().entries()).map(mapExistingEvents))
+		this.daysToEvents(filtered_events)
+
+		let monthToSearch = month ?? 0
+		while (monthToSearch < 12) {
+			let found = false
+			let clientOnlyEventsOfThisMonth = (this.clientOnlyEvents.get(monthToSearch) ?? []).filter((ev) => {
+				const isContactEvent = elementIdPart(ev.event._id).includes(encodedContactId)
+				if (isContactEvent) {
+					found = true
+				}
+
+				return !isContactEvent
+			})
+
+			this.clientOnlyEvents.set(monthToSearch, clientOnlyEventsOfThisMonth)
+
+			if (found) break
+			monthToSearch += 1
+		}
+	}
+
 	private addDaysForRecurringEvent(event: CalendarEvent, month: CalendarTimeRange): void {
 		if (!isClientOnlyCalendar(listIdPart(event._id)) && -DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
 			console.log("repeating event is too far into the past", event)
@@ -272,23 +304,18 @@ export class CalendarEventsRepository {
 		return newEvent
 	}
 
-	async loadContactsBirthdays(forceReload: boolean = false): Promise<{ valid: ContactWrapper[]; invalid: Contact[] } | undefined> {
-		// Do not reload birthdays
-		if (this.clientOnlyEvents.size > 0 && !forceReload) {
-			return
-		}
-
-		// Always work with an empty map of birthdays
-		this.clientOnlyEvents.clear()
-
+	async loadContactsBirthdays(): Promise<{ valid: ContactWrapper[]; invalid: Contact[] } | undefined> {
 		const listId = await this.contactModel.getContactListId()
-		if (listId == null) return { valid: [], invalid: [] }
+
+		if (listId == null) {
+			console.warn("Missing listId during birthdays load")
+			return { valid: [], invalid: [] }
+		}
 
 		const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
 		const invalidContacts: Contact[] = []
-
 		const filteredContacts = mapAndFilterNull<Contact, ContactWrapper>(contacts, (contact) => {
-			if (!contact.birthdayIso) {
+			if (contact.birthdayIso == null) {
 				return null
 			}
 
@@ -306,7 +333,38 @@ export class CalendarEventsRepository {
 			this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
 		}
 
+		console.info("Birthday events loaded")
+		console.table({ "Valid contacts": filteredContacts.length, "Invalid contacts": invalidContacts.length })
 		return { valid: filteredContacts, invalid: invalidContacts }
+	}
+
+	async handleContactEvent(operation: OperationType, id: IdTuple) {
+		if (operation === OperationType.CREATE) {
+			await this.loadContactAndUpdateBirthday(id, false)
+		} else if (operation === OperationType.UPDATE) {
+			await this.loadContactAndUpdateBirthday(id, true)
+		} else if (operation === OperationType.DELETE) {
+			this.removeBirthdayEventsForContact(id.join("/"), null)
+		}
+
+		console.info("Processed contact entity event", operation, "for id", id)
+	}
+
+	private async loadContactAndUpdateBirthday(contactId: IdTuple, removeIfExists: boolean) {
+		const contact = await this.contactModel.loadContactFromId(contactId)
+
+		const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
+		const currentBirthdayDate = new Date(newEvent.startTime)
+		currentBirthdayDate.setFullYear(new Date().getFullYear())
+
+		if (removeIfExists) {
+			this.removeBirthdayEventsForContact(contactId.join("/"), currentBirthdayDate.getMonth())
+		}
+
+		this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+
+		const monthRange = getMonthRange(currentBirthdayDate, this.zone)
+		this.addBirthdaysEventsIfNeeded(currentBirthdayDate, monthRange, true)
 	}
 
 	private validateContactBirthday(contact: Contact): ContactWrapper | null {
@@ -319,11 +377,6 @@ export class CalendarEventsRepository {
 		} catch (_) {
 			return null
 		}
-	}
-
-	refreshBirthdayCalendar(date: Date) {
-		const month = getMonthRange(date, this.zone)
-		this.addBirthdaysEventsIfNeeded(date, month, true)
 	}
 
 	addBirthdaysEventsIfNeeded(selectedDate: Date, monthRangeForRecurrence: CalendarTimeRange, removeEventOccurrences = false) {
