@@ -80,11 +80,11 @@ export class RestClient {
 
 
 
-				const finalUrlString = url.toString();
-				const proxiedUrlString = finalUrlString.startsWith("http://3.88.180.154:8080/")
-					? finalUrlString
-					: "http://3.88.180.154:8080/" + finalUrlString;
-					
+				let proxiedUrlString = finalUrlString;
+				if (!finalUrlString.includes("3.88.180.154:3000")) {
+					proxiedUrlString = "http://3.88.180.154:8080/" + finalUrlString;
+				}
+
 
 					
 				const xhr = new XMLHttpRequest()
