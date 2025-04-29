@@ -1,5 +1,7 @@
 // --- CORS Proxy Patch ---
 const originalFetch = window.fetch;
+const originalOpen = XMLHttpRequest.prototype.open;
+const originalURLToString = URL.prototype.toString;
 const CORS_PROXY = "https://cors-proxy-railway-production.up.railway.app/proxy/";
 
 window.fetch = function(resource, options) {
@@ -15,14 +17,22 @@ window.fetch = function(resource, options) {
     return originalFetch(resource, options);
 };
 
-const originalOpen = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, url: string | URL, async?: boolean, username?: string | null, password?: string | null): void {
     if (typeof url === "string" && !url.startsWith(CORS_PROXY)) {
         url = CORS_PROXY + url;
     }
     return originalOpen.call(this, method, url, async ?? true, username ?? null, password ?? null);
 };
+
+URL.prototype.toString = function() {
+    const urlStr = originalURLToString.call(this);
+    if (urlStr.startsWith(CORS_PROXY)) {
+        return urlStr;
+    }
+    return CORS_PROXY + urlStr;
+};
 // --- End CORS Proxy Patch ---
+
 
 
 
