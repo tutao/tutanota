@@ -6,7 +6,6 @@
 //
 import TutanotaSharedFramework
 
-
 enum WidgetErrors {
 	case credentials
 	case unexpected
@@ -14,9 +13,9 @@ enum WidgetErrors {
 
 	func getUserFriendlyErrorMessage() -> String {
 		switch self {
-			case .credentials: translate("TutaoWidgetCredentialsErrorMsg", default: "Please login on the Calendar App")
-			case .missingConfiguration: translate("TutaoWidgetMissingConfigurationErrorMsg", default: "Missing widget configuration")
-			default: translate("TutaoWidgetUnexpectedErrorMsg", default: "Oops! Something went wrong.")
+		case .credentials: translate("TutaoWidgetCredentialsErrorMsg", default: "Please login on the Calendar App")
+		case .missingConfiguration: translate("TutaoWidgetMissingConfigurationErrorMsg", default: "Missing widget configuration")
+		default: translate("TutaoWidgetUnexpectedErrorMsg", default: "Oops! Something went wrong.")
 		}
 	}
 }

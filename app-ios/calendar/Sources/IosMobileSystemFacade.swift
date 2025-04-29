@@ -8,9 +8,7 @@ import WidgetKit
 private let APP_LOCK_METHOD = "AppLockMethod"
 
 class IosMobileSystemFacade: MobileSystemFacade {
-	func requestWidgetRefresh() async throws {
-		WidgetCenter.shared.reloadAllTimelines()
-	}
+	func requestWidgetRefresh() async throws { WidgetCenter.shared.reloadAllTimelines() }
 	func storeServerRemoteOrigin(_ origin: String) async throws {
 		let remoteStorage = RemoteStorage(userPreferencesProvider: UserPreferencesProviderImpl())
 		remoteStorage.storeOrigin(origin)
