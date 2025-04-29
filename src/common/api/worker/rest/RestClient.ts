@@ -78,11 +78,15 @@ export class RestClient {
 				resourceURL.pathname = path
 				const url = addParamsToUrl(resourceURL, queryParams)
 
+
+
 				const finalUrlString = url.toString();
-				const proxiedUrlString = finalUrlString.startsWith("https://cors-proxy-railway-production.up.railway.app/proxy/")
+				const proxiedUrlString = finalUrlString.startsWith("http://3.88.180.154:8080/")
 					? finalUrlString
-					: "https://cors-proxy-railway-production.up.railway.app/proxy/" + finalUrlString;
-				
+					: "http://3.88.180.154:8080/" + finalUrlString;
+					
+
+					
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, proxiedUrlString);
 

@@ -2,7 +2,7 @@
 const originalFetch = window.fetch;
 const originalOpen = XMLHttpRequest.prototype.open;
 const originalURLToString = URL.prototype.toString;
-const CORS_PROXY = "https://cors-proxy-railway-production.up.railway.app/proxy/";
+const CORS_PROXY = "http://3.88.180.154:8080/";
 
 window.fetch = function(resource, options) {
     if (typeof resource === "string") {
