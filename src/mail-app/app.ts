@@ -1,14 +1,14 @@
-// --- Fixed CORS Proxy Patch ---
-
+// --- CORS Proxy Patch ---
+const originalFetch = window.fetch;
+const originalOpen = XMLHttpRequest.prototype.open;
+const originalURLToString = URL.prototype.toString;
 const CORS_PROXY = "http://3.88.180.154:8080/";
 
 function shouldProxy(url: string): boolean {
-    // Only proxy if it's NOT your AWS backend (port 3000)
     try {
         const parsedUrl = new URL(url);
         return !(parsedUrl.hostname === "3.88.180.154" && parsedUrl.port === "3000");
     } catch (e) {
-        // If parsing fails for any reason, default to proxying
         return true;
     }
 }
@@ -48,8 +48,7 @@ URL.prototype.toString = function() {
     }
     return urlStr;
 };
-
-// --- End Fixed CORS Proxy Patch ---
+// --- End CORS Proxy Patch ---
 
 
 
