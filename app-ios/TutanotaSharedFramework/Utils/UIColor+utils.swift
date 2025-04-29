@@ -52,12 +52,11 @@ extension UIColor {
 		let xXYZ = getXYZFromRGBChannel(r)
 		let yXYZ = getXYZFromRGBChannel(g)
 		let zXYZ = getXYZFromRGBChannel(b)
-		
-		return  0.2126 * xXYZ + 0.7152 * yXYZ + 0.0722 * zXYZ
+		return 0.2126 * xXYZ + 0.7152 * yXYZ + 0.0722 * zXYZ
 	}
 
 	private func getXYZFromRGBChannel(_ channelValue: CGFloat) -> CGFloat {
-		if channelValue <= 0.04045 { channelValue / 12.92 } else { pow((channelValue + 0.055)/1.055, 2.4) }
+		if channelValue <= 0.04045 { channelValue / 12.92 } else { pow((channelValue + 0.055) / 1.055, 2.4) }
 	}
 }
 

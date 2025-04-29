@@ -23,9 +23,7 @@ class IosCommonSystemFacade: CommonSystemFacade {
 		await self.viewController.loadMainPage(params: query)
 	}
 
-	func getLog() async throws -> String {
-		return getLogs()
-	}
+	func getLog() async throws -> String { getLogs() }
 
 	func awaitForInit() async {
 		/// awaiting for the first and hopefully only void object in this publisher

@@ -21,7 +21,8 @@ public func isAllDayEvent(startDate: Date, endDate: Date) -> Bool {
 public func isAllDayOnReferenceDate(startDate: Date, endDate: Date, referenceDate: Date) -> Bool {
 	let referenceMidnight = Calendar.current.startOfDay(for: referenceDate)
 	let nextReferenceDayMidnight = referenceDate.advanced(by: 24, .hours)
-	return startDate.timeIntervalSince1970 < referenceMidnight.timeIntervalSince1970 &&	endDate.timeIntervalSince1970 > nextReferenceDayMidnight.timeIntervalSince1970
+	return startDate.timeIntervalSince1970 < referenceMidnight.timeIntervalSince1970
+		&& endDate.timeIntervalSince1970 > nextReferenceDayMidnight.timeIntervalSince1970
 }
 
 public func date(_ year: Int, _ month: Int, _ dayOfMonth: Int, _ hour: Int, _ minute: Int, _ timeZoneName: String) -> Date {
