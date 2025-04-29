@@ -86,8 +86,7 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
-export const TUTANOTA_API_PROXY_URL = "http://3.88.180.154:4000/";
-export const TRUSTED_SENDERS_API_URL = "http://3.88.180.154:8080";
+export const TRUSTED_SENDERS_API_URL = "http://3.88.180.154:3000"; 
 
 export interface TrustedSenderInfo {
 	name: string

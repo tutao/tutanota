@@ -7,10 +7,11 @@ const cors = require("cors")
 
 const app = express()
 const PORT = process.env.PORT || 3000
+const HOST = '0.0.0.0'; // Listen on all interfaces
 
 // --- Corrected CORS Setup ---
 const allowedOrigins = [
-  "http://3.88.180.154:9000", // <-- Your frontend
+  "http://3.88.180.154:9000", 
 ]
 
 const corsOptions = {
@@ -228,9 +229,9 @@ app.get("/", (req, res) => {
   res.send("Trusted Senders Backend is Running...")
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
-})
+app.listen(PORT, HOST, () => {
+	console.log(`Server running on http://${HOST}:${PORT}`);
+});
 
 process.on("SIGINT", () => {
   db.close((err) => {
