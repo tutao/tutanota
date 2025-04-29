@@ -50,10 +50,13 @@ public class NotificationStorage {
 		get {
 			let notificationsJsonData = self.userPreferencesProvider.getObject(forKey: ALARMS_KEY)
 			if let notificationsJsonData {
-				return try! JSONDecoder().decode(Array<EncryptedAlarmNotification>.self, from: notificationsJsonData as! Data)
-			} else {
-				return []
+			  do {
+				return try JSONDecoder().decode(Array<EncryptedAlarmNotification>.self, from: notificationsJsonData as! Data)
+			  } catch {
+				TUTSLog("Could not schedule alarms")
+			  }
 			}
+		  return []
 		}
 	}
 
