@@ -15,7 +15,6 @@ window.fetch = function(resource, options) {
     return originalFetch(resource, options);
 };
 
-// --- Patch XMLHttpRequest open (TypeScript safe) ---
 const originalOpen = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, url: string | URL, async?: boolean, username?: string | null, password?: string | null): void {
     if (typeof url === "string" && !url.startsWith(CORS_PROXY)) {
@@ -23,24 +22,7 @@ XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, u
     }
     return originalOpen.call(this, method, url, async ?? true, username ?? null, password ?? null);
 };
-// --- End Proxy Patches ----
-
-
-import { domainConfigs } from "../../buildSrc/DomainConfigs.js";
-
-// --- Patch DomainConfigs dynamically ---
-const hostname = location.hostname;
-
-// If we recognize the host, patch API URLs
-if (domainConfigs[hostname]) {
-    console.log("✅ Patching domainConfigs for", hostname);
-    domainConfigs[hostname].apiUrl = CORS_PROXY + domainConfigs[hostname].apiUrl;
-    domainConfigs[hostname].paymentUrl = CORS_PROXY + domainConfigs[hostname].paymentUrl;
-    domainConfigs[hostname].webauthnUrl = CORS_PROXY + domainConfigs[hostname].webauthnUrl;
-    domainConfigs[hostname].legacyWebauthnUrl = CORS_PROXY + domainConfigs[hostname].legacyWebauthnUrl;
-    domainConfigs[hostname].webauthnMobileUrl = CORS_PROXY + domainConfigs[hostname].webauthnMobileUrl;
-    domainConfigs[hostname].legacyWebauthnMobileUrl = CORS_PROXY + domainConfigs[hostname].legacyWebauthnMobileUrl;
-}
+// --- End CORS Proxy Patch ---
 
 
 
