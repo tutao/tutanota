@@ -60,7 +60,10 @@ export function decryptValue(
 }
 
 export class CryptoMapper {
-	constructor(private readonly clientTypeModel: ClientTypeReferenceResolver, private readonly serverTypeModel: ServerTypeReferenceResolver) {}
+	constructor(
+		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
+		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver,
+	) {}
 
 	public async decryptParsedInstance(
 		serverTypeModel: ServerTypeModel,
@@ -115,7 +118,7 @@ export class CryptoMapper {
 			const encryptedInstanceValue = encryptedInstance[associationId]
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? serverTypeModel.app
-				const associationTypeModel = await this.serverTypeModel(new TypeRef(appName, associationType.refTypeId))
+				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
 				decrypted[associationId] = await this.decryptAggregateAssociation(
 					associationTypeModel,
 					encryptedInstanceValue as Array<ServerModelEncryptedParsedInstance>,
@@ -178,7 +181,7 @@ export class CryptoMapper {
 			const associationType = clientTypeModel.associations[associationId]
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? clientTypeModel.app
-				const aggregateTypeModel = await this.clientTypeModel(new TypeRef(appName, associationType.refTypeId))
+				const aggregateTypeModel = await this.clientTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
 				const aggregate = parsedInstance[associationId] as Array<ClientModelParsedInstance>
 				encrypted[associationId] = await this.encryptAggregateAssociation(aggregateTypeModel, aggregate, sk)
 			} else {

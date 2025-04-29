@@ -27,7 +27,10 @@ import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
  * The objects are treated according to the server's model version.
  */
 export class TypeMapper {
-	constructor(private readonly clientTypeModel: ClientTypeReferenceResolver, private readonly serverTypeModel: ServerTypeReferenceResolver) {}
+	constructor(
+		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
+		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver,
+	) {}
 
 	async applyJsTypes(serverTypeModel: ServerTypeModel, instance: ServerModelUntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
 		let parsedInstance: ServerModelEncryptedParsedInstance = {} as ServerModelEncryptedParsedInstance
@@ -70,7 +73,7 @@ export class TypeMapper {
 
 			if (modelAssociation.type === AssociationType.Aggregation) {
 				const appName = modelAssociation.dependency ?? serverTypeModel.app
-				const associationTypeModel = await this.serverTypeModel(new TypeRef(appName, modelAssociation.refTypeId))
+				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, modelAssociation.refTypeId))
 
 				const encryptedParsedAssociationValues: Array<ServerModelEncryptedParsedInstance> = []
 				for (const value of associationValues) {
@@ -127,7 +130,7 @@ export class TypeMapper {
 			const values = instance[attrId] as EncryptedParsedAssociation
 			if (modelAssociation.type === AssociationType.Aggregation) {
 				const appName = modelAssociation.dependency ?? clientTypeModel.app
-				const associationTypeModel = await this.clientTypeModel(new TypeRef(appName, modelAssociation.refTypeId))
+				const associationTypeModel = await this.clientTypeReferenceResolver(new TypeRef(appName, modelAssociation.refTypeId))
 
 				const untypedAssociationValues: Array<UntypedInstance> = []
 				for (const value of values) {

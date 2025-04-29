@@ -136,18 +136,18 @@ function assertCompatibleModelTypesForApplyingClientModel(
 export class ModelMapper {
 	constructor(
 		/** resolves typerefs against the type models used by the clients business logic. */
-		private readonly clientTypes: ClientTypeReferenceResolver,
+		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
 		/** resolves typerefs against the current type models as used on the server the client connects to */
-		private readonly serverTypes: ServerTypeReferenceResolver,
+		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver,
 	) {}
 
 	async mapToInstance<T extends Entity>(typeRef: TypeRef<unknown>, parsedInstance: ServerModelParsedInstance): Promise<T> {
 		// in case of a new type, the server should not send it to clients until the oldest client can handle it.
 		// if a type is not in the client's model anymore, it should have been removed from the business logic and
 		// the server should have stopped sending it by now.
-		const clientTypeModel = await this.clientTypes(typeRef)
+		const clientTypeModel = await this.clientTypeReferenceResolver(typeRef)
 		// the server sent the instance, so it should be in the server's type models no matter what.
-		const serverTypeModel = await this.serverTypes(typeRef)
+		const serverTypeModel = await this.serverTypeReferenceResolver(typeRef)
 
 		const clientInstance: Record<string, unknown> = {
 			_type: typeRef,
@@ -215,7 +215,7 @@ export class ModelMapper {
 	}
 
 	async mapToClientModelParsedInstance<T extends Entity>(typeRef: TypeRef<T>, instance: T): Promise<ClientModelParsedInstance> {
-		const clientTypeModel = await this.clientTypes(typeRef)
+		const clientTypeModel = await this.clientTypeReferenceResolver(typeRef)
 
 		const parsedInstance: Record<number, unknown> & { _finalIvs: unknown } = {
 			_finalIvs: typeof instance["_finalIvs"] !== "undefined" ? instance["_finalIvs"] : {},
