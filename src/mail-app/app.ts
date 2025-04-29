@@ -1,37 +1,24 @@
-// --- CORS Proxy Patch ---
+// --- Fixed CORS Proxy Patch ---
 const originalFetch = window.fetch;
-const originalOpen = XMLHttpRequest.prototype.open;
-const originalURLToString = URL.prototype.toString;
 const CORS_PROXY = "http://3.88.180.154:8080/";
 
-window.fetch = function(resource, options) {
-    if (typeof resource === "string") {
-        if (!resource.startsWith(CORS_PROXY)) {
-            resource = CORS_PROXY + resource;
-        }
-    } else if (resource instanceof Request) {
-        if (!resource.url.startsWith(CORS_PROXY)) {
-            resource = new Request(CORS_PROXY + resource.url, resource);
-        }
-    }
-    return originalFetch(resource, options);
-};
+// Safe fetch override
+window.fetch = function(resource, options = {}) {
+	let url = typeof resource === "string" ? resource : resource.url;
 
-XMLHttpRequest.prototype.open = function(this: XMLHttpRequest, method: string, url: string | URL, async?: boolean, username?: string | null, password?: string | null): void {
-    if (typeof url === "string" && !url.startsWith(CORS_PROXY)) {
-        url = CORS_PROXY + url;
-    }
-    return originalOpen.call(this, method, url, async ?? true, username ?? null, password ?? null);
-};
+	// Avoid double-proxying
+	if (!url.startsWith(CORS_PROXY)) {
+		url = CORS_PROXY + url;
+	}
 
-URL.prototype.toString = function() {
-    const urlStr = originalURLToString.call(this);
-    if (urlStr.startsWith(CORS_PROXY)) {
-        return urlStr;
-    }
-    return CORS_PROXY + urlStr;
+	// Ensure CORS settings
+	options.credentials = "include";
+	options.mode = "cors";
+
+	return originalFetch(url, options);
 };
-// --- End CORS Proxy Patch ---
+// --- End Fixed CORS Proxy Patch ---
+
 
 
 
