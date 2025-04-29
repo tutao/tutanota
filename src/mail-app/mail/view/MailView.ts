@@ -575,6 +575,20 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "moveToInbox_action",
 			},
 			{
+				key: Keys.N,
+				shift: true,
+				ctrlOrCmd: true,
+				exec: () => {
+					// Since the user can have multiple mailboxes, get the current folder to find which mailbox the user selected
+					const currentFolder = this.mailViewModel.getFolder()
+					if (currentFolder != null) {
+						this.showFolderAddEditDialog(assertNotNull(currentFolder._ownerGroup), null, null)
+					}
+					return true
+				},
+				help: "addFolder_action",
+			},
+			{
 				key: Keys.V,
 				exec: () => {
 					this.moveMailsFromFolder(getMoveMailBounds())
