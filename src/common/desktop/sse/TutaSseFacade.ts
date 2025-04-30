@@ -17,7 +17,6 @@ import { DateProvider } from "../../api/common/DateProvider.js"
 import { SseInfo } from "./SseInfo.js"
 import { FetchImpl } from "../net/NetAgent"
 import { ServerModelUntypedInstance } from "../../api/common/EntityTypes"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../api/common/EntityFunctions"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import { EncryptedMissedNotification } from "../../native/common/EncryptedMissedNotification"
@@ -31,7 +30,6 @@ import { elementIdPart } from "../../api/common/utils/EntityUtils"
 const log = makeTaggedLogger("[SSEFacade]")
 
 export const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
-const instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
 
 export class TutaSseFacade implements SseEventHandler {
 	private currentSseInfo: SseInfo | null = null
@@ -45,6 +43,7 @@ export class TutaSseFacade implements SseEventHandler {
 		private readonly appVersion: string,
 		private readonly fetch: FetchImpl,
 		private readonly date: DateProvider,
+		private readonly nativeInstancePipeline: InstancePipeline,
 	) {
 		sseClient.setEventListener(this)
 	}
@@ -106,7 +105,7 @@ export class TutaSseFacade implements SseEventHandler {
 				}),
 			],
 		})
-		const untypedInstance = await instancePipeline.mapAndEncrypt(SseConnectDataTypeRef, connectData, null)
+		const untypedInstance = await this.nativeInstancePipeline.mapAndEncrypt(SseConnectDataTypeRef, connectData, null)
 		return JSON.stringify(untypedInstance)
 	}
 
@@ -133,7 +132,7 @@ export class TutaSseFacade implements SseEventHandler {
 		const sseInfo = this.currentSseInfo
 		if (sseInfo == null) return
 		for (const notificationInfoUntyped of encryptedMissedNotification.notificationInfos) {
-			const notificationInfo = await instancePipeline.decryptAndMap(NotificationInfoTypeRef, notificationInfoUntyped, null)
+			const notificationInfo = await this.nativeInstancePipeline.decryptAndMap(NotificationInfoTypeRef, notificationInfoUntyped, null)
 			await this.notificationHandler.onMailNotification(sseInfo, notificationInfo)
 		}
 		await this.handleAlarmNotification(encryptedMissedNotification)
@@ -158,7 +157,7 @@ export class TutaSseFacade implements SseEventHandler {
 						// our pushEncSessionKeys.
 						throw new CryptoError("could not find session key to decrypt alarm notification")
 					}
-					const alarmNotification = await instancePipeline.decryptAndMap(
+					const alarmNotification = await this.nativeInstancePipeline.decryptAndMap(
 						AlarmNotificationTypeRef,
 						alarmNotificationUntyped,
 						assertNotNull(sk).sessionKey,

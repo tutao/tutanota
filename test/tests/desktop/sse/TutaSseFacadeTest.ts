@@ -26,7 +26,7 @@ import {
 import { createTestEntity, mockFetchRequest, removeAggregateIds, removeFinalIvs } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../../../src/common/api/common/EntityFunctions"
+import { resolveClientTypeReference } from "../../../../src/common/api/common/EntityFunctions"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { StrippedEntity } from "../../../../src/common/api/common/utils/EntityUtils"
@@ -40,7 +40,6 @@ import { AttributeModel } from "../../../../src/common/api/common/AttributeModel
 
 const APP_V = env.versionNumber
 
-const instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
 const { anything } = matchers
 
 o.spec("TutaSseFacade", () => {
@@ -52,6 +51,7 @@ o.spec("TutaSseFacade", () => {
 	let alarmScheduler: DesktopAlarmScheduler = object()
 	let fetch: typeof undiciFetch
 	let date: DateProvider
+	let nativeInstancePipeline: InstancePipeline
 	o.beforeEach(() => {
 		sseStorage = object()
 		notificationHandler = object()
@@ -60,7 +60,8 @@ o.spec("TutaSseFacade", () => {
 		alarmScheduler = object()
 		fetch = func<typeof undiciFetch>()
 		date = object()
-		sseFacade = new TutaSseFacade(sseStorage, notificationHandler, sseClient, alarmStorage, alarmScheduler, APP_V, fetch, date)
+		nativeInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveClientTypeReference)
+		sseFacade = new TutaSseFacade(sseStorage, notificationHandler, sseClient, alarmStorage, alarmScheduler, APP_V, fetch, date, nativeInstancePipeline)
 	})
 
 	function setupSseInfo(template: Partial<SseInfo> = {}): SseInfo {
@@ -86,7 +87,7 @@ o.spec("TutaSseFacade", () => {
 					matchers.argThat(async (opts: SseConnectOptions) => {
 						const actualUrl = opts.url
 						const actualBody: ServerModelUntypedInstance = JSON.parse(assertNotNull(actualUrl.searchParams.get("_body")))
-						const connectData = await instancePipeline.decryptAndMap(SseConnectDataTypeRef, actualBody, null)
+						const connectData = await nativeInstancePipeline.decryptAndMap(SseConnectDataTypeRef, actualBody, null)
 						return (
 							actualUrl.origin === expectedUrl.origin &&
 							connectData.identifier === "id" &&
@@ -175,7 +176,7 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await instancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
 			const strippedEncryptedNotificationInfo: StrippedEntity<NotificationInfo> = {
 				mailAddress: notificationInfo.mailAddress,
 				userId: notificationInfo.userId,
@@ -250,7 +251,7 @@ o.spec("TutaSseFacade", () => {
 				}),
 			})
 			// casting here is fine, since we just want to mimic server response data
-			const untypedInstance = (await instancePipeline.mapAndEncrypt(
+			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
 				MissedNotificationTypeRef,
 				missedNotification,
 				sk,
@@ -287,7 +288,7 @@ o.spec("TutaSseFacade", () => {
 			const sk = aes256RandomKey()
 			when(alarmStorage.getNotificationSessionKey(anything())).thenResolve(null)
 			// casting here is fine, since we just want to mimic server response data
-			const untypedInstance = (await instancePipeline.mapAndEncrypt(
+			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
 				MissedNotificationTypeRef,
 				missedNotification,
 				sk,
@@ -335,7 +336,7 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			// casting here is fine, since we just want to mimic server response data
-			const untypedInstance = (await instancePipeline.mapAndEncrypt(
+			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(
 				MissedNotificationTypeRef,
 				missedNotification,
 				sk,
@@ -374,7 +375,7 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await instancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
 
 			await sseFacade.connect()
 
@@ -453,7 +454,7 @@ o.spec("TutaSseFacade", () => {
 			const url = captor.values![1].url
 			const body = url.searchParams.get("_body")!
 
-			const instance = await instancePipeline.decryptAndMap(SseConnectDataTypeRef, JSON.parse(body), null)
+			const instance = await nativeInstancePipeline.decryptAndMap(SseConnectDataTypeRef, JSON.parse(body), null)
 			o(instance.userIds.length).equals(1)
 			o(instance.userIds[0].value).equals("user1")
 		})

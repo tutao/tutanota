@@ -11,7 +11,7 @@ import {
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
 import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValue, ServerModelParsedInstance } from "../../common/EntityTypes"
-import { assertWorkerOrNode } from "../../common/Env"
+import { assertWorkerOrNode, isWebClient } from "../../common/Env"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { random } from "@tutao/tutanota-crypto"
@@ -138,8 +138,12 @@ export class ModelMapper {
 		/** resolves typerefs against the type models used by the clients business logic. */
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
 		/** resolves typerefs against the current type models as used on the server the client connects to */
-		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver,
-	) {}
+		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
+	) {
+		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
+			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
+		}
+	}
 
 	async mapToInstance<T extends Entity>(typeRef: TypeRef<unknown>, parsedInstance: ServerModelParsedInstance): Promise<T> {
 		// in case of a new type, the server should not send it to clients until the oldest client can handle it.

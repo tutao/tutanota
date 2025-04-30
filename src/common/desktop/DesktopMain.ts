@@ -77,7 +77,9 @@ import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
-import { resolveClientTypeReference, ServerTypeReferenceResolver } from "../api/common/EntityFunctions"
+import { globalServerModelInfo, resolveClientTypeReference, ServerTypeReferenceResolver } from "../api/common/EntityFunctions"
+import { ApplicationTypesFacade } from "../api/worker/facades/ApplicationTypesFacade"
+import { locator } from "../../mail-app/workerUtils/worker/WorkerLocator"
 
 mp()
 
@@ -165,10 +167,11 @@ async function createComponents(): Promise<Components> {
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DefaultDateProvider()
-	// we need a custom instance pipeline for the alarm storage as the alarm storage only works on the client type model
-	const alarmStorageInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveClientTypeReference as unknown as ServerTypeReferenceResolver)
+	// We need a custom instance pipeline for everything native as we only process them with the client type model
+	// When upgrading things in SseFacade and AlarmStorage, we need to deprecate the old clients potentially
+	const nativeInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveClientTypeReference)
 	const sseStorage = new SseStorage(conf)
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, alarmStorageInstancePipeline)
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, makeDbPath("credentials"), app)
@@ -262,6 +265,7 @@ async function createComponents(): Promise<Components> {
 		app.getVersion(),
 		suspensionAwareFetch,
 		dateProvider,
+		nativeInstancePipeline,
 	)
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
@@ -270,7 +274,7 @@ async function createComponents(): Promise<Components> {
 		eml: desktopUtils.getIconByName("eml.png"),
 		msg: desktopUtils.getIconByName("msg.png"),
 	}
-	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage, alarmStorageInstancePipeline)
+	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage, nativeInstancePipeline)
 	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
 	const desktopImportFacade = new DesktopMailImportFacade(electron, notifier, lang)
 

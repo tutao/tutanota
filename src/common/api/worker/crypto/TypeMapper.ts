@@ -16,6 +16,7 @@ import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../
 import { TypeRef, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
+import { isWebClient } from "../../common/Env"
 
 /**
  * takes a raw parsed JSON value as received from the server and converts its attribute values from the
@@ -29,10 +30,14 @@ import { convertDbToJsType, convertJsToDbType } from "./ModelMapper"
 export class TypeMapper {
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
-		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver,
-	) {}
+		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
+	) {
+		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
+			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
+		}
+	}
 
-	async applyJsTypes(serverTypeModel: ServerTypeModel, instance: ServerModelUntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
+	async applyJsTypes(serverTypeModel: ServerTypeModel | ClientTypeModel, instance: ServerModelUntypedInstance): Promise<ServerModelEncryptedParsedInstance> {
 		let parsedInstance: ServerModelEncryptedParsedInstance = {} as ServerModelEncryptedParsedInstance
 		for (const [attrIdStr, modelValue] of Object.entries(serverTypeModel.values)) {
 			let attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys

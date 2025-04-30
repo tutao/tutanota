@@ -6,6 +6,8 @@ import { ModelMapper } from "./ModelMapper"
 import { downcast, TypeRef } from "@tutao/tutanota-utils"
 import { AesKey } from "@tutao/tutanota-crypto"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { isWebClient } from "../../common/Env"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 export class InstancePipeline {
 	readonly typeMapper: TypeMapper
@@ -14,8 +16,11 @@ export class InstancePipeline {
 
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
-		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver,
+		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
 	) {
+		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
+			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
+		}
 		this.typeMapper = new TypeMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
 		this.cryptoMapper = new CryptoMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)
 		this.modelMapper = new ModelMapper(clientTypeReferenceResolver, serverTypeReferenceResolver)

@@ -15,6 +15,8 @@ import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./ModelMapper"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
+import { isWebClient } from "../../common/Env"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 // Exported for testing
 export function encryptValue(
@@ -62,11 +64,15 @@ export function decryptValue(
 export class CryptoMapper {
 	constructor(
 		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
-		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver,
-	) {}
+		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
+	) {
+		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
+			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
+		}
+	}
 
 	public async decryptParsedInstance(
-		serverTypeModel: ServerTypeModel,
+		serverTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		sk: Nullable<AesKey>,
 	): Promise<ServerModelParsedInstance> {
@@ -132,7 +138,7 @@ export class CryptoMapper {
 	}
 
 	private async decryptAggregateAssociation(
-		associationServerTypeModel: ServerTypeModel,
+		associationServerTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		sk: Nullable<AesKey>,
 	): Promise<Array<ServerModelParsedInstance>> {
