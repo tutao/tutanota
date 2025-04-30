@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-04-29T04:39:14Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1589,6 +1589,8 @@ export default {
 		"searchedUntil_msg": "Searched until",
 		"searchEmails_placeholder": "Search emails",
 		"searchGroups_placeholder": "Search for groups",
+		"searchInOurAppsLinkText_msg": "our apps",
+		"searchInOurApps_msg": "Faster and better email searching is available at {link}!",
 		"searchKnowledgebase_placeholder": "Search knowledgebase",
 		"searchMailboxes_placeholder": "Search for mailboxes",
 		"searchMailbox_label": "Search mailbox",

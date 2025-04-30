@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-04-29T14:37:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1118,6 +1118,7 @@ export default {
 		"redeem_label": "خرج کردن",
 		"redo_action": "رجوع به عمل پیش",
 		"referralCreditPosting_label": "اعتبار معرفی به دیگران",
+		"referralLinkLong_msg": "توتا را به دوستان خود معرفی کنید: اگر آنها با استفاده از لینک معرفی شخصی شما افدام به خرید اشتراک سالیانه کنند، ۲۵٪ مبلغ پرداختی آنها به صورت اعتبار به حساب شما واریز خواهد شد و آنها نیز یک ماه اضافه به طور رایگان دریافت خواهند کرد.",
 		"referralLinkShare_msg": "اینک مشترک توتانوتا شوید: {referralLink}",
 		"referralLink_label": "لینک پیشنهاد به دوستان",
 		"referralSettings_label": "معرفی به دوستان",

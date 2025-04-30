@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-04-30T05:32:54Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1353,7 +1353,7 @@ export default {
 		"pricing.comparisonSupportFree_tooltip_markdown": "<p>Máte přístup k naší chytré nápovědě v aplikaci Tuta nebo položte své dotazy na našem <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.reddit.com/r/tutanota/\">fóru</a>. Bez e-mailové podpory.</p>\n",
 		"pricing.comparisonSupportPremium_msg": "Podpora přes e-mail",
 		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>Máte přístup k naší chytré nápovědě přímo v aplikaci Tuta s možností kontaktovat náš tým podpory e-mailem. Odpovíme vám do jednoho pracovního dne.</p>\n",
-		"pricing.comparisonSupportPro_msg": "Prioritní podpora",
+		"pricing.comparisonSupportPro_msg": "Prioritní podpora přes e-mail",
 		"pricing.comparisonThemePro_msg": "Vlastní logo a barvy",
 		"pricing.comparisonThemePro_tooltip": "Tuta Whitelabel s vaším logem a barvami v aplikacích pro web, mobily a počítače.",
 		"pricing.comparisonUnlimitedDomains_msg": "Neomezený počet vlastních domén",
@@ -1590,6 +1590,8 @@ export default {
 		"searchedUntil_msg": "Prohledáno do",
 		"searchEmails_placeholder": "Hledat e-maily",
 		"searchGroups_placeholder": "Hledat skupiny",
+		"searchInOurAppsLinkText_msg": "naše aplikace",
+		"searchInOurApps_msg": "Rychlejší a lepší vyhledávání e-mailů je k dispozici na adrese {link}!",
 		"searchKnowledgebase_placeholder": "Prohledat znalostní bázi",
 		"searchMailboxes_placeholder": "Vyhledávání e-mailových schránek",
 		"searchMailbox_label": "Prohledávání schránky",

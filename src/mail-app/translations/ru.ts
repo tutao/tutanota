@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-04-29T08:21:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1593,6 +1593,8 @@ export default {
 		"searchedUntil_msg": "Искать до",
 		"searchEmails_placeholder": "Поиск писем",
 		"searchGroups_placeholder": "Поиск групп",
+		"searchInOurAppsLinkText_msg": "наши приложения",
+		"searchInOurApps_msg": "Более быстрый и эффективный поиск электронной почты доступен по {ссылке}!",
 		"searchKnowledgebase_placeholder": "Поиск в базе знаний",
 		"searchMailboxes_placeholder": "Поиск почтовых ящиков",
 		"searchMailbox_label": "Поиск по почтовому ящику",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-04-29T04:39:14Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1355,7 +1355,7 @@ export default {
 		"pricing.comparisonSupportFree_tooltip_markdown": "<p>Zugang zu unserem intelligenten Hilfebereich direkt in Tuta oder stellen Sie Ihre Fragen in unserem Community-Support <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.reddit.com/r/tutanota/\">Forum</a>. Kein E-Mail-Support.</p>\n",
 		"pricing.comparisonSupportPremium_msg": "Support via E-Mail",
 		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>Zugang zu unserem intelligenten Hilfebereich direkt in Tuta, mit der Möglichkeit, unser Support-Team per E-Mail zu kontaktieren. Wir antworten innerhalb eines Arbeitstages.</p>\n",
-		"pricing.comparisonSupportPro_msg": "Pro-Support",
+		"pricing.comparisonSupportPro_msg": "Vorrangiger E-Mail-Support",
 		"pricing.comparisonThemePro_msg": "Eigenes Logo/Farben",
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tuta mit Ihrem eigenen Branding, indem Sie die Logos und Farben der Tuta Web-, Mobile- und Desktop-Clients anpassen.",
 		"pricing.comparisonUnlimitedDomains_msg": "Unbegrenzte eigene Domains",
@@ -1593,6 +1593,8 @@ export default {
 		"searchedUntil_msg": "Gesucht bis",
 		"searchEmails_placeholder": "Suche nach E-Mails",
 		"searchGroups_placeholder": "Suche nach Gruppen",
+		"searchInOurAppsLinkText_msg": "unsere Apps",
+		"searchInOurApps_msg": "Eine schnellere und bessere E-Mail-Suche ist unter {link} verfügbar!",
 		"searchKnowledgebase_placeholder": "Knowledgebase durchsuchen",
 		"searchMailboxes_placeholder": "Suche nach Mailboxen",
 		"searchMailbox_label": "Suche in Mailbox",

@@ -1572,6 +1572,8 @@ export type TranslationKeyType =
 	| "searchedUntil_msg"
 	| "searchEmails_placeholder"
 	| "searchGroups_placeholder"
+	| "searchInOurAppsLinkText_msg"
+	| "searchInOurApps_msg"
 	| "searchKnowledgebase_placeholder"
 	| "searchMailboxes_placeholder"
 	| "searchMailbox_label"
