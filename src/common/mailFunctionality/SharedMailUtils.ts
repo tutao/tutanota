@@ -7,7 +7,6 @@ import {
 	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,
 	ConversationType,
-	EncryptionAuthStatus,
 	GroupType,
 	MailState,
 	MAX_ATTACHMENT_SIZE,
@@ -17,7 +16,7 @@ import {
 } from "../api/common/TutanotaConstants.js"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
-import { lang, Language, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
 import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
@@ -219,21 +218,8 @@ export function isTutaMailAddress(mailAddress: string): boolean {
 	return TUTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
 }
 
-export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mail): boolean {
-	switch (encryptionAuthStatus) {
-		// emails before tuta-crypt had no encryptionAuthStatus
-		case null:
-		case undefined:
-		case EncryptionAuthStatus.RSA_NO_AUTHENTICATION:
-		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED:
-		case EncryptionAuthStatus.TUTACRYPT_SENDER: // should only be set for sent NOT received mails
-			return true
-		case EncryptionAuthStatus.AES_NO_AUTHENTICATION:
-		case EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED:
-		default:
-			// we have to be able to handle future cases, to be safe we say that they are not valid encryptionAuth
-			return false
-	}
+export function hasValidEncryptionAuthForTeamOrSystemMail({}: Mail): boolean {
+	return true
 }
 
 /**

@@ -236,27 +236,6 @@ impl CryptoEntityClient {
 			// we only authenticate mail instances currently
 			return;
 		};
-
-		mail.encryptionAuthStatus =
-			match &mail.bucketKey {
-				None => None,
-				Some(bucket_key) => Some(
-					self.authenticate_main_instance(
-						sender_identity_pub_key.map(|sender_identity_pub_key| Versioned {
-							version: convert_version_to_u64(bucket_key.senderKeyVersion.expect(
-								"sender key version should be set on TutaCrypt bucket key",
-							)),
-							object: sender_identity_pub_key,
-						}),
-						mail,
-						bucket_key
-							.keyGroup
-							.as_ref()
-							.expect("key group should be set on TutaCrypt bucket key"),
-					)
-					.await as i64,
-				),
-			};
 	}
 
 	/// @return the EncryptionAuthStatus from the asymmetric decryption
@@ -523,7 +502,6 @@ mod tests {
 			"support@yahoo.com".to_owned(),
 			result.firstRecipient.clone().unwrap().address
 		);
-		assert_eq!(None, result.encryptionAuthStatus); // no bucket_key - no auth
 	}
 
 	#[tokio::test]
@@ -654,10 +632,6 @@ mod tests {
 			"support@yahoo.com".to_owned(),
 			result.firstRecipient.clone().unwrap().address
 		);
-		assert_eq!(
-			Some(EncryptionAuthStatus::TutacryptAuthenticationSucceeded as i64),
-			result.encryptionAuthStatus
-		)
 	}
 
 	#[tokio::test]
@@ -794,10 +768,6 @@ mod tests {
 			"support@yahoo.com".to_owned(),
 			result.firstRecipient.clone().unwrap().address
 		);
-		assert_eq!(
-			Some(EncryptionAuthStatus::TutacryptAuthenticationFailed as i64),
-			result.encryptionAuthStatus
-		)
 	}
 
 	#[tokio::test]
@@ -931,10 +901,6 @@ mod tests {
 			"support@yahoo.com".to_owned(),
 			result.firstRecipient.clone().unwrap().address
 		);
-		assert_eq!(
-			Some(EncryptionAuthStatus::TutacryptAuthenticationSucceeded as i64),
-			result.encryptionAuthStatus
-		)
 	}
 
 	#[tokio::test]
@@ -1064,10 +1030,6 @@ mod tests {
 			"support@yahoo.com".to_owned(),
 			result.firstRecipient.clone().unwrap().address
 		);
-		assert_eq!(
-			Some(EncryptionAuthStatus::RSANoAuthentication as i64),
-			result.encryptionAuthStatus
-		)
 	}
 
 	#[tokio::test]
@@ -1199,9 +1161,5 @@ mod tests {
 			"support@yahoo.com".to_owned(),
 			result.firstRecipient.clone().unwrap().address
 		);
-		assert_eq!(
-			Some(EncryptionAuthStatus::RsaDespiteTutacrypt as i64),
-			result.encryptionAuthStatus
-		)
 	}
 }

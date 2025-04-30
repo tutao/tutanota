@@ -7,7 +7,6 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { $Promisable, assertNotNull, endsWith, first, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
-	EncryptionAuthStatus,
 	getMailFolderType,
 	MailReportType,
 	MailSetKind,
@@ -467,15 +466,8 @@ export function isTutanotaTeamMail(mail: Mail): boolean {
  */
 export function getConfidentialIcon(mail: Mail): Icons {
 	if (!mail.confidential) throw new ProgrammingError("mail is not confidential")
-	if (
-		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED ||
-		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED ||
-		mail.encryptionAuthStatus == EncryptionAuthStatus.TUTACRYPT_SENDER
-	) {
-		return Icons.PQLock
-	} else {
-		return Icons.Lock
-	}
+
+	return Icons.PQLock
 }
 
 /**

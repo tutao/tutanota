@@ -628,10 +628,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
 		const authFailedHard =
 			// the banner should not be shown if mailDetails are not yet loaded
-			(viewModel.isMailAuthenticationStatusLoaded() &&
-				!viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
-				!viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) ||
-			viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+			viewModel.isMailAuthenticationStatusLoaded() &&
+			!viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
+			!viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)
 
 		if (authFailedHard) {
 			return m(InfoBanner, {
@@ -656,7 +655,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				click: () => viewModel.setWarningDismissed(true),
 			},
 		]
-		if (viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT) {
+		if (false) {
 			return m(InfoBanner, {
 				message: () => lang.get("deprecatedKeyWarning_msg"),
 				icon: Icons.Warning,

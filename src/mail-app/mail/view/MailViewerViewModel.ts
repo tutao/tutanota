@@ -14,7 +14,6 @@ import {
 	ExternalImageRule,
 	FeatureType,
 	MailAuthenticationStatus,
-	MailMethod,
 	MailPhishingStatus,
 	MailReportType,
 	MailSetKind,
@@ -148,6 +147,7 @@ export class MailViewerViewModel {
 		if (showFolder) {
 			this.showFolder()
 		}
+		console.log(this._mail)
 		this.eventController.addEntityListener(this.entityListener)
 	}
 
@@ -335,7 +335,7 @@ export class MailViewerViewModel {
 	}
 
 	isMailSuspicious(): boolean {
-		return this.mail.phishingStatus === MailPhishingStatus.SUSPICIOUS
+		return this.mail.phishingState === MailPhishingStatus.SUSPICIOUS
 	}
 
 	getMailId(): IdTuple {
@@ -411,11 +411,11 @@ export class MailViewerViewModel {
 	}
 
 	getPhishingStatus(): MailPhishingStatus {
-		return this.mail.phishingStatus as MailPhishingStatus
+		return this.mail.phishingState as MailPhishingStatus
 	}
 
 	setPhishingStatus(status: MailPhishingStatus) {
-		this.mail.phishingStatus = status
+		this.mail.phishingState = status
 	}
 
 	isMailAuthenticationStatusLoaded(): boolean {
@@ -723,7 +723,7 @@ export class MailViewerViewModel {
 	}
 
 	private checkMailForPhishing(mail: Mail, links: Array<HTMLElement>) {
-		if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
+		if (mail.phishingState === MailPhishingStatus.UNKNOWN) {
 			const linkObjects = links.map((link) => {
 				return {
 					href: link.getAttribute("href") || "",
@@ -733,7 +733,7 @@ export class MailViewerViewModel {
 
 			this.mailModel.checkMailForPhishing(mail, linkObjects).then((isSuspicious) => {
 				if (isSuspicious) {
-					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
+					mail.phishingState = MailPhishingStatus.SUSPICIOUS
 
 					this.entityClient
 						.update(mail)
@@ -755,7 +755,7 @@ export class MailViewerViewModel {
 	private handleCalendarFile(files: Array<TutanotaFile>, mail: Mail): void {
 		const calendarFile = files.find((a) => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
 
-		if (calendarFile && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY) && mail.state === MailState.RECEIVED) {
+		if (calendarFile && mail.state === MailState.RECEIVED) {
 			Promise.all([
 				import("../../../calendar-app/calendar/view/CalendarInvites.js").then(({ getEventsFromFile }) =>
 					getEventsFromFile(calendarFile, mail.confidential),

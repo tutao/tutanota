@@ -75,49 +75,6 @@ export class CustomColorEditorPreview implements Component {
 	}
 
 	renderPreviewMailRow(): Children {
-		const mailTemplate = {
-			receivedDate: new Date(),
-			attachments: [],
-			state: "2",
-			mailDetails: null,
-			authStatus: null,
-			encryptionAuthStatus: null,
-			method: "0",
-			bucketKey: null,
-			conversationEntry: ["listId", "conversationId"],
-			differentEnvelopeSender: null,
-			firstRecipient: null,
-			listUnsubscribe: false,
-			mailDetailsDraft: null,
-			movedTime: null,
-			phishingStatus: "0",
-			recipientCount: "0",
-			sets: [],
-		} satisfies Partial<Mail>
-		const mail = createMail({
-			sender: createMailAddress({
-				address: "m.mustermann@example.com",
-				name: "Max Mustermann",
-				contact: null,
-			}),
-			subject: "Mail 1",
-			unread: false,
-			replyType: "0",
-			confidential: true,
-			...mailTemplate,
-		})
-		const mail2 = createMail({
-			sender: createMailAddress({
-				address: "m.mustermann@example.com",
-				name: "Max Mustermann",
-				contact: null,
-			}),
-			subject: "Mail 2",
-			unread: true,
-			replyType: "1",
-			confidential: false,
-			...mailTemplate,
-		})
 		return m(
 			".rel",
 			{
@@ -126,31 +83,7 @@ export class CustomColorEditorPreview implements Component {
 					height: px(size.list_row_height * 2),
 				},
 			},
-			[
-				m(
-					".list-row.pl.pr-l.odd-row",
-					{
-						oncreate: (vnode) => {
-							this._mailRow.domElement = vnode.dom as HTMLElement
-							requestAnimationFrame(() => this._mailRow.update(mail, false, false))
-						},
-					},
-					this._mailRow.render(),
-				),
-				m(
-					".list-row.pl.pr-l",
-					{
-						oncreate: (vnode) => {
-							this._mailRow2.domElement = vnode.dom as HTMLElement
-							requestAnimationFrame(() => this._mailRow2.update(mail2, true, false))
-						},
-						style: {
-							top: px(size.list_row_height),
-						},
-					},
-					this._mailRow2.render(),
-				),
-			],
+			[],
 		)
 	}
 }

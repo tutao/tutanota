@@ -354,7 +354,7 @@ export class MailFacade {
 				senderMailAddress: senderMailAddress,
 				senderName: senderName,
 				confidential: confidential,
-				method: draft.method,
+				method: MailMethod.NONE,
 				toRecipients: toRecipients.map(recipientToDraftRecipient),
 				ccRecipients: ccRecipients.map(recipientToDraftRecipient),
 				bccRecipients: bccRecipients.map(recipientToDraftRecipient),
@@ -596,7 +596,7 @@ export class MailFacade {
 			}),
 			this.crypto.resolveSessionKey(draft).then(async (mailSessionkey) => {
 				const sk = assertNotNull(mailSessionkey, "mailSessionKey was null")
-				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
+				sendDraftData.calendarMethod = false
 
 				if (draft.confidential) {
 					sendDraftData.bucketEncMailSessionKey = encryptKey(bucketKey, sk)

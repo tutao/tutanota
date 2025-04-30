@@ -659,7 +659,7 @@ export class SendMailModel {
 			.catch(
 				ofClass(NotFoundError, (e) => {
 					console.log("draft has been deleted, creating new one")
-					return this.createDraft(body, attachments, downcast(draft.method))
+					return this.createDraft(body, attachments, downcast(MailMethod.NONE))
 				}),
 			)
 	}

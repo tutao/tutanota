@@ -3,9 +3,9 @@ import { TypeRef } from "@tutao/tutanota-utils"
 import { typeModels } from "./TypeModels.js"
 import { Blob } from '../sys/TypeRefs.js'
 import { BucketKey } from '../sys/TypeRefs.js'
+import { StringWrapper } from '../sys/TypeRefs.js'
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 import { DateWrapper } from '../sys/TypeRefs.js'
-import { StringWrapper } from '../sys/TypeRefs.js'
 import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
 import { IdTupleWrapper } from '../sys/TypeRefs.js'
 
@@ -225,12 +225,11 @@ export type Mail = {
 	differentEnvelopeSender: null | string;
 	listUnsubscribe: boolean;
 	movedTime: null | Date;
-	phishingStatus: NumberString;
+	phishingState: NumberString;
 	authStatus: null | NumberString;
-	method: NumberString;
 	recipientCount: NumberString;
-	encryptionAuthStatus: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
+	body2: null | string;
 
 	sender: MailAddress;
 	attachments: IdTuple[];
@@ -240,6 +239,13 @@ export type Mail = {
 	mailDetailsDraft: null | IdTuple;
 	bucketKey: null | BucketKey;
 	sets: IdTuple[];
+	sender2: null | MailAddress;
+	entries2: null | Id;
+	sets2: null | IdTuple;
+	stringWrapper2: null | StringWrapper;
+	elementReference2: null | Id;
+	mbox2: null | Id;
+	details2: null | IdTuple;
 }
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", 125)
 

@@ -386,17 +386,15 @@ pub struct Mail {
 	#[serde(rename = "896")]
 	pub movedTime: Option<DateTime>,
 	#[serde(rename = "1021")]
-	pub phishingStatus: i64,
+	pub phishingState: i64,
 	#[serde(rename = "1022")]
 	pub authStatus: Option<i64>,
-	#[serde(rename = "1120")]
-	pub method: i64,
 	#[serde(rename = "1307")]
 	pub recipientCount: i64,
-	#[serde(rename = "1346")]
-	pub encryptionAuthStatus: Option<i64>,
 	#[serde(rename = "1395")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1656")]
+	pub body2: Option<String>,
 	#[serde(rename = "111")]
 	pub sender: MailAddress,
 	#[serde(rename = "115")]
@@ -413,6 +411,20 @@ pub struct Mail {
 	pub bucketKey: Option<super::sys::BucketKey>,
 	#[serde(rename = "1465")]
 	pub sets: Vec<IdTupleGenerated>,
+	#[serde(rename = "1654")]
+	pub sender2: Option<MailAddress>,
+	#[serde(rename = "1655")]
+	pub entries2: Option<GeneratedId>,
+	#[serde(rename = "1657")]
+	pub sets2: Option<IdTupleGenerated>,
+	#[serde(rename = "1658")]
+	pub stringWrapper2: Option<super::sys::StringWrapper>,
+	#[serde(rename = "1659")]
+	pub elementReference2: Option<GeneratedId>,
+	#[serde(rename = "1660")]
+	pub mbox2: Option<GeneratedId>,
+	#[serde(rename = "1661")]
+	pub details2: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
