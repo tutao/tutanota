@@ -3,7 +3,7 @@ use time::macros::datetime;
 use tutasdk::bindings::test_file_client::TestFileClient;
 use tutasdk::date::calendar_facade::{
 	CalendarFacade, DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME, DEFAULT_LONG_EVENT_NAME,
-	DEFAULT_SORT_EVENT_NAME,
+	DEFAULT_SHORT_EVENT_NAME,
 };
 use tutasdk::date::DateTime;
 use tutasdk::net::native_rest_client::NativeRestClient;
@@ -68,7 +68,7 @@ async fn load_calendar_events() {
 	assert_eq!(events.short_events.len(), 1);
 	assert_eq!(
 		events.short_events.first().unwrap().summary,
-		DEFAULT_SORT_EVENT_NAME
+		DEFAULT_SHORT_EVENT_NAME
 	);
 	assert_eq!(events.long_events.len(), 1);
 	assert_eq!(
