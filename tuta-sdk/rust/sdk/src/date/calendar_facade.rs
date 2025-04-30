@@ -1,13 +1,15 @@
 use num_enum::TryFromPrimitive;
 use std::collections::HashMap;
+use std::string::ToString;
 use std::sync::Arc;
 use time::{OffsetDateTime, Time, UtcOffset};
 
+use super::event_facade::{ByRule, ByRuleType, EndType, EventRepeatRule, RepeatPeriod};
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::date::event_facade::EventFacade;
 use crate::date::DateTime;
-use crate::entities::generated::sys::{GroupInfo, GroupMembership};
+use crate::entities::generated::sys::{GroupInfo, GroupMembership, User};
 use crate::entities::generated::tutanota::{
 	CalendarEvent, CalendarGroupRoot, GroupSettings, UserSettingsGroupRoot,
 };
@@ -17,7 +19,29 @@ use crate::user_facade::UserFacade;
 use crate::util::first_bigger_than_second_custom_id;
 use crate::{ApiCallError, CustomId, GeneratedId, ListLoadDirection};
 
-use super::event_facade::{ByRule, ByRuleType, EndType, EventRepeatRule, RepeatPeriod};
+// To keep the SDK decoupled and dependency free we decided to handle translations on native side
+pub const DEFAULT_CALENDAR_NAME: &str = "";
+pub const DEFAULT_CALENDAR_COLOR: &str = "2196f3";
+
+pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID: &str = "clientOnly_birthdays";
+pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_TRANSLATION_KEY: &str = "birthdayCalendar_label";
+pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_COLOR: &str = "FF9933";
+pub fn generate_client_only_calendars(
+	user_id: &GeneratedId,
+) -> HashMap<GeneratedId, CalendarRenderData> {
+	let birthday_calendar_id = format!(
+		"{}#{}",
+		user_id.as_str(),
+		CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
+	);
+	HashMap::from([(
+		GeneratedId(birthday_calendar_id),
+		CalendarRenderData {
+			name: String::from(CLIENT_ONLY_CALENDAR_BIRTHDAYS_TRANSLATION_KEY),
+			color: String::from(CLIENT_ONLY_CALENDAR_BIRTHDAYS_COLOR),
+		},
+	)])
+}
 
 #[derive(uniffi::Record)]
 pub struct CalendarData {
@@ -25,7 +49,7 @@ pub struct CalendarData {
 	group_settings: Option<GroupSettings>,
 }
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Debug)]
 pub struct CalendarRenderData {
 	pub name: String,
 	pub color: String,
@@ -423,6 +447,14 @@ impl CalendarFacade {
 
 			calendars_render_data.insert(calendar_id, render_data);
 		}
+
+		let user: Arc<User> = self.user_facade.get_user();
+		let user_id = user._id.as_ref().unwrap();
+		let client_only_calendars = generate_client_only_calendars(user_id);
+		calendars_render_data.extend(client_only_calendars);
+
+		println!("{:?}", calendars_render_data);
+
 		calendars_render_data
 	}
 
@@ -442,10 +474,7 @@ pub const DAY_IN_MILLIS: u64 = 1000 * 60 * 60 * 24;
  * The time in ms that element ids for calendar events and alarms  get randomized by
  */
 pub const DAYS_SHIFTED_MS: u64 = 15 * DAY_IN_MILLIS;
-// To keep the SDK decoupled and dependency free we decided to handle translations on native side
-pub const DEFAULT_CALENDAR_NAME: &str = "";
-pub const DEFAULT_CALENDAR_COLOR: &str = "2196f3";
-pub const DEFAULT_SORT_EVENT_NAME: &str = "Short Event"; // Used only in tests
+pub const DEFAULT_SHORT_EVENT_NAME: &str = "Short Event"; // Used only in tests
 pub const DEFAULT_LONG_EVENT_NAME: &str = "Long Event"; // Used only in tests
 
 fn get_event_element_min_id(timestamp: u64) -> CustomId {
@@ -461,12 +490,7 @@ fn get_max_timestamp_id() -> CustomId {
 
 #[cfg(test)]
 mod calendar_facade_unit_tests {
-	use super::{CalendarFacade, DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME};
 	use crate::crypto_entity_client::MockCryptoEntityClient;
-	use crate::date::event_facade::{
-		ByRule, ByRuleType, EndType, EventFacade, EventRepeatRule, RepeatPeriod,
-	};
-	use crate::date::DateTime;
 	use crate::entities::generated::sys::{GroupInfo, GroupMembership, User};
 	use crate::entities::generated::tutanota::{GroupSettings, UserSettingsGroupRoot};
 	use crate::groups::GroupType;
@@ -474,6 +498,11 @@ mod calendar_facade_unit_tests {
 	use crate::util::test_utils::create_test_entity;
 	use crate::{GeneratedId, IdTupleGenerated};
 	use std::sync::Arc;
+
+	use super::{
+		generate_client_only_calendars, CalendarFacade, CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID,
+		DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME,
+	};
 
 	fn create_mock_user(user_group: &GeneratedId, calendar_id: &GeneratedId) -> User {
 		User {
@@ -550,15 +579,10 @@ mod calendar_facade_unit_tests {
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
 
-		assert_eq!(
-			calendars_render_data.values().next().unwrap().name,
-			DEFAULT_CALENDAR_NAME
-		);
-		assert_eq!(
-			calendars_render_data.values().next().unwrap().color,
-			DEFAULT_CALENDAR_COLOR
-		);
+		assert_eq!(calendar_render_data.name, DEFAULT_CALENDAR_NAME);
+		assert_eq!(calendar_render_data.color, DEFAULT_CALENDAR_COLOR);
 	}
 
 	#[tokio::test]
@@ -595,9 +619,10 @@ mod calendar_facade_unit_tests {
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
-		let render_data = calendars_render_data.values().next().unwrap();
-		assert_eq!(render_data.name, custom_name);
-		assert_eq!(render_data.color, custom_color);
+		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
+
+		assert_eq!(calendar_render_data.name, custom_name);
+		assert_eq!(calendar_render_data.color, custom_color);
 	}
 
 	#[tokio::test]
@@ -632,9 +657,10 @@ mod calendar_facade_unit_tests {
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
-		let render_data = calendars_render_data.values().next().unwrap();
-		assert_eq!(render_data.name, DEFAULT_CALENDAR_NAME);
-		assert_eq!(render_data.color, custom_color);
+		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
+
+		assert_eq!(calendar_render_data.name, DEFAULT_CALENDAR_NAME);
+		assert_eq!(calendar_render_data.color, custom_color);
 	}
 
 	#[tokio::test]
@@ -671,8 +697,54 @@ mod calendar_facade_unit_tests {
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
-		let render_data = calendars_render_data.values().next().unwrap();
-		assert_eq!(render_data.name, custom_name.to_string());
-		assert_eq!(render_data.color, custom_color);
+		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
+
+		assert_eq!(calendar_render_data.name, custom_name.to_string());
+		assert_eq!(calendar_render_data.color, custom_color);
+	}
+
+	#[tokio::test]
+	async fn test_birthday_calendar_render_info() {
+		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+		let mut mock_user_facade = MockUserFacade::default();
+
+		let user_group = GeneratedId::test_random();
+		let calendar_id = GeneratedId::test_random();
+
+		let mock_user = create_mock_user(&user_group, &calendar_id);
+		let user_id = mock_user._id.clone().unwrap();
+		mock_user_facade.expect_get_user().return_const(mock_user);
+
+		let mock_user_settings_group_root =
+			create_mock_user_settings_group_root(None, None, None, None);
+		mock_crypto_entity_client
+			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+			.return_const(Ok(mock_user_settings_group_root));
+
+		let mock_group_info = create_mock_group_info(&calendar_id, None);
+		mock_crypto_entity_client
+			.expect_load::<GroupInfo, IdTupleGenerated>()
+			.return_const(Ok(mock_group_info));
+
+		let calendar_facade = CalendarFacade::new(
+			Arc::new(mock_crypto_entity_client),
+			Arc::new(mock_user_facade),
+		);
+
+		let formated_id = format!(
+			"{}#{}",
+			user_id.as_str(),
+			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
+		);
+		let birthday_calendar_id = GeneratedId(formated_id);
+
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let render_data = calendars_render_data.get(&birthday_calendar_id).unwrap();
+
+		let client_only_calendars = generate_client_only_calendars(&user_id);
+		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id).unwrap();
+
+		assert_eq!(render_data.name, birthday_calendar.name);
+		assert_eq!(render_data.color, birthday_calendar.color);
 	}
 }
