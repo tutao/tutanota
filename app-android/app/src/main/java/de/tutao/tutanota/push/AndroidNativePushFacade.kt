@@ -19,7 +19,6 @@ class AndroidNativePushFacade(
 	private val alarmNotificationsManager: AlarmNotificationsManager,
 	private val localNotificationsFacade: LocalNotificationsFacade,
 ) : NativePushFacade {
-
 	private val json = Json { ignoreUnknownKeys = true }
 
 	override suspend fun getPushIdentifier(): String? {
@@ -65,7 +64,7 @@ class AndroidNativePushFacade(
 	}
 
 	override suspend fun setReceiveCalendarNotificationConfig(pushIdentifier: String, value: Boolean) {
-		Log.d("AndroidNativePushFacade", "Set calendarNotificationConfig for $pushIdentifier as $value")
+		Log.d(TAG, "Set calendarNotificationConfig for $pushIdentifier as $value")
 		this.sseStorage.setReceiveCalendarNotificationConfig(pushIdentifier, value)
 	}
 
@@ -76,5 +75,9 @@ class AndroidNativePushFacade(
 
 	override suspend fun removeUser(userId: String) {
 		this.sseStorage.removeUser(userId)
+	}
+
+	companion object {
+		const val TAG = "MailAndroidNativePushFacade"
 	}
 }

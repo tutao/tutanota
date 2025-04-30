@@ -15,7 +15,7 @@ import de.tutao.tutashared.parseColor
 import de.tutao.tutashared.toMap
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.*
+import java.util.Objects
 
 typealias Theme = Map<String, String>
 typealias ThemeId = String

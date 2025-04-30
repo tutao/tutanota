@@ -16,4 +16,3 @@ data class NotificationInfo(
 	@Serializable(with = IdTupleWrapperZeroOrOneAssociationSerializer::class)
 	@field:Embedded val mailId: IdTupleWrapper?,
 )
-

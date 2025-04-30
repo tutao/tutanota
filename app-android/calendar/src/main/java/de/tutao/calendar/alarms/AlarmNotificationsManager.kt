@@ -30,6 +30,7 @@ class AlarmNotificationsManager(
 	private val pushKeyResolver: PushKeyResolver = PushKeyResolver(sseStorage)
 
 	fun reScheduleAlarms() {
+		val pushKeyResolver = PushKeyResolver(sseStorage)
 		val alarmInfos = sseStorage.readAlarmNotifications()
 		for (alarmNotification in alarmInfos) {
 			val sessionKey = resolveNotificationSessionKey(alarmNotification, pushKeyResolver)
@@ -190,7 +191,10 @@ class AlarmNotificationsManager(
 		}
 	}
 
-	private fun cancelSavedAlarm(savedAlarmNotification: EncryptedAlarmNotificationEntity, pushKeyResolver: PushKeyResolver) {
+	private fun cancelSavedAlarm(
+		savedAlarmNotification: EncryptedAlarmNotificationEntity,
+		pushKeyResolver: PushKeyResolver
+	) {
 		if (savedAlarmNotification.repeatRule != null) {
 			val sessionKey = resolveNotificationSessionKey(savedAlarmNotification, pushKeyResolver)
 			if (sessionKey == null) {

@@ -143,7 +143,6 @@ class TutanotaNotificationsHandler(
 			}
 			.build()
 
-
 		val response = defaultClient
 			.newBuilder()
 			.connectTimeout(30, TimeUnit.SECONDS)
@@ -253,10 +252,5 @@ class TutanotaNotificationsHandler(
 	companion object {
 		private const val TAG = "TutanotaNotifications"
 		private val MISSED_NOTIFICATION_TTL = TimeUnit.DAYS.toMillis(30)
-	}
-
-	private fun Request.Builder.addSysVersionHeaders() = apply {
-		header("v", BuildConfig.SYS_MODEL_VERSION)
-		header("cv", BuildConfig.VERSION_NAME)
 	}
 }

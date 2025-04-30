@@ -3,7 +3,6 @@ package de.tutao.tutanota.push
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonNames
 
 @Serializable
 data class MissedNotification(

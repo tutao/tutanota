@@ -19,7 +19,6 @@ import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.ColorInt
-import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -39,7 +38,6 @@ import java.util.TimeZone
 import kotlin.math.abs
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
-private const val EMAIL_NOTIFICATION_CHANNEL_ID = "notifications"
 private val VIBRATION_PATTERN = longArrayOf(100, 200, 100, 200)
 private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
 private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
@@ -82,10 +80,6 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 				notificationManager.cancel(notifications[0].id)
 			}
 		}
-	}
-
-	fun sendEmailNotifications(mailMetadatas: List<Pair<NotificationInfo, MailMetadata?>>) {
-		Log.e(TAG, "Calendar shouldn't send mail Notifications")
 	}
 
 	@TargetApi(Build.VERSION_CODES.Q)

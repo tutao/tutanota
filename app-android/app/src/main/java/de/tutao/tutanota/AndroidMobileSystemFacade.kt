@@ -31,9 +31,8 @@ import java.nio.charset.Charset
 class AndroidMobileSystemFacade(
 	private val fileFacade: AndroidFileFacade,
 	private val activity: MainActivity,
-	private val db: AppDatabase,
+	private val db: AppDatabase
 ) : MobileSystemFacade {
-
 	private val authenticationPrompt = AuthenticationPrompt()
 
 	companion object {

@@ -17,7 +17,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 
 class NetworkObserver internal constructor(private val context: Context, lifecycleOwner: LifecycleOwner) :
-		BroadcastReceiver(), DefaultLifecycleObserver {
+	BroadcastReceiver(), DefaultLifecycleObserver {
 	private val connectivityManager: ConnectivityManager = context.getSystemService<ConnectivityManager>()!!
 	private var networkConnectivityListener: NetworkConnectivityListener? = null
 	private val networkObserverCallback = object : NetworkCallback() {

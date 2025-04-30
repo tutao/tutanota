@@ -22,6 +22,7 @@ class SystemAlarmFacade(private val context: Context) {
 		} else {
 			Log.d(TAG, "Scheduled notification $identifier")
 		}
+
 		val alarmManager = alarmManager
 		val pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user)
 		alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmTime.time, pendingIntent)

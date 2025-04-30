@@ -164,7 +164,8 @@ class MainActivity : FragmentActivity() {
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
 			commonSystemFacade,
-			calendarFacade, fileFacade,
+			calendarFacade,
+			fileFacade,
 			AndroidMobileContactsFacade(this),
 			AndroidMobileSystemFacade(fileFacade, this, db),
 			CredentialsEncryptionFactory.create(this, cryptoFacade, db),

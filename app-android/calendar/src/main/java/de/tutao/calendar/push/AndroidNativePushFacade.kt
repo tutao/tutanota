@@ -76,6 +76,6 @@ class AndroidNativePushFacade(
 	}
 
 	companion object {
-		const val TAG = "NativePushFacade"
+		const val TAG = "CalendarAndroidNativePushFacade"
 	}
 }

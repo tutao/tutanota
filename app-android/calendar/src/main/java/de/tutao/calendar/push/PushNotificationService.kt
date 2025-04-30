@@ -3,7 +3,6 @@ package de.tutao.calendar.push
 import android.app.job.JobParameters
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import de.tutao.calendar.alarms.AlarmNotificationsManager
@@ -12,8 +11,6 @@ import de.tutao.calendar.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
-import de.tutao.tutashared.atLeastQuinceTart
-import de.tutao.tutashared.atLeastTiramisu
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -70,10 +67,8 @@ class PushNotificationService : LifecycleJobService() {
 		}
 	private val finishJobThread = LooperThread {}
 
-
 	override fun onCreate() {
 		super.onCreate()
-
 		Log.d(TAG, "onCreate")
 		state = State.CREATED
 

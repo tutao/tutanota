@@ -5,11 +5,7 @@ import android.util.Log
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutashared.base64ToString
-import de.tutao.tutashared.ipc.WebAuthnFacade
-import de.tutao.tutashared.ipc.WebAuthnRegistrationChallenge
-import de.tutao.tutashared.ipc.WebAuthnRegistrationResult
-import de.tutao.tutashared.ipc.WebAuthnSignChallenge
-import de.tutao.tutashared.ipc.WebAuthnSignResult
+import de.tutao.tutashared.ipc.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
