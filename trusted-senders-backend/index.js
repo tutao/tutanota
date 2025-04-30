@@ -150,6 +150,26 @@ app.post("/remove-trusted", (req, res) => {
   })
 })
 
+// Reset all email statuses for a specific sender
+app.post("/reset-email-statuses", (req, res) => {
+  const { user_email, sender_email } = req.body;
+
+  if (!user_email || !sender_email) {
+    return res.status(400).json({ error: "Missing user_email or sender_email" });
+  }
+
+  const sql = `DELETE FROM email_sender_status WHERE user_email = ? AND sender_email = ?`;
+
+  db.run(sql, [user_email, sender_email], function (err) {
+    if (err) {
+      console.error("DB Error resetting statuses:", err.message);
+      return res.status(500).json({ error: "Failed to reset email statuses." });
+    }
+
+    res.json({ message: "Statuses reset successfully.", count: this.changes });
+  });
+});
+
 app.get("/trusted-senders/:user_email", (req, res) => {
   const { user_email } = req.params
   db.all(
