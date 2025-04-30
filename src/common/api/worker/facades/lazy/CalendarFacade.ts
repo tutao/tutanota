@@ -69,6 +69,9 @@ import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils.js"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
+import { AttributeModel } from "../../../common/AttributeModel"
+import { resolveClientTypeReference } from "../../../common/EntityFunctions"
+import { ClientModelUntypedInstance } from "../../../common/EntityTypes"
 
 assertWorkerOrNode()
 
@@ -355,10 +358,12 @@ export class CalendarFacade {
 		const sessionKey = aes256RandomKey()
 		await this.encryptNotificationKeyForDevices(sessionKey, alarmNotifications, [pushIdentifier])
 
+		const alarmNotificationModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
 		const encryptedNotificationsWireFormat = JSON.stringify(
 			await Promise.all(
 				alarmNotifications.map(async (an) => {
-					return await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKey)
+					const untypedInstance = await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKey)
+					return AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(alarmNotificationModel, untypedInstance)
 				}),
 			),
 		)

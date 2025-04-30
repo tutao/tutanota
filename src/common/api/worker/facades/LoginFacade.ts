@@ -101,6 +101,7 @@ import { encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { AttributeModel } from "../../common/AttributeModel"
+import { ServerModelUntypedInstance } from "../../common/EntityTypes"
 
 assertWorkerOrNode()
 
@@ -916,8 +917,11 @@ export class LoginFacade {
 				headers,
 				responseType: MediaType.Json,
 			})
-			.then((instance) => {
-				let untypedSession = AttributeModel.removeNetworkDebuggingInfoIfNeeded(JSON.parse(instance))
+			.then(async (instance) => {
+				const untypedSession = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(
+					SessionTypeModel,
+					JSON.parse(instance),
+				)
 				// Intentionally passing an UntypedInstance to AttributeModel to circumvent sessionkey resolution during login.
 				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
 				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]

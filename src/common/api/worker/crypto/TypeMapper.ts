@@ -41,18 +41,9 @@ export class TypeMapper {
 		let parsedInstance: ServerModelEncryptedParsedInstance = {} as ServerModelEncryptedParsedInstance
 		for (const [attrIdStr, modelValue] of Object.entries(serverTypeModel.values)) {
 			let attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys
-			let attrIdUntypedInstance: string = attrIdStr // used to access untypedInstance which has string keys (attrId:attrName in case of networkDebugging)
-			if (env.networkDebugging) {
-				// keys are in the format attributeId:attributeName when networkDebugging is enabled
-				attrIdUntypedInstance += ":" + modelValue.name
-			}
 
 			// values at this stage are only strings, the other types are only possible for associations.
-			let untypedValue = instance[attrIdUntypedInstance] as UntypedValue
-			if (env.networkDebugging && untypedValue === undefined) {
-				// websocket messages do NOT support network debugging, we therefore retry reading with attrId
-				untypedValue = instance[attrId] as UntypedValue
-			}
+			let untypedValue = instance[attrId] as UntypedValue
 
 			if (modelValue.encrypted) {
 				// will be decrypted and mapped at a later stage
@@ -64,17 +55,7 @@ export class TypeMapper {
 
 		for (const [attrIdStr, modelAssociation] of Object.entries(serverTypeModel.associations)) {
 			let attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys
-			let attrIdUntypedInstance: string = attrIdStr // used to access untypedInstance which has string keys (attrId:attrName in case of networkDebugging)
-			if (env.networkDebugging) {
-				// keys are in the format attributeId:attributeName when networkDebugging is enabled
-				attrIdUntypedInstance += ":" + modelAssociation.name
-			}
-
-			let associationValues = instance[attrIdUntypedInstance] as UntypedAssociation
-			if (env.networkDebugging && associationValues === undefined) {
-				// websocket messages do NOT support network debugging, we therefore retry reading with attrId
-				associationValues = instance[attrId] as UntypedAssociation
-			}
+			let associationValues = instance[attrId] as UntypedAssociation
 
 			if (modelAssociation.type === AssociationType.Aggregation) {
 				const appName = modelAssociation.dependency ?? serverTypeModel.app

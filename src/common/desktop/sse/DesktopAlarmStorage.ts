@@ -12,6 +12,8 @@ import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 import { hasError } from "../../api/common/utils/ErrorUtils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
+import { AttributeModel } from "../../api/common/AttributeModel"
+import { resolveClientTypeReference } from "../../api/common/EntityFunctions"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -181,7 +183,9 @@ export class DesktopAlarmStorage {
 			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		return await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
+		const alarmNotificationTypeModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
+		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
+		return AttributeModel.removeNetworkDebuggingInfoIfNeeded(alarmNotificationTypeModel, untypedAlarmNotification)
 	}
 
 	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<AlarmNotification> {

@@ -12,29 +12,23 @@ import { isSameId } from "../../api/common/utils/EntityUtils"
 import { assertNotNull, Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
 
 export class EncryptedAlarmNotification {
-	public readonly untypedInstance: ServerModelUntypedInstance
-	private alarmNotificationTypeModel: TypeModel
-	private notificationSessionKeyTypeModel: TypeModel
-	private alarmInfoTypeModel: TypeModel
-
 	private constructor(
-		notification: ServerModelUntypedInstance,
-		alarmNotificationTypeModel: TypeModel,
-		notificationSessionKeyTypeModel: TypeModel,
-		alarmInfoTypeModel: TypeModel,
-	) {
-		this.untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(notification)
-		this.alarmNotificationTypeModel = alarmNotificationTypeModel
-		this.notificationSessionKeyTypeModel = notificationSessionKeyTypeModel
-		this.alarmInfoTypeModel = alarmInfoTypeModel
-	}
+		public readonly untypedInstance: ServerModelUntypedInstance,
+		private alarmNotificationTypeModel: TypeModel,
+		private notificationSessionKeyTypeModel: TypeModel,
+		private alarmInfoTypeModel: TypeModel,
+	) {}
 
 	public static async from(untypedInstance: ServerModelUntypedInstance): Promise<EncryptedAlarmNotification> {
 		const alarmNotificationTypeModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
 		const notificationSessionKeyTypeModel = await resolveClientTypeReference(NotificationSessionKeyTypeRef)
 		const alarmInfoTypeModel = await resolveClientTypeReference(AlarmInfoTypeRef)
 
-		return new EncryptedAlarmNotification(untypedInstance, alarmNotificationTypeModel, notificationSessionKeyTypeModel, alarmInfoTypeModel)
+		const sanitizedUntypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(
+			alarmNotificationTypeModel,
+			untypedInstance,
+		)
+		return new EncryptedAlarmNotification(sanitizedUntypedInstance, alarmNotificationTypeModel, notificationSessionKeyTypeModel, alarmInfoTypeModel)
 	}
 
 	getNotificationSessionKeys(): Array<NotificationSessionKey> {

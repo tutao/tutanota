@@ -57,7 +57,12 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	async download(sourceUrl: string, fileName: string, headers: Record<string, string>): Promise<DownloadTaskResponse> {
+		if (env.networkDebugging) {
+			headers["Network-Debugging"] = "enable-network-debugging"
+		}
+
 		const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers })
+
 		let encryptedFilePath
 		if (status == 200 && body != null) {
 			const downloadDirectory = await this.tfs.ensureEncryptedDir()

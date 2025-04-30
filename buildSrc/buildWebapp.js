@@ -149,7 +149,7 @@ import "./${builtWorkerFile}"`,
 	let networkDebugging
 	if (stage === "test") {
 		restUrl = "https://app.test.tuta.com"
-		networkDebugging = true
+		networkDebugging = false
 	} else if (stage === "prod") {
 		restUrl = "https://app.tuta.com"
 		networkDebugging = false

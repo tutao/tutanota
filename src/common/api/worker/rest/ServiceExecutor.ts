@@ -21,6 +21,7 @@ import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { EntityAdapter } from "../crypto/EntityAdapter"
+import { AttributeModel } from "../../common/AttributeModel"
 
 assertWorkerOrNode()
 
@@ -158,11 +159,12 @@ export class ServiceExecutor implements IServiceExecutor {
 		// Filter out __proto__ to avoid prototype pollution.
 		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
 		const serverTypeModel = await resolveServerTypeReference(typeRef)
-		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, instance)
+		const cleanInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(serverTypeModel, instance)
+		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, cleanInstance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
 		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
 
-		return await this.instancePipeline.decryptAndMap(typeRef, instance, sessionKey)
+		return await this.instancePipeline.decryptAndMap(typeRef, cleanInstance, sessionKey)
 	}
 }
 

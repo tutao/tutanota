@@ -12,23 +12,29 @@ import { Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export class EncryptedMissedNotification {
-	public readonly notification: ServerModelUntypedInstance
-
 	private constructor(
-		notification: ServerModelUntypedInstance,
+		public readonly notification: ServerModelUntypedInstance,
 		private readonly missedNotificationTypeModel: TypeModel,
 		private readonly alarmNotificationTypeModel: TypeModel,
 		private readonly notificationSessionKeyTypeModel: TypeModel,
-	) {
-		this.notification = AttributeModel.removeNetworkDebuggingInfoIfNeeded(notification)
-	}
+	) {}
 
 	public static async from(untypedInstance: ServerModelUntypedInstance): Promise<EncryptedMissedNotification> {
 		const missedNotificationTypeModel = await resolveClientTypeReference(MissedNotificationTypeRef)
 		const alarmNotificationTypeModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
 		const notificationSessionKeyTypeModel = await resolveClientTypeReference(NotificationSessionKeyTypeRef)
 
-		return new EncryptedMissedNotification(untypedInstance, missedNotificationTypeModel, alarmNotificationTypeModel, notificationSessionKeyTypeModel)
+		const sanitizedUntypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(
+			missedNotificationTypeModel,
+			untypedInstance,
+		)
+
+		return new EncryptedMissedNotification(
+			sanitizedUntypedInstance,
+			missedNotificationTypeModel,
+			alarmNotificationTypeModel,
+			notificationSessionKeyTypeModel,
+		)
 	}
 
 	getNotificationSessionKeys(): Array<NotificationSessionKey> {

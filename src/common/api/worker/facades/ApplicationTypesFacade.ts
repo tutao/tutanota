@@ -68,7 +68,6 @@ export class ApplicationTypesFacade {
 			this.lastInvoked = Date.now()
 			try {
 				const applicationTypesGetOut = await this.requestApplicationTypes()
-				console.log(JSON.stringify(applicationTypesGetOut, null, 2))
 				await this.overrideAndStoreNewApplicationTypes(applicationTypesGetOut)
 
 				this.resolvePendingRequests()

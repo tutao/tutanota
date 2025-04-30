@@ -8,7 +8,14 @@ import {
 } from "../../../../../src/common/api/common/error/RestError.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
-import { HttpMethod, MediaType, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import {
+	globalClientModelInfo,
+	globalServerModelInfo,
+	HttpMethod,
+	MediaType,
+	resolveClientTypeReference,
+	resolveServerTypeReference,
+} from "../../../../../src/common/api/common/EntityFunctions.js"
 import { AccountingInfoTypeRef, CustomerTypeRef, GroupMemberTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
@@ -33,7 +40,7 @@ import {
 	SupportDataTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
 import { DefaultDateProvider } from "../../../../../src/common/calendar/date/CalendarUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { type Entity, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
@@ -52,7 +59,7 @@ import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
-const { anything, argThat } = matchers
+const { anything, argThat, captor } = matchers
 
 const accessToken = "My cool access token"
 const authHeader = {
@@ -97,13 +104,17 @@ o.spec("EntityRestClient", function () {
 	let sk: AesKey
 	let ownerGroupKey: VersionedKey
 	let encryptedSessionKey
+	let currentDebuggingStatus
 
 	o.beforeEach(function () {
+		currentDebuggingStatus = env.networkDebugging
 		instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
 		// instead of mocking the instance pipeline itself, mock it's internal mapper.
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
 
 		restClient = object()
+
+		clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
 
 		sk = aes256RandomKey()
 		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
@@ -142,11 +153,36 @@ o.spec("EntityRestClient", function () {
 		entityRestClient = new EntityRestClient(authDataProvider, restClient, () => cryptoFacadePartialStub, instancePipeline, blobAccessTokenFacade)
 	})
 
+	o.afterEach(() => {
+		env.networkDebugging = currentDebuggingStatus
+	})
+
 	function assertThatNoRequestsWereMade() {
 		verify(restClient.request(anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 	}
 
 	o.spec("Load", function () {
+		o("load removes network debugging info", async function () {
+			env.networkDebugging = true
+
+			const id1 = "id1"
+			const expectedInstance = createTestEntity(AccountingInfoTypeRef, {
+				_id: id1,
+				_permissions: "permissionsId",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const requestPath = `${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`
+
+			// mapAndEncrypt is a convenient way to get an instance with network debugging info
+			const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sk)
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(instanceWithDebuggingInfo))
+			const loadResult = await entityRestClient.load(expectedInstance._type, id1)
+			delete downcast(loadResult)._finalIvs
+			o(expectedInstance as any).deepEquals(loadResult)
+		})
+
 		o("loading a list element", async function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
@@ -157,9 +193,10 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
+			const requestPath = `${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`
 			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sk)
 			when(
-				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+				restClient.request(requestPath, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version) },
 					responseType: MediaType.Json,
 					queryParams: undefined,
@@ -208,6 +245,7 @@ o.spec("EntityRestClient", function () {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 			})
+			const requestPath = `${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`
 			const untypedCalendarInstance = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar, sk)
 			when(restClient.request(anything(), anything(), anything())).thenResolve(JSON.stringify(untypedCalendarInstance))
 
@@ -216,13 +254,21 @@ o.spec("EntityRestClient", function () {
 				extraHeaders: { baz: "quux" },
 			})
 			verify(
-				restClient.request(`${await typeRefToRestPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`, HttpMethod.GET, {
+				restClient.request(requestPath, HttpMethod.GET, {
 					headers: { ...authHeader, v: String(tutanotaModelInfo.version), baz: "quux" },
 					responseType: MediaType.Json,
 					queryParams: { foo: "bar" },
 					baseUrl: undefined,
 				}),
 			)
+
+			// repeat once again with network debugging enables
+			env.networkDebugging = true
+			const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sk)
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(calendaroWithDebug))
+			const resultWithDebug = await entityRestClient.load(calendar._type, [calendarListId, id1])
+			delete downcast(resultWithDebug)._finalIvs
+			o(resultWithDebug as any).deepEquals(calendar)
 		})
 
 		o("when loading encrypted instance and not being logged in it throws an error", async function () {
@@ -265,6 +311,46 @@ o.spec("EntityRestClient", function () {
 	})
 
 	o.spec("Load Range", function () {
+		o("load range removes network debugging info", async function () {
+			env.networkDebugging = true
+
+			const startId = "42"
+			const count = 5
+			const listId = "listId"
+			const requestPath = `${await typeRefToRestPath(CalendarEventTypeRef)}/${listId}`
+
+			const calendarListId = "calendarListId"
+			const id1 = "42"
+			const id2 = "43"
+			const calendar1 = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id1],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+
+			const calendar2 = createTestEntity(CalendarEventTypeRef, {
+				_id: [calendarListId, id2],
+				_permissions: "some id",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const expectedLoadRangeResult = [calendar1, calendar2]
+
+			const untypedCalWithDebug1 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar1, sk)
+			const untypedCalWithDebug2 = await instancePipeline.mapAndEncrypt(CalendarEventTypeRef, calendar2, sk)
+
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedCalWithDebug1, untypedCalWithDebug2]))
+			const loadRangeResult = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
+
+			delete downcast(loadRangeResult[0])._finalIvs
+			delete downcast(loadRangeResult[1])._finalIvs
+
+			o(expectedLoadRangeResult as any).deepEquals(loadRangeResult)
+		})
+
 		o("Loads a countFrom of entities in a single request", async function () {
 			const startId = "42"
 			const count = 5
@@ -315,6 +401,38 @@ o.spec("EntityRestClient", function () {
 	})
 
 	o.spec("Load multiple", function () {
+		o("load multiple removes network debugging info", async function () {
+			env.networkDebugging = true
+
+			const ids = countFrom(0, 5)
+			const supportData1 = createTestEntity(SupportDataTypeRef, {
+				_id: "1",
+				_permissions: "some id",
+			})
+			const supportData2 = createTestEntity(SupportDataTypeRef, {
+				_id: "2",
+				_permissions: "another id",
+			})
+			const expectedLoadMultipleResult = [supportData1, supportData2]
+
+			const instanceWithDebuggingInfo1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
+			const instanceWithDebuggingInfo2 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData2, null)
+
+			const requestPath = `${await typeRefToRestPath(SupportDataTypeRef)}`
+			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(
+				JSON.stringify([instanceWithDebuggingInfo1, instanceWithDebuggingInfo2]),
+			)
+
+			const loadMultipleResult = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
+
+			delete downcast(loadMultipleResult[0])._finalIvs
+			delete downcast(loadMultipleResult[1])._finalIvs
+
+			// There's some weird optimization for list requests where the types to migrate
+			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
+			o(expectedLoadMultipleResult as any).deepEquals(loadMultipleResult)
+		})
+
 		o("Less than 100 entities requested should result in a single rest request", async function () {
 			const ids = countFrom(0, 5)
 			const supportData1 = createTestEntity(SupportDataTypeRef, {
@@ -718,7 +836,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: undefined,
 					responseType: MediaType.Json,
 					body: argThat(async (json) => {
-						const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(JSON.parse(json))
+						const untypedInstance = JSON.parse(json)
 						const ownerEncSk = base64ToUint8Array(
 							AttributeModel.getAttribute<Base64>(
 								untypedInstance,
@@ -836,7 +954,7 @@ o.spec("EntityRestClient", function () {
 					queryParams: undefined,
 					responseType: MediaType.Json,
 					body: argThat(async (json) => {
-						const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(JSON.parse(json))
+						const untypedInstance = JSON.parse(json)
 						const ownerEncSk = base64ToUint8Array(
 							AttributeModel.getAttribute<Base64>(
 								untypedInstance,

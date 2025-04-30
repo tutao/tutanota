@@ -79,25 +79,8 @@ o.spec("TypeMapper", function () {
 	})
 
 	o.spec("networkDebugging works", function () {
-		o.before(() => {
-			env.networkDebugging = true
-		})
-
-		o.after(() => {
-			env.networkDebugging = false
-		})
-
-		o("can handle associations and aggregations with network debugging enabled", async function () {
-			const encryptedParsedInstance = await typeMapper.applyJsTypes(testTypeModel as ServerTypeModel, serverModelUntypedInstanceNetworkDebugging)
-			o(encryptedParsedInstance["1"]).equals("test string")
-			const listAssociation = assertNotNull(encryptedParsedInstance["4"])
-			const aggregation = assertNotNull(encryptedParsedInstance["3"])
-			o(aggregation[0]["2"]).equals("123")
-			o(listAssociation[0]).equals("assocId")
-			o((encryptedParsedInstance["5"] as Date).toISOString()).equals(new Date("2025-01-01T13:00:15Z").toISOString())
-		})
-
 		o("can apply db types with network debugging enabled", async function () {
+			env.networkDebugging = true
 			const instance = await typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, clientModelEncryptedParsedInstance)
 			o(instance["1:testValue"]).equals("base64EncodedString")
 			o(instance["3:testAssociation"]![0]["2:testNumber"]).equals("123")
