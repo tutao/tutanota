@@ -26,22 +26,6 @@ pub const DEFAULT_CALENDAR_COLOR: &str = "2196f3";
 pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID: &str = "clientOnly_birthdays";
 pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_TRANSLATION_KEY: &str = "birthdayCalendar_label";
 pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_COLOR: &str = "FF9933";
-pub fn generate_client_only_calendars(
-	user_id: &GeneratedId,
-) -> HashMap<GeneratedId, CalendarRenderData> {
-	let birthday_calendar_id = format!(
-		"{}#{}",
-		user_id.as_str(),
-		CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
-	);
-	HashMap::from([(
-		GeneratedId(birthday_calendar_id),
-		CalendarRenderData {
-			name: String::from(CLIENT_ONLY_CALENDAR_BIRTHDAYS_TRANSLATION_KEY),
-			color: String::from(CLIENT_ONLY_CALENDAR_BIRTHDAYS_COLOR),
-		},
-	)])
-}
 
 #[derive(uniffi::Record)]
 pub struct CalendarData {
@@ -413,6 +397,24 @@ impl CalendarFacade {
 
 		Ok([].to_vec())
 	}
+
+	pub fn generate_client_only_calendars(
+		&self,
+		user_id: &GeneratedId,
+	) -> HashMap<GeneratedId, CalendarRenderData> {
+		let birthday_calendar_id = format!(
+			"{}#{}",
+			user_id.as_str(),
+			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
+		);
+		HashMap::from([(
+			GeneratedId(birthday_calendar_id),
+			CalendarRenderData {
+				name: String::from(CLIENT_ONLY_CALENDAR_BIRTHDAYS_TRANSLATION_KEY),
+				color: String::from(CLIENT_ONLY_CALENDAR_BIRTHDAYS_COLOR),
+			},
+		)])
+	}
 }
 
 #[uniffi::export]
@@ -450,7 +452,7 @@ impl CalendarFacade {
 
 		let user: Arc<User> = self.user_facade.get_user();
 		let user_id = user._id.as_ref().unwrap();
-		let client_only_calendars = generate_client_only_calendars(user_id);
+		let client_only_calendars = self.generate_client_only_calendars(user_id);
 		calendars_render_data.extend(client_only_calendars);
 
 		println!("{:?}", calendars_render_data);
@@ -500,8 +502,8 @@ mod calendar_facade_unit_tests {
 	use std::sync::Arc;
 
 	use super::{
-		generate_client_only_calendars, CalendarFacade, CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID,
-		DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME,
+		CalendarFacade, CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, DEFAULT_CALENDAR_COLOR,
+		DEFAULT_CALENDAR_NAME,
 	};
 
 	fn create_mock_user(user_group: &GeneratedId, calendar_id: &GeneratedId) -> User {
@@ -741,7 +743,7 @@ mod calendar_facade_unit_tests {
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
 		let render_data = calendars_render_data.get(&birthday_calendar_id).unwrap();
 
-		let client_only_calendars = generate_client_only_calendars(&user_id);
+		let client_only_calendars = calendar_facade.generate_client_only_calendars(&user_id);
 		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id).unwrap();
 
 		assert_eq!(render_data.name, birthday_calendar.name);
