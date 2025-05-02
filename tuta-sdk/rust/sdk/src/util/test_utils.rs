@@ -9,7 +9,7 @@ use std::vec;
 
 use crate::bindings::file_client::MockFileClient;
 use crate::bindings::rest_client::MockRestClient;
-use crate::crypto::{Aes256Key, X25519PublicKey};
+use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::ID_FIELD;
 use crate::entities::generated::sys::{

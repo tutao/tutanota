@@ -7,13 +7,12 @@ import {
 	PubDistKeyAuthenticationParams,
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { Aes256Key, aes256RandomKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "@tutao/tutanota-crypto"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyVersion } from "@tutao/tutanota-utils"
 import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
-import { Ed25519PublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 
 const WRONG_BYTES = new Uint8Array([255, 254, 253])
 const WRONG_ID: Id = "I_CLEARLY_MISSED_SOMETHING" // this must be base64 compatible
@@ -65,7 +64,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 		kyberPublicKey = { raw: new Uint8Array([1, 2, 3]) }
 		x25519PublicKey = new Uint8Array([4, 5, 6])
 
-		ed25519PublicKey = new Uint8Array([7, 8, 9])
+		ed25519PublicKey = [7, 8, 9]
 		identityKeyVersion = 0 as KeyVersion
 	})
 

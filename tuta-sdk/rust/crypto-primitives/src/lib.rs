@@ -27,8 +27,5 @@ pub fn ed25519_verify(
 	message: &[u8],
 	signature: Ed25519Signature,
 ) -> bool {
-	match public_key.verify(message, &signature) {
-		Ok(_) => true,
-		Err(_) => false,
-	}
+	public_key.verify(message, &signature).is_ok()
 }
