@@ -24,7 +24,22 @@ export {
 	x25519Encapsulate,
 	x25519Decapsulate,
 } from "./encryption/X25519.js"
-export { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature, initEd25519 } from "./encryption/Ed25519.js"
+export {
+	Ed25519PrivateKey,
+	Ed25519PublicKey,
+	Ed25519KeyPair,
+	Ed25519Signature,
+	generateEd25519KeyPair,
+	signWithEd25519,
+	verifyEd25519Signature,
+	initEd25519,
+	bytesToEd25519PublicKey,
+	ed25519PublicKeyToBytes,
+	bytesToEd25519PrivateKey,
+	ed25519PrivateKeyToBytes,
+	bytesToEd25519Signature,
+	ed25519SignatureToBytes,
+} from "./encryption/Ed25519.js"
 export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
 export {
 	LibOQSExports,
