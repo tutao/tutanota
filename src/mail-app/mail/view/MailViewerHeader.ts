@@ -877,7 +877,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			// Split based on layout
 			if (styles.isSingleColumnLayout()) {
 				visibleButtons = [confirmButtonAttrs];
-				dropdownButtons = all.slice(1); // others go into dropdown
+				dropdownButtons = all.slice(1).map(btn => ({
+					...btn,
+					icon: (btn.icon as any)?.attrs?.icon ?? Icons.CircleCheckmark // fallback if icon missing
+				}));
+
 			} else {
 				visibleButtons = all;
 			}
