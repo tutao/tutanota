@@ -650,6 +650,7 @@ pub fn mock_type_model_provider() -> TypeModelProvider {
 					encrypted: true,
 				},
 		},
+		root_id: CustomId("custom_root_id".to_string()),
 		associations: HashMap::default(),
 	};
 
@@ -681,6 +682,7 @@ pub fn mock_type_model_provider() -> TypeModelProvider {
 					encrypted: true,
 				},
 		},
+		root_id: CustomId("custom_root_id".to_string()),
 		associations: HashMap::default(),
 	};
 
