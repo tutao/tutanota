@@ -750,26 +750,103 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}*/
 
+
 	private renderMobyPhishBanner(viewModel: MailViewerViewModel): Children | null {
 		const senderStatus = viewModel.senderStatus;
 		const isTrusted = viewModel.isSenderTrusted();
 
-	    // --- Button Actions (Keep these as they are) ---
-		const confirmAction = async () => { /* ... */ };
-		const addAction = () => { /* ... */ };
-		const trustOnceAction = () => { /* ... */ };
-		const removeAction = () => { /* ... */ };
-		const untrustAction = async () => { /* ... */ };
+		// --- Button Actions ---
+		const confirmAction = async () => {
+			if (isTrusted && !(senderStatus === "confirmed" || senderStatus === "trusted_once")) {
+				await viewModel.updateSenderStatus("confirmed");
+			} else if (!isTrusted) {
+				const modalInstance = new MobyPhishConfirmSenderModal(viewModel, viewModel.trustedSenders());
+				const handle = modal.display(modalInstance);
+				modalInstance.setModalHandle(handle);
+			}
+		};
 
-		// --- Button Definitions (Keep these as they are) ---
-		const confirmButtonAttrs: BannerButtonAttrs = { /* ... */ };
-		const addButtonAttrs: BannerButtonAttrs = { /* ... */ };
-		const trustOnceButtonAttrs: BannerButtonAttrs = { /* ... */ };
-		const removeButtonAttrs: BannerButtonAttrs = { /* ... */ };
-		const untrustButtonAttrs: BannerButtonAttrs = { /* ... */ };
+		const addAction = () => {
+			if (isTrusted) {
+				const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
+				const handle = modal.display(modalInstance);
+				modalInstance.setModalHandle?.(handle);
+			} else {
+				const modalInstance = new MobyPhishConfirmAddSenderModal(viewModel);
+				const handle = modal.display(modalInstance);
+				modalInstance.setModalHandle?.(handle);
+			}
+		};
 
-		// --- Determine Banner State & Base Buttons ---
-		let baseButtonsToShow: BannerButtonAttrs[] = []; // Renamed from buttonsToShow
+		const trustOnceAction = () => {
+			if (isTrusted) {
+				const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
+				const handle = modal.display(modalInstance);
+				modalInstance.setModalHandle?.(handle);
+			} else {
+				viewModel.updateSenderStatus("trusted_once");
+			}
+		};
+
+		const removeAction = () => {
+			if (isTrusted) {
+				const modalInstance = new MobyPhishRemoveConfirmationModal(viewModel);
+				const handle = modal.display(modalInstance);
+				modalInstance.setModalHandle?.(handle);
+			} else {
+				const modalInstance = new MobyPhishNotTrustedModal();
+				const handle = modal.display(modalInstance);
+				modalInstance.setModalHandle?.(handle);
+			}
+		};
+
+		const untrustAction = async () => {
+			await viewModel.resetSenderStatusForCurrentEmail();
+		};
+
+		// --- Button Definitions ---
+		const confirmButtonAttrs: BannerButtonAttrs = {
+			title: "mobyPhish_confirm",
+			label: "mobyPhish_confirm",
+			icon: Icons.Checkmark,
+			click: confirmAction,
+			style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		};
+
+		const addButtonAttrs: BannerButtonAttrs = {
+			title: "mobyPhish_add",
+			label: "mobyPhish_add",
+			icon: Icons.Add,
+			click: addAction,
+			style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		};
+
+		const trustOnceButtonAttrs: BannerButtonAttrs = {
+			title: "mobyPhish_trusted_once",
+			label: "mobyPhish_trusted_once",
+			icon: Icons.Unlock,
+			click: trustOnceAction,
+			style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		};
+
+		const removeButtonAttrs: BannerButtonAttrs = {
+			title: "mobyPhish_remove",
+			label: "mobyPhish_remove",
+			icon: Icons.CircleReject,
+			click: removeAction,
+			style: { backgroundColor: "#6c757d", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		};
+
+		const untrustButtonAttrs: BannerButtonAttrs = {
+			title: "mobyPhish_untrust",
+			label: "mobyPhish_untrust",
+			icon: Icons.Trash,
+			click: untrustAction,
+			style: { backgroundColor: "#343a40", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		};
+
+		// --- Determine Banner State ---
+		let baseButtons: BannerButtonAttrs[] = [];
 		let messageKey: TranslationKey = "mobyPhish_is_trusted";
 		let bannerType: BannerType = BannerType.Warning;
 		let bannerIcon: Icons = Icons.Warning;
@@ -778,88 +855,68 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			messageKey = "mobyPhish_sender_trusted_once";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
-			baseButtonsToShow = [untrustButtonAttrs]; // Only one primary action here
+			baseButtons = [untrustButtonAttrs];
 
 		} else if (senderStatus === "confirmed" || senderStatus === "added_to_trusted" || (isTrusted && senderStatus === "")) {
 			messageKey = "mobyPhish_sender_confirmed";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
-			baseButtonsToShow = [removeButtonAttrs]; // Only one primary action here
+			baseButtons = [removeButtonAttrs];
 
-		} else { // Default state (not trusted, not confirmed, not trusted_once)
+		} else {
 			messageKey = "mobyPhish_is_trusted";
 			bannerType = BannerType.Warning;
 			bannerIcon = Icons.Warning;
-			// Define the order of importance for visibility if needed
-			baseButtonsToShow = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
+			baseButtons = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
 		}
 
-		// --- Add the "Learn More" Button Definition ---
-		const learnMoreButtonAttrs: BannerButtonAttrs = {
+		// --- Layout adaptation ---
+		const isMobileLayout = styles.isSingleColumnLayout();
+		const [firstButton, ...restButtons] = baseButtons;
+
+		const buttonsToShow: BannerButtonAttrs[] = [firstButton];
+
+		// Add dropdown on mobile layout
+		if (isMobileLayout && restButtons.length > 0) {
+			const dropdownButtons = restButtons.map(({ label, click, icon }) => ({
+				label,
+				click,
+				icon: icon as Icons
+			}));
+
+			buttonsToShow.push({
+				label: "more_label",
+				click: createAsyncDropdown({
+					width: 216,
+					lazyButtons: async () => dropdownButtons
+				})
+			});
+		} else {
+			buttonsToShow.push(...restButtons);
+		}
+
+		// Always add Learn More button
+		buttonsToShow.push({
 			label: "mobyPhish_learn_more",
-			icon: m(Icon, { icon: Icons.QuestionMark }),
+			icon: Icons.QuestionMark,
 			click: () => {
 				const modalInstance = new MobyPhishInfoModal();
 				const handle = modal.display(modalInstance);
 				modalInstance.setModalHandle?.(handle);
 			},
-			style: { // Keep styling consistent or adjust as needed
-				backgroundColor: "#007bff",
-				color: "white",
-				fontWeight: "bold",
-				borderRadius: "8px",
-				padding: "8px 12px"
-			}
-		};
+			style: { backgroundColor: "#007bff", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		});
 
-	    // --- Combine base buttons and learn more button ---
-	    const allButtons: BannerButtonAttrs[] = [...baseButtonsToShow, learnMoreButtonAttrs];
-
-
-	    // --- Implement Dropdown Logic ---
-	    const MAX_VISIBLE_BUTTONS_MOBILE = 1; // Adjust this threshold as needed (1 or 2 usually works)
-	    let finalButtons: ReadonlyArray<BannerButtonAttrs>;
-
-	    // Check if we are on a narrow screen AND have more buttons than the threshold
-	    if (styles.isSingleColumnLayout() && allButtons.length > MAX_VISIBLE_BUTTONS_MOBILE) {
-	        const visibleButtons = allButtons.slice(0, MAX_VISIBLE_BUTTONS_MOBILE);
-	        const dropdownButtons = allButtons.slice(MAX_VISIBLE_BUTTONS_MOBILE);
-
-	        const moreDropdownButton: BannerButtonAttrs = {
-	            // Use an icon instead of text for the dropdown trigger usually
-	            // title: "more_label", // Keep title for accessibility
-	            // label: "more_label", // Remove label if using only icon
-	            icon: m(Icon, { icon: Icons.More }), // Use the standard "more" icon
-	            click: createDropdown({ // Using createDropdown as async might not be needed here, but createAsyncDropdown works too
-	                width: 216, // Adjust width if needed
-	                buttons: dropdownButtons, // Pass the overflowed buttons directly
-	                // Or if using createAsyncDropdown like the example:
-	                // lazyButtons: async () => resolveMaybeLazy(dropdownButtons)
-	            }),
-	            // Optional: Add minimal style if needed, e.g., to match other icon buttons
-	             style: { // Example style - adjust to match your theme's icon buttons
-	                 // backgroundColor: "transparent", // Or inherit
-	                 // color: theme.content_button, // Or appropriate color
-	                 // padding: "8px", // Adjust padding
-	                 // borderRadius: "8px",
-	             }
-	        };
-
-	        finalButtons = [...visibleButtons, moreDropdownButton];
-
-	    } else {
-	        // On desktop or if there are few buttons, show all of them
-	        finalButtons = allButtons;
-	    }
-
-	    // --- Render the Banner ---
 		return m(InfoBanner, {
 			message: messageKey,
 			icon: bannerIcon,
 			type: bannerType,
-			buttons: finalButtons // Use the potentially modified button list
+			buttons: buttonsToShow
 		});
 	}
+
+
+
 
 	
 
