@@ -8,7 +8,8 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["console_error_panic_hook"]
-test = []
+# Only enable this when compiling for testing. It provides some extra functions such as for compatibility tests,
+test_utils = []
 
 [workspace]
 
@@ -23,7 +24,7 @@ serde-big-array = "0.5.1"
 
 base64 = { version = "0.22.1" }
 getrandom = { version = "0.2", features = [
-	"js",
+    "js",
 ] } # needed for the js feature in rand_core
 rand_core = { version = "0.6.4", features = ["getrandom"] }
 ed25519-dalek = { version = "2.1.1", features = ["rand_core", "zeroize"] }
@@ -37,6 +38,8 @@ thiserror = "2.0"
 console_error_panic_hook = { version = "0.1.7", optional = true }
 
 [dev-dependencies]
+# Allow enabling features for testing see: https://github.com/kartva/cargo-optional-features-for-testing-and-examples?tab=readme-ov-file
+crypto-primitives = { path = ".", default-features = false, features = ["test_utils"] }
 wasm-bindgen-test = "0.3.34"
 
 [profile.release]
