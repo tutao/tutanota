@@ -24,7 +24,7 @@ serde-big-array = "0.5.1"
 
 base64 = { version = "0.22.1" }
 getrandom = { version = "0.2", features = [
-	"js",
+    "js",
 ] } # needed for the js feature in rand_core
 rand_core = { version = "0.6.4", features = ["getrandom"] }
 ed25519-dalek = { version = "2.1.1", features = ["rand_core", "zeroize"] }
