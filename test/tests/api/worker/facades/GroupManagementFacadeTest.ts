@@ -9,7 +9,7 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "..
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
+import { AesKey, Ed25519KeyPair, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Group,
@@ -29,7 +29,7 @@ import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../..
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { Ed25519Facade, Ed25519KeyPair } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
+import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { IdentityKeyService } from "../../../../../src/common/api/entities/sys/Services"
 import { freshVersioned, noOp } from "@tutao/tutanota-utils"
 
@@ -407,7 +407,8 @@ o.spec("GroupManagementFacadeTest", function () {
 	o.spec("Create identity key pair", function () {
 		const userGroupId = "userGroupId"
 		const userGroupKey: VersionedKey = { version: 1, object: object() }
-		const identityKeyPair: Ed25519KeyPair = { publicKey: object(), privateKey: object() }
+		const identityKeyPair: Ed25519KeyPair = { public_key: object(), private_key: object() }
+		const encodedPubIdentityKey: Uint8Array = object()
 		const encryptedPrivateIdentityKey: VersionedEncryptedKey = {
 			encryptingKeyVersion: userGroupKey.version,
 			key: object(),
@@ -425,18 +426,19 @@ o.spec("GroupManagementFacadeTest", function () {
 		const adminEncPrivateKey: VersionedEncryptedKey = { encryptingKeyVersion: adminKeyVersion, key: object() }
 
 		o.beforeEach(function () {
+			when(cryptoWrapper.ed25519PublicKeyToBytes(identityKeyPair.public_key)).thenReturn(encodedPubIdentityKey)
 			when(ed25519Facade.generateKeypair()).thenResolve(identityKeyPair)
 			when(userFacade.hasGroup(userGroupId)).thenReturn(true)
 
 			when(keyLoaderFacade.getCurrentSymGroupKey(userGroupId)).thenResolve(userGroupKey)
 
-			when(cryptoWrapper.encryptEd25519Key(userGroupKey, identityKeyPair.privateKey)).thenReturn(encryptedPrivateIdentityKey)
+			when(cryptoWrapper.encryptEd25519Key(userGroupKey, identityKeyPair.private_key)).thenReturn(encryptedPrivateIdentityKey)
 
 			when(
 				keyAuthenticationFacade.computeTag({
 					tagType: "IDENTITY_PUB_KEY_TAG",
 					sourceOfTrust: { symmetricGroupKey: userGroupKey.object },
-					untrustedKey: { identityPubKey: identityKeyPair.publicKey },
+					untrustedKey: { identityPubKey: identityKeyPair.public_key },
 					bindingData: {
 						publicIdentityKeyVersion: identityKeyVersion,
 						groupKeyVersion: userGroupKey.version,
@@ -458,7 +460,7 @@ o.spec("GroupManagementFacadeTest", function () {
 						o(identityKeyPairFromRequest.identityKeyVersion).equals(identityKeyVersion.toString())
 						o(identityKeyPairFromRequest.encryptingKeyVersion).equals(encryptedPrivateIdentityKey.encryptingKeyVersion.toString())
 						o(identityKeyPairFromRequest.privateEd25519Key).equals(encryptedPrivateIdentityKey.key)
-						o(identityKeyPairFromRequest.publicEd25519Key).equals(identityKeyPair.publicKey)
+						o(identityKeyPairFromRequest.publicEd25519Key).equals(encodedPubIdentityKey)
 						o(keyMacFromRequest.tag).equals(tag)
 						o(keyMacFromRequest.taggedKeyVersion).equals(identityKeyVersion.toString())
 						o(keyMacFromRequest.taggingKeyVersion).equals(userGroupKey.version.toString())
@@ -497,7 +499,7 @@ o.spec("GroupManagementFacadeTest", function () {
 						o(identityKeyPairFromRequest.identityKeyVersion).equals(identityKeyVersion.toString())
 						o(identityKeyPairFromRequest.encryptingKeyVersion).equals(encryptedPrivateIdentityKey.encryptingKeyVersion.toString())
 						o(identityKeyPairFromRequest.privateEd25519Key).equals(encryptedPrivateIdentityKey.key)
-						o(identityKeyPairFromRequest.publicEd25519Key).equals(identityKeyPair.publicKey)
+						o(identityKeyPairFromRequest.publicEd25519Key).equals(encodedPubIdentityKey)
 						o(keyMacFromRequest.tag).equals(tag)
 						o(keyMacFromRequest.taggedKeyVersion).equals(identityKeyVersion.toString())
 						o(keyMacFromRequest.taggingKeyVersion).equals(userGroupKey.version.toString())
@@ -515,8 +517,8 @@ o.spec("GroupManagementFacadeTest", function () {
 			when(keyLoaderFacade.getCurrentSymGroupKey(userGroupId)).thenResolve(object())
 			when(keyLoaderFacade.loadSymGroupKey(adminGroupId, adminKeyVersion)).thenResolve(adminGroupKey.object)
 			when(cryptoWrapper.decryptKey(adminGroupKey.object, adminGroupEncGKey)).thenReturn(userGroupKey.object)
-			when(cryptoWrapper.encryptEd25519Key(userGroupKey, identityKeyPair.privateKey)).thenThrow(new Error("should not happen"))
-			when(cryptoWrapper.encryptEd25519Key(adminGroupKey, identityKeyPair.privateKey)).thenReturn(adminEncPrivateKey)
+			when(cryptoWrapper.encryptEd25519Key(userGroupKey, identityKeyPair.private_key)).thenThrow(new Error("should not happen"))
+			when(cryptoWrapper.encryptEd25519Key(adminGroupKey, identityKeyPair.private_key)).thenReturn(adminEncPrivateKey)
 			when(cacheManagementFacade.reloadGroup(userGroupId)).thenResolve(
 				createTestEntity(GroupTypeRef, {
 					_id: userGroupId,
@@ -538,7 +540,7 @@ o.spec("GroupManagementFacadeTest", function () {
 						o(identityKeyPairFromRequest.identityKeyVersion).equals(identityKeyVersion.toString())
 						o(identityKeyPairFromRequest.encryptingKeyVersion).equals(adminEncPrivateKey.encryptingKeyVersion.toString())
 						o(identityKeyPairFromRequest.privateEd25519Key).equals(adminEncPrivateKey.key)
-						o(identityKeyPairFromRequest.publicEd25519Key).equals(identityKeyPair.publicKey)
+						o(identityKeyPairFromRequest.publicEd25519Key).equals(encodedPubIdentityKey)
 						o(keyMacFromRequest.tag).equals(tag)
 						o(keyMacFromRequest.taggedKeyVersion).equals(identityKeyVersion.toString())
 						o(keyMacFromRequest.taggingKeyVersion).equals(userGroupKey.version.toString())

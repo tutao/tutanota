@@ -1,9 +1,8 @@
 import { CryptoWrapper } from "../crypto/CryptoWrapper.js"
 import { concat, KeyVersion } from "@tutao/tutanota-utils"
-import { Aes256Key, AesKey, bitArrayToUint8Array, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
+import { Aes256Key, AesKey, bitArrayToUint8Array, Ed25519PublicKey, ed25519PublicKeyToBytes, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { KeyMac } from "../../entities/sys/TypeRefs.js"
-import { Ed25519PublicKey } from "./Ed25519Facade"
 
 assertWorkerOrNode()
 
@@ -181,7 +180,7 @@ const identityPubKeyAuthenticationSystem: KeyAuthenticationSystem<IdentityPubKey
 		})
 	},
 	generateAuthenticationData({ untrustedKey: { identityPubKey } }) {
-		return identityPubKey
+		return ed25519PublicKeyToBytes(identityPubKey)
 	},
 }
 

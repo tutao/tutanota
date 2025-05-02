@@ -1,14 +1,13 @@
 import o from "@tutao/otest"
-import { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature } from "../lib/index.js"
-import { CryptoError } from "../lib/error.js"
-import { initSync } from "../lib/encryption/ed25519wasm/crypto_primitives.js"
+import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "../lib/index.js"
 import fs from "node:fs"
+import { matchers, object, verify } from "testdouble"
 
 o.spec("Ed25519Test", function () {
 	o.before(async function () {
 		// Use the readFileSync function to read the contents of the "add.wasm" file
 		const wasmBuffer = fs.readFileSync("../lib/encryption/ed25519wasm/crypto_primitives_bg.wasm")
-		initSync({ module: wasmBuffer })
+		await initEd25519(wasmBuffer)
 	})
 
 	o("valid Ed25519 round trip", function () {
@@ -45,5 +44,17 @@ o.spec("Ed25519Test", function () {
 
 		const verified = verifyEd25519Signature(ed25519keypair.public_key, fakeMessage, signature)
 		o(verified).equals(false)
+	})
+
+	o("verify generateKeyPair invokes Crypto.getRandom", function () {
+		const originalGetRandom = global.crypto.getRandomValues
+		const cryptoSpy = object(global.crypto)
+		try {
+			global.crypto.getRandomValues = cryptoSpy.getRandomValues
+			const ed25519keypair = generateEd25519KeyPair()
+			verify(cryptoSpy.getRandomValues(matchers.anything()))
+		} finally {
+			global.crypto.getRandomValues = originalGetRandom
+		}
 	})
 })

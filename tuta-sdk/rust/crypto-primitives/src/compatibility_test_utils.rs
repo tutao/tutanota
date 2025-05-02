@@ -195,6 +195,7 @@ pub struct CompatibilityTestData {
 struct Base64;
 
 impl Base64 {
+	#[allow(dead_code)]
 	fn serialize<S: Serializer>(data: &[u8], serializer: S) -> Result<S::Ok, S::Error> {
 		serializer.serialize_str(&BASE64.encode(data))
 	}
