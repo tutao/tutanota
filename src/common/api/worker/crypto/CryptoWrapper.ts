@@ -7,6 +7,10 @@ import {
 	AsymmetricKeyPair,
 	decryptKey,
 	decryptKeyPair,
+	Ed25519PrivateKey,
+	ed25519PrivateKeyToBytes,
+	Ed25519PublicKey,
+	ed25519PublicKeyToBytes,
 	ENABLE_MAC,
 	EncryptedKeyPairs,
 	EncryptedPqKeyPairs,
@@ -38,7 +42,6 @@ import {
 } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
-import { Ed25519PrivateKey } from "../facades/Ed25519Facade"
 
 /**
  * An AesKey (usually a group key) and its version.
@@ -79,7 +82,7 @@ export class CryptoWrapper {
 	encryptEd25519Key(encryptionKey: VersionedKey, privateKey: Ed25519PrivateKey): VersionedEncryptedKey {
 		return {
 			encryptingKeyVersion: encryptionKey.version,
-			key: aesEncrypt(encryptionKey.object, privateKey, undefined, true, true),
+			key: aesEncrypt(encryptionKey.object, ed25519PrivateKeyToBytes(privateKey), undefined, true, true),
 		}
 	}
 
@@ -101,6 +104,10 @@ export class CryptoWrapper {
 
 	kyberPublicKeyToBytes(kyberPublicKey: KyberPublicKey): Uint8Array {
 		return kyberPublicKeyToBytes(kyberPublicKey)
+	}
+
+	ed25519PublicKeyToBytes(ed25519PublicKey: Ed25519PublicKey): Uint8Array {
+		return ed25519PublicKeyToBytes(ed25519PublicKey)
 	}
 
 	encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {

@@ -20,9 +20,9 @@ num_enum = "0.7.3"
 minicbor = { version = "0.25", features = ["std", "alloc"] }
 const-hex = { version = "1.12.0", features = ["serde"] }
 lz4_flex = { version = "0.11.3", default-features = false, features = [
-	"safe-encode",
-	"safe-decode",
-	"std",
+    "safe-encode",
+    "safe-decode",
+    "std",
 ] }
 time = { version = "0.3.37", features = ["serde", "macros", "local-offset"] }
 time-tz = { version = "2.0.0", features = ["db", "posix-tz"] }
@@ -37,7 +37,7 @@ argon2 = { version = "0.5.3", features = ["zeroize"] }
 curve25519-dalek = "4.1.2"
 ed25519-dalek = { version = "2", features = ["rand_core", "zeroize"] }
 pqcrypto-mlkem = { version = "0.1.0", default-features = false, features = [
-	"std",
+    "std",
 ] }
 pqcrypto-traits = "0.3.5"
 rsa = "0.9.6"
@@ -47,11 +47,11 @@ rand_core = { version = "0.6.4", features = ["getrandom"] }
 log = { workspace = true }
 base64 = { workspace = true }
 tokio = { workspace = true, features = [
-	"rt",
-	"rt-multi-thread",
-	"macros",
-	"sync",
-	"time",
+    "rt",
+    "rt-multi-thread",
+    "macros",
+    "sync",
+    "time",
 ] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
@@ -62,8 +62,8 @@ hyper = { version = "1.5", features = ["client"], optional = true }
 hyper-util = { version = "0.1.10", features = ["full"], optional = true }
 http-body-util = { version = "0.1.2", optional = true }
 hyper-rustls = { version = "0.27.5", features = [
-	"ring",
-	"http2",
+    "ring",
+    "http2",
 ], optional = true }
 rustls = { version = "*", optional = true }
 form_urlencoded = "1"
@@ -82,11 +82,11 @@ uniffi = { workspace = true, features = ["build"] }
 
 [features]
 net = [
-	"dep:hyper",
-	"dep:hyper-util",
-	"dep:http-body-util",
-	"dep:hyper-rustls",
-	"dep:rustls",
+    "dep:hyper",
+    "dep:hyper-util",
+    "dep:http-body-util",
+    "dep:hyper-rustls",
+    "dep:rustls",
 ]
 # turns on the simple_logger logger when the sdk is initialized.
 logging = ["dep:simple_logger"]
@@ -99,7 +99,7 @@ tuta-sdk = { path = ".", features = ["net", "testing"] }
 mockall = { version = "0.13.0" }
 mockall_double = { version = "0.3.1" }
 rand = { workspace = true }
-crypto-primitives = { path = "../crypto-primitives", features = ["test"] }
+crypto-primitives = { path = "../crypto-primitives", features = ["test_utils"] }
 
 [lints]
 workspace = true
