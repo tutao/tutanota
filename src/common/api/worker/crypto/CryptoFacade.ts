@@ -102,7 +102,7 @@ type UnmappedOwnerGroupInstance = {
 	_ownerGroup: Id
 }
 
-type ResolvedSessionKeys = {
+export type ResolvedSessionKeys = {
 	resolvedSessionKeyForInstance: AesKey
 	instanceSessionKeys: Array<InstanceSessionKey>
 }
