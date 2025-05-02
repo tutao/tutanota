@@ -104,6 +104,7 @@ export class Dropdown implements ModalComponent {
 	private domContents: HTMLElement | null = null
 	private isFilterable: boolean = false
 	private maxHeight: number | null = null
+	private windowHeight: number = 0
 	private closeHandler: Thunk | null = null
 	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
 
@@ -168,25 +169,33 @@ export class Dropdown implements ModalComponent {
 						this.domContents = vnode.dom as HTMLElement
 					},
 					onupdate: (vnode) => {
-						if (this.maxHeight == null) {
+						const firstRender = this.maxHeight == null
+						if (firstRender || this.windowHeight != window.innerHeight) {
 							const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-							this.maxHeight = children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
+							// In case we have filtered but we need to resize the dropdown we keep the original height before the filter, otherwise we will show the dropdown with
+							// incorrect height.
+							this.maxHeight = this.maxHeight ?? children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
+							this.windowHeight = window.innerHeight
 
 							if (this.origin) {
 								// The dropdown-content element is added to the dom has a hidden element first.
 								// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely
 								// show the dropdown.
 								// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
-								showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width).then(() => {
-									const firstButton = vnode.dom.getElementsByTagName("button").item(0)
-									if (this.domInput && !client.isMobileDevice()) {
-										this.domInput.focus()
-									} else if (firstButton !== null) {
-										firstButton.focus()
-									} else {
-										this.domContents?.focus()
-									}
-								})
+								if (firstRender) {
+									showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width).then(() => {
+										const firstButton = vnode.dom.getElementsByTagName("button").item(0)
+										if (this.domInput && !client.isMobileDevice()) {
+											this.domInput.focus()
+										} else if (firstButton !== null) {
+											firstButton.focus()
+										} else {
+											this.domContents?.focus()
+										}
+									})
+								} else {
+									showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width, undefined, false)
+								}
 							}
 						}
 					},
@@ -515,6 +524,7 @@ export function showDropdown(
 	contentHeight: number,
 	contentWidth: number,
 	position?: "top" | "bottom",
+	animation?: boolean,
 ): Promise<unknown> {
 	// |------------------|    |------------------|    |------------------|    |------------------|
 	// |                  |    |                  |    |                  |    |                  |
@@ -605,7 +615,11 @@ export function showDropdown(
 	domDropdown.style.width = px(width)
 	domDropdown.style.height = px(maxHeight)
 	domDropdown.style.transformOrigin = transformOrigin
-	return animations.add(domDropdown, [opacity(0, 1, true), transform(TransformEnum.Scale, 0.5, 1)], {
-		easing: ease.out,
-	})
+	if (animation === false) {
+		return Promise.resolve()
+	} else {
+		return animations.add(domDropdown, [opacity(0, 1, true), transform(TransformEnum.Scale, 0.5, 1)], {
+			easing: ease.out,
+		})
+	}
 }
