@@ -9,7 +9,7 @@ use std::vec;
 
 use crate::bindings::file_client::MockFileClient;
 use crate::bindings::rest_client::MockRestClient;
-use crate::crypto::{Aes256Key, X25519PublicKey};
+use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::ID_FIELD;
 use crate::entities::generated::sys::{
@@ -27,9 +27,9 @@ use crate::tutanota_constants::PublicKeyIdentifierType;
 use crate::CustomId;
 use crate::GeneratedId;
 use crate::{IdTupleCustom, IdTupleGenerated};
-use serde::de::DeserializeOwned;
 use const_hex::FromHex;
 use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
+use serde::de::DeserializeOwned;
 
 /// a valid x25519 serialized public key, not just random bytes!
 pub fn get_x25519_pub_key_bytes() -> [u8; 32] {

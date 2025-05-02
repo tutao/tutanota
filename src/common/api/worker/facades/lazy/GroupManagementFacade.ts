@@ -32,7 +32,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { PQFacade } from "../PQFacade.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
-import { CryptoWrapper, _encryptKeyWithVersionedKey, _encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
@@ -226,13 +226,13 @@ export class GroupManagementFacade {
 			// by default, we encrypt the private identity key with the group key.
 			encryptingKey = currentGroupKey
 		}
-		const encPrivateIdentityKey = this.cryptoWrapper.encryptEd25519Key(encryptingKey, newEd25519IdentityKeyPair.privateKey)
+		const encPrivateIdentityKey = this.cryptoWrapper.encryptEd25519Key(encryptingKey, newEd25519IdentityKeyPair.private_key)
 		const identityKeyVersion = 0
 
 		let tag = this.keyAuthenticationFacade.computeTag({
 			tagType: "IDENTITY_PUB_KEY_TAG",
 			sourceOfTrust: { symmetricGroupKey: currentGroupKey.object },
-			untrustedKey: { identityPubKey: newEd25519IdentityKeyPair.publicKey },
+			untrustedKey: { identityPubKey: newEd25519IdentityKeyPair.public_key },
 			bindingData: {
 				publicIdentityKeyVersion: identityKeyVersion,
 				groupKeyVersion: currentGroupKey.version,
@@ -243,7 +243,7 @@ export class GroupManagementFacade {
 			identityKeyVersion: identityKeyVersion.toString(),
 			encryptingKeyVersion: encPrivateIdentityKey.encryptingKeyVersion.toString(),
 			privateEd25519Key: encPrivateIdentityKey.key,
-			publicEd25519Key: newEd25519IdentityKeyPair.publicKey,
+			publicEd25519Key: this.cryptoWrapper.ed25519PublicKeyToBytes(newEd25519IdentityKeyPair.public_key),
 			publicKeyMac: createKeyMac({
 				taggedKeyVersion: identityKeyVersion.toString(),
 				taggingKeyVersion: currentGroupKey.version.toString(),
