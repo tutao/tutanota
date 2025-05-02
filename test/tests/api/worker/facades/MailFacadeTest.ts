@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import {
 	InternalRecipientKeyDataTypeRef,
+	Mail,
 	MailAddressTypeRef,
 	MailTypeRef,
 	ReportedMailFieldMarkerTypeRef,
@@ -15,7 +16,7 @@ import {
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	ReportedMailFieldType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { matchers, object } from "testdouble"
+import { matchers, object, when } from "testdouble"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
@@ -24,13 +25,15 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
 import { DataFile } from "../../../../../src/common/api/common/DataFile.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast, KeyVersion } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { verify } from "@tutao/tutanota-test-utils"
 import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
+import { BucketKeyTypeRef, InstanceSessionKey, InstanceSessionKeyTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { OwnerEncSessionKeyProvider } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -590,6 +593,81 @@ o.spec("MailFacade test", function () {
 			}
 
 			verify(serviceExecutor.post(UnreadMailStateService, matchers.anything()), { times: expectedBatches })
+		})
+	})
+
+	o.spec("createOwnerEncSessionKeyProviderForAttachments", () => {
+		function setUpMail(unique: number, instanceCount: number): Mail {
+			const mail = createTestEntity(MailTypeRef, {
+				bucketKey: createTestEntity(BucketKeyTypeRef, {
+					_id: `hey I'm an ID for bucket key #${unique}`,
+				}),
+			})
+			const instanceSessionKeys: InstanceSessionKey[] = []
+			for (let i = 0; i < instanceCount; i++) {
+				const instanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
+					instanceId: `hellooooo I'm an ID for some file instance #${i} for mail #${unique}`,
+					symEncSessionKey: new Uint8Array([unique, i, 3, 4]),
+					symKeyVersion: `${unique}`,
+				})
+				instanceSessionKeys.push(instanceSessionKey)
+			}
+			when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
+				resolvedSessionKeyForInstance: [],
+				instanceSessionKeys,
+			})
+			return mail
+		}
+
+		async function checkMail(resolver: OwnerEncSessionKeyProvider, unique: number, instanceCount: number) {
+			for (let i = 0; i < instanceCount; i++) {
+				o.check(await resolver(`hellooooo I'm an ID for some file instance #${i} for mail #${unique}`)).deepEquals({
+					key: new Uint8Array([unique, i, 3, 4]),
+					encryptingKeyVersion: unique as KeyVersion,
+				})
+			}
+		}
+
+		o.test("one mail with no bucket key", async () => {
+			const mail = createTestEntity(MailTypeRef)
+			await facade.createOwnerEncSessionKeyProviderForAttachments([mail])
+			// since our resolver will do nothing, we just need to ensure that cryptoFacade was never called in the first place
+			verify(cryptoFacade.resolveWithBucketKey(matchers.anything()), { times: 0 })
+		})
+
+		o.test("one mail with one file instance", async () => {
+			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments([setUpMail(1, 1)])
+			await checkMail(resolver, 1, 1)
+		})
+		o.test("a lot of mails with one file instance", async () => {
+			const count = 100
+			const instanceCount = 1
+			const mails: Mail[] = []
+			for (let i = 0; i < count; i++) {
+				mails.push(setUpMail(i, instanceCount))
+			}
+			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments(mails)
+			for (let i = 0; i < count; i++) {
+				await checkMail(resolver, i, instanceCount)
+			}
+		})
+
+		o.test("one mail with many file instances", async () => {
+			const instanceCount = 256
+			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments([setUpMail(1, instanceCount)])
+			await checkMail(resolver, 1, instanceCount)
+		})
+		o.test("a lot of mails with many file instances", async () => {
+			const count = 100
+			const instanceCount = 64
+			const mails: Mail[] = []
+			for (let i = 0; i < count; i++) {
+				mails.push(setUpMail(i, instanceCount))
+			}
+			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments(mails)
+			for (let i = 0; i < count; i++) {
+				await checkMail(resolver, i, instanceCount)
+			}
 		})
 	})
 })
