@@ -1,4 +1,16 @@
-import { assertNotNull, findLastIndex, groupBy, groupByAndMap, last, lastThrow, neverNull, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	findLastIndex,
+	groupBy,
+	groupByAndMap,
+	isEmpty,
+	last,
+	lastThrow,
+	neverNull,
+	promiseMap,
+	splitInChunks,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
 	constructMailSetEntryId,
@@ -25,6 +37,7 @@ import {
 import { SomeEntity } from "../../../common/api/common/EntityTypes.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 
 export const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
@@ -42,7 +55,7 @@ export interface MailWithMailDetails {
 }
 
 export class BulkMailLoader {
-	constructor(private readonly mailEntityClient: EntityClient, private readonly mailDataEntityClient: EntityClient) {}
+	constructor(private readonly mailEntityClient: EntityClient, private readonly mailDataEntityClient: EntityClient, private readonly mail: MailFacade) {}
 
 	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<Mail[]> {
 		return this.mailEntityClient.loadRange(MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, {
@@ -104,14 +117,21 @@ export class BulkMailLoader {
 
 	async loadAttachments(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<TutanotaFile[]> {
 		const attachmentIds: IdTuple[] = []
+
 		for (const mail of mails) {
+			if (isEmpty(mail.attachments)) {
+				continue
+			}
 			attachmentIds.push(...mail.attachments)
 		}
+
+		const sessionKeyProvider = await this.mail.createOwnerEncSessionKeyProviderForAttachments(mails)
 		const filesByList = groupBy(attachmentIds, listIdPart)
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
 		for (const [listId, fileIds] of filesByList.entries()) {
-			fileLoadingPromises.push(this.loadInChunks(FileTypeRef, listId, fileIds.map(elementIdPart), undefined, options))
+			fileLoadingPromises.push(this.loadInChunks(FileTypeRef, listId, fileIds.map(elementIdPart), sessionKeyProvider, options))
 		}
+
 		const filesResults = await Promise.all(fileLoadingPromises)
 		return filesResults.flat()
 	}
