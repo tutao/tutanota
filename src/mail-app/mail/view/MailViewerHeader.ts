@@ -767,15 +767,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		};
 
 		const addAction = () => {
-			if (isTrusted) {
-				const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel);
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle?.(handle);
-			} else {
-				const modalInstance = new MobyPhishConfirmAddSenderModal(viewModel);
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle?.(handle);
-			}
+			const modalInstance = isTrusted
+				? new MobyPhishAlreadyTrustedModal(viewModel)
+				: new MobyPhishConfirmAddSenderModal(viewModel);
+			const handle = modal.display(modalInstance);
+			modalInstance.setModalHandle?.(handle);
 		};
 
 		const trustOnceAction = () => {
@@ -789,129 +785,87 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		};
 
 		const removeAction = () => {
-			if (isTrusted) {
-				const modalInstance = new MobyPhishRemoveConfirmationModal(viewModel);
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle?.(handle);
-			} else {
-				const modalInstance = new MobyPhishNotTrustedModal();
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle?.(handle);
-			}
+			const modalInstance = isTrusted
+				? new MobyPhishRemoveConfirmationModal(viewModel)
+				: new MobyPhishNotTrustedModal();
+			const handle = modal.display(modalInstance);
+			modalInstance.setModalHandle?.(handle);
 		};
 
-		const untrustAction = async () => {
-			await viewModel.resetSenderStatusForCurrentEmail();
+		const showInfoModal = () => {
+			const modalInstance = new MobyPhishInfoModal();
+			const handle = modal.display(modalInstance);
+			modalInstance.setModalHandle?.(handle);
 		};
 
-		// --- Button Definitions ---
-		const confirmButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_confirm",
+		// --- Banner Buttons ---
+		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
-			icon: Icons.Checkmark,
+			icon: m(Icon, { icon: Icons.Checkmark }),
 			click: confirmAction,
-			style: { backgroundColor: "green", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 		};
 
-		const addButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_add",
+		const addSenderButton: BannerButtonAttrs = {
 			label: "mobyPhish_add",
-			icon: Icons.Add,
+			icon: m(Icon, { icon: Icons.Add }),
 			click: addAction,
-			style: { backgroundColor: "red", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
 		};
 
-		const trustOnceButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_trusted_once",
-			label: "mobyPhish_trusted_once",
-			icon: Icons.Unlock,
-			click: trustOnceAction,
-			style: { backgroundColor: "#f0ad4e", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
+		const moreButton: BannerButtonAttrs = {
+			label: "more_label",
+			click: createAsyncDropdown({
+				width: 220,
+				lazyButtons: async () => [
+					{
+						label: "mobyPhish_trusted_once",
+						icon: Icons.Unlock,
+						click: trustOnceAction,
+					},
+					{
+						label: "mobyPhish_remove",
+						icon: Icons.CircleReject,
+						click: removeAction,
+					},
+					{
+						label: "mobyPhish_learn_more",
+						icon: Icons.QuestionMark,
+						click: showInfoModal,
+					},
+				],
+			}),
 		};
 
-		const removeButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_remove",
-			label: "mobyPhish_remove",
-			icon: Icons.CircleReject,
-			click: removeAction,
-			style: { backgroundColor: "#6c757d", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-		};
-
-		const untrustButtonAttrs: BannerButtonAttrs = {
-			title: "mobyPhish_untrust",
-			label: "mobyPhish_untrust",
-			icon: Icons.Trash,
-			click: untrustAction,
-			style: { backgroundColor: "#343a40", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-		};
-
-		// --- Determine Banner State ---
-		let baseButtons: BannerButtonAttrs[] = [];
+		// --- Determine Message and Buttons ---
 		let messageKey: TranslationKey = "mobyPhish_is_trusted";
 		let bannerType: BannerType = BannerType.Warning;
 		let bannerIcon: Icons = Icons.Warning;
+		let buttons: BannerButtonAttrs[] = [confirmButton, addSenderButton, moreButton];
 
 		if (senderStatus === "trusted_once") {
 			messageKey = "mobyPhish_sender_trusted_once";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
-			baseButtons = [untrustButtonAttrs];
-
+			buttons = [{
+				label: "mobyPhish_untrust",
+				icon: m(Icon, { icon: Icons.Trash }),
+				click: async () => await viewModel.resetSenderStatusForCurrentEmail(),
+			}];
 		} else if (senderStatus === "confirmed" || senderStatus === "added_to_trusted" || (isTrusted && senderStatus === "")) {
 			messageKey = "mobyPhish_sender_confirmed";
 			bannerType = BannerType.Info;
 			bannerIcon = Icons.CircleCheckmark;
-			baseButtons = [removeButtonAttrs];
-
-		} else {
-			messageKey = "mobyPhish_is_trusted";
-			bannerType = BannerType.Warning;
-			bannerIcon = Icons.Warning;
-			baseButtons = [confirmButtonAttrs, addButtonAttrs, trustOnceButtonAttrs, removeButtonAttrs];
+			buttons = [{
+				label: "mobyPhish_remove",
+				icon: m(Icon, { icon: Icons.CircleReject }),
+				click: removeAction,
+			}];
 		}
-
-		// --- Layout adaptation ---
-		const isMobileLayout = styles.isSingleColumnLayout();
-		const [firstButton, ...restButtons] = baseButtons;
-
-		const buttonsToShow: BannerButtonAttrs[] = [firstButton];
-
-		// Add dropdown on mobile layout
-		if (isMobileLayout && restButtons.length > 0) {
-			const dropdownButtons = restButtons.map(({ label, click, icon }) => ({
-				label,
-				click,
-				icon: icon as Icons
-			}));
-
-			buttonsToShow.push({
-				label: "more_label",
-				click: createAsyncDropdown({
-					width: 216,
-					lazyButtons: async () => dropdownButtons
-				})
-			});
-		} else {
-			buttonsToShow.push(...restButtons);
-		}
-
-		// Always add Learn More button
-		buttonsToShow.push({
-			label: "mobyPhish_learn_more",
-			icon: Icons.QuestionMark,
-			click: () => {
-				const modalInstance = new MobyPhishInfoModal();
-				const handle = modal.display(modalInstance);
-				modalInstance.setModalHandle?.(handle);
-			},
-			style: { backgroundColor: "#007bff", color: "white", fontWeight: "bold", borderRadius: "8px", padding: "8px 12px" }
-		});
 
 		return m(InfoBanner, {
 			message: messageKey,
 			icon: bannerIcon,
 			type: bannerType,
-			buttons: buttonsToShow
+			buttons: buttons,
 		});
 	}
 
