@@ -186,7 +186,12 @@ export class CryptoFacade {
 		}
 	}
 
-	public async resolveWithBucketKey(instance: Entity): Promise<ResolvedSessionKeys> {
+	/**
+	 * Resolves session keys using the bucket key on the instance.
+	 * @param instance with a set bucketKey
+	 * @throws {Error} if `instance.bucketKey == null`
+	 */
+	async resolveWithBucketKey(instance: Entity): Promise<ResolvedSessionKeys> {
 		const typeModel = await resolveClientTypeReference(instance._type)
 		const bucketKey = assertNotNull(instance.bucketKey)
 
