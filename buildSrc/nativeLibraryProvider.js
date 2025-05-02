@@ -50,9 +50,7 @@ export async function getNativeLibModulePaths({ environment, platform, architect
 
 	const isCrossCompilation = checkIsCrossCompilation(platform)
 	for (/** @type {[BuildArch, string]} */ const entry of Object.entries(libPaths)) {
-		/** @type BuildArch */
-		// @ts-ignore
-		const architecture = entry[0]
+		const architecture = /** @type BuildArch */ (entry[0])
 		const libPath = entry[1]
 		if (await fileExists(libPath)) {
 			log(`Using cached ${nodeModule} at`, libPath)
