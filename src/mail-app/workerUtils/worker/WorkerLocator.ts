@@ -263,16 +263,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	/** Slightly annoying two-stage init: first import bulk loader, then we can have a factory for it. */
 	const prepareBulkLoaderFactory = async () => {
 		const { BulkMailLoader } = await import("../index/BulkMailLoader.js")
+		const mailFacade = await locator.mail()
 		return () => {
 			// On platforms with offline cache we just use cache as we are not bounded by memory.
 			if (isOfflineStorageAvailable()) {
-				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient)
+				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient, mailFacade)
 			} else {
 				// On platforms without offline cache we use new ephemeral cache storage for mails only and uncached storage for the rest
 				const cacheStorage = new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver)
 				return new BulkMailLoader(
 					new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage, typeModelResolver), typeModelResolver),
 					new EntityClient(entityRestClient, typeModelResolver),
+					mailFacade,
 				)
 			}
 		}
