@@ -41,6 +41,7 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 								fontWeight: "bold",
 								textAlign: "center",
 								marginBottom: "15px",
+								color: "black",
 							},
 						},
 						"Remove from Trusted Senders?",
@@ -53,11 +54,12 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 								textAlign: "center",
 								marginBottom: "20px",
 								lineHeight: "1.5",
+								color: "black",
 							},
 						},
 						[
 							"Are you sure you want to remove ",
-							m("strong", this.senderDisplay),
+							m("strong", { style: { color: "black" } }, this.senderDisplay),
 							" from your trusted senders list?",
 							m("br"),
 							m(
@@ -94,7 +96,7 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 						{
 							onclick: () => this.confirmRemoveSender(),
 							disabled: this.isLoading,
-							style: this.getConfirmButtonStyle(this.isLoading),
+							style: { ...this.getConfirmButtonStyle(this.isLoading), color: "black" },
 						},
 						this.isLoading ? "Removing..." : "Confirm Remove",
 					),
@@ -105,7 +107,7 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 						{
 							onclick: () => this.closeModal(),
 							disabled: this.isLoading,
-							style: this.getCancelButtonStyle(),
+							style: { ...this.getCancelButtonStyle(), color: "black" },
 						},
 						"Cancel",
 					),

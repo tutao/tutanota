@@ -113,7 +113,11 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 		const isConfirmDisabled = !this.selectedSenderEmail.trim() || this.isLoading
 
 		return [
-			m("p", { style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "15px" } }, "Who do you believe this email is from?"),
+			m(
+				"p",
+				{ style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "15px", color: "black" } },
+				"Who do you believe this email is from?",
+			),
 			m("input[type=text]", {
 				placeholder: "Search or type sender email or name...",
 				value: this.selectedSenderEmail,
@@ -128,6 +132,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 					boxSizing: "border-box",
 					borderRadius: "8px",
 					border: "1px solid #ccc",
+					color: "black",
 				},
 				required: true,
 			}),
@@ -174,7 +179,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 						}
 					},
 					disabled: isConfirmDisabled,
-					style: this.getCancelButtonStyle(),
+					style: { ...this.getCancelButtonStyle(), color: "black" },
 				},
 				"Confirm",
 			),
@@ -184,7 +189,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 				{
 					onclick: () => modal.remove(this.modalHandle!),
 					disabled: this.isLoading,
-					style: this.getCancelButtonStyle(),
+					style: { ...this.getCancelButtonStyle(), color: "black" },
 				},
 				"Cancel",
 			),
@@ -209,7 +214,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 			m(
 				"p",
 				{
-					style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "5px" },
+					style: { fontSize: "16px", fontWeight: "bold", textAlign: "center", marginBottom: "5px", color: "black" },
 				},
 				m(Icon, {
 					icon: Icons.Warning,
@@ -221,7 +226,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 			m(
 				"p",
 				{
-					style: { fontSize: "14px", textAlign: "center", marginBottom: "15px" },
+					style: { fontSize: "14px", textAlign: "center", marginBottom: "15px", color: "black" },
 				},
 				[
 					warningText,
@@ -241,6 +246,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 								textAlign: "center",
 								marginBottom: "20px",
 								fontStyle: "italic",
+								color: "black",
 							},
 						},
 						`(Actual sender: ${actualDisplay})`,

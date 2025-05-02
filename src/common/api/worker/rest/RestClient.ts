@@ -78,32 +78,31 @@ export class RestClient {
 				resourceURL.pathname = path
 				const url = addParamsToUrl(resourceURL, queryParams)
 
+				const finalUrlString = url.toString()
+				let proxiedUrlString = finalUrlString
 
-const finalUrlString = url.toString();
-let proxiedUrlString = finalUrlString;
+				// Define Tutanota domains
+				const tutanotaDomains = ["app.tuta.com", "api.tuta.com"] // Add any other relevant Tutanota domains
 
-// Define Tutanota domains
-const tutanotaDomains = ["app.tuta.com", "api.tuta.com"]; // Add any other relevant Tutanota domains
+				try {
+					const parsedUrl = new URL(finalUrlString)
+					// Check if the hostname is one of the Tutanota domains
+					if (tutanotaDomains.includes(parsedUrl.hostname)) {
+						proxiedUrlString = "http://localhost:8080/" + finalUrlString
+						console.log(`[RestClient Proxy] Applying proxy for: ${finalUrlString}`)
+					} else {
+						console.log(`[RestClient Proxy] Skipping proxy for: ${finalUrlString}`)
+					}
+				} catch (e) {
+					// Handle cases where finalUrlString might be relative or invalid if necessary
+					// Depending on how Tutanota constructs URLs, you might need to proxy relative paths too.
+					// If Tutanota ONLY uses absolute URLs, this catch might not be strictly needed for proxying.
+					console.warn(`[RestClient Proxy] Could not parse URL, not proxying: ${finalUrlString}`, e)
+				}
 
-try {
-    const parsedUrl = new URL(finalUrlString);
-    // Check if the hostname is one of the Tutanota domains
-    if (tutanotaDomains.includes(parsedUrl.hostname)) {
-       proxiedUrlString = "http://3.88.180.154:8080/" + finalUrlString;
-       console.log(`[RestClient Proxy] Applying proxy for: ${finalUrlString}`);
-    } else {
-       console.log(`[RestClient Proxy] Skipping proxy for: ${finalUrlString}`);
-    }
-} catch (e) {
-     // Handle cases where finalUrlString might be relative or invalid if necessary
-     // Depending on how Tutanota constructs URLs, you might need to proxy relative paths too.
-     // If Tutanota ONLY uses absolute URLs, this catch might not be strictly needed for proxying.
-     console.warn(`[RestClient Proxy] Could not parse URL, not proxying: ${finalUrlString}`, e);
-}
-
-const xhr = new XMLHttpRequest();
-// Use the potentially proxied URL
-xhr.open(method, proxiedUrlString);
+				const xhr = new XMLHttpRequest()
+				// Use the potentially proxied URL
+				xhr.open(method, proxiedUrlString)
 
 				this.setHeaders(xhr, options)
 

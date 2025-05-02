@@ -44,6 +44,7 @@ export class MobyPhishConfirmAddSenderModal implements ModalComponent {
 								fontWeight: "bold",
 								textAlign: "center",
 								marginBottom: "15px",
+								color: "black",
 							},
 						},
 						"Add to Trusted Senders?",
@@ -55,9 +56,10 @@ export class MobyPhishConfirmAddSenderModal implements ModalComponent {
 								fontSize: "14px",
 								textAlign: "center",
 								marginBottom: "20px",
+								color: "black",
 							},
 						},
-						["Are you sure you want to add ", m("strong", this.senderDisplay), " to your trusted senders list?"],
+						["Are you sure you want to add ", m("strong", { style: { color: "black" } }, this.senderDisplay), " to your trusted senders list?"],
 					),
 
 					this.errorMessage
@@ -81,7 +83,7 @@ export class MobyPhishConfirmAddSenderModal implements ModalComponent {
 						{
 							onclick: () => this.confirmAddSender(),
 							disabled: this.isLoading,
-							style: this.getConfirmButtonStyle(this.isLoading),
+							style: { ...this.getConfirmButtonStyle(this.isLoading), color: "black" },
 						},
 						this.isLoading ? "Adding..." : "Confirm Add",
 					),
@@ -92,7 +94,7 @@ export class MobyPhishConfirmAddSenderModal implements ModalComponent {
 						{
 							onclick: () => this.closeModal(),
 							disabled: this.isLoading,
-							style: this.getCancelButtonStyle(),
+							style: { ...this.getCancelButtonStyle(), color: "black" },
 						},
 						"Cancel",
 					),
