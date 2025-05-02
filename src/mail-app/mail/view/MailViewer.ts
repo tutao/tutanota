@@ -388,105 +388,104 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	 * @param parent the parent element that contains the shadowMailBody
 	 * @private
 	 */
-	 private renderShadowMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs, parent: HTMLElement) {
-	     this.currentQuoteBehavior = attrs.defaultQuoteBehavior;
-	     assertNonNull(this.shadowDomRoot, "shadow dom root is null!");
-	     while (this.shadowDomRoot.firstChild) {
-	         this.shadowDomRoot.firstChild.remove();
-	     }
+	private renderShadowMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs, parent: HTMLElement) {
+	 	this.currentQuoteBehavior = attrs.defaultQuoteBehavior;
+	 	assertNonNull(this.shadowDomRoot, "shadow dom root is null!");
+	 	while (this.shadowDomRoot.firstChild) {
+	 		this.shadowDomRoot.firstChild.remove();
+	 	}
 
-	     const wrapNode = document.createElement("div");
-	     wrapNode.id = "shadow-mail-body";
-	     wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "");
-	     wrapNode.setAttribute("data-testid", "mailBody_label");
-	     wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height);
-	     wrapNode.style.transformOrigin = "0px 0px";
+	 	const wrapNode = document.createElement("div");
+	 	wrapNode.id = "shadow-mail-body";
+	 	wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "");
+	 	wrapNode.setAttribute("data-testid", "mailBody_label");
+	 	wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height);
+	 	wrapNode.style.transformOrigin = "0px 0px";
 
-	     // Remove "align" property from top-level elements
-	     const contentRoot = sanitizedMailBody.cloneNode(true) as HTMLElement;
-	     for (const child of Array.from(contentRoot.children)) {
-	         child.removeAttribute("align");
-	     }
+	 	// Clean up deprecated align attributes
+	 	const contentRoot = sanitizedMailBody.cloneNode(true) as HTMLElement;
+	 	for (const child of Array.from(contentRoot.children)) {
+	 		child.removeAttribute("align");
+	 	}
 
-	     wrapNode.appendChild(contentRoot);
-	     this.shadowDomMailContent = wrapNode;
+	 	wrapNode.appendChild(contentRoot);
+	 	this.shadowDomMailContent = wrapNode;
 
-	     // Collapse quotes if needed
-	     const quoteElements = Array.from(wrapNode.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[];
-	     if (quoteElements.length === 0) {
-	         this.quoteState = "noquotes";
-	     }
-	     for (const quote of quoteElements) {
-	         this.createCollapsedBlockQuote(quote, this.shouldDisplayCollapsedQuotes());
-	     }
+	 	// Collapsible quotes
+	 	const quoteElements = Array.from(wrapNode.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[];
+	 	if (quoteElements.length === 0) {
+	 		this.quoteState = "noquotes";
+	 	}
+	 	for (const quote of quoteElements) {
+	 		this.createCollapsedBlockQuote(quote, this.shouldDisplayCollapsedQuotes());
+	 	}
 
-	     this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"));
-	     this.shadowDomRoot.appendChild(wrapNode);
+	 	this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"));
+	 	this.shadowDomRoot.appendChild(wrapNode);
 
-	     // Apply link blocking/confirmation logic
-	     const isConfirmed = this.viewModel?.isSenderConfirmed?.() ?? false;
+	 	// LINK HANDLING: override clicks inside Shadow DOM
+	 	const isConfirmed = this.viewModel?.isSenderConfirmed?.() ?? false;
 
-	     wrapNode.querySelectorAll("a").forEach((link) => {
-	         const originalHref = link.getAttribute("data-original-href") || link.getAttribute("href") || "";
+	 	wrapNode.querySelectorAll("a").forEach((link) => {
+	 		const originalHref = link.getAttribute("data-original-href") || link.getAttribute("href") || "";
 
-	         if (!isConfirmed) {
-	             // Blocked: disable and style link
-	             link.setAttribute("data-original-href", originalHref);
-	             link.setAttribute("href", "javascript:void(0)");
-	             link.style.pointerEvents = "auto";
-	             link.style.color = "gray";
-	             link.style.textDecoration = "line-through";
+	 		if (!isConfirmed) {
+	 			link.setAttribute("data-original-href", originalHref);
+	 			link.removeAttribute("href"); // SAFARI FIX — don't allow "javascript:void(0)" or "#"
+	 			link.style.pointerEvents = "auto";
+	 			link.style.color = "gray";
+	 			link.style.textDecoration = "line-through";
 
-	             const handleBlockedClick = (e: Event) => {
-	                 e.preventDefault();
-	                 e.stopPropagation();
+	 			const handleBlockedClick = (e: Event) => {
+	 				e.preventDefault();
+	 				e.stopPropagation();
 
-	                 if (!this.viewModel.isSenderConfirmed()) {
-	                     if (this.viewModel.isSenderTrusted()) {
-	                         const senderName = this.viewModel.getSender().name || this.viewModel.getSender().address;
-	                         import("./MobyPhishReminderModal").then(({ MobyPhishReminderModal }) => {
-	                             const reminderModal = new MobyPhishReminderModal(senderName);
-	                             modal.display(reminderModal);
-	                             reminderModal.setModalHandle(reminderModal);
-	                         });
-	                     } else {
-	                         this.viewModel?.showPhishingModal?.();
-	                     }
-	                 }
-	             };
+	 				if (!this.viewModel.isSenderConfirmed()) {
+	 					if (this.viewModel.isSenderTrusted()) {
+	 						const senderName = this.viewModel.getSender().name || this.viewModel.getSender().address;
+	 						import("./MobyPhishReminderModal").then(({ MobyPhishReminderModal }) => {
+	 							const reminderModal = new MobyPhishReminderModal(senderName);
+	 							modal.display(reminderModal);
+	 							reminderModal.setModalHandle(reminderModal);
+	 						});
+	 					} else {
+	 						this.viewModel?.showPhishingModal?.();
+	 					}
+	 				}
+	 			};
 
-	             link.addEventListener("pointerdown", handleBlockedClick, { passive: false });
-	             link.addEventListener("click", handleBlockedClick);
-	         } else {
-	             // Allowed: restore styling and behavior
-	             link.setAttribute("href", originalHref);
-	             link.style.color = "";
-	             link.style.textDecoration = "";
-	             link.style.pointerEvents = "auto";
+	 			link.addEventListener("click", handleBlockedClick);
+	 			link.addEventListener("pointerdown", handleBlockedClick, { passive: false });
+	 		} else {
+	 			// Allow normal navigation
+	 			link.setAttribute("href", originalHref);
+	 			link.style.color = "";
+	 			link.style.textDecoration = "";
+	 			link.style.pointerEvents = "auto";
 
-	             link.addEventListener("click", (e) => {
-	                 e.preventDefault();
-	                 window.open(originalHref, "_blank");
-	             });
-	         }
-	     });
+	 			link.addEventListener("click", (e) => {
+	 				e.preventDefault();
+	 				window.open(originalHref, "_blank");
+	 			});
+	 		}
+	 	});
 
-	     // Pinch zoom handling
-	     if (client.isMobileDevice()) {
-	         this.pinchZoomable = null;
-	         this.resizeObserverZoomable?.disconnect();
-	         this.resizeObserverZoomable = createResizeObserver(() => {
-	             this.createPinchZoom(wrapNode, parent);
-	         });
-	         this.resizeObserverZoomable.observe(wrapNode);
-	     } else {
-	         wrapNode.addEventListener("click", (event) => {
-	             this.handleAnchorClick(event, event.target, false);
-	         });
-	     }
+	 	if (client.isMobileDevice()) {
+	 		this.pinchZoomable = null;
+	 		this.resizeObserverZoomable?.disconnect();
+	 		this.resizeObserverZoomable = createResizeObserver(() => {
+	 			this.createPinchZoom(wrapNode, parent);
+	 		});
+	 		this.resizeObserverZoomable.observe(wrapNode);
+	 	} else {
+	 		wrapNode.addEventListener("click", (event) => {
+	 			this.handleAnchorClick(event, event.target, false);
+	 		});
+	 	}
 
-	     this.currentlyRenderedMailBody = sanitizedMailBody;
-	 }
+	 	this.currentlyRenderedMailBody = sanitizedMailBody;
+	}
+
 
 
 	private createCollapsedBlockQuote(quote: HTMLElement, expanded: boolean) {
