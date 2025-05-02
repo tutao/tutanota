@@ -183,7 +183,8 @@ async function buildDesktopPart({ version, app }) {
 					platform: getCanonicalPlatformName(process.platform),
 					architecture: getValidArchitecture(process.platform, process.arch),
 					nodeModule: "@signalapp/sqlcipher",
-					environment: "electron",
+					// we build for Electron, but it uses NAPI so it's fine to build for node
+					environment: "node",
 					targetName: "node_sqlcipher",
 				}),
 				napiPlugin({
