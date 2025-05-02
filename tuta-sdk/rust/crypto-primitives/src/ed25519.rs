@@ -186,12 +186,8 @@ mod tests {
 			let signature_bytes: [u8; SIGNATURE_SIZE] = td.signature.try_into().unwrap();
 			let signature = Ed25519Signature::from(signature_bytes);
 
-			// signing the message given by the test and compare with the signature in the test
-			// this currently not possible because ed25519-dalek does not let us inject our own
-			// randomness: RandomizedSigner trait is not implemented for SigningKey
-			let _seed = td.seed;
-
-			// verify the signature from the test data with the public key
+			let reproduced_signature = key_pair.private_key.sign(&message);
+			assert_eq!(reproduced_signature, signature);
 			assert!(key_pair.public_key.verify(message, &signature).is_ok());
 		}
 	}
