@@ -54,6 +54,7 @@ use crate::user_facade::UserFacade;
 use bindings::file_client::FileClient;
 use bindings::rest_client::{RestClient, RestClientError};
 
+pub mod contacts;
 pub mod crypto;
 pub mod crypto_entity_client;
 pub mod date;
@@ -87,6 +88,7 @@ mod user_facade;
 pub mod util;
 
 use crate::bindings::suspendable_rest_client::SuspendableRestClient;
+use crate::contacts::contact_facade::ContactFacade;
 use crate::date::calendar_facade::CalendarFacade;
 use crate::entities::generated::storage::BlobServerAccessInfo;
 use crate::entities::Entity;
@@ -518,6 +520,15 @@ impl LoggedInSdk {
 	#[must_use]
 	pub fn calendar_facade(&self) -> CalendarFacade {
 		CalendarFacade::new(self.crypto_entity_client.clone(), self.user_facade.clone())
+	}
+
+	#[must_use]
+	pub fn contact_facade(&self) -> ContactFacade {
+		ContactFacade::new(
+			self.crypto_entity_client.clone(),
+			self.type_model_provider.clone(),
+			self.user_facade.clone(),
+		)
 	}
 
 	#[must_use]

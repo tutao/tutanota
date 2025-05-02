@@ -1,6 +1,6 @@
 use crate::date::DateTime;
 use crate::element_value::ElementValue;
-use crate::TypeRef;
+use crate::{CustomId, TypeRef};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -200,6 +200,7 @@ pub struct TypeModel {
 	pub encrypted: bool,
 	pub values: HashMap<AttributeId, ModelValue>,
 	pub associations: HashMap<AttributeId, ModelAssociation>,
+	pub root_id: CustomId,
 }
 
 #[derive(Error, Debug)]
