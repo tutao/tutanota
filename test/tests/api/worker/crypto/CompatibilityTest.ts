@@ -3,10 +3,17 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	bitArrayToUint8Array,
+	bytesToEd25519PrivateKey,
+	bytesToEd25519PublicKey,
+	bytesToEd25519Signature,
 	bytesToKyberPrivateKey,
 	bytesToKyberPublicKey,
 	decapsulateKyber,
 	decryptKey,
+	Ed25519KeyPair,
+	ed25519PrivateKeyToBytes,
+	ed25519PublicKeyToBytes,
+	ed25519SignatureToBytes,
 	encapsulateKyber,
 	encryptKey,
 	generateKeyFromPassphraseArgon2id,
@@ -49,6 +56,7 @@ import { matchers, object, when } from "testdouble"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
+import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 
 const originalRandom = random.generateRandomData
 
@@ -385,6 +393,26 @@ o.spec("CompatibilityTest", function () {
 		}
 	})
 
+	o("ed25519", async function () {
+		for (const td of testData.ed25519Tests) {
+			const ed25519Facade = await createEd25519Facade()
+			// td.seed
+			const private_key = bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex))
+			const public_key = bytesToEd25519PublicKey(hexToUint8Array(td.alicePublicKeyHex))
+			const aliceKeyPair: Ed25519KeyPair = { private_key, public_key }
+			const signature = bytesToEd25519Signature(hexToUint8Array(td.signature))
+
+			// make sure encoding and decoding round trips yield the same results again
+			o(uint8ArrayToHex(ed25519PrivateKeyToBytes(private_key))).deepEquals(td.alicePrivateKeyHex)
+			o(uint8ArrayToHex(ed25519PublicKeyToBytes(public_key))).deepEquals(td.alicePublicKeyHex)
+			o(uint8ArrayToHex(ed25519SignatureToBytes(signature))).deepEquals(td.signature)
+
+			const reproducedSignature = await ed25519Facade.sign(aliceKeyPair.private_key, stringToUtf8Uint8Array(td.message))
+			o(td.signature).equals(uint8ArrayToHex(reproducedSignature))
+			o(await ed25519Facade.verify(aliceKeyPair.public_key, stringToUtf8Uint8Array(td.message), signature)).equals(true)
+		}
+	})
+
 	/**
 	 * Creates the Javascript compatibility test data for compression. See CompatibilityTest.writeCompressionTestData() in Java for
 	 * instructions how to update the test data.
@@ -402,3 +430,13 @@ o.spec("CompatibilityTest", function () {
 	// 	console.log(");")
 	// })
 })
+
+async function createEd25519Facade(): Promise<Ed25519Facade> {
+	if (typeof process !== "undefined") {
+		const { readFile } = await import("node:fs/promises")
+		const wasmBuffer = await readFile("build/crypto_primitives_bg.wasm")
+		return new Ed25519Facade(wasmBuffer)
+	} else {
+		return new Ed25519Facade()
+	}
+}

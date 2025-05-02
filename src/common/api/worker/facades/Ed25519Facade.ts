@@ -1,49 +1,50 @@
 import { assertWorkerOrNode } from "../../common/Env.js"
-import { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature, initEd25519 } from "@tutao/tutanota-crypto"
+import {
+	bytesToEd25519Signature,
+	Ed25519KeyPair,
+	Ed25519PrivateKey,
+	Ed25519PublicKey,
+	ed25519SignatureToBytes,
+	generateEd25519KeyPair,
+	initEd25519,
+	signWithEd25519,
+	verifyEd25519Signature,
+} from "@tutao/tutanota-crypto"
+import { LazyLoaded } from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 
-/**
- * due to wasm generating number: [] from crypto-primitive crate
- * which api is responsible for converting those number arrays
- * tutanota-crypto or this facade ?
- *
- * should we find a way to export directly uint8array from rust?
- */
-
-export type Ed25519PublicKey = Uint8Array
-export type Ed25519PrivateKey = Uint8Array
-
 export type SigningKeyPair = Ed25519KeyPair
 export type SigningPublicKey = Ed25519PublicKey
-
-export type Ed25519Signature = Uint8Array
-
-export type Ed25519KeyPair = {
-	publicKey: Uint8Array
-	privateKey: Uint8Array
-}
+export type EncodedEd25519Signature = Uint8Array
 
 /**
  * Implementation of EdDSA based on Ed25519.
  */
 export class Ed25519Facade {
-	async generateKeypair(): Promise<Ed25519KeyPair> {
-		await initEd25519()
-		let generated = generateEd25519KeyPair()
-		return {
-			publicKey: new Uint8Array(generated.public_key),
-			privateKey: new Uint8Array(generated.private_key),
+	constructor(private readonly testWASM?: BufferSource) {}
+
+	// loads liboqs WASM
+	private initEd25519: LazyLoaded<void> = new LazyLoaded(async () => {
+		if (this.testWASM) {
+			return initEd25519(this.testWASM)
+		} else {
+			await initEd25519("./crypto_primitives_bg.wasm")
 		}
+	})
+
+	async generateKeypair(): Promise<Ed25519KeyPair> {
+		await this.initEd25519.getAsync()
+		return generateEd25519KeyPair()
 	}
 
-	async sign(privateKey: Ed25519PrivateKey, message: Uint8Array): Promise<Ed25519Signature> {
-		await initEd25519()
-		return new Uint8Array(signWithEd25519([...privateKey], message))
+	async sign(privateKey: Ed25519PrivateKey, message: Uint8Array): Promise<EncodedEd25519Signature> {
+		await this.initEd25519.getAsync()
+		return ed25519SignatureToBytes(signWithEd25519(privateKey, message))
 	}
 
-	async verify(publicKey: Ed25519PublicKey, message: Uint8Array, signature: Ed25519Signature): Promise<boolean> {
-		await initEd25519()
-		return verifyEd25519Signature([...publicKey], message, [...signature])
+	async verify(publicKey: Ed25519PublicKey, message: Uint8Array, signature: EncodedEd25519Signature): Promise<boolean> {
+		await this.initEd25519.getAsync()
+		return verifyEd25519Signature(publicKey, message, bytesToEd25519Signature(signature))
 	}
 }
