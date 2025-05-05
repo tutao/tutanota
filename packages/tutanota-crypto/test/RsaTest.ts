@@ -1,7 +1,6 @@
 import o from "@tutao/otest"
 import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
-import type { RsaKeyPair } from "../lib/index.js"
-import { KeyPairType, random } from "../lib/index.js"
+import { extractRawPublicRsaKeyFromPrivateRsaKey, KeyPairType, random, RsaKeyPair } from "../lib/index.js"
 import {
 	_getPSBlock,
 	_keyArrayToHex,
@@ -364,5 +363,10 @@ o.spec("RsaTest", function () {
 
 			o(Array.from(padded)).deepEquals([2, 3, 4])
 		})
+	})
+
+	o("extract public key", function () {
+		const extractedPublicKey = extractRawPublicRsaKeyFromPrivateRsaKey(RSA_TEST_KEYPAIR.privateKey)
+		o({ keyPairType: KeyPairType.RSA, ...extractedPublicKey }).deepEquals(RSA_TEST_KEYPAIR.publicKey)
 	})
 })
