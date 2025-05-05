@@ -31,4 +31,7 @@ export class SqlCipherFacadeSendDispatcher implements SqlCipherFacade {
 	async unlockRangesDbAccess(...args: Parameters<SqlCipherFacade["unlockRangesDbAccess"]>) {
 		return this.transport.invokeNative("ipc", ["SqlCipherFacade", "unlockRangesDbAccess", ...args])
 	}
+	async tokenize(...args: Parameters<SqlCipherFacade["tokenize"]>) {
+		return this.transport.invokeNative("ipc", ["SqlCipherFacade", "tokenize", ...args])
+	}
 }

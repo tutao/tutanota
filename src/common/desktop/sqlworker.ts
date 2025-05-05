@@ -39,6 +39,7 @@ if (parentPort != null) {
 			openDb: (msg: Request<"openDb">) => sqlCipherFacade.openDb(msg.args[0], msg.args[1]),
 			run: (msg: Request<"run">) => sqlCipherFacade.run(msg.args[0], msg.args[1]),
 			unlockRangesDbAccess: (msg: Request<"unlockRangesDbAccess">) => sqlCipherFacade.unlockRangesDbAccess(msg.args[0]),
+			tokenize: (msg: Request<"tokenize">) => sqlCipherFacade.tokenize(msg.args[0]),
 		}
 
 		const workerTransport = new MessageDispatcher(

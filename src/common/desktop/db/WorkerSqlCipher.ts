@@ -72,4 +72,8 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 	async unlockRangesDbAccess(listId: string): Promise<void> {
 		return this.dispatcher.postRequest(new Request("unlockRangesDbAccess", [listId]))
 	}
+
+	tokenize(query: string): Promise<ReadonlyArray<string>> {
+		return this.dispatcher.postRequest(new Request("tokenize", [query]))
+	}
 }
