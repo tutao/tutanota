@@ -83,3 +83,10 @@ export function bytesToKyberPrivateKey(encodedPrivateKey: Uint8Array): KyberPriv
 	// key is expected by oqs in this order (vs how we encode it on the server): s, t, rho, hpk, nonce
 	return { raw: concat(s, t, rho, hpk, nonce) }
 }
+
+export function extractKyberPublicKeyFromKyberPrivateKey(kyberPrivateKey: KyberPrivateKey): KyberPublicKey {
+	const keyBytes = kyberPrivateKey.raw
+	const t = keyBytes.slice(KYBER_POLYVECBYTES, 2 * KYBER_POLYVECBYTES)
+	const rho = keyBytes.slice(2 * KYBER_POLYVECBYTES, 2 * KYBER_POLYVECBYTES + KYBER_SYMBYTES)
+	return { raw: concat(t, rho) }
+}
