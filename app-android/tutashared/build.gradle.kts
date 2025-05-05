@@ -4,6 +4,7 @@ plugins {
 	id("com.google.devtools.ksp")
 	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.21"
 	id("kotlin-android")
+	id("org.mozilla.rust-android-gradle.rust-android")
 }
 
 group = "de.tutao"
@@ -72,6 +73,57 @@ android {
 	}
 
 	ndkVersion = "26.1.10909125"
+}
+
+val tutanota3Root = layout.projectDirectory
+	.dir("..") // tutanota/tutashared
+	.dir("..") // tutanota
+val ftsCreatePath = tutanota3Root.dir("libs").dir("Signal-FTS5-Extension")
+
+fun getActiveBuildType(): String {
+	var buildType = "debug"
+	val taskNames = gradle.parent?.startParameter?.taskNames
+	if (!taskNames.isNullOrEmpty()) {
+		if (taskNames.size > 0) {
+			val targetTask = taskNames[0].lowercase()
+			if (targetTask.contains("release")) {
+				buildType = "release"
+			}
+		}
+	}
+	return buildType
+}
+
+fun getABITargets(): List<String> {
+	val targetAbiPropertyValue = findProperty("targetABI") as String?
+	if (targetAbiPropertyValue == null) {
+		return listOf("arm", "arm64", "x86_64")
+	}
+	return targetAbiPropertyValue.orEmpty().split(",")
+}
+
+cargo {
+	module = ftsCreatePath.toString()
+	libname = "signal_tokenizer"
+	prebuiltToolchains = true
+	pythonCommand = "python3"
+	targets = getABITargets()
+	profile = getActiveBuildType()
+	targetDirectory = tutanota3Root.dir("target").toString()
+}
+
+tasks.whenTaskAdded {
+	when (name) {
+		"preDebugBuild", "preReleaseBuild", "preReleaseTestBuild" -> {
+			dependsOn("clean")
+			mustRunAfter("clean")
+		}
+
+		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders", "mergeReleaseTestJniLibFolders" -> {
+			dependsOn("cargoBuild")
+			mustRunAfter("cargoBuild")
+		}
+	}
 }
 
 dependencies {
