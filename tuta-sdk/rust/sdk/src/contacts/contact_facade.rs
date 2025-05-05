@@ -16,6 +16,7 @@ pub struct ContactFacade {
 	user_facade: Arc<UserFacade>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl ContactFacade {
 	#[must_use]
 	pub fn new(
@@ -118,7 +119,7 @@ mod contact_facade_integration_tests {
 		}
 	}
 
-	fn create_mock_contact(
+	pub fn create_mock_contact(
 		contact_list: &GeneratedId,
 		contact_id: &GeneratedId,
 		name: Option<&str>,
