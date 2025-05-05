@@ -126,7 +126,7 @@ class WidgetDataRepository() : WidgetRepository() {
 			calendarEventListMap = calendarEventListMap.plus(
 				calendarId to CalendarEventListDao(
 					events.shortEvents.toDao(),
-					events.longEvents.toDao()
+					(events.longEvents.plus(events.birthdayEvents.map { it.calendarEvent }).toDao()),
 				)
 			)
 		}
