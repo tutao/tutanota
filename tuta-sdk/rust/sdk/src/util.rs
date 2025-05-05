@@ -2,7 +2,9 @@ use base64::alphabet::Alphabet;
 use base64::engine::GeneralPurpose;
 use std::fmt::Debug;
 
-use crate::CustomId;
+use crate::{
+	element_value::ElementValue, CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated, TypeRef,
+};
 
 #[cfg(test)]
 pub mod entity_test_utils;
@@ -217,8 +219,33 @@ pub fn first_bigger_than_second_custom_id(first_id: &CustomId, second_id: &Custo
 	first_id.to_custom_string() > second_id.to_custom_string()
 }
 
+pub fn extract_parsed_entity_id(
+	type_ref: &TypeRef,
+	entity_id: ElementValue,
+) -> (Option<GeneratedId>, String) {
+	let (list_id, element_id) = match entity_id {
+		ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
+			list_id,
+			element_id,
+		}) => (Some(list_id), element_id.to_string()),
+
+		ElementValue::IdTupleCustomElementId(IdTupleCustom {
+			list_id,
+			element_id,
+		}) => (Some(list_id), element_id.to_string()),
+
+		ElementValue::IdGeneratedId(element_id) => (None, element_id.to_string()),
+		ElementValue::IdCustomId(element_id) => (None, element_id.to_string()),
+
+		_ => panic!("Invalid type of _id for TypeRef: {type_ref}"),
+	};
+	(list_id, element_id)
+}
+
 #[cfg(test)]
 mod test {
+	use crate::metamodel::{AppName, TypeId};
+
 	use super::*;
 
 	/// Returns a handwritten encoded byte array and its decoded equivalent
@@ -318,5 +345,71 @@ mod test {
 		let second_id = CustomId::from_custom_string("1abcd");
 
 		assert!(!first_bigger_than_second_custom_id(&first_id, &second_id))
+	}
+
+	#[test]
+	fn test_extract_parsed_entity_id_tuple_generated() {
+		let type_ref = TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(0),
+		};
+		let entity_id = IdTupleGenerated {
+			list_id: GeneratedId::test_random(),
+			element_id: GeneratedId::test_random(),
+		};
+
+		let (list_id, element_id) = extract_parsed_entity_id(
+			&type_ref,
+			ElementValue::IdTupleGeneratedElementId(entity_id.clone()),
+		);
+
+		assert_eq!(entity_id.list_id, list_id.unwrap());
+		assert_eq!(entity_id.element_id.to_string(), element_id);
+	}
+
+	#[test]
+	fn test_extract_parsed_entity_id_tuple_custom() {
+		let type_ref = TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(0),
+		};
+
+		let entity_id = IdTupleCustom {
+			list_id: GeneratedId::test_random(),
+			element_id: CustomId::test_random(),
+		};
+
+		let (list_id, element_id) = extract_parsed_entity_id(
+			&type_ref,
+			ElementValue::IdTupleCustomElementId(entity_id.clone()),
+		);
+
+		assert_eq!(entity_id.list_id, list_id.unwrap());
+		assert_eq!(entity_id.element_id.to_string(), element_id);
+	}
+
+	#[test]
+	fn test_extract_parsed_entity_id_generated() {
+		let type_ref = TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(0),
+		};
+		let entity_id = GeneratedId::test_random();
+		let id =
+			extract_parsed_entity_id(&type_ref, ElementValue::IdGeneratedId(entity_id.clone())).1;
+
+		assert_eq!(entity_id.to_string(), id);
+	}
+
+	#[test]
+	fn test_extract_parsed_entity_id_custom() {
+		let type_ref = TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(0),
+		};
+		let entity_id = CustomId::test_random();
+		let id = extract_parsed_entity_id(&type_ref, ElementValue::IdCustomId(entity_id.clone())).1;
+
+		assert_eq!(entity_id.to_string(), id);
 	}
 }
