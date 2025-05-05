@@ -1,12 +1,4 @@
-import {
-	BlobElementEntity,
-	ElementEntity,
-	Entity,
-	ListElementEntity,
-	ServerModelParsedInstance,
-	SomeEntity,
-	TypeModel
-} from "../../common/EntityTypes.js"
+import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
@@ -19,7 +11,7 @@ import {
 } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, collapseId, expandId, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
-import {EncodeOptions, Token, Type} from "cborg"
+import { EncodeOptions, Token, Type } from "cborg"
 import {
 	assert,
 	assertNotNull,
@@ -37,22 +29,20 @@ import {
 	splitInChunks,
 	TypeRef,
 } from "@tutao/tutanota-utils"
-import {isDesktop, isOfflineStorageAvailable, isTest} from "../../common/Env.js"
-import {DateProvider} from "../../common/DateProvider.js"
-import {TokenOrNestedTokens} from "cborg/interface"
-import {OfflineStorageMigrator} from "./OfflineStorageMigrator.js"
-import {CustomCacheHandlerMap} from "../rest/cacheHandler/CustomCacheHandler.js"
-import {
-	InterWindowEventFacadeSendDispatcher
-} from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
-import {FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject} from "./SqlValue.js"
-import {Type as TypeId, ValueType} from "../../common/EntityConstants.js"
-import {OutOfSyncError} from "../../common/error/OutOfSyncError.js"
-import {sql, SqlFragment} from "./Sql.js"
-import {ModelMapper} from "../crypto/ModelMapper"
-import {AttributeModel} from "../../common/AttributeModel"
-import {TypeModelResolver} from "../../common/EntityFunctions"
+import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
+import { DateProvider } from "../../common/DateProvider.js"
+import { TokenOrNestedTokens } from "cborg/interface"
+import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
+import { CustomCacheHandlerMap } from "../rest/cacheHandler/CustomCacheHandler.js"
+import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
+import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
+import { Type as TypeId, ValueType } from "../../common/EntityConstants.js"
+import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
+import { sql, SqlFragment } from "./Sql.js"
+import { ModelMapper } from "../crypto/ModelMapper"
+import { AttributeModel } from "../../common/AttributeModel"
+import { TypeModelResolver } from "../../common/EntityFunctions"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -979,11 +969,5 @@ export interface OfflineStorageCleaner {
 	 * EntityRestCache and OfflineCleaner.
 	 * @return cutoff id or null in case there is no cutoff for the defined type
 	 */
-	getCutoffId<T extends Entity>(
-		offlineStorage: OfflineStorage,
-		typeRef: TypeRef<T>,
-		timeRangeDate: Date | null,
-		userId: Id,
-		now: number,
-	): Promise<Id | null>
+	getCutoffId<T extends Entity>(offlineStorage: OfflineStorage, typeRef: TypeRef<T>, timeRangeDate: Date | null, userId: Id, now: number): Promise<Id | null>
 }

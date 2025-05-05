@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.SQLException
 import android.util.Log
+import com.sun.jna.Library
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.ipc.wrap
@@ -137,6 +138,8 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 			}
 		}
 	}
+
+	override suspend fun tokenize(query: String): List<String> = SignalTokenizer.tokenize(query)
 
 	private fun List<TaggedSqlValue>.prepare() = map { it.unwrap() }.toTypedArray()
 }
