@@ -4,7 +4,7 @@ use tutasdk::contacts::contact_facade::ContactFacade;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::Sdk;
 
-async fn create_contact_facade() -> ContactFacade {
+async fn create_contact_facade() -> Arc<ContactFacade> {
 	const HOST: &str = "http://localhost:9000";
 
 	let rest_client = NativeRestClient::try_new().unwrap();
@@ -20,7 +20,7 @@ async fn create_contact_facade() -> ContactFacade {
 		.await
 		.unwrap();
 
-	session.contact_facade()
+	session.contact_facade.clone()
 }
 
 #[cfg_attr(

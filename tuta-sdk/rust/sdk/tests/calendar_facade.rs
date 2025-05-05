@@ -7,7 +7,7 @@ use tutasdk::date::calendar_facade::{
 };
 use tutasdk::date::DateTime;
 use tutasdk::net::native_rest_client::NativeRestClient;
-use tutasdk::Sdk;
+use tutasdk::{GeneratedId, Sdk};
 
 async fn create_calendar_facade() -> CalendarFacade {
 	const HOST: &str = "http://localhost:9000";
@@ -76,4 +76,27 @@ async fn load_calendar_events() {
 		DEFAULT_LONG_EVENT_NAME
 	);
 	log::info!("Test::Loaded default calendar events correctly!");
+}
+
+#[cfg_attr(
+	not(feature = "test-with-local-http-server"),
+	ignore = "require local http server."
+)]
+#[tokio::test]
+async fn load_birthday_events() {
+	let calendar_facade = create_calendar_facade().await;
+	let date_time = datetime!(2025-12-31 07:00:00).assume_utc().unix_timestamp() as u64;
+
+	let events = calendar_facade
+		.get_calendar_events(
+			&GeneratedId("clientOnly_birthdays".to_string()),
+			DateTime::from_millis(date_time * 1000),
+		)
+		.await;
+
+	assert_eq!(events.short_events.len(), 0);
+	assert_eq!(events.long_events.len(), 0);
+	assert_eq!(events.birthday_events.len(), 1);
+
+	log::info!("Test::Loaded birthday calendar events correctly!");
 }
