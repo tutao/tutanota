@@ -31,4 +31,10 @@ public protocol SqlCipherFacade {
 		_ query: String,
 		_ params: [TaggedSqlValue]
 	) async throws -> [[String : TaggedSqlValue]]
+	/**
+	 * Split the query into the tokens with signal tokenizer
+	 */
+	func tokenize(
+		_ query: String
+	) async throws -> [String]
 }

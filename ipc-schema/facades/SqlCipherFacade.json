@@ -61,6 +61,11 @@
 				}
 			],
 			"ret": "List<Map<string, TaggedSqlValue>>"
+		},
+		"tokenize": {
+			"doc": "Split the query into the tokens with signal tokenizer",
+			"arg": [{ "query": "string" }],
+			"ret": "List<string>"
 		}
 	}
 }

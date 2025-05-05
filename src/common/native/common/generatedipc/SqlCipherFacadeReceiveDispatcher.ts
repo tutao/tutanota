@@ -34,6 +34,10 @@ export class SqlCipherFacadeReceiveDispatcher {
 				const params: ReadonlyArray<TaggedSqlValue> = arg[1]
 				return this.facade.all(query, params)
 			}
+			case "tokenize": {
+				const query: string = arg[0]
+				return this.facade.tokenize(query)
+			}
 		}
 	}
 }

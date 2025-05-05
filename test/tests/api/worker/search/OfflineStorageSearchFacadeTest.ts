@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
 import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
-import { normalizeQuery, OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
+import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { object } from "testdouble"
@@ -467,6 +467,53 @@ o.spec("OfflineStorageSearchFacade", () => {
 				)
 				o.check(resultWithQuotesAndWords.results).deepEquals([testMail3.mail._id])
 			})
+			o.test("when looking for Japanese text it will find any kanji", async () => {
+				const testMail1: MailWithDetailsAndAttachments = {
+					mail: createTestEntity(MailTypeRef, {
+						_id: ["I am a list", "z-z-z-z-z-z-z-z-a"],
+						_ownerGroup: "I am a group",
+						subject: "very very very important email",
+						sender: createTestEntity(MailAddressTypeRef, {
+							name: "I am a sender",
+							address: "testtesttest@test.test",
+						}),
+						receivedDate: new Date(1234),
+						sets: [["mySets", "myFavoriteSet"]],
+					}),
+					mailDetails: createTestEntity(MailDetailsTypeRef, {
+						body: createTestEntity(BodyTypeRef, {
+							compressedText: "を中心に発生した",
+						}),
+						recipients: createTestEntity(RecipientsTypeRef, {
+							toRecipients: [],
+							ccRecipients: [
+								createTestEntity(MailAddressTypeRef, {
+									name: "Important Recipient",
+									address: "important.recipient@yes.com",
+								}),
+							],
+							bccRecipients: [],
+						}),
+					}),
+					attachments: [createTestEntity(FileTypeRef)],
+				}
+				await storeAndIndexMail([testMail1])
+
+				const result = await offlineStorageSearchFacade.search(
+					`発`,
+					{
+						type: MailTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(result.results).deepEquals([testMail1.mail._id])
+			})
 			o.test("subject", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 				const result = await offlineStorageSearchFacade.search(
@@ -812,15 +859,17 @@ o.spec("OfflineStorageSearchFacade", () => {
 	})
 
 	o.spec("normalizeQuery", () => {
-		o.test("empty string returns empty string", () => {
-			o.check(normalizeQuery("")).equals("")
+		o.test("empty string returns empty string", async () => {
+			o.check(await offlineStorageSearchFacade.normalizeQuery("")).equals("")
 		})
-		o.test("empty quotes are excluded", () => {
-			o.check(normalizeQuery('""')).equals("")
-			o.check(normalizeQuery('"hello" "" "world"')).equals('"hello" "world"')
+		o.test("empty quotes are excluded", async () => {
+			o.check(await offlineStorageSearchFacade.normalizeQuery('""')).equals("")
+			o.check(await offlineStorageSearchFacade.normalizeQuery('"hello" "" "world"')).equals('"hello" "world"')
 		})
-		o.test("asterisks appended if non-quoted", () => {
-			o.check(normalizeQuery('unquoted "quoted" unquoted again "quoted again"')).equals('"unquoted"* "quoted" "unquoted"* "again"* "quoted again"')
+		o.test("asterisks appended if non-quoted", async () => {
+			o.check(await offlineStorageSearchFacade.normalizeQuery('unquoted "quoted" unquoted again "quoted again"')).equals(
+				'"unquoted"* "quoted" "unquoted"* "again"* "quoted again"',
+			)
 		})
 	})
 })

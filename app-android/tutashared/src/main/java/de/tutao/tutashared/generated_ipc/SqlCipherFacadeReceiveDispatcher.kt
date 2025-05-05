@@ -62,6 +62,13 @@ class SqlCipherFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"tokenize" -> {
+				val query: String = json.decodeFromString(arg[0])
+				val result: List<String> = this.facade.tokenize(
+					query,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for SqlCipherFacade: $method")
 		}
 	}

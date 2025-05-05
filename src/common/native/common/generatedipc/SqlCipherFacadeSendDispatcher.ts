@@ -25,4 +25,7 @@ export class SqlCipherFacadeSendDispatcher implements SqlCipherFacade {
 	async all(...args: Parameters<SqlCipherFacade["all"]>) {
 		return this.transport.invokeNative("ipc", ["SqlCipherFacade", "all", ...args])
 	}
+	async tokenize(...args: Parameters<SqlCipherFacade["tokenize"]>) {
+		return this.transport.invokeNative("ipc", ["SqlCipherFacade", "tokenize", ...args])
+	}
 }
