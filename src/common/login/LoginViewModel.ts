@@ -23,7 +23,7 @@ import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
 import { UnencryptedCredentials } from "../native/common/generatedipc/UnencryptedCredentials.js"
 import { AppLock } from "./AppLock.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
-import {OfflineStorageSettingsModel} from "../offline/OfflineStorageSettingsModel";
+import { OfflineStorageSettingsModel } from "../offline/OfflineStorageSettingsModel"
 
 assertMainOrNode()
 

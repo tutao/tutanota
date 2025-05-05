@@ -64,4 +64,8 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 	async run(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<void> {
 		return this.dispatcher.postRequest(new Request("run", [query, params]))
 	}
+
+	tokenize(query: string): Promise<ReadonlyArray<string>> {
+		return this.dispatcher.postRequest(new Request("tokenize", [query]))
+	}
 }

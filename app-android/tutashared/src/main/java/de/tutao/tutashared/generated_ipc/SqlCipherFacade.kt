@@ -34,4 +34,10 @@ interface SqlCipherFacade {
 		query: String,
 		params: List<TaggedSqlValue>,
 	): List<Map<String, TaggedSqlValue>>
+	/**
+	 * Split the query into the tokens with signal tokenizer
+	 */
+	suspend fun tokenize(
+		query: String,
+	): List<String>
 }

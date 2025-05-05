@@ -19,4 +19,9 @@ export interface SqlCipherFacade {
 	 * return a list of objects or an empty list if the query returns nothing
 	 */
 	all(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<ReadonlyArray<Record<string, TaggedSqlValue>>>
+
+	/**
+	 * Split the query into the tokens with signal tokenizer
+	 */
+	tokenize(query: string): Promise<ReadonlyArray<string>>
 }
