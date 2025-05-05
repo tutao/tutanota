@@ -12,8 +12,9 @@ use crate::json_serializer::JsonSerializer;
 use crate::metamodel::{ElementType, TypeModel};
 use crate::rest_error::HttpError;
 use crate::type_model_provider::TypeModelProvider;
-use crate::{ApiCallError, HeadersProvider, IdTupleCustom, ListLoadDirection, TypeRef};
-use crate::{GeneratedId, IdTupleGenerated};
+use crate::util::extract_parsed_entity_id;
+use crate::GeneratedId;
+use crate::{ApiCallError, CustomId, HeadersProvider, ListLoadDirection, TypeRef};
 use std::sync::Arc;
 
 /// A high level interface to manipulate unencrypted entities/instances via the REST API
@@ -103,11 +104,61 @@ impl EntityClient {
 	#[allow(clippy::unused_async, unused)]
 	pub async fn load_all(
 		&self,
-		_type_ref: &TypeRef,
-		_list_id: &GeneratedId,
-		_start: Option<String>,
+		type_ref: &TypeRef,
+		list_id: &GeneratedId,
+		direction: ListLoadDirection,
 	) -> Result<Vec<ParsedEntity>, ApiCallError> {
-		todo!("entity client load_all")
+		let mut min_id: String = if direction == ListLoadDirection::ASC {
+			GeneratedId::min_id()
+		} else {
+			GeneratedId::max_id()
+		}
+		.to_string();
+		let mut done = false;
+		let mut load_all_result: Vec<ParsedEntity> = vec![];
+		let type_model = self.resolve_client_type_ref(type_ref)?;
+
+		let id_field_attribute_id: String = type_model
+			.get_attribute_id_by_attribute_name(ID_FIELD)
+			.map_err(|err| ApiCallError::InternalSdkError {
+				error_message: format!(
+					"{ID_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+					type_model.id, err
+				),
+			})?;
+
+		while !done {
+			let result = self
+				.load_range(
+					type_ref,
+					list_id,
+					&CustomId(min_id),
+					1000,
+					direction.clone(),
+				)
+				.await?;
+
+			let last_entity = match result.last() {
+				Some(entity) => entity,
+				_ => break,
+			};
+
+			let entity_id = last_entity
+				.get(&id_field_attribute_id)
+				.filter(|id| !matches!(id, ElementValue::Null))
+				.ok_or_else(|| {
+					ApiCallError::internal(
+						"_id field have to be set while updating the instance".to_string(),
+					)
+				})?
+				.clone();
+
+			done = result.is_empty();
+			min_id = extract_parsed_entity_id(type_ref, entity_id).1;
+			load_all_result.extend(result);
+		}
+
+		return Ok(load_all_result);
 	}
 
 	/// Fetches and returns a specified number (`count`) of entities/instances
@@ -185,22 +236,7 @@ impl EntityClient {
 			.clone();
 
 		let mut raw_entity = self.json_serializer.serialize(type_ref, parsed_entity)?;
-		let (list_id, element_id) = match entity_id {
-			ElementValue::IdTupleGeneratedElementId(IdTupleGenerated {
-				list_id,
-				element_id,
-			}) => (Some(list_id), element_id.to_string()),
-
-			ElementValue::IdTupleCustomElementId(IdTupleCustom {
-				list_id,
-				element_id,
-			}) => (Some(list_id), element_id.to_string()),
-
-			ElementValue::IdGeneratedId(element_id) => (None, element_id.to_string()),
-			ElementValue::IdCustomId(element_id) => (None, element_id.to_string()),
-
-			_ => panic!("Invalid type of _id for TypeRef: {type_ref}"),
-		};
+		let (list_id, element_id) = extract_parsed_entity_id(type_ref, entity_id);
 
 		if let Some(list_id) = list_id {
 			request_url.push_str(list_id.as_str());
@@ -403,7 +439,7 @@ mockall::mock! {
 			&self,
 			type_ref: &TypeRef,
 			list_id: &GeneratedId,
-			start: Option<String>,
+			direction: ListLoadDirection,
 		) -> Result<Vec<ParsedEntity>, ApiCallError>;
 		pub async fn load_range<Id: BaseIdType>(
 			&self,
@@ -715,5 +751,191 @@ mod stests {
 			.await
 			.expect("success");
 		assert_eq!(result_entity, vec![entity_map]);
+	}
+
+	#[tokio::test]
+	async fn test_load_all_list_entries_asc() {
+		let type_model_provider = Arc::new(mock_type_model_provider());
+
+		let list_id = GeneratedId("list_id".to_owned());
+		let id_field_id = type_model_provider
+			.resolve_server_type_ref(&TestListCustomElementIdEntity::type_ref())
+			.expect("list type not found")
+			.get_attribute_id_by_attribute_name(ID_FIELD)
+			.unwrap();
+		let field_field_id = type_model_provider
+			.resolve_server_type_ref(&TestListCustomElementIdEntity::type_ref())
+			.expect("custom id type not found")
+			.get_attribute_id_by_attribute_name("field")
+			.unwrap();
+
+		let entity_1: ParsedEntity = collection! {
+			 id_field_id => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
+			 field_field_id => ElementValue::Bytes(vec![1, 2, 3])
+		};
+
+		let entity_2: ParsedEntity = collection! {
+			 id_field_id => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id_1".to_owned()))),
+			 field_field_id => ElementValue::Bytes(vec![1, 2, 3])
+		};
+
+		let mut rest_client = MockRestClient::new();
+		let url1 = "http://test.com/rest/entityclienttestapp/TestListCustomElementIdEntity/list_id?start=------------&count=1000&reverse=false";
+		let url2 = "http://test.com/rest/entityclienttestapp/TestListCustomElementIdEntity/list_id?start=element_id&count=1000&reverse=false";
+		let url3 = "http://test.com/rest/entityclienttestapp/TestListCustomElementIdEntity/list_id?start=element_id_1&count=1000&reverse=false";
+
+		let serialized_entity_1 = JsonSerializer::new(type_model_provider.clone())
+			.serialize(&TestListCustomElementIdEntity::type_ref(), entity_1.clone())
+			.unwrap();
+
+		let serialized_entity_2 = JsonSerializer::new(type_model_provider.clone())
+			.serialize(&TestListCustomElementIdEntity::type_ref(), entity_2.clone())
+			.unwrap();
+
+		rest_client
+			.expect_request_binary()
+			.with(eq(url1.to_owned()), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&vec![serialized_entity_1]).unwrap()),
+				})
+			});
+
+		rest_client
+			.expect_request_binary()
+			.with(eq(url2.to_owned()), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&vec![serialized_entity_2]).unwrap()),
+				})
+			});
+
+		let empty_list: Vec<ParsedEntity> = vec![];
+		rest_client
+			.expect_request_binary()
+			.with(eq(url3.to_owned()), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&empty_list).unwrap()),
+				})
+			});
+
+		let auth_headers_provider = HeadersProvider::new(Some("123".to_owned()));
+		let entity_client = EntityClient::new(
+			Arc::new(rest_client),
+			Arc::new(JsonSerializer::new(type_model_provider.clone())),
+			"http://test.com".to_owned(),
+			Arc::new(auth_headers_provider),
+			type_model_provider.clone(),
+		);
+
+		let result_entities = entity_client
+			.load_all(
+				&TestListCustomElementIdEntity::type_ref(),
+				&list_id,
+				ListLoadDirection::ASC,
+			)
+			.await
+			.expect("success");
+		assert_eq!(result_entities, vec![entity_1, entity_2]);
+	}
+
+	#[tokio::test]
+	async fn test_load_all_list_entries_desc() {
+		let type_model_provider = Arc::new(mock_type_model_provider());
+
+		let list_id = GeneratedId("list_id".to_owned());
+		let id_field_id = type_model_provider
+			.resolve_server_type_ref(&TestListCustomElementIdEntity::type_ref())
+			.expect("list type not found")
+			.get_attribute_id_by_attribute_name(ID_FIELD)
+			.unwrap();
+		let field_field_id = type_model_provider
+			.resolve_server_type_ref(&TestListCustomElementIdEntity::type_ref())
+			.expect("custom id type not found")
+			.get_attribute_id_by_attribute_name("field")
+			.unwrap();
+
+		let entity_1: ParsedEntity = collection! {
+			 id_field_id => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id".to_owned()))),
+			 field_field_id => ElementValue::Bytes(vec![1, 2, 3])
+		};
+
+		let entity_2: ParsedEntity = collection! {
+			 id_field_id => ElementValue::IdTupleCustomElementId(IdTupleCustom::new(list_id.clone(), CustomId("element_id_1".to_owned()))),
+			 field_field_id => ElementValue::Bytes(vec![1, 2, 3])
+		};
+
+		let mut rest_client = MockRestClient::new();
+		let url1 = "http://test.com/rest/entityclienttestapp/TestListCustomElementIdEntity/list_id?start=zzzzzzzzzzzz&count=1000&reverse=true";
+		let url2 = "http://test.com/rest/entityclienttestapp/TestListCustomElementIdEntity/list_id?start=element_id_1&count=1000&reverse=true";
+		let url3 = "http://test.com/rest/entityclienttestapp/TestListCustomElementIdEntity/list_id?start=element_id&count=1000&reverse=true";
+
+		let serialized_entity_1 = JsonSerializer::new(type_model_provider.clone())
+			.serialize(&TestListCustomElementIdEntity::type_ref(), entity_1.clone())
+			.unwrap();
+
+		let serialized_entity_2 = JsonSerializer::new(type_model_provider.clone())
+			.serialize(&TestListCustomElementIdEntity::type_ref(), entity_2.clone())
+			.unwrap();
+
+		rest_client
+			.expect_request_binary()
+			.with(eq(url1.to_owned()), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&vec![serialized_entity_2]).unwrap()),
+				})
+			});
+
+		rest_client
+			.expect_request_binary()
+			.with(eq(url2.to_owned()), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&vec![serialized_entity_1]).unwrap()),
+				})
+			});
+
+		let empty_list: Vec<ParsedEntity> = vec![];
+		rest_client
+			.expect_request_binary()
+			.with(eq(url3.to_owned()), eq(HttpMethod::GET), always())
+			.return_once(move |_, _, _| {
+				Ok(RestResponse {
+					status: 200,
+					headers: server_types_hash_header(),
+					body: Some(serde_json::to_vec(&empty_list).unwrap()),
+				})
+			});
+
+		let auth_headers_provider = HeadersProvider::new(Some("123".to_owned()));
+		let entity_client = EntityClient::new(
+			Arc::new(rest_client),
+			Arc::new(JsonSerializer::new(type_model_provider.clone())),
+			"http://test.com".to_owned(),
+			Arc::new(auth_headers_provider),
+			type_model_provider.clone(),
+		);
+
+		let result_entities = entity_client
+			.load_all(
+				&TestListCustomElementIdEntity::type_ref(),
+				&list_id,
+				ListLoadDirection::DESC,
+			)
+			.await
+			.expect("success");
+		assert_eq!(result_entities, vec![entity_2, entity_1]);
 	}
 }
