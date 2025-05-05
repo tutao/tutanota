@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { decapsulate, encapsulate, generateKeyPair, LibOQSExports } from "../lib/encryption/Liboqs/Kyber.js"
-import { random } from "../lib/index.js"
+import { extractKyberPublicKeyFromKyberPrivateKey, random } from "../lib/index.js"
 import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 import { $ } from "zx"
 import fs from "node:fs"
@@ -61,5 +61,13 @@ o.spec("Kyber", function () {
 		const decapsulatedSecret = decapsulate(liboqsFallback, keyPair.privateKey, encapsulation.ciphertext)
 
 		o(encapsulation.sharedSecret).deepEquals(decapsulatedSecret)
+	})
+
+	o("extract public key", async function () {
+		const liboqs = (await loadWasmModuleFromFile("./liboqs.wasm")) as LibOQSExports
+		const keyPair = generateKeyPair(liboqs, random)
+		const extractedPublicKey = extractKyberPublicKeyFromKyberPrivateKey(keyPair.privateKey)
+
+		o(extractedPublicKey).deepEquals(keyPair.publicKey)
 	})
 })
