@@ -42,7 +42,7 @@ pub struct EventRepeatRule {
 	pub by_rules: Vec<ByRule>,
 }
 
-trait MonthNumber {
+pub trait MonthNumber {
 	fn to_number(&self) -> u8;
 	fn from_number(number: u8) -> Month;
 }
@@ -270,7 +270,7 @@ impl EventFacade {
 			.collect();
 
 		let calc_event_start = if is_all_day_event {
-			let all_day_event = self.get_all_day_time(&event_start_time)?;
+			let all_day_event = EventFacade::get_all_day_time(&event_start_time)?;
 
 			all_day_event
 		} else {
@@ -280,7 +280,7 @@ impl EventFacade {
 		let end_date = if end_type == EndType::UntilDate {
 			if is_all_day_event {
 				let all_day_event =
-					self.get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
+					EventFacade::get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
 
 				Some(all_day_event)
 			} else {
@@ -293,7 +293,7 @@ impl EventFacade {
 		let transformed_excluded_dates = if is_all_day_event {
 			excluded_dates
 				.iter()
-				.filter_map(|date| self.get_all_day_time(date).ok())
+				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
 				.collect()
 		} else {
 			excluded_dates
@@ -1200,7 +1200,7 @@ impl EventFacade {
 		start_fits && end_fits
 	}
 
-	pub fn get_all_day_time(&self, date: &DateTime) -> Result<DateTime, ApiCallError> {
+	pub fn get_all_day_time(date: &DateTime) -> Result<DateTime, ApiCallError> {
 		let Ok(date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
 			eprintln!(
 				"Failed to get all day time for date {:?}",

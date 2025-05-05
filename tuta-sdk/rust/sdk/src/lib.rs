@@ -88,6 +88,7 @@ mod user_facade;
 pub mod util;
 
 use crate::bindings::suspendable_rest_client::SuspendableRestClient;
+#[cfg_attr(test, mockall_double::double)]
 use crate::contacts::contact_facade::ContactFacade;
 use crate::date::calendar_facade::CalendarFacade;
 use crate::entities::generated::storage::BlobServerAccessInfo;
@@ -288,6 +289,12 @@ impl Sdk {
 			date_provider,
 		);
 
+		let contact_facade = Arc::new(ContactFacade::new(
+			crypto_entity_client.clone(),
+			self.type_model_provider.clone(),
+			user_facade.clone(),
+		));
+
 		Ok(Arc::new(LoggedInSdk {
 			user_facade,
 			entity_client,
@@ -299,6 +306,7 @@ impl Sdk {
 			blob_facade,
 			json_serializer: Arc::clone(&self.json_serializer),
 			type_model_provider: Arc::clone(&self.type_model_provider),
+			contact_facade,
 		}))
 	}
 
@@ -418,6 +426,7 @@ pub struct LoggedInSdk {
 	blob_facade: Arc<BlobFacade>,
 	pub instance_mapper: Arc<InstanceMapper>,
 	pub type_model_provider: Arc<TypeModelProvider>,
+	pub contact_facade: Arc<ContactFacade>,
 }
 
 impl LoggedInSdk {
@@ -519,15 +528,10 @@ impl LoggedInSdk {
 
 	#[must_use]
 	pub fn calendar_facade(&self) -> CalendarFacade {
-		CalendarFacade::new(self.crypto_entity_client.clone(), self.user_facade.clone())
-	}
-
-	#[must_use]
-	pub fn contact_facade(&self) -> ContactFacade {
-		ContactFacade::new(
+		CalendarFacade::new(
 			self.crypto_entity_client.clone(),
-			self.type_model_provider.clone(),
 			self.user_facade.clone(),
+			self.contact_facade.clone(),
 		)
 	}
 

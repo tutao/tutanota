@@ -424,6 +424,7 @@ macro_rules! collection {
     }
 
 use crate::date::DateTime;
+use crate::entities::generated::tutanota::Contact;
 use crate::entities::{Entity, FinalIv};
 use crate::metamodel::TypeModel;
 use crate::type_model_provider::TypeModelProvider;
@@ -776,5 +777,22 @@ pub fn application_types_response_with_client_model() -> RestResponse {
 		status: 200,
 		headers: HashMap::default(),
 		body: Some(compressed_response),
+	}
+}
+
+pub fn create_mock_contact(
+	contact_list: &GeneratedId,
+	contact_id: &GeneratedId,
+	name: Option<&str>,
+	birthday_iso: Option<String>,
+) -> Contact {
+	Contact {
+		_id: Some(IdTupleGenerated {
+			list_id: contact_list.clone(),
+			element_id: contact_id.clone(),
+		}),
+		firstName: name.unwrap_or("").to_owned(),
+		birthdayIso: birthday_iso,
+		..create_test_entity()
 	}
 }
