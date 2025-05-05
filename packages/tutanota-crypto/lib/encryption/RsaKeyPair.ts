@@ -21,12 +21,16 @@ export type RsaPrivateKey = {
 	primeExponentQ: Base64
 	crtCoefficient: Base64
 }
-export type RsaPublicKey = AbstractPublicKey & {
+/**
+ * Just the raw values without the keyPair type
+ */
+export type RawRsaPublicKey = {
 	version: number
 	keyLength: number
 	modulus: Base64
 	publicExponent: number
 }
+export type RsaPublicKey = AbstractPublicKey & RawRsaPublicKey
 export type RsaX25519PublicKey = RsaPublicKey & {
 	publicEccKey: X25519PublicKey
 }

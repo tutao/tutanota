@@ -23,6 +23,7 @@ export {
 	generateX25519KeyPair,
 	x25519Encapsulate,
 	x25519Decapsulate,
+	deriveX25519PublicKey,
 } from "./encryption/X25519.js"
 export {
 	Ed25519PrivateKey,
@@ -59,6 +60,7 @@ export {
 	kyberPublicKeyToBytes,
 	kyberPrivateKeyToBytes,
 	bytesToKyberPublicKey,
+	extractKyberPublicKeyFromKyberPrivateKey,
 } from "./encryption/Liboqs/KyberKeyPair.js"
 export {
 	Argon2IDExports,
@@ -86,8 +88,17 @@ export {
 	aes256DecryptWithRecoveryKey,
 } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
-export { encode, hexToRsaPublicKey, rsaDecrypt, hexToRsaPrivateKey, rsaPrivateKeyToHex, rsaPublicKeyToHex, rsaEncrypt } from "./encryption/Rsa.js"
-export { RsaKeyPair, RsaX25519KeyPair, RsaPrivateKey, RsaPublicKey, RsaX25519PublicKey } from "./encryption/RsaKeyPair.js"
+export {
+	encode,
+	hexToRsaPublicKey,
+	rsaDecrypt,
+	hexToRsaPrivateKey,
+	rsaPrivateKeyToHex,
+	rsaPublicKeyToHex,
+	rsaEncrypt,
+	extractRawPublicRsaKeyFromPrivateRsaKey,
+} from "./encryption/Rsa.js"
+export { RsaKeyPair, RsaX25519KeyPair, RsaPrivateKey, RawRsaPublicKey, RsaPublicKey, RsaX25519PublicKey } from "./encryption/RsaKeyPair.js"
 export {
 	KeyPairType,
 	AsymmetricKeyPair,
