@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { hexToRsaPublicKey, random, x25519Decapsulate, x25519Encapsulate, generateX25519KeyPair, X25519KeyPair } from "../lib/index.js"
+import { deriveX25519PublicKey, generateX25519KeyPair, hexToRsaPublicKey, random, x25519Decapsulate, x25519Encapsulate, X25519KeyPair } from "../lib/index.js"
 import { CryptoError } from "../lib/error.js"
 
 const originalRandom = random.generateRandomData
@@ -51,5 +51,11 @@ o.spec("X25519Test", function () {
 			o(key.privateKey[key.privateKey.length - 1] & 0b10000000).equals(0b00000000)("the highest bit needs to be cleared")
 			o(key.privateKey[key.privateKey.length - 1] & 0b01000000).equals(0b01000000)("the second-highest bit needs to be set")
 		}
+	})
+
+	o("extract public key", function () {
+		const keyPair = generateX25519KeyPair()
+		const extractedPublicKey = deriveX25519PublicKey(keyPair.privateKey)
+		o(extractedPublicKey).deepEquals(keyPair.publicKey)
 	})
 })

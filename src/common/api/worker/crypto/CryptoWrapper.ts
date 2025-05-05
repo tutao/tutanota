@@ -7,6 +7,7 @@ import {
 	AsymmetricKeyPair,
 	decryptKey,
 	decryptKeyPair,
+	deriveX25519PublicKey,
 	Ed25519PrivateKey,
 	ed25519PrivateKeyToBytes,
 	Ed25519PublicKey,
@@ -19,6 +20,8 @@ import {
 	encryptKey,
 	encryptKyberKey,
 	encryptX25519Key,
+	extractKyberPublicKeyFromKyberPrivateKey,
+	extractRawPublicRsaKeyFromPrivateRsaKey,
 	generateX25519KeyPair,
 	hkdf,
 	HkdfKeyDerivationDomains,
@@ -26,12 +29,14 @@ import {
 	IV_BYTE_LENGTH,
 	KEY_LENGTH_BYTES_AES_256,
 	keyToUint8Array,
+	KyberKeyPair,
 	KyberPrivateKey,
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
 	MacTag,
 	type PQKeyPairs,
 	random,
+	RawRsaPublicKey,
 	type RsaKeyPair,
 	type RsaX25519KeyPair,
 	sha256Hash,
@@ -39,9 +44,11 @@ import {
 	verifyHmacSha256,
 	X25519KeyPair,
 	X25519PrivateKey,
+	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
-import { stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 
 /**
  * An AesKey (usually a group key) and its version.
@@ -145,6 +152,36 @@ export class CryptoWrapper {
 
 	verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
 		return verifyHmacSha256(key, data, tag)
+	}
+
+	verifyPublicX25519Key(x25519KeyPair: X25519KeyPair): X25519PublicKey {
+		const extractedPubKey = deriveX25519PublicKey(x25519KeyPair.privateKey)
+		if (!arrayEquals(extractedPubKey, x25519KeyPair.publicKey)) {
+			throw new CryptoError("Extracted public key does not match the provided public key")
+		}
+		return x25519KeyPair.publicKey
+	}
+
+	verifyKyberPublicKey(kyberKeyPair: KyberKeyPair): KyberPublicKey {
+		const extractedPubKey = extractKyberPublicKeyFromKyberPrivateKey(kyberKeyPair.privateKey)
+		if (!arrayEquals(extractedPubKey.raw, kyberKeyPair.publicKey.raw)) {
+			throw new CryptoError("Extracted public key does not match the provided public key")
+		}
+		return kyberKeyPair.publicKey
+	}
+
+	verifyRsaPublicKey(rsaKeyPair: RsaKeyPair): RawRsaPublicKey {
+		const providedPublicKey = rsaKeyPair.publicKey
+		const extractedPubKey = extractRawPublicRsaKeyFromPrivateRsaKey(rsaKeyPair.privateKey)
+		if (
+			extractedPubKey.keyLength !== providedPublicKey.keyLength ||
+			extractedPubKey.publicExponent !== providedPublicKey.publicExponent ||
+			extractedPubKey.version !== providedPublicKey.version ||
+			extractedPubKey.modulus !== providedPublicKey.modulus
+		) {
+			throw new CryptoError("Extracted public key does not match the provided public key")
+		}
+		return providedPublicKey
 	}
 }
 
