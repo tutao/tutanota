@@ -29,4 +29,9 @@ export interface SqlCipherFacade {
 	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
 	 */
 	unlockRangesDbAccess(listId: string): Promise<void>
+
+	/**
+	 * Split the query into the tokens with signal tokenizer
+	 */
+	tokenize(query: string): Promise<ReadonlyArray<string>>
 }

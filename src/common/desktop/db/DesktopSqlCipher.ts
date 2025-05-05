@@ -144,6 +144,10 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		return Promise.resolve()
 	}
 
+	async tokenize(query: string): Promise<ReadonlyArray<string>> {
+		return this.db.signalTokenize(query)
+	}
+
 	private checkIntegrity() {
 		/**
 		 * Throws a CryptoError if MAC verification fails
