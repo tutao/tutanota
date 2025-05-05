@@ -1,6 +1,9 @@
 import path from "node:path"
 
-// These are the vendored dependencies. This map is to help bundler find the resolved path.
+/**
+ * These are the vendored dependencies. This map is to help bundler find the resolved path.
+ * Must stay in sync with ./updateLibs.js
+ */
 export const dependencyMap = {
 	mithril: path.normalize("./libs/mithril.js"),
 	"mithril/stream": path.normalize("./libs/stream.js"),
@@ -18,6 +21,7 @@ export const dependencyMap = {
 	winreg: path.normalize("./libs/winreg.mjs"),
 	undici: path.normalize("./libs/undici.mjs"),
 	jsqr: path.normalize("./libs/jsQR.js"),
+	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 }
 
 /**

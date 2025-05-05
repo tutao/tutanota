@@ -1,0 +1,8 @@
+add libsignal_tokenizer to project yaml. It should not be linked but should be just copied.
+
+Check other_cflags for sqlcipher, some things are missing, incl. fts5.
+
+For both Android and iOS we have to either compile Signal tokenizer during the build or prebuild it.
+
+For Android we use forked sqlcipher-android which adds loadExtension but probably not entirely correctly.
+

@@ -34,7 +34,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 	const userId = "my id"
 
 	o.beforeEach(async () => {
-		sqlCipherFacade = new DesktopSqlCipher(__NODE_GYP_better_sqlite3, ":memory:", false)
+		sqlCipherFacade = new DesktopSqlCipher(":memory:", false)
 		await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 
 		// Unfortunately, this is pretty tightly coupled with real persistence

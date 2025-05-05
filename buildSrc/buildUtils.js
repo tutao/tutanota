@@ -170,10 +170,13 @@ export function resolveArch(arch) {
 
 /**
  * napi appends abi to the architecture (see https://napi.rs/docs/cli/napi-config)
+ *
+ * NOTE: this is not a triple as in "target triple" known to rust, it is a "tuple" with Clib appended to it.
+ *
  * @param platform {NodeJS.Platform}
  * @param architecture {NodeJS.Architecture}
  */
-export function getTargetTriple(platform, architecture) {
+export function getTargetTupleWithLibc(platform, architecture) {
 	if (platform === "linux") {
 		return `${platform}-${architecture}-gnu`
 	} else if (platform === "win32") {

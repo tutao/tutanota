@@ -1,5 +1,5 @@
 import { log } from "../DesktopLog.js"
-import { Database, default as Sqlite } from "better-sqlite3"
+import { Database } from "@signalapp/sqlcipher"
 import fs from "node:fs"
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -32,10 +32,7 @@ export class DesktopCredentialsStorage {
 		return this._db
 	}
 
-	private readonly _sqliteNativePath: string | null = null
-
-	constructor(sqliteNativePath: string, private readonly dbPath: string, app: Electron.App) {
-		this._sqliteNativePath = sqliteNativePath
+	constructor(private readonly dbPath: string, app: Electron.App) {
 		if (this._db == null) {
 			this.create().then(() => {
 				app.on("will-quit", () => this.closeDb())
@@ -56,7 +53,7 @@ export class DesktopCredentialsStorage {
 	}
 
 	private openDb(): void {
-		this._db = new Sqlite(this.dbPath, {
+		this._db = new Database(this.dbPath, {
 			// Remove ts-ignore once proper definition of Options exists, see https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/59049#
 			// @ts-ignore missing type
 			nativeBinding: this._sqliteNativePath,
@@ -75,7 +72,7 @@ export class DesktopCredentialsStorage {
 	private initSql() {
 		this.db.pragma("cipher_memory_security = ON")
 
-		const errors: [] = this.db.pragma("cipher_integrity_check")
+		const errors = this.db.pragma("cipher_integrity_check")
 		if (errors.length > 0) {
 			throw new CryptoError(`Integrity check failed with result : ${JSON.stringify(errors)}`)
 		}

@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { getNativeLibModulePaths } from "./nativeLibraryProvider.js"
-import { normalizeCopyTarget, removeNpmNamespacePrefix } from "./buildUtils.js"
+import { getTargetTupleWithLibc, normalizeCopyTarget, removeNpmNamespacePrefix } from "./buildUtils.js"
 
 /**
  * Prepare native module that is compiled with node-gyp to be loaded.
@@ -15,9 +15,11 @@ import { normalizeCopyTarget, removeNpmNamespacePrefix } from "./buildUtils.js"
  * @param params.architecture {import("./nativeLibraryProvider.js").InputArch} the instruction set used in the built desktop binary
  * @param params.rootDir {string} path to the root of the project
  * @param params.nodeModule {string} name of the npm module to rebuild
+ * @param params.targetName {string=} name of the gyp target
  * @param log {import("./nativeLibraryProvider.js").Logger}
  */
-export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, environment }, log = console.log.bind(console)) {
+export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, environment, targetName }, log = console.log.bind(console)) {
+	const resolvedTargetName = targetName ?? normalizeCopyTarget(nodeModule)
 	environment = environment ?? "electron"
 	// We do not use emitFile() machinery even though it would probably be more correct.
 	let modulePaths
@@ -31,7 +33,7 @@ export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, env
 				log,
 				platform,
 				architecture,
-				copyTarget: normalizeCopyTarget(nodeModule),
+				copyTarget: resolvedTargetName,
 			})
 		},
 		banner() {
@@ -45,7 +47,8 @@ export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, env
 		async writeBundle(opts) {
 			const dstDir = path.normalize(opts.dir)
 			for (let [architecture, modulePath] of Object.entries(modulePaths)) {
-				const normalDst = path.join(dstDir, `${removeNpmNamespacePrefix(nodeModule)}.${platform}-${architecture}.node`)
+				const targetTuple = getTargetTupleWithLibc(platform, /** @type {import("./nativeLibraryProvider.js").BuildArch} */ (architecture))
+				const normalDst = path.join(dstDir, `${resolvedTargetName}.${targetTuple}.node`)
 				await fs.promises.mkdir(dstDir, { recursive: true })
 				await fs.promises.copyFile(modulePath, normalDst)
 			}
