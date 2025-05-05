@@ -22,7 +22,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 	) {}
 
 	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, _maxResults?: number): Promise<SearchResult> {
-		const normalizedQuery = normalizeQuery(query)
+		const normalizedQuery = await this.normalizeQuery(query)
 
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {
 			return this.searchMails(query, normalizedQuery, restriction)
@@ -118,6 +118,47 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		// There isn't really any need in "more" search results, and we never promise any so this is no-op
 		return searchResult
 	}
+
+	/**
+	 * Split into FTS5 search tokens and return the query
+	 *
+	 * For words that are not in quotes, they will match the start of a string.
+	 * Otherwise, they will be fully matched.
+	 *
+	 * For example, `hello world this is "my string"` becomes `"hello"* "world"* "this"* "is"* "my string"`
+	 *
+	 * See https://sqlite.org/fts5.html
+	 *
+	 * @param query query to check
+	 * @return normalized query that can be used for FTS5
+	 * @private
+	 * @VisibleForTesting
+	 */
+	async normalizeQuery(query: string): Promise<string> {
+		const normalizedQuery: string[] = []
+
+		let quoted = false
+		for (const block of query.split('"')) {
+			if (quoted) {
+				// in quotes; match an exact token or phrase (e.g. "free" will not match "freedom")
+				const trimmed = block.trim()
+				if (trimmed !== "") {
+					normalizedQuery.push(`"${trimmed}"`)
+				}
+			} else {
+				// split into words and, for each word, match the start of a token (e.g. "free"* will match "freedom")
+				for (const word of await this.sqlCipherFacade.tokenize(block)) {
+					if (word !== "") {
+						normalizedQuery.push(`"${word}"*`)
+					}
+				}
+			}
+			quoted = !quoted
+		}
+		// if !quoted here, then the user is likely in the middle of typing a quoted string, which is fine
+
+		return normalizedQuery.join(" ")
+	}
 }
 
 // Important: This should be kept up-to-date with SEARCH_MAIL_FIELDS
@@ -138,44 +179,4 @@ function mailFieldToColumn(field: string | null): string[] | null {
 		default:
 			throw new ProgrammingError(`Unknown field "${field}" passed into mailFieldToColumn`)
 	}
-}
-
-/**
- * Split into FTS5 search tokens and return the query
- *
- * For words that are not in quotes, they will match the start of a string.
- * Otherwise, they will be fully matched.
- *
- * For example, `hello world this is "my string"` becomes `"hello"* "world"* "this"* "is"* "my string"`
- *
- * See https://sqlite.org/fts5.html
- *
- * @param query query to check
- * @return normalized query that can be used for FTS5
- * @VisibleForTesting
- */
-export function normalizeQuery(query: string): string {
-	const normalizedQuery: string[] = []
-
-	let quoted = false
-	for (const block of query.split('"')) {
-		if (quoted) {
-			// in quotes; match an exact token or phrase (e.g. "free" will not match "freedom")
-			const trimmed = block.trim()
-			if (trimmed !== "") {
-				normalizedQuery.push(`"${trimmed}"`)
-			}
-		} else {
-			// split into words and, for each word, match the start of a token (e.g. "free"* will match "freedom")
-			for (const word of block.split(/\s+/)) {
-				if (word !== "") {
-					normalizedQuery.push(`"${word}"*`)
-				}
-			}
-		}
-		quoted = !quoted
-	}
-	// if !quoted here, then the user is likely in the middle of typing a quoted string, which is fine
-
-	return normalizedQuery.join(" ")
 }

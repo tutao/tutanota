@@ -46,4 +46,10 @@ interface SqlCipherFacade {
 	suspend fun unlockRangesDbAccess(
 		listId: String,
 	): Unit
+	/**
+	 * Split the query into the tokens with signal tokenizer
+	 */
+	suspend fun tokenize(
+		query: String,
+	): List<String>
 }

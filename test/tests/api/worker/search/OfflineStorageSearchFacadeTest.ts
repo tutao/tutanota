@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
 import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
-import { normalizeQuery, OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
+import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { object } from "testdouble"
@@ -811,15 +811,17 @@ o.spec("OfflineStorageSearchFacade", () => {
 	})
 
 	o.spec("normalizeQuery", () => {
-		o.test("empty string returns empty string", () => {
-			o.check(normalizeQuery("")).equals("")
+		o.test("empty string returns empty string", async () => {
+			o.check(await offlineStorageSearchFacade.normalizeQuery("")).equals("")
 		})
-		o.test("empty quotes are excluded", () => {
-			o.check(normalizeQuery('""')).equals("")
-			o.check(normalizeQuery('"hello" "" "world"')).equals('"hello" "world"')
+		o.test("empty quotes are excluded", async () => {
+			o.check(await offlineStorageSearchFacade.normalizeQuery('""')).equals("")
+			o.check(await offlineStorageSearchFacade.normalizeQuery('"hello" "" "world"')).equals('"hello" "world"')
 		})
-		o.test("asterisks appended if non-quoted", () => {
-			o.check(normalizeQuery('unquoted "quoted" unquoted again "quoted again"')).equals('"unquoted"* "quoted" "unquoted"* "again"* "quoted again"')
+		o.test("asterisks appended if non-quoted", async () => {
+			o.check(await offlineStorageSearchFacade.normalizeQuery('unquoted "quoted" unquoted again "quoted again"')).equals(
+				'"unquoted"* "quoted" "unquoted"* "again"* "quoted again"',
+			)
 		})
 	})
 })

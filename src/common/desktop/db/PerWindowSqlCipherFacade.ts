@@ -134,6 +134,10 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 		await this.refCounter.unlockRangesDbAccess(userId, listId)
 	}
 
+	async tokenize(query: string): Promise<ReadonlyArray<string>> {
+		return (await this.db()).tokenize(query)
+	}
+
 	private async db(): Promise<SqlCipherFacade> {
 		if (this.state == null) {
 			throw new OfflineDbClosedError()
