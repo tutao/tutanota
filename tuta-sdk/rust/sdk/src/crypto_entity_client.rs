@@ -365,6 +365,42 @@ impl CryptoEntityClient {
 			Ok(result_list)
 		}
 	}
+
+	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
+	pub async fn load_all<T: Entity + DeserializeOwned>(
+		&self,
+		list_id: &GeneratedId,
+		direction: ListLoadDirection,
+	) -> Result<Vec<T>, ApiCallError> {
+		let type_ref = T::type_ref();
+		let type_model = self.entity_client.resolve_server_type_ref(&type_ref)?;
+		let parsed_entities = self
+			.entity_client
+			.load_all(&type_ref, list_id, direction)
+			.await?;
+
+		if type_model.marked_encrypted() {
+			// StreamExt::collect requires result to be Default. Fall back to plain loop.
+			let mut result_list = Vec::with_capacity(parsed_entities.len());
+			for entity in parsed_entities {
+				let typed_entity = self.process_encrypted_entity(&type_model, entity).await?;
+				result_list.push(typed_entity);
+			}
+			Ok(result_list)
+		} else {
+			let result_list: Vec<T> = parsed_entities
+				.into_iter()
+				.map(|e| self.instance_mapper.parse_entity::<T>(e))
+				.collect::<Result<Vec<T>, _>>()
+				.map_err(|error| ApiCallError::InternalSdkError {
+					error_message: format!(
+						"Failed to parse unencrypted entity into proper types: {}",
+						error
+					),
+				})?;
+			Ok(result_list)
+		}
+	}
 }
 
 #[cfg(test)]

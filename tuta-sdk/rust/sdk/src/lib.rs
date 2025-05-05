@@ -526,7 +526,7 @@ impl LoggedInSdk {
 	}
 }
 
-#[derive(uniffi::Enum, Debug, PartialEq)]
+#[derive(uniffi::Enum, Debug, PartialEq, Clone)]
 pub enum ListLoadDirection {
 	ASC,
 	/// Reverse order
