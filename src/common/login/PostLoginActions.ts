@@ -174,8 +174,6 @@ export class PostLoginActions implements PostLoginAction {
 			} else {
 				console.log("Skipping registering for notifications while setup dialog is shown")
 			}
-
-			this.handleExternalSync()
 		}
 
 		this.setUpClientOnlyCalendars()
@@ -204,6 +202,8 @@ export class PostLoginActions implements PostLoginAction {
 
 		// Needs to be called after UsageTestModel.init() if the UsageOptInNews is live! (its isShown() requires an initialized UsageTestModel)
 		await locator.newsModel.loadNewsIds()
+
+		this.doAfterClientSyncActions()
 
 		// Redraw to render usage tests and news, among other things that may have changed.
 		m.redraw()
@@ -322,18 +322,24 @@ export class PostLoginActions implements PostLoginAction {
 		}
 	}
 
+	private doAfterClientSyncActions() {
+		if (!this.syncTracker.isSyncDone()) {
+			const isDoneStream = this.syncTracker.isSyncDone.map((isDone) => {
+				if (isDone) {
+					this.doAfterClientSyncActions()
+					// this.syncTracker.isSyncDone.end(true)
+					isDoneStream.end(true)
+				}
+			})
+		} else {
+			this.handleExternalSync()
+			this.createIdentityKeyIfNecessary()
+		}
+	}
+
 	private async handleExternalSync() {
 		const calendarModel = await locator.calendarModel()
 		if (isApp() || isDesktop()) {
-			if (!this.syncTracker.isSyncDone()) {
-				return this.syncTracker.isSyncDone.map((isDone) => {
-					if (isDone) {
-						this.handleExternalSync()
-						this.syncTracker.isSyncDone.end(true)
-					}
-				})
-			}
-
 			calendarModel.syncExternalCalendars().catch(async (e) => {
 				showSnackBar({
 					message: lang.makeTranslation("exception_msg", e.message),
@@ -346,5 +352,9 @@ export class PostLoginActions implements PostLoginAction {
 			})
 			calendarModel.scheduleExternalCalendarSync()
 		}
+	}
+
+	private async createIdentityKeyIfNecessary() {
+		// TODO implement
 	}
 }
