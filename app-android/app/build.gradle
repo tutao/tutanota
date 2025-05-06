@@ -141,7 +141,7 @@ dependencies {
 	ksp "androidx.room:room-compiler:$room_version"
 
 
-	implementation(files("../libs/sqlcipher-android-4.6.0.aar"))
+	implementation(files("../libs/sqlcipher-android-4.7.2-release.aar"))
 
 
 	implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.3'
