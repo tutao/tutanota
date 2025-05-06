@@ -1,5 +1,4 @@
 // src/mail-app/mail/view/MobyPhishAlreadyTrustedModal.ts
-
 import m, { Children } from "mithril"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
