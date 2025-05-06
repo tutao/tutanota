@@ -51,6 +51,7 @@ o.spec("ServiceExecutor", function () {
 		cryptoFacade = object()
 		executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade)
 		previousNetworkDebugging = env.networkDebugging
+		env.networkDebugging = false
 	})
 	o.afterEach(function () {
 		env.networkDebugging = previousNetworkDebugging
@@ -101,6 +102,8 @@ o.spec("ServiceExecutor", function () {
 		o(postResponse).deepEquals(expectedInstance)
 		o(putResponse).deepEquals(expectedInstance)
 		o(deleteResponse).deepEquals(expectedInstance)
+
+		env.networkDebugging = false
 	})
 
 	o.spec("GET", function () {
