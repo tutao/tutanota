@@ -39,8 +39,17 @@ export class TypeRef<T> {
 	}
 }
 
-export function getTypeId(typeRef: TypeRef<unknown>) {
+export function getTypeString(typeRef: TypeRef<unknown>) {
 	return typeRef.app + "/" + typeRef.typeId
+}
+
+export function parseTypeString(s: string): TypeRef<unknown> {
+	const parts = s.split("/")
+	const [app, versionString] = parts
+	if (app == null || versionString == null) {
+		throw new TypeError(`invalid type string: ${s}`)
+	}
+	return new TypeRef(app as AppName, parseInt(parts[1], 10))
 }
 
 export function isSameTypeRefByAttr(typeRef: TypeRef<unknown>, app: string, typeId: number): boolean {

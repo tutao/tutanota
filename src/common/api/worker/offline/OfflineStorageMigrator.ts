@@ -1,57 +1,10 @@
-import { OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey } from "./OfflineStorage.js"
-import { ModelInfos } from "../../common/EntityFunctions.js"
-import { assertNotNull, typedEntries, typedKeys } from "@tutao/tutanota-utils"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
+import { OfflineDbMeta, OfflineStorage } from "./OfflineStorage.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
-import { sys94 } from "./migrations/sys-v94.js"
-import { tutanota66 } from "./migrations/tutanota-v66.js"
-import { sys92 } from "./migrations/sys-v92.js"
-import { tutanota65 } from "./migrations/tutanota-v65.js"
-import { sys91 } from "./migrations/sys-v91.js"
-import { sys90 } from "./migrations/sys-v90.js"
-import { tutanota64 } from "./migrations/tutanota-v64.js"
-import { tutanota67 } from "./migrations/tutanota-v67.js"
-import { sys96 } from "./migrations/sys-v96.js"
-import { tutanota69 } from "./migrations/tutanota-v69.js"
-import { sys97 } from "./migrations/sys-v97.js"
-import { tutanota71 } from "./migrations/tutanota-v71.js"
-import { sys99 } from "./migrations/sys-v99.js"
-import { sys101 } from "./migrations/sys-v101.js"
-import { sys102 } from "./migrations/sys-v102.js"
-import { tutanota72 } from "./migrations/tutanota-v72.js"
-import { sys103 } from "./migrations/sys-v103.js"
-import { tutanota73 } from "./migrations/tutanota-v73.js"
-import { sys104 } from "./migrations/sys-v104.js"
-import { sys105 } from "./migrations/sys-v105.js"
-import { sys106 } from "./migrations/sys-v106.js"
-import { tutanota74 } from "./migrations/tutanota-v74.js"
-import { sys107 } from "./migrations/sys-v107.js"
-import { tutanota75 } from "./migrations/tutanota-v75.js"
-import { sys111 } from "./migrations/sys-v111.js"
-import { tutanota76 } from "./migrations/tutanota-v76.js"
-import { sys112 } from "./migrations/sys-v112.js"
-import { tutanota77 } from "./migrations/tutanota-v77.js"
-import { sys114 } from "./migrations/sys-v114.js"
-import { offline2 } from "./migrations/offline2.js"
-import { sys115 } from "./migrations/sys-v115.js"
-import { tutanota78 } from "./migrations/tutanota-v78.js"
-import { sys116 } from "./migrations/sys-v116.js"
-import { tutanota79 } from "./migrations/tutanota-v79.js"
-import { offline3 } from "./migrations/offline3.js"
-import { sys118 } from "./migrations/sys-v118.js"
-import { tutanota80 } from "./migrations/tutanota-v80.js"
-import { storage11 } from "./migrations/storage-v11.js"
-import { sys119 } from "./migrations/sys-v119.js"
-import { sys120 } from "./migrations/sys-v120.js"
-import { tutanota83 } from "./migrations/tutanota-v83.js"
-import { sys121 } from "./migrations/sys-v121.js"
-import { tutanota84 } from "./migrations/tutanota-v84"
-import { offline4 } from "./migrations/offline4.js"
-import { sys126 } from "./migrations/sys-v126.js"
+import { offline5 } from "./migrations/offline-v5.js"
 
 export interface OfflineMigration {
-	readonly app: VersionMetadataBaseKey
 	readonly version: number
 
 	migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade): Promise<void>
@@ -63,58 +16,11 @@ export interface OfflineMigration {
  * Normally you should only add them to the end of the list but with offline ones it can be a bit tricky since they change the db structure itself so sometimes
  * they should rather be in the beginning.
  */
-export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
-	sys90,
-	tutanota64,
-	sys91,
-	tutanota65,
-	sys92,
-	tutanota66,
-	sys94,
-	tutanota67,
-	sys96,
-	tutanota69,
-	sys97,
-	tutanota71,
-	sys99,
-	sys101,
-	sys102,
-	tutanota72,
-	sys103,
-	tutanota73,
-	sys104,
-	sys105,
-	sys106,
-	tutanota74,
-	tutanota75,
-	sys107,
-	tutanota75,
-	sys111,
-	tutanota76,
-	sys112,
-	tutanota77,
-	sys114,
-	offline2,
-	sys115,
-	tutanota78,
-	sys116,
-	tutanota79,
-	offline3,
-	sys118,
-	tutanota80,
-	storage11,
-	sys119,
-	sys120,
-	tutanota83,
-	sys121,
-	tutanota84,
-	offline4,
-	sys126,
-]
+export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [offline5]
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)
 // and we create a new offline database, we still need to set the offline version to the current value.
-const CURRENT_OFFLINE_VERSION = 4
+export const CURRENT_OFFLINE_VERSION = 5
 
 /**
  * Migrator for the offline storage between different versions of model. It is tightly couples to the versions of API entities: every time we make an
@@ -130,7 +36,7 @@ const CURRENT_OFFLINE_VERSION = 4
  *  Migrations might read and write to the database and they should use StandardMigrations when needed.
  */
 export class OfflineStorageMigrator {
-	constructor(private readonly migrations: ReadonlyArray<OfflineMigration>, private readonly modelInfos: ModelInfos) {}
+	constructor(private readonly migrations: ReadonlyArray<OfflineMigration>) {}
 
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
 		const meta = await storage.dumpMetadata()
@@ -157,13 +63,13 @@ export class OfflineStorageMigrator {
 	}
 
 	private async runMigrations(meta: Partial<OfflineDbMeta>, storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
-		for (const { app, version, migrate } of this.migrations) {
-			const storedVersion = meta[`${app}-version`]!
-			if (storedVersion < version) {
-				console.log(`running offline db migration for ${app} from ${storedVersion} to ${version}`)
+		for (const { version, migrate } of this.migrations) {
+			const storedOfflineVersion = meta[`offline-version`]!
+			if (storedOfflineVersion < version) {
+				console.log(`running offline db migration from ${storedOfflineVersion} to ${version}`)
 				await migrate(storage, sqlCipherFacade)
 				console.log("migration finished")
-				await storage.setStoredModelVersion(app, version)
+				await storage.setCurrentOfflineSchemaVersion(version)
 			}
 		}
 	}
@@ -171,45 +77,32 @@ export class OfflineStorageMigrator {
 	private async populateModelVersions(meta: Readonly<Partial<OfflineDbMeta>>, storage: OfflineStorage): Promise<Partial<OfflineDbMeta>> {
 		// copy metadata because it's going to be mutated
 		const newMeta = { ...meta }
-		// Populate model versions if they haven't been written already
-		for (const app of typedKeys(this.modelInfos)) {
-			await this.prepopulateVersionIfAbsent(app, this.modelInfos[app].version, newMeta, storage)
-		}
-
-		await this.prepopulateVersionIfAbsent("offline", CURRENT_OFFLINE_VERSION, newMeta, storage)
+		await this.prepopulateVersionIfAbsent(CURRENT_OFFLINE_VERSION, newMeta, storage)
 		return newMeta
 	}
 
 	/**
-	 * update the metadata table to initialize the row of the app with the given model version
+	 * update the metadata table to initialize the row of the app with the given schema version
 	 *
 	 * NB: mutates meta
 	 */
-	private async prepopulateVersionIfAbsent(app: VersionMetadataBaseKey, version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
-		const key = `${app}-version` as const
-		const storedVersion = meta[key]
+	private async prepopulateVersionIfAbsent(version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
+		const storedVersion = meta["offline-version"]
 		if (storedVersion == null) {
-			meta[key] = version
-			await storage.setStoredModelVersion(app, version)
+			meta["offline-version"] = version
+			await storage.setCurrentOfflineSchemaVersion(version)
 		}
 	}
 
 	/**
-	 * it's possible that the user installed an older client over a newer one, and we don't have backwards migrations.
-	 * in that case, it's likely that the client can't even understand the contents of the db.
-	 * we're going to delete it and not migrate at all.
+	 * it's possible that the user installed an older client over a newer one.
+	 * if the offline schema changed between the clients, it's likely that the old client can't even understand
+	 * the structure of the db. we're going to delete it and not migrate at all.
 	 * @private
 	 *
-	 * @returns true if the database we're supposed to migrate has any higher model versions than our highest migration for that model, false otherwise
+	 * @returns true if the database we're supposed to migrate has any higher schema versions than our schema version
 	 */
 	private isDbNewerThanCurrentClient(meta: Partial<OfflineDbMeta>): boolean {
-		for (const [app, { version }] of typedEntries(this.modelInfos)) {
-			const storedVersion = meta[`${app}-version`]!
-			if (storedVersion > version) {
-				return true
-			}
-		}
-
 		return assertNotNull(meta[`offline-version`]) > CURRENT_OFFLINE_VERSION
 	}
 }

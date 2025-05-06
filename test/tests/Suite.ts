@@ -180,7 +180,6 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	if (typeof process != "undefined") {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
-		await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")
 		await import("./api/worker/rest/RestClientTest.js")

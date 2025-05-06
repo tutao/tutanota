@@ -248,7 +248,7 @@ export class MailViewModel {
 
 		// Load the cached mail to display it sooner.
 		// We still want to load the mail remotely, though, to make sure that it won't disappear due to being moved.
-		const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
+		const cached = await this.cacheStorage.get<Mail>(MailTypeRef, listId, mailId)
 		if (this.didStickyMailChange(expectedStickyMailId, "after loading cached")) {
 			return
 		}

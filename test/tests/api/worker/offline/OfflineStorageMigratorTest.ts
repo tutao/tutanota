@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { OfflineMigration, OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
+import { CURRENT_OFFLINE_VERSION, OfflineMigration, OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
 import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { func, instance, matchers, object, when } from "testdouble"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
@@ -44,7 +44,7 @@ o.spec("OfflineStorageMigrator", function () {
 	o.beforeEach(function () {
 		migrations = []
 		storage = instance(OfflineStorage)
-		migrator = new OfflineStorageMigrator(migrations, modelInfos)
+		migrator = new OfflineStorageMigrator(migrations)
 		sqlCipherFacade = object()
 	})
 
@@ -52,26 +52,22 @@ o.spec("OfflineStorageMigrator", function () {
 		when(storage.dumpMetadata()).thenResolve({})
 
 		await migrator.migrate(storage, sqlCipherFacade)
-
-		for (const [app, data] of typedEntries(modelInfos)) {
-			verify(storage.setStoredModelVersion(app, data.version))
-		}
+		verify(storage.setCurrentOfflineSchemaVersion(CURRENT_OFFLINE_VERSION))
 	})
 
 	o("when the model version is written it is not overwritten", async function () {
-		when(storage.dumpMetadata()).thenResolve({ "tutanota-version": 42 })
+		when(storage.dumpMetadata()).thenResolve({ "offline-version": 5 })
 
 		await migrator.migrate(storage, sqlCipherFacade)
 
-		verify(storage.setStoredModelVersion("tutanota", matchers.anything()), { times: 0 })
+		verify(storage.setCurrentOfflineSchemaVersion(matchers.anything()), { times: 0 })
 	})
 
-	o("when migration exists and it the version is incompatible the migration is run", async function () {
+	o("when migration exists and the version is incompatible the migration is run", async function () {
 		// stored is older than current so we actually "migrate" something
-		when(storage.dumpMetadata()).thenResolve({ "tutanota-version": 40 }, { "tutanota-version": 42 })
+		when(storage.dumpMetadata()).thenResolve({ "offline-version": 4 }, { "offline-version": 5 })
 		const migration: OfflineMigration = {
-			app: "tutanota",
-			version: 42,
+			version: 5,
 			migrate: func() as OfflineMigration["migrate"],
 		}
 		migrations.push(migration)
@@ -79,6 +75,6 @@ o.spec("OfflineStorageMigrator", function () {
 		await migrator.migrate(storage, sqlCipherFacade)
 
 		verify(migration.migrate(storage, sqlCipherFacade))
-		verify(storage.setStoredModelVersion("tutanota", 42))
+		verify(storage.setCurrentOfflineSchemaVersion(5))
 	})
 })

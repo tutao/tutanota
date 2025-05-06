@@ -4,6 +4,8 @@ import { verify } from "@tutao/tutanota-test-utils"
 import { LateInitializedCacheStorageImpl, OfflineStorageArgs } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
 import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"
+import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
+import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("CacheStorageProxy", function () {
 	const userId = "userId"
@@ -19,10 +21,14 @@ o.spec("CacheStorageProxy", function () {
 		workerMock = instance(WorkerImpl)
 		offlineStorageMock = instance(OfflineStorage)
 		offlineStorageProviderMock = func() as () => Promise<null | OfflineStorage>
-
-		proxy = new LateInitializedCacheStorageImpl(async (error: Error) => {
-			await workerMock.sendError(error)
-		}, offlineStorageProviderMock)
+		const modelMapper = new ModelMapper(resolveClientTypeReference, resolveClientTypeReference)
+		proxy = new LateInitializedCacheStorageImpl(
+			modelMapper,
+			async (error: Error) => {
+				await workerMock.sendError(error)
+			},
+			offlineStorageProviderMock,
+		)
 	})
 
 	o.spec("initialization", function () {

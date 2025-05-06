@@ -19,6 +19,7 @@ import type {
 	Entity,
 	ListElementEntity,
 	ServerModelEncryptedParsedInstance,
+	ServerModelParsedInstance,
 	ServerModelUntypedInstance,
 	ServerTypeModel,
 	SomeEntity,
@@ -217,7 +218,11 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}
 
-	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+	async loadParsedInstance<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		id: PropertyType<T, "_id">,
+		opts: EntityRestClientLoadOptions = {},
+	): Promise<ServerModelParsedInstance> {
 		const { listId, elementId } = expandId(id)
 		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
 			typeRef,
@@ -240,13 +245,33 @@ export class EntityRestClient implements EntityRestInterface {
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entityAdapter)
 		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, migratedEntity)
-		const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
+		return await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,
 			migratedEntity.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
 		)
+	}
+
+	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+		const parsedInstance = await this.loadParsedInstance(typeRef, id, opts)
+		return await this.mapInstanceToEntity(typeRef, parsedInstance)
+	}
+
+	async mapInstanceToEntity<T extends SomeEntity>(typeRef: TypeRef<T>, parsedInstance: ServerModelParsedInstance): Promise<T> {
 		const instance = downcast<T>(await this.instancePipeline.modelMapper.mapToInstance(typeRef, parsedInstance))
-		return await this._crypto.applyMigrationsForInstance(instance)
+		return instance
+	}
+
+	async mapInstancesToEntity<T extends SomeEntity>(typeRef: TypeRef<T>, parsedInstances: Array<ServerModelParsedInstance>): Promise<T[]> {
+		return await promiseMap(
+			parsedInstances,
+			async (parsedInstance) => {
+				return this.mapInstanceToEntity(typeRef, parsedInstance)
+			},
+			{
+				concurrency: 5,
+			},
+		)
 	}
 
 	private async resolveSessionKey(ownerKeyProvider: OwnerKeyProvider | undefined, migratedEntity: Entity): Promise<Nullable<AesKey>> {
@@ -267,14 +292,14 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async loadRange<T extends ListElementEntity>(
+	async loadParsedInstancesRange<T extends ListElementEntity>(
 		typeRef: TypeRef<T>,
 		listId: Id,
 		start: Id,
 		count: number,
 		reverse: boolean,
 		opts: EntityRestClientLoadOptions = {},
-	): Promise<T[]> {
+	): Promise<ServerModelParsedInstance[]> {
 		const rangeRequestParams = {
 			start: String(start),
 			count: String(count),
@@ -298,16 +323,28 @@ export class EntityRestClient implements EntityRestInterface {
 			suspensionBehavior: opts.suspensionBehavior,
 		})
 		const parsedResponse: Array<ServerModelUntypedInstance> = JSON.parse(json)
-		return this._handleLoadResult(typeRef, parsedResponse)
+		return await this._handleLoadResult(typeRef, parsedResponse)
 	}
 
-	async loadMultiple<T extends SomeEntity>(
+	async loadRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions = {},
+	): Promise<T[]> {
+		const parsedInstances = await this.loadParsedInstancesRange(typeRef, listId, start, count, reverse, opts)
+		return this.mapInstancesToEntity(typeRef, parsedInstances)
+	}
+
+	async loadMultipleParsedInstances<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 		opts: EntityRestClientLoadOptions = {},
-	): Promise<Array<T>> {
+	): Promise<Array<ServerModelParsedInstance>> {
 		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, opts.queryParams, opts.extraHeaders, opts.ownerKeyProvider)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
 		const typeModel = await resolveClientTypeReference(typeRef)
@@ -331,6 +368,17 @@ export class EntityRestClient implements EntityRestInterface {
 			return this._handleLoadResult(typeRef, JSON.parse(json), ownerEncSessionKeyProvider)
 		})
 		return loadedChunks.flat()
+	}
+
+	async loadMultiple<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id | null,
+		elementIds: Array<Id>,
+		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		opts: EntityRestClientLoadOptions = {},
+	): Promise<Array<T>> {
+		const parsedInstances = await this.loadMultipleParsedInstances(typeRef, listId, elementIds, ownerEncSessionKeyProvider, opts)
+		return await this.mapInstancesToEntity(typeRef, parsedInstances)
 	}
 
 	private async loadMultipleBlobElements(
@@ -386,7 +434,7 @@ export class EntityRestClient implements EntityRestInterface {
 		typeRef: TypeRef<T>,
 		loadedEntities: Array<ServerModelUntypedInstance>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-	): Promise<Array<T>> {
+	): Promise<Array<ServerModelParsedInstance>> {
 		const serverTypeModel = await resolveServerTypeReference(typeRef)
 		return await promiseMap(
 			loadedEntities,
@@ -394,7 +442,7 @@ export class EntityRestClient implements EntityRestInterface {
 				const noNetworkDebugInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(serverTypeModel, instance)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
 				let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
-				return this._decryptMapAndMigrate(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
+				return this._decryptAndMap(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
 			},
 			{
 				concurrency: 5,
@@ -402,11 +450,11 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
-	async _decryptMapAndMigrate<T extends SomeEntity>(
+	async _decryptAndMap(
 		serverTypeModel: ServerTypeModel,
 		entityAdapter: EntityAdapter,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-	): Promise<T> {
+	): Promise<ServerModelParsedInstance> {
 		let sessionKey: AesKey | null
 		if (ownerEncSessionKeyProvider) {
 			const id = entityAdapter._id
@@ -428,16 +476,11 @@ export class EntityRestClient implements EntityRestInterface {
 				}
 			}
 		}
-		const decryptedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
+		return await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,
 			entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
 		)
-
-		const instance = downcast<T>(
-			await this.instancePipeline.modelMapper.mapToInstance(new TypeRef(serverTypeModel.app, serverTypeModel.id), decryptedInstance),
-		)
-		return this._crypto.applyMigrationsForInstance<T>(instance)
 	}
 
 	async setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id | null> {

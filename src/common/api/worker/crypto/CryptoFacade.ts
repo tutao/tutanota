@@ -114,37 +114,6 @@ export class CryptoFacade {
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 	) {}
 
-	async applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T> {
-		const instanceType = downcast<Entity>(decryptedInstance)._type
-
-		if (isSameTypeRef(instanceType, ContactTypeRef)) {
-			const contact = downcast<Contact>(decryptedInstance)
-
-			try {
-				if (!contact.birthdayIso && contact.oldBirthdayAggregate) {
-					contact.birthdayIso = birthdayToIsoDate(contact.oldBirthdayAggregate)
-					contact.oldBirthdayAggregate = null
-					contact.oldBirthdayDate = null
-					await this.entityClient.update(contact)
-				} else if (!contact.birthdayIso && contact.oldBirthdayDate) {
-					contact.birthdayIso = birthdayToIsoDate(oldBirthdayToBirthday(contact.oldBirthdayDate))
-					contact.oldBirthdayDate = null
-					await this.entityClient.update(contact)
-				} else if (contact.birthdayIso && (contact.oldBirthdayAggregate || contact.oldBirthdayDate)) {
-					contact.oldBirthdayAggregate = null
-					contact.oldBirthdayDate = null
-					await this.entityClient.update(contact)
-				}
-			} catch (e) {
-				if (!(e instanceof LockedError)) {
-					throw e
-				}
-			}
-		}
-
-		return decryptedInstance
-	}
-
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
 	decryptSessionKeyWithOwnerKey(ownerEncSessionKey: Uint8Array, ownerKey: AesKey): AesKey {
 		return decryptKey(ownerKey, ownerEncSessionKey)

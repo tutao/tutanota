@@ -3,13 +3,16 @@ import type { CalendarEventAlteredInstance, EventWithUserAlarmInfos } from "../.
 import { CalendarFacade, sortByRecurrenceId } from "../../../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { clone, downcast, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
-import type { AlarmInfo, User, UserAlarmInfo } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { assertNotNull, base64ToUint8Array, clone, downcast, isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
 import {
+	AlarmInfo,
 	AlarmInfoTypeRef,
+	AlarmNotificationTypeRef,
 	CalendarEventRefTypeRef,
 	PushIdentifierListTypeRef,
 	PushIdentifierTypeRef,
+	User,
+	UserAlarmInfo,
 	UserAlarmInfoListTypeTypeRef,
 	UserAlarmInfoTypeRef,
 	UserTypeRef,
@@ -21,7 +24,7 @@ import { assertThrows, mockAttribute, spy, unmockAttribute } from "@tutao/tutano
 import { ImportError } from "../../../../../src/common/api/common/error/ImportError.js"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
-import { object } from "testdouble"
+import { matchers, object, when } from "testdouble"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
@@ -32,6 +35,8 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
+import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
@@ -105,6 +110,7 @@ o.spec("CalendarFacadeTest", function () {
 			userGroup: downcast({
 				group: "Id",
 			}),
+			_id: "userList",
 		})
 		userFacade = downcast({
 			getLoggedInUser: () => user,
@@ -115,9 +121,7 @@ o.spec("CalendarFacadeTest", function () {
 		workerMock = downcast({
 			sendProgress: () => Promise.resolve(),
 		})
-		nativeMock = downcast({
-			invokeNative: spy(() => Promise.resolve()),
-		})
+		nativeMock = object()
 		serviceExecutor = object()
 		cryptoFacade = object()
 		infoMessageHandler = object()
@@ -451,6 +455,49 @@ o.spec("CalendarFacadeTest", function () {
 			expected[0] = smaller
 			sortByRecurrenceId(arr)
 			o(arr).deepEquals(expected)
+		})
+	})
+
+	o.spec("NetworkDebugging", () => {
+		let loadAlarmEventsMock
+		let previousNetworkDebugging
+		let allAlarmEvents
+
+		o.beforeEach(async function () {
+			previousNetworkDebugging = env.networkDebugging
+
+			const calendarRef = createTestEntity(CalendarEventRefTypeRef, { elementId: "elementId", listId: "listId" })
+			allAlarmEvents = [
+				{
+					event: createTestEntity(CalendarEventTypeRef),
+					userAlarmInfos: [createTestEntity(UserAlarmInfoTypeRef, { alarmInfo: createTestEntity(AlarmInfoTypeRef, { calendarRef }) })],
+				},
+			]
+			loadAlarmEventsMock = mockAttribute(calendarFacade, calendarFacade.loadAlarmEvents, () => Promise.resolve(allAlarmEvents))
+		})
+		o.afterEach(() => {
+			env.networkDebugging = previousNetworkDebugging
+			unmockAttribute(loadAlarmEventsMock)
+		})
+
+		o("scheduleAlarms should receive instance without network debugging info", async () => {
+			env.networkDebugging = true
+
+			const pushIdentifier = createTestEntity(PushIdentifierTypeRef, { _id: ["listId", "pushId"] })
+
+			const instanceCaptor = matchers.captor()
+			const sessionKeyCaptor = matchers.captor()
+			when(nativeMock.scheduleAlarms(instanceCaptor.capture(), sessionKeyCaptor.capture())).thenResolve(Promise.resolve())
+
+			await calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
+
+			const sessionKey = uint8ArrayToBitArray(base64ToUint8Array(sessionKeyCaptor.value))
+			const allInstanceSentToFacade = instanceCaptor.value
+			const instanceLiteralSentToFacade = assertNotNull(JSON.parse(allInstanceSentToFacade)[0])
+
+			// if we were able to decryptAndMap, it already verifies that no field has network debug info,
+			const instanceSentToFacade = await instancePipeline.decryptAndMap(AlarmNotificationTypeRef, instanceLiteralSentToFacade, sessionKey)
+			o(instanceSentToFacade.operation).equals(OperationType.CREATE)
 		})
 	})
 })

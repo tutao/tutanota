@@ -246,6 +246,7 @@ export function customIdToString(customId: string): string {
 export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>, createDefaultValue: (name: string, value: ModelValue) => any = _getDefaultValue): T {
 	let i: Record<string, any> = {
 		_type: typeRef,
+		_finalIvs: {},
 	}
 
 	for (const [valueIdStr, value] of Object.entries(typeModel.values)) {

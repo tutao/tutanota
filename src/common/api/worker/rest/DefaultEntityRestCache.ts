@@ -8,9 +8,9 @@ import {
 	getCacheModeBehavior,
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
-import { resolveClientTypeReference, resolveTypeRefFromAppAndTypeNameLegacy } from "../../common/EntityFunctions"
+import { resolveClientTypeReference, resolveServerTypeReference, resolveTypeRefFromAppAndTypeNameLegacy } from "../../common/EntityFunctions"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, difference, getFirstOrThrow, getTypeId, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, difference, getFirstOrThrow, getTypeString, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -35,21 +35,24 @@ import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntry, Mai
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
+	elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	get_IdValue,
 	getElementId,
+	listIdPart,
 } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
-import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
+import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { containsEventOfType, entityUpdateToUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
+import { AttributeModel } from "../../common/AttributeModel"
 
 assertWorkerOrNode()
 
@@ -137,7 +140,7 @@ export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never
  * (mainly password changes)
  */
 export interface ExposedCacheStorage {
-	get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
+	get<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
 
 	/**
 	 * Load range of entities. Does not include {@param start}.
@@ -179,7 +182,28 @@ export interface CacheStorage extends ExposedCacheStorage {
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
 	 */
-	get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
+	getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null>
+
+	/**
+	 * Load range of entities. Does not include {@param start}.
+	 * If {@param reverse} is false then returns entities newer than {@param start} in ascending order sorted by
+	 * elementId.
+	 * If {@param reverse} is true then returns entities older than {@param start} in descending order sorted by
+	 * elementId.
+	 */
+	provideFromRangeParsed(typeRef: TypeRef<unknown>, listId: Id, start: Id, count: number, reverse: boolean): Promise<ServerModelParsedInstance[]>
+
+	/**
+	 * Load a set of list element entities by id. Missing elements are not returned, no error is thrown.
+	 */
+	provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Id, elementIds: Id[]): Promise<Array<ServerModelParsedInstance>>
+
+	/**
+	 * retrieve all list elements that are in the cache
+	 * @param typeRef
+	 * @param listId
+	 */
+	getWholeListParsed(typeRef: TypeRef<unknown>, listId: Id): Promise<Array<ServerModelParsedInstance>>
 
 	/**
 	 * get a map with cache handlers for the customId types this storage implementation supports
@@ -189,7 +213,7 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
 
-	put(originalEntity: SomeEntity): Promise<void>
+	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void>
 
 	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>
 
@@ -265,24 +289,25 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	constructor(private readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
-		const useCache = await this.shouldUseCache(typeRef, opts)
+		const useCache = this.shouldUseCache(typeRef, opts)
 		if (!useCache) {
 			return await this.entityRestClient.load(typeRef, id, opts)
 		}
 
 		const { listId, elementId } = expandId(id)
 		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
-		const cachedEntity = cachingBehavior.readsFromCache ? await this.storage.get(typeRef, listId, elementId) : null
+		const cachedEntity = cachingBehavior.readsFromCache ? await this.storage.getParsed(typeRef, listId, elementId) : null
 
 		if (cachedEntity == null) {
-			const entity = await this.entityRestClient.load(typeRef, id, opts)
+			const parsedInstance = await this.entityRestClient.loadParsedInstance(typeRef, id, opts)
 			if (cachingBehavior.writesToCache) {
-				await this.storage.put(entity)
+				await this.storage.put(typeRef, parsedInstance)
 			}
-			return entity
-		}
 
-		return cachedEntity
+			return await this.entityRestClient.mapInstanceToEntity(typeRef, parsedInstance)
+		} else {
+			return await this.entityRestClient.mapInstanceToEntity(typeRef, cachedEntity)
+		}
 	}
 
 	async loadMultiple<T extends SomeEntity>(
@@ -292,7 +317,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 		opts: EntityRestClientLoadOptions = {},
 	): Promise<Array<T>> {
-		const useCache = await this.shouldUseCache(typeRef, opts)
+		const useCache = this.shouldUseCache(typeRef, opts)
 		if (!useCache) {
 			return await this.entityRestClient.loadMultiple(typeRef, listId, ids, ownerEncSessionKeyProvider, opts)
 		}
@@ -373,13 +398,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		opts: EntityRestClientLoadOptions = {},
 	): Promise<Array<T>> {
 		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
-		const entitiesInCache: T[] = []
+		let entitiesInCache: ServerModelParsedInstance[] = []
 
 		let idsToLoad: Id[]
 		if (cachingBehavior.readsFromCache) {
 			idsToLoad = []
 			for (const id of ids) {
-				const cachedEntity = await this.storage.get(typeRef, listId, id)
+				const cachedEntity = await this.storage.getParsed(typeRef, listId, id)
 				if (cachedEntity != null) {
 					entitiesInCache.push(cachedEntity)
 				} else {
@@ -391,16 +416,15 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 
 		if (idsToLoad.length > 0) {
-			const entitiesFromServer = await this.entityRestClient.loadMultiple(typeRef, listId, idsToLoad, ownerEncSessionKeyProvider, opts)
+			const entitiesFromServer = await this.entityRestClient.loadMultipleParsedInstances(typeRef, listId, idsToLoad, ownerEncSessionKeyProvider, opts)
 			if (cachingBehavior.writesToCache) {
 				for (const entity of entitiesFromServer) {
-					await this.storage.put(entity)
+					await this.storage.put(typeRef, entity)
 				}
 			}
-			return entitiesFromServer.concat(entitiesInCache)
-		} else {
-			return entitiesInCache
+			entitiesInCache = entitiesFromServer.concat(entitiesInCache)
 		}
+		return await this.entityRestClient.mapInstancesToEntity(typeRef, entitiesInCache)
 	}
 
 	async loadRange<T extends ListElementEntity>(
@@ -417,7 +441,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 
 		const typeModel = await resolveClientTypeReference(typeRef)
-		const useCache = (await this.shouldUseCache(typeRef, opts)) && isCachedRangeType(typeModel, typeRef)
+		const useCache = this.shouldUseCache(typeRef, opts) && isCachedRangeType(typeModel, typeRef)
 
 		if (!useCache) {
 			return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
@@ -482,13 +506,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		opts: EntityRestClientLoadOptions,
 	) {
 		// Create a new range and load everything
-		const entities = await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
+		const parsedInstances = await this.entityRestClient.loadParsedInstancesRange(typeRef, listId, start, count, reverse, opts)
 
 		// Initialize a new range for this list
 		await this.storage.setNewRangeForList(typeRef, listId, start, start)
 
 		// The range bounds will be updated in here
-		await this.updateRangeInStorage(typeRef, listId, count, reverse, entities)
+		await this.updateRangeInStorage(typeRef, listId, count, reverse, parsedInstances)
 	}
 
 	/**
@@ -508,8 +532,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const { newStart, newCount } = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
 		if (newCount > 0) {
 			// We will be able to provide some entities from the cache, so we just want to load the remaining entities from the server
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse, opts)
-			await this.updateRangeInStorage(typeRef, listId, newCount, reverse, entities)
+			const parsedInstances = await this.entityRestClient.loadParsedInstancesRange(typeRef, listId, newStart, newCount, reverse, opts)
+			await this.updateRangeInStorage(typeRef, listId, newCount, reverse, parsedInstances)
 		}
 	}
 
@@ -540,11 +564,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			const requestCount = Math.max(count, EXTEND_RANGE_MIN_CHUNK_SIZE)
 
 			// Load some entities
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, requestCount, reverse, opts)
-			await this.updateRangeInStorage(typeRef, listId, requestCount, reverse, entities)
+			const parsedInstances = await this.entityRestClient.loadParsedInstancesRange(typeRef, listId, loadStartId, requestCount, reverse, opts)
+			await this.updateRangeInStorage(typeRef, listId, requestCount, reverse, parsedInstances)
 
 			// If we exhausted the entities from the server
-			if (entities.length < requestCount) {
+			if (parsedInstances.length < requestCount) {
 				break
 			}
 
@@ -584,9 +608,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 			const requestCount = Math.max(count, EXTEND_RANGE_MIN_CHUNK_SIZE)
 
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, requestCount, !reverse, opts)
+			const parsedInstances = await this.entityRestClient.loadParsedInstancesRange(typeRef, listId, loadStartId, requestCount, !reverse, opts)
 
-			await this.updateRangeInStorage(typeRef, listId, requestCount, !reverse, entities)
+			await this.updateRangeInStorage(typeRef, listId, requestCount, !reverse, parsedInstances)
 
 			// The call to `updateRangeInStorage` will have set the range bounds to GENERATED_MIN_ID/GENERATED_MAX_ID
 			// in the case that we have exhausted all elements from the server, so if that happens, we will also end up breaking here
@@ -608,8 +632,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		listId: Id,
 		countRequested: number,
 		wasReverseRequest: boolean,
-		receivedEntities: T[],
+		receivedEntities: ServerModelParsedInstance[],
 	) {
+		const typeModel = await resolveServerTypeReference(typeRef)
 		const isCustomId = isCustomIdType(await resolveClientTypeReference(typeRef))
 		let elementsToAdd = receivedEntities
 		if (wasReverseRequest) {
@@ -620,7 +645,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.storage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
 			} else {
 				// After reversing the list the first element in the list is the lower range limit
-				await this.storage.setLowerRangeForList(typeRef, listId, getElementId(getFirstOrThrow(receivedEntities)))
+				await this.storage.setLowerRangeForList(
+					typeRef,
+					listId,
+					elementIdPart(AttributeModel.getAttribute(getFirstOrThrow(receivedEntities), "_id", typeModel)),
+				)
 			}
 		} else {
 			// Last element in the list is the upper range limit
@@ -629,11 +658,15 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				console.log("finished loading, setting max id")
 				await this.storage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
 			} else {
-				await this.storage.setUpperRangeForList(typeRef, listId, getElementId(lastThrow(receivedEntities)))
+				await this.storage.setUpperRangeForList(
+					typeRef,
+					listId,
+					elementIdPart(AttributeModel.getAttribute(lastThrow(receivedEntities), "_id", typeModel)),
+				)
 			}
 		}
 
-		await Promise.all(elementsToAdd.map((element) => this.storage.put(element)))
+		await Promise.all(elementsToAdd.map((element) => this.storage.put(typeRef, element)))
 	}
 
 	/**
@@ -804,11 +837,15 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					) {
 						// move for mail is handled in create event.
 					} else if (isSameTypeRef(MailTypeRef, typeRef)) {
+						const mailTypeModel = await resolveServerTypeReference(MailTypeRef)
 						// delete mailDetails if they are available (as we don't send an event for this type)
-						const mail = await this.storage.get(MailTypeRef, instanceListId, instanceId)
-						await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
-						if (mail?.mailDetails != null) {
-							await this.storage.deleteIfExists(MailDetailsBlobTypeRef, mail.mailDetails[0], mail.mailDetails[1])
+						const mail = await this.storage.get(typeRef, instanceListId, instanceId)
+						if (mail) {
+							let mailDetailsId = mail.mailDetails
+							await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
+							if (mailDetailsId != null) {
+								await this.storage.deleteIfExists(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), elementIdPart(mailDetailsId))
+							}
 						}
 					} else {
 						await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
@@ -841,9 +878,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// We put new instances into cache only when it's a new instance in the cached range which is only for the list instances.
 		if (instanceListId != null) {
 			const deleteEvent = getEventOfType(batch, OperationType.DELETE, instanceId)
+			// TODO This is basically a patch for the mailSetEntry
 			const mailSetEntry =
 				deleteEvent && isSameTypeRef(MailSetEntryTypeRef, typeRef)
-					? await this.storage.get(MailSetEntryTypeRef, deleteEvent.instanceListId, instanceId)
+					? await this.storage.getParsed(typeRef, deleteEvent.instanceListId, instanceId)
 					: null
 			// avoid downloading new mailSetEntry in case of move event (DELETE + CREATE)
 			if (deleteEvent != null && mailSetEntry != null) {
@@ -860,10 +898,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				if (shouldLoad) {
 					// No need to try to download something that's not there anymore
 					// We do not consult custom handlers here because they are only needed for list elements.
-					console.log("downloading create event for", getTypeId(typeRef), instanceListId, instanceId)
+					console.log("downloading create event for", getTypeString(typeRef), instanceListId, instanceId)
 					return this.entityRestClient
-						.load(typeRef, [instanceListId, instanceId])
-						.then((entity) => this.storage.put(entity))
+						.loadParsedInstance(typeRef, [instanceListId, instanceId])
+						.then((entity) => this.storage.put(typeRef, entity))
 						.then(() => update)
 						.catch((e) => {
 							if (isExpectedErrorForSynchronization(e)) {
@@ -884,16 +922,21 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	/**
 	 * Updates the given mailSetEntry with the new list id and add it to the cache.
 	 */
-	private async updateListIdOfMailSetEntryAndUpdateCache(mailSetEntry: MailSetEntry, newListId: Id, elementId: Id) {
+	private async updateListIdOfMailSetEntryAndUpdateCache(mailSetEntry: ServerModelParsedInstance, newListId: Id, elementId: Id) {
 		// In case of a move operation we have to replace the list id always, as the mailSetEntry is stored in another folder.
-		mailSetEntry._id = [newListId, elementId]
-		await this.storage.put(mailSetEntry)
+		const typeModel = await resolveServerTypeReference(MailSetEntryTypeRef)
+		const attributeId = AttributeModel.getAttributeId(typeModel, "_id")
+		if (attributeId == null) {
+			throw new ProgrammingError("no _id for mail set entry in type model ")
+		}
+		mailSetEntry[attributeId] = [newListId, elementId]
+		await this.storage.put(MailSetEntryTypeRef, mailSetEntry)
 	}
 
 	/** Returns {null} when the update should be skipped. */
 	private async processUpdateEvent(typeRef: TypeRef<SomeEntity>, update: EntityUpdate): Promise<EntityUpdate | null> {
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
-		const cached = await this.storage.get(typeRef, instanceListId, instanceId)
+		const cached = await this.storage.getParsed(typeRef, instanceListId, instanceId)
 		// No need to try to download something that's not there anymore
 		if (cached != null) {
 			try {
@@ -908,11 +951,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				if (isSameTypeRef(typeRef, GroupTypeRef)) {
 					console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + instanceId)
 				}
-				const newEntity = await this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
+				const newEntity = await this.entityRestClient.loadParsedInstance(typeRef, collapseId(instanceListId, instanceId))
 				if (isSameTypeRef(typeRef, UserTypeRef)) {
 					await this.handleUpdatedUser(cached, newEntity)
 				}
-				await this.storage.put(newEntity)
+				await this.storage.put(typeRef, newEntity)
 				return update
 			} catch (e) {
 				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
@@ -929,16 +972,16 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return update
 	}
 
-	private async handleUpdatedUser(cached: SomeEntity, newEntity: SomeEntity) {
+	private async handleUpdatedUser(cachedUserInstance: ServerModelParsedInstance, newUserInstance: ServerModelParsedInstance) {
 		// When we are removed from a group we just get an update for our user
 		// with no membership on it. We need to clean up all the entities that
 		// belong to that group since we shouldn't be able to access them anymore
 		// and we won't get any update or another chance to clean them up.
-		const oldUser = cached as User
+		const oldUser = await this.entityRestClient.mapInstanceToEntity<User>(UserTypeRef, cachedUserInstance)
 		if (oldUser._id !== this.storage.getUserId()) {
 			return
 		}
-		const newUser = newEntity as User
+		const newUser = await this.entityRestClient.mapInstanceToEntity<User>(UserTypeRef, newUserInstance)
 		const removedShips = difference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
 		for (const ship of removedShips) {
 			console.log("Lost membership on ", ship._id, ship.groupType)

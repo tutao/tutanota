@@ -350,7 +350,8 @@ export class BlobFacade {
 		}
 	}
 
-	private async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
+	// Visible for testing
+	public async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
 		const responseTypeModel = await resolveClientTypeReference(BlobPostOutTypeRef)
 		const instance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(responseTypeModel, JSON.parse(jsonData))
 		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap(BlobPostOutTypeRef, instance, null)
@@ -472,7 +473,11 @@ export class BlobFacade {
 	}
 
 	private createStorageAppHeaders() {
-		return { v: String(storageTypeModels[BlobGetInTypeRef.typeId].version), cv: env.versionNumber }
+		let headers: Record<string, string> = { v: String(storageTypeModels[BlobGetInTypeRef.typeId].version), cv: env.versionNumber }
+		if (env.networkDebugging) {
+			headers["Network-Debugging"] = "enable-network-debugging"
+		}
+		return headers
 	}
 }
 

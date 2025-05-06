@@ -8,7 +8,7 @@ import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/
 import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { instance, matchers, object, verify, when } from "testdouble"
-import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
 import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Mode } from "../../../../../src/common/api/common/Env.js"
@@ -51,6 +51,7 @@ o.spec("BlobFacade test", function () {
 	let cryptoFacadeMock: CryptoFacade
 	let file: TutanotaFile
 	let anotherFile: TutanotaFile
+	let previousNetworkDebugging
 
 	o.beforeEach(function () {
 		restClientMock = instance(RestClient)
@@ -75,13 +76,37 @@ o.spec("BlobFacade test", function () {
 			cryptoFacadeMock,
 			blobAccessTokenFacade,
 		)
+		previousNetworkDebugging = env.networkDebugging
 	})
 
 	o.afterEach(function () {
 		env.mode = Mode.Browser
+		env.networkDebugging = previousNetworkDebugging
 	})
 
 	o.spec("upload", function () {
+		o("parseBlobPostOutResponse should remove network debugging info", async function () {
+			env.networkDebugging = true
+
+			const realInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+			const newBlobFacade = new BlobFacade(
+				restClientMock,
+				suspensionHandlerMock,
+				fileAppMock,
+				aesAppMock,
+				realInstancePipeline,
+				cryptoFacadeMock,
+				blobAccessTokenFacade,
+			)
+
+			const expectedReferenceToken = createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "blobRefToken" })
+			const blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceToken.blobReferenceToken })
+			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
+
+			const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(JSON.stringify(blobServiceResponseWithDebug))
+			o(referenceTokens).deepEquals(expectedReferenceToken)
+		})
+
 		o("encryptAndUpload single blob", async function () {
 			const ownerGroup = "ownerId"
 			const sessionKey = aes256RandomKey()
@@ -94,7 +119,7 @@ o.spec("BlobFacade test", function () {
 				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "w1" })],
 			})
 			when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
-			let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
+			const blobServiceResponse = createTestEntity(BlobPostOutTypeRef, { blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken })
 			when(instancePipelineMock.decryptAndMap(anything(), anything(), anything())).thenResolve(blobServiceResponse)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify(blobServiceResponse))
 
@@ -110,6 +135,7 @@ o.spec("BlobFacade test", function () {
 		})
 
 		o("encryptAndUploadNative", async function () {
+			env.networkDebugging = false
 			const ownerGroup = "ownerId"
 			const sessionKey = aes256RandomKey()
 
@@ -253,6 +279,7 @@ o.spec("BlobFacade test", function () {
 		})
 
 		o("downloadAndDecryptNative", async function () {
+			env.networkDebugging = false
 			const sessionKey = aes256RandomKey()
 
 			file.blobs.push(blobs[0])

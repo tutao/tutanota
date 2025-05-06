@@ -3,6 +3,7 @@ import {
 	base64ToBase64Url,
 	base64ToUint8Array,
 	downcast,
+	promiseMap,
 	stringToUtf8Uint8Array,
 	TypeRef,
 	uint8ArrayToBase64,
@@ -143,6 +144,10 @@ export class ModelMapper {
 		if (isWebClient() && serverTypeReferenceResolver === clientTypeReferenceResolver) {
 			throw new ProgrammingError("initializing server type reference resolver with client type reference resolver on webapp is not allowed!")
 		}
+	}
+
+	async mapToInstances<T extends Entity>(typeRef: TypeRef<T>, parsedInstances: Array<ServerModelParsedInstance>): Promise<Array<T>> {
+		return await promiseMap(parsedInstances, (parsedInstance) => this.mapToInstance(typeRef, parsedInstance))
 	}
 
 	async mapToInstance<T extends Entity>(typeRef: TypeRef<unknown>, parsedInstance: ServerModelParsedInstance): Promise<T> {

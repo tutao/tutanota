@@ -179,7 +179,6 @@ o.spec("EntityRestClient", function () {
 			const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sk)
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(instanceWithDebuggingInfo))
 			const loadResult = await entityRestClient.load(expectedInstance._type, id1)
-			delete downcast(loadResult)._finalIvs
 			o(expectedInstance as any).deepEquals(loadResult)
 		})
 
@@ -205,7 +204,6 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify(untypedCalendarInstance))
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1])
-			delete downcast(result)._finalIvs
 			o(result as any).deepEquals(calendar)
 		})
 
@@ -229,8 +227,6 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify(untypedAccountingInfo))
 
 			const result = await entityRestClient.load(AccountingInfoTypeRef, id1)
-
-			delete downcast(result)._finalIvs
 
 			o(result as any).deepEquals(accountingInfo)
 		})
@@ -267,7 +263,6 @@ o.spec("EntityRestClient", function () {
 			const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sk)
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(calendaroWithDebug))
 			const resultWithDebug = await entityRestClient.load(calendar._type, [calendarListId, id1])
-			delete downcast(resultWithDebug)._finalIvs
 			o(resultWithDebug as any).deepEquals(calendar)
 		})
 
@@ -305,7 +300,6 @@ o.spec("EntityRestClient", function () {
 				ownerKeyProvider: async (_: KeyVersion) => ownerGroupKey.object,
 			})
 
-			delete downcast(result)._finalIvs
 			o(result as any).deepEquals(calendar)
 		})
 	})
@@ -344,9 +338,6 @@ o.spec("EntityRestClient", function () {
 
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedCalWithDebug1, untypedCalWithDebug2]))
 			const loadRangeResult = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
-
-			delete downcast(loadRangeResult[0])._finalIvs
-			delete downcast(loadRangeResult[1])._finalIvs
 
 			o(expectedLoadRangeResult as any).deepEquals(loadRangeResult)
 		})
@@ -388,8 +379,6 @@ o.spec("EntityRestClient", function () {
 			const result = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
-			delete downcast(result[0])._finalIvs
-			delete downcast(result[1])._finalIvs
 			o(result as any).deepEquals([calendar1, calendar2])
 		})
 
@@ -425,9 +414,6 @@ o.spec("EntityRestClient", function () {
 
 			const loadMultipleResult = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
 
-			delete downcast(loadMultipleResult[0])._finalIvs
-			delete downcast(loadMultipleResult[1])._finalIvs
-
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
 			o(expectedLoadMultipleResult as any).deepEquals(loadMultipleResult)
@@ -456,9 +442,6 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([untypedSupportData1, untypedSupportData2]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
-
-			delete downcast(result[0])._finalIvs
-			delete downcast(result[1])._finalIvs
 
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
@@ -492,8 +475,6 @@ o.spec("EntityRestClient", function () {
 				{ times: 1 },
 			)
 
-			delete downcast(result[0])._finalIvs
-			delete downcast(result[1])._finalIvs
 			o(result as any).deepEquals([supportData1, supportData2])
 		})
 
@@ -532,9 +513,6 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([untypedSupportData2]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
-
-			delete downcast(result[0])._finalIvs
-			delete downcast(result[1])._finalIvs
 
 			o(result as any).deepEquals([supportData1, supportData2])
 		})
@@ -595,10 +573,6 @@ o.spec("EntityRestClient", function () {
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
 
-			delete downcast(result[0])._finalIvs
-			delete downcast(result[1])._finalIvs
-			delete downcast(result[2])._finalIvs
-
 			o(result as any).deepEquals([supportData1, supportData2, supportData3])
 		})
 
@@ -656,15 +630,6 @@ o.spec("EntityRestClient", function () {
 			when(restClient.request(anything(), HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
-
-			delete downcast(result[0])._finalIvs
-			delete downcast(result[0].details)._finalIvs
-			delete downcast(result[0].details.body)._finalIvs
-			delete downcast(result[0].details.recipients)._finalIvs
-			delete downcast(result[1])._finalIvs
-			delete downcast(result[1].details)._finalIvs
-			delete downcast(result[1].details.body)._finalIvs
-			delete downcast(result[1].details.recipients)._finalIvs
 
 			let expectedOptions = {
 				headers: {},
@@ -776,15 +741,6 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
-
-			delete downcast(result[0])._finalIvs
-			delete downcast(result[0].details)._finalIvs
-			delete downcast(result[0].details.body)._finalIvs
-			delete downcast(result[0].details.recipients)._finalIvs
-			delete downcast(result[1])._finalIvs
-			delete downcast(result[1].details)._finalIvs
-			delete downcast(result[1].details.body)._finalIvs
-			delete downcast(result[1].details.recipients)._finalIvs
 
 			verify(restClient.request(`${await typeRefToRestPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, anything()), { times: 2 })
 

@@ -159,76 +159,82 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 	o("testToContactNames", function () {
 		let a = ["N:Public\\\\;John\\;Quinlan;Lange;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
 		let contacts = vCardListToContacts(a, "")
-		let b = createTestEntity(ContactTypeRef)
-		b._ownerGroup = ""
-		b.addresses[0] = {
-			_type: ContactAddressTypeRef,
-			_id: neverNull(null),
-			address: "Die Heide 81\nBasche",
-			customTypeName: "",
-			type: "2",
-		}
-		b.middleName = "Lange"
-		b.department = ""
-		b.firstName = "John;Quinlan"
-		b.lastName = "Public\\"
-		b.comment = "Hello World\nHier ist ein Umbruch"
-		b.company = ""
-		b.role = ""
-		b.title = "Mr."
-		b.nameSuffix = "Esq."
-		b.nickname = neverNull(null)
-		b.birthdayIso = "2016-09-09"
+		let b = createTestEntity(ContactTypeRef, {
+			_ownerGroup: "",
+			addresses: [
+				createTestEntity(ContactAddressTypeRef, {
+					_id: neverNull(null),
+					address: "Die Heide 81\nBasche",
+					customTypeName: "",
+					type: "2",
+				}),
+			],
+			middleName: "Lange",
+			department: "",
+			firstName: "John;Quinlan",
+			lastName: "Public\\",
+			comment: "Hello World\nHier ist ein Umbruch",
+			company: "",
+			role: "",
+			title: "Mr.",
+			nameSuffix: "Esq.",
+			nickname: neverNull(null),
+			birthdayIso: "2016-09-09",
+		})
 		o(contacts[0]).deepEquals(b)
 	})
 	o("testEmptyAddressElements", function () {
 		let a = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;; ;;Basche"]
 		let contacts = vCardListToContacts(a, "")
-		let b = createTestEntity(ContactTypeRef)
-		b._ownerGroup = ""
-		b.addresses[0] = {
-			_type: ContactAddressTypeRef,
-			_id: neverNull(null),
-			address: "Die Heide 81\nBasche",
-			customTypeName: "",
-			type: "2",
-		}
-		b.middleName = ""
-		b.firstName = "John;Quinlan"
-		b.lastName = "Public\\"
-		b.comment = ""
-		b.department = ""
-		b.company = ""
-		b.role = ""
-		b.nameSuffix = "Esq."
-		b.title = "Mr."
-		b.nickname = neverNull(null)
-		b.birthdayIso = "2016-09-09"
+		let b = createTestEntity(ContactTypeRef, {
+			_ownerGroup: "",
+			addresses: [
+				createTestEntity(ContactAddressTypeRef, {
+					_id: neverNull(null),
+					address: "Die Heide 81\nBasche",
+					customTypeName: "",
+					type: "2",
+				}),
+			],
+			middleName: "",
+			department: "",
+			firstName: "John;Quinlan",
+			lastName: "Public\\",
+			comment: "",
+			company: "",
+			role: "",
+			title: "Mr.",
+			nameSuffix: "Esq.",
+			nickname: neverNull(null),
+			birthdayIso: "2016-09-09",
+		})
 		o(contacts[0]).deepEquals(b)
 	})
 	o("testTooManySpaceElements", function () {
 		let a = ["N:Public\\\\; John\\; Quinlan;;Mr.    ;Esq.\nBDAY: 2016-09-09\nADR: Die Heide 81;;;; Basche"]
 		let contacts = vCardListToContacts(a, "")
-		let b = createTestEntity(ContactTypeRef)
-		b._ownerGroup = ""
-		b.addresses[0] = {
-			_type: ContactAddressTypeRef,
-			_id: neverNull(null),
-			address: "Die Heide 81\nBasche",
-			customTypeName: "",
-			type: "2",
-		}
-		b.firstName = "John; Quinlan"
-		b.lastName = "Public\\"
-		b.middleName = ""
-		b.comment = ""
-		b.department = ""
-		b.company = ""
-		b.role = ""
-		b.title = "Mr."
-		b.nameSuffix = "Esq."
-		b.nickname = neverNull(null)
-		b.birthdayIso = "2016-09-09"
+		let b = createTestEntity(ContactTypeRef, {
+			_ownerGroup: "",
+			addresses: [
+				createTestEntity(ContactAddressTypeRef, {
+					_id: neverNull(null),
+					address: "Die Heide 81\nBasche",
+					customTypeName: "",
+					type: "2",
+				}),
+			],
+			middleName: "",
+			department: "",
+			firstName: "John; Quinlan",
+			lastName: "Public\\",
+			comment: "",
+			company: "",
+			role: "",
+			title: "Mr.",
+			nameSuffix: "Esq.",
+			nickname: neverNull(null),
+			birthdayIso: "2016-09-09",
+		})
 		o(contacts[0]).deepEquals(b)
 	})
 	o("testVCard4", function () {
@@ -241,33 +247,42 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 	o("testTypeInUserText", function () {
 		let a = ["EMAIL;TYPE=WORK:HOME@mvrht.net\nADR;TYPE=WORK:Street;HOME;;\nTEL;TYPE=WORK:HOME01923825434"]
 		let contacts = vCardListToContacts(a, "")
-		let b = createTestEntity(ContactTypeRef)
-		b._ownerGroup = ""
-		b.middleName = ""
-		b.department = ""
-		b.nameSuffix = ""
-		b.mailAddresses[0] = {
-			_type: ContactMailAddressTypeRef,
-			_id: neverNull(null),
-			address: "HOME@mvrht.net",
-			customTypeName: "",
-			type: "1",
-		}
-		b.addresses[0] = {
-			_type: ContactAddressTypeRef,
-			_id: neverNull(null),
-			address: "Street\nHOME",
-			customTypeName: "",
-			type: "1",
-		}
-		b.phoneNumbers[0] = {
-			_type: ContactPhoneNumberTypeRef,
-			_id: neverNull(null),
-			customTypeName: "",
-			number: "HOME01923825434",
-			type: "1",
-		}
-		b.comment = ""
+		let b = createTestEntity(ContactTypeRef, {
+			_ownerGroup: "",
+			addresses: [
+				createTestEntity(ContactAddressTypeRef, {
+					_id: neverNull(null),
+					address: "Street\nHOME",
+					customTypeName: "",
+					type: "1",
+				}),
+			],
+			mailAddresses: [
+				createTestEntity(ContactMailAddressTypeRef, {
+					_id: neverNull(null),
+					address: "HOME@mvrht.net",
+					customTypeName: "",
+					type: "1",
+				}),
+			],
+			phoneNumbers: [
+				createTestEntity(ContactPhoneNumberTypeRef, {
+					_id: neverNull(null),
+					customTypeName: "",
+					number: "HOME01923825434",
+					type: "1",
+				}),
+			],
+			middleName: "",
+			department: "",
+			firstName: "",
+			lastName: "",
+			comment: "",
+			company: "",
+			role: "",
+			nameSuffix: "",
+			nickname: neverNull(null),
+		})
 		o(contacts[0]).deepEquals(b)
 	})
 	o("test vcard 4.0 date format", function () {

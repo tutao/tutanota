@@ -211,7 +211,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
 				dateProvider,
-				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, globalClientModelInfo.modelInfos),
+				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS),
 				new MailOfflineCleaner(),
 				locator.instancePipeline.modelMapper,
 			)
@@ -224,9 +224,13 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
-	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(async (error: Error) => {
-		await worker.sendError(error)
-	}, offlineStorageProvider)
+	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(
+		locator.instancePipeline.modelMapper,
+		async (error: Error) => {
+			await worker.sendError(error)
+		},
+		offlineStorageProvider,
+	)
 
 	locator.cacheStorage = maybeUninitializedStorage
 
@@ -255,7 +259,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient)
 			} else {
 				// On platforms without offline cache we use new ephemeral cache storage for mails only and uncached storage for the rest
-				const cacheStorage = new EphemeralCacheStorage()
+				const cacheStorage = new EphemeralCacheStorage(locator.instancePipeline.modelMapper)
 				return new BulkMailLoader(new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage)), new EntityClient(entityRestClient))
 			}
 		}

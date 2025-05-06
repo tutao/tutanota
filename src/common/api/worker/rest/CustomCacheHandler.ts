@@ -1,12 +1,13 @@
-import { ListElementEntity } from "../../common/EntityTypes.js"
+import { ListElementEntity, ServerModelParsedInstance, TypeModel } from "../../common/EntityTypes.js"
 import { CalendarEvent, CalendarEventTypeRef, Mail } from "../../entities/tutanota/TypeRefs.js"
-import { freezeMap, getTypeId, TypeRef } from "@tutao/tutanota-utils"
-import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils.js"
-import { resolveClientTypeReference } from "../../common/EntityFunctions.js"
+import { freezeMap, getTypeString, TypeRef } from "@tutao/tutanota-utils"
+import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils.js"
+import { resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions.js"
 import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCache.js"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { EntityUpdate } from "../../entities/sys/TypeRefs"
+import { AttributeModel } from "../../common/AttributeModel"
 
 /**
  * update when implementing custom cache handlers.
@@ -38,14 +39,14 @@ export class CustomCacheHandlerMap {
 	constructor(...args: ReadonlyArray<CustomCacheHandlerMapping>) {
 		const handlers: Map<string, CustomCacheHandler<ListElementEntity>> = new Map()
 		for (const { ref, handler } of args) {
-			const key = getTypeId(ref)
+			const key = getTypeString(ref)
 			handlers.set(key, handler)
 		}
 		this.handlers = freezeMap(handlers)
 	}
 
 	get<T extends ListElementEntity>(typeRef: TypeRef<T>): CustomCacheHandler<T> | undefined {
-		const typeId = getTypeId(typeRef)
+		const typeId = getTypeString(typeRef)
 		// map is frozen after the constructor. constructor arg types are set up to uphold this invariant.
 		return this.handlers.get(typeId) as CustomCacheHandler<T> | undefined
 	}
@@ -72,35 +73,38 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 
 	async loadRange(storage: CacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<CalendarEvent[]> {
 		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)
+		const typeModel = await resolveServerTypeReference(CalendarEventTypeRef)
 
-		//if offline db for this list is empty load from server
-		let rawList: Array<CalendarEvent> = []
+		// if offline db for this list is empty load from server
+		let rawList: Array<ServerModelParsedInstance> = []
 		if (range == null) {
-			let chunk: Array<CalendarEvent> = []
-			let currentMin = CUSTOM_MIN_ID
+			let chunk: Array<ServerModelParsedInstance> = []
+			let currentMinId = CUSTOM_MIN_ID
 			while (true) {
-				chunk = await this.entityRestClient.loadRange(CalendarEventTypeRef, listId, currentMin, LOAD_MULTIPLE_LIMIT, false)
+				chunk = await this.entityRestClient.loadParsedInstancesRange(CalendarEventTypeRef, listId, currentMinId, LOAD_MULTIPLE_LIMIT, false)
 				rawList.push(...chunk)
 				if (chunk.length < LOAD_MULTIPLE_LIMIT) break
-				currentMin = getElementId(chunk[chunk.length - 1])
+				const lastEvent = chunk[chunk.length - 1]
+				currentMinId = eventElementId(typeModel, lastEvent)
 			}
 			for (const event of rawList) {
-				await storage.put(event)
+				await storage.put(CalendarEventTypeRef, event)
 			}
 
 			// we have all events now
 			await storage.setNewRangeForList(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID)
 		} else {
 			this.assertCorrectRange(range)
-			rawList = await storage.getWholeList(CalendarEventTypeRef, listId)
+			rawList = await storage.getWholeListParsed(CalendarEventTypeRef, listId)
 			console.log(`CalendarEvent list ${listId} has ${rawList.length} events`)
 		}
-		const typeModel = await resolveClientTypeReference(CalendarEventTypeRef)
+		const unsortedList = await this.entityRestClient.mapInstancesToEntity(CalendarEventTypeRef, rawList)
+
 		const sortedList = reverse
-			? rawList
+			? unsortedList
 					.filter((calendarEvent) => firstBiggerThanSecond(start, getElementId(calendarEvent), typeModel))
 					.sort((a, b) => (firstBiggerThanSecond(getElementId(b), getElementId(a), typeModel) ? 1 : -1))
-			: rawList
+			: unsortedList
 					.filter((calendarEvent) => firstBiggerThanSecond(getElementId(calendarEvent), start, typeModel))
 					.sort((a, b) => (firstBiggerThanSecond(getElementId(a), getElementId(b), typeModel) ? 1 : -1))
 		return sortedList.slice(0, count)
@@ -132,4 +136,9 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		//  - we might have the instance in offline cache already because of notification process
 		return true
 	}
+}
+
+function eventElementId(typeModel: TypeModel, lastEvent: ServerModelParsedInstance): Id {
+	const lastEventId = AttributeModel.getAttribute<IdTuple>(lastEvent, "_id", typeModel)
+	return elementIdPart(lastEventId)
 }

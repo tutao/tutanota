@@ -1,11 +1,12 @@
 import { CacheStorage, LastUpdateTime, Range } from "./DefaultEntityRestCache.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
+import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../../common/EntityTypes"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
+import { ModelMapper } from "../crypto/ModelMapper"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
 	type: "ephemeral"
@@ -45,7 +46,33 @@ type SomeStorage = OfflineStorage | EphemeralCacheStorage
 export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
 	private _inner: SomeStorage | null = null
 
-	constructor(private readonly sendError: (error: Error) => Promise<void>, private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>) {}
+	constructor(
+		private readonly modelMapper: ModelMapper,
+		private readonly sendError: (error: Error) => Promise<void>,
+		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
+	) {}
+
+	async getParsed(typeRef: TypeRef<unknown>, listId: string | null, id: string): Promise<ServerModelParsedInstance | null> {
+		return await this.inner.getParsed(typeRef, listId, id)
+	}
+
+	async provideFromRangeParsed(
+		typeRef: TypeRef<unknown>,
+		listId: string,
+		start: string,
+		count: number,
+		reverse: boolean,
+	): Promise<ServerModelParsedInstance[]> {
+		return await this.inner.provideFromRangeParsed(typeRef, listId, start, count, reverse)
+	}
+
+	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: string, elementIds: string[]): Promise<ServerModelParsedInstance[]> {
+		return await this.inner.provideMultipleParsed(typeRef, listId, elementIds)
+	}
+
+	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<ServerModelParsedInstance[]> {
+		return await this.inner.getWholeListParsed(typeRef, listId)
+	}
 
 	private get inner(): CacheStorage {
 		if (this._inner == null) {
@@ -91,8 +118,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 			}
 		}
 		// both "else" case and fallback for unavailable storage and error cases
-		const storage = new EphemeralCacheStorage()
-		await storage.init(args)
+		const storage = new EphemeralCacheStorage(this.modelMapper)
+		storage.init(args)
 		return {
 			storage,
 			isPersistent: false,
@@ -104,8 +131,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.deleteIfExists(typeRef, listId, id)
 	}
 
-	get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
-		return this.inner.get(typeRef, listId, id)
+	get<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
+		return this.inner.get<T>(typeRef, listId, id)
 	}
 
 	getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
@@ -144,8 +171,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.purgeStorage()
 	}
 
-	put(originalEntity: SomeEntity): Promise<void> {
-		return this.inner.put(originalEntity)
+	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void> {
+		return this.inner.put(typeRef, instance)
 	}
 
 	putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void> {

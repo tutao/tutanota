@@ -17,6 +17,7 @@ import { CustomerAccountReturnTypeRef } from "../../../../../src/common/api/enti
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { CustomerAccountService } from "../../../../../src/common/api/entities/accounting/Services"
 import { ServerModelUntypedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 const { anything } = matchers
 
@@ -31,6 +32,7 @@ o.spec("ServiceExecutor", function () {
 	let cryptoFacade: CryptoFacade
 	let executor: ServiceExecutor
 	let fullyLoggedIn: boolean = true
+	let previousNetworkDebugging
 	const authDataProvider: AuthDataProvider = {
 		createAuthHeaders(): Dict {
 			return authHeaders
@@ -48,6 +50,10 @@ o.spec("ServiceExecutor", function () {
 		instancePipeline = object()
 		cryptoFacade = object()
 		executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade)
+		previousNetworkDebugging = env.networkDebugging
+	})
+	o.afterEach(function () {
+		env.networkDebugging = previousNetworkDebugging
 	})
 
 	function assertThatNoRequestsWereMade() {
@@ -57,6 +63,45 @@ o.spec("ServiceExecutor", function () {
 	function respondWith(response) {
 		when(restClient.request(anything(), anything()), { ignoreExtraArgs: true }).thenResolve(response)
 	}
+
+	o("decryptResponse removes network debugging info", async function () {
+		env.networkDebugging = true
+
+		const realInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+
+		const getService: GetService & DeleteService & PutService & PostService = {
+			...service,
+			get: { data: null, return: SaltDataTypeRef },
+			post: { data: null, return: SaltDataTypeRef },
+			put: { data: null, return: SaltDataTypeRef },
+			delete: { data: null, return: SaltDataTypeRef },
+		}
+
+		const saltDataTypeModel = await resolveServerTypeReference(SaltDataTypeRef)
+		const expectedInstance = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
+		const dataWithDebug = await realInstancePipeline.mapAndEncrypt(SaltDataTypeRef, expectedInstance, null)
+
+		const dataAsUntypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded(saltDataTypeModel, dataWithDebug)
+		when(
+			instancePipeline.decryptAndMap(
+				SaltDataTypeRef,
+				// all field names should have been removed before doing description
+				matchers.argThat((i) => deepEqual(i, dataAsUntypedInstance)),
+				null,
+			),
+		).thenResolve(expectedInstance)
+
+		respondWith(JSON.stringify(dataWithDebug))
+
+		const getResponse = await executor.get(getService, null)
+		const postResponse = await executor.post(getService, null)
+		const putResponse = await executor.put(getService, null)
+		const deleteResponse = await executor.delete(getService, null)
+		o(getResponse).deepEquals(expectedInstance)
+		o(postResponse).deepEquals(expectedInstance)
+		o(putResponse).deepEquals(expectedInstance)
+		o(deleteResponse).deepEquals(expectedInstance)
+	})
 
 	o.spec("GET", function () {
 		o("encrypts data", async function () {
@@ -544,6 +589,7 @@ o.spec("ServiceExecutor", function () {
 			const response = await executor.get(CustomerAccountService, null)
 
 			delete downcast(response)._finalIvs
+			delete downcast(customerAccountReturn)._finalIvs
 			o(response).deepEquals(customerAccountReturn)
 			verify(
 				restClient.request(
@@ -570,6 +616,7 @@ o.spec("ServiceExecutor", function () {
 			const response = await executor.get(CustomerAccountService, null, { sessionKey })
 
 			delete downcast(response)._finalIvs
+			delete downcast(customerAccountReturn)._finalIvs
 
 			o(response).deepEquals(customerAccountReturn)
 			verify(
@@ -581,6 +628,7 @@ o.spec("ServiceExecutor", function () {
 			)
 		})
 	})
+
 	o.spec("keys encrypt", function () {
 		o("uses passed key to encrypt request data", async function () {
 			const getService: GetService = {

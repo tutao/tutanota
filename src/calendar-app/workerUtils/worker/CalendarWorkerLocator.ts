@@ -37,12 +37,7 @@ import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFac
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
-import {
-	globalClientModelInfo,
-	globalServerModelInfo,
-	resolveClientTypeReference,
-	resolveServerTypeReference,
-} from "../../../common/api/common/EntityFunctions.js"
+import { globalServerModelInfo, resolveClientTypeReference, resolveServerTypeReference } from "../../../common/api/common/EntityFunctions.js"
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
@@ -187,7 +182,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
 				dateProvider,
-				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, globalClientModelInfo.modelInfos),
+				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS),
 				new CalendarOfflineCleaner(),
 				locator.instancePipeline.modelMapper,
 			)
@@ -200,9 +195,13 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
-	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(async (error: Error) => {
-		await worker.sendError(error)
-	}, offlineStorageProvider)
+	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(
+		locator.instancePipeline.modelMapper,
+		async (error: Error) => {
+			await worker.sendError(error)
+		},
+		offlineStorageProvider,
+	)
 
 	locator.cacheStorage = maybeUninitializedStorage
 

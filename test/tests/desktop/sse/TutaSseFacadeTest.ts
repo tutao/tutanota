@@ -200,7 +200,6 @@ o.spec("TutaSseFacade", () => {
 					sseInfo,
 					matchers.argThat((actualNotificationInfo) => {
 						actualNotificationInfo.mailId._id = null
-						removeFinalIvs(actualNotificationInfo)
 						return deepEqual(actualNotificationInfo, notificationInfo)
 					}),
 				),
@@ -208,8 +207,8 @@ o.spec("TutaSseFacade", () => {
 			verify(
 				alarmScheduler.handleCreateAlarm(
 					matchers.argThat((actualAlarmNotification) => {
-						removeAggregateIds(removeFinalIvs(actualAlarmNotification), true)
-						return deepEqual(actualAlarmNotification, alarmNotification)
+						removeAggregateIds(actualAlarmNotification, true)
+						return deepEqual(removeFinalIvs(actualAlarmNotification), removeFinalIvs(alarmNotification))
 					}),
 					null,
 				),
