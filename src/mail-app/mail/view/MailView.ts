@@ -1040,6 +1040,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private async trashSelectedMails() {
 		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
 		trashMails(mailLocator.mailModel, actionableMails)
+		this.mailViewModel.removeStickyMail(actionableMails)
 	}
 
 	private async deleteSelectedMails() {
