@@ -195,7 +195,7 @@ o.spec("MailListModelTest", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
+		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
 			times: 0,
 		})
 	})
@@ -213,7 +213,7 @@ o.spec("MailListModelTest", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
+		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
 			times: 0,
 		})
 	})
@@ -227,6 +227,7 @@ o.spec("MailListModelTest", () => {
 				mailboxDetail,
 				matchers.argThat((mail: Mail) => isSameId(mail._id, makeMailId(25))),
 				true,
+				false,
 			),
 		).thenResolve({})
 
@@ -242,7 +243,7 @@ o.spec("MailListModelTest", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 1,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
+		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
 			times: 100,
 		})
 	})
