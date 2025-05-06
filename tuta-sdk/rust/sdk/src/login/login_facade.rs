@@ -217,7 +217,6 @@ mod tests {
 	use mockall::predicate::eq;
 
 	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::{aes::Iv, Aes128Key, Aes256Key};
 	use crate::entities::generated::sys::{GroupMembership, Session, User, UserExternalAuthInfo};
 	use crate::entities::Entity;
@@ -232,6 +231,7 @@ mod tests {
 	use crate::CustomId;
 	use crate::GeneratedId;
 	use crate::{IdTupleCustom, IdTupleGenerated};
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 
 	#[tokio::test]
 	async fn test_resume_session() {

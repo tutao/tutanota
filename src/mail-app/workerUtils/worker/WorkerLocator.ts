@@ -51,9 +51,9 @@ import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorag
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
 import {
 	globalClientModelInfo,
+	globalServerModelInfo,
 	resolveClientTypeReference,
 	resolveServerTypeReference,
-	globalServerModelInfo,
 } from "../../../common/api/common/EntityFunctions.js"
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
@@ -99,6 +99,8 @@ import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
+import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
+import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 
 assertWorkerOrNode()
 
@@ -124,6 +126,8 @@ export type WorkerLocatorType = {
 	keyLoader: KeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
+	ed25519Facade: Ed25519Facade
+	rolloutFacade: RolloutFacade
 
 	// login
 	user: UserFacade
@@ -284,9 +288,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
-	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
+	locator.ed25519Facade = new Ed25519Facade()
 
-	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor)
+	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
+	const keyAuthenticationFacade = new KeyAuthenticationFacade(locator.cryptoWrapper)
+
+	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor, locator.cachingEntityClient, keyAuthenticationFacade, locator.keyLoader)
 
 	locator.keyVerification = lazyMemoized(async () => {
 		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
@@ -330,7 +337,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { CounterFacade } = await import("../../../common/api/worker/facades/lazy/CounterFacade.js")
 		return new CounterFacade(locator.serviceExecutor)
 	})
-	const keyAuthenticationFacade = new KeyAuthenticationFacade(locator.cryptoWrapper)
+
 	locator.groupManagement = lazyMemoized(async () => {
 		const { GroupManagementFacade } = await import("../../../common/api/worker/facades/lazy/GroupManagementFacade.js")
 		return new GroupManagementFacade(
@@ -344,6 +351,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.asymmetricCrypto,
 			locator.cryptoWrapper,
 			keyAuthenticationFacade,
+			locator.ed25519Facade,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -361,6 +369,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
 	)
+	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
 
 	const loginListener: LoginListener = {
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
@@ -415,6 +424,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await worker.sendError(error)
 		},
 		locator.cacheManagement,
+		locator.rolloutFacade,
 	)
 
 	locator.search = lazyMemoized(async () => {
@@ -456,6 +466,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await locator.recoverCode(),
 			locator.asymmetricCrypto,
 			locator.publicKeyProvider,
+			locator.cryptoWrapper,
 		)
 	})
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)

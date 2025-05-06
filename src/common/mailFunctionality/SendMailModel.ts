@@ -835,8 +835,8 @@ export class SendMailModel {
 					}
 					throw new UserError(
 						lang.makeTranslation(
-							"keyverification_mismatch_error",
-							() => lang.get("keyManagement.recipientsVerificationMismatchError_msg") + "\n" + e.data.join("\n"),
+							"keyManagement.mailRecipientsVerificationMismatchError_msg",
+							() => lang.get("keyManagement.mailRecipientsVerificationMismatchError_msg") + "\n" + e.data.join("\n"),
 						),
 					)
 				}),

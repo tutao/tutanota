@@ -6,7 +6,7 @@ import { lazy, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "../../common/error/RestError.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
-import { encryptBytes } from "../crypto/CryptoWrapper.js"
+import { _encryptBytes } from "../crypto/CryptoWrapper.js"
 
 export interface EntropyDataChunk {
 	source: EntropySource
@@ -49,7 +49,7 @@ export class EntropyFacade {
 		if (!this.userFacade.isFullyLoggedIn() || !this.userFacade.isLeader()) return Promise.resolve()
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const entropyData = createEntropyData({
-			userEncEntropy: encryptBytes(userGroupKey.object, this.random.generateRandomData(32)),
+			userEncEntropy: _encryptBytes(userGroupKey.object, this.random.generateRandomData(32)),
 			userKeyVersion: userGroupKey.version.toString(),
 		})
 		return this.serviceExecutor

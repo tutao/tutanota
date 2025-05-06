@@ -46,9 +46,10 @@ import { Argon2idFacade } from "../../../../../src/common/api/worker/facades/Arg
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
-import { encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { _encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { RolloutFacade } from "../../../../../src/common/api/worker/facades/RolloutFacade"
 
 const { anything, argThat } = matchers
 
@@ -120,6 +121,7 @@ o.spec("LoginFacadeTest", function () {
 	let databaseKeyFactoryMock: DatabaseKeyFactory
 	let argon2idFacade: Argon2idFacade
 	let cacheManagmentFacadeMock: CacheManagementFacade
+	let rolloutFacade: RolloutFacade
 
 	const timeRangeDays = 42
 	const login = "born.slippy@tuta.io"
@@ -163,6 +165,7 @@ o.spec("LoginFacadeTest", function () {
 		argon2idFacade = object()
 		when(argon2idFacade.generateKeyFromPassphrase(anything(), anything())).thenResolve(PASSWORD_KEY)
 		cacheManagmentFacadeMock = object()
+		rolloutFacade = object()
 
 		facade = new LoginFacade(
 			restClientMock,
@@ -181,6 +184,7 @@ o.spec("LoginFacadeTest", function () {
 			entityClientMock,
 			async (error: Error) => {},
 			async () => cacheManagmentFacadeMock,
+			rolloutFacade,
 		)
 
 		eventBusClientMock = instance(EventBusClient)
@@ -275,7 +279,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					encryptedPassphraseKey: null,
 					accessToken,
 					userId,
@@ -418,7 +422,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -630,7 +634,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -742,7 +746,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -800,7 +804,7 @@ o.spec("LoginFacadeTest", function () {
 					login: userId,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -886,7 +890,7 @@ o.spec("LoginFacadeTest", function () {
 					login: userId,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",

@@ -101,13 +101,14 @@
 		"node-gyp": "10.2.0",
 		"octokit": "4.0.2",
 		"prettier": "2.8.8",
-		"rolldown": "1.0.0-beta.1",
+		"rolldown": "1.0.0-beta.8",
 		"rollup": "4.24.0",
 		"rollup-plugin-visualizer": "5.12.0",
 		"testdouble": "3.18.0",
 		"typescript": "5.3.3",
 		"xhr2": "0.2.1",
-		"zx": "8.1.5"
+		"zx": "8.1.5",
+		"wasm-pack": "0.13.1"
 	},
 	"workspaces": [
 		"./packages/*"

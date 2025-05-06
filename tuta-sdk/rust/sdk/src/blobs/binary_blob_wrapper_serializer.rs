@@ -244,10 +244,10 @@ mod tests {
 		KeyedNewBlobWrapper, NewBlobWrapper, MAX_NUMBER_OF_BLOBS_IN_BINARY,
 	};
 	use crate::crypto::key::GenericAesKey;
-	use crate::crypto::randomizer_facade::test_util::DeterministicRng;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::tutanota_constants::MAX_BLOB_SERVICE_BYTES;
 	use crate::{crypto, GeneratedId};
+	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 
 	#[test]
 	fn test_serialize_blobs() {

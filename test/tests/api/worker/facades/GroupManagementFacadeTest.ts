@@ -9,7 +9,7 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "..
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
+import { AesKey, Ed25519KeyPair, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Group,
@@ -17,17 +17,21 @@ import {
 	GroupKeysRefTypeRef,
 	GroupKeyTypeRef,
 	GroupTypeRef,
+	IdentityKeyPostIn,
 	KeyMac,
 	KeyMacTypeRef,
 	PubEncKeyDataTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
+import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { CryptoProtocolVersion, GroupType, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
+import { IdentityKeyService } from "../../../../../src/common/api/entities/sys/Services"
+import { freshVersioned, noOp } from "@tutao/tutanota-utils"
 
 const { anything, argThat, captor } = matchers
 
@@ -42,6 +46,7 @@ o.spec("GroupManagementFacadeTest", function () {
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 	let cryptoWrapper: CryptoWrapper
 	let keyAuthenticationFacade: KeyAuthenticationFacade
+	let ed25519Facade: Ed25519Facade
 
 	let groupManagementFacade: GroupManagementFacade
 
@@ -60,6 +65,7 @@ o.spec("GroupManagementFacadeTest", function () {
 		asymmetricCryptoFacade = object()
 		cryptoWrapper = object()
 		keyAuthenticationFacade = object()
+		ed25519Facade = object()
 
 		groupManagementFacade = new GroupManagementFacade(
 			userFacade,
@@ -72,6 +78,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			asymmetricCryptoFacade,
 			cryptoWrapper,
 			keyAuthenticationFacade,
+			ed25519Facade,
 		)
 	})
 
@@ -395,6 +402,173 @@ o.spec("GroupManagementFacadeTest", function () {
 		o("throws when the user is not an admin and tries to decrypt with the admin group key", async function () {
 			when(userFacade.hasGroup(adminGroupId)).thenReturn(false)
 			await assertThrows(Error, async () => await groupManagementFacade.getCurrentGroupKeyViaAdminEncGKey(groupId))
+		})
+	})
+	o.spec("Create identity key pair", function () {
+		const userGroupId = "userGroupId"
+		const userGroupKey: VersionedKey = { version: 1, object: object() }
+		const identityKeyPair: Ed25519KeyPair = { public_key: object(), private_key: object() }
+		const encodedPubIdentityKey: Uint8Array = object()
+		const encryptedPrivateIdentityKey: VersionedEncryptedKey = {
+			encryptingKeyVersion: userGroupKey.version,
+			key: object(),
+		}
+		const identityKeyVersion = 0
+		const tag: MacTag = object()
+
+		const adminGroupId = "adminGroupId"
+		const adminKeyVersion = 2
+		const adminGroupEncGKey: Uint8Array = new Uint8Array([1])
+		const adminGroupKey: VersionedKey = {
+			version: adminKeyVersion,
+			object: object(),
+		}
+		const adminEncPrivateKey: VersionedEncryptedKey = { encryptingKeyVersion: adminKeyVersion, key: object() }
+
+		o.beforeEach(function () {
+			when(cryptoWrapper.ed25519PublicKeyToBytes(identityKeyPair.public_key)).thenReturn(encodedPubIdentityKey)
+			when(ed25519Facade.generateKeypair()).thenResolve(identityKeyPair)
+			when(userFacade.hasGroup(userGroupId)).thenReturn(true)
+
+			when(keyLoaderFacade.getCurrentSymGroupKey(userGroupId)).thenResolve(userGroupKey)
+
+			when(cryptoWrapper.encryptEd25519Key(userGroupKey, identityKeyPair.private_key)).thenReturn(encryptedPrivateIdentityKey)
+
+			when(
+				keyAuthenticationFacade.computeTag({
+					tagType: "IDENTITY_PUB_KEY_TAG",
+					sourceOfTrust: { symmetricGroupKey: userGroupKey.object },
+					untrustedKey: { identityPubKey: identityKeyPair.public_key },
+					bindingData: {
+						publicIdentityKeyVersion: identityKeyVersion,
+						groupKeyVersion: userGroupKey.version,
+						groupId: userGroupId,
+					},
+				}),
+			).thenReturn(tag)
+		})
+
+		o("success internal user", async function () {
+			await groupManagementFacade.createIdentityKeyPair(userGroupId)
+
+			verify(
+				serviceExecutor.post(
+					IdentityKeyService,
+					argThat((data: IdentityKeyPostIn) => {
+						const identityKeyPairFromRequest = data.identityKeyPair
+						const keyMacFromRequest = identityKeyPairFromRequest.publicKeyMac
+						o(identityKeyPairFromRequest.identityKeyVersion).equals(identityKeyVersion.toString())
+						o(identityKeyPairFromRequest.encryptingKeyVersion).equals(encryptedPrivateIdentityKey.encryptingKeyVersion.toString())
+						o(identityKeyPairFromRequest.privateEd25519Key).equals(encryptedPrivateIdentityKey.key)
+						o(identityKeyPairFromRequest.publicEd25519Key).equals(encodedPubIdentityKey)
+						o(keyMacFromRequest.tag).equals(tag)
+						o(keyMacFromRequest.taggedKeyVersion).equals(identityKeyVersion.toString())
+						o(keyMacFromRequest.taggingKeyVersion).equals(userGroupKey.version.toString())
+						o(keyMacFromRequest.taggingGroup).equals(userGroupId)
+
+						return true
+					}),
+				),
+			)
+		})
+
+		o("success admin creates new user", async function () {
+			when(userFacade.hasGroup(userGroupId)).thenReturn(false)
+			when(userFacade.hasGroup(adminGroupId)).thenReturn(true)
+			when(keyLoaderFacade.getCurrentSymGroupKey(userGroupId)).thenResolve(object())
+			when(keyLoaderFacade.loadSymGroupKey(adminGroupId, adminKeyVersion)).thenResolve(adminGroupKey.object)
+			when(cryptoWrapper.decryptKey(adminGroupKey.object, adminGroupEncGKey)).thenReturn(userGroupKey.object)
+			when(cacheManagementFacade.reloadGroup(userGroupId)).thenResolve(
+				createTestEntity(GroupTypeRef, {
+					_id: userGroupId,
+					groupKeyVersion: userGroupKey.version.toString(),
+					adminGroupKeyVersion: adminKeyVersion.toString(),
+					adminGroupEncGKey: adminGroupEncGKey,
+					admin: adminGroupId,
+				}),
+			)
+
+			await groupManagementFacade.createIdentityKeyPair(userGroupId)
+
+			verify(
+				serviceExecutor.post(
+					IdentityKeyService,
+					argThat((data: IdentityKeyPostIn) => {
+						const identityKeyPairFromRequest = data.identityKeyPair
+						const keyMacFromRequest = identityKeyPairFromRequest.publicKeyMac
+						o(identityKeyPairFromRequest.identityKeyVersion).equals(identityKeyVersion.toString())
+						o(identityKeyPairFromRequest.encryptingKeyVersion).equals(encryptedPrivateIdentityKey.encryptingKeyVersion.toString())
+						o(identityKeyPairFromRequest.privateEd25519Key).equals(encryptedPrivateIdentityKey.key)
+						o(identityKeyPairFromRequest.publicEd25519Key).equals(encodedPubIdentityKey)
+						o(keyMacFromRequest.tag).equals(tag)
+						o(keyMacFromRequest.taggedKeyVersion).equals(identityKeyVersion.toString())
+						o(keyMacFromRequest.taggingKeyVersion).equals(userGroupKey.version.toString())
+						o(keyMacFromRequest.taggingGroup).equals(userGroupId)
+
+						return true
+					}),
+				),
+			)
+		})
+
+		o("success admin creates new user - encrypting key is passed", async function () {
+			when(userFacade.hasGroup(userGroupId)).thenReturn(false)
+			when(userFacade.hasGroup(adminGroupId)).thenReturn(true)
+			when(keyLoaderFacade.getCurrentSymGroupKey(userGroupId)).thenResolve(object())
+			when(keyLoaderFacade.loadSymGroupKey(adminGroupId, adminKeyVersion)).thenResolve(adminGroupKey.object)
+			when(cryptoWrapper.decryptKey(adminGroupKey.object, adminGroupEncGKey)).thenReturn(userGroupKey.object)
+			when(cryptoWrapper.encryptEd25519Key(userGroupKey, identityKeyPair.private_key)).thenThrow(new Error("should not happen"))
+			when(cryptoWrapper.encryptEd25519Key(adminGroupKey, identityKeyPair.private_key)).thenReturn(adminEncPrivateKey)
+			when(cacheManagementFacade.reloadGroup(userGroupId)).thenResolve(
+				createTestEntity(GroupTypeRef, {
+					_id: userGroupId,
+					groupKeyVersion: userGroupKey.version.toString(),
+					adminGroupKeyVersion: adminKeyVersion.toString(),
+					adminGroupEncGKey: adminGroupEncGKey,
+					admin: adminGroupId,
+				}),
+			)
+
+			await groupManagementFacade.createIdentityKeyPair(userGroupId, adminGroupKey)
+
+			verify(
+				serviceExecutor.post(
+					IdentityKeyService,
+					argThat((data: IdentityKeyPostIn) => {
+						const identityKeyPairFromRequest = data.identityKeyPair
+						const keyMacFromRequest = identityKeyPairFromRequest.publicKeyMac
+						o(identityKeyPairFromRequest.identityKeyVersion).equals(identityKeyVersion.toString())
+						o(identityKeyPairFromRequest.encryptingKeyVersion).equals(adminEncPrivateKey.encryptingKeyVersion.toString())
+						o(identityKeyPairFromRequest.privateEd25519Key).equals(adminEncPrivateKey.key)
+						o(identityKeyPairFromRequest.publicEd25519Key).equals(encodedPubIdentityKey)
+						o(keyMacFromRequest.tag).equals(tag)
+						o(keyMacFromRequest.taggedKeyVersion).equals(identityKeyVersion.toString())
+						o(keyMacFromRequest.taggingKeyVersion).equals(userGroupKey.version.toString())
+						o(keyMacFromRequest.taggingGroup).equals(userGroupId)
+						return true
+					}),
+				),
+			)
+		})
+
+		o("success admin creates shared mailbox", async function () {
+			// we want to make sure that it is called, but we don't need to test it here; it has its own tests
+			groupManagementFacade.createIdentityKeyPair = spy(noOp)
+
+			when(userFacade.getGroupIds(GroupType.Admin)).thenReturn([adminGroupId])
+			const adminGroupKey = freshVersioned(object<AesKey>())
+			when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
+
+			when(pqFacade.generateKeyPairs()).thenResolve({ x25519KeyPair: object(), kyberKeyPair: object() })
+			when(cryptoWrapper.encryptKeyWithVersionedKey(anything(), anything())).thenReturn(object())
+			let mailGroup = "sharedMailGroupId"
+			when(serviceExecutor.post(anything(), anything())).thenResolve({ mailGroup: mailGroup })
+
+			await groupManagementFacade.createSharedMailGroup("some group", "example@tuta.com")
+
+			o(groupManagementFacade.createIdentityKeyPair.invocations.length).equals(1)
+			o(groupManagementFacade.createIdentityKeyPair.args[0]).equals(mailGroup)
+			o(groupManagementFacade.createIdentityKeyPair.args[1]).deepEquals(adminGroupKey)
 		})
 	})
 })

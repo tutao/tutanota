@@ -81,9 +81,11 @@ pub struct Group {
 	#[serde(rename = "2092")]
 	pub storageCounter: Option<GeneratedId>,
 	#[serde(rename = "2273")]
-	pub formerGroupKeys: Option<GroupKeysRef>,
+	pub formerGroupKeys: GroupKeysRef,
 	#[serde(rename = "2475")]
 	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
+	#[serde(rename = "2570")]
+	pub identityKeyPair: Option<IdentityKeyPair>,
 }
 
 impl Entity for Group {
@@ -3894,7 +3896,7 @@ pub struct UserGroupRoot {
 	#[serde(rename = "1624")]
 	pub invitations: GeneratedId,
 	#[serde(rename = "2294")]
-	pub keyRotations: Option<KeyRotationsRef>,
+	pub keyRotations: KeyRotationsRef,
 	#[serde(rename = "2383")]
 	pub groupKeyUpdates: Option<GroupKeyUpdatesRef>,
 }
@@ -5924,6 +5926,88 @@ impl Entity for AdminGroupKeyRotationGetOut {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2546),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyPair {
+	#[serde(rename = "2564")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2565")]
+	pub identityKeyVersion: i64,
+	#[serde(rename = "2566")]
+	pub encryptingKeyVersion: i64,
+	#[serde(rename = "2567")]
+	#[serde(with = "serde_bytes")]
+	pub publicEd25519Key: Vec<u8>,
+	#[serde(rename = "2568")]
+	#[serde(with = "serde_bytes")]
+	pub privateEd25519Key: Vec<u8>,
+	#[serde(rename = "2569")]
+	pub publicKeyMac: KeyMac,
+}
+
+impl Entity for IdentityKeyPair {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2563),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyPostIn {
+	#[serde(rename = "2581")]
+	pub _format: i64,
+	#[serde(rename = "2582")]
+	pub identityKeyPair: IdentityKeyPair,
+}
+
+impl Entity for IdentityKeyPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2580),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct Rollout {
+	#[serde(rename = "2585")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2586")]
+	pub rolloutType: i64,
+}
+
+impl Entity for Rollout {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2584),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct RolloutGetOut {
+	#[serde(rename = "2588")]
+	pub _format: i64,
+	#[serde(rename = "2589")]
+	pub rollouts: Vec<Rollout>,
+}
+
+impl Entity for RolloutGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2587),
 		}
 	}
 }

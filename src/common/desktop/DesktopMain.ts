@@ -77,9 +77,7 @@ import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
-import { globalServerModelInfo, resolveClientTypeReference, ServerTypeReferenceResolver } from "../api/common/EntityFunctions"
-import { ApplicationTypesFacade } from "../api/worker/facades/ApplicationTypesFacade"
-import { locator } from "../../mail-app/workerUtils/worker/WorkerLocator"
+import { resolveClientTypeReference } from "../api/common/EntityFunctions"
 
 mp()
 
@@ -107,7 +105,7 @@ const tfs = new TempFs(fs, electron, cryptoFns)
 const desktopUtils = new DesktopUtils(process.argv, tfs, electron)
 // Argon2 is already built for the web part, we don't need to have another copy.
 const loadArgon2 = async () => {
-	const wasmSourcePath = path.join(electron.app.getAppPath(), "wasm/argon2.wasm")
+	const wasmSourcePath = path.join(electron.app.getAppPath(), "argon2.wasm")
 	const wasmSource: Buffer = await fs.promises.readFile(wasmSourcePath)
 	const { exports } = (await WebAssembly.instantiate(wasmSource)).instance
 	return exports as unknown as Argon2IDExports

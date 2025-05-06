@@ -93,7 +93,7 @@ export function rollupWasmLoader(options: PluginOptions) {
 	return {
 		name: "wasm",
 		async resolveId(source: string) {
-			if (source.endsWith(".wasm")) {
+			if (normalizedOptions.libraries.has(source)) {
 				return { id: `\0wasm-loader:${source}`, external: false }
 			}
 		},
@@ -118,11 +118,9 @@ export function rollupWasmLoader(options: PluginOptions) {
 					workingDir: lib.workingDir,
 					env: { WASM: lib.outputPath },
 				})
-				this.emitFile({
-					type: "asset",
-					fileName: wasmLib,
-					source: await fs.promises.readFile(lib.outputPath),
-				})
+
+				console.log(`Trying to read file from lib.outputPath: ${lib.outputPath}, wasmLib: ${wasmLib}`)
+
 				return await generateImportCode(wasmLib, lib.fallback != null)
 			} else if (id.startsWith("\0wasm-fallback")) {
 				const wasmLib = id.replaceAll("\0wasm-fallback:", "")
@@ -130,7 +128,10 @@ export function rollupWasmLoader(options: PluginOptions) {
 				if (lib.fallback) {
 					await runCommand(lib.fallback.command, {
 						workingDir: lib.fallback.workingDir,
-						env: { WASM: lib.outputPath, WASM_FALLBACK: lib.fallback.outputPath },
+						env: {
+							WASM: lib.outputPath,
+							WASM_FALLBACK: lib.fallback.outputPath,
+						},
 					})
 					return fs.promises.readFile(lib.fallback.outputPath, "utf-8")
 				}

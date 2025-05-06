@@ -21,7 +21,7 @@ import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { CustomerFacade } from "./CustomerFacade.js"
 import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import { encryptKeyWithVersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey } from "../../crypto/CryptoWrapper.js"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_128_BIT_B64 = 24
@@ -47,7 +47,7 @@ export class GiftCardFacade {
 		const ownerKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
 		const sessionKey = aes256RandomKey()
-		const ownerEncSessionKey = encryptKeyWithVersionedKey(ownerKey, sessionKey)
+		const ownerEncSessionKey = _encryptKeyWithVersionedKey(ownerKey, sessionKey)
 		const { giftCard } = await this.serviceExecutor.post(
 			GiftCardService,
 			createGiftCardCreateData({

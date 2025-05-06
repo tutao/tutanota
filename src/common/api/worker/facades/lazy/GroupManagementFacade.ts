@@ -9,24 +9,36 @@ import {
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
-import { createMembershipAddData, createMembershipRemoveData, Group, GroupTypeRef, PubEncKeyData, User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
+import {
+	createIdentityKeyPair,
+	createIdentityKeyPostIn,
+	createKeyMac,
+	createMembershipAddData,
+	createMembershipRemoveData,
+	Group,
+	GroupTypeRef,
+	PubEncKeyData,
+	User,
+	UserTypeRef,
+} from "../../../entities/sys/TypeRefs.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CalendarService, ContactListGroupService, MailGroupService, TemplateGroupService } from "../../../entities/tutanota/Services.js"
-import { MembershipService } from "../../../entities/sys/Services.js"
+import { IdentityKeyService, MembershipService } from "../../../entities/sys/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { PQFacade } from "../PQFacade.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
-import { CryptoWrapper, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { Ed25519Facade } from "../Ed25519Facade"
 
 assertWorkerOrNode()
 
@@ -42,13 +54,14 @@ export class GroupManagementFacade {
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
+		private readonly ed25519Facade: Ed25519Facade,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
 		return this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(group.customer), group._id)
 	}
 
-	async createMailGroup(name: string, mailAddress: string): Promise<void> {
+	async createSharedMailGroup(name: string, mailAddress: string): Promise<void> {
 		const adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
 		const adminGroupId = getFirstOrThrow(adminGroupIds)
 
@@ -68,15 +81,17 @@ export class GroupManagementFacade {
 			customerGroupKey,
 		)
 
-		const mailEncMailboxSessionKey = encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
+		const mailEncMailboxSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
 
 		const data = createCreateMailGroupData({
 			mailAddress,
-			encryptedName: encryptString(mailGroupInfoSessionKey, name),
+			encryptedName: this.cryptoWrapper.encryptString(mailGroupInfoSessionKey, name),
 			mailEncMailboxSessionKey: mailEncMailboxSessionKey.key,
 			groupData: mailGroupData,
 		})
-		await this.serviceExecutor.post(MailGroupService, data)
+		const mailGroupPostOut = await this.serviceExecutor.post(MailGroupService, data)
+
+		await this.createIdentityKeyPair(mailGroupPostOut.mailGroup, adminGroupKey)
 	}
 
 	/**
@@ -105,16 +120,16 @@ export class GroupManagementFacade {
 		const groupRootSessionKey = this.cryptoWrapper.aes256RandomKey()
 		const groupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 
-		const userEncGroupKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
-		const adminEncGroupKey = adminGroupKey ? encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
-		const customerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
-		const groupEncGroupRootSessionKey = encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
+		const userEncGroupKey = _encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
+		const adminEncGroupKey = adminGroupKey ? _encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
+		const customerEncGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
+		const groupEncGroupRootSessionKey = _encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
 
 		return createUserAreaGroupData({
 			groupEncGroupRootSessionKey: groupEncGroupRootSessionKey.key,
 			customerEncGroupInfoSessionKey: customerEncGroupInfoSessionKey.key,
 			userEncGroupKey: userEncGroupKey.key,
-			groupInfoEncName: encryptString(groupInfoSessionKey, name),
+			groupInfoEncName: _encryptString(groupInfoSessionKey, name),
 			adminEncGroupKey: adminEncGroupKey?.key ?? null,
 			adminGroup: adminGroupId,
 			customerKeyVersion: customerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
@@ -179,14 +194,14 @@ export class GroupManagementFacade {
 		adminGroupKey: VersionedKey,
 		ownerGroupKey: VersionedKey,
 	): InternalGroupData {
-		const adminEncGroupKey = encryptKeyWithVersionedKey(adminGroupKey, groupKey)
-		const ownerEncGroupInfoSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, groupInfoSessionKey)
+		const adminEncGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, groupKey)
+		const ownerEncGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, groupInfoSessionKey)
 
 		return createInternalGroupData({
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
 			pubEccKey: keyPair.x25519KeyPair.publicKey,
-			groupEncPrivEccKey: this.cryptoWrapper.encryptEccKey(groupKey, keyPair.x25519KeyPair.privateKey),
+			groupEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(groupKey, keyPair.x25519KeyPair.privateKey),
 			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(keyPair.kyberKeyPair.publicKey),
 			groupEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(groupKey, keyPair.kyberKeyPair.privateKey),
 			adminGroup: adminGroupId,
@@ -197,10 +212,53 @@ export class GroupManagementFacade {
 		})
 	}
 
+	/**
+	 * Creates an identity key pair for the given group.
+	 * Encrypts the private key with the passed encryptingKey or the group key and tags the public key with the group key.
+	 * @param groupId
+	 * @param encryptingKey the key to encrypt the private key. by default the current group key is used.
+	 *        this is useful in case group members must not have access to the private key.
+	 */
+	async createIdentityKeyPair(groupId: Id, encryptingKey: VersionedKey | undefined = undefined): Promise<void> {
+		const newEd25519IdentityKeyPair = await this.ed25519Facade.generateKeypair()
+		const currentGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
+		if (encryptingKey == null) {
+			// by default, we encrypt the private identity key with the group key.
+			encryptingKey = currentGroupKey
+		}
+		const encPrivateIdentityKey = this.cryptoWrapper.encryptEd25519Key(encryptingKey, newEd25519IdentityKeyPair.private_key)
+		const identityKeyVersion = 0
+
+		let tag = this.keyAuthenticationFacade.computeTag({
+			tagType: "IDENTITY_PUB_KEY_TAG",
+			sourceOfTrust: { symmetricGroupKey: currentGroupKey.object },
+			untrustedKey: { identityPubKey: newEd25519IdentityKeyPair.public_key },
+			bindingData: {
+				publicIdentityKeyVersion: identityKeyVersion,
+				groupKeyVersion: currentGroupKey.version,
+				groupId,
+			},
+		})
+		const identityKeyPair = createIdentityKeyPair({
+			identityKeyVersion: identityKeyVersion.toString(),
+			encryptingKeyVersion: encPrivateIdentityKey.encryptingKeyVersion.toString(),
+			privateEd25519Key: encPrivateIdentityKey.key,
+			publicEd25519Key: this.cryptoWrapper.ed25519PublicKeyToBytes(newEd25519IdentityKeyPair.public_key),
+			publicKeyMac: createKeyMac({
+				taggedKeyVersion: identityKeyVersion.toString(),
+				taggingKeyVersion: currentGroupKey.version.toString(),
+				taggingGroup: groupId,
+				tag,
+			}),
+		})
+
+		await this.serviceExecutor.post(IdentityKeyService, createIdentityKeyPostIn({ identityKeyPair }))
+	}
+
 	async addUserToGroup(user: User, groupId: Id): Promise<void> {
 		const userGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const groupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
-		const symEncGKey = encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
+		const symEncGKey = _encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
 		const data = createMembershipAddData({
 			user: user._id,
 			group: groupId,

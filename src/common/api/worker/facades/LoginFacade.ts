@@ -97,10 +97,11 @@ import { ExternalUserKeyDeriver } from "../../../misc/LoginUtils.js"
 import { Argon2idFacade } from "./Argon2idFacade.js"
 import { CredentialType } from "../../../misc/credentials/CredentialType.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
-import { encryptString } from "../crypto/CryptoWrapper.js"
+import { _encryptString } from "../crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { AttributeModel } from "../../common/AttributeModel"
+import { RolloutFacade } from "./RolloutFacade"
 
 assertWorkerOrNode()
 
@@ -219,6 +220,7 @@ export class LoginFacade {
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly sendError: (error: Error) => Promise<void>,
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
+		private readonly rolloutFacade: RolloutFacade,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -291,14 +293,15 @@ export class LoginFacade {
 		const credentials = {
 			login: mailAddress,
 			accessToken,
-			encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
+			encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(_encryptString(neverNull(accessKey), passphrase)) : null,
 			encryptedPassphraseKey: sessionType === SessionType.Persistent ? encryptKey(neverNull(accessKey), userPassphraseKey) : null,
 			userId: sessionData.userId,
 			type: CredentialType.Internal,
 		}
 		this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
 
-		if (!isAdminClient()) {
+		if (!isAdminClient() && sessionType !== SessionType.Temporary) {
+			await this.rolloutFacade.initialize()
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
 		}
 
@@ -475,7 +478,7 @@ export class LoginFacade {
 		const credentials = {
 			login: userId,
 			accessToken,
-			encryptedPassword: accessKey ? uint8ArrayToBase64(encryptString(accessKey, passphrase)) : null,
+			encryptedPassword: accessKey ? uint8ArrayToBase64(_encryptString(accessKey, passphrase)) : null,
 			encryptedPassphraseKey: accessKey ? encryptKey(accessKey, userPassphraseKey) : null,
 			userId,
 			type: CredentialType.External,
@@ -712,6 +715,7 @@ export class LoginFacade {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
 		if (!isExternalUser && !isAdminClient()) {
+			await this.rolloutFacade.initialize()
 			// We trigger group key rotation only for internal users.
 			// If we have not migrated to argon2 we postpone key rotation until next login
 			// instead of reloading the pwKey, which would be updated by the KDF migration.
@@ -973,7 +977,7 @@ export class LoginFacade {
 		const sessionData = await this.loadSessionData(accessToken)
 		if (sessionData.accessKey != null) {
 			// if we have an accessKey, this means we are storing the encrypted password locally, in which case we need to store the new one
-			const newEncryptedPassphrase = uint8ArrayToBase64(encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
+			const newEncryptedPassphrase = uint8ArrayToBase64(_encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
 			const newEncryptedPassphraseKey = encryptKey(sessionData.accessKey, newUserPassphraseKey)
 			return { newEncryptedPassphrase, newEncryptedPassphraseKey }
 		} else {

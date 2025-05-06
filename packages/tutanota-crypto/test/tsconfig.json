@@ -1,6 +1,6 @@
 {
 	"extends": "../../../tsconfig_common.json",
-	"include": ["../../../types/*.d.ts"],
+	"include": ["../../../types/*.d.ts", "../lib/encryption"],
 	"files": ["Suite.ts"],
 	"compilerOptions": {
 		"outDir": "../build",
