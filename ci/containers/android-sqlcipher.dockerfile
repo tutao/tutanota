@@ -1,4 +1,4 @@
-FROM quay.io/toolbx-images/debian-toolbox
+FROM quay.io/toolbx-images/debian-toolbox@sha256:4ebacb09e266143c6394bc6e130495082407cf4511043de7458a27267dccf083
 WORKDIR /
 
 ENV ANDROID_NDK_VERSION="25.2.9519653"
