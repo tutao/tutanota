@@ -164,11 +164,11 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
 	locator.restClient = new RestClient(suspensionHandler, domainConfig, () => locator.applicationTypesFacade)
+	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider)
 	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instancePipeline, locator.blobAccessToken)
 	locator.native = worker
-	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto)
 
 	locator.booking = lazyMemoized(async () => {
 		const { BookingFacade } = await import("../../../common/api/worker/facades/lazy/BookingFacade.js")
