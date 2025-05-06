@@ -13,7 +13,7 @@ Can be run as:
 
 ```shell
 mkdir build-sqlcipher
-podman build -t android-sqlcipher --network=host -f ci/containers/android-sqlcipher.dockerfile
+podman build -t android-sqlcipher --network=host -f android-sqlcipher.dockerfile
 podman run --rm \
   -e SQLCIPHER_VERSION=4.7.0 \
   -e SQLCIPHER_ANDROID_VERSION=4.7.2 \

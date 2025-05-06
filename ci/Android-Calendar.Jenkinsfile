@@ -55,7 +55,6 @@ pipeline {
 					steps {
 						sh 'npm ci'
 						sh 'npm run build-packages'
-						downloadSqlcipher()
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
@@ -77,7 +76,6 @@ pipeline {
 						echo "Building ${VERSION}"
 						sh 'npm ci'
 						sh 'npm run build-packages'
-						downloadSqlcipher()
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
@@ -152,15 +150,3 @@ pipeline {
 			}
 		}
 	}
-}
-def downloadSqlcipher() {
-	script {
-		def VERSION = "4.6.0"
-		def util = load "ci/jenkins-lib/util.groovy"
-		util.downloadFromNexus(groupId: "lib",
-				artifactId: "android-database-sqlcipher",
-				version: VERSION,
-				outFile: "${WORKSPACE}/app-android/libs/sqlcipher-android-${VERSION}.aar",
-				fileExtension: 'aar')
-	}
-}
