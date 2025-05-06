@@ -77,9 +77,7 @@ import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
-import { globalServerModelInfo, resolveClientTypeReference, ServerTypeReferenceResolver } from "../api/common/EntityFunctions"
-import { ApplicationTypesFacade } from "../api/worker/facades/ApplicationTypesFacade"
-import { locator } from "../../mail-app/workerUtils/worker/WorkerLocator"
+import { resolveClientTypeReference } from "../api/common/EntityFunctions"
 
 mp()
 
