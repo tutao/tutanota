@@ -1,12 +1,4 @@
-use base64::prelude::BASE64_STANDARD;
-use base64::Engine;
-use num_enum::TryFromPrimitive;
-use std::collections::HashMap;
-use std::string::ToString;
-use std::sync::Arc;
-use time::{Date, OffsetDateTime, Time, UtcOffset};
-
-use super::event_facade::{ByRule, ByRuleType, EndType, EventRepeatRule, RepeatPeriod};
+use super::event_facade::{ByRule, ByRuleType, EndType, EventRepeatRule, MonthNumber, RepeatPeriod};
 #[cfg_attr(test, mockall_double::double)]
 use crate::contacts::contact_facade::ContactFacade;
 #[cfg_attr(test, mockall_double::double)]
@@ -22,6 +14,39 @@ use crate::groups::GroupType;
 use crate::user_facade::UserFacade;
 use crate::util::first_bigger_than_second_custom_id;
 use crate::{ApiCallError, CustomId, GeneratedId, IdTupleGenerated, ListLoadDirection};
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
+use num_enum::TryFromPrimitive;
+use rsa::pkcs8::der::ErrorKind;
+use serde::{Deserialize, Serialize};
+use time::error::ComponentRange;
+use time_tz::Offset;
+use std::collections::HashMap;
+use std::string::ToString;
+use std::sync::Arc;
+use time::{Date, Month, OffsetDateTime, Time, UtcOffset};
+
+trait EventTitle {
+	fn build_event_title(&self) -> String;
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+struct BirthdayEvent {
+	calendar_event: CalendarEvent,
+	contact: Contact
+}
+
+impl EventTitle for CalendarEvent {
+	fn build_event_title(&self) -> String {
+		return self.summary.clone();
+	}
+}
+
+impl EventTitle for BirthdayEvent {
+	fn build_event_title(&self) -> String {
+		return "WOW! BIRTHDAY".to_string() //FIXME
+	}
+}
 
 // To keep the SDK decoupled and dependency free we decided to handle translations on native side
 pub const DEFAULT_CALENDAR_NAME: &str = "";
@@ -47,6 +72,7 @@ pub struct CalendarRenderData {
 pub struct CalendarEventsList {
 	pub short_events: Vec<CalendarEvent>,
 	pub long_events: Vec<CalendarEvent>,
+	pub birthday_events: Vec<BirthdayEvent>
 }
 
 #[derive(uniffi::Object)]
@@ -56,6 +82,7 @@ pub struct CalendarFacade {
 	contact_facade: Arc<ContactFacade>,
 }
 
+#[cfg_attr(test, mockall::automock)]
 impl CalendarFacade {
 	#[must_use]
 	pub fn new(
@@ -290,7 +317,6 @@ impl CalendarFacade {
 			}
 
 			unwraped_long_events.append(&mut advanced_instances);
-			// FIXME append birthdays
 			let mut filtered_long_events = self.filter_events_in_range(
 				date.as_millis(),
 				timestamp_end,
@@ -301,6 +327,12 @@ impl CalendarFacade {
 
 			long_events.append(&mut filtered_long_events);
 		}
+
+		let birthday_events = self.generate_birthdays().await?
+			.into_iter()
+			.filter(|ev| { 
+				self.is_event_in_range(&ev.calendar_event, date.as_millis(), timestamp_end) 
+			}).collect();
 
 		// We use i128 because 0 - u64::MAX overflows i64::MIN
 		short_events.sort_by(|a, b| {
@@ -315,6 +347,7 @@ impl CalendarFacade {
 		Ok(CalendarEventsList {
 			short_events,
 			long_events,
+			birthday_events
 		})
 	}
 
@@ -336,13 +369,15 @@ impl CalendarFacade {
 	) -> Vec<CalendarEvent> {
 		events
 			.iter()
-			.filter(|&event| {
-				(event.startTime.as_millis() >= timestamp_start
-					|| event.endTime.as_millis() > timestamp_start)
-					&& event.startTime.as_millis() < timestamp_end
-			})
+			.filter(|&event| {self.is_event_in_range(event, timestamp_start, timestamp_end)})
 			.map(|event| event.to_owned())
 			.collect()
+	}
+
+	fn is_event_in_range(&self, event: &CalendarEvent, timestamp_start: u64, timestamp_end: u64) -> bool {		
+		(event.startTime.as_millis() >= timestamp_start
+			|| event.endTime.as_millis() > timestamp_start)
+			&& event.startTime.as_millis() < timestamp_end		
 	}
 
 	fn filter_excluded_dates(&self, events: &mut [CalendarEvent]) -> Vec<CalendarEvent> {
@@ -424,16 +459,72 @@ impl CalendarFacade {
 		)])
 	}
 
-	fn assert_valid_iso_birthday(&self, iso_birthday: &String) -> Result<&String, ApiCallError> {
-		todo!()
+	fn assert_valid_iso_birthday(
+		&self,
+		iso_birthday: &String,
+	) -> Result<(Option<u32>, u8, u8), ApiCallError> {
+		let mut valid_birthday_parts: (Option<u32>, u8, u8) = (None, 0, 0);
+		if iso_birthday.as_str().starts_with("--") {
+			let month_and_day: Vec<&str> = iso_birthday.as_str()[2..].split("-").collect();
+			if (month_and_day.len() != 2) {
+				return Err(ApiCallError::internal(format!(
+					"Invalid birthday without year {}",
+					iso_birthday
+				)));
+			}
+
+			valid_birthday_parts = (
+				None::<u32>,
+				month_and_day[0].parse::<u8>().unwrap(),
+				month_and_day[1].parse::<u8>().unwrap(),
+			);
+		} else {
+			let birthday_parts: Vec<&str> = iso_birthday.split("-").collect();
+			if (birthday_parts.iter().count() != 3) {
+				return Err(ApiCallError::internal(format!(
+					"Invalid birthday {}",
+					iso_birthday
+				)));
+			}
+			valid_birthday_parts = (
+				Some(birthday_parts[0].parse::<u32>().unwrap()),
+				birthday_parts[1].parse::<u8>().unwrap(),
+				birthday_parts[2].parse::<u8>().unwrap(),
+			);
+		}
+
+		if (!self.birthday_has_valid_range(valid_birthday_parts)) {
+			return Err(ApiCallError::internal(format!(
+				"Birthday outside acceptable range {}",
+				iso_birthday
+			)));
+		}
+
+		return Ok(valid_birthday_parts);
+	}
+
+	fn birthday_has_valid_range(&self, valid_birthday_parts: (Option<u32>, u8, u8)) -> bool {
+		let year = valid_birthday_parts.0;
+		let month = valid_birthday_parts.1;
+		let day = valid_birthday_parts.2;
+
+		return (year.is_none() || year.unwrap() < 10000)
+			&& month > 0
+			&& month < 13
+			&& day > 0
+			&& day < 13;
 	}
 
 	fn generate_event_uid(&self, calendar_id: GeneratedId, timestamp: DateTime) -> String {
-		todo!()
+		format!(
+			"{}{}@tuta.com",
+			calendar_id.to_string(),
+			timestamp.as_millis()
+		)
 	}
 
-	async fn generate_birthdays(&self) -> Result<Vec<CalendarEvent>, ApiCallError> {
-		let contacts = self.contact_facade.load_all_user_contacts().await?;
+	async fn generate_birthdays(&self) -> Result<Vec<BirthdayEvent>, ApiCallError> {
+		let contacts: Vec<Contact> = self.contact_facade.load_all_user_contacts().await?;
 		let user_id = match self.user_facade.get_user()._id.clone() {
 			Some(id) => id,
 			_ => {
@@ -443,59 +534,74 @@ impl CalendarFacade {
 			},
 		};
 
-		let birthdays: Result<Vec<CalendarEvent>, ApiCallError> = contacts
+		let birthdays: Vec<BirthdayEvent> = contacts
 			.iter()
-			.map(|contact| {
-				let birthday_date =
-					match self.assert_valid_iso_birthday((contact.birthdayIso.as_ref()).unwrap()) {
-						Ok(date) => date,
-						Err(e) => return Err(e),
-					};
-
-				let Some(contact_id) = &contact._id else {
-					return Err(ApiCallError::InternalSdkError {
-						error_message: "Missing id for contact".to_string(),
-					});
-				};
-
-				Ok(self.create_birthday_event(contact_id, birthday_date, &user_id))
-			})
+			.filter_map(|contact| self.collect_and_create_birthday_events(&user_id, &contact))
 			.collect();
 
-		birthdays
+		Ok(birthdays)
+	}
+
+	fn collect_and_create_birthday_events(
+		&self,
+		user_id: &GeneratedId,
+		contact: &Contact,
+	) -> Option<BirthdayEvent> {
+		if contact.birthdayIso.is_none() {
+			return None;
+		}
+		let birthday_date =
+			match self.assert_valid_iso_birthday((contact.birthdayIso.as_ref()).unwrap()) {
+				Ok(date) => date,
+				Err(e) => {
+					log::error!("{e:?}");
+					return None;
+				},
+			};
+
+		let Some(contact_id) = &contact._id else {
+			log::error!("Missing id for contact");
+			return None;
+		};
+
+		let Ok(event) = self.create_birthday_event(
+			&contact,
+			&birthday_date,
+			&user_id,
+		) else { return None; };
+		Some(event)
 	}
 
 	fn create_birthday_event(
 		&self,
-		contact_id: &IdTupleGenerated,
-		birthday_iso: &String,
+		contact: &Contact ,
+		birthday_parts: &(Option<u32>, u8, u8),
 		user_id: &GeneratedId,
-	) -> CalendarEvent {
+	) -> Result<BirthdayEvent, ApiCallError> {
+
 		let encoded_calendar_id =
-			BASE64_STANDARD.encode(format!("{}/{}", contact_id.list_id, contact_id.element_id));
+			BASE64_STANDARD.encode(format!("{}/{}", contact._id.unwrap().list_id, contact._id.unwrap().element_id));
+		
 		let birthday_calendar_id = GeneratedId(format!(
 			"{}#{}",
 			user_id.as_str(),
 			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
 		));
 
-		let uid = self.generate_event_uid(birthday_calendar_id, DateTime::from_millis(0));
+		let uid: String = self.generate_event_uid(birthday_calendar_id, DateTime::from_millis(0));
+		
+		let event_title = contact.firstName.clone(); // TODO Create a type CalendarBirthdayEvent that extends Calendar event and implements getBirthdayEventTitle
 
-		todo!();
-		// const eventTitle = this.calendarModel.getBirthdayEventTitle(contact.firstName)
-
-		// let fullDateIso = contact.birthdayIso!
-		// // Set the year because we can have birthdays without year
-		// if (contact.birthdayIso?.startsWith("--")) {
-		// 	fullDateIso = contact.birthdayIso.replace("-", "1970")
-		// }
-
-		// const birthday = new Date(fullDateIso!)
-
-		// // Set up start and end date base on UTC.
-		// // Also increments a copy of startDate by one day and set it as endDate
-		// const startDate = getAllDayDateUTC(new Date(birthday))
-		// const endDate = getAllDayDateUTC(incrementDate(new Date(startDate), 1))
+		let birthday_date = match Date::from_calendar_date(birthday_parts.0.unwrap_or(1970) as i32, Month::from_number(birthday_parts.1), birthday_parts.2) {
+			Ok(date) => date,
+			Err(e) => return Err(ApiCallError::internal(format!("Invalid date: {e:?}"))),
+		};
+		
+		let offset_date_time_start_time = OffsetDateTime::new_utc(birthday_date, Time::from_hms(0,0,0).unwrap());
+		// Set up start and end date base on UTC.
+		// Also increments a copy of startDate by one day and set it as endDate
+		let startDate = EventFacade::get_all_day_time(&DateTime::from_seconds(offset_date_time_start_time.unix_timestamp() as u64));
+		// let endDate = getAllDayDateUTC(incrementDate(new Date(startDate), 1))
 
 		// const newEvent = createCalendarEvent({
 		// 	sequence: "0",
@@ -601,7 +707,7 @@ mod calendar_facade_unit_tests {
 	use crate::entities::generated::tutanota::{Contact, GroupSettings, UserSettingsGroupRoot};
 	use crate::groups::GroupType;
 	use crate::user_facade::MockUserFacade;
-	use crate::util::test_utils::create_test_entity;
+	use crate::util::test_utils::{create_mock_contact, create_test_entity};
 	use crate::{GeneratedId, IdTupleGenerated};
 	use std::sync::Arc;
 
@@ -874,14 +980,28 @@ mod calendar_facade_unit_tests {
 		let user_group = GeneratedId::test_random();
 		let mock_user = create_mock_user(&user_group, &default_private_calendar_id);
 		mock_user_facade.expect_get_user().return_const(mock_user);
+		let contact_list_id = GeneratedId::test_random();
 
-		// FIXME mock contacts
-		let mut mock_contacts: Vec<Contact> = vec![
-			create_mock_contact(&contact_list_id, &GeneratedId::test_random(), Some("Mary")),
-			create_mock_contact(&contact_list_id, &GeneratedId::test_random(), Some("Jane")),
+		let mock_contacts: Vec<Contact> = vec![
+			create_mock_contact(
+				&contact_list_id,
+				&GeneratedId::test_random(),
+				Some("Mary"),
+				Some("2000-05-06".to_string()),
+			),
+			create_mock_contact(
+				&contact_list_id,
+				&GeneratedId::test_random(),
+				Some("Jane"),
+				Some("1950-05-06".to_string()),
+			),
+			create_mock_contact(
+				&contact_list_id,
+				&GeneratedId::test_random(),
+				Some("John"),
+				Some("---05-06".to_string()),
+			),
 		];
-		mock_contacts.get(0).unwrap().birthdayIso = Some("2000-05-06".to_string());
-		mock_contacts.get(1).unwrap().birthdayIso = Some("1950-05-06".to_string());
 		mock_contact_facade
 			.expect_load_all_user_contacts()
 			.return_const(Ok(mock_contacts));
@@ -893,11 +1013,40 @@ mod calendar_facade_unit_tests {
 		);
 
 		let birthdays = calendar_facade.generate_birthdays().await.unwrap();
-		assert_eq!(birthdays.len(), 2);
+		assert_eq!(birthdays.len(), 3);
 	}
 
 	#[tokio::test]
 	async fn test_fail_to_generate_birthday_from_invalid_contacts() {
-		todo!()
+		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+		let mut mock_user_facade = MockUserFacade::default();
+		let mut mock_contact_facade = MockContactFacade::default();
+
+		let default_private_calendar_id = GeneratedId::test_random();
+		let user_group = GeneratedId::test_random();
+		let mock_user = create_mock_user(&user_group, &default_private_calendar_id);
+		mock_user_facade.expect_get_user().return_const(mock_user);
+		let contact_list_id = GeneratedId::test_random();
+
+		let mock_contacts: Vec<Contact> = vec![
+			create_mock_contact(
+				&contact_list_id,
+				&GeneratedId::test_random(),
+				Some("Jane"),
+				Some("00-05-06".to_string()),
+			),
+		];
+		mock_contact_facade
+			.expect_load_all_user_contacts()
+			.return_const(Ok(mock_contacts));
+
+		let calendar_facade = CalendarFacade::new(
+			Arc::new(mock_crypto_entity_client),
+			Arc::new(mock_user_facade),
+			Arc::new(mock_contact_facade),
+		);
+
+		let birthdays = calendar_facade.generate_birthdays().await.unwrap();
+		assert_eq!(birthdays.len(), 0);
 	}
 }

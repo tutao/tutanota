@@ -38,7 +38,7 @@ impl ContactFacade {
 			.resolve_client_type_ref(&ContactList::type_ref())
 		else {
 			return Err(ApiCallError::InternalSdkError {
-				error_message: format!("Failed to resolve type_root for ContactList"),
+				error_message: "Failed to resolve type_root for ContactList".to_string(),
 			});
 		};
 
@@ -82,16 +82,17 @@ impl ContactFacade {
 
 #[cfg(test)]
 mod contact_facade_integration_tests {
+	use super::ContactFacade;
 	use crate::crypto_entity_client::MockCryptoEntityClient;
 	use crate::entities::generated::sys::{GroupMembership, RootInstance, User};
 	use crate::entities::generated::tutanota::{Contact, ContactList};
 	use crate::tutanota_constants::GroupType;
 	use crate::user_facade::MockUserFacade;
-	use crate::util::test_utils::{create_test_entity, mock_type_model_provider};
-	use crate::{Arc, CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated, ListLoadDirection};
+	use crate::util::test_utils::{
+		create_mock_contact, create_test_entity, mock_type_model_provider,
+	};
+	use crate::{Arc, CustomId, GeneratedId, IdTupleCustom, ListLoadDirection};
 	use mockall::predicate;
-
-	use super::ContactFacade;
 
 	fn create_mock_user(
 		user_group: &GeneratedId,
@@ -115,21 +116,6 @@ mod contact_facade_integration_tests {
 				group: user_group.to_owned(),
 				..create_test_entity()
 			},
-			..create_test_entity()
-		}
-	}
-
-	pub fn create_mock_contact(
-		contact_list: &GeneratedId,
-		contact_id: &GeneratedId,
-		name: Option<&str>,
-	) -> Contact {
-		Contact {
-			_id: Some(IdTupleGenerated {
-				list_id: contact_list.clone(),
-				element_id: contact_id.clone(),
-			}),
-			firstName: name.unwrap_or("").to_owned(),
 			..create_test_entity()
 		}
 	}
@@ -203,9 +189,24 @@ mod contact_facade_integration_tests {
 		mock_user_facade.expect_get_user().return_const(mock_user);
 
 		let contacts = vec![
-			create_mock_contact(&contact_list_id, &GeneratedId::test_random(), Some("John")),
-			create_mock_contact(&contact_list_id, &GeneratedId::test_random(), Some("Jane")),
-			create_mock_contact(&contact_list_id, &GeneratedId::test_random(), Some("Isis")),
+			create_mock_contact(
+				&contact_list_id,
+				&GeneratedId::test_random(),
+				Some("John"),
+				None,
+			),
+			create_mock_contact(
+				&contact_list_id,
+				&GeneratedId::test_random(),
+				Some("Jane"),
+				None,
+			),
+			create_mock_contact(
+				&contact_list_id,
+				&GeneratedId::test_random(),
+				Some("Isis"),
+				None,
+			),
 		];
 
 		mock_crypto_entity_client
