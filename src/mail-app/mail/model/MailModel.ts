@@ -179,6 +179,7 @@ export class MailModel {
 											mailboxDetail,
 											mail,
 											this.connectivityModel ? this.connectivityModel.isLeader() : false,
+											false,
 										)
 									)
 								})
@@ -199,6 +200,15 @@ export class MailModel {
 						}
 					}
 				}
+			}
+		}
+	}
+
+	async applyInboxRuleToMail(mail: Mail) {
+		if (this.inboxRuleHandler) {
+			const mailboxDetail = await this.getMailboxDetailsForMail(mail)
+			if (mailboxDetail) {
+				this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
 			}
 		}
 	}
