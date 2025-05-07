@@ -1,4 +1,5 @@
 import Foundation
+import Sqlcipher
 
 /**
  * Type tags for values being passed to SQL statements
@@ -10,7 +11,7 @@ public enum SqlType: String {
 	case bytes = "SqlBytes"
 }
 
-public enum TaggedSqlValue: Codable {
+@frozen public enum TaggedSqlValue: Codable {
 	case null
 	case number(value: Int)
 	case string(value: String)
@@ -55,5 +56,27 @@ public enum TaggedSqlValue: Codable {
 	private enum CodingKeys: String, CodingKey {
 		case type
 		case value
+	}
+}
+
+extension TaggedSqlValue {
+	func untag() -> SqlValue {
+		switch self {
+		case .null: .null
+		case .number(let value): .number(value: value)
+		case .string(let value): .string(value: value)
+		case .bytes(let value): .bytes(value: value.data)
+		}
+	}
+}
+
+extension SqlValue {
+	func tag() -> TaggedSqlValue {
+		switch self {
+		case .null: .null
+		case .number(let value): .number(value: value)
+		case .string(let value): .string(value: value)
+		case .bytes(let value): .bytes(value: value.wrap())
+		}
 	}
 }

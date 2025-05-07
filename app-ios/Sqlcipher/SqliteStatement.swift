@@ -16,7 +16,7 @@ public class SqliteStatement {
 		self.originalQuery = query
 	}
 
-	public func bindParams(_ params: [TaggedSqlValue]) throws -> Self {
+	public func bindParams(_ params: [SqlValue]) throws -> Self {
 
 		for (i, param) in params.enumerated() {
 			// apparently, param indices start at 1
@@ -26,7 +26,7 @@ public class SqliteStatement {
 		return self
 	}
 
-	private func bindSingleParam(_ param: TaggedSqlValue, _ i: Int32) throws {
+	private func bindSingleParam(_ param: SqlValue, _ i: Int32) throws {
 		var rc_bind = SQLITE_ERROR
 
 		switch param {
@@ -47,8 +47,8 @@ public class SqliteStatement {
 			rc_bind = sqlite3_bind_blob(
 				self.stmt,  // statement to bind value to
 				i,  // index of the "?" to bind to
-				(value.data as NSData).bytes,  // pointer to the buffer
-				Int32(value.data.count),  // byte size of the buffer
+				(value as NSData).bytes,  // pointer to the buffer
+				Int32(value.count),  // byte size of the buffer
 				SqliteStatement.LIFETIME_TRANSIENT
 			)
 		}
@@ -66,7 +66,7 @@ public class SqliteStatement {
 	}
 
 	/// return the first row from a query
-	public func get() -> [String: TaggedSqlValue]? {
+	public func get() -> [String: SqlValue]? {
 		let res = self.all()
 		if res.count > 1 {
 			// if this is ever triggered, we either need to rewrite the query to contain
@@ -77,13 +77,13 @@ public class SqliteStatement {
 	}
 
 	/// return all rows from a query
-	public func all() -> [[String: TaggedSqlValue]] {
+	public func all() -> [[String: SqlValue]] {
 		var rc = sqlite3_step(self.stmt)
-		var res: [[String: TaggedSqlValue]] = []
+		var res: [[String: SqlValue]] = []
 		while rc != SQLITE_DONE {
 			if rc != SQLITE_ROW { fatalError("expected row, got \(rc)") }
 			let n_cols = sqlite3_column_count(self.stmt)
-			var row_content: [String: TaggedSqlValue] = [:]
+			var row_content: [String: SqlValue] = [:]
 			for index in 0...(n_cols - 1) { row_content[self.getColumnName(index)] = self.getColumnContent(index) }
 			res.append(row_content)
 			rc = sqlite3_step(self.stmt)
@@ -100,7 +100,7 @@ public class SqliteStatement {
 
 	/// gets the contents of the current rows column with index i
 	/// will check the type and then delegate to the appropriate access method
-	private func getColumnContent(_ i: Int32) -> TaggedSqlValue {
+	private func getColumnContent(_ i: Int32) -> SqlValue {
 		let type_id = sqlite3_column_type(self.stmt, i)
 		// we currently only store text and blobs in the db
 		// we support integer to retrieve the auto_vacuum mode: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
@@ -115,7 +115,7 @@ public class SqliteStatement {
 
 	/// return a string from the current rows column i
 	/// use after checking that the column contains a string.
-	private func getColumnText(_ i: Int32) -> TaggedSqlValue {
+	private func getColumnText(_ i: Int32) -> SqlValue {
 		let text = sqlite3_column_text(self.stmt, i)
 		if text == nil { fatalError("null return in text column \(i)") }
 		return .string(value: String(cString: text!))
@@ -123,23 +123,23 @@ public class SqliteStatement {
 
 	/// return a blob from the current rows column i
 	/// use after checking that the column contains a blob.
-	private func getColumnBlob(_ i: Int32) -> TaggedSqlValue {
+	private func getColumnBlob(_ i: Int32) -> SqlValue {
 		let blob = sqlite3_column_blob(self.stmt, i)
 		let count = Int(sqlite3_column_bytes(self.stmt, i))
 		if count == 0 {
-			return .bytes(value: Data([]).wrap())
+			return .bytes(value: Data([]))
 		} else if blob == nil {
 			// blob == null and count != 0 is an error condition
 			fatalError("got blob nullptr but nonzero len, err \(self.db.getLastErrorCode()): \(self.db.getLastErrorMessage())")
 		} else {
 			let data = Data(bytes: blob!, count: count)
-			return .bytes(value: data.wrap())
+			return .bytes(value: data)
 		}
 	}
 
 	/// return an integer from the current rows column i
 	/// use after checking that the column contains an integer.
-	private func getColumnInteger(_ i: Int32) -> TaggedSqlValue {
+	private func getColumnInteger(_ i: Int32) -> SqlValue {
 		let integer: Int64 = sqlite3_column_int64(self.stmt, i)
 		return .number(value: Int(integer))
 	}
