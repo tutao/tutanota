@@ -13,6 +13,21 @@ open class SqliteDb {
 			let errmsg = self.getLastErrorMessage()
 			fatalError("Error opening database: \(errmsg)")
 		}
+		var api = UsefulSqlite3ApiRoutines(
+			malloc64: sqlite3_malloc64,
+			prepare: sqlite3_prepare,
+			bind_pointer: sqlite3_bind_pointer,
+			finalize: sqlite3_finalize,
+			step: sqlite3_step,
+			libversion_number: sqlite3_libversion_number
+		)
+		var errMsg: UnsafeMutablePointer<CChar>?
+		let extensionLoadResult = signal_fts5_tokenizer_init_static(self.db, &errMsg, &api)
+		if extensionLoadResult != SQLITE_OK {
+			let error: String? = if let errMsg = sqlite3_errmsg(self.db) { String(cString: errMsg) } else { nil }
+			let swiftErrorMsg: String? = if let errMsg { String(cString: errMsg) } else { nil }
+			fatalError("Could not load fts5 extension \(swiftErrorMsg ?? "") \(error ?? "")")
+		}
 	}
 	deinit {
 		close()
@@ -30,8 +45,7 @@ open class SqliteDb {
 		let rc = sqlite3_exec(self.db, sql, nil, nil, nil)
 		if rc != SQLITE_OK {
 			let errmsg = self.getLastErrorMessage()
-
-			throw TUTErrorFactory.createError("Could not exec: \(errmsg). sql: \(sql)")
+			throw SqlcipherError.exec(message: errmsg, sql: sql)
 		}
 	}
 
@@ -42,8 +56,7 @@ open class SqliteDb {
 		let rc_prep = sqlite3_prepare_v2(self.db, sqlCStr, -1, &stmt, nil)
 		if rc_prep != SQLITE_OK || stmt == nil {
 			let errmsg = self.getLastErrorMessage()
-
-			throw TUTErrorFactory.createError("Could not prepare statement: \(errmsg). Query: \(query)")
+			throw SqlcipherError.prepare(message: errmsg, sql: query)
 		}
 		return SqliteStatement(db: self, query: query, stmt: stmt.unsafelyUnwrapped)
 	}
@@ -57,7 +70,7 @@ open class SqliteDb {
 	private func close() {
 		if sqlite3_close(self.db) != SQLITE_OK {
 			let errmsg = self.getLastErrorMessage()
-			TUTSLog("Error closing database: \(errmsg): \(self.getLastErrorMessage())")  // ignore
+			print("Error closing database: \(errmsg): \(self.getLastErrorMessage())")  // ignore
 		}
 	}
 }
