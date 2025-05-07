@@ -3,5 +3,8 @@
 tutanota.xcodeproj
 calendar.xcodeproj
 
+Sqlcipher/generated/*
+
 # Caches
 **/*.xcodeproj/MockingbirdCache/
+
