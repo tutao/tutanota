@@ -243,11 +243,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return () => {
 			// On platforms with offline cache we just use cache as we are not bounded by memory.
 			if (isOfflineStorageAvailable()) {
-				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient)
+				return new BulkMailLoader(locator.cachingEntityClient, locator.cachingEntityClient, locator.crypto)
 			} else {
 				// On platforms without offline cache we use new ephemeral cache storage for mails only and uncached storage for the rest
 				const cacheStorage = new EphemeralCacheStorage()
-				return new BulkMailLoader(new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage)), new EntityClient(entityRestClient))
+				return new BulkMailLoader(
+					new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage)),
+					new EntityClient(entityRestClient),
+					locator.crypto,
+				)
 			}
 		}
 	}

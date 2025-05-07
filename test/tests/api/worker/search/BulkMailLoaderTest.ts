@@ -6,6 +6,7 @@ import { MailSetEntry, MailSetEntryTypeRef } from "../../../../../src/common/api
 import { constructMailSetEntryId, GENERATED_MAX_ID, getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { createTestEntity, equalToArray } from "../../../TestUtils"
 import { lastThrow } from "@tutao/tutanota-utils"
+import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 
 o.spec("BulkMailLoader", () => {
 	let mailEntityClient: EntityClient
@@ -13,10 +14,12 @@ o.spec("BulkMailLoader", () => {
 	let mailSetListData: MailSetListData
 	let timeRange: TimeRange
 	let bulkMailLoader: BulkMailLoader
+	let crypto: CryptoFacade
 	o.beforeEach(() => {
 		mailEntityClient = object()
 		mailDataEntityClient = object()
-		bulkMailLoader = new BulkMailLoader(mailEntityClient, mailDataEntityClient)
+		crypto = object()
+		bulkMailLoader = new BulkMailLoader(mailEntityClient, mailDataEntityClient, crypto)
 	})
 	o.spec("loadMailSetEntriesForTimeRange", () => {
 		function setUpTestData(startRange: number = 100, rangeEnd: number = 0) {

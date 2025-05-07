@@ -38,7 +38,6 @@ import { SomeEntity } from "../../../common/api/common/EntityTypes.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
-import { locator } from "../worker/WorkerLocator"
 import { resolveTypeReference } from "../../../common/api/common/EntityFunctions"
 import { VersionedEncryptedKey } from "../../../common/api/worker/crypto/CryptoWrapper"
 import { InstanceSessionKey } from "../../../common/api/entities/sys/TypeRefs"
@@ -59,10 +58,7 @@ export interface MailWithMailDetails {
 }
 
 export class BulkMailLoader {
-	// FIXME
-	private readonly crypto: CryptoFacade = locator.crypto
-
-	constructor(private readonly mailEntityClient: EntityClient, private readonly mailDataEntityClient: EntityClient) {}
+	constructor(private readonly mailEntityClient: EntityClient, private readonly mailDataEntityClient: EntityClient, private readonly crypto: CryptoFacade) {}
 
 	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<Mail[]> {
 		return this.mailEntityClient.loadRange(MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, {
