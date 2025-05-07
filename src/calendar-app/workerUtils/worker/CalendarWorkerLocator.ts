@@ -510,6 +510,9 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await worker.sendError(error)
 		},
 		noOp,
+		locator.rolloutFacade,
+		locator.groupManagement,
+		mainInterface.syncTracker,
 	)
 
 	const eventInstancePrefetcher = new EventInstancePrefetcher(locator.cache)
@@ -523,7 +526,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
-		mainInterface.syncTracker,
 		typeModelResolver,
 		locator.crypto,
 		eventInstancePrefetcher,
