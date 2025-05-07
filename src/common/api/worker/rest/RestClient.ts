@@ -1,361 +1,884 @@
-import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
-import { ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError } from "../../common/error/RestError"
-import { HttpMethod, MediaType } from "../../common/EntityFunctions"
-import { assertNotNull, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
-import { SuspensionHandler } from "../SuspensionHandler"
-import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
-import { SuspensionError } from "../../common/error/SuspensionError.js"
+import { client } from "../common/misc/ClientDetector.js"
+import m from "mithril"
+import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
+import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
+import { root } from "../RootView.js"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { windowFacade } from "../common/misc/WindowFacade.js"
+import { styles } from "../common/gui/styles.js"
+import { deviceConfig } from "../common/misc/DeviceConfig.js"
+import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
+import { applicationPaths } from "./ApplicationPaths.js"
+import { ProgrammingError } from "../common/api/common/error/ProgrammingError.js"
+import type { LoginView, LoginViewAttrs } from "../common/login/LoginView.js"
+import type { LoginViewModel } from "../common/login/LoginViewModel.js"
+import { TerminationView, TerminationViewAttrs } from "../common/termination/TerminationView.js"
+import { TerminationViewModel } from "../common/termination/TerminationViewModel.js"
+import { MobileWebauthnAttrs, MobileWebauthnView } from "../common/login/MobileWebauthnView.js"
+import { BrowserWebauthn } from "../common/misc/2fa/webauthn/BrowserWebauthn.js"
+import { CalendarView, CalendarViewAttrs } from "../calendar-app/calendar/view/CalendarView.js"
+import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
+import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
+import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
+import { SettingsView } from "./settings/SettingsView.js"
+import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
+import { TopLevelAttrs, TopLevelView } from "../TopLevelView.js"
+import { AppHeaderAttrs } from "../common/gui/Header.js"
+import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
+import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
+import { LoginController } from "../common/api/main/LoginController.js"
+import type { MailViewModel } from "./mail/view/MailViewModel.js"
+import { SearchViewModel } from "./search/view/SearchViewModel.js"
+import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
+import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
+import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
+import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
+import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
+import { AppType } from "../common/misc/ClientConstants.js"
+import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
+import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
+import { SessionType } from "../common/api/common/SessionType.js"
 
-assertWorkerOrNode()
+assertMainOrNodeBoot()
+bootFinished()
 
-const TAG = "[RestClient]"
+const urlQueryParams = m.parseQueryString(location.search)
 
-interface ProgressListener {
-	upload(percent: number): void
+assignEnvPlatformId(urlQueryParams)
+replaceNativeLogger(window, new Logger())
 
-	download(percent: number): void
+let currentView: Component<unknown> | null = null
+window.tutao = {
+	client,
+	m,
+	lang,
+	root,
+	currentView,
+	locator: null,
 }
 
-export const enum SuspensionBehavior {
-	Suspend,
-	Throw,
+client.init(navigator.userAgent, navigator.platform, AppType.Mail)
+
+if (!client.isSupported()) {
+	throw new Error("Unsupported")
 }
 
-export interface RestClientOptions {
-	body?: string | Uint8Array
-	responseType?: MediaType
-	progressListener?: ProgressListener
-	baseUrl?: string
-	headers?: Dict
-	queryParams?: Dict
-	noCORS?: boolean
-	/** Default is to suspend all requests on rate limit. */
-	suspensionBehavior?: SuspensionBehavior
-}
+// Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
+// and then the "Update WebView" message will never be show
+// we still want to do this ASAP so we can handle other errors
+setupExceptionHandling()
 
-/**
- * Allows REST communication with the server.
- * The RestClient observes upload/download progress and times
- * out in case no data is sent or received for a certain time.
- *
- * Uses XmlHttpRequest as there is still no support for tracking
- * upload progress with fetch (see https://stackoverflow.com/a/69400632)
- */
-export class RestClient {
-	private id: number
-	// accurate to within a few seconds, depending on network speed
-	private serverTimeOffsetMs: number | null = null
+// If the webapp is served under some folder e.g. /build we want to consider this our root
+const urlPrefixes = extractPathPrefixes()
+// Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
+window.tutao.appState = urlPrefixes
 
-	constructor(private readonly suspensionHandler: SuspensionHandler, private readonly domainConfig: DomainConfig) {
-		this.id = 0
-	}
+const startRoute = getStartUrl(urlQueryParams)
+history.replaceState(null, "", urlPrefixes.prefix + startRoute)
 
-	request(path: string, method: HttpMethod, options: RestClientOptions = {}): Promise<any | null> {
-		// @ts-ignore
-		const debug = typeof self !== "undefined" && self.debug
-		const verbose = isWorker() && debug
+registerForMailto()
 
-		this.checkRequestSizeLimit(path, method, options.body ?? null)
+import("./translations/en.js")
+	.then((en) => lang.init(en.default))
+	.then(async () => {
+		await import("../common/gui/main-styles.js")
 
-		if (this.suspensionHandler.isSuspended()) {
-			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
-		} else {
-			return new Promise((resolve, reject) => {
-				this.id++
+		// do this after lang initialized
+		const { initCommonLocator } = await import("../common/api/main/CommonLocator.js")
+		const { mailLocator } = await import("./mailLocator.js")
+		await mailLocator.init()
 
-				const queryParams: Dict = options.queryParams ?? {}
+		initCommonLocator(mailLocator)
 
-				if (method === HttpMethod.GET && typeof options.body === "string") {
-					queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a parameter
-				}
+		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
+		setupNavShortcuts()
 
-				if (options.noCORS) {
-					queryParams["cv"] = env.versionNumber
-				}
+		const { BottomNav } = await import("./gui/BottomNav.js")
 
-				const origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
-				const resourceURL = new URL(origin)
-				resourceURL.pathname = path
-				const url = addParamsToUrl(resourceURL, queryParams)
+		// this needs to stay after client.init
+		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel, (visible) => {
+			mailLocator.indexerFacade?.onVisibilityChanged(!document.hidden)
+		})
+		if (isDesktop()) {
+			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
+		}
 
-				const finalUrlString = url.toString()
-				let proxiedUrlString = finalUrlString
+		const userLanguage = deviceConfig.getLanguage() && languages.find((l) => l.code === deviceConfig.getLanguage())
 
-				// Define Tutanota domains
-				const tutanotaDomains = ["app.tuta.com", "api.tuta.com"] // Add any other relevant Tutanota domains
+		if (userLanguage) {
+			const language = {
+				code: userLanguage.code,
+				languageTag: languageCodeToTag(userLanguage.code),
+			}
+			lang.setLanguage(language).catch((e) => {
+				console.error("Failed to fetch translation: " + userLanguage.code, e)
+			})
 
-				try {
-					const parsedUrl = new URL(finalUrlString)
-					// Check if the hostname is one of the Tutanota domains
-					if (tutanotaDomains.includes(parsedUrl.hostname)) {
-						proxiedUrlString = "http://localhost:8080/" + finalUrlString
-						console.log(`[RestClient Proxy] Applying proxy for: ${finalUrlString}`)
-					} else {
-						console.log(`[RestClient Proxy] Skipping proxy for: ${finalUrlString}`)
-					}
-				} catch (e) {
-					// Handle cases where finalUrlString might be relative or invalid if necessary
-					// Depending on how Tutanota constructs URLs, you might need to proxy relative paths too.
-					// If Tutanota ONLY uses absolute URLs, this catch might not be strictly needed for proxying.
-					console.warn(`[RestClient Proxy] Could not parse URL, not proxying: ${finalUrlString}`, e)
-				}
+			if (isDesktop()) {
+				mailLocator.desktopSettingsFacade.changeLanguage(language.code, language.languageTag)
+			}
+		}
 
-				const xhr = new XMLHttpRequest()
-				// Use the potentially proxied URL
-				xhr.open(method, proxiedUrlString)
-
-				this.setHeaders(xhr, options)
-
-				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text ? "text" : "arraybuffer"
-
-				const abortAfterTimeout = () => {
-					const res = {
-						timeoutId: 0 as TimeoutID,
-						abortFunction: () => {
-							if (this.usingTimeoutAbort()) {
-								console.log(TAG, `${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
-								xhr.abort()
+		mailLocator.logins.addPostLoginAction(() => mailLocator.postLoginActions())
+		mailLocator.logins.addPostLoginAction(async () => {
+			return {
+				async onPartialLoginSuccess() {
+					if (isApp()) {
+						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
+						const syncManager = mailLocator.nativeContactsSyncManager()
+						if (syncManager.isEnabled() && isIOSApp()) {
+							const canSync = await syncManager.canSync()
+							if (!canSync) {
+								await syncManager.disableSync()
+								return
 							}
-						},
-					}
-					return res
-				}
-
-				const t = abortAfterTimeout()
-				let timeout = setTimeout(t.abortFunction, env.timeout)
-				t.timeoutId = timeout
-
-				if (verbose) {
-					console.log(TAG, `${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
-				}
-
-				xhr.onload = () => {
-					// XMLHttpRequestProgressEvent, but not needed
-					if (verbose) {
-						console.log(TAG, `${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
-					}
-
-					clearTimeout(timeout)
-
-					this.saveServerTimeOffsetFromRequest(xhr)
-
-					if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
-						if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
-							resolve(xhr.response)
-						} else if (options.responseType === MediaType.Binary) {
-							resolve(new Uint8Array(xhr.response))
-						} else {
-							resolve(null)
 						}
-					} else {
-						const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
+						syncManager.syncContacts()
+					}
+					await mailLocator.mailboxModel.init()
+					await mailLocator.mailModel.init()
+				},
+				async onFullLoginSuccess() {
+					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
+					if (isOfflineStorageAvailable()) {
+						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
+						m.redraw()
+					}
 
-						if (isSuspensionResponse(xhr.status, suspensionTime) && options.suspensionBehavior === SuspensionBehavior.Throw) {
-							reject(
-								new SuspensionError(
-									`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
-									suspensionTime && (parseInt(suspensionTime) * 1000).toString(),
-								),
-							)
-						} else if (isSuspensionResponse(xhr.status, suspensionTime)) {
-							this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), resourceURL)
+					if (mailLocator.mailModel.canManageLabels() && !mailLocator.logins.getUserController().props.defaultLabelCreated) {
+						const { TutanotaPropertiesTypeRef } = await import("../common/api/entities/tutanota/TypeRefs")
+						const reloadTutanotaProperties = await mailLocator.entityClient.loadRoot(
+							TutanotaPropertiesTypeRef,
+							mailLocator.logins.getUserController().user.userGroup.group,
+							{ cacheMode: CacheMode.WriteOnly },
+						)
 
-							resolve(this.suspensionHandler.deferRequest(() => this.request(path, method, options)))
-						} else {
-							logFailedRequest(method, url, xhr, options)
-							reject(handleRestError(xhr.status, `| ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
+						if (!reloadTutanotaProperties.defaultLabelCreated) {
+							const mailboxDetail = await mailLocator.mailboxModel.getMailboxDetails()
+
+							mailLocator.mailFacade
+								.createLabel(assertNotNull(mailboxDetail[0].mailbox._ownerGroup), {
+									name: lang.get("importantLabel_label"),
+									color: "#FEDC59",
+								})
+								.then(() => {
+									mailLocator.logins.getUserController().props.defaultLabelCreated = true
+									mailLocator.entityClient.update(mailLocator.logins.getUserController().props)
+								})
 						}
 					}
-				}
+				},
+			}
+		})
 
-				xhr.onerror = function () {
-					clearTimeout(timeout)
-					logFailedRequest(method, url, xhr, options)
-					reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
-				}
+		if (isOfflineStorageAvailable()) {
+			const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
+			mailLocator.logins.addPostLoginAction(
+				async () =>
+					new CachePostLoginAction(
+						await mailLocator.calendarModel(),
+						mailLocator.entityClient,
+						mailLocator.progressTracker,
+						mailLocator.cacheStorage,
+						mailLocator.logins,
+					),
+			)
+		}
 
-				// don't add an EventListener for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
-				if (!options.noCORS) {
-					xhr.upload.onprogress = (pe: ProgressEvent) => {
-						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
+		if (isDesktop()) {
+			mailLocator.logins.addPostLoginAction(async () => {
+				return {
+					onPartialLoginSuccess: async () => {},
+					onFullLoginSuccess: async (event) => {
+						// not a temporary aka signup login
+						if (event.sessionType === SessionType.Persistent) {
+							const controller = await mailLocator.mailExportController()
+							controller.resumeIfNeeded()
 						}
-
-						clearTimeout(timeout)
-						const t = abortAfterTimeout()
-						timeout = setTimeout(t.abortFunction, env.timeout)
-						t.timeoutId = timeout
-
-						if (verbose) {
-							console.log(TAG, `${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
-						}
-
-						if (options.progressListener != null && pe.lengthComputable) {
-							// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-							options.progressListener.upload((1 / pe.total) * pe.loaded)
-						}
-					}
-
-					xhr.upload.ontimeout = (e) => {
-						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} upload timeout. calling error handler.`, e)
-						}
-						xhr.onerror?.(e)
-					}
-
-					xhr.upload.onerror = (e) => {
-						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} upload error. calling error handler.`, e)
-						}
-						xhr.onerror?.(e)
-					}
-
-					xhr.upload.onabort = (e) => {
-						if (verbose) {
-							console.log(TAG, `${this.id}: ${String(new Date())} upload aborted. calling error handler.`, e)
-						}
-						xhr.onerror?.(e)
-					}
-				}
-
-				xhr.onprogress = (pe: ProgressEvent) => {
-					if (verbose) {
-						console.log(TAG, `${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
-					}
-
-					clearTimeout(timeout)
-					let t = abortAfterTimeout()
-					timeout = setTimeout(t.abortFunction, env.timeout)
-					t.timeoutId = timeout
-
-					if (verbose) {
-						console.log(TAG, `${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
-					}
-
-					if (options.progressListener != null && pe.lengthComputable) {
-						// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-						options.progressListener.download((1 / pe.total) * pe.loaded)
-					}
-				}
-
-				xhr.onabort = () => {
-					clearTimeout(timeout)
-					reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
-				}
-
-				if (options.body instanceof Uint8Array) {
-					xhr.send(uint8ArrayToArrayBuffer(options.body))
-				} else {
-					xhr.send(options.body)
+					},
 				}
 			})
 		}
-	}
 
-	/** We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver. */
-	private usingTimeoutAbort() {
-		return isWebClient() || isAndroidApp()
-	}
+		styles.init(mailLocator.themeController)
 
-	private saveServerTimeOffsetFromRequest(xhr: XMLHttpRequest) {
-		// Dates sent in the `Date` field of HTTP headers follow the format specified by rfc7231
-		// JavaScript's Date expects dates in the format specified by rfc2822
-		// rfc7231 provides three options of formats, the preferred one being IMF-fixdate. This one is definitely
-		// parseable by any rfc2822 compatible parser, since it is a strict subset (with no folding white space) of the
-		// format of rfc5322, which is the same as rfc2822 accepting more folding white spaces.
-		// Furthermore, there is no reason to expect the server to return any of the other two accepted formats, which
-		// are obsolete and accepted only for backwards compatibility.
-		const serverTimestamp = xhr.getResponseHeader("Date")
-
-		if (serverTimestamp != null) {
-			// check that serverTimestamp has been returned
-			const serverTime = new Date(serverTimestamp).getTime()
-
-			if (!isNaN(serverTime)) {
-				const now = Date.now()
-				this.serverTimeOffsetMs = serverTime - now
+		const contactViewResolver = makeViewResolver<
+			ContactViewAttrs,
+			ContactView,
+			{
+				drawerAttrsFactory: () => DrawerMenuAttrs
+				header: AppHeaderAttrs
+				contactViewModel: ContactViewModel
+				contactListViewModel: ContactListViewModel
 			}
+		>(
+			{
+				prepareRoute: async () => {
+					const { ContactView } = await import("./contacts/view/ContactView.js")
+					const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+					return {
+						component: ContactView,
+						cache: {
+							drawerAttrsFactory,
+							header: await mailLocator.appHeaderAttrs(),
+							contactViewModel: await mailLocator.contactViewModel(),
+							contactListViewModel: await mailLocator.contactListViewModel(),
+						},
+					}
+				},
+				prepareAttrs: (cache) => ({
+					drawerAttrs: cache.drawerAttrsFactory(),
+					header: cache.header,
+					contactViewModel: cache.contactViewModel,
+					contactListViewModel: cache.contactListViewModel,
+				}),
+			},
+			mailLocator.logins,
+		)
+
+		const paths = applicationPaths({
+			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
+				{
+					prepareRoute: async () => {
+						const migrator = await mailLocator.credentialFormatMigrator()
+						await migrator.migrate()
+
+						const { LoginView } = await import("../common/login/LoginView.js")
+						const makeViewModel = await mailLocator.loginViewModelFactory()
+						return {
+							component: LoginView,
+							cache: {
+								makeViewModel,
+							},
+						}
+					},
+					prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel }),
+					requireLogin: false,
+				},
+				mailLocator.logins,
+			),
+			termination: makeViewResolver<
+				TerminationViewAttrs,
+				TerminationView,
+				{
+					makeViewModel: () => TerminationViewModel
+					header: AppHeaderAttrs
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { TerminationViewModel } = await import("../common/termination/TerminationViewModel.js")
+						const { TerminationView } = await import("../common/termination/TerminationView.js")
+						return {
+							component: TerminationView,
+							cache: {
+								makeViewModel: () =>
+									new TerminationViewModel(
+										mailLocator.logins,
+										mailLocator.secondFactorHandler,
+										mailLocator.serviceExecutor,
+										mailLocator.entityClient,
+									),
+								header: await mailLocator.appHeaderAttrs(),
+							},
+						}
+					},
+					prepareAttrs: ({ makeViewModel, header }) => ({ makeViewModel, header }),
+					requireLogin: false,
+				},
+				mailLocator.logins,
+			),
+			contact: contactViewResolver,
+			contactList: contactViewResolver,
+			externalLogin: makeViewResolver<
+				ExternalLoginViewAttrs,
+				ExternalLoginView,
+				{
+					header: AppHeaderAttrs
+					makeViewModel: () => ExternalLoginViewModel
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { ExternalLoginView } = await import("./mail/view/ExternalLoginView.js")
+						const makeViewModel = await mailLocator.externalLoginViewModelFactory()
+						return {
+							component: ExternalLoginView,
+							cache: { header: await mailLocator.appHeaderAttrs(), makeViewModel },
+						}
+					},
+					prepareAttrs: ({ header, makeViewModel }) => ({ header, viewModelFactory: makeViewModel }),
+					requireLogin: false,
+				},
+				mailLocator.logins,
+			),
+			mail: makeViewResolver<
+				MailViewAttrs,
+				MailView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					cache: MailViewCache
+					header: AppHeaderAttrs
+					mailViewModel: MailViewModel
+				}
+			>(
+				{
+					prepareRoute: async (previousCache) => {
+						const { MailView } = await import("./mail/view/MailView.js")
+						return {
+							component: MailView,
+							cache: previousCache ?? {
+								drawerAttrsFactory: await mailLocator.drawerAttrsFactory(),
+								cache: {
+									mailList: null,
+									selectedFolder: null,
+									conversationViewModel: null,
+									conversationViewPreference: null,
+								},
+								header: await mailLocator.appHeaderAttrs(),
+								mailViewModel: await mailLocator.mailViewModel(),
+							},
+						}
+					},
+					prepareAttrs: ({ drawerAttrsFactory, cache, header, mailViewModel }) => ({
+						drawerAttrs: drawerAttrsFactory(),
+						cache,
+						header,
+						desktopSystemFacade: mailLocator.desktopSystemFacade,
+						mailViewModel,
+					}),
+				},
+				mailLocator.logins,
+			),
+			settings: makeViewResolver<
+				SettingsViewAttrs,
+				SettingsView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { SettingsView } = await import("./settings/SettingsView.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						return {
+							component: SettingsView,
+							cache: {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+							},
+						}
+					},
+					prepareAttrs: (cache) => ({
+						drawerAttrs: cache.drawerAttrsFactory(),
+						header: cache.header,
+						logins: mailLocator.logins,
+					}),
+				},
+				mailLocator.logins,
+			),
+			search: makeViewResolver<
+				SearchViewAttrs,
+				SearchView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					searchViewModelFactory: () => SearchViewModel
+					contactModel: ContactModel
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { SearchView } = await import("./search/view/SearchView.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						return {
+							component: SearchView,
+							cache: {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+								searchViewModelFactory: await mailLocator.searchViewModelFactory(),
+								contactModel: mailLocator.contactModel,
+							},
+						}
+					},
+					prepareAttrs: (cache) => ({
+						drawerAttrs: cache.drawerAttrsFactory(),
+						header: cache.header,
+						makeViewModel: cache.searchViewModelFactory,
+						contactModel: cache.contactModel,
+					}),
+				},
+				mailLocator.logins,
+			),
+			calendar: makeViewResolver<
+				CalendarViewAttrs,
+				CalendarView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					calendarViewModel: CalendarViewModel
+					bottomNav: () => Children
+					lazySearchBar: () => Children
+				}
+			>(
+				{
+					prepareRoute: async (cache) => {
+						const { CalendarView } = await import("../calendar-app/calendar/view/CalendarView.js")
+						const { lazySearchBar } = await import("./LazySearchBar.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						return {
+							component: CalendarView,
+							cache: cache ?? {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+								calendarViewModel: await mailLocator.calendarViewModel(),
+								bottomNav: () => m(BottomNav),
+								lazySearchBar: () =>
+									m(lazySearchBar, {
+										placeholder: lang.get("searchCalendar_placeholder"),
+									}),
+							},
+						}
+					},
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
+						drawerAttrs: drawerAttrsFactory(),
+						header,
+						calendarViewModel,
+						bottomNav,
+						lazySearchBar,
+					}),
+				},
+				mailLocator.logins,
+			),
+
+			/**
+			 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
+			 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
+			 * behaviour of resolvers created with createViewResolver(), e.g. caching.
+			 */
+			signup: {
+				async onmatch() {
+					const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
+
+					// We have to manually parse it because mithril does not put hash into args of onmatch
+					const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
+					showSignupDialog(urlParams)
+
+					// Change the href of the canonical link element to make the /signup path indexed.
+					// Since this is just for search crawlers, we do not have to change it again later.
+					// We know at least Google crawler executes js to render the application.
+					const canonicalEl: HTMLLinkElement | null = document.querySelector("link[rel=canonical]")
+					if (canonicalEl) {
+						canonicalEl.href = "https://app.tuta.com/signup"
+					}
+
+					// when the user presses the browser back button, we would get a /login route without arguments
+					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
+					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
+					// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
+					m.route.set("/login", {
+						noAutoLogin: true,
+						keepSession: true,
+					})
+					m.route.set("/login", {
+						noAutoLogin: true,
+						keepSession: true,
+					})
+					return null
+				},
+			},
+			giftcard: {
+				async onmatch() {
+					const { showGiftCardDialog } = await import("../common/misc/LoginUtils.js")
+					showGiftCardDialog(location.hash)
+					m.route.set("/login", {
+						noAutoLogin: true,
+						keepSession: true,
+					})
+					return null
+				},
+			},
+			recover: {
+				async onmatch(args: any) {
+					const { showRecoverDialog } = await import("../common/misc/LoginUtils.js")
+					const resetAction = args.resetAction === "password" || args.resetAction === "secondFactor" ? args.resetAction : "password"
+					const mailAddress = typeof args.mailAddress === "string" ? args.mailAddress : ""
+					showRecoverDialog(mailAddress, resetAction)
+					m.route.set("/login", {
+						noAutoLogin: true,
+					})
+					return null
+				},
+			},
+			webauthn: makeOldViewResolver(
+				async () => {
+					const { BrowserWebauthn } = await import("../common/misc/2fa/webauthn/BrowserWebauthn.js")
+					const { NativeWebauthnView } = await import("../common/login/NativeWebauthnView.js")
+					const { WebauthnNativeBridge } = await import("../common/native/main/WebauthnNativeBridge.js")
+					// getCurrentDomainConfig() takes env.staticUrl into account but we actually don't care about it in this case.
+					// Scenario when it can differ: local desktop client which opens webauthn window and that window is also built with the static URL because
+					// it is the same client build.
+					const domainConfig = mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
+					const creds = navigator.credentials
+					return new NativeWebauthnView(new BrowserWebauthn(creds, domainConfig), new WebauthnNativeBridge())
+				},
+				{
+					requireLogin: false,
+					cacheView: false,
+				},
+				mailLocator.logins,
+			),
+			webauthnmobile: makeViewResolver<
+				MobileWebauthnAttrs,
+				MobileWebauthnView,
+				{
+					browserWebauthn: BrowserWebauthn
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { MobileWebauthnView } = await import("../common/login/MobileWebauthnView.js")
+						const { BrowserWebauthn } = await import("../common/misc/2fa/webauthn/BrowserWebauthn.js")
+						// see /webauthn view resolver for the explanation
+						const domainConfig = mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
+						return {
+							component: MobileWebauthnView,
+							cache: {
+								browserWebauthn: new BrowserWebauthn(navigator.credentials, domainConfig),
+							},
+						}
+					},
+					prepareAttrs: (cache) => cache,
+					requireLogin: false,
+				},
+				mailLocator.logins,
+			),
+		})
+
+		// In some cases our prefix can have non-ascii characters, depending on the path the webapp is served from
+		// see https://github.com/MithrilJS/mithril.js/issues/2659
+		m.route.prefix = neverNull(urlPrefixes.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
+
+		// keep in sync with RewriteAppResourceUrlHandler.java
+		const resolvers: RouteDefs = {
+			"/": {
+				onmatch: (args, requestedPath) => forceLogin(args, requestedPath),
+			},
 		}
-	}
 
-	/**
-	 * Get the time on the server based on the client time + the server time offset
-	 * The server time offset is calculated based on the date field in the header returned from REST requests.
-	 * will throw an error if offline or no rest requests have been made yet
-	 */
-	getServerTimestampMs(): number {
-		const timeOffset = assertNotNull(this.serverTimeOffsetMs, "You can't get server time if no rest requests were made")
-		return Date.now() + timeOffset
-	}
-
-	/**
-	 * Checks if the request body is too large.
-	 * Ignores the method because GET requests etc. should not exceed the limits neither.
-	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
-	 * */
-	private checkRequestSizeLimit(path: string, method: HttpMethod, body: string | Uint8Array | null) {
-		if (isAdminClient()) {
-			return
+		for (let path in paths) {
+			resolvers[path] = paths[path]
 		}
 
-		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) ?? REQUEST_SIZE_LIMIT_DEFAULT
-
-		if (body && body.length > limit) {
-			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
-		}
-	}
-
-	private setHeaders(xhr: XMLHttpRequest, options: RestClientOptions) {
-		if (options.headers == null) {
-			options.headers = {}
-		}
-		const { headers, body, responseType } = options
-
-		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
-		if (!options.noCORS) {
-			headers["cv"] = env.versionNumber
-			if (body instanceof Uint8Array) {
-				headers["Content-Type"] = MediaType.Binary
-			} else if (typeof body === "string") {
-				headers["Content-Type"] = MediaType.Json
-			}
+		// append catch all at the end because mithril will stop at the first match
+		resolvers["/:path..."] = {
+			onmatch: async () => {
+				const { NotFoundPage } = await import("../common/gui/base/NotFoundPage.js")
+				return {
+					view: () => m(root, m(NotFoundPage)),
+				}
+			},
 		}
 
-		if (responseType) {
-			headers["Accept"] = responseType
+		// keep in sync with RewriteAppResourceUrlHandler.java
+		m.route(document.body, startRoute, resolvers)
+
+		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
+		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
+		if (isApp() || isDesktop()) {
+			await mailLocator.native.init()
 		}
-		for (const i in headers) {
-			xhr.setRequestHeader(i, headers[i])
+		if (isDesktop()) {
+			const { exposeNativeInterface } = await import("../common/api/common/ExposeNativeInterface.js")
+			mailLocator.logins.addPostLoginAction(async () => exposeNativeInterface(mailLocator.native).postLoginActions)
 		}
-	}
-}
+		// after we set up prefixWithoutFile
+		const domainConfig = mailLocator.domainConfigProvider().getCurrentDomainConfig()
+		const serviceworker = await import("../common/serviceworker/ServiceWorkerClient.js")
+		serviceworker.init(domainConfig)
 
-export function addParamsToUrl(url: URL, urlParams: Dict): URL {
-	if (urlParams) {
-		for (const [key, value] of typedEntries(urlParams)) {
-			if (value !== undefined) {
-				url.searchParams.set(key, value)
-			}
-		}
-	}
+		printJobsMessage(domainConfig)
+	})
 
-	return url
-}
-
-export function isSuspensionResponse(statusCode: number, suspensionTimeNumberString: string | null): boolean {
-	return Number(suspensionTimeNumberString) > 0 && (statusCode === TooManyRequestsError.CODE || statusCode === ServiceUnavailableError.CODE)
-}
-
-function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, options: RestClientOptions): void {
-	const args: Array<unknown> = [TAG, "failed request", method, url.toString(), xhr.status, xhr.statusText]
-	if (options.headers != null) {
-		args.push(Object.keys(options.headers))
-	}
-	if (options.body != null) {
-		const logBody = "string" === typeof options.body ? `[${options.body.length} characters]` : `[${options.body.length} bytes]`
-		args.push(logBody)
+function forceLogin(args: Record<string, Dict>, requestedPath: string) {
+	if (requestedPath.indexOf("#mail") !== -1) {
+		m.route.set(`/ext${location.hash}`)
+	} else if (requestedPath.startsWith("/#")) {
+		// we do not allow any other hashes except "#mail". this prevents login loops.
+		m.route.set("/login")
 	} else {
-		args.push("no body")
+		let pathWithoutParameter = requestedPath.indexOf("?") > 0 ? requestedPath.substring(0, requestedPath.indexOf("?")) : requestedPath
+
+		if (pathWithoutParameter.trim() === "/") {
+			let newQueryString = m.buildQueryString(args)
+			m.route.set(`/login` + (newQueryString.length > 0 ? "?" + newQueryString : ""))
+		} else {
+			m.route.set(`/login?requestedPath=${encodeURIComponent(requestedPath)}`)
+		}
 	}
-	console.log(...args)
+}
+
+function setupExceptionHandling() {
+	window.addEventListener("error", function (evt) {
+		/**
+		 * evt.error is not always set, e.g. not for "content.js:1963 Uncaught DOMException: Failed to read
+		 * the 'selectionStart' property from 'HTMLInputElement': The input element's type ('email')
+		 * does not support selection."
+		 *
+		 * checking for defaultPrevented is necessary to prevent devTools eval errors to be thrown in here until
+		 * https://chromium-review.googlesource.com/c/v8/v8/+/3660253
+		 * is in the chromium version used by our electron client.
+		 * see https://stackoverflow.com/questions/72396527/evalerror-possible-side-effect-in-debug-evaluate-in-google-chrome
+		 * */
+		if (evt.error && !evt.defaultPrevented) {
+			handleUncaughtError(evt.error)
+			evt.preventDefault()
+		}
+	})
+	// Handle unhandled native JS Promise rejections
+	window.addEventListener("unhandledrejection", function (evt) {
+		handleUncaughtError(evt.reason)
+		evt.preventDefault()
+	})
+}
+
+/**
+ * Wrap top-level component with necessary logic.
+ * Note: I can't make type inference work with attributes and components because of how broken mithril typedefs are so they are "never" by default and you
+ * have to specify generic types manually.
+ * @template FullAttrs type of the attributes that the component takes
+ * @template ComponentType type of the component
+ * @template RouteCache info that is prepared async on route change and can be used later to create attributes on every render. Is also persisted between
+ * the route changes.
+ * @param param
+ * @param param.prepareRoute called once per route change. Use it for everything async that should happen before the route change. The result is preserved for
+ * as long as RouteResolver lives if you need to persist things between routes. It receives the route cache from the previous call if there was one.
+ * @param param.prepareAttrs called once per redraw. The result of it will be added to TopLevelAttrs to make full attributes.
+ * @param param.requireLogin enforce login policy to either redirect to the login page or reload
+ * @param logins logincontroller to ask about login state
+ */
+function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType extends TopLevelView<FullAttrs> = never, RouteCache = undefined>(
+	{
+		prepareRoute,
+		prepareAttrs,
+		requireLogin,
+	}: {
+		prepareRoute: (cache: RouteCache | null) => Promise<{ component: Class<ComponentType>; cache: RouteCache }>
+		prepareAttrs: (cache: RouteCache) => Omit<FullAttrs, keyof TopLevelAttrs>
+		requireLogin?: boolean
+	},
+	logins: LoginController,
+): RouteResolver {
+	requireLogin = requireLogin ?? true
+	let cache: RouteCache | null
+
+	// a bit of context for why we do things the way we do. Constraints:
+	//  - view must be imported async in onmatch
+	//  - view shall not be created manually, we do not want to hold on to the instance
+	//  - we want to pass additional parameters to the view
+	//  - view should not be created twice and neither its dependencies
+	//  - we either need to call updateUrl or pass requestedPath and args as attributes
+	return {
+		// onmatch() is called for every URL change
+		async onmatch(args: Record<string, Dict>, requestedPath: string): Promise<Class<ComponentType> | null> {
+			// enforce valid login state first.
+			// we have views with requireLogin: true and views with requireLogin: false, each of which enforce being logged in or being logged out respectively.
+			// in the logout case (where requireLogin: false) this will force a reload.
+			// the login view is special in that it has requirelogin: false, but can be logged in after account creation during signup.
+			// to handle back button presses where the user decides to stay on the page after all (we show a confirmation)
+			// we need to prevent the logout/reload. this is the purpose of the keepSession argument.
+			// the signup wizard that sets it handles the session itself.
+			if (requireLogin && !logins.isUserLoggedIn()) {
+				forceLogin(args, requestedPath)
+				return null
+			} else if (!requireLogin && logins.isUserLoggedIn() && !args.keepSession) {
+				await disableErrorHandlingDuringLogout()
+				await logins.logout(false)
+				windowFacade.reload(args)
+				return null
+			} else {
+				const prepared = await prepareRoute(cache)
+				cache = prepared.cache
+				return prepared.component
+			}
+		},
+		// render() is called on every render
+		render(vnode: Vnode<ComponentType>): Children {
+			const args = m.route.param()
+			const requestedPath = m.route.get()
+			// result of onmatch() is passed into m() by mthril and then given to us here
+			// It is not what we want as we want to pass few things to it but it's harmless because
+			// it just creates a vnode but doesn't render it.
+			// What we do is grab the class from that vnode. We could have done it differently but this
+			// way we don't do any more caching than Mithril would do anyway.
+
+			// TS can't prove that it's the right component and the mithril typings are generally slightly broken
+			const c = vnode.tag as unknown as Class<ClassComponent<FullAttrs>>
+
+			// downcast because we ts can't really prove or enforce that additional attrs have compatible requestedPath and args
+			const attrs = { requestedPath, args, ...prepareAttrs(assertNotNull(cache)) } as FullAttrs
+			return m(
+				root,
+				m(c, {
+					...attrs,
+					oncreate({ state }: VnodeDOM<FullAttrs, ComponentType>) {
+						window.tutao.currentView = state
+					},
+				}),
+			)
+		},
+	}
+}
+
+function makeOldViewResolver(
+	makeView: (args: object, requestedPath: string) => Promise<TopLevelView>,
+	{ requireLogin, cacheView }: { requireLogin?: boolean; cacheView?: boolean } = {},
+	logins: LoginController,
+): RouteResolver {
+	requireLogin = requireLogin ?? true
+	cacheView = cacheView ?? true
+
+	const viewCache: { view: TopLevelView | null } = { view: null }
+	return {
+		onmatch: async (args, requestedPath) => {
+			if (requireLogin && !logins.isUserLoggedIn()) {
+				forceLogin(args, requestedPath)
+			} else if (!requireLogin && logins.isUserLoggedIn()) {
+				await disableErrorHandlingDuringLogout()
+				await logins.logout(false)
+				windowFacade.reload(args)
+			} else {
+				let promise: Promise<TopLevelView>
+
+				if (viewCache.view == null) {
+					promise = makeView(args, requestedPath).then((view) => {
+						if (cacheView) {
+							viewCache.view = view
+						}
+
+						return view
+					})
+				} else {
+					promise = Promise.resolve(viewCache.view)
+				}
+
+				Promise.all([promise]).then(([view]) => {
+					view.updateUrl?.(args, requestedPath)
+					window.tutao.currentView = view
+				})
+				return promise
+			}
+		},
+		render: (vnode) => {
+			return m(root, vnode)
+		},
+	}
+}
+
+// PlatformId is passed by the native part in the URL
+function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
+	const platformId = urlQueryParams["platformId"]
+
+	if (isApp() || isDesktop()) {
+		if (
+			(isApp() && (platformId === "android" || platformId === "ios")) ||
+			(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
+		) {
+			env.platformId = platformId
+		} else {
+			throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
+		}
+	}
+}
+
+function extractPathPrefixes(): Readonly<{ prefix: string; prefixWithoutFile: string }> {
+	const prefix = location.pathname.endsWith("/") ? location.pathname.substring(0, location.pathname.length - 1) : location.pathname
+	const prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
+	return Object.freeze({ prefix, prefixWithoutFile })
+}
+
+function getStartUrl(urlQueryParams: Mithril.Params): string {
+	// Redirection triggered by the server or service worker (e.g. the user reloads /mail/id by pressing
+	// F5 and we want to open /login?r=mail/id).
+
+	// We want to build a new URL based on the redirect parameter and our current path and hash.
+
+	// take redirect parameter from the query params
+	// remove it from the query params (so that we don't loop)
+	let redirectTo = urlQueryParams["r"]
+	if (redirectTo) {
+		delete urlQueryParams["r"]
+
+		if (typeof redirectTo !== "string") {
+			redirectTo = ""
+		}
+	} else {
+		redirectTo = ""
+	}
+
+	// build new query, this time without redirect
+	let newQueryString = m.buildQueryString(urlQueryParams)
+
+	if (newQueryString.length > 0) {
+		newQueryString = "?" + newQueryString
+	}
+
+	let target = redirectTo + newQueryString
+
+	if (target === "" || target[0] !== "/") target = "/" + target
+
+	// Only append current hash if there's no hash in the redirect already.
+	// Most browsers will keep the hash around even after the redirect unless there's another one provided.
+	// In our case the hash is encoded as part of the query and is not deduplicated like described above so we have to manually do it, otherwise we end
+	// up with double hashes.
+	if (!new URL(urlPrefixes.prefix + target, window.location.href).hash) {
+		target += location.hash
+	}
+	return target
+}
+
+function registerForMailto() {
+	// don't do this if we're in an iframe, in an app or the navigator doesn't allow us to do this.
+	if (window.parent === window && !isDesktop() && typeof navigator.registerProtocolHandler === "function") {
+		let origin = location.origin
+		try {
+			// @ts-ignore third argument removed from spec, but use is still recommended
+			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tuta Mail")
+		} catch (e) {
+			// Catch SecurityError's and some other cases when we are not allowed to register a handler
+			console.log("Failed to register a mailto: protocol handler ", e)
+		}
+	}
+}
+
+function printJobsMessage(domainConfig: DomainConfig) {
+	if (env.dist && domainConfig.firstPartyDomain) {
+		console.log(`
+
+........................................
+........................................
+........................................
+........@@@@@@@@@@@@@@@@@@@@@@@.........
+.....@....@@@@@@@@@@@@@@@@@@@@@@@.......
+.....@@@....@@@@@@@@@@@@@@@@@@@@@@@.....
+.....@@@@@..............................    Do you care about privacy?
+.....@@@@@...@@@@@@@@@@@@@@@@@@@@@@.....
+.....@@@@...@@@@@@@@@@@@@@@@@@@@@@@.....    Work at Tuta! Fight for our rights!
+.....@@@@...@@@@@@@@@@@@@@@@@@@@@@......
+.....@@@...@@@@@@@@@@@@@@@@@@@@@@.......    https://tuta.com/jobs
+.....@@@...@@@@@@@@@@@@@@@@@@@@@@.......
+.....@@...@@@@@@@@@@@@@@@@@@@@@@........
+.....@@...@@@@@@@@@@@@@@@@@@@@@@........
+.....@...@@@@@@@@@@@@@@@@@@@@@@.........
+.....@...@@@@@@@@@@@@@@@@@@@@@@.........
+........@@@@@@@@@@@@@@@@@@@@@@..........
+.......@@@@@@@@@@@@@@@@@@@@@@...........
+.......@@@@@@@@@@@@@@@@@@@@@@...........
+........................................
+........................................
+........................................
+
+`)
+	}
 }

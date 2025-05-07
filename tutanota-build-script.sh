@@ -67,8 +67,8 @@ main() {
     git submodule update
     
     # Switch to development branch
-    info_message "Switching to mp-web branch"
-    git checkout mp-web
+    info_message "Switching to my-testing-branch"
+    git checkout my-testing-branch
     git pull
     
     # Check npm is installed
