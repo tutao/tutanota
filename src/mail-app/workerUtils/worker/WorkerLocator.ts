@@ -718,6 +718,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			const indexer = await locator.indexer()
 			await indexer.processEntityEvents(events, batchId, groupId)
 		},
+		locator.rolloutFacade,
+		locator.groupManagement,
+		mainInterface.syncTracker,
 	)
 	const prefetcher = new EventInstancePrefetcher(locator.cache)
 	locator.eventBusClient = new EventBusClient(
@@ -729,7 +732,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
-		mainInterface.syncTracker,
 		typeModelResolver,
 		locator.crypto,
 		prefetcher,
