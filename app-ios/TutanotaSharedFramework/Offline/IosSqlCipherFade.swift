@@ -87,6 +87,8 @@ public actor IosSqlCipherFacade: SqlCipherFacade {
 		let listIdLock = await self.concurrentListIdLocks.removeValue(forKey: listId)
 		listIdLock?.send(.listIdUnlocked)
 	}
+
+	public func tokenize(_ query: String) async throws -> [String] { try SignalTokenizer().tokenize(query) }
 }
 
 // We need this actor in order to make sure that access to the listIdLocks dictionary is thread safe

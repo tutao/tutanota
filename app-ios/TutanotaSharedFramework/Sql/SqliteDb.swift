@@ -9,20 +9,17 @@ open class SqliteDb {
 			SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE,  // flags
 			nil  // vfs module name
 		)
-	  sqlite3_enable_load_extension(self.db, 1)
-	  var errMsg: UnsafeMutablePointer<CChar>? = nil
-	  let extensionLoadResult = "libsignal_tokenizer.dylib".withCString({ filenamePointer in
-		"signal_fts5_tokenizer_init".withCString { entryPointPointer in
-		  
-		  sqlite3_load_extension(self.db, filenamePointer, entryPointPointer, &errMsg)
+		sqlite3_enable_load_extension(self.db, 1)
+		var errMsg: UnsafeMutablePointer<CChar>? = nil
+		let extensionLoadResult = "libsignal_tokenizer.dylib"
+			.withCString({ filenamePointer in
+				"signal_fts5_tokenizer_init".withCString { entryPointPointer in sqlite3_load_extension(self.db, filenamePointer, entryPointPointer, &errMsg) }
+			})
+		if extensionLoadResult != SQLITE_OK {
+			let error: String? = if let errMsg = sqlite3_errmsg(self.db) { String(cString: errMsg) } else { nil }
+			let swiftErrorMsg: String? = if let errMsg { String(cString: errMsg) } else { nil }
+			fatalError("Could not load fts5 extension \(swiftErrorMsg) \(error)")
 		}
-	  })
-	  if extensionLoadResult != SQLITE_OK {
-		let error: String? = if let errMsg = sqlite3_errmsg(self.db) { String (cString: errMsg) } else { nil }
-		let swiftErrorMsg: String? = if let errMsg { String(cString: errMsg) } else { nil }
-		fatalError("Could not load fts5 extension \(swiftErrorMsg) \(error)")
-	  }
-	  
 		if rc_open != SQLITE_OK {
 			let errmsg = self.getLastErrorMessage()
 			fatalError("Error opening database: \(errmsg)")
