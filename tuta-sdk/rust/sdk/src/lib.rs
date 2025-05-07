@@ -203,6 +203,10 @@ impl Sdk {
 	}
 	/// Authorizes the SDK's REST requests via inserting `access_token` into the HTTP headers
 	pub async fn login(&self, credentials: Credentials) -> Result<Arc<LoggedInSdk>, LoginError> {
+		self.type_model_provider
+			.initialize_server_model_from_file()
+			.await;
+
 		let auth_headers_provider =
 			Arc::new(HeadersProvider::new(Some(credentials.access_token.clone())));
 
@@ -634,6 +638,7 @@ mod tests {
 	use crate::bindings::file_client::MockFileClient;
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::entities::generated::tutanota::Mail;
+
 	use crate::util::test_utils::create_test_entity;
 	use crate::Sdk;
 

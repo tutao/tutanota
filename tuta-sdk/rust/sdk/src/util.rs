@@ -11,6 +11,7 @@ pub mod test_utils;
 
 /// A functional style wrapper around `vec.reverse()`
 #[cfg(test)]
+#[must_use]
 pub fn get_vec_reversed<T: Clone>(vec: Vec<T>) -> Vec<T> {
 	let mut copy = vec.clone();
 	copy.reverse();
@@ -281,26 +282,26 @@ mod test {
 	#[should_panic]
 	async fn negative_version_to_u64() {
 		let version = -1;
-		convert_version_to_u64(version);
+		let _ = convert_version_to_u64(version);
 	}
 
 	#[tokio::test]
 	async fn good_version_to_u64() {
 		let version = 0;
-		convert_version_to_u64(version);
+		let _ = convert_version_to_u64(version);
 	}
 
 	#[tokio::test]
 	#[should_panic]
 	async fn to_large_version_to_i64() {
 		let version = 3 << 62;
-		convert_version_to_i64(version);
+		let _ = convert_version_to_i64(version);
 	}
 
 	#[tokio::test]
 	async fn good_version_to_i64() {
 		let version = 0;
-		convert_version_to_i64(version);
+		let _ = convert_version_to_i64(version);
 	}
 
 	#[test]

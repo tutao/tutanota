@@ -30,7 +30,7 @@ impl FileClient for NativeFileClient {
 	async fn read_content(&self, name: String) -> Result<Vec<u8>, FileClientError> {
 		let full_path = self.app_dir.join(name);
 		std::fs::read(&full_path).map_err(|e| {
-			log::error!("Unable to write to file: {full_path:?}. Reason: {e:?}");
+			log::error!("Unable to read from file: {full_path:?}. Reason: {e:?}");
 			FileClientError::NotFound
 		})
 	}

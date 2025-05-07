@@ -1,7 +1,7 @@
 import { log } from "../../DesktopLog"
 
 /**
- * Should not import them all manually, but we need make the whole thing async then.
+ * Should not import them all manually, but we need to make the whole thing async then.
  */
 import * as migration0000 from "./migration-0000"
 import * as migration0001 from "./migration-0001"

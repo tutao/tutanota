@@ -14,6 +14,7 @@ use crate::GeneratedId;
 use crate::{IdTupleGenerated, TypeRef};
 
 /// Generates and returns an encrypted Mail ParsedEntity. It also returns the decrypted Mail for comparison
+#[must_use]
 pub fn generate_email_entity(
 	session_key: &GenericAesKey,
 	iv: &Iv,

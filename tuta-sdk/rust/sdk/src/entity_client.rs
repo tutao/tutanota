@@ -84,6 +84,7 @@ impl EntityClient {
 			})
 	}
 
+	#[allow(clippy::unused_async, unused)]
 	pub fn resolve_server_type_ref(
 		&self,
 		type_ref: &TypeRef,
@@ -99,7 +100,7 @@ impl EntityClient {
 	}
 
 	/// Fetches and returns all entities/instances in a list element type
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn load_all(
 		&self,
 		_type_ref: &TypeRef,
@@ -111,7 +112,7 @@ impl EntityClient {
 
 	/// Fetches and returns a specified number (`count`) of entities/instances
 	/// in a list element type starting at the index `start_id`
-	#[allow(clippy::unused_async)]
+	#[allow(clippy::unused_async, unused)]
 	pub async fn load_range<Id: BaseIdType>(
 		&self,
 		type_ref: &TypeRef,
@@ -149,6 +150,7 @@ impl EntityClient {
 		Ok(parsed_entities)
 	}
 
+	#[allow(clippy::unused_async, unused)]
 	async fn post_instance_changes(
 		&self,
 		parsed_entity: ParsedEntity,

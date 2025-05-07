@@ -1,12 +1,15 @@
 use crate::bindings::file_client::FileClient;
 use crate::bindings::rest_client::{HttpMethod, RestClient, RestClientOptions};
 use crate::bindings::suspendable_rest_client::SuspensionBehavior;
+use crate::crypto::sha256;
 use crate::entities::entity_facade::EntityFacadeImpl;
 use crate::metamodel::{AppName, ApplicationModel, ApplicationModels, TypeModel};
 use crate::rest_error::HttpError;
 use crate::services::generated::base::ApplicationTypesService;
 use crate::services::Service;
 use crate::{ApiCallError, TypeRef};
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use std::borrow::{Borrow, Cow};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -51,12 +54,14 @@ pub struct TypeModelProvider {
 	pub server_app_models: std::sync::RwLock<Option<(String, Cow<'static, ApplicationModels>)>>,
 
 	// required to fetch new server model
-	_file_client: Arc<dyn FileClient>,
+	file_client: Arc<dyn FileClient>,
 	rest_client: Arc<dyn RestClient>,
 	base_url: String,
 }
 
 impl TypeModelProvider {
+	pub const SERVER_TYPE_MODEL_JSON_FILE_NAME: &'static str = "server_type_models_sdk.json";
+
 	pub fn new(
 		rest_client: Arc<dyn RestClient>,
 		file_client: Arc<dyn FileClient>,
@@ -66,7 +71,7 @@ impl TypeModelProvider {
 			client_app_models: Cow::Borrowed(&CLIENT_TYPE_MODEL),
 			server_app_models: std::sync::RwLock::new(None),
 			rest_client,
-			_file_client: file_client,
+			file_client,
 			base_url,
 		}
 	}
@@ -93,6 +98,57 @@ impl TypeModelProvider {
 			.types
 			.get(&type_ref.type_id)
 			.map(Arc::clone)
+	}
+
+	pub async fn initialize_server_model_from_file(&self) {
+		let Ok(raw_json_server_model) = self
+			.file_client
+			.read_content(Self::SERVER_TYPE_MODEL_JSON_FILE_NAME.to_string())
+			.await
+		else {
+			return;
+		};
+
+		let Ok(apps) =
+			serde_json::from_slice::<HashMap<AppName, ApplicationModel>>(&raw_json_server_model)
+				.inspect_err(|e| {
+					log::error!(
+						"Can not parse ApplicationTypesService response to ApplicationModels {e:?}",
+					)
+				})
+		else {
+			return;
+		};
+
+		let mut writeable_server_models = self
+			.server_app_models
+			.write()
+			.expect("We should have always cleared the poison before writing");
+
+		let application_types_hash =
+			TypeModelProvider::compute_application_types_hash(raw_json_server_model.as_slice());
+		*writeable_server_models = Some((
+			application_types_hash,
+			Cow::Owned(ApplicationModels { apps }),
+		));
+	}
+
+	fn compute_application_types_hash(raw_json_server_model: &[u8]) -> String {
+		let application_types_hash = sha256(raw_json_server_model);
+		BASE64_STANDARD.encode(&application_types_hash[0..5])
+	}
+
+	pub fn write_server_model_to_file(&self, raw_json_server_model: Vec<u8>) {
+		let file_client = Arc::clone(&self.file_client);
+		tokio::spawn(async move {
+			file_client
+				.persist_content(
+					Self::SERVER_TYPE_MODEL_JSON_FILE_NAME.to_string(),
+					raw_json_server_model,
+				)
+				.await
+				.ok();
+		});
 	}
 
 	pub async fn ensure_latest_server_model(
@@ -176,6 +232,13 @@ impl TypeModelProvider {
 						"Can not parse ApplicationTypesService response to ApplicationModels",
 					)
 				})?;
+
+				self.write_server_model_to_file(
+					application_types_get_out
+						.application_types_json
+						.into_bytes(),
+				);
+
 				let application_models = ApplicationModels { apps };
 				Ok((
 					application_types_get_out.application_types_hash,
@@ -206,10 +269,11 @@ pub struct ApplicationTypesGetOut {
 #[cfg(test)]
 mod tests {
 	use crate::bindings::file_client::{FileClient, MockFileClient};
-	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestClient};
+	use crate::bindings::rest_client::{HttpMethod, MockRestClient, RestClient, RestResponse};
 	use crate::bindings::suspendable_rest_client::SuspensionBehavior;
-	use crate::type_model_provider::TypeModelProvider;
+	use crate::type_model_provider::{ApplicationTypesGetOut, TypeModelProvider};
 	use crate::util::test_utils;
+	use mockall::predicate::{always, eq};
 	use std::sync::Arc;
 	use std::sync::RwLock;
 
@@ -230,6 +294,29 @@ mod tests {
 		}
 	}
 
+	fn setup_application_types_response(rest_client: &mut MockRestClient, types_json: String) {
+		rest_client
+			.expect_request_binary()
+			.with(
+				eq("http://localhost:9000/rest/base/applicationtypesservice".to_string()),
+				eq(HttpMethod::GET),
+				always(),
+			)
+			.return_once(|_path, _method, _options| {
+				let get_out = ApplicationTypesGetOut {
+					application_types_hash: "some_hash".to_string(),
+					application_types_json: types_json,
+				};
+				let response_bytes =
+					lz4_flex::compress(serde_json::to_string_pretty(&get_out).unwrap().as_bytes());
+				Ok(RestResponse {
+					status: 200,
+					headers: Default::default(),
+					body: Some(response_bytes),
+				})
+			});
+	}
+
 	#[test]
 	fn read_type_model_only_once() {
 		let first_type_model = TypeModelProvider::new_test(
@@ -248,6 +335,43 @@ mod tests {
 			first_type_model.client_app_models.as_ref(),
 			second_type_model.client_app_models.as_ref()
 		));
+	}
+
+	#[tokio::test]
+	async fn server_attempts_to_persist_json_after_fetch() {
+		let file_client: Arc<dyn FileClient> = Arc::new(MockFileClient::default());
+		let rest_client: Arc<dyn RestClient> = Arc::new(MockRestClient::default());
+
+		let mock_rest_client = unsafe {
+			Arc::as_ptr(&rest_client)
+				.cast::<MockRestClient>()
+				.cast_mut()
+				.as_mut()
+				.unwrap()
+		};
+		setup_application_types_response(mock_rest_client, "{}".to_string());
+
+		let (_hash, _models) = Arc::new(TypeModelProvider::new(
+			Arc::clone(&rest_client),
+			Arc::clone(&file_client),
+			"http://localhost:9000".to_string(),
+		))
+		.fetch_server_model()
+		.await
+		.unwrap();
+
+		let file_client = unsafe {
+			Arc::as_ptr(&file_client)
+				.cast::<MockFileClient>()
+				.cast_mut()
+				.as_mut()
+				.unwrap()
+		};
+
+		file_client.expect_persist_content().with(
+			eq(TypeModelProvider::SERVER_TYPE_MODEL_JSON_FILE_NAME.to_string()),
+			eq(b"{}".to_vec()),
+		);
 	}
 
 	#[tokio::test]

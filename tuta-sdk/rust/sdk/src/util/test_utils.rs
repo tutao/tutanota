@@ -39,6 +39,7 @@ pub fn generate_random_string<const SIZE: usize>() -> String {
 	BASE64_URL_SAFE_NO_PAD.encode(random_bytes)
 }
 
+#[must_use]
 pub fn generate_random_group(
 	current_keys: Option<KeyPair>,
 	former_keys: Option<GroupKeysRef>,
@@ -92,6 +93,7 @@ pub fn generate_random_group(
 	}
 }
 
+#[must_use]
 pub fn random_aes256_key() -> Aes256Key {
 	Aes256Key::from_bytes(&random::<[u8; 32]>()).unwrap()
 }
@@ -123,7 +125,7 @@ pub fn leak<T>(what: T) -> &'static T {
 /// assert_eq!(1337, mail.phishingStatus);
 /// ```
 #[must_use]
-pub fn create_test_entity<'a, T: Entity + DeserializeOwned>() -> T {
+pub fn create_test_entity<T: Entity + DeserializeOwned>() -> T {
 	let mapper = InstanceMapper::new(Arc::new(mock_type_model_provider()));
 	let entity = create_test_entity_dict::<T>();
 	let type_ref = T::type_ref();
@@ -146,7 +148,7 @@ pub fn create_test_entity<'a, T: Entity + DeserializeOwned>() -> T {
 ///
 /// **NOTE:** The resulting dictionary is unencrypted.
 #[must_use]
-pub fn create_test_entity_dict<'a, T: Entity + DeserializeOwned>() -> ParsedEntity {
+pub fn create_test_entity_dict<T: Entity + DeserializeOwned>() -> ParsedEntity {
 	let provider = Arc::new(mock_type_model_provider());
 	let type_ref = T::type_ref();
 	let entity = create_test_entity_dict_with_provider(&provider, type_ref.app, type_ref.type_id);
@@ -613,6 +615,7 @@ pub struct HelloUnEncOutput {
 }
 
 const SERVER_TYPES_JSON_HASH: &str = "default-server-type-model-hash";
+#[must_use]
 pub fn mock_type_model_provider() -> TypeModelProvider {
 	let mut type_model_provider = TypeModelProvider::new_test(
 		Arc::new(MockRestClient::new()),
@@ -751,6 +754,7 @@ pub fn mock_type_model_provider() -> TypeModelProvider {
 	type_model_provider
 }
 
+#[must_use]
 pub fn server_types_hash_header() -> HashMap<String, String> {
 	let mut hash_map = HashMap::new();
 	hash_map.insert(
@@ -760,6 +764,7 @@ pub fn server_types_hash_header() -> HashMap<String, String> {
 	hash_map
 }
 
+#[must_use]
 pub fn application_types_response_with_client_model() -> RestResponse {
 	let application_get_out = crate::type_model_provider::ApplicationTypesGetOut {
 		application_types_json: serde_json::to_string(
