@@ -32,8 +32,8 @@ const clientDependencies = [
 	// squire is patched manually to fix issuesr
 	// "../node_modules/squire-rte/dist/squire-raw.mjs",
 	{ src: "../node_modules/dompurify/dist/purify.js", target: "purify.js", bundling: "copy" },
-	{ src: "../node_modules/linkifyjs/dist/linkify.es.js", target: "linkify.js", bundling: "copy" },
-	{ src: "../node_modules/linkify-html/dist/linkify-html.es.js", target: "linkify-html.js", bundling: "copy" },
+	{ src: "../node_modules/linkifyjs/dist/linkify.mjs", target: "linkify.js", bundling: "copy" },
+	{ src: "../node_modules/linkify-html/dist/linkify-html.mjs", target: "linkify-html.js", bundling: "copy" },
 	{ src: "../node_modules/luxon/build/es6/luxon.js", target: "luxon.js", bundling: "copy" },
 	{ src: "../node_modules/jsqr/dist/jsQR.js", target: "jsQR.js", bundling: "copy" },
 	{ src: "../node_modules/jszip/dist/jszip.js", target: "jszip.js", bundling: "rollupWeb" },
