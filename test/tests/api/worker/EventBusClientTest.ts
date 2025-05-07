@@ -28,7 +28,6 @@ import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
-import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
@@ -45,7 +44,6 @@ o.spec("EventBusClientTest", function () {
 	let sleepDetector: SleepDetector
 	let listenerMock: EventBusListener
 	let progressTrackerMock: ExposedProgressTracker
-	let syncTrackerMock: SyncTracker
 	let instancePipeline: InstancePipeline
 	let socketFactory: (path: string) => WebSocket
 	let typeModelResolver: TypeModelResolver
@@ -63,7 +61,6 @@ o.spec("EventBusClientTest", function () {
 			socketFactory,
 			sleepDetector,
 			progressTrackerMock,
-			syncTrackerMock,
 			typeModelResolver,
 			cryptoFacadeMock,
 			eventInstancePrefetcher,
@@ -87,7 +84,6 @@ o.spec("EventBusClientTest", function () {
 	o.beforeEach(async function () {
 		listenerMock = object()
 		progressTrackerMock = object()
-		syncTrackerMock = object()
 		eventInstancePrefetcher = object()
 		cacheMock = object({
 			async entityEventsReceived(events): Promise<ReadonlyArray<EntityUpdateData>> {
@@ -134,6 +130,14 @@ o.spec("EventBusClientTest", function () {
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		cryptoFacadeMock = object()
 		initEventBus()
+	})
+
+	o.spec("notifies listener when sync is done", function () {
+		o("loadMissedEntityEvents", async function () {
+			await ebc.loadMissedEntityEvents(object())
+
+			verify(listenerMock.onSyncDone())
+		})
 	})
 
 	o.spec("initEntityEvents ", function () {
