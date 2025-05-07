@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
-import { matchers, object, verify, when } from "testdouble"
+import { matchers, object, verify, when, func } from "testdouble"
 import {
 	EntityUpdateTypeRef,
 	GroupKeyUpdateTypeRef,
@@ -11,7 +11,7 @@ import {
 	WebsocketLeaderStatusTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity, withOverriddenEnv } from "../../TestUtils.js"
-import { AccountType, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { AccountType, OperationType, RolloutType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { lazyAsync, lazyMemoized } from "@tutao/tutanota-utils"
@@ -22,6 +22,9 @@ import { CacheManagementFacade } from "../../../../src/common/api/worker/facades
 import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { Mode } from "../../../../src/common/api/common/Env"
 import { QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
+import { RolloutFacade } from "../../../../src/common/api/worker/facades/RolloutFacade"
+import { GroupManagementFacade } from "../../../../src/common/api/worker/facades/lazy/GroupManagementFacade"
+import { SyncTracker } from "../../../../src/common/api/main/SyncTracker"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -35,6 +38,9 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	let eventController: EventController
 	let keyRotationFacadeMock: KeyRotationFacade
 	let cacheManagementFacade: CacheManagementFacade
+	let rolloutFacadeMock: RolloutFacade
+	let groupManagementFacadeMock: lazyAsync<GroupManagementFacade>
+	let syncTrackerMock: SyncTracker
 
 	o.beforeEach(function () {
 		user = createTestEntity(UserTypeRef, {
@@ -52,6 +58,9 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		eventController = object()
 		keyRotationFacadeMock = object()
 		cacheManagementFacade = object()
+		rolloutFacadeMock = object()
+		groupManagementFacadeMock = func<lazyAsync<GroupManagementFacade>>()
+		syncTrackerMock = object()
 		eventBusEventCoordinator = new EventBusEventCoordinator(
 			object(),
 			lazyMailFacade,
@@ -63,7 +72,43 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			async () => cacheManagementFacade,
 			async (error: Error) => {},
 			(_) => {},
+			rolloutFacadeMock,
+			groupManagementFacadeMock,
+			syncTrackerMock,
 		)
+	})
+
+	o.spec("onSyncDone", function () {
+		o("sends signal to main thread", async function () {
+			await eventBusEventCoordinator.onSyncDone()
+
+			verify(syncTrackerMock.markSyncAsDone())
+		})
+
+		o("executes UserIdentityKeyCreation rollout", async function () {
+			when(userFacade.isLeader()).thenReturn(true)
+
+			await eventBusEventCoordinator.onSyncDone()
+
+			const captor = matchers.captor()
+			verify(rolloutFacadeMock.processRollout(RolloutType.UserIdentityKeyCreation, captor.capture()))
+			o(captor.values?.length).equals(1)
+
+			const gfm: GroupManagementFacade = object()
+			when(groupManagementFacadeMock()).thenResolve(gfm)
+
+			// execute callback
+			await captor.values![0]()
+			verify(gfm.createIdentityKeyPair(matchers.anything()))
+		})
+
+		o("does not execute rollouts if it is not the leader client", async function () {
+			when(userFacade.isLeader()).thenReturn(false)
+
+			await eventBusEventCoordinator.onSyncDone()
+
+			verify(rolloutFacadeMock.processRollout(matchers.anything(), matchers.anything), { times: 0 })
+		})
 	})
 
 	o("updateUser and UserGroupKeyDistribution", async function () {
