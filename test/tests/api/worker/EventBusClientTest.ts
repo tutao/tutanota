@@ -28,7 +28,6 @@ import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
 import { clientModelAsServerModel, createTestEntity } from "../../TestUtils.js"
-import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import {
 	globalClientModelInfo,
@@ -50,7 +49,6 @@ o.spec("EventBusClientTest", function () {
 	let sleepDetector: SleepDetector
 	let listenerMock: EventBusListener
 	let progressTrackerMock: ExposedProgressTracker
-	let syncTrackerMock: SyncTracker
 	let instancePipeline: InstancePipeline
 	let socketFactory: (path: string) => WebSocket
 	let applicationTypesFacadeMock: ApplicationTypesFacade
@@ -69,7 +67,6 @@ o.spec("EventBusClientTest", function () {
 			socketFactory,
 			sleepDetector,
 			progressTrackerMock,
-			syncTrackerMock,
 			applicationTypesFacadeMock,
 		)
 	}
@@ -91,7 +88,6 @@ o.spec("EventBusClientTest", function () {
 	o.beforeEach(async function () {
 		listenerMock = object()
 		progressTrackerMock = object()
-		syncTrackerMock = object()
 		cacheMock = object({
 			async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
 				return batch.events.slice()
@@ -133,6 +129,14 @@ o.spec("EventBusClientTest", function () {
 
 		initEventBus()
 		clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
+	})
+
+	o.spec("notifies listener when sync is done", function () {
+		o("loadMissedEntityEvents", async function () {
+			await ebc.loadMissedEntityEvents(object())
+
+			verify(listenerMock.onSyncDone())
+		})
 	})
 
 	o.spec("initEntityEvents ", function () {

@@ -538,6 +538,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			indexer.addBatchesToQueue(queuedBatch)
 			indexer.startProcessing()
 		},
+		locator.rolloutFacade,
+		locator.groupManagement,
+		mainInterface.syncTracker,
 	)
 
 	locator.eventBusClient = new EventBusClient(
@@ -549,7 +552,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
-		mainInterface.syncTracker,
 		locator.applicationTypesFacade,
 	)
 	locator.login.init(locator.eventBusClient)

@@ -37,7 +37,6 @@ import { ApplicationTypesHash, globalServerModelInfo } from "../common/EntityFun
 import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
-import { SyncTracker } from "../main/SyncTracker.js"
 import { Entity, ServerModelUntypedInstance } from "../common/EntityTypes"
 import { InstancePipeline } from "./crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
@@ -99,6 +98,7 @@ export interface EventBusListener {
 	onPhishingMarkersReceived(markers: ReportedMailFieldMarker[]): unknown
 
 	onError(tutanotaError: Error): void
+	onSyncDone(): unknown
 }
 
 export class EventBusClient {
@@ -151,7 +151,6 @@ export class EventBusClient {
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: SleepDetector,
 		private readonly progressTracker: ExposedProgressTracker,
-		private readonly syncTracker: SyncTracker,
 		private readonly applicationTypesFacade: ApplicationTypesFacade,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
@@ -476,7 +475,7 @@ export class EventBusClient {
 			// If the cache is clean then this is a clean cache (either ephemeral after first connect or persistent with empty DB).
 			// We need to record the time even if we don't process anything to later know if we are out of sync or not.
 			await this.cache.recordSyncTime()
-			this.syncTracker.markSyncAsDone()
+			this.listener.onSyncDone()
 		}
 	}
 
@@ -543,7 +542,7 @@ export class EventBusClient {
 
 		// We don't have any missing update, we can just set the sync as finished
 		if (totalExpectedBatches === 0) {
-			this.syncTracker.markSyncAsDone()
+			this.listener.onSyncDone()
 		}
 
 		// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
@@ -568,7 +567,6 @@ export class EventBusClient {
 		// We try to detect whether event batches have already expired.
 		// If this happened we don't need to download anything, we need to purge the cache and start all over.
 		if (await this.cache.isOutOfSync()) {
-			this.syncTracker.markSyncAsDone()
 			// We handle it where we initialize the connection and purge the cache there.
 			throw new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more")
 		}
@@ -674,7 +672,7 @@ export class EventBusClient {
 
 			if (batch.batchId === this.lastInitialEventBatch) {
 				console.log("Reached final event, sync is done")
-				this.syncTracker.markSyncAsDone()
+				this.listener.onSyncDone()
 			}
 		} catch (e) {
 			if (e instanceof ServiceUnavailableError) {
