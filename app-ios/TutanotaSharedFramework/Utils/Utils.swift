@@ -5,12 +5,12 @@ public func translate(_ key: String, default defaultValue: String) -> String {
 }
 
 // // keep in sync with src/native/main/NativePushServiceApp.ts
-public let SYS_MODEL_VERSION = 119
+public let SYS_MODEL_VERSION = 126
 
 // api/entities/tutanota/ModelInfo.ts
 // FIXME there are at least 5 places needs manual sync for these version numbers.
 // Definitely need a script to automate.
-public let TUTANOTA_MODEL_VERSION: UInt32 = 80
+public let TUTANOTA_MODEL_VERSION: UInt32 = 86
 
 public extension URLRequest {
 	mutating func addSysModelHeader() { self.setValue(String(SYS_MODEL_VERSION), forHTTPHeaderField: "v") }
