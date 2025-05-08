@@ -312,13 +312,13 @@ export class RestClient {
 			} else if (typeof body === "string") {
 				headers["Content-Type"] = MediaType.Json
 			}
-		}
 
-		// add networkDebugging header iff network debugging is activated
-		// network debugging can be activated by building with --network-debugging,
-		// and essentially activates both attributeNames and attributeIds in the request/response payload
-		if (env.networkDebugging) {
-			headers["Network-Debugging"] = "enable-network-debugging"
+			// add networkDebugging header iff network debugging is activated
+			// network debugging can be activated by building with --network-debugging,
+			// and essentially activates both attributeNames and attributeIds in the request/response payload
+			if (env.networkDebugging) {
+				headers["Network-Debugging"] = "enable-network-debugging"
+			}
 		}
 
 		if (env.clientName != null) {
