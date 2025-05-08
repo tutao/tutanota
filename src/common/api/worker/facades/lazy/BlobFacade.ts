@@ -353,7 +353,7 @@ export class BlobFacade {
 	// Visible for testing
 	public async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
 		const responseTypeModel = await resolveClientTypeReference(BlobPostOutTypeRef)
-		const instance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(responseTypeModel, JSON.parse(jsonData))
+		const instance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(jsonData))
 		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap(BlobPostOutTypeRef, instance, null)
 		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk
 		// post single always has a valid blobRefernceToken with cardinality one.
@@ -473,7 +473,10 @@ export class BlobFacade {
 	}
 
 	private createStorageAppHeaders() {
-		let headers: Record<string, string> = { v: String(storageTypeModels[BlobGetInTypeRef.typeId].version), cv: env.versionNumber }
+		let headers: Record<string, string> = {
+			v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+			cv: env.versionNumber,
+		}
 		if (env.networkDebugging) {
 			headers["Network-Debugging"] = "enable-network-debugging"
 		}

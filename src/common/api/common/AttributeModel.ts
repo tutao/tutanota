@@ -1,4 +1,4 @@
-import { AppName, TypeRef } from "@tutao/tutanota-utils/dist/TypeRef"
+import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
 import {
 	AttributeId,
 	AttributeName,
@@ -10,13 +10,11 @@ import {
 	ServerModelUntypedInstance,
 	TypeId,
 	TypeModel,
-	UntypedInstance,
 } from "./EntityTypes"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { resolveServerTypeReference } from "./EntityFunctions"
-import { AssociationType } from "./EntityConstants"
+import { deepMapKeys } from "./utils/EntityUtils"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
@@ -30,36 +28,11 @@ export class AttributeModel {
 		storage: new Map(),
 	}
 
-	static async removeNetworkDebuggingInfoIfNeeded<T extends ClientModelUntypedInstance | ServerModelUntypedInstance>(
-		typeModel: TypeModel,
-		untypedInstance: T,
-	): Promise<T> {
-		let newUntypedInstance = {} as typeof untypedInstance
+	static removeNetworkDebuggingInfoIfNeeded<T extends ClientModelUntypedInstance | ServerModelUntypedInstance>(untypedInstance: T): T {
 		if (env.networkDebugging) {
-			for (const [attrIdStr, attrData] of Object.entries(untypedInstance)) {
-				// keys are in the format attributeId:attributeName when networkDebugging is enabled
-				const attrId = parseInt(attrIdStr.split(":")[0])
-				const associationModel = typeModel.associations[attrId]
-				if (associationModel != null && associationModel.type === AssociationType.Aggregation) {
-					const aggregationType = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refTypeId)
-					const aggregateTypeModel = await resolveServerTypeReference(aggregationType)
-					// Since attrData here is always Aggregation, it will always be an array of untypedInstance
-					const untypedAggregation = downcast<Array<typeof untypedInstance>>(attrData)
-					const newAggregationInstance = await Promise.all(
-						untypedAggregation.map(async (aggregationInstance) => {
-							const instance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<T>(aggregateTypeModel, aggregationInstance)
-							return downcast<UntypedInstance>(instance)
-						}),
-					)
-					newUntypedInstance[attrId.toString()] = newAggregationInstance
-				} else {
-					newUntypedInstance[attrId.toString()] = attrData
-				}
-			}
-			return newUntypedInstance
-		} else {
-			return untypedInstance
+			return deepMapKeys(untypedInstance, (key: string) => key.split(":")[0])
 		}
+		return untypedInstance
 	}
 
 	static getAttribute<T>(instance: EncryptedParsedInstance | ServerModelParsedInstance, attrName: string, typeModel: TypeModel): T {

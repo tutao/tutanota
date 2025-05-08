@@ -918,10 +918,7 @@ export class LoginFacade {
 				responseType: MediaType.Json,
 			})
 			.then(async (instance) => {
-				const untypedSession = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(
-					SessionTypeModel,
-					JSON.parse(instance),
-				)
+				const untypedSession = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(instance))
 				// Intentionally passing an UntypedInstance to AttributeModel to circumvent sessionkey resolution during login.
 				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
 				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]

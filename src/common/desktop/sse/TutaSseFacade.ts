@@ -26,6 +26,7 @@ import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { hasError } from "../../api/common/utils/ErrorUtils"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
+import { AttributeModel } from "../../api/common/AttributeModel"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -105,7 +106,9 @@ export class TutaSseFacade implements SseEventHandler {
 				}),
 			],
 		})
-		const untypedInstance = await this.nativeInstancePipeline.mapAndEncrypt(SseConnectDataTypeRef, connectData, null)
+		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(
+			await this.nativeInstancePipeline.mapAndEncrypt(SseConnectDataTypeRef, connectData, null),
+		)
 		return JSON.stringify(untypedInstance)
 	}
 

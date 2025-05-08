@@ -363,7 +363,7 @@ export class CalendarFacade {
 			await Promise.all(
 				alarmNotifications.map(async (an) => {
 					const untypedInstance = await this.instancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sessionKey)
-					return AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(alarmNotificationModel, untypedInstance)
+					return AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(untypedInstance)
 				}),
 			),
 		)

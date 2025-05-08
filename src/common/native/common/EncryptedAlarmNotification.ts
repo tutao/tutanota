@@ -24,10 +24,7 @@ export class EncryptedAlarmNotification {
 		const notificationSessionKeyTypeModel = await resolveClientTypeReference(NotificationSessionKeyTypeRef)
 		const alarmInfoTypeModel = await resolveClientTypeReference(AlarmInfoTypeRef)
 
-		const sanitizedUntypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(
-			alarmNotificationTypeModel,
-			untypedInstance,
-		)
+		const sanitizedUntypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(untypedInstance)
 		return new EncryptedAlarmNotification(sanitizedUntypedInstance, alarmNotificationTypeModel, notificationSessionKeyTypeModel, alarmInfoTypeModel)
 	}
 

@@ -477,6 +477,19 @@ export function deconstructMailSetEntryId(id: Id): { receiveDate: Date; mailId: 
 	return { receiveDate: new Date(timestamp), mailId }
 }
 
+export function deepMapKeys(obj: any, fn: any): any {
+	return Array.isArray(obj)
+		? obj.map((val) => deepMapKeys(val, fn))
+		: typeof obj === "object"
+		? Object.keys(obj).reduce((acc: any, current: string) => {
+				const key = fn(current)
+				const val = obj[current]
+				acc[key] = val !== null && typeof val === "object" ? deepMapKeys(val, fn) : val
+				return acc
+		  }, {})
+		: obj
+}
+
 export const LEGACY_TO_RECIPIENTS_ID = 112
 export const LEGACY_CC_RECIPIENTS_ID = 113
 export const LEGACY_BCC_RECIPIENTS_ID = 114

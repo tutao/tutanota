@@ -156,7 +156,7 @@ export type UntypedAssociation =
 	| Array<UntypedInstance>
 
 /**
- * Compound values. the keys are Attribu
+ * Compound values. The keys are AttributeIds.
  */
 export type UntypedInstance = Record<string, UntypedValue | UntypedAssociation>
 

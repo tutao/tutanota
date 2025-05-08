@@ -239,7 +239,7 @@ export class EntityRestClient implements EntityRestInterface {
 			baseUrl: opts.baseUrl,
 		})
 		const serverTypeModel = await resolveServerTypeReference(typeRef)
-		const untypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(serverTypeModel, JSON.parse(json))
+		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(json))
 
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
@@ -439,7 +439,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return await promiseMap(
 			loadedEntities,
 			async (instance) => {
-				const noNetworkDebugInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(serverTypeModel, instance)
+				const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
 				let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
 				return this._decryptAndMap(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
@@ -509,10 +509,7 @@ export class EntityRestClient implements EntityRestInterface {
 			responseType: MediaType.Json,
 		})
 		const postReturnTypeModel = await resolveClientTypeReference(PersistenceResourcePostReturnTypeRef)
-		const untypedPersistencePostReturn = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(
-			postReturnTypeModel,
-			JSON.parse(persistencePostReturn),
-		)
+		const untypedPersistencePostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(JSON.parse(persistencePostReturn))
 		return AttributeModel.getAttributeorNull<Id>(untypedPersistencePostReturn, "generatedId", postReturnTypeModel)
 	}
 
@@ -682,10 +679,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const persistencePostReturnModel = await resolveServerTypeReference(PersistenceResourcePostReturnTypeRef)
 		try {
 			return await promiseMap(Array.from(result), async (untypedPostReturn: any) => {
-				const sanitisedUntypedPostReturn = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(
-					persistencePostReturnModel,
-					untypedPostReturn,
-				)
+				const sanitisedUntypedPostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(untypedPostReturn)
 				const parsedInstance = await this.instancePipeline.decryptAndMap(PersistenceResourcePostReturnTypeRef, sanitisedUntypedPostReturn, null)
 				return parsedInstance.generatedId as Id // is null for customIds
 			})

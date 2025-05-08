@@ -11,6 +11,7 @@ import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 const serverModelUntypedInstanceNetworkDebugging: ServerModelUntypedInstance = {
 	"1:testValue": "test string",
@@ -79,8 +80,19 @@ o.spec("TypeMapper", function () {
 	})
 
 	o.spec("networkDebugging works", function () {
-		o("can apply db types with network debugging enabled", async function () {
+		o.before(() => {
 			env.networkDebugging = true
+		})
+
+		o.after(() => {
+			env.networkDebugging = false
+		})
+
+		o("can handle associations and aggregations with network debugging enabled", async function () {
+			o(AttributeModel.removeNetworkDebuggingInfoIfNeeded(serverModelUntypedInstanceNetworkDebugging)).deepEquals(serverModelUntypedInstance)
+		})
+
+		o("can apply db types with network debugging enabled", async function () {
 			const instance = await typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, clientModelEncryptedParsedInstance)
 			o(instance["1:testValue"]).equals("base64EncodedString")
 			o(instance["3:testAssociation"]![0]["2:testNumber"]).equals("123")

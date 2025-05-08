@@ -82,7 +82,7 @@ o.spec("ServiceExecutor", function () {
 		const expectedInstance = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 		const dataWithDebug = await realInstancePipeline.mapAndEncrypt(SaltDataTypeRef, expectedInstance, null)
 
-		const dataAsUntypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded(saltDataTypeModel, dataWithDebug)
+		const dataAsUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(dataWithDebug)
 		when(
 			instancePipeline.decryptAndMap(
 				SaltDataTypeRef,

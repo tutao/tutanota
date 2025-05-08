@@ -159,7 +159,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		// Filter out __proto__ to avoid prototype pollution.
 		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
 		const serverTypeModel = await resolveServerTypeReference(typeRef)
-		const cleanInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(serverTypeModel, instance)
+		const cleanInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, cleanInstance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
 		const sessionKey = (await this.cryptoFacade().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
