@@ -59,8 +59,10 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
 		}
 
-		const test = getPlanSelectorTest()
-		void test.forceRestart()
+		if (this.upgradeType === UpgradeType.Signup) {
+			const test = getPlanSelectorTest()
+			void test.forceRestart()
+		}
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -99,6 +101,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				priceAndConfigProvider: vnode.attrs.data.planPrices,
 				multipleUsersAllowed: vnode.attrs.data.multipleUsersAllowed,
 				msg: data.msg,
+				upgradeType: this.upgradeType ?? undefined,
 			}),
 		])
 	}

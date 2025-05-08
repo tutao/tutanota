@@ -36,6 +36,7 @@ import { isIOSApp } from "../api/common/Env"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { theme } from "../gui/theme.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { UpgradeType } from "./SubscriptionUtils.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -63,6 +64,7 @@ export type SubscriptionSelectorAttr = {
 	acceptedPlans: AvailablePlanType[]
 	multipleUsersAllowed: boolean
 	msg: MaybeTranslation | null
+	upgradeType?: UpgradeType
 }
 
 export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: AvailablePlanType): lazy<Children> {
@@ -207,13 +209,15 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						selectedValue: options.businessUse(),
 						onValueSelected: (isBusinessUse: boolean) => {
 							if (isBusinessUse) {
-								const usageTest = locator.usageTestController.getTest("signup.paywall.business")
-								const stage = usageTest.getStage(0)
-								stage.setMetric({
-									name: "variant",
-									value: "A",
-								})
-								void stage.complete()
+								if (vnode.attrs.upgradeType === UpgradeType.Signup) {
+									const usageTest = locator.usageTestController.getTest("signup.paywall.business")
+									const stage = usageTest.getStage(0)
+									stage.setMetric({
+										name: "variant",
+										value: "A",
+									})
+									void stage.complete()
+								}
 							}
 
 							return options.businessUse(isBusinessUse)
