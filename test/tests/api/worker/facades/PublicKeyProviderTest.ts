@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
@@ -209,7 +209,7 @@ o.spec("PublicKeyProviderTest", function () {
 
 	o.spec("loadPublicIdentityKeyFromGroup", function () {
 		o("success", async function () {
-			const pubEd25519Key = object<Uint8Array>()
+			const pubEd25519Key = new Uint8Array([1, 2, 3])
 
 			const userGroup: Group = object()
 			userGroup._id = "userGroup"
@@ -235,13 +235,13 @@ o.spec("PublicKeyProviderTest", function () {
 
 			const actualPublicIdentityKey = await publicKeyProvider.loadPublicIdentityKeyFromGroup(userGroup._id)
 
-			o(actualPublicIdentityKey).equals(pubEd25519Key)
+			o(actualPublicIdentityKey).deepEquals(pubEd25519Key)
 			verify(
 				keyAuthenticationFacade.verifyTag(
 					matchers.argThat((params: IdentityPubKeyAuthenticationParams) => {
 						return (
 							params.tagType == "IDENTITY_PUB_KEY_TAG" &&
-							params.untrustedKey.identityPubKey == pubEd25519Key &&
+							arrayEquals(params.untrustedKey.identityPubKey, pubEd25519Key) &&
 							params.sourceOfTrust.symmetricGroupKey == userGroupKey &&
 							params.bindingData.groupId == userGroup._id &&
 							String(params.bindingData.groupKeyVersion) == identityPublicKeyMac.taggingKeyVersion &&
@@ -254,7 +254,7 @@ o.spec("PublicKeyProviderTest", function () {
 		})
 
 		o("if the tag does not match, an error is thrown", async function () {
-			const pubEd25519Key = object<Uint8Array>()
+			const pubEd25519Key = new Uint8Array([6, 7, 8])
 
 			const userGroup: Group = object()
 			userGroup._id = "userGroup"

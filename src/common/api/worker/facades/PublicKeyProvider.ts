@@ -8,6 +8,7 @@ import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { InvalidDataError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import {
+	bytesToEd25519PublicKey,
 	bytesToKyberPublicKey,
 	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
@@ -62,7 +63,8 @@ export class PublicKeyProvider {
 		if (!group.identityKeyPair) {
 			return null
 		}
-		const publicIdentityKey = group.identityKeyPair.publicEd25519Key
+		const publicIdentityKey = bytesToEd25519PublicKey(group.identityKeyPair.publicEd25519Key)
+
 		const publicIdentityKeyMac = brandKeyMac(group.identityKeyPair.publicKeyMac)
 		const identityKeyVersion = parseKeyVersion(group.identityKeyPair.identityKeyVersion)
 		const taggingGroupKeyVersion = parseKeyVersion(publicIdentityKeyMac.taggingKeyVersion)
