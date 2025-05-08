@@ -20,11 +20,20 @@ import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 
 export const enum UpgradeType {
+	/**
+	 * during signup
+	 */
 	Signup = "Signup",
-	// during signup
+
+	/**
+	 * when logged into Free account
+	 */
 	Initial = "Initial",
-	// when logged into Free account
-	Switch = "Switch", // switching in paid account
+
+	/**
+	 * switching in paid account
+	 */
+	Switch = "Switch",
 }
 
 export function getCurrentCount(featureType: BookingItemFeatureType, booking: Booking | null): number {
