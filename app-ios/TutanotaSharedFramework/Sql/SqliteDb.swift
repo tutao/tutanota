@@ -1,3 +1,5 @@
+import SignalTokenizer
+
 /// Swift wrapper around sqlite
 open class SqliteDb {
 	public private(set) var db: OpaquePointer?
@@ -10,11 +12,16 @@ open class SqliteDb {
 			nil  // vfs module name
 		)
 		sqlite3_enable_load_extension(self.db, 1)
-		var errMsg: UnsafeMutablePointer<CChar>? = nil
-		let extensionLoadResult = "libsignal_tokenizer.dylib"
-			.withCString({ filenamePointer in
-				"signal_fts5_tokenizer_init".withCString { entryPointPointer in sqlite3_load_extension(self.db, filenamePointer, entryPointPointer, &errMsg) }
-			})
+		var errMsg: UnsafeMutablePointer<CChar>?
+		var api = UsefulSqlite3ApiRoutines(
+			malloc64: sqlite3_malloc64,
+			prepare: sqlite3_prepare,
+			bind_pointer: sqlite3_bind_pointer,
+			finalize: sqlite3_finalize,
+			step: sqlite3_step,
+			libversion_number: sqlite3_libversion_number
+		)
+		let extensionLoadResult = signal_fts5_tokenizer_init_static(self.db, &errMsg, &api)
 		if extensionLoadResult != SQLITE_OK {
 			let error: String? = if let errMsg = sqlite3_errmsg(self.db) { String(cString: errMsg) } else { nil }
 			let swiftErrorMsg: String? = if let errMsg { String(cString: errMsg) } else { nil }
