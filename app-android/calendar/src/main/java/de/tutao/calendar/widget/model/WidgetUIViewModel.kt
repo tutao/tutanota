@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.Log
 import androidx.datastore.core.IOException
 import androidx.lifecycle.ViewModel
+import de.tutao.calendar.R
 import de.tutao.calendar.widget.WidgetUpdateTrigger
+import de.tutao.calendar.widget.data.BirthdayEventDao
 import de.tutao.calendar.widget.data.LastSyncDao
 import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.UIEvent
@@ -153,6 +155,27 @@ class WidgetUIViewModel(
 					normalEvents.add(event)
 				}
 			}
+
+			eventList.birthdayEvents.map {
+				val zoneId = ZoneId.systemDefault()
+				val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.startTime.toLong()), zoneId)
+				val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.endTime.toLong()), zoneId)
+				val formatter = DateTimeFormatter.ofPattern("HH:mm")
+
+				val event = UIEvent(
+					calendarId,
+					it.eventDao.id,
+					calendarColor = settings.calendars[calendarId]?.color ?: "2196f3",
+					summary = buildBirthdayEventTitle(it, context),
+					start.format(formatter),
+					end.format(formatter),
+					isAllDay = true,
+					it.eventDao.startTime,
+					isBirthday = true
+				)
+
+				allDayEvents.add(0, event)
+			}
 		}
 
 		normalEvents.sortWith(Comparator<UIEvent> { a, b ->
@@ -166,6 +189,19 @@ class WidgetUIViewModel(
 		_uiState.value = WidgetUIData(normalEvents, allDayEvents)
 
 		return uiState.value
+	}
+
+	private fun buildBirthdayEventTitle(event: BirthdayEventDao, context: Context): String {
+		if (event.contact.age == null) {
+			return context.getString(R.string.birthdayEvent_title).replace("{name}", event.contact.name)
+		}
+
+		val age = context.getString(R.string.birthdayEventAge_title).replace(
+			"{age}",
+			event.contact.age.toString()
+		)
+
+		return "${event.contact.name} ($age)"
 	}
 
 	suspend fun getLoggedInUser(context: Context): String? {
