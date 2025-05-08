@@ -71,6 +71,7 @@ import type { CalendarContactPreviewViewModel } from "../../../calendar-app/cale
 import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { PublicKeyProvider } from "../worker/facades/PublicKeyProvider"
+import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -113,6 +114,7 @@ export interface CommonLocator {
 	workerFacade: WorkerFacade
 	random: WorkerRandomizer
 	connectivityModel: WebsocketConnectivityModel
+	identityKeyCreator: IdentityKeyCreator
 
 	mailboxModel: MailboxModel
 

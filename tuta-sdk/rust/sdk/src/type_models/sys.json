@@ -68,7 +68,17 @@
 				"encrypted": false
 			}
 		},
-		"associations": {}
+		"associations": {
+			"2581": {
+				"final": false,
+				"name": "signature",
+				"id": 2581,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2574,
+				"dependency": null
+			}
+		}
 	},
 	"5": {
 		"name": "Group",
@@ -263,10 +273,10 @@
 				"refTypeId": 2384,
 				"dependency": null
 			},
-			"2574": {
+			"2580": {
 				"final": false,
 				"name": "identityKeyPair",
-				"id": 2574,
+				"id": 2580,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2567,
@@ -13987,37 +13997,45 @@
 			}
 		}
 	},
-	"2575": {
-		"name": "IdentityKeyGetIn",
+	"2574": {
+		"name": "PublicKeySignature",
 		"app": "sys",
 		"version": 128,
 		"since": 128,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 2575,
-		"rootId": "A3N5cwAKDw",
+		"type": "AGGREGATED_TYPE",
+		"id": 2574,
+		"rootId": "A3N5cwAKDg",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
+			"2575": {
+				"final": true,
+				"name": "_id",
+				"id": 2575,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
 			"2576": {
 				"final": false,
-				"name": "_format",
+				"name": "signature",
 				"id": 2576,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2577": {
 				"final": false,
-				"name": "version",
+				"name": "signingKeyVersion",
 				"id": 2577,
 				"type": "Number",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": false
 			},
 			"2578": {
 				"final": false,
-				"name": "identifierType",
+				"name": "signatureType",
 				"id": 2578,
 				"type": "Number",
 				"cardinality": "One",
@@ -14025,8 +14043,55 @@
 			},
 			"2579": {
 				"final": false,
-				"name": "identifier",
+				"name": "publicKeyVersion",
 				"id": 2579,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2582": {
+		"name": "IdentityKeyGetIn",
+		"app": "sys",
+		"version": 128,
+		"since": 128,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2582,
+		"rootId": "A3N5cwAKFg",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2583": {
+				"final": false,
+				"name": "_format",
+				"id": 2583,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2584": {
+				"final": false,
+				"name": "version",
+				"id": 2584,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2585": {
+				"final": false,
+				"name": "identifierType",
+				"id": 2585,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2586": {
+				"final": false,
+				"name": "identifier",
+				"id": 2586,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -14034,101 +14099,37 @@
 		},
 		"associations": {}
 	},
-	"2580": {
+	"2587": {
 		"name": "IdentityKeyGetOut",
 		"app": "sys",
 		"version": 128,
 		"since": 128,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2580,
-		"rootId": "A3N5cwAKFA",
+		"id": 2587,
+		"rootId": "A3N5cwAKGw",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2581": {
+			"2588": {
 				"final": false,
 				"name": "_format",
-				"id": 2581,
+				"id": 2588,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2582": {
+			"2589": {
 				"final": false,
 				"name": "publicIdentityKey",
-				"id": 2582,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"2583": {
-				"final": false,
-				"name": "publicIdentityKeyVersion",
-				"id": 2583,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {}
-	},
-	"2584": {
-		"name": "IdentityKeyPostIn",
-		"app": "sys",
-		"version": 128,
-		"since": 128,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 2584,
-		"rootId": "A3N5cwAKGA",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"2585": {
-				"final": false,
-				"name": "_format",
-				"id": 2585,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"2586": {
-				"final": false,
-				"name": "identityKeyPair",
-				"id": 2586,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refTypeId": 2567,
-				"dependency": null
-			}
-		}
-	},
-	"2588": {
-		"name": "Rollout",
-		"app": "sys",
-		"version": 128,
-		"since": 128,
-		"type": "AGGREGATED_TYPE",
-		"id": 2588,
-		"rootId": "A3N5cwAKHA",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"2589": {
-				"final": true,
-				"name": "_id",
 				"id": 2589,
-				"type": "CustomId",
+				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2590": {
 				"final": false,
-				"name": "rolloutType",
+				"name": "publicIdentityKeyVersion",
 				"id": 2590,
 				"type": "Number",
 				"cardinality": "One",
@@ -14138,7 +14139,7 @@
 		"associations": {}
 	},
 	"2591": {
-		"name": "RolloutGetOut",
+		"name": "IdentityKeyPostIn",
 		"app": "sys",
 		"version": 128,
 		"since": 128,
@@ -14161,11 +14162,84 @@
 		"associations": {
 			"2593": {
 				"final": false,
-				"name": "rollouts",
+				"name": "identityKeyPair",
 				"id": 2593,
 				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2567,
+				"dependency": null
+			},
+			"2594": {
+				"final": false,
+				"name": "signatures",
+				"id": 2594,
+				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refTypeId": 2588,
+				"refTypeId": 2574,
+				"dependency": null
+			}
+		}
+	},
+	"2596": {
+		"name": "Rollout",
+		"app": "sys",
+		"version": 128,
+		"since": 128,
+		"type": "AGGREGATED_TYPE",
+		"id": 2596,
+		"rootId": "A3N5cwAKJA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2597": {
+				"final": true,
+				"name": "_id",
+				"id": 2597,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2598": {
+				"final": false,
+				"name": "rolloutType",
+				"id": 2598,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2599": {
+		"name": "RolloutGetOut",
+		"app": "sys",
+		"version": 128,
+		"since": 128,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2599,
+		"rootId": "A3N5cwAKJw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2600": {
+				"final": false,
+				"name": "_format",
+				"id": 2600,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"2601": {
+				"final": false,
+				"name": "rollouts",
+				"id": 2601,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2596,
 				"dependency": null
 			}
 		}

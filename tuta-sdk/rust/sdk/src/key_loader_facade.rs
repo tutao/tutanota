@@ -411,6 +411,7 @@ mod tests {
 			symEncPrivEccKey: None,
 			symEncPrivKyberKey: None,
 			symEncPrivRsaKey: None,
+			signature: None,
 		};
 		match current_key_pair {
 			AsymmetricKeyPair::RSAX25519KeyPair(_) => {
@@ -538,6 +539,7 @@ mod tests {
 								.unwrap(),
 						),
 						symEncPrivRsaKey: None,
+						signature: None,
 					}),
 				},
 			);

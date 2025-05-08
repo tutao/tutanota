@@ -148,6 +148,7 @@ import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
 import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
+import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 
 assertMainOrNode()
 
@@ -172,6 +173,7 @@ class MailLocator implements CommonLocator {
 	keyLoaderFacade!: KeyLoaderFacade
 	giftCardFacade!: GiftCardFacade
 	groupManagementFacade!: GroupManagementFacade
+	identityKeyCreator!: IdentityKeyCreator
 	configFacade!: ConfigurationDatabase
 	calendarFacade!: CalendarFacade
 	mailFacade!: MailFacade
@@ -726,6 +728,7 @@ class MailLocator implements CommonLocator {
 			customerFacade,
 			giftCardFacade,
 			groupManagementFacade,
+			identityKeyCreator,
 			configFacade,
 			calendarFacade,
 			mailFacade,
@@ -757,6 +760,7 @@ class MailLocator implements CommonLocator {
 		this.customerFacade = customerFacade
 		this.giftCardFacade = giftCardFacade
 		this.groupManagementFacade = groupManagementFacade
+		this.identityKeyCreator = identityKeyCreator
 		this.configFacade = configFacade
 		this.calendarFacade = calendarFacade
 		this.mailFacade = mailFacade
