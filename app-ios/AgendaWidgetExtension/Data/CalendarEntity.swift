@@ -9,6 +9,7 @@ import AppIntents
 import TutanotaSharedFramework
 import tutasdk
 
+let CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID = "clientOnly_birthdays"
 let DEFAULT_CALENDAR_NAME = translate("TutaoDefaultCalendarNameTitle", default: "Private")
 let DEFAULT_CALENDAR_COLOR = "23f520"
 
@@ -27,9 +28,15 @@ struct CalendarEntity: AppEntity {
 		let sdk = try await SdkFactory.createSdk(userId: userId)
 		let calendars = await sdk.calendarFacade().getCalendarsRenderData()
 		return calendars.map { calendarId, renderData in
-			CalendarEntity(
+			var calendarName = renderData.name.isEmpty ? DEFAULT_CALENDAR_NAME : renderData.name;
+
+			if (calendarId.contains(CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID)) {
+				calendarName = translate("TutaoBirthdayCalendarLabel", default: "Birthdays")
+			}
+
+			return CalendarEntity(
 				id: calendarId,
-				name: renderData.name.isEmpty ? DEFAULT_CALENDAR_NAME : renderData.name,
+				name: calendarName,
 				color: renderData.color.isEmpty ? DEFAULT_CALENDAR_COLOR : renderData.color
 			)
 		}
