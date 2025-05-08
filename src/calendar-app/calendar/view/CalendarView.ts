@@ -1358,10 +1358,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				if (eventIdParam && isApp() && this.eventDetails) {
 					try {
 						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
-						this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
-							if (this.viewSlider.focusedColumn != this.eventDetails && this.eventDetails) {
-								this.viewSlider.focus(this.eventDetails)
-							}
+						locator.logins.waitForFullLogin().then(() => {
+							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
+								if (this.viewSlider.focusedColumn != this.eventDetails && this.eventDetails) {
+									this.viewSlider.focus(this.eventDetails)
+								}
+							})
 						})
 					} catch (e) {
 						console.warn("Failed to open event", eventIdParam)

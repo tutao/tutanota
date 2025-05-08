@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_EVENTS_CACHE
 import de.tutao.calendar.widget.widgetCacheDataStore
+import de.tutao.tutasdk.BirthdayEvent
 import de.tutao.tutasdk.CalendarEvent
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoggedInSdk
@@ -16,6 +17,7 @@ import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
+import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -126,7 +128,8 @@ class WidgetDataRepository() : WidgetRepository() {
 			calendarEventListMap = calendarEventListMap.plus(
 				calendarId to CalendarEventListDao(
 					events.shortEvents.toDao(),
-					(events.longEvents.plus(events.birthdayEvents.map { it.calendarEvent }).toDao()),
+					events.longEvents.toDao(),
+					events.birthdayEvents.asDao()
 				)
 			)
 		}
@@ -152,6 +155,7 @@ class WidgetDataRepository() : WidgetRepository() {
 			cachedEvents[id] = CalendarEventListDao(
 				shortEvents = events.shortEvents.filter { it.startTime >= now || it.endTime >= now },
 				longEvents = events.longEvents.filter { it.startTime >= now || it.endTime >= now },
+				birthdayEvents = events.birthdayEvents.filter { it.eventDao.startTime >= now || it.eventDao.endTime >= now }
 			)
 		}
 
@@ -169,5 +173,35 @@ class WidgetDataRepository() : WidgetRepository() {
 				it.summary
 			)
 		}
+	}
+
+	private fun List<BirthdayEvent>.asDao(): List<BirthdayEventDao> {
+		return this.map {
+			val id = it.calendarEvent.id
+				?: throw RuntimeException("Trying to convert an event without id to CalendarEventDao")
+			val age = it.contact.birthdayIso?.let { it1 -> calculateContactAge(it1) }
+
+			val event = CalendarEventDao(
+				IdTuple(id.listId, id.elementId),
+				it.calendarEvent.startTime,
+				it.calendarEvent.endTime,
+				"" // The event title will be set later inside the composition
+			)
+
+			BirthdayEventDao(event, ContactDao(it.contact.firstName, age));
+		}
+	}
+
+	private fun calculateContactAge(birthdayIso: String): Int? {
+		if (birthdayIso.startsWith("--")) {
+			return null
+		}
+
+		val birthdayParts = birthdayIso.split("-")
+		if (birthdayParts[0].length != 4 || birthdayParts[0].toIntOrNull() == null) {
+			return null
+		}
+
+		return LocalDate.now().year - birthdayParts[0].toInt()
 	}
 }

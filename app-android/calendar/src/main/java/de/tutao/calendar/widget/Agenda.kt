@@ -284,7 +284,7 @@ class Agenda : GlanceAppWidget() {
 				.background(GlanceTheme.colors.background)
 				.fillMaxSize()
 				.appWidgetBackground()
-				.cornerRadius(8.dp),
+				.cornerRadius(20.dp),
 		) {
 
 			if (data == null) {
@@ -419,9 +419,14 @@ class Agenda : GlanceAppWidget() {
 						val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
 						val allDayIconColor =
 							generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
+						val image = if (allDayEvents.first().isBirthday) {
+							R.drawable.ic_gift
+						} else {
+							R.drawable.ic_all_day
+						}
 
 						Image(
-							provider = ImageProvider(R.drawable.ic_all_day),
+							provider = ImageProvider(image),
 							contentDescription = "Add event button",
 							colorFilter = androidx.glance.ColorFilter.tint(allDayIconColor),
 							modifier = GlanceModifier.size(16.dp).background(calendarColor).cornerRadius(8.dp)
