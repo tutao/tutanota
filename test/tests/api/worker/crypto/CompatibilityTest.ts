@@ -34,6 +34,7 @@ import {
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
+	rsaPublicKeyToHex,
 	uint8ArrayToBitArray,
 	verifyHmacSha256,
 	x25519Decapsulate,
@@ -57,6 +58,9 @@ import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
+import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
+import { IdentityKeyPair, KeyPair } from "../../../../../src/common/api/entities/sys/TypeRefs"
 
 const originalRandom = random.generateRandomData
 
@@ -407,9 +411,49 @@ o.spec("CompatibilityTest", function () {
 			o(uint8ArrayToHex(ed25519PublicKeyToBytes(public_key))).deepEquals(td.alicePublicKeyHex)
 			o(uint8ArrayToHex(ed25519SignatureToBytes(signature))).deepEquals(td.signature)
 
-			const reproducedSignature = await ed25519Facade.sign(aliceKeyPair.private_key, stringToUtf8Uint8Array(td.message))
+			const reproducedSignature = await ed25519Facade.sign(aliceKeyPair.private_key, hexToUint8Array(td.message))
 			o(td.signature).equals(uint8ArrayToHex(reproducedSignature))
-			o(await ed25519Facade.verify(aliceKeyPair.public_key, stringToUtf8Uint8Array(td.message), signature)).equals(true)
+			o(await ed25519Facade.verifySignature(aliceKeyPair.public_key, signature, hexToUint8Array(td.message))).equals(true)
+		}
+	})
+	o("public key signature", async function () {
+		for (const td of testData.ed25519Tests) {
+			const ed25519Facade = await createEd25519Facade()
+			const facade = new PublicKeySignatureFacade(ed25519Facade)
+
+			const encryptionKeyPair: KeyPair = object()
+			encryptionKeyPair.pubEccKey = null
+			encryptionKeyPair.pubKyberKey = null
+			encryptionKeyPair.pubRsaKey = null
+
+			if (td.pubEccKey) {
+				encryptionKeyPair.pubEccKey = hexToUint8Array(td.pubEccKey)
+			}
+			if (td.pubRsaKey) {
+				const pubRsaKey = hexToRsaPublicKey(td.pubRsaKey)
+				encryptionKeyPair.pubRsaKey = hexToUint8Array(rsaPublicKeyToHex(pubRsaKey))
+			}
+			if (td.pubKyberKey) {
+				encryptionKeyPair.pubKyberKey = hexToUint8Array(td.pubKyberKey)
+			}
+
+			const keyPairVersion = checkKeyVersionConstraints(td.keyPairVersion)
+
+			const alicePublicKeyBytes = hexToUint8Array(td.alicePublicKeyHex)
+			const alicePrivateKey = bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex))
+			const signature = bytesToEd25519Signature(hexToUint8Array(td.signature))
+			const message = hexToUint8Array(td.message)
+
+			const serializedMessage = facade.serializePublicKeyForSigning(encryptionKeyPair, keyPairVersion)
+			o(serializedMessage).deepEquals(message)
+
+			const reproducedSignature = await facade.signPublicKey(encryptionKeyPair, alicePrivateKey, keyPairVersion)
+			o(reproducedSignature).deepEquals(signature)
+
+			const identityKeyPair: IdentityKeyPair = object()
+			identityKeyPair.publicEd25519Key = alicePublicKeyBytes
+
+			o(await facade.verifyPublicKeySignature(encryptionKeyPair, identityKeyPair, keyPairVersion, reproducedSignature)).equals(true)
 		}
 	})
 

@@ -53,7 +53,7 @@ export class Ed25519Facade {
 		return ed25519SignatureToBytes(signWithEd25519(privateKey, message))
 	}
 
-	async verify(publicKey: Ed25519PublicKey, message: Uint8Array, signature: EncodedEd25519Signature): Promise<boolean> {
+	async verifySignature(publicKey: Ed25519PublicKey, signature: EncodedEd25519Signature, message: Uint8Array): Promise<boolean> {
 		await this.initEd25519.getAsync()
 		return verifyEd25519Signature(publicKey, message, bytesToEd25519Signature(signature))
 	}

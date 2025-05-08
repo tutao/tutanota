@@ -113,7 +113,9 @@ pub struct Ed25519Test {
 	pub pub_ecc_key: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub pub_kyber_key: Vec<u8>,
-	pub key_pair_version: i64
+	#[serde(with = "const_hex")]
+	pub pub_rsa_key: Vec<u8>,
+	pub key_pair_version: i64,
 }
 
 #[derive(Deserialize)]

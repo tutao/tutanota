@@ -101,6 +101,7 @@ import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipe
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
+import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 
 assertWorkerOrNode()
 
@@ -127,6 +128,7 @@ export type WorkerLocatorType = {
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
+	publicKeySignatureFacade: PublicKeySignatureFacade
 	rolloutFacade: RolloutFacade
 
 	// login
@@ -289,6 +291,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
 	locator.ed25519Facade = new Ed25519Facade()
+
+	locator.publicKeySignatureFacade = new PublicKeySignatureFacade(locator.ed25519Facade)
 
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 	const keyAuthenticationFacade = new KeyAuthenticationFacade(locator.cryptoWrapper)
