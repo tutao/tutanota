@@ -369,6 +369,7 @@ function prepareMultiAdminUserKeyRotation(
 		symEncPrivKyberKey: object(),
 		pubRsaKey: null,
 		symEncPrivRsaKey: null,
+		signature: null,
 	})
 	const adminDistPqKeyPair = object<PQKeyPairs>()
 	const adminGroupDistributionKeyPairKey = object<Aes256Key>()
@@ -2286,6 +2287,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 			symEncPrivEccKey: encryptedEccPrivKey,
 			symEncPrivKyberKey: encryptedKyberPrivKey,
 			symEncPrivRsaKey: null,
+			signature: null,
 		}
 
 		results.set(newKey, {

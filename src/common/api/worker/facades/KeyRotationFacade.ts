@@ -34,6 +34,7 @@ import {
 	KeyRotationTypeRef,
 	PubDistributionKey,
 	PubEncKeyData,
+	PublicKeySignature,
 	RecoverCodeData,
 	SentGroupInvitationTypeRef,
 	User,
@@ -132,14 +133,15 @@ type PreparedUserAreaGroupKeyRotation = {
 	preparedReInvitations: GroupInvitationPostData[]
 }
 
+type EncryptedPqKeyPairsMaybeWithSignature = EncryptedPqKeyPairs & { signature: PublicKeySignature | null }
 type GeneratedGroupKeys = {
 	symGroupKey: VersionedKey
-	encryptedKeyPair: EncryptedPqKeyPairs | null
+	encryptedKeyPair: EncryptedPqKeyPairsMaybeWithSignature | null
 }
 
 type EncryptedGroupKeys = {
 	newGroupKeyEncCurrentGroupKey: VersionedEncryptedKey
-	keyPair: EncryptedPqKeyPairs | null
+	keyPair: EncryptedPqKeyPairsMaybeWithSignature | null
 	adminGroupKeyEncNewGroupKey: VersionedEncryptedKey | null
 }
 
@@ -855,7 +857,7 @@ export class KeyRotationFacade {
 	/**
 	 * Not all groups have key pairs, but if they do we need to rotate them as well.
 	 */
-	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedPqKeyPairs | null> {
+	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedPqKeyPairsMaybeWithSignature | null> {
 		if (groupToRotate.currentKeys) {
 			return this.generateAndEncryptPqKeyPairs(newSymmetricGroupKey)
 		} else {
@@ -863,7 +865,7 @@ export class KeyRotationFacade {
 		}
 	}
 
-	private async generateAndEncryptPqKeyPairs(symmmetricEncryptionKey: Aes256Key): Promise<EncryptedPqKeyPairs> {
+	private async generateAndEncryptPqKeyPairs(symmmetricEncryptionKey: Aes256Key): Promise<EncryptedPqKeyPairsMaybeWithSignature> {
 		const newPqPairs = await this.pqFacade.generateKeyPairs()
 		return {
 			pubRsaKey: null,
@@ -872,6 +874,7 @@ export class KeyRotationFacade {
 			symEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
 			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
+			signature: null, // TODO we should create it if needed and possible!
 		}
 	}
 
@@ -1405,6 +1408,6 @@ function hasNonQuantumSafeKeys(...keys: AesKey[]) {
 	return keys.some((key) => !isQuantumSafe(key))
 }
 
-function makeKeyPair(keyPair: EncryptedPqKeyPairs | null): KeyPair | null {
+function makeKeyPair(keyPair: EncryptedPqKeyPairsMaybeWithSignature | null): KeyPair | null {
 	return keyPair != null ? createKeyPair(keyPair) : null
 }
