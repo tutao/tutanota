@@ -19,6 +19,8 @@ export type KeyPair = {
 	symEncPrivEccKey: null | Uint8Array;
 	pubKyberKey: null | Uint8Array;
 	symEncPrivKyberKey: null | Uint8Array;
+
+	signature: null | PublicKeySignature;
 }
 export const GroupTypeRef: TypeRef<Group> = new TypeRef("sys", 5)
 
@@ -3688,7 +3690,22 @@ export type IdentityKeyPair = {
 
 	publicKeyMac: KeyMac;
 }
-export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2580)
+export const PublicKeySignatureTypeRef: TypeRef<PublicKeySignature> = new TypeRef("sys", 2570)
+
+export function createPublicKeySignature(values: StrippedEntity<PublicKeySignature>): PublicKeySignature {
+	return Object.assign(create(typeModels[PublicKeySignatureTypeRef.typeId], PublicKeySignatureTypeRef), values)
+}
+
+export type PublicKeySignature = {
+	_type: TypeRef<PublicKeySignature>;
+
+	_id: Id;
+	signature: Uint8Array;
+	signingKeyVersion: NumberString;
+	signatureType: NumberString;
+	publicKeyVersion: NumberString;
+}
+export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2587)
 
 export function createIdentityKeyPostIn(values: StrippedEntity<IdentityKeyPostIn>): IdentityKeyPostIn {
 	return Object.assign(create(typeModels[IdentityKeyPostInTypeRef.typeId], IdentityKeyPostInTypeRef), values)
@@ -3700,8 +3717,9 @@ export type IdentityKeyPostIn = {
 	_format: NumberString;
 
 	identityKeyPair: IdentityKeyPair;
+	signatures: PublicKeySignature[];
 }
-export const RolloutTypeRef: TypeRef<Rollout> = new TypeRef("sys", 2584)
+export const RolloutTypeRef: TypeRef<Rollout> = new TypeRef("sys", 2592)
 
 export function createRollout(values: StrippedEntity<Rollout>): Rollout {
 	return Object.assign(create(typeModels[RolloutTypeRef.typeId], RolloutTypeRef), values)
@@ -3713,7 +3731,7 @@ export type Rollout = {
 	_id: Id;
 	rolloutType: NumberString;
 }
-export const RolloutGetOutTypeRef: TypeRef<RolloutGetOut> = new TypeRef("sys", 2587)
+export const RolloutGetOutTypeRef: TypeRef<RolloutGetOut> = new TypeRef("sys", 2595)
 
 export function createRolloutGetOut(values: StrippedEntity<RolloutGetOut>): RolloutGetOut {
 	return Object.assign(create(typeModels[RolloutGetOutTypeRef.typeId], RolloutGetOutTypeRef), values)
