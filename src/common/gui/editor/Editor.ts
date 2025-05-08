@@ -31,6 +31,7 @@ export class Editor implements ImageHandler, Component {
 	private readOnly = false
 	private createsLists = true
 	private userHasPasted = false
+	private areRelativeLinksAllowed = false
 	private styleActions = Object.freeze({
 		b: [() => this.squire.bold(), () => this.squire.removeBold(), () => this.styles.b],
 		i: [() => this.squire.italic(), () => this.squire.removeItalic(), () => this.styles.i],
@@ -126,6 +127,10 @@ export class Editor implements ImageHandler, Component {
 
 	setShowOutline(show: boolean) {
 		this.showOutline = show
+	}
+
+	setAreRelativeLinksAllowed(areRelativeLinksAllowed: boolean) {
+		this.areRelativeLinksAllowed = areRelativeLinksAllowed
 	}
 
 	/**
@@ -266,6 +271,9 @@ export class Editor implements ImageHandler, Component {
 		this.styles.i = this.squire.hasFormat("i")
 	}
 
+	/**
+	 * Prompts the user to input a URL and creates a link at the current cursor position in the editor.
+	 */
 	makeLink() {
 		Dialog.showTextInputDialog({
 			title: "makeLink_action",
@@ -274,7 +282,13 @@ export class Editor implements ImageHandler, Component {
 		}).then((url) => {
 			if (isMailAddress(url, false)) {
 				url = "mailto:" + url
-			} else if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("mailto:") && !url.startsWith("{")) {
+			} else if (
+				!this.areRelativeLinksAllowed &&
+				!url.startsWith("http://") &&
+				!url.startsWith("https://") &&
+				!url.startsWith("mailto:") &&
+				!url.startsWith("{")
+			) {
 				url = "https://" + url
 			}
 
