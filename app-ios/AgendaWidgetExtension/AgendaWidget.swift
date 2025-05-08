@@ -149,18 +149,22 @@ struct AgendaWidgetEntryView: View {
 		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEvents.first?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
 		let foregroundColor: Color = if allDayBackgroundColor.getLuminance() > 0.5 { .black } else { .white }
 
-		let allDayImage: ImageResource = if let firstEvent = allDayEvents.first, firstEvent.isBirthdayEvent {
-			.giftIcon
-		} else { .allDayIcon }
+		let (allDayImage, allDayPadding): (ImageResource, CGFloat) = if let firstEvent = allDayEvents.first, firstEvent.isBirthdayEvent {
+			(.giftIcon, 4)
+		} else {
+			(.allDayIcon, 2)
+		}
 
 		return Group {
-			Text(weekday + " " + day).fontWeight(.bold).font(.system(size: 24)).padding(.top, -4)
+			Text(weekday + " " + day).fontWeight(.bold).font(.system(size: 20)).padding(.top, -4)
 			HStack(alignment: .center, spacing: 4) {
-				Image(allDayImage).foregroundStyle(foregroundColor).padding(3).background(Color(allDayBackgroundColor.cgColor))
+				Image(allDayImage).foregroundStyle(foregroundColor)
+					.font(.system(size: 14))
+					.padding(allDayPadding).background(Color(allDayBackgroundColor.cgColor))
 					.clipShape(.rect(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)))
-				Text(allDayEvents.first?.summary ?? translate("TutaoNoTitleLabel", default: "<No Title>")).lineLimit(1).font(.system(size: 16))
+				Text(allDayEvents.first?.summary ?? translate("TutaoNoTitleLabel", default: "<No Title>")).lineLimit(1).font(.system(size: 12))
 
-				if allDayEvents.count > 1 { Text("+\(allDayEvents.count - 1)").lineLimit(1).font(.system(size: 16)).fontWeight(.medium) }
+				if allDayEvents.count > 1 { Text("+\(allDayEvents.count - 1)").lineLimit(1).font(.system(size: 12)).fontWeight(.medium) }
 			}
 		}
 	}
@@ -188,15 +192,15 @@ struct AgendaWidgetEntryView: View {
 				Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventDetails, eventId: event.id)) {
 					VStack {
 						HStack {
-							VStack { Circle().fill(Color(calendarColor.cgColor)).frame(width: 20, height: 20) }
+							VStack { Circle().fill(Color(calendarColor.cgColor)).frame(width: 16, height: 16) }
 							VStack(alignment: .leading) {
-								Text(event.summary).fontWeight(.bold)
+								Text(event.summary).fontWeight(.bold).font(.system(size: 14))
 								Text(eventTime)
-									.font(.system(size: 14))
+									.font(.system(size: 10))
 							}
 							.foregroundStyle(Color(.onSurface))
 						}
-						.padding(8)
+						.padding(.horizontal, 8).padding(.vertical, 6)
 					}
 					.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface))
 					.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 8, bottomTrailing: 8, topTrailing: 8)))
@@ -208,10 +212,11 @@ struct AgendaWidgetEntryView: View {
 
 	private func Header() -> some View {
 		let hasAllDayEvents = !allDayEvents.isEmpty
-		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -8 }
+		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -4 }
 
 		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())
-		let day = String(dateComponents.day ?? 0)
+		let day = String(dateComponents.day ?? 0).padStart(length: 2, char: "0")
+
 		let weekday = DateFormatter().weekdaySymbols[(dateComponents.weekday ?? 0) - 1]
 
 		return HStack(alignment: .top) {
@@ -221,8 +226,8 @@ struct AgendaWidgetEntryView: View {
 						if hasAllDayEvents {
 							AllDayHeader(allDayEvents: allDayEvents, weekday: weekday, day: day)
 						} else {
-							Text(day).fontWeight(.bold).font(.system(size: 40)).padding(.top, -9)
-							Text(weekday).font(.system(size: 16))
+							Text(day).fontWeight(.bold).font(.system(size: 32)).padding(.top, -7)
+							Text(weekday).font(.system(size: 12))
 						}
 					}
 					.foregroundStyle(Color(.onSurface))
@@ -233,7 +238,7 @@ struct AgendaWidgetEntryView: View {
 			Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor)) {
 				Image(systemName: "plus").fontWeight(.medium).foregroundStyle(Color(.onPrimary)).font(.system(size: 20))
 			}
-			.buttonStyle(.plain).frame(width: 44, height: 44).background(Color(.primary))
+			.buttonStyle(.plain).frame(width: 48, height: 48).background(Color(.primary))
 			.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 8, bottomTrailing: 8, topTrailing: 8)))
 		}
 	}
@@ -271,6 +276,12 @@ struct AgendaWidget: Widget {
 		if #available(iOSApplicationExtension 18.0, *) { return appIntentConfiguration.promptsForUserConfiguration() }
 
 		return appIntentConfiguration
+	}
+}
+
+extension String {
+	func padStart(length: Int, char: String) -> String {
+		"".padding(toLength: length, withPad: self.padding(toLength:length, withPad:char, startingAt:0), startingAt: self.count)
 	}
 }
 
