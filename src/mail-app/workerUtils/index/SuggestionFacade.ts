@@ -1,7 +1,8 @@
 import type { Db } from "../../../common/api/worker/search/SearchTypes.js"
 import { stringToUtf8Uint8Array, TypeRef, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { aesDecrypt, aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/IndexTables.js"
+import { resolveClientTypeReference } from "../../../common/api/common/EntityFunctions"
 
 export type SuggestionsType = Record<string, string[]>
 
@@ -18,8 +19,9 @@ export class SuggestionFacade<T> {
 
 	load(): Promise<void> {
 		return this._db.initialized.then(() => {
-			return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then((t) => {
-				return t.get(SearchTermSuggestionsOS, this.type.typeId).then((encSuggestions) => {
+			return this._db.dbFacade.createTransaction(true, [SearchTermSuggestionsOS]).then(async (t) => {
+				const typeName = (await resolveClientTypeReference(new TypeRef(this.type.app, this.type.typeId))).name
+				return t.get(SearchTermSuggestionsOS, typeName).then((encSuggestions) => {
 					if (encSuggestions) {
 						this._suggestions = JSON.parse(utf8Uint8ArrayToString(unauthenticatedAesDecrypt(this._db.key, encSuggestions, true)))
 					} else {
@@ -66,9 +68,10 @@ export class SuggestionFacade<T> {
 
 	store(): Promise<void> {
 		return this._db.initialized.then(() => {
-			return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then((t) => {
+			return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then(async (t) => {
+				const typeName = (await resolveClientTypeReference(new TypeRef(this.type.app, this.type.typeId))).name
 				let encSuggestions = aes256EncryptSearchIndexEntry(this._db.key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
-				t.put(SearchTermSuggestionsOS, this.type.typeId, encSuggestions)
+				t.put(SearchTermSuggestionsOS, typeName, encSuggestions)
 				return t.wait()
 			})
 		})

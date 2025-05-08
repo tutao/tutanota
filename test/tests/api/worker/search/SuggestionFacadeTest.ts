@@ -8,11 +8,13 @@ import { downcast } from "@tutao/tutanota-utils"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
+import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("SuggestionFacade test", () => {
 	let db
 	let facade
-	o.beforeEach(function () {
+	let contactTypeModel
+	o.beforeEach(async function () {
 		db = {
 			key: aes256RandomKey(),
 			iv: fixedIv,
@@ -20,6 +22,7 @@ o.spec("SuggestionFacade test", () => {
 			initialized: Promise.resolve(),
 		}
 		facade = new SuggestionFacade(ContactTypeRef, db)
+		contactTypeModel = await resolveClientTypeReference(ContactTypeRef)
 	})
 	o("add and get suggestion", () => {
 		o(facade.getSuggestions("a").join("")).equals("")
@@ -51,7 +54,7 @@ o.spec("SuggestionFacade test", () => {
 		return facade.load().then(() => {
 			o(transactionMock.get.callCount).equals(1)
 			o(transactionMock.get.args[0]).equals(SearchTermSuggestionsOS)
-			o(transactionMock.get.args[1]).equals(ContactTypeRef.typeId)
+			o(transactionMock.get.args[1]).equals(contactTypeModel.name)
 			o(facade.getSuggestions("a").join("")).equals("")
 		})
 	})
@@ -63,7 +66,7 @@ o.spec("SuggestionFacade test", () => {
 		facade.addSuggestions(["aaaa"])
 		return facade.store().then(() => {
 			o(transactionMock.put.args[0]).equals(SearchTermSuggestionsOS)
-			o(transactionMock.put.args[1]).equals(ContactTypeRef.typeId)
+			o(transactionMock.put.args[1]).equals(contactTypeModel.name)
 			let encSuggestions = transactionMock.put.args[2]
 			facade.addSuggestions(["accc", "bbbb"])
 			// insert new values
@@ -75,7 +78,7 @@ o.spec("SuggestionFacade test", () => {
 			return facade.load().then(() => {
 				// restored
 				o(transactionLoadMock.get.args[0]).equals(SearchTermSuggestionsOS)
-				o(transactionLoadMock.get.args[1]).equals(ContactTypeRef.typeId)
+				o(transactionLoadMock.get.args[1]).equals(contactTypeModel.name)
 				o(facade.getSuggestions("a").join(" ")).equals("aaaa")
 				o(facade.getSuggestions("b").join(" ")).equals("")
 			})
