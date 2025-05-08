@@ -258,6 +258,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return m(
 			".flex.flex-no-grow.no-shrink.pr-s",
 			{
+				"data-testid": "unread-indicator",
 				style: {
 					paddingTop: "2px",
 				},

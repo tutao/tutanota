@@ -471,6 +471,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 					position: "absolute",
 					gap: px(size.hpad_small),
 				},
+				"data-testid": "list-progress",
 			},
 			progressIcon(),
 			m(Button, {

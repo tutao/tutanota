@@ -29,6 +29,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				class: responsiveCardHPadding(),
 				role: "button",
 				"aria-expanded": "false",
+				"data-testid": "collapsed-mail-view",
 				style: {
 					color: theme.content_button,
 				},
@@ -70,6 +71,9 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 	private renderUnreadDot(): Children {
 		return m(
 			".flex.flex-no-grow.no-shrink.pr-s",
+			{
+				"data-testid": "unread-indicator",
+			},
 			m(".dot.bg-accent-fg", {
 				style: {
 					marginTop: 0,
