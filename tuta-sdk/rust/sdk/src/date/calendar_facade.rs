@@ -5,13 +5,16 @@ use super::event_facade::{
 use crate::contacts::contact_facade::ContactFacade;
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
+#[cfg_attr(test, mockall_double::double)]
+use crate::customer::customer_facade::CustomerFacade;
 use crate::date::event_facade::EventFacade;
 use crate::date::DateTime;
-use crate::entities::generated::sys::{GroupInfo, GroupMembership, User};
+use crate::entities::generated::sys::{CustomerInfo, GroupInfo, GroupMembership, User};
 use crate::entities::generated::tutanota::{
 	CalendarEvent, CalendarGroupRoot, Contact, GroupSettings, UserSettingsGroupRoot,
 };
 use crate::groups::GroupType;
+use crate::tutanota_constants::{AccountType, PlanType};
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
 use crate::util::first_bigger_than_second_custom_id;
@@ -66,6 +69,7 @@ pub struct CalendarFacade {
 	crypto_entity_client: Arc<CryptoEntityClient>,
 	user_facade: Arc<UserFacade>,
 	contact_facade: Arc<ContactFacade>,
+	customer_facade: Arc<CustomerFacade>,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -75,11 +79,13 @@ impl CalendarFacade {
 		crypto_entity_client: Arc<CryptoEntityClient>,
 		user_facade: Arc<UserFacade>,
 		contact_facade: Arc<ContactFacade>,
+		customer_facade: Arc<CustomerFacade>,
 	) -> Self {
 		CalendarFacade {
 			crypto_entity_client,
 			user_facade,
 			contact_facade,
+			customer_facade,
 		}
 	}
 
@@ -463,13 +469,36 @@ impl CalendarFacade {
 		Ok([].to_vec())
 	}
 
-	pub fn generate_client_only_calendars(
-		&self,
-		user_id: &GeneratedId,
-	) -> HashMap<GeneratedId, CalendarRenderData> {
+	pub async fn generate_client_only_calendars(&self) -> HashMap<GeneratedId, CalendarRenderData> {
+		let user: Arc<User> = self.user_facade.get_user();
+		if user.accountType != AccountType::PAID as i64 {
+			return HashMap::new();
+		}
+
+		let customer_info = match self.customer_facade.fetch_customer_info().await {
+			Ok(customer_info) => customer_info,
+			Err(e) => {
+				log::error!(
+					"Error while fetching customer info, skipping client only calendars... {e:?}"
+				);
+				return HashMap::new();
+			},
+		};
+
+		let parsed_plan = match PlanType::try_from_primitive(customer_info.plan as u8) {
+			Ok(plan) => plan,
+			Err(e) => {
+				log::error!("Failed to parse plan type with error: {e:?}");
+				return HashMap::new();
+			},
+		};
+		if !parsed_plan.is_new_paid_plan() {
+			return HashMap::new();
+		}
+
 		let birthday_calendar_id = format!(
 			"{}#{}",
-			user_id.as_str(),
+			user._id.as_ref().unwrap(),
 			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
 		);
 		HashMap::from([(
@@ -748,9 +777,7 @@ impl CalendarFacade {
 			calendars_render_data.insert(calendar_id, render_data);
 		}
 
-		let user: Arc<User> = self.user_facade.get_user();
-		let user_id = user._id.as_ref().unwrap();
-		let client_only_calendars = self.generate_client_only_calendars(user_id);
+		let client_only_calendars = self.generate_client_only_calendars().await;
 		calendars_render_data.extend(client_only_calendars);
 
 		println!("{:?}", calendars_render_data);
@@ -797,22 +824,27 @@ fn get_max_timestamp_id() -> CustomId {
 
 #[cfg(test)]
 mod calendar_facade_unit_tests {
+	use super::{
+		CalendarFacade, CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, DEFAULT_CALENDAR_COLOR,
+		DEFAULT_CALENDAR_NAME,
+	};
 	use crate::contacts::contact_facade::MockContactFacade;
 	use crate::crypto_entity_client::MockCryptoEntityClient;
-	use crate::entities::generated::sys::{GroupInfo, GroupMembership, User};
+	use crate::customer::customer_facade::MockCustomerFacade;
+	use crate::entities::generated::sys::{CustomerInfo, GroupInfo, GroupMembership, User};
 	use crate::entities::generated::tutanota::{Contact, GroupSettings, UserSettingsGroupRoot};
 	use crate::groups::GroupType;
+	use crate::tutanota_constants::{AccountType, PlanType};
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::{create_mock_contact, create_test_entity};
 	use crate::{GeneratedId, IdTupleGenerated};
 	use std::sync::Arc;
 
-	use super::{
-		CalendarFacade, CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, DEFAULT_CALENDAR_COLOR,
-		DEFAULT_CALENDAR_NAME,
-	};
-
-	fn create_mock_user(user_group: &GeneratedId, calendar_id: &GeneratedId) -> User {
+	fn create_mock_user(
+		user_group: &GeneratedId,
+		calendar_id: &GeneratedId,
+		account_type: AccountType,
+	) -> User {
 		User {
 			memberships: vec![GroupMembership {
 				groupType: Some(GroupType::Calendar as i64),
@@ -823,6 +855,7 @@ mod calendar_facade_unit_tests {
 				group: user_group.to_owned(),
 				..create_test_entity()
 			},
+			accountType: account_type as i64,
 			..create_test_entity()
 		}
 	}
@@ -859,16 +892,30 @@ mod calendar_facade_unit_tests {
 		}
 	}
 
+	fn create_mock_customer_info(
+		customer_id: &GeneratedId,
+		customer_info_id: IdTupleGenerated,
+		plan_type: PlanType,
+	) -> CustomerInfo {
+		CustomerInfo {
+			_id: Some(customer_info_id),
+			customer: customer_id.clone(),
+			plan: plan_type as i64,
+			..create_test_entity()
+		}
+	}
+
 	#[tokio::test]
 	async fn test_private_default_calendar_render_info() {
 		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
 		let mut mock_user_facade = MockUserFacade::default();
-		let contact_facade = MockContactFacade::default();
+		let mock_contact_facade = MockContactFacade::default();
+		let mock_customer_facade = MockCustomerFacade::default();
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
 
-		let mock_user = create_mock_user(&user_group, &calendar_id);
+		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
 		mock_user_facade.expect_get_user().return_const(mock_user);
 
 		let mock_user_settings_group_root =
@@ -885,7 +932,8 @@ mod calendar_facade_unit_tests {
 		let calendar_facade = CalendarFacade::new(
 			Arc::new(mock_crypto_entity_client),
 			Arc::new(mock_user_facade),
-			Arc::new(contact_facade),
+			Arc::new(mock_contact_facade),
+			Arc::new(mock_customer_facade),
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
@@ -899,14 +947,15 @@ mod calendar_facade_unit_tests {
 	async fn test_private_custom_calendar_render_info() {
 		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
 		let mut mock_user_facade = MockUserFacade::default();
-		let contact_facade = MockContactFacade::default();
+		let mock_contact_facade = MockContactFacade::default();
+		let mock_customer_facade = MockCustomerFacade::default();
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
 		let custom_color = "a5e4ac";
 		let custom_name = "Private Custom Edited";
 
-		let mock_user = create_mock_user(&user_group, &calendar_id);
+		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
 		mock_user_facade.expect_get_user().return_const(mock_user);
 
 		let mock_user_settings_group_root = create_mock_user_settings_group_root(
@@ -927,7 +976,8 @@ mod calendar_facade_unit_tests {
 		let calendar_facade = CalendarFacade::new(
 			Arc::new(mock_crypto_entity_client),
 			Arc::new(mock_user_facade),
-			Arc::new(contact_facade),
+			Arc::new(mock_contact_facade),
+			Arc::new(mock_customer_facade),
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
@@ -941,11 +991,12 @@ mod calendar_facade_unit_tests {
 	async fn test_private_custom_calendar_no_name_render_info() {
 		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
 		let mut mock_user_facade = MockUserFacade::default();
-		let contact_facade = MockContactFacade::default();
+		let mock_contact_facade = MockContactFacade::default();
+		let mock_customer_facade = MockCustomerFacade::default();
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
-		let mock_user = create_mock_user(&user_group, &calendar_id);
+		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
 		mock_user_facade.expect_get_user().return_const(mock_user);
 
 		let custom_color = "a5e4ac";
@@ -967,7 +1018,8 @@ mod calendar_facade_unit_tests {
 		let calendar_facade = CalendarFacade::new(
 			Arc::new(mock_crypto_entity_client),
 			Arc::new(mock_user_facade),
-			Arc::new(contact_facade),
+			Arc::new(mock_contact_facade),
+			Arc::new(mock_customer_facade),
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
@@ -981,14 +1033,15 @@ mod calendar_facade_unit_tests {
 	async fn test_shared_calendar_render_info() {
 		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
 		let mut mock_user_facade = MockUserFacade::default();
-		let contact_facade = MockContactFacade::default();
+		let mock_contact_facade = MockContactFacade::default();
+		let mock_customer_facade = MockCustomerFacade::default();
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
 		let custom_color = "e4c0a5";
 		let custom_name = "Shared Calendar";
 
-		let mock_user = create_mock_user(&user_group, &calendar_id);
+		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
 		mock_user_facade.expect_get_user().return_const(mock_user);
 
 		let mock_user_settings_group_root = create_mock_user_settings_group_root(
@@ -1009,7 +1062,8 @@ mod calendar_facade_unit_tests {
 		let calendar_facade = CalendarFacade::new(
 			Arc::new(mock_crypto_entity_client),
 			Arc::new(mock_user_facade),
-			Arc::new(contact_facade),
+			Arc::new(mock_contact_facade),
+			Arc::new(mock_customer_facade),
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
@@ -1023,12 +1077,128 @@ mod calendar_facade_unit_tests {
 	async fn test_birthday_calendar_render_info() {
 		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
 		let mut mock_user_facade = MockUserFacade::default();
-		let contact_facade = MockContactFacade::default();
+		let mock_contact_facade = MockContactFacade::default();
+		let mut mock_customer_facade = MockCustomerFacade::default();
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
 
-		let mock_user = create_mock_user(&user_group, &calendar_id);
+		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::PAID);
+		let user_id = mock_user._id.clone().unwrap();
+		mock_user_facade.expect_get_user().return_const(mock_user);
+
+		let mock_user_settings_group_root =
+			create_mock_user_settings_group_root(None, None, None, None);
+		mock_crypto_entity_client
+			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+			.return_const(Ok(mock_user_settings_group_root));
+
+		let mock_group_info = create_mock_group_info(&calendar_id, None);
+		mock_crypto_entity_client
+			.expect_load::<GroupInfo, IdTupleGenerated>()
+			.return_const(Ok(mock_group_info));
+
+		let mock_customer_info = create_mock_customer_info(
+			&GeneratedId::test_random(),
+			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
+			PlanType::Revolutionary,
+		);
+		mock_customer_facade
+			.expect_fetch_customer_info()
+			.return_const(Ok(mock_customer_info));
+
+		let calendar_facade = CalendarFacade::new(
+			Arc::new(mock_crypto_entity_client),
+			Arc::new(mock_user_facade),
+			Arc::new(mock_contact_facade),
+			Arc::new(mock_customer_facade),
+		);
+
+		let formated_id = format!(
+			"{}#{}",
+			user_id.as_str(),
+			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
+		);
+		let birthday_calendar_id = GeneratedId(formated_id);
+
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let render_data = calendars_render_data.get(&birthday_calendar_id).unwrap();
+
+		let client_only_calendars = calendar_facade.generate_client_only_calendars().await;
+		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id).unwrap();
+
+		assert_eq!(render_data.name, birthday_calendar.name);
+		assert_eq!(render_data.color, birthday_calendar.color);
+	}
+
+	#[tokio::test]
+	async fn test_do_not_create_birthday_calendar_render_info_for_legacy_account() {
+		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+		let mut mock_user_facade = MockUserFacade::default();
+		let mock_contact_facade = MockContactFacade::default();
+		let mut mock_customer_facade = MockCustomerFacade::default();
+
+		let user_group = GeneratedId::test_random();
+		let calendar_id = GeneratedId::test_random();
+
+		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::PAID);
+		let user_id = mock_user._id.clone().unwrap();
+		mock_user_facade.expect_get_user().return_const(mock_user);
+
+		let mock_user_settings_group_root =
+			create_mock_user_settings_group_root(None, None, None, None);
+		mock_crypto_entity_client
+			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+			.return_const(Ok(mock_user_settings_group_root));
+
+		let mock_group_info = create_mock_group_info(&calendar_id, None);
+		mock_crypto_entity_client
+			.expect_load::<GroupInfo, IdTupleGenerated>()
+			.return_const(Ok(mock_group_info));
+
+		let mock_customer_info = create_mock_customer_info(
+			&GeneratedId::test_random(),
+			IdTupleGenerated::new(GeneratedId::test_random(), GeneratedId::test_random()),
+			PlanType::Premium,
+		);
+		mock_customer_facade
+			.expect_fetch_customer_info()
+			.return_const(Ok(mock_customer_info));
+
+		let calendar_facade = CalendarFacade::new(
+			Arc::new(mock_crypto_entity_client),
+			Arc::new(mock_user_facade),
+			Arc::new(mock_contact_facade),
+			Arc::new(mock_customer_facade),
+		);
+
+		let formated_id = format!(
+			"{}#{}",
+			user_id.as_str(),
+			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
+		);
+		let birthday_calendar_id = GeneratedId(formated_id);
+
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let render_data = calendars_render_data.get(&birthday_calendar_id);
+		assert!(render_data.is_none());
+
+		let client_only_calendars = calendar_facade.generate_client_only_calendars().await;
+		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id);
+		assert!(birthday_calendar.is_none());
+	}
+
+	#[tokio::test]
+	async fn test_do_not_create_birthday_calendar_render_info_for_free_account() {
+		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+		let mut mock_user_facade = MockUserFacade::default();
+		let contact_facade = MockContactFacade::default();
+		let customer_facade = MockCustomerFacade::default();
+
+		let user_group = GeneratedId::test_random();
+		let calendar_id = GeneratedId::test_random();
+
+		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
 		let user_id = mock_user._id.clone().unwrap();
 		mock_user_facade.expect_get_user().return_const(mock_user);
 
@@ -1047,6 +1217,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_crypto_entity_client),
 			Arc::new(mock_user_facade),
 			Arc::new(contact_facade),
+			Arc::new(customer_facade),
 		);
 
 		let formated_id = format!(
@@ -1057,24 +1228,25 @@ mod calendar_facade_unit_tests {
 		let birthday_calendar_id = GeneratedId(formated_id);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
-		let render_data = calendars_render_data.get(&birthday_calendar_id).unwrap();
+		let render_data = calendars_render_data.get(&birthday_calendar_id);
+		assert!(render_data.is_none());
 
-		let client_only_calendars = calendar_facade.generate_client_only_calendars(&user_id);
-		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id).unwrap();
-
-		assert_eq!(render_data.name, birthday_calendar.name);
-		assert_eq!(render_data.color, birthday_calendar.color);
+		let client_only_calendars = calendar_facade.generate_client_only_calendars().await;
+		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id);
+		assert!(birthday_calendar.is_none());
 	}
 
 	#[tokio::test]
 	async fn test_generate_birthday_from_valid_contacts() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+		let mock_crypto_entity_client = MockCryptoEntityClient::default();
 		let mut mock_user_facade = MockUserFacade::default();
 		let mut mock_contact_facade = MockContactFacade::default();
+		let customer_facade = MockCustomerFacade::default();
 
 		let default_private_calendar_id = GeneratedId::test_random();
 		let user_group = GeneratedId::test_random();
-		let mock_user = create_mock_user(&user_group, &default_private_calendar_id);
+		let mock_user =
+			create_mock_user(&user_group, &default_private_calendar_id, AccountType::PAID);
 		mock_user_facade.expect_get_user().return_const(mock_user);
 		let contact_list_id = GeneratedId::test_random();
 
@@ -1106,6 +1278,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_crypto_entity_client),
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
+			Arc::new(customer_facade),
 		);
 
 		let birthdays = calendar_facade.generate_birthdays().await.unwrap();
@@ -1117,10 +1290,12 @@ mod calendar_facade_unit_tests {
 		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
 		let mut mock_user_facade = MockUserFacade::default();
 		let mut mock_contact_facade = MockContactFacade::default();
+		let customer_facade = MockCustomerFacade::default();
 
 		let default_private_calendar_id = GeneratedId::test_random();
 		let user_group = GeneratedId::test_random();
-		let mock_user = create_mock_user(&user_group, &default_private_calendar_id);
+		let mock_user =
+			create_mock_user(&user_group, &default_private_calendar_id, AccountType::PAID);
 		mock_user_facade.expect_get_user().return_const(mock_user);
 		let contact_list_id = GeneratedId::test_random();
 
@@ -1138,6 +1313,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_crypto_entity_client),
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
+			Arc::new(customer_facade),
 		);
 
 		let birthdays = calendar_facade.generate_birthdays().await.unwrap();
