@@ -97,6 +97,7 @@ export {
 	rsaPublicKeyToHex,
 	rsaEncrypt,
 	extractRawPublicRsaKeyFromPrivateRsaKey,
+	rsaPublicKeyToBytes,
 } from "./encryption/Rsa.js"
 export { RsaKeyPair, RsaX25519KeyPair, RsaPrivateKey, RawRsaPublicKey, RsaPublicKey, RsaX25519PublicKey } from "./encryption/RsaKeyPair.js"
 export {
@@ -112,6 +113,7 @@ export {
 	isVersionedRsaX25519PublicKey,
 	isVersionedPqPublicKey,
 	isVersionedRsaOrRsaX25519PublicKey,
+	isRsaX25519PublicKey,
 } from "./encryption/AsymmetricKeyPair.js"
 export { PQKeyPairs, PQPublicKeys, pqKeyPairsToPublicKeys } from "./encryption/PQKeyPairs.js"
 export { sha1Hash } from "./hashes/Sha1.js"

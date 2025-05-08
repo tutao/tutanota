@@ -114,6 +114,7 @@ import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/E
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
+import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 
 assertMainOrNode()
 
@@ -169,6 +170,7 @@ class CalendarLocator implements CommonLocator {
 	themeController!: ThemeController
 	Const!: Record<string, any>
 	syncTracker!: SyncTracker
+	identityKeyCreator!: IdentityKeyCreator
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -582,6 +584,7 @@ class CalendarLocator implements CommonLocator {
 			workerFacade,
 			sqlCipherFacade,
 			contactFacade,
+			identityKeyCreator,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -602,6 +605,7 @@ class CalendarLocator implements CommonLocator {
 		this.contactFacade = contactFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
+		this.identityKeyCreator = identityKeyCreator
 		this.logins = new LoginController(
 			this.loginFacade,
 			this.customerFacade,

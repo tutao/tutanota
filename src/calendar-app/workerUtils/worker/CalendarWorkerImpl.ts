@@ -77,6 +77,10 @@ export class CalendarWorkerImpl implements NativeInterface {
 				return locator.groupManagement()
 			},
 
+			async identityKeyCreator() {
+				return locator.identityKeyCreator()
+			},
+
 			async configFacade() {
 				return locator.configFacade()
 			},

@@ -172,7 +172,7 @@ export class KeyVerificationFacade {
 		}
 		// FIXME create message from encryption key and verify key
 		const verifySignatureMessage: Uint8Array = new Uint8Array()
-		const verificationResult = await this.ed25519Facade.verify(identityKey.object.key, verifySignatureMessage, signature)
+		const verificationResult = await this.ed25519Facade.verifySignature(identityKey.object.key, verifySignatureMessage, signature)
 		if (verificationResult) {
 			return KeyVerificationState.VERIFIED
 		} else {

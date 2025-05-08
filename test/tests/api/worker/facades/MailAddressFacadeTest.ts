@@ -1,9 +1,5 @@
 import o from "@tutao/otest"
-import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
-import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
-import { CounterFacade } from "../../../../../src/common/api/worker/facades/lazy/CounterFacade.js"
-import { RsaImplementation } from "../../../../../src/common/api/worker/crypto/RsaImplementation.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { matchers, object, when } from "testdouble"
@@ -14,14 +10,11 @@ import { MailAddressFacade } from "../../../../../src/common/api/worker/facades/
 import { createTestEntity } from "../../../TestUtils.js"
 import { arrayEquals, freshVersioned } from "@tutao/tutanota-utils"
 import { EntityRestClientLoadOptions } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 
 o.spec("MailAddressFacadeTest", function () {
-	let worker: WorkerImpl
 	let userFacade: UserFacade
-	let groupManagementFacade: GroupManagementFacade
-	let countersFacade: CounterFacade
-	let rsa: RsaImplementation
-	let entityClient: EntityClient
+	let adminKeyLoaderFacade: AdminKeyLoaderFacade
 	let serviceExecutor: ServiceExecutor
 	let nonCachingEntityClient: EntityClient
 
@@ -29,11 +22,11 @@ o.spec("MailAddressFacadeTest", function () {
 
 	o.beforeEach(function () {
 		userFacade = object()
-		groupManagementFacade = object()
+		adminKeyLoaderFacade = object()
 		serviceExecutor = object()
 		nonCachingEntityClient = object()
 
-		facade = new MailAddressFacade(userFacade, groupManagementFacade, serviceExecutor, nonCachingEntityClient)
+		facade = new MailAddressFacade(userFacade, adminKeyLoaderFacade, serviceExecutor, nonCachingEntityClient)
 	})
 
 	o.spec("getSenderNames", function () {
@@ -59,7 +52,7 @@ o.spec("MailAddressFacadeTest", function () {
 				],
 			})
 
-			when(groupManagementFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
+			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
 			when(
 				nonCachingEntityClient.load(
@@ -115,7 +108,7 @@ o.spec("MailAddressFacadeTest", function () {
 
 			when(nonCachingEntityClient.load(UserTypeRef, viaUser)).thenResolve(user)
 			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
-			when(groupManagementFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
+			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
 			when(nonCachingEntityClient.setup(null, matchers.anything(), undefined, { ownerKey: mailGroupKey })).thenResolve(mailboxPropertiesId)
 			when(
