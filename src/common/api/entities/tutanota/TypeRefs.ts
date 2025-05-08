@@ -1455,6 +1455,20 @@ export type OutOfOfficeNotification = {
 
 	notifications: OutOfOfficeNotificationMessage[];
 }
+export const OutOfOfficeNotificationRecipientTypeRef: TypeRef<OutOfOfficeNotificationRecipient> = new TypeRef("tutanota", 1141)
+
+export function createOutOfOfficeNotificationRecipient(values: StrippedEntity<OutOfOfficeNotificationRecipient>): OutOfOfficeNotificationRecipient {
+	return Object.assign(create(typeModels[OutOfOfficeNotificationRecipientTypeRef.typeId], OutOfOfficeNotificationRecipientTypeRef), values)
+}
+
+export type OutOfOfficeNotificationRecipient = {
+	_type: TypeRef<OutOfOfficeNotificationRecipient>;
+
+	_id: IdTuple;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+}
 export const OutOfOfficeNotificationRecipientListTypeRef: TypeRef<OutOfOfficeNotificationRecipientList> = new TypeRef("tutanota", 1147)
 
 export function createOutOfOfficeNotificationRecipientList(values: StrippedEntity<OutOfOfficeNotificationRecipientList>): OutOfOfficeNotificationRecipientList {

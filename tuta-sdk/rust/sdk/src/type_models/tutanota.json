@@ -5839,6 +5839,53 @@
 			}
 		}
 	},
+	"1141": {
+		"name": "OutOfOfficeNotificationRecipient",
+		"app": "tutanota",
+		"version": 86,
+		"since": 44,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1141,
+		"rootId": "CHR1dGFub3RhAAR1",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1143": {
+				"final": true,
+				"name": "_id",
+				"id": 1143,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1144": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1144,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1145": {
+				"final": false,
+				"name": "_format",
+				"id": 1145,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1146": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1146,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
 	"1147": {
 		"name": "OutOfOfficeNotificationRecipientList",
 		"app": "tutanota",

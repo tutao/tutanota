@@ -2495,6 +2495,28 @@ impl Entity for OutOfOfficeNotification {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct OutOfOfficeNotificationRecipient {
+	#[serde(rename = "1143")]
+	pub _id: Option<IdTupleCustom>,
+	#[serde(rename = "1144")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1145")]
+	pub _format: i64,
+	#[serde(rename = "1146")]
+	pub _ownerGroup: Option<GeneratedId>,
+}
+
+impl Entity for OutOfOfficeNotificationRecipient {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1141),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct OutOfOfficeNotificationRecipientList {
 	#[serde(rename = "1148")]
 	pub _id: Option<CustomId>,
