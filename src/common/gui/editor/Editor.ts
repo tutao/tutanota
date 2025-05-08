@@ -1,6 +1,6 @@
 import m, { Children, Component } from "mithril"
 import SquireEditor from "squire-rte"
-import { defer } from "@tutao/tutanota-utils"
+import { assertNotNull, defer } from "@tutao/tutanota-utils"
 import { px } from "../size"
 import { Dialog } from "../base/Dialog"
 import { isMailAddress } from "../../misc/FormatValidator"
@@ -91,7 +91,14 @@ export class Editor implements ImageHandler, Component {
 			"aria-multiline": "true",
 			"data-testid": "text_editor",
 			tabindex: TabIndex.Default,
-			oncreate: (vnode) => this.initSquire(vnode.dom as HTMLElement),
+			oncreate: (vnode) => {
+				this.initSquire(vnode.dom as HTMLElement)
+
+				// FIXME
+				setTimeout(() => {
+					assertNotNull(null)
+				}, 500)
+			},
 			class: `flex-grow ${this.showOutline ? "" : "hide-outline"}`,
 			style: this.staticLineAmount
 				? {

@@ -60,11 +60,65 @@ export function displayOverlay(
 
 type OverlayParentAttrs = {
 	inertBelow: number
+	setTopOverlay: (layer: number) => void
 }
 
 export const overlay: Component<OverlayParentAttrs> = {
-	view: (vnode): Children =>
-		m(
+	view: (vnode): Children => {
+		let highestIndex = 0
+		const overlayComponents = Array.from(overlays.entries()).map((overlay) => {
+			const [key, attrs] = overlay
+			const position = attrs.position()
+
+			const baseClasses = "abs elevated-bg " + attrs.shadowClass
+			const classes = attrs.createAnimation == null ? baseClasses : baseClasses + " " + attrs.createAnimation
+
+			const zIndex = position.zIndex != null ? position.zIndex : LayerType.Overlay
+			const inert = zIndex < vnode.attrs.inertBelow
+
+			if (zIndex > highestIndex) {
+				highestIndex = zIndex
+			}
+
+			return m(
+				"",
+				{
+					key,
+					class: classes,
+					inert,
+					style: {
+						width: position.width,
+						top: position.top,
+						bottom: position.bottom,
+						right: position.right,
+						left: position.left,
+						height: position.height,
+						zIndex,
+					},
+					onbeforeremove: (vnode: VnodeDOM) => {
+						if (attrs.closeAnimation != null) {
+							const dom = vnode.dom as HTMLElement
+
+							// Force the environment to restart the animations via a reflow
+							dom.className = baseClasses
+							void dom.offsetWidth
+
+							// Play the closing animation
+							dom.className = baseClasses + " " + attrs.closeAnimation
+
+							// Wait for the close animation to complete
+							return new Promise(function (resolve) {
+								dom.addEventListener("animationend", resolve)
+							})
+						}
+					},
+				},
+				m(attrs.component),
+			)
+		})
+		vnode.attrs.setTopOverlay(highestIndex)
+
+		return m(
 			// we want the overlays to position relative to the overlay parent
 			// the overlay parent also should fill the root
 			"#overlay.fill-absolute.noprint",
@@ -80,51 +134,7 @@ export const overlay: Component<OverlayParentAttrs> = {
 				},
 				"aria-hidden": overlays.size === 0,
 			},
-			Array.from(overlays.entries()).map((overlay) => {
-				const [key, attrs] = overlay
-				const position = attrs.position()
-
-				const baseClasses = "abs elevated-bg " + attrs.shadowClass
-				const classes = attrs.createAnimation == null ? baseClasses : baseClasses + " " + attrs.createAnimation
-
-				const zIndex = position.zIndex != null ? position.zIndex : LayerType.Overlay
-				const inert = zIndex < vnode.attrs.inertBelow
-
-				return m(
-					"",
-					{
-						key,
-						class: classes,
-						inert,
-						style: {
-							width: position.width,
-							top: position.top,
-							bottom: position.bottom,
-							right: position.right,
-							left: position.left,
-							height: position.height,
-							zIndex,
-						},
-						onbeforeremove: (vnode: VnodeDOM) => {
-							if (attrs.closeAnimation != null) {
-								const dom = vnode.dom as HTMLElement
-
-								// Force the environment to restart the animations via a reflow
-								dom.className = baseClasses
-								void dom.offsetWidth
-
-								// Play the closing animation
-								dom.className = baseClasses + " " + attrs.closeAnimation
-
-								// Wait for the close animation to complete
-								return new Promise(function (resolve) {
-									dom.addEventListener("animationend", resolve)
-								})
-							}
-						},
-					},
-					m(attrs.component),
-				)
-			}),
-		),
+			overlayComponents,
+		)
+	},
 }

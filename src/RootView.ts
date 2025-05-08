@@ -39,6 +39,8 @@ export let currentNavigationType: PrimaryNavigationType = isApp() ? PrimaryNavig
  */
 export class RootView implements ClassComponent {
 	private dom: HTMLElement | null = null
+	topModalLayer = 0
+	topOverlayLayer = 0
 
 	constructor() {
 		// still "old-style" component, we don't want to lose "this" reference
@@ -76,7 +78,21 @@ export class RootView implements ClassComponent {
 					height: "100%",
 				},
 			},
-			[m(overlay, { inertBelow: modal.visible ? LayerType.Modal : 0 }), m(modal), m(".main-view", { inert: modal.visible }, vnode.children)],
+			[
+				m(overlay, {
+					inertBelow: this.topModalLayer,
+					setTopOverlay: (zIndex: number) => {
+						this.topOverlayLayer = zIndex
+					},
+				}),
+				m(modal, {
+					inertBelow: this.topOverlayLayer,
+					setTopModal: (zIndex: number) => {
+						this.topModalLayer = zIndex
+					},
+				}),
+				m(".main-view", { inert: modal.visible }, vnode.children),
+			],
 		)
 	}
 

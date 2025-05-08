@@ -16,10 +16,15 @@ type ModalComponentWrapper = {
 	needsBg: boolean
 }
 
-class Modal implements Component {
+type ModalAttrs = {
+	inertBelow: number
+	setTopModal: (layer: number) => void
+}
+
+class Modal implements Component<ModalAttrs> {
 	components: Array<ModalComponentWrapper>
 	private uniqueComponent: ModalComponent | null
-	view: Component["view"]
+	view: Component<ModalAttrs>["view"]
 	visible: boolean
 	currentKey: number
 	private closingComponents: Array<ModalComponent>
@@ -32,12 +37,15 @@ class Modal implements Component {
 		this.uniqueComponent = null
 		this.closingComponents = []
 
-		this.view = (): Children => {
+		this.view = ({ attrs }): Children => {
+			const modalTopLayer = this.getModalLayer(this.components.length)
+			attrs.setTopModal(modalTopLayer)
+
 			return m(
 				"#modal.fill-absolute",
 				{
 					"aria-modal": true,
-					inert: !this.visible,
+					inert: attrs.inertBelow > modalTopLayer || !this.visible,
 					style: {
 						"z-index": LayerType.Modal,
 						display: this.visible ? "" : "none",
@@ -72,7 +80,7 @@ class Modal implements Component {
 								}
 							},
 							style: {
-								zIndex: LayerType.Modal + 1 + i,
+								zIndex: this.getModalLayer(i + 1),
 							},
 							onbeforeremove: async (vnode) => {
 								if (wrapper.needsBg) {
@@ -110,6 +118,10 @@ class Modal implements Component {
 				}),
 			)
 		}
+	}
+
+	private getModalLayer(modalIndex: number) {
+		return LayerType.Modal + modalIndex
 	}
 
 	display(component: ModalComponent, needsBg: boolean = true) {
