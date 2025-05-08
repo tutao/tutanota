@@ -37,7 +37,7 @@ class SdkFactory {
 			credentialType: tutasdk.CredentialType.internal
 		)
 
-		do { return try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: urlSession)).login(credentials: credentials) } catch {
+		do { return try await Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: urlSession), fileClient: SdkFileClient()).login(credentials: credentials) } catch {
 			throw TUTErrorFactory.createError(withDomain: TUT_WIDGET_CREDENTIAL_ERROR, message: "Failed to login into SDK: \(error)")
 		}
 	}

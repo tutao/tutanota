@@ -23,35 +23,40 @@ private let NORMAL_EVENTS_PLACEHOLDER = [
 		summary: "Gym",
 		startDate: date(2025, 4, 23, 9, 0, "Europe/Berlin"),
 		endDate: date(2025, 4, 23, 10, 0, "Europe/Berlin"),
-		calendarColor: "89cff0"
+		calendarColor: "89cff0",
+		isBirthdayEvent: false
 	),
 	CalendarEventData(
 		id: "ev2",
 		summary: "Meeting",
 		startDate: date(2025, 4, 23, 10, 0, "Europe/Berlin"),
 		endDate: date(2025, 4, 23, 11, 0, "Europe/Berlin"),
-		calendarColor: "20c4f0"
+		calendarColor: "20c4f0",
+		isBirthdayEvent: false
 	),
 	CalendarEventData(
 		id: "ev3",
 		summary: "Lunch",
 		startDate: date(2025, 4, 23, 11, 0, "Europe/Berlin"),
 		endDate: date(2025, 4, 23, 13, 0, "Europe/Berlin"),
-		calendarColor: "89a83b"
+		calendarColor: "89a83b",
+		isBirthdayEvent: false
 	),
 	CalendarEventData(
 		id: "ev4",
 		summary: "Concert w/ Mark",
 		startDate: date(2025, 4, 23, 13, 0, "Europe/Berlin"),
 		endDate: date(2025, 4, 23, 19, 0, "Europe/Berlin"),
-		calendarColor: "c476fc"
+		calendarColor: "c476fc",
+		isBirthdayEvent: false
 	),
 	CalendarEventData(
 		id: "ev5",
 		summary: "Dinner",
 		startDate: date(2025, 4, 23, 19, 0, "Europe/Berlin"),
 		endDate: date(2025, 4, 23, 20, 0, "Europe/Berlin"),
-		calendarColor: "a91a2f"
+		calendarColor: "a91a2f",
+		isBirthdayEvent: false
 	),
 ]
 
@@ -61,14 +66,16 @@ private let ALL_DAY_EVENTS_PLACEHOLDER = [
 		summary: "Mark is in Town",
 		startDate: date(2025, 4, 23, 0, 0, "Europe/Berlin"),
 		endDate: date(2025, 4, 24, 0, 0, "Europe/Berlin"),
-		calendarColor: "ED7D99"
+		calendarColor: "ED7D99",
+		isBirthdayEvent: false
 	),
 	CalendarEventData(
 		id: "ev6",
 		summary: "Spring Festival",
 		startDate: date(2025, 4, 20, 9, 0, "Europe/Berlin"),
 		endDate: date(2025, 4, 25, 10, 0, "Europe/Berlin"),
-		calendarColor: "89cff0"
+		calendarColor: "89cff0",
+		isBirthdayEvent: false
 	),
 ]
 
@@ -142,10 +149,14 @@ struct AgendaWidgetEntryView: View {
 		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEvents.first?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
 		let foregroundColor: Color = if allDayBackgroundColor.getLuminance() > 0.5 { .black } else { .white }
 
+		let allDayImage: ImageResource = if let firstEvent = allDayEvents.first, firstEvent.isBirthdayEvent {
+			.giftIcon
+		} else { .allDayIcon }
+
 		return Group {
 			Text(weekday + " " + day).fontWeight(.bold).font(.system(size: 24)).padding(.top, -4)
 			HStack(alignment: .center, spacing: 4) {
-				Image(.allDayIcon).foregroundStyle(foregroundColor).padding(2).background(Color(allDayBackgroundColor.cgColor))
+				Image(allDayImage).foregroundStyle(foregroundColor).padding(3).background(Color(allDayBackgroundColor.cgColor))
 					.clipShape(.rect(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)))
 				Text(allDayEvents.first?.summary ?? translate("TutaoNoTitleLabel", default: "<No Title>")).lineLimit(1).font(.system(size: 16))
 
@@ -168,16 +179,19 @@ struct AgendaWidgetEntryView: View {
 	}
 
 	private func EventsList() -> some View {
-		LazyVStack(alignment: .leading, spacing: 4) {
-			ForEach(normalEvents, id: \.id) { event in
+		let eventsToList = normalEvents.isEmpty ? allDayEvents : normalEvents
+		return LazyVStack(alignment: .leading, spacing: 4) {
+			ForEach(eventsToList, id: \.id) { event in
 				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
+				let eventTime = eventsToList == allDayEvents ? translate("TutaoAllDayLabel", default: "All Day") : eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
+
 				Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventDetails, eventId: event.id)) {
 					VStack {
 						HStack {
 							VStack { Circle().fill(Color(calendarColor.cgColor)).frame(width: 20, height: 20) }
 							VStack(alignment: .leading) {
 								Text(event.summary).fontWeight(.bold)
-								Text(eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate))
+								Text(eventTime)
 									.font(.system(size: 14))
 							}
 							.foregroundStyle(Color(.onSurface))
@@ -233,7 +247,8 @@ struct AgendaWidgetEntryView: View {
 				} else {
 					Header()
 
-					if normalEvents.isEmpty { EmptyList(family == .systemMedium) } else { EventsList() }
+					if normalEvents.isEmpty && allDayEvents.isEmpty { EmptyList(family == .systemMedium) } else { EventsList()
+					}
 				}
 			}
 			.frame(maxHeight: .infinity, alignment: .top)
