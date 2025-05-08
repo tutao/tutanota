@@ -4,7 +4,7 @@ import { theme } from "../theme"
 import type { Shortcut } from "../../misc/KeyManager"
 import { keyManager } from "../../misc/KeyManager"
 import { windowFacade } from "../../misc/WindowFacade"
-import { insideRect, remove } from "@tutao/tutanota-utils"
+import { insideRect, lastIndex, remove } from "@tutao/tutanota-utils"
 import { LayerType } from "../../../RootView"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
 
@@ -36,12 +36,8 @@ class Modal implements Component {
 			return m(
 				"#modal.fill-absolute",
 				{
-					oncreate: (_) => {
-						// const lastComponent = last(this.components)
-						// if (lastComponent) {
-						// 	lastComponent.component.backgroundClick(e)
-						// }
-					},
+					"aria-modal": true,
+					inert: !this.visible,
 					style: {
 						"z-index": LayerType.Modal,
 						display: this.visible ? "" : "none",
@@ -52,6 +48,7 @@ class Modal implements Component {
 						".fill-absolute",
 						{
 							key: wrapper.key,
+							inert: i !== lastIndex(array),
 							oncreate: (vnode) => {
 								// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
 								// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
@@ -77,11 +74,11 @@ class Modal implements Component {
 							style: {
 								zIndex: LayerType.Modal + 1 + i,
 							},
-							onbeforeremove: (vnode) => {
+							onbeforeremove: async (vnode) => {
 								if (wrapper.needsBg) {
 									this.closingComponents.push(wrapper.component)
 
-									return Promise.all([
+									await Promise.all([
 										this.addAnimation(vnode.dom as HTMLElement, false).then(() => {
 											remove(this.closingComponents, wrapper.component)
 
@@ -90,16 +87,22 @@ class Modal implements Component {
 											}
 										}),
 										wrapper.component.hideAnimation(),
-									]).then(() => {
-										m.redraw()
-									})
+									])
 								} else {
 									if (this.components.length === 0 && this.closingComponents.length === 0) {
 										this.visible = false
 									}
 
-									return wrapper.component.hideAnimation().then(() => m.redraw())
+									await wrapper.component.hideAnimation()
 								}
+
+								m.redraw()
+
+								// Return the focus back to it's calling element.
+								// We focus callingElement onbeforeremove with requestAnimationFrame because
+								// focus can't happen if callingElement is inert. And when returning
+								// focus to main view, focus must happen after redraw that removes inert
+								requestAnimationFrame(() => wrapper.component.callingElement()?.focus())
 							},
 						},
 						m(wrapper.component),
@@ -216,9 +219,6 @@ class Modal implements Component {
 			// the removed component was the last component, so we can now register the shortcuts of the now last component
 			keyManager.registerModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
-
-		// Return the focus back to it's calling element.
-		component.callingElement()?.focus()
 	}
 
 	/**
