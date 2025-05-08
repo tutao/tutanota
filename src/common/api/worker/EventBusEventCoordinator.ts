@@ -18,6 +18,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../common/utils/EntityUpda
 import { RolloutFacade } from "./facades/RolloutFacade"
 import { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../main/SyncTracker"
+import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -34,6 +35,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly appSpecificBatchHandling: (events: readonly EntityUpdateData[], batchId: Id, groupId: Id) => void,
 		private readonly rolloutFacade: RolloutFacade,
 		private readonly groupManagementFacade: lazyAsync<GroupManagementFacade>,
+		private readonly identityKeyCreator: lazyAsync<IdentityKeyCreator>,
 		private readonly syncTracker: SyncTracker,
 	) {}
 
@@ -86,10 +88,10 @@ export class EventBusEventCoordinator implements EventBusListener {
 
 		if (this.userFacade.isLeader()) {
 			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation, async () => {
-				const userGroupId = this.userFacade.getUserGroupId()
-				const gmf = await this.groupManagementFacade()
+				const identityKeyCreator = await this.identityKeyCreator()
+
 				try {
-					await gmf.createIdentityKeyPair(userGroupId)
+					await identityKeyCreator.createIdentityKeyPairForExistingUsers()
 				} catch (error) {
 					console.log("error when creating user identity key pair", error)
 					this.sendError(error)
@@ -97,9 +99,11 @@ export class EventBusEventCoordinator implements EventBusListener {
 			})
 
 			await this.rolloutFacade.processRollout(RolloutType.SharedMailboxIdentityKeyCreation, async () => {
-				const gmf = await this.groupManagementFacade()
+				const identityKeyCreator = await this.identityKeyCreator()
+				const groupManagementFacade = await this.groupManagementFacade()
 				try {
-					await gmf.createIdentityKeyPairForExistingTeamGroups()
+					const teamGroups = await groupManagementFacade.loadTeamGroupIds()
+					await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(teamGroups)
 				} catch (error) {
 					console.log(`error when creating shared mailbox identity key pairs`, error)
 					this.sendError(error)

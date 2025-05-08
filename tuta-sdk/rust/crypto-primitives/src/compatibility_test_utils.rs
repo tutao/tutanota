@@ -103,11 +103,25 @@ pub struct Ed25519Test {
 	pub alice_private_key_hex: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub alice_public_key_hex: Vec<u8>,
-	pub message: String,
+	#[serde(with = "const_hex")]
+	pub message: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub signature: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub seed: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub private_ecc_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub pub_ecc_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub private_kyber_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub pub_kyber_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub private_rsa_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub pub_rsa_key: Vec<u8>,
+	pub key_pair_version: i64,
 }
 
 #[derive(Deserialize)]
