@@ -251,8 +251,8 @@ export class GroupManagementFacade {
 				tag,
 			}),
 		})
-
-		await this.serviceExecutor.post(IdentityKeyService, createIdentityKeyPostIn({ identityKeyPair }))
+		// TODO create the necessary signatures?!
+		await this.serviceExecutor.post(IdentityKeyService, createIdentityKeyPostIn({ identityKeyPair, signatures: [] }))
 	}
 
 	async addUserToGroup(user: User, groupId: Id): Promise<void> {
