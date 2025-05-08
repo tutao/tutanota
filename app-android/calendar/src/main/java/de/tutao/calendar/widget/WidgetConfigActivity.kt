@@ -98,6 +98,7 @@ import de.tutao.calendar.widget.model.WidgetConfigModel
 import de.tutao.calendar.widget.model.WidgetConfigViewModel
 import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
 import de.tutao.tutasdk.CalendarRenderData
+import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
@@ -114,6 +115,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+val CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID = "clientOnly_birthdays"
 
 class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -510,9 +513,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 							val key = it.first
 							CalendarRow(
 								calendar.color,
-								calendar.name.ifEmpty {
-									"Private"
-								},
+								getCalendarName(key, calendar),
 								onCalendarSelect = { isSelected ->
 									model.toggleCalendarSelection(key, isSelected)
 								},
@@ -535,6 +536,17 @@ class WidgetConfigActivity : AppCompatActivity() {
 					}
 				}
 			}
+		}
+	}
+
+	@Composable
+	private fun getCalendarName(id: GeneratedId, calendar: CalendarRenderData): String {
+		if (id.contains(CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID)) {
+			return getString(R.string.birthdayCalendar_label)
+		}
+
+		return calendar.name.ifEmpty {
+			"Private"
 		}
 	}
 

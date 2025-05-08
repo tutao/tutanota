@@ -16,7 +16,7 @@ use crate::groups::GroupType;
 use crate::user_facade::UserFacade;
 use crate::util::first_bigger_than_second_custom_id;
 use crate::{ApiCallError, CustomId, GeneratedId, IdTupleCustom, ListLoadDirection};
-use base64::prelude::{BASE64_STANDARD, BASE64_URL_SAFE};
+use base64::prelude::{BASE64_STANDARD, BASE64_URL_SAFE, BASE64_URL_SAFE_NO_PAD};
 use base64::Engine;
 use num_enum::TryFromPrimitive;
 use serde::{Deserialize, Serialize};
@@ -608,6 +608,11 @@ impl CalendarFacade {
 
 		let event_title = contact.firstName.clone();
 
+		let birth_year = if birthday_parts.0.unwrap_or(0) < 1970 {
+			1970
+		} else {
+			birthday_parts.0.unwrap()
+		};
 		let birthday_date = match Date::from_calendar_date(
 			OffsetDateTime::now_local().unwrap().year(),
 			Month::from_number(birthday_parts.1),
@@ -617,11 +622,17 @@ impl CalendarFacade {
 			Err(e) => return Err(ApiCallError::internal(format!("Invalid date: {e:?}"))),
 		};
 
+		let event_base_date = birthday_date.replace_year(birth_year as i32).unwrap();
+
+		let offset_date_time_base =
+			OffsetDateTime::new_utc(event_base_date, Time::from_hms(0, 0, 0).unwrap());
 		let offset_date_time_start_time =
 			OffsetDateTime::new_utc(birthday_date, Time::from_hms(0, 0, 0).unwrap());
 		let offset_date_time_end_time = offset_date_time_start_time
 			.checked_add(Duration::days(1))
 			.unwrap();
+
+		let base_datetime = DateTime::from_seconds(offset_date_time_base.unix_timestamp() as u64);
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
@@ -641,9 +652,9 @@ impl CalendarFacade {
 			));
 		};
 
-		let encoded_event_id = BASE64_URL_SAFE.encode(format!(
+		let encoded_event_id = BASE64_URL_SAFE_NO_PAD.encode(format!(
 			"{}{}/{}",
-			start_date.as_millis(),
+			base_datetime.as_millis(),
 			contact_id.list_id,
 			contact_id.element_id
 		));
