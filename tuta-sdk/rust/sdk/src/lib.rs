@@ -57,6 +57,7 @@ use bindings::rest_client::{RestClient, RestClientError};
 pub mod contacts;
 pub mod crypto;
 pub mod crypto_entity_client;
+pub mod customer;
 pub mod date;
 mod element_value;
 pub mod entities;
@@ -90,6 +91,8 @@ pub mod util;
 use crate::bindings::suspendable_rest_client::SuspendableRestClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::contacts::contact_facade::ContactFacade;
+#[cfg_attr(test, mockall_double::double)]
+use crate::customer::customer_facade::CustomerFacade;
 use crate::date::calendar_facade::CalendarFacade;
 use crate::entities::generated::storage::BlobServerAccessInfo;
 use crate::entities::Entity;
@@ -299,6 +302,11 @@ impl Sdk {
 			user_facade.clone(),
 		));
 
+		let customer_facade = Arc::new(CustomerFacade::new(
+			crypto_entity_client.clone(),
+			user_facade.clone(),
+		));
+
 		Ok(Arc::new(LoggedInSdk {
 			user_facade,
 			entity_client,
@@ -311,6 +319,7 @@ impl Sdk {
 			json_serializer: Arc::clone(&self.json_serializer),
 			type_model_provider: Arc::clone(&self.type_model_provider),
 			contact_facade,
+			customer_facade,
 		}))
 	}
 
@@ -431,6 +440,7 @@ pub struct LoggedInSdk {
 	pub instance_mapper: Arc<InstanceMapper>,
 	pub type_model_provider: Arc<TypeModelProvider>,
 	pub contact_facade: Arc<ContactFacade>,
+	pub customer_facade: Arc<CustomerFacade>,
 }
 
 impl LoggedInSdk {
@@ -536,6 +546,7 @@ impl LoggedInSdk {
 			self.crypto_entity_client.clone(),
 			self.user_facade.clone(),
 			self.contact_facade.clone(),
+			self.customer_facade.clone(),
 		)
 	}
 
