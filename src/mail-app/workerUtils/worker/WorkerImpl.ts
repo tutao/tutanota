@@ -46,6 +46,7 @@ import { ApplicationTypesFacade } from "../../../common/api/worker/facades/Appli
 import { Indexer } from "../index/Indexer"
 import { SearchFacade } from "../index/SearchFacade"
 import { ContactSearchFacade } from "../index/ContactSearchFacade"
+import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 
 assertWorkerOrNode()
 
@@ -87,6 +88,7 @@ export interface WorkerInterface {
 	readonly mailExportFacade: MailExportFacade
 	readonly bulkMailLoader: BulkMailLoader
 	readonly applicationTypesFacade: ApplicationTypesFacade
+	readonly identityKeyCreator: IdentityKeyCreator
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -159,6 +161,9 @@ export class WorkerImpl implements NativeInterface {
 
 			async groupManagementFacade() {
 				return locator.groupManagement()
+			},
+			async identityKeyCreator() {
+				return locator.identityKeyCreator()
 			},
 
 			async configFacade() {

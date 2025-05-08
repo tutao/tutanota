@@ -5,6 +5,7 @@ import {
 	aesEncrypt,
 	AesKey,
 	AsymmetricKeyPair,
+	bytesToEd25519PrivateKey,
 	decryptKey,
 	decryptKeyPair,
 	deriveX25519PublicKey,
@@ -49,6 +50,8 @@ import {
 import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
+import { IdentityKeyPair } from "../../entities/sys/TypeRefs"
+import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 
 /**
  * An AesKey (usually a group key) and its version.
@@ -90,6 +93,13 @@ export class CryptoWrapper {
 		return {
 			encryptingKeyVersion: encryptionKey.version,
 			key: aesEncrypt(encryptionKey.object, ed25519PrivateKeyToBytes(privateKey), undefined, true, true),
+		}
+	}
+
+	decryptEd25519PrivateKey(encryptedIdentityKeyPair: IdentityKeyPair, decryptionKey: AesKey): Versioned<Ed25519PrivateKey> {
+		return {
+			object: bytesToEd25519PrivateKey(aesDecrypt(decryptionKey, encryptedIdentityKeyPair.privateEd25519Key)),
+			version: parseKeyVersion(encryptedIdentityKeyPair.identityKeyVersion),
 		}
 	}
 
