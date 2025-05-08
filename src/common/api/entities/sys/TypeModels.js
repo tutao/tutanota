@@ -75,7 +75,17 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {}
+		"associations": {
+			"2577": {
+				"final": false,
+				"name": "signature",
+				"id": 2577,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2570,
+				"dependency": null
+			}
+		}
 	},
 	"5": {
 		"name": "Group",
@@ -270,10 +280,10 @@ export const typeModels = {
 				"refTypeId": 2384,
 				"dependency": null
 			},
-			"2570": {
+			"2576": {
 				"final": false,
 				"name": "identityKeyPair",
-				"id": 2570,
+				"id": 2576,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2563,
@@ -13961,37 +13971,45 @@ export const typeModels = {
 			}
 		}
 	},
-	"2571": {
-		"name": "IdentityKeyGetIn",
+	"2570": {
+		"name": "PublicKeySignature",
 		"app": "sys",
 		"version": 127,
 		"since": 127,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 2571,
-		"rootId": "A3N5cwAKCw",
+		"type": "AGGREGATED_TYPE",
+		"id": 2570,
+		"rootId": "A3N5cwAKCg",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
+			"2571": {
+				"final": true,
+				"name": "_id",
+				"id": 2571,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
 			"2572": {
 				"final": false,
-				"name": "_format",
+				"name": "signature",
 				"id": 2572,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2573": {
 				"final": false,
-				"name": "version",
+				"name": "signingKeyVersion",
 				"id": 2573,
 				"type": "Number",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": false
 			},
 			"2574": {
 				"final": false,
-				"name": "identifierType",
+				"name": "signatureType",
 				"id": 2574,
 				"type": "Number",
 				"cardinality": "One",
@@ -13999,8 +14017,55 @@ export const typeModels = {
 			},
 			"2575": {
 				"final": false,
-				"name": "identifier",
+				"name": "publicKeyVersion",
 				"id": 2575,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2578": {
+		"name": "IdentityKeyGetIn",
+		"app": "sys",
+		"version": 127,
+		"since": 127,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2578,
+		"rootId": "A3N5cwAKEg",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2579": {
+				"final": false,
+				"name": "_format",
+				"id": 2579,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2580": {
+				"final": false,
+				"name": "version",
+				"id": 2580,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2581": {
+				"final": false,
+				"name": "identifierType",
+				"id": 2581,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2582": {
+				"final": false,
+				"name": "identifier",
+				"id": 2582,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
@@ -14008,101 +14073,37 @@ export const typeModels = {
 		},
 		"associations": {}
 	},
-	"2576": {
+	"2583": {
 		"name": "IdentityKeyGetOut",
 		"app": "sys",
 		"version": 127,
 		"since": 127,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2576,
-		"rootId": "A3N5cwAKEA",
+		"id": 2583,
+		"rootId": "A3N5cwAKFw",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2577": {
+			"2584": {
 				"final": false,
 				"name": "_format",
-				"id": 2577,
+				"id": 2584,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2578": {
+			"2585": {
 				"final": false,
 				"name": "publicIdentityKey",
-				"id": 2578,
-				"type": "Bytes",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"2579": {
-				"final": false,
-				"name": "publicIdentityKeyVersion",
-				"id": 2579,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {}
-	},
-	"2580": {
-		"name": "IdentityKeyPostIn",
-		"app": "sys",
-		"version": 127,
-		"since": 127,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 2580,
-		"rootId": "A3N5cwAKFA",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"2581": {
-				"final": false,
-				"name": "_format",
-				"id": 2581,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {
-			"2582": {
-				"final": false,
-				"name": "identityKeyPair",
-				"id": 2582,
-				"type": "AGGREGATION",
-				"cardinality": "One",
-				"refTypeId": 2563,
-				"dependency": null
-			}
-		}
-	},
-	"2584": {
-		"name": "Rollout",
-		"app": "sys",
-		"version": 127,
-		"since": 127,
-		"type": "AGGREGATED_TYPE",
-		"id": 2584,
-		"rootId": "A3N5cwAKGA",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"2585": {
-				"final": true,
-				"name": "_id",
 				"id": 2585,
-				"type": "CustomId",
+				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2586": {
 				"final": false,
-				"name": "rolloutType",
+				"name": "publicIdentityKeyVersion",
 				"id": 2586,
 				"type": "Number",
 				"cardinality": "One",
@@ -14112,7 +14113,7 @@ export const typeModels = {
 		"associations": {}
 	},
 	"2587": {
-		"name": "RolloutGetOut",
+		"name": "IdentityKeyPostIn",
 		"app": "sys",
 		"version": 127,
 		"since": 127,
@@ -14135,11 +14136,84 @@ export const typeModels = {
 		"associations": {
 			"2589": {
 				"final": false,
-				"name": "rollouts",
+				"name": "identityKeyPair",
 				"id": 2589,
 				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2563,
+				"dependency": null
+			},
+			"2590": {
+				"final": false,
+				"name": "signatures",
+				"id": 2590,
+				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refTypeId": 2584,
+				"refTypeId": 2570,
+				"dependency": null
+			}
+		}
+	},
+	"2592": {
+		"name": "Rollout",
+		"app": "sys",
+		"version": 127,
+		"since": 127,
+		"type": "AGGREGATED_TYPE",
+		"id": 2592,
+		"rootId": "A3N5cwAKIA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2593": {
+				"final": true,
+				"name": "_id",
+				"id": 2593,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2594": {
+				"final": false,
+				"name": "rolloutType",
+				"id": 2594,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2595": {
+		"name": "RolloutGetOut",
+		"app": "sys",
+		"version": 127,
+		"since": 127,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2595,
+		"rootId": "A3N5cwAKIw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2596": {
+				"final": false,
+				"name": "_format",
+				"id": 2596,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"2597": {
+				"final": false,
+				"name": "rollouts",
+				"id": 2597,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2592,
 				"dependency": null
 			}
 		}

@@ -114,6 +114,7 @@ import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
+import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 
 assertMainOrNode()
 
@@ -170,6 +171,7 @@ class CalendarLocator {
 	themeController!: ThemeController
 	Const!: Record<string, any>
 	syncTracker!: SyncTracker
+	identityKeyCreator!: IdentityKeyCreator
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -579,6 +581,7 @@ class CalendarLocator {
 			workerFacade,
 			sqlCipherFacade,
 			contactFacade,
+			identityKeyCreator,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -599,6 +602,7 @@ class CalendarLocator {
 		this.contactFacade = contactFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
+		this.identityKeyCreator = identityKeyCreator
 		this.logins = new LoginController(
 			this.loginFacade,
 			this.customerFacade,

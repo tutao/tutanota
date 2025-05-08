@@ -628,6 +628,7 @@ o.spec("CryptoFacadeTest", function () {
 			symEncPrivKyberKey: null,
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
+			signature: null,
 		})
 
 		const senderKeyPairs = await pqFacade.generateKeyPairs()
@@ -640,6 +641,7 @@ o.spec("CryptoFacadeTest", function () {
 			symEncPrivEccKey: aesEncrypt(senderGroupKey, senderKeyPairs.x25519KeyPair.privateKey),
 			pubKyberKey: kyberPublicKeyToBytes(senderKeyPairs.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: aesEncrypt(senderGroupKey, kyberPrivateKeyToBytes(senderKeyPairs.kyberKeyPair.privateKey)),
+			signature: null,
 		})
 
 		const senderUserGroup = createGroup({
@@ -1597,6 +1599,7 @@ o.spec("CryptoFacadeTest", function () {
 			symEncPrivKyberKey: aesEncrypt(recipientUser.userGroupKey, kyberPrivateKeyToBytes(pqKeyPairs.kyberKeyPair.privateKey)),
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
+			signature: null,
 		})
 
 		recipientUser.userGroup.currentKeys = recipientKeyPair

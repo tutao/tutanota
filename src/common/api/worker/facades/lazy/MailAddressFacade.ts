@@ -27,16 +27,16 @@ import { assertNotNull, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } fr
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { PreconditionFailedError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
-import { GroupManagementFacade } from "./GroupManagementFacade.js"
 
 import { VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
 
 assertWorkerOrNode()
 
 export class MailAddressFacade {
 	constructor(
 		private readonly userFacade: UserFacade,
-		private readonly groupManagement: GroupManagementFacade,
+		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly nonCachingEntityClient: EntityClient,
 	) {}
@@ -142,15 +142,15 @@ export class MailAddressFacade {
 
 		if (mailboxGroupRoot.mailboxProperties == null) {
 			const currentGroupKey = viaUser
-				? await this.groupManagement.getCurrentGroupKeyViaUser(mailGroupId, viaUser)
-				: await this.groupManagement.getCurrentGroupKeyViaAdminEncGKey(mailGroupId)
+				? await this.adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)
+				: await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(mailGroupId)
 			mailboxGroupRoot.mailboxProperties = await this.createMailboxProperties(mailboxGroupRoot, currentGroupKey)
 		}
 
 		const groupKeyProvider = async (version: KeyVersion) =>
 			viaUser
-				? await this.groupManagement.getGroupKeyViaUser(mailGroupId, version, viaUser)
-				: await this.groupManagement.getGroupKeyViaAdminEncGKey(mailGroupId, version)
+				? await this.adminKeyLoaderFacade.getGroupKeyViaUser(mailGroupId, version, viaUser)
+				: await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(mailGroupId, version)
 		const mailboxProperties = await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties, {
 			ownerKeyProvider: groupKeyProvider,
 		})
@@ -214,8 +214,8 @@ export class MailAddressFacade {
 	private async updateMailboxProperties(mailboxProperties: MailboxProperties, viaUser?: Id): Promise<MailboxProperties> {
 		const groupKeyProvider = async (version: KeyVersion) =>
 			viaUser
-				? await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), version, viaUser)
-				: await this.groupManagement.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup), version)
+				? await this.adminKeyLoaderFacade.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), version, viaUser)
+				: await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup), version)
 		await this.nonCachingEntityClient.update(mailboxProperties, { ownerKeyProvider: groupKeyProvider })
 		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, { ownerKeyProvider: groupKeyProvider })
 	}

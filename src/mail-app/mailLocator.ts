@@ -136,6 +136,7 @@ import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFa
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
+import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 
 assertMainOrNode()
 
@@ -160,6 +161,7 @@ class MailLocator {
 	keyLoaderFacade!: KeyLoaderFacade
 	giftCardFacade!: GiftCardFacade
 	groupManagementFacade!: GroupManagementFacade
+	identityKeyCreator!: IdentityKeyCreator
 	configFacade!: ConfigurationDatabase
 	calendarFacade!: CalendarFacade
 	mailFacade!: MailFacade
@@ -707,6 +709,7 @@ class MailLocator {
 			customerFacade,
 			giftCardFacade,
 			groupManagementFacade,
+			identityKeyCreator,
 			configFacade,
 			calendarFacade,
 			mailFacade,
@@ -738,6 +741,7 @@ class MailLocator {
 		this.customerFacade = customerFacade
 		this.giftCardFacade = giftCardFacade
 		this.groupManagementFacade = groupManagementFacade
+		this.identityKeyCreator = identityKeyCreator
 		this.configFacade = configFacade
 		this.calendarFacade = calendarFacade
 		this.mailFacade = mailFacade

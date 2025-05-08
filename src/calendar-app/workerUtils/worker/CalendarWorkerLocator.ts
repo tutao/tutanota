@@ -84,6 +84,9 @@ import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipe
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
+import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
+import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
+import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 
 assertWorkerOrNode()
 
@@ -105,9 +108,11 @@ export type CalendarWorkerLocatorType = {
 	blobAccessToken: BlobAccessTokenFacade
 	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
+	adminKeyLoader: AdminKeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
+	publicKeySignatureFacade: PublicKeySignatureFacade
 	cryptoWrapper: CryptoWrapper
 	rolloutFacade: RolloutFacade
 
@@ -124,6 +129,7 @@ export type CalendarWorkerLocatorType = {
 
 	// management facades
 	groupManagement: lazyAsync<GroupManagementFacade>
+	identityKeyCreator: lazyAsync<IdentityKeyCreator>
 	userManagement: lazyAsync<UserManagementFacade>
 	recoverCode: lazyAsync<RecoverCodeFacade>
 	customer: lazyAsync<CustomerFacade>
@@ -233,15 +239,10 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.cryptoWrapper = new CryptoWrapper()
 
-	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
+	locator.publicKeySignatureFacade = new PublicKeySignatureFacade(locator.ed25519Facade, locator.cryptoWrapper)
+
 	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
-	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor, locator.cachingEntityClient, keyAuthenticationFacade, locator.keyLoader)
-
-	locator.keyVerification = lazyMemoized(async () => {
-		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
-		return new KeyVerificationFacade(locator.sqlCipherFacade, locator.ed25519Facade)
-	})
-
+	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement, locator.cryptoWrapper)
 	const asymmetricCrypto = new AsymmetricCryptoFacade(
 		locator.rsa,
 		locator.pqFacade,
@@ -251,6 +252,21 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.keyVerification,
 		locator.publicKeyProvider,
 	)
+	locator.adminKeyLoader = new AdminKeyLoaderFacade(
+		locator.user,
+		locator.cachingEntityClient,
+		locator.keyLoader,
+		locator.cacheManagement,
+		asymmetricCrypto,
+		locator.cryptoWrapper,
+		keyAuthenticationFacade,
+	)
+	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor, locator.cachingEntityClient, keyAuthenticationFacade, locator.keyLoader)
+
+	locator.keyVerification = lazyMemoized(async () => {
+		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+		return new KeyVerificationFacade(locator.sqlCipherFacade, locator.ed25519Facade)
+	})
 
 	locator.crypto = new CryptoFacade(
 		locator.user,
@@ -280,6 +296,23 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new CounterFacade(locator.serviceExecutor)
 	})
 
+	locator.identityKeyCreator = lazyMemoized(async () => {
+		const { IdentityKeyCreator } = await import("../../../common/api/worker/facades/lazy/IdentityKeyCreator.js")
+		return new IdentityKeyCreator(
+			locator.user,
+			locator.cachingEntityClient,
+			locator.serviceExecutor,
+			locator.keyLoader,
+			locator.adminKeyLoader,
+			await locator.cacheManagement(),
+			asymmetricCrypto,
+			locator.cryptoWrapper,
+			keyAuthenticationFacade,
+			locator.ed25519Facade,
+			locator.publicKeySignatureFacade,
+		)
+	})
+
 	locator.groupManagement = lazyMemoized(async () => {
 		const { GroupManagementFacade } = await import("../../../common/api/worker/facades/lazy/GroupManagementFacade.js")
 		return new GroupManagementFacade(
@@ -289,11 +322,10 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.serviceExecutor,
 			locator.pqFacade,
 			locator.keyLoader,
+			locator.adminKeyLoader,
 			await locator.cacheManagement(),
-			asymmetricCrypto,
 			cryptoWrapper,
-			keyAuthenticationFacade,
-			locator.ed25519Facade,
+			await locator.identityKeyCreator(),
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -310,6 +342,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		asymmetricCrypto,
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
+		locator.publicKeySignatureFacade,
+		locator.adminKeyLoader,
 	)
 	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
 
@@ -374,6 +408,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.pqFacade,
 			locator.keyLoader,
 			await locator.recoverCode(),
+			locator.adminKeyLoader,
+			await locator.identityKeyCreator(),
 		)
 	})
 	locator.customer = lazyMemoized(async () => {
@@ -438,7 +474,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		const { MailAddressFacade } = await import("../../../common/api/worker/facades/lazy/MailAddressFacade.js")
 		return new MailAddressFacade(
 			locator.user,
-			await locator.groupManagement(),
+			locator.adminKeyLoader,
 			locator.serviceExecutor,
 			nonCachingEntityClient, // without cache
 		)
@@ -465,6 +501,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		(queuedBatch: QueuedBatch[]) => noOp,
 		locator.rolloutFacade,
 		locator.groupManagement,
+		locator.identityKeyCreator,
 		mainInterface.syncTracker,
 	)
 

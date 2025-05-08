@@ -44,6 +44,7 @@ import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/K
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
+import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 
 assertWorkerOrNode()
 
@@ -83,6 +84,7 @@ export interface WorkerInterface {
 	readonly contactFacade: ContactFacade
 	readonly mailExportFacade: MailExportFacade
 	readonly bulkMailLoader: BulkMailLoader
+	readonly identityKeyCreator: IdentityKeyCreator
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -155,6 +157,9 @@ export class WorkerImpl implements NativeInterface {
 
 			async groupManagementFacade() {
 				return locator.groupManagement()
+			},
+			async identityKeyCreator() {
+				return locator.identityKeyCreator()
 			},
 
 			async configFacade() {

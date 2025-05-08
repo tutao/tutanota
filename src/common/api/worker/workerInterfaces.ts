@@ -31,6 +31,7 @@ import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 import { SyncTracker } from "../main/SyncTracker.js"
 import { KeyVerificationFacade } from "./facades/lazy/KeyVerificationFacade"
 import { PublicKeyProvider } from "./facades/PublicKeyProvider"
+import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>
@@ -82,4 +83,5 @@ export interface CommonWorkerInterface {
 	readonly entropyFacade: EntropyFacade
 	readonly workerFacade: WorkerFacade
 	readonly contactFacade: ContactFacade
+	readonly identityKeyCreator: IdentityKeyCreator
 }

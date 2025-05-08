@@ -101,6 +101,9 @@ import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipe
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
+import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
+import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
+import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 
 assertWorkerOrNode()
 
@@ -109,6 +112,7 @@ export type WorkerLocatorType = {
 	restClient: RestClient
 	serviceExecutor: IServiceExecutor
 	cryptoWrapper: CryptoWrapper
+	keyAuthenticationFacade: KeyAuthenticationFacade
 	asymmetricCrypto: AsymmetricCryptoFacade
 	crypto: CryptoFacade
 	instancePipeline: InstancePipeline
@@ -124,9 +128,11 @@ export type WorkerLocatorType = {
 	blobAccessToken: BlobAccessTokenFacade
 	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
+	adminKeyLoader: AdminKeyLoaderFacade
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
+	publicKeySignatureFacade: PublicKeySignatureFacade
 	rolloutFacade: RolloutFacade
 
 	// login
@@ -146,6 +152,7 @@ export type WorkerLocatorType = {
 
 	// management facades
 	groupManagement: lazyAsync<GroupManagementFacade>
+	identityKeyCreator: lazyAsync<IdentityKeyCreator>
 	userManagement: lazyAsync<UserManagementFacade>
 	recoverCode: lazyAsync<RecoverCodeFacade>
 	customer: lazyAsync<CustomerFacade>
@@ -290,10 +297,21 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.ed25519Facade = new Ed25519Facade()
 
-	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
-	const keyAuthenticationFacade = new KeyAuthenticationFacade(locator.cryptoWrapper)
+	locator.publicKeySignatureFacade = new PublicKeySignatureFacade(locator.ed25519Facade, locator.cryptoWrapper)
 
-	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor, locator.cachingEntityClient, keyAuthenticationFacade, locator.keyLoader)
+	locator.keyAuthenticationFacade = new KeyAuthenticationFacade(locator.cryptoWrapper)
+	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement, locator.cryptoWrapper)
+	locator.adminKeyLoader = new AdminKeyLoaderFacade(
+		locator.user,
+		locator.cachingEntityClient,
+		locator.keyLoader,
+		locator.cacheManagement,
+		locator.asymmetricCrypto,
+		locator.cryptoWrapper,
+		locator.keyAuthenticationFacade,
+	)
+
+	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor, locator.cachingEntityClient, locator.keyAuthenticationFacade, locator.keyLoader)
 
 	locator.keyVerification = lazyMemoized(async () => {
 		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
@@ -338,6 +356,23 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new CounterFacade(locator.serviceExecutor)
 	})
 
+	locator.identityKeyCreator = lazyMemoized(async () => {
+		const { IdentityKeyCreator } = await import("../../../common/api/worker/facades/lazy/IdentityKeyCreator.js")
+		return new IdentityKeyCreator(
+			locator.user,
+			locator.cachingEntityClient,
+			locator.serviceExecutor,
+			locator.keyLoader,
+			locator.adminKeyLoader,
+			await locator.cacheManagement(),
+			locator.asymmetricCrypto,
+			locator.cryptoWrapper,
+			locator.keyAuthenticationFacade,
+			locator.ed25519Facade,
+			locator.publicKeySignatureFacade,
+		)
+	})
+
 	locator.groupManagement = lazyMemoized(async () => {
 		const { GroupManagementFacade } = await import("../../../common/api/worker/facades/lazy/GroupManagementFacade.js")
 		return new GroupManagementFacade(
@@ -347,11 +382,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.serviceExecutor,
 			locator.pqFacade,
 			locator.keyLoader,
+			locator.adminKeyLoader,
 			await locator.cacheManagement(),
-			locator.asymmetricCrypto,
 			locator.cryptoWrapper,
-			keyAuthenticationFacade,
-			locator.ed25519Facade,
+			await locator.identityKeyCreator(),
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -366,8 +400,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.share,
 		locator.groupManagement,
 		locator.asymmetricCrypto,
-		keyAuthenticationFacade,
+		locator.keyAuthenticationFacade,
 		locator.publicKeyProvider,
+		locator.publicKeySignatureFacade,
+		locator.adminKeyLoader,
 	)
 	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
 
@@ -445,6 +481,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.pqFacade,
 			locator.keyLoader,
 			await locator.recoverCode(),
+			locator.adminKeyLoader,
+			await locator.identityKeyCreator(),
 		)
 	})
 	locator.customer = lazyMemoized(async () => {
@@ -509,7 +547,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { MailAddressFacade } = await import("../../../common/api/worker/facades/lazy/MailAddressFacade.js")
 		return new MailAddressFacade(
 			locator.user,
-			await locator.groupManagement(),
+			locator.adminKeyLoader,
 			locator.serviceExecutor,
 			nonCachingEntityClient, // without cache
 		)
@@ -540,6 +578,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		},
 		locator.rolloutFacade,
 		locator.groupManagement,
+		locator.identityKeyCreator,
 		mainInterface.syncTracker,
 	)
 
