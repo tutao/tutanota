@@ -86,7 +86,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 						return null
 					}
 
-					return () => lang.get("customDomainErrorDomainNotAvailable_msg")
+					return "customDomainErrorDomainNotAvailable_msg"
 				} else {
 					const errorMessageMap: Record<CustomDomainValidationResult, TranslationKey> = {
 						[CustomDomainValidationResult.CUSTOM_DOMAIN_VALIDATION_RESULT_OK]: "emptyString_msg",
@@ -108,7 +108,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 		)
 			.then((message) => {
 				if (message) {
-					return showErrorDialog ? Dialog.message(downcast(message)).then(() => false) : false
+					return showErrorDialog ? Dialog.message(message).then(() => false) : false
 				}
 
 				return true
