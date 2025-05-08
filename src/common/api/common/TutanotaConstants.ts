@@ -1310,3 +1310,11 @@ export const enum RolloutType {
 	UserIdentityKeyCreation = "0",
 	SharedMailboxIdentityKeyCreation = "1",
 }
+
+/**
+ * The type of signature of a public encryption key, signed with an identity key pair.
+ */
+export const enum PublicKeySignatureType {
+	RsaEcc = "0", // the signed public key is RSA ECC key
+	TutaCrypt = "1", // the signed public key is a TutaCrypt key
+}

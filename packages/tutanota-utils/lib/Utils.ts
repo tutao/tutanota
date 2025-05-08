@@ -144,6 +144,17 @@ export function assertNotNull<T>(value: T | null | undefined, message: string = 
 }
 
 /**
+ * throws if the value is not null.
+ * @param value the value to check
+ * @param message optional error message
+ */
+export function assertNull<T>(value: T | null | undefined, message: string = "not null") {
+	if (value != null) {
+		throw new Error("AssertNull failed : " + message)
+	}
+}
+
+/**
  * assertion function that only returns if the argument is non-null
  * (acts as a type guard)
  * @param value the value to check

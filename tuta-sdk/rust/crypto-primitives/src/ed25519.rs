@@ -188,7 +188,10 @@ mod tests {
 
 			let reproduced_signature = key_pair.private_key.sign(&message);
 			assert_eq!(reproduced_signature, signature);
-			assert!(key_pair.public_key.verify(message.as_slice(), &signature).is_ok());
+			assert!(key_pair
+				.public_key
+				.verify(message.as_slice(), &signature)
+				.is_ok());
 		}
 	}
 }
