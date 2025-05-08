@@ -201,7 +201,7 @@ export class AsymmetricCryptoFacade {
 	async asymEncryptSymKey(symKey: AesKey, recipientPublicKey: Versioned<PublicKey>, senderGroupId: Id): Promise<PubEncSymKey> {
 		if (isVersionedPqPublicKey(recipientPublicKey)) {
 			const senderKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(senderGroupId)
-			const senderEccKeyPair = await this.getOrMakeSenderIdentityKeyPair(senderKeyPair.object, senderGroupId)
+			const senderEccKeyPair = await this.getOrMakeSenderX25519KeyPair(senderKeyPair.object, senderGroupId)
 			return this.tutaCryptEncryptSymKeyImpl(recipientPublicKey, symKey, {
 				object: senderEccKeyPair,
 				version: senderKeyPair.version,
@@ -261,26 +261,30 @@ export class AsymmetricCryptoFacade {
 	 *                        This is necessary as a User might send an E-Mail from a shared mailbox,
 	 *                        for which the KeyPair should be created.
 	 */
-	private async getOrMakeSenderIdentityKeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<X25519KeyPair> {
+	async getOrMakeSenderX25519KeyPair(senderKeyPair: AsymmetricKeyPair, keyGroupId: Id): Promise<X25519KeyPair> {
 		const algo = senderKeyPair.keyPairType
 		if (isPqKeyPairs(senderKeyPair)) {
 			return senderKeyPair.x25519KeyPair
 		} else if (isRsaX25519KeyPair(senderKeyPair)) {
 			return { publicKey: senderKeyPair.publicEccKey, privateKey: senderKeyPair.privateEccKey }
 		} else if (isRsaOrRsaX25519KeyPair(senderKeyPair)) {
-			// there is no ecc key pair yet, so we have to genrate and upload one
-			const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
-			const newIdentityKeyPair = this.cryptoWrapper.generateEccKeyPair()
-			const symEncPrivEccKey = this.cryptoWrapper.encryptX25519Key(symGroupKey.object, newIdentityKeyPair.privateKey)
-			const data = createPublicKeyPutIn({
-				pubEccKey: newIdentityKeyPair.publicKey,
-				symEncPrivEccKey,
-				keyGroup: keyGroupId,
-			})
-			await this.serviceExecutor.put(PublicKeyService, data)
-			return newIdentityKeyPair
+			// there is no ecc key pair yet, so we have to generate and upload one
+			return this.createNewX25519KeyPair(keyGroupId)
 		} else {
 			throw new CryptoError("unknown key pair type: " + algo)
 		}
+	}
+
+	private async createNewX25519KeyPair(keyGroupId: string): Promise<X25519KeyPair> {
+		const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
+		const newX25519KeyPair = this.cryptoWrapper.generateEccKeyPair()
+		const symEncPrivEccKey = this.cryptoWrapper.encryptX25519Key(symGroupKey.object, newX25519KeyPair.privateKey)
+		const data = createPublicKeyPutIn({
+			pubEccKey: newX25519KeyPair.publicKey,
+			symEncPrivEccKey,
+			keyGroup: keyGroupId,
+		})
+		await this.serviceExecutor.put(PublicKeyService, data)
+		return newX25519KeyPair
 	}
 }

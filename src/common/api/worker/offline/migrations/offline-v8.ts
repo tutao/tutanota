@@ -7,6 +7,6 @@ export const offline8: OfflineMigration = {
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
 		console.log("migrating to offline v7")
 		await sqlCipherFacade.run(`DROP TABLE IF EXISTS trusted_identities`, [])
-		await sqlCipherFacade.run(`CREATE TABLE IF NOT EXISTS identity_store (${TableDefinitions.identity_store})`, [])
+		await sqlCipherFacade.run(TableDefinitions.identity_store.definition, [])
 	},
 }

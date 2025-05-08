@@ -1,17 +1,18 @@
 import { EntityClient } from "../../common/EntityClient.js"
-import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs, isRsaOrRsaX25519KeyPair } from "@tutao/tutanota-crypto"
-import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "../../entities/sys/TypeRefs.js"
+import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, Ed25519PrivateKey, EncryptedKeyPairs, isRsaOrRsaX25519KeyPair } from "@tutao/tutanota-crypto"
+import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, IdentityKeyPair, KeyPair } from "../../entities/sys/TypeRefs.js"
 import { isKeyVersion, KeyVersion, Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
-import { assertNotNull, lazyAsync } from "@tutao/tutanota-utils"
+import { lazyAsync, promiseMap } from "@tutao/tutanota-utils"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { VersionedKey } from "../crypto/CryptoWrapper.js"
+import { CryptoWrapper, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { TypeId } from "../../common/EntityTypes"
+import { GroupType } from "../../common/TutanotaConstants"
 
 /**
  * Load symmetric and asymmetric keys and decrypt them.
@@ -23,6 +24,7 @@ export class KeyLoaderFacade {
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	/**
@@ -92,10 +94,11 @@ export class KeyLoaderFacade {
 		return await this.loadKeyPairImpl(group, requestedVersion, currentGroupKey, forTypeId)
 	}
 
-	async loadCurrentKeyPair(groupId: Id): Promise<Versioned<AsymmetricKeyPair>> {
+	async loadCurrentKeyPair(groupId: Id, currentGroupKey: VersionedKey | undefined = undefined): Promise<Versioned<AsymmetricKeyPair>> {
 		let group = await this.entityClient.load(GroupTypeRef, groupId)
-
-		let currentGroupKey = await this.getCurrentSymGroupKey(groupId)
+		if (currentGroupKey == null) {
+			currentGroupKey = await this.getCurrentSymGroupKey(groupId)
+		}
 		if (parseKeyVersion(group.groupKeyVersion) !== currentGroupKey.version) {
 			// There is a race condition after rotating the group key were the group entity in the cache is not in sync with current key version in the key cache.
 			// group.groupKeyVersion might be newer than currentGroupKey.version.
@@ -147,6 +150,44 @@ export class KeyLoaderFacade {
 			symGroupKey = { object: symmetricGroupKey, version: requestedVersion }
 		}
 		return this.validateAndDecryptKeyPair(keyPair, keyPairGroupId, symGroupKey)
+	}
+
+	async decryptPrivateIdentityKey(group: Group): Promise<Versioned<Ed25519PrivateKey>> {
+		if (group.identityKeyPair == null) {
+			throw new Error(`Group ${group._id} does not have identity key pair`)
+		}
+		let encryptingGroupId
+		if (group.type === GroupType.User) {
+			encryptingGroupId = group._id
+		} else if (group.type === GroupType.Mail && group.user == null) {
+			//shared mail group
+			if (group.admin == null) {
+				throw new Error("Admin group not set on shared mail group")
+			}
+			encryptingGroupId = group.admin
+		} else {
+			throw new Error(`Group ${group._id} should not have identity key.`)
+		}
+		const decryptionKey = await this.loadSymGroupKey(encryptingGroupId, parseKeyVersion(group.identityKeyPair.encryptingKeyVersion))
+		return this.cryptoWrapper.decryptEd25519PrivateKey(group.identityKeyPair, decryptionKey)
+	}
+
+	/**
+	 * Loads all former keypairs for a group
+	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
+	 */
+	async loadAllFormerKeyPairs(group: Group, currentGroupKey: VersionedKey | undefined = undefined): Promise<Versioned<AsymmetricKeyPair>[]> {
+		const currentKey = currentGroupKey ?? (await this.getCurrentSymGroupKey(group._id))
+		// this request makes sure everything is cached
+		// decryption and parsing will be inefficient if there are many former keys
+		const formerKeys = await this.entityClient.loadAll(GroupKeyTypeRef, group.formerGroupKeys.list)
+		return promiseMap(formerKeys, async (groupKey) => {
+			const requestedVersion = convertCustomIdToKeyVersion(getElementId(groupKey))
+			return {
+				object: await this.loadKeyPairImpl(group, requestedVersion, currentKey, -1),
+				version: requestedVersion,
+			}
+		})
 	}
 
 	async loadFormerGroupKeyInstance(group: Group, version: KeyVersion): Promise<GroupKey> {
@@ -225,6 +266,10 @@ export class KeyLoaderFacade {
 		}
 		return decryptedKeyPair
 	}
+}
+
+function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
+	return parseKeyVersion(customIdToString(customId))
 }
 
 function convertKeyVersionToCustomId(version: KeyVersion): Id {

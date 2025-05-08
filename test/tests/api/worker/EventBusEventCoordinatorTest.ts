@@ -2,8 +2,10 @@ import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
 import { func, matchers, object, verify, when } from "testdouble"
 import {
+	Group,
 	GroupKeyUpdateTypeRef,
 	GroupMembershipTypeRef,
+	GroupTypeRef,
 	User,
 	UserGroupKeyDistributionTypeRef,
 	UserTypeRef,
@@ -23,11 +25,13 @@ import { Mode } from "../../../../src/common/api/common/Env"
 import { RolloutFacade } from "../../../../src/common/api/worker/facades/RolloutFacade"
 import { GroupManagementFacade } from "../../../../src/common/api/worker/facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker"
+import { IdentityKeyCreator } from "../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
 	let userId = "userId"
 	let userGroupId = "userGroupId"
+	let userGroupKeyVersion = "1"
 	let user: User
 	let userGroupKeyDistribution
 	let userFacade: UserFacade
@@ -37,8 +41,10 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	let keyRotationFacadeMock: KeyRotationFacade
 	let cacheManagementFacade: CacheManagementFacade
 	let rolloutFacadeMock: RolloutFacade
-	let groupManagementFacadeMock: lazyAsync<GroupManagementFacade>
+	let groupManagementFacade: GroupManagementFacade
 	let syncTrackerMock: SyncTracker
+	let identityKeyCreator: IdentityKeyCreator
+	let teamGroupIds: Id[]
 
 	o.beforeEach(function () {
 		user = createTestEntity(UserTypeRef, {
@@ -47,7 +53,12 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		})
 		userFacade = object()
 		when(userFacade.getUser()).thenReturn(user)
+		when(userFacade.getUserGroupId()).thenReturn(userGroupId)
 		entityClient = object()
+		const userGroup: Group = object()
+		userGroup.currentKeys = object()
+		userGroup.groupKeyVersion = userGroupKeyVersion
+		when(entityClient.load(GroupTypeRef, userGroupId)).thenResolve(userGroup)
 		when(entityClient.load(UserTypeRef, userId)).thenResolve(user)
 		userGroupKeyDistribution = createTestEntity(UserGroupKeyDistributionTypeRef, { _id: userGroupId })
 		when(entityClient.load(UserGroupKeyDistributionTypeRef, userGroupId)).thenResolve(userGroupKeyDistribution)
@@ -57,8 +68,11 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		keyRotationFacadeMock = object()
 		cacheManagementFacade = object()
 		rolloutFacadeMock = object()
-		groupManagementFacadeMock = func<lazyAsync<GroupManagementFacade>>()
+		groupManagementFacade = object()
 		syncTrackerMock = object()
+		identityKeyCreator = object()
+		teamGroupIds = ["team"]
+		when(groupManagementFacade.loadTeamGroupIds()).thenResolve(teamGroupIds)
 		eventBusEventCoordinator = new EventBusEventCoordinator(
 			object(),
 			lazyMailFacade,
@@ -71,7 +85,8 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			async (error: Error) => {},
 			(_) => {},
 			rolloutFacadeMock,
-			groupManagementFacadeMock,
+			async () => groupManagementFacade,
+			async () => identityKeyCreator,
 			syncTrackerMock,
 		)
 	})
@@ -92,32 +107,26 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			verify(rolloutFacadeMock.processRollout(RolloutType.UserIdentityKeyCreation, captor.capture()))
 			o(captor.values?.length).equals(1)
 
-			const gfm: GroupManagementFacade = object()
-			when(groupManagementFacadeMock()).thenResolve(gfm)
-
 			// execute callback
 			await captor.values![0]()
-			verify(gfm.createIdentityKeyPair(matchers.anything()))
+			verify(identityKeyCreator.createIdentityKeyPairForExistingUsers())
 		})
 
 		o("does not stop if UserIdentityKeyCreation rollout throws", async function () {
 			when(userFacade.isLeader()).thenReturn(true)
 
-			await eventBusEventCoordinator.onSyncDone()
+			const error = object<Error>()
+			when(identityKeyCreator.createIdentityKeyPairForExistingUsers()).thenReject(error)
 
+			await eventBusEventCoordinator.onSyncDone()
 			const captor = matchers.captor()
 			verify(rolloutFacadeMock.processRollout(RolloutType.UserIdentityKeyCreation, captor.capture()))
+
 			o(captor.values?.length).equals(1)
-
-			const gfm: GroupManagementFacade = object()
-			when(groupManagementFacadeMock()).thenResolve(gfm)
-
 			// @ts-ignore
-			eventBusEventCoordinator.sendError = func<(error: Error) => void>()
 
+			eventBusEventCoordinator.sendError = func<(error: Error) => void>()
 			// execute callback
-			const error = object<Error>()
-			when(gfm.createIdentityKeyPair(matchers.anything())).thenReject(error)
 			await captor.values![0]()
 
 			// @ts-ignore
@@ -133,15 +142,12 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			verify(rolloutFacadeMock.processRollout(RolloutType.SharedMailboxIdentityKeyCreation, captor.capture()))
 			o(captor.values?.length).equals(1)
 
-			const gfm: GroupManagementFacade = object()
-			when(groupManagementFacadeMock()).thenResolve(gfm)
-
 			// @ts-ignore
 			eventBusEventCoordinator.sendError = func<(error: Error) => void>()
 
 			// execute callback
 			const error = object<Error>()
-			when(gfm.createIdentityKeyPairForExistingTeamGroups()).thenReject(error)
+			when(identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(teamGroupIds)).thenReject(error)
 			await captor.values![0]()
 
 			// @ts-ignore
@@ -157,12 +163,9 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			verify(rolloutFacadeMock.processRollout(RolloutType.SharedMailboxIdentityKeyCreation, captor.capture()))
 			o(captor.values?.length).equals(1)
 
-			const gfm: GroupManagementFacade = object()
-			when(groupManagementFacadeMock()).thenResolve(gfm)
-
 			// execute callback
 			await captor.values![0]()
-			verify(gfm.createIdentityKeyPairForExistingTeamGroups())
+			verify(identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(teamGroupIds))
 		})
 
 		o("does not execute rollouts if it is not the leader client", async function () {

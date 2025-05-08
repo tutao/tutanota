@@ -32,6 +32,7 @@ import { SyncTracker } from "../main/SyncTracker.js"
 import { KeyVerificationFacade } from "./facades/lazy/KeyVerificationFacade"
 import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
 import { PublicKeyProvider } from "./facades/PublicKeyProvider"
+import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>
@@ -84,4 +85,5 @@ export interface CommonWorkerInterface {
 	readonly workerFacade: WorkerFacade
 	readonly contactFacade: ContactFacade
 	readonly applicationTypesFacade: ApplicationTypesFacade
+	readonly identityKeyCreator: IdentityKeyCreator
 }
