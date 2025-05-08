@@ -1,7 +1,8 @@
 /*
 The type of the identifier to look up the public key for a group.
  */
-use num_enum::TryFromPrimitive;
+use num_enum::{IntoPrimitive, TryFromPrimitive};
+use std::cmp::PartialEq;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
@@ -93,4 +94,43 @@ pub enum CryptoProtocolVersion {
 
 	/// PQ encryption (Kyber+X25519)
 	TutaCrypt = 2,
+}
+
+#[repr(u8)]
+pub enum AccountType {
+	SYSTEM,
+	FREE,
+	STARTER,
+	PAID,
+	EXTERNAL = 5,
+}
+
+#[derive(IntoPrimitive, TryFromPrimitive, PartialEq)]
+#[repr(u8)]
+pub enum PlanType {
+	Premium,
+	Pro = 2,
+	Teams,
+	PremiumBusiness,
+	TeamsBusiness,
+	Revolutionary,
+	Legend,
+	Essential,
+	Advanced,
+	Unlimited,
+	Free,
+}
+
+pub const LEGACY_PLANS: [PlanType; 5] = [
+	PlanType::Premium,
+	PlanType::PremiumBusiness,
+	PlanType::Teams,
+	PlanType::TeamsBusiness,
+	PlanType::Pro,
+];
+
+impl PlanType {
+	pub fn is_new_paid_plan(&self) -> bool {
+		*self != PlanType::Free && !LEGACY_PLANS.contains(&self)
+	}
 }
