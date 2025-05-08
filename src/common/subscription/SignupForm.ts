@@ -262,7 +262,7 @@ async function signup(
 	isPaidSubscription: boolean,
 	campaign: string | null,
 ): Promise<NewAccountData | void> {
-	const { customerFacade, logins, groupManagementFacade } = locator
+	const { customerFacade, logins, identityKeyCreator } = locator
 	const operation = locator.operationProgressTracker.startNewOperation()
 	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
 		const regDataId = await runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign)
@@ -273,7 +273,15 @@ async function signup(
 				// we do not know the userGroupId at group creation time,
 				// so we log in and create the identity key pair now
 				const login = await logins.createSession(mailAddress, password, SessionType.Temporary)
-				await groupManagementFacade.createIdentityKeyPair(login.userGroupInfo.group)
+
+				await identityKeyCreator.createIdentityKeyPair(
+					login.userGroupInfo.group,
+					{
+						object: keyPairs[0], // user group key pair
+						version: 0, //new group
+					},
+					[],
+				)
 			}
 			return {
 				mailAddress,
