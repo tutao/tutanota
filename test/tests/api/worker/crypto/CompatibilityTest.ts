@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import {
 	aesDecrypt,
 	aesEncrypt,
+	AsymmetricKeyPair,
 	bitArrayToUint8Array,
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
@@ -10,7 +11,7 @@ import {
 	bytesToKyberPublicKey,
 	decapsulateKyber,
 	decryptKey,
-	Ed25519KeyPair,
+	Ed25519PrivateKey,
 	ed25519PrivateKeyToBytes,
 	ed25519PublicKeyToBytes,
 	ed25519SignatureToBytes,
@@ -30,6 +31,7 @@ import {
 	MacTag,
 	PQKeyPairs,
 	PQPublicKeys,
+	PublicKey,
 	random,
 	Randomizer,
 	rsaDecrypt,
@@ -49,6 +51,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString,
+	Versioned,
 } from "@tutao/tutanota-utils"
 import testData from "./CompatibilityTestData.json"
 import { uncompress } from "../../../../../src/common/api/worker/Compression.js"
@@ -57,6 +60,9 @@ import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
 import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
+import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
+import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
+import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 
 const originalRandom = random.generateRandomData
 
@@ -393,23 +399,97 @@ o.spec("CompatibilityTest", function () {
 		}
 	})
 
-	o("ed25519", async function () {
+	o("ed25519 - public key signature", async function () {
 		for (const td of testData.ed25519Tests) {
 			const ed25519Facade = await createEd25519Facade()
-			// td.seed
-			const private_key = bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex))
-			const public_key = bytesToEd25519PublicKey(hexToUint8Array(td.alicePublicKeyHex))
-			const aliceKeyPair: Ed25519KeyPair = { private_key, public_key }
+			const cryptoWrapper = new CryptoWrapper()
+			const publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
+
+			let encryptionKeyPair: AsymmetricKeyPair
+			const keyPairVersion = checkKeyVersionConstraints(td.keyPairVersion)
+			let encryptionPublicKey: PublicKey
+
+			if (td.pubKyberKey) {
+				let keyPairType = KeyPairType.TUTA_CRYPT
+				let kyberPublicKey = bytesToKyberPublicKey(hexToUint8Array(td.pubKyberKey))
+				let x25519PublicKey = hexToUint8Array(td.pubEccKey)
+				encryptionKeyPair = {
+					keyPairType,
+					kyberKeyPair: {
+						publicKey: kyberPublicKey,
+						privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
+					},
+					x25519KeyPair: {
+						privateKey: hexToUint8Array(td.privateEccKey),
+						publicKey: x25519PublicKey,
+					},
+				}
+				encryptionPublicKey = {
+					keyPairType,
+					kyberPublicKey,
+					x25519PublicKey,
+				}
+			} else {
+				// we expect that an rsa key pair are present
+				let rsaPublicKey = hexToRsaPublicKey(td.pubRsaKey)
+				if (td.pubEccKey) {
+					let keyPairType = KeyPairType.RSA_AND_X25519
+					let publicEccKey = hexToUint8Array(td.pubEccKey)
+					encryptionKeyPair = {
+						publicKey: rsaPublicKey,
+						privateKey: hexToRsaPrivateKey(td.privateRsaKey),
+						keyPairType,
+						publicEccKey,
+						privateEccKey: hexToUint8Array(td.privateEccKey),
+					}
+					encryptionPublicKey = {
+						...rsaPublicKey,
+						keyPairType,
+						publicEccKey,
+					}
+				} else {
+					let keyPairType = KeyPairType.RSA
+					encryptionKeyPair = {
+						publicKey: rsaPublicKey,
+						privateKey: hexToRsaPrivateKey(td.privateRsaKey),
+						keyPairType,
+					}
+					encryptionPublicKey = {
+						...rsaPublicKey,
+						keyPairType,
+					}
+				}
+			}
+			const versionedEncryptionKeyPair: Versioned<AsymmetricKeyPair> = {
+				object: encryptionKeyPair,
+				version: keyPairVersion,
+			}
+			const versionedPublicEncryptionKey: Versioned<PublicKey> = {
+				object: encryptionPublicKey,
+				version: keyPairVersion,
+			}
+
+			const alicePublicKeyBytes = hexToUint8Array(td.alicePublicKeyHex)
+			const alicePublicKey = bytesToEd25519PublicKey(alicePublicKeyBytes)
+			const alicePrivateKey: Versioned<Ed25519PrivateKey> = {
+				object: bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex)),
+				version: 0,
+			}
 			const signature = bytesToEd25519Signature(hexToUint8Array(td.signature))
+			const message = hexToUint8Array(td.message)
 
 			// make sure encoding and decoding round trips yield the same results again
-			o(uint8ArrayToHex(ed25519PrivateKeyToBytes(private_key))).deepEquals(td.alicePrivateKeyHex)
-			o(uint8ArrayToHex(ed25519PublicKeyToBytes(public_key))).deepEquals(td.alicePublicKeyHex)
+			o(uint8ArrayToHex(ed25519PrivateKeyToBytes(alicePrivateKey.object))).deepEquals(td.alicePrivateKeyHex)
+			o(uint8ArrayToHex(ed25519PublicKeyToBytes(alicePublicKey))).deepEquals(td.alicePublicKeyHex)
 			o(uint8ArrayToHex(ed25519SignatureToBytes(signature))).deepEquals(td.signature)
 
-			const reproducedSignature = await ed25519Facade.sign(aliceKeyPair.private_key, stringToUtf8Uint8Array(td.message))
-			o(td.signature).equals(uint8ArrayToHex(reproducedSignature))
-			o(await ed25519Facade.verify(aliceKeyPair.public_key, stringToUtf8Uint8Array(td.message), signature)).equals(true)
+			const { encodedKeyPairForSigning } = publicKeySignatureFacade.serializePublicKeyForSigning(versionedPublicEncryptionKey)
+			o(encodedKeyPairForSigning).deepEquals(message)
+
+			const { signature: reproducedSignature } = await publicKeySignatureFacade.signPublicKey(versionedEncryptionKeyPair, alicePrivateKey)
+			o(reproducedSignature).deepEquals(signature)
+
+			o(await publicKeySignatureFacade.verifyPublicKeySignature(versionedPublicEncryptionKey, alicePublicKey, reproducedSignature)).equals(true)
 		}
 	})
 

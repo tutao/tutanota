@@ -39,7 +39,7 @@ import { freshVersioned, hexToUint8Array } from "@tutao/tutanota-utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
+import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { RSA_TEST_KEYPAIR } from "./RsaPqPerformanceTest.js"
@@ -61,9 +61,10 @@ o.spec("KeyLoaderFacadeTest", function () {
 	let userGroupKey: VersionedKey
 	let currentGroupKeyVersion: KeyVersion
 	let formerKeyPairsDecrypted: PQKeyPairs[]
-	const FORMER_KEYS = 2
+	const FORMER_KEYS_LENGTH = 2
 	let currentKeyPair: PQKeyPairs
 	let membership: GroupMembership
+	let cryptoWrapper: CryptoWrapper
 
 	o.beforeEach(async () => {
 		keyCache = new KeyCache()
@@ -71,12 +72,13 @@ o.spec("KeyLoaderFacadeTest", function () {
 		entityClient = object()
 		cacheManagementFacade = object()
 		pqFacade = new PQFacade(new WASMKyberFacade(await loadLibOQSWASM()))
-		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
+		cryptoWrapper = object()
+		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
 
 		formerKeys = []
 		formerKeyPairsDecrypted = []
 		formerKeysDecrypted = []
-		for (let i = 0; i < FORMER_KEYS; i++) {
+		for (let i = 0; i < FORMER_KEYS_LENGTH; i++) {
 			formerKeysDecrypted.push(aes256RandomKey())
 			formerKeyPairsDecrypted.push(await pqFacade.generateKeyPairs())
 		}
@@ -135,9 +137,15 @@ o.spec("KeyLoaderFacadeTest", function () {
 		when(userFacade.getMembership(group._id)).thenReturn(membership)
 		when(userFacade.getUserGroupId()).thenReturn(userGroup._id)
 		when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
-		for (let i = 0; i < FORMER_KEYS; i++) {
+		for (let i = 0; i < FORMER_KEYS_LENGTH; i++) {
 			when(
-				entityClient.loadRange(GroupKeyTypeRef, group.formerGroupKeys!.list, stringToCustomId(String(currentGroupKeyVersion)), FORMER_KEYS - i, true),
+				entityClient.loadRange(
+					GroupKeyTypeRef,
+					group.formerGroupKeys!.list,
+					stringToCustomId(String(currentGroupKeyVersion)),
+					FORMER_KEYS_LENGTH - i,
+					true,
+				),
 			).thenDo(() => formerKeys.slice(i).reverse()) // create a fresh copy because we modify in place
 		}
 	})
@@ -164,9 +172,37 @@ o.spec("KeyLoaderFacadeTest", function () {
 		})
 	})
 
+	o.spec("load all former key pairs", function () {
+		o.beforeEach(function () {
+			when(entityClient.loadAll(GroupKeyTypeRef, group.formerGroupKeys.list)).thenResolve(formerKeys)
+		})
+		o("success as user", async function () {
+			const keyPairs = await keyLoaderFacade.loadAllFormerKeyPairs(group)
+			o(keyPairs.length).equals(FORMER_KEYS_LENGTH)
+			for (let i = 0; i < FORMER_KEYS_LENGTH; i++) {
+				o(keyPairs[i]).deepEquals({
+					object: formerKeyPairsDecrypted[i],
+					version: checkKeyVersionConstraints(i),
+				})
+			}
+		})
+		o("success as admin", async function () {
+			keyCache.reset()
+			when(userFacade.getMembership(group._id)).thenThrow(new Error("should not be called"))
+			const keyPairs = await keyLoaderFacade.loadAllFormerKeyPairs(group, currentGroupKey)
+			o(keyPairs.length).equals(FORMER_KEYS_LENGTH)
+			for (let i = 0; i < FORMER_KEYS_LENGTH; i++) {
+				o(keyPairs[i]).deepEquals({
+					object: formerKeyPairsDecrypted[i],
+					version: checkKeyVersionConstraints(i),
+				})
+			}
+		})
+	})
+
 	o.spec("loadKeyPair", function () {
 		o("loads current key.", async function (): Promise<void> {
-			for (let i = 0; i < FORMER_KEYS; i++) {
+			for (let i = 0; i < FORMER_KEYS_LENGTH; i++) {
 				const keypair = (await keyLoaderFacade.loadKeypair(group._id, currentGroupKeyVersion)) as PQKeyPairs
 				o(keypair).deepEquals(currentKeyPair)
 			}
@@ -174,7 +210,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 		})
 
 		o("loads former key.", async function (): Promise<void> {
-			for (let i = 0; i < FORMER_KEYS; i++) {
+			for (let i = 0; i < FORMER_KEYS_LENGTH; i++) {
 				const keypair = (await keyLoaderFacade.loadKeypair(group._id, i as KeyVersion)) as PQKeyPairs
 				o(keypair).deepEquals(formerKeyPairsDecrypted[i])
 			}
@@ -210,7 +246,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(group._id, matchers.anything())).thenResolve(currentGroupKey)
 
@@ -230,7 +266,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(group._id, matchers.anything())).thenResolve(currentGroupKey)
 
@@ -260,7 +296,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(group._id, matchers.anything())).thenResolve(currentGroupKey)
 
@@ -270,7 +306,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 
 	o.spec("loadSymGroupKey", function () {
 		o("loads and decrypts former keys.", async function () {
-			for (let i = 0; i < FORMER_KEYS; i++) {
+			for (let i = 0; i < FORMER_KEYS_LENGTH; i++) {
 				const loadedGroupKey = await keyLoaderFacade.loadSymGroupKey(group._id, i as KeyVersion)
 				o(loadedGroupKey).deepEquals(formerKeysDecrypted[i])
 			}
