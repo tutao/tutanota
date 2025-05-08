@@ -306,19 +306,18 @@ export class RestClient {
 
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (!options.noCORS) {
+			// add networkDebugging header iff network debugging is activated
+			// network debugging can be activated by building with --network-debugging,
+			// and essentially activates both attributeNames and attributeIds in the request/response payload
+			if (env.networkDebugging) {
+				headers["Network-Debugging"] = "enable-network-debugging"
+			}
 			headers["cv"] = env.versionNumber
 			if (body instanceof Uint8Array) {
 				headers["Content-Type"] = MediaType.Binary
 			} else if (typeof body === "string") {
 				headers["Content-Type"] = MediaType.Json
 			}
-		}
-
-		// add networkDebugging header iff network debugging is activated
-		// network debugging can be activated by building with --network-debugging,
-		// and essentially activates both attributeNames and attributeIds in the request/response payload
-		if (env.networkDebugging) {
-			headers["Network-Debugging"] = "enable-network-debugging"
 		}
 
 		if (env.clientName != null) {
