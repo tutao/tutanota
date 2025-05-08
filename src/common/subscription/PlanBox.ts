@@ -74,9 +74,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 					...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
 					padding: `24px ${px(styles.isMobileLayout() ? 16 : 20)}`,
 				},
-				onclick: () => {
-					onclick && onclick(plan)
-				},
+				onclick: () => onclick?.(plan),
 			},
 			[
 				m(
