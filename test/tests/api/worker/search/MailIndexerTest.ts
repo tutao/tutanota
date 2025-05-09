@@ -100,9 +100,9 @@ o.spec("MailIndexer test", () => {
 	o.beforeEach(function () {
 		entityMock = new EntityRestClientMock()
 		entityClient = new EntityClient(entityMock)
-		bulkMailLoader = new BulkMailLoader(entityClient, new EntityClient(entityMock))
-		dateProvider = new LocalTimeDateProvider()
 		mailFacade = object()
+		bulkMailLoader = new BulkMailLoader(entityClient, new EntityClient(entityMock), mailFacade)
+		dateProvider = new LocalTimeDateProvider()
 	})
 	o("createMailIndexEntries without entries", function () {
 		let mail = createTestEntity(MailTypeRef)
@@ -1026,7 +1026,8 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 	} as any
 	const infoMessageHandler = object<InfoMessageHandler>()
 	const entityClient = new EntityClient(entityMock)
-	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient)
+	const mailFacade: MailFacade = object()
+	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, mailFacade)
 	const indexer = mock(
 		new MailIndexer(core, db, infoMessageHandler, () => bulkMailLoader, entityClient, new LocalTimeDateProvider(), null as any),
 		(mock) => {
@@ -1096,7 +1097,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 			mocked._processDeleted = spy()
 		},
 	)
-	let mailFacade: MailFacade = object()
+	const mailFacade: MailFacade = object()
 	const mailSetEntryId = ["mailSetListId", "mailSetEntryId"] as const
 	const { mail, mailDetailsBlob } = createMailInstances(mailFacade, {
 		mailSetEntryId: mailSetEntryId,
@@ -1108,7 +1109,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 	entityMock.addBlobInstances(mailDetailsBlob)
 	entityMock.addListInstances(mail)
 	const entityClient = new EntityClient(entityMock)
-	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient)
+	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, mailFacade)
 	return mock(new MailIndexer(core, db, null as any, () => bulkMailLoader, entityClient, new LocalTimeDateProvider(), mailFacade), (mocked) => {
 		mocked.processNewMail = spy(mocked.processNewMail.bind(mocked))
 		mocked.processMovedMail = spy(mocked.processMovedMail.bind(mocked))

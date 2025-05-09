@@ -68,12 +68,12 @@ import {
 	AesKey,
 	bitArrayToUint8Array,
 	decryptKey,
-	X25519PublicKey,
 	encryptKey,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
 	PublicKey,
 	sha256Hash,
+	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
