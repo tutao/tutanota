@@ -3860,6 +3860,18 @@ pub struct SupportTopic {
 	pub solutionHtmlDE: String,
 	#[serde(rename = "1625")]
 	pub visibility: i64,
+	#[serde(rename = "1654")]
+	pub contactTemplateHtmlEN: String,
+	#[serde(rename = "1655")]
+	pub contactTemplateHtmlDE: String,
+	#[serde(rename = "1656")]
+	pub helpTextEN: String,
+	#[serde(rename = "1657")]
+	pub helpTextDE: String,
+	#[serde(rename = "1658")]
+	pub contactSupportTextEN: Option<String>,
+	#[serde(rename = "1659")]
+	pub contactSupportTextDE: Option<String>,
 }
 
 impl Entity for SupportTopic {
@@ -3886,6 +3898,14 @@ pub struct SupportCategory {
 	pub introductionDE: String,
 	#[serde(rename = "1632")]
 	pub icon: String,
+	#[serde(rename = "1660")]
+	pub contactTemplateHtmlEN: String,
+	#[serde(rename = "1661")]
+	pub contactTemplateHtmlDE: String,
+	#[serde(rename = "1662")]
+	pub helpTextEN: String,
+	#[serde(rename = "1663")]
+	pub helpTextDE: String,
 	#[serde(rename = "1633")]
 	pub topics: Vec<SupportTopic>,
 }
