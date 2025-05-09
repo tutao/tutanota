@@ -253,6 +253,7 @@ export class MailViewModel {
 			return
 		}
 		if (cached) {
+			this.mailModel.inboxRule(cached)
 			console.log(TAG, "displaying cached mail", mailId)
 			await this.displayExplicitMailTarget(cached)
 		}

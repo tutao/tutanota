@@ -102,13 +102,19 @@ export class InboxRuleHandler {
 		mailboxDetail: MailboxDetail,
 		mail: Mail,
 		applyRulesOnServer: boolean,
+		applyIfRead: boolean,
 	): Promise<{
 		folder: MailFolder
 		mail: Mail
 	} | null> {
+		const unread = applyIfRead ?? mail.unread
+		if (applyIfRead) {
+			console.log(`INBOXRULE: apply if read is true and unread: ${unread}`)
+		}
+
 		if (
 			mail._errors ||
-			!mail.unread ||
+			!unread ||
 			!(await isInboxFolder(mailboxDetail, mail)) ||
 			!this.logins.getUserController().isPaidAccount() ||
 			mailboxDetail.mailbox.folders == null
@@ -118,6 +124,9 @@ export class InboxRuleHandler {
 
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
+			if (applyIfRead) {
+				console.log(`INBOXRULE: apply if read is true and inbox rule was found`)
+			}
 			const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			const inboxFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.INBOX))
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
@@ -145,6 +154,9 @@ export class InboxRuleHandler {
 				return null
 			}
 		} else {
+			if (applyIfRead) {
+				console.log(`INBOXRULE: apply if read is true and inbox rule was NOT found`)
+			}
 			return null
 		}
 	}

@@ -179,6 +179,7 @@ export class MailModel {
 											mailboxDetail,
 											mail,
 											this.connectivityModel ? this.connectivityModel.isLeader() : false,
+											false,
 										)
 									)
 								})
@@ -201,6 +202,18 @@ export class MailModel {
 				}
 			}
 		}
+	}
+
+	async inboxRule(mail: Mail) {
+		console.log("INBOXRULE: going to inbox rule")
+		await this.getMailboxDetailsForMail(mail).then((mailboxDetail) => {
+			if (mailboxDetail && this.inboxRuleHandler) {
+				console.log("INBOXRULE: mailboxDetail and Inbox Rule are there")
+				this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
+			} else {
+				console.log("INBOXRULE: mailboxDetail or Inbox Rule is not there")
+			}
+		})
 	}
 
 	async getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail | null> {
