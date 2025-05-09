@@ -44,7 +44,7 @@ type ExperienceSamplingOptions = {
 
 export async function showExperienceSamplingDialog(stage: Stage, experienceSamplingOptions: ExperienceSamplingOptions): Promise<void> {
 	const likertMetrics = Array.from(stage.metricConfigs.values()).filter(
-		(metricConfig) => (metricConfig.type as UsageTestMetricType) === UsageTestMetricType.Likert,
+		(metricConfig) => (metricConfig.type as UsageTestMetricType) === UsageTestMetricType.LIKERT,
 	)
 	const selectedValues = new Map(likertMetrics.map((likertMetric) => [likertMetric.name, stream(PRESELECTED_LIKERT_VALUE)]))
 
