@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { getLightOrDarkTutaLogo } from "../gui/theme.js"
 import { showUserError } from "../misc/ErrorHandlerImpl.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { InfoLink } from "../misc/LanguageViewModel.js"
@@ -11,6 +10,7 @@ import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { isApp } from "../api/common/Env.js"
 import { px, size } from "../gui/size.js"
 import { client } from "../misc/ClientDetector.js"
+import { getTutaLogo } from "../gui/base/Logo.js"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -29,7 +29,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 						margin: px(size.vpad_xl),
 					},
 				},
-				m.trust(getLightOrDarkTutaLogo(client.isCalendarApp())),
+				m.trust(getTutaLogo(client.isCalendarApp())),
 			),
 			m(".flex.justify-center.flex-wrap", [
 				m(ExternalLink, {
