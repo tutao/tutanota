@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-05T15:24:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -357,7 +357,7 @@ export default {
 		"decline_action": "Odmietnuť",
 		"defaultColor_label": "Predvolená farba: {1}",
 		"defaultDownloadPath_label": "Predvolený adresár sťahovania",
-		"defaultEmailSignature_msg": "--\n<br>\nOdoslané pomocou Tuta. Užívajte si bezpečné e-maily bez reklám.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nOdoslané pomocou Tuta. Užívajte si bezpečné e-maily bez reklám.\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Predvolené nastavenie odosielania nového e-mailu externému príjemcovi: dôverné (end-to-end šifrované) alebo nedôverné (end-to-end nešifrované).",
 		"defaultExternalDelivery_label": "Predvolené dodanie",
 		"defaultGiftCardMessage_msg": "Dúfam, že sa Ti bude páčiť zabezpečenie a súkromie od Tutanoty!",

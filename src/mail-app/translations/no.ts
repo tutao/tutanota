@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-05T15:24:06Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -458,7 +458,7 @@ export default {
 		"decline_action": "Avvis",
 		"defaultColor_label": "Standard farge: {1}",
 		"defaultDownloadPath_label": "Standard nedlastningsmappe",
-		"defaultEmailSignature_msg": "--\n<br>\nSendt med Tuta, nyt en sikker og reklamefrie e-post.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nSendt med Tuta, nyt en sikker og reklamefrie e-post.\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Ved sending av nye e-postmeldinger til eksterne mottakere kan du velge om meldingene skal være konfidensielle (ende-til-ende krypterte) eller ikke-konfidensielle (ikke ende-til-ende krypterte) som standard.",
 		"defaultExternalDelivery_label": "Standard levering",
 		"defaultGiftCardMessage_msg": "Jeg håper du nyter sikkerheten og personvernet du får med Tuta!",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-09T10:05:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -379,7 +379,7 @@ export default {
 		"decline_action": "거절",
 		"defaultColor_label": "기본 색상: {1}",
 		"defaultDownloadPath_label": "기본 다운로드 경로",
-		"defaultEmailSignature_msg": "--\n<br>\n광고 없는 보안 메일, Tuta로 전송되었습니다.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nSecured with Tuta Mail:\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "외부 수신자에게 새 이메일을 보낼 때의 기본 설정: 기밀(종단 간 암호화) 또는 기밀이 아님(종단 간 암호화되지 않음).",
 		"defaultExternalDelivery_label": "기본 전송",
 		"defaultGiftCardMessage_msg": "Tuta와 함께 보안 & 프라이버시를 즐기세요!",

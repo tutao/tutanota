@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2025-04-29T08:21:11Z",
+	"updated_at": "2025-05-03T13:27:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1355,9 +1355,9 @@ export default {
 		"pricing.comparisonSupportBusiness_tooltip": "Получайте поддержку по электронной почте в рабочие дни в течение 24 часов.",
 		"pricing.comparisonSupportFree_msg": "Нет прямой поддержки",
 		"pricing.comparisonSupportFree_tooltip_markdown": "<p>Зайдите в наш раздел интеллектуальной помощи из вашего клиента Tuta или получите помощь в нашем сообществе поддержки <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.reddit.com/r/tutanota/\">форум</a>. Поддержка по электронной почте отсутствует.</p>\n",
-		"pricing.comparisonSupportPremium_msg": "Поддержка по электронной почте",
+		"pricing.comparisonSupportPremium_msg": "Поддержка электронной почты",
 		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>Доступ к нашему интеллектуальному разделу помощи из вашего клиента Tuta с возможностью напрямую написать в нашу службу поддержки. Мы отвечаем в течение одного рабочего дня.</p>\n",
-		"pricing.comparisonSupportPro_msg": "Приоритетная поддержка",
+		"pricing.comparisonSupportPro_msg": "Приоритетная поддержка электронной почты",
 		"pricing.comparisonThemePro_msg": "Индивидуальный логотип и цвета",
 		"pricing.comparisonThemePro_tooltip": "Whitelabel Tuta с вашим собственным брендингом, определяя логотипы и цвета веб-, мобильных и настольных клиентов Tuta",
 		"pricing.comparisonUnlimitedDomains_msg": "Неограниченное количество пользовательских доменов",

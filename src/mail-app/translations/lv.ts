@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-05T15:24:00Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -283,7 +283,7 @@ export default {
 		"decline_action": "Noraidīt",
 		"defaultColor_label": "Noklusējuma krāsa: {1}",
 		"defaultDownloadPath_label": "Noklusētais lejuplāžu ceļš",
-		"defaultEmailSignature_msg": "--\n<br>\nSūtīts no Tuta, droša un reklām-brīva e-pasta.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nSūtīts no Tuta, droša un reklām-brīva e-pasta.\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Noklusējuma iestatījumi sūtot jaunu e-pasta ziņu ārējam saņēmējam: drošs jeb konfidenciāls (no viena gala līdz otram (e2e) šifrēts) vai nedrošs (nešifrēts, ikvienam lasāms plaintext).",
 		"defaultExternalDelivery_label": "Sūtījumu drošuma noklusējuma iestatījumi",
 		"defaultGiftCardMessage_msg": "Ceram, ka drošība un privātums, ko nodrošina Tuta, jums sagādās gandarījumu un prieku!",

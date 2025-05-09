@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-05T15:24:18Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -362,7 +362,7 @@ export default {
 		"decline_action": "Одбиј",
 		"defaultColor_label": "Подразумевана боја: {1}",
 		"defaultDownloadPath_label": "Подразумевана путања преузимања",
-		"defaultEmailSignature_msg": "--\n<br>\nПослато помоћу Тутаноте. Уживајте у безбедној е-пошти без реклама.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nПослато помоћу Тутаноте. Уживајте у безбедној е-пошти без реклама.\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Подразумевана поставка за слање поште спољашњим примаоцима: безбедно (шифровано с краја на крај) или небезбедно (без шифровања).",
 		"defaultExternalDelivery_label": "Подразумевана испорука",
 		"defaultGiftCardMessage_msg": "Надам се да ћете уживати у сигурности и приватности које добијате са Тутанотом!",

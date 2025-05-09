@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-09T09:49:32Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -22,7 +22,7 @@ export default {
 		"acceptContactListEmailSubject_msg": "Покана за списъка с контакти приета",
 		"acceptInvitation_action": "Приеми покана",
 		"acceptPrivacyPolicyReminder_msg": "Моля приемете политиката за поверителност като изберете отметката.",
-		"acceptPrivacyPolicy_msg": "Прочетох и се съгласявам с {политиката за Поверителност}.",
+		"acceptPrivacyPolicy_msg": "Прочетох и се съгласявам с {privacyPolicy}.",
 		"acceptTemplateGroupEmailSubject_msg": "Показа за списък с шаблони е приета",
 		"accept_action": "Приеми",
 		"accountCongratulations_msg": "Поздравления",

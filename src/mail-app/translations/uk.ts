@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-04-29T14:24:27Z",
+	"updated_at": "2025-05-05T15:24:29Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -465,7 +465,7 @@ export default {
 		"decline_action": "Відмовити",
 		"defaultColor_label": "Типовий колір: {1}",
 		"defaultDownloadPath_label": "Стандартний шлях завантаження",
-		"defaultEmailSignature_msg": "--\n<br>\nЗахищено за допомогою Пошти Tuta:\n<br>\n",
+		"defaultEmailSignature_msg": "--\n<br>\nЗахищено за допомогою Пошти Tuta:\n<br>\n{1}\n",
 		"defaultExternalDeliveryInfo_msg": "Типове налаштування для надсилання нового е-повідомлення до зовнішнього отримувача: конфіденційне ( наскрізно зашифроване) або неконфіденційне (ненаскрізно зашифроване).",
 		"defaultExternalDelivery_label": "Типове доставлення ",
 		"defaultGiftCardMessage_msg": "Сподіваюся, вам подобається той рівень безпеки та конфіденційності, які ви отримуєте з Tuta!",
@@ -1590,6 +1590,7 @@ export default {
 		"searchedUntil_msg": "Здійснено пошук до",
 		"searchEmails_placeholder": "Пошук пошти",
 		"searchGroups_placeholder": "Пошук груп",
+		"searchInOurAppsLinkText_msg": "наші застосунки",
 		"searchInOurApps_msg": "Швидший та якісніший пошук електронної пошти доступний за посиланням {link}!",
 		"searchKnowledgebase_placeholder": "Пошук у базі знань",
 		"searchMailboxes_placeholder": "Пошук поштових скриньок",

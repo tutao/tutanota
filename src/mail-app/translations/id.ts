@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-05T15:23:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -418,7 +418,7 @@ export default {
 		"decline_action": "Tolak",
 		"defaultColor_label": "Warna standar bawaan: _",
 		"defaultDownloadPath_label": "Jalur pengunduhan *(download)* utama",
-		"defaultEmailSignature_msg": "--\n<br>\nDikirimkan menggunakan Tuta, email aman dan bebas iklan.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nDikirimkan menggunakan Tuta, email aman dan bebas iklan.\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Pengaturan baku untuk mengirim surel baru ke penerima eksternal: rahasia (terenkripsi ujung-ke-ujung) atau bukan rahasia (tidak terenkripsi ujung-ke-ujung).",
 		"defaultExternalDelivery_label": "Pengiriman baku",
 		"defaultGiftCardMessage_msg": "Saya harap Anda menikmati keamanan dan privasi yang Anda dapatkan dengan Tuta!",

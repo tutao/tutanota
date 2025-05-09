@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-05T15:23:19Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -445,7 +445,7 @@ export default {
 		"decline_action": "Declinar",
 		"defaultColor_label": "El color per defecte: {1}",
 		"defaultDownloadPath_label": "Directori de descarrega per defecte",
-		"defaultEmailSignature_msg": "--\n<br>\nEnviat amb Tuta, la bústia segura i lliure d'anuncis.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\nEnviat amb Tuta, la bústia segura i lliure d'anuncis.\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "L'opció per defecte per a l'enviament d'un nou correu electrònic a un destinatari extern: confidencial (d'extrem a extrem xifrat)  o no confidencial (no d'extrem a extrem xifrat).",
 		"defaultExternalDelivery_label": "Entrega estàndard",
 		"defaultGiftCardMessage_msg": "Espero que gaudiu de la seguretat i la privadesa que obteniu amb Tuta.",

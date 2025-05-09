@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-09T09:49:55Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -21,7 +21,7 @@ export default {
 		"accentColor_label": "स्वरोंका रंग",
 		"acceptInvitation_action": "आमंत्रण स्वीकारें",
 		"acceptPrivacyPolicyReminder_msg": "कृपया चेकबॉक्स का चयन करके प्राइवेसी नीति स्वीकार करें",
-		"acceptPrivacyPolicy_msg": "मैंने {प्राइवेसी नीति} को पढ़ा और उससे सहमत हूं",
+		"acceptPrivacyPolicy_msg": "मैंने {privacyPolicy} को पढ़ा और उससे सहमत हूं",
 		"acceptTemplateGroupEmailSubject_msg": "टेम्प्लेट सूची आमंत्रण स्वीकार किया गया",
 		"accept_action": "स्वीकार करना",
 		"accountSwitchAliases_msg": "कृपया अपने उपयोगकर्ता के सभी उपनाम हटाएं।",

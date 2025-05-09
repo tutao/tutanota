@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-05-05T15:23:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -345,7 +345,7 @@ export default {
 		"decline_action": "رفض ",
 		"defaultColor_label": "اللون الافتراضي: {1}",
 		"defaultDownloadPath_label": "مسار التنزيل الافتراضي",
-		"defaultEmailSignature_msg": "--\n<br>\nتم الإرسال بواسطة  توتانوتا، استمتع برسائل بريد إلكتروني آمنة وخالية من الإعلانات.\n<br>‬",
+		"defaultEmailSignature_msg": "--\n<br>\nتم الإرسال بواسطة  توتانوتا، استمتع برسائل بريد إلكتروني آمنة وخالية من الإعلانات.\n<br>\n{1}‬",
 		"defaultExternalDeliveryInfo_msg": "الإعداد الافتراضي لإرسال رسالة بريد إلكتروني جديدة إلى مستلم خارجي: سرية (نهاية - إلى - نهاية مشفرة) أو غير سرية (ليست مشفرة نهاية - إلى - نهاية).",
 		"defaultExternalDelivery_label": "التسليم الافتراضي",
 		"defaultGiftCardMessage_msg": "أتمنى أن تستمتع بالأمان والخصوصية التي تحصل عليها مع توتانوتا!",
