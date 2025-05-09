@@ -2007,3 +2007,4 @@ export type TranslationKeyType =
 	| "checkoutWithAppStore_action"
 	| "mostPopular_label"
 	| "allYouNeed_label"
+	| "ratingSupportContactedSnackbar_msg"
