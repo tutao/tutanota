@@ -54,7 +54,7 @@ o.spec("SuggestionFacade test", () => {
 		return facade.load().then(() => {
 			o(transactionMock.get.callCount).equals(1)
 			o(transactionMock.get.args[0]).equals(SearchTermSuggestionsOS)
-			o(transactionMock.get.args[1]).equals(contactTypeModel.name)
+			o(transactionMock.get.args[1]).equals(contactTypeModel.name.toLowerCase())
 			o(facade.getSuggestions("a").join("")).equals("")
 		})
 	})
@@ -66,7 +66,7 @@ o.spec("SuggestionFacade test", () => {
 		facade.addSuggestions(["aaaa"])
 		return facade.store().then(() => {
 			o(transactionMock.put.args[0]).equals(SearchTermSuggestionsOS)
-			o(transactionMock.put.args[1]).equals(contactTypeModel.name)
+			o(transactionMock.put.args[1]).equals(contactTypeModel.name.toLowerCase())
 			let encSuggestions = transactionMock.put.args[2]
 			facade.addSuggestions(["accc", "bbbb"])
 			// insert new values
@@ -78,7 +78,7 @@ o.spec("SuggestionFacade test", () => {
 			return facade.load().then(() => {
 				// restored
 				o(transactionLoadMock.get.args[0]).equals(SearchTermSuggestionsOS)
-				o(transactionLoadMock.get.args[1]).equals(contactTypeModel.name)
+				o(transactionLoadMock.get.args[1]).equals(contactTypeModel.name.toLowerCase())
 				o(facade.getSuggestions("a").join(" ")).equals("aaaa")
 				o(facade.getSuggestions("b").join(" ")).equals("")
 			})
