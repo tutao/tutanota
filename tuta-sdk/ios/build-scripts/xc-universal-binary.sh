@@ -26,7 +26,7 @@ echo SRC_ROOT=$SRC_ROOT
 # buildvariant from our xcconfigs
 BUILDVARIANT=$(echo "${3}" | tr '[:upper:]' '[:lower:]')
 
-RUSTC_ARGS=${4}
+RUSTC_ARGS=${@:4}
 
 RELFLAG=
 if [[ "${BUILDVARIANT}" != debug* ]]; then
@@ -37,30 +37,6 @@ IS_SIMULATOR=0
 if [ "${LLVM_TARGET_TRIPLE_SUFFIX-}" = "-simulator" ]; then
   IS_SIMULATOR=1
 fi
-
-# for arch in $ARCHS; do
-#   case "$arch" in
-#     x86_64)
-#       if [ $IS_SIMULATOR -eq 0 ]; then
-#         echo "Building for x86_64, but not a simulator build. What's going on?" >&2
-#         exit 2
-#       fi
-
-#       # Intel iOS simulator
-#       export CFLAGS_x86_64_apple_ios="-target x86_64-apple-ios"
-#       cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target x86_64-apple-ios -v
-#       ;;
-
-#     arm64)
-#       if [ $IS_SIMULATOR -eq 0 ]; then
-#         # Hardware iOS targets
-#         cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios -v
-#       else
-#         # M1 iOS simulator
-#         cargo rustc --manifest-path="${SRC_ROOT}/Cargo.toml" -p "${FFI_TARGET}" --lib $RELFLAG --target aarch64-apple-ios-sim -v
-#       fi
-#   esac
-# done
 
 
 SCRIPT_DIR=$(dirname "$0")
