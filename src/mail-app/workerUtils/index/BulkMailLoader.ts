@@ -37,10 +37,7 @@ import {
 import { SomeEntity } from "../../../common/api/common/EntityTypes.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { CryptoFacade } from "../../../common/api/worker/crypto/CryptoFacade"
-import { resolveTypeReference } from "../../../common/api/common/EntityFunctions"
-import { VersionedEncryptedKey } from "../../../common/api/worker/crypto/CryptoWrapper"
-import { InstanceSessionKey } from "../../../common/api/entities/sys/TypeRefs"
+import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 
 export const ENTITY_INDEXER_CHUNK = 20
 export const MAIL_INDEXER_CHUNK = 100
@@ -58,7 +55,7 @@ export interface MailWithMailDetails {
 }
 
 export class BulkMailLoader {
-	constructor(private readonly mailEntityClient: EntityClient, private readonly mailDataEntityClient: EntityClient, private readonly crypto: CryptoFacade) {}
+	constructor(private readonly mailEntityClient: EntityClient, private readonly mailDataEntityClient: EntityClient, private readonly mail: MailFacade) {}
 
 	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<Mail[]> {
 		return this.mailEntityClient.loadRange(MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, {
@@ -120,33 +117,15 @@ export class BulkMailLoader {
 
 	async loadAttachments(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<TutanotaFile[]> {
 		const attachmentIds: IdTuple[] = []
-		const sessionKeys: Map<Id, InstanceSessionKey> = new Map()
 
 		for (const mail of mails) {
 			if (isEmpty(mail.attachments)) {
 				continue
 			}
-			if (mail.bucketKey != null) {
-				const typeModel = await resolveTypeReference(FileTypeRef)
-				const resolvedSessionKeys = await this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel)
-				for (const key of resolvedSessionKeys.instanceSessionKeys) {
-					sessionKeys.set(key.instanceId, key)
-				}
-			}
 			attachmentIds.push(...mail.attachments)
 		}
 
-		const sessionKeyProvider =
-			sessionKeys.size === 0
-				? undefined
-				: async (instanceElementId: Id): Promise<VersionedEncryptedKey> => {
-						const keyData = assertNotNull(sessionKeys.get(instanceElementId), `could not load session key for ${instanceElementId}`)
-						return {
-							key: keyData.symEncSessionKey,
-							encryptingKeyVersion: parseKeyVersion(keyData.symKeyVersion),
-						}
-				  }
-
+		const sessionKeyProvider = await this.mail.createOwnerEncSessionKeyProviderForAttachments(mails)
 		const filesByList = groupBy(attachmentIds, listIdPart)
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []
 		for (const [listId, fileIds] of filesByList.entries()) {

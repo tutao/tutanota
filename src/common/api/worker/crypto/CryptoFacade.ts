@@ -68,12 +68,12 @@ import {
 	AesKey,
 	bitArrayToUint8Array,
 	decryptKey,
-	X25519PublicKey,
 	encryptKey,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
 	PublicKey,
 	sha256Hash,
+	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
 import { RecipientNotResolvedError } from "../../common/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
@@ -102,7 +102,7 @@ type UnmappedOwnerGroupInstance = {
 	_ownerGroup: Id
 }
 
-export type ResolvedSessionKeys = {
+type ResolvedSessionKeys = {
 	resolvedSessionKeyForInstance: AesKey
 	instanceSessionKeys: Array<InstanceSessionKey>
 }

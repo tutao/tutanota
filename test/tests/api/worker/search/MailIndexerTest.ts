@@ -69,7 +69,6 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
-import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -98,14 +97,12 @@ o.spec("MailIndexer test", () => {
 	let bulkMailLoader: BulkMailLoader
 	let dateProvider: DateProvider
 	let mailFacade: MailFacade
-	let cryptoFacade: CryptoFacade
 	o.beforeEach(function () {
 		entityMock = new EntityRestClientMock()
 		entityClient = new EntityClient(entityMock)
-		cryptoFacade = object()
-		bulkMailLoader = new BulkMailLoader(entityClient, new EntityClient(entityMock), cryptoFacade)
-		dateProvider = new LocalTimeDateProvider()
 		mailFacade = object()
+		bulkMailLoader = new BulkMailLoader(entityClient, new EntityClient(entityMock), mailFacade)
+		dateProvider = new LocalTimeDateProvider()
 	})
 	o("createMailIndexEntries without entries", function () {
 		let mail = createTestEntity(MailTypeRef)
@@ -1029,8 +1026,8 @@ async function indexMailboxTest(startTimestamp: number, endIndexTimstamp: number
 	} as any
 	const infoMessageHandler = object<InfoMessageHandler>()
 	const entityClient = new EntityClient(entityMock)
-	const cryptoFacade: CryptoFacade = object()
-	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, cryptoFacade)
+	const mailFacade: MailFacade = object()
+	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, mailFacade)
 	const indexer = mock(
 		new MailIndexer(core, db, infoMessageHandler, () => bulkMailLoader, entityClient, new LocalTimeDateProvider(), null as any),
 		(mock) => {
@@ -1100,7 +1097,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 			mocked._processDeleted = spy()
 		},
 	)
-	let mailFacade: MailFacade = object()
+	const mailFacade: MailFacade = object()
 	const mailSetEntryId = ["mailSetListId", "mailSetEntryId"] as const
 	const { mail, mailDetailsBlob } = createMailInstances(mailFacade, {
 		mailSetEntryId: mailSetEntryId,
@@ -1112,8 +1109,7 @@ function _prepareProcessEntityTests(indexingEnabled: boolean, mailState: MailSta
 	entityMock.addBlobInstances(mailDetailsBlob)
 	entityMock.addListInstances(mail)
 	const entityClient = new EntityClient(entityMock)
-	const crypto: CryptoFacade = object()
-	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, crypto)
+	const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, mailFacade)
 	return mock(new MailIndexer(core, db, null as any, () => bulkMailLoader, entityClient, new LocalTimeDateProvider(), mailFacade), (mocked) => {
 		mocked.processNewMail = spy(mocked.processNewMail.bind(mocked))
 		mocked.processMovedMail = spy(mocked.processMovedMail.bind(mocked))

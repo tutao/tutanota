@@ -94,6 +94,7 @@ import {
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
 	GroupTypeRef,
+	type InstanceSessionKey,
 	User,
 	UserTypeRef,
 } from "../../../entities/sys/TypeRefs.js"
@@ -150,11 +151,11 @@ import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
-import { resolveTypeReference } from "../../../common/EntityFunctions.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
-import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
+import { resolveTypeReference } from "../../../common/EntityFunctions"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -1034,21 +1035,7 @@ export class MailFacade {
 		const attachmentsListId = listIdPart(mail.attachments[0])
 		const attachmentElementIds = mail.attachments.map(elementIdPart)
 
-		const bucketKey = mail.bucketKey
-		let ownerEncSessionKeyProvider: OwnerEncSessionKeyProvider | undefined
-		if (bucketKey) {
-			const typeModel = await resolveTypeReference(FileTypeRef)
-			const resolvedSessionKeys = await this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel)
-			ownerEncSessionKeyProvider = async (instanceElementId: Id): Promise<VersionedEncryptedKey> => {
-				const instanceSessionKey = assertNotNull(
-					resolvedSessionKeys.instanceSessionKeys.find((instanceSessionKey) => instanceElementId === instanceSessionKey.instanceId),
-				)
-				return {
-					key: instanceSessionKey.symEncSessionKey,
-					encryptingKeyVersion: parseKeyVersion(instanceSessionKey.symKeyVersion),
-				}
-			}
-		}
+		const ownerEncSessionKeyProvider = mail.bucketKey != null ? await this.createOwnerEncSessionKeyProviderForAttachments([mail]) : undefined
 		return await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds, ownerEncSessionKeyProvider)
 	}
 
@@ -1196,6 +1183,28 @@ export class MailFacade {
 			{ concurrency: 2 },
 		)
 		return result.flatMap((response) => response.mailIds).map((idTupleWrapper) => [idTupleWrapper.listId, idTupleWrapper.listElementId])
+	}
+
+	async createOwnerEncSessionKeyProviderForAttachments(mails: Iterable<Mail>): Promise<OwnerEncSessionKeyProvider> {
+		const sessionKeys: Map<Id, InstanceSessionKey> = new Map()
+		const typeModel = await resolveTypeReference(FileTypeRef)
+
+		for (const mail of mails) {
+			if (mail.bucketKey != null) {
+				const resolvedSessionKeys = await this.crypto.resolveWithBucketKey(assertNotNull(mail.bucketKey), mail, typeModel)
+				for (const key of resolvedSessionKeys.instanceSessionKeys) {
+					sessionKeys.set(key.instanceId, key)
+				}
+			}
+		}
+
+		return async (instanceElementId: Id) => {
+			const keyData = assertNotNull(sessionKeys.get(instanceElementId), `could not load session key for ${instanceElementId}`)
+			return {
+				key: keyData.symEncSessionKey,
+				encryptingKeyVersion: parseKeyVersion(keyData.symKeyVersion),
+			}
+		}
 	}
 }
 
