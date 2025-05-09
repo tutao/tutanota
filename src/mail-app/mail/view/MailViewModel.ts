@@ -253,6 +253,7 @@ export class MailViewModel {
 			return
 		}
 		if (cached) {
+			this.mailModel.inboxRule(cached)
 			console.log(TAG, "displaying cached mail", mailId)
 			await this.displayExplicitMailTarget(cached)
 		}
@@ -375,6 +376,12 @@ export class MailViewModel {
 		}
 
 		return await this.getResolvedMails(actionableMails)
+	}
+
+	removeStickyMail(mails: readonly IdTuple[]) {
+		if (this.stickyMailId && mails.length === 1 && isSameId(elementIdPart(mails[0]), elementIdPart(this.stickyMailId))) {
+			this.stickyMailId = null
+		}
 	}
 
 	currentFolderDeletesPermanently(): boolean {
@@ -622,18 +629,7 @@ export class MailViewModel {
 
 		let importMailStateUpdates: Array<EntityUpdateData> = []
 		for (const update of updates) {
-			if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(folder.entries, update.instanceListId)) {
-				if (update.operation === OperationType.DELETE && this.stickyMailId != null) {
-					const { mailId } = deconstructMailSetEntryId(update.instanceId)
-					if (isSameId(mailId, elementIdPart(this.stickyMailId))) {
-						// Reset target before we dispatch event to the list so that our handler in onListStateChange() has up-to-date state.
-						this.stickyMailId = null
-					}
-				}
-			} else if (
-				isUpdateForTypeRef(ImportMailStateTypeRef, update) &&
-				(update.operation == OperationType.CREATE || update.operation == OperationType.UPDATE)
-			) {
+			if (isUpdateForTypeRef(ImportMailStateTypeRef, update) && (update.operation == OperationType.CREATE || update.operation == OperationType.UPDATE)) {
 				importMailStateUpdates.push(update)
 			}
 

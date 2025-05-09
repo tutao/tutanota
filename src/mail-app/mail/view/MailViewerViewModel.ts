@@ -1121,7 +1121,7 @@ export class MailViewerViewModel {
 		this.loadAll(delayBodyRendering, { notify: true })
 		if (this.isUnread()) {
 			// When we automatically mark email as read (e.g. opening it from notification) we don't want to run into offline errors, but we still want to mark
-			// the email as read once we log in.l
+			// the email as read once we log in.
 			// It is appropriate to show the error when the user marks the email as unread explicitly but less so when they open it and just didn't reach the
 			// full login yet.
 			this.logins.waitForFullLogin().then(() => this.setUnread(false))
