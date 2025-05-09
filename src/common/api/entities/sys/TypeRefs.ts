@@ -3670,3 +3670,16 @@ export type AdminGroupKeyRotationGetOut = {
 	userGroupIdsMissingDistributionKeys: Id[];
 	distributionKeys: PubDistributionKey[];
 }
+export const SurveyDataPostInTypeRef: TypeRef<SurveyDataPostIn> = new TypeRef("sys", 2563)
+
+export function createSurveyDataPostIn(values: StrippedEntity<SurveyDataPostIn>): SurveyDataPostIn {
+	return Object.assign(create(typeModels[SurveyDataPostInTypeRef.typeId], SurveyDataPostInTypeRef), values)
+}
+
+export type SurveyDataPostIn = {
+	_type: TypeRef<SurveyDataPostIn>;
+
+	_format: NumberString;
+
+	surveyData: SurveyData;
+}
