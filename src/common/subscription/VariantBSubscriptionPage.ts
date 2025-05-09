@@ -107,6 +107,7 @@ export class VariantBSubscriptionPage implements WizardPageN<UpgradeSubscription
 					priceAndConfigProvider: vnode.attrs.data.planPrices,
 					multipleUsersAllowed: vnode.attrs.data.multipleUsersAllowed,
 					msg: data.msg,
+					accountingInfo: vnode.attrs.data.accountingInfo,
 				}),
 			])
 		}
