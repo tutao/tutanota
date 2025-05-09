@@ -89,7 +89,12 @@ export async function showSupportDialog(logins: LoginController) {
 				},
 			}),
 			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
+			leftAction: {
+				type: ButtonType.Secondary,
+				click: () => goBack(),
+				label: "back_action",
+				title: "back_action",
+			},
 		},
 		topicDetail: {
 			content: m(SupportTopicPage, {
@@ -107,7 +112,21 @@ export async function showSupportDialog(logins: LoginController) {
 				},
 			}),
 			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
+			leftAction: {
+				type: ButtonType.Secondary,
+				click: () => {
+					goBack()
+
+					// going back from topic -> use category template
+					const selectedCategory = data.selectedCategory()
+					if (selectedCategory != null) {
+						data.contactTemplate(getCategoryContactTemplate(selectedCategory, lang.languageTag))
+						data.helpText(getCategoryHelpText(selectedCategory, lang.languageTag))
+					}
+				},
+				label: "back_action",
+				title: "back_action",
+			},
 		},
 		contactSupport: {
 			content: m(ContactSupportPage, { data, onSuccess: () => navigateToPage("supportRequestSent") }),
@@ -132,16 +151,12 @@ export async function showSupportDialog(logins: LoginController) {
 				},
 			}),
 			title: lang.get("supportMenu_label"),
-			leftAction: { type: ButtonType.Secondary, click: () => {
-					goBack()
-
-					// going back from topic -> use category template
-					const selectedCategory = data.selectedCategory()
-					if (selectedCategory != null) {
-						data.contactTemplate(getCategoryContactTemplate(selectedCategory, lang.languageTag))
-						data.helpText(getCategoryHelpText(selectedCategory, lang.languageTag))
-					}
-				}, label: "back_action", title: "back_action" },
+			leftAction: {
+				type: ButtonType.Secondary,
+				click: () => goBack(),
+				label: "back_action",
+				title: "back_action",
+			},
 			rightAction: {
 				type: ButtonType.Secondary,
 				label: "close_alt",
