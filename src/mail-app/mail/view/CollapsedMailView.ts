@@ -30,7 +30,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				role: "button",
 				"aria-expanded": "false",
 				style: {
-					color: theme.content_button,
+					color: theme.on_surface_variant,
 				},
 				onclick: () => viewModel.expandMail(Promise.resolve()),
 				onkeyup: (e: KeyboardEvent) => {
@@ -83,7 +83,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 			icon,
 			container: "div",
 			style: {
-				fill: theme.content_button,
+				fill: theme.on_surface_variant,
 			},
 			hoverText: hoverText,
 		})

@@ -162,7 +162,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			}
 
 			if (attrs.isFirstMonthForFree && isPersonalPaidPlan && isYearly) {
-				const isDarkTheme = !isColorLight(theme.content_bg)
+				const isDarkTheme = !isColorLight(theme.surface)
 				return m(
 					".ribbon-horizontal.nota",
 					m(".text-center.b", { style: { padding: px(3), color: isDarkTheme ? "#fff" : undefined } }, lang.get("oneMonthTrial_label")),
@@ -238,7 +238,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						".span.strike",
 						{
 							style: {
-								color: shouldApplyCampaignColor ? theme.content_accent_tuta_bday : theme.content_button,
+								color: shouldApplyCampaignColor ? theme.content_accent_tuta_bday : theme.on_surface_variant,
 								fontSize: px(size.font_size_base),
 								justifySelf: "end",
 								margin: "auto 0.4em 0 0",
