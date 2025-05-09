@@ -1199,9 +1199,10 @@ export enum UsageTestState {
 export const UsageTestStateToName = reverse(UsageTestState)
 
 export enum UsageTestMetricType {
-	Number = "0",
-	Enum = "1",
-	Likert = "2",
+	NUMBER = "0",
+	ENUM = "1",
+	LIKERT = "2",
+	STRING = "3",
 }
 
 export const UsageTestMetricTypeToName = reverse(UsageTestMetricType)
