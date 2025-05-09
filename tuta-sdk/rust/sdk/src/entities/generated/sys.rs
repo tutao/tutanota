@@ -5927,3 +5927,21 @@ impl Entity for AdminGroupKeyRotationGetOut {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct SurveyDataPostIn {
+	#[serde(rename = "2564")]
+	pub _format: i64,
+	#[serde(rename = "2565")]
+	pub surveyData: SurveyData,
+}
+
+impl Entity for SurveyDataPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2563),
+		}
+	}
+}
