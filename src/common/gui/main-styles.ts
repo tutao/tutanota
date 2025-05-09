@@ -31,9 +31,9 @@ export function getFonts(): string {
 	return fonts.join(", ")
 }
 
-const boxShadowHigh = `0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)`
-const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.22)"
-const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.12)"
+const boxShadowHigh = `0 10px 20px rgba(0,0,0,0.10), 0 6px 6px rgba(0,0,0,0.10)`
+const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.12)"
+const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 
 const scrollbarWidthHeight = px(18)
 styles.registerStyle("main", () => {
@@ -1490,7 +1490,7 @@ styles.registerStyle("main", () => {
 			width: "0px",
 			height: "22px",
 			"margin-left": "2px",
-			"border-color": theme.outline,
+			"border-color": theme.outline_variant,
 			"border-width": "1px",
 			"border-style": "solid",
 		},
@@ -1511,7 +1511,7 @@ styles.registerStyle("main", () => {
 			"max-width": px(350),
 		},
 		".dialog-header": {
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 			height: px(size.button_height + 1),
 		},
 		".dialog-header-line-height": {
@@ -1535,13 +1535,13 @@ styles.registerStyle("main", () => {
 			height: "auto",
 		},
 		".dialog-buttons": {
-			"border-top": `1px solid ${theme.outline}`,
+			"border-top": `1px solid ${theme.outline_variant}`,
 		},
 		".dialog-buttons > button": {
 			flex: "1",
 		},
 		".dialog-buttons > button:not(:first-child)": {
-			"border-left": `1px solid ${theme.outline}`,
+			"border-left": `1px solid ${theme.outline_variant}`,
 			"margin-left": "0",
 		},
 		".dialog-height-small": {
@@ -2741,7 +2741,7 @@ styles.registerStyle("main", () => {
 			outline: "medium invert color",
 		},
 		".tutaui-text-field:focus, .child-text-editor [role='textbox']:focus": {
-			"background-color": theme.secondary,
+			"background-color": theme.surface_container_high,
 		},
 		".tutaui-text-field::placeholder": {
 			color: theme.on_surface_fade,
