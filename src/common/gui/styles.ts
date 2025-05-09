@@ -131,18 +131,6 @@ class Styles {
 
 		return styleDomElement as HTMLStyleElement
 	}
-
-	/**
-	 * Determines if the current theme is a light theme.
-	 *
-	 * @param {Theme} [theme=locator.themeController.getCurrentTheme()] - The theme to check.
-	 * If not provided, the current theme from the `ThemeController` is used.
-	 * @returns `true` if the theme is a light theme, otherwise `false`.
-	 */
-	public isLightTheme(theme: Theme = require("../api/main/CommonLocator.js").locator.themeController.getCurrentTheme()) {
-		const lightThemes: Array<ThemeId> = ["light", "light_secondary"]
-		return lightThemes.includes(theme.themeId)
-	}
 }
 
 function objectToCss(indent: string, key: string, o: Record<string, string>) {

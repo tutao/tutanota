@@ -1,6 +1,6 @@
-import { styles } from "../gui/styles.js"
 import { theme } from "../gui/theme.js"
 import { PlanType } from "../api/common/TutanotaConstants.js"
+import { ThemeController } from "../gui/ThemeController.js"
 
 // TODO: Update color to follow the Material 3 color rules after the color token update
 
@@ -19,7 +19,7 @@ export const planBoxColors = {
  * Determines the background color for the PlanBox component based on the selection state and theme.
  */
 function getBgColor({ isSelected }: { isSelected: boolean }) {
-	if (styles.isLightTheme()) {
+	if (ThemeController.isLightTheme()) {
 		if (isSelected) {
 			return theme.experimental_primary_container
 		} else {
@@ -38,7 +38,7 @@ function getBgColor({ isSelected }: { isSelected: boolean }) {
  * Determines the box shadow style for the PlanBox component based on the current theme.
  */
 function getBoxShadow() {
-	if (styles.isLightTheme()) {
+	if (ThemeController.isLightTheme()) {
 		return `0px 0px 16px 0px hsl(from ${theme.experimental_on_primary_container} h s l / 25%)`
 	}
 
@@ -56,7 +56,7 @@ function getTextColor({ isSelected }: { isSelected: boolean }) {
  * Determines the border color for the PlanBox component based on the selection state and theme.
  */
 function getOutlineColor({ isSelected }: { isSelected: boolean }) {
-	if (styles.isLightTheme()) {
+	if (ThemeController.isLightTheme()) {
 		if (isSelected) {
 			return "transparent"
 		} else {
@@ -78,7 +78,7 @@ function getFeatureIconColor({ isSelected, planType }: { isSelected: boolean; pl
 	if (planType === PlanType.Free) {
 		if (isSelected) {
 			return theme.experimental_tertiary
-		} else if (styles.isLightTheme()) {
+		} else if (ThemeController.isLightTheme()) {
 			return "#b8b8b8"
 		} else {
 			return "#d5d5d5"

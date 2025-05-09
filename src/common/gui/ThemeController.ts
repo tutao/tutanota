@@ -12,6 +12,7 @@ import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 assertMainOrNodeBoot()
 
@@ -67,6 +68,18 @@ export class ThemeController {
 			// theme after that.
 			await this.setThemePreference((await this.themeFacade.getThemePreference()) ?? this._themePreference)
 		}
+	}
+
+	/**
+	 * Determines if the current theme is a light theme.
+	 *
+	 * @param {Theme} [theme=locator.themeController.getCurrentTheme()] - The theme to check.
+	 * If not provided, the current theme from the `ThemeController` is used.
+	 * @returns `true` if the theme is a light theme, otherwise `false`.
+	 */
+	public static isLightTheme(theme: Theme = locator.themeController.getCurrentTheme()) {
+		const lightThemes: Array<ThemeId> = ["light", "light_secondary"]
+		return lightThemes.includes(theme.themeId)
 	}
 
 	private parseCustomizations(stringTheme: string): ThemeCustomizations {

@@ -19,7 +19,7 @@ import { renderFingerprintAsQrCode, renderFingerprintAsText } from "./Fingerprin
 import { MenuTitle } from "../../gui/titles/MenuTitle"
 import { theme } from "../../gui/theme"
 import { FingerprintRow } from "./FingerprintRow"
-import { styles } from "../../gui/styles.js"
+import { ThemeController } from "../../gui/ThemeController.js"
 
 /**
  * Section in user settings to deal with everything related to key verification.
@@ -121,7 +121,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderQrTextMethod(selfMailAddress: string, selfFingerprint: PublicKeyFingerprint): Children {
-		const isLightTheme = styles.isLightTheme()
+		const isLightTheme = ThemeController.isLightTheme()
 
 		const qrCodeGraphic = m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))
 		return m(Card, {}, [
