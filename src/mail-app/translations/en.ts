@@ -2032,6 +2032,7 @@ export default {
 		"startWithFreeAccount_action": "Start with a free account",
 		"checkoutWithAppStore_action": "Checkout with App Store",
 		"mostPopular_label": "Most popular",
-		"allYouNeed_label": "All you need"
+		"allYouNeed_label": "All you need",
+		"ratingSupportContactedSnackbar_msg": "Thank you for reporting your problem! The support team will contact you by email."
 	}
 }
