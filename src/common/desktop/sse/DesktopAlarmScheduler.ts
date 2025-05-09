@@ -21,7 +21,11 @@ export class DesktopAlarmScheduler {
 		const alarms = await this.alarmStorage.getScheduledAlarms()
 		for (const alarm of alarms) {
 			if (userId == null || alarm.user === userId) {
-				this.cancelAlarms(alarm.alarmInfo.alarmIdentifier)
+				try {
+					this.cancelAlarms(alarm.alarmInfo.alarmIdentifier)
+				} catch (e) {
+					log.info("failed to cancel alarm " + e.stack)
+				}
 			}
 		}
 		return this.alarmStorage.deleteAllAlarms(userId)
