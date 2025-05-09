@@ -2278,6 +2278,12 @@ export type SupportTopic = {
 	solutionHtmlEN: string;
 	solutionHtmlDE: string;
 	visibility: NumberString;
+	contactTemplateHtmlEN: string;
+	contactTemplateHtmlDE: string;
+	helpTextEN: string;
+	helpTextDE: string;
+	contactSupportTextEN: null | string;
+	contactSupportTextDE: null | string;
 }
 export const SupportCategoryTypeRef: TypeRef<SupportCategory> = new TypeRef("tutanota", 1626)
 
@@ -2294,6 +2300,10 @@ export type SupportCategory = {
 	introductionEN: string;
 	introductionDE: string;
 	icon: string;
+	contactTemplateHtmlEN: string;
+	contactTemplateHtmlDE: string;
+	helpTextEN: string;
+	helpTextDE: string;
 
 	topics: SupportTopic[];
 }
