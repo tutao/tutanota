@@ -60,11 +60,12 @@ export function displayOverlay(
 
 type OverlayParentAttrs = {
 	inertBelow: number
-	setTopOverlay: (layer: number) => void
+	setTopOverlay: (zIndex: number) => void
 }
 
 export const overlay: Component<OverlayParentAttrs> = {
 	view: (vnode): Children => {
+		console.log(">>>>>>>>>>>>>>>>>>>>>>>>>> Overlays count", overlays.size)
 		let highestIndex = 0
 		const overlayComponents = Array.from(overlays.entries()).map((overlay) => {
 			const [key, attrs] = overlay
@@ -75,7 +76,6 @@ export const overlay: Component<OverlayParentAttrs> = {
 
 			const zIndex = position.zIndex != null ? position.zIndex : LayerType.Overlay
 			const inert = zIndex < vnode.attrs.inertBelow
-
 			if (zIndex > highestIndex) {
 				highestIndex = zIndex
 			}

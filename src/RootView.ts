@@ -48,6 +48,7 @@ export class RootView implements ClassComponent {
 	}
 
 	view(vnode: Vnode): Children {
+		console.log(">>>>>>>>>>>>>>\nOverlay: ", this.topOverlayLayer, "\nModal:", this.topModalLayer)
 		return m(
 			"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
 			{

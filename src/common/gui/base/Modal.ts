@@ -18,7 +18,7 @@ type ModalComponentWrapper = {
 
 type ModalAttrs = {
 	inertBelow: number
-	setTopModal: (layer: number) => void
+	setTopModal: (zIndex: number) => void
 }
 
 class Modal implements Component<ModalAttrs> {
@@ -38,25 +38,27 @@ class Modal implements Component<ModalAttrs> {
 		this.closingComponents = []
 
 		this.view = ({ attrs }): Children => {
-			const modalTopLayer = this.getModalLayer(this.components.length)
+			const modalTopLayer = this.visible ? this.getModalLayer(this.components.length) : 0
 			attrs.setTopModal(modalTopLayer)
 
 			return m(
 				"#modal.fill-absolute",
 				{
 					"aria-modal": true,
-					inert: attrs.inertBelow > modalTopLayer || !this.visible,
+					inert: !this.visible,
 					style: {
 						"z-index": LayerType.Modal,
 						display: this.visible ? "" : "none",
 					},
 				},
 				this.components.map((wrapper, i, array) => {
+					const zIndex = this.getModalLayer(i + 1)
+
 					return m(
 						".fill-absolute",
 						{
 							key: wrapper.key,
-							inert: i !== lastIndex(array),
+							inert: i !== lastIndex(array) || zIndex < attrs.inertBelow,
 							oncreate: (vnode) => {
 								// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
 								// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
@@ -80,7 +82,7 @@ class Modal implements Component<ModalAttrs> {
 								}
 							},
 							style: {
-								zIndex: this.getModalLayer(i + 1),
+								zIndex,
 							},
 							onbeforeremove: async (vnode) => {
 								if (wrapper.needsBg) {
