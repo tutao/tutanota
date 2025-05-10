@@ -70,7 +70,7 @@ main() {
     info_message "Switching to my-testing-branch"
     git checkout my-testing-branch
     git pull
-    
+
     # Check npm is installed
     command -v npm >/dev/null 2>&1 || error_exit "npm is not installed. Please install Node.js and npm."
     

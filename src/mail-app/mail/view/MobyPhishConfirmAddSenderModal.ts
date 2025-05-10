@@ -83,7 +83,7 @@ export class MobyPhishConfirmAddSenderModal implements ModalComponent {
 						{
 							onclick: () => this.confirmAddSender(),
 							disabled: this.isLoading,
-							style: { ...this.getConfirmButtonStyle(this.isLoading), color: "black" },
+							style: { ...this.getConfirmButtonStyle(this.isLoading), color: "white" },
 						},
 						this.isLoading ? "Adding..." : "Confirm Add",
 					),
