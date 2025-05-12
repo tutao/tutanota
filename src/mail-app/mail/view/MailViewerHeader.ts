@@ -21,7 +21,7 @@ import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, promptAndDeleteMails, showMoveMailsDropdown, trashMails } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
-import { editDraft, singleMailViewerMoreActions } from "./MailViewerUtils.js"
+import { editDraft, MailViewerMoreActions, singleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { AttachmentBubble, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
@@ -40,6 +40,11 @@ export type MailAddressDropdownCreator = (args: {
 	createContact?: boolean
 }) => Promise<Array<DropdownButtonAttrs>>
 
+export interface MailHeaderActions {
+	trash: () => unknown
+	delete: (() => unknown) | null
+}
+
 export interface MailViewerHeaderAttrs {
 	// Passing the whole viewModel because there are a lot of separate bits we might need.
 	// If we want to reuse this view we should probably pass everything on its own.
@@ -47,6 +52,8 @@ export interface MailViewerHeaderAttrs {
 	createMailAddressContextButtons: MailAddressDropdownCreator
 	isPrimary: boolean
 	importFile: (file: TutanotaFile) => void
+	actions: MailHeaderActions
+	moreActions: MailViewerMoreActions
 }
 
 /** The upper part of the mail viewer, everything but the mail body itself. */
@@ -734,19 +741,20 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}
 
-	private prepareMoreActions({ viewModel }: MailViewerHeaderAttrs) {
+	private prepareMoreActions({ viewModel, moreActions, actions }: MailViewerHeaderAttrs) {
 		return createDropdown({
 			lazyButtons: () => {
 				let actionButtons: DropdownButtonAttrs[] = []
-				const deleteOrTrashAction: DropdownButtonAttrs = viewModel.isDeletableMail()
+				const deleteAction = actions.delete
+				const deleteOrTrashAction: DropdownButtonAttrs = deleteAction
 					? {
 							label: "delete_action",
-							click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail._id], null, noOp),
+							click: () => deleteAction(),
 							icon: Icons.DeleteForever,
 					  }
 					: {
 							label: "trash_action",
-							click: () => trashMails(viewModel.mailModel, [viewModel.mail._id]),
+							click: () => actions.trash(),
 							icon: Icons.Trash,
 					  }
 
@@ -817,7 +825,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 					actionButtons.push(deleteOrTrashAction)
 
-					actionButtons.push(...singleMailViewerMoreActions(viewModel))
+					actionButtons.push(...singleMailViewerMoreActions(viewModel, moreActions))
 				}
 
 				return actionButtons

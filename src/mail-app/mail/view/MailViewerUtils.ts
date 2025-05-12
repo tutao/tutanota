@@ -1,5 +1,5 @@
 import { Keys, MailReportType, MailState, ReplyType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
-import { $Promisable, assertNotNull, groupByAndMap, neverNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, groupByAndMap, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m from "mithril"
@@ -257,7 +257,7 @@ export function multipleMailViewerMoreActions(exportAction: (() => void) | null,
 	return moreButtons
 }
 
-export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownButtonAttrs> {
+export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, moreActions: MailViewerMoreActions): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 	if (viewModel.isUnread()) {
 		moreButtons.push({
@@ -289,7 +289,7 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 		})
 	}
 
-	moreButtons.push(...mailViewerMoreActions(getMailViewerMoreActions(viewModel)))
+	moreButtons.push(...mailViewerMoreActions(moreActions))
 
 	// adding more optional buttons? put them above the report action so the new button
 	// is not sometimes where the report action usually sits.
@@ -297,7 +297,7 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 	return moreButtons
 }
 
-export function getMailViewerMoreActions(viewModel: MailViewerViewModel): MailViewerMoreActions {
+export function getMailViewerMoreActions({ viewModel, report }: { viewModel: MailViewerViewModel; report: (() => unknown) | null }): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
 	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
@@ -316,8 +316,8 @@ export function getMailViewerMoreActions(viewModel: MailViewerViewModel): MailVi
 		actions.printAction = () => window.print()
 	}
 
-	if (viewModel.canReport()) {
-		actions.reportMailAction = () => reportMail(viewModel)
+	if (report) {
+		actions.reportMailAction = report
 	}
 
 	return actions
@@ -394,14 +394,7 @@ function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
 		})
 }
 
-function reportMail(viewModel: MailViewerViewModel) {
-	const sendReport = (reportType: MailReportType) => {
-		viewModel
-			.reportMail(reportType)
-			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-			.finally(m.redraw)
-	}
-
+export function showReportMailDialog(onReport: (type: MailReportType) => unknown) {
 	const dialog = Dialog.showActionDialog({
 		title: "reportEmail_action",
 		child: () =>
@@ -427,7 +420,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 						m(Button, {
 							label: "reportPhishing_action",
 							click: () => {
-								sendReport(MailReportType.PHISHING)
+								onReport(MailReportType.PHISHING)
 								dialog.close()
 							},
 							type: ButtonType.Secondary,
@@ -435,7 +428,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 						m(Button, {
 							label: "reportSpam_action",
 							click: () => {
-								sendReport(MailReportType.SPAM)
+								onReport(MailReportType.SPAM)
 								dialog.close()
 							},
 							type: ButtonType.Secondary,
