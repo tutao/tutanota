@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-05-09T07:39:17Z",
+	"updated_at": "2025-05-12T08:16:39Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1358,6 +1358,7 @@ export default {
 		"pricing.comparisonSupportBusiness_tooltip": "Erhalten Sie Support per E-Mail an Werktagen innerhalb von 24 Stunden.",
 		"pricing.comparisonSupportFree_msg": "Kein direkter Support",
 		"pricing.comparisonSupportFree_tooltip_markdown": "<p>Zugang zu unserem intelligenten Hilfebereich direkt in Tuta oder stellen Sie Ihre Fragen in unserem Community-Support <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.reddit.com/r/tutanota/\">Forum</a>. Kein E-Mail-Support.</p>\n",
+		"pricing.comparisonSupportLegend_tooltip": "Wir beantworten Support-Anfragen per E-Mail innerhalb eines Arbeitstages.",
 		"pricing.comparisonSupportPremium_msg": "Support via E-Mail",
 		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>Zugang zu unserem intelligenten Hilfebereich direkt in Tuta, mit der Möglichkeit, unser Support-Team per E-Mail zu kontaktieren. Wir antworten innerhalb eines Arbeitstages.</p>\n",
 		"pricing.comparisonSupportPro_msg": "Vorrangiger E-Mail-Support",
@@ -1479,6 +1480,7 @@ export default {
 		"ratingSuggestionPage_title": "Was beschäftigt Sie?",
 		"ratingSuggestion_label": "Ich habe eine Anregung",
 		"ratingSuggestion_placeholder": "Sie haben einen Vorschlag oder Feedback? Hier eintippen...",
+		"ratingSupportContactedSnackbar_msg": "Vielen Dank für das Melden des Problems! Das Support-Team wird Sie per E-Mail kontaktieren.",
 		"ratingSupportTuta_msg": "David besiegte Goliath. Sie können uns helfen, das Gleiche zu tun.",
 		"ratingSupportTuta_title": "Helfen Sie uns Privatsphäre in die Welt zu tragen und Big Tech die Stirn zu bieten!",
 		"ratingUpgradeFromRevo_label": "Wechseln Sie zu Legend",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-05-09T07:39:16Z",
+	"updated_at": "2025-05-12T08:16:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1354,6 +1354,7 @@ export default {
 		"pricing.comparisonSupportBusiness_tooltip": "Receive support via email on business days within 24 hours.",
 		"pricing.comparisonSupportFree_msg": "No direct support",
 		"pricing.comparisonSupportFree_tooltip_markdown": "<p>Access our smart help section from within your Tuta client or get help on our community support <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.reddit.com/r/tutanota/\">forum</a>. No email support.</p>\n",
+		"pricing.comparisonSupportLegend_tooltip": "We reply to support requests via email in one business day.",
 		"pricing.comparisonSupportPremium_msg": "Email support",
 		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>Access our smart help section from within your Tuta client with an option to directly email our support team. We reply within one working day.</p>\n",
 		"pricing.comparisonSupportPro_msg": "Priority email support",
@@ -1475,6 +1476,7 @@ export default {
 		"ratingSuggestionPage_title": "What's on your mind?",
 		"ratingSuggestion_label": "I have a suggestion",
 		"ratingSuggestion_placeholder": "Have an idea or feedback? Type away...",
+		"ratingSupportContactedSnackbar_msg": "Thank you for reporting your problem! The support team will contact you by email.",
 		"ratingSupportTuta_msg": "David defeated Goliath. You can help us do the same.",
 		"ratingSupportTuta_title": "Help us spread privacy and fight Big Tech!",
 		"ratingUpgradeFromRevo_label": "Become a Legend",
