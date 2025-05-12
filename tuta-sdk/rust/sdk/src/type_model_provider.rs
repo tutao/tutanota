@@ -138,17 +138,15 @@ impl TypeModelProvider {
 		BASE64_STANDARD.encode(&application_types_hash[0..5])
 	}
 
-	pub fn write_server_model_to_file(&self, raw_json_server_model: Vec<u8>) {
+	pub async fn write_server_model_to_file(&self, raw_json_server_model: Vec<u8>) {
 		let file_client = Arc::clone(&self.file_client);
-		tokio::spawn(async move {
-			file_client
-				.persist_content(
-					Self::SERVER_TYPE_MODEL_JSON_FILE_NAME.to_string(),
-					raw_json_server_model,
-				)
-				.await
-				.ok();
-		});
+		file_client
+			.persist_content(
+				Self::SERVER_TYPE_MODEL_JSON_FILE_NAME.to_string(),
+				raw_json_server_model,
+			)
+			.await
+			.ok();
 	}
 
 	pub async fn ensure_latest_server_model(
@@ -237,7 +235,8 @@ impl TypeModelProvider {
 					application_types_get_out
 						.application_types_json
 						.into_bytes(),
-				);
+				)
+				.await;
 
 				let application_models = ApplicationModels { apps };
 				Ok((

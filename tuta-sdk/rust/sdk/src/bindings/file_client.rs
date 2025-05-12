@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug, uniffi::Error, Eq, PartialEq, Clone)]
+#[repr(u8)]
 pub enum FileClientError {
 	#[error("File not found")]
 	NotFound,
