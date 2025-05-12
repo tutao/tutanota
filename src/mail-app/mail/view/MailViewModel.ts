@@ -253,6 +253,8 @@ export class MailViewModel {
 			return
 		}
 		if (cached) {
+			// Mails opened through the notification were not getting the inbox rule applied to them, so we apply it here
+			this.mailModel.applyInboxRuleToMail(cached)
 			console.log(TAG, "displaying cached mail", mailId)
 			await this.displayExplicitMailTarget(cached)
 		}
