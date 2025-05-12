@@ -82,7 +82,7 @@ import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
 import { MultiselectMobileHeader } from "../../../common/gui/MultiselectMobileHeader.js"
 import { MultiselectMode } from "../../../common/gui/base/List.js"
 import { PaidFunctionResult, SearchViewModel } from "./SearchViewModel.js"
-import { NotFoundError } from "../../../common/api/common/error/RestError.js"
+import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { MailFilterButton } from "../../mail/view/MailFilterButton.js"
 import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils.js"
@@ -109,12 +109,13 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker.js"
 import { PosRect } from "../../../common/gui/base/Dropdown"
-import { editDraft, getMailViewerMoreActions, startExport } from "../../mail/view/MailViewerUtils"
+import { editDraft, getMailViewerMoreActions, showReportMailDialog, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft } from "../../mail/model/MailChecks"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MoveMode } from "../../mail/model/MailModel"
+import { MailViewerViewModel } from "../../mail/view/MailViewerViewModel"
 
 assertMainOrNode()
 
@@ -487,7 +488,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					replyAction: this.getReplyAction(conversationViewModel, false),
 					replyAllAction: this.getReplyAction(conversationViewModel, true),
 					forwardAction: this.getForwardAction(conversationViewModel),
-					mailViewerMoreActions: getMailViewerMoreActions(conversationViewModel.primaryViewModel()),
+					mailViewerMoreActions: getMailViewerMoreActions({
+						viewModel: conversationViewModel.primaryViewModel(),
+						report: this.getReportAction(conversationViewModel.primaryViewModel()),
+					}),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -508,6 +512,21 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						viewModel: conversationViewModel,
 						actionableMailViewerViewModel: () => conversationViewModel.primaryViewModel(),
 						delayBodyRendering: Promise.resolve(),
+						actions: (mailViewerModel: MailViewerViewModel) => {
+							return {
+								trash: () => {
+									trashMails(mailLocator.mailModel, [mailViewerModel.mail._id])
+								},
+								delete: mailViewerModel.isDeletableMail()
+									? () => promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
+									: null,
+							}
+						},
+						moreActions: (mailViewerModel) =>
+							getMailViewerMoreActions({
+								viewModel: mailViewerModel,
+								report: this.getReportAction(mailViewerModel),
+							}),
 					}),
 				})
 			}
@@ -551,6 +570,19 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				),
 			)
 		}
+	}
+
+	private getReportAction(viewModel: MailViewerViewModel): (() => unknown) | null {
+		return viewModel.canReport()
+			? () => {
+					showReportMailDialog((type) => {
+						viewModel
+							.reportMail(type)
+							.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+							.finally(m.redraw)
+					})
+			  }
+			: null
 	}
 
 	private getForwardAction(conversationViewModel: ConversationViewModel): (() => void) | null {
@@ -718,7 +750,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				replyAction: this.getReplyAction(conversationViewModel, false),
 				replyAllAction: this.getReplyAction(conversationViewModel, true),
 				forwardAction: this.getForwardAction(conversationViewModel),
-				mailViewerMoreActions: getMailViewerMoreActions(conversationViewModel.primaryViewModel()),
+				mailViewerMoreActions: getMailViewerMoreActions({
+					viewModel: conversationViewModel.primaryViewModel(),
+					report: this.getReportAction(conversationViewModel.primaryViewModel()),
+				}),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {

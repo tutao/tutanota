@@ -24,8 +24,8 @@ import { createEmailSenderListElement } from "../../../common/api/entities/sys/T
 import { UserError } from "../../../common/api/main/UserError"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
-import { MailViewerHeader } from "./MailViewerHeader.js"
-import { editDraft, showHeaderDialog, showSourceDialog } from "./MailViewerUtils.js"
+import { MailHeaderActions, MailViewerHeader } from "./MailViewerHeader.js"
+import { editDraft, MailViewerMoreActions, showHeaderDialog, showSourceDialog } from "./MailViewerUtils.js"
 import { ToggleButton } from "../../../common/gui/base/buttons/ToggleButton.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
@@ -51,6 +51,8 @@ export type MailViewerAttrs = {
 	 *
 	 */
 	defaultQuoteBehavior: "collapse" | "expand"
+	actions: MailHeaderActions
+	moreActions: MailViewerMoreActions
 }
 
 /**
@@ -247,6 +249,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			createMailAddressContextButtons: this.createMailAddressContextButtons.bind(this),
 			isPrimary: attrs.isPrimary,
 			importFile: (file: TutanotaFile) => this.handleAttachmentImport(file),
+			moreActions: attrs.moreActions,
+			actions: attrs.actions,
 		})
 	}
 
