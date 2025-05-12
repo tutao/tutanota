@@ -412,26 +412,36 @@ class Agenda : GlanceAppWidget() {
 				}
 
 				Row(
-					modifier = GlanceModifier.defaultWeight()
+					modifier = GlanceModifier.defaultWeight(),
+					verticalAlignment = Alignment.CenterVertically
 				) {
 					if (hasAllDayEvent) {
 						val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
 						val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
 						val allDayIconColor =
 							generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
-						val image = if (allDayEvents.first().isBirthday) {
-							R.drawable.ic_gift
+
+						val image: Int
+						val padding: Int
+
+						if (allDayEvents.first().isBirthday) {
+							image = R.drawable.ic_gift
+							padding = 3
 						} else {
-							R.drawable.ic_all_day
+							image = R.drawable.ic_all_day
+							padding = 2
 						}
 
-						Image(
-							provider = ImageProvider(image),
-							contentDescription = "Add event button",
-							colorFilter = androidx.glance.ColorFilter.tint(allDayIconColor),
-							modifier = GlanceModifier.size(16.dp).background(calendarColor).cornerRadius(8.dp)
-								.padding(2.dp)
-						)
+						Box(
+							modifier = GlanceModifier.background(calendarColor).cornerRadius(8.dp).size(16.dp)
+								.padding(padding.dp)
+						) {
+							Image(
+								provider = ImageProvider(image),
+								contentDescription = "All day event",
+								colorFilter = androidx.glance.ColorFilter.tint(allDayIconColor),
+							)
+						}
 					}
 
 					Row {
@@ -561,6 +571,29 @@ class Agenda : GlanceAppWidget() {
 				)
 			)
 		}
+	}
+
+	@OptIn(ExperimentalGlancePreviewApi::class)
+	@Preview(widthDp = 250, heightDp = 250)
+	@Preview(widthDp = 250, heightDp = 400)
+	@Composable
+	fun AgendaPreviewWithBirthday() {
+		val eventData = ArrayList<UIEvent>()
+		val allDayEvents = ArrayList<UIEvent>()
+		for (i in 1..7) {
+			eventData.add(
+				UIEvent(
+					"previewCalendar",
+					IdTuple("", ""),
+					"2196f3",
+					"Hello Widget $i",
+					"08:00",
+					"17:00",
+					isAllDay = false,
+					startTimestamp = 0UL
+				)
+			)
+		}
 
 		allDayEvents.add(
 			UIEvent(
@@ -572,6 +605,7 @@ class Agenda : GlanceAppWidget() {
 				"End Time",
 				isAllDay = true,
 				startTimestamp = 0UL,
+				isBirthday = true
 			)
 		)
 
@@ -584,7 +618,8 @@ class Agenda : GlanceAppWidget() {
 				"Start Time",
 				"End Time",
 				isAllDay = true,
-				startTimestamp = 0UL
+				startTimestamp = 0UL,
+				isBirthday = true
 			)
 		)
 
