@@ -1,5 +1,5 @@
 use super::event_facade::{
-	ByRule, ByRuleType, EndType, EventRepeatRule, MonthNumber, RepeatPeriod,
+	BirthdayEvent, ByRule, ByRuleType, DateParts, EndType, EventRepeatRule, RepeatPeriod,
 };
 #[cfg_attr(test, mockall_double::double)]
 use crate::contacts::contact_facade::ContactFacade;
@@ -9,7 +9,7 @@ use crate::crypto_entity_client::CryptoEntityClient;
 use crate::customer::customer_facade::CustomerFacade;
 use crate::date::event_facade::EventFacade;
 use crate::date::DateTime;
-use crate::entities::generated::sys::{CustomerInfo, GroupInfo, GroupMembership, User};
+use crate::entities::generated::sys::{GroupInfo, GroupMembership, User};
 use crate::entities::generated::tutanota::{
 	CalendarEvent, CalendarGroupRoot, Contact, GroupSettings, UserSettingsGroupRoot,
 };
@@ -18,24 +18,13 @@ use crate::tutanota_constants::{AccountType, PlanType};
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
 use crate::util::first_bigger_than_second_custom_id;
-use crate::{ApiCallError, CustomId, GeneratedId, IdTupleCustom, ListLoadDirection};
-use base64::prelude::{BASE64_STANDARD, BASE64_URL_SAFE, BASE64_URL_SAFE_NO_PAD};
-use base64::Engine;
+use crate::{ApiCallError, CustomId, GeneratedId, ListLoadDirection};
 use num_enum::TryFromPrimitive;
-use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::string::ToString;
 use std::sync::Arc;
-use time::{Date, Duration, Month, OffsetDateTime, Time, UtcOffset};
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-pub struct BirthdayEvent {
-	calendar_event: CalendarEvent,
-	contact: Contact,
-}
-
-struct DateParts(Option<u32>, u8, u8);
+use time::{OffsetDateTime, Time, UtcOffset};
 
 // To keep the SDK decoupled and dependency free we decided to handle translations on native side
 pub const DEFAULT_CALENDAR_NAME: &str = "";
@@ -70,6 +59,7 @@ pub struct CalendarFacade {
 	user_facade: Arc<UserFacade>,
 	contact_facade: Arc<ContactFacade>,
 	customer_facade: Arc<CustomerFacade>,
+	event_facade: Arc<EventFacade>,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -80,12 +70,14 @@ impl CalendarFacade {
 		user_facade: Arc<UserFacade>,
 		contact_facade: Arc<ContactFacade>,
 		customer_facade: Arc<CustomerFacade>,
+		event_facade: Arc<EventFacade>,
 	) -> Self {
 		CalendarFacade {
 			crypto_entity_client,
 			user_facade,
 			contact_facade,
 			customer_facade,
+			event_facade,
 		}
 	}
 
@@ -225,7 +217,7 @@ impl CalendarFacade {
 			has_long_events_finished = is_done;
 			start_long_id = new_start;
 
-			let events_facade = EventFacade {};
+			let events_facade = EventFacade::new();
 			let mut advanced_instances: Vec<CalendarEvent> = Vec::new();
 
 			let event_with_repeat_rules = unwraped_long_events
@@ -559,14 +551,6 @@ impl CalendarFacade {
 		(year.is_none() || year.unwrap() < 10000) && month > 0 && month < 13 && day > 0 && day <= 31
 	}
 
-	fn generate_event_uid(&self, calendar_id: &GeneratedId, timestamp: DateTime) -> String {
-		format!(
-			"{}{}@tuta.com",
-			calendar_id.to_string(),
-			timestamp.as_millis()
-		)
-	}
-
 	async fn generate_birthdays(&self) -> Result<Vec<BirthdayEvent>, ApiCallError> {
 		let contacts: Vec<Contact> = self.contact_facade.load_all_user_contacts().await?;
 
@@ -605,142 +589,19 @@ impl CalendarFacade {
 				},
 			};
 
-		let event = match self.create_birthday_event(&contact, &birthday_date, &user_id) {
-			Ok(ev) => ev,
-			Err(e) => {
-				log::error!("Failed to create birthday event: {}", e);
-				return None;
-			},
-		};
+		let event =
+			match self
+				.event_facade
+				.create_birthday_event(&contact, &birthday_date, &user_id)
+			{
+				Ok(ev) => ev,
+				Err(e) => {
+					log::error!("Failed to create birthday event: {}", e);
+					return None;
+				},
+			};
 
 		Some(event)
-	}
-
-	fn create_birthday_event(
-		&self,
-		contact: &Contact,
-		birthday_parts: &DateParts,
-		user_id: &GeneratedId,
-	) -> Result<BirthdayEvent, ApiCallError> {
-		let cloned_contact = contact.clone();
-		let contact_id = cloned_contact._id.clone().unwrap();
-		let encoded_contact_id =
-			BASE64_STANDARD.encode(format!("{}/{}", contact_id.list_id, contact_id.element_id));
-
-		let birthday_calendar_id = GeneratedId(format!(
-			"{}#{}",
-			user_id.as_str(),
-			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
-		));
-
-		let uid: String = self.generate_event_uid(&birthday_calendar_id, DateTime::from_millis(0));
-
-		let event_title = contact.firstName.clone();
-
-		let birth_year = if birthday_parts.0.unwrap_or(0) < 1970 {
-			1970
-		} else {
-			birthday_parts.0.unwrap()
-		};
-		let birthday_date = match Date::from_calendar_date(
-			OffsetDateTime::now_local().unwrap().year(),
-			Month::from_number(birthday_parts.1),
-			birthday_parts.2,
-		) {
-			Ok(date) => date,
-			Err(e) => return Err(ApiCallError::internal(format!("Invalid date: {e:?}"))),
-		};
-
-		let event_base_date = birthday_date.replace_year(birth_year as i32).unwrap();
-
-		let offset_date_time_base =
-			OffsetDateTime::new_utc(event_base_date, Time::from_hms(0, 0, 0).unwrap());
-		let offset_date_time_start_time =
-			OffsetDateTime::new_utc(birthday_date, Time::from_hms(0, 0, 0).unwrap());
-		let offset_date_time_end_time = offset_date_time_start_time
-			.checked_add(Duration::days(1))
-			.unwrap();
-
-		let base_datetime = DateTime::from_seconds(offset_date_time_base.unix_timestamp() as u64);
-
-		// Set up start and end date base on UTC.
-		// Also increments a copy of startDate by one day and set it as endDate
-		let Ok(start_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
-			offset_date_time_start_time.unix_timestamp() as u64,
-		)) else {
-			return Err(ApiCallError::internal(
-				"Failed to parse event StartTime".to_string(),
-			));
-		};
-
-		let Ok(end_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
-			offset_date_time_end_time.unix_timestamp() as u64,
-		)) else {
-			return Err(ApiCallError::internal(
-				"Failed to parse event EndTime".to_string(),
-			));
-		};
-
-		let encoded_event_id = BASE64_URL_SAFE_NO_PAD.encode(format!(
-			"{}{}/{}",
-			base_datetime.as_millis(),
-			contact_id.list_id,
-			contact_id.element_id
-		));
-
-		let calendar_event = self.create_partial_calendar_event(
-			encoded_contact_id,
-			birthday_calendar_id,
-			uid,
-			event_title,
-			start_date,
-			end_date,
-			encoded_event_id,
-		);
-
-		Ok(BirthdayEvent {
-			calendar_event,
-			contact: cloned_contact,
-		})
-	}
-
-	fn create_partial_calendar_event(
-		&self,
-		encoded_contact_id: String,
-		birthday_calendar_id: GeneratedId,
-		uid: String,
-		event_title: String,
-		start_date: DateTime,
-		end_date: DateTime,
-		encoded_event_id: String,
-	) -> CalendarEvent {
-		CalendarEvent {
-			sequence: 0,
-			recurrenceId: None,
-			hashedUid: None,
-			summary: event_title,
-			startTime: start_date,
-			endTime: end_date,
-			location: "".to_string(),
-			description: "".to_string(),
-			alarmInfos: vec![],
-			organizer: None,
-			attendees: vec![],
-			invitedConfidentially: None,
-			repeatRule: None,
-			uid: Some(uid),
-			_id: Some(IdTupleCustom {
-				list_id: birthday_calendar_id.clone(),
-				element_id: CustomId(format!("{}#{}", encoded_event_id, encoded_contact_id)),
-			}),
-			_permissions: GeneratedId::min_id(),
-			_format: 0,
-			_ownerGroup: Some(birthday_calendar_id),
-			_ownerEncSessionKey: None,
-			_ownerKeyVersion: None,
-			_errors: HashMap::new(),
-			_finalIvs: HashMap::new(),
-		}
 	}
 }
 
@@ -831,6 +692,7 @@ mod calendar_facade_unit_tests {
 	use crate::contacts::contact_facade::MockContactFacade;
 	use crate::crypto_entity_client::MockCryptoEntityClient;
 	use crate::customer::customer_facade::MockCustomerFacade;
+	use crate::date::event_facade::EventFacade;
 	use crate::entities::generated::sys::{CustomerInfo, GroupInfo, GroupMembership, User};
 	use crate::entities::generated::tutanota::{Contact, GroupSettings, UserSettingsGroupRoot};
 	use crate::groups::GroupType;
@@ -911,6 +773,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let mock_contact_facade = MockContactFacade::default();
 		let mock_customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
@@ -934,6 +797,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
 			Arc::new(mock_customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
@@ -949,6 +813,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let mock_contact_facade = MockContactFacade::default();
 		let mock_customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
@@ -978,6 +843,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
 			Arc::new(mock_customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
@@ -993,6 +859,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let mock_contact_facade = MockContactFacade::default();
 		let mock_customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
@@ -1020,6 +887,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
 			Arc::new(mock_customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
@@ -1035,6 +903,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let mock_contact_facade = MockContactFacade::default();
 		let mock_customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
@@ -1064,6 +933,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
 			Arc::new(mock_customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
@@ -1079,6 +949,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let mock_contact_facade = MockContactFacade::default();
 		let mut mock_customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
@@ -1112,6 +983,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
 			Arc::new(mock_customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let formated_id = format!(
@@ -1137,6 +1009,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let mock_contact_facade = MockContactFacade::default();
 		let mut mock_customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
@@ -1170,6 +1043,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
 			Arc::new(mock_customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let formated_id = format!(
@@ -1194,6 +1068,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let contact_facade = MockContactFacade::default();
 		let customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let user_group = GeneratedId::test_random();
 		let calendar_id = GeneratedId::test_random();
@@ -1218,6 +1093,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(contact_facade),
 			Arc::new(customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let formated_id = format!(
@@ -1242,6 +1118,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let mut mock_contact_facade = MockContactFacade::default();
 		let customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let default_private_calendar_id = GeneratedId::test_random();
 		let user_group = GeneratedId::test_random();
@@ -1279,6 +1156,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
 			Arc::new(customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let birthdays = calendar_facade.generate_birthdays().await.unwrap();
@@ -1291,6 +1169,7 @@ mod calendar_facade_unit_tests {
 		let mut mock_user_facade = MockUserFacade::default();
 		let mut mock_contact_facade = MockContactFacade::default();
 		let customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
 
 		let default_private_calendar_id = GeneratedId::test_random();
 		let user_group = GeneratedId::test_random();
@@ -1314,6 +1193,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(mock_user_facade),
 			Arc::new(mock_contact_facade),
 			Arc::new(customer_facade),
+			Arc::new(event_facade),
 		);
 
 		let birthdays = calendar_facade.generate_birthdays().await.unwrap();

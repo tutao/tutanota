@@ -6,6 +6,7 @@ use crate::user_facade::UserFacade;
 use crate::ApiCallError;
 use std::sync::Arc;
 
+#[derive(uniffi::Object)]
 pub struct CustomerFacade {
 	crypto_entity_client: Arc<CryptoEntityClient>,
 	user_facade: Arc<UserFacade>,
