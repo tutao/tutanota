@@ -48,7 +48,7 @@ export class SupportLandingPage implements Component<Props> {
 							".pb.pt.flex.col.gap-vpad.fit-height.box-content",
 							categories.map((category) =>
 								m(SectionButton, {
-									leftIcon: { icon: category.icon as AllIcons, title: "close_alt", fill: theme.content_accent },
+									leftIcon: { icon: category.icon as AllIcons, title: "close_alt", fill: theme.primary },
 									text: { text: getLocalisedCategoryName(category, lang.languageTag), testId: "" },
 									onclick: () => {
 										selectedCategory(category)

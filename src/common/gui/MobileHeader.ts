@@ -109,7 +109,7 @@ export const MobileHeaderMenuButton = pureComponent(({ newsModel, backAction }: 
 				right: px(5),
 			},
 			color: "white",
-			background: theme.list_accent_fg,
+			background: theme.primary,
 		}),
 	])
 })

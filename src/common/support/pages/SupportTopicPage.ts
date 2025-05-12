@@ -63,7 +63,7 @@ class WasThisHelpful implements Component<WasThisHelpfulAttrs> {
 	view({ attrs: { goToContactSupportPage, goToSolutionWasHelpfulPage } }: Vnode<WasThisHelpfulAttrs>): Children {
 		return m(
 			".flex.flex-column.gap-vpad-s",
-			m("small.uppercase.b.text-ellipsis", { style: { color: theme.navigation_button } }, lang.get("wasThisHelpful_msg")),
+			m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("wasThisHelpful_msg")),
 			m(Card, { shouldDivide: true }, [
 				m(SectionButton, {
 					text: "yes_label",

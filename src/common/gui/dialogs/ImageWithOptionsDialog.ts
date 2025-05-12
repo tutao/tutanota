@@ -57,9 +57,9 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 							onclick: attrs.subActionClick,
 							class: "full-width border-radius-small center b flash",
 							style: {
-								border: `2px solid ${theme.content_accent}`,
+								border: `2px solid ${theme.primary}`,
 								height: px(size.button_height + size.vpad_xs * 1.5),
-								color: theme.content_accent,
+								color: theme.primary,
 							},
 					  })
 					: null,

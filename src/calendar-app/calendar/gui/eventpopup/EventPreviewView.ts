@@ -46,13 +46,13 @@ export type EventPreviewViewAttrs = {
  * a mail to the organizer. */
 export const ReplyButtons = pureComponent((participation: NonNullable<EventPreviewViewAttrs["participation"]>) => {
 	const colors = {
-		borderColor: theme.content_button,
-		color: theme.content_fg,
+		borderColor: theme.on_surface_variant,
+		color: theme.on_surface,
 	}
 
 	const highlightColors = {
-		borderColor: theme.content_accent,
-		color: theme.content_accent,
+		borderColor: theme.primary,
+		color: theme.primary,
 	}
 
 	const makeStatusButtonAttrs = (status: CalendarAttendeeStatus, text: TranslationKey): BannerButtonAttrs =>
@@ -131,7 +131,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			size: IconSize.Medium,
 			style: Object.assign(
 				{
-					fill: theme.content_button,
+					fill: theme.on_surface_variant,
 					display: "block",
 				},
 				style,
@@ -208,7 +208,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			m(Icon, {
 				icon: iconForAttendeeStatus[status],
 				style: {
-					fill: theme.content_fg,
+					fill: theme.on_surface,
 				},
 				class: "mr-s",
 			}),

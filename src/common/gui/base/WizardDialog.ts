@@ -340,7 +340,7 @@ export class WizardPagingButton {
 						icon: Icons.Checkmark,
 						size: IconSize.Medium,
 						style: {
-							fill: theme.content_bg,
+							fill: theme.surface,
 						},
 				  })
 				: nextIndex,
