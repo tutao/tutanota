@@ -4,6 +4,7 @@ import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 import { object, verify, when } from "testdouble"
 import { CommonLocator, initCommonLocator } from "../../../src/common/api/main/CommonLocator.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
+import { PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
 
 o.spec("UserSatisfactionDialog", () => {
 	let deviceConfigMock: DeviceConfig = object()
@@ -21,7 +22,7 @@ o.spec("UserSatisfactionDialog", () => {
 		when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(now.getTime()))
 		when(locatorMock.logins.getUserController()).thenReturn(userControllerMock)
 		when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: now })
-		when(locatorMock.logins.getUserController().loadCustomer()).thenResolve({ businessUse: false })
+		when(locatorMock.logins.getUserController().getPlanType()).thenResolve(PlanType.Free)
 	})
 
 	const userControllerMock: UserController = object({
@@ -29,6 +30,8 @@ o.spec("UserSatisfactionDialog", () => {
 		async loadCustomerInfo() {},
 		// @ts-ignore
 		async loadCustomer() {},
+		// @ts-ignore
+		async getPlanType() {},
 	})
 
 	o.spec("evaluateRatingEligibility", () => {
@@ -86,7 +89,7 @@ o.spec("UserSatisfactionDialog", () => {
 			const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
 			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
-			when(locatorMock.logins.getUserController().loadCustomer()).thenResolve({ businessUse: true })
+			when(locatorMock.logins.getUserController().getPlanType()).thenResolve(PlanType.PremiumBusiness)
 
 			// Act
 			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
