@@ -8,19 +8,25 @@ import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { matchers, object, verify, when } from "testdouble"
+import { func, matchers, object, verify, when } from "testdouble"
 import { AesKey, Ed25519KeyPair, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
+	Customer,
+	CustomerTypeRef,
 	Group,
+	GroupInfo,
+	GroupInfoTypeRef,
 	GroupKey,
 	GroupKeysRefTypeRef,
 	GroupKeyTypeRef,
+	GroupMembership,
 	GroupTypeRef,
 	IdentityKeyPostIn,
 	KeyMac,
 	KeyMacTypeRef,
 	PubEncKeyDataTypeRef,
+	User,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
@@ -570,5 +576,41 @@ o.spec("GroupManagementFacadeTest", function () {
 			o(groupManagementFacade.createIdentityKeyPair.args[0]).equals(mailGroup)
 			o(groupManagementFacade.createIdentityKeyPair.args[1]).deepEquals(adminGroupKey)
 		})
+
+		o("success admin migrates existing shared mailboxes", async function () {
+			// we want to make sure that it is called, but we don't need to test it here; it has its own tests
+			groupManagementFacade.createIdentityKeyPair = spy(noOp)
+
+			const user = object<User>()
+			let adminGroupId = "adminGroupId"
+			user.memberships = [{ group: adminGroupId, groupType: GroupType.Admin } as GroupMembership]
+			when(userFacade.getUser()).thenReturn(user)
+
+			const sharedMailboxGroupId = "sharedMailboxGroupId"
+			groupManagementFacade.loadTeamGroupIds = func<() => Promise<Id[]>>()
+			when(groupManagementFacade.loadTeamGroupIds()).thenResolve([sharedMailboxGroupId])
+
+			const adminGroupKey = object<VersionedKey>()
+			when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
+
+			await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
+
+			o(groupManagementFacade.createIdentityKeyPair.invocations.length).equals(1)
+			o(groupManagementFacade.createIdentityKeyPair.args[0]).equals(sharedMailboxGroupId)
+			o(groupManagementFacade.createIdentityKeyPair.args[1]).equals(adminGroupKey)
+		})
+	})
+
+	o("loadTeamGroupIds - success", async function () {
+		const user = object<User>()
+		when(userFacade.getUser()).thenReturn(user)
+		const customer = object<Customer>()
+		when(entityClient.load(CustomerTypeRef, anything())).thenResolve(customer)
+		const sharedMailboxGroupId = "sharedMailboxGroupId"
+		when(entityClient.loadAll(GroupInfoTypeRef, anything())).thenResolve([{ group: sharedMailboxGroupId } as GroupInfo])
+
+		const result = await groupManagementFacade.loadTeamGroupIds()
+
+		o(result).deepEquals([sharedMailboxGroupId])
 	})
 })

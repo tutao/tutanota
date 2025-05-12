@@ -373,7 +373,7 @@ export class KeyRotationFacade {
 	private async rotateCustomerOrTeamGroupKeys(user: User) {
 		//group key rotation is skipped if
 		// * user is not an admin user
-		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupType.Admin)
+		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupType.Admin) // FIXME
 		if (adminGroupMembership == null) {
 			console.log("Only admin user can rotate the group")
 			return

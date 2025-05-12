@@ -1,4 +1,4 @@
-import { CounterType, GroupType, PublicKeyIdentifierType } from "../../../common/TutanotaConstants.js"
+import { CounterType, GroupKeyRotationType, GroupType, PublicKeyIdentifierType } from "../../../common/TutanotaConstants.js"
 import type { ContactListGroupRoot, InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateMailGroupData,
@@ -15,7 +15,9 @@ import {
 	createKeyMac,
 	createMembershipAddData,
 	createMembershipRemoveData,
+	CustomerTypeRef,
 	Group,
+	GroupInfoTypeRef,
 	GroupTypeRef,
 	PubEncKeyData,
 	User,
@@ -253,6 +255,46 @@ export class GroupManagementFacade {
 		})
 
 		await this.serviceExecutor.post(IdentityKeyService, createIdentityKeyPostIn({ identityKeyPair }))
+	}
+
+	/**
+	 * Creates identity key pairs for each team group of the customer. Private keys are encrypted with the admin group key.
+	 *
+	 * NOTE: does nothing if the user is not an admin.
+	 */
+	async createIdentityKeyPairForExistingTeamGroups() {
+		const user = assertNotNull(this.userFacade.getUser(), "User not available when trying to create identity keys for existing shared mailboxes")
+
+		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupType.Admin)
+		if (adminGroupMembership == null) {
+			console.log("Only admin users can create identity keys for team groups")
+			return
+		}
+		const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupMembership.group)
+
+		const sharedMailboxGroups = await this.loadTeamGroupIds()
+
+		for (const groupId of sharedMailboxGroups) {
+			try {
+				// shared mailbox group members don't need access to identity keys, that's the responsibility of the admins
+				await this.createIdentityKeyPair(groupId, adminGroupKey)
+			} catch (error) {
+				console.log(`error when creating shared mailbox identity key pair for group ${groupId}`, error)
+				throw error
+			}
+		}
+	}
+
+	/**
+	 * Load a list of group IDs with all team groups, e.g., shared mailbox groups.
+	 */
+	async loadTeamGroupIds(): Promise<Array<Id>> {
+		const customerId = this.userFacade.getUser()?.customer
+		if (!customerId) return [] // external users have no team groups
+
+		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
+		const teamGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
+		return teamGroupInfos.map((groupInfo) => groupInfo.group)
 	}
 
 	async addUserToGroup(user: User, groupId: Id): Promise<void> {
