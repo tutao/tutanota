@@ -107,7 +107,7 @@ export class InboxRuleHandler {
 		folder: MailFolder
 		mail: Mail
 	} | null> {
-		const unread = applyIfRead ?? mail.unread
+		const unread = applyIfRead || mail.unread
 
 		if (
 			mail._errors ||

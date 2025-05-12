@@ -385,6 +385,10 @@ export class MailViewModel {
 		}
 	}
 
+	clearStickyMail() {
+		this.stickyMailId = null
+	}
+
 	currentFolderDeletesPermanently(): boolean {
 		const folder = this.getFolder()
 		return folder != null && (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM)
