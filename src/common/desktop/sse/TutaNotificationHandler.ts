@@ -15,11 +15,11 @@ import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../api/common/EntityFunctions"
+import { resolveClientTypeReference } from "../../api/common/EntityFunctions"
 import { StrippedEntity } from "../../api/common/utils/EntityUtils"
-import { TypeMapper } from "../../api/worker/crypto/TypeMapper"
-import { EncryptedParsedInstance, ServerModelUntypedInstance, TypeModel } from "../../api/common/EntityTypes"
+import { ClientModelUntypedInstance, EncryptedParsedInstance, ServerModelUntypedInstance, TypeModel } from "../../api/common/EntityTypes"
 import { AttributeModel } from "../../api/common/AttributeModel"
+import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 
 const TAG = "[notifications]"
 
@@ -28,8 +28,6 @@ export type MailMetadata = {
 	firstRecipientAddress: string | null
 	id: IdTuple
 }
-
-const typeMapper = new TypeMapper(resolveClientTypeReference, resolveServerTypeReference)
 
 export class TutaNotificationHandler {
 	constructor(
@@ -42,6 +40,7 @@ export class TutaNotificationHandler {
 		private readonly lang: LanguageViewModel,
 		private readonly fetch: FetchImpl,
 		private readonly appVersion: string,
+		private readonly nativeInstancePipeline: InstancePipeline,
 	) {}
 
 	async onMailNotification(sseInfo: SseInfo, notificationInfo: StrippedEntity<NotificationInfo>) {
@@ -114,11 +113,14 @@ export class TutaNotificationHandler {
 				throw handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
 			}
 
-			const parsedResponse = (await response.json()) as ServerModelUntypedInstance
+			const parsedResponse = await response.json()
 
-			const mailModel = await resolveServerTypeReference(MailTypeRef)
-			const mailAddressModel = await resolveServerTypeReference(MailAddressTypeRef)
-			const mailEncryptedParsedInstance: EncryptedParsedInstance = await typeMapper.applyJsTypes(mailModel, parsedResponse)
+			const mailModel = await resolveClientTypeReference(MailTypeRef)
+			const mailAddressModel = await resolveClientTypeReference(MailAddressTypeRef)
+			const mailEncryptedParsedInstance: EncryptedParsedInstance = await this.nativeInstancePipeline.typeMapper.applyJsTypes(
+				mailModel,
+				parsedResponse as ServerModelUntypedInstance,
+			)
 			return this.encryptedMailToMailMetaData(mailModel, mailAddressModel, mailEncryptedParsedInstance)
 		} catch (e) {
 			log.debug(TAG, "Error fetching mail metadata, " + (e as Error).message)

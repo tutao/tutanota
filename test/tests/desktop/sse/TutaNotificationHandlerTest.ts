@@ -28,7 +28,7 @@ import { aes256RandomKey } from "@tutao/tutanota-crypto"
 
 type UndiciFetch = typeof undiciFetch
 
-const mapper = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+const nativeInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveClientTypeReference)
 
 o.spec("TutaNotificationHandler", () => {
 	let wm: WindowManager
@@ -52,7 +52,18 @@ o.spec("TutaNotificationHandler", () => {
 		lang = object()
 		fetch = func<UndiciFetch>()
 		when(lang.get(matchers.anything())).thenDo((arg) => `translated:${arg}`)
-		handler = new TutaNotificationHandler(wm, nativeCredentialsFacade, conf, notifier, alarmScheduler, alarmStorage, lang, fetch, appVersion)
+		handler = new TutaNotificationHandler(
+			wm,
+			nativeCredentialsFacade,
+			conf,
+			notifier,
+			alarmScheduler,
+			alarmStorage,
+			lang,
+			fetch,
+			appVersion,
+			nativeInstancePipeline,
+		)
 	})
 
 	o.spec("onMailNotification", () => {
@@ -183,7 +194,7 @@ o.spec("TutaNotificationHandler", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const mailLiteral = await mapper.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
+			const mailLiteral = await nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
 
 			const requestDefer = mockFetchRequest(
 				fetch,

@@ -252,6 +252,7 @@ async function createComponents(): Promise<Components> {
 		lang,
 		suspensionAwareFetch,
 		app.getVersion(),
+		nativeInstancePipeline,
 	)
 	const sseClient = new SseClient(desktopNet, new DesktopSseDelay(), schedulerImpl)
 	const sse = new TutaSseFacade(
