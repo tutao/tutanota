@@ -13,16 +13,19 @@ import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { styles } from "../../../common/gui/styles.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
 import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { isSameTypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, isSameTypeRef, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
+import { MailViewerMoreActions } from "./MailViewerUtils"
+import { MailHeaderActions } from "./MailViewerHeader"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
 	actionableMailViewerViewModel: () => MailViewerViewModel | undefined
 	delayBodyRendering: Promise<unknown>
+	actions: (mailViewerModel: MailViewerViewModel) => MailHeaderActions
+	moreActions: (mailViewerModel: MailViewerViewModel) => MailViewerMoreActions
 }
 
 const SCROLL_FACTOR = 4 / 5
@@ -127,7 +130,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						console.log("remove container")
 					},
 				},
-				this.renderItems(viewModel, this.lastItems),
+				this.renderItems(viewModel, this.lastItems, vnode.attrs.actions, vnode.attrs.moreActions),
 				this.renderLoadingState(viewModel),
 				this.renderFooter(),
 			),
@@ -146,14 +149,25 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		})
 	}
 
-	private renderItems(viewModel: ConversationViewModel, entries: readonly ConversationItem[]): Children {
+	private renderItems(
+		viewModel: ConversationViewModel,
+		entries: readonly ConversationItem[],
+		actions: ConversationViewerAttrs["actions"],
+		moreActions: ConversationViewerAttrs["moreActions"],
+	): Children {
 		return entries.map((entry, position) => {
 			switch (entry.type_ref.typeId) {
 				case MailTypeRef.typeId: {
 					const mailViewModel = entry.viewModel
 					const isPrimary = mailViewModel === viewModel.primaryViewModel()
 					// only pass in position if we do have an actual conversation position
-					return this.renderViewer(mailViewModel, isPrimary, viewModel.isFinished() ? position : null)
+					return this.renderViewer(
+						mailViewModel,
+						isPrimary,
+						actions(mailViewModel),
+						moreActions(mailViewModel),
+						viewModel.isFinished() ? position : null,
+					)
 				}
 			}
 		})
@@ -182,7 +196,13 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			: null
 	}
 
-	private renderViewer(mailViewModel: MailViewerViewModel, isPrimary: boolean, position: number | null): Children {
+	private renderViewer(
+		mailViewModel: MailViewerViewModel,
+		isPrimary: boolean,
+		actions: MailHeaderActions,
+		moreActions: MailViewerMoreActions,
+		position: number | null,
+	): Children {
 		return m(
 			".mlr-safe-inset",
 			m(
@@ -204,6 +224,8 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 							isPrimary: isPrimary,
 							// we want to expand for the first email like when it's a forwarded email
 							defaultQuoteBehavior: position === 0 ? "expand" : "collapse",
+							moreActions: moreActions,
+							actions: actions,
 					  }),
 			),
 		)
