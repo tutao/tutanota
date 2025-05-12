@@ -94,6 +94,7 @@ use crate::contacts::contact_facade::ContactFacade;
 #[cfg_attr(test, mockall_double::double)]
 use crate::customer::customer_facade::CustomerFacade;
 use crate::date::calendar_facade::CalendarFacade;
+use crate::date::event_facade::EventFacade;
 use crate::entities::generated::storage::BlobServerAccessInfo;
 use crate::entities::Entity;
 use crate::groups::GroupType;
@@ -547,7 +548,13 @@ impl LoggedInSdk {
 			self.user_facade.clone(),
 			self.contact_facade.clone(),
 			self.customer_facade.clone(),
+			self.event_facade(),
 		)
+	}
+
+	#[must_use]
+	fn event_facade(&self) -> Arc<EventFacade> {
+		Arc::new(EventFacade::new())
 	}
 
 	#[must_use]
