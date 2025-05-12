@@ -18,15 +18,15 @@ export class DesktopAlarmScheduler {
 	) {}
 
 	async unscheduleAllAlarms(userId: Id | null = null): Promise<void> {
-		const alarms = await this.alarmStorage.getScheduledAlarms()
-		for (const alarm of alarms) {
-			if (userId == null || alarm.user === userId) {
-				try {
+		try {
+			const alarms = await this.alarmStorage.getScheduledAlarms()
+			for (const alarm of alarms) {
+				if (userId == null || alarm.user === userId) {
 					this.cancelAlarms(alarm.alarmInfo.alarmIdentifier)
-				} catch (e) {
-					log.info("failed to cancel alarm " + e.stack)
 				}
 			}
+		} catch (e) {
+			log.info("failed to cancel alarm " + e.stack)
 		}
 		return this.alarmStorage.deleteAllAlarms(userId)
 	}
