@@ -1,10 +1,10 @@
-import { downcast, identity, noOp } from "@tutao/tutanota-utils"
+import { identity, noOp } from "@tutao/tutanota-utils"
 import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertMainOrNode } from "../common/Env"
 import { EntityUpdate, WebsocketCounterData } from "../entities/sys/TypeRefs"
-import { entityUpdateToUpdateData, EntityUpdateData } from "../common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils.js"
 
 assertMainOrNode()
 
@@ -55,8 +55,10 @@ export class EventController {
 			.then(async () => {
 				// sequentially to prevent parallel loading of instances
 				for (const listener of this.entityListeners) {
-					let entityUpdatesData: Array<EntityUpdateData> = downcast(entityUpdates)
-					await listener(entityUpdatesData, eventOwnerGroupId)
+					await listener(
+						entityUpdates.map((e) => entityUpdateToUpdateData(e)),
+						eventOwnerGroupId,
+					)
 				}
 			})
 			.then(noOp)
