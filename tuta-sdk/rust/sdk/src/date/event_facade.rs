@@ -1,11 +1,25 @@
-use std::ops::{Add, Sub};
-
+use crate::date::calendar_facade::CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID;
 use crate::date::DateTime;
-use crate::ApiCallError;
+use crate::entities::generated::tutanota::{CalendarEvent, Contact};
+use crate::util::generate_event_uid;
+use crate::{ApiCallError, CustomId, GeneratedId, IdTupleCustom};
+use base64::prelude::{BASE64_STANDARD, BASE64_URL_SAFE_NO_PAD};
+use base64::Engine;
 use regex::{Match, Regex};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::ops::{Add, Sub};
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 use time_tz::{timezones, Offset, TimeZone};
+
+pub struct DateParts(pub Option<u32>, pub u8, pub u8);
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+pub struct BirthdayEvent {
+	pub(crate) calendar_event: CalendarEvent,
+	contact: Contact,
+}
 
 #[derive(uniffi::Enum, PartialEq, Copy, Clone, num_enum::TryFromPrimitive)]
 #[repr(u8)]
@@ -1220,6 +1234,133 @@ impl EventFacade {
 				.unix_timestamp()
 				.unsigned_abs(),
 		))
+	}
+
+	pub fn create_birthday_event(
+		&self,
+		contact: &Contact,
+		birthday_parts: &DateParts,
+		user_id: &GeneratedId,
+	) -> Result<BirthdayEvent, ApiCallError> {
+		let cloned_contact = contact.clone();
+		let contact_id = cloned_contact._id.clone().unwrap();
+		let encoded_contact_id =
+			BASE64_STANDARD.encode(format!("{}/{}", contact_id.list_id, contact_id.element_id));
+
+		let birthday_calendar_id = GeneratedId(format!(
+			"{}#{}",
+			user_id.as_str(),
+			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
+		));
+
+		let uid: String = generate_event_uid(&birthday_calendar_id, DateTime::from_millis(0));
+
+		let event_title = contact.firstName.clone();
+
+		let birth_year = if birthday_parts.0.unwrap_or(0) < 1970 {
+			1970
+		} else {
+			birthday_parts.0.unwrap()
+		};
+		let birthday_date = match Date::from_calendar_date(
+			OffsetDateTime::now_local().unwrap().year(),
+			Month::from_number(birthday_parts.1),
+			birthday_parts.2,
+		) {
+			Ok(date) => date,
+			Err(e) => return Err(ApiCallError::internal(format!("Invalid date: {e:?}"))),
+		};
+
+		let event_base_date = birthday_date.replace_year(birth_year as i32).unwrap();
+
+		let offset_date_time_base =
+			OffsetDateTime::new_utc(event_base_date, Time::from_hms(0, 0, 0).unwrap());
+		let offset_date_time_start_time =
+			OffsetDateTime::new_utc(birthday_date, Time::from_hms(0, 0, 0).unwrap());
+		let offset_date_time_end_time = offset_date_time_start_time
+			.checked_add(Duration::days(1))
+			.unwrap();
+
+		let base_datetime = DateTime::from_seconds(offset_date_time_base.unix_timestamp() as u64);
+
+		// Set up start and end date base on UTC.
+		// Also increments a copy of startDate by one day and set it as endDate
+		let Ok(start_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
+			offset_date_time_start_time.unix_timestamp() as u64,
+		)) else {
+			return Err(ApiCallError::internal(
+				"Failed to parse event StartTime".to_string(),
+			));
+		};
+
+		let Ok(end_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
+			offset_date_time_end_time.unix_timestamp() as u64,
+		)) else {
+			return Err(ApiCallError::internal(
+				"Failed to parse event EndTime".to_string(),
+			));
+		};
+
+		let encoded_event_id = BASE64_URL_SAFE_NO_PAD.encode(format!(
+			"{}{}/{}",
+			base_datetime.as_millis(),
+			contact_id.list_id,
+			contact_id.element_id
+		));
+
+		let calendar_event = self.create_partial_calendar_event(
+			encoded_contact_id,
+			birthday_calendar_id,
+			uid,
+			event_title,
+			start_date,
+			end_date,
+			encoded_event_id,
+		);
+
+		Ok(BirthdayEvent {
+			calendar_event,
+			contact: cloned_contact,
+		})
+	}
+
+	fn create_partial_calendar_event(
+		&self,
+		encoded_contact_id: String,
+		birthday_calendar_id: GeneratedId,
+		uid: String,
+		event_title: String,
+		start_date: DateTime,
+		end_date: DateTime,
+		encoded_event_id: String,
+	) -> CalendarEvent {
+		CalendarEvent {
+			sequence: 0,
+			recurrenceId: None,
+			hashedUid: None,
+			summary: event_title,
+			startTime: start_date,
+			endTime: end_date,
+			location: "".to_string(),
+			description: "".to_string(),
+			alarmInfos: vec![],
+			organizer: None,
+			attendees: vec![],
+			invitedConfidentially: None,
+			repeatRule: None,
+			uid: Some(uid),
+			_id: Some(IdTupleCustom {
+				list_id: birthday_calendar_id.clone(),
+				element_id: CustomId(format!("{}#{}", encoded_event_id, encoded_contact_id)),
+			}),
+			_permissions: GeneratedId::min_id(),
+			_format: 0,
+			_ownerGroup: Some(birthday_calendar_id),
+			_ownerEncSessionKey: None,
+			_ownerKeyVersion: None,
+			_errors: HashMap::new(),
+			_finalIvs: HashMap::new(),
+		}
 	}
 }
 

@@ -2,6 +2,7 @@ use base64::alphabet::Alphabet;
 use base64::engine::GeneralPurpose;
 use std::fmt::Debug;
 
+use crate::date::DateTime;
 use crate::{
 	element_value::ElementValue, CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated, TypeRef,
 };
@@ -205,6 +206,15 @@ pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(
 			actual_size: ARR_SIZE,
 		})
 	}
+}
+
+/// Generates an event UID using a given timestamp and the calendar id
+pub fn generate_event_uid(calendar_id: &GeneratedId, timestamp: DateTime) -> String {
+	format!(
+		"{}{}@tuta.com",
+		calendar_id.to_string(),
+		timestamp.as_millis()
+	)
 }
 
 /// Returns `T` if type `F` is the same type.
