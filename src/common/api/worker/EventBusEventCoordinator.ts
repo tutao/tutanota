@@ -95,6 +95,16 @@ export class EventBusEventCoordinator implements EventBusListener {
 					this.sendError(error)
 				}
 			})
+
+			await this.rolloutFacade.processRollout(RolloutType.SharedMailboxIdentityKeyCreation, async () => {
+				const gmf = await this.groupManagementFacade()
+				try {
+					await gmf.createIdentityKeyPairForExistingTeamGroups()
+				} catch (error) {
+					console.log(`error when creating shared mailbox identity key pairs`, error)
+					this.sendError(error)
+				}
+			})
 		}
 	}
 
