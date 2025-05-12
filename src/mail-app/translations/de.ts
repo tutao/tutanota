@@ -2029,13 +2029,6 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"forBusiness_action": "Geschäftlich",
-		"privateUse_action": "Privat",
-		"pricing.comparisonFaqSupport_msg": "FAQ-Support",
-		"startWithFreeAccount_action": "Beginne mit einem kostenlosen Account",
-		"checkoutWithAppStore_action": "Im App Store bezahlen",
-		"mostPopular_label": "Am beliebtesten",
-		"allYouNeed_label": "Alles was du brauchst"
+		"zoomOut_action": "Herauszoomen"
 	}
 }
