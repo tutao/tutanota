@@ -283,8 +283,15 @@ impl EventFacade {
 			.filter(|rule| rule.by_rule == ByRuleType::BySetPos)
 			.collect();
 
+		let Some(tz) = timezones::get_by_name(&time_zone) else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: format!("Failed to find timezone for string {}", time_zone),
+			});
+		};
+
 		let calc_event_start = if is_all_day_event {
-			let all_day_event = EventFacade::get_all_day_time(&event_start_time)?;
+			let all_day_event =
+				EventFacade::get_all_day_time(&event_start_time, tz.get_offset_primary().to_utc())?;
 
 			all_day_event
 		} else {
@@ -293,8 +300,10 @@ impl EventFacade {
 
 		let end_date = if end_type == EndType::UntilDate {
 			if is_all_day_event {
-				let all_day_event =
-					EventFacade::get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
+				let all_day_event = EventFacade::get_all_day_time(
+					&DateTime::from_millis(end_value.unwrap()),
+					tz.get_offset_primary().to_utc(),
+				)?;
 
 				Some(all_day_event)
 			} else {
@@ -307,7 +316,9 @@ impl EventFacade {
 		let transformed_excluded_dates = if is_all_day_event {
 			excluded_dates
 				.iter()
-				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
+				.filter_map(|date| {
+					EventFacade::get_all_day_time(date, tz.get_offset_primary().to_utc()).ok()
+				})
 				.collect()
 		} else {
 			excluded_dates
@@ -331,12 +342,6 @@ impl EventFacade {
 			OffsetDateTime::from_unix_timestamp(calc_event_start.as_seconds() as i64)
 		else {
 			return Ok(generated_events);
-		};
-
-		let Some(tz) = timezones::get_by_name(&time_zone) else {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: format!("Failed to find timezone for string {}", time_zone),
-			});
 		};
 
 		let progenitor_offset = tz
@@ -1214,7 +1219,7 @@ impl EventFacade {
 		start_fits && end_fits
 	}
 
-	pub fn get_all_day_time(date: &DateTime) -> Result<DateTime, ApiCallError> {
+	pub fn get_all_day_time(date: &DateTime, offset: UtcOffset) -> Result<DateTime, ApiCallError> {
 		let Ok(date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
 			eprintln!(
 				"Failed to get all day time for date {:?}",
@@ -1230,7 +1235,8 @@ impl EventFacade {
 		};
 
 		Ok(DateTime::from_seconds(
-			date.replace_time(Time::from_hms(0, 0, 0).unwrap())
+			date.to_offset(offset)
+				.replace_time(Time::from_hms(0, 0, 0).unwrap())
 				.unix_timestamp()
 				.unsigned_abs(),
 		))
@@ -1271,12 +1277,21 @@ impl EventFacade {
 			Err(e) => return Err(ApiCallError::internal(format!("Invalid date: {e:?}"))),
 		};
 
+		let Ok(offset) = UtcOffset::current_local_offset() else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: "Failed to determine device time offset".to_string(),
+			});
+		};
+
 		let event_base_date = birthday_date.replace_year(birth_year as i32).unwrap();
 
-		let offset_date_time_base =
-			OffsetDateTime::new_utc(event_base_date, Time::from_hms(0, 0, 0).unwrap());
+		let offset_date_time_base = OffsetDateTime::new_in_offset(
+			event_base_date,
+			Time::from_hms(0, 0, 0).unwrap(),
+			offset,
+		);
 		let offset_date_time_start_time =
-			OffsetDateTime::new_utc(birthday_date, Time::from_hms(0, 0, 0).unwrap());
+			OffsetDateTime::new_in_offset(birthday_date, Time::from_hms(0, 0, 0).unwrap(), offset);
 		let offset_date_time_end_time = offset_date_time_start_time
 			.checked_add(Duration::days(1))
 			.unwrap();
@@ -1285,17 +1300,19 @@ impl EventFacade {
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
-		let Ok(start_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
-			offset_date_time_start_time.unix_timestamp() as u64,
-		)) else {
+		let Ok(start_date) = EventFacade::get_all_day_time(
+			&DateTime::from_seconds(offset_date_time_start_time.unix_timestamp() as u64),
+			offset,
+		) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event StartTime".to_string(),
 			));
 		};
 
-		let Ok(end_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
-			offset_date_time_end_time.unix_timestamp() as u64,
-		)) else {
+		let Ok(end_date) = EventFacade::get_all_day_time(
+			&DateTime::from_seconds(offset_date_time_end_time.unix_timestamp() as u64),
+			offset,
+		) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event EndTime".to_string(),
 			));
@@ -1374,9 +1391,9 @@ pub enum EndType {
 
 #[cfg(test)]
 mod tests {
-	use time::{Date, Month, PrimitiveDateTime, Time};
-
 	use super::*;
+	use crate::util::test_utils::create_test_entity;
+	use time::{Date, Month, PrimitiveDateTime, Time};
 
 	trait PrimitiveToDateTime {
 		fn to_date_time(&self) -> DateTime;
@@ -1385,6 +1402,26 @@ mod tests {
 		fn to_date_time(&self) -> DateTime {
 			DateTime::from_millis(self.assume_utc().unix_timestamp().unsigned_abs() * 1000)
 		}
+	}
+
+	#[test]
+	fn test_generate_birthday() {
+		let event_facade = EventFacade::new();
+
+		let event = event_facade
+			.create_birthday_event(
+				&Contact {
+					firstName: "Robert".to_string(),
+					birthdayIso: Some("--05-12".to_string()),
+					..create_test_entity()
+				},
+				&DateParts(None, 05, 12),
+				&GeneratedId::test_random(),
+			)
+			.unwrap();
+
+		assert_eq!(event.calendar_event.startTime.as_seconds(), 1747000800);
+		assert_eq!(event.calendar_event.endTime.as_seconds(), 1747087200);
 	}
 
 	#[test]
