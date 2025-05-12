@@ -269,9 +269,10 @@ class TutanotaNotificationsHandler(
 					unencryptedCredentials.credentialInfo.userId,
 					unencryptedCredentials.databaseKey!!
 				)
+				// 97 is the Mail typeId
 				sqlCipherFacade.run(
 					"INSERT OR IGNORE INTO list_entities VALUES (?, ?, ?, ?, ?)", listOf(
-						"tutanota/Mail".sqlTagged(),
+						"tutanota/97".sqlTagged(),
 						mailId.listId.sqlTagged(),
 						mailId.elementId.sqlTagged(),
 						(mail.ownerGroup ?: "").sqlTagged(),
