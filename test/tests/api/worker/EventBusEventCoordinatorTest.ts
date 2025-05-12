@@ -101,6 +101,71 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			verify(gfm.createIdentityKeyPair(matchers.anything()))
 		})
 
+		o("does not stop if UserIdentityKeyCreation rollout throws", async function () {
+			when(userFacade.isLeader()).thenReturn(true)
+
+			await eventBusEventCoordinator.onSyncDone()
+
+			const captor = matchers.captor()
+			verify(rolloutFacadeMock.processRollout(RolloutType.UserIdentityKeyCreation, captor.capture()))
+			o(captor.values?.length).equals(1)
+
+			const gfm: GroupManagementFacade = object()
+			when(groupManagementFacadeMock()).thenResolve(gfm)
+
+			// @ts-ignore
+			eventBusEventCoordinator.sendError = func<(error: Error) => void>()
+
+			// execute callback
+			const error = object<Error>()
+			when(gfm.createIdentityKeyPair(matchers.anything())).thenReject(error)
+			await captor.values![0]()
+
+			// @ts-ignore
+			verify(eventBusEventCoordinator.sendError(error))
+		})
+
+		o("does not stop if SharedMailboxIdentityKeyCreation rollout throws", async function () {
+			when(userFacade.isLeader()).thenReturn(true)
+
+			await eventBusEventCoordinator.onSyncDone()
+
+			const captor = matchers.captor()
+			verify(rolloutFacadeMock.processRollout(RolloutType.SharedMailboxIdentityKeyCreation, captor.capture()))
+			o(captor.values?.length).equals(1)
+
+			const gfm: GroupManagementFacade = object()
+			when(groupManagementFacadeMock()).thenResolve(gfm)
+
+			// @ts-ignore
+			eventBusEventCoordinator.sendError = func<(error: Error) => void>()
+
+			// execute callback
+			const error = object<Error>()
+			when(gfm.createIdentityKeyPairForExistingTeamGroups()).thenReject(error)
+			await captor.values![0]()
+
+			// @ts-ignore
+			verify(eventBusEventCoordinator.sendError(error))
+		})
+
+		o("executes SharedMailboxIdentityKeyCreation rollout", async function () {
+			when(userFacade.isLeader()).thenReturn(true)
+
+			await eventBusEventCoordinator.onSyncDone()
+
+			const captor = matchers.captor()
+			verify(rolloutFacadeMock.processRollout(RolloutType.SharedMailboxIdentityKeyCreation, captor.capture()))
+			o(captor.values?.length).equals(1)
+
+			const gfm: GroupManagementFacade = object()
+			when(groupManagementFacadeMock()).thenResolve(gfm)
+
+			// execute callback
+			await captor.values![0]()
+			verify(gfm.createIdentityKeyPairForExistingTeamGroups())
+		})
+
 		o("does not execute rollouts if it is not the leader client", async function () {
 			when(userFacade.isLeader()).thenReturn(false)
 
