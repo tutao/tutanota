@@ -18,7 +18,7 @@ import { isKeyPressed } from "../misc/KeyManager.js"
 import { boxShadow } from "../gui/main-styles.js"
 import { getPlanSelectorTest } from "./UpgradeSubscriptionWizard.js"
 import { windowFacade } from "../misc/WindowFacade.js"
-import { ThemeController } from "../gui/ThemeController.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -331,6 +331,7 @@ interface PaymentIntervalSwitchAttrs {
 	ariaLabel: string
 	classes?: Array<string>
 }
+
 class PaymentIntervalSwitch implements ClassComponent<PaymentIntervalSwitchAttrs> {
 	private checkboxDom?: HTMLInputElement
 
@@ -359,10 +360,10 @@ class PaymentIntervalSwitch implements ClassComponent<PaymentIntervalSwitchAttrs
 
 	private buildTogglePillComponent(checked: boolean = false, onclick: (state: SwitchState) => unknown) {
 		return m(
-			`span.tutaui-toggle-pill${ThemeController.isLightTheme() ? ".payment-interval.light" : ".payment-interval.dark"}`,
+			`span.tutaui-toggle-pill${locator.themeController.isLightTheme() ? ".payment-interval.light" : ".payment-interval.dark"}`,
 			{
 				style: {
-					"background-color": ThemeController.isLightTheme() ? "black" : "white",
+					"background-color": locator.themeController.isLightTheme() ? "black" : "white",
 				},
 				class: this.checkboxDom?.checked ? "checked" : "unchecked",
 			},

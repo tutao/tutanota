@@ -77,7 +77,7 @@ export class ThemeController {
 	 * If not provided, the current theme from the `ThemeController` is used.
 	 * @returns `true` if the theme is a light theme, otherwise `false`.
 	 */
-	public static isLightTheme(theme: Theme = locator.themeController.getCurrentTheme()) {
+	public isLightTheme = (theme: Theme = this.getCurrentTheme()) => {
 		const lightThemes: Array<ThemeId> = ["light", "light_secondary"]
 		return lightThemes.includes(theme.themeId)
 	}

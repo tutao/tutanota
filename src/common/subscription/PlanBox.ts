@@ -13,7 +13,7 @@ import { getReplacement, Variant } from "./PlanSelector.js"
 import { TranslationKeyType } from "../misc/TranslationKey.js"
 import { styles } from "../gui/styles.js"
 import { planBoxColors } from "./PlanBoxColors.js"
-import { ThemeController } from "../gui/ThemeController.js"
+import { locator } from "../api/main/CommonLocator.js"
 
 type AvailablePlan = PlanType.Revolutionary | PlanType.Legend
 
@@ -307,7 +307,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 
 	// TODO: Update color to follow the Material 3 color rules after the color token update
 	private getIconColor({ isSelected }: { isSelected: boolean }): string {
-		if (ThemeController.isLightTheme()) {
+		if (locator.themeController.isLightTheme()) {
 			if (isSelected) {
 				return "#DED2CB" // light-dark-peach
 			} else {
