@@ -102,13 +102,16 @@ export class InboxRuleHandler {
 		mailboxDetail: MailboxDetail,
 		mail: Mail,
 		applyRulesOnServer: boolean,
+		applyIfRead: boolean,
 	): Promise<{
 		folder: MailFolder
 		mail: Mail
 	} | null> {
+		const unread = applyIfRead ?? mail.unread
+
 		if (
 			mail._errors ||
-			!mail.unread ||
+			!unread ||
 			!(await isInboxFolder(mailboxDetail, mail)) ||
 			!this.logins.getUserController().isPaidAccount() ||
 			mailboxDetail.mailbox.folders == null
