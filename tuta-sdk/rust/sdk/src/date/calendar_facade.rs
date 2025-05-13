@@ -89,9 +89,7 @@ impl CalendarFacade {
 		let memberships: Vec<&GroupMembership> = user
 			.memberships
 			.iter()
-			.filter(|membership| {
-				membership.group_type() == GroupType::Calendar && membership.capability.is_none()
-			})
+			.filter(|membership| membership.group_type() == GroupType::Calendar)
 			.collect();
 
 		if memberships.is_empty() {
@@ -608,8 +606,12 @@ impl CalendarFacade {
 #[uniffi::export]
 impl CalendarFacade {
 	pub async fn get_calendars_render_data(&self) -> HashMap<GeneratedId, CalendarRenderData> {
-		let Ok(calendars_data) = self.fetch_calendars_data().await else {
-			return HashMap::new();
+		let calendars_data = match self.fetch_calendars_data().await {
+			Ok(cal_data) => cal_data,
+			Err(e) => {
+				log::error!("Failed to fetch calendars data: {}", e);
+				return HashMap::new();
+			},
 		};
 
 		let mut calendars_render_data: HashMap<GeneratedId, CalendarRenderData> = HashMap::new();
@@ -640,8 +642,6 @@ impl CalendarFacade {
 
 		let client_only_calendars = self.generate_client_only_calendars().await;
 		calendars_render_data.extend(client_only_calendars);
-
-		println!("{:?}", calendars_render_data);
 
 		calendars_render_data
 	}

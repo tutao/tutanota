@@ -268,6 +268,8 @@ impl Sdk {
 			self.instance_mapper.clone(),
 			RandomizerFacade::from_core(rand_core::OsRng),
 			asymmetric_crypto_facade.clone(),
+			user_facade.clone(),
+			entity_client.clone(),
 		));
 		let crypto_entity_client: Arc<CryptoEntityClient> = Arc::new(CryptoEntityClient::new(
 			entity_client.clone(),
