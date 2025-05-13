@@ -119,62 +119,62 @@ impl JsonSerializer {
 				type_id: association_type.ref_type_id,
 			};
 			match (
-                &association_type.association_type,
-                &association_type.cardinality,
-                value,
-            ) {
-                (
-                    AssociationType::Aggregation,
-                    _,
-                    JsonElement::Array(elements)
-                ) => {
-                    let parsed_aggregates = self.parse_aggregated_array(
-                        association_name,
-                        &association_type_ref,
-                        elements,
-                    )?;
-                    mapped.insert(
-                        association_id_string.clone(),
-                        ElementValue::Array(parsed_aggregates),
-                    );
-                }
-                (
-                    AssociationType::ListElementAssociationGenerated
-                    | AssociationType::BlobElementAssociation,
-                    _,
-                    JsonElement::Array(vec),
-                ) => {
-                    let ids = self.parse_id_tuple_list_generated(type_ref, association_name, vec)?;
-                    mapped.insert(association_id_string.clone(), ElementValue::Array(ids));
-                }
-                (
-                    AssociationType::ListElementAssociationCustom,
-                    _,
-                    JsonElement::Array(vec)
-                ) => {
-                    let ids = self.parse_id_tuple_list_custom(type_ref, association_name, vec)?;
-                    mapped.insert(association_id_string.clone(), ElementValue::Array(ids));
-                }
-                (
-                    AssociationType::ListAssociation | AssociationType::ElementAssociation,
-                    _,
-                    JsonElement::Array(vec),
-                ) => {
-                    let element_values = vec
-                        .into_iter()
-                        .map(|j| {
-                            if let JsonElement::String(id) = j {
-                                // Note: it's not always generated id, but it's fine probably
-                                ElementValue::IdGeneratedId(GeneratedId(id))
-                            } else {
-                                panic!("id not a string? wow")
-                            }
-                        })
-                        .collect::<Vec<ElementValue>>();
-                    mapped.insert(association_id_string.clone(), ElementValue::Array(element_values));
-                }
-                (_, _, value) => panic!("Unknown Association/cardinality/valueType combination: association id = {:?} cardinality = {:?} valueType = {:?} value {:?}", association_id, association_type.cardinality, association_type.association_type, value),
-            }
+				&association_type.association_type,
+				&association_type.cardinality,
+				value,
+			) {
+				(
+					AssociationType::Aggregation,
+					_,
+					JsonElement::Array(elements)
+				) => {
+					let parsed_aggregates = self.parse_aggregated_array(
+						association_name,
+						&association_type_ref,
+						elements,
+					)?;
+					mapped.insert(
+						association_id_string.clone(),
+						ElementValue::Array(parsed_aggregates),
+					);
+				}
+				(
+					AssociationType::ListElementAssociationGenerated
+					| AssociationType::BlobElementAssociation,
+					_,
+					JsonElement::Array(vec),
+				) => {
+					let ids = self.parse_id_tuple_list_generated(type_ref, association_name, vec)?;
+					mapped.insert(association_id_string.clone(), ElementValue::Array(ids));
+				}
+				(
+					AssociationType::ListElementAssociationCustom,
+					_,
+					JsonElement::Array(vec)
+				) => {
+					let ids = self.parse_id_tuple_list_custom(type_ref, association_name, vec)?;
+					mapped.insert(association_id_string.clone(), ElementValue::Array(ids));
+				}
+				(
+					AssociationType::ListAssociation | AssociationType::ElementAssociation,
+					_,
+					JsonElement::Array(vec),
+				) => {
+					let element_values = vec
+							.into_iter()
+							.map(|j| {
+								if let JsonElement::String(id) = j {
+									// Note: it's not always generated id, but it's fine probably
+									ElementValue::IdGeneratedId(GeneratedId(id))
+								} else {
+									panic!("id not a string? wow")
+								}
+							})
+							.collect::<Vec<ElementValue>>();
+					mapped.insert(association_id_string.clone(), ElementValue::Array(element_values));
+				}
+				(_, _, value) => panic!("Unknown Association/cardinality/valueType combination: association id = {:?} cardinality = {:?} valueType = {:?} value {:?}", association_id, association_type.cardinality, association_type.association_type, value),
+			}
 		}
 
 		Ok(mapped)
@@ -443,9 +443,9 @@ impl JsonSerializer {
 		match (&model_value.value_type, element_value) {
 			(_, ElementValue::String(v))
 				if model_value.encrypted
-                // the model value is not a string - this field was added as the default value marker for
-                // some other model type
-                && v.is_empty() && !matches!(model_value.value_type, ValueType::String) =>
+					// the model value is not a string - this field was added as the default value marker for
+					// some other model type
+					&& v.is_empty() && !matches!(model_value.value_type, ValueType::String) =>
 			{
 				Some(JsonElement::String(v))
 			},
@@ -866,26 +866,25 @@ mod tests {
 		raw_entity_actual: RawEntity,
 	) {
 		raw_entity_expected
-            .into_iter()
-            .for_each(|(name_expected, value_expected)| {
-                let value_actual = raw_entity_actual.get(&name_expected).unwrap().to_owned();
-                match value_expected {
-                    JsonElement::Dict(dict_expected) => {
-                        let dict_new = match value_actual {
-                            JsonElement::Dict(dict_actual) => dict_actual,
-                            _ => panic!("aggregation on raw entities is not equals, expected {:?} , actual: {:?} !", dict_expected, value_actual),
-                        };
-                        assert_raw_entities_deep_equals(dict_expected, dict_new);
-                    }
-                    // edge case, where an encrypted boolean value is empty ("") but defaults to false ("0")
-                    JsonElement::String(string_expected) if string_expected.is_empty() => {
-                        match value_actual {
-                            JsonElement::String(string_actual) if string_actual == "0" => string_actual,
-                            _ => panic!("string value on raw entities is not equals, expected {:?} , actual: {:?} !", string_expected, value_actual),
-                        };
-                    }
-                    _ => assert_eq!(value_expected, value_actual),
-                };
-            });
+				.into_iter()
+				.for_each(|(name_expected, value_expected)| {
+					let value_actual = raw_entity_actual.get(&name_expected).unwrap().to_owned();
+					match value_expected {
+						JsonElement::Dict(dict_expected) => {
+							let JsonElement::Dict(dict_new) = value_actual else {
+								panic!("aggregation on raw entities is not equals, expected {:?} , actual: {:?} !", dict_expected, value_actual)
+							};
+							assert_raw_entities_deep_equals(dict_expected, dict_new);
+						}
+						// edge case, where an encrypted boolean value is empty ("") but defaults to false ("0")
+						JsonElement::String(string_expected) if string_expected.is_empty() => {
+							match value_actual {
+								JsonElement::String(string_actual) if string_actual == "0" => string_actual,
+								_ => panic!("string value on raw entities is not equals, expected {:?} , actual: {:?} !", string_expected, value_actual),
+							};
+						}
+						_ => assert_eq!(value_expected, value_actual),
+					};
+				});
 	}
 }

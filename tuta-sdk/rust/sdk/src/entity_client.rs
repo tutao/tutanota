@@ -281,7 +281,7 @@ impl EntityClient {
 		Ok(response)
 	}
 
-	#[allow(clippy::unused_async)]
+	#[allow(unused)]
 	pub async fn create_instance(
 		&self,
 		type_ref: &TypeRef,
@@ -327,7 +327,7 @@ impl EntityClient {
 		Ok(persistent_resource)
 	}
 
-	#[allow(clippy::unused_async)]
+	#[allow(unused)]
 	pub async fn update_instance(
 		&self,
 		type_ref: &TypeRef,

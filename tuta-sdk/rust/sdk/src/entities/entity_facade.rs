@@ -1668,7 +1668,7 @@ mod tests {
 		out
 	}
 
-	fn verify_final_ivs_and_clear(iv: &Iv, instance: &mut ParsedEntity) {
+	fn verify_final_ivs_and_clear(_iv: &Iv, instance: &mut ParsedEntity) {
 		for (name, value) in instance.iter_mut() {
 			match value {
 				ElementValue::Dict(value_map) if name == "_finalIvs" => {
@@ -1686,7 +1686,7 @@ mod tests {
 				ElementValue::Array(value_map) => {
 					for aggregate in value_map {
 						if let ElementValue::Dict(aggregate) = aggregate {
-							verify_final_ivs_and_clear(iv, aggregate)
+							verify_final_ivs_and_clear(_iv, aggregate)
 						}
 					}
 				},
