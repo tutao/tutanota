@@ -3,29 +3,23 @@ import {
 	AesKey,
 	AsymmetricKeyPair,
 	bitArrayToUint8Array,
-	X25519KeyPair,
-	X25519PublicKey,
 	isPqKeyPairs,
-	isRsaX25519KeyPair,
 	isRsaOrRsaX25519KeyPair,
+	isRsaX25519KeyPair,
 	isVersionedPqPublicKey,
-	isVersionedRsaX25519PublicKey,
 	isVersionedRsaOrRsaX25519PublicKey,
+	isVersionedRsaX25519PublicKey,
 	PQPublicKeys,
 	PublicKey,
 	RsaPrivateKey,
 	uint8ArrayToBitArray,
+	X25519KeyPair,
+	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import {
-	asCryptoProtoocolVersion,
-	CryptoProtocolVersion,
-	EncryptionAuthStatus,
-	KeyVerificationState,
-	PublicKeyIdentifierType,
-} from "../../common/TutanotaConstants.js"
+import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, lazyAsync, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -100,9 +94,10 @@ export class AsymmetricCryptoFacade {
 
 			// Compare against trusted identity (if possible)
 			if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS) {
-				if ((await keyVerificationFacade.resolveVerificationState(identifier.identifier, publicKey)) === KeyVerificationState.MISMATCH) {
-					authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-				}
+				// FIXME check key verification result from loadPubKey, requires signed encryption keys.
+				// if ((await keyVerificationFacade.resolveVerificationState(identifier.identifier, publicKey)) === KeyVerificationState.MISMATCH) {
+				// 	authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+				// }
 			}
 		} else {
 			authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED

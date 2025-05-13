@@ -2,13 +2,10 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
 import { Card } from "../../../gui/base/Card"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
-import { KeyVerificationModel } from "../KeyVerificationModel"
+import { KeyVerificationModel, PublicIdentity } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import jsQR from "jsqr"
-import { KeyVerificationQrPayload } from "../KeyVerificationQrPayload"
-import { MalformedQrPayloadError } from "../../../api/common/error/MalformedQrPayloadError"
-import { KeyVerificationMethodType, KeyVerificationResultType, KeyVerificationSourceOfTruth } from "../../../api/common/TutanotaConstants"
-import { PermissionType } from "../../../native/common/generatedipc/PermissionType"
+import { KeyVerificationMethodType, KeyVerificationResultType } from "../../../api/common/TutanotaConstants"
 import { isApp } from "../../../api/common/Env"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
@@ -17,7 +14,6 @@ import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { TextFieldType } from "../../../gui/base/TextField"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
-import { KeyVerificationScanCompleteMetric } from "../KeyVerificationUsageTestUtils"
 
 export type QrCodePageErrorType =
 	| "camera_permission_denied"
@@ -74,19 +70,20 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 			m(Card, {
 				style: { padding: "0" },
 			}),
-			model.result === KeyVerificationResultType.QR_OK ? this.renderConfirmation(model) : this.renderQrVideoStream(model),
+			model.getKeyVerificationResult() === KeyVerificationResultType.QR_OK
+				? this.renderConfirmation(assertNotNull(model.getPublicIdentity()))
+				: this.renderQrVideoStream(model),
 			m(
 				".align-self-center.full-width",
 				m(LoginButton, {
 					label: markAsVerifiedTranslationKey,
 					onclick: async () => {
-						await model.trust()
-						await model.test.verified(KeyVerificationMethodType.qr)
+						await model.trust(KeyVerificationMethodType.qr)
 						goToSuccessPage()
 					},
-					disabled: model.result !== KeyVerificationResultType.QR_OK,
+					disabled: model.getKeyVerificationResult() !== KeyVerificationResultType.QR_OK,
 					icon:
-						model.result !== KeyVerificationResultType.QR_OK
+						model.getKeyVerificationResult() !== KeyVerificationResultType.QR_OK
 							? undefined
 							: m(Icon, {
 									icon: Icons.Checkmark,
@@ -112,7 +109,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		}
 	}
 
-	private renderConfirmation(model: KeyVerificationModel) {
+	private renderConfirmation(publicIdentity: PublicIdentity) {
 		return m(
 			".flex.flex-column.gap-vpad",
 			{},
@@ -125,14 +122,14 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 					icon: Icons.At,
 					color: getColors(ButtonColor.Content).button,
 				},
-				value: model.mailAddress,
+				value: publicIdentity.mailAddress,
 				type: TextFieldType.Text,
 			}),
 			m(
 				Card,
 				{ classes: ["flex", "flex-column", "gap-vpad"] },
 				m(MonospaceTextDisplay, {
-					text: model.getFingerprint(),
+					text: publicIdentity.fingerprint,
 					placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
 					chunkSize: 4,
 					border: false,
@@ -229,49 +226,13 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 				const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" })
 				if (code) {
 					// at this point, a QR code has been detected and decoded
-
-					let payload: KeyVerificationQrPayload
-					try {
-						payload = JSON.parse(code.data) as KeyVerificationQrPayload
-						if (payload.mailAddress == null || payload.fingerprint == null) {
-							throw new MalformedQrPayloadError("")
-						}
-
-						model.mailAddress = payload.mailAddress
-
-						const serverFingerprint = await model.keyVerificationFacade.getFingerprint(
-							payload.mailAddress,
-							KeyVerificationSourceOfTruth.PublicKeyService,
-						)
-						if (serverFingerprint == null) {
-							model.result = KeyVerificationResultType.QR_MAIL_ADDRESS_NOT_FOUND
-						} else if (serverFingerprint.fingerprint !== payload.fingerprint) {
-							model.result = KeyVerificationResultType.QR_FINGERPRINT_MISMATCH
-						} else {
-							model.publicKeyFingerprint = serverFingerprint
-							model.result = KeyVerificationResultType.QR_OK
-						}
-						return
-					} catch (e) {
-						if (e instanceof SyntaxError || e instanceof MalformedQrPayloadError) {
-							// SyntaxError: JSON.parse failed
-							// MalformedQrPayloadError: malformed payload
-							// throw new UserError("keyManagement.qrCodeInvalid_msg")
-							model.result = KeyVerificationResultType.QR_MALFORMED_PAYLOAD
-						} else {
-							throw e
-						}
-					} finally {
-						if (model.result === KeyVerificationResultType.QR_OK) {
-							await model.test.scan_complete(KeyVerificationMethodType.qr, KeyVerificationScanCompleteMetric.Success)
-						} else {
-							await model.test.scan_complete(KeyVerificationMethodType.qr, KeyVerificationScanCompleteMetric.Failure)
-							this.goToErrorPage?.(this.resultToErrorType(model.result))
-						}
-
-						this.cleanupVideo()
-						m.redraw()
+					const verificationResult = await model.validateQrCodeAddress(code)
+					if (verificationResult !== KeyVerificationResultType.QR_OK) {
+						this.goToErrorPage?.(this.resultToErrorType(verificationResult))
 					}
+
+					this.cleanupVideo()
+					m.redraw()
 				}
 			}
 		}
@@ -300,18 +261,12 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 
 	async requestCameraPermission(model: KeyVerificationModel): Promise<void> {
 		this.qrCameraState = QrCameraState.PERMISSION_CHECK
-
 		if (isApp()) {
-			const hasPermission = await model.mobileSystemFacade.hasPermission(PermissionType.Camera)
+			const hasPermission = await model.requestCameraPermission()
 			if (hasPermission) {
 				this.qrCameraState = QrCameraState.INIT_VIDEO
 			} else {
-				try {
-					await model.mobileSystemFacade.requestPermission(PermissionType.Camera)
-					this.qrCameraState = QrCameraState.INIT_VIDEO
-				} catch (e) {
-					this.qrCameraState = QrCameraState.PERMISSION_DENIED
-				}
+				this.qrCameraState = QrCameraState.PERMISSION_DENIED
 			}
 		} else {
 			this.qrCameraState = QrCameraState.INIT_VIDEO

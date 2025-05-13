@@ -116,6 +116,7 @@ import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
+import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
 
 assertMainOrNode()
 
@@ -145,6 +146,7 @@ class CalendarLocator implements CommonLocator {
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
+	publicKeyProvider!: PublicKeyProvider
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -570,6 +572,7 @@ class CalendarLocator implements CommonLocator {
 			bookingFacade,
 			mailAddressFacade,
 			keyVerificationFacade,
+			publicKeyProvider,
 			blobFacade,
 			userManagementFacade,
 			recoverCodeFacade,
@@ -596,6 +599,7 @@ class CalendarLocator implements CommonLocator {
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.keyVerificationFacade = keyVerificationFacade
+		this.publicKeyProvider = publicKeyProvider
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade

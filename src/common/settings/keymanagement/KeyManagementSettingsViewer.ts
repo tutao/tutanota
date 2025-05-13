@@ -2,52 +2,64 @@ import { UpdatableSettingsViewer } from "../Interfaces.js"
 import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
 import m, { Children } from "mithril"
 import { UserController } from "../../api/main/UserController.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { lang } from "../../misc/LanguageViewModel"
 import { IconButton } from "../../gui/base/IconButton"
 import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
-import { KeyVerificationFacade, PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
-import { KeyVerificationSourceOfTruth } from "../../api/common/TutanotaConstants"
+import { KeyVerificationFacade, TrustedIdentity } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { showKeyVerificationDialog } from "./KeyVerificationDialog"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
 import { TitleSection } from "../../gui/TitleSection"
 import { Card } from "../../gui/base/Card"
-import { renderFingerprintAsQrCode, renderFingerprintAsText } from "./FingerprintRenderers"
+import { renderFingerprintAsQrCode } from "./FingerprintRenderers"
 import { MenuTitle } from "../../gui/titles/MenuTitle"
 import { theme } from "../../gui/theme"
 import { FingerprintRow } from "./FingerprintRow"
-import { locator } from "../../api/main/CommonLocator.js"
+import { PublicKeyProvider } from "../../api/worker/facades/PublicKeyProvider"
+import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
+import { ThemeController } from "../../gui/ThemeController"
+import { PublicIdentity } from "./KeyVerificationModel"
 
 /**
  * Section in user settings to deal with everything related to key verification.
  *
  * It can display the user's own fingerprint, list trusted identities, and start the key verification process.
  */
+
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
-	mailAddress: string | null
-	publicKeyHash: PublicKeyFingerprint | null
-	trustedIdentities: Map<string, PublicKeyFingerprint>
+	ownIdentity: PublicIdentity | null
+
+	trustedIdentities: Map<string, TrustedIdentity>
 
 	constructor(
 		private readonly keyVerificationFacade: KeyVerificationFacade,
 		private readonly mobileSystemFacade: MobileSystemFacade,
 		private readonly userController: UserController,
 		private readonly usageTestController: UsageTestController,
+		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly themeController: ThemeController,
 	) {
-		this.mailAddress = null
-		this.publicKeyHash = null
-		this.trustedIdentities = new Map<string, PublicKeyFingerprint>()
+		this.ownIdentity = null
+		this.trustedIdentities = new Map<string, TrustedIdentity>()
 		this.view = this.view.bind(this)
 	}
 
 	async init() {
-		this.mailAddress = assertNotNull(this.userController.userGroupInfo.mailAddress)
-		this.publicKeyHash = await this.keyVerificationFacade.getFingerprint(this.mailAddress, KeyVerificationSourceOfTruth.PublicKeyService)
-		this.trustedIdentities = await this.keyVerificationFacade.getTrustedIdentities()
+		const ownIdentityKey = await this.publicKeyProvider.loadPublicIdentityKeyFromGroup(this.userController.userGroupInfo.group)
+		if (ownIdentityKey != null) {
+			this.ownIdentity = {
+				key: ownIdentityKey,
+				fingerprint: await this.keyVerificationFacade.calculateFingerprint(ownIdentityKey),
+				mailAddress: getDefaultSenderFromUser(this.userController),
+			}
+		} else {
+			this.ownIdentity = null
+		}
 
+		// Do not try to load trusted identities anymore until the switch to identity key verification is implemented
+		this.trustedIdentities = await this.keyVerificationFacade.getTrustedIdentities()
 		m.redraw()
 	}
 
@@ -64,13 +76,12 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		const obj: KeyManagementSettingsViewer = this
 
-		const selfMailAddress = assertNotNull(this.mailAddress)
-		const selfFingerprint = this.publicKeyHash
-
-		const addressRows = Array.from(this.trustedIdentities.entries()).map(([mailAddress, publicKeyFingerprint]: [string, PublicKeyFingerprint]) => {
+		const addressRows = Array.from(this.trustedIdentities.entries()).map(([mailAddress, trustedIdentity]: [string, TrustedIdentity]) => {
 			return m(FingerprintRow, {
 				mailAddress,
-				publicKeyFingerprint,
+				publicKeyType: trustedIdentity.publicIdentityKey.object.type,
+				publicKeyFingerprint: trustedIdentity.fingerprint,
+				publicKeyVersion: trustedIdentity.publicIdentityKey.version,
 				onRemoveFingerprint: async (mailAddress: string) => {
 					await this.keyVerificationFacade.untrust(mailAddress)
 					await this.reload()
@@ -95,7 +106,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 						title: lang.get("keyManagement.keyVerification_label"),
 						subTitle: lang.get("keyManagement.keyVerification_subtitle_label"),
 					}),
-					selfFingerprint ? this.renderQrTextMethod(selfMailAddress, selfFingerprint) : null,
+					this.ownIdentity != null ? this.renderOwnIdentity(this.ownIdentity) : null,
 					m(".small.text-center.mb-l", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
 					m(MenuTitle, { content: lang.get("keyManagement.verificationPool_label") }),
 					m(
@@ -105,8 +116,12 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 							m(IconButton, {
 								title: "keyManagement.verifyMailAddress_action",
 								click: async () => {
-									await showKeyVerificationDialog(this.keyVerificationFacade, this.mobileSystemFacade, this.usageTestController, () =>
-										obj.reload(),
+									await showKeyVerificationDialog(
+										this.keyVerificationFacade,
+										this.mobileSystemFacade,
+										this.usageTestController,
+										this.publicKeyProvider,
+										() => obj.reload(),
 									)
 								},
 								icon: Icons.Add,
@@ -120,10 +135,10 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	private renderQrTextMethod(selfMailAddress: string, selfFingerprint: PublicKeyFingerprint): Children {
-		const isLightTheme = locator.themeController.isLightTheme()
+	private renderOwnIdentity(ownIdentity: PublicIdentity): Children {
+		const isLightTheme = this.themeController.isLightTheme()
 
-		const qrCodeGraphic = m.trust(renderFingerprintAsQrCode(selfMailAddress, selfFingerprint))
+		const qrCodeGraphic = m.trust(renderFingerprintAsQrCode(ownIdentity.mailAddress, ownIdentity.fingerprint))
 		return m(Card, {}, [
 			// QR code
 			m(
@@ -145,11 +160,11 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					  ),
 			),
 			// mail address
-			m(".b.center.mt-s.mb-s", selfMailAddress),
+			m(".b.center.mt-s.mb-s", ownIdentity.mailAddress),
 			// text
 			// specifying chunksPerLine: 8 is possible, but breaks on very narrow display sizes, so we don't
 			m(MonospaceTextDisplay, {
-				text: renderFingerprintAsText(selfFingerprint),
+				text: ownIdentity.fingerprint,
 				chunkSize: 4,
 				classes: ".center.lh",
 				border: false,
