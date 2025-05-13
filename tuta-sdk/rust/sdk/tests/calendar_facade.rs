@@ -9,7 +9,12 @@ use tutasdk::date::DateTime;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::{GeneratedId, Sdk};
 
-async fn create_calendar_facade() -> CalendarFacade {
+struct UserLoginData {
+	email: String,
+	password: String,
+}
+
+async fn create_calendar_facade(user_data: UserLoginData) -> CalendarFacade {
 	const HOST: &str = "http://localhost:9000";
 
 	let rest_client = NativeRestClient::try_new().unwrap();
@@ -21,7 +26,7 @@ async fn create_calendar_facade() -> CalendarFacade {
 		Arc::new(file_client),
 	);
 	let session = sdk
-		.create_session("arm-free@tutanota.de", "arm")
+		.create_session(&user_data.email, &user_data.password)
 		.await
 		.unwrap();
 
@@ -34,8 +39,12 @@ async fn create_calendar_facade() -> CalendarFacade {
 	ignore = "require local http server."
 )]
 #[tokio::test]
-async fn load_user_calendars() {
-	let calendar_facade = create_calendar_facade().await;
+async fn load_free_user_calendars() {
+	let calendar_facade = create_calendar_facade(UserLoginData {
+		email: "arm-free@tutanota.de".to_string(),
+		password: "arm".to_string(),
+	})
+	.await;
 	// Should return only the default private calendar created on login (or, for tests, on the TestTool)
 	let calendars = calendar_facade.get_calendars_render_data().await;
 	assert_eq!(calendars.len(), 1);
@@ -50,8 +59,28 @@ async fn load_user_calendars() {
 	ignore = "require local http server."
 )]
 #[tokio::test]
+async fn load_premium_user_calendars() {
+	let calendar_facade = create_calendar_facade(UserLoginData {
+		email: "bed-premium@tutanota.de".to_string(),
+		password: "bed".to_string(),
+	})
+	.await;
+	let calendars = calendar_facade.get_calendars_render_data().await;
+	assert_eq!(calendars.len(), 2); // Default private + brithdays
+	log::info!("Test::Loaded user calendars correctly!");
+}
+
+#[cfg_attr(
+	not(feature = "test-with-local-http-server"),
+	ignore = "require local http server."
+)]
+#[tokio::test]
 async fn load_calendar_events() {
-	let calendar_facade = create_calendar_facade().await;
+	let calendar_facade = create_calendar_facade(UserLoginData {
+		email: "arm-free@tutanota.de".to_string(),
+		password: "arm".to_string(),
+	})
+	.await;
 	let calendars = calendar_facade.get_calendars_render_data().await;
 	assert_eq!(calendars.len(), 1);
 	let default_private_calendar_id = calendars.keys().next().unwrap();
@@ -84,7 +113,11 @@ async fn load_calendar_events() {
 )]
 #[tokio::test]
 async fn load_birthday_events() {
-	let calendar_facade = create_calendar_facade().await;
+	let calendar_facade = create_calendar_facade(UserLoginData {
+		email: "arm-free@tutanota.de".to_string(),
+		password: "arm".to_string(),
+	})
+	.await;
 	let date_time = datetime!(2025-12-31 07:00:00).assume_utc().unix_timestamp() as u64;
 
 	let events = calendar_facade
