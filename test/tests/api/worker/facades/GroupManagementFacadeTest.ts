@@ -12,7 +12,6 @@ import { func, matchers, object, verify, when } from "testdouble"
 import { AesKey, Ed25519KeyPair, MacTag, PQKeyPairs, X25519PublicKey } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
-	Customer,
 	CustomerTypeRef,
 	Group,
 	GroupInfo,
@@ -20,13 +19,14 @@ import {
 	GroupKey,
 	GroupKeysRefTypeRef,
 	GroupKeyTypeRef,
-	GroupMembership,
+	GroupMembershipTypeRef,
 	GroupTypeRef,
 	IdentityKeyPostIn,
 	KeyMac,
 	KeyMacTypeRef,
 	PubEncKeyDataTypeRef,
 	User,
+	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
@@ -577,69 +577,86 @@ o.spec("GroupManagementFacadeTest", function () {
 			o(groupManagementFacade.createIdentityKeyPair.args[1]).deepEquals(adminGroupKey)
 		})
 
-		o("success admin migrates existing shared mailboxes", async function () {
-			// we want to make sure that it is called, but we don't need to test it here; it has its own tests
-			groupManagementFacade.createIdentityKeyPair = spy(noOp)
-
-			const user = object<User>()
-			let adminGroupId = "adminGroupId"
-			user.memberships = [{ group: adminGroupId, groupType: GroupType.Admin } as GroupMembership]
-			when(userFacade.getUser()).thenReturn(user)
-
-			const sharedMailboxGroupId = "sharedMailboxGroupId"
-			groupManagementFacade.loadTeamGroupIds = func<() => Promise<Id[]>>()
-			when(groupManagementFacade.loadTeamGroupIds()).thenResolve([sharedMailboxGroupId])
-
+		o.spec("createIdentityKeyPairForExistingTeamGroups", function () {
 			const adminGroupKey = object<VersionedKey>()
-			when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
+			const teamGroupId1 = "teamGroupId1"
+			const teamGroupId2 = "teamGroupId2"
+			const groupIds = [teamGroupId1, teamGroupId2]
+			let teamGroups: Group[]
+			let user: User
 
-			let group = object<Group>()
-			group.identityKeyPair = null
-			when(entityClient.load(GroupTypeRef, sharedMailboxGroupId)).thenResolve(group)
+			o.beforeEach(function () {
+				user = createTestEntity(UserTypeRef, {
+					memberships: [
+						createTestEntity(GroupMembershipTypeRef, {
+							group: adminGroupId,
+							groupType: GroupType.Admin,
+						}),
+					],
+				})
 
-			await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
+				teamGroups = []
+				for (const groupId of groupIds) {
+					const group = createTestEntity(GroupTypeRef, { identityKeyPair: null })
+					teamGroups.push(group)
+					when(entityClient.load(GroupTypeRef, groupId)).thenResolve(group)
+				}
 
-			o(groupManagementFacade.createIdentityKeyPair.invocations.length).equals(1)
-			o(groupManagementFacade.createIdentityKeyPair.args[0]).equals(sharedMailboxGroupId)
-			o(groupManagementFacade.createIdentityKeyPair.args[1]).equals(adminGroupKey)
-		})
+				// we want to make sure that it is called, but we don't need to test it here; it has its own tests
+				groupManagementFacade.createIdentityKeyPair = func<typeof groupManagementFacade.createIdentityKeyPair>()
 
-		o("skips shared mailboxes that already have identity key", async function () {
-			// we want to make sure that it is called, but we don't need to test it here; it has its own tests
-			groupManagementFacade.createIdentityKeyPair = spy(noOp)
+				when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
+				when(userFacade.getUser()).thenReturn(user)
+				groupManagementFacade.loadTeamGroupIds = func<() => Promise<Id[]>>()
+				when(groupManagementFacade.loadTeamGroupIds()).thenResolve(groupIds)
+			})
 
-			const user = object<User>()
-			let adminGroupId = "adminGroupId"
-			user.memberships = [{ group: adminGroupId, groupType: GroupType.Admin } as GroupMembership]
-			when(userFacade.getUser()).thenReturn(user)
+			o("admin migrates existing shared mailboxes", async function () {
+				await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
 
-			const sharedMailboxGroupId = "sharedMailboxGroupId"
-			groupManagementFacade.loadTeamGroupIds = func<() => Promise<Id[]>>()
-			when(groupManagementFacade.loadTeamGroupIds()).thenResolve([sharedMailboxGroupId])
+				for (const groupId of groupIds) {
+					verify(groupManagementFacade.createIdentityKeyPair(groupId, adminGroupKey))
+				}
+			})
 
-			const adminGroupKey = object<VersionedKey>()
-			when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
+			o("non-admin does not migrate existing shared mailboxes", async function () {
+				user.memberships = []
 
-			let group = object<Group>()
-			group.identityKeyPair = object()
-			when(entityClient.load(GroupTypeRef, sharedMailboxGroupId)).thenResolve(group)
+				await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
 
-			await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
+				for (const groupId of groupIds) {
+					verify(groupManagementFacade.createIdentityKeyPair(groupId, adminGroupKey), { times: 0 })
+				}
+			})
 
-			o(groupManagementFacade.createIdentityKeyPair.invocations.length).equals(0)
+			o("skips shared mailboxes that already have identity key", async function () {
+				const group1 = createTestEntity(GroupTypeRef, { identityKeyPair: object() })
+				when(entityClient.load(GroupTypeRef, teamGroupId1)).thenResolve(group1)
+
+				await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
+
+				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId1, adminGroupKey), { times: 0 })
+				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId2, adminGroupKey))
+			})
+
+			o("errors bubble up", async function () {
+				const error = new Error("test") // cannot be an `object()`, otherwise `instanceof` wouldn't match
+				when(groupManagementFacade.createIdentityKeyPair(matchers.anything(), matchers.anything())).thenReject(error)
+
+				const thrown = await assertThrows(Error, async () => await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups())
+				o(thrown).equals(error)
+			})
 		})
 	})
 
 	o("loadTeamGroupIds - success", async function () {
-		const user = object<User>()
-		when(userFacade.getUser()).thenReturn(user)
-		const customer = object<Customer>()
-		when(entityClient.load(CustomerTypeRef, anything())).thenResolve(customer)
-		const sharedMailboxGroupId = "sharedMailboxGroupId"
-		when(entityClient.loadAll(GroupInfoTypeRef, anything())).thenResolve([{ group: sharedMailboxGroupId } as GroupInfo])
+		when(userFacade.getUser()).thenReturn(object())
+		when(entityClient.load(CustomerTypeRef, anything())).thenResolve(object())
+		const teamGroupIds = ["teamGroup1", "teamGroup2"]
+		when(entityClient.loadAll(GroupInfoTypeRef, anything())).thenResolve(teamGroupIds.map((group) => ({ group })) as GroupInfo[])
 
 		const result = await groupManagementFacade.loadTeamGroupIds()
 
-		o(result).deepEquals([sharedMailboxGroupId])
+		o(result).deepEquals(teamGroupIds)
 	})
 })
