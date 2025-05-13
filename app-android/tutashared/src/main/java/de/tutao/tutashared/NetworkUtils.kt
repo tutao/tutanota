@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import de.tutao.tutasdk.HttpMethod
 import de.tutao.tutasdk.RestClient
+import de.tutao.tutasdk.RestClientException
 import de.tutao.tutasdk.RestClientOptions
 import de.tutao.tutasdk.RestResponse
 import okhttp3.ConnectionSpec
@@ -24,17 +25,17 @@ class NetworkUtils {
 		val defaultClient = createHttpClient()
 		private fun createHttpClient(): OkHttpClient {
 			val builder: OkHttpClient.Builder = OkHttpClient()
-					.newBuilder()
-					.connectTimeout(5, TimeUnit.SECONDS)
-					.writeTimeout(5, TimeUnit.SECONDS)
-					.readTimeout(5, TimeUnit.SECONDS)
-					.run {
-						if (BuildConfig.DEBUG) {
-							connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.RESTRICTED_TLS))
-						} else {
-							connectionSpecs(listOf(ConnectionSpec.RESTRICTED_TLS))
-						}
+				.newBuilder()
+				.connectTimeout(5, TimeUnit.SECONDS)
+				.writeTimeout(5, TimeUnit.SECONDS)
+				.readTimeout(5, TimeUnit.SECONDS)
+				.run {
+					if (BuildConfig.DEBUG) {
+						connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.RESTRICTED_TLS))
+					} else {
+						connectionSpecs(listOf(ConnectionSpec.RESTRICTED_TLS))
 					}
+				}
 
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 				// setup TLSv1.3 for old android versions
@@ -63,21 +64,35 @@ class NetworkUtils {
 }
 
 class SdkRestClient : RestClient {
+	companion object {
+		// See: SdkFileClient::mapExceptionToError
+		private fun mapExceptionToError(e: Throwable): RestClientException {
+			return when (e) {
+				else -> RestClientException.NetworkException()
+			}
+		}
+	}
+
+	@Throws(RestClientException::class)
 	override suspend fun requestBinary(url: String, method: HttpMethod, options: RestClientOptions): RestResponse {
-		val request = Request.Builder()
-			.url(url)
-			.method(method.toString(), options.body?.toRequestBody())
-			.headers(options.headers.toHeaders())
-			.build();
-		val response = NetworkUtils.defaultClient
-			.newBuilder()
-			.connectTimeout(30, TimeUnit.SECONDS)
-			.writeTimeout(20, TimeUnit.SECONDS)
-			.readTimeout(20, TimeUnit.SECONDS)
-			.build()
-			.newCall(request)
-			.execute()
-		return RestResponse(response.code.toUInt(), response.headers.toMap(), response.body?.bytes())
+		val response = kotlin.runCatching {
+			val request = Request.Builder()
+				.url(url)
+				.method(method.toString(), options.body?.toRequestBody())
+				.headers(options.headers.toHeaders())
+				.build()
+			val response = NetworkUtils.defaultClient
+				.newBuilder()
+				.connectTimeout(30, TimeUnit.SECONDS)
+				.writeTimeout(20, TimeUnit.SECONDS)
+				.readTimeout(20, TimeUnit.SECONDS)
+				.build()
+				.newCall(request)
+				.execute()
+			RestResponse(response.code.toUInt(), response.headers.toMap(), response.body?.bytes())
+		}
+
+		return response.getOrElse { e -> throw mapExceptionToError(e) }
 	}
 }
 

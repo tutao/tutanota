@@ -23,7 +23,7 @@ impl FileClient for NativeFileClient {
 		let full_path = self.app_dir.join(name);
 		std::fs::write(&full_path, content).map_err(|e| {
 			log::error!("Unable to write to file: {full_path:?}. Reason: {e:?}");
-			FileClientError::Fatal
+			e.kind().into()
 		})
 	}
 
@@ -31,7 +31,7 @@ impl FileClient for NativeFileClient {
 		let full_path = self.app_dir.join(name);
 		std::fs::read(&full_path).map_err(|e| {
 			log::error!("Unable to read from file: {full_path:?}. Reason: {e:?}");
-			FileClientError::NotFound
+			e.kind().into()
 		})
 	}
 }
