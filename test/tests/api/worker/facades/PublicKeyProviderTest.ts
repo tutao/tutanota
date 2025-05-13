@@ -1,14 +1,15 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
-import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
+import { IdentityKeyService, PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import {
 	createPublicKeyGetOut,
 	createSystemKeysReturn,
 	Group,
 	GroupTypeRef,
+	IdentityKeyGetOut,
 	IdentityKeyPair,
 	KeyMacTypeRef,
 	PubDistributionKey,
@@ -19,7 +20,9 @@ import { assertThrows } from "@tutao/tutanota-test-utils"
 import testData from "../crypto/CompatibilityTestData.json"
 import {
 	Aes256Key,
+	bytesToEd25519PublicKey,
 	bytesToKyberPublicKey,
+	Ed25519PublicKey,
 	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
 	KeyPairType,
@@ -28,11 +31,13 @@ import {
 	RsaX25519PublicKey,
 } from "@tutao/tutanota-crypto"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { InvalidDataError } from "../../../../../src/common/api/common/error/RestError"
+import { InvalidDataError, NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { brandKeyMac, IdentityPubKeyAuthenticationParams, KeyAuthenticationFacade } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { createTestEntity } from "../../../TestUtils"
+import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
+import { PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
 
 o.spec("PublicKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
@@ -47,6 +52,8 @@ o.spec("PublicKeyProviderTest", function () {
 	let rsaPublicKey: Uint8Array
 	let x25519PublicKey: Uint8Array
 	let kyberPublicKey: Uint8Array
+	let rawEd25519PublicKey: Uint8Array
+	let ed25519PublicKey: Ed25519PublicKey
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
@@ -61,6 +68,9 @@ o.spec("PublicKeyProviderTest", function () {
 		rsaPublicKey = hexToUint8Array(rsaTestData.publicKey)
 		const eccTestData = getFirstOrThrow(testData.x25519Tests)
 		x25519PublicKey = hexToUint8Array(eccTestData.alicePublicKeyHex)
+
+		rawEd25519PublicKey = hexToUint8Array(testData.ed25519Tests[0].alicePublicKeyHex)
+		ed25519PublicKey = bytesToEd25519PublicKey(rawEd25519PublicKey)
 
 		publicKeyIdentifier = object()
 		currentVersion = 2
@@ -227,12 +237,10 @@ o.spec("PublicKeyProviderTest", function () {
 
 	o.spec("loadPublicIdentityKeyFromGroup", function () {
 		o("success", async function () {
-			const pubEd25519Key = object<Uint8Array>()
-
 			const userGroup: Group = object()
 			userGroup._id = "userGroup"
 			const identityKeyPair: IdentityKeyPair = object()
-			identityKeyPair.publicEd25519Key = pubEd25519Key
+			identityKeyPair.publicEd25519Key = rawEd25519PublicKey
 			identityKeyPair.identityKeyVersion = "0"
 			const identityPublicKeyMac = brandKeyMac(
 				createTestEntity(KeyMacTypeRef, {
@@ -253,13 +261,13 @@ o.spec("PublicKeyProviderTest", function () {
 
 			const actualPublicIdentityKey = await publicKeyProvider.loadPublicIdentityKeyFromGroup(userGroup._id)
 
-			o(actualPublicIdentityKey).equals(pubEd25519Key)
+			o(actualPublicIdentityKey?.object).deepEquals({ key: ed25519PublicKey, type: SigningKeyPairType.Ed25519 })
 			verify(
 				keyAuthenticationFacade.verifyTag(
 					matchers.argThat((params: IdentityPubKeyAuthenticationParams) => {
 						return (
 							params.tagType == "IDENTITY_PUB_KEY_TAG" &&
-							params.untrustedKey.identityPubKey == pubEd25519Key &&
+							arrayEquals(params.untrustedKey.identityPubKey, ed25519PublicKey) &&
 							params.sourceOfTrust.symmetricGroupKey == userGroupKey &&
 							params.bindingData.groupId == userGroup._id &&
 							String(params.bindingData.groupKeyVersion) == identityPublicKeyMac.taggingKeyVersion &&
@@ -272,12 +280,10 @@ o.spec("PublicKeyProviderTest", function () {
 		})
 
 		o("if the tag does not match, an error is thrown", async function () {
-			const pubEd25519Key = object<Uint8Array>()
-
 			const userGroup: Group = object()
 			userGroup._id = "userGroup"
 			const identityKeyPair: IdentityKeyPair = object()
-			identityKeyPair.publicEd25519Key = pubEd25519Key
+			identityKeyPair.publicEd25519Key = rawEd25519PublicKey
 			identityKeyPair.identityKeyVersion = "0"
 			const identityPublicKeyMac = brandKeyMac(
 				createTestEntity(KeyMacTypeRef, {
@@ -310,6 +316,46 @@ o.spec("PublicKeyProviderTest", function () {
 
 			const pk = await publicKeyProvider.loadPublicIdentityKeyFromGroup(userGroup._id)
 			o(pk).equals(null)
+		})
+	})
+
+	o.spec("loadPublicIdentityKey", function () {
+		o("success", async function () {
+			const identityKeyGetOut: IdentityKeyGetOut = object()
+			identityKeyGetOut.publicIdentityKey = rawEd25519PublicKey
+			identityKeyGetOut.publicIdentityKeyVersion = "5"
+			when(serviceExecutor.get(IdentityKeyService, matchers.anything())).thenResolve(identityKeyGetOut)
+
+			const identifier: PublicKeyIdentifier = {
+				identifier: "alice@tuta.com",
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+			}
+			const identityKey = await publicKeyProvider.loadPublicIdentityKey(identifier)
+
+			const expectedIdentityKey: Versioned<SigningPublicKey> = {
+				version: 5,
+				object: {
+					key: ed25519PublicKey,
+					type: SigningKeyPairType.Ed25519,
+				},
+			}
+
+			o(identityKey).deepEquals(expectedIdentityKey)
+		})
+
+		o("not found handled gracefully", async function () {
+			const identityKeyGetOut: IdentityKeyGetOut = object()
+			identityKeyGetOut.publicIdentityKey = rawEd25519PublicKey
+			identityKeyGetOut.publicIdentityKeyVersion = "5"
+			when(serviceExecutor.get(IdentityKeyService, matchers.anything())).thenReject(new NotFoundError("not found"))
+
+			const identifier: PublicKeyIdentifier = {
+				identifier: "alice@tuta.com",
+				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+			}
+			const identityKey = await publicKeyProvider.loadPublicIdentityKey(identifier)
+
+			o(identityKey).equals(null)
 		})
 	})
 })

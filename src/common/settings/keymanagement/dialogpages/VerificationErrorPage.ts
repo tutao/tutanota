@@ -60,8 +60,7 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 				label: "retry_action",
 				onclick: async () => {
 					// we're treating this like a fresh usage test invocation
-					await vnode.attrs.model.test.start(KeyVerificationMethodType.qr)
-
+					await vnode.attrs.model.handleMethodSwitch(KeyVerificationMethodType.qr)
 					vnode.attrs.retryAction()
 				},
 			}),
