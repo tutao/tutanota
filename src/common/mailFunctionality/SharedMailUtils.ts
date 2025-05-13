@@ -99,16 +99,22 @@ export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, us
 	}
 }
 
+/**
+ * @return {string} default mail address
+ */
+export function getDefaultSenderFromUser({ props, userGroupInfo }: UserController): string {
+	return props.defaultSender && contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), props.defaultSender)
+		? props.defaultSender
+		: neverNull(userGroupInfo.mailAddress)
+}
+
 export function isUserMailbox(mailboxDetails: MailboxDetail): boolean {
 	return mailboxDetails.mailGroup != null && mailboxDetails.mailGroup.user != null
 }
 
 export function getDefaultSender(logins: LoginController, mailboxDetails: MailboxDetail): string {
 	if (isUserMailbox(mailboxDetails)) {
-		let props = logins.getUserController().props
-		return props.defaultSender && contains(getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo), props.defaultSender)
-			? props.defaultSender
-			: assertNotNull(logins.getUserController().userGroupInfo.mailAddress)
+		return getDefaultSenderFromUser(logins.getUserController())
 	} else {
 		return assertNotNull(mailboxDetails.mailGroupInfo.mailAddress)
 	}

@@ -138,6 +138,11 @@ export const TableDefinitions = Object.freeze({
 			"CREATE TABLE IF NOT EXISTS blob_element_entities (type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId))",
 		purgedWithCache: true,
 	},
+	identity_store: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS identity_store (mailAddress TEXT NOT NULL, publicIdentityKey BLOB NOT NULL, identityKeyVersion INTEGER NOT NULL, identityKeyType INTEGER NOT NULL, sourceOfTrust INTEGER NOT NULL, PRIMARY KEY (mailAddress, identityKeyVersion))",
+		purgedWithCache: false,
+	},
 } as const) satisfies Record<string, OfflineStorageTable>
 
 type Range = { lower: Id; upper: Id }

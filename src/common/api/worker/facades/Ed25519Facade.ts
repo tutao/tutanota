@@ -14,9 +14,19 @@ import { LazyLoaded } from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 
-export type SigningKeyPair = Ed25519KeyPair
-export type SigningPublicKey = Ed25519PublicKey
+export type SigningKeyPair = {
+	type: SigningKeyPairType
+	keyPair: Ed25519KeyPair
+}
+export type SigningPublicKey = {
+	type: SigningKeyPairType
+	key: Ed25519PublicKey
+}
 export type EncodedEd25519Signature = Uint8Array
+
+export enum SigningKeyPairType {
+	Ed25519,
+}
 
 /**
  * Implementation of EdDSA based on Ed25519.

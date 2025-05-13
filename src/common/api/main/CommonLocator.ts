@@ -44,7 +44,6 @@ import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
 import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import { MailAddressTableModel, UserInfo } from "../../settings/mailaddress/MailAddressTableModel.js"
-import { GroupInfo } from "../entities/sys/TypeRefs.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { Router } from "../../gui/ScopedRouter.js"
 import { NativeInterfaceMain } from "../../native/main/NativeInterfaceMain.js"
@@ -72,6 +71,7 @@ import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { SearchToken } from "../common/utils/QueryTokenUtils"
 import type { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites"
+import { PublicKeyProvider } from "../worker/facades/PublicKeyProvider"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -103,6 +103,7 @@ export interface CommonLocator {
 	bookingFacade: BookingFacade
 	mailAddressFacade: MailAddressFacade
 	keyVerificationFacade: KeyVerificationFacade
+	publicKeyProvider: PublicKeyProvider
 	blobFacade: BlobFacade
 	userManagementFacade: UserManagementFacade
 	recoverCodeFacade: RecoverCodeFacade
