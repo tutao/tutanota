@@ -1,13 +1,21 @@
-import { createPublicKeyGetIn, GroupTypeRef, PubDistributionKey, PublicKeyGetOut, type SystemKeysReturn } from "../../entities/sys/TypeRefs.js"
+import {
+	createIdentityKeyGetIn,
+	createPublicKeyGetIn,
+	GroupTypeRef,
+	PubDistributionKey,
+	PublicKeyGetOut,
+	type SystemKeysReturn,
+} from "../../entities/sys/TypeRefs.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import { PublicKeyService } from "../../entities/sys/Services.js"
+import { IdentityKeyService, PublicKeyService } from "../../entities/sys/Services.js"
 import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
 import { uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
-import { InvalidDataError } from "../../common/error/RestError.js"
+import { InvalidDataError, NotFoundError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import {
+	bytesToEd25519PublicKey,
 	bytesToKyberPublicKey,
 	EncryptedPqKeyPairs,
 	hexToRsaPublicKey,
@@ -18,9 +26,8 @@ import {
 	PublicKey,
 	RsaX25519PublicKey,
 } from "@tutao/tutanota-crypto"
-import { SigningPublicKey } from "./Ed25519Facade"
+import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { EntityClient } from "../../common/EntityClient"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade"
 
 export type PublicKeyIdentifier = {
@@ -33,6 +40,11 @@ type PublicKeyRawData = {
 	pubEccKey: null | Uint8Array
 	pubKyberKey: null | Uint8Array
 	pubRsaKey: null | Uint8Array
+}
+
+type IdentityKeyRawData = {
+	identityKeyVersion: NumberString
+	publicIdentityKey: Uint8Array
 }
 
 /**
@@ -48,24 +60,29 @@ export class PublicKeyProvider {
 	) {}
 
 	/**
-	 * Loads the public identity key from the given group and id assuming that there is an identity key.
-	 * Authenticates the public data using the symmetric group key.
-	 *
-	 * @param groupId The group to load the identity key for, must be a user group or a shared mail group.
+     * Loads the public identity key from the given group and id assuming that there is an identity key.
+     * Authenticates the public data using the symmetric group key.
+     *
+     * @param groupId The group to load the identity key for, must be a user group or a shared mail group.
 
-	 * @throws CryptoError in case the MAC tag of the public key cannot be verified.
-	 * @return the requested identity key, or null if it is not available.
-	 */
-	async loadPublicIdentityKeyFromGroup(groupId: Id): Promise<SigningPublicKey | null> {
+     * @throws CryptoError in case the MAC tag of the public key cannot be verified.
+     * @return the requested identity key, or null if it is not available.
+     */
+	async loadPublicIdentityKeyFromGroup(groupId: Id): Promise<Versioned<SigningPublicKey> | null> {
 		const group = await this.entityClient.load(GroupTypeRef, groupId)
+		const groupIdentityKeyPair = group.identityKeyPair
 
-		if (!group.identityKeyPair) {
+		if (!groupIdentityKeyPair) {
 			return null
 		}
-		const publicIdentityKey = group.identityKeyPair.publicEd25519Key
-		const publicIdentityKeyMac = brandKeyMac(group.identityKeyPair.publicKeyMac)
-		const identityKeyVersion = parseKeyVersion(group.identityKeyPair.identityKeyVersion)
+
+		const publicIdentityKeyMac = brandKeyMac(groupIdentityKeyPair.publicKeyMac)
 		const taggingGroupKeyVersion = parseKeyVersion(publicIdentityKeyMac.taggingKeyVersion)
+
+		const identityKey = this.convertFromIdentityKeyRawData({
+			publicIdentityKey: groupIdentityKeyPair.publicEd25519Key,
+			identityKeyVersion: groupIdentityKeyPair.identityKeyVersion,
+		})
 
 		const taggingGroupKey = await this.keyLoaderFacade.loadSymGroupKey(publicIdentityKeyMac.taggingGroup, taggingGroupKeyVersion)
 
@@ -75,16 +92,51 @@ export class PublicKeyProvider {
 				sourceOfTrust: {
 					symmetricGroupKey: taggingGroupKey,
 				},
-				untrustedKey: { identityPubKey: publicIdentityKey },
+				untrustedKey: { identityPubKey: identityKey.object.key },
 				bindingData: {
-					publicIdentityKeyVersion: identityKeyVersion,
+					publicIdentityKeyVersion: identityKey.version,
 					groupKeyVersion: taggingGroupKeyVersion,
 					groupId,
 				},
 			},
 			publicIdentityKeyMac.tag,
 		)
-		return publicIdentityKey
+
+		return identityKey
+	}
+
+	async loadPublicIdentityKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Versioned<SigningPublicKey> | null> {
+		const requestData = createIdentityKeyGetIn({
+			version: null,
+			identifier: pubKeyIdentifier.identifier,
+			identifierType: pubKeyIdentifier.identifierType,
+		})
+
+		try {
+			const identityKeyGetOut = await this.serviceExecutor.get(IdentityKeyService, requestData)
+			return this.convertFromIdentityKeyRawData({
+				publicIdentityKey: identityKeyGetOut.publicIdentityKey,
+				identityKeyVersion: identityKeyGetOut.publicIdentityKeyVersion,
+			})
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				return null
+			} else {
+				throw e
+			}
+		}
+	}
+
+	convertFromIdentityKeyRawData(identityKeyRawData: IdentityKeyRawData): Versioned<SigningPublicKey> {
+		const publicIdentityKey = bytesToEd25519PublicKey(identityKeyRawData.publicIdentityKey)
+		const identityKeyVersion = parseKeyVersion(identityKeyRawData.identityKeyVersion)
+		return {
+			version: identityKeyVersion,
+			object: {
+				type: SigningKeyPairType.Ed25519,
+				key: publicIdentityKey,
+			},
+		}
 	}
 
 	async loadCurrentPubKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Versioned<PublicKey>> {
