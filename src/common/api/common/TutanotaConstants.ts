@@ -514,9 +514,9 @@ export enum SecondFactorType {
 	webauthn = "2", // actually refers to u2f in client
 }
 
-export enum KeyVerificationSourceOfTruth {
-	LocalTrusted = "LocalTrusted",
-	PublicKeyService = "PublicKeyService",
+export enum KeyVerificationSourceOfTrust {
+	Manual = 0,
+	TOFU = 1,
 }
 
 export enum KeyVerificationMethodType {

@@ -30,6 +30,7 @@
 	},
 	"devDependencies": {
 		"typescript": "5.8.3",
+		"binaryen": "123.0.0",
 		"@tutao/otest": "301.250806.1"
 	}
 }
