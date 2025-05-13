@@ -3688,6 +3688,33 @@ export type IdentityKeyPair = {
 
 	publicKeyMac: KeyMac;
 }
+export const IdentityKeyGetInTypeRef: TypeRef<IdentityKeyGetIn> = new TypeRef("sys", 2571)
+
+export function createIdentityKeyGetIn(values: StrippedEntity<IdentityKeyGetIn>): IdentityKeyGetIn {
+	return Object.assign(create(typeModels[IdentityKeyGetInTypeRef.typeId], IdentityKeyGetInTypeRef), values)
+}
+
+export type IdentityKeyGetIn = {
+	_type: TypeRef<IdentityKeyGetIn>;
+
+	_format: NumberString;
+	version: null | NumberString;
+	identifierType: NumberString;
+	identifier: string;
+}
+export const IdentityKeyGetOutTypeRef: TypeRef<IdentityKeyGetOut> = new TypeRef("sys", 2576)
+
+export function createIdentityKeyGetOut(values: StrippedEntity<IdentityKeyGetOut>): IdentityKeyGetOut {
+	return Object.assign(create(typeModels[IdentityKeyGetOutTypeRef.typeId], IdentityKeyGetOutTypeRef), values)
+}
+
+export type IdentityKeyGetOut = {
+	_type: TypeRef<IdentityKeyGetOut>;
+
+	_format: NumberString;
+	publicIdentityKey: Uint8Array;
+	publicIdentityKeyVersion: NumberString;
+}
 export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2580)
 
 export function createIdentityKeyPostIn(values: StrippedEntity<IdentityKeyPostIn>): IdentityKeyPostIn {

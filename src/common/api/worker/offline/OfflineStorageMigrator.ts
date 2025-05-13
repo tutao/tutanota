@@ -1,7 +1,6 @@
 import { OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey } from "./OfflineStorage.js"
 import { ModelInfos } from "../../common/EntityFunctions.js"
 import { assertNotNull, typedEntries, typedKeys } from "@tutao/tutanota-utils"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sys94 } from "./migrations/sys-v94.js"
@@ -50,6 +49,7 @@ import { tutanota84 } from "./migrations/tutanota-v84.js"
 import { offline4 } from "./migrations/offline4.js"
 import { sys126 } from "./migrations/sys-v126.js"
 import { sys127 } from "./migrations/sys-v127.js"
+import { offline5 } from "./migrations/offline5.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -112,11 +112,12 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	offline4,
 	sys126,
 	sys127,
+	offline5,
 ]
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)
 // and we create a new offline database, we still need to set the offline version to the current value.
-const CURRENT_OFFLINE_VERSION = 4
+const CURRENT_OFFLINE_VERSION = 5
 
 /**
  * Migrator for the offline storage between different versions of model. It is tightly couples to the versions of API entities: every time we make an

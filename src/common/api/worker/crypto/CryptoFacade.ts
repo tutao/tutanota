@@ -20,7 +20,6 @@ import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	GroupType,
-	KeyVerificationState,
 	PermissionType,
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
@@ -678,9 +677,10 @@ export class CryptoFacade {
 
 			// Check if recipient is still verified for recipientMailAddress
 			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
-			if ((await keyVerificationFacade.resolveVerificationState(recipientMailAddress, publicKey)) == KeyVerificationState.MISMATCH) {
-				keyVerificationMismatchRecipients.push(recipientMailAddress)
-			}
+			// FIXME get verification state from public key result
+			// if ((await keyVerificationFacade.resolveVerificationState(recipientMailAddress, publicKey)) == KeyVerificationState.MISMATCH) {
+			// 	keyVerificationMismatchRecipients.push(recipientMailAddress)
+			// }
 
 			// We do not create any key data in case there is one not found recipient or not verified, but we want to
 			// collect ALL failed recipients when iterating a recipient list.

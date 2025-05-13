@@ -5960,6 +5960,49 @@ impl Entity for IdentityKeyPair {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyGetIn {
+	#[serde(rename = "2572")]
+	pub _format: i64,
+	#[serde(rename = "2573")]
+	pub version: Option<i64>,
+	#[serde(rename = "2574")]
+	pub identifierType: i64,
+	#[serde(rename = "2575")]
+	pub identifier: String,
+}
+
+impl Entity for IdentityKeyGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2571),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyGetOut {
+	#[serde(rename = "2577")]
+	pub _format: i64,
+	#[serde(rename = "2578")]
+	#[serde(with = "serde_bytes")]
+	pub publicIdentityKey: Vec<u8>,
+	#[serde(rename = "2579")]
+	pub publicIdentityKeyVersion: i64,
+}
+
+impl Entity for IdentityKeyGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2576),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct IdentityKeyPostIn {
 	#[serde(rename = "2581")]
 	pub _format: i64,
