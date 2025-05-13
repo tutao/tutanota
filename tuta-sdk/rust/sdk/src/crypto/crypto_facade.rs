@@ -11,19 +11,25 @@ use crate::crypto::Aes256Key;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::{
 	BUCKET_KEY_FIELD, ID_FIELD, OWNER_ENC_SESSION_KEY_FIELD, OWNER_GROUP_FIELD,
-	OWNER_KEY_VERSION_FIELD,
+	OWNER_KEY_VERSION_FIELD, PERMISSIONS_FIELD,
 };
-use crate::entities::generated::sys::BucketKey;
+use crate::entities::generated::sys::{BucketKey, Permission};
+use crate::entities::Entity;
+#[cfg_attr(test, mockall_double::double)]
+use crate::entity_client::EntityClient;
 use crate::instance_mapper::InstanceMapper;
 #[cfg_attr(test, mockall_double::double)]
 use crate::key_loader_facade::KeyLoaderFacade;
 use crate::metamodel::TypeModel;
-use crate::tutanota_constants::{CryptoProtocolVersion, EncryptionAuthStatus};
+use crate::tutanota_constants::{CryptoProtocolVersion, EncryptionAuthStatus, PermissionType};
+#[cfg_attr(test, mockall_double::double)]
+use crate::user_facade::UserFacade;
 use crate::util::{convert_version_to_u64, ArrayCastingError};
-use crate::GeneratedId;
 use crate::IdTupleGenerated;
+use crate::{GeneratedId, ListLoadDirection};
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
+use num_enum::TryFromPrimitive;
 use std::sync::Arc;
 
 #[derive(uniffi::Object)]
@@ -32,6 +38,8 @@ pub struct CryptoFacade {
 	instance_mapper: Arc<InstanceMapper>,
 	randomizer_facade: RandomizerFacade,
 	asymmetric_crypto_facade: Arc<AsymmetricCryptoFacade>,
+	user_facade: Arc<UserFacade>,
+	entity_client: Arc<EntityClient>,
 }
 
 /// Session key that encrypts an entity and the same key encrypted with the owner group.
@@ -54,12 +62,16 @@ impl CryptoFacade {
 		instance_mapper: Arc<InstanceMapper>,
 		randomizer_facade: RandomizerFacade,
 		asymmetric_crypto_facade: Arc<AsymmetricCryptoFacade>,
+		user_facade: Arc<UserFacade>,
+		entity_client: Arc<EntityClient>,
 	) -> Self {
 		Self {
 			key_loader_facade,
 			instance_mapper,
 			randomizer_facade,
 			asymmetric_crypto_facade,
+			user_facade,
+			entity_client,
 		}
 	}
 
@@ -101,29 +113,120 @@ impl CryptoFacade {
 
 		// Extract the session key data from the owner group of the entity
 		let EntityOwnerKeyData {
-			owner_enc_session_key: Some(owner_enc_session_key),
-			owner_key_version: Some(owner_key_version),
-			owner_group: Some(owner_group),
-		} = EntityOwnerKeyData::extract_owner_key_data(entity, model)?
-		else {
-			return Err(SessionKeyResolutionError {
-				reason: "instance missing owner key/group data".to_string(),
-			});
-		};
-
-		let group_key: GenericAesKey = self
-			.key_loader_facade
-			.load_sym_group_key(owner_group, owner_key_version, None)
-			.await?;
-
-		let session_key = group_key.decrypt_aes_key(owner_enc_session_key)?;
-		// TODO: performance: should we reuse owner_enc_session_key?
-		Ok(Some(ResolvedSessionKey {
-			session_key,
-			owner_enc_session_key: owner_enc_session_key.clone(),
+			owner_enc_session_key,
 			owner_key_version,
-			sender_identity_pub_key: None,
-		}))
+			owner_group,
+		} = EntityOwnerKeyData::extract_owner_key_data(entity, model)?;
+
+		let has_group =
+			owner_group.is_some() && self.user_facade.has_group(owner_group.as_ref().unwrap());
+
+		if has_group && owner_enc_session_key.is_some() {
+			let group_key: GenericAesKey = self
+				.key_loader_facade
+				.load_sym_group_key(owner_group.unwrap(), owner_key_version.unwrap_or(0), None)
+				.await?;
+
+			let session_key = group_key.decrypt_aes_key(owner_enc_session_key.unwrap())?;
+			// TODO: performance: should we reuse owner_enc_session_key?
+			Ok(Some(ResolvedSessionKey {
+				session_key,
+				owner_enc_session_key: owner_enc_session_key.unwrap().clone(),
+				owner_key_version: owner_key_version.unwrap_or(0),
+				sender_identity_pub_key: None,
+			}))
+		} else {
+			let mut permission_id: Option<GeneratedId> = None;
+
+			if let Ok(permissions_attribute_id) =
+				model.get_attribute_id_by_attribute_name(PERMISSIONS_FIELD)
+			{
+				if let Some(permissions_value) = entity.get(permissions_attribute_id.as_str()) {
+					match permissions_value {
+						ElementValue::IdGeneratedId(id) => permission_id = Some(id.clone()),
+						_ => {
+							return Err(SessionKeyResolutionError {
+								reason: "Missing permissions for entity".to_string(),
+							})
+						},
+					}
+				}
+			}
+
+			if permission_id.is_none() {
+				return Err(SessionKeyResolutionError {
+					reason: "Missing permissions for entity".to_string(),
+				});
+			}
+
+			let permissions = self
+				.entity_client
+				.load_all(
+					&Permission::type_ref(),
+					&(permission_id.unwrap()),
+					ListLoadDirection::ASC,
+				)
+				.await
+				.map_err(|e| SessionKeyResolutionError {
+					reason: e.to_string(),
+				})?
+				.into_iter()
+				.map(|e| self.instance_mapper.parse_entity::<Permission>(e))
+				.collect::<Result<Vec<Permission>, _>>()
+				.map_err(|error| SessionKeyResolutionError {
+					reason: format!("Failed to parse permission into proper types: {}", error),
+				})?;
+
+			let resolved_key = self.try_symmetric_permission(permissions).await?;
+			Ok(resolved_key)
+		}
+	}
+
+	async fn try_symmetric_permission(
+		&self,
+		permissions: Vec<Permission>,
+	) -> Result<Option<ResolvedSessionKey>, SessionKeyResolutionError> {
+		let symmetric_permission = permissions.iter().find(|&p| {
+			let Ok(permission_type) = PermissionType::try_from_primitive(p.r#type) else {
+				return false;
+			};
+
+			let has_group = p._ownerGroup.is_some()
+				&& self.user_facade.has_group(p._ownerGroup.as_ref().unwrap());
+			(permission_type == PermissionType::PublicSymmetric
+				|| permission_type == PermissionType::Symmetric)
+				&& has_group
+		});
+
+		if symmetric_permission.is_some() {
+			let s_permission = symmetric_permission.unwrap().clone();
+			let group_key: GenericAesKey = self
+				.key_loader_facade
+				.load_sym_group_key(
+					&s_permission._ownerGroup.unwrap(),
+					s_permission._ownerKeyVersion.unwrap_or(0).unsigned_abs(),
+					None,
+				)
+				.await?;
+
+			let Some(owner_enc_session_key) = s_permission._ownerEncSessionKey else {
+				return Err(SessionKeyResolutionError {
+					reason: "Missing ownerEncSessionKey".to_string(),
+				});
+			};
+
+			let key = group_key.decrypt_aes_key(owner_enc_session_key.as_slice())?;
+			return Ok(Some(ResolvedSessionKey {
+				session_key: key,
+				owner_enc_session_key: owner_enc_session_key.clone(),
+				owner_key_version: s_permission._ownerKeyVersion.unwrap_or(0).unsigned_abs(),
+				sender_identity_pub_key: None,
+			}));
+		}
+
+		Err(SessionKeyResolutionError {
+			reason: "Missing symmetricPermission".to_string(),
+		})
 	}
 
 	/// Resolves the bucket key fields inside `entity` and returns the session key
@@ -133,14 +236,14 @@ impl CryptoFacade {
 		type_model: &TypeModel,
 	) -> Result<ResolvedSessionKey, SessionKeyResolutionError> {
 		let bucket_key_attribute_id = type_model
-			.get_attribute_id_by_attribute_name(BUCKET_KEY_FIELD)
-			.map_err(|err| SessionKeyResolutionError {
-				reason: format!(
-					"{BUCKET_KEY_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
-					type_model.id,
-					err
-				),
-			})?;
+            .get_attribute_id_by_attribute_name(BUCKET_KEY_FIELD)
+            .map_err(|err| SessionKeyResolutionError {
+                reason: format!(
+                    "{BUCKET_KEY_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+                    type_model.id,
+                    err
+                ),
+            })?;
 
 		let bucket_key_map =
 			if let Some(ElementValue::Array(bucket_keys)) = entity.get(&bucket_key_attribute_id) {
@@ -292,40 +395,40 @@ impl<'a> EntityOwnerKeyData<'a> {
 		}
 
 		let owner_enc_session_key_attribute_id: String = type_model
-			.get_attribute_id_by_attribute_name(OWNER_ENC_SESSION_KEY_FIELD)
-			.map_err(|err| SessionKeyResolutionError {
-				reason: format!(
-					"{OWNER_ENC_SESSION_KEY_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
-					type_model.id,
-					err
-				),
-			})?;
+            .get_attribute_id_by_attribute_name(OWNER_ENC_SESSION_KEY_FIELD)
+            .map_err(|err| SessionKeyResolutionError {
+                reason: format!(
+                    "{OWNER_ENC_SESSION_KEY_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+                    type_model.id,
+                    err
+                ),
+            })?;
 
 		let owner_enc_session_key =
 			get_nullable_field!(entity, &owner_enc_session_key_attribute_id, Bytes)?;
 
 		let owner_key_version_attribute_id: String = type_model
-			.get_attribute_id_by_attribute_name(OWNER_KEY_VERSION_FIELD)
-			.map_err(|err| SessionKeyResolutionError {
-				reason: format!(
-					"{OWNER_KEY_VERSION_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
-					type_model.id,
-					err
-				),
-			})?;
+            .get_attribute_id_by_attribute_name(OWNER_KEY_VERSION_FIELD)
+            .map_err(|err| SessionKeyResolutionError {
+                reason: format!(
+                    "{OWNER_KEY_VERSION_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+                    type_model.id,
+                    err
+                ),
+            })?;
 
 		let owner_key_version_i64 =
 			get_nullable_field!(entity, &owner_key_version_attribute_id, Number)?.copied();
 
 		let owner_key_version_attribute_id: String = type_model
-			.get_attribute_id_by_attribute_name(OWNER_GROUP_FIELD)
-			.map_err(|err| SessionKeyResolutionError {
-				reason: format!(
-					"{OWNER_GROUP_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
-					type_model.id,
-					err
-				),
-			})?;
+            .get_attribute_id_by_attribute_name(OWNER_GROUP_FIELD)
+            .map_err(|err| SessionKeyResolutionError {
+                reason: format!(
+                    "{OWNER_GROUP_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+                    type_model.id,
+                    err
+                ),
+            })?;
 
 		let owner_key_version: Option<u64> = owner_key_version_i64.map(convert_version_to_u64);
 		let owner_group =
@@ -386,10 +489,12 @@ mod test {
 	use crate::entities::generated::sys::{BucketKey, InstanceSessionKey};
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
+	use crate::entity_client::MockEntityClient;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::metamodel::TypeModel;
 	use crate::tutanota_constants::CryptoProtocolVersion;
+	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
 	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
@@ -637,7 +742,9 @@ mod test {
 		asymmetric_crypto_facade: Option<MockAsymmetricCryptoFacade>,
 	) -> CryptoFacade {
 		let mut key_loader = MockKeyLoaderFacade::default();
+		let user_facade = MockUserFacade::default();
 		let group_key_clone = group_key.clone();
+		let entity_client = MockEntityClient::default();
 		key_loader
 			.expect_get_current_sym_group_key()
 			.returning(move |_| {
@@ -663,6 +770,8 @@ mod test {
 			instance_mapper: Arc::new(InstanceMapper::new(type_model_provider)),
 			randomizer_facade,
 			asymmetric_crypto_facade: Arc::new(asymmetric_crypto_facade),
+			user_facade: Arc::new(user_facade),
+			entity_client: Arc::new(entity_client),
 		}
 	}
 

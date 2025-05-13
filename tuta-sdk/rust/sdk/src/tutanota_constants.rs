@@ -134,3 +134,20 @@ impl PlanType {
 		*self != PlanType::Free && !LEGACY_PLANS.contains(&self)
 	}
 }
+
+#[derive(IntoPrimitive, TryFromPrimitive, PartialEq)]
+#[repr(i64)]
+pub enum PermissionType {
+	/** Used in combination with bucket permission to send multiple things encrypted with the same public key. */
+	Public,
+	/** Used to encrypt an instance for another group (which we are member of). */
+	Symmetric,
+	/** Used to updating public permission with symmetric key. */
+	PublicSymmetric,
+	/** Instances without ownerEncSessionKey (e.g. MailBody, FileData) after asymmetric decryption, used for reference counting. */
+	Unencrypted,
+	/** Sending parts of email for external users. */
+	External,
+	/** Used to mark the owner of the list. */
+	OwnerList = 8,
+}
