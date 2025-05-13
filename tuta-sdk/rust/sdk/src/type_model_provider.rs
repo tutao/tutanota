@@ -87,17 +87,17 @@ impl TypeModelProvider {
 
 	pub fn resolve_server_type_ref(&self, type_ref: &TypeRef) -> Option<Arc<TypeModel>> {
 		self.server_app_models
-			.read()
-			.expect("Server application model lock poisoned on read")
-			.as_ref()
-			.expect("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
-			.1
-			.as_ref()
-			.apps
-			.get(&type_ref.app)?
-			.types
-			.get(&type_ref.type_id)
-			.map(Arc::clone)
+				.read()
+				.expect("Server application model lock poisoned on read")
+				.as_ref()
+				.expect("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
+				.1
+				.as_ref()
+				.apps
+				.get(&type_ref.app)?
+				.types
+				.get(&type_ref.type_id)
+				.map(Arc::clone)
 	}
 
 	pub async fn initialize_server_model_from_file(&self) {
@@ -350,6 +350,23 @@ mod tests {
 		};
 		setup_application_types_response(mock_rest_client, "{}".to_string());
 
+		let file_client_mock = unsafe {
+			Arc::as_ptr(&file_client)
+				.cast::<MockFileClient>()
+				.cast_mut()
+				.as_mut()
+				.unwrap()
+		};
+
+		file_client_mock
+			.expect_persist_content()
+			.with(
+				eq(TypeModelProvider::SERVER_TYPE_MODEL_JSON_FILE_NAME.to_string()),
+				eq(b"{}".to_vec()),
+			)
+			.times(1)
+			.returning(|_, _| Ok(()));
+
 		let (_hash, _models) = Arc::new(TypeModelProvider::new(
 			Arc::clone(&rest_client),
 			Arc::clone(&file_client),
@@ -358,19 +375,6 @@ mod tests {
 		.fetch_server_model()
 		.await
 		.unwrap();
-
-		let file_client = unsafe {
-			Arc::as_ptr(&file_client)
-				.cast::<MockFileClient>()
-				.cast_mut()
-				.as_mut()
-				.unwrap()
-		};
-
-		file_client.expect_persist_content().with(
-			eq(TypeModelProvider::SERVER_TYPE_MODEL_JSON_FILE_NAME.to_string()),
-			eq(b"{}".to_vec()),
-		);
 	}
 
 	#[tokio::test]
@@ -403,9 +407,15 @@ mod tests {
 				Ok(test_utils::application_types_response_with_client_model())
 			});
 
+		let mut file_client = MockFileClient::new();
+		file_client
+			.expect_persist_content()
+			.times(1)
+			.returning(|_, _| Ok(()));
+
 		let type_provider = Arc::new(TypeModelProvider::new_test(
 			Arc::new(rest_client),
-			Arc::new(MockFileClient::new()),
+			Arc::new(file_client),
 			"localhost:9000".to_string(),
 		));
 
@@ -414,9 +424,7 @@ mod tests {
 				.await
 				.unwrap();
 		assert_eq!(applications_hash, "latest-applications-hash");
-		assert_eq!(
-			&updated_type_model,
-			type_provider.client_app_models.as_ref()
-		);
+		let expected_type_model = type_provider.client_app_models.as_ref();
+		assert_eq!(&updated_type_model, expected_type_model);
 	}
 }
