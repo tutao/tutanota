@@ -230,7 +230,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			{ style: { ...(!isApplePrice && { display: "grid", "grid-template-columns": "1fr auto 1fr" }) } },
 			strikethroughPrice != null && strikethroughPrice.trim() !== ""
 				? m(
-						".span.strike",
+						".span.strike.pt-s",
 						{
 							style: {
 								color: theme.content_button,
