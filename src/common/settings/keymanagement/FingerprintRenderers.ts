@@ -1,14 +1,10 @@
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
 import QRCode from "qrcode-svg"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
-import { PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
+import { Hex } from "@tutao/tutanota-utils"
 
-export function renderFingerprintAsText(fingerprint: PublicKeyFingerprint): string {
-	return fingerprint.fingerprint
-}
-
-export function renderFingerprintAsQrCode(selfMailAddress: string, selfFingerprint: PublicKeyFingerprint): string {
-	const payload: KeyVerificationQrPayload = { mailAddress: selfMailAddress, fingerprint: selfFingerprint.fingerprint }
+export function renderFingerprintAsQrCode(selfMailAddress: string, fingerprint: Hex): string {
+	const payload: KeyVerificationQrPayload = { mailAddress: selfMailAddress, fingerprint }
 
 	const qrCode = new QRCode({
 		height: 180,

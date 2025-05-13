@@ -147,7 +147,9 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 			if (this.overrideVerificationState != null) {
 				return this.overrideVerificationState
 			} else {
-				return this.keyVerificationFacade.resolveVerificationState(arg.address, null)
+				// FIXME use public key provider to get verification state.
+				// return this.keyVerificationFacade.resolveVerificationState(arg.address, null)
+				return KeyVerificationState.NO_ENTRY
 			}
 		})
 

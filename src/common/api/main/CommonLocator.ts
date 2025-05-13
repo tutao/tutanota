@@ -71,6 +71,7 @@ import type { CalendarContactPreviewViewModel } from "../../../calendar-app/cale
 import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { SearchToken } from "../common/utils/QueryTokenUtils"
+import { PublicKeyProvider } from "../worker/facades/PublicKeyProvider"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -102,6 +103,7 @@ export interface CommonLocator {
 	bookingFacade: BookingFacade
 	mailAddressFacade: MailAddressFacade
 	keyVerificationFacade: KeyVerificationFacade
+	publicKeyProvider: PublicKeyProvider
 	blobFacade: BlobFacade
 	userManagementFacade: UserManagementFacade
 	recoverCodeFacade: RecoverCodeFacade
