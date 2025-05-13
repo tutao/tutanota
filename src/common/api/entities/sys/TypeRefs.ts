@@ -1,4 +1,4 @@
-import { create, Stripped, StrippedEntity } from "../../common/utils/EntityUtils.js"
+import { create, StrippedEntity } from "../../common/utils/EntityUtils.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { typeModels } from "./TypeModels.js"
 
@@ -2182,6 +2182,7 @@ export function createUpgradePriceServiceReturn(values: StrippedEntity<UpgradePr
 }
 
 export type UpgradePriceServiceReturn = {
+	hasGlobalFirstYearDiscount: any
 	_type: TypeRef<UpgradePriceServiceReturn>;
 	_original?: UpgradePriceServiceReturn
 

@@ -5,16 +5,16 @@ import { lang } from "../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { Icon } from "../gui/base/Icon"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import { AvailablePlanType, Const, PlanType } from "../api/common/TutanotaConstants"
+import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants"
 import { PaymentInterval } from "./PriceUtils"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
-import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
-import { isIOSApp } from "../api/common/Env"
 import { isColorLight } from "../gui/base/Color.js"
+import { isIOSApp } from "../api/common/Env.js"
+import { goEuropeanBlue } from "../gui/builtinThemes.js"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -43,9 +43,10 @@ export type BuyOptionBoxAttr = {
 	 * Nullable because of the gift card component compatibility
 	 */
 	targetSubscription?: AvailablePlanType
-	isCampaign?: boolean
+	hasFirstYearDiscount?: boolean
 	isFirstMonthForFree?: boolean
 	hasPriceFootnote?: boolean
+	isApplePrice?: boolean
 }
 
 export type BuyOptionDetailsAttr = {
@@ -145,15 +146,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	view(vnode: Vnode<BuyOptionBoxAttr>) {
 		const { attrs } = vnode
 
-		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
-		const isLegendPlan = attrs.targetSubscription === PlanType.Legend
 		const isPersonalPaidPlan = attrs.targetSubscription === PlanType.Revolutionary || attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
-		const shouldApplyCampaignColor =
-			attrs.highlighted && attrs.isCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
 
 		function getRibbon(): Children {
-			if (isLegendPlan && isTutaBirthdayCampaign && isYearly) {
+			if (attrs.hasFirstYearDiscount) {
 				return BuyOptionBox.renderCampaignRibbon()
 			}
 
@@ -192,18 +189,16 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							"border-radius": "3px",
 							height: "100%",
 							...(attrs.highlighted &&
-								isLegendPlan &&
-								isTutaBirthdayCampaign &&
-								isYearly && {
-									border: `2px solid ${theme.content_accent_tuta_bday}`,
+								attrs.hasFirstYearDiscount && {
+									border: `2px solid ${theme.themeId === "light" || theme.themeId === "light_secondary" ? goEuropeanBlue : "#ffffff"}`,
 									padding: px(9),
 								}),
 						},
 					},
 					[
 						getRibbon(),
-						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading, shouldApplyCampaignColor) : attrs.heading,
-						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined, shouldApplyCampaignColor),
+						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
+						this.renderPrice(attrs.price, attrs.isApplePrice, isYearly ? attrs.referencePrice : undefined),
 						m(
 							".small.flex",
 							{ style: { "justify-content": "center", "column-gap": px(1) } },
@@ -211,7 +206,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							vnode.attrs.hasPriceFootnote && m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
 						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
-						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isLegendPlan && isTutaBirthdayCampaign && isYearly),
+						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, !!attrs.hasFirstYearDiscount),
 						attrs.actionButton
 							? m(
 									".button-min-height",
@@ -229,48 +224,48 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		)
 	}
 
-	private renderPrice(price: string, strikethroughPrice?: string, shouldApplyCampaignColor?: boolean) {
+	private renderPrice(price: string, isApplePrice?: boolean, strikethroughPrice?: string) {
 		return m(
-			".pt-ml.text-center",
-			{ style: { display: "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center" } },
+			".flex.flex-wrap.column-gap-s.justify-center.items-center.pt-l.text-center",
+			{ style: { ...(!isApplePrice && { display: "grid", "grid-template-columns": "1fr auto 1fr" }) } },
 			strikethroughPrice != null && strikethroughPrice.trim() !== ""
 				? m(
 						".span.strike",
 						{
 							style: {
-								color: shouldApplyCampaignColor ? theme.content_accent_tuta_bday : theme.content_button,
+								color: theme.content_button,
 								fontSize: px(size.font_size_base),
-								justifySelf: "end",
-								margin: "auto 0.4em 0 0",
-								padding: "0.4em 0",
+								...(!isApplePrice && { "justify-self": "end" }),
 							},
 						},
 						strikethroughPrice,
 				  )
 				: m(""),
-			m(".h1", price),
+			m(".h1", { style: { ...(isApplePrice && { "font-size": px(20), "font-weight": "bold" }) } }, price),
 			m(""),
 		)
 	}
 
 	private static renderCampaignRibbon(): Children {
-		const text = isIOSApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
-		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)" } }, [
-			// Birthday cake
-			m("img.block.abs.z1", {
-				src: `${window.tutao.appState.prefixWithoutFile}/images/birthday/party-cake.png`,
-				alt: "",
-				rel: "noreferrer",
-				loading: "lazy",
-				decoding: "async",
-				style: {
-					width: "35%",
-					bottom: px(-75.5),
-					right: px(-5),
-				},
-			}),
+		const text = isIOSApp() ? lang.get("save_action").toUpperCase() : lang.get("pricing.globalFirstYearDiscountRibbon_label", { "{amount}": "50%" })
+
+		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)", top: "-10px" } }, [
 			// Ribbon
-			m(".ribbon-horizontal.ribbon-horizontal-cyber-monday", m(".text-center.b", { style: { color: theme.content_accent_secondary_tuta_bday } }, text)),
+			m(
+				".ribbon-horizontal.ribbon-go-european",
+				m(
+					".text-center.b.font-mdio",
+					{
+						style: {
+							display: "flex",
+							width: "100%",
+							"justify-content": "center",
+							"align-items": "center",
+						},
+					},
+					text,
+				),
+			),
 		])
 	}
 
@@ -292,14 +287,13 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			: null
 	}
 
-	private renderHeading(heading: string, shouldApplyCampaignColor?: boolean): Children {
+	private renderHeading(heading: string): Children {
 		return m(
 			// we need some margin for the discount banner for longer translations shown on the website
 			".h4.text-center.mb-small-line-height.flex.col.center-horizontally.mlr-l.dialog-header",
 			{
 				style: {
 					"font-size": heading.length > 20 ? "smaller" : undefined,
-					color: shouldApplyCampaignColor ? theme.content_accent_tuta_bday : null,
 				},
 			},
 			heading,

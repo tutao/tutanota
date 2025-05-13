@@ -3,6 +3,8 @@ import {
 	AccountType,
 	AvailablePlanType,
 	BookingItemFeatureType,
+	CustomDomainType,
+	CustomDomainTypeCountName,
 	getClientType,
 	getPaymentMethodType,
 	NewPaidPlans,
@@ -12,12 +14,15 @@ import {
 } from "../api/common/TutanotaConstants"
 import type { AccountingInfo, Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
-import { isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentDataService } from "../api/entities/sys/Services"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
+import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
+import { ReplacementKey, UpgradePriceType } from "./FeatureListProvider.js"
+import { isIOSApp } from "../api/common/Env.js"
 
 export const enum UpgradeType {
 	/**
@@ -276,4 +281,113 @@ export function hasRunningAppStoreSubscription(accountingInfo: AccountingInfo): 
 /** Check if the latest transaction using the current Store Account belongs to the user */
 export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array | null): Promise<MobilePaymentSubscriptionOwnership> {
 	return await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(userIdBytes)
+}
+
+export type GetPriceStrProps = {
+	priceAndConfigProvider: PriceAndConfigProvider
+	paymentInterval: PaymentInterval
+	targetPlan: PlanType
+}
+
+export type GetPriceStrReturn = {
+	priceStr: string
+	referencePriceStr: string | undefined
+}
+
+/**
+ * Get the formatted price and reference price as strings from Tuta's server.
+ *
+ * `referencePriceStr` will equal the monthly price * 12 for when the payment interval is yearly.
+ * If a discount is applied, `referencePriceStr` will show the normal yearly price (monthly price x 10) instead.
+ * Otherwise, `referencePriceStr` will be `undefined`.
+ */
+export function getPriceStr({ priceAndConfigProvider, targetPlan, paymentInterval }: GetPriceStrProps): GetPriceStrReturn {
+	const price = priceAndConfigProvider.getSubscriptionPrice(paymentInterval, targetPlan, UpgradePriceType.PlanActualPrice)
+	const referencePrice = priceAndConfigProvider.getSubscriptionPrice(paymentInterval, targetPlan, UpgradePriceType.PlanReferencePrice)
+	let priceStr: string
+	let referencePriceStr: string | undefined = undefined
+
+	priceStr = formatMonthlyPrice(price, paymentInterval)
+	if (referencePrice > price) {
+		// if there is a discount for this plan we show the original price as reference
+		referencePriceStr = formatMonthlyPrice(referencePrice, paymentInterval)
+	} else if (paymentInterval == PaymentInterval.Yearly && price !== 0) {
+		// if there is no discount for any plan then we show the monthly price as reference
+		const monthlyReferencePrice = priceAndConfigProvider.getSubscriptionPrice(PaymentInterval.Monthly, targetPlan, UpgradePriceType.PlanActualPrice)
+		referencePriceStr = formatMonthlyPrice(monthlyReferencePrice, PaymentInterval.Monthly)
+	}
+
+	return { priceStr, referencePriceStr }
+}
+
+/**
+ * Get the formatted price and reference price as strings from the Apple's server.
+ * Before calling this function, it has to be checked if it is OK to display the Apple prices. Use `shouldShowApplePrices` for that matter.
+ *
+ * If a discount is applied, `referencePriceStr` will show the normal yearly price instead. Otherwise, `referencePriceStr` will be `undefined`.
+ */
+export function getApplePriceStr({ priceAndConfigProvider, targetPlan, paymentInterval }: GetPriceStrProps): GetPriceStrReturn {
+	const { displayYearlyPerYear, displayMonthlyPerMonth, displayOfferYearlyPerYear } = assertNotNull(
+		priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase()),
+	)
+	let priceStr: string
+	let referencePriceStr: string | undefined = undefined
+	if (paymentInterval === PaymentInterval.Yearly) {
+		priceStr = displayOfferYearlyPerYear ?? displayYearlyPerYear
+		referencePriceStr = !!displayOfferYearlyPerYear ? displayYearlyPerYear : undefined
+	} else {
+		priceStr = displayMonthlyPerMonth
+	}
+	return { priceStr, referencePriceStr }
+}
+
+/**
+ * Returns whether the apple prices should be displayed.
+ */
+export function shouldShowApplePrices(accountingInfo: AccountingInfo | null): boolean {
+	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
+	return isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
+}
+
+/**
+ * Returns whether the apple price has an introductory offer. This should be used to check whether any campaign is running.
+ * Before calling this function, it has to be checked if it is OK to display the Apple prices. Use `shouldShowApplePrices` for that matter.
+ */
+export function hasAppleIntroOffer(priceAndConfigProvider: PriceAndConfigProvider): boolean {
+	const { referencePriceStr: revoReferencePriceStr } = getApplePriceStr({
+		priceAndConfigProvider,
+		targetPlan: PlanType.Revolutionary,
+		paymentInterval: PaymentInterval.Yearly,
+	})
+	const { referencePriceStr: legendReferencePriceStr } = getApplePriceStr({
+		priceAndConfigProvider,
+		targetPlan: PlanType.Legend,
+		paymentInterval: PaymentInterval.Yearly,
+	})
+
+	return !!revoReferencePriceStr || !!legendReferencePriceStr
+}
+
+/**
+ * Get a translated string with the replacement for placeholders.
+ * if no key is found, undefined is returned and nothing is replaced.
+ */
+export function getFeaturePlaceholderReplacement(
+	key: ReplacementKey | undefined,
+	subscription: PlanType,
+	priceAndConfigProvider: PriceAndConfigProvider,
+): Record<string, string | number> | undefined {
+	switch (key) {
+		case "customDomains": {
+			const customDomainType = downcast<CustomDomainType>(priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.customDomainType)
+			return { "{amount}": CustomDomainTypeCountName[customDomainType] }
+		}
+		case "mailAddressAliases":
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.nbrOfAliases }
+		case "storage":
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.storageGb }
+		case "label": {
+			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.maxLabels }
+		}
+	}
 }

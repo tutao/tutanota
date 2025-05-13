@@ -2,6 +2,7 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 import { isColorLight } from "./base/Color"
 import { logoDefaultGrey, tutaDunkel, tutaRed } from "./builtinThemes"
 import { getTutaLogoSvg } from "./base/Logo.js"
+import { client } from "../misc/ClientDetector.js"
 
 assertMainOrNodeBoot()
 
@@ -22,7 +23,6 @@ export type Theme = {
 	button_bubble_bg: string
 	button_bubble_fg: string
 	content_bg: string
-	content_bg_tuta_bday: string
 	content_fg: string
 	content_button: string
 	content_button_selected: string
@@ -30,8 +30,6 @@ export type Theme = {
 	content_button_icon_selected: string
 	content_button_icon_bg?: string
 	content_accent: string
-	content_accent_tuta_bday: string
-	content_accent_secondary_tuta_bday: string
 	content_border: string
 	content_message_bg: string
 	header_bg: string
@@ -63,6 +61,8 @@ export type Theme = {
 	experimental_on_primary_container: string
 	experimental_tertiary: string
 	outline_variant: string
+	go_european: string
+	on_go_european: string
 }
 
 const themeSingleton = {}
@@ -125,5 +125,18 @@ export function getLightOrDarkTutaLogo(isCalendarApp: boolean): string {
 		return getTutaLogoSvg(tutaRed, tutaDunkel)
 	} else {
 		return getTutaLogoSvg(logoDefaultGrey, logoDefaultGrey)
+	}
+}
+
+export function getCurrentThemeName(): "lightRed" | "lightBlue" | "darkRed" | "darkBlue" {
+	const isCalendarApp = client.isCalendarApp()
+	if (theme.themeId === "light") {
+		return isCalendarApp ? "lightBlue" : "lightRed"
+	} else if (theme.themeId === "light_secondary") {
+		return isCalendarApp ? "lightRed" : "lightBlue"
+	} else if (theme.themeId === "dark") {
+		return isCalendarApp ? "darkBlue" : "darkRed"
+	} else {
+		return isCalendarApp ? "darkRed" : "darkBlue"
 	}
 }

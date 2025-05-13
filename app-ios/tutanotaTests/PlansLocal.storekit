@@ -1,0 +1,179 @@
+{
+  "identifier" : "368E468C",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "922429609",
+    "_developerTeamID" : "JKCH89Z3M9",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 737281866.58363402,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21467136",
+      "localizations" : [
+
+      ],
+      "name" : "Plans",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "8.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6479765512",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "One month of the Legend plan.",
+              "displayName" : "Legend (Monthly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "plans.legend.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Legend (Monthly)",
+          "subscriptionGroupID" : "21467136",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "89.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6479765828",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "One year of the Legend plan.",
+              "displayName" : "Legend (Yearly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "plans.legend.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Legend (Yearly)",
+          "subscriptionGroupID" : "21467136",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "3.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6479874640",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "One month of Revolutionary plan.",
+              "displayName" : "Revolutionary (Monthly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "plans.revolutionary.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Revolutionary (Monthly)",
+          "subscriptionGroupID" : "21467136",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6479874630",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "One year of Revolutionary plan.",
+              "displayName" : "Revolutionary (Yearly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "plans.revolutionary.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Revolutionary (Yearly)",
+          "subscriptionGroupID" : "21467136",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

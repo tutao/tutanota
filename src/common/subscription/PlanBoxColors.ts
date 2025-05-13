@@ -1,6 +1,7 @@
-import { theme } from "../gui/theme.js"
+import { getCurrentThemeName, getElevatedBackground, Theme, theme } from "../gui/theme.js"
 import { PlanType } from "../api/common/TutanotaConstants.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { themes } from "../gui/builtinThemes.js"
 
 // TODO: Update color to follow the Material 3 color rules after the color token update
 
@@ -18,7 +19,7 @@ export const planBoxColors = {
 /**
  * Determines the background color for the PlanBox component based on the selection state and theme.
  */
-function getBgColor({ isSelected }: { isSelected: boolean }) {
+function getBgColor(isSelected: boolean) {
 	if (locator.themeController.isLightTheme()) {
 		if (isSelected) {
 			return theme.experimental_primary_container
@@ -29,7 +30,7 @@ function getBgColor({ isSelected }: { isSelected: boolean }) {
 		if (isSelected) {
 			return "#D7C3B8"
 		} else {
-			return "#303030"
+			return getElevatedBackground()
 		}
 	}
 }
@@ -48,14 +49,15 @@ function getBoxShadow() {
 /**
  * Determines the text color for the PlanBox component based on the selection state and theme.
  */
-function getTextColor({ isSelected }: { isSelected: boolean }) {
-	return `${isSelected ? theme.experimental_on_primary_container : theme.content_fg}`
+function getTextColor(isSelected: boolean, hasCampaign?: boolean) {
+	const localTheme = hasCampaign ? getBlueTheme() : theme
+	return `${isSelected ? localTheme.experimental_on_primary_container : localTheme.content_fg}`
 }
 
 /**
  * Determines the border color for the PlanBox component based on the selection state and theme.
  */
-function getOutlineColor({ isSelected }: { isSelected: boolean }) {
+function getOutlineColor(isSelected: boolean) {
 	if (locator.themeController.isLightTheme()) {
 		if (isSelected) {
 			return "transparent"
@@ -74,10 +76,12 @@ function getOutlineColor({ isSelected }: { isSelected: boolean }) {
 /**
  * Determines the icon and divider color for the PlanBox component based on the selection state and theme.
  */
-function getFeatureIconColor({ isSelected, planType }: { isSelected: boolean; planType: PlanType }) {
+function getFeatureIconColor(isSelected: boolean, planType: PlanType, hasCampaign?: boolean) {
+	const localTheme = hasCampaign ? getBlueTheme() : theme
+
 	if (planType === PlanType.Free) {
 		if (isSelected) {
-			return theme.experimental_tertiary
+			return localTheme.experimental_tertiary
 		} else if (locator.themeController.isLightTheme()) {
 			return "#b8b8b8"
 		} else {
@@ -85,9 +89,24 @@ function getFeatureIconColor({ isSelected, planType }: { isSelected: boolean; pl
 		}
 	} else {
 		if (isSelected) {
-			return theme.experimental_tertiary
+			return localTheme.experimental_tertiary
 		} else {
-			return theme.content_accent
+			return localTheme.content_accent
 		}
+	}
+}
+
+/**
+ * Get blue theme with the current light/dark theme selection. This should only be used for the Go European campaign.
+ */
+export function getBlueTheme(): Theme {
+	if (getCurrentThemeName() === "lightRed") {
+		return themes().light_secondary
+	} else if (getCurrentThemeName() === "lightBlue") {
+		return themes().light
+	} else if (getCurrentThemeName() === "darkRed") {
+		return themes().dark_secondary
+	} else {
+		return themes().dark
 	}
 }

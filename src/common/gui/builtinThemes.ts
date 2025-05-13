@@ -25,7 +25,7 @@ const highlight = "#FFDDB2"
 const PEACH = "#FFF2EA"
 const DARK_PEACH = "#C9C6C5"
 const RED_DUNKEL = "#410002"
-const RED_FIGHTER = "#D93951"
+const RED_NOTA = "#D93951"
 
 const BLUE_DUNKEL = "#001641"
 const BLUE_FIGHTER = "#0040FF"
@@ -88,6 +88,7 @@ export const stateBgActive = "rgba(139,139,139,0.38)"
 export const logoDefaultGrey = logo_text_bright_grey
 export const tutaRed = red
 export const tutaDunkel = dunkel
+export const goEuropeanBlue = blue
 
 type Themes = Record<ThemeId, Theme>
 
@@ -119,10 +120,7 @@ export const themes = (): Themes => {
 		content_button_icon: light_white,
 		content_button_icon_selected: light_white,
 		content_accent: red,
-		content_accent_tuta_bday: dark_purple,
-		content_accent_secondary_tuta_bday: light_purple,
 		content_bg: light_white,
-		content_bg_tuta_bday: dark,
 		content_border: grey_lighter_1,
 		content_message_bg: grey_lighter_0,
 		header_bg: light_white,
@@ -148,10 +146,12 @@ export const themes = (): Themes => {
 		tuta_color_nota: red_nota,
 		experimental_primary_container: PEACH,
 		experimental_on_primary_container: RED_DUNKEL,
-		experimental_tertiary: RED_FIGHTER,
+		experimental_tertiary: RED_NOTA,
 		highlight_bg: highlight,
 		highlight_fg: black,
 		outline_variant: grey_lighter_1,
+		go_european: goEuropeanBlue,
+		on_go_european: light_white,
 	})
 	const darkRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -165,10 +165,7 @@ export const themes = (): Themes => {
 		content_button_icon: light_lighter_1,
 		content_button_icon_selected: dark_lighter_0,
 		content_accent: light_red,
-		content_accent_tuta_bday: light_purple,
-		content_accent_secondary_tuta_bday: dark_purple,
 		content_bg: dark_darker_0,
-		content_bg_tuta_bday: light_white,
 		content_border: dark_lighter_1,
 		content_message_bg: dark_lighter_2,
 		header_bg: dark,
@@ -195,10 +192,12 @@ export const themes = (): Themes => {
 		tuta_color_nota: red_nota,
 		experimental_primary_container: DARK_PEACH,
 		experimental_on_primary_container: dark_lighter_0,
-		experimental_tertiary: RED_FIGHTER,
+		experimental_tertiary: RED_NOTA,
 		highlight_bg: highlight,
 		highlight_fg: black,
 		outline_variant: grey_darker_0,
+		go_european: light_blue,
+		on_go_european: dark_darker_0,
 	})
 	const lightBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -212,10 +211,7 @@ export const themes = (): Themes => {
 		content_button_icon: light_white,
 		content_button_icon_selected: light_white,
 		content_accent: blue,
-		content_accent_tuta_bday: dark_purple,
-		content_accent_secondary_tuta_bday: light_purple,
 		content_bg: light_white,
-		content_bg_tuta_bday: dark,
 		content_border: grey_lighter_1,
 		content_message_bg: grey_lighter_0,
 		header_bg: light_white,
@@ -245,6 +241,8 @@ export const themes = (): Themes => {
 		highlight_bg: highlight,
 		highlight_fg: black,
 		outline_variant: grey_lighter_1,
+		go_european: goEuropeanBlue,
+		on_go_european: light_white,
 	})
 	const darkBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -258,10 +256,7 @@ export const themes = (): Themes => {
 		content_button_icon: light_lighter_1,
 		content_button_icon_selected: dark_lighter_0,
 		content_accent: light_blue,
-		content_accent_tuta_bday: light_purple,
-		content_accent_secondary_tuta_bday: dark_purple,
 		content_bg: dark_darker_0,
-		content_bg_tuta_bday: light_white,
 		content_border: dark_lighter_1,
 		content_message_bg: dark_lighter_2,
 		header_bg: dark,
@@ -292,6 +287,8 @@ export const themes = (): Themes => {
 		highlight_bg: highlight,
 		highlight_fg: black,
 		outline_variant: grey_darker_0,
+		go_european: light_blue,
+		on_go_european: dark_darker_0,
 	})
 
 	return {
