@@ -35,6 +35,8 @@ pub enum RestClientError {
 	FailedTlsSetup,
 	#[error("suspended")]
 	Suspended,
+	#[error("Unknown")]
+	Unknown,
 }
 
 /// Provides a Rust SDK level interface for performing REST requests

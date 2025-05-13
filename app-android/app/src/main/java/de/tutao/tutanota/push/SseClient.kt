@@ -82,6 +82,7 @@ class SseClient internal constructor(
 			timeoutInSeconds = 90
 		}
 		val connectionData = prepareSSEConnection(connectedSseInfo)
+		Log.d(TAG, "connectiondata: ${connectionData.url} ${connectionData.userId}")
 		try {
 			var shouldNotifyAboutEstablishedConnection = true
 			val response = openSseConnection(connectionData)
@@ -179,6 +180,7 @@ class SseClient internal constructor(
 			userIdObject.put("1351", userId) // GeneratedIdWrapper.value
 			jsonArray.put(userIdObject)
 			jsonObject.put("1355", jsonArray) // SseConnectData.userIds
+			Log.d(TAG, "json: ${jsonObject.toString()}")
 			URLEncoder.encode(jsonObject.toString(), "UTF-8")
 		} catch (e: JSONException) {
 			throw RuntimeException(e)
@@ -197,6 +199,7 @@ class SseClient internal constructor(
 		check(!connectedSseInfo.userIds.isEmpty()) { "Push identifier but no user IDs" }
 		val userId = connectedSseInfo.userIds.first()
 		val json = requestJson(connectedSseInfo.pushIdentifier, userId)
+		Log.d(TAG, "json: $json")
 		val url = URL(connectedSseInfo.sseOrigin + "/sse?_body=" + json)
 		return ConnectionData(userId, url)
 	}
