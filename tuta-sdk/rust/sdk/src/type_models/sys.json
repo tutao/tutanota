@@ -13987,6 +13987,92 @@
 			}
 		}
 	},
+	"2575": {
+		"name": "IdentityKeyGetIn",
+		"app": "sys",
+		"version": 128,
+		"since": 128,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2575,
+		"rootId": "A3N5cwAKDw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2576": {
+				"final": false,
+				"name": "_format",
+				"id": 2576,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2577": {
+				"final": false,
+				"name": "version",
+				"id": 2577,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2578": {
+				"final": false,
+				"name": "identifierType",
+				"id": 2578,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2579": {
+				"final": false,
+				"name": "identifier",
+				"id": 2579,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2580": {
+		"name": "IdentityKeyGetOut",
+		"app": "sys",
+		"version": 128,
+		"since": 128,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2580,
+		"rootId": "A3N5cwAKFA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2581": {
+				"final": false,
+				"name": "_format",
+				"id": 2581,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2582": {
+				"final": false,
+				"name": "publicIdentityKey",
+				"id": 2582,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2583": {
+				"final": false,
+				"name": "publicIdentityKeyVersion",
+				"id": 2583,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
 	"2584": {
 		"name": "IdentityKeyPostIn",
 		"app": "sys",

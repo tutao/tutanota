@@ -125,15 +125,6 @@ export function getExistingRuleForType(props: TutanotaProperties, cleanValue: st
 	return props.inboxRules.find((rule) => type === rule.type && cleanValue === rule.value) ?? null
 }
 
-/**
- * @return {string} default mail address
- */
-export function getDefaultSenderFromUser({ props, userGroupInfo }: UserController): string {
-	return props.defaultSender && contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), props.defaultSender)
-		? props.defaultSender
-		: neverNull(userGroupInfo.mailAddress)
-}
-
 export function allInSameMailbox(mails: readonly Mail[]): boolean {
 	const mailGroups = mails.map((m) => m._ownerGroup)
 	return mailGroups.every((mg) => mg === mailGroups[0])

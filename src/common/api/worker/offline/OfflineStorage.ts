@@ -93,6 +93,9 @@ export const TableDefinitions = Object.freeze({
 	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
 	blob_element_entities:
 		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
+	identity_store:
+		"mailAddress TEXT NOT NULL, publicIdentityKey BLOB NOT NULL, identityKeyVersion INTEGER NOT NULL, identityKeyType INTEGER NOT NULL, " +
+		"sourceOfTrust INTEGER NOT NULL, PRIMARY KEY (mailAddress, identityKeyVersion)",
 } as const)
 
 type Range = { lower: Id; upper: Id }
