@@ -1,4 +1,4 @@
-import { CounterType, GroupKeyRotationType, GroupType, PublicKeyIdentifierType } from "../../../common/TutanotaConstants.js"
+import { CounterType, GroupType, PublicKeyIdentifierType } from "../../../common/TutanotaConstants.js"
 import type { ContactListGroupRoot, InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateMailGroupData,
@@ -276,6 +276,10 @@ export class GroupManagementFacade {
 
 		for (const groupId of sharedMailboxGroups) {
 			try {
+				// it can be the case that some groups already have an identity key, so we check first
+				const group = await this.entityClient.load(GroupTypeRef, groupId)
+				if (group.identityKeyPair) continue
+
 				// shared mailbox group members don't need access to identity keys, that's the responsibility of the admins
 				await this.createIdentityKeyPair(groupId, adminGroupKey)
 			} catch (error) {

@@ -593,11 +593,40 @@ o.spec("GroupManagementFacadeTest", function () {
 			const adminGroupKey = object<VersionedKey>()
 			when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
 
+			let group = object<Group>()
+			group.identityKeyPair = null
+			when(entityClient.load(GroupTypeRef, sharedMailboxGroupId)).thenResolve(group)
+
 			await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
 
 			o(groupManagementFacade.createIdentityKeyPair.invocations.length).equals(1)
 			o(groupManagementFacade.createIdentityKeyPair.args[0]).equals(sharedMailboxGroupId)
 			o(groupManagementFacade.createIdentityKeyPair.args[1]).equals(adminGroupKey)
+		})
+
+		o("skips shared mailboxes that already have identity key", async function () {
+			// we want to make sure that it is called, but we don't need to test it here; it has its own tests
+			groupManagementFacade.createIdentityKeyPair = spy(noOp)
+
+			const user = object<User>()
+			let adminGroupId = "adminGroupId"
+			user.memberships = [{ group: adminGroupId, groupType: GroupType.Admin } as GroupMembership]
+			when(userFacade.getUser()).thenReturn(user)
+
+			const sharedMailboxGroupId = "sharedMailboxGroupId"
+			groupManagementFacade.loadTeamGroupIds = func<() => Promise<Id[]>>()
+			when(groupManagementFacade.loadTeamGroupIds()).thenResolve([sharedMailboxGroupId])
+
+			const adminGroupKey = object<VersionedKey>()
+			when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
+
+			let group = object<Group>()
+			group.identityKeyPair = object()
+			when(entityClient.load(GroupTypeRef, sharedMailboxGroupId)).thenResolve(group)
+
+			await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
+
+			o(groupManagementFacade.createIdentityKeyPair.invocations.length).equals(0)
 		})
 	})
 
