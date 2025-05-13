@@ -12,8 +12,8 @@ data class MobilePlanPrice(
 	val name: String,
 	val rawMonthlyPerMonth: String,
 	val rawYearlyPerYear: String,
-	val rawYearlyPerMonth: String,
 	val displayMonthlyPerMonth: String,
 	val displayYearlyPerYear: String,
-	val displayYearlyPerMonth: String,
+	val displayOfferYearlyPerYear: String?,
+	val isEligibleForIntroOffer: Boolean,
 )

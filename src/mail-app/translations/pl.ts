@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-06-10T11:47:01Z",
+	"updated_at": "2025-06-19T07:07:50Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -172,7 +172,7 @@ export default {
 		"birthdayEventAge_title": "{age} lat",
 		"birthdayEvent_title": "{name} obchodzi urodziny",
 		"birthday_alt": "Urodziny",
-		"blockExternalContentSender_action": "Zawsze blokuj nadawcę",
+		"blockExternalContentSender_action": "Zawsze blokuj obrazy",
 		"blue_label": "Niebieski",
 		"bonusMonth_msg": "Otrzymujesz {months} miesięcy bonusowych.",
 		"bonus_label": "Bonus",
@@ -1390,7 +1390,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Po wybraniu oferty Legend skontaktuj się z naszym działem pomocy technicznej za pomocą ikonki znaku zapytania znajdującej się po lewej stronie skrzynki pocztowej, abyśmy mogli aktywować obsługę wielu użytkowników. Każdy członek otrzyma skrzynkę pocztową o pojemności 500 GB pamięci i 30 aliasów e-mail (8 euro za użytkownika miesięcznie). Współdzielona skrzynka pocztowa (8 euro za miesiąc) również o pojemności 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "Po wybraniu oferty Revolutionary skontaktuj się z naszym działem pomocy technicznej za pomocą ikonki znaku zapytania znajdującej się po lewej stronie skrzynki pocztowej, abyśmy mogli aktywować obsługę wielu użytkowników. Każdy członek otrzyma skrzynkę pocztową z 20 GB pamięci i 15 aliasami e-mail (3 € za użytkownika miesięcznie). Współdzielona skrzynka pocztowa (3 euro za miesiąc) również o pojemności 20 GB.",
 		"pricing.family_label": "Opcja rodzinna",
-		"pricing.firstYearDiscount_revo_legend_msg": "Zniżka obowiązuje tylko przez pierwszy rok. Kolejna roczna cena będzie wynosić {revo-price} dla Revolutionary i {legend-price} dla Legend.",
+		"pricing.firstYearDiscount_revo_legend_msg": "Zniżka obowiązuje tylko przez pierwszy rok. Po czym opłata roczna będzie wynosić {revo-price} dla Revolutionary i {legend-price} dla Legend.",
 		"pricing.folders_label": "Nieograniczona ilość folderów",
 		"pricing.gdprDataProcessing_label": "Umowa o przetwarzaniu danych RODO",
 		"pricing.gdpr_label": "Zgodność z RODO",

@@ -111,6 +111,14 @@ class AssetSchemeHandler: NSObject, WKURLSchemeHandler {
 			return "application/application/vnd.iccprofile"
 		} else if let mimeType = getFileMIMEType(path: path) {
 			return mimeType
+		} else if path.hasSuffix(".woff2") {
+			return "font/woff2"
+		} else if path.hasSuffix(".woff") {
+			return "font/woff"
+		} else if path.hasSuffix(".ttf") {
+			return "font/ttf"
+		} else if path.hasSuffix(".otf") {
+			return "font/otf"
 		} else {
 			fatalError("Unknown asset type! \(path)")
 		}

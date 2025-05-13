@@ -4,12 +4,12 @@ import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import { getPlanSelectorTest, SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { Button, ButtonType } from "../gui/base/Button.js"
-import { UpgradeType } from "./SubscriptionUtils"
+import { hasAppleIntroOffer, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Const, Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { locator } from "../api/main/CommonLocator"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -18,9 +18,7 @@ import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
-import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
-import { completeSelectedStage } from "./PlanSelector.js"
-import { isIOSApp } from "../api/common/Env.js"
+import { px } from "../gui/size.js"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
@@ -127,10 +125,6 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				data.price = null
 				data.nextYearPrice = null
 
-				if (this.upgradeType === UpgradeType.Signup && !isIOSApp()) {
-					completeSelectedStage(PlanType.Free)
-				}
-
 				this.showNextPage()
 			}
 		})
@@ -206,12 +200,13 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupPaidTest.active = true
 			this.__signupPaidTest.getStage(0).complete()
 		}
+
 		data.type = planType
 		const { planPrices, options } = data
 		try {
 			// `data.price.rawPrice` is used for the amount parameter in the Braintree credit card verification call, so we do not include currency locale outside iOS.
-			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice)
-			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice)
+			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), UpgradePriceType.PlanActualPrice, data)
+			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), UpgradePriceType.PlanNextYearsPrice, data)
 			data.nextYearPrice = data.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 		} catch (e) {
 			console.error(e)
@@ -219,24 +214,33 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			return
 		}
 
-		if (this.upgradeType === UpgradeType.Signup && !isIOSApp()) {
-			completeSelectedStage(planType, data.options.paymentInterval())
-		}
-
 		this.showNextPage()
 	}
 
 	createUpgradeButton(data: UpgradeSubscriptionData, planType: PlanType): lazy<LoginButtonAttrs> {
 		const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
-
 		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
-		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
+		const isApplePrice = shouldShowApplePrices(data.accountingInfo)
+		const isGlobalCampaign = isApplePrice
+			? data.planPrices.getIosIntroOfferEligibility() && hasAppleIntroOffer(data.planPrices)
+			: data.planPrices.getRawPricingData().hasGlobalFirstYearDiscount
 
-		// Tuta bday / cyber monday
-		if (isYearly && isTutaBirthdayCampaign) {
+		// global discount
+		if (isYearly && isGlobalCampaign && (planType === PlanType.Legend || planType === PlanType.Revolutionary)) {
 			return () => ({
-				label: "pricing.cyber_monday_select_action",
-				class: "accent-bg-cyber-monday",
+				label: lang.makeTranslation("", "Go European"), // This text shall not be translated.
+				class: "go-european-button-legacy",
+				icon: m("img.block", {
+					src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
+					alt: "",
+					rel: "noreferrer",
+					loading: "lazy",
+					decoding: "async",
+					style: {
+						height: px(30),
+						width: px(30),
+					},
+				}),
 				onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 			})
 		}

@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Календары";
 TutaoNoTitleLabel = "<Няма назвы>";
 TutaoWidgetDescription = "Паказаць сённяшнія надыходзячыя падзеі";
 TutaoDefaultCalendarNameTitle = "Прыватна";
+TutaoWidgetMissingConfigurationErrorMsg = "Калі ласка, сканфуґуруй ўіджэт";
 TutaoBirthdayEventTitle = "{name} мае ДзНар";
 TutaoBirthdayEventAgeTitle = "{age} гадоў";
 TutaoBirthdayCalendarLabel = "Дні народзінаў";

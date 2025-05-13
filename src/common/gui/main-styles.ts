@@ -5,7 +5,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
-import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
+import { goEuropeanBlue, stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -763,9 +763,29 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_accent,
 			color: theme.content_button_icon_selected,
 		},
-		".accent-bg-cyber-monday": {
-			"background-color": theme.content_accent_tuta_bday,
-			color: theme.content_button_icon_selected,
+		".go-european-button": {
+			"background-color": "#FEDC59",
+			color: theme.themeId === "light" || theme.themeId === "light_secondary" ? goEuropeanBlue : "#232323",
+			"font-weight": "700",
+			display: "flex",
+			"justify-content": "center",
+			"align-items": "center",
+			height: "54px !important",
+			gap: px(size.hpad_button),
+		},
+		".go-european-button-legacy": {
+			"background-color": "#FEDC59",
+			color: theme.themeId === "light" || theme.themeId === "light_secondary" ? goEuropeanBlue : "#232323",
+			"font-weight": "700",
+			display: "flex",
+			"justify-content": "center",
+			"align-items": "center",
+			gap: px(size.hpad_button),
+		},
+		"go-european-button-icon": {
+			display: "inline-block",
+			width: px(30),
+			height: px(30),
 		},
 		".accent-fg": {
 			color: theme.content_button_icon,
@@ -2145,9 +2165,11 @@ styles.registerStyle("main", () => {
 		".ribbon-horizontal.nota": {
 			background: theme.tuta_color_nota,
 		},
-		".ribbon-horizontal-cyber-monday": {
-			background: theme.content_bg_tuta_bday,
-			color: theme.content_bg,
+		".ribbon-go-european": {
+			background: goEuropeanBlue,
+			color: "#ffffff",
+			height: "27px",
+			display: "flex",
 		},
 		".ribbon-horizontal:after": {
 			content: '""',
@@ -2159,8 +2181,11 @@ styles.registerStyle("main", () => {
 			bottom: "-6px",
 			right: 0,
 		},
-		".ribbon-horizontal-cyber-monday:after": {
-			"border-left": `6px solid ${theme.content_bg_tuta_bday}`,
+		".ribbon-go-european:after": {
+			"border-left": `6px solid ${goEuropeanBlue} !important`,
+		},
+		".ribbon-go-european:before": {
+			"border-right": `6px solid ${goEuropeanBlue} !important`,
 		},
 		".ribbon-horizontal.nota:after": {
 			"border-left": `6px solid ${theme.tuta_color_nota}`,
@@ -2177,9 +2202,6 @@ styles.registerStyle("main", () => {
 		},
 		".ribbon-horizontal.nota:before": {
 			"border-right": `6px solid ${theme.tuta_color_nota}`,
-		},
-		".ribbon-horizontal-cyber-monday:before": {
-			"border-right": `6px solid ${theme.content_bg_tuta_bday}`,
 		},
 		// calendar
 		".flex-end-on-child .button-content": {

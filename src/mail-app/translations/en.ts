@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-06-10T11:47:01Z",
+	"updated_at": "2025-06-19T07:39:17Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1385,13 +1385,16 @@ export default {
 		"pricing.familyLegend_tooltip": "After choosing Legend, contact our support via the question mark to the left of your mailbox so that we can activate multi-user support. Each member will get a mailbox with 500 GB & 30 alias email addresses (€8 per user/mth). A shared mailbox (€8 per mth) also gets 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "After choosing Revolutionary, contact our support via the question mark to the left of your mailbox so that we can activate multi-user support. Each member will get a mailbox with 20 GB & 15 alias email addresses (€3 per user/mth). A shared mailbox (€3 per mth) also gets 20 GB.",
 		"pricing.family_label": "Family option",
-		"pricing.firstYearDiscount_revo_legend_msg": "Discount only applies for the first year. Following yearly price will be {revo-price} for Revolutionary and {legend-price} for Legend.",
+		"pricing.firstYearDiscountIos_revo_legend_msg": "Discount only applies for the first year. Following yearly price will be {revo-price} for Revolutionary and {legend-price} for Legend.",
+		"pricing.firstYearDiscount_revo_legend_msg": "Discount only applies for the first year. Following yearly price per month will be {revo-price} for Revolutionary and {legend-price} for Legend.",
 		"pricing.folders_label": "Unlimited folders",
 		"pricing.gdprDataProcessing_label": "GDPR data processing agreement",
 		"pricing.gdpr_label": "GDPR-compliant",
 		"pricing.gdpr_tooltip": "All data is stored in compliance with strict European data protection regulations according to the GDPR.",
 		"pricing.getStarted_label": "Get started",
 		"pricing.globalFirstYearDiscountRibbon_label": "SAVE {amount}",
+		"pricing.goEuropeanHeadlineIos_msg": "Go European: One-time offer, save now!",
+		"pricing.goEuropeanHeadline_msg": "Go European: One-time offer, save {amount} now!",
 		"pricing.includesTaxes_msg": "Includes taxes.",
 		"pricing.legendAsterisk_msg": "Legend discount only applies for the first year. Following price will be 96€ per year.",
 		"pricing.login_title": "Login on own website",
@@ -1937,7 +1940,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Verifying payment data. Please be patient, this can take up to one minute.",
 		"update_action": "Update",
 		"upgradeConfirm_msg": "Confirm your order!",
-		"upgradeNeeded_msg": "Sorry, you are not allowed to send or receive emails (except to the Tuta sales support at sales@tutao.de) because you first need to finish ordering a paid plan.",
+		"upgradeNeeded_msg": "You are currently only allowed to exchange emails with the Tuta sales support at sales@tutao.de because you did not finish ordering a paid plan during signup. You can complete this process within 14 days after signup, after which your account will be deactivated.",
 		"upgradePlan_msg": "Your plan will be upgraded to {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Later",
@@ -2034,6 +2037,6 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"emailAddressFirst_msg": "Please first select an email address above.",
-		"invalidSignup_msg": "The signup process was interrupted. Please try again."
+		"invalidSignup_msg": "The signup process was interrupted. Please try again.",
 	}
 }
