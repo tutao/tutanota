@@ -3,23 +3,33 @@ import tutasdk
 
 public class SdkFileClient: FileClient {
 	public init() {}
-	private func writeFile(_ file: String, _ content: Data) async throws {
-		let fileURL = URL(fileURLWithPath: file)
-		try content.write(to: fileURL, options: .atomic)
+	// If anything is injected into RustSdk,
+	// all of the interaction with that component should always return error compatible to rust's
+	// Result::E type. Throwing any other class of Error, uniffi wont be able to convert to Rust Error type
+	// and thread will panic in uniffi layer
+	private func mapExceptionToError(e: Error) -> FileClientError {
+		// currently we are not aware of all the exception thrown and we also do not need specific info for FileClient,
+		// Improvement idea would be to check `e` and convert it to correct error type
+		// See: SdkFileClient.kt ( kotlin )
+		TUTSLog("Exception in SdkFileClient: \(e). Assuming .Unknown")
+		return FileClientError.Unknown
 	}
-	private func readFile(_ path: String) throws -> Data {
-		guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else { throw FileClientError.NotFound }
 
-		return data
-	}
 	public func persistContent(name: String, content: Data) async throws {
-		guard let supportDir = try? FileUtils.getApplicationSupportFolder() else { throw FileClientError.NotFound }
-		let filePath = supportDir.appendingPathComponent(name)
-		try await self.writeFile(filePath.path, content)
+		do {
+			let supportDir = try FileUtils.getApplicationSupportFolder()
+			let filePath = supportDir.appendingPathComponent(name)
+			let fileUrl = URL(fileURLWithPath: filePath.path)
+			try content.write(to: fileUrl, options: .atomic)
+		} catch let e { throw mapExceptionToError(e: e) }
 	}
+
 	public func readContent(name: String) async throws -> Data {
-		guard let supportDir = try? FileUtils.getApplicationSupportFolder() else { throw FileClientError.NotFound }
-		let filePath = supportDir.appendingPathComponent(name)
-		return try self.readFile(filePath.path)
+		do {
+			let supportDir = try FileUtils.getApplicationSupportFolder()
+			let filePath = supportDir.appendingPathComponent(name)
+			let fileUrl = URL(fileURLWithPath: filePath.path)
+			return try Data(contentsOf: fileUrl)
+		} catch let e { throw mapExceptionToError(e: e) }
 	}
 }
