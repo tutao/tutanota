@@ -18,7 +18,6 @@ const DEFAULT_HEIGHT = 666
 export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> {
 	view(vnode: Vnode<MethodSelectionPageAttrs>): Children {
 		const model = vnode.attrs.model
-		const test = model.test
 
 		const makeOption = (name: MaybeTranslation, value: KeyVerificationMethodType): RadioSelectorOption<KeyVerificationMethodType> => ({
 			name,
@@ -50,13 +49,11 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 				),
 				[
 					this.renderTextMethodButton(async () => {
-						await model.handleMethodSwitchForUsageTest(KeyVerificationMethodType.text)
-						await test.start(KeyVerificationMethodType.text)
+						await model.handleMethodSwitch(KeyVerificationMethodType.text)
 						vnode.attrs.goToEmailInputPage()
 					}),
 					this.renderQRMethodButton(async () => {
-						await model.handleMethodSwitchForUsageTest(KeyVerificationMethodType.qr)
-						await test.start(KeyVerificationMethodType.qr)
+						await model.handleMethodSwitch(KeyVerificationMethodType.qr)
 						vnode.attrs.goToQrScanPage()
 					}),
 				],
