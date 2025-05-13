@@ -326,8 +326,14 @@ impl EntityFacadeImpl {
 			if let Some(error) = error {
 				mapped_errors.insert(value_id_string.clone(), ElementValue::String(error));
 			}
-			if let Some(iv) = iv {
-				mapped_ivs.insert(value_id_string, ElementValue::Bytes(iv.clone()));
+			match iv {
+				Some(iv) => {
+					mapped_ivs.insert(value_id_string, ElementValue::Bytes(iv.clone()));
+				},
+				None if value_type.is_final && value_type.encrypted => {
+					mapped_ivs.insert(value_id_string, ElementValue::Null);
+				},
+				_ => {},
 			}
 		}
 
@@ -447,7 +453,7 @@ impl EntityFacadeImpl {
 				let value = model_value.value_type.get_default();
 				Ok(MappedValue {
 					value,
-					iv: Some(Vec::new()),
+					iv: None,
 					error: None,
 				})
 			},
@@ -887,7 +893,6 @@ mod tests {
 				},
 			)
 			.unwrap();
-
 		let instance_mapper = InstanceMapper::new(type_model_provider.clone());
 		let _mail: Mail = instance_mapper
 			.parse_entity(decrypted_mail.clone())
@@ -1668,7 +1673,12 @@ mod tests {
 			match value {
 				ElementValue::Dict(value_map) if name == "_finalIvs" => {
 					for (_n, actual_iv) in value_map.iter() {
-						assert_eq!(iv.get_inner(), actual_iv.assert_bytes().as_slice());
+						match actual_iv {
+							ElementValue::Null | ElementValue::Bytes(_) => {},
+							__other => {
+								panic!("Unexpected element value: {:?}", __other);
+							},
+						}
 					}
 					value_map.clear();
 				},

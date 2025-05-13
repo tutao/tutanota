@@ -132,7 +132,7 @@ pub struct GroupInfo {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for GroupInfo {
@@ -657,7 +657,7 @@ pub struct AccountingInfo {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for AccountingInfo {
@@ -1556,7 +1556,7 @@ pub struct PushIdentifier {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for PushIdentifier {
@@ -2093,7 +2093,7 @@ pub struct PaymentDataServicePutData {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for PaymentDataServicePutData {
@@ -2307,7 +2307,7 @@ pub struct EmailSenderListElement {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for EmailSenderListElement {
@@ -2345,7 +2345,7 @@ pub struct CustomerServerProperties {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CustomerServerProperties {
@@ -2488,7 +2488,7 @@ pub struct AuditLogEntry {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for AuditLogEntry {
@@ -2767,7 +2767,7 @@ pub struct Session {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for Session {
@@ -2996,7 +2996,7 @@ pub struct WhitelabelChild {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for WhitelabelChild {
@@ -3065,7 +3065,7 @@ pub struct CreditCard {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CreditCard {
@@ -3125,7 +3125,7 @@ pub struct OrderProcessingAgreement {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for OrderProcessingAgreement {
@@ -3561,7 +3561,7 @@ pub struct AlarmInfo {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for AlarmInfo {
@@ -3595,7 +3595,7 @@ pub struct UserAlarmInfo {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for UserAlarmInfo {
@@ -3669,7 +3669,7 @@ pub struct RepeatRule {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for RepeatRule {
@@ -3706,7 +3706,7 @@ pub struct AlarmNotification {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for AlarmNotification {
@@ -3729,7 +3729,7 @@ pub struct AlarmServicePost {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for AlarmServicePost {
@@ -3868,7 +3868,7 @@ pub struct ReceivedGroupInvitation {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ReceivedGroupInvitation {
@@ -3953,7 +3953,7 @@ pub struct InvoiceItem {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for InvoiceItem {
@@ -4017,7 +4017,7 @@ pub struct Invoice {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for Invoice {
@@ -4055,7 +4055,7 @@ pub struct MissedNotification {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MissedNotification {
@@ -4229,7 +4229,7 @@ pub struct GiftCard {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for GiftCard {
@@ -4320,7 +4320,7 @@ pub struct GiftCardCreateData {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for GiftCardCreateData {
@@ -4406,7 +4406,7 @@ pub struct GiftCardRedeemGetReturn {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for GiftCardRedeemGetReturn {
@@ -4889,7 +4889,7 @@ pub struct DateWrapper {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DateWrapper {
@@ -5492,7 +5492,7 @@ pub struct GroupKeyUpdate {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for GroupKeyUpdate {
@@ -5830,7 +5830,7 @@ pub struct CalendarAdvancedRepeatRule {
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CalendarAdvancedRepeatRule {

@@ -62,7 +62,7 @@ pub struct ${typeName} {\n`
 	#[serde(default)]
 	pub _errors: Errors,
 	#[serde(default)]
-	pub _finalIvs: HashMap<String, FinalIv>,
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 `
 	}
 

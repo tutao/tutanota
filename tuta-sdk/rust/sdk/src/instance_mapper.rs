@@ -266,7 +266,7 @@ struct ElementValueDeserializer<'t> {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ElementValueKey {
 	AttributeId(AttributeId),
-	MaybeErrorKeyseys(String),
+	MaybeErrorKeys(String),
 	FinalIvs,
 	Errors,
 }
@@ -280,7 +280,7 @@ impl ElementValueKey {
 		} else if key_str == "_finalIvs" {
 			Self::FinalIvs
 		} else {
-			Self::MaybeErrorKeyseys(key_str)
+			Self::MaybeErrorKeys(key_str)
 		}
 	}
 
@@ -477,7 +477,7 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 
 		let attribute_id = match self.attribute_id {
 			ElementValueKey::AttributeId(attribute_id) => attribute_id,
-			ElementValueKey::MaybeErrorKeyseys(_)
+			ElementValueKey::MaybeErrorKeys(_)
 			| ElementValueKey::Errors
 			| ElementValueKey::FinalIvs => {
 				todo!()
