@@ -119,14 +119,35 @@ export async function showSwitchDialog(
 			help: "close_alt",
 		})
 		.setCloseHandler(cancelAction)
+
+	const hasFirstYearDiscount = (targetPlan: PlanType) => {
+		const paymentMethod = accountingInfo.paymentMethod
+		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
+		const isYearly = paymentInterval() === PaymentInterval.Yearly
+
+		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
+			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase())
+			return hasGlobalFirstYearDiscount && isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
+		} else {
+			return hasGlobalFirstYearDiscount && isYearly
+		}
+	}
+
 	const subscriptionActionButtons: SubscriptionActionButtons = {
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
 				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo),
 			} satisfies LoginButtonAttrs),
-		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, paymentInterval, accountingInfo),
-		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, paymentInterval, accountingInfo),
+		[PlanType.Revolutionary]: createPlanButton(
+			dialog,
+			PlanType.Revolutionary,
+			currentPlanInfo,
+			paymentInterval,
+			accountingInfo,
+			hasFirstYearDiscount(PlanType.Revolutionary),
+		),
+		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, paymentInterval, accountingInfo, hasFirstYearDiscount(PlanType.Legend)),
 		[PlanType.Essential]: createPlanButton(dialog, PlanType.Essential, currentPlanInfo, paymentInterval, accountingInfo),
 		[PlanType.Advanced]: createPlanButton(dialog, PlanType.Advanced, currentPlanInfo, paymentInterval, accountingInfo),
 		[PlanType.Unlimited]: createPlanButton(dialog, PlanType.Unlimited, currentPlanInfo, paymentInterval, accountingInfo),
@@ -216,9 +237,11 @@ function createPlanButton(
 	currentPlanInfo: CurrentPlanInfo,
 	newPaymentInterval: stream<PaymentInterval>,
 	accountingInfo: AccountingInfo,
+	shouldApplyDiscount: boolean = false,
 ): lazy<LoginButtonAttrs> {
 	return () => ({
 		label: "buy_action",
+		...(shouldApplyDiscount && { class: "go-european-button" }),
 		onclick: async () => {
 			// Show an extra dialog in the case that someone is upgrading from a legacy plan to a new plan because they can't revert.
 			if (

@@ -2,29 +2,28 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { lang, type TranslationKey } from "../misc/LanguageViewModel"
-import { getPlanSelectorTest, resolvePlanSelectorVariant, SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import { UpgradeType } from "./SubscriptionUtils"
+import { hasAppleIntroOffer, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Const, Keys, NewBusinessPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { Keys, NewBusinessPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import { locator } from "../api/main/CommonLocator"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
-import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
-import { completeSelectedStage, PlanSelector } from "./PlanSelector.js"
+import { PlanSelector } from "./PlanSelector.js"
 import { styles } from "../gui/styles.js"
 import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
+import { isIOSApp } from "../api/common/Env.js"
+import { BootIcons } from "../gui/base/icons/BootIcons.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -38,20 +37,10 @@ export const PlanTypeParameter = Object.freeze({
 
 export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
-	private __signupFreeTest?: UsageTest
-	private __signupPaidTest?: UsageTest
-	private upgradeType: UpgradeType | null = null
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
 		this._dom = vnode.dom as HTMLElement
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
-		this.upgradeType = vnode.attrs.data.upgradeType
-
-		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
-		this.__signupFreeTest.active = false
-
-		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__signupPaidTest.active = false
 
 		if (subscriptionParameters) {
 			const paymentInterval: PaymentInterval = subscriptionParameters.interval
@@ -62,36 +51,47 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 			vnode.attrs.data.options.paymentInterval = stream(paymentInterval)
 			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
 		}
-
-		console.info("This is variant C (3) shown!")
-
-		const test = getPlanSelectorTest()
-		void test.forceRestart()
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		const data = vnode.attrs.data
-		let availablePlans = vnode.attrs.data.acceptedPlans
+	view({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
+		const { featureListProvider, planPrices, acceptedPlans, newAccountData, accountingInfo } = data
+		let availablePlans = acceptedPlans
+		const isApplePrice = shouldShowApplePrices(accountingInfo)
+		const hasCampaign = isApplePrice
+			? planPrices.getIosIntroOfferEligibility() && hasAppleIntroOffer(planPrices)
+			: planPrices.getRawPricingData().hasGlobalFirstYearDiscount
+
 		// newAccountData is filled in when signing up and then going back in the signup process
 		// If the user has selected a tuta.com address we want to prevent them from selecting a free plan at this point
-		if (!!data.newAccountData && data.newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
+		if (!!newAccountData && newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
 			availablePlans = availablePlans.filter((plan) => plan != PlanType.Free)
 		}
 
-		const subscriptionActionButtons: SubscriptionActionButtons = {
+		const createPaidPlanActionButtons = (planType: PlanType): lazy<LoginButtonAttrs> => {
+			const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
+			const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
+
+			return () => ({
+				label: isFirstMonthForFree && isYearly ? "pricing.selectTryForFree_label" : "pricing.select_action",
+				onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
+			})
+		}
+
+		const actionButtons: SubscriptionActionButtons = {
 			[PlanType.Free]: () => {
 				return {
 					label: "pricing.select_action",
 					onclick: () => this.selectFree(data),
 				} as LoginButtonAttrs
 			},
-			[PlanType.Revolutionary]: this.createUpgradeButton(data, PlanType.Revolutionary),
-			[PlanType.Legend]: this.createUpgradeButton(data, PlanType.Legend),
-			[PlanType.Essential]: this.createUpgradeButton(data, PlanType.Essential),
-			[PlanType.Advanced]: this.createUpgradeButton(data, PlanType.Advanced),
-			[PlanType.Unlimited]: this.createUpgradeButton(data, PlanType.Unlimited),
+			[PlanType.Revolutionary]: createPaidPlanActionButtons(PlanType.Revolutionary),
+			[PlanType.Legend]: createPaidPlanActionButtons(PlanType.Legend),
+			[PlanType.Essential]: createPaidPlanActionButtons(PlanType.Essential),
+			[PlanType.Advanced]: createPaidPlanActionButtons(PlanType.Advanced),
+			[PlanType.Unlimited]: createPaidPlanActionButtons(PlanType.Unlimited),
 		}
 
+		// Show the old plan selector for business plans
 		if (data.options.businessUse()) {
 			return m(".pt", [
 				m(SubscriptionSelector, {
@@ -102,62 +102,70 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 					acceptedPlans: NewBusinessPlans,
 					allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
 					currentPlanType: data.currentPlan,
-					actionButtons: subscriptionActionButtons,
-					featureListProvider: vnode.attrs.data.featureListProvider,
-					priceAndConfigProvider: vnode.attrs.data.planPrices,
-					multipleUsersAllowed: vnode.attrs.data.multipleUsersAllowed,
+					actionButtons: actionButtons,
+					featureListProvider: featureListProvider,
+					priceAndConfigProvider: planPrices,
+					multipleUsersAllowed: data.multipleUsersAllowed,
 					msg: data.msg,
-					accountingInfo: vnode.attrs.data.accountingInfo,
+					accountingInfo: accountingInfo,
 				}),
 			])
 		}
 
 		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
 		return m(".", [
+			// Headline for a global campaign
+			hasCampaign &&
+				m(
+					".flex-center.items-center.gap-hpad.mb",
+					m(Icon, {
+						icon: BootIcons.Heart,
+						size: IconSize.XL,
+						container: "div",
+						style: { fill: theme.experimental_tertiary },
+					}),
+					// This text should not be translated to other languages.
+					m(
+						".b.center.smaller",
+						isIOSApp()
+							? lang.getTranslationText("pricing.goEuropeanHeadlineIos_msg")
+							: lang.getTranslation("pricing.goEuropeanHeadline_msg", { "{amount}": "50%" }).text,
+					),
+				),
+			// Headline for general messages
+			data.msg && m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", lang.getTranslationText(data.msg))),
 			m(PlanSelector, {
 				options: data.options,
-				variant: "C",
-				actionButtons: subscriptionActionButtons,
-				featureListProvider: vnode.attrs.data.featureListProvider,
-				priceAndConfigProvider: vnode.attrs.data.planPrices,
+				actionButtons,
+				priceAndConfigProvider: planPrices,
+				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
+				hidePaidPlans: availablePlans.includes(PlanType.Free) && availablePlans.length === 1,
+				isApplePrice,
 			}),
 		])
 	}
 
-	selectFree(data: UpgradeSubscriptionData) {
+	private selectFree(data: UpgradeSubscriptionData) {
 		// Confirmation of free subscription selection (click on subscription selector)
-		if (this.__signupPaidTest) {
-			this.__signupPaidTest.active = false
-		}
-
-		if (this.__signupFreeTest && this.upgradeType == UpgradeType.Signup) {
-			this.__signupFreeTest.active = true
-			this.__signupFreeTest.getStage(0).complete()
-		}
-		confirmFreeSubscription().then((confirmed) => {
+		showFreeSubscriptionDialog().then((confirmed) => {
 			if (confirmed) {
 				// Confirmation of free/business dialog (click on ok)
-				this.__signupFreeTest?.getStage(1).complete()
 				data.type = PlanType.Free
 				data.price = null
 				data.nextYearPrice = null
-
-				if (this.upgradeType === UpgradeType.Signup) {
-					completeSelectedStage(PlanType.Free)
-				}
 
 				this.showNextPage()
 			}
 		})
 	}
 
-	showNextPage(): void {
+	private showNextPage(): void {
 		if (this._dom) {
 			emitWizardEvent(this._dom, WizardEventType.SHOW_NEXT_PAGE)
 		}
 	}
 
-	goToNextPageWithPreselectedSubscription(subscriptionParameters: SubscriptionParameters, data: UpgradeSubscriptionData): void {
+	private goToNextPageWithPreselectedSubscription(subscriptionParameters: SubscriptionParameters, data: UpgradeSubscriptionData): void {
 		let subscriptionType: SubscriptionType | null
 		try {
 			subscriptionType = subscriptionParameters.type == null ? null : stringToSubscriptionType(subscriptionParameters.type)
@@ -191,59 +199,26 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		}
 	}
 
-	setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, planType: PlanType): void {
+	private setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, planType: PlanType): void {
 		// Confirmation of paid subscription selection (click on subscription selector)
-		if (this.__signupFreeTest) {
-			this.__signupFreeTest.active = false
-		}
-
-		if (this.__signupPaidTest && this.upgradeType == UpgradeType.Signup) {
-			this.__signupPaidTest.active = true
-			this.__signupPaidTest.getStage(0).complete()
-		}
 		data.type = planType
 		const { planPrices, options } = data
 		try {
 			// `data.price.rawPrice` is used for the amount parameter in the Braintree credit card verification call, so we do not include currency locale outside iOS.
-			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice)
-			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice)
+			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), UpgradePriceType.PlanActualPrice, data)
+			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), UpgradePriceType.PlanNextYearsPrice, data)
 			data.nextYearPrice = data.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 		} catch (e) {
 			console.error(e)
-			Dialog.message("appStoreNotAvailable_msg")
+			void Dialog.message("appStoreNotAvailable_msg")
 			return
-		}
-
-		if (this.upgradeType === UpgradeType.Signup) {
-			completeSelectedStage(planType, data.options.paymentInterval())
 		}
 
 		this.showNextPage()
 	}
-
-	createUpgradeButton(data: UpgradeSubscriptionData, planType: PlanType): lazy<LoginButtonAttrs> {
-		const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
-
-		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
-		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
-
-		// Tuta bday / cyber monday
-		if (isYearly && isTutaBirthdayCampaign) {
-			return () => ({
-				label: "pricing.cyber_monday_select_action",
-				class: "accent-bg-cyber-monday",
-				onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
-			})
-		}
-
-		return () => ({
-			label: isFirstMonthForFree && isYearly ? "pricing.selectTryForFree_label" : "pricing.select_action",
-			onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
-		})
-	}
 }
 
-function confirmFreeSubscription(): Promise<boolean> {
+function showFreeSubscriptionDialog(): Promise<boolean> {
 	return new Promise((resolve) => {
 		let oneAccountValue = stream(false)
 		let privateUseValue = stream(false)
@@ -256,7 +231,6 @@ function confirmFreeSubscription(): Promise<boolean> {
 		const isFormValid = () => oneAccountValue() && privateUseValue()
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
-				// m(".h2.pb", lang.get("confirmFreeAccount_label")),
 				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable", lang.getTranslationText("freeAccountInfo_msg")),
 				m(".dialog-contentButtonsBottom", [
 					m(Checkbox, {
@@ -316,7 +290,7 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 		return "subscription_label"
 	}
 
-	nextAction(showErrorDialog: boolean): Promise<boolean> {
+	nextAction(_: boolean): Promise<boolean> {
 		// next action not available for this page
 		return Promise.resolve(true)
 	}
@@ -327,9 +301,11 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 		return false
 	}
 
-	public rightAction = (update: VoidFunction): ButtonAttrs => {
-		return getPrivateBusinessSwitchButton(this.data.options.businessUse, update)
-	}
+	public rightAction = isIOSApp()
+		? undefined
+		: (update: VoidFunction): ButtonAttrs => {
+				return getPrivateBusinessSwitchButton(this.data.options.businessUse, update)
+		  }
 
 	isEnabled(): boolean {
 		return true
@@ -356,19 +332,6 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, upd
 						},
 				  }),
 		click: () => {
-			if (!isBusiness) {
-				const planSelectorTest = getPlanSelectorTest()
-				if (planSelectorTest.testId !== "obsolete") {
-					const usageTest = locator.usageTestController.getTest("signup.paywall.business")
-					const stage = usageTest.getStage(0)
-					stage.setMetric({
-						name: "variant",
-						value: resolvePlanSelectorVariant(planSelectorTest.variant),
-					})
-					void stage.complete()
-				}
-			}
-
 			businessUse(!isBusiness)
 			update()
 		},

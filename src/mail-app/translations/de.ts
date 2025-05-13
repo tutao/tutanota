@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-06-10T11:47:10Z",
+	"updated_at": "2025-06-19T07:39:18Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1389,6 +1389,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Nachdem du Legend gebucht hast, kontaktiere unseren Support über das Fragezeichen links neben deiner Mailbox, damit wir den Multi-User-Support aktivieren können. Jede*r erhält ein eigenes Postfach mit 500 GB & 30 Alias-E-Mail-Adressen (8 € pro Nutzer/Monat). Eine geteilte Mailbox (8 € pro Monat) erhält ebenfalls 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "Nachdem du Revolutionary gebucht hast, kontaktiere unseren Support über das Fragezeichen links neben deiner Mailbox, damit wir den Multi-User-Support aktivieren können. Jede*r erhält ein eigenes Postfach mit 20 GB & 15 Alias-E-Mail-Adressen (3 € pro Nutzer/Monat). Eine geteilte Mailbox (3 € pro Monat) erhält ebenfalls 20 GB.",
 		"pricing.family_label": "Familienoption",
+		"pricing.firstYearDiscountIos_revo_legend_msg": "Der Rabatt gilt nur für das erste Jahr. Der Preis im Folgejahr ist {revo-price} für Revolutionary und {legend-price} für Legend.",
 		"pricing.firstYearDiscount_revo_legend_msg": "Der Rabatt gilt nur für das erste Jahr. Danach beträgt der jährliche Preis {revo-price} für Revolutionary und {legend-price} für Legend.",
 		"pricing.folders_label": "Unbegrenzte Ordner",
 		"pricing.gdprDataProcessing_label": "DSGVO-Vereinbarung zur Datenverarbeitung",
@@ -1396,6 +1397,8 @@ export default {
 		"pricing.gdpr_tooltip": "Alle Daten werden konform mit den strengen europäischen Datenschutz-Bestimmungen gemäß der DSGVO gespeichert.",
 		"pricing.getStarted_label": "Registrieren",
 		"pricing.globalFirstYearDiscountRibbon_label": "SPARE {amount}",
+		"pricing.goEuropeanHeadlineIos_msg": "Go European: Einmaliges Angebot, spare jetzt!",
+		"pricing.goEuropeanHeadline_msg": "Go European: Einmaliges Angebot, spare jetzt {amount}!",
 		"pricing.includesTaxes_msg": "Inklusive MwSt.",
 		"pricing.legendAsterisk_msg": "Der Rabatt gilt nur für das erste Jahr. Im Anschluss kostet Legend 96€ pro Jahr.",
 		"pricing.login_title": "Login auf der eigenen Webseite",
@@ -2037,7 +2040,7 @@ export default {
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"emailAddressFirst_msg": "Bitte zuerst oben eine E-Mail-Adresse auswählen.",
-		"invalidSignup_msg": "Die Registrierung wurde unterbrochen. Bitte versuche es noch einmal."
+		"emailAddressFirst_msg": "Please first select an email address above.",
+		"invalidSignup_msg": "The signup process was interrupted. Please try again."
 	}
 }

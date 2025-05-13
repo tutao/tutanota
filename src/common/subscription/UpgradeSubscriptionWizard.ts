@@ -222,9 +222,7 @@ export async function loadSignupWizard(
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
-
 	const plansPage = initPlansPages(signupData)
-
 	const wizardPages = [
 		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
@@ -279,9 +277,10 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 		pricingData.revolutionaryPrices.monthlyPrice !== pricingData.revolutionaryPrices.monthlyReferencePrice
 	const hasMessage = !!pricingData.messageTextId
 
-	if (firstYearDiscount === 0 && bonusMonth === 0 && !hasDiscount && !hasMessage && !isIOSApp()) {
-		return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
-	} else {
+	// Any type of discounts other than global first year discount use old subscription page.
+	if (!pricingData.hasGlobalFirstYearDiscount && (firstYearDiscount !== 0 || bonusMonth !== 0 || hasDiscount || hasMessage)) {
 		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
+	} else {
+		return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
 	}
 }
