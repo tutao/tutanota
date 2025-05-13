@@ -5,14 +5,13 @@ import { lang } from "../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { Icon } from "../gui/base/Icon"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import { AvailablePlanType, Const, PlanType } from "../api/common/TutanotaConstants"
+import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants"
 import { PaymentInterval } from "./PriceUtils"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
-import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { isIOSApp } from "../api/common/Env"
 import { isColorLight } from "../gui/base/Color.js"
 
@@ -43,7 +42,7 @@ export type BuyOptionBoxAttr = {
 	 * Nullable because of the gift card component compatibility
 	 */
 	targetSubscription?: AvailablePlanType
-	isCampaign?: boolean
+	hasGlobalCampaign?: boolean
 	isFirstMonthForFree?: boolean
 	hasPriceFootnote?: boolean
 }
@@ -145,15 +144,15 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	view(vnode: Vnode<BuyOptionBoxAttr>) {
 		const { attrs } = vnode
 
-		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
+		const hasGlobalCampaign = attrs.hasGlobalCampaign ?? false
 		const isLegendPlan = attrs.targetSubscription === PlanType.Legend
 		const isPersonalPaidPlan = attrs.targetSubscription === PlanType.Revolutionary || attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
 		const shouldApplyCampaignColor =
-			attrs.highlighted && attrs.isCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
+			attrs.highlighted && attrs.hasGlobalCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
 
 		function getRibbon(): Children {
-			if (isLegendPlan && isTutaBirthdayCampaign && isYearly) {
+			if (isLegendPlan && hasGlobalCampaign && isYearly) {
 				return BuyOptionBox.renderCampaignRibbon()
 			}
 
@@ -193,7 +192,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							height: "100%",
 							...(attrs.highlighted &&
 								isLegendPlan &&
-								isTutaBirthdayCampaign &&
+								hasGlobalCampaign &&
 								isYearly && {
 									border: `2px solid ${theme.content_accent_tuta_bday}`,
 									padding: px(9),
@@ -211,7 +210,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							vnode.attrs.hasPriceFootnote && m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
 						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
-						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isLegendPlan && isTutaBirthdayCampaign && isYearly),
+						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isLegendPlan && hasGlobalCampaign && isYearly),
 						attrs.actionButton
 							? m(
 									".button-min-height",

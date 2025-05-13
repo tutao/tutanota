@@ -20,7 +20,6 @@ import { Button, ButtonType } from "../gui/base/Button.js"
 import { downcast, lazy, NBSP } from "@tutao/tutanota-utils"
 import {
 	AvailablePlanType,
-	Const,
 	CustomDomainType,
 	CustomDomainTypeCountName,
 	HighlightedPlans,
@@ -34,7 +33,6 @@ import {
 import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
-import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { theme } from "../gui/theme.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { UpgradeType } from "./SubscriptionUtils.js"
@@ -151,7 +149,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// Show the business segmentControl for signup, if both personal & business plans are allowed
 		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !isIOSApp()
 
-		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
+		const isTutaBirthdayCampaign = priceAndConfigProvider.getRawPricingData().hasGlobalCampaign
 
 		let subscriptionPeriodInfoMsg = !signup && currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (options.businessUse()) {
@@ -388,7 +386,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 					: 0,
 			targetSubscription,
-			isCampaign,
+			hasGlobalCampaign: isCampaign,
 			isFirstMonthForFree: appliesFirstMonthForFree,
 		}
 	}
