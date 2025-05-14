@@ -19,6 +19,8 @@ export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 	view(vnode: Vnode<SegmentControlAttrs<T>>): Children {
 		const { shouldApplyCampaignColor, selectedValue, items, itemMaxWidth } = vnode.attrs
 
+		const campaignColor = theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013e85" : "#fff"
+
 		return [
 			m(
 				".segmentControl.flex.center-horizontally.button-height",
@@ -36,8 +38,8 @@ export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 								flex: "0 1 " + (typeof itemMaxWidth !== "undefined" ? px(itemMaxWidth) : px(120)),
 								...(shouldApplyCampaignColor &&
 									item.value === selectedValue && {
-										border: `2px solid ${theme.content_accent_tuta_bday}`,
-										color: theme.content_accent_tuta_bday,
+										border: `2px solid ${campaignColor}`,
+										color: campaignColor,
 									}),
 							},
 							title: item.name,
