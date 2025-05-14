@@ -139,7 +139,8 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			let progenitorTimeInMilis = progenitorTime * 1000
 			let generatedEvents = eventFacade.generateFutureInstances(
 				date: progenitorTimeInMilis,  // To Milliseconds
-				repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules)
+				repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules),
+				progenitorDate: UInt64(calcEventStart.timeIntervalSince1970 * 1000)
 			)
 			self.expandedEvents.append(contentsOf: generatedEvents)
 			// Handle the event 0

@@ -73,9 +73,10 @@ object AlarmModel {
 
 			var expandedEvents: List<DateTime> = eventFacade.generateFutureInstances(
 				calendar.time.time.toULong(),
-				EventRepeatRule(frequency.toSdkPeriod(), byRules)
+				EventRepeatRule(frequency.toSdkPeriod(), byRules),
+				startTime
 			)
-			
+
 			// Add the progenitor if it isn't included in the expansion
 			if (intervalOccurrences == 0 && !expandedEvents.contains(startTime)) {
 				expandedEvents = expandedEvents.plus(startTime)
