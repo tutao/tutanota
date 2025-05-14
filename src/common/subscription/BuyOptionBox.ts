@@ -145,14 +145,13 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		const { attrs } = vnode
 
 		const hasGlobalCampaign = attrs.hasGlobalCampaign ?? false
-		const isLegendPlan = attrs.targetSubscription === PlanType.Legend
 		const isPersonalPaidPlan = attrs.targetSubscription === PlanType.Revolutionary || attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
 		const shouldApplyCampaignColor =
 			attrs.highlighted && attrs.hasGlobalCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
 
 		function getRibbon(): Children {
-			if (isLegendPlan && hasGlobalCampaign && isYearly) {
+			if (isPersonalPaidPlan && hasGlobalCampaign && isYearly) {
 				return BuyOptionBox.renderCampaignRibbon()
 			}
 
@@ -191,7 +190,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							"border-radius": "3px",
 							height: "100%",
 							...(attrs.highlighted &&
-								isLegendPlan &&
+								isPersonalPaidPlan &&
 								hasGlobalCampaign &&
 								isYearly && {
 									border: `2px solid ${theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013E85" : "#ffffff"}`,
@@ -210,7 +209,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							vnode.attrs.hasPriceFootnote && m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
 						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
-						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isLegendPlan && hasGlobalCampaign && isYearly),
+						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isPersonalPaidPlan && hasGlobalCampaign && isYearly),
 						attrs.actionButton
 							? m(
 									".button-min-height",

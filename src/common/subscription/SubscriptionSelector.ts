@@ -126,7 +126,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (isCampaign && !isBusiness) {
-			return wrapInDiv("Birthday Deal: Become a LEGEND", { width: "230px", margin: "1em auto 0 auto" })
+			return wrapInDiv("One-time offer: Save 50% now!", { margin: "1em auto 0 auto" })
 		}
 	}
 
@@ -156,18 +156,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
 		} else {
 			if (inMobileView) {
-				if (isTutaBirthdayCampaign) {
-					plans = [PlanType.Legend, PlanType.Revolutionary, PlanType.Free]
-				} else {
-					plans = [PlanType.Revolutionary, PlanType.Legend, PlanType.Free]
-				}
+				plans = [PlanType.Revolutionary, PlanType.Legend, PlanType.Free]
 			} else {
-				if (isTutaBirthdayCampaign) {
-					plans = [PlanType.Free, PlanType.Legend, PlanType.Revolutionary]
-				} else {
-					plans = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
-				}
+				plans = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
 			}
+
 			subscriptionPeriodInfoMsg += lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
 		}
 
@@ -192,6 +185,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			m(".smaller.mb", subscriptionPeriodInfoMsg),
 			footnoteElement && m(".smaller.mb", footnoteElement),
 		])
+
+		console.log(plans)
 
 		const buyBoxesViewPlacement = plans
 			.filter((plan) => acceptedPlans.includes(plan) || currentPlanType === plan)
@@ -293,7 +288,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
 		const isHighlighted = (() => {
 			if (isCampaign) {
-				return targetSubscription === PlanType.Legend
+				return targetSubscription === PlanType.Revolutionary
 			}
 
 			return upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription)
@@ -404,14 +399,14 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			})
 			.filter((fc): fc is BuyOptionDetailsAttr["categories"][0] => fc != null)
 
-		const isLegend = targetSubscription === PlanType.Legend
+		const isPaidPersonalPlan = targetSubscription === PlanType.Legend || targetSubscription === PlanType.Revolutionary
 		const isYearly = selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
 
 		return {
 			categories: categoriesToShow,
 			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
 			renderCategoryTitle,
-			iconStyle: isCampaign && isYearly && isLegend ? { fill: "#FEDC59" } : undefined,
+			iconStyle: isCampaign && isYearly && isPaidPersonalPlan ? { fill: "#e5c650" } : undefined,
 		}
 	}
 
