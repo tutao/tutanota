@@ -265,16 +265,16 @@ export class GroupManagementFacade {
 	async createIdentityKeyPairForExistingTeamGroups() {
 		const user = assertNotNull(this.userFacade.getUser(), "User not available when trying to create identity keys for existing shared mailboxes")
 
-		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupType.Admin)
-		if (adminGroupMembership == null) {
-			console.log("Only admin users can create identity keys for team groups")
-			return
-		}
+		const adminGroupMembership = assertNotNull(
+			user.memberships.find((m) => m.groupType === GroupType.Admin),
+			"Only admin users can create identity keys for team groups",
+		)
+
 		const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupMembership.group)
 
-		const sharedMailboxGroups = await this.loadTeamGroupIds()
+		const teamGroupIds = await this.loadTeamGroupIds()
 
-		for (const groupId of sharedMailboxGroups) {
+		for (const groupId of teamGroupIds) {
 			try {
 				// it can be the case that some groups already have an identity key, so we check first
 				const group = await this.entityClient.load(GroupTypeRef, groupId)

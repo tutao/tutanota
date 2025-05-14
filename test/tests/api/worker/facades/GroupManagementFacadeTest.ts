@@ -622,11 +622,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			o("non-admin does not migrate existing shared mailboxes", async function () {
 				user.memberships = []
 
-				await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
-
-				for (const groupId of groupIds) {
-					verify(groupManagementFacade.createIdentityKeyPair(groupId, adminGroupKey), { times: 0 })
-				}
+				await assertThrows(Error, groupManagementFacade.createIdentityKeyPairForExistingTeamGroups)
 			})
 
 			o("skips shared mailboxes that already have identity key", async function () {
