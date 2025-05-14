@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { BootIcons, BootIconsSvg } from "./icons/BootIcons"
-import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { theme } from "../theme.js"
@@ -29,7 +29,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 		return m(
 			`.pt`,
 			{
-				"aria-disabled": String(a.disabled),
+				"aria-disabled": a.disabled != null ? String(a.disabled) : undefined,
 				class: getOperatingClasses(a.disabled, "click flash") + userClasses,
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {
