@@ -36,15 +36,14 @@ class Modal implements Component {
 			return m(
 				"#modal.fill-absolute",
 				{
-					"aria-modal": true,
 					inert: !this.visible,
 					style: {
 						"z-index": LayerType.Modal,
 						display: this.visible ? "" : "none",
 					},
 				},
-				this.components.map((wrapper, i, array) => {
-					return m(
+				this.components.map((wrapper, i, array) =>
+					m(
 						".fill-absolute",
 						{
 							key: wrapper.key,
@@ -72,7 +71,7 @@ class Modal implements Component {
 								}
 							},
 							style: {
-								zIndex: LayerType.Modal + 1 + i,
+								zIndex: this.getComponentLayer(i + 1),
 							},
 							onbeforeremove: async (vnode) => {
 								if (wrapper.needsBg) {
@@ -106,10 +105,21 @@ class Modal implements Component {
 							},
 						},
 						m(wrapper.component),
-					)
-				}),
+					),
+				),
 			)
 		}
+	}
+
+	private getComponentLayer(componentIndex: number) {
+		return LayerType.Modal + componentIndex
+	}
+
+	/**
+	 * returns the zIndex of the top-most modal component
+	 */
+	topLayer(): number {
+		return this.visible ? this.getComponentLayer(this.components.length) : 0
 	}
 
 	display(component: ModalComponent, needsBg: boolean = true) {
