@@ -2147,8 +2147,10 @@ styles.registerStyle("main", () => {
 			background: theme.tuta_color_nota,
 		},
 		".ribbon-horizontal-cyber-monday": {
-			background: theme.content_bg_tuta_bday,
-			color: theme.content_bg,
+			background: "#013E85",
+			color: "#ffffff",
+			height: "27px",
+			display: "flex",
 		},
 		".ribbon-horizontal:after": {
 			content: '""',
@@ -2161,7 +2163,10 @@ styles.registerStyle("main", () => {
 			right: 0,
 		},
 		".ribbon-horizontal-cyber-monday:after": {
-			"border-left": `6px solid ${theme.content_bg_tuta_bday}`,
+			"border-left": `6px solid #013E85!important`,
+		},
+		".ribbon-horizontal-cyber-monday:before": {
+			"border-right": `6px solid #013E85!important`,
 		},
 		".ribbon-horizontal.nota:after": {
 			"border-left": `6px solid ${theme.tuta_color_nota}`,
@@ -2178,9 +2183,6 @@ styles.registerStyle("main", () => {
 		},
 		".ribbon-horizontal.nota:before": {
 			"border-right": `6px solid ${theme.tuta_color_nota}`,
-		},
-		".ribbon-horizontal-cyber-monday:before": {
-			"border-right": `6px solid ${theme.content_bg_tuta_bday}`,
 		},
 		// calendar
 		".flex-end-on-child .button-content": {

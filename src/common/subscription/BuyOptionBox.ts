@@ -194,7 +194,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 								isLegendPlan &&
 								hasGlobalCampaign &&
 								isYearly && {
-									border: `2px solid ${theme.content_accent_tuta_bday}`,
+									border: `2px solid ${theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013E85" : "#ffffff"}`,
 									padding: px(9),
 								}),
 						},
@@ -202,7 +202,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 					[
 						getRibbon(),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading, shouldApplyCampaignColor) : attrs.heading,
-						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined, shouldApplyCampaignColor),
+						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined),
 						m(
 							".small.flex",
 							{ style: { "justify-content": "center", "column-gap": px(1) } },
@@ -228,7 +228,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		)
 	}
 
-	private renderPrice(price: string, strikethroughPrice?: string, shouldApplyCampaignColor?: boolean) {
+	private renderPrice(price: string, strikethroughPrice?: string) {
 		return m(
 			".pt-ml.text-center",
 			{ style: { display: "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center" } },
@@ -237,7 +237,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						".span.strike",
 						{
 							style: {
-								color: shouldApplyCampaignColor ? theme.content_accent_tuta_bday : theme.content_button,
+								color: theme.content_button,
 								fontSize: px(size.font_size_base),
 								justifySelf: "end",
 								margin: "auto 0.4em 0 0",
@@ -254,22 +254,37 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 
 	private static renderCampaignRibbon(): Children {
 		const text = isIOSApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
-		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)" } }, [
-			// Birthday cake
+		const imageName = theme.themeId === "light" || theme.themeId === "light_secondary" ? "eu-quantum-light" : "eu-quantum-dark"
+
+		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)", top: "-10px" } }, [
 			m("img.block.abs.z1", {
-				src: `${window.tutao.appState.prefixWithoutFile}/images/birthday/party-cake.png`,
+				src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/${imageName}.svg`,
 				alt: "",
 				rel: "noreferrer",
 				loading: "lazy",
 				decoding: "async",
 				style: {
 					width: "35%",
-					bottom: px(-75.5),
+					bottom: px(-89.5),
 					right: px(-5),
 				},
 			}),
 			// Ribbon
-			m(".ribbon-horizontal.ribbon-horizontal-cyber-monday", m(".text-center.b", { style: { color: theme.content_accent_secondary_tuta_bday } }, text)),
+			m(
+				".ribbon-horizontal.ribbon-horizontal-cyber-monday",
+				m(
+					".text-center.b",
+					{
+						style: {
+							display: "flex",
+							width: "100%",
+							"justify-content": "center",
+							"align-items": "center",
+						},
+					},
+					text,
+				),
+			),
 		])
 	}
 
@@ -298,7 +313,8 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			{
 				style: {
 					"font-size": heading.length > 20 ? "smaller" : undefined,
-					color: shouldApplyCampaignColor ? theme.content_accent_tuta_bday : null,
+					"font-weight": shouldApplyCampaignColor ? 700 : "initial",
+					...(shouldApplyCampaignColor && { "border-bottom": 0 }),
 				},
 			},
 			heading,
