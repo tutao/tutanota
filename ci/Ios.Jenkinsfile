@@ -80,10 +80,10 @@ pipeline {
 						EM_CACHE="${env.HOME}/emcache"
 					}
 					agent {
-						label 'mac-intel'
+						label 'mac-m1'
 					}
 					steps {
-						lock("ios-build-intel") {
+						lock("ios-build-m1") {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
 								buildWebapp("test")
@@ -105,10 +105,10 @@ pipeline {
 						EM_CACHE="${env.HOME}/emcache"
 					}
 					agent {
-						label 'mac-intel'
+						label 'mac-m1'
 					}
 					steps {
-						lock("ios-build-intel") {
+						lock("ios-build-m1") {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
 								buildWebapp("prod")

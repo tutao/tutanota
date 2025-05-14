@@ -46,7 +46,7 @@ pipeline {
 				LANG = "en_US.UTF-8"
 			}
 			agent {
-				label 'mac-intel'
+				label 'mac'
 			}
 			stages {
 				stage('Staging') {
@@ -54,7 +54,7 @@ pipeline {
 						expression { params.STAGING }
 					}
 					steps {
-						lock('ios-build-intel') {
+						lock('ios-build-m1') {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
 
@@ -75,7 +75,7 @@ pipeline {
 						expression { params.PROD }
 					}
 					steps {
-						lock('ios-build-intel') {
+						lock('ios-build-m1') {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
 

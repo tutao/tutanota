@@ -130,18 +130,7 @@ pipeline {
 						prepareSwift()
 					}
 				}
-				stage("checkout mac intel") {
-					agent {
-						node {
-							label "mac-intel"
-							customWorkspace macWorkspace
-						}
-					}
-					steps {
-						initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
-						prepareSwift()
-					}
-				}
+
 			}
 		}
 		stage("Lint and Style") {
@@ -334,7 +323,7 @@ pipeline {
 				stage("ios framework tests") {
 					agent {
 						node {
-							label "mac-intel"
+							label "mac-m1"
 							customWorkspace macWorkspace
 						}
 					}
@@ -342,7 +331,7 @@ pipeline {
 						expression { hasRelevantChangesIn(changeset, "app-ios") }
 					}
 					steps {
-						lock("ios-build-infra") {
+						lock("ios-build-m1") {
 							testFastlane("test_tuta_shared_framework")
 						}
 					}

@@ -225,7 +225,7 @@ pipeline {
 								}
 							}
 							agent {
-								label 'mac-intel'
+								label 'mac-m1'
 							}
 
 							steps {

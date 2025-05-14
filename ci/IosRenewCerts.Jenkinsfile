@@ -12,7 +12,7 @@ pipeline {
 		LANG = "en_US.UTF-8"
 	}
 	agent {
-		label 'mac-intel'
+		label 'mac-m1'
 	}
 
 	parameters {
@@ -31,7 +31,7 @@ pipeline {
 	stages {
 		stage("Renew prod certs") {
 			agent {
-				label 'mac-intel'
+				label 'mac-m1'
 			}
 			when {
 				expression{ return params.prod }
@@ -88,7 +88,7 @@ pipeline {
 
 		stage("Renew staging certs") {
 			agent {
-				label 'mac-intel'
+				label 'mac-m1'
 			}
 			when {
 				expression { return params.staging }
