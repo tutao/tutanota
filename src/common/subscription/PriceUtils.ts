@@ -189,7 +189,12 @@ export class PriceAndConfigProvider {
 		const subscription = data.type
 
 		if (isIOSApp()) {
-			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval, type, data.planPrices.getRawPricingData().hasGlobalCampaign)
+			return this.getAppStorePaymentsSubscriptionPrice(
+				subscription,
+				paymentInterval,
+				type,
+				data.planPrices.getRawPricingData().hasGlobalFirstYearDiscount,
+			)
 		} else {
 			const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
 			return { displayPrice: formatPrice(price, true), rawPrice: price.toString() }

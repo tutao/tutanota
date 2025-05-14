@@ -229,7 +229,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
 
 		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
-		const isGlobalCampaign = data.planPrices.getRawPricingData().hasGlobalCampaign
+		const isGlobalCampaign = data.planPrices.getRawPricingData().hasGlobalFirstYearDiscount
 
 		// Tuta bday / cyber monday
 		if (isYearly && isGlobalCampaign && (planType === PlanType.Legend || planType === PlanType.Revolutionary)) {
