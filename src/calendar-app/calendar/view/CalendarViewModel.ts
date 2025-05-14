@@ -118,6 +118,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private _calendarColors: GroupColors = new Map()
 	isCreatingExternalCalendar: boolean = false
 
+	private cancelSignal: Stream<boolean> = stream(false)
+
 	constructor(
 		private readonly logins: LoginController,
 		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
@@ -142,12 +144,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._hiddenCalendars = new Set(this.deviceConfig.getHiddenCalendars(userId))
 
 		this.selectedDate.map(() => {
+			this._sendCancelSignal()
 			this.updatePreviewedEvent(null)
 			this.preloadMonthsAroundSelectedDate()
 		})
 		this.selectedTime = Time.fromDate(today)
 		this.ignoreNextValidTimeSelection = false
 		this.calendarModel.getCalendarInfosStream().map((newInfos) => {
+			this._sendCancelSignal()
 			const event = this.previewedEvent()?.event ?? null
 			if (event != null) {
 				// redraw if we lost access to the events' list
@@ -178,6 +182,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				this._isNewPaidPlan = isNewPaidPlan
 				this.prepareClientCalendars()
 			})
+	}
+
+	private _sendCancelSignal() {
+		this.cancelSignal(true)
+		this.cancelSignal.end(true)
+		this.cancelSignal = stream(false)
 	}
 
 	setPreviewedEventId(id: IdTuple | null) {
@@ -271,7 +281,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (hasNewPaidPlan) {
 				await this.eventsRepository.loadContactsBirthdays()
 			}
-			await this.loadMonthsIfNeeded([new Date(thisMonthStart), nextMonthDate, previousMonthDate], progressMonitor)
+			await this.loadMonthsIfNeeded([new Date(thisMonthStart), nextMonthDate, previousMonthDate], progressMonitor, this.cancelSignal)
 		} finally {
 			progressMonitor.completed()
 			this.doRedraw()
@@ -618,8 +628,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel.getCalendarInfosCreateIfNeeded()
 	}
 
-	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor): Promise<void> {
-		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, progressMonitor, stream(false))
+	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor, canceled: Stream<boolean>): Promise<void> {
+		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, progressMonitor, canceled)
 	}
 
 	private doRedraw() {
