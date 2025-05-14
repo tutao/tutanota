@@ -186,8 +186,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			footnoteElement && m(".smaller.mb", footnoteElement),
 		])
 
-		console.log(plans)
-
 		const buyBoxesViewPlacement = plans
 			.filter((plan) => acceptedPlans.includes(plan) || currentPlanType === plan)
 			.map((personalPlan, i) => {
