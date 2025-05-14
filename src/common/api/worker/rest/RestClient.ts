@@ -129,7 +129,9 @@ export class RestClient {
 						applicationTypesHashResponseHeader != null &&
 						applicationTypesHashResponseHeader != this.applicationTypesFacade().getApplicationTypesHash()
 					) {
+						console.log(">> getServerApplicationTypesJson()")
 						await this.applicationTypesFacade().getServerApplicationTypesJson()
+						console.log("<< getServerApplicationTypesJson()")
 					}
 
 					if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {

@@ -73,7 +73,9 @@ export class EntityClient {
 	}> {
 		const typeModel = await resolveClientTypeReference(typeRef)
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
+		console.log(`>> loadReverseRangeBetween::loadRange start: ${start}`)
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
+		console.log(`<< loadReverseRangeBetween::loadRange start: ${start}`)
 		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, typeModel))
 
 		if (filteredEntities.length === rangeItemLimit) {

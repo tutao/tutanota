@@ -149,11 +149,12 @@ export class CalendarFacade {
 		const calendars: Array<{ long: CalendarEvent[]; short: CalendarEvent[] }> = []
 
 		for (const { groupRoot } of calendarInfos.values()) {
-			const [shortEventsResult, longEventsResult] = await Promise.all([
-				this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200),
-				this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
-			])
-
+			console.log(">> loadReverseRangeBetween")
+			const shortEventsResult = await this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200)
+			console.log("<< loadReverseRangeBetween")
+			console.log(">> loadAll")
+			const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
+			console.log("<< loadAll")
 			calendars.push({
 				short: shortEventsResult.elements,
 				long: longEventsResult,
@@ -166,7 +167,7 @@ export class CalendarFacade {
 			this.generateEventOccurrences(newEvents, calendar.short, month, zone, true)
 			this.generateEventOccurrences(newEvents, calendar.long, month, zone, false)
 		}
-
+		console.log("return updateEventMap")
 		return newEvents
 	}
 

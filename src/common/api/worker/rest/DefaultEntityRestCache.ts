@@ -31,7 +31,7 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
@@ -437,7 +437,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	): Promise<T[]> {
 		const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
 		if (customHandler && customHandler.loadRange) {
-			return await customHandler.loadRange(this.storage, listId, start, count, reverse)
+			console.log(">> customHandler::loadRange from DERC")
+			try {
+				return await customHandler.loadRange(this.storage, listId, start, count, reverse)
+			} finally {
+				console.log("<< customHandler::loadRange from DERC")
+			}
 		}
 
 		const typeModel = await resolveClientTypeReference(typeRef)

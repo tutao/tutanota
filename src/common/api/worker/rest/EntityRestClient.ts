@@ -315,6 +315,7 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 		// This should never happen if type checking is not bypassed with any
 		if (clientTypeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
+		console.log(">> restClient.request")
 		const json = await this.restClient.request(path, HttpMethod.GET, {
 			queryParams,
 			headers,
@@ -322,8 +323,14 @@ export class EntityRestClient implements EntityRestInterface {
 			baseUrl: opts.baseUrl,
 			suspensionBehavior: opts.suspensionBehavior,
 		})
+		console.log("<< restClient.request")
 		const parsedResponse: Array<ServerModelUntypedInstance> = JSON.parse(json)
-		return await this._handleLoadResult(typeRef, parsedResponse)
+		try {
+			console.log(">> restClient.handleLoadResult")
+			return await this._handleLoadResult(typeRef, parsedResponse)
+		} finally {
+			console.log("<< restClient.handleLoadResult")
+		}
 	}
 
 	async loadRange<T extends ListElementEntity>(
@@ -435,19 +442,26 @@ export class EntityRestClient implements EntityRestInterface {
 		loadedEntities: Array<ServerModelUntypedInstance>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<Array<ServerModelParsedInstance>> {
+		console.log(">> handleLoadResult::resolveServerTypeReference")
 		const serverTypeModel = await resolveServerTypeReference(typeRef)
-		return await promiseMap(
-			loadedEntities,
-			async (instance) => {
-				const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
-				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
-				let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
-				return this._decryptAndMap(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
-			},
-			{
-				concurrency: 5,
-			},
-		)
+		console.log("<< handleLoadResult::resolveServerTypeReference")
+		console.log(">> handleLoadResult::promiseMap")
+		try {
+			return await promiseMap(
+				loadedEntities,
+				async (instance) => {
+					const noNetworkDebugInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
+					const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, noNetworkDebugInstance)
+					let entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+					return this._decryptAndMap(serverTypeModel, entityAdapter, ownerEncSessionKeyProvider)
+				},
+				{
+					concurrency: 5,
+				},
+			)
+		} finally {
+			console.log("<< handleLoadResult::promiseMap")
+		}
 	}
 
 	async _decryptAndMap(

@@ -2,7 +2,7 @@ import { ListElementEntity, ServerModelParsedInstance, TypeModel } from "../../c
 import { CalendarEvent, CalendarEventTypeRef, Mail } from "../../entities/tutanota/TypeRefs.js"
 import { freezeMap, getTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils.js"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions.js"
+import { resolveServerTypeReference } from "../../common/EntityFunctions.js"
 import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCache.js"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -72,7 +72,9 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 	constructor(private readonly entityRestClient: EntityRestClient) {}
 
 	async loadRange(storage: CacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<CalendarEvent[]> {
+		console.log(">> calenderEvent::getRange")
 		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)
+		console.log("<< calenderEvent::getRange")
 		const typeModel = await resolveServerTypeReference(CalendarEventTypeRef)
 
 		// if offline db for this list is empty load from server
@@ -81,24 +83,32 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 			let chunk: Array<ServerModelParsedInstance> = []
 			let currentMinId = CUSTOM_MIN_ID
 			while (true) {
+				console.log(">> server::loadParsedInstancesRange")
 				chunk = await this.entityRestClient.loadParsedInstancesRange(CalendarEventTypeRef, listId, currentMinId, LOAD_MULTIPLE_LIMIT, false)
+				console.log("<< server::loadParsedInstancesRange")
 				rawList.push(...chunk)
 				if (chunk.length < LOAD_MULTIPLE_LIMIT) break
 				const lastEvent = chunk[chunk.length - 1]
 				currentMinId = eventElementId(typeModel, lastEvent)
 			}
+			console.log(">> calender storage put")
 			for (const event of rawList) {
 				await storage.put(CalendarEventTypeRef, event)
 			}
+			console.log("<< calender storage put")
 
 			// we have all events now
+			console.log(">> calender range put")
 			await storage.setNewRangeForList(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID)
+			console.log("<< calender range put")
 		} else {
 			this.assertCorrectRange(range)
 			rawList = await storage.getWholeListParsed(CalendarEventTypeRef, listId)
 			console.log(`CalendarEvent list ${listId} has ${rawList.length} events`)
 		}
+		console.log(">> calendar map instance to entity")
 		const unsortedList = await this.entityRestClient.mapInstancesToEntity(CalendarEventTypeRef, rawList)
+		console.log("<< calendar map instance to entity")
 
 		const sortedList = reverse
 			? unsortedList
@@ -107,7 +117,11 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 			: unsortedList
 					.filter((calendarEvent) => firstBiggerThanSecond(getElementId(calendarEvent), start, typeModel))
 					.sort((a, b) => (firstBiggerThanSecond(getElementId(a), getElementId(b), typeModel) ? 1 : -1))
-		return sortedList.slice(0, count)
+		try {
+			return sortedList.slice(0, count)
+		} finally {
+			console.log("<< CustomCacheHandler::loadRange")
+		}
 	}
 
 	private assertCorrectRange(range: Range) {
