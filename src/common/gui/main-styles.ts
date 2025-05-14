@@ -752,8 +752,9 @@ styles.registerStyle("main", () => {
 			color: theme.content_button_icon_selected,
 		},
 		".accent-bg-cyber-monday": {
-			"background-color": theme.content_accent_tuta_bday,
-			color: theme.content_button_icon_selected,
+			"background-color": "#FEDC59",
+			color: theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013E85" : "#232323",
+			"font-weight": "700",
 		},
 		".accent-fg": {
 			color: theme.content_button_icon,

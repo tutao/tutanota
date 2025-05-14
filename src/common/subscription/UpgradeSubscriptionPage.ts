@@ -230,7 +230,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		const isGlobalCampaign = data.planPrices.getRawPricingData().hasGlobalCampaign
 
 		// Tuta bday / cyber monday
-		if (isYearly && isGlobalCampaign) {
+		if (isYearly && isGlobalCampaign && planType === PlanType.Legend) {
 			return () => ({
 				label: "pricing.cyber_monday_select_action",
 				class: "accent-bg-cyber-monday",
