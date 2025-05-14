@@ -148,7 +148,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// Show the business segmentControl for signup, if both personal & business plans are allowed
 		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !isIOSApp()
 
-		const isTutaBirthdayCampaign = priceAndConfigProvider.getRawPricingData().hasGlobalCampaign
+		const isTutaBirthdayCampaign = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 
 		let subscriptionPeriodInfoMsg = !signup && currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (options.businessUse()) {
