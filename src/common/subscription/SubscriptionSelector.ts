@@ -33,7 +33,6 @@ import {
 import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
-import { theme } from "../gui/theme.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { UpgradeType } from "./SubscriptionUtils.js"
 import { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
@@ -412,7 +411,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			categories: categoriesToShow,
 			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
 			renderCategoryTitle,
-			iconStyle: isCampaign && isYearly && isLegend ? { fill: theme.content_accent_tuta_bday } : undefined,
+			iconStyle: isCampaign && isYearly && isLegend ? { fill: "#FEDC59" } : undefined,
 		}
 	}
 
