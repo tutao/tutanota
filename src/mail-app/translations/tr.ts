@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-05-06T14:53:42Z",
+	"updated_at": "2025-05-15T07:36:06Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1358,9 +1358,10 @@ export default {
 		"pricing.comparisonSupportBusiness_tooltip": "İş günlerinde 24 saat içerisinde e-posta yoluyla destek alın.",
 		"pricing.comparisonSupportFree_msg": "Doğrudan destek yok",
 		"pricing.comparisonSupportFree_tooltip_markdown": "<p>Tuta istemciniz üzerinden akıllı yardım bölümümüze erişin veya topluluk desteğimizden yardım alın <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.reddit.com/r/tutanota/\">forum</a>. E-posta desteği yok.</p>\n",
+		"pricing.comparisonSupportLegend_tooltip": "Destek taleplerini e-posta yoluyla bir iş günü içinde yanıtlıyoruz.",
 		"pricing.comparisonSupportPremium_msg": "E-posta ile destek",
 		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>Yardım takımımıza doğrudan e-posta gönderme seçeneği ile Tuta istemcinizin içinden anlaklı yardım bölümümüze erişin. Bir iş günü içinde yanıtlıyoruz.</p>\n",
-		"pricing.comparisonSupportPro_msg": "Öncelikli destek",
+		"pricing.comparisonSupportPro_msg": "Öncelikli e-posta desteği",
 		"pricing.comparisonThemePro_msg": "Özel logo ve renkler",
 		"pricing.comparisonThemePro_tooltip": "Tuta web, mobil ve masaüstü istemcilerinin logolarını ve renklerini değiştirerek Tuta'yı kendi markanızla sunun.",
 		"pricing.comparisonUnlimitedDomains_msg": "Sınırsız özel alan adı",
@@ -1479,6 +1480,7 @@ export default {
 		"ratingSuggestionPage_title": "Aklınızda ne var?",
 		"ratingSuggestion_label": "Önerim var",
 		"ratingSuggestion_placeholder": "Bir fikir veya geri bildiriminiz mi var? Hemen yazın...",
+		"ratingSupportContactedSnackbar_msg": "Sorununuzu bildirdiğiniz için teşekkür ederiz! Destek ekibi sizinle e-posta yoluyla iletişime geçecektir.",
 		"ratingSupportTuta_msg": "Davud, Câlût'u yendi. Bizim de aynısını yapmamıza yardımcı olabilirsiniz.",
 		"ratingSupportTuta_title": "Gizliliği yaymamıza ve Büyük Teknoloji Tekelleriyle mücadelemize yardımcı olun!",
 		"ratingUpgradeFromRevo_label": "Legend olun",

@@ -1371,6 +1371,7 @@ export type TranslationKeyType =
 	| "pricing.gdpr_label"
 	| "pricing.gdpr_tooltip"
 	| "pricing.getStarted_label"
+	| "pricing.globalFirstYearDiscountRibbon_label"
 	| "pricing.includesTaxes_msg"
 	| "pricing.legendAsterisk_msg"
 	| "pricing.login_title"

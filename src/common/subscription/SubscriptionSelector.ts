@@ -283,10 +283,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		// we highlight the center box if this is a signup or the current subscription type is Free
 		const interval = selectorAttrs.options.paymentInterval()
+		const isPersonalPaidPlan = targetSubscription === PlanType.Legend || targetSubscription === PlanType.Revolutionary
 		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
 		const isHighlighted = (() => {
 			if (isCampaign) {
-				return targetSubscription === PlanType.Revolutionary
+				return isPersonalPaidPlan
 			}
 
 			return upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription)
@@ -346,7 +347,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
 		const isYearly = interval === PaymentInterval.Yearly
-		const hasFirstYearDiscount = !isIOSApp() && isCampaign && targetSubscription === PlanType.Legend && isYearly
+		const hasFirstYearDiscount = !isIOSApp() && isCampaign && isPersonalPaidPlan && isYearly
 
 		const appliesFirstMonthForFree =
 			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
@@ -397,14 +398,14 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			})
 			.filter((fc): fc is BuyOptionDetailsAttr["categories"][0] => fc != null)
 
-		const isPaidPersonalPlan = targetSubscription === PlanType.Legend || targetSubscription === PlanType.Revolutionary
+		const isPersonalPaidPlan = targetSubscription === PlanType.Legend || targetSubscription === PlanType.Revolutionary
 		const isYearly = selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
 
 		return {
 			categories: categoriesToShow,
 			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
 			renderCategoryTitle,
-			iconStyle: isCampaign && isYearly && isPaidPersonalPlan ? { fill: "#e5c650" } : undefined,
+			iconStyle: isCampaign && isYearly && isPersonalPaidPlan ? { fill: "#e5c650" } : undefined,
 		}
 	}
 

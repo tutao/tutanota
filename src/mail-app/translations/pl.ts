@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-05-06T20:46:45Z",
+	"updated_at": "2025-05-15T07:36:06Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1359,6 +1359,7 @@ export default {
 		"pricing.comparisonSupportBusiness_tooltip": "Otrzymuj wsparcie za pośrednictwem poczty e-mail w dni robocze w ciągu 24 godzin.",
 		"pricing.comparisonSupportFree_msg": "Brak bezpośredniego wsparcia",
 		"pricing.comparisonSupportFree_tooltip_markdown": "<p>Uzyskaj dostęp do naszej inteligentnej sekcji pomocy z poziomu klienta Tuta lub uzyskaj pomoc na naszym <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.reddit.com/r/tutanota/\">forum</a> wsparcia społeczności. Brak wsparcia przez e-mail.</p>\n",
+		"pricing.comparisonSupportLegend_tooltip": "Na zgłoszenia dotyczące pomocy technicznej, przesyłane pocztą elektroniczną, odpowiadamy w ciągu jednego dnia roboczego.",
 		"pricing.comparisonSupportPremium_msg": "Wsparcie poprzez e-mail",
 		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>Uzyskaj dostęp do naszej inteligentnej sekcji pomocy z poziomu klienta Tuta z opcją bezpośredniego wysłania e-maila do naszego zespołu wsparcia. Odpowiadamy w ciągu jednego dnia roboczego.</p>\n",
 		"pricing.comparisonSupportPro_msg": "Priorytetowe wsparcie e-mail",
