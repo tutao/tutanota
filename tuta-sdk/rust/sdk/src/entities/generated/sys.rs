@@ -3349,6 +3349,8 @@ pub struct UpgradePriceServiceReturn {
 	pub bonusMonthsForYearlyPlan: i64,
 	#[serde(rename = "2555")]
 	pub firstMonthForFreeForYearlyPlan: bool,
+	#[serde(rename = "2567")]
+	pub hasGlobalFirstYearDiscount: bool,
 	#[serde(rename = "1473")]
 	pub premiumPrices: PlanPrices,
 	#[serde(rename = "1474")]
