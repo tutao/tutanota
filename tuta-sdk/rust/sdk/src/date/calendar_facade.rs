@@ -461,7 +461,12 @@ fn get_max_timestamp_id() -> CustomId {
 
 #[cfg(test)]
 mod calendar_facade_unit_tests {
+	use super::{CalendarFacade, DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME};
 	use crate::crypto_entity_client::MockCryptoEntityClient;
+	use crate::date::event_facade::{
+		ByRule, ByRuleType, EndType, EventFacade, EventRepeatRule, RepeatPeriod,
+	};
+	use crate::date::DateTime;
 	use crate::entities::generated::sys::{GroupInfo, GroupMembership, User};
 	use crate::entities::generated::tutanota::{GroupSettings, UserSettingsGroupRoot};
 	use crate::groups::GroupType;
@@ -469,8 +474,6 @@ mod calendar_facade_unit_tests {
 	use crate::util::test_utils::create_test_entity;
 	use crate::{GeneratedId, IdTupleGenerated};
 	use std::sync::Arc;
-
-	use super::{CalendarFacade, DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME};
 
 	fn create_mock_user(user_group: &GeneratedId, calendar_id: &GeneratedId) -> User {
 		User {

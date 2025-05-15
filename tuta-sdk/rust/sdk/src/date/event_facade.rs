@@ -366,12 +366,6 @@ impl EventFacade {
 				UtcOffset::from_whole_seconds(instance_offset - progenitor_offset).unwrap(),
 			);
 
-			if max_date.is_some()
-				&& start_time.unix_timestamp().unsigned_abs() >= max_date.unwrap().as_seconds()
-			{
-				break;
-			}
-
 			let expanded_events: Vec<DateTime> = self.generate_future_instances(
 				DateTime::from_seconds(start_time.unix_timestamp().unsigned_abs()),
 				&repeat_rule,
@@ -421,7 +415,14 @@ impl EventFacade {
 					continue;
 				}
 
-				generated_events.push(*expanded_events.get(index).unwrap());
+				let ev = *expanded_events.get(index).unwrap();
+
+				if max_date.is_none()
+					|| (max_date.is_some() && ev.as_seconds() < max_date.unwrap().as_seconds())
+				{
+					generated_events.push(ev);
+				}
+
 				occurrences += 1;
 			}
 
@@ -431,6 +432,12 @@ impl EventFacade {
 
 			interval_occurrences += 1;
 			interval_multiplier += 1;
+
+			if max_date.is_some()
+				&& start_time.unix_timestamp().unsigned_abs() >= max_date.unwrap().as_seconds()
+			{
+				break;
+			}
 		}
 
 		Ok(generated_events)
@@ -1245,6 +1252,32 @@ mod tests {
 		fn to_date_time(&self) -> DateTime {
 			DateTime::from_millis(self.assume_utc().unix_timestamp().unsigned_abs() * 1000)
 		}
+	}
+
+	#[test]
+	fn test_generate_event_with_by_rule_result_before_incremented_event_instance() {
+		let events_facade = EventFacade {};
+
+		let events = events_facade.create_event_instances(
+			DateTime::from_seconds(1745485200),
+			DateTime::from_seconds(1745501400),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Monthly,
+				by_rules: vec![ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "3TH".to_string(),
+				}],
+			},
+			1,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			Some(DateTime::from_seconds(1747346400)),
+			"Europe/Berlin".to_string(),
+		);
+
+		assert_eq!(events.unwrap().iter().len(), 1);
 	}
 
 	#[test]
