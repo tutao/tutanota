@@ -755,6 +755,15 @@ styles.registerStyle("main", () => {
 			"background-color": "#FEDC59",
 			color: theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013E85" : "#232323",
 			"font-weight": "700",
+			display: "flex",
+			"justify-content": "center",
+			"align-items": "center",
+			gap: px(size.hpad_button),
+		},
+		"go-european-button-icon": {
+			display: "inline-block",
+			width: px(30),
+			height: px(30),
 		},
 		".accent-fg": {
 			color: theme.content_button_icon,
