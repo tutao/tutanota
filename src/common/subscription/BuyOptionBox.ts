@@ -252,20 +252,8 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 
 	private static renderCampaignRibbon(): Children {
 		const text = lang.get("pricing.globalFirstYearDiscountRibbon_label", { "{amount}": "50%" })
-		const imageName = theme.themeId === "light" || theme.themeId === "light_secondary" ? "eu-quantum-light" : "eu-quantum-dark"
 
 		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)", top: "-10px" } }, [
-			m("img.block.abs.z1", {
-				src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/${imageName}.svg`,
-				alt: "",
-				rel: "noreferrer",
-				loading: "lazy",
-				decoding: "async",
-				style: {
-					bottom: px(-140),
-					right: px(-5),
-				},
-			}),
 			// Ribbon
 			m(
 				".ribbon-horizontal.ribbon-go-european",

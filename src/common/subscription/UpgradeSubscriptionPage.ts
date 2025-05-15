@@ -20,6 +20,7 @@ import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { completeSelectedStage } from "./PlanSelector.js"
 import { isIOSApp } from "../api/common/Env.js"
+import { px } from "../gui/size.js"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
@@ -236,6 +237,17 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			return () => ({
 				label: lang.makeTranslation("", "Go European"), // This text shall not be translated.
 				class: "go-european-button",
+				icon: m("img", {
+					src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
+					alt: "",
+					rel: "noreferrer",
+					loading: "lazy",
+					decoding: "async",
+					style: {
+						height: px(30),
+						width: px(30),
+					},
+				}),
 				onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 			})
 		}
