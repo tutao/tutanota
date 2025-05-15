@@ -130,8 +130,9 @@ pub const LEGACY_PLANS: [PlanType; 5] = [
 ];
 
 impl PlanType {
+	#[must_use]
 	pub fn is_new_paid_plan(&self) -> bool {
-		*self != PlanType::Free && !LEGACY_PLANS.contains(&self)
+		*self != PlanType::Free && !LEGACY_PLANS.contains(self)
 	}
 }
 

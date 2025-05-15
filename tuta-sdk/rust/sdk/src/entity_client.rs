@@ -138,9 +138,8 @@ impl EntityClient {
 				)
 				.await?;
 
-			let last_entity = match result.last() {
-				Some(entity) => entity,
-				_ => break,
+			let Some(last_entity) = result.last() else {
+				break;
 			};
 
 			let entity_id = last_entity
@@ -158,7 +157,7 @@ impl EntityClient {
 			load_all_result.extend(result);
 		}
 
-		return Ok(load_all_result);
+		Ok(load_all_result)
 	}
 
 	/// Fetches and returns a specified number (`count`) of entities/instances

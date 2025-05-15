@@ -209,12 +209,9 @@ pub fn array_cast_size<const SIZE: usize, const ARR_SIZE: usize>(
 }
 
 /// Generates an event UID using a given timestamp and the calendar id
+#[must_use]
 pub fn generate_event_uid(calendar_id: &GeneratedId, timestamp: DateTime) -> String {
-	format!(
-		"{}{}@tuta.com",
-		calendar_id.to_string(),
-		timestamp.as_millis()
-	)
+	format!("{}{}@tuta.com", calendar_id, timestamp.as_millis())
 }
 
 /// Returns `T` if type `F` is the same type.
@@ -229,6 +226,7 @@ pub fn first_bigger_than_second_custom_id(first_id: &CustomId, second_id: &Custo
 	first_id.to_custom_string() > second_id.to_custom_string()
 }
 
+#[must_use]
 pub fn extract_parsed_entity_id(
 	type_ref: &TypeRef,
 	entity_id: ElementValue,

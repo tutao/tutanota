@@ -26,17 +26,16 @@ impl CustomerFacade {
 
 	pub async fn fetch_customer(&self) -> Result<Customer, ApiCallError> {
 		let user: Arc<User> = self.user_facade.get_user();
-		let customer_id = match user.customer {
-			Some(ref customer_id) => customer_id,
-			None => {
-				return Err(ApiCallError::internal(format!(
-					"User {} without a customer id",
-					user._id.as_ref().unwrap()
-				)))
-			},
+		let Some(customer_id) = &user.customer else {
+			return Err(ApiCallError::internal(format!(
+				"User {} without a customer id",
+				user._id.as_ref().unwrap()
+			)));
 		};
-		let customer: Customer = self.crypto_entity_client.load(customer_id).await?;
-		return Ok(customer);
+
+		let customer = self.crypto_entity_client.load(customer_id).await?;
+
+		Ok(customer)
 	}
 
 	pub async fn fetch_customer_info(&self) -> Result<CustomerInfo, ApiCallError> {
