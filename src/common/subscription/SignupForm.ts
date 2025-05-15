@@ -268,12 +268,17 @@ async function signup(
 		const regDataId = await runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign)
 		if (regDataId) {
 			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
-			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
+			const { recoverCode, userGroupData } = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
 			if (!logins.isUserLoggedIn()) {
 				// we do not know the userGroupId at group creation time,
 				// so we log in and create the identity key pair now
 				const login = await logins.createSession(mailAddress, password, SessionType.Temporary)
-				await groupManagementFacade.createIdentityKeyPair(login.userGroupInfo.group)
+
+				const currentUserKeyPair = groupManagementFacade.createKeyPairFromGroupData(userGroupData)
+				await groupManagementFacade.createIdentityKeyPair(login.userGroupInfo.group, {
+					currentKeyPair: currentUserKeyPair,
+					keyPairVersion: 0, //new group
+				})
 			}
 			return {
 				mailAddress,

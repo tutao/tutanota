@@ -1,4 +1,4 @@
-import { CounterType, GroupType, PublicKeyIdentifierType } from "../../../common/TutanotaConstants.js"
+import { CounterType, GroupType, PublicKeyIdentifierType, PublicKeySignatureType } from "../../../common/TutanotaConstants.js"
 import type { ContactListGroupRoot, InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateMailGroupData,
@@ -13,12 +13,15 @@ import {
 	createIdentityKeyPair,
 	createIdentityKeyPostIn,
 	createKeyMac,
+	createKeyPair,
 	createMembershipAddData,
 	createMembershipRemoveData,
+	createPublicKeySignature,
 	CustomerTypeRef,
 	Group,
 	GroupInfoTypeRef,
 	GroupTypeRef,
+	KeyPair,
 	PubEncKeyData,
 	User,
 	UserTypeRef,
@@ -41,8 +44,14 @@ import { brandKeyMac, KeyAuthenticationFacade } from "../KeyAuthenticationFacade
 import { TutanotaError } from "@tutao/tutanota-error"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { Ed25519Facade } from "../Ed25519Facade"
+import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
 
 assertWorkerOrNode()
+
+export type PublicKeySigningData = {
+	currentKeyPair: KeyPair
+	keyPairVersion: KeyVersion
+}
 
 export class GroupManagementFacade {
 	constructor(
@@ -57,6 +66,7 @@ export class GroupManagementFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
 		private readonly ed25519Facade: Ed25519Facade,
+		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -93,7 +103,27 @@ export class GroupManagementFacade {
 		})
 		const mailGroupPostOut = await this.serviceExecutor.post(MailGroupService, data)
 
-		await this.createIdentityKeyPair(mailGroupPostOut.mailGroup, adminGroupKey)
+		const currentKeyPair: KeyPair = this.createKeyPairFromGroupData(mailGroupData)
+		await this.createIdentityKeyPair(
+			mailGroupPostOut.mailGroup,
+			{
+				currentKeyPair,
+				keyPairVersion: 0, //new group
+			},
+			adminGroupKey,
+		)
+	}
+
+	createKeyPairFromGroupData(groupData: InternalGroupData) {
+		return createKeyPair({
+			pubRsaKey: groupData.pubRsaKey,
+			symEncPrivRsaKey: groupData.groupEncPrivRsaKey,
+			pubEccKey: groupData.pubEccKey,
+			symEncPrivEccKey: groupData.groupEncPrivEccKey,
+			pubKyberKey: groupData.pubKyberKey,
+			symEncPrivKyberKey: groupData.groupEncPrivKyberKey,
+			signature: null,
+		})
 	}
 
 	/**
@@ -221,7 +251,7 @@ export class GroupManagementFacade {
 	 * @param encryptingKey the key to encrypt the private key. by default the current group key is used.
 	 *        this is useful in case group members must not have access to the private key.
 	 */
-	async createIdentityKeyPair(groupId: Id, encryptingKey: VersionedKey | undefined = undefined): Promise<void> {
+	async createIdentityKeyPair(groupId: Id, publicKeySigningData: PublicKeySigningData, encryptingKey: VersionedKey | undefined = undefined): Promise<void> {
 		const newEd25519IdentityKeyPair = await this.ed25519Facade.generateKeypair()
 		const currentGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
 		if (encryptingKey == null) {
@@ -253,8 +283,29 @@ export class GroupManagementFacade {
 				tag,
 			}),
 		})
-		// TODO create the necessary signatures?!
-		await this.serviceExecutor.post(IdentityKeyService, createIdentityKeyPostIn({ identityKeyPair, signatures: [] }))
+		//sign the public encryption keys (current and former group keys) and store the signature in the signature field
+		let signature = await this.publicKeySignatureFacade.signPublicKey(
+			publicKeySigningData.currentKeyPair,
+			newEd25519IdentityKeyPair.private_key,
+			publicKeySigningData.keyPairVersion,
+		)
+		let publicKeySignatures = [
+			createPublicKeySignature({
+				signature,
+				signingKeyVersion: identityKeyVersion.toString(),
+				signatureType: PublicKeySignatureType.TutaCrypt, //FIXME
+				publicKeyVersion: publicKeySigningData.keyPairVersion.toString(),
+			}),
+		]
+
+		//TODO handle former group keys once this is called for existing groups
+		await this.serviceExecutor.post(
+			IdentityKeyService,
+			createIdentityKeyPostIn({
+				identityKeyPair,
+				signatures: publicKeySignatures,
+			}),
+		)
 	}
 
 	/**
