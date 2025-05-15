@@ -23,6 +23,8 @@ import m from "mithril"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { isSameId } from "../api/common/utils/EntityUtils.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 export type MailboxDetail = {
 	mailbox: MailBox
 	mailGroupInfo: GroupInfo
@@ -103,7 +105,7 @@ export class MailboxModel {
 		} else {
 			// If they are not there, trigger loading again (just in case) but do not fail and wait until we actually have the details.
 			// This is so that the rest of the app is not in the broken state if details fail to load but is just waiting until the success.
-			return new Promise((resolve) => {
+			return newPromise((resolve) => {
 				this.init()
 				const end = this.mailboxDetails.map((details) => {
 					resolve(details)

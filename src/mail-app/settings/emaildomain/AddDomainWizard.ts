@@ -14,6 +14,8 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailAddressTableModel } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 import { DialogType } from "../../../common/gui/base/Dialog.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 assertMainOrNode()
 export type AddDomainData = {
 	domain: Stream<string>
@@ -47,7 +49,7 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 		wizardPageWrapper(AddEmailAddressesPage, new AddEmailAddressesPageAttrs(domainData)),
 		wizardPageWrapper(VerifyDnsRecordsPage, new VerifyDnsRecordsPageAttrs(domainData)),
 	]
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		const wizardBuilder = createWizardDialog(
 			domainData,
 			wizardPages,

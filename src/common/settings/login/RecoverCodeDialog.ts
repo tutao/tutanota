@@ -15,6 +15,8 @@ import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 type Action = "get" | "create"
 assertMainOrNode()
 
@@ -59,7 +61,7 @@ export function showRecoverCodeDialogAfterPasswordVerification(action: Action, s
 }
 
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		Dialog.showActionDialog({
 			title: "recoveryCode_label",
 			child: {

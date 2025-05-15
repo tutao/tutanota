@@ -9,8 +9,10 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { MailModel } from "../model/MailModel.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		let shallRememberDecision = false
 		const child = () =>
 			m(Checkbox, {

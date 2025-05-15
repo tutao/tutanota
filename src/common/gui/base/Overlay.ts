@@ -6,6 +6,8 @@ import { px, size } from "../size.js"
 import { styles } from "../styles.js"
 import { getSafeAreaInsetBottom } from "../HtmlUtils.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 assertMainOrNodeBoot()
 export type PositionRect = {
 	top?: string | null
@@ -109,7 +111,7 @@ export const overlay: Component = {
 								dom.className = baseClasses + " " + attrs.closeAnimation
 
 								// Wait for the close animation to complete
-								return new Promise(function (resolve) {
+								return newPromise(function (resolve) {
 									dom.addEventListener("animationend", resolve)
 								})
 							}

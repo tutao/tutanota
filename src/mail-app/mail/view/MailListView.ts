@@ -35,6 +35,8 @@ import { DropType } from "../../../common/gui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 assertMainOrNode()
 
 export interface MailListViewAttrs {
@@ -172,7 +174,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		assertNotNull(document.body).style.cursor = "progress"
 		// We listen to mouseup to detect if the user released the mouse before the download was complete
 		// we can't use dragend because we broke the DragEvent chain by calling prevent default
-		const mouseupPromise = new Promise((resolve) => {
+		const mouseupPromise = newPromise((resolve) => {
 			document.addEventListener("mouseup", resolve, {
 				once: true,
 			})

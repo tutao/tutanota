@@ -639,3 +639,36 @@ export function createResizeObserver(cb: ResizeObserverCallback): ResizeObserver
 }
 
 export type Nullable<T> = T | null
+
+/**
+ * Factory method to allow tracing unresolved promises.
+ */
+export function newPromise<T>(
+	executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void,
+	callerArgs: any = "dummy caller",
+) {
+	// @ts-ignore
+	const promise = new Promise(executor)
+
+	// only to be enabled for local debugging purposes
+	// traceUnresolvedPromises(promise)
+
+	return promise
+}
+
+// @ts-ignore
+function traceUnresolvedPromises<T>(promise: Promise<T>, callerArgs: any = "dummy caller") {
+	let pending = true
+	promise.then(
+		() => (pending = false),
+		() => (pending = false),
+	)
+	// beware: tracing stacks might change timings in a way that you are not able to trace down deadlocks anymore
+	// const stack = new Error().stack
+	const stack = ""
+	setTimeout(() => {
+		if (pending) {
+			console.trace(">>> Programming error: Promise not done after 60s", callerArgs, stack)
+		}
+	}, 60000)
+}

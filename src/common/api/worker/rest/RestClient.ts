@@ -7,6 +7,8 @@ import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common
 import { SuspensionError } from "../../common/error/SuspensionError.js"
 import { ApplicationTypesFacade } from "../facades/ApplicationTypesFacade"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 assertWorkerOrNode()
 
 const TAG = "[RestClient]"
@@ -68,7 +70,7 @@ export class RestClient {
 		if (this.suspensionHandler.isSuspended()) {
 			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
-			return new Promise((resolve, reject) => {
+			return newPromise((resolve, reject) => {
 				this.id++
 
 				const queryParams: Dict = options.queryParams ?? {}
@@ -263,7 +265,7 @@ export class RestClient {
 				} else {
 					xhr.send(options.body)
 				}
-			})
+			}, "restClient:request")
 		}
 	}
 
