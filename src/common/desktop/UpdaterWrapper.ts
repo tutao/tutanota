@@ -7,6 +7,8 @@ import fs from "node:fs"
 import { app } from "electron"
 import electronUpdater, { AppUpdater } from "electron-updater"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 const { autoUpdater } = electronUpdater
 
 export class UpdaterWrapper {
@@ -45,6 +47,6 @@ const fakeAutoUpdater = new (class {
 
 	checkForUpdates() {
 		// Never resolved, return type is too complex
-		return new Promise(noOp)
+		return newPromise(noOp)
 	}
 })()

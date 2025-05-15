@@ -31,6 +31,8 @@ import stream from "mithril/stream"
 
 import { handleRatingByEvent } from "../../../../common/ratings/UserSatisfactionDialog.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 const enum ConfirmationResult {
 	Cancel,
 	Continue,
@@ -224,7 +226,7 @@ export class EventEditorDialog {
 			throw new ProgrammingError("tried to edit existing event without uid, this is impossible for certain edit operations.")
 		}
 
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			const okAction: EditDialogOkHandler = async (posRect, finish) => {
 				if (finished || (await this.askUserIfUpdatesAreNeededOrCancel(model)) === ConfirmationResult.Cancel) {
 					return

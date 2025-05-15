@@ -5,6 +5,8 @@ import { Time } from "../../../common/calendar/date/Time.js"
 import { showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 const DRAG_THRESHOLD = 10
 export type MousePos = {
 	x: number
@@ -188,7 +190,7 @@ export class EventDragHandler {
 }
 
 async function showModeSelectionDropdown(pos: MousePos): Promise<CalendarOperation | null> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		showDropdownAtPosition(
 			[
 				{ label: "updateOneCalendarEvent_action", click: () => resolve(CalendarOperation.EditThis) },

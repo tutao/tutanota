@@ -13,6 +13,8 @@ import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { theme } from "../gui/theme"
 import { getColorLuminance, isMonochrome } from "../gui/base/Color"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 /**
  * Accepts multiple formats for a time of day and always returns 12h-format with leading zeros.
  * @param captchaInput
@@ -87,7 +89,7 @@ export async function runCaptchaFlow(
 }
 
 function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string | null> {
-	return new Promise<string | null>((resolve, reject) => {
+	return newPromise<string | null>((resolve, reject) => {
 		let dialog: Dialog
 		let captchaInput = ""
 

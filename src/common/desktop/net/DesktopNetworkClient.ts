@@ -4,6 +4,8 @@ import { ConnectionError } from "../../api/common/error/RestError.js"
 import { log } from "../DesktopLog.js"
 import type { ReadStream } from "node:fs"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 const TAG = "[DesktopNetworkClient]"
 
 /**
@@ -38,7 +40,7 @@ export class DesktopNetworkClient {
 	 * later errors must be handled on the response onerror handler
 	 */
 	executeRequest(url: URL, opts: ClientRequestOptions, uploadStream?: ReadStream): Promise<http.IncomingMessage> {
-		return new Promise<http.IncomingMessage>((resolve, reject) => {
+		return newPromise<http.IncomingMessage>((resolve, reject) => {
 			let resp: http.IncomingMessage | null = null
 
 			function onerror(e: Error) {

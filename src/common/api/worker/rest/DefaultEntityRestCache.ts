@@ -31,7 +31,7 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,

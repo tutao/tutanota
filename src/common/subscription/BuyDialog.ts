@@ -13,6 +13,8 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 assertMainOrNode()
 
 export interface BookingParams {
@@ -58,7 +60,7 @@ async function prepareDialog({ featureType, count, reactivate }: BookingParams):
 }
 
 function showDialog(okLabel: TranslationKey, view: () => Children) {
-	return new Promise<boolean>((resolve) => {
+	return newPromise<boolean>((resolve) => {
 		let dialog: Dialog
 
 		const doAction = (res: boolean) => {
