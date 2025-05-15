@@ -751,7 +751,7 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_accent,
 			color: theme.content_button_icon_selected,
 		},
-		".accent-bg-cyber-monday": {
+		".go-european-button": {
 			"background-color": "#FEDC59",
 			color: theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013E85" : "#232323",
 			"font-weight": "700",
@@ -2095,7 +2095,7 @@ styles.registerStyle("main", () => {
 		".ribbon-horizontal.nota": {
 			background: theme.tuta_color_nota,
 		},
-		".ribbon-horizontal-cyber-monday": {
+		".ribbon-go-european": {
 			background: "#013E85",
 			color: "#ffffff",
 			height: "27px",
@@ -2111,10 +2111,10 @@ styles.registerStyle("main", () => {
 			bottom: "-6px",
 			right: 0,
 		},
-		".ribbon-horizontal-cyber-monday:after": {
+		".ribbon-go-european:after": {
 			"border-left": `6px solid #013E85!important`,
 		},
-		".ribbon-horizontal-cyber-monday:before": {
+		".ribbon-go-european:before": {
 			"border-right": `6px solid #013E85!important`,
 		},
 		".ribbon-horizontal.nota:after": {

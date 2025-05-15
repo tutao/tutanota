@@ -120,14 +120,17 @@ export async function showSwitchDialog(
 			help: "close_alt",
 		})
 		.setCloseHandler(cancelAction)
+
+	const isGlobalCampaign = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount && paymentInterval() === PaymentInterval.Yearly
+
 	const subscriptionActionButtons: SubscriptionActionButtons = {
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
 				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo),
 			} satisfies LoginButtonAttrs),
-		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, paymentInterval, accountingInfo),
-		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, paymentInterval, accountingInfo),
+		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, paymentInterval, accountingInfo, isGlobalCampaign),
+		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, paymentInterval, accountingInfo, isGlobalCampaign),
 		[PlanType.Essential]: createPlanButton(dialog, PlanType.Essential, currentPlanInfo, paymentInterval, accountingInfo),
 		[PlanType.Advanced]: createPlanButton(dialog, PlanType.Advanced, currentPlanInfo, paymentInterval, accountingInfo),
 		[PlanType.Unlimited]: createPlanButton(dialog, PlanType.Unlimited, currentPlanInfo, paymentInterval, accountingInfo),
@@ -217,9 +220,11 @@ function createPlanButton(
 	currentPlanInfo: CurrentPlanInfo,
 	newPaymentInterval: stream<PaymentInterval>,
 	accountingInfo: AccountingInfo,
+	shouldApplyDiscount: boolean = false,
 ): lazy<LoginButtonAttrs> {
 	return () => ({
 		label: "buy_action",
+		...(shouldApplyDiscount && { class: "go-european-button" }),
 		onclick: async () => {
 			// Show an extra dialog in the case that someone is upgrading from a legacy plan to a new plan because they can't revert.
 			if (

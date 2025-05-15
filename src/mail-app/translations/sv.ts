@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-05-15T07:36:06Z",
+	"updated_at": "2025-05-15T12:48:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1389,6 +1389,7 @@ export default {
 		"pricing.gdpr_label": "GDPR kompatibel",
 		"pricing.gdpr_tooltip": "Alla uppgifter lagras i enlighet med strikta Europeiska bestämmelser om dataskydd enligt GDPR.",
 		"pricing.getStarted_label": "Kom igång",
+		"pricing.globalFirstYearDiscountRibbon_label": "Spara {amount}",
 		"pricing.includesTaxes_msg": "Inklusive skatter",
 		"pricing.legendAsterisk_msg": "Legend rabatten gäller endast det första året. Priset är därefter 96 € per år.",
 		"pricing.login_title": "Logga in på din egen webbplats",
