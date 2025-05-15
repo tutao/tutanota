@@ -117,57 +117,76 @@ export class RestClient {
 				}
 
 				xhr.onload = async () => {
-					// XMLHttpRequestProgressEvent, but not needed
-					if (verbose) {
-						console.log(TAG, `${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
-					}
-
-					clearTimeout(timeout)
-
-					this.saveServerTimeOffsetFromRequest(xhr)
-
-					// handle new server model and update the applicationTypesJson file if applicable
-					const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
-					if (
-						applicationTypesHashResponseHeader != null &&
-						applicationTypesHashResponseHeader != this.applicationTypesFacade().getApplicationTypesHash()
-					) {
-						await this.applicationTypesFacade().getServerApplicationTypesJson()
-					}
-
-					if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
-						if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
-							resolve(xhr.response)
-						} else if (options.responseType === MediaType.Binary) {
-							resolve(new Uint8Array(xhr.response))
-						} else {
-							resolve(null)
+					try {
+						// XMLHttpRequestProgressEvent, but not needed
+						if (verbose) {
+							console.log(TAG, `${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
 						}
-					} else {
-						const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
 
-						if (isSuspensionResponse(xhr.status, suspensionTime) && options.suspensionBehavior === SuspensionBehavior.Throw) {
-							reject(
-								new SuspensionError(
-									`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
-									suspensionTime && (parseInt(suspensionTime) * 1000).toString(),
-								),
-							)
-						} else if (isSuspensionResponse(xhr.status, suspensionTime)) {
-							this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), resourceURL)
+						clearTimeout(timeout)
 
-							resolve(this.suspensionHandler.deferRequest(() => this.request(path, method, options)))
-						} else {
-							logFailedRequest(method, url, xhr, options)
-							reject(handleRestError(xhr.status, `| ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
+						this.saveServerTimeOffsetFromRequest(xhr)
+
+						// handle new server model and update the applicationTypesJson file if applicable
+						const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
+						if (
+							applicationTypesHashResponseHeader != null &&
+							applicationTypesHashResponseHeader != this.applicationTypesFacade().getApplicationTypesHash()
+						) {
+							await this.applicationTypesFacade().getServerApplicationTypesJson()
 						}
+
+						if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
+							if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
+								resolve(xhr.response)
+							} else if (options.responseType === MediaType.Binary) {
+								resolve(new Uint8Array(xhr.response))
+							} else {
+								resolve(null)
+							}
+						} else {
+							const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
+
+							if (isSuspensionResponse(xhr.status, suspensionTime) && options.suspensionBehavior === SuspensionBehavior.Throw) {
+								reject(
+									new SuspensionError(
+										`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
+										suspensionTime && (parseInt(suspensionTime) * 1000).toString(),
+									),
+								)
+							} else if (isSuspensionResponse(xhr.status, suspensionTime)) {
+								this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), resourceURL)
+
+								resolve(this.suspensionHandler.deferRequest(() => this.request(path, method, options)))
+							} else {
+								logFailedRequest(method, url, xhr, options)
+								reject(
+									handleRestError(
+										xhr.status,
+										`| ${method} ${path}`,
+										xhr.getResponseHeader("Error-Id"),
+										xhr.getResponseHeader("Precondition"),
+									),
+								)
+							}
+						}
+					} catch (e) {
+						const msg = "unexpected error in RestClient::onload handler: "
+						console.error(msg, e)
+						reject(msg + e.stack)
 					}
 				}
 
 				xhr.onerror = function () {
-					clearTimeout(timeout)
-					logFailedRequest(method, url, xhr, options)
-					reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
+					try {
+						clearTimeout(timeout)
+						logFailedRequest(method, url, xhr, options)
+						reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
+					} catch (e) {
+						const msg = "unexpected error in RestClient::onerror handler: "
+						console.error(msg, e)
+						reject(msg + e.stack)
+					}
 				}
 
 				// don't add an EventListener for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
