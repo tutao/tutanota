@@ -235,7 +235,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			return () => ({
 				label: lang.makeTranslation("", "Go European"), // This text shall not be translated.
 				class: "go-european-button",
-				icon: m("img", {
+				icon: m("img.block", {
 					src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
 					alt: "",
 					rel: "noreferrer",
