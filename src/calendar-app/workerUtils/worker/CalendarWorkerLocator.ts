@@ -298,6 +298,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			cryptoWrapper,
 			keyAuthenticationFacade,
 			locator.ed25519Facade,
+			locator.publicKeySignatureFacade,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -314,6 +315,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		asymmetricCrypto,
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
+		locator.publicKeySignatureFacade,
 	)
 	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
 

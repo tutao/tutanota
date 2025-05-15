@@ -1,5 +1,5 @@
-import { AccountType, Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
-import { createMembershipAddData, createResetPasswordPostIn, createUserDataDelete, GroupTypeRef, User } from "../../../entities/sys/TypeRefs.js"
+import { Const, CounterType, DEFAULT_KDF_TYPE, GroupType } from "../../../common/TutanotaConstants.js"
+import { createResetPasswordPostIn, createUserDataDelete, User } from "../../../entities/sys/TypeRefs.js"
 import { getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
 import type { UserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
 import { createUserAccountCreateData, createUserAccountUserData } from "../../../entities/tutanota/TypeRefs.js"
@@ -7,10 +7,9 @@ import type { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { CounterFacade } from "./CounterFacade.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import { aes256RandomKey, AesKey, createAuthVerifier, encryptKey, generateRandomSalt, random, uint8ArrayToKey } from "@tutao/tutanota-crypto"
-import { EntityClient } from "../../../common/EntityClient.js"
+import { aes256RandomKey, AesKey, createAuthVerifier, encryptKey, generateRandomSalt, random } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
-import { MembershipService, ResetPasswordService, SystemKeysService, UserService } from "../../../entities/sys/Services.js"
+import { ResetPasswordService, UserService } from "../../../entities/sys/Services.js"
 import { UserAccountService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
@@ -120,7 +119,11 @@ export class UserManagementFacade {
 		})
 		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data)
 
-		await this.groupManagement.createIdentityKeyPair(userGroup)
+		const currentKeyPair = this.groupManagement.createKeyPairFromGroupData(userGroupData)
+		await this.groupManagement.createIdentityKeyPair(userGroup, {
+			currentKeyPair,
+			keyPairVersion: 0, // new group
+		})
 
 		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 	}

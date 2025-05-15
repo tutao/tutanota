@@ -1,5 +1,5 @@
 import o from "../../../../../packages/otest/dist/otest.js"
-import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
+import { GroupManagementFacade, PublicKeySigningData } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { CounterFacade } from "../../../../../src/common/api/worker/facades/lazy/CounterFacade.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
@@ -32,6 +32,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { IdentityKeyService } from "../../../../../src/common/api/entities/sys/Services"
 import { freshVersioned, noOp } from "@tutao/tutanota-utils"
+import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 
 const { anything, argThat, captor } = matchers
 
@@ -47,6 +48,7 @@ o.spec("GroupManagementFacadeTest", function () {
 	let cryptoWrapper: CryptoWrapper
 	let keyAuthenticationFacade: KeyAuthenticationFacade
 	let ed25519Facade: Ed25519Facade
+	let publicKeySignatureFacade: PublicKeySignatureFacade
 
 	let groupManagementFacade: GroupManagementFacade
 
@@ -66,6 +68,7 @@ o.spec("GroupManagementFacadeTest", function () {
 		cryptoWrapper = object()
 		keyAuthenticationFacade = object()
 		ed25519Facade = object()
+		publicKeySignatureFacade = object()
 
 		groupManagementFacade = new GroupManagementFacade(
 			userFacade,
@@ -79,6 +82,7 @@ o.spec("GroupManagementFacadeTest", function () {
 			cryptoWrapper,
 			keyAuthenticationFacade,
 			ed25519Facade,
+			publicKeySignatureFacade,
 		)
 	})
 
@@ -449,7 +453,8 @@ o.spec("GroupManagementFacadeTest", function () {
 		})
 
 		o("success internal user", async function () {
-			await groupManagementFacade.createIdentityKeyPair(userGroupId)
+			let publicKeySigningData: PublicKeySigningData = object() //TODO
+			await groupManagementFacade.createIdentityKeyPair(userGroupId, publicKeySigningData)
 
 			verify(
 				serviceExecutor.post(
@@ -487,8 +492,8 @@ o.spec("GroupManagementFacadeTest", function () {
 					admin: adminGroupId,
 				}),
 			)
-
-			await groupManagementFacade.createIdentityKeyPair(userGroupId)
+			let publicKeySigningData: PublicKeySigningData = object() //TODO
+			await groupManagementFacade.createIdentityKeyPair(userGroupId, publicKeySigningData)
 
 			verify(
 				serviceExecutor.post(
@@ -528,8 +533,8 @@ o.spec("GroupManagementFacadeTest", function () {
 					admin: adminGroupId,
 				}),
 			)
-
-			await groupManagementFacade.createIdentityKeyPair(userGroupId, adminGroupKey)
+			let publicKeySigningData: PublicKeySigningData = object() //TODO
+			await groupManagementFacade.createIdentityKeyPair(userGroupId, publicKeySigningData, adminGroupKey)
 
 			verify(
 				serviceExecutor.post(
