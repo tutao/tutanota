@@ -1,5 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 export type ProgressBarAttrs = {
 	progress: number
 	type?: ProgressBarType
@@ -42,7 +44,7 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 		let progressBarSelector = a.type == ProgressBarType.Large ? ".abs.accent-bg.border-radius-big" : ".abs.accent-bg"
 		return m(progressBarSelector, {
 			onbeforeremove: (vn) =>
-				new Promise<void>((resolve) => {
+				newPromise<void>((resolve) => {
 					vn.dom.addEventListener("transitionend", () => {
 						this.lastProgress = null
 						resolve()

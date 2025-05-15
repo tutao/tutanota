@@ -9,6 +9,8 @@ import { InfoLink, lang } from "../LanguageViewModel.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 let dictionary: string[] | null = null
 
 /**
@@ -25,7 +27,7 @@ export async function showPasswordGeneratorDialog(): Promise<string> {
 	let password = ""
 	const pwGenerator = new PasswordGenerator(locator.random, dictionary!)
 
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		const insertPasswordOkAction = () => {
 			resolve(password)
 			dialog.close()

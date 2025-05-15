@@ -8,6 +8,8 @@ import { formatDateWithWeekdayAndYear } from "../../../../common/misc/Formatter.
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
 import { debounceStart, NBSP, noOp } from "@tutao/tutanota-utils"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 assertMainOrNode()
 
 /**
@@ -70,7 +72,7 @@ export function showDateRangeSelectionDialog<T>(
 				m(".mt", { style: { minHeight: px(2 * size.font_size_base * size.line_height) } }, warning ?? NBSP),
 			),
 	}
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		let dialog = Dialog.showActionDialog({
 			title: "selectPeriodOfTime_label",
 			child: form,

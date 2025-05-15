@@ -21,6 +21,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -152,7 +153,7 @@ export function readLocalFiles(nativeFiles: Array<File>): Promise<Array<DataFile
 	return promiseMap(
 		nativeFiles,
 		(nativeFile) => {
-			return new Promise((resolve, reject) => {
+			return newPromise((resolve, reject) => {
 				let reader = new FileReader()
 
 				reader.onloadend = function (evt: ProgressEvent) {
@@ -204,7 +205,7 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 	}
 
 	newFileInput.style.display = "none"
-	const promise: Promise<Array<DataFile>> = new Promise((resolve) => {
+	const promise: Promise<Array<DataFile>> = newPromise((resolve) => {
 		newFileInput.addEventListener("change", (e: Event) => {
 			readLocalFiles((e.target as any).files)
 				.then(resolve)
@@ -281,7 +282,7 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 		} else {
 			if (client.isIos() && client.browser === BrowserType.CHROME && typeof FileReader === "function") {
 				const reader = new FileReader()
-				const downloadPromise = new Promise((resolve) => {
+				const downloadPromise = newPromise((resolve) => {
 					reader.onloadend = async function () {
 						const url = reader.result as any
 						resolve(await Dialog.legacyDownload(dataFile.name, url))

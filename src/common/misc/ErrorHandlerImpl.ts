@@ -32,6 +32,7 @@ import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.j
 import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
 
@@ -245,7 +246,7 @@ function ignoredError(e: Error): boolean {
  */
 export function disableErrorHandlingDuringLogout() {
 	isLoggingOut = true
-	showProgressDialog("loggingOut_msg", new Promise(noOp))
+	showProgressDialog("loggingOut_msg", newPromise(noOp))
 }
 
 function handleImportError() {
