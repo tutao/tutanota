@@ -148,7 +148,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// Show the business segmentControl for signup, if both personal & business plans are allowed
 		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !isIOSApp()
 
-		const isTutaBirthdayCampaign = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
+		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 
 		let subscriptionPeriodInfoMsg = !signup && currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (options.businessUse()) {
@@ -167,7 +167,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 
 		function getFootnoteElement(): Children {
-			if (!isIOSApp() && isTutaBirthdayCampaign && !options.businessUse() && isYearly) {
+			if (!isIOSApp() && hasGlobalFirstYearDiscount && !options.businessUse() && isYearly) {
 				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("pricing.legendAsterisk_msg")))
 			}
 
@@ -191,8 +191,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			.map((personalPlan, i) => {
 				// only show category title for the leftmost item
 				return [
-					this.renderBuyOptionBox(vnode.attrs, inMobileView, personalPlan, isTutaBirthdayCampaign),
-					this.renderBuyOptionDetails(vnode.attrs, i === 0, personalPlan, featureExpander, isTutaBirthdayCampaign),
+					this.renderBuyOptionBox(vnode.attrs, inMobileView, personalPlan, hasGlobalFirstYearDiscount),
+					this.renderBuyOptionDetails(vnode.attrs, i === 0, personalPlan, featureExpander, hasGlobalFirstYearDiscount),
 				]
 			})
 
@@ -223,7 +223,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				currentPlanType,
 				priceInfoTextId,
 				options.businessUse(),
-				isTutaBirthdayCampaign,
+				hasGlobalFirstYearDiscount,
 				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && (!currentPlanType || currentPlanType === PlanType.Free),
 			),
 			m(
@@ -277,7 +277,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		selectorAttrs: SubscriptionSelectorAttr,
 		targetSubscription: AvailablePlanType,
 		mobile: boolean,
-		isCampaign: boolean,
+		hasGlobalFirstYearDiscount: boolean,
 	): BuyOptionBoxAttr {
 		const { priceAndConfigProvider } = selectorAttrs
 
@@ -286,7 +286,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const isPersonalPaidPlan = targetSubscription === PlanType.Legend || targetSubscription === PlanType.Revolutionary
 		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
 		const isHighlighted = (() => {
-			if (isCampaign) {
+			if (hasGlobalFirstYearDiscount) {
 				return isPersonalPaidPlan
 			}
 
@@ -303,7 +303,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
-				if (isCampaign && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
+				if (hasGlobalFirstYearDiscount && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
 					const revolutionaryPrice = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())
 					priceStr = revolutionaryPrice?.displayYearlyPerYear ?? NBSP
 					// if there is a discount for this plan we show the original price as reference
@@ -334,7 +334,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			if (referencePrice > subscriptionPrice) {
 				// if there is a discount for this plan we show the original price as reference
 				referencePriceStr = formatMonthlyPrice(referencePrice, interval)
-			} else if (interval == PaymentInterval.Yearly && subscriptionPrice !== 0 && !isCampaign) {
+			} else if (interval == PaymentInterval.Yearly && subscriptionPrice !== 0 && !hasGlobalFirstYearDiscount) {
 				// if there is no discount for any plan then we show the monthly price as reference
 				const monthlyReferencePrice = priceAndConfigProvider.getSubscriptionPrice(
 					PaymentInterval.Monthly,
@@ -347,7 +347,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
 		const isYearly = interval === PaymentInterval.Yearly
-		const hasFirstYearDiscount = !isIOSApp() && isCampaign && isPersonalPaidPlan && isYearly
+		const hasFirstYearDiscount = !isIOSApp() && hasGlobalFirstYearDiscount && isPersonalPaidPlan && isYearly
 
 		const appliesFirstMonthForFree =
 			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
@@ -379,7 +379,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 					: 0,
 			targetSubscription,
-			hasGlobalCampaign: isCampaign,
+			hasGlobalCampaign: hasGlobalFirstYearDiscount,
 			isFirstMonthForFree: appliesFirstMonthForFree,
 		}
 	}

@@ -146,8 +146,6 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		const hasGlobalCampaign = attrs.hasGlobalCampaign ?? false
 		const isPersonalPaidPlan = attrs.targetSubscription === PlanType.Revolutionary || attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
-		const shouldApplyCampaignColor =
-			attrs.highlighted && attrs.hasGlobalCampaign && attrs.selectedPaymentInterval !== null && attrs.selectedPaymentInterval() === PaymentInterval.Yearly
 
 		function getRibbon(): Children {
 			if (isPersonalPaidPlan && hasGlobalCampaign && isYearly) {
@@ -199,7 +197,9 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 					},
 					[
 						getRibbon(),
-						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading, shouldApplyCampaignColor) : attrs.heading,
+						typeof attrs.heading === "string"
+							? this.renderHeading(attrs.heading, attrs.highlighted && hasGlobalCampaign && isYearly)
+							: attrs.heading,
 						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined),
 						m(
 							".small.flex",
@@ -268,7 +268,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			}),
 			// Ribbon
 			m(
-				".ribbon-horizontal.ribbon-horizontal-cyber-monday",
+				".ribbon-horizontal.ribbon-go-european",
 				m(
 					".text-center.b",
 					{
@@ -303,15 +303,15 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			: null
 	}
 
-	private renderHeading(heading: string, shouldApplyCampaignColor?: boolean): Children {
+	private renderHeading(heading: string, isHighlighted?: boolean): Children {
 		return m(
 			// we need some margin for the discount banner for longer translations shown on the website
 			".h4.text-center.mb-small-line-height.flex.col.center-horizontally.mlr-l.dialog-header",
 			{
 				style: {
 					"font-size": heading.length > 20 ? "smaller" : undefined,
-					"font-weight": shouldApplyCampaignColor ? 700 : "initial",
-					...(shouldApplyCampaignColor && { "border-bottom": 0 }),
+					"font-weight": isHighlighted ? 700 : "initial",
+					...(isHighlighted && { "border-bottom": 0 }),
 				},
 			},
 			heading,

@@ -231,11 +231,11 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
 		const isGlobalCampaign = data.planPrices.getRawPricingData().hasGlobalFirstYearDiscount
 
-		// Tuta bday / cyber monday
+		// global discount
 		if (isYearly && isGlobalCampaign && (planType === PlanType.Legend || planType === PlanType.Revolutionary)) {
 			return () => ({
-				label: "pricing.cyber_monday_select_action",
-				class: "accent-bg-cyber-monday",
+				label: lang.makeTranslation("", "Go European"), // This text shall not be translated.
+				class: "go-european-button",
 				onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 			})
 		}
