@@ -702,13 +702,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				when(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false, anything())).thenResolve(
 					await promiseMap(mailSetEntries, (entry) => toStorableInstance(entry)),
 				)
-				storage.lockRangesDbAccess = spy(storage.lockRangesDbAccess)
+				storage.doWithLockedRange = spy(storage.doWithLockedRange)
 				storage.unlockRangesDbAccess = spy(storage.unlockRangesDbAccess)
 
 				await cache.loadRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false)
 
 				// Verify that we lock/unlock the ranges database when loading the range
-				o(storage.lockRangesDbAccess.invocations).deepEquals([[listId]])
+				o(storage.doWithLockedRange.invocations).deepEquals([[listId]])
 				o(storage.unlockRangesDbAccess.invocations).deepEquals([[listId]])
 
 				verify(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false, anything()), { times: 1 })

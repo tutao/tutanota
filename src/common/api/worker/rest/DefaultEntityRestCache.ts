@@ -256,14 +256,9 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * We want to lock the access to the "ranges" db when updating / reading the
 	 * offline available mail list ranges for each mail list (referenced using the listId)
 	 * @param listId the mail list that we want to lock
+	 * @param criticalSection operation to execute while holding range locked.
 	 */
-	lockRangesDbAccess(listId: Id): Promise<void>
-
-	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
-	 * @param listId the mail list that we want to unlock
-	 */
-	unlockRangesDbAccess(listId: Id): Promise<void>
+	doWithLockedRange<T>(listId: Id, criticalSection: () => Promise<T>): Promise<T>
 }
 
 /**
@@ -458,9 +453,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 
 		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the ranges database.
-		await this.storage.lockRangesDbAccess(listId)
-
-		try {
+		return await this.storage.doWithLockedRange(listId, async () => {
 			const range = await this.storage.getRangeForList(typeRef, listId)
 
 			if (behavior.writesToCache) {
@@ -489,10 +482,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
 				}
 			}
-		} finally {
-			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-			await this.storage.unlockRangesDbAccess(listId)
-		}
+		})
 	}
 
 	/**

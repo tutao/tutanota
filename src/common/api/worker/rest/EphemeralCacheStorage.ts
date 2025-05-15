@@ -4,7 +4,7 @@ import { firstBiggerThanSecond } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, expandId, LastUpdateTime } from "./DefaultEntityRestCache.js"
 import { assertNotNull, clone, getFromMap, getTypeString, remove, TypeRef } from "@tutao/tutanota-utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions.js"
+import { resolveServerTypeReference } from "../../common/EntityFunctions.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { customIdToBase64Url, ensureBase64Ext } from "../offline/OfflineStorage.js"
@@ -464,14 +464,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	 * We want to lock the access to the "ranges" db when updating / reading the
 	 * offline available mail list ranges for each mail list (referenced using the listId)
 	 */
-	lockRangesDbAccess(_: string): Promise<void> {
-		return Promise.resolve()
-	}
-
-	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
-	 */
-	unlockRangesDbAccess(_: string): Promise<void> {
-		return Promise.resolve()
+	doWithLockedRange<T>(_: string, criticalSection: () => Promise<T>): Promise<T> {
+		return criticalSection()
 	}
 }

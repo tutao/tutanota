@@ -80,19 +80,22 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 
 	postRequest(msg: Request<OutgoingRequestType>): Promise<any> {
 		msg.id = this.nextId()
-		return newPromise((resolve, reject) => {
-			this._messages[msg.id!] = {
-				resolve,
-				reject,
-			}
+		return newPromise(
+			(resolve, reject) => {
+				this._messages[msg.id!] = {
+					resolve,
+					reject,
+				}
 
-			try {
-				this.transport.postMessage(msg)
-			} catch (e) {
-				console.log("error payload:", msg)
-				throw e
-			}
-		})
+				try {
+					this.transport.postMessage(msg)
+				} catch (e) {
+					console.log("error payload:", msg)
+					throw e
+				}
+			},
+			{ "MessageDispatcher::postRequest": msg },
+		)
 	}
 
 	handleMessage(message: Message<IncomingRequestType>) {

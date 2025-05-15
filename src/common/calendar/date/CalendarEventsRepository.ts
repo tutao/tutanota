@@ -96,40 +96,38 @@ export class CalendarEventsRepository {
 	}
 
 	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor, canceled: Stream<boolean>): Promise<void> {
-		const promiseForThisLoadRequest = this.pendingLoadRequest
-			.catch(() => {})
-			.then(async () => {
-				for (const dayInMonth of daysInMonths) {
-					if (canceled()) return
+		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
+			for (const dayInMonth of daysInMonths) {
+				if (canceled()) return
 
-					const monthRange = getMonthRange(dayInMonth, this.zone)
+				const monthRange = getMonthRange(dayInMonth, this.zone)
 
-					if (!this.loadedMonths.has(monthRange.start)) {
-						this.loadedMonths.add(monthRange.start)
+				if (!this.loadedMonths.has(monthRange.start)) {
+					this.loadedMonths.add(monthRange.start)
 
-						try {
-							console.log(">> getCalendarInfos")
-							const calendarInfos = await this.calendarModel.getCalendarInfos()
-							console.log("<< getCalendarInfos")
-							console.log(">> updateEventMap")
-							const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
-							console.log("<< updateEventMap")
-							console.log(">> replaceEvents")
-							this.replaceEvents(eventsMap)
-							console.log("<< replaceEvents")
-							console.log(">> addBirthdaysEventsIfNeeded")
-							this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
-							console.log("<< addBirthdaysEventsIfNeeded")
-						} catch (e) {
-							console.log("deleting for error", e)
-							this.loadedMonths.delete(monthRange.start)
-							console.log("throwing error", e)
-							throw e
-						}
+					try {
+						console.log(">> getCalendarInfos")
+						const calendarInfos = await this.calendarModel.getCalendarInfos()
+						console.log("<< getCalendarInfos")
+						console.log(">> updateEventMap")
+						const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
+						console.log("<< updateEventMap")
+						console.log(">> replaceEvents")
+						this.replaceEvents(eventsMap)
+						console.log("<< replaceEvents")
+						console.log(">> addBirthdaysEventsIfNeeded")
+						this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
+						console.log("<< addBirthdaysEventsIfNeeded")
+					} catch (e) {
+						console.log("deleting for error", e)
+						this.loadedMonths.delete(monthRange.start)
+						console.log("throwing error", e)
+						throw e
 					}
-					progressMonitor.workDone(1)
 				}
-			})
+				progressMonitor.workDone(1)
+			}
+		})
 		this.pendingLoadRequest = promiseForThisLoadRequest
 		await promiseForThisLoadRequest
 	}
@@ -284,7 +282,13 @@ export class CalendarEventsRepository {
 		return newEvent
 	}
 
-	async loadContactsBirthdays(forceReload: boolean = false): Promise<{ valid: ContactWrapper[]; invalid: Contact[] } | undefined> {
+	async loadContactsBirthdays(forceReload: boolean = false): Promise<
+		| {
+				valid: ContactWrapper[]
+				invalid: Contact[]
+		  }
+		| undefined
+	> {
 		// Do not reload birthdays
 		if (this.clientOnlyEvents.size > 0 && !forceReload) {
 			return

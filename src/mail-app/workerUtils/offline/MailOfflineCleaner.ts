@@ -83,14 +83,10 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	 */
 	private async deleteMailListLegacy(offlineStorage: OfflineStorage, listId: Id, cutoffId: Id): Promise<void> {
 		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.
-		await offlineStorage.lockRangesDbAccess(listId)
-		try {
+		await offlineStorage.doWithLockedRange(listId, async () => {
 			// This must be done before deleting mails to know what the new range has to be
 			await offlineStorage.updateRangeForList(MailTypeRef, listId, cutoffId)
-		} finally {
-			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-			await offlineStorage.unlockRangesDbAccess(listId)
-		}
+		})
 
 		const mailsToDelete: IdTuple[] = []
 		const attachmentsToDelete: IdTuple[] = []
@@ -136,13 +132,9 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	 * the legacy way currently even for mailset users.
 	 */
 	private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffId: Id) {
-		await offlineStorage.lockRangesDbAccess(entriesListId)
-		try {
+		await offlineStorage.doWithLockedRange(entriesListId, async () => {
 			await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
-		} finally {
-			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-			await offlineStorage.unlockRangesDbAccess(entriesListId)
-		}
+		})
 
 		const mailSetEntriesToDelete: IdTuple[] = []
 		const mailSetEntries = await offlineStorage.getWholeList(MailSetEntryTypeRef, entriesListId)
