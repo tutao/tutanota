@@ -14,6 +14,8 @@ import { asPaymentInterval } from "./PriceUtils.js"
 import { getLazyLoadedPayPalUrl } from "./SubscriptionUtils.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 /**
  * @returns {boolean} true if the payment data update was successful
  */
@@ -50,7 +52,7 @@ export async function show(customer: Customer, accountingInfo: AccountingInfo, p
 
 	const didLinkPaypal = () => selectedPaymentMethod === PaymentMethodType.Paypal && paymentMethodInput.isPaypalAssigned()
 
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		const confirmAction = () => {
 			let error = paymentMethodInput.validatePaymentData()
 

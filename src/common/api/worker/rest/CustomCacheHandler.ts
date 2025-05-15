@@ -2,7 +2,7 @@ import { ListElementEntity, ServerModelParsedInstance, TypeModel } from "../../c
 import { CalendarEvent, CalendarEventTypeRef, Mail } from "../../entities/tutanota/TypeRefs.js"
 import { freezeMap, getTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils.js"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions.js"
+import { resolveServerTypeReference } from "../../common/EntityFunctions.js"
 import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCache.js"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"

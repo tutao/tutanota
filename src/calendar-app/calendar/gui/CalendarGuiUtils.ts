@@ -89,6 +89,8 @@ import { theme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 export interface IntervalOption {
 	value: number
 	ariaValue: string
@@ -210,7 +212,7 @@ export function calendarNavConfiguration(
 }
 
 export function askIfShouldSendCalendarUpdatesToAttendees(): Promise<"yes" | "no" | "cancel"> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		let alertDialog: Dialog
 		const cancelButton = {
 			label: "cancel_action",

@@ -5,6 +5,8 @@ import { QuotaExceededError } from "../../common/error/QuotaExceededError"
 import { sha256Hash } from "@tutao/tutanota-crypto"
 import { IndexName, ObjectStoreName } from "./IndexTables.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
 export type DbKey = string | number | Uint8Array
 export type DatabaseEntry = {
@@ -53,7 +55,7 @@ export class DbFacade {
 			if (!this.indexingSupported) {
 				return Promise.reject(new IndexingNotSupportedError("indexedDB not supported"))
 			} else {
-				return new Promise((resolve, reject) => {
+				return newPromise((resolve, reject) => {
 					let DBOpenRequest: IDBOpenDBRequest
 
 					try {
@@ -151,7 +153,7 @@ export class DbFacade {
 	}
 
 	static deleteDb(id: string): Promise<void> {
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			const deleteRequest = self.indexedDB.deleteDatabase(id)
 			deleteRequest.onerror = (event: ErrorEvent) => reject(new DbError(`could not delete database ${id}`, downcast<Error>(event)))
 			deleteRequest.onsuccess = () => resolve()
@@ -199,7 +201,7 @@ export class IndexedDbTransaction implements DbTransaction {
 	constructor(transaction: IDBTransaction, onUnknownError: (e: any) => unknown) {
 		this._transaction = transaction
 		this._onUnknownError = onUnknownError
-		this._promise = new Promise((resolve, reject) => {
+		this._promise = newPromise((resolve, reject) => {
 			let done = false
 
 			transaction.onerror = (event) => {
@@ -226,7 +228,7 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 
 	getAll(objectStore: ObjectStoreName): Promise<Array<DatabaseEntry>> {
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			try {
 				let keys: DatabaseEntry[] = []
 				let request = this._transaction.objectStore(objectStore).openCursor()
@@ -256,7 +258,7 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 
 	get<T>(objectStore: ObjectStoreName, key: DbKey, indexName?: IndexName): Promise<T | null> {
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			try {
 				const os = this._transaction.objectStore(objectStore)
 
@@ -288,7 +290,7 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 
 	put(objectStore: ObjectStoreName, key: DbKey | null, value: any): Promise<any> {
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			try {
 				let request = key ? this._transaction.objectStore(objectStore).put(value, key) : this._transaction.objectStore(objectStore).put(value)
 
@@ -308,7 +310,7 @@ export class IndexedDbTransaction implements DbTransaction {
 	}
 
 	delete(objectStore: ObjectStoreName, key: DbKey): Promise<void> {
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			try {
 				let request = this._transaction.objectStore(objectStore).delete(key)
 

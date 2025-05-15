@@ -20,6 +20,8 @@ import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
 	FREE: "free",
@@ -228,7 +230,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 }
 
 function confirmFreeSubscription(): Promise<boolean> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		let oneAccountValue = stream(false)
 		let privateUseValue = stream(false)
 		let dialog: Dialog

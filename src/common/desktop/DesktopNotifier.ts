@@ -3,6 +3,8 @@ import type { DesktopTray } from "./tray/DesktopTray"
 import type { ApplicationWindow } from "./ApplicationWindow"
 import type { ElectronNotificationFactory } from "./NotificatonFactory"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 export const enum NotificationResult {
 	Click = "click",
 	Close = "close",
@@ -57,8 +59,8 @@ export class DesktopNotifier {
 		}
 
 		return this._canShow
-			? new Promise((resolve) => this._notificationFactory.makeNotification(withIcon, (res) => resolve(res)))
-			: new Promise((resolve) =>
+			? newPromise((resolve) => this._notificationFactory.makeNotification(withIcon, (res) => resolve(res)))
+			: newPromise((resolve) =>
 					this.pendingNotifications.push(() => {
 						this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
 					}),

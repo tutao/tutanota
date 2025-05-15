@@ -57,6 +57,8 @@ import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { createDropdown } from "../gui/base/Dropdown.js"
 
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+
 assertMainOrNode()
 
 /**
@@ -488,7 +490,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 }
 
 function showPayConfirmDialog(price: number): Promise<boolean> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		let dialog: Dialog
 
 		const doAction = (res: boolean) => {
