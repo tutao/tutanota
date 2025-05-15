@@ -113,26 +113,32 @@ impl CryptoFacade {
 
 		// Extract the session key data from the owner group of the entity
 		let EntityOwnerKeyData {
-			owner_enc_session_key,
-			owner_key_version,
-			owner_group,
-		} = EntityOwnerKeyData::extract_owner_key_data(entity, model)?;
+			owner_enc_session_key: Some(owner_enc_session_key),
+			owner_key_version: Some(owner_key_version),
+			owner_group: Some(owner_group),
+		} = EntityOwnerKeyData::extract_owner_key_data(entity, model)?
+		else {
+			return Err(SessionKeyResolutionError {
+				reason: "instance missing owner key/group data".to_string(),
+			});
+		};
 
-		let has_group =
-			owner_group.is_some() && self.user_facade.has_group(owner_group.as_ref().unwrap());
+		// The user might not be member of the owner group of this entity
+		// example: GroupInfo entity from another customer (Shared Calendars)
+		let has_group = self.user_facade.has_group(owner_group);
 
-		if has_group && owner_enc_session_key.is_some() {
+		if has_group {
 			let group_key: GenericAesKey = self
 				.key_loader_facade
-				.load_sym_group_key(owner_group.unwrap(), owner_key_version.unwrap_or(0), None)
+				.load_sym_group_key(owner_group, owner_key_version, None)
 				.await?;
 
-			let session_key = group_key.decrypt_aes_key(owner_enc_session_key.unwrap())?;
+			let session_key = group_key.decrypt_aes_key(owner_enc_session_key)?;
 			// TODO: performance: should we reuse owner_enc_session_key?
 			Ok(Some(ResolvedSessionKey {
 				session_key,
-				owner_enc_session_key: owner_enc_session_key.unwrap().clone(),
-				owner_key_version: owner_key_version.unwrap_or(0),
+				owner_enc_session_key: owner_enc_session_key.clone(),
+				owner_key_version,
 				sender_identity_pub_key: None,
 			}))
 		} else {
@@ -177,15 +183,20 @@ impl CryptoFacade {
 					reason: format!("Failed to parse permission into proper types: {}", error),
 				})?;
 
-			let resolved_key = self.try_symmetric_permission(permissions).await?;
-			Ok(resolved_key)
+			let resolved_session_key = self.try_symmetric_permission(permissions).await?;
+			Ok(Some(ResolvedSessionKey {
+				session_key: resolved_session_key,
+				owner_enc_session_key: owner_enc_session_key.clone(),
+				owner_key_version,
+				sender_identity_pub_key: None,
+			}))
 		}
 	}
 
 	async fn try_symmetric_permission(
 		&self,
 		permissions: Vec<Permission>,
-	) -> Result<Option<ResolvedSessionKey>, SessionKeyResolutionError> {
+	) -> Result<GenericAesKey, SessionKeyResolutionError> {
 		let symmetric_permission = permissions.iter().find(|&p| {
 			let Ok(permission_type) = PermissionType::try_from_primitive(p.r#type) else {
 				return false;
@@ -215,13 +226,8 @@ impl CryptoFacade {
 				});
 			};
 
-			let key = group_key.decrypt_aes_key(owner_enc_session_key.as_slice())?;
-			return Ok(Some(ResolvedSessionKey {
-				session_key: key,
-				owner_enc_session_key: owner_enc_session_key.clone(),
-				owner_key_version: s_permission._ownerKeyVersion.unwrap_or(0).unsigned_abs(),
-				sender_identity_pub_key: None,
-			}));
+			let session_key = group_key.decrypt_aes_key(owner_enc_session_key.as_slice())?;
+			return Ok(session_key);
 		}
 
 		Err(SessionKeyResolutionError {
@@ -486,14 +492,14 @@ mod test {
 	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::x25519::X25519KeyPair;
 	use crate::element_value::ParsedEntity;
-	use crate::entities::generated::sys::{BucketKey, InstanceSessionKey};
+	use crate::entities::generated::sys::{BucketKey, GroupInfo, InstanceSessionKey, Permission};
 	use crate::entities::generated::tutanota::Mail;
 	use crate::entities::Entity;
 	use crate::entity_client::MockEntityClient;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::key_loader_facade::MockKeyLoaderFacade;
 	use crate::metamodel::TypeModel;
-	use crate::tutanota_constants::CryptoProtocolVersion;
+	use crate::tutanota_constants::{CryptoProtocolVersion, PermissionType};
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::{create_test_entity, typed_entity_to_parsed_entity};
 	use crate::GeneratedId;
@@ -540,7 +546,8 @@ mod test {
 			constants.group_key.clone(),
 			constants.sender_key_version,
 			Some(asymmetric_crypto_facade),
-			true,
+			vec![],
+			None,
 		);
 
 		let key = crypto_facade
@@ -588,7 +595,8 @@ mod test {
 			constants.group_key.clone(),
 			constants.sender_key_version,
 			Some(asymmetric_crypto_facade),
-			true,
+			vec![],
+			None,
 		);
 
 		let mail_type_model = get_mail_type_model();
@@ -635,7 +643,8 @@ mod test {
 			constants.group_key.clone(),
 			constants.sender_key_version,
 			Some(asymmetric_crypto_facade),
-			true,
+			vec![],
+			None,
 		);
 
 		let mail_type_model = get_mail_type_model();
@@ -648,6 +657,77 @@ mod test {
 		assert_eq!(session_key.as_bytes(), key.session_key.as_bytes());
 	}
 
+	#[tokio::test]
+	async fn resolve_session_key_using_permission() {
+		let randomizer_facade = make_thread_rng_facade();
+
+		let constants = BucketKeyConstants::new(&randomizer_facade);
+		let permission_constants = BucketKeyConstants::new(&randomizer_facade);
+		let session_key = GenericAesKey::from(Aes256Key::generate(&randomizer_facade));
+		let owner_enc_session_key = constants
+			.group_key
+			.encrypt_key(&session_key, Iv::generate(&randomizer_facade));
+
+		let permission_list = permission_constants.instance_list.clone();
+		let permission_id = permission_constants.instance_id.clone();
+		let permission_owner_group = permission_constants.key_group.clone();
+		let permission_owner_key_version = permission_constants.recipient_key_version;
+		let permission_owner_enc_session_key = permission_constants
+			.group_key
+			.encrypt_key(&session_key, Iv::generate(&randomizer_facade));
+
+		let mock_calendar_group_info = GroupInfo {
+			_id: Some(IdTupleGenerated {
+				list_id: constants.instance_list.clone(),
+				element_id: constants.instance_id.clone(),
+			}),
+			_ownerGroup: Some(constants.key_group.clone()),
+			_ownerEncSessionKey: Some(owner_enc_session_key.clone()),
+			_ownerKeyVersion: Some(constants.recipient_key_version as i64),
+			_permissions: permission_id.clone(),
+			..create_test_entity()
+		};
+
+		let mock_permission = Permission {
+			_id: Some(IdTupleGenerated {
+				list_id: permission_list,
+				element_id: permission_id,
+			}),
+			_ownerGroup: Some(permission_owner_group.clone()),
+			_ownerEncSessionKey: Some(permission_owner_enc_session_key.clone()),
+			_ownerKeyVersion: Some(permission_owner_key_version as i64),
+			r#type: PermissionType::Symmetric.into(),
+			..create_test_entity()
+		};
+
+		let raw_permission = typed_entity_to_parsed_entity(mock_permission);
+		let raw_calendar = typed_entity_to_parsed_entity(mock_calendar_group_info.clone());
+
+		let asymmetric_crypto_facade = MockAsymmetricCryptoFacade::default();
+
+		let crypto_facade = make_crypto_facade(
+			randomizer_facade.clone(),
+			permission_constants.group_key.clone(),
+			permission_constants.sender_key_version,
+			Some(asymmetric_crypto_facade),
+			vec![permission_owner_group],
+			Some(raw_permission),
+		);
+
+		let group_info_type_model = get_group_info_model();
+		let key = crypto_facade
+			.resolve_session_key(&raw_calendar, &group_info_type_model)
+			.await
+			.expect("should not have errored")
+			.expect("where is the key");
+
+		assert_eq!(
+			mock_calendar_group_info._ownerEncSessionKey.unwrap(),
+			key.owner_enc_session_key
+		);
+		assert_eq!(session_key.as_bytes(), key.session_key.as_bytes());
+	}
+
 	fn get_mail_type_model() -> TypeModel {
 		let provider = TypeModelProvider::new_test(
 			Arc::new(MockRestClient::default()),
@@ -657,6 +737,21 @@ mod test {
 		let mail_type_ref = Mail::type_ref();
 		provider
 			.resolve_server_type_ref(&mail_type_ref)
+			.unwrap()
+			.clone()
+			.deref()
+			.clone()
+	}
+
+	fn get_group_info_model() -> TypeModel {
+		let provider = TypeModelProvider::new_test(
+			Arc::new(MockRestClient::default()),
+			Arc::new(MockFileClient::default()),
+			"http://localhost:9000".to_string(),
+		);
+		let group_info = GroupInfo::type_ref();
+		provider
+			.resolve_server_type_ref(&group_info)
 			.unwrap()
 			.clone()
 			.deref()
@@ -743,12 +838,20 @@ mod test {
 		group_key: GenericAesKey,
 		sender_key_version: u64,
 		asymmetric_crypto_facade: Option<MockAsymmetricCryptoFacade>,
-		has_group: bool,
+		has_groups: Vec<GeneratedId>,
+		permission: Option<ParsedEntity>,
 	) -> CryptoFacade {
 		let mut key_loader = MockKeyLoaderFacade::default();
 		let mut user_facade = MockUserFacade::default();
 		let group_key_clone = group_key.clone();
-		let entity_client = MockEntityClient::default();
+		let mut entity_client = MockEntityClient::default();
+
+		if permission.is_some() {
+			entity_client
+				.expect_load_all()
+				.return_const(Ok(vec![permission.unwrap()]));
+		}
+
 		key_loader
 			.expect_get_current_sym_group_key()
 			.returning(move |_| {
@@ -770,7 +873,13 @@ mod test {
 			"localhost:9000".to_string(),
 		));
 
-		user_facade.expect_has_group().return_const(has_group);
+		if has_groups.is_empty() {
+			user_facade.expect_has_group().return_const(true);
+		} else {
+			user_facade
+				.expect_has_group()
+				.returning(move |group_id: &GeneratedId| has_groups.contains(&group_id));
+		}
 
 		CryptoFacade {
 			key_loader_facade: Arc::new(key_loader),
