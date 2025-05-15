@@ -2063,6 +2063,7 @@ export type UpgradePriceServiceReturn = {
 	business: boolean;
 	bonusMonthsForYearlyPlan: NumberString;
 	firstMonthForFreeForYearlyPlan: boolean;
+	hasGlobalFirstYearDiscount: boolean;
 
 	premiumPrices: PlanPrices;
 	proPrices: PlanPrices;
