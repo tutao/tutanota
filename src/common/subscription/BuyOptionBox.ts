@@ -12,7 +12,6 @@ import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
-import { isIOSApp } from "../api/common/Env"
 import { isColorLight } from "../gui/base/Color.js"
 
 export type BuyOptionBoxAttr = {
@@ -252,7 +251,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	}
 
 	private static renderCampaignRibbon(): Children {
-		const text = isIOSApp() ? "DEAL" : lang.get("pricing.cyberMonday_label")
+		const text = lang.get("pricing.globalFirstYearDiscountRibbon_label", { "{amount}": "50%" })
 		const imageName = theme.themeId === "light" || theme.themeId === "light_secondary" ? "eu-quantum-light" : "eu-quantum-dark"
 
 		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)", top: "-10px" } }, [
@@ -263,8 +262,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 				loading: "lazy",
 				decoding: "async",
 				style: {
-					width: "35%",
-					bottom: px(-89.5),
+					bottom: px(-140),
 					right: px(-5),
 				},
 			}),
