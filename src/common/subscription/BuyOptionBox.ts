@@ -270,7 +270,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			m(
 				".ribbon-horizontal.ribbon-go-european",
 				m(
-					".text-center.b",
+					".text-center.b.font-mdio",
 					{
 						style: {
 							display: "flex",
