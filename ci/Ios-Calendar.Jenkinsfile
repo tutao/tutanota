@@ -30,14 +30,14 @@ pipeline {
 	}
 
 	stages {
-    	stage('Check Github') {
-			steps {
-				script {
-					def util = load "ci/jenkins-lib/util.groovy"
-					util.checkGithub()
-				}
-			}
-    	}
+//     	stage('Check Github') {
+// 			steps {
+// 				script {
+// 					def util = load "ci/jenkins-lib/util.groovy"
+// 					util.checkGithub()
+// 				}
+// 			}
+//     	}
 		stage("Build and upload to Testflight") {
 			environment {
 				PATH="${env.NODE_MAC_PATH}:${env.PATH}:${env.HOME}/emsdk:${env.HOME}/emsdk/upstream/emscripten:${env.HOME}/emsdk/upstream/bin"
