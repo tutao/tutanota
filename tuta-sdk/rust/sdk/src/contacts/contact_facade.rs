@@ -66,7 +66,7 @@ impl ContactFacade {
 	) -> Result<Vec<Contact>, ApiCallError> {
 		let contacts: Vec<Contact> = self
 			.crypto_entity_client
-			.load_all(&contact_list, ListLoadDirection::ASC)
+			.load_all(contact_list, ListLoadDirection::ASC)
 			.await?;
 
 		Ok(contacts)

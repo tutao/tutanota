@@ -517,7 +517,7 @@ impl CalendarFacade {
 			)
 		} else {
 			let birthday_parts: Vec<&str> = iso_birthday.split("-").collect();
-			if birthday_parts.iter().count() != 3 || birthday_parts[0].len() != 4 {
+			if birthday_parts.len() != 3 || birthday_parts[0].len() != 4 {
 				return Err(ApiCallError::internal(format!(
 					"Invalid birthday {}",
 					iso_birthday
@@ -552,18 +552,15 @@ impl CalendarFacade {
 	async fn generate_birthdays(&self) -> Result<Vec<BirthdayEvent>, ApiCallError> {
 		let contacts: Vec<Contact> = self.contact_facade.load_all_user_contacts().await?;
 
-		let user_id = match self.user_facade.get_user()._id.clone() {
-			Some(id) => id,
-			_ => {
-				return Err(ApiCallError::internal(
-					"Trying to generate birthdays for a user without an Id".to_string(),
-				))
-			},
+		let Some(user_id) = self.user_facade.get_user()._id.clone() else {
+			return Err(ApiCallError::internal(
+				"Trying to generate birthdays for a user without an Id".to_string(),
+			));
 		};
 
 		let birthdays: Vec<BirthdayEvent> = contacts
 			.iter()
-			.filter_map(|contact| self.assert_birthday_and_create_event(&user_id, &contact))
+			.filter_map(|contact| self.assert_birthday_and_create_event(&user_id, contact))
 			.collect();
 
 		Ok(birthdays)
@@ -574,30 +571,24 @@ impl CalendarFacade {
 		user_id: &GeneratedId,
 		contact: &Contact,
 	) -> Option<BirthdayEvent> {
-		if contact.birthdayIso.is_none() {
-			return None;
-		}
+		let birthday_date = match self.assert_valid_iso_birthday(contact.birthdayIso.as_ref()?) {
+			Ok(date) => date,
+			Err(e) => {
+				log::error!("{e:?}");
+				return None;
+			},
+		};
 
-		let birthday_date =
-			match self.assert_valid_iso_birthday(contact.birthdayIso.as_ref().unwrap()) {
-				Ok(date) => date,
-				Err(e) => {
-					log::error!("{e:?}");
-					return None;
-				},
-			};
-
-		let event =
-			match self
-				.event_facade
-				.create_birthday_event(&contact, &birthday_date, &user_id)
-			{
-				Ok(ev) => ev,
-				Err(e) => {
-					log::error!("Failed to create birthday event: {}", e);
-					return None;
-				},
-			};
+		let event = match self
+			.event_facade
+			.create_birthday_event(contact, &birthday_date, user_id)
+		{
+			Ok(ev) => ev,
+			Err(e) => {
+				log::error!("Failed to create birthday event: {}", e);
+				return None;
+			},
+		};
 
 		Some(event)
 	}

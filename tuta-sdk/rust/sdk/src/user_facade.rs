@@ -149,7 +149,7 @@ impl UserFacade {
 
 	pub fn has_group(&self, group_id: &GeneratedId) -> bool {
 		&self.get_user().userGroup.group == group_id
-			|| (&self.get_user().memberships)
+			|| (self.get_user().memberships)
 				.iter()
 				.any(|m| group_id == &m.group)
 	}
