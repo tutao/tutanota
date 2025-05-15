@@ -285,12 +285,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const interval = selectorAttrs.options.paymentInterval()
 		const isPersonalPaidPlan = targetSubscription === PlanType.Legend || targetSubscription === PlanType.Revolutionary
 		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
+		// If we are on a campaign, we want to let the user know the discount is just for the first year.
+		const isYearly = interval === PaymentInterval.Yearly
+		const hasFirstYearDiscount = !isIOSApp() && hasGlobalFirstYearDiscount && isPersonalPaidPlan && isYearly
 		const isHighlighted = (() => {
-			if (hasGlobalFirstYearDiscount) {
-				return isPersonalPaidPlan
-			}
-
-			return upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription)
+			return hasFirstYearDiscount || (upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription))
 		})()
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
 
@@ -344,10 +343,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				referencePriceStr = formatMonthlyPrice(monthlyReferencePrice, PaymentInterval.Monthly)
 			}
 		}
-
-		// If we are on a campaign, we want to let the user know the discount is just for the first year.
-		const isYearly = interval === PaymentInterval.Yearly
-		const hasFirstYearDiscount = !isIOSApp() && hasGlobalFirstYearDiscount && isPersonalPaidPlan && isYearly
 
 		const appliesFirstMonthForFree =
 			priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan &&
