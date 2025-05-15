@@ -3,6 +3,7 @@ import { ServiceUnavailableError, TooManyRequestsError } from "../../api/common/
 import { filterInt } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog.js"
 import { customFetch } from "./NetAgent"
+import { newPromise } from "../../api/common/utils/ErrorUtils"
 
 const TAG = "[suspending-fetch]"
 
@@ -13,7 +14,7 @@ export async function suspensionAwareFetch(input: string | URL, init?: RequestIn
 		const time = filterInt((res.headers.get("retry-after") ?? res.headers.get("suspension-time")) as string)
 		log.debug(TAG, `ServiceUnavailable when downloading missed notification, waiting ${time}s`)
 
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			setTimeout(() => suspensionAwareFetch(input, init).then(resolve, reject), time * 1000)
 		})
 	} else {

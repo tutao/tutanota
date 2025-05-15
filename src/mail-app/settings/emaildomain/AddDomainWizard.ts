@@ -13,6 +13,7 @@ import { createWizardDialog, wizardPageWrapper } from "../../../common/gui/base/
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailAddressTableModel } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 import { DialogType } from "../../../common/gui/base/Dialog.js"
+import { newPromise } from "../../../common/api/common/utils/ErrorUtils"
 
 assertMainOrNode()
 export type AddDomainData = {
@@ -47,7 +48,7 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 		wizardPageWrapper(AddEmailAddressesPage, new AddEmailAddressesPageAttrs(domainData)),
 		wizardPageWrapper(VerifyDnsRecordsPage, new VerifyDnsRecordsPageAttrs(domainData)),
 	]
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		const wizardBuilder = createWizardDialog(
 			domainData,
 			wizardPages,

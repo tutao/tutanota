@@ -185,3 +185,18 @@ export function objToError(o: Record<string, any>): Error {
 	e.data = o.data
 	return e
 }
+
+export function newPromise<T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) {
+	// const stack = new Error()
+	const promise = new Promise(executor)
+	let resolved = false
+	promise.then(() => {
+		resolved = true
+	})
+	// setTimeout(() => {
+	// 	if (!resolved) {
+	// 		console.log(">>> Programming error: Promise not resolved after 30s", stack)
+	// 	}
+	// }, 30000)
+	return promise
+}

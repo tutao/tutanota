@@ -30,6 +30,7 @@ import { theme } from "../../../../common/gui/theme.js"
 import stream from "mithril/stream"
 
 import { handleRatingByEvent } from "../../../../common/ratings/InAppRatingDialog.js"
+import { newPromise } from "../../../../common/api/common/utils/ErrorUtils"
 
 const enum ConfirmationResult {
 	Cancel,
@@ -224,7 +225,7 @@ export class EventEditorDialog {
 			throw new ProgrammingError("tried to edit existing event without uid, this is impossible for certain edit operations.")
 		}
 
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			const okAction: EditDialogOkHandler = async (posRect, finish) => {
 				if (finished || (await this.askUserIfUpdatesAreNeededOrCancel(model)) === ConfirmationResult.Cancel) {
 					return

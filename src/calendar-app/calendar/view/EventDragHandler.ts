@@ -4,6 +4,7 @@ import { getAllDayDateUTC, isAllDayEvent } from "../../../common/api/common/util
 import { Time } from "../../../common/calendar/date/Time.js"
 import { showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
+import { newPromise } from "../../../common/api/common/utils/ErrorUtils"
 
 const DRAG_THRESHOLD = 10
 export type MousePos = {
@@ -188,7 +189,7 @@ export class EventDragHandler {
 }
 
 async function showModeSelectionDropdown(pos: MousePos): Promise<CalendarOperation | null> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		showDropdownAtPosition(
 			[
 				{ label: "updateOneCalendarEvent_action", click: () => resolve(CalendarOperation.EditThis) },

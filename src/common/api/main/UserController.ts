@@ -45,6 +45,7 @@ import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils
 import { EntityUpdateData, isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils.js"
 import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
+import { newPromise } from "../common/utils/ErrorUtils"
 
 assertMainOrNode()
 
@@ -256,7 +257,7 @@ export class UserController {
 	}
 
 	deleteSessionSync(): Promise<void> {
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			const sendBeacon = navigator.sendBeacon // Save sendBeacon to variable to satisfy type checker
 
 			if (sendBeacon) {

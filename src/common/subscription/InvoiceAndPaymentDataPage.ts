@@ -37,6 +37,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/Entity
 import { EntityEventsListener } from "../api/main/EventController.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { client } from "../misc/ClientDetector.js"
+import { newPromise } from "../api/common/utils/ErrorUtils"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -354,7 +355,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			invoiceInfo,
 		}
 		let resolve: (arg0: boolean) => void
-		let progressDialogPromise: Promise<boolean> = new Promise((res) => (resolve = res))
+		let progressDialogPromise: Promise<boolean> = newPromise((res) => (resolve = res))
 		let progressDialog: Dialog
 
 		const closeAction = () => {

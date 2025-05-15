@@ -6,6 +6,7 @@ import { SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
 import { ApplicationTypesFacade } from "../facades/ApplicationTypesFacade"
+import { newPromise } from "../../common/utils/ErrorUtils"
 
 assertWorkerOrNode()
 
@@ -68,7 +69,7 @@ export class RestClient {
 		if (this.suspensionHandler.isSuspended()) {
 			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
-			return new Promise((resolve, reject) => {
+			return newPromise((resolve, reject) => {
 				this.id++
 
 				const queryParams: Dict = options.queryParams ?? {}

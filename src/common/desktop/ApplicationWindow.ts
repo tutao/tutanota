@@ -20,6 +20,7 @@ import { InterWindowEventFacadeSendDispatcher } from "../native/common/generated
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
 import { CalendarOpenAction } from "../native/common/generatedipc/CalendarOpenAction.js"
+import { newPromise } from "../api/common/utils/ErrorUtils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -195,7 +196,7 @@ export class ApplicationWindow {
 	}
 
 	close(): Promise<void> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			this._browserWindow.once("closed", resolve)
 			this._browserWindow.close()
 		})
@@ -545,7 +546,7 @@ export class ApplicationWindow {
 
 			this._browserWindow.webContents.findInPage(searchTerm, options)
 
-			return new Promise((resolve: (_: Result) => void, reject) => {
+			return newPromise((resolve: (_: Result) => void, reject) => {
 				// if the last search request is still ongoing, this will reject that requests' promise
 				// we obviously don't care about that requests' result since we are already handling a new one
 				// if the last request is done, this is a noOp

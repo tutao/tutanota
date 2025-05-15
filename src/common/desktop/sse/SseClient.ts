@@ -4,6 +4,7 @@ import { makeTaggedLogger } from "../DesktopLog"
 import { Scheduler } from "../../api/common/utils/Scheduler.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { reverse } from "../../api/common/TutanotaConstants.js"
+import { newPromise } from "../../api/common/utils/ErrorUtils"
 
 const log = makeTaggedLogger("[SSE]")
 
@@ -191,7 +192,7 @@ export class SseClient {
 				break
 			case ConnectionState.connected:
 			case ConnectionState.connecting:
-				return new Promise<void>((resolve) => {
+				return newPromise<void>((resolve) => {
 					state.connection.once("close", () => {
 						this.state = { state: ConnectionState.disconnected }
 						resolve()

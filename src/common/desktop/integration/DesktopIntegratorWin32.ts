@@ -1,6 +1,7 @@
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopIntegrator } from "./DesktopIntegrator"
 import { Registry } from "winreg"
+import { newPromise } from "../../api/common/utils/ErrorUtils"
 
 type Electron = typeof Electron.CrossProcessExports
 
@@ -20,7 +21,7 @@ export class DesktopIntegratorWin32 implements DesktopIntegrator {
 
 	isAutoLaunchEnabled(): Promise<boolean> {
 		// can't promisify here because it screws with autoRunKeys 'this' semantics
-		return new Promise((resolve: (_: boolean) => void, reject) => {
+		return newPromise((resolve: (_: boolean) => void, reject) => {
 			this._autoRunKey.get(this._electron.app.name, (err, item) => {
 				if (err) {
 					reject(err)
@@ -34,7 +35,7 @@ export class DesktopIntegratorWin32 implements DesktopIntegrator {
 	async enableAutoLaunch(): Promise<void> {
 		if (!(await this.isAutoLaunchEnabled())) {
 			// can't promisify here because it screws with autoRunKeys 'this' semantics
-			return new Promise((resolve, reject) => {
+			return newPromise((resolve, reject) => {
 				this._autoRunKey.set(this._electron.app.name, this._registry.REG_SZ, `${process.execPath} -a`, (err) => {
 					if (err) {
 						reject(err)
@@ -49,7 +50,7 @@ export class DesktopIntegratorWin32 implements DesktopIntegrator {
 	async disableAutoLaunch(): Promise<void> {
 		// can't promisify here because it screws with autoRunKeys 'this' semantics
 		if (await this.isAutoLaunchEnabled()) {
-			return new Promise((resolve, reject) => {
+			return newPromise((resolve, reject) => {
 				this._autoRunKey.remove(this._electron.app.name, (err) => {
 					if (err) {
 						reject(err)

@@ -1,7 +1,8 @@
 import { client } from "./ClientDetector"
+import { newPromise } from "../api/common/utils/ErrorUtils"
 
 function fallbackCopyToClipboard(text: string): Promise<void> {
-	return new Promise((resolve, reject) => {
+	return newPromise((resolve, reject) => {
 		const textArea = document.createElement("textarea")
 		textArea.value = text
 		window.document.body.appendChild(textArea)

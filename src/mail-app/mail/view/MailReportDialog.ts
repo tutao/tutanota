@@ -8,9 +8,10 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { MailModel } from "../model/MailModel.js"
+import { newPromise } from "../../../common/api/common/utils/ErrorUtils"
 
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		let shallRememberDecision = false
 		const child = () =>
 			m(Checkbox, {

@@ -6,7 +6,7 @@
  */
 import { isWorker } from "../Env.js"
 import { Transport } from "./Transport.js"
-import { objToError } from "../utils/ErrorUtils.js"
+import { newPromise, objToError } from "../utils/ErrorUtils.js"
 
 export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>
@@ -80,7 +80,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 
 	postRequest(msg: Request<OutgoingRequestType>): Promise<any> {
 		msg.id = this.nextId()
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			this._messages[msg.id!] = {
 				resolve,
 				reject,

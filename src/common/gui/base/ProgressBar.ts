@@ -1,4 +1,5 @@
 import m, { Component, Vnode } from "mithril"
+import { newPromise } from "../../api/common/utils/ErrorUtils"
 
 export type ProgressBarAttrs = {
 	progress: number
@@ -42,7 +43,7 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 		let progressBarSelector = a.type == ProgressBarType.Large ? ".abs.accent-bg.border-radius-big" : ".abs.accent-bg"
 		return m(progressBarSelector, {
 			onbeforeremove: (vn) =>
-				new Promise<void>((resolve) => {
+				newPromise<void>((resolve) => {
 					vn.dom.addEventListener("transitionend", () => {
 						this.lastProgress = null
 						resolve()

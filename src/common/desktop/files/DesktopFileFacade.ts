@@ -27,6 +27,7 @@ import { TempFs } from "./TempFs.js"
 import { HttpMethod } from "../../api/common/EntityFunctions"
 import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
+import { newPromise } from "../../api/common/utils/ErrorUtils"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -126,7 +127,7 @@ export class DesktopFileFacade implements FileFacade {
 		const outStream = this.fs.createWriteStream(fileUri, { autoClose: false })
 
 		for (const infile of files) {
-			await new Promise<void>((resolve, reject) => {
+			await newPromise<void>((resolve, reject) => {
 				const readStream = this.fs.createReadStream(infile)
 				readStream.on("end", resolve)
 				readStream.on("error", reject)
@@ -319,14 +320,14 @@ export async function getMimeTypeForFile(file: string): Promise<string> {
 }
 
 function closeFileStream(stream: FsModule.WriteStream): Promise<void> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		stream.on("close", resolve)
 		stream.close()
 	})
 }
 
 export async function readStreamToBuffer(stream: stream.Readable): Promise<Uint8Array> {
-	return new Promise((resolve, reject) => {
+	return newPromise((resolve, reject) => {
 		const data: Buffer[] = []
 
 		stream.on("data", (chunk) => {
@@ -349,7 +350,7 @@ function getHttpHeader(headers: Headers, name: string): string | null {
 }
 
 function pipeStream(stream: stream.Readable, into: stream.Writable): Promise<void> {
-	return new Promise((resolve, reject) => {
+	return newPromise((resolve, reject) => {
 		stream.on("error", reject)
 		stream.pipe(into)
 		into.on("finish", resolve)

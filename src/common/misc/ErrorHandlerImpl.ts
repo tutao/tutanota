@@ -30,7 +30,7 @@ import { CancelledError } from "../api/common/error/CancelledError"
 import { SessionType } from "../api/common/SessionType.js"
 import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.js"
 import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
+import { isOfflineError, newPromise } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 
 assertMainOrNode()
@@ -245,7 +245,7 @@ function ignoredError(e: Error): boolean {
  */
 export function disableErrorHandlingDuringLogout() {
 	isLoggingOut = true
-	showProgressDialog("loggingOut_msg", new Promise(noOp))
+	showProgressDialog("loggingOut_msg", newPromise(noOp))
 }
 
 function handleImportError() {

@@ -12,6 +12,7 @@ import { TextField } from "../gui/base/TextField.js"
 import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { theme } from "../gui/theme"
 import { getColorLuminance, isMonochrome } from "../gui/base/Color"
+import { newPromise } from "../api/common/utils/ErrorUtils"
 
 /**
  * Accepts multiple formats for a time of day and always returns 12h-format with leading zeros.
@@ -87,7 +88,7 @@ export async function runCaptchaFlow(
 }
 
 function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string | null> {
-	return new Promise<string | null>((resolve, reject) => {
+	return newPromise<string | null>((resolve, reject) => {
 		let dialog: Dialog
 		let captchaInput = ""
 

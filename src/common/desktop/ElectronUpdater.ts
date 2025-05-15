@@ -9,6 +9,7 @@ import type { UpdaterWrapper } from "./UpdaterWrapper"
 import type { UpdateDownloadedEvent, UpdateInfo } from "electron-updater"
 import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
 import { FsExports } from "./ElectronExportTypes.js"
+import { newPromise } from "../api/common/utils/ErrorUtils"
 
 /**
  * Wraps electron-updater for Tutanota Desktop
@@ -242,7 +243,7 @@ export class ElectronUpdater {
 	 */
 	private async checkUpdate(): Promise<boolean> {
 		const autoUpdater = await this.updater.electronUpdater
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			let cleanup = (hasUpdate: boolean) => {
 				cleanup = (hasUpdate) => {}
 				resolve(hasUpdate)

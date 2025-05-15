@@ -7,6 +7,7 @@ import { client } from "../../../../common/misc/ClientDetector.js"
 import { formatDateWithWeekdayAndYear } from "../../../../common/misc/Formatter.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
 import { debounceStart, NBSP, noOp } from "@tutao/tutanota-utils"
+import { newPromise } from "../../../../common/api/common/utils/ErrorUtils"
 
 assertMainOrNode()
 
@@ -70,7 +71,7 @@ export function showDateRangeSelectionDialog<T>(
 				m(".mt", { style: { minHeight: px(2 * size.font_size_base * size.line_height) } }, warning ?? NBSP),
 			),
 	}
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		let dialog = Dialog.showActionDialog({
 			title: "selectPeriodOfTime_label",
 			child: form,

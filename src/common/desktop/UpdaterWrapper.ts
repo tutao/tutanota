@@ -6,6 +6,7 @@ import path from "node:path"
 import fs from "node:fs"
 import { app } from "electron"
 import electronUpdater, { AppUpdater } from "electron-updater"
+import { newPromise } from "../api/common/utils/ErrorUtils"
 
 const { autoUpdater } = electronUpdater
 
@@ -45,6 +46,6 @@ const fakeAutoUpdater = new (class {
 
 	checkForUpdates() {
 		// Never resolved, return type is too complex
-		return new Promise(noOp)
+		return newPromise(noOp)
 	}
 })()

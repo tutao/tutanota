@@ -21,6 +21,7 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { newPromise } from "../../../common/api/common/utils/ErrorUtils"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -66,7 +67,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	if (!locator.logins.getUserController().isInternalUser()) {
 		// external users cannot delete/edit events as they have no calendar.
 		eventType = EventType.EXTERNAL
-		editModelsFactory = () => new Promise(noOp)
+		editModelsFactory = () => newPromise(noOp)
 		hasBusinessFeature = false
 	} else {
 		const [calendarInfos, mailboxDetails, customer] = await Promise.all([

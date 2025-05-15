@@ -18,6 +18,7 @@ import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { isDesktop } from "../../api/common/Env"
 import { HighestTierPlans } from "../../api/common/TutanotaConstants.js"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
+import { newPromise } from "../../api/common/utils/ErrorUtils"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(
@@ -199,7 +200,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 			enforceStrength: false,
 		})
 
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			const changePasswordOkAction = async (dialog: Dialog) => {
 				const error = model.getErrorMessageId()
 
@@ -225,7 +226,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 	async promptForPassword(title: string): Promise<string> {
 		const { Dialog } = await import("../../gui/base/Dialog.js")
 
-		return new Promise((resolve, reject) => {
+		return newPromise((resolve, reject) => {
 			const dialog = showRequestPasswordDialog({
 				title: lang.makeTranslation(title, title),
 				action: async (pw) => {

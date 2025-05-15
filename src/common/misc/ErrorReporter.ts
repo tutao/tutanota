@@ -23,6 +23,7 @@ import { ErrorReportClientType } from "./ClientConstants.js"
 import { client } from "./ClientDetector.js"
 import { BubbleButton } from "../gui/base/buttons/BubbleButton.js"
 import { getTimeZone } from "../calendar/date/CalendarUtils.js"
+import { newPromise } from "../api/common/utils/ErrorUtils"
 
 type FeedbackContent = {
 	message: string
@@ -86,7 +87,7 @@ export async function showSendErrorDialog(e: ErrorInfo): Promise<void> {
 
 async function showErrorOverlay(): Promise<{ decision: "send" | "cancel"; ignore: boolean }> {
 	let ignore = false
-	const decision: "send" | "cancel" = await new Promise((resolve) => {
+	const decision: "send" | "cancel" = await newPromise((resolve) => {
 		notificationOverlay.show(
 			{
 				view: () =>
@@ -171,7 +172,7 @@ function showReportDialog(
 		},
 	}
 
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		Dialog.showActionDialog({
 			okActionTextId: "send_action",
 			title: "sendErrorReport_action",

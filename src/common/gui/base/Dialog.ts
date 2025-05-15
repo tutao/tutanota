@@ -25,7 +25,7 @@ import { $Promisable, assertNotNull, getAsLazy, identity, lazy, mapLazily, Maybe
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
 import { DialogInjectionRight } from "./DialogInjectionRight"
 import { assertMainOrNode } from "../../api/common/Env"
-import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
+import { isOfflineError, newPromise } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
 import { client } from "../../misc/ClientDetector"
 
@@ -354,7 +354,7 @@ export class Dialog implements ModalComponent {
 	 * @returns {Promise<void>} a promise that resolves after the dialog is fully closed
 	 */
 	static message(messageIdOrMessageFunction: MaybeTranslation, infoToAppend?: string | lazy<Children>): Promise<void> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			let dialog: Dialog
 
 			const closeAction = () => {
@@ -407,7 +407,7 @@ export class Dialog implements ModalComponent {
 	 * fallback for cases where we can't directly download and open a file
 	 */
 	static legacyDownload(filename: string, url: string): Promise<void> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			let dialog: Dialog
 
 			const closeAction = () => {
@@ -453,7 +453,7 @@ export class Dialog implements ModalComponent {
 		confirmId: TranslationKey = "ok_action",
 		infoToAppend?: string | lazy<Children>,
 	): Promise<boolean> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			const closeAction = (conf: boolean) => {
 				dialog.close()
 				setTimeout(() => resolve(conf), DefaultAnimationTime)
@@ -541,7 +541,7 @@ export class Dialog implements ModalComponent {
 			value: T
 		}>,
 	): Promise<T> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			const choose = (choice: T) => {
 				dialog.close()
 				setTimeout(() => resolve(choice), DefaultAnimationTime)
@@ -570,7 +570,7 @@ export class Dialog implements ModalComponent {
 			type?: "primary" | "secondary"
 		}>,
 	): Promise<T> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			const choose = (choice: T) => {
 				dialog.close()
 				setTimeout(() => resolve(choice), DefaultAnimationTime)
@@ -626,7 +626,7 @@ export class Dialog implements ModalComponent {
 
 	// used in admin client
 	static save(title: lazy<string>, saveAction: () => Promise<void>, child: Component): Promise<void> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			let saveDialog: Dialog
 
 			const closeAction = () => {
@@ -669,7 +669,7 @@ export class Dialog implements ModalComponent {
 	static async updateReminder(allowDefer: boolean, updateConfirm: () => unknown): Promise<void> {
 		const { ImageWithOptionsDialog } = await import("../dialogs/ImageWithOptionsDialog")
 
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			let dialog: Dialog
 
 			const closeAction = () => {
@@ -715,7 +715,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	static upgradeReminder(title: string, message: string): Promise<boolean> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			let dialog: Dialog
 
 			const closeAction = (res: boolean) => {
@@ -885,7 +885,7 @@ export class Dialog implements ModalComponent {
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
 	static showTextInputDialog(props: TextInputDialogParams): Promise<string> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			Dialog.showProcessTextInputDialog(props, async (value) => resolve(value))
 		})
 	}
@@ -937,7 +937,7 @@ export class Dialog implements ModalComponent {
 		infoMsgId: TranslationKey | null,
 		value: string,
 	): Promise<string> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			let result: string = value
 			Dialog.showActionDialog({
 				title: titleId,
@@ -978,7 +978,7 @@ export class Dialog implements ModalComponent {
 		dropdownWidth?: number,
 	): Promise<T> {
 		let selectedValue: T = initialValue
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			Dialog.showActionDialog({
 				title: titleId,
 				child: {
@@ -1052,7 +1052,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	static async viewerDialog<T extends object>(title: MaybeTranslation, child: Class<Component<T>>, childAttrs: T): Promise<void> {
-		return new Promise((resolve) => {
+		return newPromise((resolve) => {
 			let dialog: Dialog
 
 			const close = () => {

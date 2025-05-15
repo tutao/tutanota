@@ -10,6 +10,7 @@ import { DesktopConfig } from "../config/DesktopConfig.js"
 import { CommonNativeFacade } from "../../native/common/generatedipc/CommonNativeFacade.js"
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import { DesktopCredentialsMode } from "./CredentialCommons.js"
+import { newPromise } from "../../api/common/utils/ErrorUtils"
 
 export class AppPassHandler {
 	constructor(
@@ -80,7 +81,7 @@ export class AppPassHandler {
 		const commonNativeFacade = await this.getCurrentCommonNativeFacade()
 		return resolveChecked<string>(
 			pwPromise,
-			new Promise((_, reject) =>
+			newPromise((_, reject) =>
 				this.conf.once(DesktopConfigKey.appPassSalt, () => {
 					reject(new CancelledError("salt changed during pw prompt"))
 				}),

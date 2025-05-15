@@ -3,6 +3,7 @@ import { ease } from "./Easing"
 import { downcast } from "@tutao/tutanota-utils"
 import { hexToRgb } from "../base/Color"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
+import { newPromise } from "../../api/common/utils/ErrorUtils"
 
 assertMainOrNodeBoot()
 
@@ -116,7 +117,7 @@ class Animations {
 			t.style.willChange = willChange
 		}
 		const animations: Animation[] = []
-		const promise = new Promise((resolve) => {
+		const promise = newPromise((resolve) => {
 			let start = this.activeAnimations.length ? false : true
 
 			for (let i = 0; i < targetsArray.length; i++) {

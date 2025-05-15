@@ -88,6 +88,7 @@ import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPick
 import { theme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
+import { newPromise } from "../../../common/api/common/utils/ErrorUtils"
 
 export interface IntervalOption {
 	value: number
@@ -210,7 +211,7 @@ export function calendarNavConfiguration(
 }
 
 export function askIfShouldSendCalendarUpdatesToAttendees(): Promise<"yes" | "no" | "cancel"> {
-	return new Promise((resolve) => {
+	return newPromise((resolve) => {
 		let alertDialog: Dialog
 		const cancelButton = {
 			label: "cancel_action",
