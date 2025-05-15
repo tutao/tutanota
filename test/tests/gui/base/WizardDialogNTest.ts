@@ -38,7 +38,7 @@ const closeAction = () => {
 }
 
 o.spec("WizardDialogN", function () {
-	o("createWizardDialog without pages", function () {
+	o("createWizardDialog without pages AAAA", function () {
 		const dialogBuilder = createWizardDialog(data, [], null, DialogType.EditLarge)
 		o(dialogBuilder.dialog instanceof Dialog).equals(true)
 		o(dialogBuilder.attrs.currentPage).equals(null)
