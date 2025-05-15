@@ -7,7 +7,7 @@
 import TutanotaSharedFramework
 import tutasdk
 
-struct CalendarEventData : Equatable {
+struct CalendarEventData: Equatable {
 	var id: String
 	var summary: String
 	var startDate: Date

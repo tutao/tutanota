@@ -149,18 +149,14 @@ struct AgendaWidgetEntryView: View {
 		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEvents.first?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
 		let foregroundColor: Color = if allDayBackgroundColor.getLuminance() > 0.5 { .black } else { .white }
 
-		let (allDayImage, allDayPadding): (ImageResource, CGFloat) = if let firstEvent = allDayEvents.first, firstEvent.isBirthdayEvent {
-			(.giftIcon, 4)
-		} else {
-			(.allDayIcon, 2)
-		}
+		let (allDayImage, allDayPadding): (ImageResource, CGFloat) =
+			if let firstEvent = allDayEvents.first, firstEvent.isBirthdayEvent { (.giftIcon, 4) } else { (.allDayIcon, 2) }
 
 		return Group {
 			Text(weekday + " " + day).fontWeight(.bold).font(.system(size: 20)).padding(.top, -4)
 			HStack(alignment: .center, spacing: 4) {
-				Image(allDayImage).foregroundStyle(foregroundColor)
-					.font(.system(size: 14))
-					.padding(allDayPadding).background(Color(allDayBackgroundColor.cgColor))
+				Image(allDayImage).foregroundStyle(foregroundColor).font(.system(size: 14)).padding(allDayPadding)
+					.background(Color(allDayBackgroundColor.cgColor))
 					.clipShape(.rect(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)))
 				Text(allDayEvents.first?.summary ?? translate("TutaoNoTitleLabel", default: "<No Title>")).lineLimit(1).font(.system(size: 12))
 
@@ -187,7 +183,10 @@ struct AgendaWidgetEntryView: View {
 		return LazyVStack(alignment: .leading, spacing: 4) {
 			ForEach(eventsToList, id: \.id) { event in
 				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
-				let eventTime = eventsToList == allDayEvents ? translate("TutaoAllDayLabel", default: "All Day") : eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
+				let eventTime =
+					eventsToList == allDayEvents
+					? translate("TutaoAllDayLabel", default: "All Day")
+					: eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
 
 				Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventDetails, eventId: event.id)) {
 					VStack {
@@ -195,8 +194,7 @@ struct AgendaWidgetEntryView: View {
 							VStack { Circle().fill(Color(calendarColor.cgColor)).frame(width: 16, height: 16) }
 							VStack(alignment: .leading) {
 								Text(event.summary).fontWeight(.bold).font(.system(size: 14))
-								Text(eventTime)
-									.font(.system(size: 10))
+								Text(eventTime).font(.system(size: 10))
 							}
 							.foregroundStyle(Color(.onSurface))
 						}
@@ -252,8 +250,7 @@ struct AgendaWidgetEntryView: View {
 				} else {
 					Header()
 
-					if normalEvents.isEmpty && allDayEvents.isEmpty { EmptyList(family == .systemMedium) } else { EventsList()
-					}
+					if normalEvents.isEmpty && allDayEvents.isEmpty { EmptyList(family == .systemMedium) } else { EventsList() }
 				}
 			}
 			.frame(maxHeight: .infinity, alignment: .top)
@@ -281,7 +278,7 @@ struct AgendaWidget: Widget {
 
 extension String {
 	func padStart(length: Int, char: String) -> String {
-		"".padding(toLength: length, withPad: self.padding(toLength:length, withPad:char, startingAt:0), startingAt: self.count)
+		"".padding(toLength: length, withPad: self.padding(toLength: length, withPad: char, startingAt: 0), startingAt: self.count)
 	}
 }
 
