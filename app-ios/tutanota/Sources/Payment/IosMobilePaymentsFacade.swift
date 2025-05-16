@@ -28,7 +28,6 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 	}
 
 	public func getPlanPrices() async throws -> [MobilePlanPrice] {
-		// TODO: Handle promotions (first year discount etc.)
 		struct TempMobilePlanPrice {
 			var rawMonthlyPerMonth: String?
 			var rawYearlyPerYear: String?
@@ -62,9 +61,10 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				let priceDivided = product.price / 12
 				let yearlyPerMonthPrice = priceDivided.formatted(formatStyle)
 				let yearlyPerYearPrice = product.displayPrice
+				let introductoryPrice = product.subscription?.introductoryOffer?.displayPrice
 				plan.rawYearlyPerYear = String(describing: product.price)
 				plan.rawYearlyPerMonth = String(describing: priceDivided)
-				plan.displayYearlyPerYear = yearlyPerYearPrice
+				plan.displayYearlyPerYear = introductoryPrice ?? yearlyPerYearPrice
 				plan.displayYearlyPerMonth = yearlyPerMonthPrice
 			case .month:
 				plan.rawMonthlyPerMonth = String(describing: product.price)
