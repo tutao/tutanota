@@ -40,25 +40,19 @@ export class EventController {
 		return this.countersStream.map(identity)
 	}
 
-	async onEntityUpdateReceived(entityUpdates: ReadonlyArray<EntityUpdate>, eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdateReceived(entityUpdates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		let loginsUpdates = Promise.resolve()
 
 		if (this.logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
-			loginsUpdates = this.logins.getUserController().entityEventsReceived(
-				entityUpdates.map((e) => entityUpdateToUpdateData(e)),
-				eventOwnerGroupId,
-			)
+			loginsUpdates = this.logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
 		}
 
 		return loginsUpdates
 			.then(async () => {
 				// sequentially to prevent parallel loading of instances
 				for (const listener of this.entityListeners) {
-					await listener(
-						entityUpdates.map((e) => entityUpdateToUpdateData(e)),
-						eventOwnerGroupId,
-					)
+					await listener(entityUpdates, eventOwnerGroupId)
 				}
 			})
 			.then(noOp)

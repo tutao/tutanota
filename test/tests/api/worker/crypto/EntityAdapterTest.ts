@@ -1,18 +1,24 @@
 import o from "@tutao/otest"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { ImportMailGetInTypeRef, MailAddressTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { createTestEntity } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { BucketKey, BucketKeyTypeRef, GroupInfoTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { assertThrows } from "@tutao/tutanota-test-utils"
+import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("EntityAdapter", () => {
-	const instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+	let typeModelResolver: TypeModelResolver
+	let instancePipeline: InstancePipeline
+
+	o.beforeEach(() => {
+		typeModelResolver = clientInitializedTypeModelResolver()
+		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+	})
 
 	o.test("can create local mapped/decrypted instance - GroupInfo", async () => {
-		const groupModel = await resolveClientTypeReference(GroupInfoTypeRef)
+		const groupModel = await typeModelResolver.resolveClientTypeReference(GroupInfoTypeRef)
 
 		const groupInfo = createTestEntity(GroupInfoTypeRef, {
 			_ownerGroup: "ownerGroupId",
@@ -34,7 +40,7 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("can create local mapped/decrypted instance - Mail", async () => {
-		const mailModel = await resolveClientTypeReference(MailTypeRef)
+		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 		const mail = createTestEntity(MailTypeRef, {
 			_ownerGroup: "ownerGroupId",
@@ -61,7 +67,7 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("can create local mapped/decrypted data transfer instance", async () => {
-		const importMailGetInModel = await resolveClientTypeReference(ImportMailGetInTypeRef)
+		const importMailGetInModel = await typeModelResolver.resolveClientTypeReference(ImportMailGetInTypeRef)
 
 		const importMailGetIn = createTestEntity(ImportMailGetInTypeRef, {
 			ownerGroup: "ownerGroupId", // ownerGroupId is currently not used as MailGroup is hardcoded in CryptoFacade#resolveSessionKey
@@ -78,7 +84,7 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("set _ownerEncSessionKey", async () => {
-		const mailModel = await resolveClientTypeReference(MailTypeRef)
+		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 		const mail = createTestEntity(MailTypeRef, {
 			_permissions: "permissionListId",
@@ -102,7 +108,7 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("set _ownerGroup", async () => {
-		const mailModel = await resolveClientTypeReference(MailTypeRef)
+		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 		const mail = createTestEntity(MailTypeRef, {
 			_permissions: "permissionListId",

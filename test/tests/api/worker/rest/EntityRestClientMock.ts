@@ -9,13 +9,13 @@ import {
 	listIdPart,
 	timestampToGeneratedId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { _verifyType, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { _verifyType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
 import { downcast, TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { Type } from "../../../../../src/common/api/common/EntityConstants.js"
-import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
+import { clientInitializedTypeModelResolver, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 
 const authDataProvider: AuthDataProvider = {
 	createAuthHeaders(): Dict {
@@ -31,10 +31,13 @@ export class EntityRestClientMock extends EntityRestClient {
 	_listEntities: Record<Id, Record<Id, ListElementEntity | Error>> = {}
 	_blobEntities: Record<Id, Record<Id, BlobElementEntity | Error>> = {}
 	_lastIdTimestamp: number
+	private _typeModelResolver: TypeModelResolver
 
 	constructor() {
-		super(authDataProvider, downcast({}), () => downcast({}), new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference), downcast({}))
+		const typeModelResolver = clientInitializedTypeModelResolver()
+		super(authDataProvider, downcast({}), () => downcast({}), instancePipelineFromTypeModelResolver(typeModelResolver), downcast({}), typeModelResolver)
 		this._lastIdTimestamp = Date.now()
+		this._typeModelResolver = typeModelResolver
 	}
 
 	getNextId(): Id {
@@ -139,7 +142,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		const lid = listId
 
 		if (lid) {
-			const typeModule = await resolveClientTypeReference(typeRef)
+			const typeModule = await this._typeModelResolver.resolveClientTypeReference(typeRef)
 			if (typeModule.type === Type.ListElement.valueOf()) {
 				return elementIds
 					.map((id) => {
@@ -171,7 +174,7 @@ export class EntityRestClientMock extends EntityRestClient {
 	}
 
 	async erase<T extends SomeEntity>(instance: T): Promise<void> {
-		const typeModel = await resolveClientTypeReference(instance._type)
+		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instance._type)
 		_verifyType(typeModel)
 
 		const ids = getIds(instance, typeModel)
@@ -185,7 +188,7 @@ export class EntityRestClientMock extends EntityRestClient {
 			return
 		}
 
-		const typeModel = await resolveClientTypeReference(instances[0]._type)
+		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instances[0]._type)
 		_verifyType(typeModel)
 
 		this._handleDeleteMultiple(

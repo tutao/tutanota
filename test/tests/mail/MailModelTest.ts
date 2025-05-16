@@ -17,6 +17,7 @@ import { getElementId, getListId } from "../../../src/common/api/common/utils/En
 import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
+import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
@@ -44,7 +45,16 @@ o.spec("MailModelTest", function () {
 		when(logins.getUserController()).thenReturn(userController)
 
 		inboxRuleHandler = object()
-		model = new MailModel(downcast({}), mailboxModel, eventController, new EntityClient(restClient), logins, mailFacade, null, null)
+		model = new MailModel(
+			downcast({}),
+			mailboxModel,
+			eventController,
+			new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly()),
+			logins,
+			mailFacade,
+			null,
+			null,
+		)
 		// not pretty, but works
 		// model.mailboxDetails(mailboxDetails as MailboxDetail[])
 	})
@@ -86,16 +96,12 @@ o.spec("MailModelTest", function () {
 		verify(mailFacade.markMails([mailId1, mailId2, mailId3], true))
 	})
 
-	function makeUpdate(arg: { instanceListId: string; instanceId: Id; operation: OperationType }): EntityUpdateData {
-		return Object.assign(
-			{},
-			{
-				typeId: MailTypeRef.typeId,
-				application: MailTypeRef.app,
-				instanceId: "instanceId",
-				type: "Mail",
-			},
-			arg,
-		)
+	function makeUpdate({ instanceId, instanceListId, operation }: { instanceListId: string; instanceId: Id; operation: OperationType }): EntityUpdateData {
+		return {
+			typeRef: MailTypeRef,
+			operation,
+			instanceListId,
+			instanceId,
+		}
 	}
 })

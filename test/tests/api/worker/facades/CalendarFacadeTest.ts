@@ -31,12 +31,12 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("CalendarFacadeTest", function () {
 	let userAlarmInfoListId: Id
@@ -57,6 +57,7 @@ o.spec("CalendarFacadeTest", function () {
 	let serviceExecutor: IServiceExecutor
 	let cryptoFacade: CryptoFacade
 	let infoMessageHandler: InfoMessageHandler
+	let typeModelResolver: TypeModelResolver
 	let instancePipeline: InstancePipeline
 
 	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithUserAlarmInfos>) {
@@ -125,18 +126,20 @@ o.spec("CalendarFacadeTest", function () {
 		serviceExecutor = object()
 		cryptoFacade = object()
 		infoMessageHandler = object()
-		instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		calendarFacade = new CalendarFacade(
 			userFacade,
 			groupManagementFacade,
 			entityRestCache,
-			new EntityClient(entityRestCache),
+			new EntityClient(entityRestCache, typeModelResolver),
 			nativeMock,
 			workerMock,
 			serviceExecutor,
 			cryptoFacade,
 			infoMessageHandler,
 			instancePipeline,
+			new EntityClient(entityRestCache, typeModelResolver),
 		)
 	})
 

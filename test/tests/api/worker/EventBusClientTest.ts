@@ -19,7 +19,7 @@ import { EntityRestClientMock } from "./rest/EntityRestClientMock.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { defer, noOp } from "@tutao/tutanota-utils"
 import { DefaultEntityRestCache } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
-import { EventQueue, QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
+import { EventQueue } from "../../../../src/common/api/worker/EventQueue.js"
 import { OutOfSyncError } from "../../../../src/common/api/common/error/OutOfSyncError.js"
 import { matchers, object, verify, when } from "testdouble"
 import { getElementId, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils.js"
@@ -27,16 +27,12 @@ import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDete
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
-import { clientModelAsServerModel, createTestEntity } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, clientModelAsServerModel, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
-import {
-	globalClientModelInfo,
-	globalServerModelInfo,
-	resolveClientTypeReference,
-	resolveServerTypeReference,
-} from "../../../../src/common/api/common/EntityFunctions"
 import { ApplicationTypesFacade } from "../../../../src/common/api/worker/facades/ApplicationTypesFacade"
+import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
+import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const { anything } = matchers
 
@@ -54,10 +50,10 @@ o.spec("EventBusClientTest", function () {
 	let instancePipeline: InstancePipeline
 	let socketFactory: (path: string) => WebSocket
 	let applicationTypesFacadeMock: ApplicationTypesFacade
+	let typeModelResolver: TypeModelResolver
+	let entityClient: EntityClient
 
 	function initEventBus() {
-		const entityClient = new EntityClient(restClient)
-		instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
 		applicationTypesFacadeMock = object()
 
 		ebc = new EventBusClient(
@@ -71,6 +67,7 @@ o.spec("EventBusClientTest", function () {
 			progressTrackerMock,
 			syncTrackerMock,
 			applicationTypesFacadeMock,
+			typeModelResolver,
 		)
 	}
 
@@ -93,8 +90,8 @@ o.spec("EventBusClientTest", function () {
 		progressTrackerMock = object()
 		syncTrackerMock = object()
 		cacheMock = object({
-			async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
-				return batch.events.slice()
+			async entityEventsReceived(events): Promise<ReadonlyArray<EntityUpdateData>> {
+				return events.slice()
 			},
 			async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
 				return null
@@ -112,7 +109,7 @@ o.spec("EventBusClientTest", function () {
 			async isOutOfSync(): Promise<boolean> {
 				return false
 			},
-		} as DefaultEntityRestCache)
+		} as Partial<DefaultEntityRestCache> as DefaultEntityRestCache)
 
 		user = createTestEntity(UserTypeRef, {
 			userGroup: createTestEntity(GroupMembershipTypeRef, {
@@ -131,8 +128,10 @@ o.spec("EventBusClientTest", function () {
 		sleepDetector = object()
 		socketFactory = () => socket
 
+		typeModelResolver = clientInitializedTypeModelResolver()
+		entityClient = new EntityClient(restClient, typeModelResolver)
+		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		initEventBus()
-		clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
 	})
 
 	o.spec("initEntityEvents ", function () {
@@ -147,10 +146,11 @@ o.spec("EventBusClientTest", function () {
 			]
 		})
 
+		const batchId = "-----------1"
 		o("initial connect: when the cache is clean it downloads one batch and initializes cache", async function () {
 			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve(null)
 			when(cacheMock.timeSinceLastSyncMs()).thenResolve(null)
-			const batch = createTestEntity(EntityEventBatchTypeRef, { _id: [mailGroupId, "-----------1"] })
+			const batch = createTestEntity(EntityEventBatchTypeRef, { _id: [mailGroupId, batchId] })
 			restClient.addListInstances(batch)
 
 			await ebc.connect(ConnectMode.Initial)
@@ -172,19 +172,19 @@ o.spec("EventBusClientTest", function () {
 				instanceId: "newBatchId",
 			})
 			const batch = createTestEntity(EntityEventBatchTypeRef, {
-				_id: [mailGroupId, "-----------1"],
+				_id: [mailGroupId, batchId],
 				events: [update],
 			})
 			restClient.addListInstances(batch)
+			const updateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
+				operation: OperationType.CREATE,
+				instanceId: update.instanceId,
+				instanceListId: update.instanceListId,
+			}
 
 			const eventsReceivedDefer = defer()
-			when(
-				cacheMock.entityEventsReceived({
-					events: [update],
-					batchId: getElementId(batch),
-					groupId: mailGroupId,
-				}),
-			).thenDo(() => eventsReceivedDefer.resolve(undefined))
+			when(cacheMock.entityEventsReceived([updateData], batchId, mailGroupId)).thenDo(() => eventsReceivedDefer.resolve(undefined))
 
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
@@ -234,7 +234,7 @@ o.spec("EventBusClientTest", function () {
 
 		// Casting ot object here because promise stubber doesn't allow you to just return the promise
 		// We never resolve the promise
-		when(cacheMock.entityEventsReceived(matchers.anything()) as object).thenReturn(new Promise(noOp))
+		when(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()) as object).thenReturn(new Promise(noOp))
 
 		// call twice as if it was received in parallel
 		const p1 = socket.onmessage?.({
@@ -248,7 +248,7 @@ o.spec("EventBusClientTest", function () {
 		await Promise.all([p1, p2])
 
 		// Is waiting for cache to process the first event
-		verify(cacheMock.entityEventsReceived(matchers.anything()), { times: 1 })
+		verify(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()), { times: 1 })
 	})
 
 	o("missed entity events are processed in order", async function () {

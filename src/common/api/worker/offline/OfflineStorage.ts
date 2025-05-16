@@ -17,7 +17,6 @@ import {
 	TypeRef,
 } from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
 import { CalendarEventTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
@@ -32,6 +31,7 @@ import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "../crypto/ModelMapper"
 import { AttributeModel } from "../../common/AttributeModel"
+import { TypeModelResolver } from "../../common/EntityFunctions"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -108,6 +108,7 @@ export class OfflineStorage implements CacheStorage {
 		private readonly migrator: OfflineStorageMigrator,
 		private readonly cleaner: OfflineStorageCleaner,
 		private readonly modelMapper: ModelMapper,
+		private readonly typeModelResolver: TypeModelResolver,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
@@ -187,7 +188,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
 		const type = getTypeString(typeRef)
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery
 		switch (typeModel.type) {
@@ -219,7 +220,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
 		const type = getTypeString(typeRef)
-		let typeModel = await resolveClientTypeReference(typeRef)
+		let typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -263,7 +264,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null> {
 		const type = getTypeString(typeRef)
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementId = ensureBase64Ext(typeModel, id)
 		let formattedQuery
 		switch (typeModel.type) {
@@ -296,7 +297,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async provideMultipleParsed<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<ServerModelParsedInstance>> {
 		if (elementIds.length === 0) return []
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementIds = elementIds.map((elementId) => ensureBase64Ext(typeModel, elementId))
 
 		const type = getTypeString(typeRef)
@@ -314,7 +315,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
 		const type = getTypeString(typeRef)
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const range = await this.getRange(typeRef, listId)
 		if (range == null) {
 			throw new Error(`no range exists for ${type} and list ${listId}`)
@@ -336,7 +337,7 @@ export class OfflineStorage implements CacheStorage {
 	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
 		let range = await this.getRange(typeRef, listId)
 		if (range == null) return range
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		return {
 			lower: customIdToBase64Url(typeModel, range.lower),
 			upper: customIdToBase64Url(typeModel, range.upper),
@@ -344,7 +345,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<boolean> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 
 		const range = await this.getRange(typeRef, listId)
@@ -358,7 +359,7 @@ export class OfflineStorage implements CacheStorage {
 		count: number,
 		reverse: boolean,
 	): Promise<ServerModelParsedInstance[]> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedStartId = ensureBase64Ext(typeModel, start)
 		const type = getTypeString(typeRef)
 		let formattedQuery
@@ -389,7 +390,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void> {
 		const serializedInstance = await this.serialize(instance)
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 
 		const { listId, elementId } = expandId(AttributeModel.getAttribute<IdTuple | Id>(instance, "_id", typeModel))
 		const ownerGroup = AttributeModel.getAttribute<Id>(instance, "_ownerGroup", typeModel)
@@ -433,7 +434,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {
-		lowerId = ensureBase64Ext(await resolveClientTypeReference(typeRef), lowerId)
+		lowerId = ensureBase64Ext(await this.typeModelResolver.resolveClientTypeReference(typeRef), lowerId)
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`UPDATE ranges
 									  SET lower = ${lowerId}
@@ -443,7 +444,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, upperId: Id): Promise<void> {
-		upperId = ensureBase64Ext(await resolveClientTypeReference(typeRef), upperId)
+		upperId = ensureBase64Ext(await this.typeModelResolver.resolveClientTypeReference(typeRef), upperId)
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`UPDATE ranges
 									  SET upper = ${upperId}
@@ -453,7 +454,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		lower = ensureBase64Ext(typeModel, lower)
 		upper = ensureBase64Ext(typeModel, upper)
 
@@ -541,7 +542,7 @@ export class OfflineStorage implements CacheStorage {
 			this.customCacheHandler = new CustomCacheHandlerMap(
 				{
 					ref: CalendarEventTypeRef,
-					handler: new CustomCalendarEventCacheHandler(entityRestClient),
+					handler: new CustomCalendarEventCacheHandler(entityRestClient, this.typeModelResolver),
 				},
 				{ ref: MailTypeRef, handler: new CustomMailEventCacheHandler() },
 			)
@@ -678,7 +679,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
 		if (elementIds.length === 0) return
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementIds = elementIds.map((elementIds) => ensureBase64Ext(typeModel, elementIds))
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -733,7 +734,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
 		const encodedCutoffId = ensureBase64Ext(typeModel, rawCutoffId)
 

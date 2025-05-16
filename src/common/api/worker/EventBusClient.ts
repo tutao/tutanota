@@ -19,7 +19,7 @@ import {
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import { binarySearch, delay, identity, lastThrow, ofClass, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
+import { binarySearch, delay, identity, lastThrow, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
@@ -33,7 +33,7 @@ import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
-import { ApplicationTypesHash, globalServerModelInfo } from "../common/EntityFunctions.js"
+import { ApplicationTypesHash, TypeModelResolver } from "../common/EntityFunctions.js"
 import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
@@ -41,6 +41,7 @@ import { SyncTracker } from "../main/SyncTracker.js"
 import { Entity, ServerModelUntypedInstance } from "../common/EntityTypes"
 import { InstancePipeline } from "./crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
+import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 
@@ -91,7 +92,7 @@ export interface EventBusListener {
 
 	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus): unknown
 
-	onEntityEventsReceived(events: EntityUpdate[], batchId: Id, groupId: Id): Promise<void>
+	onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void>
 
 	/**
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
@@ -153,6 +154,7 @@ export class EventBusClient {
 		private readonly progressTracker: ExposedProgressTracker,
 		private readonly syncTracker: SyncTracker,
 		private readonly applicationTypesFacade: ApplicationTypesFacade,
+		private readonly typeModelResolver: TypeModelResolver,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
 		this.state = EventBusState.Terminated
@@ -298,8 +300,8 @@ export class EventBusClient {
 			case MessageType.EntityUpdate: {
 				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
 				await this.updateServerModelIfNeeded(entityUpdateData.applicationTypesHash)
-
-				this.entityUpdateMessageQueue.add(entityUpdateData.eventBatchId, entityUpdateData.eventBatchOwner, entityUpdateData.entityUpdates)
+				const updates = await promiseMap(entityUpdateData.entityUpdates, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
+				this.entityUpdateMessageQueue.add(entityUpdateData.eventBatchId, entityUpdateData.eventBatchOwner, updates)
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
@@ -335,7 +337,7 @@ export class EventBusClient {
 
 	private async updateServerModelIfNeeded(applicationTypesHash: ApplicationTypesHash) {
 		// handle new server model and update the applicationTypesJson file if applicable
-		if (applicationTypesHash !== globalServerModelInfo.getApplicationTypesHash()) {
+		if (applicationTypesHash !== this.typeModelResolver.getServerApplicationTypesModelHash()) {
 			await this.applicationTypesFacade.getServerApplicationTypesJson()
 		}
 	}
@@ -526,7 +528,8 @@ export class EventBusClient {
 		// Count all batches that will actually be processed so that the progress is correct
 		let totalExpectedBatches = 0
 		for (const batch of timeSortedEventBatches) {
-			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), batch.events, eventQueue)
+			const updates = await promiseMap(batch.events, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
+			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), updates, eventQueue)
 			if (batchWasAddedToQueue) {
 				// Set as last only if it was inserted with success
 				this.lastInitialEventBatch = getElementId(batch)
@@ -640,7 +643,7 @@ export class EventBusClient {
 		}
 	}
 
-	private addBatch(batchId: Id, groupId: Id, events: ReadonlyArray<EntityUpdate>, eventQueue: EventQueue): boolean {
+	private addBatch(batchId: Id, groupId: Id, events: ReadonlyArray<EntityUpdateData>, eventQueue: EventQueue): boolean {
 		const lastForGroup = this.lastEntityEventIds.get(groupId) || []
 		// find the position for inserting into last entity events (negative value is considered as not present in the array)
 		const index = binarySearch(lastForGroup, batchId, compareOldestFirst)
@@ -669,7 +672,7 @@ export class EventBusClient {
 	private async processEventBatch(batch: QueuedBatch): Promise<void> {
 		try {
 			if (this.isTerminated()) return
-			const filteredEvents = await this.cache.entityEventsReceived(batch)
+			const filteredEvents = await this.cache.entityEventsReceived(batch.events, batch.batchId, batch.groupId)
 			if (!this.isTerminated()) await this.listener.onEntityEventsReceived(filteredEvents, batch.batchId, batch.groupId)
 
 			if (batch.batchId === this.lastInitialEventBatch) {

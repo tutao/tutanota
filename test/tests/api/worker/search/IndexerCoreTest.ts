@@ -21,7 +21,7 @@ import {
 	getIdFromEncSearchIndexEntry,
 	typeRefToTypeInfo,
 } from "../../../../../src/common/api/worker/search/IndexUtils.js"
-import { assertNotNull, base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { spy } from "@tutao/tutanota-test-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
@@ -34,10 +34,11 @@ import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/Index
 import { elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
 import { Aes256Key, aes256RandomKey, aesEncrypt, fixedIv, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
-import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
-import { ModelValue, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
+import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
@@ -64,7 +65,7 @@ function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
 
 o.spec("IndexerCore test", () => {
 	o("createIndexEntriesForAttributes", async function () {
-		const ContactModel = await resolveClientTypeReference(ContactTypeRef)
+		const ContactModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(ContactTypeRef)
 
 		let core = makeCore()
 		let contact = createTestEntity(ContactTypeRef)
@@ -1024,12 +1025,14 @@ o.spec("IndexerCore test", () => {
 
 		const instanceId = "L-dNNLe----1"
 		const instanceIdTimestamp = generatedIdToTimestamp(instanceId)
-		const event = createTestEntity(EntityUpdateTypeRef)
-		event.application = MailTypeRef.app
-		event.typeId = MailTypeRef.typeId.toString()
+		const event: EntityUpdateData = {
+			typeRef: MailTypeRef,
+			instanceId,
+			instanceListId: "",
+			operation: OperationType.CREATE,
+		}
 		const metaRowId = 3
 		const anotherMetaRowId = 4
-		event.instanceId = instanceId
 		const transaction: any = {
 			get: (os, key) => {
 				o(os).equals(ElementDataOS)
@@ -1087,10 +1090,12 @@ o.spec("IndexerCore test", () => {
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
 		let instanceId = "123"
-		let event = createTestEntity(EntityUpdateTypeRef)
-		event.instanceId = instanceId
-		event.application = MailTypeRef.app
-		event.typeId = MailTypeRef.typeId.toString()
+		let event: EntityUpdateData = {
+			typeRef: MailTypeRef,
+			instanceId,
+			instanceListId: "",
+			operation: OperationType.CREATE,
+		}
 		let transaction: any = {
 			get: (os, key) => {
 				o(os).equals(ElementDataOS)
