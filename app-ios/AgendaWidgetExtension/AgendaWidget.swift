@@ -213,7 +213,7 @@ struct AgendaWidgetEntryView: View {
 		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -4 }
 
 		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())
-		let day = String(dateComponents.day ?? 0).padStart(length: 2, char: "0")
+		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
 
 		let weekday = DateFormatter().weekdaySymbols[(dateComponents.weekday ?? 0) - 1]
 
@@ -278,7 +278,10 @@ struct AgendaWidget: Widget {
 
 extension String {
 	func padStart(length: Int, char: String) -> String {
-		"".padding(toLength: length, withPad: self.padding(toLength: length, withPad: char, startingAt: 0), startingAt: self.count)
+		if self.count < length {
+			return "".padding(toLength: length, withPad: self.padding(toLength: length, withPad: char, startingAt: 0), startingAt: self.count)
+		}
+		return self
 	}
 }
 
