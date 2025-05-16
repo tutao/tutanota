@@ -241,7 +241,7 @@ export class MailIndexer {
 	}
 
 	/** @private visibleForTesting */
-	processMovedMail(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
+	processMovedMail(event: EntityUpdateData, indexUpdate: IndexUpdate): Promise<void> {
 		let encInstanceId = encryptIndexKeyBase64(this._db.key, event.instanceId, this._db.iv)
 		return this._db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
 			return transaction.get(ElementDataOS, encInstanceId).then((elementData) => {
@@ -616,7 +616,7 @@ export class MailIndexer {
 			})
 	}
 
-	async processImportStateEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+	async processImportStateEntityEvents(events: EntityUpdateData[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
 		await promiseMap(events, async (event) => {
 			// we can only process create and update events (create is because of EntityEvent optimization
@@ -683,7 +683,7 @@ export class MailIndexer {
 	 * @param batchId
 	 * @param indexUpdate which will be populated with operations
 	 */
-	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+	processEntityEvents(events: EntityUpdateData[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		if (!this.mailIndexingEnabled) return Promise.resolve()
 		return promiseMap(events, (event) => {
 			const mailId: IdTuple = [event.instanceListId, event.instanceId]
@@ -720,13 +720,7 @@ export class MailIndexer {
 					})
 					.catch(ofClass(NotFoundError, () => console.log("tried to index update event for non existing mail")))
 			} else if (event.operation === OperationType.DELETE) {
-				if (
-					!containsEventOfType(
-						events.map((e) => entityUpdateToUpdateData(e)),
-						OperationType.CREATE,
-						event.instanceId,
-					)
-				) {
+				if (!containsEventOfType(events, OperationType.CREATE, event.instanceId)) {
 					// Check that this is *not* a move event. Move events are handled separately.
 					return this._core._processDeleted(event, indexUpdate)
 				}

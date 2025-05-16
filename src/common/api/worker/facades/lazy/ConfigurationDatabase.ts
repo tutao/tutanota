@@ -19,7 +19,7 @@ import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import type { QueuedBatch } from "../../EventQueue.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
-import { isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 
 const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -128,8 +128,7 @@ export class ConfigurationDatabase {
 		}
 	}
 
-	async onEntityEventsReceived(batch: QueuedBatch): Promise<any> {
-		const { events, groupId, batchId } = batch
+	async onEntityEventsReceived(events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<any> {
 		for (const event of events) {
 			if (!(event.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, event))) {
 				continue

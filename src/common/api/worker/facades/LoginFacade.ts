@@ -52,10 +52,10 @@ import {
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
-import { HttpMethod, MediaType, resolveClientTypeReference } from "../../common/EntityFunctions"
+import { HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
 import { assertWorkerOrNode, isAdminClient } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
-import { EntityRestClient, typeRefToRestPath } from "../rest/EntityRestClient"
+import { EntityRestClient, typeModelToRestPath } from "../rest/EntityRestClient"
 import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
 import { CancelledError } from "../../common/error/CancelledError"
 import { RestClient } from "../rest/RestClient"
@@ -220,6 +220,7 @@ export class LoginFacade {
 		private readonly noncachingEntityClient: EntityClient,
 		private readonly sendError: (error: Error) => Promise<void>,
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
+		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 
 	init(eventBusClient: EventBusClient) {
@@ -864,8 +865,9 @@ export class LoginFacade {
 	 * @param pushIdentifier identifier associated with this device, if any, to delete PushIdentifier on the server
 	 */
 	async deleteSession(accessToken: Base64Url, pushIdentifier: string | null = null): Promise<void> {
-		let path = (await typeRefToRestPath(SessionTypeRef)) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
-		const sessionTypeModel = await resolveClientTypeReference(SessionTypeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(SessionTypeRef)
+		let path = typeModelToRestPath(typeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
+		const sessionTypeModel = await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)
 
 		const headers = {
 			accessToken: neverNull(accessToken),
@@ -904,8 +906,9 @@ export class LoginFacade {
 		userId: Id
 		accessKey: AesKey | null
 	}> {
-		const path = (await typeRefToRestPath(SessionTypeRef)) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
-		const SessionTypeModel = await resolveClientTypeReference(SessionTypeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)
+		const path = typeModelToRestPath(typeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
+		const SessionTypeModel = await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)
 
 		let headers = {
 			accessToken: accessToken,
@@ -1042,8 +1045,9 @@ export class LoginFacade {
 			() => this.cryptoFacade,
 			this.instancePipeline,
 			this.blobAccessTokenFacade,
+			this.typeModelResolver,
 		)
-		const entityClient = new EntityClient(eventRestClient)
+		const entityClient = new EntityClient(eventRestClient, this.typeModelResolver)
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
 
 		const { userId, accessToken } = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null)

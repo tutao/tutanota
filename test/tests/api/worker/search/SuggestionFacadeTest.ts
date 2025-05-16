@@ -8,21 +8,26 @@ import { downcast } from "@tutao/tutanota-utils"
 import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
-import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo, ClientTypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { Db } from "../../../../../src/common/api/worker/search/SearchTypes"
+import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
 
 o.spec("SuggestionFacade test", () => {
-	let db
-	let facade
-	let contactTypeModel
+	let db: Db
+	let facade: SuggestionFacade<any>
+	let contactTypeModel: TypeModel
+	let clientModelResolver: ClientTypeModelResolver
 	o.beforeEach(async function () {
 		db = {
 			key: aes256RandomKey(),
 			iv: fixedIv,
-			dbFacade: {},
+			dbFacade: {} as unknown as DbFacade,
 			initialized: Promise.resolve(),
 		}
-		facade = new SuggestionFacade(ContactTypeRef, db)
-		contactTypeModel = await resolveClientTypeReference(ContactTypeRef)
+		clientModelResolver = ClientModelInfo.getNewInstanceForTestsOnly()
+		facade = new SuggestionFacade(ContactTypeRef, db, clientModelResolver)
+		contactTypeModel = await clientModelResolver.resolveClientTypeReference(ContactTypeRef)
 	})
 	o("add and get suggestion", () => {
 		o(facade.getSuggestions("a").join("")).equals("")

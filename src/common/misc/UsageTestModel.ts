@@ -15,7 +15,6 @@ import { SuspensionBehavior } from "../api/worker/rest/RestClient"
 import { DateProvider } from "../api/common/DateProvider.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest"
 import { UsageTestAssignmentService, UsageTestParticipationService } from "../api/entities/usage/Services.js"
-import { resolveClientTypeReference } from "../api/common/EntityFunctions"
 import { lang, TranslationKey } from "./LanguageViewModel"
 import stream from "mithril/stream"
 import { Dialog, DialogType } from "../gui/base/Dialog"
@@ -28,6 +27,7 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
+import { ClientTypeModelResolver, TypeModelResolver } from "../api/common/EntityFunctions"
 
 const PRESELECTED_LIKERT_VALUE = null
 
@@ -170,6 +170,7 @@ export class UsageTestModel implements PingAdapter {
 		private readonly loginController: LoginController,
 		private readonly eventController: EventController,
 		private readonly usageTestController: () => UsageTestController,
+		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		eventController.addEntityListener((updates: ReadonlyArray<EntityUpdateData>) => {
 			return this.entityEventsReceived(updates)
@@ -304,7 +305,7 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	private async modelVersion(): Promise<number> {
-		const model = await resolveClientTypeReference(UsageTestAssignmentTypeRef)
+		const model = await this.typeModelResolver.resolveClientTypeReference(UsageTestAssignmentTypeRef)
 		return model.version
 	}
 

@@ -82,7 +82,6 @@ import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
 import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import { resolveTypeRefFromAppAndTypeNameLegacy } from "../../../common/api/common/EntityFunctions"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -774,9 +773,7 @@ export class SearchViewModel {
 
 		const { instanceListId, instanceId, operation } = update
 		const id = [neverNull(instanceListId), instanceId] as const
-		const typeRef = update.typeId
-			? new TypeRef<SomeEntity>(update.application as AppName, update.typeId)
-			: resolveTypeRefFromAppAndTypeNameLegacy(update.application as AppName, update.type)
+		const typeRef = update.typeRef
 
 		if (!this.isInSearchResult(typeRef, id) && !isPossibleABirthdayContactUpdate) {
 			return

@@ -27,6 +27,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { hasError } from "../../api/common/utils/ErrorUtils"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { AttributeModel } from "../../api/common/AttributeModel"
+import { ClientTypeModelResolver, TypeModelResolver } from "../../api/common/EntityFunctions"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -45,6 +46,7 @@ export class TutaSseFacade implements SseEventHandler {
 		private readonly fetch: FetchImpl,
 		private readonly date: DateProvider,
 		private readonly nativeInstancePipeline: InstancePipeline,
+		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		sseClient.setEventListener(this)
 	}
@@ -147,7 +149,7 @@ export class TutaSseFacade implements SseEventHandler {
 	// VisibleForTesting
 	async handleAlarmNotification(encryptedMissedNotification: EncryptedMissedNotification) {
 		for (const alarmNotificationUntyped of encryptedMissedNotification.alarmNotifications) {
-			const encryptedAlarmNotification = await EncryptedAlarmNotification.from(alarmNotificationUntyped)
+			const encryptedAlarmNotification = await EncryptedAlarmNotification.from(alarmNotificationUntyped, this.typeModelResolver)
 			const alarmIdentifier = encryptedAlarmNotification.getAlarmId()
 			const operation = downcast<OperationType>(encryptedAlarmNotification.getOperation())
 			if (operation === OperationType.CREATE) {
@@ -204,7 +206,7 @@ export class TutaSseFacade implements SseEventHandler {
 		} else {
 			const untypedInstance = (await res.json()) as ServerModelUntypedInstance
 			log.debug("downloaded missed notification")
-			return await EncryptedMissedNotification.from(untypedInstance)
+			return await EncryptedMissedNotification.from(untypedInstance, this.typeModelResolver)
 		}
 	}
 

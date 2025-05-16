@@ -15,13 +15,13 @@ import {
 } from "../../../../../src/common/api/worker/search/IndexUtils.js"
 import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/common/api/worker/search/SearchTypes.js"
-import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { GroupType, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { aes256RandomKey, fixedIv, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
-import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { containsEventOfType, entityUpdateToUpdateData, EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { containsEventOfType, EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
@@ -118,7 +118,7 @@ o.spec("Index Utils", () => {
 		// o(typeRefToTypeInfo(UserTypeRef).appId).equals(0)
 		// o(typeRefToTypeInfo(UserTypeRef).typeId).equals(UserTypeModel.id)
 		o(typeRefToTypeInfo(ContactTypeRef).appId).equals(1)
-		const ContactTypeModel = await resolveClientTypeReference(ContactTypeRef)
+		const ContactTypeModel = await ClientModelInfo.getNewInstanceForTestsOnly().resolveClientTypeReference(ContactTypeRef)
 		o(typeRefToTypeInfo(ContactTypeRef).typeId).equals(ContactTypeModel.id)
 	})
 	o("userIsGlobalAdmin", function () {
@@ -179,10 +179,11 @@ o.spec("Index Utils", () => {
 	})
 	o("containsEventOfType", function () {
 		function createUpdate(type: OperationType, id: Id): EntityUpdateData {
-			let update = createTestEntity(EntityUpdateTypeRef)
-			update.operation = type
-			update.instanceId = id
-			return entityUpdateToUpdateData(update)
+			return {
+				operation: type,
+				instanceId: id,
+				instanceListId: "",
+			} as Partial<EntityUpdateData> as EntityUpdateData
 		}
 
 		o(containsEventOfType([], OperationType.CREATE, "1")).equals(false)

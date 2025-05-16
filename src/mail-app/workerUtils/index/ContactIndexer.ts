@@ -12,6 +12,7 @@ import type { EntityUpdate } from "../../../common/api/entities/sys/TypeRefs.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupDataOS, MetaDataOS } from "../../../common/api/worker/search/IndexTables.js"
 import { AttributeModel } from "../../../common/api/common/AttributeModel"
+import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 
 export class ContactIndexer {
 	_core: IndexerCore
@@ -83,7 +84,7 @@ export class ContactIndexer {
 		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map((ma) => ma.address).join(" "))
 	}
 
-	processNewContact(event: EntityUpdate): Promise<
+	processNewContact(event: EntityUpdateData): Promise<
 		| {
 				contact: Contact
 				keyToIndexEntries: Map<string, SearchIndexEntry[]>
@@ -156,7 +157,7 @@ export class ContactIndexer {
 		}
 	}
 
-	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
+	processEntityEvents(events: EntityUpdateData[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		return promiseMap(events, async (event) => {
 			if (event.operation === OperationType.CREATE) {
 				await this.processNewContact(event).then((result) => {
