@@ -75,7 +75,6 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		serverModelInfo = object()
 		applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
 	})
-
 	o("getServerApplicationTypesJson does only one service request for requests made in quick succession", async function () {
 		o.timeout(200)
 
