@@ -1,6 +1,6 @@
 import type { RestClient, SuspensionBehavior } from "./RestClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { _verifyType, HttpMethod, MediaType, resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions"
+import { _verifyType, HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import {
@@ -44,12 +44,12 @@ import { EntityAdapter } from "../crypto/EntityAdapter"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { AttributeModel } from "../../common/AttributeModel"
 import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
+import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 
-export async function typeRefToRestPath(typeRef: TypeRef<any>): Promise<string> {
-	const typeModel = await resolveClientTypeReference(typeRef)
-	return `/rest/${typeRef.app}/${typeModel.name.toLowerCase()}`
+export function typeModelToRestPath(typeModel: TypeModel): string {
+	return `/rest/${typeModel.app}/${typeModel.name.toLowerCase()}`
 }
 
 export interface EntityRestClientSetupOptions {
@@ -195,10 +195,9 @@ export interface EntityRestInterface {
 
 	/**
 	 * Must be called when entity events are received.
-	 * @param batch The entity events that were received.
 	 * @return Similar to the events in the data parameter, but reduced by the events which are obsolete.
 	 */
-	entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>>
+	entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]>
 }
 
 /**
@@ -221,6 +220,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly lazyCrypto: lazy<CryptoFacade>,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
+		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 
 	async loadParsedInstance<T extends SomeEntity>(
@@ -243,7 +243,7 @@ export class EntityRestClient implements EntityRestInterface {
 			responseType: MediaType.Json,
 			baseUrl: opts.baseUrl,
 		})
-		const serverTypeModel = await resolveServerTypeReference(typeRef)
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(json))
 
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
@@ -352,7 +352,7 @@ export class EntityRestClient implements EntityRestInterface {
 	): Promise<Array<ServerModelParsedInstance>> {
 		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, opts.queryParams, opts.extraHeaders, opts.ownerKeyProvider)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		const loadedChunks = await promiseMap(idChunks, async (idChunk) => {
 			let queryParams = {
@@ -440,7 +440,7 @@ export class EntityRestClient implements EntityRestInterface {
 		loadedEntities: Array<ServerModelUntypedInstance>,
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 	): Promise<Array<ServerModelParsedInstance>> {
-		const serverTypeModel = await resolveServerTypeReference(typeRef)
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		return await promiseMap(
 			loadedEntities,
 			async (instance) => {
@@ -513,7 +513,7 @@ export class EntityRestClient implements EntityRestInterface {
 			body: JSON.stringify(untypedInstance),
 			responseType: MediaType.Json,
 		})
-		const postReturnTypeModel = await resolveClientTypeReference(PersistenceResourcePostReturnTypeRef)
+		const postReturnTypeModel = await this.typeModelResolver.resolveClientTypeReference(PersistenceResourcePostReturnTypeRef)
 		const untypedPersistencePostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ClientModelUntypedInstance>(JSON.parse(persistencePostReturn))
 		return AttributeModel.getAttributeorNull<Id>(untypedPersistencePostReturn, "generatedId", postReturnTypeModel)
 	}
@@ -658,7 +658,7 @@ export class EntityRestClient implements EntityRestInterface {
 		headers: Dict | undefined
 		clientTypeModel: ClientTypeModel
 	}> {
-		const clientTypeModel = await resolveClientTypeReference(typeRef)
+		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		_verifyType(clientTypeModel)
 
@@ -667,7 +667,7 @@ export class EntityRestClient implements EntityRestInterface {
 			throw new LoginIncompleteError(`Trying to do a network request with encrypted entity but is not fully logged in yet, type: ${clientTypeModel.name}`)
 		}
 
-		let path = await typeRefToRestPath(typeRef)
+		let path = typeModelToRestPath(clientTypeModel)
 
 		if (listId) {
 			path += "/" + listId
@@ -695,8 +695,8 @@ export class EntityRestClient implements EntityRestInterface {
 	/**
 	 * for the admin area (no cache available)
 	 */
-	entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
-		return Promise.resolve(batch.events)
+	entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
+		return Promise.resolve(events)
 	}
 
 	getRestClient(): RestClient {
@@ -704,7 +704,6 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	private async parseSetupMultiple(result: Array<UntypedInstance>): Promise<Array<Id>> {
-		const persistencePostReturnModel = await resolveServerTypeReference(PersistenceResourcePostReturnTypeRef)
 		try {
 			return await promiseMap(Array.from(result), async (untypedPostReturn: any) => {
 				const sanitisedUntypedPostReturn = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(untypedPostReturn)

@@ -38,6 +38,7 @@ import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/Calen
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
+import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 
 o.spec("CalendarModel", function () {
 	o.spec("incrementByRepeatPeriod", function () {
@@ -673,12 +674,10 @@ o.spec("CalendarModel", function () {
 
 			// calendar update create event
 			await eventControllerMock.sendEvent({
-				application: CalendarEventUpdateTypeRef.app,
-				typeId: CalendarEventUpdateTypeRef.typeId,
+				typeRef: CalendarEventUpdateTypeRef,
 				instanceListId: listIdPart(eventUpdate._id),
 				instanceId: elementIdPart(eventUpdate._id),
 				operation: OperationType.CREATE,
-				type: "CalendarEventUpdate",
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile))!).deepEquals(eventUpdate)
@@ -690,12 +689,10 @@ o.spec("CalendarModel", function () {
 			// set owner enc session key to ensure that we can process the calendar event file
 			calendarFile._ownerEncSessionKey = hexToUint8Array("01")
 			await eventControllerMock.sendEvent({
-				application: FileTypeRef.app,
-				typeId: FileTypeRef.typeId,
+				typeRef: FileTypeRef,
 				instanceListId: listIdPart(calendarFile._id),
 				instanceId: elementIdPart(calendarFile._id),
 				operation: OperationType.UPDATE,
-				type: "File",
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)
@@ -806,7 +803,7 @@ function init({
 	restClientMock,
 	loginController = makeLoginController(),
 	progressTracker = makeProgressTracker(),
-	entityClient = new EntityClient(restClientMock),
+	entityClient = new EntityClient(restClientMock, ClientModelInfo.getNewInstanceForTestsOnly()),
 	mailModel = makeMailModel(),
 	alarmScheduler = makeAlarmScheduler(),
 	calendarFacade = makeCalendarFacade(

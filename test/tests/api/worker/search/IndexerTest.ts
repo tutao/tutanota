@@ -1,4 +1,10 @@
-import { EntityEventBatchTypeRef, EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import {
+	EntityEventBatchTypeRef,
+	EntityUpdate,
+	EntityUpdateTypeRef,
+	GroupMembershipTypeRef,
+	UserTypeRef,
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DbFacade, DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import {
 	ENTITY_EVENT_BATCH_TTL_DAYS,
@@ -28,12 +34,14 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
 import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHandler.js"
 import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
-import { MailFacade } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
+import { ClientModelInfo, ClientTypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import type { ClientTypeModel } from "../../../../../src/common/api/common/EntityTypes"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
-let contactList = createTestEntity(ContactListTypeRef)
+const contactList = createTestEntity(ContactListTypeRef)
 contactList._ownerGroup = "ownerGroupId"
 contactList.contacts = "contactListId"
 o.spec("IndexerTest", () => {
@@ -48,14 +56,23 @@ o.spec("IndexerTest", () => {
 		},
 	})
 	const entityRestCache: DefaultEntityRestCache = downcast({})
-
+	const clientTypeModelResolver: ClientTypeModelResolver = ClientModelInfo.getNewInstanceForTestsOnly()
 	const keyLoaderFacade = object<KeyLoaderFacade>()
 	let mailIndexer: MailIndexer
+	let mailTypeModel: ClientTypeModel
 
-	o.beforeEach(function () {
+	o.beforeEach(async () => {
+		mailTypeModel = await clientTypeModelResolver.resolveClientTypeReference(MailTypeRef)
 		mailIndexer = object()
 		mailIndexer.mailIndexingEnabled = false
 	})
+
+	function makeMailEntityUpdate(): EntityUpdate {
+		return createTestEntity(EntityUpdateTypeRef, {
+			typeId: String(mailTypeModel.id),
+			application: mailTypeModel.app,
+		})
+	}
 
 	o("init new db", async function () {
 		let metadata = {}
@@ -94,19 +111,22 @@ o.spec("IndexerTest", () => {
 		]
 		const infoMessageHandler = object<InfoMessageHandler>()
 		when(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything())).thenResolve()
-		const indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
-			mock._initGroupData = spy((batches) => Promise.resolve())
-			mock.db.dbFacade = {
-				open: spy(() => Promise.resolve()),
-				createTransaction: () => Promise.resolve(transaction),
-			}
-			mock._contact.indexFullContactList = spy(() => Promise.resolve())
-			mock._contact.getIndexTimestamp = spy(() => Promise.resolve(NOTHING_INDEXED_TIMESTAMP))
-			mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
-			mock._loadNewEntities = spy(async () => {})
-			mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
-		})
+		const indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
+				mock._initGroupData = spy((batches) => Promise.resolve())
+				mock.db.dbFacade = {
+					open: spy(() => Promise.resolve()),
+					createTransaction: () => Promise.resolve(transaction),
+				}
+				mock._contact.indexFullContactList = spy(() => Promise.resolve())
+				mock._contact.getIndexTimestamp = spy(() => Promise.resolve(NOTHING_INDEXED_TIMESTAMP))
+				mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
+				mock._loadNewEntities = spy(async () => {})
+				mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
+			},
+		)
 		let user = createTestEntity(UserTypeRef)
 		user.userGroup = createTestEntity(GroupMembershipTypeRef)
 		user.userGroup.group = "user-group-id"
@@ -166,21 +186,24 @@ o.spec("IndexerTest", () => {
 			},
 		]
 		const infoMessageHandler = object<InfoMessageHandler>()
-		const indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.db.dbFacade = {
-				open: spy(() => Promise.resolve()),
-				createTransaction: () => Promise.resolve(transaction),
-			}
-			mock._loadGroupDiff = spy(() => Promise.resolve(groupDiff))
-			mock._updateGroups = spy(() => Promise.resolve())
-			mock._mail.updateCurrentIndexTimestamp = spy(() => Promise.resolve())
-			mock._contact.indexFullContactList = spy(() => Promise.resolve())
-			mock._contact.getIndexTimestamp = spy(() => Promise.resolve(FULL_INDEXED_TIMESTAMP))
-			mock._contact.suggestionFacade.load = spy(() => Promise.resolve())
-			mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
-			mock._loadNewEntities = spy(async () => {})
-			mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
-		})
+		const indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.db.dbFacade = {
+					open: spy(() => Promise.resolve()),
+					createTransaction: () => Promise.resolve(transaction),
+				}
+				mock._loadGroupDiff = spy(() => Promise.resolve(groupDiff))
+				mock._updateGroups = spy(() => Promise.resolve())
+				mock._mail.updateCurrentIndexTimestamp = spy(() => Promise.resolve())
+				mock._contact.indexFullContactList = spy(() => Promise.resolve())
+				mock._contact.getIndexTimestamp = spy(() => Promise.resolve(FULL_INDEXED_TIMESTAMP))
+				mock._contact.suggestionFacade.load = spy(() => Promise.resolve())
+				mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
+				mock._loadNewEntities = spy(async () => {})
+				mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
+			},
+		)
 		let user = createTestEntity(UserTypeRef)
 		user.userGroup = createTestEntity(GroupMembershipTypeRef)
 		user.userGroup.group = "user-group-id"
@@ -237,22 +260,25 @@ o.spec("IndexerTest", () => {
 			},
 		]
 		const infoMessageHandler = object<InfoMessageHandler>()
-		const indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.db.initialized = Promise.resolve()
-			mock.db.dbFacade = {
-				open: spy(() => Promise.resolve()),
-				createTransaction: () => Promise.resolve(transaction),
-			}
-			mock._loadGroupDiff = spy(() => Promise.resolve(groupDiff))
-			mock._updateGroups = spy(() => Promise.resolve())
-			mock._mail.updateCurrentIndexTimestamp = spy(() => Promise.resolve())
-			mock._contact.indexFullContactList = spy(() => Promise.resolve())
-			mock._contact.getIndexTimestamp = spy(() => Promise.resolve(FULL_INDEXED_TIMESTAMP))
-			mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
-			mock._loadNewEntities = spy(() => Promise.reject(new OutOfSyncError("is out of sync ;-)")))
-			mock.disableMailIndexing = spy()
-			mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
-		})
+		const indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.db.initialized = Promise.resolve()
+				mock.db.dbFacade = {
+					open: spy(() => Promise.resolve()),
+					createTransaction: () => Promise.resolve(transaction),
+				}
+				mock._loadGroupDiff = spy(() => Promise.resolve(groupDiff))
+				mock._updateGroups = spy(() => Promise.resolve())
+				mock._mail.updateCurrentIndexTimestamp = spy(() => Promise.resolve())
+				mock._contact.indexFullContactList = spy(() => Promise.resolve())
+				mock._contact.getIndexTimestamp = spy(() => Promise.resolve(FULL_INDEXED_TIMESTAMP))
+				mock._loadPersistentGroupData = spy(() => Promise.resolve(persistentGroupData))
+				mock._loadNewEntities = spy(() => Promise.reject(new OutOfSyncError("is out of sync ;-)")))
+				mock.disableMailIndexing = spy()
+				mock._entity.loadRoot = spy(() => Promise.resolve(contactList))
+			},
+		)
 		let user = createTestEntity(UserTypeRef)
 		user.userGroup = createTestEntity(GroupMembershipTypeRef)
 		user.userGroup.group = "user-group-id"
@@ -297,7 +323,7 @@ o.spec("IndexerTest", () => {
 			},
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer)
+		let indexer = new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver)
 		indexer.db.dbFacade = {
 			createTransaction: () => Promise.resolve(transaction),
 		} as any
@@ -321,9 +347,12 @@ o.spec("IndexerTest", () => {
 
 	o("_updateGroups disable MailIndexing in case of a deleted mail group", async function () {
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.disableMailIndexing = spy(() => Promise.resolve())
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.disableMailIndexing = spy(() => Promise.resolve())
+			},
+		)
 		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [
@@ -339,9 +368,12 @@ o.spec("IndexerTest", () => {
 
 	o("_updateGroups disable MailIndexing in case of a deleted contact group", async function () {
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.disableMailIndexing = spy(() => Promise.resolve())
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.disableMailIndexing = spy(() => Promise.resolve())
+			},
+		)
 		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [
@@ -357,9 +389,12 @@ o.spec("IndexerTest", () => {
 
 	o("_updateGroups don't disable MailIndexing in case no mail or contact group has been deleted", async function () {
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.disableMailIndexing = spy()
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.disableMailIndexing = spy()
+			},
+		)
 		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [
@@ -378,15 +413,18 @@ o.spec("IndexerTest", () => {
 		let transaction = "transaction"
 		let groupBatches = "groupBatches"
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
-			mock._initGroupData = spy(() => Promise.resolve())
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			} as any
-			mock._mail.indexMailboxes = spy()
-			mock._mail.currentIndexTimestamp = new Date().getTime()
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
+				mock._initGroupData = spy(() => Promise.resolve())
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				} as any
+				mock._mail.indexMailboxes = spy()
+				mock._mail.currentIndexTimestamp = new Date().getTime()
+			},
+		)
 		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [],
@@ -409,14 +447,17 @@ o.spec("IndexerTest", () => {
 		let transaction = "transaction"
 		let groupBatches = "groupBatches"
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
-			mock._initGroupData = spy(() => Promise.resolve())
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			} as any
-			mock._mail.indexMailboxes = spy()
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock._loadGroupData = spy(() => Promise.resolve(groupBatches))
+				mock._initGroupData = spy(() => Promise.resolve())
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				} as any
+				mock._mail.indexMailboxes = spy()
+			},
+		)
 		let user = createTestEntity(UserTypeRef)
 		let groupDiff = {
 			deletedGroups: [],
@@ -452,21 +493,24 @@ o.spec("IndexerTest", () => {
 		user.memberships[3].groupType = GroupType.Customer
 		user.memberships[3].group = "group-customer"
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock._entity = {
-				loadRange: (type, listId, startId, count, reverse) => {
-					o(type).equals(EntityEventBatchTypeRef)
-					o(startId).equals(GENERATED_MAX_ID)
-					o(count).equals(1)
-					o(reverse).equals(true)
-					return Promise.resolve([
-						{
-							_id: [null, "event-batch-id"],
-						},
-					])
-				},
-			}
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock._entity = {
+					loadRange: (type, listId, startId, count, reverse) => {
+						o(type).equals(EntityEventBatchTypeRef)
+						o(startId).equals(GENERATED_MAX_ID)
+						o(count).equals(1)
+						o(reverse).equals(true)
+						return Promise.resolve([
+							{
+								_id: [null, "event-batch-id"],
+							},
+						])
+					},
+				}
+			},
+		)
 
 		const result = await indexer._loadGroupData(user)
 		o(result).deepEquals([
@@ -505,24 +549,27 @@ o.spec("IndexerTest", () => {
 		user.memberships[1].groupType = GroupType.MailingList
 		user.memberships[1].group = "group-team"
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			let count = 0
-			mock._entity = {
-				loadRange: (type, listId, startId, count, reverse) => {
-					if (count == 0) {
-						console.log("EEE")
-						count++
-						return Promise.reject(new NotAuthorizedError("test"))
-					} else {
-						return Promise.resolve([
-							{
-								_id: [null, "event-batch-id"],
-							},
-						])
-					}
-				},
-			}
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				let count = 0
+				mock._entity = {
+					loadRange: (type, listId, startId, count, reverse) => {
+						if (count == 0) {
+							console.log("EEE")
+							count++
+							return Promise.reject(new NotAuthorizedError("test"))
+						} else {
+							return Promise.resolve([
+								{
+									_id: [null, "event-batch-id"],
+								},
+							])
+						}
+					},
+				}
+			},
+		)
 
 		const result = await indexer._loadGroupData(user)
 		o(result).deepEquals([
@@ -558,7 +605,7 @@ o.spec("IndexerTest", () => {
 			wait: () => Promise.resolve(),
 		})
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer)
+		let indexer = new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver)
 		let stored = false
 
 		await indexer._initGroupData(groupBatches, transaction)
@@ -578,9 +625,9 @@ o.spec("IndexerTest", () => {
 		let batches = [createTestEntity(EntityEventBatchTypeRef), createTestEntity(EntityEventBatchTypeRef)]
 		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 
-		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
+		batches[0].events = [makeMailEntityUpdate(), makeMailEntityUpdate()]
 		batches[1]._id = ["group-mail", oldestBatchId]
-		batches[1].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
+		batches[1].events = [makeMailEntityUpdate(), makeMailEntityUpdate()]
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
@@ -589,12 +636,15 @@ o.spec("IndexerTest", () => {
 			put: spy(async (os, key, value) => {}),
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.db.initialized = Promise.resolve()
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			}
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.db.initialized = Promise.resolve()
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				}
+			},
+		)
 		indexer._entity = {
 			loadAll: (type, groupIdA, startId) => {
 				o(type).deepEquals(EntityEventBatchTypeRef)
@@ -609,16 +659,27 @@ o.spec("IndexerTest", () => {
 		downcast(queue).addBatches = spy()
 		await indexer._loadNewEntities(groupIdToEventBatches)
 		// two asserts, otherwise Node doesn't print deeply nested objects
-		// @ts-ignore
 		o(queue.addBatches.invocations.length).equals(1)
-		// @ts-ignore
 		o(queue.addBatches.invocations[0]).deepEquals([
 			[
 				{
 					groupId,
 					batchId: getElementId(batches[0]),
-					events: batches[0].events,
-				},
+					events: [
+						{
+							typeRef: MailTypeRef,
+							operation: OperationType.CREATE,
+							instanceId: "",
+							instanceListId: "",
+						},
+						{
+							typeRef: MailTypeRef,
+							operation: OperationType.CREATE,
+							instanceId: "",
+							instanceListId: "",
+						},
+					],
+				} satisfies QueuedBatch,
 			],
 		])
 		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
@@ -638,9 +699,9 @@ o.spec("IndexerTest", () => {
 		const loadedNewBatchId = "L0JcCmw----1"
 		batches[0]._id = ["group-mail", loadedNewBatchId] // newer than oldest but older than newest
 
-		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
+		batches[0].events = [makeMailEntityUpdate(), makeMailEntityUpdate()]
 		batches[1]._id = ["group-mail", oldestBatchId]
-		batches[1].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
+		batches[1].events = [makeMailEntityUpdate(), makeMailEntityUpdate()]
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
@@ -649,12 +710,15 @@ o.spec("IndexerTest", () => {
 			put: spy(async (os, key, value) => {}),
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.db.initialized = Promise.resolve()
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			}
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.db.initialized = Promise.resolve()
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				}
+			},
+		)
 		indexer._entity = {
 			loadAll: (type, groupIdA, startId) => Promise.resolve(batches),
 		} as any
@@ -670,20 +734,33 @@ o.spec("IndexerTest", () => {
 				{
 					groupId,
 					batchId: getElementId(batches[0]),
-					events: batches[0].events,
-				},
+					events: [
+						{
+							typeRef: MailTypeRef,
+							operation: OperationType.CREATE,
+							instanceId: "",
+							instanceListId: "",
+						},
+						{
+							typeRef: MailTypeRef,
+							operation: OperationType.CREATE,
+							instanceId: "",
+							instanceListId: "",
+						},
+					],
+				} satisfies QueuedBatch,
 			],
 		])
 		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
 		// say we received the same batch via ws
-		const realtimeEvents = [createTestEntity(EntityUpdateTypeRef)]
-		indexer.addBatchesToQueue([
+		const realtimeEvents = [
 			{
-				groupId,
-				events: realtimeEvents,
-				batchId: loadedNewBatchId,
-			},
-		])
+				typeRef: MailTypeRef,
+				instanceId: "",
+				instanceListId: "",
+			} as Partial<EntityUpdateData> as EntityUpdateData,
+		]
+		indexer.addBatchesToQueue(realtimeEvents, loadedNewBatchId, groupId)
 		// Check that we filtered out batch which we already loaded and added
 		o(queue.addBatches.invocations.length).equals(1)
 	})
@@ -701,9 +778,9 @@ o.spec("IndexerTest", () => {
 		const loadedNewBatchId = "L0JcCmy-----" // newer than newest
 
 		batches[0]._id = ["group-mail", loadedNewBatchId]
-		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
+		batches[0].events = [makeMailEntityUpdate(), makeMailEntityUpdate()]
 		batches[1]._id = ["group-mail", oldestBatchId]
-		batches[1].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
+		batches[1].events = [makeMailEntityUpdate(), makeMailEntityUpdate()]
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
@@ -712,12 +789,15 @@ o.spec("IndexerTest", () => {
 			put: spy(async (os, key, value) => {}),
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.db.initialized = Promise.resolve()
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			}
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.db.initialized = Promise.resolve()
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				}
+			},
+		)
 		indexer._entity = {
 			loadAll: (type, groupIdA, startId) => Promise.resolve(batches),
 		} as any
@@ -735,19 +815,26 @@ o.spec("IndexerTest", () => {
 				{
 					groupId,
 					batchId: getElementId(batches[0]),
-					events: batches[0].events,
-				},
+					events: [
+						{
+							typeRef: MailTypeRef,
+							operation: OperationType.CREATE,
+							instanceId: "",
+							instanceListId: "",
+						},
+						{
+							typeRef: MailTypeRef,
+							operation: OperationType.CREATE,
+							instanceId: "",
+							instanceListId: "",
+						},
+					],
+				} satisfies QueuedBatch,
 			],
 		])
 		o(transaction.put.args).deepEquals([MetaDataOS, Metadata.lastEventIndexTimeMs, SERVER_TIME])
 		// say we received the older batch via ws
-		indexer.addBatchesToQueue([
-			{
-				groupId,
-				events: [],
-				batchId: newestBatchId,
-			},
-		])
+		indexer.addBatchesToQueue([], newestBatchId, groupId)
 		// Check that we filtered out batch which we already loaded and added
 		// @ts-ignore
 		o(queue.addBatches.invocations.length).equals(1)
@@ -768,7 +855,7 @@ o.spec("IndexerTest", () => {
 		let loadedBatches = [
 			createTestEntity(EntityEventBatchTypeRef, {
 				_id: ["group-mail", loadedNewBatchId],
-				events: [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)],
+				events: [makeMailEntityUpdate(), makeMailEntityUpdate()],
 			}),
 			createTestEntity(EntityEventBatchTypeRef, {
 				_id: ["group-mail", oldestBatchId],
@@ -782,12 +869,15 @@ o.spec("IndexerTest", () => {
 			put: spy(async (os, key, value) => {}),
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.db.initialized = Promise.resolve()
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			}
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.db.initialized = Promise.resolve()
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				}
+			},
+		)
 		const loadCompleted = defer()
 		indexer._entity = {
 			loadAll: (type, groupIdA, startId) => loadCompleted.promise,
@@ -799,17 +889,13 @@ o.spec("IndexerTest", () => {
 		const loadPromise = indexer._loadNewEntities(groupIdToEventBatches)
 
 		const realtimeUpdates = [
-			createTestEntity(EntityUpdateTypeRef, {
-				instanceId: "realtime",
-			}),
-		]
-		indexer.addBatchesToQueue([
 			{
-				groupId,
-				events: realtimeUpdates,
-				batchId: realtimeBatchId,
-			},
-		])
+				typeRef: MailTypeRef,
+				instanceId: "realtime",
+				instanceListId: "",
+			} as Partial<EntityUpdateData> as EntityUpdateData,
+		]
+		indexer.addBatchesToQueue(realtimeUpdates, realtimeBatchId, groupId)
 		loadCompleted.resolve(loadedBatches)
 		await loadPromise
 		// Check that we filtered out batch which we already loaded and added
@@ -819,8 +905,21 @@ o.spec("IndexerTest", () => {
 				{
 					groupId,
 					batchId: getElementId(loadedBatches[0]),
-					events: loadedBatches[0].events,
-				},
+					events: [
+						{
+							typeRef: MailTypeRef,
+							operation: OperationType.CREATE,
+							instanceId: "",
+							instanceListId: "",
+						},
+						{
+							typeRef: MailTypeRef,
+							operation: OperationType.CREATE,
+							instanceId: "",
+							instanceListId: "",
+						},
+					],
+				} satisfies QueuedBatch,
 			],
 		])
 		o(queue.addBatches.invocations[1]).deepEquals([
@@ -846,7 +945,7 @@ o.spec("IndexerTest", () => {
 		]
 		let batches = [createTestEntity(EntityEventBatchTypeRef)]
 		batches[0]._id = ["group-mail", oldestBatchId]
-		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
+		batches[0].events = [makeMailEntityUpdate(), makeMailEntityUpdate()]
 		let transaction = {
 			get: async (os, key) => {
 				if (os == MetaDataOS && key == Metadata.lastEventIndexTimeMs) return SERVER_TIME
@@ -855,22 +954,25 @@ o.spec("IndexerTest", () => {
 			put: spy(async (os, key, value) => {}),
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock._entity = {
-				loadAll: (type, groupId, startId) => {
-					o(type).deepEquals(EntityEventBatchTypeRef)
-					o(groupId).equals("group-mail")
-					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
-					o(startId).equals(expectedStartId)
-					return Promise.resolve(batches)
-				},
-			}
-			mock._processEntityEvents = spy()
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			}
-			mock.db.initialized = Promise.resolve()
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock._entity = {
+					loadAll: (type, groupId, startId) => {
+						o(type).deepEquals(EntityEventBatchTypeRef)
+						o(groupId).equals("group-mail")
+						let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
+						o(startId).equals(expectedStartId)
+						return Promise.resolve(batches)
+					},
+				}
+				mock._processEntityEvents = spy()
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				}
+				mock.db.initialized = Promise.resolve()
+			},
+		)
 		await indexer._loadNewEntities(groupIdToEventBatches)
 		// @ts-ignore
 		o(indexer._processEntityEvents.callCount).equals(0)
@@ -889,7 +991,7 @@ o.spec("IndexerTest", () => {
 		let batches = [createTestEntity(EntityEventBatchTypeRef)]
 		batches[0]._id = ["group-mail", "L0JcCmw----1"] // bigger than last
 
-		batches[0].events = [createTestEntity(EntityUpdateTypeRef), createTestEntity(EntityUpdateTypeRef)]
+		batches[0].events = [makeMailEntityUpdate(), makeMailEntityUpdate()]
 		let transaction = {
 			get: async (os, key) => {
 				return null
@@ -897,23 +999,28 @@ o.spec("IndexerTest", () => {
 			put: spy(async (os, key, value) => {}),
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock._entity = {
-				loadAll: (type, groupId, startId) => {
-					o(type).deepEquals(EntityEventBatchTypeRef)
-					o(groupId).equals("group-mail")
-					let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
-					o(startId).equals(expectedStartId)
-					return Promise.resolve(batches)
-				},
-			}
-			mock._processEntityEvents = spy(() => Promise.resolve())
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			}
-			mock.db.initialized = Promise.resolve()
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock._entity = {
+					loadAll: (type, groupId, startId) => {
+						o(type).deepEquals(EntityEventBatchTypeRef)
+						o(groupId).equals("group-mail")
+						let expectedStartId = timestampToGeneratedId(generatedIdToTimestamp(oldestBatchId) - 1)
+						o(startId).equals(expectedStartId)
+						return Promise.resolve(batches)
+					},
+				}
+				mock._processEntityEvents = spy(() => Promise.resolve())
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				}
+				mock.db.initialized = Promise.resolve()
+			},
+		)
+		await assertThrows(OutOfSyncError, () => {
+			return indexer._loadNewEntities(groupIdToEventBatches)
 		})
-		await assertThrows(OutOfSyncError, () => indexer._loadNewEntities(groupIdToEventBatches))
 		// @ts-ignore
 		o(indexer._processEntityEvents.callCount).equals(0)
 		o(transaction.put.callCount).equals(0)
@@ -939,13 +1046,16 @@ o.spec("IndexerTest", () => {
 			put: spy(async () => {}),
 		}
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock._processEntityEvents = spy(() => Promise.resolve())
-			mock.db.dbFacade = {
-				createTransaction: () => Promise.resolve(transaction),
-			}
-			mock.db.initialized = Promise.resolve()
-		})
+		let indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock._processEntityEvents = spy(() => Promise.resolve())
+				mock.db.dbFacade = {
+					createTransaction: () => Promise.resolve(transaction),
+				}
+				mock.db.initialized = Promise.resolve()
+			},
+		)
 		await assertThrows(OutOfSyncError, () => indexer._loadNewEntities(groupIdToEventBatches))
 		o(indexer._processEntityEvents.callCount).equals(0)
 		o(transaction.put.callCount).equals(0)
@@ -977,7 +1087,7 @@ o.spec("IndexerTest", () => {
 		user.memberships[3].groupType = GroupType.Customer
 		user.memberships[3].group = "group-customer"
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer)
+		let indexer = new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver)
 		indexer.db.dbFacade = {
 			createTransaction: () => Promise.resolve(transaction),
 		} as any
@@ -1007,29 +1117,31 @@ o.spec("IndexerTest", () => {
 		user.memberships[0].groupType = GroupType.Mail
 		user.memberships[0].group = groupId
 		const infoMessageHandler = object<InfoMessageHandler>()
-		const indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (indexerMock) => {
-			indexerMock.db.initialized = Promise.resolve()
-			indexerMock._mail = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			indexerMock._contact = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			indexerMock._processUserEntityEvents = spy(() => Promise.resolve())
-			indexerMock._initParams = {
-				user: createTestEntity(UserTypeRef),
-			}
-			indexerMock._core.writeIndexUpdateWithBatchId = spy(() => Promise.resolve())
-			indexerMock._initParams = {
-				user,
-			}
-		})
+		const indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(indexerMock) => {
+				indexerMock.db.initialized = Promise.resolve()
+				indexerMock._mail = {
+					processEntityEvents: spy(() => Promise.resolve()),
+				}
+				indexerMock._contact = {
+					processEntityEvents: spy(() => Promise.resolve()),
+				}
+				indexerMock._processUserEntityEvents = spy(() => Promise.resolve())
+				indexerMock._initParams = {
+					user: createTestEntity(UserTypeRef),
+				}
+				indexerMock._core.writeIndexUpdateWithBatchId = spy(() => Promise.resolve())
+				indexerMock._initParams = {
+					user,
+				}
+			},
+		)
 
-		function newUpdate<T>(typeRef: TypeRef<T>) {
-			let u = createTestEntity(EntityUpdateTypeRef)
-			u.application = typeRef.app
-			u.typeId = typeRef.typeId.toString()
-			return u
+		function newUpdate<T>(typeRef: TypeRef<T>): EntityUpdateData {
+			return {
+				typeRef,
+			} as Partial<EntityUpdateData> as EntityUpdateData
 		}
 
 		let events = [newUpdate(MailTypeRef), newUpdate(ContactTypeRef), newUpdate(UserTypeRef)]
@@ -1054,29 +1166,31 @@ o.spec("IndexerTest", () => {
 		user.memberships[0].groupType = GroupType.MailingList
 		user.memberships[0].group = "group-id"
 		const infoMessageHandler = object<InfoMessageHandler>()
-		const indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.db.initialized = Promise.resolve()
-			mock._mail = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			mock._contact = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			mock._processUserEntityEvents = spy(() => Promise.resolve())
-			mock._initParams = {
-				user: createTestEntity(UserTypeRef),
-			}
-			mock._core.writeIndexUpdate = spy(() => Promise.resolve())
-			mock._initParams = {
-				user,
-			}
-		})
+		const indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.db.initialized = Promise.resolve()
+				mock._mail = {
+					processEntityEvents: spy(() => Promise.resolve()),
+				}
+				mock._contact = {
+					processEntityEvents: spy(() => Promise.resolve()),
+				}
+				mock._processUserEntityEvents = spy(() => Promise.resolve())
+				mock._initParams = {
+					user: createTestEntity(UserTypeRef),
+				}
+				mock._core.writeIndexUpdate = spy(() => Promise.resolve())
+				mock._initParams = {
+					user,
+				}
+			},
+		)
 
-		function update(typeRef: TypeRef<any>) {
-			let u = createTestEntity(EntityUpdateTypeRef)
-			u.application = typeRef.app
-			u.typeId = typeRef.typeId.toString()
-			return u
+		function update(typeRef: TypeRef<any>): EntityUpdateData {
+			return {
+				typeRef,
+			} as Partial<EntityUpdateData> as EntityUpdateData
 		}
 
 		let events = [update(MailTypeRef), update(ContactTypeRef), update(UserTypeRef)]
@@ -1097,44 +1211,47 @@ o.spec("IndexerTest", () => {
 	o("_processEntityEvents_2", async function () {
 		const doneDeferred = defer()
 		const infoMessageHandler = object<InfoMessageHandler>()
-		const indexer = mock(new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer), (mock) => {
-			mock.db.initialized = Promise.resolve()
-			mock._mail = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			mock._contact = {
-				processEntityEvents: spy(() => Promise.resolve()),
-			}
-			mock._processUserEntityEvents = spy(() => Promise.resolve())
-			mock._initParams = {
-				user: createTestEntity(UserTypeRef),
-			}
-			mock._core.writeIndexUpdateWithBatchId = spy(() => Promise.resolve())
-			let user = createTestEntity(UserTypeRef)
-			user.memberships = [createTestEntity(GroupMembershipTypeRef)]
-			user.memberships[0].groupType = GroupType.Mail
-			user.memberships[0].group = "group-id"
-			mock._initParams = {
-				user,
-			}
-
-			const _processNext = mock._core.queue.processNext.bind(mock._core.queue)
-
-			mock._core.queue.processNext = spy(() => {
-				if (mock._core.queue.eventQueue.length === 0) {
-					doneDeferred.resolve(null)
+		const indexer = mock(
+			new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver),
+			(mock) => {
+				mock.db.initialized = Promise.resolve()
+				mock._mail = {
+					processEntityEvents: spy(() => Promise.resolve()),
+				}
+				mock._contact = {
+					processEntityEvents: spy(() => Promise.resolve()),
+				}
+				mock._processUserEntityEvents = spy(() => Promise.resolve())
+				mock._initParams = {
+					user: createTestEntity(UserTypeRef),
+				}
+				mock._core.writeIndexUpdateWithBatchId = spy(() => Promise.resolve())
+				let user = createTestEntity(UserTypeRef)
+				user.memberships = [createTestEntity(GroupMembershipTypeRef)]
+				user.memberships[0].groupType = GroupType.Mail
+				user.memberships[0].group = "group-id"
+				mock._initParams = {
+					user,
 				}
 
-				_processNext()
-			})
-		})
-		const events1 = [
-			createTestEntity(EntityUpdateTypeRef, {
-				application: MailTypeRef.app,
-				typeId: MailTypeRef.typeId.toString(),
+				const _processNext = mock._core.queue.processNext.bind(mock._core.queue)
+
+				mock._core.queue.processNext = spy(() => {
+					if (mock._core.queue.eventQueue.length === 0) {
+						doneDeferred.resolve(null)
+					}
+
+					_processNext()
+				})
+			},
+		)
+		const events1: EntityUpdateData[] = [
+			{
+				typeRef: MailTypeRef,
 				operation: OperationType.CREATE,
 				instanceId: "id-1",
-			}),
+				instanceListId: "",
+			},
 		]
 		indexer._indexedGroupIds = ["group-id"]
 		const batch1: QueuedBatch = {
@@ -1142,13 +1259,13 @@ o.spec("IndexerTest", () => {
 			groupId: "group-id",
 			batchId: "batch-id-1",
 		}
-		const events2 = [
-			createTestEntity(EntityUpdateTypeRef, {
-				application: MailTypeRef.app,
-				typeId: MailTypeRef.typeId.toString(),
+		const events2: EntityUpdateData[] = [
+			{
+				typeRef: MailTypeRef,
 				operation: OperationType.CREATE,
 				instanceId: "id-2",
-			}),
+				instanceListId: "",
+			},
 		]
 		indexer._indexedGroupIds = ["group-id"]
 		const batch2: QueuedBatch = {
@@ -1156,7 +1273,8 @@ o.spec("IndexerTest", () => {
 			groupId: "group-id",
 			batchId: "batch-id-2",
 		}
-		indexer.addBatchesToQueue([batch1, batch2])
+		indexer.addBatchesToQueue(events1, batch1.batchId, batch1.groupId)
+		indexer.addBatchesToQueue(events2, batch2.batchId, batch2.groupId)
 
 		indexer._realtimeEventQueue.resume()
 
@@ -1172,7 +1290,7 @@ o.spec("IndexerTest", () => {
 
 	o("_getStartIdForLoadingMissedEventBatches", function () {
 		const infoMessageHandler = object<InfoMessageHandler>()
-		let indexer = new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer)
+		let indexer = new Indexer(restClientMock, infoMessageHandler, browserDataStub, entityRestCache, () => mailIndexer, clientTypeModelResolver)
 		// one batch that is very young, so its id is returned minus 1 ms
 		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1-----"])).equals("L0JcCm0-----") // - 1 ms
 
@@ -1209,7 +1327,14 @@ o.spec("IndexerTest", () => {
 			when(restClientDouble.getServerTimestampMs()).thenReturn(SERVER_TIME)
 			when(entityRestClientDouble.getRestClient()).thenReturn(restClientDouble)
 
-			indexer = new Indexer(entityRestClientDouble, infoMessageHandlerDouble, browserDataStub, instance(DefaultEntityRestCache), () => mailIndexer)
+			indexer = new Indexer(
+				entityRestClientDouble,
+				infoMessageHandlerDouble,
+				browserDataStub,
+				instance(DefaultEntityRestCache),
+				() => mailIndexer,
+				clientTypeModelResolver,
+			)
 			const transactionDouble = object<DbTransaction>()
 			when(transactionDouble.getAll(matchers.anything())).thenResolve([
 				{

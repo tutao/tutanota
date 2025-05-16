@@ -21,6 +21,7 @@ import { isSameId } from "../../../../src/common/api/common/utils/EntityUtils.js
 import { createTestEntity } from "../../TestUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
+import { ClientModelInfo } from "../../../../src/common/api/common/EntityFunctions"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
@@ -55,7 +56,7 @@ o.spec("ConversationViewModel", function () {
 	async function makeViewModel(pMail: Mail): Promise<void> {
 		const factory = await viewModelFactory()
 		const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef)
-		const entityClient = new EntityClient(entityRestClientMock)
+		const entityClient = new EntityClient(entityRestClientMock, ClientModelInfo.getNewInstanceForTestsOnly())
 
 		const eventController: EventController = {
 			addEntityListener: (listener) => {
@@ -248,12 +249,10 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback(
 				[
 					{
-						application: "tutanota",
-						typeId: ConversationEntryTypeRef.typeId,
+						typeRef: ConversationEntryTypeRef,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
-						type: "ConversationEntry",
 					},
 				],
 				"mailGroupId",
@@ -287,12 +286,10 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback(
 				[
 					{
-						application: "tutanota",
-						typeId: ConversationEntryTypeRef.typeId,
+						typeRef: ConversationEntryTypeRef,
 						operation: OperationType.UPDATE,
 						instanceListId: listId,
 						instanceId: anotherMail.conversationEntry[1],
-						type: "ConversationEntry",
 					},
 				],
 				"mailGroupId",
@@ -315,12 +312,10 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback(
 				[
 					{
-						application: "tutanota",
-						typeId: ConversationEntryTypeRef.typeId,
+						typeRef: ConversationEntryTypeRef,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
-						type: "ConversationEntry",
 					},
 				],
 				"mailGroupId",
@@ -341,12 +336,10 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback(
 				[
 					{
-						application: "tutanota",
-						typeId: ConversationEntryTypeRef.typeId,
+						typeRef: ConversationEntryTypeRef,
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
-						type: "ConversationEntry",
 					},
 				],
 				"mailGroupId",
@@ -382,12 +375,10 @@ o.spec("ConversationViewModel", function () {
 			await eventCallback(
 				[
 					{
-						application: "tutanota",
-						typeId: ConversationEntryTypeRef.typeId,
+						typeRef: ConversationEntryTypeRef,
 						operation: OperationType.UPDATE,
 						instanceListId: listId,
 						instanceId: trashDraftMail.conversationEntry[1],
-						type: "ConversationEntry",
 					},
 				],
 				"mailGroupId",

@@ -5,13 +5,13 @@ import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/Crypto
 import { matchers, object, when } from "testdouble"
 import { DeleteService, GetService, PostService, PutService } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { HttpMethod, MediaType, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod, MediaType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { deepEqual, downcast } from "@tutao/tutanota-utils"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { CustomerAccountReturnTypeRef } from "../../../../../src/common/api/entities/accounting/TypeRefs"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
@@ -33,6 +33,7 @@ o.spec("ServiceExecutor", function () {
 	let executor: ServiceExecutor
 	let fullyLoggedIn: boolean = true
 	let previousNetworkDebugging
+	let typeModelResolver: TypeModelResolver
 	const authDataProvider: AuthDataProvider = {
 		createAuthHeaders(): Dict {
 			return authHeaders
@@ -49,7 +50,8 @@ o.spec("ServiceExecutor", function () {
 
 		instancePipeline = object()
 		cryptoFacade = object()
-		executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade, typeModelResolver)
 		previousNetworkDebugging = env.networkDebugging
 		env.networkDebugging = false
 	})
@@ -68,7 +70,7 @@ o.spec("ServiceExecutor", function () {
 	o("decryptResponse removes network debugging info", async function () {
 		env.networkDebugging = true
 
-		const realInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+		const realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 
 		const getService: GetService & DeleteService & PutService & PostService = {
 			...service,
@@ -78,7 +80,6 @@ o.spec("ServiceExecutor", function () {
 			delete: { data: null, return: SaltDataTypeRef },
 		}
 
-		const saltDataTypeModel = await resolveServerTypeReference(SaltDataTypeRef)
 		const expectedInstance = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 		const dataWithDebug = await realInstancePipeline.mapAndEncrypt(SaltDataTypeRef, expectedInstance, null)
 
@@ -515,7 +516,7 @@ o.spec("ServiceExecutor", function () {
 			}
 			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const headers = Object.freeze({ myHeader: "2" })
-			const saltTypeModel = await resolveClientTypeReference(SaltDataTypeRef)
+			const saltTypeModel = await typeModelResolver.resolveClientTypeReference(SaltDataTypeRef)
 			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
@@ -548,7 +549,7 @@ o.spec("ServiceExecutor", function () {
 			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const accessToken = "myAccessToken"
 			authHeaders = { accessToken }
-			const saltTypeModel = await resolveClientTypeReference(SaltDataTypeRef)
+			const saltTypeModel = await typeModelResolver.resolveClientTypeReference(SaltDataTypeRef)
 			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
 			respondWith(undefined)
 
@@ -572,8 +573,8 @@ o.spec("ServiceExecutor", function () {
 
 	o.spec("keys decrypt", function () {
 		o.beforeEach(() => {
-			instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
-			executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade)
+			instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+			executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade, typeModelResolver)
 		})
 
 		o("uses resolved key to decrypt response x", async function () {

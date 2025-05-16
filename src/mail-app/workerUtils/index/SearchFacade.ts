@@ -1,6 +1,5 @@
 import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
-import { resolveClientTypeReference } from "../../../common/api/common/EntityFunctions.js"
 import {
 	arrayHash,
 	asyncFind,
@@ -60,6 +59,7 @@ import type { TypeModel } from "../../../common/api/common/EntityTypes.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "../../../common/api/worker/search/IndexTables.js"
+import { ClientTypeModelResolver, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
@@ -76,6 +76,7 @@ export class SearchFacade {
 		private readonly suggestionFacades: SuggestionFacade<any>[],
 		browserData: BrowserData,
 		private readonly entityClient: EntityClient,
+		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		this.promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
 	}
@@ -149,7 +150,7 @@ export class SearchFacade {
 
 	private async loadAndReduce(restriction: SearchRestriction, result: SearchResult, suggestionToken: string, minSuggestionCount: number): Promise<void> {
 		if (result.results.length > 0) {
-			const model = await resolveClientTypeReference(restriction.type)
+			const model = await this.typeModelResolver.resolveClientTypeReference(restriction.type)
 			// if we want the exact search order we try to find the complete sequence of words in an attribute of the instance.
 			// for other cases we only check that an attribute contains a word that starts with suggestion word
 			const suggestionQuery = result.matchWordOrder ? normalizeQuery(result.query) : suggestionToken
@@ -214,7 +215,7 @@ export class SearchFacade {
 				const modelAssociation = model.associations[attributeId]
 				if (modelAssociation && modelAssociation.type === AssociationType.Aggregation && entity[modelAssociation.name]) {
 					let aggregates = modelAssociation.cardinality === Cardinality.Any ? entity[modelAssociation.name] : [entity[modelAssociation.name]]
-					const refModel = await resolveClientTypeReference(new TypeRef(model.app, modelAssociation.refTypeId))
+					const refModel = await this.typeModelResolver.resolveClientTypeReference(new TypeRef(model.app, modelAssociation.refTypeId))
 					return asyncFind(aggregates, (aggregate) => {
 						return this.containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)
 					}).then((found) => found != null)

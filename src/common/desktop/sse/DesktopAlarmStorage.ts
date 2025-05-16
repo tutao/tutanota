@@ -13,6 +13,7 @@ import { hasError } from "../../api/common/utils/ErrorUtils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
 import { AttributeModel } from "../../api/common/AttributeModel"
+import { ClientTypeModelResolver, TypeModelResolver } from "../../api/common/EntityFunctions"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -26,6 +27,7 @@ export class DesktopAlarmStorage {
 		private readonly cryptoFacade: DesktopNativeCryptoFacade,
 		private readonly keyStoreFacade: DesktopKeyStoreFacade,
 		private readonly alarmStorageInstancePipeline: InstancePipeline,
+		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		this.unencryptedSessionKeys = {}
 	}
@@ -191,7 +193,7 @@ export class DesktopAlarmStorage {
 	}
 
 	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<AlarmNotification> {
-		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an as unknown as ServerModelUntypedInstance)
+		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an as unknown as ServerModelUntypedInstance, this.typeModelResolver)
 		for (const currentNotificationSessionKey of encryptedAlarmNotification.getNotificationSessionKeys()) {
 			const pushIdentifierSessionKey = await this.getPushIdentifierSessionKey(currentNotificationSessionKey.pushIdentifier)
 

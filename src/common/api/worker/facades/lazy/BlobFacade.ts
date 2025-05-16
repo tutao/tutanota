@@ -17,7 +17,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
-import { HttpMethod, MediaType, resolveClientTypeReference } from "../../../common/EntityFunctions.js"
+import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import type { SuspensionHandler } from "../../SuspensionHandler.js"
 import { BlobService } from "../../../entities/storage/Services.js"
@@ -352,7 +352,6 @@ export class BlobFacade {
 
 	// Visible for testing
 	public async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
-		const responseTypeModel = await resolveClientTypeReference(BlobPostOutTypeRef)
 		const instance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(jsonData))
 		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap(BlobPostOutTypeRef, instance, null)
 		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk

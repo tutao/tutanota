@@ -6,7 +6,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { UpdateSessionKeysService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
 import { TypeModel } from "../../common/EntityTypes.js"
-import { resolveClientTypeReference } from "../../common/EntityFunctions.js"
+import { TypeModelResolver } from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -27,6 +27,7 @@ export class OwnerEncSessionKeysUpdateQueue {
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly typeModelResolver: TypeModelResolver,
 		// allow passing the timeout for testability
 		debounceTimeoutMs: number = UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS,
 	) {
@@ -41,7 +42,7 @@ export class OwnerEncSessionKeysUpdateQueue {
 	 */
 	async updateInstanceSessionKeys(instanceSessionKeys: Array<InstanceSessionKey>, typeModel: TypeModel) {
 		if (this.userFacade.isLeader()) {
-			const groupKeyUpdateTypeModel = await resolveClientTypeReference(GroupKeyUpdateTypeRef)
+			const groupKeyUpdateTypeModel = await this.typeModelResolver.resolveClientTypeReference(GroupKeyUpdateTypeRef)
 			if (groupKeyUpdateTypeModel.id !== typeModel.id) {
 				this.updateInstanceSessionKeyQueue.push(...instanceSessionKeys)
 				this.invokeUpdateSessionKeyService()

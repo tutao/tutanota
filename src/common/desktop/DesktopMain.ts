@@ -77,7 +77,7 @@ import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
-import { resolveClientTypeReference } from "../api/common/EntityFunctions"
+import { ClientModelInfo } from "../api/common/EntityFunctions"
 
 mp()
 
@@ -165,11 +165,15 @@ async function createComponents(): Promise<Components> {
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DefaultDateProvider()
+	const clientModelInfo = ClientModelInfo.getInstance()
 	// We need a custom instance pipeline for everything native as we only process them with the client type model
 	// When upgrading things in SseFacade and AlarmStorage, we need to deprecate the old clients potentially
-	const nativeInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveClientTypeReference)
+	const nativeInstancePipeline = new InstancePipeline(
+		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
+		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
+	)
 	const sseStorage = new SseStorage(conf)
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline, clientModelInfo)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(__NODE_GYP_better_sqlite3, makeDbPath("credentials"), app)
@@ -253,6 +257,7 @@ async function createComponents(): Promise<Components> {
 		suspensionAwareFetch,
 		app.getVersion(),
 		nativeInstancePipeline,
+		clientModelInfo,
 	)
 	const sseClient = new SseClient(desktopNet, new DesktopSseDelay(), schedulerImpl)
 	const sse = new TutaSseFacade(
@@ -265,6 +270,7 @@ async function createComponents(): Promise<Components> {
 		suspensionAwareFetch,
 		dateProvider,
 		nativeInstancePipeline,
+		clientModelInfo,
 	)
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))

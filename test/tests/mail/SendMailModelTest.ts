@@ -49,7 +49,6 @@ import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionali
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
-import { PartialRecipient } from "../../../src/common/api/common/recipients/Recipient"
 
 const { anything, argThat } = matchers
 
@@ -571,17 +570,46 @@ o.spec("SendMailModel", function () {
 		})
 
 		o("nonmatching event", async function () {
-			await model.handleEntityEvent(downcast(CustomerAccountCreateDataTypeRef))
-			await model.handleEntityEvent(downcast(UserTypeRef))
-			await model.handleEntityEvent(downcast(CustomerTypeRef))
-			await model.handleEntityEvent(downcast(NotificationMailTypeRef))
-			await model.handleEntityEvent(downcast(ChallengeTypeRef))
-			await model.handleEntityEvent(downcast(MailTypeRef))
+			await model.handleEntityEvent({
+				typeRef: CustomerAccountCreateDataTypeRef,
+				operation: OperationType.CREATE,
+				instanceListId: "",
+				instanceId: "",
+			})
+			await model.handleEntityEvent({
+				typeRef: UserTypeRef,
+				operation: OperationType.CREATE,
+				instanceListId: "",
+				instanceId: "",
+			})
+			await model.handleEntityEvent({
+				typeRef: CustomerTypeRef,
+				operation: OperationType.CREATE,
+				instanceListId: "",
+				instanceId: "",
+			})
+			await model.handleEntityEvent({
+				typeRef: NotificationMailTypeRef,
+				operation: OperationType.CREATE,
+				instanceListId: "",
+				instanceId: "",
+			})
+			await model.handleEntityEvent({
+				typeRef: ChallengeTypeRef,
+				operation: OperationType.CREATE,
+				instanceListId: "",
+				instanceId: "",
+			})
+			await model.handleEntityEvent({
+				typeRef: MailTypeRef,
+				operation: OperationType.CREATE,
+				instanceListId: "",
+				instanceId: "",
+			})
 			verify(entity.load(anything(), anything(), anything()), { times: 0 })
 		})
 
 		o("contact updated email kept", async function () {
-			const { app, typeId } = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
 			const contactForUpdate = {
 				firstName: "newfirstname",
@@ -603,19 +631,16 @@ o.spec("SendMailModel", function () {
 			).thenResolve(createContact(Object.assign({ _id: existingContact._id } as Contact, contactForUpdate)))
 			await model.initWithTemplate({ to: recipients }, "somb", "", [], true, "a@b.c", false)
 			await model.handleEntityEvent({
-				application: app,
-				typeId: typeId,
+				typeRef: ContactTypeRef,
 				operation: OperationType.UPDATE,
 				instanceListId,
 				instanceId,
-				type: "Contact",
 			})
 			o(model.allRecipients().length).equals(2)
 			const updatedRecipient = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
 			o(updatedRecipient && updatedRecipient.name).equals(getContactDisplayName(downcast(contactForUpdate)))
 		})
 		o("contact updated email removed or changed", async function () {
-			const { app, typeId } = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
 			const contactForUpdate = {
 				firstName: "james",
@@ -639,28 +664,23 @@ o.spec("SendMailModel", function () {
 			)
 			await model.initWithTemplate({ to: recipients }, "b", "c", [], true, "", false)
 			await model.handleEntityEvent({
-				application: app,
-				typeId: typeId,
+				typeRef: ContactTypeRef,
 				operation: OperationType.UPDATE,
 				instanceListId,
 				instanceId,
-				type: "Contact",
 			})
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
 			o(updatedContact ?? null).equals(null)
 		})
 		o("contact removed", async function () {
-			const { app, typeId } = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
 			await model.initWithTemplate({ to: recipients }, "subj", "", [], true, "a@b.c", false)
 			await model.handleEntityEvent({
-				application: app,
-				typeId: typeId,
+				typeRef: ContactTypeRef,
 				operation: OperationType.DELETE,
 				instanceListId,
 				instanceId,
-				type: "Contact",
 			})
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))

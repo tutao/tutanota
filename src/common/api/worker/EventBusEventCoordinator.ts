@@ -22,7 +22,7 @@ import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
 import { KeyRotationFacade } from "./facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "./facades/lazy/CacheManagementFacade.js"
 import type { QueuedBatch } from "./EventQueue.js"
-import { isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -36,24 +36,23 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly keyRotationFacade: KeyRotationFacade,
 		private readonly cacheManagementFacade: lazyAsync<CacheManagementFacade>,
 		private readonly sendError: (error: Error) => Promise<void>,
-		private readonly appSpecificBatchHandling: (queuedBatch: QueuedBatch[]) => void,
+		private readonly appSpecificBatchHandling: (events: readonly EntityUpdateData[], batchId: Id, groupId: Id) => void,
 	) {}
 
 	onWebsocketStateChanged(state: WsConnectionState) {
 		this.connectivityListener.updateWebSocketState(state)
 	}
 
-	async onEntityEventsReceived(events: EntityUpdate[], batchId: Id, groupId: Id): Promise<void> {
+	async onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<void> {
 		await this.entityEventsReceived(events)
 		await (await this.mailFacade()).entityEventsReceived(events)
 		await this.eventController.onEntityUpdateReceived(events, groupId)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
 		if (!isTest() && !isAdminClient()) {
-			const queuedBatch = { groupId, batchId, events }
 			const configurationDatabase = await this.configurationDatabase()
-			await configurationDatabase.onEntityEventsReceived(queuedBatch)
-			this.appSpecificBatchHandling([queuedBatch])
+			await configurationDatabase.onEntityEventsReceived(events, batchId, groupId)
+			this.appSpecificBatchHandling(events, batchId, groupId)
 		}
 	}
 
@@ -84,7 +83,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		this.eventController.onCountersUpdateReceived(counter)
 	}
 
-	private async entityEventsReceived(data: EntityUpdate[]): Promise<void> {
+	private async entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
 		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
 		const groupKeyUpdates: IdTuple[] = [] // GroupKeyUpdates all in the same list
 		const user = this.userFacade.getUser()

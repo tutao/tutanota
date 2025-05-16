@@ -1,4 +1,4 @@
-import { HttpMethod, MediaType, resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions"
+import { HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
 import {
 	DeleteService,
 	ExtraServiceParams,
@@ -33,6 +33,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		private readonly authDataProvider: AuthDataProvider,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: lazy<CryptoFacade>,
+		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 
 	get<S extends GetService>(
@@ -77,7 +78,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		if (
 			methodDefinition.return &&
 			params?.sessionKey == null &&
-			(await resolveClientTypeReference(methodDefinition.return)).encrypted &&
+			(await this.typeModelResolver.resolveClientTypeReference(methodDefinition.return)).encrypted &&
 			!this.authDataProvider.isFullyLoggedIn()
 		) {
 			// Short-circuit before we do an actual request which we can't decrypt
@@ -126,7 +127,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		if (someTypeRef == null) {
 			throw new ProgrammingError("Need either data or return for the service method!")
 		}
-		const model = await resolveClientTypeReference(someTypeRef)
+		const model = await this.typeModelResolver.resolveClientTypeReference(someTypeRef)
 		return model.version
 	}
 
@@ -142,7 +143,7 @@ export class ServiceExecutor implements IServiceExecutor {
 				throw new ProgrammingError(`Invalid service data! ${service.name} ${method}`)
 			}
 
-			const requestTypeModel = await resolveClientTypeReference(methodDefinition.data)
+			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(methodDefinition.data)
 			if (requestTypeModel.encrypted && params?.sessionKey == null) {
 				throw new ProgrammingError("Must provide a session key for an encrypted data transfer type!: " + service)
 			}
@@ -158,7 +159,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: ExtraServiceParams | undefined): Promise<T> {
 		// Filter out __proto__ to avoid prototype pollution.
 		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
-		const serverTypeModel = await resolveServerTypeReference(typeRef)
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const cleanInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, cleanInstance)
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)

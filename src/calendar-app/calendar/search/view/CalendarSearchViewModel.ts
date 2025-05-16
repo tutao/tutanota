@@ -2,7 +2,6 @@ import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { SomeEntity } from "../../../../common/api/common/EntityTypes.js"
 import { CLIENT_ONLY_CALENDARS, OperationType } from "../../../../common/api/common/TutanotaConstants.js"
 import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../../../../common/api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
@@ -47,8 +46,7 @@ import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository"
 import { getClientOnlyCalendars } from "../../gui/CalendarGuiUtils"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import { resolveTypeRefFromAppAndTypeNameLegacy } from "../../../../common/api/common/EntityFunctions"
+import { TypeModelResolver } from "../../../../common/api/common/EntityFunctions"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -499,9 +497,7 @@ export class CalendarSearchViewModel {
 		const { instanceListId, instanceId, operation } = update
 		const id = [neverNull(instanceListId), instanceId] as const
 
-		const typeRef = update.typeId
-			? new TypeRef<SomeEntity>(update.application as AppName, update.typeId)
-			: resolveTypeRefFromAppAndTypeNameLegacy(update.application as AppName, update.type)
+		const typeRef = update.typeRef
 
 		if (!this.isInSearchResult(typeRef, id) && isPossibleABirthdayContactUpdate) {
 			return

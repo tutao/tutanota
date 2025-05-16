@@ -113,6 +113,7 @@ import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
+import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 
 assertMainOrNode()
 
@@ -172,6 +173,10 @@ class CalendarLocator {
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
+
+	readonly typeModelResolver: lazy<ClientTypeModelResolver> = lazyMemoized(() => {
+		return ClientModelInfo.getInstance()
+	})
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -607,7 +612,7 @@ class CalendarLocator {
 		this.progressTracker = new ProgressTracker()
 		this.syncTracker = new SyncTracker()
 		this.search = new CalendarSearchModel(() => this.calendarEventsRepository())
-		this.entityClient = new EntityClient(restInterface)
+		this.entityClient = new EntityClient(restInterface, this.typeModelResolver())
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -638,6 +643,7 @@ class CalendarLocator {
 			this.logins,
 			this.eventController,
 			() => this.usageTestController,
+			this.typeModelResolver(),
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 

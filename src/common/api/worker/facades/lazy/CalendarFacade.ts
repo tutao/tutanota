@@ -93,9 +93,6 @@ export type CalendarEventUidIndexEntry = {
 }
 
 export class CalendarFacade {
-	// visible for testing
-	readonly cachingEntityClient: EntityClient
-
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly groupManagementFacade: GroupManagementFacade,
@@ -108,9 +105,9 @@ export class CalendarFacade {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly instancePipeline: InstancePipeline,
-	) {
-		this.cachingEntityClient = new EntityClient(this.entityRestCache)
-	}
+		// visible for testing
+		public readonly cachingEntityClient: EntityClient,
+	) {}
 
 	async saveImportedCalendarEvents(eventWrappers: Array<EventWrapper>, operationId: OperationId): Promise<void> {
 		// it is safe to assume that all event uids are set at this time
