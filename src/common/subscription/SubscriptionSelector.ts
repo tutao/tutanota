@@ -301,6 +301,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const paymentMethod = selectorAttrs.accountingInfo?.paymentMethod ?? null
 		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
+			console.log(prices, "prices in upgrade sub dialog")
 			if (prices != null) {
 				if (hasGlobalFirstYearDiscount && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
 					const revolutionaryPrice = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())

@@ -81,7 +81,8 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				rawYearlyPerMonth: prices.rawYearlyPerMonth!,
 				displayMonthlyPerMonth: prices.displayMonthlyPerMonth!,
 				displayYearlyPerYear: prices.displayYearlyPerYear!,
-				displayYearlyPerMonth: prices.displayYearlyPerMonth!
+				displayYearlyPerMonth: prices.displayYearlyPerMonth!,
+				isEligibleForIntroOffer: true
 			)
 		}
 	}

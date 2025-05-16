@@ -158,7 +158,7 @@ schemes:
         tutanotaTests: ["test"]
     run:
       config: "Debug Development"
-      storeKitConfiguration: "Plans.storekit"
+      storeKitConfiguration: "PlansLocal.storekit"
     test:
       config: "Debug Development"
       targets: ["tutanotaTests"]
