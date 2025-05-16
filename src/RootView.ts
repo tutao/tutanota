@@ -76,7 +76,13 @@ export class RootView implements ClassComponent {
 					height: "100%",
 				},
 			},
-			[m(overlay), m(modal), vnode.children],
+			[
+				m(overlay, {
+					inertBelow: modal.topLayer(),
+				}),
+				m(modal),
+				m(".main-view", { inert: modal.visible }, vnode.children),
+			],
 		)
 	}
 
