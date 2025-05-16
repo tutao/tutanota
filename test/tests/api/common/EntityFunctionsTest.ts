@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ClientModelInfo, resolveTypeRefFromAppAndTypeNameLegacy, ServerModelInfo, ServerModels } from "../../../../src/common/api/common/EntityFunctions"
+import { ClientModelInfo, ServerModelInfo, ServerModels } from "../../../../src/common/api/common/EntityFunctions"
 import { AppName } from "@tutao/tutanota-utils/lib/TypeRef"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Cardinality, Type, ValueType } from "../../../../src/common/api/common/EntityConstants"
@@ -13,14 +13,12 @@ import { TypeModel } from "../../../../src/common/api/common/EntityTypes"
 o.spec("EntityFunctionsTest", function () {
 	let serverModelInfo: ServerModelInfo
 	let clientModelInfo: ClientModelInfo
-	let emptyTypeModel: ServerModels
 	let applicationTypesFacade: ApplicationTypesFacade
 
 	o.beforeEach(async () => {
-		clientModelInfo = new ClientModelInfo()
-		serverModelInfo = new ServerModelInfo(clientModelInfo)
+		clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
+		serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo)
 		clientModelAsServerModel(serverModelInfo, clientModelInfo)
-		emptyTypeModel = {} as ServerModels
 		applicationTypesFacade = await ApplicationTypesFacade.getInitialized(object(), object(), serverModelInfo)
 	})
 
@@ -85,9 +83,9 @@ o.spec("EntityFunctionsTest", function () {
 		o("fail to parse if encrypted value is changed to unencrypted", async () => {
 			const serverModel = Object.assign({}, serverModelInfo.typeModels, partialServerModel)
 			const serverModelString = JSON.stringify({ base: serverModel })
-			clientModelInfo = new ClientModelInfo()
+			clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
 			clientModelInfo.typeModels = Object.assign({}, clientModelInfo.typeModels, { base: clientModel })
-			serverModelInfo = new ServerModelInfo(clientModelInfo)
+			serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo)
 
 			const applicationTypesHashTruncatedBase64 = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(serverModelString))
 			const e = await assertThrows(ProgrammingError, async () => serverModelInfo.init(applicationTypesHashTruncatedBase64, serverModel))
@@ -97,7 +95,7 @@ o.spec("EntityFunctionsTest", function () {
 		o("ignore non-existent typeValue on client", async () => {
 			const serverModel = Object.assign({}, serverModelInfo.typeModels, partialServerModel)
 			const serverModelString = JSON.stringify({ base: serverModel })
-			clientModelInfo = new ClientModelInfo()
+			clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
 			clientModelInfo.typeModels = Object.assign({}, clientModelInfo.typeModels, {
 				base: {
 					"0": {
@@ -124,7 +122,7 @@ o.spec("EntityFunctionsTest", function () {
 					},
 				},
 			})
-			serverModelInfo = new ServerModelInfo(clientModelInfo)
+			serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo)
 			const applicationTypesHashTruncatedBase64 = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(serverModelString))
 			serverModelInfo.init(applicationTypesHashTruncatedBase64, serverModel)
 		})
@@ -134,7 +132,7 @@ o.spec("EntityFunctionsTest", function () {
 		const app = "tutanota" as AppName
 		const mailTypeId = 97
 		const mailTypeName = clientModelInfo.typeModels.tutanota[mailTypeId].name
-		const mailTypeRef = resolveTypeRefFromAppAndTypeNameLegacy(app, mailTypeName)
+		const mailTypeRef = ClientModelInfo.getNewInstanceForTestsOnly().resolveTypeRefFromAppAndTypeNameLegacy(app, mailTypeName)
 		o(mailTypeId).equals(mailTypeRef.typeId)
 	})
 })

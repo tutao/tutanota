@@ -1,5 +1,4 @@
 import { ServerModelUntypedInstance, TypeModel } from "../../api/common/EntityTypes"
-import { resolveClientTypeReference } from "../../api/common/EntityFunctions"
 import {
 	AlarmNotificationTypeRef,
 	createNotificationSessionKey,
@@ -10,6 +9,7 @@ import {
 import { AttributeModel } from "../../api/common/AttributeModel"
 import { Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { ClientTypeModelResolver } from "../../api/common/EntityFunctions"
 
 export class EncryptedMissedNotification {
 	private constructor(
@@ -19,10 +19,10 @@ export class EncryptedMissedNotification {
 		private readonly notificationSessionKeyTypeModel: TypeModel,
 	) {}
 
-	public static async from(untypedInstance: ServerModelUntypedInstance): Promise<EncryptedMissedNotification> {
-		const missedNotificationTypeModel = await resolveClientTypeReference(MissedNotificationTypeRef)
-		const alarmNotificationTypeModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
-		const notificationSessionKeyTypeModel = await resolveClientTypeReference(NotificationSessionKeyTypeRef)
+	public static async from(untypedInstance: ServerModelUntypedInstance, typeModelResolver: ClientTypeModelResolver): Promise<EncryptedMissedNotification> {
+		const missedNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(MissedNotificationTypeRef)
+		const alarmNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
+		const notificationSessionKeyTypeModel = await typeModelResolver.resolveClientTypeReference(NotificationSessionKeyTypeRef)
 
 		const sanitizedUntypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(untypedInstance)
 

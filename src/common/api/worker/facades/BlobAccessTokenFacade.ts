@@ -4,12 +4,12 @@ import { BlobAccessTokenService } from "../../entities/storage/Services"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, createBlobWriteData, createInstanceId } from "../../entities/storage/TypeRefs"
 import { DateProvider } from "../../common/DateProvider.js"
-import { resolveClientTypeReference } from "../../common/EntityFunctions.js"
 import { AuthDataProvider } from "./UserFacade.js"
 import { deduplicate, first, isEmpty, lazyMemoized, TypeRef } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { BlobLoadOptions } from "./lazy/BlobFacade.js"
 import { BlobReferencingInstance } from "../../common/utils/BlobUtils.js"
+import { TypeModelResolver } from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -26,7 +26,12 @@ export class BlobAccessTokenFacade {
 	// cache for upload requests are valid for the whole archive (key:<ownerGroup + archiveDataType>).
 	private readonly writeCache: BlobAccessTokenCache
 
-	constructor(private readonly serviceExecutor: IServiceExecutor, private readonly authDataProvider: AuthDataProvider, dateProvider: DateProvider) {
+	constructor(
+		private readonly serviceExecutor: IServiceExecutor,
+		private readonly authDataProvider: AuthDataProvider,
+		dateProvider: DateProvider,
+		private readonly typeModelResolver: TypeModelResolver,
+	) {
 		this.readCache = new BlobAccessTokenCache(dateProvider)
 		this.writeCache = new BlobAccessTokenCache(dateProvider)
 	}
@@ -220,7 +225,7 @@ export class BlobAccessTokenFacade {
 	 * @param typeRef the typeRef that shall be used to determine the correct model version
 	 */
 	public async createQueryParams(blobServerAccessInfo: BlobServerAccessInfo, additionalRequestParams: Dict, typeRef: TypeRef<any>): Promise<Dict> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		return Object.assign(
 			additionalRequestParams,
 			{

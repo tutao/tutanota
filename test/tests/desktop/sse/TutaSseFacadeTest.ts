@@ -23,10 +23,16 @@ import {
 	NotificationSessionKeyTypeRef,
 	SseConnectDataTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
-import { createTestEntity, mockFetchRequest, removeAggregateIds, removeFinalIvs } from "../../TestUtils.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	instancePipelineFromTypeModelResolver,
+	mockFetchRequest,
+	removeAggregateIds,
+	removeFinalIvs,
+} from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
-import { resolveClientTypeReference } from "../../../../src/common/api/common/EntityFunctions"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { StrippedEntity } from "../../../../src/common/api/common/utils/EntityUtils"
@@ -37,6 +43,7 @@ import { EncryptedMissedNotification } from "../../../../src/common/native/commo
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { AttributeModel } from "../../../../src/common/api/common/AttributeModel"
+import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 
 const APP_V = env.versionNumber
 
@@ -52,6 +59,8 @@ o.spec("TutaSseFacade", () => {
 	let fetch: typeof undiciFetch
 	let date: DateProvider
 	let nativeInstancePipeline: InstancePipeline
+	let typeModelResolver: TypeModelResolver
+
 	o.beforeEach(() => {
 		sseStorage = object()
 		notificationHandler = object()
@@ -60,8 +69,20 @@ o.spec("TutaSseFacade", () => {
 		alarmScheduler = object()
 		fetch = func<typeof undiciFetch>()
 		date = object()
-		nativeInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveClientTypeReference)
-		sseFacade = new TutaSseFacade(sseStorage, notificationHandler, sseClient, alarmStorage, alarmScheduler, APP_V, fetch, date, nativeInstancePipeline)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		nativeInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		sseFacade = new TutaSseFacade(
+			sseStorage,
+			notificationHandler,
+			sseClient,
+			alarmStorage,
+			alarmScheduler,
+			APP_V,
+			fetch,
+			date,
+			nativeInstancePipeline,
+			typeModelResolver,
+		)
 	})
 
 	function setupSseInfo(template: Partial<SseInfo> = {}): SseInfo {
@@ -255,7 +276,7 @@ o.spec("TutaSseFacade", () => {
 				missedNotification,
 				sk,
 			)) as unknown as ServerModelUntypedInstance
-			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance)
+			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance, typeModelResolver)
 			await sseFacade.handleAlarmNotification(encryptedMissedNotification)
 			verify(alarmScheduler.handleDeleteAlarm("alarmId"))
 		})
@@ -292,7 +313,7 @@ o.spec("TutaSseFacade", () => {
 				missedNotification,
 				sk,
 			)) as unknown as ServerModelUntypedInstance
-			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance)
+			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance, typeModelResolver)
 
 			await assertThrows(CryptoError, () => sseFacade.handleAlarmNotification(encryptedMissedNotification))
 			verify(alarmStorage.getNotificationSessionKey(anything()))
@@ -340,12 +361,12 @@ o.spec("TutaSseFacade", () => {
 				missedNotification,
 				sk,
 			)) as unknown as ServerModelUntypedInstance
-			const missedNotificationTypeModel = await resolveClientTypeReference(MissedNotificationTypeRef)
-			const alarmNotificationTypeModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
+			const missedNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(MissedNotificationTypeRef)
+			const alarmNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
 			const anAttrId = assertNotNull(AttributeModel.getAttributeId(missedNotificationTypeModel, "alarmNotifications"))
 			const eventStartAttrId = assertNotNull(AttributeModel.getAttributeId(alarmNotificationTypeModel, "eventStart"))
 			downcast<Array<UntypedInstance>>(untypedInstance[anAttrId])[0][eventStartAttrId] = stringToBase64("newDate")
-			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance)
+			const encryptedMissedNotification = await EncryptedMissedNotification.from(untypedInstance, typeModelResolver)
 
 			await assertThrows(CryptoError, () => sseFacade.handleAlarmNotification(encryptedMissedNotification))
 			verify(alarmStorage.removePushIdentifierKey(anything()))

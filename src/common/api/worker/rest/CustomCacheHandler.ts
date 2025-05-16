@@ -2,12 +2,13 @@ import { ListElementEntity, ServerModelParsedInstance, TypeModel } from "../../c
 import { CalendarEvent, CalendarEventTypeRef, Mail } from "../../entities/tutanota/TypeRefs.js"
 import { freezeMap, getTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils.js"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions.js"
 import { CacheStorage, ExposedCacheStorage, Range } from "./DefaultEntityRestCache.js"
 import { EntityRestClient } from "./EntityRestClient.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { EntityUpdate } from "../../entities/sys/TypeRefs"
 import { AttributeModel } from "../../common/AttributeModel"
+import { TypeModelResolver } from "../../common/EntityFunctions"
+import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 
 /**
  * update when implementing custom cache handlers.
@@ -61,7 +62,7 @@ export interface CustomCacheHandler<T extends ListElementEntity> {
 
 	getElementIdsInCacheRange?: (storage: ExposedCacheStorage, listId: Id, ids: Array<Id>) => Promise<Array<Id>>
 
-	shouldLoadOnCreateEvent?: (event: EntityUpdate) => Promise<boolean>
+	shouldLoadOnCreateEvent?: (event: EntityUpdateData) => Promise<boolean>
 }
 
 /**
@@ -69,11 +70,11 @@ export interface CustomCacheHandler<T extends ListElementEntity> {
  * this effectively in the database.
  */
 export class CustomCalendarEventCacheHandler implements CustomCacheHandler<CalendarEvent> {
-	constructor(private readonly entityRestClient: EntityRestClient) {}
+	constructor(private readonly entityRestClient: EntityRestClient, private readonly typeModelResolver: TypeModelResolver) {}
 
 	async loadRange(storage: CacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<CalendarEvent[]> {
 		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)
-		const typeModel = await resolveServerTypeReference(CalendarEventTypeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(CalendarEventTypeRef)
 
 		// if offline db for this list is empty load from server
 		let rawList: Array<ServerModelParsedInstance> = []

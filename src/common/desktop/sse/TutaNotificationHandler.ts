@@ -15,11 +15,11 @@ import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
-import { resolveClientTypeReference } from "../../api/common/EntityFunctions"
 import { StrippedEntity } from "../../api/common/utils/EntityUtils"
-import { ClientModelUntypedInstance, EncryptedParsedInstance, ServerModelUntypedInstance, TypeModel } from "../../api/common/EntityTypes"
+import { EncryptedParsedInstance, ServerModelUntypedInstance, TypeModel } from "../../api/common/EntityTypes"
 import { AttributeModel } from "../../api/common/AttributeModel"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
+import { ClientTypeModelResolver, TypeModelResolver } from "../../api/common/EntityFunctions"
 
 const TAG = "[notifications]"
 
@@ -41,6 +41,7 @@ export class TutaNotificationHandler {
 		private readonly fetch: FetchImpl,
 		private readonly appVersion: string,
 		private readonly nativeInstancePipeline: InstancePipeline,
+		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {}
 
 	async onMailNotification(sseInfo: SseInfo, notificationInfo: StrippedEntity<NotificationInfo>) {
@@ -115,8 +116,8 @@ export class TutaNotificationHandler {
 
 			const parsedResponse = await response.json()
 
-			const mailModel = await resolveClientTypeReference(MailTypeRef)
-			const mailAddressModel = await resolveClientTypeReference(MailAddressTypeRef)
+			const mailModel = await this.typeModelResolver.resolveClientTypeReference(MailTypeRef)
+			const mailAddressModel = await this.typeModelResolver.resolveClientTypeReference(MailAddressTypeRef)
 			const mailEncryptedParsedInstance: EncryptedParsedInstance = await this.nativeInstancePipeline.typeMapper.applyJsTypes(
 				mailModel,
 				parsedResponse as ServerModelUntypedInstance,

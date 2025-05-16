@@ -17,8 +17,6 @@ import {
 import { arrayOf, clone, deepEqual, downcast, isSameTypeRef, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import {
 	CustomerTypeRef,
-	EntityUpdate,
-	EntityUpdateTypeRef,
 	ExternalUserReferenceTypeRef,
 	GroupKeyTypeRef,
 	GroupMembershipTypeRef,
@@ -28,8 +26,6 @@ import {
 	RootInstanceTypeRef,
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { CacheMode, EntityRestClient, typeRefToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
-import { QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { CacheStorage, DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import {
 	BodyTypeRef,
@@ -57,10 +53,12 @@ import { createEventElementId } from "../../../../../src/common/api/common/utils
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
-import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { globalClientModelInfo, globalServerModelInfo, resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
 import { Entity, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { CacheMode, EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const { anything } = matchers
 
@@ -87,6 +85,7 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
 	const offlineStorageCleanerMock = object<OfflineStorageCleaner>()
+	const typeModelResolver = clientInitializedTypeModelResolver()
 
 	const offlineStorage = new OfflineStorage(
 		sqlCipherFacade,
@@ -94,48 +93,49 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 		new NoZoneDateProvider(),
 		migratorMock,
 		offlineStorageCleanerMock,
-		new ModelMapper(resolveClientTypeReference, resolveClientTypeReference),
+		modelMapperFromTypeModelResolver(typeModelResolver),
+		typeModelResolver,
 	)
 	await offlineStorage.init({ userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false })
 	return offlineStorage
 }
 
 async function getEphemeralStorage(): Promise<EphemeralCacheStorage> {
-	const modelMapper = new ModelMapper(resolveClientTypeReference, resolveClientTypeReference)
-	return new EphemeralCacheStorage(modelMapper)
+	const typeModelResolver = clientInitializedTypeModelResolver()
+	const modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
+	return new EphemeralCacheStorage(modelMapper, typeModelResolver)
 }
 
 testEntityRestCache("ephemeral", getEphemeralStorage)
 
 node(() => testEntityRestCache("offline", getOfflineStorage))()
 
-async function toStorableInstance(entity: Entity): Promise<ServerModelParsedInstance> {
-	return downcast<ServerModelParsedInstance>(
-		await new ModelMapper(resolveClientTypeReference, resolveClientTypeReference).mapToClientModelParsedInstance(entity._type, entity),
-	)
-}
-
 export function testEntityRestCache(name: string, getStorage: (userId: Id) => Promise<CacheStorage>) {
 	const groupId = "groupId"
 	const batchId = "batchId"
+
 	o.spec(`EntityRestCache ${name}`, function () {
 		let storage: CacheStorage
 		let cache: DefaultEntityRestCache
+		let typeModelResolver: TypeModelResolver
+		let modelMapper: ModelMapper
 
 		// The entity client will assert to throwing if an unexpected method is called
 		// You can mock it's attributes if you want to assert that a given method will be called
 		let entityRestClient: EntityRestClient
 		let userId: Id | null
 
-		let createUpdate = function (typeRef: TypeRef<any>, listId: Id, id: Id, operation: OperationType): EntityUpdate {
-			return createTestEntity(EntityUpdateTypeRef, {
-				application: typeRef.app,
-				type: typeRef.typeId.toString(),
-				typeId: typeRef.typeId.toString(),
-				instanceListId: listId,
+		async function toStorableInstance(entity: Entity): Promise<ServerModelParsedInstance> {
+			return downcast<ServerModelParsedInstance>(await modelMapper.mapToClientModelParsedInstance(entity._type, entity))
+		}
+
+		let createUpdate = function (typeRef: TypeRef<any>, listId: Id, id: Id, operation: OperationType): EntityUpdateData {
+			return {
+				typeRef: typeRef,
 				instanceId: id,
-				operation: operation,
-			})
+				instanceListId: listId,
+				operation,
+			}
 		}
 
 		let createId = function (idText) {
@@ -173,7 +173,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 		}
 
 		function mockRestClient(): EntityRestClient {
-			const modelMapper = new ModelMapper(resolveClientTypeReference, resolveClientTypeReference)
 			const restClient = object<RestClient>()
 			const entityRestClient = object<EntityRestClient>()
 
@@ -187,7 +186,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			when(entityRestClient.mapInstancesToEntity(typeRefCaptor.capture(), serverModelParsedInstanceCaptor.capture())).thenDo(async () =>
 				downcast<any>(await modelMapper.mapToInstances(typeRefCaptor.value, serverModelParsedInstanceCaptor.value)),
 			)
-			when(entityRestClient.entityEventsReceived(batchCaptor.capture())).thenResolve(batchCaptor.value)
+			when(entityRestClient.entityEventsReceived(batchCaptor.capture(), matchers.anything(), matchers.anything())).thenResolve(batchCaptor.value)
 			when(entityRestClient.getRestClient()).thenReturn(restClient)
 			return entityRestClient
 		}
@@ -195,12 +194,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 		o.beforeEach(async function () {
 			userId = "userId"
 			storage = await getStorage(userId)
+			typeModelResolver = clientInitializedTypeModelResolver()
+			modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 			entityRestClient = mockRestClient()
-			cache = new DefaultEntityRestCache(entityRestClient, storage)
+			cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver)
 		})
 
 		o.spec("entityEventsReceived", function () {
-			const path = typeRefToRestPath(ContactTypeRef)
 			const contactListId1 = "contactListId1"
 			const contactListId2 = "contactListId2"
 			const id1 = "id1"
@@ -233,14 +233,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				when(putLastBatchIdForGroup(groupId, batchId)).thenResolve(undefined)
 				replace(storage, "putLastBatchIdForGroup", putLastBatchIdForGroup)
 
-				await cache.entityEventsReceived(makeBatch(batch))
+				await cache.entityEventsReceived(batch, "batchId", groupId)
 				await cache.getLastEntityEventBatchForGroup(groupId)
 				verify(putLastBatchIdForGroup(groupId, batchId))
 			})
 
 			o.spec("postMultiple", function () {
 				o.beforeEach(async function () {
-					clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
 					await storage.setNewRangeForList(ContactTypeRef, contactListId1, id1, id7)
 					await storage.setNewRangeForList(ContactTypeRef, contactListId2, id1, id7)
 					//when using offline calendar ids are always in cache range
@@ -264,7 +263,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					when(entityRestClient.loadMultipleParsedInstances(ContactTypeRef, contactListId1, ["id1", "id2"], anything(), anything())).thenResolve(
 						await promiseMap([contact1, contact2], (contact) => toStorableInstance(contact)),
 					)
-					const updates = await cache.entityEventsReceived(makeBatch(batch))
+					const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 					verify(entityRestClient.loadMultipleParsedInstances(ContactTypeRef, contactListId1, ["id1", "id2"], anything(), anything()), { times: 1 })
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).notEquals(null)
@@ -301,7 +300,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 								anything(),
 							),
 						).thenResolve(await promiseMap([event1, event2], (contact) => toStorableInstance(contact)))
-						const updates = await cache.entityEventsReceived(makeBatch(batch))
+						const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 						verify(
 							entityRestClient.loadMultipleParsedInstances(
 								CalendarEventTypeRef,
@@ -409,7 +408,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					if (name === "offline") {
 						await storage.setNewRangeForList(CalendarEventTypeRef, calendarEventListId, CUSTOM_MIN_ID, CUSTOM_MAX_ID)
 					}
-					const filteredUpdates = await cache.entityEventsReceived(makeBatch(batch))
+					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 					verify(entityRestClient.loadParsedInstance(ContactTypeRef, ["contactListId1", "id2"]), { times: 1 }) // One load for contact update
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).notEquals(null)
@@ -466,7 +465,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						new NotAuthorizedError("bam"),
 					)
 
-					const updates = await cache.entityEventsReceived(makeBatch(batch))
+					const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
 					verify(entityRestClient.loadMultipleParsedInstances(ContactTypeRef, anything(), anything(), anything(), anything()), { times: 2 })
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).notEquals(null)
@@ -482,7 +481,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
 						createUpdate(ContactTypeRef, contactListId1, id2, OperationType.CREATE),
 					]
-					const updates = await cache.entityEventsReceived(makeBatch(batch))
+					const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).equals(null)
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).equals(null)
@@ -509,7 +508,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						await promiseMap(contacts, (contact) => toStorableInstance(contact)),
 					)
 
-					const filteredUpdates = await cache.entityEventsReceived(makeBatch(batch))
+					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 					verify(entityRestClient.loadMultipleParsedInstances(ContactTypeRef, contactListId1, ["id1", "id2"], anything(), anything()), { times: 1 })
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).equals(null)
@@ -553,7 +552,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						await promiseMap(secondContactsList, (contact) => toStorableInstance(contact)),
 					)
 
-					const filteredUpdates = await cache.entityEventsReceived(makeBatch(batch))
+					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 					verify(entityRestClient.loadMultipleParsedInstances(ContactTypeRef, anything(), anything(), anything(), anything()), { times: 2 })
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).equals(null)
@@ -591,7 +590,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						new NotAuthorizedError("bam"),
 					)
 
-					const filteredUpdates = await cache.entityEventsReceived(makeBatch(batch))
+					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
 					verify(entityRestClient.loadMultipleParsedInstances(ContactTypeRef, anything(), anything(), anything(), anything()), { times: 2 })
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).notEquals(null)
@@ -605,11 +604,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				})
 			})
 			o("element create notifications are not loaded from server", async function () {
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailBoxTypeRef, null as any, "id1", OperationType.CREATE)]))
+				await cache.entityEventsReceived([createUpdate(MailBoxTypeRef, null as any, "id1", OperationType.CREATE)], "batchId", groupId)
 			})
 
 			o("element update notifications are not put into cache", async function () {
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailBoxTypeRef, null as any, "id1", OperationType.UPDATE)]))
+				await cache.entityEventsReceived([createUpdate(MailBoxTypeRef, null as any, "id1", OperationType.UPDATE)], "batchId", groupId)
 			})
 
 			// element notifications
@@ -622,7 +621,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				when(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)])).thenResolve(
 					await toStorableInstance(createMailDetailsBlobInstance(archiveId, createId(mailDetailsId), "goodbye")),
 				)
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId), OperationType.UPDATE)]))
+				await cache.entityEventsReceived(
+					[createUpdate(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId), OperationType.UPDATE)],
+					"batchId",
+					groupId,
+				)
 				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]), { times: 1 })
 				const blob = await cache.load(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)])
 				o(blob.details.body.text).equals("goodbye")
@@ -637,7 +640,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
 				when(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)])).thenReject(new NotFoundError("test!"))
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId), OperationType.UPDATE)]))
+				await cache.entityEventsReceived(
+					[createUpdate(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId), OperationType.UPDATE)],
+					"batchId",
+					groupId,
+				)
 				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]), { times: 1 })
 				o(await storage.get(mailDetailsBlob._type, archiveId, createId(mailDetailsId))).equals(null)("the blob is deleted from the cache")
 			})
@@ -657,10 +664,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 				// The moved mail will not be loaded from the server
 				await cache.entityEventsReceived(
-					makeBatch([
+					[
 						createUpdate(MailSetEntryTypeRef, getListId(instance), getElementId(instance), OperationType.DELETE),
 						createUpdate(MailSetEntryTypeRef, newListId, getElementId(instance), OperationType.CREATE),
-					]),
+					],
+					"batchId",
+					groupId,
 				)
 
 				when(entityRestClient.loadParsedInstance(MailSetEntryTypeRef, instance._id, anything())).thenReject(new NotFoundError("error from test"))
@@ -678,7 +687,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
 				when(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything())).thenReject(new NotFoundError("not found"))
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId), OperationType.DELETE)]))
+				await cache.entityEventsReceived(
+					[createUpdate(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId), OperationType.DELETE)],
+					"batchId",
+					groupId,
+				)
 				// entity is not loaded from server when it is deleted
 				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 0 })
 				await assertThrows(NotFoundError, () => cache.load(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]))
@@ -714,10 +727,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				verify(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false, anything()), { times: 1 })
 				// Move mail event: we don't try to load the mail again, we just update our cached mail
 				await cache.entityEventsReceived(
-					makeBatch([
+					[
 						createUpdate(MailSetEntryTypeRef, getListId(mailSetEntries[0]), getElementId(mailSetEntries[0]), OperationType.DELETE),
 						createUpdate(MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), OperationType.CREATE),
-					]),
+					],
+					"batchId",
+					groupId,
 				)
 
 				// id1 was moved to another list, which means it is no longer cached, which means we should try to load it again (causing NotFoundError)
@@ -748,10 +763,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 				// Move mail event: we don't try to load the mail again, we just update our cached mail
 				await cache.entityEventsReceived(
-					makeBatch([
+					[
 						createUpdate(MailSetEntryTypeRef, "listId1", getElementId(mailSetEntries[2]), OperationType.DELETE),
 						createUpdate(MailSetEntryTypeRef, "listId2", getElementId(mailSetEntries[2]), OperationType.CREATE),
-					]),
+					],
+					"batchId",
+					groupId,
 				)
 
 				// id3 was moved to another list, which means it is no longer cached, which means we should try to load it again when requested (causing NotFoundError)
@@ -772,7 +789,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				await storage.put(MailTypeRef, await toStorableInstance(mail))
 				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, getListId(mail), getElementId(mail), OperationType.DELETE)]))
+				await cache.entityEventsReceived([createUpdate(MailTypeRef, getListId(mail), getElementId(mail), OperationType.DELETE)], "batchId", groupId)
 
 				o(await storage.get(MailTypeRef, getListId(mail), getElementId(mail))).equals(null)
 				o(await storage.get(MailDetailsBlobTypeRef, getListId(mailDetailsBlob), getElementId(mailDetailsBlob))).equals(null)
@@ -785,19 +802,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					const mail = createMailInstance("listId1", "id1", "i am a mail")
 					when(entityRestClient.loadParsedInstance(MailTypeRef, mail._id)).thenResolve(await toStorableInstance(mail))
 					when(entityRestClient.load(MailTypeRef, mail._id)).thenResolve(mail)
-					await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, getListId(mail), getElementId(mail), OperationType.CREATE)]))
+					await cache.entityEventsReceived([createUpdate(MailTypeRef, getListId(mail), getElementId(mail), OperationType.CREATE)], "batchId", groupId)
 
 					o(await storage.get(MailTypeRef, getListId(mail), getElementId(mail))).deepEquals(mail)
 				})
 			} else {
 				// With ephemeral cache we do not automatically download all mails because we don't need to.
 				o("when the list is not cached, mail create notifications are not put into cache", async function () {
-					await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.CREATE)]))
+					await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.CREATE)], "batchId", groupId)
 				})
 			}
 
 			o("list element update notifications are not put into cache", async function () {
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)]))
+				await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)], "batchId", groupId)
 			})
 
 			o("list element is updated in cache", async function () {
@@ -808,7 +825,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 				when(entityRestClient.loadParsedInstance(MailTypeRef, initialMail._id)).thenResolve(await toStorableInstance(mailUpdate))
 
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)]))
+				await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id1"), OperationType.UPDATE)], "batchId", groupId)
 				verify(entityRestClient.loadParsedInstance(MailTypeRef, initialMail._id), { times: 1 })
 
 				const mail = await cache.load(MailTypeRef, ["listId1", createId("id1")])
@@ -819,7 +836,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			o("when deleted from a range, then the remaining range will still be retrieved from the cache", async function () {
 				const originalMails = await setupMailList(true, true)
 				// no load should be called
-				await cache.entityEventsReceived(makeBatch([createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)]))
+				await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)], "batchId", groupId)
 				const mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
 				// The entity is provided from the cache
 				o(mails).deepEquals([originalMails[0], originalMails[2]])
@@ -877,7 +894,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					await storage.putLastBatchIdForGroup(calendarGroupId, "1")
 					storage.getUserId = () => userId
 
-					await cache.entityEventsReceived(makeBatch([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)]))
+					await cache.entityEventsReceived([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)], "batchId", groupId)
 
 					o(await storage.get(CalendarEventTypeRef, listIdPart(eventId), elementIdPart(eventId))).notEquals(null)("Event has been evicted from cache")
 					o(await storage.getLastBatchIdForGroup(calendarGroupId)).notEquals(null)
@@ -958,7 +975,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					await storage.putLastBatchIdForGroup(calendarGroupId, "1")
 					storage.getUserId = () => userId
 
-					await cache.entityEventsReceived(makeBatch([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)]))
+					await cache.entityEventsReceived([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)], "batchId", groupId)
 
 					o(await storage.get(CalendarEventTypeRef, null, groupRootId)).equals(null)("GroupRoot has been evicted from cache")
 					o(await storage.getLastBatchIdForGroup(calendarGroupId)).equals(null)
@@ -1039,7 +1056,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					await storage.putLastBatchIdForGroup?.(calendarGroupId, "1")
 					storage.getUserId = () => userId
 
-					await cache.entityEventsReceived(makeBatch([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)]))
+					await cache.entityEventsReceived([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)], "batchId", groupId)
 
 					o(await storage.get(CalendarEventTypeRef, listIdPart(eventId), elementIdPart(eventId))).equals(null)("Event has been evicted from cache")
 					const deletedRange = await storage.getRangeForList(CalendarEventTypeRef, listIdPart(eventId))
@@ -1122,7 +1139,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					await storage.put(CalendarEventTypeRef, await toStorableInstance(event))
 					storage.getUserId = () => "anotherUserId"
 
-					await cache.entityEventsReceived(makeBatch([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)]))
+					await cache.entityEventsReceived([createUpdate(UserTypeRef, "", userId, OperationType.UPDATE)], "batchId", groupId)
 
 					o(await storage.get(CalendarEventTypeRef, listIdPart(eventId), elementIdPart(eventId))).notEquals(null)("Event has been evicted from cache")
 				})
@@ -1559,7 +1576,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			"When there is a non-reverse range request that loads away from the existing range, the range will grow to include startId + the rest from the server",
 			async function () {
 				const clientMock = object<EntityRestClient>()
-				const cache = new DefaultEntityRestCache(clientMock, storage)
+				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver)
 
 				const listId = "listId"
 
@@ -1605,7 +1622,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			"When there is a non-reverse range request that loads in the direction of the existing range, the range will grow to include the startId",
 			async function () {
 				const clientMock = object<EntityRestClient>()
-				const cache = new DefaultEntityRestCache(clientMock, storage)
+				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver)
 
 				const listId = "listId1"
 
@@ -1658,7 +1675,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			"When there is a reverse range request that loads in the direction of the existing range, the range will grow to include the startId",
 			async function () {
 				const clientMock = object<EntityRestClient>()
-				const cache = new DefaultEntityRestCache(clientMock, storage)
+				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver)
 
 				const listId = "listId1"
 				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
@@ -1695,7 +1712,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			"The range request starts on one end of the existing range, and would finish on the other end, so it loads from either direction of the range",
 			async function () {
 				const clientMock = object<EntityRestClient>()
-				const cache = new DefaultEntityRestCache(clientMock, storage)
+				const cache = new DefaultEntityRestCache(clientMock, storage, typeModelResolver)
 
 				const id1 = createId("1")
 				const id2 = createId("2")
@@ -1824,7 +1841,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				})
 				return toStorableInstance(contact)
 			})
-			const cache = new DefaultEntityRestCache(entityRestClient, storage)
+			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver)
 			await cache.load(ContactTypeRef, contactId, {
 				queryParams: {
 					myParam: "param",
@@ -1843,7 +1860,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				_ownerGroup: "owner-group",
 			})
 			when(entityRestClient.loadParsedInstance(anything(), anything(), anything())).thenResolve(await toStorableInstance(contactOnTheServer))
-			const cache = new DefaultEntityRestCache(entityRestClient, storage)
+			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver)
 			const firstLoaded = await cache.load(ContactTypeRef, contactId)
 			o(firstLoaded).deepEquals(contactOnTheServer)
 			// @ts-ignore
@@ -1891,7 +1908,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					return permissionOnTheServer
 				}),
 			})
-			const cache = new DefaultEntityRestCache(client, storage)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 			await cache.load(PermissionTypeRef, permissionId)
 			await cache.load(PermissionTypeRef, permissionId)
 			// @ts-ignore
@@ -1907,7 +1924,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				_ownerGroup: "owner-group",
 			})
 			when(client.loadParsedInstance(MailAddressToGroupTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
-			const cache = new DefaultEntityRestCache(client, storage)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 			const loadedEntity = await cache.load(MailAddressToGroupTypeRef, id)
 			await cache.load(MailAddressToGroupTypeRef, id)
@@ -1926,7 +1943,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				_ownerGroup: "owner-group",
 			})
 			when(client.loadParsedInstance(RootInstanceTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
-			const cache = new DefaultEntityRestCache(client, storage)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 			const loadedEntity = await cache.load(RootInstanceTypeRef, id)
 			await cache.load(RootInstanceTypeRef, id)
@@ -1953,7 +1970,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				await toStorableInstance(firstEntity),
 				await toStorableInstance(secondEntity),
 			])
-			const cache = new DefaultEntityRestCache(client, storage)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 			const loadedEntity = await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
 			await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
@@ -1988,7 +2005,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			when(client.loadMultipleParsedInstances(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])], anything()), {
 				ignoreExtraArgs: true,
 			}).thenResolve([await toStorableInstance(firstEntity), await toStorableInstance(secondEntity)])
-			const cache = new DefaultEntityRestCache(client, storage)
+			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 			const loadedEntity = await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
 			await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
@@ -2039,7 +2056,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 				const client: EntityRestClient = mockRestClient()
 				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await toStorableInstance(contactOnTheServer))
-				const cache = new DefaultEntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 				const cacheBypassed1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
 				o(cacheBypassed1).deepEquals(contactOnTheServer)
@@ -2089,7 +2106,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				when(
 					client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], anything(), anything()),
 				).thenResolve([await toStorableInstance(contactAOnTheServer), await toStorableInstance(contactBOnTheServer)])
-				const cache = new DefaultEntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.WriteOnly,
@@ -2140,7 +2157,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 				const client: EntityRestClient = mockRestClient()
 				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await toStorableInstance(contactOnTheServer))
-				const cache = new DefaultEntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 				const cacheReadonly1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
 				o(cacheReadonly1).deepEquals(contactOnTheServer)
@@ -2188,7 +2205,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					await toStorableInstance(contactBOnTheServer),
 				])
 
-				const cache = new DefaultEntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 				const cacheReadOnly1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.ReadOnly,
@@ -2236,7 +2253,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					await toStorableInstance(contactBOnTheServer),
 				])
 
-				const cache = new DefaultEntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 				const cacheReadonly1 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadOnly })
 				o(cacheReadonly1).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
@@ -2283,7 +2300,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				when(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("1"), anything(), false, anything())).thenResolve([
 					await toStorableInstance(contactBOnTheServer),
 				])
-				const cache = new DefaultEntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 				const cacheReadonly1 = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, { cacheMode: CacheMode.ReadOnly })
 				o(cacheReadonly1).deepEquals([contactBOnTheServer])
 				// Fresh cache
@@ -2304,12 +2321,4 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			})
 		})
 	})
-
-	function makeBatch(updates: Array<EntityUpdate>): QueuedBatch {
-		return {
-			events: updates,
-			groupId: groupId,
-			batchId: "batchId",
-		}
-	}
 }

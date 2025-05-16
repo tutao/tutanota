@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import {
+	Contact,
 	ContactAddressTypeRef,
 	ContactListTypeRef,
 	ContactMailAddressTypeRef,
@@ -12,26 +13,29 @@ import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api
 import { DbTransaction } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils.js"
-import type { EntityUpdate } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { EntityUpdateTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { createTestEntity, makeCore } from "../../../TestUtils.js"
-import { assertNotNull, downcast } from "@tutao/tutanota-utils"
+import { downcast } from "@tutao/tutanota-utils"
 import { isSameId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { fixedIv } from "@tutao/tutanota-crypto"
-import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { GroupDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade"
+import { ClientModelInfo, ClientTypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const dbMock: any = { iv: fixedIv }
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
 
 o.spec("ContactIndexer test", () => {
-	let suggestionFacadeMock
+	let suggestionFacadeMock: SuggestionFacade<Contact>
+	let clientTypeModelResolver: ClientTypeModelResolver
+
 	o.beforeEach(function () {
 		suggestionFacadeMock = {} as any
 		suggestionFacadeMock.addSuggestions = spy()
 		suggestionFacadeMock.store = spy(() => Promise.resolve())
+		clientTypeModelResolver = ClientModelInfo.getNewInstanceForTestsOnly()
 	})
 
 	o("createContactIndexEntries without entries", function () {
@@ -94,7 +98,7 @@ o.spec("ContactIndexer test", () => {
 		let attributes = attributeHandlers.map((h) => {
 			return { attribute: h.attribute.id, value: h.value() }
 		})
-		const ContactModel = await resolveClientTypeReference(ContactTypeRef)
+		const ContactModel = await clientTypeModelResolver.resolveClientTypeReference(ContactTypeRef)
 		o(attributes).deepEquals([
 			{ attribute: AttributeModel.getModelValue(ContactModel, "firstName").id, value: "FN" },
 			{ attribute: AttributeModel.getModelValue(ContactModel, "lastName").id, value: "LN" },
@@ -120,13 +124,10 @@ o.spec("ContactIndexer test", () => {
 		} as any
 
 		const contactIndexer = new ContactIndexer(indexer, dbMock, entity, suggestionFacadeMock)
-		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
+		let event: EntityUpdateData = { instanceListId: "lid", instanceId: "eid" } as any
 		const result = await contactIndexer.processNewContact(event)
-		// @ts-ignore
 		o(result).deepEquals({ contact, keyToIndexEntries })
-		// @ts-ignore
 		o(contactIndexer._entity.load.args[0]).equals(ContactTypeRef)
-		// @ts-ignore
 		o(contactIndexer._entity.load.args[1]).deepEquals([event.instanceListId, event.instanceId])
 		o(suggestionFacadeMock.addSuggestions.callCount).equals(1)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
@@ -141,7 +142,7 @@ o.spec("ContactIndexer test", () => {
 			load: () => Promise.reject(new NotFoundError("blah")),
 		} as any
 		const contactIndexer = new ContactIndexer(core, dbMock, entity, suggestionFacadeMock)
-		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
+		let event: EntityUpdateData = { instanceListId: "lid", instanceId: "eid" } as any
 		return contactIndexer.processNewContact(event).then((result) => {
 			o(result).equals(null)
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
@@ -156,7 +157,7 @@ o.spec("ContactIndexer test", () => {
 			load: () => Promise.reject(new NotAuthorizedError("blah")),
 		} as any
 		const contactIndexer = new ContactIndexer(indexer, dbMock, entity, suggestionFacadeMock)
-		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
+		let event: EntityUpdateData = { instanceListId: "lid", instanceId: "eid" } as any
 		return contactIndexer.processNewContact(event).then((result) => {
 			o(result).equals(null)
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
@@ -171,7 +172,7 @@ o.spec("ContactIndexer test", () => {
 			load: () => Promise.reject(new Error("blah")),
 		} as any
 		const contactIndexer = new ContactIndexer(core, dbMock, entity, suggestionFacadeMock)
-		let event: EntityUpdate = { instanceListId: "lid", instanceId: "eid" } as any
+		let event: EntityUpdateData = { instanceListId: "lid", instanceId: "eid" } as any
 		await contactIndexer.processNewContact(event).catch((e) => {
 			o(suggestionFacadeMock.addSuggestions.callCount).equals(0)
 		})
@@ -249,7 +250,7 @@ o.spec("ContactIndexer test", () => {
 		const indexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
 
 		let indexUpdate = _createNewIndexUpdate(contactTypeInfo)
-		let events = [createUpdate(OperationType.CREATE, "contact-list", "L-dNNLe----0")]
+		let events: EntityUpdateData[] = [createUpdate(OperationType.CREATE, "contact-list", "L-dNNLe----0")]
 		await indexer.processEntityEvents(events, "group-id", "batch-id", indexUpdate)
 		// nothing changed
 		o(indexUpdate.create.encInstanceIdToElementData.size).equals(1)
@@ -313,10 +314,10 @@ o.spec("ContactIndexer test", () => {
 	})
 })
 
-function createUpdate(type: OperationType, listId: Id, id: Id) {
-	let update = createTestEntity(EntityUpdateTypeRef)
-	update.operation = type
-	update.instanceListId = listId
-	update.instanceId = id
-	return update
+function createUpdate(type: OperationType, listId: Id, id: Id): EntityUpdateData {
+	return {
+		operation: type,
+		instanceId: id,
+		instanceListId: listId,
+	} as Partial<EntityUpdateData> as EntityUpdateData
 }
