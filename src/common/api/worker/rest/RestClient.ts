@@ -79,6 +79,9 @@ export class RestClient {
 
 				if (options.noCORS) {
 					queryParams["cv"] = env.versionNumber
+					if (env.networkDebugging) {
+						queryParams["network-debugging"] = "enable-network-debugging"
+					}
 				}
 
 				const origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
