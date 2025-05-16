@@ -30,6 +30,7 @@ import { addDaysForEventInstance, getMonthRange } from "../../../src/common/cale
 import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 import { CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -87,7 +88,7 @@ o.spec("CalendarViewModel", function () {
 			contactPreviewModelFactory,
 			calendarModel,
 			eventsRepository,
-			new EntityClient(entityClientMock),
+			new EntityClient(entityClientMock, ClientModelInfo.getNewInstanceForTestsOnly()),
 			eventController,
 			progressTracker,
 			deviceConfig,
@@ -413,12 +414,10 @@ o.spec("CalendarViewModel", function () {
 			o(viewModel.temporaryEvents.some((e) => e.uid === eventToDrag.uid)).equals(true)("Has transient event")
 			o(entityListeners.length).equals(1)("Listener was added")
 			const entityUpdate: EntityUpdateData = {
-				application: "tutanota",
-				typeId: CalendarEventTypeRef.typeId,
+				typeRef: CalendarEventTypeRef,
 				instanceListId: getListId(eventToDrag),
 				instanceId: getElementId(eventToDrag),
 				operation: OperationType.CREATE,
-				type: "CalendarEvent",
 			}
 			const updatedEventFromServer = makeEvent(getElementId(eventToDrag), newData, new Date(2021, 0, 5, 14, 30), assertNotNull(eventToDrag.uid))
 			entityClientMock.addListInstances(updatedEventFromServer)

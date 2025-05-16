@@ -16,6 +16,7 @@ import { KeyPairType, PQPublicKeys, PublicKey } from "@tutao/tutanota-crypto"
 import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
 import { CustomerFacade } from "../../../../../src/common/api/worker/facades/lazy/CustomerFacade"
 import { Mode } from "../../../../../src/common/api/common/Env"
+import { withOverriddenEnv } from "../../../TestUtils"
 
 const { anything } = matchers
 
@@ -75,9 +76,6 @@ o.spec("KeyVerificationFacadeTest", function () {
 	let backupEnv: any
 
 	o.beforeEach(function () {
-		// Better safe than sorry.
-		backupEnv = globalThis.env
-
 		customerFacade = object()
 		sqlCipherFacade = object()
 		publicKeyProvider = object()
@@ -88,10 +86,6 @@ o.spec("KeyVerificationFacadeTest", function () {
 		keyVerification = new KeyVerificationFacade(lazyCustomerFacade, sqlCipherFacade, publicKeyProvider)
 
 		when(publicKeyProvider.convertFromPublicKeyGetOut(PUBLIC_KEY_GET_OUT)).thenReturn(PUBLIC_KEY)
-	})
-
-	o.afterEach(function () {
-		globalThis.env = backupEnv
 	})
 
 	o.spec("confirm trusted identity database works as intended", function () {
@@ -353,26 +347,23 @@ o.spec("KeyVerificationFacadeTest", function () {
 	})
 
 	o("feature should be supported when on desktop and enabled", async function () {
-		globalThis.env.mode = Mode.Desktop
 		when(customerFacade.isEnabled(FeatureType.KeyVerification)).thenResolve(true)
 
-		const isSupported = await keyVerification.isSupported()
+		const isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => keyVerification.isSupported())
 		o(isSupported).equals(true)
 	})
 
 	o("feature should NOT be supported when on desktop and disabled", async function () {
-		globalThis.env.mode = Mode.Desktop
 		when(customerFacade.isEnabled(FeatureType.KeyVerification)).thenResolve(false)
 
-		const isSupported = await keyVerification.isSupported()
+		const isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => keyVerification.isSupported())
 		o(isSupported).equals(false)
 	})
 
 	o("feature should NOT be supported when on browser and enabled", async function () {
-		globalThis.env.mode = Mode.Browser
 		when(customerFacade.isEnabled(FeatureType.KeyVerification)).thenResolve(true)
 
-		const isSupported = await keyVerification.isSupported()
+		const isSupported = await withOverriddenEnv({ mode: Mode.Browser }, () => keyVerification.isSupported())
 		o(isSupported).equals(false)
 	})
 

@@ -19,6 +19,7 @@ import usageModelInfo from "../entities/usage/ModelInfo.js"
 import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants"
+import { isTest } from "./Env"
 
 export const enum HttpMethod {
 	GET = "GET",
@@ -50,6 +51,28 @@ export type ClientModels = {
 }
 
 export class ClientModelInfo {
+	private static instance: ClientModelInfo = new ClientModelInfo()
+
+	/**
+	 * Get an instance. AVOID using it, you should inject this instead.
+	 */
+	public static getInstance(): ClientModelInfo {
+		return ClientModelInfo.instance
+	}
+
+	/**
+	 * Get a fresh instance for tests. Will fail outside of tests. Reusing the same instance in tests leads to
+	 * corrupted state so better be safe and use a fresh one.
+	 */
+	public static getNewInstanceForTestsOnly(): ClientModelInfo {
+		if (!isTest()) {
+			throw new ProgrammingError()
+		}
+		return new ClientModelInfo()
+	}
+
+	private constructor() {}
+
 	/**
 	 * Model maps are needed for static analysis and dead-code elimination.
 	 * We access most types through the TypeRef but also sometimes we include them completely dynamically (e.g. encryption of aggregates).
@@ -88,7 +111,7 @@ export class ClientModelInfo {
 	 *
 	 * @param typeRef the typeRef for which we will return the typeModel.
 	 */
-	public async resolveTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
+	public async resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
 		const typeModel = this.typeModels[typeRef.app][typeRef.typeId]
 		if (typeModel == null) {
 			throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
@@ -117,11 +140,31 @@ export class ServerModelInfo {
 	private applicationTypesHash: ApplicationTypesHash | null = null
 	public typeModels: ServerModels | null = null
 
-	constructor(private readonly clientModelInfo: ClientModelInfo) {}
+	private static instance: ServerModelInfo | null
 
-	public getApplicationTypesHash(): ApplicationTypesHash | null {
-		return this.applicationTypesHash
+	/**
+	 *  Get an instance. Might or might not be initialized.
+	 *  AVOID using it, you should inject this instead.
+	 */
+	public static getPossiblyUninitializedInstance(clientModelInfo: ClientModelInfo): ServerModelInfo {
+		if (ServerModelInfo.instance == null) {
+			ServerModelInfo.instance = new ServerModelInfo(clientModelInfo)
+		}
+		return ServerModelInfo.instance
 	}
+
+	/**
+	 * Get a fresh, uninitialized instance, for tests only.
+	 * @param clientModelInfo
+	 */
+	public static getUninitializedInstanceForTestsOnly(clientModelInfo: ClientModelInfo): ServerModelInfo {
+		if (!isTest()) {
+			throw new ProgrammingError()
+		}
+		return new ServerModelInfo(clientModelInfo)
+	}
+
+	private constructor(private readonly clientModelInfo: ClientModelInfo) {}
 
 	public init(newApplicationTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
 		let newTypeModels = {} as ServerModels
@@ -132,6 +175,10 @@ export class ServerModelInfo {
 
 		this.typeModels = newTypeModels
 		this.applicationTypesHash = newApplicationTypesHash
+	}
+
+	public getApplicationTypesHash(): ApplicationTypesHash | null {
+		return this.applicationTypesHash
 	}
 
 	private parseAllTypesForModel(modelInfo: Record<string, unknown>): {
@@ -255,7 +302,7 @@ export class ServerModelInfo {
 		else throw new Error(`value: ${value} is not boolean compatible`)
 	}
 
-	public async resolveTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
+	public async resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
 		if (this.typeModels == null) {
 			throw new ProgrammingError("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
 		}
@@ -285,13 +332,33 @@ export function _verifyType(typeModel: ClientTypeModel) {
 	}
 }
 
-// @singleton global client and server model info to always use the same and up-to-date typeModels
-export const globalClientModelInfo = new ClientModelInfo()
-export const globalServerModelInfo = new ServerModelInfo(globalClientModelInfo)
+export interface ClientTypeModelResolver {
+	resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel>
 
-export const resolveClientTypeReference = (typeRef: TypeRef<any>) => globalClientModelInfo.resolveTypeReference(typeRef)
-export const resolveServerTypeReference = (typeRef: TypeRef<any>) => globalServerModelInfo.resolveTypeReference(typeRef)
+	resolveTypeRefFromAppAndTypeNameLegacy(app: AppName, typeName: string): TypeRef<any>
+}
 
-export const resolveTypeRefFromAppAndTypeNameLegacy = (app: AppName, typeName: string): TypeRef<any> => {
-	return globalClientModelInfo.resolveTypeRefFromAppAndTypeNameLegacy(app, typeName)
+export interface ServerTypeModelResolver {
+	resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel>
+	getServerApplicationTypesModelHash(): ApplicationTypesHash | null
+}
+
+export class TypeModelResolver implements ClientTypeModelResolver, ServerTypeModelResolver {
+	constructor(private readonly clientModelInfo: ClientModelInfo, private readonly serverModelInfo: ServerModelInfo) {}
+
+	resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
+		return this.clientModelInfo.resolveClientTypeReference(typeRef)
+	}
+
+	resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
+		return this.serverModelInfo.resolveServerTypeReference(typeRef)
+	}
+
+	resolveTypeRefFromAppAndTypeNameLegacy(app: AppName, typeName: string): TypeRef<any> {
+		return this.clientModelInfo.resolveTypeRefFromAppAndTypeNameLegacy(app, typeName)
+	}
+
+	getServerApplicationTypesModelHash(): ApplicationTypesHash | null {
+		return this.serverModelInfo.getApplicationTypesHash()
+	}
 }

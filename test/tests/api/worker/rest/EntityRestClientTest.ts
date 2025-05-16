@@ -8,16 +8,9 @@ import {
 } from "../../../../../src/common/api/common/error/RestError.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
-import {
-	globalClientModelInfo,
-	globalServerModelInfo,
-	HttpMethod,
-	MediaType,
-	resolveClientTypeReference,
-	resolveServerTypeReference,
-} from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod, MediaType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { AccountingInfoTypeRef, CustomerTypeRef, GroupMemberTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeRefToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeModelToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { func, instance, matchers, object, verify, when } from "testdouble"
@@ -26,7 +19,7 @@ import sysModelInfo from "../../../../../src/common/api/entities/sys/ModelInfo.j
 import { AuthDataProvider, UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
 import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
-import { Base64, base64ToUint8Array, deepEqual, downcast, KeyVersion, Mapper, ofClass, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { Base64, base64ToUint8Array, deepEqual, KeyVersion, Mapper, ofClass, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import {
@@ -39,9 +32,7 @@ import {
 	RecipientsTypeRef,
 	SupportDataTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
-import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
-import { DefaultDateProvider } from "../../../../../src/common/calendar/date/CalendarUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { type Entity, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { PersistenceResourcePostReturnTypeRef } from "../../../../../src/common/api/entities/base/TypeRefs"
@@ -98,23 +89,26 @@ o.spec("EntityRestClient", function () {
 	let cryptoFacadePartialStub: CryptoFacade
 	let fullyLoggedIn: boolean
 	let blobAccessTokenFacade: BlobAccessTokenFacade
-	let dateProvider: DateProvider
 	const keyLoaderFacadeMock = instance(KeyLoaderFacade)
 	const ownerGroupId = "ownerGroupId"
 	let sk: AesKey
 	let ownerGroupKey: VersionedKey
 	let encryptedSessionKey
 	let currentDebuggingStatus
+	let typeModelResolver: TypeModelResolver
+
+	async function typeRefToRestPath(typeRef: TypeRef<unknown>): Promise<string> {
+		return typeModelToRestPath(await typeModelResolver.resolveClientTypeReference(typeRef))
+	}
 
 	o.beforeEach(function () {
 		currentDebuggingStatus = env.networkDebugging
-		instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		// instead of mocking the instance pipeline itself, mock it's internal mapper.
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
 
 		restClient = object()
-
-		clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
 
 		sk = aes256RandomKey()
 		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
@@ -135,6 +129,7 @@ o.spec("EntityRestClient", function () {
 			async () => instance(KeyVerificationFacade),
 			instance(PublicKeyProvider),
 			() => instance(KeyRotationFacade),
+			typeModelResolver,
 		)
 		cryptoFacadePartialStub.resolveSessionKey = async (instance: Entity): Promise<Nullable<AesKey>> => {
 			return sk
@@ -149,8 +144,14 @@ o.spec("EntityRestClient", function () {
 			},
 		}
 
-		dateProvider = instance(DefaultDateProvider)
-		entityRestClient = new EntityRestClient(authDataProvider, restClient, () => cryptoFacadePartialStub, instancePipeline, blobAccessTokenFacade)
+		entityRestClient = new EntityRestClient(
+			authDataProvider,
+			restClient,
+			() => cryptoFacadePartialStub,
+			instancePipeline,
+			blobAccessTokenFacade,
+			typeModelResolver,
+		)
 	})
 
 	o.afterEach(() => {
@@ -770,7 +771,7 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Setup", function () {
 		o("Setup list entity", async function () {
-			const v = (await resolveClientTypeReference(CalendarEventTypeRef)).version
+			const v = (await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)).version
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const newCalendar = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
@@ -797,7 +798,7 @@ o.spec("EntityRestClient", function () {
 							AttributeModel.getAttribute<Base64>(
 								untypedInstance,
 								"_ownerEncSessionKey",
-								await resolveClientTypeReference(AccountingInfoTypeRef),
+								await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef),
 							),
 						)
 						const sk = decryptKey(ownerGroupKey.object, ownerEncSk)
@@ -820,7 +821,7 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("Setup entity", async function () {
-			const v = (await resolveClientTypeReference(SupportDataTypeRef)).version
+			const v = (await typeModelResolver.resolveClientTypeReference(SupportDataTypeRef)).version
 			const newSupportData = createTestEntity(SupportDataTypeRef, {
 				_id: "1",
 				_permissions: "another id",
@@ -886,7 +887,7 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
-			const typeModel = await resolveClientTypeReference(AccountingInfoTypeRef)
+			const typeModel = await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef)
 			const v = typeModel.version
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const newAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
@@ -915,7 +916,7 @@ o.spec("EntityRestClient", function () {
 							AttributeModel.getAttribute<Base64>(
 								untypedInstance,
 								"_ownerEncSessionKey",
-								await resolveClientTypeReference(AccountingInfoTypeRef),
+								await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef),
 							),
 						)
 						const sk = decryptKey(ownerGroupKey.object, ownerEncSk)
@@ -936,7 +937,7 @@ o.spec("EntityRestClient", function () {
 	o.spec("Setup multiple", function () {
 		o("Less than 100 entities created should result in a single rest request", async function () {
 			const newGroupMembers = groupMembers(1)
-			const { version } = await resolveClientTypeReference(GroupMemberTypeRef)
+			const { version } = await typeModelResolver.resolveClientTypeReference(GroupMemberTypeRef)
 			const resultId = "resultId"
 
 			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
@@ -967,7 +968,7 @@ o.spec("EntityRestClient", function () {
 		o("Exactly 100 entities created should result in a single rest request", async function () {
 			const newGroupMembers = groupMembers(100)
 			const resultIds = countFrom(0, 100).map(String)
-			const { version } = await resolveClientTypeReference(GroupMemberTypeRef)
+			const { version } = await typeModelResolver.resolveClientTypeReference(GroupMemberTypeRef)
 			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
 				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
 			})
@@ -997,7 +998,7 @@ o.spec("EntityRestClient", function () {
 		o("More than 100 entities created should result in 2 rest requests", async function () {
 			const newGroupMembers = groupMembers(101)
 			const resultIds = countFrom(0, 101).map(String)
-			const { version } = await resolveClientTypeReference(GroupMemberTypeRef)
+			const { version } = await typeModelResolver.resolveClientTypeReference(GroupMemberTypeRef)
 			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
 				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
 			})
@@ -1048,7 +1049,7 @@ o.spec("EntityRestClient", function () {
 		o("Post multiple: An error is encountered for part of the request, only failed entities are returned in the result", async function () {
 			const newGroupMembers = groupMembers(400)
 			const resultIds = countFrom(0, 400).map(String)
-			const { version } = await resolveClientTypeReference(GroupMemberTypeRef)
+			const { version } = await typeModelResolver.resolveClientTypeReference(GroupMemberTypeRef)
 			const untypedGroupMembers = await promiseMap(newGroupMembers, async (group) => {
 				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
 			})
@@ -1120,7 +1121,7 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Update", function () {
 		o("Update entity", async function () {
-			const { version } = await resolveClientTypeReference(SupportDataTypeRef)
+			const { version } = await typeModelResolver.resolveClientTypeReference(SupportDataTypeRef)
 			const newSupportData = createTestEntity(SupportDataTypeRef, {
 				_id: "id",
 			})
@@ -1142,7 +1143,7 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
-			const typeModel = await resolveClientTypeReference(AccountingInfoTypeRef)
+			const typeModel = await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef)
 			const version = typeModel.version
 			const ownerKeyProviderSk = aes256RandomKey()
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
@@ -1184,7 +1185,7 @@ o.spec("EntityRestClient", function () {
 
 	o.spec("Delete", function () {
 		o("Delete entity", async function () {
-			const { version } = await resolveClientTypeReference(CustomerTypeRef)
+			const { version } = await typeModelResolver.resolveClientTypeReference(CustomerTypeRef)
 			const id = "id"
 			const newCustomer = createTestEntity(CustomerTypeRef, {
 				_id: id,
@@ -1199,7 +1200,7 @@ o.spec("EntityRestClient", function () {
 		})
 
 		o("Delete entities", async function () {
-			const { version } = await resolveClientTypeReference(CustomerTypeRef)
+			const { version } = await typeModelResolver.resolveClientTypeReference(CustomerTypeRef)
 			const id = "id"
 			const idTwo = "id2"
 

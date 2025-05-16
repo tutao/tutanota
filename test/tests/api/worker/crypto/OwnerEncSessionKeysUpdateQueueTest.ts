@@ -7,10 +7,10 @@ import { GroupKeyUpdateTypeRef, InstanceSessionKeyTypeRef, TypeInfoTypeRef } fro
 import { UpdateSessionKeysService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { delay } from "@tutao/tutanota-utils"
 import { LockedError } from "../../../../../src/common/api/common/error/RestError.js"
-import { createTestEntity } from "../../../TestUtils.js"
-import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { TypeModel } from "../../../../../src/common/api/common/EntityTypes.js"
+import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 
 const { anything, captor } = matchers
 
@@ -19,13 +19,15 @@ o.spec("OwnerEncSessionKeysUpdateQueueTest", function () {
 	let ownerEncSessionKeysUpdateQueue: OwnerEncSessionKeysUpdateQueue
 	let userFacade: UserFacade
 	let mailTypeModel: TypeModel
+	let typeModelResolver: TypeModelResolver
 
 	o.beforeEach(async function () {
-		mailTypeModel = await resolveClientTypeReference(MailTypeRef)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 		userFacade = object()
 		when(userFacade.isLeader()).thenReturn(true)
 		serviceExecutor = object()
-		ownerEncSessionKeysUpdateQueue = new OwnerEncSessionKeysUpdateQueue(userFacade, serviceExecutor, 0)
+		ownerEncSessionKeysUpdateQueue = new OwnerEncSessionKeysUpdateQueue(userFacade, serviceExecutor, typeModelResolver, 0)
 	})
 
 	o.spec("updateInstanceSessionKeys", function () {
@@ -44,7 +46,7 @@ o.spec("OwnerEncSessionKeysUpdateQueueTest", function () {
 					symEncSessionKey: new Uint8Array([4, 5, 6]),
 				}),
 			]
-			await await ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatableInstanceSessionKeys, mailTypeModel)
+			await ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatableInstanceSessionKeys, mailTypeModel)
 			await delay(0)
 			const updatedPostCaptor = captor()
 			verify(serviceExecutor.post(UpdateSessionKeysService, updatedPostCaptor.capture()))
@@ -60,7 +62,7 @@ o.spec("OwnerEncSessionKeysUpdateQueueTest", function () {
 		})
 
 		o("no updates sent for GroupKeyUpdate type", async function () {
-			const groupKeyUpdateTypeModel = await resolveClientTypeReference(GroupKeyUpdateTypeRef)
+			const groupKeyUpdateTypeModel = await typeModelResolver.resolveClientTypeReference(GroupKeyUpdateTypeRef)
 			const updatableInstanceSessionKeys = [createTestEntity(InstanceSessionKeyTypeRef)]
 			await ownerEncSessionKeysUpdateQueue.updateInstanceSessionKeys(updatableInstanceSessionKeys, groupKeyUpdateTypeModel)
 			await delay(0)

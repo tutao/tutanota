@@ -2,7 +2,6 @@ import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	EntityUpdate,
 	EntityUpdateTypeRef,
 	GroupKeyUpdateTypeRef,
 	GroupMembershipTypeRef,
@@ -11,7 +10,7 @@ import {
 	UserTypeRef,
 	WebsocketLeaderStatusTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
-import { createTestEntity } from "../../TestUtils.js"
+import { createTestEntity, withOverriddenEnv } from "../../TestUtils.js"
 import { AccountType, OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
@@ -20,7 +19,8 @@ import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailF
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { KeyRotationFacade } from "../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
+import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { Mode } from "../../../../src/common/api/common/Env"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -58,24 +58,24 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			keyRotationFacadeMock,
 			async () => cacheManagementFacade,
 			async (error: Error) => {},
-			(queuedBatch: QueuedBatch[]) => {},
+			(_) => {},
 		)
 	})
 
 	o("updateUser and UserGroupKeyDistribution", async function () {
-		const updates: Array<EntityUpdate> = [
-			createTestEntity(EntityUpdateTypeRef, {
-				application: UserTypeRef.app,
-				typeId: UserTypeRef.typeId.toString(),
+		const updates: Array<EntityUpdateData> = [
+			{
+				typeRef: UserTypeRef,
 				instanceId: userId,
+				instanceListId: "",
 				operation: OperationType.UPDATE,
-			}),
-			createTestEntity(EntityUpdateTypeRef, {
-				application: UserGroupKeyDistributionTypeRef.app,
-				typeId: UserGroupKeyDistributionTypeRef.typeId.toString(),
+			},
+			{
+				typeRef: UserGroupKeyDistributionTypeRef,
 				instanceId: userGroupId,
+				instanceListId: "",
 				operation: OperationType.CREATE,
-			}),
+			},
 		]
 
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
@@ -86,14 +86,14 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		verify(mailFacade.entityEventsReceived(updates))
 	})
 
-	o("updatUser only user update", async function () {
-		const updates: Array<EntityUpdate> = [
-			createTestEntity(EntityUpdateTypeRef, {
-				application: UserTypeRef.app,
-				typeId: UserTypeRef.typeId.toString(),
+	o("updateUser only user update", async function () {
+		const updates: Array<EntityUpdateData> = [
+			{
+				typeRef: UserTypeRef,
 				instanceId: userId,
+				instanceListId: "",
 				operation: OperationType.UPDATE,
-			}),
+			},
 		]
 
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
@@ -107,14 +107,13 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	o("groupKeyUpdate", async function () {
 		const instanceListId = "updateListId"
 		const instanceId = "updateElementId"
-		const updates: Array<EntityUpdate> = [
-			createTestEntity(EntityUpdateTypeRef, {
-				application: GroupKeyUpdateTypeRef.app,
-				typeId: GroupKeyUpdateTypeRef.typeId.toString(),
+		const updates: Array<EntityUpdateData> = [
+			{
+				typeRef: GroupKeyUpdateTypeRef,
 				instanceListId,
 				instanceId,
 				operation: OperationType.CREATE,
-			}),
+			},
 		]
 
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
@@ -127,31 +126,33 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	})
 
 	o.spec("onLeaderStatusChanged", function () {
-		o("If we are not the leader client, delete the passphrase key", function () {
-			env.mode = "Desktop"
+		o("If we are not the leader client, delete the passphrase key", async function () {
 			const leaderStatus = createTestEntity(WebsocketLeaderStatusTypeRef, { leaderStatus: false })
-
-			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+			await withOverriddenEnv({ mode: Mode.Desktop }, () => {
+				eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+			})
 
 			verify(keyRotationFacadeMock.reset())
 			verify(keyRotationFacadeMock.processPendingKeyRotationsAndUpdates(matchers.anything()), { times: 0 })
 		})
 
-		o("If we are the leader client of an internal user, execute key rotations", function () {
-			env.mode = "Desktop"
+		o("If we are the leader client of an internal user, execute key rotations", async function () {
 			const leaderStatus = createTestEntity(WebsocketLeaderStatusTypeRef, { leaderStatus: true })
 
-			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+			await withOverriddenEnv({ mode: Mode.Desktop }, () => {
+				eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+			})
 
 			verify(keyRotationFacadeMock.processPendingKeyRotationsAndUpdates(user))
 		})
 
-		o("If we are the leader client of an external user, delete the passphrase key", function () {
-			env.mode = "Desktop"
+		o("If we are the leader client of an external user, delete the passphrase key", async function () {
 			const leaderStatus = createTestEntity(WebsocketLeaderStatusTypeRef, { leaderStatus: true })
 			user.accountType = AccountType.EXTERNAL
 
-			eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+			await withOverriddenEnv({ mode: Mode.Desktop }, () => {
+				eventBusEventCoordinator.onLeaderStatusChanged(leaderStatus)
+			})
 
 			verify(keyRotationFacadeMock.reset())
 			verify(keyRotationFacadeMock.processPendingKeyRotationsAndUpdates(matchers.anything()), { times: 0 })
