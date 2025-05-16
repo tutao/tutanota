@@ -189,19 +189,14 @@ export class PriceAndConfigProvider {
 		const subscription = data.type
 
 		if (isIOSApp()) {
-			return this.getAppStorePaymentsSubscriptionPrice(
-				subscription,
-				paymentInterval,
-				type,
-				data.planPrices.getRawPricingData().hasGlobalFirstYearDiscount,
-			)
+			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval)
 		} else {
 			const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
 			return { displayPrice: formatPrice(price, true), rawPrice: price.toString() }
 		}
 	}
 
-	private getAppStorePaymentsSubscriptionPrice(subscription: PlanType, paymentInterval: PaymentInterval, type: UpgradePriceType, hasGlobalCampaign: boolean) {
+	private getAppStorePaymentsSubscriptionPrice(subscription: PlanType, paymentInterval: PaymentInterval) {
 		const planName = PlanTypeToName[subscription]
 		const applePrices = this.getMobilePrices().get(planName.toLowerCase())
 
@@ -213,16 +208,6 @@ export class PriceAndConfigProvider {
 			case PaymentInterval.Monthly:
 				return { displayPrice: applePrices.displayMonthlyPerMonth, rawPrice: applePrices.rawMonthlyPerMonth }
 			case PaymentInterval.Yearly: {
-				if (hasGlobalCampaign && subscription === PlanType.Legend && type === UpgradePriceType.PlanActualPrice) {
-					const revolutionaryPlanPrice = this.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())
-
-					if (!revolutionaryPlanPrice) {
-						throw new Error("no such iOS plan for Revolutionary.")
-					}
-
-					return { displayPrice: revolutionaryPlanPrice.displayYearlyPerYear, rawPrice: revolutionaryPlanPrice.rawYearlyPerYear }
-				}
-
 				return { displayPrice: applePrices.displayYearlyPerYear, rawPrice: applePrices.rawYearlyPerYear }
 			}
 		}
