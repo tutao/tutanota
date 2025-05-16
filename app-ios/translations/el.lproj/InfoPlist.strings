@@ -15,3 +15,7 @@ TutaoUnlockCredentialsAction = "Ξεκλείδωμα πιστοποιητικώ�
 TutaoPushNewMail = "Παραλήφθηκε νέο email.";
 TutaoDeleteAction = "Διαγραφή";
 TutaoMarkReadAction = "Σήμανση ως αναγνωσμένου";
+TutaoWidgetSendLogsAction = "Αποστολή αρχείων καταγραφής";
+TutaoAccountLabel = "Χρήστης";
+TutaoDefaultCalendarNameTitle = "Ιδιωτικό";
+TutaoAllDayLabel = "Όλη ημέρα";

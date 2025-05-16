@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-05-06T15:05:31Z",
+	"updated_at": "2025-05-15T14:03:43Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1358,6 +1358,7 @@ export default {
 		"pricing.comparisonSupportBusiness_tooltip": "Recibe soporte por correo electrónico, los días hábiles, en un plazo de 24 horas.",
 		"pricing.comparisonSupportFree_msg": "Sin soporte directo",
 		"pricing.comparisonSupportFree_tooltip_markdown": "<p>Accede a nuestra sección de ayuda inteligente desde tu cliente de Tuta u obtén ayuda en nuestro [foro] de soporte comunitario({redditLink}). No hay soporte por correo.</p>\n",
+		"pricing.comparisonSupportLegend_tooltip": "Respondemos a las solicitudes de asistencia por correo electrónico en un día laborable.",
 		"pricing.comparisonSupportPremium_msg": "Soporte vía correo electrónico",
 		"pricing.comparisonSupportPremium_tooltip_markdown": "<p>Accede a nuestra sección de ayuda inteligente desde tu cliente de Tuta con la opción de enviar un correo directamente a nuestro equipo de soporte. Respondemos en el plazo de un día hábil.</p>\n",
 		"pricing.comparisonSupportPro_msg": "Soporte prioritario por correo electrónico",
@@ -1392,6 +1393,7 @@ export default {
 		"pricing.gdpr_label": "Cumple con el RGPD",
 		"pricing.gdpr_tooltip": "Todos los datos se almacenan de conformidad con las estrictas regulaciones europeas de protección de datos de acuerdo con el RGPD.",
 		"pricing.getStarted_label": "Empezar",
+		"pricing.globalFirstYearDiscountRibbon_label": "Ahorra {amount}",
 		"pricing.includesTaxes_msg": "Impuestos incluidos.",
 		"pricing.legendAsterisk_msg": "El descuento Legend solo se aplica durante el primer año. El siguiente precio será de 96 € al año.",
 		"pricing.login_title": "Inicia sesión en tu propio sitio web",
@@ -1479,6 +1481,7 @@ export default {
 		"ratingSuggestionPage_title": "¿En qué piensas?",
 		"ratingSuggestion_label": "Tengo una sugerencia",
 		"ratingSuggestion_placeholder": "¿Tienes alguna idea o comentario? Escríbelo...",
+		"ratingSupportContactedSnackbar_msg": "Gracias por informarnos de tu problema. El equipo de asistencia se pondrá en contacto contigo por correo electrónico.",
 		"ratingSupportTuta_msg": "David derrotó a Goliat. Tú puedes ayudarnos a hacer lo mismo.",
 		"ratingSupportTuta_title": "Ayúdanos a difundir la privacidad y a luchar contra las grandes tecnológicas",
 		"ratingUpgradeFromRevo_label": "Conviértete en Legend",

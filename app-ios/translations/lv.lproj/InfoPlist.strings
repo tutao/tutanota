@@ -12,3 +12,5 @@ TutaoSettingsAction = "Iestatījumi";
 TutaoPushNewMail = "Ienācies jauns e-pasts";
 TutaoDeleteAction = "Dzēst";
 TutaoMarkReadAction = "Atzīmēt kā izlasītu";
+TutaoAccountLabel = "Lietotājs";
+TutaoDefaultCalendarNameTitle = "Privāts";

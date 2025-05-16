@@ -15,3 +15,7 @@ TutaoUnlockCredentialsAction = "Откључај акредитиве";
 TutaoPushNewMail = "Примљена је нова е-пошта.";
 TutaoDeleteAction = "Обриши";
 TutaoMarkReadAction = "Означи прочитано";
+TutaoWidgetSendLogsAction = "Пошаљите дневнике";
+TutaoAccountLabel = "Корисник";
+TutaoDefaultCalendarNameTitle = "Приватно";
+TutaoAllDayLabel = "Цео дан";

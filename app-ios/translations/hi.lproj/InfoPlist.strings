@@ -16,3 +16,7 @@ TutaoUnlockCredentialsAction = "क्रेडेंशियल अनलॉ�
 TutaoPushNewMail = "नया संदेश प्राप्त हुआ ! ";
 TutaoDeleteAction = "मिटाएँ";
 TutaoMarkReadAction = "पढ़ा हुआ चिह्नित करें";
+TutaoAccountLabel = "उपयोगकर्ता";
+TutaoDefaultCalendarNameTitle = "प्राइवेट
+";
+TutaoAllDayLabel = "पूरे दिन";
