@@ -16,7 +16,7 @@ import {
 	BlobWriteDataTypeRef,
 	InstanceIdTypeRef,
 } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { FileTypeRef, MailBoxTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
@@ -45,11 +45,7 @@ o.spec("BlobAccessTokenFacade", function () {
 		}
 		serviceMock = object<ServiceExecutor>()
 		authDataProvider = object<AuthDataProvider>()
-		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, authDataProvider, dateProvider)
-	})
-
-	o.afterEach(function () {
-		env.mode = Mode.Browser
+		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, authDataProvider, dateProvider, clientInitializedTypeModelResolver())
 	})
 
 	o.spec("evict Tokens", function () {

@@ -29,6 +29,7 @@ import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
+import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
@@ -69,6 +70,7 @@ o.spec("SearchFacade test", () => {
 			[],
 			browserData,
 			entityClient,
+			ClientModelInfo.getNewInstanceForTestsOnly(),
 		)
 	}
 

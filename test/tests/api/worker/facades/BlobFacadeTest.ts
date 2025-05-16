@@ -8,7 +8,7 @@ import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/
 import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { instance, matchers, object, verify, when } from "testdouble"
-import { HttpMethod, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { aes256RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
 import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Mode } from "../../../../../src/common/api/common/Env.js"
@@ -25,7 +25,7 @@ import {
 } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { elementIdPart, getElementId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { typeModels as storageTypeModels } from "../../../../../src/common/api/entities/storage/TypeModels"
@@ -80,7 +80,6 @@ o.spec("BlobFacade test", function () {
 	})
 
 	o.afterEach(function () {
-		env.mode = Mode.Browser
 		env.networkDebugging = previousNetworkDebugging
 	})
 
@@ -88,7 +87,8 @@ o.spec("BlobFacade test", function () {
 		o("parseBlobPostOutResponse should remove network debugging info", async function () {
 			env.networkDebugging = true
 
-			const realInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+			const typeModelResolver = clientInitializedTypeModelResolver()
+			const realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 			const newBlobFacade = new BlobFacade(
 				restClientMock,
 				suspensionHandlerMock,
@@ -165,9 +165,10 @@ o.spec("BlobFacade test", function () {
 				responseBody: stringToUtf8Uint8Array(JSON.stringify(blobServiceResponse)),
 			})
 
-			env.mode = Mode.Desktop
 			env.versionNumber = "274.250306.0"
-			const referenceTokens = await blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey)
+			const referenceTokens = await withOverriddenEnv({ mode: Mode.Desktop }, () =>
+				blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey),
+			)
 
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
 			verify(

@@ -135,6 +135,7 @@ import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
+import { ClientModelInfo, ClientTypeModelResolver, ServerModelInfo, TypeModelResolver } from "../common/api/common/EntityFunctions"
 
 assertMainOrNode()
 
@@ -202,6 +203,10 @@ class MailLocator {
 	private mailImporter: MailImporter | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
+
+	readonly typeModelResolver: lazy<ClientTypeModelResolver> = lazyMemoized(() => {
+		return ClientModelInfo.getInstance()
+	})
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -763,7 +768,7 @@ class MailLocator {
 		this.progressTracker = new ProgressTracker()
 		this.syncTracker = new SyncTracker()
 		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
-		this.entityClient = new EntityClient(restInterface)
+		this.entityClient = new EntityClient(restInterface, this.typeModelResolver())
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -805,6 +810,7 @@ class MailLocator {
 			this.logins,
 			this.eventController,
 			() => this.usageTestController,
+			this.typeModelResolver(),
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.Const = Const

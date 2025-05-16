@@ -20,15 +20,15 @@ import {
 } from "./utils/EntityUtils"
 import { Type, ValueType } from "./EntityConstants.js"
 import { downcast, groupByAndMap, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
-import { resolveClientTypeReference } from "./EntityFunctions"
 import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
 import { NotAuthorizedError, NotFoundError } from "./error/RestError.js"
 import { ProgrammingError } from "./error/ProgrammingError"
+import { ClientTypeModelResolver } from "./EntityFunctions"
 
 export class EntityClient {
 	_target: EntityRestInterface
 
-	constructor(target: EntityRestInterface) {
+	constructor(target: EntityRestInterface, private readonly typeModelResolver: ClientTypeModelResolver) {
 		this._target = target
 	}
 
@@ -40,7 +40,7 @@ export class EntityClient {
 	}
 
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		if (!start) {
 			const _idValueId = Object.values(typeModel.values).find((valueType) => valueType.name === "_id")?.id
@@ -71,7 +71,7 @@ export class EntityClient {
 		elements: T[]
 		loadedCompletely: boolean
 	}> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
 		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, typeModel))
@@ -136,7 +136,7 @@ export class EntityClient {
 	}
 
 	async loadRoot<T extends ElementEntity>(typeRef: TypeRef<T>, groupId: Id, opts: EntityRestClientLoadOptions = {}): Promise<T> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const rootId = [groupId, typeModel.rootId] as const
 		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId, opts)
 		return this.load<T>(typeRef, downcast(root.reference), opts)

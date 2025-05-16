@@ -47,8 +47,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 	private _inner: SomeStorage | null = null
 
 	constructor(
-		private readonly modelMapper: ModelMapper,
 		private readonly sendError: (error: Error) => Promise<void>,
+		private readonly ephemeralStorageProvider: () => Promise<EphemeralCacheStorage>,
 		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
 	) {}
 
@@ -118,7 +118,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 			}
 		}
 		// both "else" case and fallback for unavailable storage and error cases
-		const storage = new EphemeralCacheStorage(this.modelMapper)
+		const storage = await this.ephemeralStorageProvider()
 		storage.init(args)
 		return {
 			storage,

@@ -32,6 +32,7 @@ import { UserController } from "../../../src/common/api/main/UserController.js"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { createTestEntity } from "../TestUtils.js"
+import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 
 const { anything } = matchers
 
@@ -93,6 +94,7 @@ o.spec("UsageTestModel", function () {
 
 		ephemeralStorage = new EphemeralUsageTestStorage()
 		persistentStorage = new EphemeralUsageTestStorage()
+		let clientModelResolver = ClientModelInfo.getNewInstanceForTestsOnly()
 		usageTestModel = new UsageTestModel(
 			{
 				[StorageBehavior.Persist]: persistentStorage,
@@ -104,6 +106,7 @@ o.spec("UsageTestModel", function () {
 			loginControllerMock,
 			eventControllerMock,
 			() => usageTestController,
+			clientModelResolver,
 		)
 
 		replace(usageTestModel, "customerProperties", createTestEntity(CustomerPropertiesTypeRef, { usageDataOptedOut: false }))

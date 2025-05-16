@@ -25,7 +25,7 @@ import {
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
-import { HttpMethod, resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions"
+import { HttpMethod, TypeModelResolver } from "../../common/EntityFunctions"
 import type { BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketPermissionTypeRef,
@@ -37,8 +37,6 @@ import {
 	PushIdentifierTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import {
-	Contact,
-	ContactTypeRef,
 	createEncryptTutanotaPropertiesData,
 	createInternalRecipientKeyData,
 	createSymEncInternalRecipientKeyData,
@@ -50,9 +48,8 @@ import {
 	SymEncInternalRecipientKeyData,
 	TutanotaPropertiesTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
-import { LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
+import { NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
-import { birthdayToIsoDate, oldBirthdayToBirthday } from "../../common/utils/BirthdayUtils"
 import type { ClientModelEncryptedParsedInstance, ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
@@ -87,9 +84,9 @@ import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacad
 import { PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion, Nullable } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
-import { typeRefToRestPath } from "../rest/EntityRestClient"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
+import { typeModelToRestPath } from "../rest/EntityRestClient"
 
 assertWorkerOrNode()
 
@@ -112,6 +109,7 @@ export class CryptoFacade {
 		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 		private readonly publicKeyProvider: PublicKeyProvider,
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
+		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
@@ -133,7 +131,7 @@ export class CryptoFacade {
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
 	async resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>> {
-		const clientTypeModel = await resolveClientTypeReference(instance._type)
+		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
 		if (!clientTypeModel.encrypted) {
 			return null
 		}
@@ -186,8 +184,13 @@ export class CryptoFacade {
 		}
 	}
 
+	/**
+	 * Resolves session keys using the bucket key on the instance.
+	 * @param instance with a set bucketKey
+	 * @throws {Error} if `instance.bucketKey == null`
+	 */
 	public async resolveWithBucketKey(instance: Entity): Promise<ResolvedSessionKeys> {
-		const typeModel = await resolveClientTypeReference(instance._type)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
 		const bucketKey = assertNotNull(instance.bucketKey)
 
 		let decryptedBucketKey: AesKey
@@ -468,7 +471,7 @@ export class CryptoFacade {
 		if (decryptedInstance.isAdapter) {
 			const entityAdapter = downcast<EntityAdapter>(instance)
 			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
-				await resolveServerTypeReference(instance._type),
+				await this.typeModelResolver.resolveServerTypeReference(instance._type),
 				entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 				resolvedSessionKeyForInstance,
 			)
@@ -774,7 +777,8 @@ export class CryptoFacade {
 		this.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
 
 		const id = instance._id
-		const path = (await typeRefToRestPath(instance._type)) + "/" + (id instanceof Array ? id.join("/") : id)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
+		const path = typeModelToRestPath(typeModel) + "/" + (id instanceof Array ? id.join("/") : id)
 		const headers = this.userFacade.createAuthHeaders()
 		headers.v = String(instance.typeModel.version)
 

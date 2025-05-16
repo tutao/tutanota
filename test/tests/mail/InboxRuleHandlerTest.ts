@@ -64,7 +64,6 @@ o.spec("InboxRuleHandlerTest", function () {
 	})
 	o.spec("Test _findMatchingRule", function () {
 		const restClient: EntityRestClientMock = new EntityRestClientMock()
-		const entityClient = new EntityClient(restClient)
 		o("check FROM_EQUALS is applied to from", async function () {
 			const rules: InboxRule[] = [_createRule("sender@tuta.com", InboxRuleType.FROM_EQUALS, ["ruleTarget", "ruleTarget"])]
 

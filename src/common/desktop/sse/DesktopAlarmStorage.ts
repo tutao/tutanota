@@ -13,7 +13,7 @@ import { hasError } from "../../api/common/utils/ErrorUtils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
 import { AttributeModel } from "../../api/common/AttributeModel"
-import { resolveClientTypeReference } from "../../api/common/EntityFunctions"
+import { ClientTypeModelResolver, TypeModelResolver } from "../../api/common/EntityFunctions"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -27,6 +27,7 @@ export class DesktopAlarmStorage {
 		private readonly cryptoFacade: DesktopNativeCryptoFacade,
 		private readonly keyStoreFacade: DesktopKeyStoreFacade,
 		private readonly alarmStorageInstancePipeline: InstancePipeline,
+		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		this.sessionKeys = {}
 	}
@@ -183,13 +184,12 @@ export class DesktopAlarmStorage {
 			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		const alarmNotificationTypeModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
 		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
 		return AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedAlarmNotification)
 	}
 
 	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<AlarmNotification> {
-		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an as unknown as ServerModelUntypedInstance)
+		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an as unknown as ServerModelUntypedInstance, this.typeModelResolver)
 		const skResult = await this.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
 		if (skResult) {
 			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
