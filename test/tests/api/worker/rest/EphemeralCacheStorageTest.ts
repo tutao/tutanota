@@ -1,25 +1,24 @@
 import o from "@tutao/otest"
 import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage.js"
 import { BodyTypeRef, MailDetailsBlobTypeRef, MailDetailsTypeRef, RecipientsTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import {
-	globalClientModelInfo,
-	globalServerModelInfo,
-	resolveClientTypeReference,
-	resolveServerTypeReference,
-} from "../../../../../src/common/api/common/EntityFunctions"
 import { ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("EphemeralCacheStorageTest", function () {
 	const userId = "userId"
 	const archiveId = "archiveId"
 	const blobElementId = "blobElementId1"
-	const modelMapper = new ModelMapper(resolveClientTypeReference, resolveServerTypeReference)
+	let typeModelResolver: TypeModelResolver
+	let modelMapper: ModelMapper
+	let storage: EphemeralCacheStorage
 
-	clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
-
-	const storage = new EphemeralCacheStorage(modelMapper)
+	o.beforeEach(() => {
+		typeModelResolver = clientInitializedTypeModelResolver()
+		modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
+		storage = new EphemeralCacheStorage(modelMapper, typeModelResolver)
+	})
 
 	o.spec("BlobElementType", function () {
 		o("cache roundtrip: put, get, delete", async function () {

@@ -154,7 +154,7 @@ import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
-import { isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -893,7 +893,7 @@ export class MailFacade {
 			.catch(ofClass(NotFoundError, () => null))
 	}
 
-	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
+	entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
 		return promiseMap(data, (update) => {
 			if (
 				this.deferredDraftUpdate != null &&

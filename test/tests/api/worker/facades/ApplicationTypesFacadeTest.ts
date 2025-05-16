@@ -3,26 +3,25 @@ import { ApplicationTypesFacade, ApplicationTypesGetOut } from "../../../../../s
 import { matchers, object, verify, when } from "testdouble"
 import { ApplicationTypesService } from "../../../../../src/common/api/entities/base/Services"
 import { AssociationType, Cardinality, Type } from "../../../../../src/common/api/common/EntityConstants"
-import { ClientModelInfo, HttpMethod, MediaType, ServerModelInfo, ServerModels } from "../../../../../src/common/api/common/EntityFunctions"
+import { HttpMethod, MediaType, ServerModelInfo, ServerModels } from "../../../../../src/common/api/common/EntityFunctions"
 import { Mode } from "../../../../../src/common/api/common/Env"
 import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
-import { ModelAssociation, ServerTypeModel, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
+import { ModelAssociation, ServerTypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { downcast } from "@tutao/tutanota-utils"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
 import { getServiceRestPath } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
 import { ServiceDefinition } from "../../../../../src/common/api/common/ServiceRequest"
 import { compressString, decompressString } from "../../../../../src/common/api/worker/crypto/ModelMapper"
+import { withOverriddenEnv } from "../../../TestUtils"
 
 const { anything } = matchers
 
 o.spec("ApplicationTypesFacadeTest", function () {
-	const initialMode = env.mode
 	let restClient: RestClient
 	let fileFacade: FileFacade
 	let applicationTypesFacade: ApplicationTypesFacade
 	let serverModelInfo: ServerModelInfo
-	let clientModelInfo: ClientModelInfo
 	let mockResponse = compressString(
 		JSON.stringify({
 			applicationTypesHash: "currentApplicationHash",
@@ -74,12 +73,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		restClient = object()
 		fileFacade = object()
 		serverModelInfo = object()
-		clientModelInfo = object()
 		applicationTypesFacade = await ApplicationTypesFacade.getInitialized(restClient, fileFacade, serverModelInfo)
-	})
-
-	o.afterEach(function () {
-		env.mode = initialMode
 	})
 
 	o("getServerApplicationTypesJson does only one service request for requests made in quick succession", async function () {
@@ -127,8 +121,6 @@ o.spec("ApplicationTypesFacadeTest", function () {
 	}
 
 	o("server model should be assigned to memory first and write to file later", async () => {
-		env.mode = "Desktop"
-
 		when(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 		).thenResolve(mockResponse)
@@ -138,13 +130,11 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		when(fileFacade.writeToAppDir(anything(), anything())).thenDo(async () => callOrder.push("write"))
 		when(serverModelInfo.init(applicationTypesGetOut.applicationTypesHash, anything())).thenDo(() => callOrder.push("assign"))
 
-		await applicationTypesFacade.getServerApplicationTypesJson()
+		await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson())
 		o(callOrder).deepEquals(["assign", "write"])
 	})
 
 	o("should attempt to write file but not propagate write error", async () => {
-		env.mode = "Desktop"
-
 		when(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 		).thenResolve(mockResponse)
@@ -153,16 +143,15 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		when(serverModelInfo.init(applicationTypesGetOut.applicationTypesHash, anything())).thenReturn()
 		when(fileFacade.writeToAppDir(anything(), anything())).thenReject(Error("writing failed simulation failed"))
 
-		await applicationTypesFacade.getServerApplicationTypesJson()
+		await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson())
+
 		// verify that server model is updated even if writing to disk fails
 		verify(serverModelInfo.init(anything(), anything()))
 	})
 
 	o("should attempt to read but not fail on read error", async () => {
-		env.mode = "Desktop"
-
 		when(fileFacade.readDataFile(anything())).thenReject(Error("reading failed simulation failed"))
-		await ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo)
+		await withOverriddenEnv({ mode: Mode.Desktop }, () => ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo))
 
 		// verify nothing changed in ServerModelInfo
 		// did not throw
@@ -172,23 +161,19 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		const shouldPersist = ["Desktop", "App"].includes(targetEnv)
 
 		o(`Server model for should persist for native platforms: ${targetEnv}`, async () => {
-			env.mode = targetEnv
-
 			when(
 				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 			).thenResolve(mockResponse)
 			when(serverModelInfo.init(anything(), anything())).thenResolve()
 			when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve(downcast({})))
 
-			await applicationTypesFacade.getServerApplicationTypesJson()
+			await withOverriddenEnv({ mode: targetEnv }, () => applicationTypesFacade.getServerApplicationTypesJson())
 
 			verify(fileFacade.writeToAppDir(anything(), anything()), { times: shouldPersist ? 1 : 0 })
 		})
 
 		o(`Server model should be initialised from file for native platforms: ${targetEnv}`, async () => {
-			env.mode = targetEnv
-
-			await ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo)
+			await withOverriddenEnv({ mode: targetEnv }, () => ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo))
 			verify(fileFacade.readFromAppDir(anything()), { times: shouldPersist ? 1 : 0 })
 		})
 	}

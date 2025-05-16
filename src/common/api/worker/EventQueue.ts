@@ -1,12 +1,12 @@
 import { OperationType } from "../common/TutanotaConstants.js"
-import { findAllAndRemove } from "@tutao/tutanota-utils"
+import { findAllAndRemove, isSameTypeRef } from "@tutao/tutanota-utils"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
-import type { EntityUpdate } from "../entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
+import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
 
 export type QueuedBatch = {
-	events: EntityUpdate[]
+	events: EntityUpdateData[]
 	groupId: Id
 	batchId: Id
 }
@@ -24,13 +24,12 @@ type QueueAction = (nextElement: QueuedBatch) => Promise<void>
  * @param batch entity updates of the batch.
  * @private visibleForTests
  */
-export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entityUpdate: EntityUpdate): EntityModificationType {
+export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdateData>, entityUpdate: EntityUpdateData): EntityModificationType {
 	for (const batchEvent of batch) {
 		if (
 			entityUpdate.instanceId === batchEvent.instanceId &&
 			entityUpdate.instanceListId === batchEvent.instanceListId &&
-			entityUpdate.application === batchEvent.application &&
-			entityUpdate.typeId === batchEvent.typeId
+			isSameTypeRef(entityUpdate.typeRef, batchEvent.typeRef)
 		) {
 			switch (batchEvent.operation) {
 				case OperationType.CREATE:
@@ -49,7 +48,7 @@ export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entity
 	}
 
 	throw new ProgrammingError(
-		`Batch does not have events for ${entityUpdate.application}/${entityUpdate.typeId} ${lastOperationKey(entityUpdate)}, batchId: ${batchId}`,
+		`Batch does not have events for ${entityUpdate.typeRef.app}/${entityUpdate.typeRef.typeId} ${lastOperationKey(entityUpdate)}, batchId: ${batchId}`,
 	)
 }
 
@@ -58,8 +57,8 @@ export function batchMod(batchId: Id, batch: ReadonlyArray<EntityUpdate>, entity
 // Adding brand for type safety.
 type LastOperationKey = string & { __brand: "lastOpeKey" }
 
-function lastOperationKey(update: EntityUpdate): LastOperationKey {
-	const typeIdentifier = `${update.application}/${update.typeId}`
+function lastOperationKey(update: EntityUpdateData): LastOperationKey {
+	const typeIdentifier = `${update.typeRef.app}/${update.typeRef.typeId}`
 	if (update.instanceListId) {
 		return `${typeIdentifier}/${update.instanceListId}/${update.instanceId}` as LastOperationKey
 	} else {
@@ -103,7 +102,7 @@ export class EventQueue {
 	/**
 	 * @return whether the batch was added (not optimized away)
 	 */
-	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): boolean {
+	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>): boolean {
 		const newBatch: QueuedBatch = {
 			events: [],
 			groupId,
@@ -129,7 +128,7 @@ export class EventQueue {
 		return newBatch.events.length > 0
 	}
 
-	private optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdate>): void {
+	private optimizingAddEvents(newBatch: QueuedBatch, batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>): void {
 		for (const newEvent of newEvents) {
 			const lastOpKey = lastOperationKey(newEvent)
 			const lastBatchForEntity = this.lastOperationForEntity.get(lastOpKey)
@@ -157,7 +156,7 @@ export class EventQueue {
 
 						case EntityModificationType.DELETE:
 							throw new ProgrammingError(
-								`UPDATE not allowed after DELETE. Last batch: ${lastBatchForEntity.batchId}, new batch: ${batchId}, ${newEvent.typeId} ${lastOpKey}`,
+								`UPDATE not allowed after DELETE. Last batch: ${lastBatchForEntity.batchId}, new batch: ${batchId}, ${newEvent.typeRef.typeId} ${lastOpKey}`,
 							)
 					}
 				} else if (newEntityModification === EntityModificationType.DELETE) {

@@ -36,14 +36,14 @@ import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils
 import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/common/api/common/error/RestError"
 import { SessionType } from "../../../../../src/common/api/common/SessionType"
-import { HttpMethod, resolveClientTypeReference, resolveServerTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
+import { HttpMethod, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { ConnectMode, EventBusClient } from "../../../../../src/common/api/worker/EventBusClient"
 import { TutanotaPropertiesTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../../../src/common/api/worker/facades/EntropyFacade.js"
 import { DatabaseKeyFactory } from "../../../../../src/common/misc/credentials/DatabaseKeyFactory.js"
 import { Argon2idFacade } from "../../../../../src/common/api/worker/facades/Argon2idFacade.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
 import { encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
@@ -120,6 +120,7 @@ o.spec("LoginFacadeTest", function () {
 	let databaseKeyFactoryMock: DatabaseKeyFactory
 	let argon2idFacade: Argon2idFacade
 	let cacheManagmentFacadeMock: CacheManagementFacade
+	let typeModelResolver: TypeModelResolver
 
 	const timeRangeDays = 42
 	const login = "born.slippy@tuta.io"
@@ -135,7 +136,8 @@ o.spec("LoginFacadeTest", function () {
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
 		loginListener = object<LoginListener>()
-		instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		cryptoFacadeMock = object<CryptoFacade>()
 		usingOfflineStorage = false
 		cacheStorageInitializerMock = object()
@@ -181,6 +183,7 @@ o.spec("LoginFacadeTest", function () {
 			entityClientMock,
 			async (error: Error) => {},
 			async () => cacheManagmentFacadeMock,
+			typeModelResolver,
 		)
 
 		eventBusClientMock = instance(EventBusClient)

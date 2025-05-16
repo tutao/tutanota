@@ -40,22 +40,17 @@ import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/off
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
 import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import {
-	globalClientModelInfo,
-	globalServerModelInfo,
-	resolveClientTypeReference,
-	resolveServerTypeReference,
-} from "../../../../../src/common/api/common/EntityFunctions.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
-import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 import Id from "../../../../../src/mail-app/translations/id.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { Entity, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -128,6 +123,7 @@ o.spec("OfflineStorageDb", function () {
 	let migratorMock: OfflineStorageMigrator
 	let offlineStorageCleanerMock: OfflineStorageCleaner
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
+	let typeModelResolver: TypeModelResolver
 	let modelMapper: ModelMapper
 
 	o.beforeEach(async function () {
@@ -138,10 +134,18 @@ o.spec("OfflineStorageDb", function () {
 		migratorMock = instance(OfflineStorageMigrator)
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 		offlineStorageCleanerMock = new MailOfflineCleaner()
-		modelMapper = new ModelMapper(resolveClientTypeReference, resolveServerTypeReference)
-		clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 		when(dateProviderMock.now()).thenReturn(now.getTime())
-		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, offlineStorageCleanerMock, modelMapper)
+		storage = new OfflineStorage(
+			dbFacade,
+			interWindowEventSenderMock,
+			dateProviderMock,
+			migratorMock,
+			offlineStorageCleanerMock,
+			modelMapper,
+			typeModelResolver,
+		)
 	})
 
 	o.afterEach(async function () {
@@ -154,7 +158,7 @@ o.spec("OfflineStorageDb", function () {
 
 	o.spec("Unit test", function () {
 		async function getAllIdsForType(typeRef: TypeRef<unknown>): Promise<Id[]> {
-			const typeModel = await resolveClientTypeReference(typeRef)
+			const typeModel = await typeModelResolver.resolveClientTypeReference(typeRef)
 			let preparedQuery
 			switch (typeModel.type) {
 				case TypeId.Element.valueOf():
@@ -623,7 +627,7 @@ o.spec("OfflineStorageDb", function () {
 				await storage.clearExcludedData(timeRangeDays, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
-				const mailSetEntryTypeModel = await resolveClientTypeReference(MailSetEntryTypeRef)
+				const mailSetEntryTypeModel = await typeModelResolver.resolveClientTypeReference(MailSetEntryTypeRef)
 				o(mapNullable(newRange, untagSqlObject)).deepEquals({
 					type: mailSetEntryType,
 					listId: entriesListId,
@@ -655,7 +659,7 @@ o.spec("OfflineStorageDb", function () {
 				await storage.clearExcludedData(timeRangeDays, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
-				const mailSetEntryTypeModel = await resolveClientTypeReference(MailSetEntryTypeRef)
+				const mailSetEntryTypeModel = await typeModelResolver.resolveClientTypeReference(MailSetEntryTypeRef)
 				o(mapNullable(newRange, untagSqlObject)).deepEquals({
 					type: mailSetEntryType,
 					listId: entriesListId,
@@ -731,7 +735,7 @@ o.spec("OfflineStorageDb", function () {
 				await storage.clearExcludedData(timeRangeDays, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
-				const mailSetEntryTypeModel = await resolveClientTypeReference(MailSetEntryTypeRef)
+				const mailSetEntryTypeModel = await typeModelResolver.resolveClientTypeReference(MailSetEntryTypeRef)
 				o(mapNullable(newRange, untagSqlObject)).deepEquals({
 					type: mailSetEntryType,
 					listId: listIdPart(mailSetEntryId),
@@ -815,7 +819,7 @@ o.spec("OfflineStorageDb", function () {
 				await storage.clearExcludedData(timeRangeDays, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
-				const mailSetEntryTypeModel = await resolveClientTypeReference(MailSetEntryTypeRef)
+				const mailSetEntryTypeModel = await typeModelResolver.resolveClientTypeReference(MailSetEntryTypeRef)
 				o(mapNullable(newRange, untagSqlObject)).deepEquals({
 					type: mailSetEntryType,
 					listId: listIdPart(mailSetEntryId),
@@ -1154,7 +1158,7 @@ o.spec("OfflineStorageDb", function () {
 
 				// Here we clear the excluded data
 				await storage.clearExcludedData(timeRangeDays, userId)
-				const mailSetEntryTypeModel = await resolveClientTypeReference(MailSetEntryTypeRef)
+				const mailSetEntryTypeModel = await typeModelResolver.resolveClientTypeReference(MailSetEntryTypeRef)
 
 				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([inboxFolderId, spamFolderId, trashFolderId])
 				const allMailSetEntryIds = await getAllIdsForType(MailSetEntryTypeRef)

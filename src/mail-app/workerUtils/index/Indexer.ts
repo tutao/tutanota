@@ -81,7 +81,8 @@ import {
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
-import { isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, entityUpdateToUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { ClientTypeModelResolver, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
 
 export type InitParams = {
 	user: User
@@ -149,6 +150,7 @@ export class Indexer {
 		browserData: BrowserData,
 		defaultEntityRestCache: DefaultEntityRestCache,
 		makeMailIndexer: (core: IndexerCore, db: Db) => MailIndexer,
+		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		let deferred = defer<void>()
 		this._dbInitializedDeferredObject = deferred
@@ -161,8 +163,8 @@ export class Indexer {
 		// correctly initialized during init()
 		this._core = new IndexerCore(this.db, new EventQueue("indexer_core", true, (batch) => this._processEntityEvents(batch)), browserData)
 		this._entityRestClient = entityRestClient
-		this._entity = new EntityClient(defaultEntityRestCache)
-		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db))
+		this._entity = new EntityClient(defaultEntityRestCache, typeModelResolver)
+		this._contact = new ContactIndexer(this._core, this.db, this._entity, new SuggestionFacade(ContactTypeRef, this.db, typeModelResolver))
 		this._mail = makeMailIndexer(this._core, this.db)
 		this._indexedGroupIds = []
 		this._initiallyLoadedBatchIdsPerGroup = new Map()
@@ -303,8 +305,8 @@ export class Indexer {
 		return this._mail.cancelMailIndexing()
 	}
 
-	addBatchesToQueue(batches: QueuedBatch[]) {
-		this._realtimeEventQueue.addBatches(batches)
+	addBatchesToQueue(events: readonly EntityUpdateData[], batchId: Id, groupId: Id) {
+		this._realtimeEventQueue.addBatches([{ batchId, groupId, events: events.slice() }])
 	}
 
 	startProcessing() {
@@ -546,12 +548,12 @@ export class Indexer {
 
 					for (let batch of eventBatchesOnServer) {
 						const batchId = getElementId(batch)
-
+						const updatesArray = await promiseMap(batch.events, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
 						if (groupIdToEventBatch.eventBatchIds.indexOf(batchId) === -1 && firstBiggerThanSecond(batchId, startId)) {
 							batchesToQueue.push({
 								groupId: groupIdToEventBatch.groupId,
 								batchId,
-								events: batch.events,
+								events: updatesArray,
 							})
 							const lastBatch = lastLoadedBatchIdInGroup.get(groupIdToEventBatch.groupId)
 
@@ -652,7 +654,7 @@ export class Indexer {
 		})
 	}
 
-	_processEntityEvents(batch: QueuedBatch): Promise<any> {
+	async _processEntityEvents(batch: QueuedBatch): Promise<any> {
 		const { events, groupId, batchId } = batch
 		return this.db.initialized
 			.then(async () => {
@@ -673,7 +675,7 @@ export class Indexer {
 				}
 
 				markStart("processEntityEvents")
-				const groupedEvents: Map<TypeRef<any>, EntityUpdate[]> = new Map() // define map first because Webstorm has problems with type annotations
+				const groupedEvents: Map<TypeRef<any>, EntityUpdateData[]> = new Map() // define map first because Webstorm has problems with type annotations
 
 				events.reduce((all, update) => {
 					if (isUpdateForTypeRef(MailTypeRef, update)) {
@@ -749,7 +751,7 @@ export class Indexer {
 	 * @VisibleForTesting
 	 * @param events
 	 */
-	async _processUserEntityEvents(events: EntityUpdate[]): Promise<void> {
+	async _processUserEntityEvents(events: EntityUpdateData[]): Promise<void> {
 		for (const event of events) {
 			if (!(event.operation === OperationType.UPDATE && isSameId(this._initParams.user._id, event.instanceId))) {
 				continue
