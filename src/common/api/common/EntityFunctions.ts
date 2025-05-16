@@ -19,8 +19,8 @@ import usageModelInfo from "../entities/usage/ModelInfo.js"
 import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants"
-import { isTest } from "./Env"
 import { ApplicationTypesGetOut } from "../worker/facades/ApplicationTypesFacade"
+import { isTest } from "./Env"
 
 export const enum HttpMethod {
 	GET = "GET",
