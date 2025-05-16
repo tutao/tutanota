@@ -206,6 +206,9 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupPaidTest.active = true
 			this.__signupPaidTest.getStage(0).complete()
 		}
+
+		console.log("HAWNIDANWDIOANWDIONAWIO")
+
 		data.type = planType
 		const { planPrices, options } = data
 		try {

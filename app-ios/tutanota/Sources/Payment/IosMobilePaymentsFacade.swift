@@ -35,12 +35,34 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 			var displayMonthlyPerMonth: String?
 			var displayYearlyPerYear: String?
 			var displayYearlyPerMonth: String?
+			var isEligibleForIntroOffer: Bool?
 		}
 		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in
 			[self.formatPlanType(plan, withInterval: 1), self.formatPlanType(plan, withInterval: 12)]
 		}
 		let products: [Product] = try await Product.products(for: plans)
 		var result = [String: TempMobilePlanPrice]()
+		// Get the receipt if it's available.
+		if let appStoreReceiptURL = Bundle.main.appStoreReceiptURL, FileManager.default.fileExists(atPath: appStoreReceiptURL.path) {
+
+			do {
+				let receiptData = try Data(contentsOf: appStoreReceiptURL, options: .alwaysMapped)
+				print(receiptData)
+
+				let receiptString = receiptData.base64EncodedString(options: [])
+			  
+			  ReceiptValidator
+
+			  print(receiptString)
+			  
+			  let jsonEncoder = JSONEncoder()
+			  let jsonData = try jsonEncoder.encode(receiptData)
+			  let json = String(data: jsonData, encoding: String.Encoding.utf8)
+
+			  
+				// Read receiptData.
+			} catch { print("Couldn't read receipt data with error: " + error.localizedDescription) }
+		}
 		for product in products {
 			let productName = String(product.id.split(separator: ".")[1])
 			var plan =
@@ -51,21 +73,23 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 					rawYearlyPerMonth: nil,
 					displayMonthlyPerMonth: nil,
 					displayYearlyPerYear: nil,
-					displayYearlyPerMonth: nil
+					displayYearlyPerMonth: nil,
+					isEligibleForIntroOffer: nil
 				)
 
 			let unit = product.subscription!.subscriptionPeriod.unit
 			let formatStyle = product.priceFormatStyle
 			switch unit {
 			case .year:
-				let priceDivided = product.price / 12
-				let yearlyPerMonthPrice = priceDivided.formatted(formatStyle)
+				let monthlyPrice = product.price / 12
+				let yearlyPerMonthPrice = monthlyPrice.formatted(formatStyle)
 				let yearlyPerYearPrice = product.displayPrice
 				let introductoryPrice = product.subscription?.introductoryOffer?.displayPrice
 				plan.rawYearlyPerYear = String(describing: product.price)
-				plan.rawYearlyPerMonth = String(describing: priceDivided)
+				plan.rawYearlyPerMonth = String(describing: monthlyPrice)
 				plan.displayYearlyPerYear = introductoryPrice ?? yearlyPerYearPrice
 				plan.displayYearlyPerMonth = yearlyPerMonthPrice
+				plan.isEligibleForIntroOffer = await product.subscription!.isEligibleForIntroOffer
 			case .month:
 				plan.rawMonthlyPerMonth = String(describing: product.price)
 				plan.displayMonthlyPerMonth = product.displayPrice
@@ -81,7 +105,8 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				rawYearlyPerMonth: prices.rawYearlyPerMonth!,
 				displayMonthlyPerMonth: prices.displayMonthlyPerMonth!,
 				displayYearlyPerYear: prices.displayYearlyPerYear!,
-				displayYearlyPerMonth: prices.displayYearlyPerMonth!
+				displayYearlyPerMonth: prices.displayYearlyPerMonth!,
+				isEligibleForIntroOffer: prices.isEligibleForIntroOffer!
 			)
 		}
 	}

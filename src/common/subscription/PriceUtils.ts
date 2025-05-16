@@ -188,6 +188,8 @@ export class PriceAndConfigProvider {
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, data: UpgradeSubscriptionData): SubscriptionPrice {
 		const subscription = data.type
 
+		console.log("duwahduiwa")
+
 		if (isIOSApp()) {
 			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval)
 		} else {
@@ -203,6 +205,8 @@ export class PriceAndConfigProvider {
 		if (!applePrices) {
 			throw new Error(`no such iOS plan ${planName}`)
 		}
+
+		console.log(applePrices, "applePrices")
 
 		switch (paymentInterval) {
 			case PaymentInterval.Monthly:

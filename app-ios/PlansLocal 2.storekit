@@ -17,10 +17,7 @@
 
   ],
   "settings" : {
-    "_applicationInternalID" : "922429609",
-    "_developerTeamID" : "JKCH89Z3M9",
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 737281866.58363402,
     "_locale" : "en_US",
     "_storefront" : "USA",
     "_storeKitErrors" : [
@@ -118,7 +115,12 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "6479765828",
-          "introductoryOffer" : null,
+          "introductoryOffer" : {
+            "displayPrice" : "44.99",
+            "internalID" : "74FD0E54",
+            "paymentMode" : "payUpFront",
+            "subscriptionPeriod" : "P1Y"
+          },
           "localizations" : [
             {
               "description" : "One year of the Legend plan.",
@@ -174,7 +176,12 @@
           "familyShareable" : false,
           "groupNumber" : 2,
           "internalID" : "6479874630",
-          "introductoryOffer" : null,
+          "introductoryOffer" : {
+            "displayPrice" : "19.99",
+            "internalID" : "A035A188",
+            "paymentMode" : "payUpFront",
+            "subscriptionPeriod" : "P1Y"
+          },
           "localizations" : [
             {
               "description" : "One year of Revolutionary plan.",

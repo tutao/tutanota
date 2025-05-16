@@ -17,35 +17,47 @@
 
   ],
   "settings" : {
-    "_applicationInternalID" : "922429609",
-    "_developerTeamID" : "JKCH89Z3M9",
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 737281866.58363402,
     "_locale" : "en_US",
     "_storefront" : "USA",
     "_storeKitErrors" : [
       {
-        "current" : null,
+        "current" : {
+          "index" : 2,
+          "type" : "generic"
+        },
         "enabled" : false,
         "name" : "Load Products"
       },
       {
-        "current" : null,
+        "current" : {
+          "index" : 0,
+          "type" : "offer"
+        },
         "enabled" : false,
         "name" : "Purchase"
       },
       {
-        "current" : null,
+        "current" : {
+          "index" : 0,
+          "type" : "verification"
+        },
         "enabled" : false,
         "name" : "Verification"
       },
       {
-        "current" : null,
+        "current" : {
+          "index" : 2,
+          "type" : "generic"
+        },
         "enabled" : false,
         "name" : "App Store Sync"
       },
       {
-        "current" : null,
+        "current" : {
+          "index" : 2,
+          "type" : "generic"
+        },
         "enabled" : false,
         "name" : "Subscription Status"
       },
@@ -55,7 +67,10 @@
         "name" : "App Transaction"
       },
       {
-        "current" : null,
+        "current" : {
+          "index" : 3,
+          "type" : "generic"
+        },
         "enabled" : false,
         "name" : "Manage Subscriptions Sheet"
       },
@@ -118,7 +133,12 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "6479765828",
-          "introductoryOffer" : null,
+          "introductoryOffer" : {
+            "displayPrice" : "44.99",
+            "internalID" : "1F15F965",
+            "paymentMode" : "payUpFront",
+            "subscriptionPeriod" : "P1Y"
+          },
           "localizations" : [
             {
               "description" : "One year of the Legend plan.",
@@ -174,7 +194,12 @@
           "familyShareable" : false,
           "groupNumber" : 2,
           "internalID" : "6479874630",
-          "introductoryOffer" : null,
+          "introductoryOffer" : {
+            "displayPrice" : "19.99",
+            "internalID" : "3BE04055",
+            "paymentMode" : "payUpFront",
+            "subscriptionPeriod" : "P1Y"
+          },
           "localizations" : [
             {
               "description" : "One year of Revolutionary plan.",
