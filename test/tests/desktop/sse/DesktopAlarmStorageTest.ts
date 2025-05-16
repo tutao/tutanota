@@ -4,10 +4,11 @@ import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopA
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import type { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
-import { clientInitializedTypeModelResolver, instancePipelineFromTypeModelResolver, makeKeyStoreFacade, createTestEntity } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, makeKeyStoreFacade } from "../../TestUtils.js"
 import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
+import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 import { aes256RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import {
 	AlarmInfoTypeRef,
@@ -16,7 +17,6 @@ import {
 	NotificationSessionKeyTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { hasError } from "../../../../src/common/api/common/utils/ErrorUtils.js"
-import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade
