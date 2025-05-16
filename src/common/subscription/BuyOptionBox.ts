@@ -298,8 +298,6 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			{
 				style: {
 					"font-size": heading.length > 20 ? "smaller" : undefined,
-					"font-weight": isHighlighted ? 700 : "initial",
-					...(isHighlighted && { "border-bottom": 0 }),
 				},
 			},
 			heading,
