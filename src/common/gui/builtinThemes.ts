@@ -86,7 +86,7 @@ type Themes = Record<ThemeId, Theme>
 const getLogo = (isDark: boolean, isDefault: boolean) => {
 	const isDarkOrDefault = isDark || !isDefault
 	if (!isApp()) {
-		return isDarkOrDefault ? getTutaLogoSvg("#c4c6d0", "#c4c6d0") : getTutaLogoSvg(red, dunkel)
+		return isDarkOrDefault ? getTutaLogoSvg("#c4c4c4", "#c4c4c4") : getTutaLogoSvg(red, dunkel)
 	}
 
 	if (client.isCalendarApp()) {
@@ -167,13 +167,13 @@ export const themes = (): Themes => {
 		tertiary_container: "#4B3E76",
 		on_tertiary_container: "#E7DEFF",
 		error: "#FFB4AB",
-		surface: "#111111",
+		surface: "#1a1111",
 		surface_dim: "#000000",
-		surface_container: "#19120C",
-		surface_container_high: "#261E18",
+		surface_container: "#271d1d",
+		surface_container_high: "#322828",
 		on_surface_fade: "#EFE0D5",
-		on_surface: "#EFE0D5",
-		on_surface_variant: "#D7C1C1",
+		on_surface: "#f0dede",
+		on_surface_variant: "#d7c1c1",
 		outline: "#9F8C8C",
 		outline_variant: "#524343",
 		scrim: "#000000",
@@ -206,8 +206,8 @@ export const themes = (): Themes => {
 		error: "#BA1A1A",
 		surface: "#FFFFFF",
 		surface_dim: "#f7f9ff",
-		surface_container: "#f7f9ff",
-		surface_container_high: "#ebeef3",
+		surface_container: "#f7f9fc",
+		surface_container_high: "#ebeef5",
 		on_surface_fade: "#221A14",
 		on_surface: "#221A14",
 		on_surface_variant: "#44474E",
@@ -240,14 +240,14 @@ export const themes = (): Themes => {
 		tertiary_container: "#00504C",
 		on_tertiary_container: "#9DF2EA",
 		error: "#FFB4AB",
-		surface: "#111111",
+		surface: "#101418",
 		surface_dim: "#000000",
-		surface_container: "#19120C",
-		surface_container_high: "#261E18",
+		surface_container: "#1c2024",
+		surface_container_high: "#272a2f",
 		on_surface_fade: "#EFE0D5",
-		on_surface: "#EFE0D5",
-		on_surface_variant: "#C4C6D0",
-		outline: "#8E9099",
+		on_surface: "#e0e2e8",
+		on_surface_variant: "#c4c6d0",
+		outline: "#8e9099",
 		outline_variant: "#44474E",
 		scrim: "#000000",
 		experimental_primary_container: DARK_PEACH,
