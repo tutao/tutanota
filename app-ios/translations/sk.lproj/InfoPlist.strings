@@ -15,3 +15,7 @@ TutaoUnlockCredentialsAction = "Odomknúť poverenia";
 TutaoPushNewMail = "Prišiel nový e-mail.";
 TutaoDeleteAction = "Odstrániť";
 TutaoMarkReadAction = "Označiť ako prečítané";
+TutaoWidgetSendLogsAction = "Odoslať denníky";
+TutaoAccountLabel = "Používateľ";
+TutaoDefaultCalendarNameTitle = "Súkromný";
+TutaoAllDayLabel = "Celý deň";

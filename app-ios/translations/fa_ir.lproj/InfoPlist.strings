@@ -15,3 +15,7 @@ TutaoUnlockCredentialsAction = "باز کردن قفل داده‌های هوی�
 TutaoPushNewMail = "ایمیل جدیدی رسید.";
 TutaoDeleteAction = "حذف";
 TutaoMarkReadAction = "علامت‌گذاری به عنوان خوانده شده";
+TutaoWidgetSendLogsAction = "فرستادن لاگ‌ها";
+TutaoAccountLabel = "کاربر";
+TutaoDefaultCalendarNameTitle = "خصوصی";
+TutaoAllDayLabel = "کل روز";

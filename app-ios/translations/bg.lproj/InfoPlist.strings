@@ -15,3 +15,7 @@ TutaoUnlockCredentialsAction = "Отключване на данни за иде
 TutaoPushNewMail = "Получено е нов имейл.";
 TutaoDeleteAction = "Изтрий";
 TutaoMarkReadAction = "Отбележи като прочетено";
+TutaoWidgetSendLogsAction = "Изпращане на журнал";
+TutaoAccountLabel = "Потребител";
+TutaoDefaultCalendarNameTitle = "Лично";
+TutaoAllDayLabel = "Всички дни";

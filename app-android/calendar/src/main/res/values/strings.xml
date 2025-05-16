@@ -12,9 +12,6 @@
     <string name="sendLogs_action">Send Logs</string>
     <string name="account_label">User</string>
     <string name="calendars_label">Calendars</string>
-	<string name="birthdayEvent_title">{name}\'s birthday</string>
-	<string name="birthdayEventAge_title">{age} years old</string>
-	<string name="birthdayCalendar_label">Birthdays</string>
     <string name="widgetNoCredentialsInfo_msg">No credentials available</string>
     <string name="widgetUnexpectedError_msg">Oops! Something went wrong.</string>
     <string name="widgetCredentialsError_msg">Please login on the Calendar App</string>

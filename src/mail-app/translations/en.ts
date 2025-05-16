@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-05-12T08:16:38Z",
+	"updated_at": "2025-05-15T14:03:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1370,7 +1370,7 @@ export default {
 		"pricing.custom_tooltip": "Whitelabel Tuta with your own branding by defining the logos and colors of the Tuta web, mobile and desktop clients.",
 		"pricing.cyberMonday_label": "SAVE 62%",
 		"pricing.cyber_monday_msg": "Get the top-tier plan for the first year for less!",
-		"pricing.cyber_monday_select_action": "Get The Deal!",
+		"pricing.cyber_monday_select_action": "Go European",
 		"pricing.encryptedCalendar_label": "Fully encrypted calendar",
 		"pricing.encryptedCalendar_tooltip": "All data in your Tuta Calendars are encrypted, even notifications are sent encrypted to your device.",
 		"pricing.encryptedContacts_label": "Encrypted address book",
@@ -1389,6 +1389,7 @@ export default {
 		"pricing.gdpr_label": "GDPR-compliant",
 		"pricing.gdpr_tooltip": "All data is stored in compliance with strict European data protection regulations according to the GDPR.",
 		"pricing.getStarted_label": "Get started",
+		"pricing.globalFirstYearDiscountRibbon_label": "SAVE {amount}",
 		"pricing.includesTaxes_msg": "Includes taxes.",
 		"pricing.legendAsterisk_msg": "Legend discount only applies for the first year. Following price will be 96€ per year.",
 		"pricing.login_title": "Login on own website",
@@ -2014,7 +2015,6 @@ export default {
 		"widgetNoEvents_msg": "No events",
 		"widgetOpenApp_action": "Open the app",
 		"widgetUnexpectedError_msg": "Oops! Something went wrong.",
-		"widgetMissingConfigurationError_msg": "Missing widget configuration",
 		"withCustomRules_label": "With custom repeat rules",
 		"work_label": "Work",
 		"wrongUserCsvFormat_msg": "Please correct the CSV format of your data to:\n{format}",

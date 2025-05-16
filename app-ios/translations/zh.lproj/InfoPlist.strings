@@ -14,3 +14,6 @@ TutaoScheduleAlarmError = "无法设置警报。请更新应用程序。";
 TutaoPushNewMail = "收到新邮件。";
 TutaoDeleteAction = "删除";
 TutaoMarkReadAction = "标为已读";
+TutaoAccountLabel = "用户";
+TutaoDefaultCalendarNameTitle = "私有";
+TutaoAllDayLabel = "全天";

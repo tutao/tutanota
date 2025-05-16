@@ -15,3 +15,7 @@ TutaoUnlockCredentialsAction = "שחרר אישורים";
 TutaoPushNewMail = " התקבל אימייל חדש";
 TutaoDeleteAction = "מחיקה";
 TutaoMarkReadAction = "סמן כלא נקרא";
+TutaoWidgetSendLogsAction = "שליחת דו\"חות";
+TutaoAccountLabel = "משתמש";
+TutaoDefaultCalendarNameTitle = "פרטי";
+TutaoAllDayLabel = "כל היום";
