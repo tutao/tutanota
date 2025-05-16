@@ -36,7 +36,6 @@ export type Theme = {
 	surface: string
 	surface_dim: string
 	surface_container: string
-	surface_container_low: string
 	surface_container_high: string
 	on_surface_fade: string
 	on_surface: string
