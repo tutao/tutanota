@@ -44,8 +44,8 @@ export function showUserSatisfactionDialog(triggerType: TriggerType): void {
 		supportRequest: "",
 		shouldIncludeLogs: Stream(true),
 		logs: Stream([]),
-		contactTemplate: Stream("TODO"),
-		helpText: Stream("TODO"),
+		contactTemplate: Stream(""),
+		helpText: Stream(lang.get("supportForm_msg")),
 	}
 
 	const dialog = new MultiPageDialog<UserSatisfactionDialogPage>("evaluation", (dialog, navigateToPage, goBack) => ({
