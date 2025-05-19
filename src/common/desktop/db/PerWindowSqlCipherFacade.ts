@@ -31,8 +31,6 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 	private state: {
 		userId: string
 		db: Promise<SqlCipherFacade>
-		/** the list of listIdRange locks that this window currently holds or is trying to acquire */
-		locks: Set<string>
 	} | null = null
 
 	constructor(private readonly refCounter: OfflineDbRefCounter) {}
@@ -50,7 +48,6 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 		this.state = {
 			userId,
 			db: this.refCounter.getOrCreateDb(userId, dbKey),
-			locks: new Set(),
 		}
 	}
 
@@ -62,13 +59,8 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 		// to do anymore with this db connection.
 		// so set the state to null before actually calling disposeDb()
 		// otherwise, an error might prevent us from resetting the state.
-		const { userId, locks } = this.state
+		const { userId } = this.state
 		this.state = null
-		// we can just unlock the locks now because there will not be coming any writes anymore
-		for (const lockedList of locks) {
-			console.log(TAG, "unlocking list before dereffing db", lockedList)
-			await this.refCounter.unlockRangesDbAccess(userId, lockedList)
-		}
 		try {
 			await this.refCounter.disposeDb(userId)
 		} catch (e) {
@@ -91,47 +83,6 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 
 	async run(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<void> {
 		return (await this.db()).run(query, params)
-	}
-
-	/**
-	 * We want to lock the access to the "ranges" db when updating / reading the
-	 * offline available mail list ranges for each mail list (referenced using the listId)
-	 * @param listId the mail list that we want to lock
-	 */
-	async lockRangesDbAccess(listId: Id): Promise<void> {
-		if (this.state == null) return
-		const { userId, locks } = this.state
-		if (locks.has(listId)) {
-			console.log(TAG, "tried to acquire lock twice!")
-			return
-		}
-		/*
-		 * it's possible that we're waiting for a lock and then the window gets closed or reloads due to logout,
-		 * causing us to release our DB ref.
-		 * if the lock is then released by whoever holds it, we would acquire it but never release it.
-		 */
-		await this.refCounter.lockRangesDbAccess(userId, listId)
-		locks.add(listId)
-		if (this.state == null) {
-			console.log(TAG, "ref was released while we were waiting for lock, unlocking.")
-			await this.refCounter.unlockRangesDbAccess(userId, listId)
-			locks.delete(listId)
-		}
-	}
-
-	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
-	 * @param listId the mail list that we want to unlock
-	 */
-	async unlockRangesDbAccess(listId: Id): Promise<void> {
-		if (this.state == null) return
-		const { userId, locks } = this.state
-		if (!locks.has(listId)) {
-			console.log(TAG, "tried to release lock that was not acquired!")
-			return
-		}
-		locks.delete(listId)
-		await this.refCounter.unlockRangesDbAccess(userId, listId)
 	}
 
 	private async db(): Promise<SqlCipherFacade> {

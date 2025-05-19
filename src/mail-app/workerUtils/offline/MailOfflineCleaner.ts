@@ -93,13 +93,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 		assertNotNull(entriesListId)
 		const mailIdsToDelete: IdTuple[] = []
 
-		await offlineStorage.lockRangesDbAccess(entriesListId)
-		try {
-			await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
-		} finally {
-			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-			await offlineStorage.unlockRangesDbAccess(entriesListId)
-		}
+		await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
 
 		const mailSetEntriesToDelete: IdTuple[] = []
 		const mailSetEntries = await offlineStorage.getWholeList(MailSetEntryTypeRef, entriesListId)

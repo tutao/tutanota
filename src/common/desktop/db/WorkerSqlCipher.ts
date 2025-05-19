@@ -57,19 +57,11 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 		return this.dispatcher.postRequest(new Request("get", [query, params]))
 	}
 
-	async lockRangesDbAccess(listId: string): Promise<void> {
-		return this.dispatcher.postRequest(new Request("lockRangesDbAccess", [listId]))
-	}
-
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
 		return this.dispatcher.postRequest(new Request("openDb", [userId, dbKey]))
 	}
 
 	async run(query: string, params: ReadonlyArray<TaggedSqlValue>): Promise<void> {
 		return this.dispatcher.postRequest(new Request("run", [query, params]))
-	}
-
-	async unlockRangesDbAccess(listId: string): Promise<void> {
-		return this.dispatcher.postRequest(new Request("unlockRangesDbAccess", [listId]))
 	}
 }

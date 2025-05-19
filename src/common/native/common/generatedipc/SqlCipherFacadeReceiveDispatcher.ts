@@ -34,14 +34,6 @@ export class SqlCipherFacadeReceiveDispatcher {
 				const params: ReadonlyArray<TaggedSqlValue> = arg[1]
 				return this.facade.all(query, params)
 			}
-			case "lockRangesDbAccess": {
-				const listId: string = arg[0]
-				return this.facade.lockRangesDbAccess(listId)
-			}
-			case "unlockRangesDbAccess": {
-				const listId: string = arg[0]
-				return this.facade.unlockRangesDbAccess(listId)
-			}
 		}
 	}
 }
