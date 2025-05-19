@@ -25,10 +25,11 @@ export class DesktopAlarmScheduler {
 					this.cancelAlarms(alarm.alarmInfo.alarmIdentifier)
 				}
 			}
+			return this.alarmStorage.deleteAllAlarms(userId)
 		} catch (e) {
 			log.info("failed to cancel alarm " + e.stack)
+			return this.alarmStorage.deleteAllAlarms(null)
 		}
-		return this.alarmStorage.deleteAllAlarms(userId)
 	}
 
 	/**
