@@ -23,6 +23,14 @@ type OverlayAttrs = {
 	closeAnimation?: string
 	shadowClass: string
 }
+type OverlayParentAttrs = {
+	/**
+	 * Overlays that have a `zIndex` lower than this value are inerted.
+	 * This is useful when there's an open modal with some overlays below it and others above it
+	 * (only overlays behind the modal are inerted).
+	 */
+	inertBelow: number
+}
 
 const overlays: Map<number, OverlayAttrs> = new Map()
 let key = 0
@@ -58,15 +66,19 @@ export function displayOverlay(
 	}) as () => void
 }
 
-export const overlay: Component = {
-	view: (): Children =>
-		m(
+export const overlay: Component<OverlayParentAttrs> = {
+	view: (vnode): Children => {
+		const visible = overlays.size > 0
+		const inertBelow = vnode.attrs.inertBelow
+
+		return m(
 			// we want the overlays to position relative to the overlay parent
 			// the overlay parent also should fill the root
 			"#overlay.fill-absolute.noprint",
 			{
+				inert: !visible,
 				style: {
-					display: overlays.size > 0 ? "" : "none",
+					display: visible ? "" : "none",
 					"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 					// keep the bottom nav bar clear & inset for iOS
 					"margin-bottom": styles.isUsingBottomNavigation() ? px(size.bottom_nav_bar + getSafeAreaInsetBottom()) : "unset",
@@ -74,7 +86,7 @@ export const overlay: Component = {
 					"margin-left": "env(safe-area-inset-left)",
 					"margin-right": "env(safe-area-inset-right)",
 				},
-				"aria-hidden": overlays.size === 0,
+				"aria-hidden": !visible,
 			},
 			Array.from(overlays.entries()).map((overlay) => {
 				const [key, attrs] = overlay
@@ -82,12 +94,14 @@ export const overlay: Component = {
 
 				const baseClasses = "abs elevated-bg " + attrs.shadowClass
 				const classes = attrs.createAnimation == null ? baseClasses : baseClasses + " " + attrs.createAnimation
+				const zIndex = position.zIndex ?? LayerType.Overlay
 
 				return m(
 					"",
 					{
 						key,
 						class: classes,
+						inert: zIndex < inertBelow,
 						style: {
 							width: position.width,
 							top: position.top,
@@ -95,7 +109,7 @@ export const overlay: Component = {
 							right: position.right,
 							left: position.left,
 							height: position.height,
-							"z-index": position.zIndex != null ? position.zIndex : LayerType.Overlay,
+							zIndex,
 						},
 						onbeforeremove: (vnode: VnodeDOM) => {
 							if (attrs.closeAnimation != null) {
@@ -118,5 +132,6 @@ export const overlay: Component = {
 					m(attrs.component),
 				)
 			}),
-		),
+		)
+	},
 }
