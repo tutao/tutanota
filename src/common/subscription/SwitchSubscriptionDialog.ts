@@ -120,7 +120,18 @@ export async function showSwitchDialog(
 		})
 		.setCloseHandler(cancelAction)
 
-	const isGlobalCampaign = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount && paymentInterval() === PaymentInterval.Yearly
+	const hasFirstYearDiscount = (targetPlan: PlanType) => {
+		const paymentMethod = accountingInfo.paymentMethod
+		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
+		const isYearly = paymentInterval() === PaymentInterval.Yearly
+
+		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
+			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase())
+			return hasGlobalFirstYearDiscount && isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
+		} else {
+			return hasGlobalFirstYearDiscount && isYearly
+		}
+	}
 
 	const subscriptionActionButtons: SubscriptionActionButtons = {
 		[PlanType.Free]: () =>
@@ -128,8 +139,15 @@ export async function showSwitchDialog(
 				label: "pricing.select_action",
 				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo),
 			} satisfies LoginButtonAttrs),
-		[PlanType.Revolutionary]: createPlanButton(dialog, PlanType.Revolutionary, currentPlanInfo, paymentInterval, accountingInfo, isGlobalCampaign),
-		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, paymentInterval, accountingInfo, isGlobalCampaign),
+		[PlanType.Revolutionary]: createPlanButton(
+			dialog,
+			PlanType.Revolutionary,
+			currentPlanInfo,
+			paymentInterval,
+			accountingInfo,
+			hasFirstYearDiscount(PlanType.Revolutionary),
+		),
+		[PlanType.Legend]: createPlanButton(dialog, PlanType.Legend, currentPlanInfo, paymentInterval, accountingInfo, hasFirstYearDiscount(PlanType.Legend)),
 		[PlanType.Essential]: createPlanButton(dialog, PlanType.Essential, currentPlanInfo, paymentInterval, accountingInfo),
 		[PlanType.Advanced]: createPlanButton(dialog, PlanType.Advanced, currentPlanInfo, paymentInterval, accountingInfo),
 		[PlanType.Unlimited]: createPlanButton(dialog, PlanType.Unlimited, currentPlanInfo, paymentInterval, accountingInfo),
