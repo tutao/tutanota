@@ -27,7 +27,8 @@ pipeline {
 	}
 
 	options {
-		timeout(time: 10, unit: 'MINUTES')
+		// as long as tests like node/browser/android are run sequentially the timeout needs to be higher than 10 minutes
+		timeout(time: 15, unit: 'MINUTES')
 		// this prevents jenkins from running the "Check out from version control" step in every stage.
 		// we're running several stages in parallel on the same folder, which means git will run in parallel, which
 		// it can't because it places a lock file in .git
@@ -200,6 +201,47 @@ pipeline {
 		}
 		stage("Testing and Building") {
 			parallel {
+				stage("tests") {
+					// the test cases write to the same files in the common workspace which produces race conditions like wasm/malloc function not available. as a workaround we run the critical tests sequentially. ideally we should never write to a re-used workspace.
+					stages {
+						stage("node tests") {
+							agent {
+								node {
+									label 'linux'
+									customWorkspace linuxWorkspaceClones[1]
+								}
+							}
+							steps {
+								sh 'cd test && node test'
+							}
+						}
+						stage("browser tests") {
+							agent {
+								node {
+									label 'linux'
+									customWorkspace linuxWorkspaceClones[2]
+								}
+							}
+							steps {
+								sh 'npm run test:app -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
+							}
+						}
+						stage("android tests") {
+							agent {
+								node {
+									label 'linux'
+									customWorkspace linuxWorkspace
+								}
+							}
+							when {
+								expression { hasRelevantChangesIn(changeset, "app-android") }
+							}
+							steps {
+								testAndroid()
+							}
+						}
+					}
+				}
 				stage("packages test") {
 					agent {
 						node {
@@ -212,28 +254,6 @@ pipeline {
 					}
 					steps {
 						sh 'npm run --if-present test -ws'
-					}
-				}
-				stage("node tests") {
-					agent {
-						node {
-							label 'linux'
-							customWorkspace linuxWorkspaceClones[1]
-						}
-					}
-					steps {
-						sh 'cd test && node test'
-					}
-				}
-				stage("browser tests") {
-					agent {
-						node {
-							label 'linux'
-							customWorkspace linuxWorkspaceClones[2]
-						}
-					}
-					steps {
-						sh 'npm run test:app -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
 					}
 				}
 				stage("build web app") {
@@ -288,20 +308,6 @@ pipeline {
 					steps {
 						// -Dwarnings changes warnings to errors so that the check fails
 						sh "cargo clippy --all --no-deps -- -Dwarnings"
-					}
-				}
-				stage("android tests") {
-					agent {
-						node {
-							label 'linux'
-							customWorkspace linuxWorkspace
-						}
-					}
-					when {
-						expression { hasRelevantChangesIn(changeset, "app-android") }
-					}
-					steps {
-						testAndroid()
 					}
 				}
 				stage("ios app tests") {
