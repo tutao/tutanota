@@ -43,4 +43,10 @@ public protocol SqlCipherFacade {
 	func unlockRangesDbAccess(
 		_ listId: String
 	) async throws -> Void
+	/**
+	 * Split the query into the tokens with signal tokenizer
+	 */
+	func tokenize(
+		_ query: String
+	) async throws -> [String]
 }

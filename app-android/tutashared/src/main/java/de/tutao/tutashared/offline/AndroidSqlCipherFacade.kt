@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.SQLException
 import android.util.Log
+import com.sun.jna.Library
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.ipc.wrap
@@ -38,6 +39,9 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId), dbKey.data, null, null)
 		}
 
+		// Added in fork!
+		openedDb.loadExtension("libsignal_tokenizer", "signal_fts5_tokenizer_init")
+
 		// We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution
 		// After changing the auto_vacuum mode we need to run "vacuum" once
 		// auto_vacuum mode: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
@@ -46,7 +50,6 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 				if (cursor.getInt(0) != 2) {
 					db?.query("PRAGMA auto_vacuum = incremental")
 					Log.d(TAG, "PRAGMA vacuum")
-					
 				}
 			}
 		}
@@ -118,7 +121,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 			result[name] = when (val type = getType(index)) {
 				Cursor.FIELD_TYPE_NULL -> TaggedSqlValue.Null
 				Cursor.FIELD_TYPE_BLOB -> TaggedSqlValue.Bytes(getBlob(index).wrap())
-				Cursor.FIELD_TYPE_INTEGER -> TaggedSqlValue.Num(getInt(index))
+				Cursor.FIELD_TYPE_INTEGER -> TaggedSqlValue.Num(getLong(index))
 				Cursor.FIELD_TYPE_STRING -> TaggedSqlValue.Str(getString(index))
 				else -> error("SQL type is not supported: $type")
 			}
@@ -162,6 +165,8 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 		}
 		completableDeferred.complete(Unit)
 	}
+
+	override suspend fun tokenize(query: String): List<String> = SignalTokenizer.tokenize(query)
 
 	private fun List<TaggedSqlValue>.prepare() = map { it.unwrap() }.toTypedArray()
 }

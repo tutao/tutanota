@@ -1,3 +1,5 @@
+import Sqlcipher
+
 /// Access and modify credentials and related data.
 /// Separate protocol to facilitate mocking.
 public protocol CredentialsStorage {
@@ -48,7 +50,8 @@ public class CredentialsDatabase: CredentialsStorage {
 		)
 		.run()
 		for mode in CredentialEncryptionMode.allCases {
-			try db.prepare(query: "INSERT OR REPLACE INTO credentialEncryptionModeEnum (mode) VALUES (?)").bindParams([.string(value: mode.rawValue)]).run()
+			try db.prepare(query: "INSERT OR REPLACE INTO credentialEncryptionModeEnum (mode) VALUES (?)").bindParams([SqlValue.string(value: mode.rawValue)])
+				.run()
 		}
 		// A table with a single row
 		try db.prepare(
@@ -86,7 +89,7 @@ public class CredentialsDatabase: CredentialsStorage {
 		)
 		.all().map { sqlRow in try readCredentials(sqlRow: sqlRow) }
 	}
-	private func readCredentials(sqlRow: [String: TaggedSqlValue]) throws -> PersistedCredentials {
+	private func readCredentials(sqlRow: [String: SqlValue]) throws -> PersistedCredentials {
 		let credentialsInfo = CredentialsInfo(
 			login: try sqlRow["login"]!.unwrapString(),
 			userId: try sqlRow["userId"]!.unwrapString(),
@@ -126,7 +129,7 @@ public class CredentialsDatabase: CredentialsStorage {
 				DELETE FROM credentials WHERE userId == ?
 				"""
 		)
-		.bindParams([.string(value: userId)]).run()
+		.bindParams([SqlValue.string(value: userId)]).run()
 	}
 
 	public func getCredentialEncryptionMode() throws -> CredentialEncryptionMode? {
@@ -158,7 +161,7 @@ public class CredentialsDatabase: CredentialsStorage {
 					INSERT OR REPLACE INTO credentialEncryptionMode (id, credentialEncryptionMode) VALUES (0, ?)
 					"""
 			)
-			.bindParams([.string(value: encryptionMode.rawValue)]).run()
+			.bindParams([SqlValue.string(value: encryptionMode.rawValue)]).run()
 		} else {
 			try db.prepare(
 				query: """
@@ -197,23 +200,23 @@ public class CredentialsDatabase: CredentialsStorage {
 	}
 }
 
-private extension TaggedSqlValue {
+private extension SqlValue {
 	struct InvalidSqlType: Error {}
 
 	func unwrapString() throws -> String { if case let .string(value) = self { return value } else { throw InvalidSqlType() } }
-	func unwrapBytes() throws -> Data { if case let .bytes(value) = self { return value.data } else { throw InvalidSqlType() } }
+	func unwrapBytes() throws -> Data { if case let .bytes(value) = self { return value } else { throw InvalidSqlType() } }
 	func unwrapOptionalString() throws -> String? {
 		switch self {
-		case .null: nil
+		case .null: Optional.none
 		case let .string(s): s
-		default: throw TaggedSqlValue.InvalidSqlType()
+		default: throw SqlValue.InvalidSqlType()
 		}
 	}
 	func unwrapOptionalBytes() throws -> Data? {
 		switch self {
 		case .null: nil
-		case let .bytes(b): b.data
-		default: throw TaggedSqlValue.InvalidSqlType()
+		case let .bytes(b): b
+		default: throw SqlValue.InvalidSqlType()
 		}
 	}
 }

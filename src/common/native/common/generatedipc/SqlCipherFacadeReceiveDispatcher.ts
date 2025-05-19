@@ -42,6 +42,10 @@ export class SqlCipherFacadeReceiveDispatcher {
 				const listId: string = arg[0]
 				return this.facade.unlockRangesDbAccess(listId)
 			}
+			case "tokenize": {
+				const query: string = arg[0]
+				return this.facade.tokenize(query)
+			}
 		}
 	}
 }
