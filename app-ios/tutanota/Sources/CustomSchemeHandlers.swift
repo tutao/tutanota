@@ -113,6 +113,14 @@ class AssetSchemeHandler: NSObject, WKURLSchemeHandler {
 			return mimeType
 		} else if path.hasSuffix(".cmap") {
 			return "text/plain"  // used for invoices; no good mime type for cmap, so just use plain text
+		} else if path.hasSuffix(".woff2") {
+			return "font/woff2"
+		} else if path.hasSuffix(".woff") {
+			return "font/woff"
+		} else if path.hasSuffix(".ttf") {
+			return "font/ttf"
+		} else if path.hasSuffix(".otf") {
+			return "font/otf"
 		} else {
 			fatalError("Unknown asset type! \(path)")
 		}
