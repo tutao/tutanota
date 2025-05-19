@@ -30,6 +30,7 @@ import { WorkerFacade } from "./facades/WorkerFacade.js"
 import { ContactFacade } from "./facades/lazy/ContactFacade.js"
 import { SyncTracker } from "../main/SyncTracker.js"
 import { KeyVerificationFacade } from "./facades/lazy/KeyVerificationFacade"
+import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>
@@ -68,6 +69,7 @@ export interface CommonWorkerInterface {
 	readonly keyVerificationFacade: KeyVerificationFacade
 	readonly blobAccessTokenFacade: BlobAccessTokenFacade
 	readonly blobFacade: BlobFacade
+	readonly applicationTypesFacade: ApplicationTypesFacade
 	readonly userManagementFacade: UserManagementFacade
 	readonly recoverCodeFacade: RecoverCodeFacade
 	readonly restInterface: EntityRestInterface

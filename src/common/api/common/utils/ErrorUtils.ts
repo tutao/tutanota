@@ -56,6 +56,7 @@ import { MobilePaymentError } from "../error/MobilePaymentError"
 import { MailImportError } from "../error/MailImportError.js"
 import { ExportError } from "../error/ExportError"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
+import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written
@@ -115,6 +116,7 @@ const ErrorNameToType = {
 	RecipientsNotFoundError,
 	RecipientNotResolvedError,
 	OfflineDbClosedError,
+	ServerModelsUnavailableError,
 	OutOfSyncError,
 	ServiceUnavailableError,
 	DbError,

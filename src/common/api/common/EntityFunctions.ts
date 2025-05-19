@@ -1,4 +1,4 @@
-import { assertNotNull, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyAsync, TypeRef } from "@tutao/tutanota-utils"
 import type { AttributeId, ClientTypeModel, ModelAssociation, ModelValue, ServerTypeModel } from "./EntityTypes"
 import { typeModels as baseTypeModels } from "../entities/base/TypeModels.js"
 import { typeModels as sysTypeModels } from "../entities/sys/TypeModels.js"
@@ -20,6 +20,7 @@ import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants"
 import { isTest } from "./Env"
+import { ApplicationTypesGetOut } from "../worker/facades/ApplicationTypesFacade"
 
 export const enum HttpMethod {
 	GET = "GET",
@@ -142,13 +143,21 @@ export class ServerModelInfo {
 
 	private static instance: ServerModelInfo | null
 
+	public setCurrentHash(newHash: string) {
+		if (this.applicationTypesHash === newHash) {
+			return
+		}
+		this.typeModels = null
+		this.applicationTypesHash = newHash
+	}
+
 	/**
 	 *  Get an instance. Might or might not be initialized.
 	 *  AVOID using it, you should inject this instead.
 	 */
-	public static getPossiblyUninitializedInstance(clientModelInfo: ClientModelInfo): ServerModelInfo {
+	public static getPossiblyUninitializedInstance(clientModelInfo: ClientModelInfo, fetcher: lazyAsync<ApplicationTypesGetOut>): ServerModelInfo {
 		if (ServerModelInfo.instance == null) {
-			ServerModelInfo.instance = new ServerModelInfo(clientModelInfo)
+			ServerModelInfo.instance = new ServerModelInfo(clientModelInfo, fetcher)
 		}
 		return ServerModelInfo.instance
 	}
@@ -156,17 +165,26 @@ export class ServerModelInfo {
 	/**
 	 * Get a fresh, uninitialized instance, for tests only.
 	 * @param clientModelInfo
+	 * @param fetcher
 	 */
-	public static getUninitializedInstanceForTestsOnly(clientModelInfo: ClientModelInfo): ServerModelInfo {
+	public static getUninitializedInstanceForTestsOnly(
+		clientModelInfo: ClientModelInfo,
+		fetcher: lazyAsync<ApplicationTypesGetOut> = () =>
+			Promise.resolve({
+				applicationTypesHash: "hash",
+				applicationTypesJson: JSON.stringify(clientModelInfo.typeModels),
+			}),
+	): ServerModelInfo {
 		if (!isTest()) {
 			throw new ProgrammingError()
 		}
-		return new ServerModelInfo(clientModelInfo)
+		return new ServerModelInfo(clientModelInfo, fetcher)
 	}
 
-	private constructor(private readonly clientModelInfo: ClientModelInfo) {}
+	private constructor(private readonly clientModelInfo: ClientModelInfo, private readonly fetcher: lazyAsync<ApplicationTypesGetOut>) {}
 
-	public init(newApplicationTypesHash: ApplicationTypesHash, parsedApplicationTypesJson: Record<string, any>) {
+	private init({ applicationTypesHash, applicationTypesJson }: ApplicationTypesGetOut) {
+		const parsedApplicationTypesJson = JSON.parse(applicationTypesJson)
 		let newTypeModels = {} as ServerModels
 		for (const appName of Object.values(AppNameEnum)) {
 			let { version, types } = this.parseAllTypesForModel(assertNotNull(parsedApplicationTypesJson[appName]))
@@ -174,7 +192,8 @@ export class ServerModelInfo {
 		}
 
 		this.typeModels = newTypeModels
-		this.applicationTypesHash = newApplicationTypesHash
+		console.log(">>>> typemodel init")
+		this.applicationTypesHash = applicationTypesHash
 	}
 
 	public getApplicationTypesHash(): ApplicationTypesHash | null {
@@ -304,9 +323,10 @@ export class ServerModelInfo {
 
 	public async resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
 		if (this.typeModels == null) {
-			throw new ProgrammingError("Tried to resolve server type ref before initialization. Call ensure_latest_server_model first?")
+			const getOut = await this.fetcher()
+			this.init(getOut)
 		}
-		const typeModel = this.typeModels[typeRef.app].types[typeRef.typeId]
+		const typeModel = assertNotNull(this.typeModels)[typeRef.app].types[typeRef.typeId]
 		if (typeModel == null) {
 			throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
 		} else {
@@ -340,7 +360,10 @@ export interface ClientTypeModelResolver {
 
 export interface ServerTypeModelResolver {
 	resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel>
+
 	getServerApplicationTypesModelHash(): ApplicationTypesHash | null
+
+	setServerApplicationTypesModelHash(hash: ApplicationTypesHash): void
 }
 
 export class TypeModelResolver implements ClientTypeModelResolver, ServerTypeModelResolver {
@@ -360,5 +383,9 @@ export class TypeModelResolver implements ClientTypeModelResolver, ServerTypeMod
 
 	getServerApplicationTypesModelHash(): ApplicationTypesHash | null {
 		return this.serverModelInfo.getApplicationTypesHash()
+	}
+
+	setServerApplicationTypesModelHash(hash: string): void {
+		this.serverModelInfo.setCurrentHash(hash)
 	}
 }

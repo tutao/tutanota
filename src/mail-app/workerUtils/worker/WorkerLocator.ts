@@ -182,17 +182,19 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.rsa = await createRsaImplementation(worker)
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
-	locator.restClient = new RestClient(suspensionHandler, domainConfig, () => locator.applicationTypesFacade)
 
 	const clientModelInfo = ClientModelInfo.getInstance()
-	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo)
+	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, () =>
+		locator.applicationTypesFacade.getServerApplicationTypesJson(),
+	)
+	locator.restClient = new RestClient(suspensionHandler, domainConfig, serverModelInfo)
 	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)
 	locator.instancePipeline = new InstancePipeline(
 		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
 		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
 	)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto, typeModelResolver)
-	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
+	locator.applicationTypesFacade = new ApplicationTypesFacade(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider, typeModelResolver)
 
@@ -564,7 +566,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
 		mainInterface.syncTracker,
-		locator.applicationTypesFacade,
 		typeModelResolver,
 	)
 	locator.login.init(locator.eventBusClient)

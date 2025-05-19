@@ -136,6 +136,7 @@ import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFa
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { ClientModelInfo, ClientTypeModelResolver, ServerModelInfo, TypeModelResolver } from "../common/api/common/EntityFunctions"
+import { ApplicationTypesFacade } from "../common/api/worker/facades/ApplicationTypesFacade"
 
 assertMainOrNode()
 
@@ -151,6 +152,7 @@ class MailLocator {
 	credentialsProvider!: CredentialsProvider
 	worker!: WorkerClient
 	fileController!: FileController
+	applicationTypesFacade!: ApplicationTypesFacade
 	secondFactorHandler!: SecondFactorHandler
 	webAuthn!: WebauthnClient
 	loginFacade!: LoginFacade
@@ -735,6 +737,7 @@ class MailLocator {
 			contactFacade,
 			bulkMailLoader,
 			mailExportFacade,
+			applicationTypesFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -775,6 +778,7 @@ class MailLocator {
 		this.workerFacade = workerFacade
 		this.bulkMailLoader = bulkMailLoader
 		this.mailExportFacade = mailExportFacade
+		this.applicationTypesFacade = applicationTypesFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailboxModel = new MailboxModel(this.eventController, this.entityClient, this.logins)
 		this.mailModel = new MailModel(

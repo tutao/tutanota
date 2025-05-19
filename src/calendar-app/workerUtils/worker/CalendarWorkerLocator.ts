@@ -67,7 +67,6 @@ import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/Recov
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CalendarWorkerImpl } from "./CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
-import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
@@ -156,7 +155,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
 
 	const clientModelInfo = ClientModelInfo.getInstance()
-	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo)
+	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, () => locator.applicationTypesFacade)
 	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)
 	locator.instancePipeline = new InstancePipeline(
 		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
@@ -165,7 +164,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.rsa = await createRsaImplementation(worker)
 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
-	locator.restClient = new RestClient(suspensionHandler, domainConfig, () => locator.applicationTypesFacade)
+	locator.restClient = new RestClient(suspensionHandler, domainConfig, serverModelInfo)
 	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto, typeModelResolver)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
 	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider, typeModelResolver)
@@ -186,7 +185,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const fileFacadeSendDispatcher = new FileFacadeSendDispatcher(worker)
 	const fileApp = new NativeFileApp(fileFacadeSendDispatcher, new ExportFacadeSendDispatcher(worker))
-	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
+	locator.applicationTypesFacade = new ApplicationTypesFacade(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
 
 	let offlineStorageProvider
 	if (isOfflineStorageAvailable()) {

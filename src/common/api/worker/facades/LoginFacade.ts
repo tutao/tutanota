@@ -584,7 +584,9 @@ export class LoginFacade {
 			// synchronous login in order to load all the necessary keys and such
 			// the next time they log in they will be able to do asynchronous login
 			if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
+				console.log(">>> user get")
 				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
+				console.log(">>> user got")
 				if (user.accountType !== AccountType.PAID) {
 					// if account is free do not start offline login/async login workflow.
 					// await before return to catch errors here

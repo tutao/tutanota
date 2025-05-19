@@ -1,7 +1,7 @@
 import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
 import { ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError } from "../../common/error/RestError"
-import { HttpMethod, MediaType } from "../../common/EntityFunctions"
-import { assertNotNull, lazy, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
+import { HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
+import { assertNotNull, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
 import { SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
@@ -55,7 +55,7 @@ export class RestClient {
 	constructor(
 		private readonly suspensionHandler: SuspensionHandler,
 		private readonly domainConfig: DomainConfig,
-		private readonly applicationTypesFacade: lazy<ApplicationTypesFacade>,
+		private readonly serverModelInfo: ServerModelInfo,
 	) {
 		this.id = 0
 	}
@@ -129,14 +129,13 @@ export class RestClient {
 
 						this.saveServerTimeOffsetFromRequest(xhr)
 
-						// handle new server model and update the applicationTypesJson file if applicable
-						const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
-						if (
-							applicationTypesHashResponseHeader != null &&
-							applicationTypesHashResponseHeader != this.applicationTypesFacade().getApplicationTypesHash()
-						) {
-							await this.applicationTypesFacade().getServerApplicationTypesJson()
-						}
+					// handle new server model and update the applicationTypesJson file if applicable
+					const applicationTypesHashResponseHeader = xhr.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
+					if (applicationTypesHashResponseHeader != null) {
+						this.serverModelInfo.setCurrentHash(applicationTypesHashResponseHeader)
+					} else {
+						console.log(">>>>>> no hash")
+					}
 
 						if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
 							if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {

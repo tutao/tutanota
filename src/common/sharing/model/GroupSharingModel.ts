@@ -185,7 +185,7 @@ export class GroupSharingModel {
 			msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
 			msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
 			msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
-			throw new UserError(lang.makeTranslation("group_invitation_err", msg))
+			throw new UserError(lang.makeTranslation("group_inviFtation_err", msg))
 		}
 
 		return groupInvitationReturn.invitedMailAddresses

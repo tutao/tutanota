@@ -114,6 +114,7 @@ import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
+import { ApplicationTypesFacade } from "../common/api/worker/facades/ApplicationTypesFacade"
 
 assertMainOrNode()
 
@@ -144,6 +145,7 @@ class CalendarLocator {
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
 	blobFacade!: BlobFacade
+	applicationTypesFacade!: ApplicationTypesFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
 	contactFacade!: ContactFacade
@@ -581,6 +583,7 @@ class CalendarLocator {
 			workerFacade,
 			sqlCipherFacade,
 			contactFacade,
+			applicationTypesFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -595,6 +598,7 @@ class CalendarLocator {
 		this.mailAddressFacade = mailAddressFacade
 		this.keyVerificationFacade = keyVerificationFacade
 		this.blobFacade = blobFacade
+		this.applicationTypesFacade = applicationTypesFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade

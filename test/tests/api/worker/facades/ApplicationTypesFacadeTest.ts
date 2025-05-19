@@ -73,7 +73,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		restClient = object()
 		fileFacade = object()
 		serverModelInfo = object()
-		applicationTypesFacade = await ApplicationTypesFacade.getInitialized(restClient, fileFacade, serverModelInfo)
+		applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
 	})
 
 	o("getServerApplicationTypesJson does only one service request for requests made in quick succession", async function () {
@@ -120,60 +120,40 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		return JSON.parse(decompressString(applicationTypesGetOut)) as ApplicationTypesGetOut
 	}
 
-	o("server model should be assigned to memory first and write to file later", async () => {
-		when(
-			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
-		).thenResolve(mockResponse)
-
-		let applicationTypesGetOut = createApplicationTypesGetOutFromResponse(mockResponse)
-		let callOrder = new Array<string>()
-		when(fileFacade.writeToAppDir(anything(), anything())).thenDo(async () => callOrder.push("write"))
-		when(serverModelInfo.init(applicationTypesGetOut.applicationTypesHash, anything())).thenDo(() => callOrder.push("assign"))
-
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson())
-		o(callOrder).deepEquals(["assign", "write"])
-	})
-
 	o("should attempt to write file but not propagate write error", async () => {
 		when(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 		).thenResolve(mockResponse)
 
-		let applicationTypesGetOut = createApplicationTypesGetOutFromResponse(mockResponse)
-		when(serverModelInfo.init(applicationTypesGetOut.applicationTypesHash, anything())).thenReturn()
+		let expectedReturn = createApplicationTypesGetOutFromResponse(mockResponse)
 		when(fileFacade.writeToAppDir(anything(), anything())).thenReject(Error("writing failed simulation failed"))
 
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson())
-
-		// verify that server model is updated even if writing to disk fails
-		verify(serverModelInfo.init(anything(), anything()))
+		let actualReturn = await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson())
+		o(actualReturn).equals(expectedReturn)
 	})
 
 	o("should attempt to read but not fail on read error", async () => {
 		when(fileFacade.readDataFile(anything())).thenReject(Error("reading failed simulation failed"))
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo))
-
-		// verify nothing changed in ServerModelInfo
+		await withOverriddenEnv({ mode: Mode.Desktop }, () => new ApplicationTypesFacade(object(), fileFacade, serverModelInfo))
 		// did not throw
 	})
 
 	for (const targetEnv of Object.values(Mode)) {
 		const shouldPersist = ["Desktop", "App"].includes(targetEnv)
 
-		o(`Server model for should persist for native platforms: ${targetEnv}`, async () => {
+		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {
 			when(
 				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 			).thenResolve(mockResponse)
-			when(serverModelInfo.init(anything(), anything())).thenResolve()
 			when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve(downcast({})))
-
-			await withOverriddenEnv({ mode: targetEnv }, () => applicationTypesFacade.getServerApplicationTypesJson())
-
+			let expectedResult = createApplicationTypesGetOutFromResponse(mockResponse)
+			let actualResult = await withOverriddenEnv({ mode: targetEnv }, () => applicationTypesFacade.getServerApplicationTypesJson())
+			o(actualResult).equals(expectedResult)
 			verify(fileFacade.writeToAppDir(anything(), anything()), { times: shouldPersist ? 1 : 0 })
 		})
 
 		o(`Server model should be initialised from file for native platforms: ${targetEnv}`, async () => {
-			await withOverriddenEnv({ mode: targetEnv }, () => ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo))
+			await withOverriddenEnv({ mode: targetEnv }, () => new ApplicationTypesFacade(object(), fileFacade, serverModelInfo))
 			verify(fileFacade.readFromAppDir(anything()), { times: shouldPersist ? 1 : 0 })
 		})
 	}

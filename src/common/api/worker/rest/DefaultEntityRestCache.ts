@@ -277,6 +277,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	) {}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+		console.log(">>>> load cache")
 		const useCache = this.shouldUseCache(typeRef, opts)
 		if (!useCache) {
 			return await this.entityRestClient.load(typeRef, id, opts)

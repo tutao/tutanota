@@ -258,6 +258,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
+		console.log(">>>> load client")
 		const parsedInstance = await this.loadParsedInstance(typeRef, id, opts)
 		return await this.mapInstanceToEntity(typeRef, parsedInstance)
 	}
