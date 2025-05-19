@@ -301,25 +301,16 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const paymentMethod = selectorAttrs.accountingInfo?.paymentMethod ?? null
 		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
-			console.log(prices, "prices in upgrade sub dialog")
 			if (prices != null) {
-				if (hasGlobalFirstYearDiscount && targetSubscription === PlanType.Legend && interval == PaymentInterval.Yearly) {
-					const revolutionaryPrice = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())
-					priceStr = revolutionaryPrice?.displayYearlyPerYear ?? NBSP
-					// if there is a discount for this plan we show the original price as reference
-					referencePriceStr = prices?.displayYearlyPerYear
-					priceType = PriceType.YearlyPerYear
-				} else {
-					switch (interval) {
-						case PaymentInterval.Monthly:
-							priceStr = prices.displayMonthlyPerMonth
-							priceType = PriceType.MonthlyPerMonth
-							break
-						case PaymentInterval.Yearly:
-							priceStr = prices.displayYearlyPerYear
-							priceType = PriceType.YearlyPerYear
-							break
-					}
+				switch (interval) {
+					case PaymentInterval.Monthly:
+						priceStr = prices.displayMonthlyPerMonth
+						priceType = PriceType.MonthlyPerMonth
+						break
+					case PaymentInterval.Yearly:
+						priceStr = prices.displayYearlyPerYear
+						priceType = PriceType.YearlyPerYear
+						break
 				}
 			} else {
 				// when can this happen?
