@@ -211,7 +211,6 @@ mod tests {
 						pubKeyVersion: current_key_version as i64,
 						pubKyberKey: Some(pub_kyber_key.to_vec()),
 						pubRsaKey: None,
-						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -247,7 +246,6 @@ mod tests {
 						pubKeyVersion: current_key_version as i64,
 						pubKyberKey: None,
 						pubRsaKey: Some(pub_rsa_key.to_vec()),
-						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -300,7 +298,6 @@ mod tests {
 						pubKeyVersion: requested_version as i64,
 						pubKyberKey: Some(get_kyber_pub_key_bytes().to_vec()),
 						pubRsaKey: None,
-						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -345,7 +342,6 @@ mod tests {
 						pubKeyVersion: current_key_version as i64,
 						pubKyberKey: Some(pub_kyber_key.to_vec()),
 						pubRsaKey: None,
-						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -382,7 +378,6 @@ mod tests {
 						pubKeyVersion: requested_version as i64,
 						pubKyberKey: None,
 						pubRsaKey: Some(pub_rsa_key.to_vec()),
-						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -425,7 +420,6 @@ mod tests {
 						pubKeyVersion: bad_version_from_server,
 						pubKyberKey: Some(pub_key_for_mock.clone()),
 						pubRsaKey: None,
-						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
