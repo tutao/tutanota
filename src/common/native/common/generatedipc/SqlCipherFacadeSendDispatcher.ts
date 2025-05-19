@@ -7,6 +7,12 @@ interface NativeInterface {
 }
 export class SqlCipherFacadeSendDispatcher implements SqlCipherFacade {
 	constructor(private readonly transport: NativeInterface) {}
+	async emptyTables(...args: Parameters<SqlCipherFacade["emptyTables"]>) {
+		return this.transport.invokeNative("ipc", ["SqlCipherFacade", "emptyTables", ...args])
+	}
+	async dropTables(...args: Parameters<SqlCipherFacade["dropTables"]>) {
+		return this.transport.invokeNative("ipc", ["SqlCipherFacade", "dropTables", ...args])
+	}
 	async openDb(...args: Parameters<SqlCipherFacade["openDb"]>) {
 		return this.transport.invokeNative("ipc", ["SqlCipherFacade", "openDb", ...args])
 	}

@@ -1,6 +1,7 @@
 import { OfflineMigration } from "../OfflineStorageMigrator.js"
-import { OfflineStorage, TableDefinitions } from "../OfflineStorage.js"
+import { OfflineStorage } from "../OfflineStorage.js"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
+import { TableDefinitions } from "../../../common/OfflineStorageConstants"
 
 export const offline5: OfflineMigration = {
 	app: "offline",

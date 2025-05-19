@@ -7,6 +7,14 @@ export class SqlCipherFacadeReceiveDispatcher {
 	constructor(private readonly facade: SqlCipherFacade) {}
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
+			case "emptyTables": {
+				const tableNames: ReadonlyArray<string> = arg[0]
+				return this.facade.emptyTables(tableNames)
+			}
+			case "dropTables": {
+				const tableNames: ReadonlyArray<string> = arg[0]
+				return this.facade.dropTables(tableNames)
+			}
 			case "openDb": {
 				const userId: string = arg[0]
 				const dbKey: Uint8Array = arg[1]

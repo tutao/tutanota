@@ -7,6 +7,12 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 interface SqlCipherFacade {
+	suspend fun emptyTables(
+		tableNames: List<String>,
+	): Unit
+	suspend fun dropTables(
+		tableNames: List<String>,
+	): Unit
 	suspend fun openDb(
 		userId: String,
 		dbKey: DataWrapper,

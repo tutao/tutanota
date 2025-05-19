@@ -342,7 +342,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		this.lastBatchIdPerGroup.set(groupId, batchId)
 	}
 
-	purgeStorage(): Promise<void> {
+	purgeCacheStorage(): Promise<void> {
 		return Promise.resolve()
 	}
 

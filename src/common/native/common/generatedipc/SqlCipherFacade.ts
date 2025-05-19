@@ -2,6 +2,10 @@
 
 import { TaggedSqlValue } from "./TaggedSqlValue.js"
 export interface SqlCipherFacade {
+	emptyTables(tableNames: ReadonlyArray<string>): Promise<void>
+
+	dropTables(tableNames: ReadonlyArray<string>): Promise<void>
+
 	openDb(userId: string, dbKey: Uint8Array): Promise<void>
 
 	closeDb(): Promise<void>

@@ -72,4 +72,12 @@ export class WorkerSqlCipher implements SqlCipherFacade {
 	async unlockRangesDbAccess(listId: string): Promise<void> {
 		return this.dispatcher.postRequest(new Request("unlockRangesDbAccess", [listId]))
 	}
+
+	async emptyTables(tableNames: string[]): Promise<void> {
+		return this.dispatcher.postRequest(new Request("emptyTables", [tableNames]))
+	}
+
+	async dropTables(tableNames: string[]): Promise<void> {
+		return this.dispatcher.postRequest(new Request("dropTables", [tableNames]))
+	}
 }

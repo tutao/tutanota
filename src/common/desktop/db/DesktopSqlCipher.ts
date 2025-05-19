@@ -150,6 +150,26 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		return Promise.resolve()
 	}
 
+	async emptyTables(tableNames: string[]): Promise<void> {
+		for (let name of tableNames) {
+			await this.run(
+				`DELETE
+                 FROM ${name}`,
+				[],
+			)
+		}
+	}
+
+	async dropTables(tableNames: string[]): Promise<void> {
+		for (let name of tableNames) {
+			await this.run(
+				`DROP
+				 TABLE ${name}`,
+				[],
+			)
+		}
+	}
+
 	private checkIntegrity() {
 		/**
 		 * Throws a CryptoError if MAC verification fails

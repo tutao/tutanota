@@ -4,6 +4,22 @@
 	senders: ["web"],
 	receivers: ["desktop", "android", "ios"],
 	methods: {
+		emptyTables: {
+			arg: [
+				{
+					tableNames: "List<string>",
+				},
+			],
+			ret: "void",
+		},
+		dropTables: {
+			arg: [
+				{
+					tableNames: "List<string>",
+				},
+			],
+			ret: "void",
+		},
 		openDb: {
 			arg: [
 				{

@@ -134,6 +134,26 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 		await this.refCounter.unlockRangesDbAccess(userId, listId)
 	}
 
+	async emptyTables(tableNames: string[]): Promise<void> {
+		for (let name of tableNames) {
+			await this.run(
+				`DELETE
+                 FROM ${name}`,
+				[],
+			)
+		}
+	}
+
+	async dropTables(tableNames: string[]): Promise<void> {
+		for (let name of tableNames) {
+			await this.run(
+				`DROP
+				 TABLE ${name}`,
+				[],
+			)
+		}
+	}
+
 	private async db(): Promise<SqlCipherFacade> {
 		if (this.state == null) {
 			throw new OfflineDbClosedError()
