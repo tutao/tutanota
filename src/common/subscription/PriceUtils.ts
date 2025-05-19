@@ -253,6 +253,21 @@ export class PriceAndConfigProvider {
 			return null
 		}
 	}
+
+	/**
+	 * Return if the user is eligible for paid plans with an introductory discount offer from Apple Payment.
+	 */
+	getIosIntroOfferEligibility(): boolean {
+		if (!isIOSApp()) return false
+
+		let res = false
+		for (const [key, price] of assertNotNull(this.mobilePrices)) {
+			if (price.isEligibleForIntroOffer) {
+				res = true
+			}
+		}
+		return res
+	}
 }
 
 function getPriceForUpgradeType(upgrade: UpgradePriceType, prices: WebsitePlanPrices): number {

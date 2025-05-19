@@ -101,6 +101,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 	private renderHeadline(
 		msg: MaybeTranslation | null,
+		priceAndConfigProvider: PriceAndConfigProvider,
 		currentPlanType: PlanType | null,
 		priceInfoTextId: TranslationKey | null,
 		isBusiness: boolean,
@@ -125,7 +126,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			return wrapInDiv(lang.get("firstMonthForFree_msg"), { marginTop: px(size.vpad), marginBottom: px(size.vpad) })
 		}
 
-		if (isCampaign && !isBusiness) {
+		if (isCampaign && !isBusiness && (isIOSApp() ? priceAndConfigProvider.getIosIntroOfferEligibility() : true)) {
 			return wrapInDiv("One-time offer: Save 50% now!", { margin: "1em auto 0 auto" })
 		}
 	}
@@ -189,10 +190,28 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const buyBoxesViewPlacement = plans
 			.filter((plan) => acceptedPlans.includes(plan) || currentPlanType === plan)
 			.map((personalPlan, i) => {
+				const paymentMethod = vnode.attrs.accountingInfo?.paymentMethod
+				const isPersonalPaidPlan = personalPlan === PlanType.Legend || personalPlan === PlanType.Revolutionary
+
+				const hasFirstYearDiscount = (() => {
+					if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
+						const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[personalPlan].toLowerCase())
+						return (
+							hasGlobalFirstYearDiscount &&
+							isPersonalPaidPlan &&
+							isYearly &&
+							!!prices?.isEligibleForIntroOffer &&
+							!!prices?.displayOfferYearlyPerYear
+						)
+					} else {
+						return hasGlobalFirstYearDiscount && isPersonalPaidPlan && isYearly
+					}
+				})()
+
 				// only show category title for the leftmost item
 				return [
-					this.renderBuyOptionBox(vnode.attrs, inMobileView, personalPlan, hasGlobalFirstYearDiscount),
-					this.renderBuyOptionDetails(vnode.attrs, i === 0, personalPlan, featureExpander, hasGlobalFirstYearDiscount),
+					this.renderBuyOptionBox(vnode.attrs, inMobileView, personalPlan, hasFirstYearDiscount),
+					this.renderBuyOptionDetails(vnode.attrs, i === 0, personalPlan, featureExpander, hasFirstYearDiscount),
 				]
 			})
 
@@ -220,6 +239,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				: null,
 			this.renderHeadline(
 				msg,
+				priceAndConfigProvider,
 				currentPlanType,
 				priceInfoTextId,
 				options.businessUse(),
@@ -277,20 +297,18 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		selectorAttrs: SubscriptionSelectorAttr,
 		targetSubscription: AvailablePlanType,
 		mobile: boolean,
-		hasGlobalFirstYearDiscount: boolean,
+		hasFirstYearDiscount: boolean,
 	): BuyOptionBoxAttr {
 		const { priceAndConfigProvider } = selectorAttrs
 
 		// we highlight the center box if this is a signup or the current subscription type is Free
 		const interval = selectorAttrs.options.paymentInterval()
-		const isPersonalPaidPlan = targetSubscription === PlanType.Legend || targetSubscription === PlanType.Revolutionary
 		const upgradingToPaidAccount = !selectorAttrs.currentPlanType || selectorAttrs.currentPlanType === PlanType.Free
 		// If we are on a campaign, we want to let the user know the discount is just for the first year.
 		const isYearly = interval === PaymentInterval.Yearly
-		const hasFirstYearDiscount = !isIOSApp() && hasGlobalFirstYearDiscount && isPersonalPaidPlan && isYearly
-		const isHighlighted = (() => {
-			return hasFirstYearDiscount || (upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription))
-		})()
+		const paymentMethod = selectorAttrs.accountingInfo?.paymentMethod ?? null
+		const isHighlighted = hasFirstYearDiscount || (upgradingToPaidAccount && HighlightedPlans.includes(targetSubscription))
+
 		const multiuser = NewBusinessPlans.includes(targetSubscription) || LegacyPlans.includes(targetSubscription) || selectorAttrs.multipleUsersAllowed
 
 		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(interval, targetSubscription, UpgradePriceType.PlanActualPrice)
@@ -298,7 +316,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		let priceStr: string
 		let referencePriceStr: string | undefined = undefined
 		let priceType: PriceType
-		const paymentMethod = selectorAttrs.accountingInfo?.paymentMethod ?? null
 		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
@@ -308,8 +325,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						priceType = PriceType.MonthlyPerMonth
 						break
 					case PaymentInterval.Yearly: {
-						if (hasGlobalFirstYearDiscount && prices.isEligibleForIntroOffer && prices.displayOfferYearlyPerYear) {
-							priceStr = prices.displayOfferYearlyPerYear
+						if (hasFirstYearDiscount) {
+							priceStr = prices.displayOfferYearlyPerYear!
 							referencePriceStr = prices.displayYearlyPerYear
 						} else {
 							priceStr = prices.displayYearlyPerYear
@@ -331,7 +348,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			if (referencePrice > subscriptionPrice) {
 				// if there is a discount for this plan we show the original price as reference
 				referencePriceStr = formatMonthlyPrice(referencePrice, interval)
-			} else if (interval == PaymentInterval.Yearly && subscriptionPrice !== 0 && !hasGlobalFirstYearDiscount) {
+			} else if (interval == PaymentInterval.Yearly && subscriptionPrice !== 0 && !hasFirstYearDiscount) {
 				// if there is no discount for any plan then we show the monthly price as reference
 				const monthlyReferencePrice = priceAndConfigProvider.getSubscriptionPrice(
 					PaymentInterval.Monthly,
@@ -358,7 +375,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			price: priceStr,
 			referencePrice: referencePriceStr,
 			priceHint: lang.makeTranslation("price_hint", `${getPriceHint(subscriptionPrice, priceType, multiuser)}`),
-			hasPriceFootnote: appliesFirstMonthForFree || hasFirstYearDiscount,
+			hasPriceFootnote: appliesFirstMonthForFree || (!isIOSApp() && hasFirstYearDiscount),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
@@ -372,7 +389,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
 					: 0,
 			targetSubscription,
-			hasGlobalCampaign: hasGlobalFirstYearDiscount,
+			hasFirstYearDiscount: hasFirstYearDiscount,
 			isFirstMonthForFree: appliesFirstMonthForFree,
 		}
 	}
@@ -381,7 +398,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		selectorAttrs: SubscriptionSelectorAttr,
 		targetSubscription: AvailablePlanType,
 		renderCategoryTitle: boolean,
-		isCampaign: boolean,
+		hasFirstYearDiscount: boolean,
 	): BuyOptionDetailsAttr {
 		const { featureListProvider } = selectorAttrs
 		const subscriptionFeatures = featureListProvider.getFeatureList(targetSubscription)
@@ -391,14 +408,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			})
 			.filter((fc): fc is BuyOptionDetailsAttr["categories"][0] => fc != null)
 
-		const isPersonalPaidPlan = targetSubscription === PlanType.Legend || targetSubscription === PlanType.Revolutionary
-		const isYearly = selectorAttrs.options.paymentInterval() === PaymentInterval.Yearly
-
 		return {
 			categories: categoriesToShow,
 			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
 			renderCategoryTitle,
-			iconStyle: isCampaign && isYearly && isPersonalPaidPlan ? { fill: "#e5c650" } : undefined,
+			iconStyle: hasFirstYearDiscount ? { fill: "#e5c650" } : undefined,
 		}
 	}
 

@@ -41,7 +41,7 @@ export type BuyOptionBoxAttr = {
 	 * Nullable because of the gift card component compatibility
 	 */
 	targetSubscription?: AvailablePlanType
-	hasGlobalCampaign?: boolean
+	hasFirstYearDiscount?: boolean
 	isFirstMonthForFree?: boolean
 	hasPriceFootnote?: boolean
 }
@@ -143,12 +143,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	view(vnode: Vnode<BuyOptionBoxAttr>) {
 		const { attrs } = vnode
 
-		const hasGlobalCampaign = attrs.hasGlobalCampaign ?? false
 		const isPersonalPaidPlan = attrs.targetSubscription === PlanType.Revolutionary || attrs.targetSubscription === PlanType.Legend
 		const isYearly = (attrs.selectedPaymentInterval == null ? attrs.accountPaymentInterval : attrs.selectedPaymentInterval()) === PaymentInterval.Yearly
 
 		function getRibbon(): Children {
-			if (isPersonalPaidPlan && hasGlobalCampaign && isYearly) {
+			if (attrs.hasFirstYearDiscount) {
 				return BuyOptionBox.renderCampaignRibbon()
 			}
 
@@ -187,9 +186,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							"border-radius": "3px",
 							height: "100%",
 							...(attrs.highlighted &&
-								isPersonalPaidPlan &&
-								hasGlobalCampaign &&
-								isYearly && {
+								attrs.hasFirstYearDiscount && {
 									border: `2px solid ${theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013E85" : "#ffffff"}`,
 									padding: px(9),
 								}),
@@ -197,9 +194,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 					},
 					[
 						getRibbon(),
-						typeof attrs.heading === "string"
-							? this.renderHeading(attrs.heading, attrs.highlighted && hasGlobalCampaign && isYearly)
-							: attrs.heading,
+						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
 						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined),
 						m(
 							".small.flex",
@@ -208,7 +203,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							vnode.attrs.hasPriceFootnote && m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
 						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
-						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, isPersonalPaidPlan && hasGlobalCampaign && isYearly),
+						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, !!attrs.hasFirstYearDiscount),
 						attrs.actionButton
 							? m(
 									".button-min-height",
@@ -291,7 +286,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			: null
 	}
 
-	private renderHeading(heading: string, isHighlighted?: boolean): Children {
+	private renderHeading(heading: string): Children {
 		return m(
 			// we need some margin for the discount banner for longer translations shown on the website
 			".h4.text-center.mb-small-line-height.flex.col.center-horizontally.mlr-l.dialog-header",
