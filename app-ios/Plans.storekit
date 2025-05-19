@@ -1,14 +1,4 @@
 {
-  "appPolicies" : {
-    "eula" : "",
-    "policies" : [
-      {
-        "locale" : "en_US",
-        "policyText" : "",
-        "policyURL" : ""
-      }
-    ]
-  },
   "identifier" : "368E468C",
   "nonRenewingSubscriptions" : [
 
@@ -17,7 +7,10 @@
 
   ],
   "settings" : {
+    "_applicationInternalID" : "922429609",
+    "_developerTeamID" : "JKCH89Z3M9",
     "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 737281866.58363402,
     "_locale" : "en_US",
     "_storefront" : "USA",
     "_storeKitErrors" : [
@@ -99,10 +92,7 @@
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Legend (Monthly)",
           "subscriptionGroupID" : "21467136",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
+          "type" : "RecurringSubscription"
         },
         {
           "adHocOffers" : [
@@ -127,10 +117,7 @@
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Legend (Yearly)",
           "subscriptionGroupID" : "21467136",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
+          "type" : "RecurringSubscription"
         },
         {
           "adHocOffers" : [
@@ -155,10 +142,7 @@
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Revolutionary (Monthly)",
           "subscriptionGroupID" : "21467136",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
+          "type" : "RecurringSubscription"
         },
         {
           "adHocOffers" : [
@@ -183,16 +167,13 @@
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Revolutionary (Yearly)",
           "subscriptionGroupID" : "21467136",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
+          "type" : "RecurringSubscription"
         }
       ]
     }
   ],
   "version" : {
-    "major" : 4,
+    "major" : 3,
     "minor" : 0
   }
 }
