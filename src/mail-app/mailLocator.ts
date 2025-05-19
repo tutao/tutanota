@@ -135,7 +135,7 @@ import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
-import { ClientModelInfo, ClientTypeModelResolver, ServerModelInfo, TypeModelResolver } from "../common/api/common/EntityFunctions"
+import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 
 assertMainOrNode()
 

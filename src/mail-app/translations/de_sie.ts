@@ -2034,6 +2034,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"offlineDbUnavailableNoTypes_msg": "Offline-Anmeldung ist gerade nicht verfügbar. Bitte verbinden Sie sich mit dem Internet und versuchen Sie es noch einmal."
 	}
 }

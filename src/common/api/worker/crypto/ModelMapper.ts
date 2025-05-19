@@ -157,7 +157,6 @@ export class ModelMapper {
 		const clientTypeModel = await this.clientTypeReferenceResolver(typeRef)
 		// the server sent the instance, so it should be in the server's type models no matter what.
 		const serverTypeModel = await this.serverTypeReferenceResolver(typeRef)
-
 		const clientInstance: Record<string, unknown> = {
 			_type: typeRef,
 			_finalIvs: parsedInstance._finalIvs,

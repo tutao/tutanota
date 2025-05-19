@@ -7,7 +7,7 @@ import { HttpMethod, MediaType, ServerModelInfo, ServerModels } from "../../../.
 import { Mode } from "../../../../../src/common/api/common/Env"
 import { AppName, AppNameEnum } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ModelAssociation, ServerTypeModel } from "../../../../../src/common/api/common/EntityTypes"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { FileFacade } from "../../../../../src/common/native/common/generatedipc/FileFacade"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
 import { getServiceRestPath } from "../../../../../src/common/api/worker/rest/ServiceExecutor"
@@ -22,58 +22,58 @@ o.spec("ApplicationTypesFacadeTest", function () {
 	let fileFacade: FileFacade
 	let applicationTypesFacade: ApplicationTypesFacade
 	let serverModelInfo: ServerModelInfo
-	let mockResponse = compressString(
-		JSON.stringify({
-			applicationTypesHash: "currentApplicationHash",
-			applicationTypesJson: JSON.stringify({
-				tutanota: {
-					name: AppNameEnum.Tutanota,
-					version: 10,
+	const mockResponseTypeHash = "wPjPWTI="
+	const mockModel = {
+		applicationTypesHash: mockResponseTypeHash,
+		applicationTypesJson: JSON.stringify({
+			tutanota: {
+				name: AppNameEnum.Tutanota,
+				version: 10,
 
-					types: {
-						"42": {
-							app: "tutanota" satisfies AppName,
-							encrypted: true,
-							id: 42,
-							name: "TestType",
-							rootId: "SoMeId",
-							since: 0,
-							type: Type.ListElement,
-							isPublic: true,
-							values: {},
-							associations: {
-								"3": {
-									id: 3,
-									name: "testAssociation",
-									type: AssociationType.Aggregation,
-									cardinality: Cardinality.One,
-									refTypeId: 43,
-									final: false,
-									dependency: "tutanota",
-								} satisfies ModelAssociation,
-							},
-							version: 0,
-							versioned: false,
-						} as unknown as ServerTypeModel,
-					},
+				types: {
+					"42": {
+						app: "tutanota" satisfies AppName,
+						encrypted: true,
+						id: 42,
+						name: "TestType",
+						rootId: "SoMeId",
+						since: 0,
+						type: Type.ListElement,
+						isPublic: true,
+						values: {},
+						associations: {
+							"3": {
+								id: 3,
+								name: "testAssociation",
+								type: AssociationType.Aggregation,
+								cardinality: Cardinality.One,
+								refTypeId: 43,
+								final: false,
+								dependency: "tutanota",
+							} satisfies ModelAssociation,
+						},
+						version: 0,
+						versioned: false,
+					} as unknown as ServerTypeModel,
 				},
+			},
 
-				base: { version: 10, types: {}, name: AppNameEnum.Base },
-				sys: { version: 10, types: {}, name: AppNameEnum.Sys },
-				usage: { version: 10, types: {}, name: AppNameEnum.Usage },
-				monitor: { version: 10, types: {}, name: AppNameEnum.Monitor },
-				gossip: { version: 10, types: {}, name: AppNameEnum.Gossip },
-				storage: { version: 10, types: {}, name: AppNameEnum.Storage },
-				accounting: { version: 10, types: {}, name: AppNameEnum.Accounting },
-			} satisfies ServerModels),
-		}),
-	)
+			base: { version: 10, types: {}, name: AppNameEnum.Base },
+			sys: { version: 10, types: {}, name: AppNameEnum.Sys },
+			usage: { version: 10, types: {}, name: AppNameEnum.Usage },
+			monitor: { version: 10, types: {}, name: AppNameEnum.Monitor },
+			gossip: { version: 10, types: {}, name: AppNameEnum.Gossip },
+			storage: { version: 10, types: {}, name: AppNameEnum.Storage },
+			accounting: { version: 10, types: {}, name: AppNameEnum.Accounting },
+		} satisfies ServerModels),
+	}
+	let mockResponse = compressString(JSON.stringify(mockModel))
 
 	o.beforeEach(async function () {
 		restClient = object()
 		fileFacade = object()
 		serverModelInfo = object()
-		applicationTypesFacade = await ApplicationTypesFacade.getInitialized(restClient, fileFacade, serverModelInfo)
+		applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
 	})
 
 	o("getServerApplicationTypesJson does only one service request for requests made in quick succession", async function () {
@@ -83,9 +83,9 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 		).thenResolve(mockResponse)
 
-		const promise1 = applicationTypesFacade.getServerApplicationTypesJson()
-		const promise2 = applicationTypesFacade.getServerApplicationTypesJson()
-		const promise3 = applicationTypesFacade.getServerApplicationTypesJson()
+		const promise1 = applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
+		const promise2 = applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
+		const promise3 = applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
 
 		await promise1
 		await promise2
@@ -104,9 +104,9 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 		).thenResolve(mockResponse)
 
-		const promise1 = applicationTypesFacade.getServerApplicationTypesJson()
+		const promise1 = applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
 		await new Promise((resolve) => setTimeout(resolve, 101))
-		const promise2 = applicationTypesFacade.getServerApplicationTypesJson()
+		const promise2 = applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
 
 		await promise1
 		await promise2
@@ -120,61 +120,59 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		return JSON.parse(decompressString(applicationTypesGetOut)) as ApplicationTypesGetOut
 	}
 
-	o("server model should be assigned to memory first and write to file later", async () => {
-		when(
-			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
-		).thenResolve(mockResponse)
-
-		let applicationTypesGetOut = createApplicationTypesGetOutFromResponse(mockResponse)
-		let callOrder = new Array<string>()
-		when(fileFacade.writeToAppDir(anything(), anything())).thenDo(async () => callOrder.push("write"))
-		when(serverModelInfo.init(applicationTypesGetOut.applicationTypesHash, anything())).thenDo(() => callOrder.push("assign"))
-
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson())
-		o(callOrder).deepEquals(["assign", "write"])
-	})
-
 	o("should attempt to write file but not propagate write error", async () => {
 		when(
 			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 		).thenResolve(mockResponse)
 
-		let applicationTypesGetOut = createApplicationTypesGetOutFromResponse(mockResponse)
-		when(serverModelInfo.init(applicationTypesGetOut.applicationTypesHash, anything())).thenReturn()
+		let expectedReturn = createApplicationTypesGetOutFromResponse(mockResponse)
 		when(fileFacade.writeToAppDir(anything(), anything())).thenReject(Error("writing failed simulation failed"))
 
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson())
-
-		// verify that server model is updated even if writing to disk fails
-		verify(serverModelInfo.init(anything(), anything()))
+		let actualReturn = await withOverriddenEnv({ mode: Mode.Desktop }, () => applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash))
+		o(actualReturn).deepEquals(expectedReturn)
 	})
 
 	o("should attempt to read but not fail on read error", async () => {
 		when(fileFacade.readDataFile(anything())).thenReject(Error("reading failed simulation failed"))
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo))
-
-		// verify nothing changed in ServerModelInfo
+		await withOverriddenEnv({ mode: Mode.Desktop }, () => new ApplicationTypesFacade(object(), fileFacade, serverModelInfo))
 		// did not throw
 	})
 
 	for (const targetEnv of Object.values(Mode)) {
 		const shouldPersist = ["Desktop", "App"].includes(targetEnv)
 
-		o(`Server model for should persist for native platforms: ${targetEnv}`, async () => {
+		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {
 			when(
 				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
 			).thenResolve(mockResponse)
-			when(serverModelInfo.init(anything(), anything())).thenResolve()
 			when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve(downcast({})))
-
-			await withOverriddenEnv({ mode: targetEnv }, () => applicationTypesFacade.getServerApplicationTypesJson())
-
+			let expectedResult = createApplicationTypesGetOutFromResponse(mockResponse)
+			let actualResult = await withOverriddenEnv({ mode: targetEnv }, () => applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash))
+			o(actualResult).deepEquals(expectedResult)
 			verify(fileFacade.writeToAppDir(anything(), anything()), { times: shouldPersist ? 1 : 0 })
 		})
 
 		o(`Server model should be initialised from file for native platforms: ${targetEnv}`, async () => {
-			await withOverriddenEnv({ mode: targetEnv }, () => ApplicationTypesFacade.getInitialized(object(), fileFacade, serverModelInfo))
+			when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array(mockModel.applicationTypesJson))
+			when(
+				restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
+			).thenResolve(mockResponse)
+			await withOverriddenEnv({ mode: targetEnv }, () =>
+				new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).getServerApplicationTypesJson(null),
+			)
 			verify(fileFacade.readFromAppDir(anything()), { times: shouldPersist ? 1 : 0 })
 		})
 	}
+
+	o("AAAA Server model should be fetched from server if local copy hash does not match", async () => {
+		when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array("{}"))
+		when(
+			restClient.request(getServiceRestPath(ApplicationTypesService as ServiceDefinition), HttpMethod.GET, { responseType: MediaType.Binary }),
+		).thenResolve(mockResponse)
+
+		await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+			const newServerModel = await new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).getServerApplicationTypesJson("new-server-hash")
+			o(newServerModel).deepEquals(mockModel)
+		})
+	})
 })

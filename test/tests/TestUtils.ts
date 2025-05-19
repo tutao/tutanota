@@ -3,7 +3,7 @@ import type { Db } from "../../src/common/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/mail-app/workerUtils/index/IndexerCore.js"
 import { EventQueue } from "../../src/common/api/worker/EventQueue.js"
 import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFacade.js"
-import { AppNameEnum, assertNotNull, clone, deepEqual, defer, Thunk, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, deepEqual, defer, Thunk, TypeRef } from "@tutao/tutanota-utils"
 import type { DesktopKeyStoreFacade } from "../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/tutanota-test-utils"
 import { aes256RandomKey, fixedIv, uint8ArrayToKey } from "@tutao/tutanota-crypto"
@@ -11,7 +11,7 @@ import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/co
 import { matchers, object, when } from "testdouble"
 import { Entity, ModelValue, TypeModel } from "../../src/common/api/common/EntityTypes.js"
 import { create } from "../../src/common/api/common/utils/EntityUtils.js"
-import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../src/common/api/common/EntityFunctions.js"
+import { ClientModelInfo, ServerModelInfo, ServerModels, TypeModelResolver } from "../../src/common/api/common/EntityFunctions.js"
 import { type fetch as undiciFetch, type Response } from "undici"
 import { Cardinality, ValueType } from "../../src/common/api/common/EntityConstants.js"
 import { InstancePipeline } from "../../src/common/api/worker/crypto/InstancePipeline"
@@ -267,8 +267,7 @@ export function removeAggregateIds(instance: Entity, aggregate: boolean = false)
 	}
 	return instance
 }
-
-export function clientModelAsServerModel(serverModel: ServerModelInfo, clientModel: ClientModelInfo) {
+export function clientModelAsServerModel(clientModel: ClientModelInfo): ServerModelInfo {
 	let models = Object.keys(clientModel.typeModels).reduce((obj, app) => {
 		Object.assign(obj, {
 			[app]: {
@@ -278,17 +277,18 @@ export function clientModelAsServerModel(serverModel: ServerModelInfo, clientMod
 			},
 		})
 		return obj
-	}, {})
-
-	serverModel.init("some_dummy_hash", models)
+	}, {}) as ServerModels
+	const modelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModel, () => {
+		throw new Error("should not fetch in test")
+	})
+	modelInfo.typeModels = models
+	return modelInfo
 }
 
 export function clientInitializedTypeModelResolver(): TypeModelResolver {
 	const clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
-	const serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo)
-	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)
-	clientModelAsServerModel(serverModelInfo, clientModelInfo)
-	return typeModelResolver
+	const serverModelInfo = clientModelAsServerModel(clientModelInfo)
+	return new TypeModelResolver(clientModelInfo, serverModelInfo)
 }
 
 export function instancePipelineFromTypeModelResolver(typeModelResolver: TypeModelResolver): InstancePipeline {

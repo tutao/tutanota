@@ -2030,6 +2030,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"offlineDbUnavailableNoTypes_msg": "Offline login is currently unavailable. Please connect to the internet and try again to fix this issue."
 	}
 }
