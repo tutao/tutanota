@@ -9,8 +9,8 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { resolveClientTypeReference, resolveServerTypeReference, resolveTypeRefFromAppAndTypeNameLegacy } from "../../common/EntityFunctions"
-import { OperationType, reverse } from "../../common/TutanotaConstants"
-import { assertNotNull, count, difference, getFirstOrThrow, getTypeString, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { OperationType } from "../../common/TutanotaConstants"
+import { assertNotNull, difference, getFirstOrThrow, getTypeString, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -251,19 +251,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getUserId(): Id
 
 	deleteAllOwnedBy(owner: Id): Promise<void>
-
-	/**
-	 * We want to lock the access to the "ranges" db when updating / reading the
-	 * offline available mail list ranges for each mail list (referenced using the listId)
-	 * @param listId the mail list that we want to lock
-	 */
-	lockRangesDbAccess(listId: Id): Promise<void>
-
-	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
-	 * @param listId the mail list that we want to unlock
-	 */
-	unlockRangesDbAccess(listId: Id): Promise<void>
 }
 
 /**
@@ -456,41 +443,33 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			throw new ProgrammingError("cannot write to cache without reading with range requests")
 		}
 
-		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the ranges database.
-		await this.storage.lockRangesDbAccess(listId)
+		const range = await this.storage.getRangeForList(typeRef, listId)
 
-		try {
-			const range = await this.storage.getRangeForList(typeRef, listId)
-
-			if (behavior.writesToCache) {
-				if (range == null) {
-					await this.populateNewListWithRange(typeRef, listId, start, count, reverse, opts)
-				} else if (isStartIdWithinRange(range, start, typeModel)) {
-					await this.extendFromWithinRange(typeRef, listId, start, count, reverse, opts)
-				} else if (isRangeRequestAwayFromExistingRange(range, reverse, start, typeModel)) {
-					await this.extendAwayFromRange(typeRef, listId, start, count, reverse, opts)
-				} else {
-					await this.extendTowardsRange(typeRef, listId, start, count, reverse, opts)
-				}
-				return await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+		if (behavior.writesToCache) {
+			if (range == null) {
+				await this.populateNewListWithRange(typeRef, listId, start, count, reverse, opts)
+			} else if (isStartIdWithinRange(range, start, typeModel)) {
+				await this.extendFromWithinRange(typeRef, listId, start, count, reverse, opts)
+			} else if (isRangeRequestAwayFromExistingRange(range, reverse, start, typeModel)) {
+				await this.extendAwayFromRange(typeRef, listId, start, count, reverse, opts)
 			} else {
-				if (range && isStartIdWithinRange(range, start, typeModel)) {
-					const provided = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
-					const { newStart, newCount } = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
-					const newElements = newCount > 0 ? await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse) : []
-					return provided.concat(newElements)
-				} else {
-					// Since our starting ID is not in our range, we can't use the cache because we don't know exactly what
-					// elements are missing.
-					//
-					// This can result in us re-retrieving elements we already have. Since we anyway must do a request,
-					// this is fine.
-					return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
-				}
+				await this.extendTowardsRange(typeRef, listId, start, count, reverse, opts)
 			}
-		} finally {
-			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-			await this.storage.unlockRangesDbAccess(listId)
+			return await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+		} else {
+			if (range && isStartIdWithinRange(range, start, typeModel)) {
+				const provided = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+				const { newStart, newCount } = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
+				const newElements = newCount > 0 ? await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse) : []
+				return provided.concat(newElements)
+			} else {
+				// Since our starting ID is not in our range, we can't use the cache because we don't know exactly what
+				// elements are missing.
+				//
+				// This can result in us re-retrieving elements we already have. Since we anyway must do a request,
+				// this is fine.
+				return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
+			}
 		}
 	}
 

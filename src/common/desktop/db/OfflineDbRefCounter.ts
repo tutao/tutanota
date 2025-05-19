@@ -96,41 +96,4 @@ export class OfflineDbRefCounter {
 		await this.offlineDbFactory.delete(userId)
 		log.debug(TAG, `Deleted db for user ${userId}`)
 	}
-
-	/**
-	 * We want to lock the access to the "ranges" table when updating / reading the
-	 * offline available mail list ranges for each mail list (referenced using the listId).
-	 * @param userId the user the mail list that we're locking belongs to
-	 * @param listId the mail list that we want to lock
-	 */
-	async lockRangesDbAccess(userId: Id, listId: Id): Promise<void> {
-		const entry = this.cache.get(userId)
-		if (entry == null) {
-			// should not happen because why would we lock a table that we do not hold a ref for.
-			// the caller will probably run into a offlineDbClosedError very soon.
-			throw new ProgrammingError("tried to lock a db that's not open.")
-		}
-		if (entry.listIdLocks.get(listId)) {
-			await entry.listIdLocks.get(listId)?.promise
-			entry.listIdLocks.set(listId, defer())
-		} else {
-			entry.listIdLocks.set(listId, defer())
-		}
-	}
-
-	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(userId, listId)".
-	 * @param userId the user the mail list that we're locking belongs to
-	 * @param listId the mail list that we want to unlock
-	 */
-	async unlockRangesDbAccess(userId: Id, listId: Id): Promise<void> {
-		const entry = this.cache.get(userId)
-		if (entry == null) {
-			// should not happen because why would we lock a table that we do not hold a ref for.
-			// the caller will probably run into a offlineDbClosedError very soon.
-			throw new ProgrammingError("tried to unlock a db that's not open.")
-		}
-		entry.listIdLocks.get(listId)?.resolve()
-		entry.listIdLocks.delete(listId)
-	}
 }
