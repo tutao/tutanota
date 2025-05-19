@@ -101,7 +101,7 @@ class AlarmNotificationsManagerTest {
 		val notFarIdentifier = "notFar"
 		val startDate = Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(20))
 		val notTooFarSingle = createEncryptedAlarmNotification(userId, notFarIdentifier, startDate, null)
-		manager.scheduleNewAlarms(listOf(notTooFarSingle))
+		manager.scheduleNewAlarms(listOf(notTooFarSingle), null)
 		val alarmtime = calculateAlarmTime(startDate, null, AlarmInterval(AlarmIntervalUnit.MINUTE, 10))
 		Mockito.verify(systemAlarmFacade)
 			.scheduleAlarmOccurrenceWithSystem(alarmtime, 0, notFarIdentifier, "summary", startDate, userId)
@@ -116,7 +116,7 @@ class AlarmNotificationsManagerTest {
 			)
 		)
 		val tooFarSingle = createEncryptedAlarmNotification(userId, identifier, startDate, null)
-		manager.scheduleNewAlarms(listOf(tooFarSingle))
+		manager.scheduleNewAlarms(listOf(tooFarSingle), null)
 		Mockito.verify(systemAlarmFacade, Mockito.never())
 			.scheduleAlarmOccurrenceWithSystem(any(), anyInt(), any(), any(), any(), any())
 	}
@@ -136,7 +136,7 @@ class AlarmNotificationsManagerTest {
 				emptyList()
 			)
 		val alarmNotification = createEncryptedAlarmNotification(userId, identifier, startDate, repeatRule)
-		manager.scheduleNewAlarms(listOf(alarmNotification))
+		manager.scheduleNewAlarms(listOf(alarmNotification), null)
 
 		// It should stop after the second one because it would be too far into the future otherwise.
 		// This test case assumes 2W border for future events. It's the only one which makes sense with our reminders anyway.
