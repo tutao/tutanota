@@ -12,7 +12,6 @@ import {
 	createWebsocketLeaderStatus,
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
-	EntityUpdate,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityDataTypeRef,
@@ -33,14 +32,13 @@ import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
-import { ApplicationTypesHash, TypeModelResolver } from "../common/EntityFunctions.js"
+import { ServerModelInfo, TypeModelResolver } from "../common/EntityFunctions.js"
 import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
 import { Entity, ServerModelUntypedInstance } from "../common/EntityTypes"
 import { InstancePipeline } from "./crypto/InstancePipeline"
-import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
@@ -153,7 +151,6 @@ export class EventBusClient {
 		private readonly sleepDetector: SleepDetector,
 		private readonly progressTracker: ExposedProgressTracker,
 		private readonly syncTracker: SyncTracker,
-		private readonly applicationTypesFacade: ApplicationTypesFacade,
 		private readonly typeModelResolver: TypeModelResolver,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
@@ -299,21 +296,20 @@ export class EventBusClient {
 		switch (type) {
 			case MessageType.EntityUpdate: {
 				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
-				await this.updateServerModelIfNeeded(entityUpdateData.applicationTypesHash)
+				this.typeModelResolver.setServerApplicationTypesModelHash(entityUpdateData.applicationTypesHash)
 				const updates = await promiseMap(entityUpdateData.entityUpdates, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
 				this.entityUpdateMessageQueue.add(entityUpdateData.eventBatchId, entityUpdateData.eventBatchOwner, updates)
 				break
 			}
 			case MessageType.UnreadCounterUpdate: {
 				const counterData = await this.decodeEntityEventValue(WebsocketCounterDataTypeRef, JSON.parse(value))
-				await this.updateServerModelIfNeeded(counterData.applicationTypesHash)
-
+				this.typeModelResolver.setServerApplicationTypesModelHash(counterData.applicationTypesHash)
 				this.listener.onCounterChanged(counterData)
 				break
 			}
 			case MessageType.PhishingMarkers: {
 				const data = await this.decodeEntityEventValue(PhishingMarkerWebsocketDataTypeRef, JSON.parse(value))
-				await this.updateServerModelIfNeeded(data.applicationTypesHash)
+				this.typeModelResolver.setServerApplicationTypesModelHash(data.applicationTypesHash)
 
 				this.lastAntiphishingMarkersId = data.lastId
 				this.listener.onPhishingMarkersReceived(data.markers)
@@ -322,7 +318,7 @@ export class EventBusClient {
 			case MessageType.LeaderStatus: {
 				const data = await this.decodeEntityEventValue(WebsocketLeaderStatusTypeRef, JSON.parse(value))
 				if (data.applicationTypesHash) {
-					await this.updateServerModelIfNeeded(data.applicationTypesHash)
+					this.typeModelResolver.setServerApplicationTypesModelHash(data.applicationTypesHash)
 				}
 
 				this.userFacade.setLeaderStatus(data)
@@ -332,13 +328,6 @@ export class EventBusClient {
 			default:
 				console.log("ws message with unknown type", type)
 				break
-		}
-	}
-
-	private async updateServerModelIfNeeded(applicationTypesHash: ApplicationTypesHash) {
-		// handle new server model and update the applicationTypesJson file if applicable
-		if (applicationTypesHash !== this.typeModelResolver.getServerApplicationTypesModelHash()) {
-			await this.applicationTypesFacade.getServerApplicationTypesJson()
 		}
 	}
 

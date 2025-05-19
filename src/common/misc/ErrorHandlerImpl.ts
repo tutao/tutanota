@@ -32,6 +32,7 @@ import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.j
 import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
+import { ServerModelsUnavailableError } from "../api/common/error/ServerModelsUnavailableError"
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
@@ -45,6 +46,7 @@ let serviceUnavailableDialogActive = false
 let requestTimeoutDialogActive = false
 let shownQuotaError = false
 let showingImportError = false
+let odbUnavailableDialogShown = false
 const ignoredMessages = ["webkitExitFullScreen", "googletag", "avast_submit"]
 
 export async function handleUncaughtErrorImpl(e: Error) {
@@ -131,6 +133,11 @@ export async function handleUncaughtErrorImpl(e: Error) {
 	} else if (e instanceof OfflineDbClosedError) {
 		if (!loginDialogActive) {
 			throw e
+		}
+	} else if (e instanceof ServerModelsUnavailableError) {
+		if (!odbUnavailableDialogShown) {
+			odbUnavailableDialogShown = true
+			Dialog.message("offlineDbUnavailableNoTypes_msg")
 		}
 	} else if (ignoredError(e)) {
 		// ignore, this is not our code

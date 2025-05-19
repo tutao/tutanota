@@ -7,8 +7,9 @@ import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
 import { ApplicationTypesFacade } from "../../../../src/common/api/worker/facades/ApplicationTypesFacade"
 import { object } from "testdouble"
-import { clientModelAsServerModel } from "../../TestUtils"
 import { TypeModel } from "../../../../src/common/api/common/EntityTypes"
+import { MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs"
+import { clientModelAsServerModel } from "../../TestUtils"
 
 o.spec("EntityFunctionsTest", function () {
 	let serverModelInfo: ServerModelInfo
@@ -17,9 +18,8 @@ o.spec("EntityFunctionsTest", function () {
 
 	o.beforeEach(async () => {
 		clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
-		serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo)
-		clientModelAsServerModel(serverModelInfo, clientModelInfo)
-		applicationTypesFacade = await ApplicationTypesFacade.getInitialized(object(), object(), serverModelInfo)
+		serverModelInfo = clientModelAsServerModel(clientModelInfo)
+		applicationTypesFacade = new ApplicationTypesFacade(object(), object(), serverModelInfo)
 	})
 
 	o.spec("parseModelValues", () => {
@@ -82,19 +82,24 @@ o.spec("EntityFunctionsTest", function () {
 
 		o("fail to parse if encrypted value is changed to unencrypted", async () => {
 			const serverModel = Object.assign({}, serverModelInfo.typeModels, partialServerModel)
-			const serverModelString = JSON.stringify({ base: serverModel })
+			const applicationTypesJson = JSON.stringify(serverModel)
+
+			const applicationTypesHash = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(applicationTypesJson))
 			clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
 			clientModelInfo.typeModels = Object.assign({}, clientModelInfo.typeModels, { base: clientModel })
-			serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo)
+			serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo, async () => ({
+				applicationTypesHash,
+				applicationTypesJson,
+			}))
 
-			const applicationTypesHashTruncatedBase64 = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(serverModelString))
-			const e = await assertThrows(ProgrammingError, async () => serverModelInfo.init(applicationTypesHashTruncatedBase64, serverModel))
+			const e = await assertThrows(ProgrammingError, async () => serverModelInfo.resolveServerTypeReference(MailTypeRef))
 			o(e.message).equals("Trying to parse encrypted value as unencrypted for: base:0:1")
 		})
 
 		o("ignore non-existent typeValue on client", async () => {
 			const serverModel = Object.assign({}, serverModelInfo.typeModels, partialServerModel)
-			const serverModelString = JSON.stringify({ base: serverModel })
+			const applicationTypesJson = JSON.stringify(serverModel)
+			const applicationTypesHash = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(applicationTypesJson))
 			clientModelInfo = ClientModelInfo.getNewInstanceForTestsOnly()
 			clientModelInfo.typeModels = Object.assign({}, clientModelInfo.typeModels, {
 				base: {
@@ -122,9 +127,11 @@ o.spec("EntityFunctionsTest", function () {
 					},
 				},
 			})
-			serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo)
-			const applicationTypesHashTruncatedBase64 = applicationTypesFacade.computeApplicationTypesHash(stringToUtf8Uint8Array(serverModelString))
-			serverModelInfo.init(applicationTypesHashTruncatedBase64, serverModel)
+			serverModelInfo = ServerModelInfo.getUninitializedInstanceForTestsOnly(clientModelInfo, async () => ({
+				applicationTypesHash,
+				applicationTypesJson,
+			}))
+			await serverModelInfo.resolveServerTypeReference(MailTypeRef)
 		})
 	})
 

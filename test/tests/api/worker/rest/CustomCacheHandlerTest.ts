@@ -7,7 +7,7 @@ import { EntityRestClient } from "../../../../../src/common/api/worker/rest/Enti
 import { LateInitializedCacheStorageImpl } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { numberRange, promiseMap } from "@tutao/tutanota-utils"
-import { clientInitializedTypeModelResolver, clientModelAsServerModel, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 

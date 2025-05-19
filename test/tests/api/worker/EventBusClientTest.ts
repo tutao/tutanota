@@ -27,11 +27,10 @@ import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDete
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
-import { clientInitializedTypeModelResolver, clientModelAsServerModel, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
-import { ApplicationTypesFacade } from "../../../../src/common/api/worker/facades/ApplicationTypesFacade"
-import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
+import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const { anything } = matchers
@@ -49,13 +48,10 @@ o.spec("EventBusClientTest", function () {
 	let syncTrackerMock: SyncTracker
 	let instancePipeline: InstancePipeline
 	let socketFactory: (path: string) => WebSocket
-	let applicationTypesFacadeMock: ApplicationTypesFacade
 	let typeModelResolver: TypeModelResolver
 	let entityClient: EntityClient
 
 	function initEventBus() {
-		applicationTypesFacadeMock = object()
-
 		ebc = new EventBusClient(
 			listenerMock,
 			cacheMock,
@@ -66,7 +62,6 @@ o.spec("EventBusClientTest", function () {
 			sleepDetector,
 			progressTrackerMock,
 			syncTrackerMock,
-			applicationTypesFacadeMock,
 			typeModelResolver,
 		)
 	}
@@ -301,14 +296,13 @@ o.spec("EventBusClientTest", function () {
 		o(updateCaptor.values).deepEquals([expectedCounterUpdate])
 	})
 
-	o("verify ApplicationTypesService is called when the applicationTypesHash is different on WebSocketEntityData", async function () {
-		when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenReturn(Promise.resolve())
+	o("verify new hash is set when entity updates are processed", async function () {
 		ebc.connect(ConnectMode.Initial)
 		await socket.onmessage?.({
 			data: await createEntityMessage(1, "newHash"),
 		} as MessageEvent<string>)
 
-		verify(applicationTypesFacadeMock.getServerApplicationTypesJson())
+		o(typeModelResolver.getServerApplicationTypesModelHash()).equals("newHash")
 	})
 
 	o.spec("sleep detection", function () {

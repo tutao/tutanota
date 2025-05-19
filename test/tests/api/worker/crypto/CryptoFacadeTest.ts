@@ -12,8 +12,6 @@ import {
 	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import {
-	BirthdayTypeRef,
-	ContactTypeRef,
 	createMail,
 	createMailAddress,
 	FileTypeRef,
@@ -80,14 +78,14 @@ import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRe
 import { matchers, object, verify, when } from "testdouble"
 import { UpdatePermissionKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { elementIdPart, getListId, isSameId, listIdPart } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { ClientModelInfo, HttpMethod, ServerModelInfo, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { SessionKeyNotFoundError } from "../../../../../src/common/api/common/error/SessionKeyNotFoundError.js"
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../../src/common/api/worker/facades/PQMessage.js"
-import { clientInitializedTypeModelResolver, clientModelAsServerModel, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { loadLibOQSWASM } from "../WASMTestUtils.js"
@@ -98,7 +96,6 @@ import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
-import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { EntityAdapter } from "../../../../../src/common/api/worker/crypto/EntityAdapter"
 
 const { captor, anything, argThat } = matchers

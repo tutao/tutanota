@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { APPLICATION_TYPES_HASH_HEADER, isSuspensionResponse, RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
-import { ApplicationTypesHash, HttpMethod, MediaType } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { HttpMethod, MediaType, ServerModelInfo } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ResourceError } from "../../../../../src/common/api/common/error/RestError.js"
 import { defer, noOp } from "@tutao/tutanota-utils"
 import http from "node:http"
@@ -9,13 +9,13 @@ import express from "express"
 import bodyParser from "body-parser"
 import type { AddressInfo } from "node:net"
 import { domainConfigStub } from "../../../TestUtils.js"
-import { ApplicationTypesFacade } from "../../../../../src/common/api/worker/facades/ApplicationTypesFacade"
-import { object, reset, verify, when } from "testdouble"
+import { matchers, object, reset, verify } from "testdouble"
 
 // only runs in node, it spins up a local server and connects to it
 
 const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
 const SERVER_TIMESTAMP = 1626095919000
+const { anything } = matchers
 
 o.spec("RestClient", function () {
 	const suspensionHandlerMock: Partial<SuspensionHandler> = {
@@ -23,9 +23,8 @@ o.spec("RestClient", function () {
 		isSuspended: () => false,
 		deferRequest: (request) => request(),
 	}
-	const applicationTypesFacadeMock: ApplicationTypesFacade = object()
-
-	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, () => applicationTypesFacadeMock)
+	const serverModelInfoMock: ServerModelInfo = object()
+	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, serverModelInfoMock)
 	o.spec("integration tests", function () {
 		let app = express()
 		let server: http.Server
@@ -213,14 +212,11 @@ o.spec("RestClient", function () {
 			o(Math.abs(timestamp - SERVER_TIMESTAMP) < 10).equals(true)("Timestamp on the server was too different")
 		})
 
-		o("verify ApplicationTypesService is called when the applicationTypesHash is different in the response header, has been null", async () => {
+		o("verify setCurrentHash is called when the applicationTypesHash is set in the response header", async () => {
 			reset()
 			o.timeout(400)
 
 			let responseText = '{"msg":"Hello Client"}'
-
-			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn(null)
-			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
 
 			app.get("/get/json1", (req, res) => {
 				o(req.method).equals("GET")
@@ -234,57 +230,28 @@ o.spec("RestClient", function () {
 				responseType: MediaType.Json,
 				baseUrl,
 			})
-			verify(applicationTypesFacadeMock.getServerApplicationTypesJson(), { times: 1 })
+			verify(serverModelInfoMock.setCurrentHash("newApplicationTypesHash"), { times: 1 })
 			o(res).equals(responseText)
 		})
 
-		o("verify ApplicationTypesService is called when the applicationTypesHash is different in the response header", async () => {
+		o("verify setCurrentHash is NOT called when the applicationTypesHash is not set in the response header", async () => {
 			reset()
 			o.timeout(400)
 
 			let responseText = '{"msg":"Hello Client"}'
-
-			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash")
-			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
-
-			app.get("/get/json2", (req, res) => {
-				o(req.method).equals("GET")
-				o(req.headers["content-type"]).equals(undefined)
-				o(req.headers["accept"]).equals("application/json")
-				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
-				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "newApplicationTypesHash")
-				res.send(responseText)
-			})
-			const res = await restClient.request("/get/json2", HttpMethod.GET, {
-				responseType: MediaType.Json,
-				baseUrl,
-			})
-			verify(applicationTypesFacadeMock.getServerApplicationTypesJson(), { times: 1 })
-			o(res).equals(responseText)
-		})
-
-		o("verify ApplicationTypesService is NOT called when the applicationTypesHash is same in the response header", async () => {
-			reset()
-			o.timeout(400)
-
-			let responseText = '{"msg":"Hello Client"}'
-
-			when(applicationTypesFacadeMock.getApplicationTypesHash()).thenReturn("existingApplicationTypesHash")
-			when(applicationTypesFacadeMock.getServerApplicationTypesJson()).thenResolve(undefined)
 
 			app.get("/get/json3", (req, res) => {
 				o(req.method).equals("GET")
 				o(req.headers["content-type"]).equals(undefined)
 				o(req.headers["accept"]).equals("application/json")
 				res.setHeader("Access-Control-Expose-Headers", APPLICATION_TYPES_HASH_HEADER)
-				res.setHeader(APPLICATION_TYPES_HASH_HEADER, "existingApplicationTypesHash")
 				res.send(responseText)
 			})
 			const res = await restClient.request("/get/json3", HttpMethod.GET, {
 				responseType: MediaType.Json,
 				baseUrl,
 			})
-			verify(applicationTypesFacadeMock.getServerApplicationTypesJson(), { times: 0 })
+			verify(serverModelInfoMock.setCurrentHash(anything()), { times: 0 })
 			o(res).equals(responseText)
 		})
 	})
