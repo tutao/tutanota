@@ -397,26 +397,7 @@ o.spec("CompatibilityTest", function () {
 		}
 	})
 
-	o("ed25519", async function () {
-		for (const td of testData.ed25519Tests) {
-			const ed25519Facade = await createEd25519Facade()
-			// td.seed
-			const private_key = bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex))
-			const public_key = bytesToEd25519PublicKey(hexToUint8Array(td.alicePublicKeyHex))
-			const aliceKeyPair: Ed25519KeyPair = { private_key, public_key }
-			const signature = bytesToEd25519Signature(hexToUint8Array(td.signature))
-
-			// make sure encoding and decoding round trips yield the same results again
-			o(uint8ArrayToHex(ed25519PrivateKeyToBytes(private_key))).deepEquals(td.alicePrivateKeyHex)
-			o(uint8ArrayToHex(ed25519PublicKeyToBytes(public_key))).deepEquals(td.alicePublicKeyHex)
-			o(uint8ArrayToHex(ed25519SignatureToBytes(signature))).deepEquals(td.signature)
-
-			const reproducedSignature = await ed25519Facade.sign(aliceKeyPair.private_key, hexToUint8Array(td.message))
-			o(td.signature).equals(uint8ArrayToHex(reproducedSignature))
-			o(await ed25519Facade.verifySignature(aliceKeyPair.public_key, signature, hexToUint8Array(td.message))).equals(true)
-		}
-	})
-	o("public key signature", async function () {
+	o("ed25519 - public key signature", async function () {
 		for (const td of testData.ed25519Tests) {
 			const ed25519Facade = await createEd25519Facade()
 			const facade = new PublicKeySignatureFacade(ed25519Facade)
@@ -440,9 +421,15 @@ o.spec("CompatibilityTest", function () {
 			const keyPairVersion = checkKeyVersionConstraints(td.keyPairVersion)
 
 			const alicePublicKeyBytes = hexToUint8Array(td.alicePublicKeyHex)
+			const alicePublicKey = bytesToEd25519PublicKey(alicePublicKeyBytes)
 			const alicePrivateKey = bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex))
 			const signature = bytesToEd25519Signature(hexToUint8Array(td.signature))
 			const message = hexToUint8Array(td.message)
+
+			// make sure encoding and decoding round trips yield the same results again
+			o(uint8ArrayToHex(ed25519PrivateKeyToBytes(alicePrivateKey))).deepEquals(td.alicePrivateKeyHex)
+			o(uint8ArrayToHex(ed25519PublicKeyToBytes(alicePublicKey))).deepEquals(td.alicePublicKeyHex)
+			o(uint8ArrayToHex(ed25519SignatureToBytes(signature))).deepEquals(td.signature)
 
 			const serializedMessage = facade.serializePublicKeyForSigning(encryptionKeyPair, keyPairVersion)
 			o(serializedMessage).deepEquals(message)
