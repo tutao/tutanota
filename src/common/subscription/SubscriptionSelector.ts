@@ -307,10 +307,16 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						priceStr = prices.displayMonthlyPerMonth
 						priceType = PriceType.MonthlyPerMonth
 						break
-					case PaymentInterval.Yearly:
-						priceStr = prices.displayYearlyPerYear
+					case PaymentInterval.Yearly: {
+						if (hasGlobalFirstYearDiscount && prices.isEligibleForIntroOffer && prices.displayOfferYearlyPerYear) {
+							priceStr = prices.displayOfferYearlyPerYear
+							referencePriceStr = prices.displayYearlyPerYear
+						} else {
+							priceStr = prices.displayYearlyPerYear
+						}
+
 						priceType = PriceType.YearlyPerYear
-						break
+					}
 				}
 			} else {
 				// when can this happen?
