@@ -1378,9 +1378,9 @@ dependencies = [
 
 [[package]]
 name = "napi-build"
-version = "2.1.6"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e28acfa557c083f6e254a786e01ba253fc56f18ee000afcd4f79af735f73a6da"
+checksum = "03acbfa4f156a32188bfa09b86dc11a431b5725253fc1fc6f6df5bed273382c4"
 
 [[package]]
 name = "napi-derive"
@@ -2499,7 +2499,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tuta-sdk"
-version = "287.250516.0"
+version = "287.250519.0"
 dependencies = [
  "aes",
  "android_log",
@@ -2549,7 +2549,7 @@ dependencies = [
 
 [[package]]
 name = "tutao_node-mimimi"
-version = "287.250516.0"
+version = "287.250519.0"
 dependencies = [
  "base64",
  "log 0.4.27",
