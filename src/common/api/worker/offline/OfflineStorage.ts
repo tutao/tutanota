@@ -255,7 +255,6 @@ export class OfflineStorage implements CacheStorage {
 
 	/**
 	 * Remove all ranges (and only ranges, without associated data) for the specified {@param typeRef}.
-	 * Does not lock the ranges.
 	 */
 	async deleteAllRangesOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
 		const type = getTypeString(typeRef)
@@ -625,13 +624,11 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
-		await this.lockRangesDbAccess(listId)
 		await this.deleteRange(typeRef, listId)
 		const { query, params } = sql`DELETE
                                     FROM list_entities
                                     WHERE listId = ${listId}`
 		await this.sqlCipherFacade.run(query, params)
-		await this.unlockRangesDbAccess(listId)
 	}
 
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
@@ -728,23 +725,6 @@ export class OfflineStorage implements CacheStorage {
 			default:
 				throw new Error("must be a persistent type")
 		}
-	}
-
-	/**
-	 * We want to lock the access to the "ranges" db when updating / reading the
-	 * offline available mail list / mailset ranges for each mail list (referenced using the listId).
-	 * @param listId the mail list or mail set entry list that we want to lock
-	 */
-	async lockRangesDbAccess(listId: Id) {
-		// await this.sqlCipherFacade.lockRangesDbAccess(listId)
-	}
-
-	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(listId)".
-	 * @param listId the mail list that we want to unlock
-	 */
-	async unlockRangesDbAccess(listId: Id) {
-		// await this.sqlCipherFacade.unlockRangesDbAccess(listId)
 	}
 
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {

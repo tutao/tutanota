@@ -1,0 +1,66 @@
+{
+	"name": "SqlCipherFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop", "android", "ios"],
+	"methods": {
+		"openDb": {
+			"arg": [
+				{
+					"userId": "string"
+				},
+				{
+					"dbKey": "bytes"
+				}
+			],
+			"ret": "void"
+		},
+		"closeDb": {
+			"arg": [],
+			"ret": "void"
+		},
+		"deleteDb": {
+			"arg": [
+				{
+					"userId": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"run": {
+			"arg": [
+				{
+					"query": "string"
+				},
+				{
+					"params": "List<TaggedSqlValue>"
+				}
+			],
+			"ret": "void"
+		},
+		"get": {
+			"doc": "get a single object or null if the query returns nothing",
+			"arg": [
+				{
+					"query": "string"
+				},
+				{
+					"params": "List<TaggedSqlValue>"
+				}
+			],
+			"ret": "Map<string, TaggedSqlValue>?"
+		},
+		"all": {
+			"doc": "return a list of objects or an empty list if the query returns nothing",
+			"arg": [
+				{
+					"query": "string"
+				},
+				{
+					"params": "List<TaggedSqlValue>"
+				}
+			],
+			"ret": "List<Map<string, TaggedSqlValue>>"
+		}
+	}
+}

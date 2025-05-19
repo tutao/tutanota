@@ -214,21 +214,4 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 	clearExcludedData(): Promise<void> {
 		return this.inner.clearExcludedData()
 	}
-
-	/**
-	 * We want to lock the access to the "ranges" db when updating / reading the
-	 * offline available mail list ranges for each mail list (referenced using the listId)
-	 * @param listId the mail list that we want to lock
-	 */
-	lockRangesDbAccess(listId: Id): Promise<void> {
-		return this.inner.lockRangesDbAccess(listId)
-	}
-
-	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
-	 * @param listId the mail list that we want to unlock
-	 */
-	unlockRangesDbAccess(listId: Id): Promise<void> {
-		return this.inner.unlockRangesDbAccess(listId)
-	}
 }

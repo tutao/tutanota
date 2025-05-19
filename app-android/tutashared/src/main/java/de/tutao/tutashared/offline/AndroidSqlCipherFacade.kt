@@ -136,33 +136,6 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 		}
 	}
 
-	/**
-	 * We want to lock the access to the "ranges" db when updating / reading the
-	 * offline available mail list ranges for each mail list (referenced using the listId).
-	 * @param listId the mail list that we want to lock
-	 */
-	override suspend fun lockRangesDbAccess(listId: String): Unit {
-		if (listIdLocks.containsKey(listId)) {
-			listIdLocks[listId]?.await()
-			listIdLocks[listId] = CompletableDeferred()
-		} else {
-			listIdLocks[listId] = CompletableDeferred()
-		}
-	}
-
-	/**
-	 * This is the counterpart to the function "lockRangesDbAccess(listId)".
-	 * @param listId the mail list that we want to unlock
-	 */
-	override suspend fun unlockRangesDbAccess(listId: String) {
-		val completableDeferred = listIdLocks.remove(listId)
-		if (completableDeferred == null) {
-			Log.w(TAG, "No deferred for the listIdLock with listId $listId")
-			return
-		}
-		completableDeferred.complete(Unit)
-	}
-
 	private fun List<TaggedSqlValue>.prepare() = map { it.unwrap() }.toTypedArray()
 }
 
