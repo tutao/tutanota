@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Открыть  приложение</string>
     <string name="widgetNoEvents_msg">Нет событий</string>
     <string name="widgetDescription_msg">Показать предстоящие события</string>
+    <string name="birthdayCalendar_label">Дни рождения</string>
+    <string name="birthdayEvent_title">День рождения {name}</string>
+    <string name="birthdayEventAge_title">{age} лет</string>
 </resources>

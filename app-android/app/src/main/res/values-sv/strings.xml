@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Öppna appen</string>
     <string name="widgetNoEvents_msg">Inga händelser</string>
     <string name="widgetDescription_msg">Visa dagens kommande händelser</string>
+    <string name="birthdayCalendar_label">Födelsedagar</string>
+    <string name="birthdayEvent_title">{name} födelsedag</string>
+    <string name="birthdayEventAge_title">{age} år gammal</string>
 </resources>

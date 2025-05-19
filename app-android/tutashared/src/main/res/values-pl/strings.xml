@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Otwórz aplikację</string>
     <string name="widgetNoEvents_msg">Brak wydarzeń</string>
     <string name="widgetDescription_msg">Pokaż dzisiejsze nadchodzące wydarzenia</string>
+    <string name="birthdayCalendar_label">Urodziny</string>
+    <string name="birthdayEvent_title">{name} obchodzi urodziny</string>
+    <string name="birthdayEventAge_title">{age} lat</string>
 </resources>

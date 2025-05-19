@@ -18,4 +18,7 @@ Puteți adăuga un mesaj pentru a ne ajuta să remediem eroarea.</string>
     <string name="widgetOpenApp_action">Deschide aplicația</string>
     <string name="widgetNoEvents_msg">Niciun eveniment</string>
     <string name="widgetDescription_msg">Arată următoarele evenimente de azi</string>
+    <string name="birthdayCalendar_label">Aniversări</string>
+    <string name="birthdayEvent_title">Aniversarea lui {name}</string>
+    <string name="birthdayEventAge_title">{age} ani</string>
 </resources>

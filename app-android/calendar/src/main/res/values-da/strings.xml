@@ -10,4 +10,7 @@
     <string name="markRead_action">Marker som læst</string>
     <string name="sendLogs_action">Send logfiler</string>
     <string name="account_label">Bruger</string>
+    <string name="birthdayCalendar_label">Fødselsdage</string>
+    <string name="birthdayEvent_title">{name}s fødselsdag</string>
+    <string name="birthdayEventAge_title">{age} år gammel</string>
 </resources>

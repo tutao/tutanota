@@ -10,4 +10,5 @@
     <string name="markRead_action">읽음으로 표시</string>
     <string name="sendLogs_action">로그 보내기</string>
     <string name="account_label">사용자</string>
+    <string name="birthdayCalendar_label">생일</string>
 </resources>

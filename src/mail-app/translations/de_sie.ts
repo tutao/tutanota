@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-05-12T08:16:39Z",
+	"updated_at": "2025-05-19T08:05:45Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1393,6 +1393,7 @@ export default {
 		"pricing.gdpr_label": "DSGVO-konform",
 		"pricing.gdpr_tooltip": "Alle Daten werden in Übereinstimmung mit den strengen europäischen Datenschutzbestimmungen gemäß der DSGVO gespeichert.",
 		"pricing.getStarted_label": "Registrieren",
+		"pricing.globalFirstYearDiscountRibbon_label": "SPARE {amount}",
 		"pricing.includesTaxes_msg": "Inklusive MwSt.",
 		"pricing.legendAsterisk_msg": "Der Rabatt gilt nur für das erste Jahr. Im Anschluss kostet Legend 96€ pro Jahr.",
 		"pricing.login_title": "Login auf der eigenen Webseite",
@@ -2014,6 +2015,7 @@ export default {
 		"whyLeave_msg": "Schade, dass Sie kündigen möchten. Wie können wir uns verbessern?",
 		"widgetCredentialsError_msg": "Bitte melden Sie sich in der Kalender-App an",
 		"widgetDescription_msg": "Heute anstehenden Termine anzeigen",
+		"widgetMissingConfigurationError_msg": "Fehlende Widget-Konfiguration",
 		"widgetNoCredentialsInfo_msg": "Keine Login-Daten vorhanden",
 		"widgetNoEvents_msg": "Keine Termine",
 		"widgetOpenApp_action": "Die App öffnen",
@@ -2031,7 +2033,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"pricing.globalFirstYearDiscountRibbon_label": "SPARE {amount}"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

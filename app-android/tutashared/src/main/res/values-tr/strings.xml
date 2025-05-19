@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Uygulamayı aç</string>
     <string name="widgetNoEvents_msg">Etkinlik yok</string>
     <string name="widgetDescription_msg">Bugünün yaklaşan etkinliklerini görüntüleyin</string>
+    <string name="birthdayCalendar_label">Doğum günleri</string>
+    <string name="birthdayEvent_title">{name} doğum günü</string>
+    <string name="birthdayEventAge_title">{age} yaşında</string>
 </resources>

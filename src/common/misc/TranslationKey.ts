@@ -1994,6 +1994,7 @@ export type TranslationKeyType =
 	| "whyLeave_msg"
 	| "widgetCredentialsError_msg"
 	| "widgetDescription_msg"
+	| "widgetMissingConfigurationError_msg"
 	| "widgetNoCredentialsInfo_msg"
 	| "widgetNoEvents_msg"
 	| "widgetOpenApp_action"

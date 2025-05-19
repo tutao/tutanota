@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Відкрити застосунок</string>
     <string name="widgetNoEvents_msg">Немає подій</string>
     <string name="widgetDescription_msg">Показати найближчі події на сьогодні</string>
+    <string name="birthdayCalendar_label">Дні народження</string>
+    <string name="birthdayEvent_title">День народження {name}</string>
+    <string name="birthdayEventAge_title">{age} років</string>
 </resources>

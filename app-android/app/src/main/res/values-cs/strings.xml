@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Otevřít aplikaci</string>
     <string name="widgetNoEvents_msg">Žádné události</string>
     <string name="widgetDescription_msg">Zobrazit dnešní nadcházející události</string>
+    <string name="birthdayCalendar_label">Narozeniny</string>
+    <string name="birthdayEvent_title">Narozeniny: {name}</string>
+    <string name="birthdayEventAge_title">{age} let</string>
 </resources>

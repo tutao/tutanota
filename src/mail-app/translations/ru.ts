@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2025-05-15T12:48:27Z",
+	"updated_at": "2025-05-16T17:15:54Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1376,7 +1376,7 @@ export default {
 		"pricing.custom_tooltip": "Tuta Whitelabel с вашим собственным брендом, определенными логотипами и цветами веб-, мобильных и настольных клиентов Tuta.",
 		"pricing.cyberMonday_label": "СЭКОНОМЬТЕ 62%",
 		"pricing.cyber_monday_msg": "Получите план высшего уровня на первый год за меньшую сумму!",
-		"pricing.cyber_monday_select_action": "Получите выгодное предложение!",
+		"pricing.cyber_monday_select_action": "Станьте европейцем",
 		"pricing.encryptedCalendar_label": "Полностью зашифрованный календарь",
 		"pricing.encryptedCalendar_tooltip": "Все данные в ваших календарях Tuta зашифрованы, даже уведомления отправляются на ваше устройство в зашифрованном виде.",
 		"pricing.encryptedContacts_label": "Зашифрованная адресная книга",

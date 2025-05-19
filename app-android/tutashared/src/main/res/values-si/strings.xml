@@ -10,4 +10,7 @@
     <string name="markRead_action">කියවූ ලෙස ලකුණු කරන්න</string>
     <string name="sendLogs_action">සටහන් යවන්න</string>
     <string name="account_label">පරිශ්‍රීලක</string>
+    <string name="birthdayCalendar_label">උපන් දින</string>
+    <string name="birthdayEvent_title">{name}ගේ උපන් දිනය</string>
+    <string name="birthdayEventAge_title">වයස අවුරුදු {age}</string>
 </resources>

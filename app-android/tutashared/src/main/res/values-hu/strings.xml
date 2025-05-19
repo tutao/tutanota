@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Nyissa meg az alkalmazást!</string>
     <string name="widgetNoEvents_msg">Nincsenek események</string>
     <string name="widgetDescription_msg">Mutassa a közelgő eseményeket!</string>
+    <string name="birthdayCalendar_label">Születésnapok</string>
+    <string name="birthdayEvent_title">{name}születésnapja</string>
+    <string name="birthdayEventAge_title">{age} éves</string>
 </resources>

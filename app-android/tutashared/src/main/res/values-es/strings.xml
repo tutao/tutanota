@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Abrir la aplicación</string>
     <string name="widgetNoEvents_msg">Ningún acontecimiento</string>
     <string name="widgetDescription_msg">Mostrar los próximos eventos de hoy</string>
+    <string name="birthdayCalendar_label">Cumpleaños</string>
+    <string name="birthdayEvent_title">cumpleaños de {name}</string>
+    <string name="birthdayEventAge_title">{age} años</string>
 </resources>

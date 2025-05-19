@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Avaa sovellus</string>
     <string name="widgetNoEvents_msg">Ei tapahtumia</string>
     <string name="widgetDescription_msg">Näytä tulevat tapahtumat tänään</string>
+    <string name="birthdayCalendar_label">Syntymäpäivät</string>
+    <string name="birthdayEvent_title">Henkilön {name} syntymäpäivä</string>
+    <string name="birthdayEventAge_title">{age}-vuotias</string>
 </resources>

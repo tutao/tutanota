@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-05-15T14:03:43Z",
+	"updated_at": "2025-05-16T19:53:35Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1374,7 +1374,7 @@ export default {
 		"pricing.custom_tooltip": "Personaliza Tuta con tu propia marca, al usar Etiqueta Blanca, definiendo los logotipos y colores de los clientes web, móviles y de escritorio de Tuta.",
 		"pricing.cyberMonday_label": "Ahorra un 62%",
 		"pricing.cyber_monday_msg": "¡Obtén el plan de primer nivel durante el primer año por menos!",
-		"pricing.cyber_monday_select_action": "¡Consigue el trato!",
+		"pricing.cyber_monday_select_action": "Hazte European",
 		"pricing.encryptedCalendar_label": "Calendario totalmente cifrado",
 		"pricing.encryptedCalendar_tooltip": "Todos los datos de tus calendarios Tuta están cifrados, incluso las notificaciones se envían cifrada a tu dispositivo.",
 		"pricing.encryptedContacts_label": "Libreta de direcciones cifrada",

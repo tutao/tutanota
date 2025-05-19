@@ -13,4 +13,7 @@
     <string name="calendars_label">Kalenders</string>
     <string name="widgetUnexpectedError_msg">Oeps! Er is iets fout gegaan.</string>
     <string name="widgetOpenApp_action">Open de app</string>
+    <string name="birthdayCalendar_label">Verjaardagen</string>
+    <string name="birthdayEvent_title">{name}s verjaardag</string>
+    <string name="birthdayEventAge_title">{age} jaar</string>
 </resources>

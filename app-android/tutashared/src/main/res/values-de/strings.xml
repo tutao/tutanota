@@ -17,4 +17,7 @@
     <string name="widgetOpenApp_action">Die App öffnen</string>
     <string name="widgetNoEvents_msg">Keine Termine</string>
     <string name="widgetDescription_msg">Heute anstehenden Termine anzeigen</string>
+    <string name="birthdayCalendar_label">Geburtstage</string>
+    <string name="birthdayEvent_title">{name}s Geburtstag</string>
+    <string name="birthdayEventAge_title">{age} Jahre alt</string>
 </resources>

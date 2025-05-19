@@ -14,4 +14,7 @@
     <string name="widgetUnexpectedError_msg">Ups! Nekaj se je zalomilo.</string>
     <string name="widgetOpenApp_action">Odpri aplikacijo</string>
     <string name="widgetNoEvents_msg">Ni dogodkov</string>
+    <string name="birthdayCalendar_label">Rojstni dnevi</string>
+    <string name="birthdayEvent_title">Rojstni dan osebe {name}</string>
+    <string name="birthdayEventAge_title">{age} let</string>
 </resources>
