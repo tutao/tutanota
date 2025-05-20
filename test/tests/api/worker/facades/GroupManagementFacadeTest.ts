@@ -435,6 +435,10 @@ o.spec("GroupManagementFacadeTest", function () {
 		}
 		const adminEncPrivateKey: VersionedEncryptedKey = { encryptingKeyVersion: adminKeyVersion, key: object() }
 
+		const userGroup: Group = object()
+		userGroup.currentKeys = object()
+		userGroup.groupKeyVersion = "1"
+
 		o.beforeEach(function () {
 			when(cryptoWrapper.ed25519PublicKeyToBytes(identityKeyPair.public_key)).thenReturn(encodedPubIdentityKey)
 			when(ed25519Facade.generateKeypair()).thenResolve(identityKeyPair)
@@ -456,6 +460,8 @@ o.spec("GroupManagementFacadeTest", function () {
 					},
 				}),
 			).thenReturn(tag)
+
+			when(entityClient.load(GroupTypeRef, userGroupId)).thenResolve(userGroup)
 		})
 
 		o("success internal user", async function () {
@@ -579,7 +585,7 @@ o.spec("GroupManagementFacadeTest", function () {
 
 			o(groupManagementFacade.createIdentityKeyPair.invocations.length).equals(1)
 			o(groupManagementFacade.createIdentityKeyPair.args[0]).equals(mailGroup)
-			o(groupManagementFacade.createIdentityKeyPair.args[1]).deepEquals(adminGroupKey)
+			o(groupManagementFacade.createIdentityKeyPair.args[2]).deepEquals(adminGroupKey)
 		})
 
 		o.spec("createIdentityKeyPairForExistingTeamGroups", function () {
@@ -603,6 +609,7 @@ o.spec("GroupManagementFacadeTest", function () {
 				teamGroups = []
 				for (const groupId of groupIds) {
 					const group = createTestEntity(GroupTypeRef, { identityKeyPair: null })
+					group.currentKeys = object()
 					teamGroups.push(group)
 					when(entityClient.load(GroupTypeRef, groupId)).thenResolve(group)
 				}
@@ -620,7 +627,7 @@ o.spec("GroupManagementFacadeTest", function () {
 				await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
 
 				for (const groupId of groupIds) {
-					verify(groupManagementFacade.createIdentityKeyPair(groupId, adminGroupKey))
+					verify(groupManagementFacade.createIdentityKeyPair(groupId, anything(), adminGroupKey))
 				}
 			})
 
@@ -636,13 +643,13 @@ o.spec("GroupManagementFacadeTest", function () {
 
 				await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
 
-				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId1, adminGroupKey), { times: 0 })
-				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId2, adminGroupKey))
+				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId1, anything(), adminGroupKey), { times: 0 })
+				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId2, anything(), adminGroupKey))
 			})
 
 			o("errors bubble up", async function () {
 				const error = new Error("test") // cannot be an `object()`, otherwise `instanceof` wouldn't match
-				when(groupManagementFacade.createIdentityKeyPair(matchers.anything(), matchers.anything())).thenReject(error)
+				when(groupManagementFacade.createIdentityKeyPair(matchers.anything(), matchers.anything(), matchers.anything())).thenReject(error)
 
 				const thrown = await assertThrows(Error, async () => await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups())
 				o(thrown).equals(error)

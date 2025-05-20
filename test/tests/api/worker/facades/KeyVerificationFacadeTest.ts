@@ -137,7 +137,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 
 	o.spec("verification state gets resolved correctly", function () {
 		o("trusted and verified keys result in VERIFIED", async function () {
-			when(ed25519Facade.verify(anything(), anything(), anything())).thenResolve(true)
+			when(ed25519Facade.verifySignature(anything(), anything(), anything())).thenResolve(true)
 			const signature: EncodedEd25519Signature = object()
 			const encryptionPublicKey: Versioned<PQPublicKeys> = object()
 			const state = await keyVerification.verify(PUBLIC_KEY_TRUSTED_IDENTITY.publicIdentityKey, encryptionPublicKey, signature)
@@ -145,7 +145,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 		})
 
 		o("trusted but unverified keys result in MISMATCH", async function () {
-			when(ed25519Facade.verify(anything(), anything(), anything())).thenResolve(false)
+			when(ed25519Facade.verifySignature(anything(), anything(), anything())).thenResolve(false)
 
 			const signature: EncodedEd25519Signature = object()
 			const encryptionPublicKey: Versioned<PQPublicKeys> = object()

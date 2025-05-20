@@ -1,11 +1,13 @@
 import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
-import { matchers, object, verify, when, func } from "testdouble"
+import { func, matchers, object, verify, when } from "testdouble"
 import {
 	EntityUpdate,
 	EntityUpdateTypeRef,
+	Group,
 	GroupKeyUpdateTypeRef,
 	GroupMembershipTypeRef,
+	GroupTypeRef,
 	User,
 	UserGroupKeyDistributionTypeRef,
 	UserTypeRef,
@@ -29,6 +31,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
 	let userId = "userId"
 	let userGroupId = "userGroupId"
+	let userGroupKeyVersion = "1"
 	let user: User
 	let userGroupKeyDistribution
 	let userFacade: UserFacade
@@ -48,7 +51,12 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		})
 		userFacade = object()
 		when(userFacade.getUser()).thenReturn(user)
+		when(userFacade.getUserGroupId()).thenReturn(userGroupId)
 		entityClient = object()
+		const userGroup: Group = object()
+		userGroup.currentKeys = object()
+		userGroup.groupKeyVersion = userGroupKeyVersion
+		when(entityClient.load(GroupTypeRef, userGroupId)).thenResolve(userGroup)
 		when(entityClient.load(UserTypeRef, userId)).thenResolve(user)
 		userGroupKeyDistribution = createTestEntity(UserGroupKeyDistributionTypeRef, { _id: userGroupId })
 		when(entityClient.load(UserGroupKeyDistributionTypeRef, userGroupId)).thenResolve(userGroupKeyDistribution)
@@ -98,7 +106,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 
 			// execute callback
 			await captor.values![0]()
-			verify(gfm.createIdentityKeyPair(matchers.anything()))
+			verify(gfm.createIdentityKeyPair(matchers.anything(), matchers.anything()))
 		})
 
 		o("does not stop if UserIdentityKeyCreation rollout throws", async function () {
@@ -118,7 +126,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 
 			// execute callback
 			const error = object<Error>()
-			when(gfm.createIdentityKeyPair(matchers.anything())).thenReject(error)
+			when(gfm.createIdentityKeyPair(matchers.anything(), matchers.anything())).thenReject(error)
 			await captor.values![0]()
 
 			// @ts-ignore

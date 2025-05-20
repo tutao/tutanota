@@ -333,7 +333,14 @@ export class GroupManagementFacade {
 				if (group.identityKeyPair) continue
 
 				// shared mailbox group members don't need access to identity keys, that's the responsibility of the admins
-				await this.createIdentityKeyPair(groupId, adminGroupKey)
+				await this.createIdentityKeyPair(
+					groupId,
+					{
+						currentKeyPair: assertNotNull(group.currentKeys),
+						keyPairVersion: parseKeyVersion(group.groupKeyVersion),
+					},
+					adminGroupKey,
+				)
 			} catch (error) {
 				console.log(`error when creating shared mailbox identity key pair for group ${groupId}`, error)
 				throw error
