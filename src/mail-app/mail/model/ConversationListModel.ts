@@ -14,12 +14,23 @@ import {
 	customIdToUint8array,
 	deconstructMailSetEntryId,
 	elementIdPart,
-	firstBiggerThanSecondCustomId,
 	getElementId,
 	isSameId,
 	listIdPart,
 } from "../../../common/api/common/utils/EntityUtils"
-import { assertNotNull, compare, first, last, lastThrow, mapWithout, memoizedWithHiddenArgument, remove } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	compare,
+	first,
+	insertIntoSortedArray,
+	isEmpty,
+	isNotNull,
+	last,
+	lastThrow,
+	mapWithout,
+	memoizedWithHiddenArgument,
+	remove,
+} from "@tutao/tutanota-utils"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
@@ -31,8 +42,13 @@ export interface LoadedConversation {
 	// list ID of the conversation
 	readonly conversationId: Id
 
-	// element ID of the latest MailSetEntry of the conversation
-	readonly latestMail: Id
+	// mails in the conversation that are in the current list
+	//
+	// this is assumed to be sorted by order
+	readonly mails: Id[]
+
+	// element ID of the mail to display
+	displayedMail: Id | null
 }
 
 /**
@@ -52,6 +68,9 @@ export class ConversationListModel implements MailSetListModel {
 
 	// keep a reverse map for going from Mail element id -> LoadedMail
 	private mailMap: ReadonlyMap<Id, LoadedMail> = new Map()
+
+	// keep the current filter
+	private currentFilter: ListFilter<Mail> | null = null
 
 	// we may select a mail in a conversation that isn't the latest one (i.e. navigating to an older mail via URL); by
 	// default, we would show the latest mail, but in this case, we will want to present the older mail
@@ -75,7 +94,7 @@ export class ConversationListModel implements MailSetListModel {
 
 			sortCompare: (item1, item2) => this.reverseSortConversation(item1, item2),
 
-			getItemId: (item) => this.listModelIdOfConversation(item),
+			getItemId: (item) => item.conversationId,
 
 			isSameId: (id1, id2) => id1 === id2,
 
@@ -85,7 +104,7 @@ export class ConversationListModel implements MailSetListModel {
 
 	get lastItem(): Mail | null {
 		const lastItem = last(this.listModel.state.items) ?? null
-		return lastItem ? this.getLatestMailForConversation(lastItem).mail : null
+		return (lastItem && this.getDisplayedMailForConversation(lastItem)?.mail) ?? null
 	}
 
 	areAllSelected(): boolean {
@@ -112,17 +131,25 @@ export class ConversationListModel implements MailSetListModel {
 		return this.mailMap.get(mailId) ?? null
 	}
 
-	private getMailIdForConversation(conversation: LoadedConversation): Id {
-		return deconstructMailSetEntryId(conversation.latestMail).mailId
+	/**
+	 * Get the mail ID of the displayed mail for the conversation.
+	 */
+	private getDisplayedMailIdForConversation(conversation: LoadedConversation): Id | null {
+		const mailSetEntryId = this.getDisplayedMailSetEntryIdForConversation(conversation)
+		return mailSetEntryId && deconstructMailSetEntryId(mailSetEntryId).mailId
 	}
 
-	private getLatestMailForConversation(conversation: LoadedConversation): LoadedMail {
-		return assertNotNull(this.getLoadedMail(this.getMailIdForConversation(conversation)))
+	private getDisplayedMailForConversation(conversation: LoadedConversation): LoadedMail | null {
+		const displayedMail = this.getDisplayedMailIdForConversation(conversation)
+		if (displayedMail == null) {
+			return null
+		}
+		return assertNotNull(this.getLoadedMail(displayedMail))
 	}
 
-	readonly getSelectedAsArray = memoizedWithHiddenArgument(
+	readonly getSelectedAsArray: () => readonly Mail[] = memoizedWithHiddenArgument(
 		() => this.listModel.getSelectedAsArray(),
-		(conversations) => conversations.map((conversation) => this.getLatestMailForConversation(conversation).mail),
+		(conversations) => this.getDisplayedMailsOfConversations(conversations),
 	)
 
 	async handleEntityUpdate(update: EntityUpdateData) {
@@ -181,7 +208,7 @@ export class ConversationListModel implements MailSetListModel {
 
 		// force an update for the conversation
 		const conversation = this.getConversationForMail(newMailData)
-		if (conversation != null && this.getLatestMailForConversation(conversation) === loadedMail) {
+		if (conversation != null && this.getDisplayedMailForConversation(conversation) === loadedMail) {
 			this.listModel.updateLoadedItem(conversation)
 		}
 	}
@@ -189,34 +216,12 @@ export class ConversationListModel implements MailSetListModel {
 	private async handleMailSetEntryCreation(update: EntityUpdateData) {
 		const loadedMail = await this.loadSingleMail([update.instanceListId, update.instanceId])
 		const addedMail = loadedMail.addedItems[0]
-		if (addedMail == null) {
-			return
-		}
 		return await this.listModel.waitLoad(async () => {
-			if (this.listModel.canInsertItem(addedMail)) {
-				this.listModel.insertLoadedItem(addedMail)
-			}
-			for (const oldEntry of loadedMail.deletedItems) {
-				const id = this.listModelIdOfConversation(oldEntry)
-				const wasSelected = this.listModel.isItemSelected(id)
-				const inMultiselect = this.isInMultiselect()
-				const selection = this.listModel.getSelectedAsArray()
-
-				// ensure the selection does not change
-				if (wasSelected) {
-					if (inMultiselect) {
-						for (const s of selection) {
-							if (this.listModelIdOfConversation(s) !== this.listModelIdOfConversation(oldEntry)) {
-								this.listModel.onSingleInclusiveSelection(s)
-							}
-						}
-						this.listModel.onSingleInclusiveSelection(addedMail)
-					} else {
-						this.listModel.onSingleSelection(addedMail)
-					}
+			if (addedMail != null) {
+				if (!this.listModel.canInsertItem(addedMail)) {
+					return
 				}
-
-				await this.listModel.deleteLoadedItem(id)
+				this.listModel.insertLoadedItem(addedMail)
 			}
 		})
 	}
@@ -224,47 +229,25 @@ export class ConversationListModel implements MailSetListModel {
 	private async handleMailSetEntryDeletion(update: EntityUpdateData) {
 		const { mailId } = deconstructMailSetEntryId(update.instanceId)
 		const conversation = this.getConversationForMailById(mailId)
-		if (!conversation) {
+		if (conversation == null) {
 			return
 		}
 
-		await this.listModel.deleteLoadedItem(this.listModelIdOfConversation(conversation))
 		this.deleteSingleMail(mailId)
+		remove(conversation.mails, update.instanceId)
 
-		// The state changed in the meantime. We should not touch the conversation map.
-		if (this.conversationMap.get(conversation.conversationId)?.latestMail != conversation.latestMail) {
-			return
-		}
-		this.conversationMap.delete(conversation.conversationId)
-
-		// If there is an earlier mail in the conversation that is in this mail set, we want it to take this one's place.
-		let latestMail: LoadedMail | null = null
-		for (const mail of this.mailMap.values()) {
-			if (isSameId(listIdPart(mail.mail.conversationEntry), conversation.conversationId)) {
-				if (latestMail == null || firstBiggerThanSecondCustomId(elementIdPart(mail.mailSetEntryId), elementIdPart(latestMail.mailSetEntryId))) {
-					// Important: Map iterates in insertion order, which does not correspond to list sorting. As
-					// such, we can't break here, as there may be even newer mails after this.
-					latestMail = mail
-				}
+		if (!isEmpty(conversation.mails)) {
+			if (this.updateDisplayedMailForConversation(conversation)) {
+				this.listModel.updateLoadedItem(conversation)
 			}
-		}
-
-		if (latestMail) {
-			const newConversation = {
-				...conversation,
-				latestMail: elementIdPart(latestMail.mailSetEntryId),
-			}
-			this.conversationMap.set(conversation.conversationId, newConversation)
-			this.listModel.waitLoad(() => {
-				if (this.conversationMap.get(conversation.conversationId) === newConversation && this.listModel.canInsertItem(newConversation)) {
-					this.listModel.insertLoadedItem(newConversation)
-				}
-			})
+		} else {
+			this.conversationMap.delete(conversation.conversationId)
+			await this.listModel.deleteLoadedItem(conversation.conversationId)
 		}
 	}
 
 	// @VisibleForTesting
-	_updateMails(loadedMails: ReadonlyArray<LoadedMail>) {
+	_updateMails(loadedMails: Iterable<LoadedMail>) {
 		const newMap = new Map(this.mailMap)
 		for (const mail of loadedMails) {
 			newMap.set(getElementId(mail.mail), mail)
@@ -279,11 +262,10 @@ export class ConversationListModel implements MailSetListModel {
 
 	private async loadSingleMail(id: IdTuple): Promise<{
 		addedItems: LoadedConversation[]
-		deletedItems: LoadedConversation[]
 	}> {
 		const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
 		const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
-		return this.filterAndUpdateMails(loadedMails)
+		return this.addNewLoadedMails(loadedMails)
 	}
 
 	isEmptyAndDone(): boolean {
@@ -296,7 +278,7 @@ export class ConversationListModel implements MailSetListModel {
 
 	isItemSelected(mailId: Id): boolean {
 		const conversation = this.getConversationForMailById(mailId)
-		return conversation != null && this.listModel.isItemSelected(this.listModelIdOfConversation(conversation))
+		return conversation != null && this.listModel.isItemSelected(conversation.conversationId)
 	}
 
 	isLoadingAll(): boolean {
@@ -316,7 +298,7 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	async loadAndSelect(mailId: string, shouldStop: () => boolean): Promise<Mail | null> {
-		const mailFinder = (loadedConversation: LoadedConversation) => isSameId(this.getMailIdForConversation(loadedConversation), mailId)
+		const mailFinder = (loadedConversation: LoadedConversation) => isSameId(this.getDisplayedMailIdForConversation(loadedConversation), mailId)
 
 		// conversation listing has a special case: we may want to select an item that isn't on the list but is part of
 		// a conversation that is actually in the list; as such, we should disregard what listModel says
@@ -327,7 +309,7 @@ export class ConversationListModel implements MailSetListModel {
 		if (selectedMail != null) {
 			const selectedMailId = getElementId(selectedMail)
 			const conversation = assertNotNull(this.getConversationForMailById(selectedMailId))
-			if (!isSameId(this.getMailIdForConversation(conversation), selectedMailId)) {
+			if (!isSameId(this.getDisplayedMailIdForConversation(conversation), selectedMailId)) {
 				this.olderDisplayedSelectedMailOverride = selectedMailId
 				this.listModel.onSingleSelection(conversation)
 			}
@@ -380,7 +362,18 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	setFilter(filterType: ListFilter<Mail> | null): void {
-		this.listModel.setFilter(filterType && ((conversation: LoadedConversation) => filterType(this.getLatestMailForConversation(conversation).mail)))
+		this.currentFilter = filterType
+
+		// statically apply the filter here, as we don't want to re-apply the filter on the same conversation multiple times (e.g. when sorting)
+		// and we want to use this result for what mail we display
+		for (const convo of this.conversationMap.values()) {
+			this.updateDisplayedMailForConversation(convo)
+		}
+
+		// filtering can change sort order, since some conversations may move around due to their displayed emails changing receivedDate
+		this.listModel.sort()
+
+		this.listModel.setFilter(filterType && ((conversation: LoadedConversation) => conversation.displayedMail != null))
 	}
 
 	get stateStream(): Stream<ListState<Mail>> {
@@ -442,9 +435,11 @@ export class ConversationListModel implements MailSetListModel {
 
 	/**
 	 * This is the list model ID in the conversation.
+	 *
+	 * This is the element ID of the displayed mail's respective mail set entry.
 	 */
-	private listModelIdOfConversation(item: LoadedConversation): Id {
-		return item.latestMail
+	private getDisplayedMailSetEntryIdForConversation(item: LoadedConversation): Id | null {
+		return item.displayedMail
 	}
 
 	/**
@@ -483,7 +478,7 @@ export class ConversationListModel implements MailSetListModel {
 
 		return {
 			// there should be no deleted items since we're loading older mails
-			items: this.filterAndUpdateMails(items)?.addedItems,
+			items: this.addNewLoadedMails(items)?.addedItems,
 			complete,
 		}
 	}
@@ -492,37 +487,68 @@ export class ConversationListModel implements MailSetListModel {
 		return applyInboxRulesToEntries(entries, this.mailSet, this.mailModel, this.inboxRuleHandler)
 	}
 
-	private filterAndUpdateMails(mails: LoadedMail[]): {
+	private addNewLoadedMails(mails: Iterable<LoadedMail>): {
 		addedItems: LoadedConversation[]
-		deletedItems: LoadedConversation[]
 	} {
 		const addedItems: LoadedConversation[] = []
-		const deletedItems: LoadedConversation[] = []
 
 		// store all mails to be loaded later
 		this._updateMails(mails)
 
 		for (const mail of mails) {
-			const conversation = {
-				conversationId: listIdPart(mail.mail.conversationEntry),
-				latestMail: elementIdPart(mail.mailSetEntryId),
-			}
+			const mailSetEntryElementId = elementIdPart(mail.mailSetEntryId)
+			const conversationId = listIdPart(mail.mail.conversationEntry)
+			const existingConversation = this.conversationMap.get(conversationId)
 
-			const existingConversation = this.conversationMap.get(conversation.conversationId)
-			if (existingConversation != null && this.reverseSortConversation(conversation, existingConversation) >= 0) {
-				continue
-			}
+			if (existingConversation == null) {
+				const conversation = {
+					conversationId,
+					latestMail: mailSetEntryElementId,
+					mails: [mailSetEntryElementId],
+					displayedMail: null,
+				}
+				this.updateDisplayedMailForConversation(conversation)
+				addedItems.push(conversation)
+				this.conversationMap.set(conversationId, conversation)
+			} else {
+				insertIntoSortedArray(mailSetEntryElementId, existingConversation.mails, reverseCompareMailSetId)
+				this.updateDisplayedMailForConversation(existingConversation)
 
-			if (existingConversation != null) {
-				deletedItems.push(existingConversation)
-				remove(addedItems, existingConversation)
+				if (existingConversation.displayedMail === mailSetEntryElementId) {
+					this.listModel.updateLoadedItem(existingConversation)
+				}
 			}
-
-			this.conversationMap.set(conversation.conversationId, conversation)
-			addedItems.push(conversation)
 		}
 
-		return { addedItems, deletedItems }
+		return { addedItems }
+	}
+
+	/**
+	 * Update the displayed mail to the latest one that matches the current filter, if any.
+	 *
+	 * If there is no filter, this will just update to the latest mail in the set.
+	 *
+	 * This does NOT cause a list update.
+	 *
+	 * @param conversation
+	 * @return true if the displayed mail was changed
+	 * @private
+	 */
+	private updateDisplayedMailForConversation(conversation: LoadedConversation): boolean {
+		const currentFilter = this.currentFilter ?? (() => true)
+
+		const displayedMail =
+			conversation.mails.find((mailSetEntryId) => {
+				const mail = assertNotNull(this.mailMap.get(deconstructMailSetEntryId(mailSetEntryId).mailId), "missing mail in conversation")
+				return currentFilter(mail.mail)
+			}) ?? null
+
+		if (conversation.displayedMail !== displayedMail) {
+			conversation.displayedMail = displayedMail
+			return true
+		} else {
+			return false
+		}
 	}
 
 	private async resolveMailSetEntries(
@@ -534,11 +560,23 @@ export class ConversationListModel implements MailSetListModel {
 
 	private reverseSortConversation(item1: LoadedConversation, item2: LoadedConversation): number {
 		// Mail set entry ID has the timestamp and mail element ID
-		const item1Id = this.listModelIdOfConversation(item1)
-		const item2Id = this.listModelIdOfConversation(item2)
+		const item1Id = this.getDisplayedMailSetEntryIdForConversation(item1)
+		const item2Id = this.getDisplayedMailSetEntryIdForConversation(item2)
 
-		// Sort in reverse order to ensure newer mails are first
-		return compare(customIdToUint8array(item2Id), customIdToUint8array(item1Id))
+		// In the case one or both conversations have no displayed mail (due to being filtered out), we want it to be
+		// treated by the list model as being on the top of the list so that it isn't considered when checking ranges
+		// when adding new mails to the list.
+		if (item1Id == null) {
+			if (item2Id == null) {
+				return 0
+			} else {
+				return 1
+			}
+		} else if (item2Id == null) {
+			return -1
+		}
+
+		return reverseCompareMailSetId(item1Id, item2Id)
 	}
 
 	/**
@@ -560,9 +598,9 @@ export class ConversationListModel implements MailSetListModel {
 		return this.entityClient.loadMultiple(MailTypeRef, listId, elements)
 	}
 
-	private readonly _items = memoizedWithHiddenArgument(
+	private readonly _items: () => readonly Mail[] = memoizedWithHiddenArgument(
 		() => this.listModel.state.items,
-		(conversations) => conversations.map((conversation) => this.getLatestMailForConversation(conversation).mail),
+		(conversations) => this.getDisplayedMailsOfConversations(conversations),
 	)
 
 	private _mails = memoizedWithHiddenArgument(
@@ -570,8 +608,17 @@ export class ConversationListModel implements MailSetListModel {
 		(mailMap) => Array.from(mailMap.values()).map(({ mail }) => mail),
 	)
 
+	private getDisplayedMailsOfConversations(conversations: readonly LoadedConversation[]): Mail[] {
+		return conversations.map((conversation) => this.getDisplayedMailForConversation(conversation)?.mail).filter(isNotNull)
+	}
+
 	// @VisibleForTesting
 	_getMailMap(): ReadonlyMap<Id, LoadedMail> {
 		return this.mailMap
 	}
+}
+
+function reverseCompareMailSetId(id1: Id, id2: Id): number {
+	// Sort in reverse order to ensure newer mails are first
+	return compare(customIdToUint8array(id2), customIdToUint8array(id1))
 }

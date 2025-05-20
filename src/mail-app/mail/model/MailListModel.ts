@@ -136,7 +136,7 @@ export class MailListModel implements MailSetListModel {
 		await this.listModel.loadInitial()
 	}
 
-	readonly getSelectedAsArray = memoizedWithHiddenArgument(
+	readonly getSelectedAsArray: () => readonly Mail[] = memoizedWithHiddenArgument(
 		() => this.listModel.getSelectedAsArray(),
 		(mails) => mails.map(({ mail }) => mail),
 	)
