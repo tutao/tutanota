@@ -911,7 +911,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (!this.mailViewModel.listModel || !currentFolder) {
 			return
 		}
-		let mailsToMove: Mail[] = []
+		let mailsToMove: readonly Mail[] = []
 
 		// the dropped mail is among the selected mails, move all selected mails
 		if (this.mailViewModel.listModel.isItemSelected(mailId)) {
@@ -920,7 +920,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			const entity = this.mailViewModel.listModel.getMail(mailId)
 
 			if (entity) {
-				mailsToMove.push(entity)
+				mailsToMove = [entity]
 			}
 		}
 
