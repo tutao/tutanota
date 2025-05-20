@@ -103,7 +103,7 @@ export class GroupManagementFacade {
 		})
 		const mailGroupPostOut = await this.serviceExecutor.post(MailGroupService, data)
 
-		const currentKeyPair: KeyPair = this.createKeyPairFromGroupData(mailGroupData)
+		const currentKeyPair: KeyPair = await this.createKeyPairFromGroupData(mailGroupData)
 		await this.createIdentityKeyPair(
 			mailGroupPostOut.mailGroup,
 			{
@@ -114,7 +114,8 @@ export class GroupManagementFacade {
 		)
 	}
 
-	createKeyPairFromGroupData(groupData: InternalGroupData) {
+	async createKeyPairFromGroupData(groupData: InternalGroupData): Promise<KeyPair> {
+		// Async function, because it is used from the main thread.
 		return createKeyPair({
 			pubRsaKey: groupData.pubRsaKey,
 			symEncPrivRsaKey: groupData.groupEncPrivRsaKey,

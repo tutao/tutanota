@@ -119,7 +119,7 @@ export class UserManagementFacade {
 		})
 		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data)
 
-		const currentKeyPair = this.groupManagement.createKeyPairFromGroupData(userGroupData)
+		const currentKeyPair = await this.groupManagement.createKeyPairFromGroupData(userGroupData)
 		await this.groupManagement.createIdentityKeyPair(userGroup, {
 			currentKeyPair,
 			keyPairVersion: 0, // new group
