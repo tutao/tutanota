@@ -8,12 +8,14 @@ import de.tutao.tutasdk.RestClientException
 import de.tutao.tutasdk.RestClientOptions
 import de.tutao.tutasdk.RestResponse
 import okhttp3.ConnectionSpec
+import okhttp3.Dispatcher
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.conscrypt.Conscrypt
 import java.security.Security
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
@@ -24,8 +26,11 @@ class NetworkUtils {
 		private const val TAG = "NU"
 		val defaultClient = createHttpClient()
 		private fun createHttpClient(): OkHttpClient {
+			val dispatcher = Dispatcher(Executors.newFixedThreadPool(1));
+			dispatcher.maxRequests = 3;
 			val builder: OkHttpClient.Builder = OkHttpClient()
 				.newBuilder()
+				.dispatcher(dispatcher)
 				.connectTimeout(5, TimeUnit.SECONDS)
 				.writeTimeout(5, TimeUnit.SECONDS)
 				.readTimeout(5, TimeUnit.SECONDS)
