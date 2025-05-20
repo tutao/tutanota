@@ -172,9 +172,6 @@ export class CalendarWorkerImpl implements NativeInterface {
 			async contactFacade() {
 				return locator.contactFacade()
 			},
-			async applicationTypesFacade() {
-				return locator.applicationTypesFacade
-			},
 		}
 	}
 
