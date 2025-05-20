@@ -10,7 +10,7 @@ import TutanotaSharedFramework
 import WidgetKit
 import tutasdk
 
-struct SimpleEntry: TimelineEntry {
+struct WidgetEntry: TimelineEntry {
 	let date: Date
 	let configuration: ConfigurationAppIntent
 	let events: ([CalendarEventData], [CalendarEventData])
@@ -80,13 +80,13 @@ private let ALL_DAY_EVENTS_PLACEHOLDER = [
 ]
 
 struct AgendaProvider: AppIntentTimelineProvider {
-	func makeErrorEntry(configuration: ConfigurationAppIntent, error: WidgetErrors, stackTrace: String = "") -> SimpleEntry {
+	func makeErrorEntry(configuration: ConfigurationAppIntent, error: WidgetErrors, stackTrace: String = "") -> WidgetEntry {
 		let errorObject = WidgetError(type: error, message: error.getUserFriendlyErrorMessage(), stacktrace: stackTrace)
-		return SimpleEntry(date: Date(), configuration: configuration, events: ([], []), error: errorObject)
+		return WidgetEntry(date: Date(), configuration: configuration, events: ([], []), error: errorObject)
 	}
 
-	func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
-		var entries: [SimpleEntry] = []
+	func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<WidgetEntry> {
+		var entries: [WidgetEntry] = []
 
 		let currentDate = Date()
 		let startOfTomorrow = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: currentDate)!)
@@ -105,7 +105,7 @@ struct AgendaProvider: AppIntentTimelineProvider {
 
 			for date in stride(from: currentDate, to: startOfTomorrow, by: frameOffset) {
 				let filteredNormalEvents = normalEvents.filter { $0.endDate.timeIntervalSince1970 >= date.timeIntervalSince1970 }
-				let entry = SimpleEntry(date: date, configuration: configuration, events: (filteredNormalEvents, longEvents), error: nil)
+				let entry = WidgetEntry(date: date, configuration: configuration, events: (filteredNormalEvents, longEvents), error: nil)
 				entries.append(entry)
 
 				if filteredNormalEvents.isEmpty { break }
@@ -122,13 +122,13 @@ struct AgendaProvider: AppIntentTimelineProvider {
 		return Timeline(entries: entries, policy: .after(startOfTomorrow))
 	}
 
-	func placeholder(in context: Context) -> SimpleEntry {
-		SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
+	func placeholder(in context: Context) -> WidgetEntry {
+		WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
 	}
 
-	func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
+	func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> WidgetEntry {
 		let events = context.isPreview ? (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER) : ([], [])
-		return SimpleEntry(date: Date(), configuration: configuration, events: events, error: nil)
+		return WidgetEntry(date: Date(), configuration: configuration, events: events, error: nil)
 	}
 }
 
@@ -290,7 +290,7 @@ extension String {
 	as: .systemLarge,
 	widget: { AgendaWidget() },
 	timeline: {
-		SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
+		WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
 	}
 )
 
@@ -299,6 +299,6 @@ extension String {
 	as: .systemLarge,
 	widget: { AgendaWidget() },
 	timeline: {
-		SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
+		WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
 	}
 )

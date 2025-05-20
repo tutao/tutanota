@@ -50,11 +50,17 @@ struct ErrorBody: View {
 		}
 	}
 
+	func makeErrorImage() -> ImageResource {
+		if self.error.type == WidgetErrors.missingConfiguration { return .widgetConfig }
+
+		return .widgetError
+	}
+
 	@Environment(\.widgetFamily) var family
 	var body: some View {
 		ErrorBodyWrapper(isMedium: family == .systemMedium) {
 			VStack(alignment: .center) {
-				Image(.widgetError).imageScale(.large)
+				Image(self.makeErrorImage()).imageScale(.large)
 				Text(error.type.getUserFriendlyErrorMessage()).font(.system(size: 16)).lineLimit(2).multilineTextAlignment(.center)
 					.foregroundStyle(Color(.onSurface)).padding([.top, .bottom], 8)
 				ActionButton(isMedium: family == .systemMedium)
