@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-05-15T14:03:43Z",
+	"updated_at": "2025-05-20T13:07:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1370,7 +1370,7 @@ export default {
 		"pricing.custom_tooltip": "Whitelabel Tuta med ditt eget varumärke genom att definiera logotyper och färger för Tuta klienterna på webben, mobilen och datorn.",
 		"pricing.cyberMonday_label": "SPARA 62%",
 		"pricing.cyber_monday_msg": "Skaffa det bästa abonnemanget till ett lägre pris första året!",
-		"pricing.cyber_monday_select_action": "Ta del av erbjudandet!",
+		"pricing.cyber_monday_select_action": "Välj europeisk",
 		"pricing.encryptedCalendar_label": "Helt krypterad kalender",
 		"pricing.encryptedCalendar_tooltip": "Alla data i dina Tuta kalendrar är krypterade, även meddelanden skickas krypterade till din enhet.",
 		"pricing.encryptedContacts_label": "Krypterad adressbok",
@@ -2011,6 +2011,7 @@ export default {
 		"whyLeave_msg": "Vi är ledsna att se dig gå! Vad kan vi förbättra?",
 		"widgetCredentialsError_msg": "Logga in på kalenderappen",
 		"widgetDescription_msg": "Visa dagens kommande händelser",
+		"widgetMissingConfigurationError_msg": "Saknar konfiguration av widget",
 		"widgetNoCredentialsInfo_msg": "Inga inloggningsuppgifter tillgängliga",
 		"widgetNoEvents_msg": "Inga händelser",
 		"widgetOpenApp_action": "Öppna appen",

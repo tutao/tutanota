@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Kalendrar";
 TutaoNoTitleLabel = "<Ingen titel>";
 TutaoWidgetDescription = "Visa dagens kommande händelser";
 TutaoDefaultCalendarNameTitle = "Privat";
+TutaoWidgetMissingConfigurationErrorMsg = "Saknar konfiguration av widget";
 TutaoBirthdayEventTitle = "{name} födelsedag";
 TutaoBirthdayEventAgeTitle = "{age} år gammal";
 TutaoBirthdayCalendarLabel = "Födelsedagar";
