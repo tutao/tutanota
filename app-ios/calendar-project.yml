@@ -114,6 +114,7 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
         CFDisplayName: Agenda
+        CFBundleDisplayName: Agenda
   WidgetConfigIntent:
     templates: [ "formatAndLint" ]
     type: "app-extension"
@@ -134,6 +135,7 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.intents-service
         CFDisplayName: WidgetConfig
+        CFBundleDisplayName: WidgetConfig
   WidgetActionsIntent:
     templates: [ "formatAndLint" ]
     type: "app-extension"
@@ -154,6 +156,7 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.intents-service
         CFDisplayName: WidgetActions
+        CFBundleDisplayName: WidgetActions
   tutanotaTests:
     templates: [ "formatAndLint" ]
     type: "bundle.unit-test"
