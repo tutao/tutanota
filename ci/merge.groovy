@@ -310,35 +310,40 @@ pipeline {
 						sh "cargo clippy --all --no-deps -- -Dwarnings"
 					}
 				}
-				stage("ios app tests") {
-					agent {
-						node {
-							label "mac-m1"
-							customWorkspace macWorkspace
+				stage("ios tests") {
+					// iOS tests write to the same temp folder which can cause both tests to fail, so they must run sequentially
+					stages {
+						stage("ios app") {
+							agent {
+								node {
+									label "mac-m1"
+									customWorkspace macWorkspace
+								}
+							}
+							when {
+								expression { hasRelevantChangesIn(changeset, "app-ios") }
+							}
+							steps {
+								lock("ios-build-m1") {
+									testFastlane("test_tuta_app")
+								}
+							}
 						}
-					}
-					when {
-						expression { hasRelevantChangesIn(changeset, "app-ios") }
-					}
-					steps {
-						lock("ios-build-m1") {
-							testFastlane("test_tuta_app")
-						}
-					}
-				}
-				stage("ios framework tests") {
-					agent {
-						node {
-							label "mac-m1"
-							customWorkspace macWorkspace
-						}
-					}
-					when {
-						expression { hasRelevantChangesIn(changeset, "app-ios") }
-					}
-					steps {
-						lock("ios-build-m1") {
-							testFastlane("test_tuta_shared_framework")
+						stage("ios framework") {
+							agent {
+								node {
+									label "mac-m1"
+									customWorkspace macWorkspace
+								}
+							}
+							when {
+								expression { hasRelevantChangesIn(changeset, "app-ios") }
+							}
+							steps {
+								lock("ios-build-m1") {
+									testFastlane("test_tuta_shared_framework")
+								}
+							}
 						}
 					}
 				}
