@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-05-19T08:05:45Z",
+	"updated_at": "2025-05-20T13:14:12Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -2015,7 +2015,7 @@ export default {
 		"whyLeave_msg": "Schade, dass Sie kündigen möchten. Wie können wir uns verbessern?",
 		"widgetCredentialsError_msg": "Bitte melden Sie sich in der Kalender-App an",
 		"widgetDescription_msg": "Heute anstehenden Termine anzeigen",
-		"widgetMissingConfigurationError_msg": "Fehlende Widget-Konfiguration",
+		"widgetMissingConfigurationError_msg": "Bitte konfigurieren Sie dieses Widget, um Kalender-Einträge zu sehen.",
 		"widgetNoCredentialsInfo_msg": "Keine Login-Daten vorhanden",
 		"widgetNoEvents_msg": "Keine Termine",
 		"widgetOpenApp_action": "Die App öffnen",

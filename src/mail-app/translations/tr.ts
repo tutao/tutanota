@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-05-15T14:08:28Z",
+	"updated_at": "2025-05-20T13:07:21Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1393,6 +1393,7 @@ export default {
 		"pricing.gdpr_label": "GDPR-uyumlu",
 		"pricing.gdpr_tooltip": "Tüm veriler, GDPR'ye göre sıkı Avrupa veri koruma düzenlemelerine uygun olarak saklanır.",
 		"pricing.getStarted_label": "Başlayın",
+		"pricing.globalFirstYearDiscountRibbon_label": "{amount} KAZAN",
 		"pricing.includesTaxes_msg": "Vergiler dahildir.",
 		"pricing.legendAsterisk_msg": "Legend indirimi sadece ilk yıl içindir. Sonraki ücret yıllık 96€ olacaktır.",
 		"pricing.login_title": "Web sayfamızdan giriş yapın",
@@ -2014,6 +2015,7 @@ export default {
 		"whyLeave_msg": "Gittiğinizi gördüğümüz için üzgünüz! Nereyi geliştirebiliriz?",
 		"widgetCredentialsError_msg": "Lütfen Takvim uygulamasında oturum açın",
 		"widgetDescription_msg": "Bugünün yaklaşan etkinliklerini görüntüleyin",
+		"widgetMissingConfigurationError_msg": "Widget yapılandırması eksik",
 		"widgetNoCredentialsInfo_msg": "Giriş bilgileri yok",
 		"widgetNoEvents_msg": "Etkinlik yok",
 		"widgetOpenApp_action": "Uygulamayı aç",

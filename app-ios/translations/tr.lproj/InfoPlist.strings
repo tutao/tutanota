@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Takvimler";
 TutaoNoTitleLabel = "<Başlık yok>";
 TutaoWidgetDescription = "Bugünün yaklaşan etkinliklerini görüntüleyin";
 TutaoDefaultCalendarNameTitle = "Özel";
+TutaoWidgetMissingConfigurationErrorMsg = "Widget yapılandırması eksik";
 TutaoBirthdayEventTitle = "{name} doğum günü";
 TutaoBirthdayEventAgeTitle = "{age} yaşında";
 TutaoBirthdayCalendarLabel = "Doğum günleri";

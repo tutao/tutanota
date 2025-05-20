@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-05-15T19:05:16Z",
+	"updated_at": "2025-05-20T13:07:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1389,6 +1389,7 @@ export default {
 		"pricing.gdpr_label": "GDPR-yhteensopiva",
 		"pricing.gdpr_tooltip": "Kaikki tiedot tallennetaan Euroopan unionin yleisen tietosuoja-asetuksen (GDPR) tiukkojen säännösten mukaisesti.",
 		"pricing.getStarted_label": "Alkuun",
+		"pricing.globalFirstYearDiscountRibbon_label": "SÄÄSTÄ {amount}",
 		"pricing.includesTaxes_msg": "Sisältää verot.",
 		"pricing.legendAsterisk_msg": "Legend-alennus koskee vain ensimmäistä vuotta. Muina vuosina hinta on 96€ vuodessa.",
 		"pricing.login_title": "Kirjaudu omalla verkkosivullasi",
@@ -2009,6 +2010,7 @@ export default {
 		"whyLeave_msg": "Olemme pahoillamme, että olet päättänyt lähteä! Missä meillä on parannettavaa?",
 		"widgetCredentialsError_msg": "Kirjaudu kalenterisovellukseen",
 		"widgetDescription_msg": "Näytä tulevat tapahtumat tänään",
+		"widgetMissingConfigurationError_msg": "Määritykset puuttuvat",
 		"widgetNoCredentialsInfo_msg": "Kirjautumistietoja ei saatavilla",
 		"widgetNoEvents_msg": "Ei tapahtumia",
 		"widgetOpenApp_action": "Avaa sovellus",

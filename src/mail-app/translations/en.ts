@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-05-19T08:05:20Z",
+	"updated_at": "2025-05-20T13:14:19Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -2011,7 +2011,7 @@ export default {
 		"whyLeave_msg": "We're sorry to see you go! Where can we improve?",
 		"widgetCredentialsError_msg": "Please login on the Calendar App",
 		"widgetDescription_msg": "Show today's upcoming events",
-		"widgetMissingConfigurationError_msg": "Missing widget configuration",
+		"widgetMissingConfigurationError_msg": "Please configure this widget to show calendar events.",
 		"widgetNoCredentialsInfo_msg": "No credentials available",
 		"widgetNoEvents_msg": "No events",
 		"widgetOpenApp_action": "Open the app",
@@ -2029,6 +2029,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
+		"zoomOut_action": "Zoom Out"
 	}
 }

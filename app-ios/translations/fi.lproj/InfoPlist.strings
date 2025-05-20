@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Kalenterit";
 TutaoNoTitleLabel = "<Ei otsikkoa>";
 TutaoWidgetDescription = "Näytä tulevat tapahtumat tänään";
 TutaoDefaultCalendarNameTitle = "Yksityinen";
+TutaoWidgetMissingConfigurationErrorMsg = "Määritykset puuttuvat";
 TutaoBirthdayEventTitle = "Henkilön {name} syntymäpäivä";
 TutaoBirthdayEventAgeTitle = "{age}-vuotias";
 TutaoBirthdayCalendarLabel = "Syntymäpäivät";
