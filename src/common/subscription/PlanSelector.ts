@@ -4,7 +4,7 @@ import { PlanBox } from "./PlanBox.js"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { FeatureListProvider, ReplacementKey, SelectedSubscriptionOptions, UpgradePriceType } from "./FeatureListProvider"
 import { downcast, lazy } from "@tutao/tutanota-utils"
-import { CustomDomainType, CustomDomainTypeCountName, Keys, PlanType, TabIndex } from "../api/common/TutanotaConstants.js"
+import { AvailablePlanType, CustomDomainType, CustomDomainTypeCountName, Keys, NewBusinessPlans, PlanType, TabIndex } from "../api/common/TutanotaConstants.js"
 import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
@@ -392,6 +392,8 @@ function getPlanMetricValue(planType: PlanType, interval?: PaymentInterval) {
 		return interval == PaymentInterval.Monthly ? "Monthly_Revolutionary" : "Yearly_Revolutionary"
 	} else if (planType == PlanType.Legend) {
 		return interval == PaymentInterval.Monthly ? "Monthly_Legend" : "Yearly_Legend"
+	} else if (NewBusinessPlans.includes(planType as AvailablePlanType)) {
+		return "Business"
 	}
 
 	return null
