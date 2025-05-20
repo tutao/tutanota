@@ -254,7 +254,7 @@ platform :ios do
    desc "Build a new staging Calendar release for ad-hoc"
    lane :calendar_adhoc_staging do
    		match(
-   			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+   			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension", "de.tutao.calendar.test.AgendaWidget", "de.tutao.calendar.test.WidgetConfigIntent"],
    			type: "adhoc",
    			verbose: true,
    			readonly: true,
@@ -279,7 +279,7 @@ platform :ios do
    desc "Build and push a new staging calendar release to TestFlight"
    lane :calendar_testflight_staging do
    		match(
-   			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+   			app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension", "de.tutao.calendar.test.AgendaWidget", "de.tutao.calendar.test.WidgetConfigIntent"],
    			type: "appstore",
    			verbose: true,
    			readonly: true,
@@ -307,7 +307,7 @@ platform :ios do
    desc "Build a new Calendar prod release for ad-hoc"
    lane :calendar_adhoc_prod do |options|
    		match(
-   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension", "de.tutao.calendar.AgendaWidget", "de.tutao.calendar.WidgetConfigIntent"],
    			type: "adhoc",
    			verbose: true,
    			readonly: true,
@@ -333,7 +333,7 @@ platform :ios do
    desc "Build a new Calendar prod release with AppStore configuration"
    lane :build_calendar_prod do |options|
    		match(
-   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension", "de.tutao.calendar.AgendaWidget", "de.tutao.calendar.WidgetConfigIntent"],
    			type: "appstore",
    			verbose: true,
    			readonly: true,
@@ -372,7 +372,7 @@ platform :ios do
    desc "Renew calendar prod adhoc cert"
    lane :renew_calendar_adhoc_cert_prod do
    		match(
-   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension", "de.tutao.calendar.AgendaWidget", "de.tutao.calendar.WidgetConfigIntent"],
    			type: "adhoc",
    			verbose: true,
    			readonly: false,
@@ -386,7 +386,7 @@ platform :ios do
    desc "Renew calendar prod appstore cert"
    lane :renew_calendar_appstore_cert_prod do
    		match(
-   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension"],
+   			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension", "de.tutao.calendar.AgendaWidget", "de.tutao.calendar.WidgetConfigIntent"],
    			type: "appstore",
    			verbose: true,
    			readonly: false,
@@ -400,7 +400,7 @@ platform :ios do
    desc "Renew calendar staging adhoc cert"
    lane :renew_calendar_adhoc_cert_staging do
 	   match(
-		   app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+		   app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension", "de.tutao.calendar.test.AgendaWidget", "de.tutao.calendar.test.WidgetConfigIntent"],
 		   type: "adhoc",
 		   verbose: true,
 		   readonly: false,
@@ -414,7 +414,7 @@ platform :ios do
   desc "Renew calendar staging appstore cert"
   lane :renew_calendar_appstore_cert_staging do
 	   match(
-		   app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension"],
+		   app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension", "de.tutao.calendar.test.AgendaWidget", "de.tutao.calendar.test.WidgetConfigIntent"],
 		   type: "appstore",
 		   verbose: true,
 		   readonly: false,
