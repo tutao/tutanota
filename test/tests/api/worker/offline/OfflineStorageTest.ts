@@ -199,7 +199,17 @@ o.spec("OfflineStorageDb", function () {
 			})
 
 			o.test("put calls the cache handler", async function () {
-				const user = createTestEntity(UserTypeRef, { _id: userId })
+				const user = createTestEntity(UserTypeRef, {
+					_id: userId,
+					_permissions: "permissions",
+					_ownerGroup: "ownerGroup",
+					successfulLogins: "successfulLogins",
+					userGroup: createTestEntity(GroupMembershipTypeRef, {
+						group: "userGroup",
+						groupInfo: ["groupInfoList", "groupInfo"],
+						groupMember: ["groupMemberList", "groupMember"],
+					}),
+				})
 				const storableUser = await toStorableInstance(user)
 
 				const userCacheHandler: CustomCacheHandler<User> = object()
@@ -210,7 +220,17 @@ o.spec("OfflineStorageDb", function () {
 			})
 
 			o.test("deleteIfExists calls the cache handler", async function () {
-				const user = createTestEntity(UserTypeRef, { _id: userId })
+				const user = createTestEntity(UserTypeRef, {
+					_id: userId,
+					_permissions: "permissions",
+					_ownerGroup: "ownerGroup",
+					successfulLogins: "successfulLogins",
+					userGroup: createTestEntity(GroupMembershipTypeRef, {
+						group: "userGroup",
+						groupInfo: ["groupInfoList", "groupInfo"],
+						groupMember: ["groupMemberList", "groupMember"],
+					}),
+				})
 				const storableUser = await toStorableInstance(user)
 
 				const userCacheHandler: CustomCacheHandler<User> = object()
@@ -224,7 +244,11 @@ o.spec("OfflineStorageDb", function () {
 
 			o.spec("deleteAllOfType", function () {
 				o.test("calls the cache handler for element types", async function () {
-					const user = createTestEntity(UserTypeRef, { _id: userId })
+					const user = createTestEntity(UserTypeRef, {
+						_id: userId,
+						_permissions: "permissions",
+						_ownerGroup: "ownerGroup",
+					})
 					const storableUser = await toStorableInstance(user)
 
 					const userCacheHandler: CustomCacheHandler<User> = object()
@@ -240,7 +264,11 @@ o.spec("OfflineStorageDb", function () {
 
 				o.test("calls the cache handler for list element types", async function () {
 					const id: IdTuple = ["listId", "id1"]
-					const entityToStore = createTestEntity(MailTypeRef, { _id: id })
+					const entityToStore = createTestEntity(MailTypeRef, {
+						_id: id,
+						_permissions: "permissions",
+						_ownerGroup: "ownerGroup",
+					})
 					const storableMail = await toStorableInstance(entityToStore)
 
 					const customCacheHandler: CustomCacheHandler<Mail> = object()
@@ -254,7 +282,11 @@ o.spec("OfflineStorageDb", function () {
 
 				o.test("calls the cache handler for blob element types", async function () {
 					const id: IdTuple = ["listId", "id1"]
-					const entityToStore = createTestEntity(MailDetailsBlobTypeRef, { _id: id })
+					const entityToStore = createTestEntity(MailDetailsBlobTypeRef, {
+						_id: id,
+						_permissions: "permissions",
+						_ownerGroup: "ownerGroup",
+					})
 					const storableDetails = await toStorableInstance(entityToStore)
 
 					const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
