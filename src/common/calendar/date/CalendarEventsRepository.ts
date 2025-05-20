@@ -334,7 +334,7 @@ export class CalendarEventsRepository {
 		}
 
 		console.info("Birthday events loaded")
-		console.table({ "Valid contacts": filteredContacts.length, "Invalid contacts": invalidContacts.length })
+		console.log({ "Valid contacts": filteredContacts.length, "Invalid contacts": invalidContacts.length })
 		return { valid: filteredContacts, invalid: invalidContacts }
 	}
 
