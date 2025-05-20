@@ -171,7 +171,7 @@ export class TutaSseFacade implements SseEventHandler {
 						await this.alarmStorage.removePushIdentifierKey(elementIdPart(sk.notificationSessionKey.pushIdentifier))
 						continue
 					}
-					return await this.alarmScheduler.handleCreateAlarm(alarmNotification, null)
+					return await this.alarmScheduler.handleCreateAlarm(alarmNotification)
 				}
 			} else if (operation === OperationType.DELETE) {
 				await this.alarmScheduler.handleDeleteAlarm(alarmIdentifier)

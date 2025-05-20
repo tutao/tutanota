@@ -59,7 +59,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 				alarm as unknown as ServerModelUntypedInstance,
 				sk,
 			)
-			await this.alarmScheduler.handleCreateAlarm(alarmNotification, sk)
+			await this.alarmScheduler.handleCreateAlarm(alarmNotification)
 		}
 	}
 

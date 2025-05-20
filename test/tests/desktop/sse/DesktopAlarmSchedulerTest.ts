@@ -161,8 +161,8 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 
 			const an3 = createDeleteAlarmNotification(an1.alarmInfo.alarmIdentifier)
 
-			await scheduler.handleCreateAlarm(an1, null)
-			await scheduler.handleCreateAlarm(an2, null)
+			await scheduler.handleCreateAlarm(an1)
+			await scheduler.handleCreateAlarm(an2)
 
 			// We don't want the callback argument
 			verify(
@@ -214,7 +214,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 
 			const cbCaptor = matchers.captor()
 			when(alarmScheduler.scheduleAlarm(matchers.anything(), matchers.anything(), matchers.anything(), cbCaptor.capture())).thenResolve(undefined)
-			await scheduler.handleCreateAlarm(an1, null)
+			await scheduler.handleCreateAlarm(an1)
 			o(notifierMock.submitGroupedNotification.callCount).equals(0)
 			const cb = cbCaptor.value
 			cb(an1.eventStart, "title")

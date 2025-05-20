@@ -230,7 +230,7 @@ o.spec("TutaNotificationHandler", () => {
 	o.test("onLocalDataInvalidated", async () => {
 		await handler.onLocalDataInvalidated()
 		verify(alarmScheduler.unscheduleAllAlarms())
-		verify(alarmStorage.removePushIdentifierKeys())
+		verify(alarmStorage.removeAllPushIdentifierKeys())
 		verify(wm.invalidateAlarms())
 	})
 

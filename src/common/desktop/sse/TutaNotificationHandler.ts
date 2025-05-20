@@ -154,7 +154,7 @@ export class TutaNotificationHandler {
 
 	async onLocalDataInvalidated() {
 		await this.alarmScheduler.unscheduleAllAlarms()
-		await this.alarmStorage.removePushIdentifierKeys()
+		await this.alarmStorage.removeAllPushIdentifierKeys()
 		await this.windowManager.invalidateAlarms()
 	}
 }

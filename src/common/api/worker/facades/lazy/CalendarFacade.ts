@@ -358,7 +358,6 @@ export class CalendarFacade {
 		const sessionKey = aes256RandomKey()
 		await this.encryptNotificationKeyForDevices(sessionKey, alarmNotifications, [pushIdentifier])
 
-		const alarmNotificationModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
 		const encryptedNotificationsWireFormat = JSON.stringify(
 			await Promise.all(
 				alarmNotifications.map(async (an) => {

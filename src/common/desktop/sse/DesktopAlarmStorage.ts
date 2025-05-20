@@ -13,14 +13,13 @@ import { hasError } from "../../api/common/utils/ErrorUtils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification"
 import { AttributeModel } from "../../api/common/AttributeModel"
-import { resolveClientTypeReference } from "../../api/common/EntityFunctions"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
  */
 export class DesktopAlarmStorage {
 	/** push identifier id to key */
-	private sessionKeys: Record<string, string>
+	private unencryptedSessionKeys: Record<string, string>
 
 	constructor(
 		private readonly conf: DesktopConfig,
@@ -28,7 +27,7 @@ export class DesktopAlarmStorage {
 		private readonly keyStoreFacade: DesktopKeyStoreFacade,
 		private readonly alarmStorageInstancePipeline: InstancePipeline,
 	) {
-		this.sessionKeys = {}
+		this.unencryptedSessionKeys = {}
 	}
 
 	/**
@@ -41,7 +40,7 @@ export class DesktopAlarmStorage {
 		const keys: Record<string, Base64> = (await this.conf.getVar(DesktopConfigKey.pushEncSessionKeys)) || {}
 
 		if (!keys[pushIdentifierId]) {
-			this.sessionKeys[pushIdentifierId] = uint8ArrayToBase64(pushIdentifierSessionKey)
+			this.unencryptedSessionKeys[pushIdentifierId] = uint8ArrayToBase64(pushIdentifierSessionKey)
 			return this.keyStoreFacade.getDeviceKey().then((pw) => {
 				keys[pushIdentifierId] = uint8ArrayToBase64(this.cryptoFacade.aes256EncryptKey(pw, pushIdentifierSessionKey))
 				return this.conf.setVar(DesktopConfigKey.pushEncSessionKeys, keys)
@@ -51,15 +50,18 @@ export class DesktopAlarmStorage {
 		return Promise.resolve()
 	}
 
-	removePushIdentifierKeys(): Promise<void> {
-		this.sessionKeys = {}
+	removeAllPushIdentifierKeys(): Promise<void> {
+		this.unencryptedSessionKeys = {}
 		return this.conf.setVar(DesktopConfigKey.pushEncSessionKeys, null)
 	}
 
-	removePushIdentifierKey(piId: string): Promise<void> {
+	async removePushIdentifierKey(piId: string): Promise<void> {
 		log.debug("Remove push identifier key. elementId=" + piId)
-		delete this.sessionKeys[piId]
-		return this.conf.setVar(DesktopConfigKey.pushEncSessionKeys, this.sessionKeys)
+		delete this.unencryptedSessionKeys[piId]
+
+		const keys: Record<string, Base64> = (await this.conf.getVar(DesktopConfigKey.pushEncSessionKeys)) || {}
+		delete keys[piId]
+		return this.conf.setVar(DesktopConfigKey.pushEncSessionKeys, keys)
 	}
 
 	/**
@@ -70,21 +72,21 @@ export class DesktopAlarmStorage {
 	async getPushIdentifierSessionKey(pushIdentifier: IdTuple): Promise<AesKey | null> {
 		const pushIdentifierId = elementIdPart(pushIdentifier)
 
-		if (this.sessionKeys[pushIdentifierId]) {
-			return uint8ArrayToBitArray(base64ToUint8Array(this.sessionKeys[pushIdentifierId]))
+		if (this.unencryptedSessionKeys[pushIdentifierId]) {
+			return uint8ArrayToBitArray(base64ToUint8Array(this.unencryptedSessionKeys[pushIdentifierId]))
 		} else {
 			const keys: Record<string, Base64> = (await this.conf.getVar(DesktopConfigKey.pushEncSessionKeys)) || {}
-			const sessionKeyFromConf = keys[pushIdentifierId]
+			const encryptedSessionKeyFromConf = keys[pushIdentifierId]
 
-			if (sessionKeyFromConf == null) {
+			if (encryptedSessionKeyFromConf == null) {
 				// key with this id is not saved in local conf, so we can't resolve it
 				return null
 			}
 
 			try {
 				const pw = await this.keyStoreFacade.getDeviceKey()
-				const decryptedKey = this.cryptoFacade.unauthenticatedAes256DecryptKey(pw, base64ToUint8Array(sessionKeyFromConf))
-				this.sessionKeys[pushIdentifierId] = uint8ArrayToBase64(decryptedKey)
+				const decryptedKey = this.cryptoFacade.unauthenticatedAes256DecryptKey(pw, base64ToUint8Array(encryptedSessionKeyFromConf))
+				this.unencryptedSessionKeys[pushIdentifierId] = uint8ArrayToBase64(decryptedKey)
 				return uint8ArrayToBitArray(decryptedKey)
 			} catch (e) {
 				console.warn("could not decrypt pushIdentifierSessionKey")
@@ -109,13 +111,14 @@ export class DesktopAlarmStorage {
 		return null
 	}
 
-	async storeAlarm(alarm: AlarmNotification, newDeviceSessionKey: AesKey | null): Promise<void> {
+	async storeAlarm(alarm: AlarmNotification): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
 		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === alarm.alarmInfo.alarmIdentifier)
 		allAlarms.push(alarm)
 		const encryptedAlarms = await Promise.all(
 			allAlarms.map(async (alarm) => {
-				return await this.encryptAlarmNotification(alarm, newDeviceSessionKey)
+				let sessionKeyWrapper = await this.getNotificationSessionKey(alarm.notificationSessionKeys)
+				return await this.encryptAlarmNotification(alarm, assertNotNull(sessionKeyWrapper).sessionKey)
 			}),
 		)
 		await this._saveAlarms(encryptedAlarms)
@@ -183,29 +186,45 @@ export class DesktopAlarmStorage {
 			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		const alarmNotificationTypeModel = await resolveClientTypeReference(AlarmNotificationTypeRef)
 		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
 		return AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedAlarmNotification)
 	}
 
 	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<AlarmNotification> {
 		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an as unknown as ServerModelUntypedInstance)
-		const skResult = await this.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
-		if (skResult) {
-			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
+		for (const currentNotificationSessionKey of encryptedAlarmNotification.getNotificationSessionKeys()) {
+			const pushIdentifierSessionKey = await this.getPushIdentifierSessionKey(currentNotificationSessionKey.pushIdentifier)
+
+			if (!pushIdentifierSessionKey) {
+				// this key is either not for us (we don't have the right PushIdentifierSessionKey in our local storage)
+				// or we couldn't decrypt the NotificationSessionKey for some reason
+				// either way, we probably can't use it.
+				continue
+			}
+
+			const sessionKey = decryptKey(pushIdentifierSessionKey, currentNotificationSessionKey.pushIdentifierSessionEncSessionKey)
+			const decryptedAlarmNotification: AlarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
 				AlarmNotificationTypeRef,
 				an as unknown as ServerModelUntypedInstance,
-				skResult.sessionKey,
+				sessionKey,
 			)
-			if (hasError(alarmNotification)) {
+
+			if (hasError(decryptedAlarmNotification)) {
 				// some property of the AlarmNotification couldn't be decrypted with the selected key
 				// throw away the key that caused the error and try the next one
-				await this.removePushIdentifierKey(elementIdPart(skResult.notificationSessionKey.pushIdentifier))
+				await this.removePushIdentifierKey(elementIdPart(currentNotificationSessionKey.pushIdentifier))
+				continue
 			}
-			// discard irrelevant session keys, keep currect encrypted session key
-			alarmNotification.notificationSessionKeys = [skResult.notificationSessionKey]
-			return alarmNotification
+
+			// discard irrelevant session keys, keep correct encrypted session key
+			decryptedAlarmNotification.notificationSessionKeys = [currentNotificationSessionKey]
+			return decryptedAlarmNotification
 		}
+
+		// none of the NotificationSessionKeys in the AlarmNotification worked.
+		// this is indicative of a serious problem with the stored keys.
+		// therefore, we should invalidate the sseInfo and throw away
+		// our pushEncSessionKeys.
 		throw new CryptoError("could not decrypt alarmNotification")
 	}
 }

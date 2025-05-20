@@ -48,10 +48,10 @@ export class DesktopAlarmScheduler {
 		await this.alarmStorage.deleteAlarm(alarmIdentifier)
 	}
 
-	async handleCreateAlarm(an: AlarmNotification, newDeviceSessionKey: AesKey | null) {
+	async handleCreateAlarm(an: AlarmNotification) {
 		log.debug("creating alarm notification!")
 		this.scheduleAlarms(an)
-		await this.alarmStorage.storeAlarm(an, newDeviceSessionKey)
+		await this.alarmStorage.storeAlarm(an)
 	}
 
 	private cancelAlarms(alarmIdentifier: string): void {

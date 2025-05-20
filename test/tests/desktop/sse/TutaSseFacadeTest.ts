@@ -210,7 +210,6 @@ o.spec("TutaSseFacade", () => {
 						removeAggregateIds(actualAlarmNotification, true)
 						return deepEqual(removeFinalIvs(actualAlarmNotification), removeFinalIvs(alarmNotification))
 					}),
-					null,
 				),
 			)
 		})

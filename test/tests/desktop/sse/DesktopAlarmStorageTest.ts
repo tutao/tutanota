@@ -4,12 +4,19 @@ import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopA
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import type { DesktopKeyStoreFacade } from "../../../../src/common/desktop/DesktopKeyStoreFacade.js"
-import { makeKeyStoreFacade } from "../../TestUtils.js"
+import { createTestEntity, makeKeyStoreFacade } from "../../TestUtils.js"
 import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { resolveClientTypeReference, resolveServerTypeReference } from "../../../../src/common/api/common/EntityFunctions"
-import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import {
+	AlarmInfoTypeRef,
+	AlarmNotificationTypeRef,
+	CalendarEventRefTypeRef,
+	NotificationSessionKeyTypeRef,
+} from "../../../../src/common/api/entities/sys/TypeRefs.js"
+import { hasError } from "../../../../src/common/api/common/utils/ErrorUtils.js"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade
@@ -67,5 +74,96 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const pushIdentifier: IdTuple = ["fiveId", "sixId"]
 		const key1 = await desktopStorage.getPushIdentifierSessionKey(pushIdentifier)
 		o(key1).equals(null)
+	})
+
+	o("storing new alarm does not change unrelated alarm session keys", async function () {
+		const keyStoreFacade: DesktopKeyStoreFacade = makeKeyStoreFacade(new Uint8Array([1, 2, 3]))
+		when(confMock.getVar(matchers.anything())).thenResolve(null)
+
+		const notificationSessionKey = aes256RandomKey()
+		const pushSessionKey = aes256RandomKey()
+		const pushIdentifierSessionEncSessionKey = encryptKey(pushSessionKey, notificationSessionKey)
+
+		const desktopStorage: DesktopAlarmStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade, instancePipeline)
+		await desktopStorage.storePushIdentifierSessionKey("fourId", bitArrayToUint8Array(pushSessionKey))
+		const pushIdentifier: IdTuple = ["threeId", "fourId"]
+		const pushIdentifierSessionKey = await desktopStorage.getPushIdentifierSessionKey(pushIdentifier)
+		o(Array.from(assertNotNull(pushIdentifierSessionKey))).deepEquals(pushSessionKey)
+
+		const alarmNotification = createTestEntity(AlarmNotificationTypeRef, {
+			_id: "alarmNotificationA",
+			alarmInfo: createTestEntity(AlarmInfoTypeRef, {
+				calendarRef: createTestEntity(CalendarEventRefTypeRef, {
+					elementId: "elementIdA",
+					listId: "listIdA",
+				}),
+			}),
+			notificationSessionKeys: [
+				createTestEntity(NotificationSessionKeyTypeRef, {
+					pushIdentifier,
+					pushIdentifierSessionEncSessionKey: pushIdentifierSessionEncSessionKey,
+				}),
+			],
+			user: "userIdA",
+		})
+
+		await desktopStorage.storeAlarm(alarmNotification)
+		const expectedAlarmsCaptor = matchers.captor()
+		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, expectedAlarmsCaptor.capture()))
+		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
+			AlarmNotificationTypeRef,
+			assertNotNull(expectedAlarmsCaptor.values)[0][0],
+			notificationSessionKey,
+		)
+		o(alarmNotification._id).equals(decryptedSavedAlarmNotification._id)
+		o(hasError(decryptedSavedAlarmNotification)).equals(false)
+
+		const newNotificationSessionKey = aes256RandomKey()
+		const newPushSessionKey = aes256RandomKey()
+		const newPushIdentifierSessionEncSessionKey = encryptKey(newPushSessionKey, newNotificationSessionKey)
+
+		await desktopStorage.storePushIdentifierSessionKey("fiveId", bitArrayToUint8Array(newPushSessionKey))
+		const newPushIdentifier: IdTuple = ["threeId", "fiveId"]
+		const newPushIdentifierSessionKey = await desktopStorage.getPushIdentifierSessionKey(newPushIdentifier)
+		o(Array.from(assertNotNull(newPushIdentifierSessionKey))).deepEquals(newPushSessionKey)
+
+		const newAlarmNotification = createTestEntity(AlarmNotificationTypeRef, {
+			_id: "alarmNotificationB",
+			alarmInfo: createTestEntity(AlarmInfoTypeRef, {
+				calendarRef: createTestEntity(CalendarEventRefTypeRef, {
+					elementId: "elementIdB",
+					listId: "listIdB",
+				}),
+			}),
+			notificationSessionKeys: [
+				createTestEntity(NotificationSessionKeyTypeRef, {
+					pushIdentifier: newPushIdentifier,
+					pushIdentifierSessionEncSessionKey: newPushIdentifierSessionEncSessionKey,
+				}),
+			],
+			user: "userIdB",
+		})
+
+		await desktopStorage.storeAlarm(newAlarmNotification)
+		const newExpectedAlarmsCaptor = matchers.captor()
+		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, newExpectedAlarmsCaptor.capture()))
+
+		// assert that we can decrypt correctly and data alarm notifications match the previously stored ones
+		let oldDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
+			AlarmNotificationTypeRef,
+			assertNotNull(newExpectedAlarmsCaptor.values)[0][0],
+			notificationSessionKey,
+		)
+		let newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap(
+			AlarmNotificationTypeRef,
+			assertNotNull(newExpectedAlarmsCaptor.values)[1][0],
+			newNotificationSessionKey,
+		)
+		o(alarmNotification._id).equals(oldDecryptedSavedAlarmNotification._id)
+		o(newAlarmNotification._id).equals(newDecryptedSavedAlarmNotification._id)
+
+		const oldAlarmHasErrors = hasError(oldDecryptedSavedAlarmNotification)
+		const newAlarmHasErrors = hasError(newDecryptedSavedAlarmNotification)
+		o(oldAlarmHasErrors || newAlarmHasErrors).equals(false)
 	})
 })
