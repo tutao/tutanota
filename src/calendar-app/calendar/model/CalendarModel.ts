@@ -531,11 +531,9 @@ export class CalendarModel {
 
 		if (wipeCalendar && eventsToRemove.length > 0) {
 			const listId = listIdPart(eventsToRemove[0]._id)
-			const events = eventsToRemove.concat(eventsToUpdate)
-			await this.wipeCalendar(listId, events)
+			await this.wipeCalendar(listId, eventsToRemove)
 
-			operationsLog.deleted += eventsToRemove.length + eventsToUpdate.length
-			console.log(TAG, `${operationsLog.deleted} events removed`)
+			operationsLog.deleted += eventsToRemove.length
 		} else {
 			// Remove events that are not going to be updated
 			for (const event of eventsToRemove) {
@@ -549,26 +547,26 @@ export class CalendarModel {
 				})
 				operationsLog.deleted++
 			}
-			console.log(TAG, `${operationsLog.deleted} events removed`)
-
-			// Replacing duplicates with changes
-			for (const duplicatedEvent of eventsToUpdate) {
-				const existingEvent = existingEventList.find((event) => event.uid === duplicatedEvent.uid)
-				if (!existingEvent) {
-					console.warn("Found a duplicate without an existing event after filtering!")
-					continue
-				}
-
-				if (this.eventHasSameFields(duplicatedEvent, existingEvent)) {
-					continue
-				}
-				await this.updateEventWithExternal(existingEvent, duplicatedEvent)
-				operationsLog.updated++
-			}
-			operationsLog.skipped = duplicatesCount - operationsLog.updated
-			console.log(TAG, `${operationsLog.skipped} events skipped (duplication without changes)`)
-			console.log(TAG, `${operationsLog.updated} events updated (duplication with changes)`)
 		}
+		console.log(TAG, `${operationsLog.deleted} events removed`)
+
+		// Replacing duplicates with changes
+		for (const duplicatedEvent of eventsToUpdate) {
+			const existingEvent = existingEventList.find((event) => event.uid === duplicatedEvent.uid)
+			if (!existingEvent) {
+				console.warn("Found a duplicate without an existing event after filtering!")
+				continue
+			}
+
+			if (this.eventHasSameFields(duplicatedEvent, existingEvent)) {
+				continue
+			}
+			await this.updateEventWithExternal(existingEvent, duplicatedEvent)
+			operationsLog.updated++
+		}
+		operationsLog.skipped = duplicatesCount - operationsLog.updated
+		console.log(TAG, `${operationsLog.skipped} events skipped (duplication without changes)`)
+		console.log(TAG, `${operationsLog.updated} events updated (duplication with changes)`)
 
 		// Add new event
 		for (const { event } of eventsForCreation) {
