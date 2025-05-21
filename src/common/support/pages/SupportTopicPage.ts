@@ -31,6 +31,7 @@ export class SupportTopicPage implements Component<Props> {
 		const solution = languageTag.includes("de") ? topic.solutionHtmlDE : topic.solutionHtmlEN
 		const sanitisedSolution = htmlSanitizer.sanitizeHTML(convertTextToHtml(solution), {
 			blockExternalContent: true,
+			allowRelativeLinks: true,
 		}).html
 		const issue = getTopicIssue(topic, languageTag)
 
