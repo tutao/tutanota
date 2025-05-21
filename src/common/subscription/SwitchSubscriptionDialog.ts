@@ -2,7 +2,7 @@ import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
-import { AccountingInfo, Booking, createSurveyData, createSwitchAccountTypePostIn, Customer, CustomerInfo, SurveyData } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfo, Booking, createSurveyData, createSwitchAccountTypePostIn, Customer, SurveyData } from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountType,
 	AvailablePlanType,
@@ -51,7 +51,6 @@ import { SubscriptionApp } from "./SubscriptionViewer.js"
  */
 export async function showSwitchDialog(
 	customer: Customer,
-	customerInfo: CustomerInfo,
 	accountingInfo: AccountingInfo,
 	lastBooking: Booking,
 	acceptedPlans: AvailablePlanType[],

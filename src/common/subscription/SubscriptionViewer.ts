@@ -285,7 +285,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} else {
 			// other cases (not iOS app, not app store payment method, no running AppStore subscription, iOS but another payment method)
 			if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
-				showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking, AvailablePlans, null)
+				showSwitchDialog(this._customer, this._accountingInfo, this._lastBooking, AvailablePlans, null)
 			}
 		}
 	}
@@ -387,12 +387,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				}
 			} else {
 				if (this._customerInfo && this._lastBooking) {
-					return showSwitchDialog(customer, this._customerInfo, accountingInfo, this._lastBooking, AvailablePlans, null)
+					return showSwitchDialog(customer, accountingInfo, this._lastBooking, AvailablePlans, null)
 				}
 			}
 		} else {
 			if (this._customerInfo && this._lastBooking) {
-				return showSwitchDialog(customer, this._customerInfo, accountingInfo, this._lastBooking, AvailablePlans, null)
+				return showSwitchDialog(customer, accountingInfo, this._lastBooking, AvailablePlans, null)
 			}
 		}
 	}

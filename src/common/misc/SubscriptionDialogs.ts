@@ -1,7 +1,6 @@
 import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/tutanota-utils"
 import { Dialog } from "../gui/base/Dialog"
-import type { TranslationKey, MaybeTranslation } from "./LanguageViewModel"
-import { lang } from "./LanguageViewModel"
+import type { MaybeTranslation, TranslationKey } from "./LanguageViewModel"
 import type { ClickHandler } from "../gui/base/GuiUtils"
 import { locator } from "../api/main/CommonLocator"
 import type { UserController } from "../api/main/UserController.js"
@@ -115,7 +114,6 @@ async function showSwitchPlanDialog(userController: UserController, acceptedPlan
 	const { showSwitchDialog } = await import("../subscription/SwitchSubscriptionDialog")
 	return showSwitchDialog(
 		await userController.loadCustomer(),
-		customerInfo,
 		await userController.loadAccountingInfo(),
 		assertNotNull(bookings[0]),
 		acceptedPlans,

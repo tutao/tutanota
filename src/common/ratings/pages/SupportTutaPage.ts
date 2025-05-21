@@ -4,14 +4,16 @@ import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog
 import { client } from "../../misc/ClientDetector.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { LegacyPrivatePlans, PlanType } from "../../api/common/TutanotaConstants.js"
+import { LegacyPrivatePlans, NewPaidPlans, PlanType } from "../../api/common/TutanotaConstants.js"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { progressIcon } from "../../gui/base/Icon.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { completeSupportTutaStage, SupportTutaButtonType } from "../UserSatisfactionUtils.js"
 import { px } from "../../gui/size.js"
-import { neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, last, neverNull } from "@tutao/tutanota-utils"
+import { BookingTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
 
 interface SupportTutaPageAttrs {
 	dialog: Dialog
@@ -64,7 +66,12 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 				langKey: "ratingUpgrade_label", // "Upgrade & Support Us"
 				onClick: () => {
 					this.dialog?.close()
-					void showUpgradeDialog()
+
+					if (LegacyPrivatePlans.includes(neverNull(this.currentPlan))) {
+						void this.showSwitchDialog()
+					} else {
+						void showUpgradeDialog()
+					}
 				},
 			}
 		} else if (this.currentPlan === PlanType.Revolutionary) {
@@ -73,7 +80,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 				langKey: "ratingUpgradeFromRevo_label", // "Become a Legend"
 				onClick: () => {
 					this.dialog?.close()
-					void showUpgradeDialog()
+					void this.showSwitchDialog()
 				},
 			}
 		} else if (this.currentPlan === PlanType.Legend) {
@@ -118,6 +125,22 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 
 	private async getCurrentPlan() {
 		return await locator.logins.getUserController().getPlanType()
+	}
+
+	/**
+	 * Open the paid-to-paid subscription switch dialog.
+	 * This function calls the showSwitchDialog function from the SwitchSubscriptionDialog, passing the current customer and accounting info.
+	 */
+	private async showSwitchDialog(): Promise<void> {
+		const userController = locator.logins.getUserController()
+		const customerInfo = await userController.loadCustomerInfo()
+		const customer = await userController.loadCustomer()
+		const accountingInfo = await userController.loadAccountingInfo()
+		const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+		const lastBooking = last(bookings)
+
+		const { showSwitchDialog } = await import("../../subscription/SwitchSubscriptionDialog.js")
+		await showSwitchDialog(customer, accountingInfo, assertNotNull(lastBooking), NewPaidPlans, null)
 	}
 }
 
