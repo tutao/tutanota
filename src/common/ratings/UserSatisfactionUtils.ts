@@ -1,9 +1,11 @@
-import { DeviceConfig } from "../misc/DeviceConfig.js"
+import { deviceConfig, DeviceConfig } from "../misc/DeviceConfig.js"
 import { DateTime } from "luxon"
 import { locator } from "../api/main/CommonLocator.js"
-import { isAndroidApp } from "../api/common/Env.js"
+import { isAndroidApp, isApp } from "../api/common/Env.js"
 import { Stage } from "@tutao/tutanota-usagetests"
 import { AvailablePlanType, LegacyBusinessPlans, NewBusinessPlans, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants.js"
+import { isEmpty } from "@tutao/tutanota-utils"
+import { showUserSatisfactionDialog } from "./UserSatisfactionDialog.js"
 
 export function createEvent(deviceConfig: DeviceConfig): void {
 	const retentionPeriod: number = 30
@@ -93,6 +95,19 @@ export function isEventHappyMoment(now: Date, deviceConfig: DeviceConfig): boole
 	}
 	//endregion
 	return false
+}
+export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanType, newPlan: PlanType) {
+	if (newPlan === currentPlan) return Promise.resolve()
+
+	if (currentPlan === PlanType.Free || (currentPlan === PlanType.Revolutionary && newPlan === PlanType.Legend)) {
+		// We show the rating dialog after a successful upgrade. The account age and app installation age are not checked here.
+		const disallowReasons = (await evaluateRatingEligibility(new Date(), deviceConfig, isApp())).filter(
+			(r) => r !== RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG && r !== RatingDisallowReason.ACCOUNT_TOO_YOUNG,
+		)
+		if (isEmpty(disallowReasons)) {
+			setTimeout(() => showUserSatisfactionDialog("Upgrade"), 2000)
+		}
+	}
 }
 
 /*
