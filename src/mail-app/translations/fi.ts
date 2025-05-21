@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-05-20T13:07:21Z",
+	"updated_at": "2025-05-21T06:07:51Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -2010,7 +2010,7 @@ export default {
 		"whyLeave_msg": "Olemme pahoillamme, että olet päättänyt lähteä! Missä meillä on parannettavaa?",
 		"widgetCredentialsError_msg": "Kirjaudu kalenterisovellukseen",
 		"widgetDescription_msg": "Näytä tulevat tapahtumat tänään",
-		"widgetMissingConfigurationError_msg": "Määritykset puuttuvat",
+		"widgetMissingConfigurationError_msg": "Pienoisohjelma pitää määritellä, jotta kalenteri näkyy.",
 		"widgetNoCredentialsInfo_msg": "Kirjautumistietoja ei saatavilla",
 		"widgetNoEvents_msg": "Ei tapahtumia",
 		"widgetOpenApp_action": "Avaa sovellus",
