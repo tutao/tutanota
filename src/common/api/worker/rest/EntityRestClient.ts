@@ -118,7 +118,7 @@ export interface EntityRestClientLoadOptions {
 }
 
 export interface OwnerEncSessionKeyProvider {
-	(instanceElementId: Id): Promise<VersionedEncryptedKey>
+	(instanceElementId: Id, entity: Entity): Promise<VersionedEncryptedKey>
 }
 
 export interface OwnerKeyProvider {
@@ -465,7 +465,7 @@ export class EntityRestClient implements EntityRestInterface {
 			const id = entityAdapter._id
 			const elementId = typeof id == "string" ? id : elementIdPart(id)
 
-			const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId)
+			const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId, entityAdapter)
 			const ownerGroup = assertNotNull(entityAdapter._ownerGroup)
 
 			sessionKey = await this._crypto.decryptSessionKey(ownerGroup, ownerEncSessionKey)

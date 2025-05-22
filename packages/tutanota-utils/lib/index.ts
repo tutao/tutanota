@@ -1,6 +1,7 @@
 export {
 	concat,
 	numberRange,
+	lazyNumberRange,
 	arrayEquals,
 	arrayEqualsWithPredicate,
 	arrayHash,
