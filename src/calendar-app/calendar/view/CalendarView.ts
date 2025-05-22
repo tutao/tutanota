@@ -1355,23 +1355,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					m.redraw()
 				}
 
-				if (eventIdParam && isApp() && this.eventDetails) {
-					try {
-						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
-						locator.logins.waitForFullLogin().then(() => {
-							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
-								if (this.viewSlider.focusedColumn != this.eventDetails && this.eventDetails) {
-									this.viewSlider.focus(this.eventDetails)
-								}
-							})
-						})
-					} catch (e) {
-						console.warn("Failed to open event", eventIdParam)
-					}
-				} else if (!eventIdParam && this.viewSlider.focusedColumn === this.eventDetails) {
-					this.viewSlider.focus(this.viewSlider.getMainColumn())
-				}
-
 				const today = new Date()
 				if (args.view === "week" || args.view === "three") {
 					this.viewModel.setSelectedTime(
@@ -1387,6 +1370,24 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					this.viewModel.setSelectedTime(time)
 				} else {
 					this.viewModel.setSelectedTime(undefined)
+				}
+
+				if (eventIdParam && isApp() && this.eventDetails) {
+					try {
+						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
+						locator.logins.waitForFullLogin().then(() => {
+							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
+								if (this.viewSlider.focusedColumn != this.eventDetails && this.eventDetails) {
+									this.viewSlider.focus(this.eventDetails)
+								}
+							})
+						})
+					} catch (e) {
+						console.warn("Failed to open event", eventIdParam)
+					}
+				} else if (!eventIdParam && this.viewSlider.focusedColumn === this.eventDetails) {
+					console.warn("Focusing event column without eventId")
+					this.viewSlider.focus(this.viewSlider.getMainColumn())
 				}
 			}
 
