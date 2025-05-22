@@ -2031,6 +2031,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"pricing.firstYearDiscount_revo_legend_msg": "Der Rabatt gilt nur für das erste Jahr. Der folgende Preis ist {revo-price} für Revolutionary und {legend-price} für Legend."
 	}
 }

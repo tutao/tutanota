@@ -2028,6 +2028,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"pricing.firstYearDiscount_revo_legend_msg": "Discount only applies for the first year. Following price will be {revo-price} for Revolutionary and {legend-price} for Legend."
 	}
 }
