@@ -155,6 +155,7 @@ import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey }
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
+import { Entity } from "../../../common/EntityTypes"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -1192,6 +1193,16 @@ export class MailFacade {
 	 * @param mails an iterator of mails to resolve
 	 */
 	async createOwnerEncSessionKeyProviderForAttachments(mails: Iterable<Mail>): Promise<OwnerEncSessionKeyProvider> {
+		// Initially when e2e encrypted mails are received they are encrypted using public key encryption.
+		// There are multiple entities indirectly encrypted with one public key (mail itself, mail details, attachments).
+		// It goes something like this: public key -> bucket key -> entity session key.
+		// We don't want to do public key encryption every time so once we decrypt the bucket key we write the
+		// session key to every instance.
+		//
+		// The code here tries to handle both cases.
+		//
+		// Since we might be downloading many attachments at once we put all the keys encrypted with the bucket key
+		// into the big map so that when it's time to decrypt the attachment we can just use it.
 		const sessionKeys: Map<Id, InstanceSessionKey> = new Map()
 
 		for (const mail of mails) {
@@ -1203,7 +1214,17 @@ export class MailFacade {
 			}
 		}
 
-		return async (instanceElementId: Id) => {
+		return async (instanceElementId: Id, entity: Entity) => {
+			// If the mail was already decrypted there will not be a bucket key anymore, but there must be an
+			// _ownerEncSessionKey on all related instances instead. We have to use it if there is no bucketKey
+			// anymore.
+			if (entity._ownerEncSessionKey) {
+				return {
+					key: entity._ownerEncSessionKey,
+					encryptingKeyVersion: parseKeyVersion(entity._ownerKeyVersion ?? "0"),
+				}
+			}
+
 			const keyData = assertNotNull(sessionKeys.get(instanceElementId), `could not load session key for ${instanceElementId}`)
 			return {
 				key: keyData.symEncSessionKey,
