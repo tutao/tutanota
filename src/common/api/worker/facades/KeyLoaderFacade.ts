@@ -6,7 +6,7 @@ import { UserFacade } from "./UserFacade.js"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
-import { assertNotNull, lazyAsync } from "@tutao/tutanota-utils"
+import { lazyAsync, promiseMap } from "@tutao/tutanota-utils"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -149,6 +149,24 @@ export class KeyLoaderFacade {
 		return this.validateAndDecryptKeyPair(keyPair, keyPairGroupId, symGroupKey)
 	}
 
+	/**
+	 * Loads all former keypairs for a group
+	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
+	 */
+	async loadAllFormerKeyPairs(group: Group): Promise<Versioned<AsymmetricKeyPair>[]> {
+		const currentGroupKey = await this.getCurrentSymGroupKey(group._id)
+		// this request makes sure everything is cached
+		// decryption and parsing will be inefficient if there are many former keys
+		const formerKeys = await this.entityClient.loadAll(GroupKeyTypeRef, group.formerGroupKeys.list)
+		return promiseMap(formerKeys, async (groupKey) => {
+			const requestedVersion = convertCustomIdToKeyVersion(getElementId(groupKey))
+			return {
+				object: await this.loadKeyPairImpl(group, requestedVersion, currentGroupKey, -1),
+				version: requestedVersion,
+			}
+		})
+	}
+
 	async loadFormerGroupKeyInstance(group: Group, version: KeyVersion): Promise<GroupKey> {
 		const formerKeysList = group.formerGroupKeys.list
 		return await this.entityClient.load(GroupKeyTypeRef, [formerKeysList, convertKeyVersionToCustomId(version)])
@@ -225,6 +243,10 @@ export class KeyLoaderFacade {
 		}
 		return decryptedKeyPair
 	}
+}
+
+function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
+	return parseKeyVersion(customIdToString(customId))
 }
 
 function convertKeyVersionToCustomId(version: KeyVersion): Id {

@@ -34,6 +34,7 @@ import {
 	KeyRotationTypeRef,
 	PubDistributionKey,
 	PubEncKeyData,
+	PublicKeySignature,
 	RecoverCodeData,
 	SentGroupInvitationTypeRef,
 	User,
@@ -69,6 +70,7 @@ import {
 	Aes256Key,
 	AesKey,
 	bitArrayToUint8Array,
+	bytesToEd25519PrivateKey,
 	createAuthVerifier,
 	EncryptedPqKeyPairs,
 	getKeyLengthBytes,
@@ -105,6 +107,7 @@ import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "./PublicKeyProvider.js"
+import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 
 assertWorkerOrNode()
 
@@ -132,14 +135,15 @@ type PreparedUserAreaGroupKeyRotation = {
 	preparedReInvitations: GroupInvitationPostData[]
 }
 
+type EncryptedPqKeyPairsMaybeWithSignature = EncryptedPqKeyPairs & { signature: PublicKeySignature | null }
 type GeneratedGroupKeys = {
 	symGroupKey: VersionedKey
-	encryptedKeyPair: EncryptedPqKeyPairs | null
+	encryptedKeyPair: EncryptedPqKeyPairsMaybeWithSignature | null
 }
 
 type EncryptedGroupKeys = {
 	newGroupKeyEncCurrentGroupKey: VersionedEncryptedKey
-	keyPair: EncryptedPqKeyPairs | null
+	keyPair: EncryptedPqKeyPairsMaybeWithSignature | null
 	adminGroupKeyEncNewGroupKey: VersionedEncryptedKey | null
 }
 
@@ -151,6 +155,11 @@ type EncryptedUserGroupKeys = {
 	newAdminGroupKeyEncNewUserGroupKey: VersionedEncryptedKey
 	distributionKeyEncNewUserGroupKey: Uint8Array
 	authVerifier: Uint8Array
+}
+
+type EncryptedAndPlaintextKeyPair = {
+	plaintextKeyPair: PQKeyPairs
+	encryptedKeyPair: EncryptedPqKeyPairsMaybeWithSignature
 }
 
 /**
@@ -184,6 +193,7 @@ export class KeyRotationFacade {
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
 		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
 	) {
 		this.pendingKeyRotations = {
 			pwKey: null,
@@ -842,20 +852,32 @@ export class KeyRotationFacade {
 
 	private async generateGroupKeys(group: Group): Promise<GeneratedGroupKeys> {
 		const symGroupKeyBytes = this.cryptoWrapper.aes256RandomKey()
-		const keyPair = await this.createNewKeyPairValue(group, symGroupKeyBytes)
+		const maybeKeyPair = await this.createNewKeyPairValue(group, symGroupKeyBytes)
+		const identityKeyPair = group.identityKeyPair
+		const newGroupKeyVersion = checkKeyVersionConstraints(parseKeyVersion(group.groupKeyVersion) + 1)
+		if (identityKeyPair != null && maybeKeyPair != null) {
+			const { encryptedKeyPair, plaintextKeyPair } = maybeKeyPair
+			encryptedKeyPair.signature = await this.publicKeySignatureFacade.signPublicKey(
+				{ object: plaintextKeyPair, version: newGroupKeyVersion },
+				{
+					object: bytesToEd25519PrivateKey(identityKeyPair.privateEd25519Key),
+					version: parseKeyVersion(identityKeyPair.identityKeyVersion),
+				},
+			)
+		}
 		return {
 			symGroupKey: {
 				object: symGroupKeyBytes,
-				version: checkKeyVersionConstraints(parseKeyVersion(group.groupKeyVersion) + 1),
+				version: newGroupKeyVersion,
 			},
-			encryptedKeyPair: keyPair,
+			encryptedKeyPair: maybeKeyPair != null ? maybeKeyPair.encryptedKeyPair : null,
 		}
 	}
 
 	/**
 	 * Not all groups have key pairs, but if they do we need to rotate them as well.
 	 */
-	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedPqKeyPairs | null> {
+	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedAndPlaintextKeyPair | null> {
 		if (groupToRotate.currentKeys) {
 			return this.generateAndEncryptPqKeyPairs(newSymmetricGroupKey)
 		} else {
@@ -863,15 +885,19 @@ export class KeyRotationFacade {
 		}
 	}
 
-	private async generateAndEncryptPqKeyPairs(symmmetricEncryptionKey: Aes256Key): Promise<EncryptedPqKeyPairs> {
+	private async generateAndEncryptPqKeyPairs(symmmetricEncryptionKey: Aes256Key): Promise<EncryptedAndPlaintextKeyPair> {
 		const newPqPairs = await this.pqFacade.generateKeyPairs()
 		return {
-			pubRsaKey: null,
-			symEncPrivRsaKey: null,
-			pubEccKey: newPqPairs.x25519KeyPair.publicKey,
-			symEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
-			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
-			symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
+			plaintextKeyPair: newPqPairs,
+			encryptedKeyPair: {
+				pubRsaKey: null,
+				symEncPrivRsaKey: null,
+				pubEccKey: newPqPairs.x25519KeyPair.publicKey,
+				symEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
+				pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
+				symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
+				signature: null, //we create the signature later once we have the correct version
+			},
 		}
 	}
 
@@ -1191,7 +1217,7 @@ export class KeyRotationFacade {
 			userGroupKey.version,
 			pwKey,
 		)
-		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
+		const adminDistributionKeyPair = (await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)).encryptedKeyPair
 		const adminDistPublicKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
 
 		const tag = this.keyAuthenticationFacade.computeTag({
@@ -1405,6 +1431,6 @@ function hasNonQuantumSafeKeys(...keys: AesKey[]) {
 	return keys.some((key) => !isQuantumSafe(key))
 }
 
-function makeKeyPair(keyPair: EncryptedPqKeyPairs | null): KeyPair | null {
+function makeKeyPair(keyPair: EncryptedPqKeyPairsMaybeWithSignature | null): KeyPair | null {
 	return keyPair != null ? createKeyPair(keyPair) : null
 }

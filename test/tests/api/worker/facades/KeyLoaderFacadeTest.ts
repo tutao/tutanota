@@ -206,6 +206,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+				signature: null,
 			})
 			keyCache = object()
 			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
@@ -225,6 +226,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+				signature: null,
 			})
 			keyCache = object()
 			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
@@ -254,6 +256,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+				signature: null,
 			})
 			keyCache = object()
 			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)

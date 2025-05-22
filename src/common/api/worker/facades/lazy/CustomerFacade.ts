@@ -20,8 +20,6 @@ import {
 	createCustomDomainData,
 	createEmailSenderListElement,
 	createInvoiceDataGetIn,
-	createMembershipAddData,
-	createMembershipRemoveData,
 	createPaymentDataServicePutData,
 	CustomDomainReturn,
 	CustomerInfoTypeRef,
@@ -40,7 +38,6 @@ import {
 	CreateCustomerServerProperties,
 	CustomDomainService,
 	InvoiceDataService,
-	MembershipService,
 	PaymentDataService,
 	SystemKeysService,
 } from "../../../entities/sys/Services.js"
@@ -64,17 +61,17 @@ import { PQFacade } from "../PQFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { getWhitelabelDomainInfo } from "../../../common/utils/CustomerUtils.js"
 import type { PdfWriter } from "../../pdf/PdfWriter.js"
-import { createCustomerAccountCreateData } from "../../../entities/tutanota/TypeRefs.js"
+import { createCustomerAccountCreateData, InternalGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
-import { CryptoWrapper, _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { _encryptKeyWithVersionedKey, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
 import { PublicKeyProvider } from "../PublicKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
-import { bitArrayToUint8Array, hexToRsaPublicKey, PQKeyPairs, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { bitArrayToUint8Array, hexToRsaPublicKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -280,7 +277,7 @@ export class CustomerFacade {
 		registrationCode: string,
 		currentLanguage: string,
 		app: SubscriptionApp,
-	): Promise<Hex> {
+	): Promise<{ recoverCode: Hex; userGroupData: InternalGroupData }> {
 		const userGroupKey: VersionedKey = { object: this.cryptoWrapper.aes256RandomKey(), version: 0 }
 		const adminGroupKey: VersionedKey = { object: this.cryptoWrapper.aes256RandomKey(), version: 0 }
 		const customerGroupKey: VersionedKey = { object: this.cryptoWrapper.aes256RandomKey(), version: 0 }
@@ -370,7 +367,7 @@ export class CustomerFacade {
 		})
 		await this.serviceExecutor.post(CustomerAccountService, data)
 
-		return recoverData.hexCode
+		return { recoverCode: recoverData.hexCode, userGroupData }
 	}
 
 	async updatePaymentData(

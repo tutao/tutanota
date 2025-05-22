@@ -84,6 +84,7 @@ import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipe
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
+import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 
 assertWorkerOrNode()
 
@@ -108,6 +109,7 @@ export type CalendarWorkerLocatorType = {
 	publicKeyProvider: PublicKeyProvider
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
+	publicKeySignatureFacade: PublicKeySignatureFacade
 	cryptoWrapper: CryptoWrapper
 	rolloutFacade: RolloutFacade
 
@@ -233,6 +235,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.cryptoWrapper = new CryptoWrapper()
 
+	locator.publicKeySignatureFacade = new PublicKeySignatureFacade(locator.ed25519Facade, locator.cryptoWrapper)
+
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement)
 	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
 	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor, locator.cachingEntityClient, keyAuthenticationFacade, locator.keyLoader)
@@ -294,6 +298,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			cryptoWrapper,
 			keyAuthenticationFacade,
 			locator.ed25519Facade,
+			locator.publicKeySignatureFacade,
 		)
 	})
 	locator.keyRotation = new KeyRotationFacade(
@@ -310,6 +315,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		asymmetricCrypto,
 		keyAuthenticationFacade,
 		locator.publicKeyProvider,
+		locator.publicKeySignatureFacade,
 	)
 	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
 

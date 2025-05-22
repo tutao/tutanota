@@ -182,13 +182,16 @@ mod tests {
 				td.alice_private_key_hex.try_into().unwrap(),
 				td.alice_public_key_hex.try_into().unwrap(),
 			);
-			let message = td.message.as_bytes();
+			let message = td.message;
 			let signature_bytes: [u8; SIGNATURE_SIZE] = td.signature.try_into().unwrap();
 			let signature = Ed25519Signature::from(signature_bytes);
 
 			let reproduced_signature = key_pair.private_key.sign(&message);
 			assert_eq!(reproduced_signature, signature);
-			assert!(key_pair.public_key.verify(message, &signature).is_ok());
+			assert!(key_pair
+				.public_key
+				.verify(message.as_slice(), &signature)
+				.is_ok());
 		}
 	}
 }

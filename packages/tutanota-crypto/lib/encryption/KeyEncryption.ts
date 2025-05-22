@@ -18,6 +18,7 @@ export type AbstractEncryptedKeyPair = {
 	symEncPrivEccKey: null | Uint8Array
 	symEncPrivKyberKey: null | Uint8Array
 	symEncPrivRsaKey: null | Uint8Array
+	signature: null | unknown
 }
 
 export type EncryptedPqKeyPairs = {
@@ -27,6 +28,7 @@ export type EncryptedPqKeyPairs = {
 	symEncPrivEccKey: Uint8Array
 	symEncPrivKyberKey: Uint8Array
 	symEncPrivRsaKey: null
+	signature: null | unknown
 }
 
 export type EncryptedRsaKeyPairs = {
@@ -36,6 +38,7 @@ export type EncryptedRsaKeyPairs = {
 	symEncPrivEccKey: null
 	symEncPrivKyberKey: null
 	symEncPrivRsaKey: Uint8Array
+	signature: null
 }
 
 export type EncryptedRsaX25519KeyPairs = {
@@ -45,6 +48,7 @@ export type EncryptedRsaX25519KeyPairs = {
 	symEncPrivEccKey: Uint8Array
 	symEncPrivKyberKey: null
 	symEncPrivRsaKey: Uint8Array
+	signature: null | unknown
 }
 
 export function isEncryptedPqKeyPairs(keyPair: AbstractEncryptedKeyPair): keyPair is EncryptedPqKeyPairs {

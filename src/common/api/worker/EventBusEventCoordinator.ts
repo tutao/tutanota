@@ -3,6 +3,7 @@ import { WsConnectionState } from "../main/WorkerClient.js"
 import {
 	EntityUpdate,
 	GroupKeyUpdateTypeRef,
+	GroupTypeRef,
 	UserGroupKeyDistributionTypeRef,
 	UserTypeRef,
 	WebsocketCounterData,
@@ -15,7 +16,7 @@ import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
 import { AccountType, OperationType, RolloutType } from "../common/TutanotaConstants.js"
-import { lazyAsync } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyAsync } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -26,6 +27,7 @@ import { isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils"
 import { RolloutFacade } from "./facades/RolloutFacade"
 import { GroupManagementFacade } from "./facades/lazy/GroupManagementFacade"
 import { SyncTracker } from "../main/SyncTracker"
+import { parseKeyVersion } from "./facades/KeyLoaderFacade"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
@@ -95,10 +97,10 @@ export class EventBusEventCoordinator implements EventBusListener {
 
 		if (this.userFacade.isLeader()) {
 			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation, async () => {
-				const userGroupId = this.userFacade.getUserGroupId()
 				const gmf = await this.groupManagementFacade()
+
 				try {
-					await gmf.createIdentityKeyPair(userGroupId)
+					await gmf.createIdentityKeyPairForExistingUsers()
 				} catch (error) {
 					console.log("error when creating user identity key pair", error)
 					this.sendError(error)

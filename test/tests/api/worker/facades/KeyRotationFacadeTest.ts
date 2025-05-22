@@ -21,9 +21,9 @@ import {
 	GroupMembershipTypeRef,
 	GroupMemberTypeRef,
 	GroupTypeRef,
+	IdentityKeyPairTypeRef,
 	KeyMac,
 	KeyMacTypeRef,
-	KeyPair,
 	KeyPairTypeRef,
 	KeyRotation,
 	KeyRotationsRefTypeRef,
@@ -39,9 +39,11 @@ import {
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
+	AbstractEncryptedKeyPair,
 	Aes256Key,
 	AesKey,
 	bitArrayToUint8Array,
+	bytesToEd25519PrivateKey,
 	createAuthVerifier,
 	EncryptedPqKeyPairs,
 	KEY_LENGTH_BYTES_AES_256,
@@ -91,6 +93,7 @@ import {
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { TutanotaError } from "@tutao/tutanota-error"
+import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4
@@ -226,6 +229,7 @@ const recoverCodeId = "recoverCodeId"
 const keyRotationsListId = "keyRotationsListId"
 const invitationsListId = "invitationsListId"
 const groupKeyUpdatesListId = "groupKeyUpdatesListId"
+let keyVersionAfterRotation = "1"
 
 function prepareRecoverData(recoverData: RecoverData, recoverCodeFacade: RecoverCodeFacade) {
 	recoverData = {
@@ -369,6 +373,7 @@ function prepareMultiAdminUserKeyRotation(
 		symEncPrivKyberKey: object(),
 		pubRsaKey: null,
 		symEncPrivRsaKey: null,
+		signature: null,
 	})
 	const adminDistPqKeyPair = object<PQKeyPairs>()
 	const adminGroupDistributionKeyPairKey = object<Aes256Key>()
@@ -424,6 +429,7 @@ o.spec("KeyRotationFacadeTest", function () {
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 	let keyAuthenticationFacade: KeyAuthenticationFacade
 	let publicKeyProvider: PublicKeyProvider
+	let publicKeySignatureFacade: PublicKeySignatureFacade
 
 	let user: User
 	const pwKey = uint8ArrayToBitArray(new Uint8Array(Array(KEY_LENGTH_BYTES_AES_256).keys()))
@@ -451,6 +457,7 @@ o.spec("KeyRotationFacadeTest", function () {
 		asymmetricCryptoFacade = object()
 		keyAuthenticationFacade = object()
 		publicKeyProvider = object()
+		publicKeySignatureFacade = object()
 		keyRotationFacade = new KeyRotationFacade(
 			entityClientMock,
 			keyLoaderFacadeMock,
@@ -465,6 +472,7 @@ o.spec("KeyRotationFacadeTest", function () {
 			asymmetricCryptoFacade,
 			keyAuthenticationFacade,
 			publicKeyProvider,
+			publicKeySignatureFacade,
 		)
 		user = await makeUser(userId, { key: userEncAdminKey, encryptingKeyVersion: 0 })
 		const customerId = "customerId"
@@ -1573,6 +1581,46 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(groupIds).deepEquals([userGroupId])
 			})
 
+			o("Successful user group key rotation - identity key exists", async function () {
+				let privateIdentityKey = new Uint8Array([1, 1, 1])
+				userGroup.identityKeyPair = createTestEntity(IdentityKeyPairTypeRef, { privateEd25519Key: privateIdentityKey })
+				prepareUserKeyRotation(
+					{
+						serviceExecutor: serviceExecutorMock,
+						cryptoWrapper: cryptoWrapperMock,
+						entityClient: entityClientMock,
+						asymmetricCryptoFacade: asymmetricCryptoFacade,
+						keyAuthenticationFacade: keyAuthenticationFacade,
+						publicKeyProvider,
+					},
+					keyRotationFacade,
+					userGroup,
+				)
+
+				await keyRotationFacade.processPendingKeyRotation(user)
+
+				verify(
+					publicKeySignatureFacade.signPublicKey(
+						matchers.argThat((arg: Versioned<AbstractEncryptedKeyPair>) => {
+							verifyKeyPair(arg.object, generatedKeyPairs.get(NEW_USER_GROUP_KEY.object)!)
+							return parseKeyVersion(keyVersionAfterRotation)
+						}),
+						bytesToEd25519PrivateKey(privateIdentityKey),
+					),
+				)
+
+				verify(
+					serviceExecutorMock.post(
+						UserGroupKeyRotationService,
+						matchers.argThat((arg) => {
+							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
+							o(userGroupKeyData.keyPair?.signature).notEquals(null)
+							return true
+						}),
+					),
+				)
+			})
+
 			o("Successful rotation - no recover code", async function () {
 				prepareUserKeyRotation(
 					{
@@ -1868,6 +1916,44 @@ o.spec("KeyRotationFacadeTest", function () {
 				o(update.groupMembershipUpdateData[0].userEncGroupKey).deepEquals(userEncNewGroupKey.key)
 				o(update.groupMembershipUpdateData[0].userKeyVersion).equals("0")
 			})
+			o("Successful rotation, single member group - identity key exists", async function () {
+				keyRotationFacade.setPendingKeyRotations({
+					pwKey: null,
+					adminOrUserGroupKeyRotation: null,
+					teamOrCustomerGroupKeyRotations: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.Team, groupId),
+					userAreaGroupsKeyRotations: [],
+				})
+
+				group.currentKeys = createTestEntity(KeyPairTypeRef)
+				const privateIdentityKey = new Uint8Array([1, 2, 3])
+				group.identityKeyPair = createTestEntity(IdentityKeyPairTypeRef, { privateEd25519Key: privateIdentityKey })
+
+				const { newKey } = prepareKeyMocks(cryptoWrapperMock)
+				const generated = mockGenerateKeyPairs(pqFacadeMock, cryptoWrapperMock, newKey.object)
+				const generatedKeyPairs = generated.get(newKey.object)!
+
+				await keyRotationFacade.processPendingKeyRotation(user)
+
+				const captor = matchers.captor()
+				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture()))
+				verify(
+					publicKeySignatureFacade.signPublicKey(
+						matchers.argThat((arg: Versioned<AbstractEncryptedKeyPair>) => {
+							verifyKeyPair(arg.object, generatedKeyPairs)
+							return arg.version === parseKeyVersion(keyVersionAfterRotation)
+						}),
+						bytesToEd25519PrivateKey(privateIdentityKey),
+					),
+				)
+
+				const sentData: GroupKeyRotationPostIn = captor.value
+				o(sentData.groupKeyUpdates.length).equals(1)
+				const update = sentData.groupKeyUpdates[0]
+
+				o(update.keyPair?.signature).notEquals(null)
+				//TODO test more
+			})
+
 			o("Successful rotation, multiple member group", async function () {
 				keyRotationFacade.setPendingKeyRotations({
 					pwKey: null,
@@ -2190,7 +2276,7 @@ function makeKeyRotation(keyRotationsList: Id, groupType: string, groupId: Id): 
 		createTestEntity(KeyRotationTypeRef, {
 			_id: [keyRotationsList, groupId],
 			groupKeyRotationType: groupType,
-			targetKeyVersion: "1",
+			targetKeyVersion: keyVersionAfterRotation,
 		}),
 	]
 }
@@ -2286,6 +2372,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 			symEncPrivEccKey: encryptedEccPrivKey,
 			symEncPrivKyberKey: encryptedKyberPrivKey,
 			symEncPrivRsaKey: null,
+			signature: null,
 		}
 
 		results.set(newKey, {
@@ -2319,7 +2406,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 	return results
 }
 
-function verifyKeyPair(keyPair: KeyPair | null | undefined, mockedKeyPairs: MockedKeyPairs) {
+function verifyKeyPair(keyPair: AbstractEncryptedKeyPair | null | undefined, mockedKeyPairs: MockedKeyPairs) {
 	o(keyPair).notEquals(null)
 	o(keyPair?.symEncPrivEccKey).deepEquals(mockedKeyPairs.encryptedEccPrivKey)
 	o(keyPair?.pubEccKey).deepEquals(mockedKeyPairs.encodedx25519PublicKey)

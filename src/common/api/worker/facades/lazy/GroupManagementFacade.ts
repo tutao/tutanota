@@ -8,7 +8,7 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull, Versioned } from "@tutao/tutanota-utils"
 import {
 	createIdentityKeyPair,
 	createIdentityKeyPostIn,
@@ -36,11 +36,12 @@ import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
 import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
-import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { AesKey, AsymmetricKeyPair, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { Ed25519Facade } from "../Ed25519Facade"
+import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
 
 assertWorkerOrNode()
 
@@ -57,6 +58,7 @@ export class GroupManagementFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
 		private readonly ed25519Facade: Ed25519Facade,
+		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
@@ -93,7 +95,15 @@ export class GroupManagementFacade {
 		})
 		const mailGroupPostOut = await this.serviceExecutor.post(MailGroupService, data)
 
-		await this.createIdentityKeyPair(mailGroupPostOut.mailGroup, adminGroupKey)
+		await this.createIdentityKeyPair(
+			mailGroupPostOut.mailGroup,
+			{
+				object: keyPair,
+				version: 0, //new group
+			},
+			[],
+			adminGroupKey,
+		)
 	}
 
 	/**
@@ -221,7 +231,12 @@ export class GroupManagementFacade {
 	 * @param encryptingKey the key to encrypt the private key. by default the current group key is used.
 	 *        this is useful in case group members must not have access to the private key.
 	 */
-	async createIdentityKeyPair(groupId: Id, encryptingKey: VersionedKey | undefined = undefined): Promise<void> {
+	async createIdentityKeyPair(
+		groupId: Id,
+		currentKeyPairToBeSigned: Versioned<AsymmetricKeyPair>,
+		formerKeyPairsToBeSigned: Versioned<AsymmetricKeyPair>[],
+		encryptingKey: VersionedKey | undefined = undefined,
+	): Promise<void> {
 		const newEd25519IdentityKeyPair = await this.ed25519Facade.generateKeypair()
 		const currentGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
 		if (encryptingKey == null) {
@@ -254,7 +269,33 @@ export class GroupManagementFacade {
 			}),
 		})
 
-		await this.serviceExecutor.post(IdentityKeyService, createIdentityKeyPostIn({ identityKeyPair }))
+		//sign the public encryption keys (current and former group keys) and store the signature in the signature field
+		const signature = await this.publicKeySignatureFacade.signPublicKey(currentKeyPairToBeSigned, {
+			object: newEd25519IdentityKeyPair.private_key,
+			version: identityKeyVersion,
+		})
+		//TODO handle former group keys once this is called for existing groups
+		await this.serviceExecutor.post(
+			IdentityKeyService,
+			createIdentityKeyPostIn({
+				identityKeyPair,
+				signatures: [signature],
+			}),
+		)
+	}
+
+	async createIdentityKeyPairForExistingUsers(): Promise<void> {
+		const userGroupId = this.userFacade.getUserGroupId()
+		let userGroup = await this.entityClient.load(GroupTypeRef, userGroupId)
+
+		let currentKeyPairs = await this.keyLoaderFacade.loadCurrentKeyPair(userGroupId)
+		await this.asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(currentKeyPairs.object, userGroupId)
+		userGroup = await this.cacheManagementFacade.reloadGroup(userGroupId)
+		currentKeyPairs = await this.keyLoaderFacade.loadCurrentKeyPair(userGroupId)
+
+		const formerKeyPairs = await this.keyLoaderFacade.loadAllFormerKeyPairs(userGroup)
+
+		await this.createIdentityKeyPair(userGroupId, currentKeyPairs, formerKeyPairs)
 	}
 
 	/**
@@ -277,11 +318,21 @@ export class GroupManagementFacade {
 		for (const groupId of teamGroupIds) {
 			try {
 				// it can be the case that some groups already have an identity key, so we check first
-				const group = await this.entityClient.load(GroupTypeRef, groupId)
+				let group = await this.entityClient.load(GroupTypeRef, groupId)
 				if (group.identityKeyPair) continue
 
 				// shared mailbox group members don't need access to identity keys, that's the responsibility of the admins
-				await this.createIdentityKeyPair(groupId, adminGroupKey)
+				//if we have an RSA only keypair we generate the ecc key now so we do not have to sign again
+				let currentKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(groupId)
+				await this.asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(currentKeyPair.object, groupId)
+				group = await this.cacheManagementFacade.reloadGroup(groupId)
+				currentKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(groupId)
+				await this.createIdentityKeyPair(
+					groupId,
+					currentKeyPair,
+					[], //TODO
+					adminGroupKey,
+				)
 			} catch (error) {
 				console.log(`error when creating shared mailbox identity key pair for group ${groupId}`, error)
 				throw error
