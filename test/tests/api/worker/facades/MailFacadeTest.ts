@@ -1,6 +1,7 @@
 import o from "@tutao/otest"
 import { MailFacade, phishingMarkerValue, validateMimeTypesForAttachments } from "../../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import {
+	FileTypeRef,
 	InternalRecipientKeyDataTypeRef,
 	Mail,
 	MailAddressTypeRef,
@@ -25,7 +26,7 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
 import { DataFile } from "../../../../../src/common/api/common/DataFile.js"
-import { downcast, KeyVersion } from "@tutao/tutanota-utils"
+import { downcast, KeyVersion, lazyNumberRange } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
@@ -34,6 +35,8 @@ import { verify } from "@tutao/tutanota-test-utils"
 import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
 import { BucketKeyTypeRef, InstanceSessionKey, InstanceSessionKeyTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { OwnerEncSessionKeyProvider } from "../../../../../src/common/api/worker/rest/EntityRestClient"
+import { elementIdPart, getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
+import { VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -597,20 +600,27 @@ o.spec("MailFacade test", function () {
 	})
 
 	o.spec("createOwnerEncSessionKeyProviderForAttachments", () => {
-		function setUpMail(unique: number, instanceCount: number): Mail {
+		function sessionKeyId(mailIndex: number, attachmentIndex: number) {
+			return `attachmentId_mail_${mailIndex}_attachment_${attachmentIndex}`
+		}
+
+		function setUpMail(mailIndex: number, attachmentCount: number): Mail {
 			const mail = createTestEntity(MailTypeRef, {
 				bucketKey: createTestEntity(BucketKeyTypeRef, {
-					_id: `hey I'm an ID for bucket key #${unique}`,
+					_id: `hey I'm an ID for bucket key #${mailIndex}`,
 				}),
 			})
 			const instanceSessionKeys: InstanceSessionKey[] = []
-			for (let i = 0; i < instanceCount; i++) {
+			for (const attachmentIndex of lazyNumberRange(0, attachmentCount)) {
+				const attachmentId = sessionKeyId(mailIndex, attachmentIndex)
 				const instanceSessionKey = createTestEntity(InstanceSessionKeyTypeRef, {
-					instanceId: `hellooooo I'm an ID for some file instance #${i} for mail #${unique}`,
-					symEncSessionKey: new Uint8Array([unique, i, 3, 4]),
-					symKeyVersion: `${unique}`,
+					instanceId: attachmentId,
+					symEncSessionKey: new Uint8Array([mailIndex, attachmentIndex, 3, 4]),
+					symKeyVersion: `${mailIndex}`,
 				})
 				instanceSessionKeys.push(instanceSessionKey)
+
+				mail.attachments.push(["someListId", attachmentId])
 			}
 			when(cryptoFacade.resolveWithBucketKey(mail)).thenResolve({
 				resolvedSessionKeyForInstance: [],
@@ -619,12 +629,18 @@ o.spec("MailFacade test", function () {
 			return mail
 		}
 
-		async function checkMail(resolver: OwnerEncSessionKeyProvider, unique: number, instanceCount: number) {
-			for (let i = 0; i < instanceCount; i++) {
-				o.check(await resolver(`hellooooo I'm an ID for some file instance #${i} for mail #${unique}`)).deepEquals({
-					key: new Uint8Array([unique, i, 3, 4]),
-					encryptingKeyVersion: unique as KeyVersion,
-				})
+		async function checkMail(resolver: OwnerEncSessionKeyProvider, fileCount: number, mails: readonly Mail[]) {
+			for (const [mailIndex, mail] of mails.entries()) {
+				for (const [attachmentIndex, attachmentId] of mail.attachments.entries()) {
+					const attachment = createTestEntity(FileTypeRef, {
+						_id: attachmentId,
+						name: `file_${attachmentIndex}`,
+					})
+					o.check(await resolver(elementIdPart(attachmentId), attachment)).deepEquals({
+						key: new Uint8Array([mailIndex, attachmentIndex, 3, 4]),
+						encryptingKeyVersion: mailIndex as KeyVersion,
+					})(`hellooooo I'm an ID for some file instance #${attachmentId} for mail #${mailIndex}`)
+				}
 			}
 		}
 
@@ -636,8 +652,9 @@ o.spec("MailFacade test", function () {
 		})
 
 		o.test("one mail with one file instance", async () => {
-			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments([setUpMail(1, 1)])
-			await checkMail(resolver, 1, 1)
+			const mails = [setUpMail(0, 1)]
+			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments(mails)
+			await checkMail(resolver, 1, mails)
 		})
 		o.test("a lot of mails with one file instance", async () => {
 			const count = 100
@@ -647,15 +664,14 @@ o.spec("MailFacade test", function () {
 				mails.push(setUpMail(i, instanceCount))
 			}
 			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments(mails)
-			for (let i = 0; i < count; i++) {
-				await checkMail(resolver, i, instanceCount)
-			}
+			await checkMail(resolver, instanceCount, mails)
 		})
 
 		o.test("one mail with many file instances", async () => {
 			const instanceCount = 256
-			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments([setUpMail(1, instanceCount)])
-			await checkMail(resolver, 1, instanceCount)
+			const mails = [setUpMail(0, instanceCount)]
+			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments(mails)
+			await checkMail(resolver, instanceCount, mails)
 		})
 		o.test("a lot of mails with many file instances", async () => {
 			const count = 100
@@ -665,9 +681,25 @@ o.spec("MailFacade test", function () {
 				mails.push(setUpMail(i, instanceCount))
 			}
 			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments(mails)
-			for (let i = 0; i < count; i++) {
-				await checkMail(resolver, i, instanceCount)
+			await checkMail(resolver, instanceCount, mails)
+		})
+
+		o.test("when already decrypted it just returns the key", async () => {
+			const mail = setUpMail(0, 1)
+			mail.bucketKey = null
+
+			const resolver = await facade.createOwnerEncSessionKeyProviderForAttachments([mail])
+			const expectedSK: VersionedEncryptedKey = {
+				key: new Uint8Array([1, 2, 3, 4]),
+				encryptingKeyVersion: 10,
 			}
+			const attachment = createTestEntity(FileTypeRef, {
+				_id: mail.attachments[0],
+				_ownerEncSessionKey: expectedSK.key,
+				_ownerKeyVersion: String(expectedSK.encryptingKeyVersion),
+				name: `file_${0}`,
+			})
+			o.check(await resolver(getElementId(attachment), attachment)).deepEquals(expectedSK)
 		})
 	})
 })

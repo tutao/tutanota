@@ -13,6 +13,7 @@ import {
 	groupByAndMap,
 	groupByAndMapUniquely,
 	insertIntoSortedArray,
+	lazyNumberRange,
 	partition,
 	partitionAsync,
 	splitInChunks,
@@ -889,5 +890,16 @@ o.spec("array utils", function () {
 		o(compare(new Uint8Array([1, 1, 3]), new Uint8Array([1, 1, 2]))).equals(1)
 
 		o(compare(new Uint8Array([1, 1, 2]), new Uint8Array([1, 1, 3]))).equals(-1)
+	})
+
+	o.spec("lazyNumberRange", function () {
+		o.test("when non-empty range it yields all numbers", function () {
+			o.check(Array.from(lazyNumberRange(0, 5))).deepEquals([0, 1, 2, 3, 4])
+		})
+
+		o.test("when empty range it yields nothing", function () {
+			o.check(Array.from(lazyNumberRange(5, 0))).deepEquals([])
+			o.check(Array.from(lazyNumberRange(5, 5))).deepEquals([])
+		})
 	})
 })
