@@ -902,8 +902,10 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		right: [
 			{
 				label: "send_action",
-				click: () => {
-					send()
+				click: async () => {
+					for (let i = 0; i < 100000; i++) {
+						await send()
+					}
 				},
 				type: ButtonType.Primary,
 			},
