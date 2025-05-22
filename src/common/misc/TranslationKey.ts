@@ -2017,3 +2017,4 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "pricing.firstYearDiscount_revo_legend_msg"
