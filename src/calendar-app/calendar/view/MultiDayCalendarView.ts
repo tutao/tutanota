@@ -9,7 +9,6 @@ import {
 	getEventEnd,
 	getEventStart,
 	getRangeOfDays,
-	getStartOfTheWeekOffset,
 	getStartOfWeek,
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
@@ -44,6 +43,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { DateTime } from "luxon"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
+import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date

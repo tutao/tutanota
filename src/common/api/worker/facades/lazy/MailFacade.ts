@@ -88,7 +88,6 @@ import { NotFoundError } from "../../../common/error/RestError.js"
 import {
 	BlobReferenceTokenWrapper,
 	createGeneratedIdWrapper,
-	EntityUpdate,
 	ExternalUserReference,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
@@ -153,8 +152,8 @@ import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
-import { isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -893,7 +892,7 @@ export class MailFacade {
 			.catch(ofClass(NotFoundError, () => null))
 	}
 
-	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
+	entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
 		return promiseMap(data, (update) => {
 			if (
 				this.deferredDraftUpdate != null &&
@@ -1203,8 +1202,12 @@ export class MailFacade {
 			}
 		}
 
+
 		return async (instanceElementId: Id) => {
-			const keyData = assertNotNull(sessionKeys.get(instanceElementId), `could not load session key for ${instanceElementId}`)
+			const keyData = sessionKeys.get(instanceElementId)
+			if (keyData == null) {
+				throw new ProgrammingError(`Could not load session key for attachment ${instanceElementId} with mails: ${Array.from(mails).map(m => m._id)}`)
+			}
 			return {
 				key: keyData.symEncSessionKey,
 				encryptingKeyVersion: parseKeyVersion(keyData.symKeyVersion),

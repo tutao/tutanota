@@ -39,7 +39,7 @@ export class AttributeModel {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
 		if (attrId) {
 			const value = instance[attrId]
-			return assertNotNull(downcast<T>(value))
+			return assertNotNull(downcast<T>(value), attrName)
 		} else {
 			throw new ProgrammingError("null not allowed")
 		}

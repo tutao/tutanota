@@ -11,24 +11,19 @@ import { func, matchers, object, verify, when } from "testdouble"
 import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { ExtendedNotificationMode } from "../../../../src/common/native/common/generatedipc/ExtendedNotificationMode.js"
 import { createIdTupleWrapper, createNotificationInfo } from "../../../../src/common/api/entities/sys/TypeRefs.js"
-import { createTestEntity, mockFetchRequest } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, mockFetchRequest } from "../../TestUtils.js"
 import tutanotaModelInfo from "../../../../src/common/api/entities/tutanota/ModelInfo.js"
 import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
 import { Mail, MailAddressTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification.js"
-import { OperationType } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { ApplicationWindow } from "../../../../src/common/desktop/ApplicationWindow.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/common/desktop/sse/SseStorage.js"
 import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../../../src/common/api/common/EntityFunctions"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 
 type UndiciFetch = typeof undiciFetch
-
-const nativeInstancePipeline = new InstancePipeline(resolveClientTypeReference, resolveClientTypeReference)
 
 o.spec("TutaNotificationHandler", () => {
 	let wm: WindowManager
@@ -41,6 +36,7 @@ o.spec("TutaNotificationHandler", () => {
 	let fetch: UndiciFetch
 	let appVersion = "V_1"
 	let handler: TutaNotificationHandler
+	let nativeInstancePipeline: InstancePipeline
 
 	o.beforeEach(() => {
 		wm = object()
@@ -52,6 +48,8 @@ o.spec("TutaNotificationHandler", () => {
 		lang = object()
 		fetch = func<UndiciFetch>()
 		when(lang.get(matchers.anything())).thenDo((arg) => `translated:${arg}`)
+		const typeModelResolver = clientInitializedTypeModelResolver()
+		nativeInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		handler = new TutaNotificationHandler(
 			wm,
 			nativeCredentialsFacade,
@@ -63,6 +61,7 @@ o.spec("TutaNotificationHandler", () => {
 			fetch,
 			appVersion,
 			nativeInstancePipeline,
+			typeModelResolver,
 		)
 	})
 

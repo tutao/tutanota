@@ -9,7 +9,6 @@ import {
 	getEventEnd,
 	getFirstDayOfMonth,
 	getStartOfNextDayWithZone,
-	getStartOfTheWeekOffset,
 	getTimeZone,
 	getWeekNumber,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -44,6 +43,7 @@ import { PageView } from "../../../common/gui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { isIOSApp } from "../../../common/api/common/Env"
 import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
+import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date

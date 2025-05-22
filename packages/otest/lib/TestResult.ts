@@ -1,6 +1,7 @@
 export interface TestError {
 	error: Error
 	userMessage: string | null
+	diff?: string
 }
 
 export interface TestResult {

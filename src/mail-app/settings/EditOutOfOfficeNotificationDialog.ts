@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../common/gui/base/Dialog"
-import { getStartOfTheWeekOffsetForUser } from "../../common/calendar/date/CalendarUtils"
 import type { OutOfOfficeNotification } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { TextField } from "../../common/gui/base/TextField.js"
 import { lang } from "../../common/misc/LanguageViewModel"
@@ -21,6 +20,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { ofClass } from "@tutao/tutanota-utils"
 import { DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar"
 import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
+import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(

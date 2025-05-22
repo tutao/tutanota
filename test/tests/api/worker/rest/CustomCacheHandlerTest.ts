@@ -1,28 +1,21 @@
 import o from "@tutao/otest"
 import { instance, matchers, verify, when } from "testdouble"
 import { CalendarEventTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { CustomCalendarEventCacheHandler } from "../../../../../src/common/api/worker/rest/CustomCacheHandler.js"
 import { createEventElementId } from "../../../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { LateInitializedCacheStorageImpl } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
 import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { numberRange, promiseMap } from "@tutao/tutanota-utils"
-import { clientModelAsServerModel, createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import {
-	globalClientModelInfo,
-	globalServerModelInfo,
-	resolveClientTypeReference,
-	resolveServerTypeReference,
-} from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { CustomCalendarEventCacheHandler } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 
 o.spec("Custom calendar events handler", function () {
 	const entityRestClientMock = instance(EntityRestClient)
-	const cacheHandler = new CustomCalendarEventCacheHandler(entityRestClientMock)
+	let cacheHandler: CustomCalendarEventCacheHandler
 	const offlineStorageMock = instance(LateInitializedCacheStorageImpl)
-	const modelMapper = new ModelMapper(resolveClientTypeReference, resolveServerTypeReference)
-	clientModelAsServerModel(globalServerModelInfo, globalClientModelInfo)
+	let modelMapper: ModelMapper
 	const listId = "listId"
 	let timestamp = Date.now()
 	const ids = [0, 1, 2, 3, 4, 5, 6].map((n) => createEventElementId(timestamp, n))
@@ -32,6 +25,12 @@ o.spec("Custom calendar events handler", function () {
 	const bigListIds = numberRange(0, 299).map((n) => createEventElementId(timestamp, n))
 	const bigList = numberRange(0, 299).map((n) => createTestEntity(CalendarEventTypeRef, { _id: [bigListId, bigListIds[n]] }))
 	const toElementId = (e) => e._id[1]
+
+	o.beforeEach(() => {
+		const typeModelResolver = clientInitializedTypeModelResolver()
+		modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
+		cacheHandler = new CustomCalendarEventCacheHandler(entityRestClientMock, typeModelResolver)
+	})
 
 	o.spec("Load elements from cache", function () {
 		o.beforeEach(async function () {

@@ -4,7 +4,6 @@ import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/Servi
 import { matchers, object, verify, when } from "testdouble"
 import { BlobAccessTokenService } from "../../../../../src/common/api/entities/storage/Services.js"
 import { getElementId, getEtId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { Mode } from "../../../../../src/common/api/common/Env.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import { DateTime } from "luxon"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
@@ -14,9 +13,12 @@ import {
 	BlobReadDataTypeRef,
 	BlobServerAccessInfoTypeRef,
 	BlobWriteDataTypeRef,
+	createBlobAccessTokenPostIn,
+	createBlobReadData, createBlobWriteData,
+	createInstanceId,
 	InstanceIdTypeRef,
 } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
-import { createTestEntity } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { FileTypeRef, MailBoxTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { BlobTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { BlobReferencingInstance } from "../../../../../src/common/api/common/utils/BlobUtils.js"
@@ -45,11 +47,7 @@ o.spec("BlobAccessTokenFacade", function () {
 		}
 		serviceMock = object<ServiceExecutor>()
 		authDataProvider = object<AuthDataProvider>()
-		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, authDataProvider, dateProvider)
-	})
-
-	o.afterEach(function () {
-		env.mode = Mode.Browser
+		blobAccessTokenFacade = new BlobAccessTokenFacade(serviceMock, authDataProvider, dateProvider, clientInitializedTypeModelResolver())
 	})
 
 	o.spec("evict Tokens", function () {
@@ -82,7 +80,10 @@ o.spec("BlobAccessTokenFacade", function () {
 		})
 
 		o("evict archive read token", async function () {
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123", expires: afterNow.toJSDate() })
+			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				expires: afterNow.toJSDate(),
+			})
 			const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, { blobAccessInfo })
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
 
@@ -99,7 +100,10 @@ o.spec("BlobAccessTokenFacade", function () {
 		})
 
 		o("evict archive write token", async function () {
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123", expires: afterNow.toJSDate() })
+			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				expires: afterNow.toJSDate(),
+			})
 			const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, { blobAccessInfo })
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
 			const ownerGroupId = "ownerGroupId"
@@ -122,7 +126,10 @@ o.spec("BlobAccessTokenFacade", function () {
 			o("read token LET", async function () {
 				const file = createTestEntity(FileTypeRef, { blobs, _id: ["listId", "elementId"] })
 				const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, {
-					blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123", expires: afterNow.toJSDate() }),
+					blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, {
+						blobAccessToken: "123",
+						expires: afterNow.toJSDate(),
+					}),
 				})
 				const loadOptions = {}
 				when(serviceMock.post(BlobAccessTokenService, anything(), loadOptions)).thenResolve(expectedToken)
@@ -137,15 +144,16 @@ o.spec("BlobAccessTokenFacade", function () {
 
 				const tokenRequest = captor()
 				verify(serviceMock.post(BlobAccessTokenService, tokenRequest.capture(), loadOptions))
-				let instanceId = createTestEntity(InstanceIdTypeRef, { instanceId: getElementId(file) })
+				let instanceId = createInstanceId({ instanceId: getElementId(file) })
 				o(tokenRequest.value).deepEquals(
-					createTestEntity(BlobAccessTokenPostInTypeRef, {
+					createBlobAccessTokenPostIn({
 						archiveDataType,
-						read: createTestEntity(BlobReadDataTypeRef, {
+						read: createBlobReadData({
 							archiveId,
 							instanceListId: getListId(file),
 							instanceIds: [instanceId],
 						}),
+						write: null,
 					}),
 				)
 				o(readToken).equals(expectedToken.blobAccessInfo)
@@ -154,7 +162,10 @@ o.spec("BlobAccessTokenFacade", function () {
 			o("read token ET", async function () {
 				const mailBox = createTestEntity(MailBoxTypeRef, { _id: "elementId" })
 				const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, {
-					blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123", expires: new Date(now.toMillis() + 1000) }),
+					blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, {
+						blobAccessToken: "123",
+						expires: new Date(now.toMillis() + 1000),
+					}),
 				})
 				const loadOptions = {}
 				when(serviceMock.post(BlobAccessTokenService, anything(), loadOptions)).thenResolve(expectedToken)
@@ -170,15 +181,16 @@ o.spec("BlobAccessTokenFacade", function () {
 
 				const tokenRequest = captor()
 				verify(serviceMock.post(BlobAccessTokenService, tokenRequest.capture(), loadOptions))
-				let instanceId = createTestEntity(InstanceIdTypeRef, { instanceId: getEtId(mailBox) })
+				let instanceId = createInstanceId({ instanceId: getEtId(mailBox) })
 				o(tokenRequest.value).deepEquals(
-					createTestEntity(BlobAccessTokenPostInTypeRef, {
+					createBlobAccessTokenPostIn({
 						archiveDataType,
-						read: createTestEntity(BlobReadDataTypeRef, {
+						read: createBlobReadData({
 							archiveId,
 							instanceListId: null,
 							instanceIds: [instanceId],
 						}),
+						write: null,
 					}),
 				)
 				o(readToken).equals(expectedToken.blobAccessInfo)
@@ -186,7 +198,10 @@ o.spec("BlobAccessTokenFacade", function () {
 		})
 
 		o("request read token archive", async function () {
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123", expires: new Date(now.toMillis() + 1000) })
+			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				expires: new Date(now.toMillis() + 1000),
+			})
 			const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, { blobAccessInfo })
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
 
@@ -195,19 +210,25 @@ o.spec("BlobAccessTokenFacade", function () {
 			const tokenRequest = captor()
 			verify(serviceMock.post(BlobAccessTokenService, tokenRequest.capture()))
 			o(tokenRequest.value).deepEquals(
-				createTestEntity(BlobAccessTokenPostInTypeRef, {
-					read: createTestEntity(BlobReadDataTypeRef, {
+				createBlobAccessTokenPostIn({
+					read: createBlobReadData({
 						archiveId,
 						instanceListId: null,
 						instanceIds: [],
 					}),
+					archiveDataType: null,
+					write: null,
 				}),
 			)
 			o(readToken).equals(blobAccessInfo)
 		})
 
 		o("cache read token for an entire archive", async function () {
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123", expires: new Date(now.toMillis() + 1000) })
+			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "123",
+				expires: new Date(now.toMillis() + 1000),
+			})
+
 			const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, { blobAccessInfo })
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
 
@@ -377,7 +398,10 @@ o.spec("BlobAccessTokenFacade", function () {
 
 			await blobAccessTokenFacade.requestReadTokenArchive(archiveId)
 
-			blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "456", expires: new Date(now.toMillis() + 1000) })
+			blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+				blobAccessToken: "456",
+				expires: new Date(now.toMillis() + 1000),
+			})
 			expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, { blobAccessInfo })
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
 
@@ -393,7 +417,10 @@ o.spec("BlobAccessTokenFacade", function () {
 		o("request write token", async function () {
 			const ownerGroup = "ownerId"
 			const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, {
-				blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123", expires: new Date(now.toMillis() + 1000) }),
+				blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, {
+					blobAccessToken: "123",
+					expires: new Date(now.toMillis() + 1000),
+				}),
 			})
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
 
@@ -402,9 +429,10 @@ o.spec("BlobAccessTokenFacade", function () {
 			const tokenRequest = captor()
 			verify(serviceMock.post(BlobAccessTokenService, tokenRequest.capture()))
 			o(tokenRequest.value).deepEquals(
-				createTestEntity(BlobAccessTokenPostInTypeRef, {
+				createBlobAccessTokenPostIn( {
 					archiveDataType,
-					write: createTestEntity(BlobWriteDataTypeRef, {
+					read: null,
+					write: createBlobWriteData({
 						archiveOwnerGroup: ownerGroup,
 					}),
 				}),
@@ -415,7 +443,10 @@ o.spec("BlobAccessTokenFacade", function () {
 		o("cache write token", async function () {
 			const ownerGroup = "ownerId"
 			const expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, {
-				blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "123", expires: new Date(now.toMillis() + 1000) }),
+				blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, {
+					blobAccessToken: "123",
+					expires: new Date(now.toMillis() + 1000),
+				}),
 			})
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
 
@@ -439,7 +470,10 @@ o.spec("BlobAccessTokenFacade", function () {
 			await blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroup)
 
 			expectedToken = createTestEntity(BlobAccessTokenPostOutTypeRef, {
-				blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, { blobAccessToken: "456", expires: new Date(now.toMillis() + 1000) }),
+				blobAccessInfo: createTestEntity(BlobServerAccessInfoTypeRef, {
+					blobAccessToken: "456",
+					expires: new Date(now.toMillis() + 1000),
+				}),
 			})
 			when(serviceMock.post(BlobAccessTokenService, anything())).thenResolve(expectedToken)
 

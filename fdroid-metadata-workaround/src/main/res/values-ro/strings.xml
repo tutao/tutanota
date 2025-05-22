@@ -1,0 +1,21 @@
+<resources>
+    <string name="reminder_label">Reamintire</string>
+    <string name="pushNewMail_msg">E-mail nou primit.</string>
+    <string name="notificationSync_msg">Sincronizarea notificărilor</string>
+    <string name="scheduleAlarmError_msg">Alarma nu a putut fi pusă. Actualizează aplicația.</string>
+    <string name="wantToSendReport_msg">Ceva neprevăzut nu a mers bine. Vreți să trimiteți un raport cu eroarea?
+Puteți adăuga un mesaj pentru a ne ajuta să remediem eroarea.</string>
+    <string name="downloadCompleted_msg">Descărcare completă</string>
+    <string name="unlockCredentials_action">Deblochează datele de autentificare</string>
+    <string name="delete_action">Șterge</string>
+    <string name="markRead_action">Marchează ca citit.</string>
+    <string name="sendLogs_action">Trimite jurnale</string>
+    <string name="account_label">Utilizator</string>
+    <string name="calendars_label">Calendare</string>
+    <string name="widgetNoCredentialsInfo_msg">Datele de autentificare nu sunt disponibile</string>
+    <string name="widgetUnexpectedError_msg">Ceva nu a mers bine.</string>
+    <string name="widgetCredentialsError_msg">Autentifică-te în aplicația Calendar</string>
+    <string name="widgetOpenApp_action">Deschide aplicația</string>
+    <string name="widgetNoEvents_msg">Niciun eveniment</string>
+    <string name="widgetDescription_msg">Arată următoarele evenimente de azi</string>
+</resources>

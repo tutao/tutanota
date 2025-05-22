@@ -9,7 +9,6 @@ import { Icons } from "./icons/Icons.js"
 import { TextFieldType } from "./TextField.js"
 import { Icon, IconAttrs, IconSize } from "./Icon.js"
 import { theme } from "../theme.js"
-import { lang } from "../../misc/LanguageViewModel.js"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
 import { getOperatingClasses } from "./GuiUtils.js"
 

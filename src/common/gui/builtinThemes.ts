@@ -141,6 +141,8 @@ export const themes = (): Themes => {
 		experimental_primary_container: PEACH,
 		experimental_on_primary_container: RED_DUNKEL,
 		experimental_tertiary: RED_FIGHTER,
+		highlight_bg: SONNE,
+		highlight_fg: black,
 	})
 	const darkRed = Object.freeze({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -185,6 +187,8 @@ export const themes = (): Themes => {
 		experimental_primary_container: DARK_PEACH,
 		experimental_on_primary_container: dark_lighter_0,
 		experimental_tertiary: RED_FIGHTER,
+		highlight_bg: SONNE,
+		highlight_fg: black,
 	})
 	const lightBlue = Object.freeze({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -228,6 +232,8 @@ export const themes = (): Themes => {
 		experimental_primary_container: PEACH,
 		experimental_on_primary_container: BLUE_DUNKEL,
 		experimental_tertiary: BLUE_FIGHTER,
+		highlight_bg: SONNE,
+		highlight_fg: black,
 	})
 	const darkBlue = Object.freeze({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -272,6 +278,8 @@ export const themes = (): Themes => {
 		experimental_primary_container: DARK_PEACH,
 		experimental_on_primary_container: dark_lighter_0,
 		experimental_tertiary: BLUE_FIGHTER,
+		highlight_bg: SONNE,
+		highlight_fg: black,
 	})
 
 	return {

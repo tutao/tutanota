@@ -1,4 +1,4 @@
-import { PostLoginAction, LoggedInEvent, LoginController } from "../api/main/LoginController.js"
+import { LoggedInEvent, LoginController, PostLoginAction } from "../api/main/LoginController.js"
 import { CalendarModel } from "../../calendar-app/calendar/model/CalendarModel.js"
 import { CalendarEventTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { CUSTOM_MIN_ID } from "../api/common/utils/EntityUtils.js"
@@ -8,6 +8,7 @@ import { promiseMap } from "@tutao/tutanota-utils"
 import { NoopProgressMonitor } from "../api/common/utils/ProgressMonitor.js"
 import { SessionType } from "../api/common/SessionType.js"
 import { ExposedCacheStorage } from "../api/worker/rest/DefaultEntityRestCache.js"
+import { OfflineStorageSettingsModel } from "./OfflineStorageSettingsModel"
 
 export class CachePostLoginAction implements PostLoginAction {
 	constructor(
@@ -16,6 +17,7 @@ export class CachePostLoginAction implements PostLoginAction {
 		private readonly progressTracker: ProgressTracker,
 		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly logins: LoginController,
+		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null, // null if no cleaning e.g in calendar
 	) {}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -37,12 +39,13 @@ export class CachePostLoginAction implements PostLoginAction {
 			])
 		})
 		progressMonitor.completed()
+		if (this.offlineStorageSettings) {
+			await this.offlineStorageSettings.init()
 
-		// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
-		await this.cacheStorage.clearExcludedData()
+			// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
+			await this.cacheStorage.clearExcludedData(this.offlineStorageSettings.getTimeRange())
+		}
 	}
 
-	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-		return Promise.resolve()
-	}
+	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {}
 }

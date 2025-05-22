@@ -1,16 +1,11 @@
-import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
-import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../common/api/common/TutanotaConstants.js"
-import { assertNotNull, DAY_IN_MILLIS, groupByAndMap } from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
-	CUSTOM_MAX_ID,
 	elementIdPart,
-	firstBiggerThanSecond,
 	firstBiggerThanSecondCustomId,
 	GENERATED_MAX_ID,
 	getElementId,
 	listIdPart,
-	timestampToGeneratedId,
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	FileTypeRef,
@@ -22,22 +17,12 @@ import {
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
-import { isDraft, isSpamOrTrashFolder } from "../../mail/model/MailChecks.js"
+import { isDraft } from "../../mail/model/MailChecks.js"
 
 export class MailOfflineCleaner implements OfflineStorageCleaner {
-	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDays: number | null, userId: Id, now: number): Promise<void> {
-		const user = await offlineStorage.get(UserTypeRef, null, userId)
-
-		// Free users always have default time range regardless of what is stored
-		const isFreeUser = user?.accountType === AccountType.FREE
-		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
-		const daysSinceDayAfterEpoch = now / DAY_IN_MILLIS - 1
-		const timeRangeMillisSafe = Math.min(daysSinceDayAfterEpoch, timeRange) * DAY_IN_MILLIS
-		// from May 15th 2109 onward, exceeding daysSinceDayAfterEpoch in the time range setting will
-		// lead to an overflow in our 42 bit timestamp in the id.
-		const cutoffTimestamp = now - timeRangeMillisSafe
+	async cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date, userId: Id, now: number): Promise<void> {
+		const cutoffTimestamp = timeRangeDate.getTime()
 
 		const mailBoxes = await offlineStorage.getElementsOfType(MailBoxTypeRef)
 		for (const mailBox of mailBoxes) {
@@ -47,14 +32,9 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 			if (isMailsetMigrated) {
 				// Deleting MailSetEntries first to make sure that once we start deleting Mail
 				// we don't have any MailSetEntries that reference that Mail anymore.
-				const folderSystem = new FolderSystem(folders)
 				for (const mailSet of folders) {
-					if (isSpamOrTrashFolder(folderSystem, mailSet)) {
-						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, CUSTOM_MAX_ID)
-					} else {
-						const customCutoffId = constructMailSetEntryId(new Date(cutoffTimestamp), GENERATED_MAX_ID)
-						await this.deleteMailSetEntries(offlineStorage, mailSet.entries, customCutoffId)
-					}
+					const customCutoffId = constructMailSetEntryId(new Date(cutoffTimestamp), GENERATED_MAX_ID)
+					await this.deleteMailSetEntries(offlineStorage, mailSet.entries, customCutoffId)
 				}
 
 				// We should never write cached ranges for mail bags, but we used to do that in the past in some cases

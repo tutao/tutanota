@@ -10,12 +10,12 @@ import { SearchableTypes } from "./SearchViewModel.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { styles } from "../../../common/gui/styles.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
+import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 assertMainOrNode()
 
@@ -34,6 +34,7 @@ export interface SearchListViewAttrs {
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
 	getLabelsForMail: (mail: Mail) => MailFolder[]
+	highlightedStrings: readonly SearchToken[]
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -129,6 +130,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 					true,
 					(mail) => this.attrs.getLabelsForMail(mail),
 					() => row.entity && this.listModel.onSingleExclusiveSelection(row.entity),
+					() => this.attrs.highlightedStrings,
 				),
 			)
 			m.render(dom, row.render())

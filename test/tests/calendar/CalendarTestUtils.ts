@@ -29,7 +29,7 @@ import {
 	CalendarEventTypeRef,
 	CalendarGroupRootTypeRef,
 	ContactAddressTypeRef,
-	ContactTypeRef,
+	ContactTypeRef, createEncryptedMailAddress,
 	EncryptedMailAddress,
 	EncryptedMailAddressTypeRef,
 	TutanotaPropertiesTypeRef,
@@ -46,7 +46,7 @@ export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
 export const calendarGroupId = "0" as const
 
-export const ownerAddress = createTestEntity(EncryptedMailAddressTypeRef, {
+export const ownerAddress =createEncryptedMailAddress( {
 	address: ownerMailAddress,
 	name: "Calendar Owner",
 })
@@ -57,7 +57,7 @@ export const ownerRecipient: Recipient = {
 	contact: null,
 	verificationState: KeyVerificationState.NO_ENTRY,
 }
-export const ownerAlias = createTestEntity(EncryptedMailAddressTypeRef, {
+export const ownerAlias = createEncryptedMailAddress({
 	address: "calendarowneralias@tutanota.de",
 	name: "Calendar Owner Alias",
 })
@@ -68,7 +68,7 @@ export const ownerAliasRecipient: Recipient = {
 	contact: null,
 	verificationState: KeyVerificationState.NO_ENTRY,
 }
-export const otherAddress = createTestEntity(EncryptedMailAddressTypeRef, {
+export const otherAddress = createEncryptedMailAddress({
 	address: "someone@tutanota.de",
 	name: "Some One",
 })
@@ -88,7 +88,7 @@ export const otherRecipient: Recipient = {
 	}),
 	verificationState: KeyVerificationState.NO_ENTRY,
 }
-export const otherAddress2 = createTestEntity(EncryptedMailAddressTypeRef, {
+export const otherAddress2 = createEncryptedMailAddress({
 	address: "someoneelse@tutanota.de",
 	name: "Some One Else",
 })
@@ -109,7 +109,7 @@ export const otherRecipient2: Recipient = {
 	verificationState: KeyVerificationState.NO_ENTRY,
 }
 
-export const thirdAddress = createTestEntity(EncryptedMailAddressTypeRef, { address: "somethirdaddress@tuta.com", name: "thirdperson" })
+export const thirdAddress = createEncryptedMailAddress({ address: "somethirdaddress@tuta.com", name: "thirdperson" })
 export const thirdRecipient: Recipient = {
 	address: thirdAddress.address,
 	name: thirdAddress.name,

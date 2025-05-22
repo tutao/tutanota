@@ -3,7 +3,7 @@ import { SearchResultListEntry } from "./SearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { ListElementEntity, SomeEntity } from "../../../common/api/common/EntityTypes.js"
+import { ListElementEntity } from "../../../common/api/common/EntityTypes.js"
 import {
 	CLIENT_ONLY_CALENDARS,
 	FULL_INDEXED_TIMESTAMP,
@@ -55,9 +55,7 @@ import {
 } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { SearchFacade } from "../../workerUtils/index/SearchFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { Indexer } from "../../workerUtils/index/Indexer.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
@@ -69,11 +67,7 @@ import { CalendarFacade } from "../../../common/api/worker/facades/lazy/Calendar
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ClientOnlyCalendarsInfo, ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import {
-	generateCalendarInstancesInRange,
-	getStartOfTheWeekOffsetForUser,
-	retrieveClientOnlyEventsForUser,
-} from "../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, retrieveClientOnlyEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -81,8 +75,13 @@ import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/Calen
 import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import { resolveTypeRefFromAppAndTypeNameLegacy } from "../../../common/api/common/EntityFunctions"
+import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
+import { Indexer } from "../../workerUtils/index/Indexer"
+import { SearchFacade } from "../../workerUtils/index/SearchFacade"
+import { compareMails } from "../../mail/model/MailUtils"
+import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
+import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -216,6 +215,7 @@ export class SearchViewModel {
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
 		private readonly localCalendars: Map<Id, ClientOnlyCalendarsInfo>,
+		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
 		this._listModel = this.createList()
@@ -229,7 +229,7 @@ export class SearchViewModel {
 		return this.userHasNewPaidPlan
 	}
 
-	init(extendIndexConfirmationCallback: SearchViewModel["extendIndexConfirmationCallback"]) {
+	async init(extendIndexConfirmationCallback: SearchViewModel["extendIndexConfirmationCallback"]) {
 		if (this.extendIndexConfirmationCallback) {
 			return
 		}
@@ -257,6 +257,7 @@ export class SearchViewModel {
 			this.onMailboxesChanged(mailboxes)
 		})
 		this.eventController.addEntityListener(this.entityEventsListener)
+		await this.offlineStorageSettings?.init()
 	}
 
 	getRestriction(): SearchRestriction {
@@ -533,6 +534,7 @@ export class SearchViewModel {
 					if (!isSameSearchRestriction(searchRestriction, this.getRestriction())) {
 						return
 					}
+                    this.offlineStorageSettings?.setTimeRange(startDate)
 					this.searchAgain()
 				})
 
@@ -774,9 +776,7 @@ export class SearchViewModel {
 
 		const { instanceListId, instanceId, operation } = update
 		const id = [neverNull(instanceListId), instanceId] as const
-		const typeRef = update.typeId
-			? new TypeRef<SomeEntity>(update.application as AppName, update.typeId)
-			: resolveTypeRefFromAppAndTypeNameLegacy(update.application as AppName, update.type)
+		const typeRef = update.typeRef
 
 		if (!this.isInSearchResult(typeRef, id) && !isPossibleABirthdayContactUpdate) {
 			return
@@ -904,11 +904,18 @@ export class SearchViewModel {
 				mail,
 				showFolder: true,
 				loadLatestMail: false,
+				highlightedTokens: this.getHighlightedStrings(),
 			})
 			// Notify the admin client about the mail being selected
 			this.mailOpenedListener.onEmailOpened(mail)
 		}
 	}
+
+	getHighlightedStrings(): readonly SearchToken[] {
+		return this._getHighlightedStrings()
+	}
+
+	private readonly _getHighlightedStrings = memoizedWithHiddenArgument(() => this.currentQuery, splitQuery)
 
 	private createList(): ListElementListModel<SearchResultListEntry> {
 		// since we recreate the list every time we set a new result object,
@@ -962,6 +969,17 @@ export class SearchViewModel {
 					return compareContacts(o1.entry as any, o2.entry as any)
 				} else if (isSameTypeRef(o1.entry._type, CalendarEventTypeRef)) {
 					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
+				} else if (isSameTypeRef(o1.entry._type, MailTypeRef)) {
+					// Ideally we would not need to do this check here, however we can only safely sort by received date
+					// on SQLite results, as we get all results upfront.
+					//
+					// IndexedDb only loads a small amount of results at once, expanding the results as we scroll
+					// through the list, and since it's loaded by ID range, results can jump around mid-scroll.
+					if (isOfflineStorageAvailable()) {
+						return compareMails(downcast(o1.entry), downcast(o2.entry))
+					} else {
+						return sortCompareByReverseId(o1.entry, o2.entry)
+					}
 				} else {
 					return sortCompareByReverseId(o1.entry, o2.entry)
 				}

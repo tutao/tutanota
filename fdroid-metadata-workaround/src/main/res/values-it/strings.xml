@@ -1,0 +1,13 @@
+<resources>
+    <string name="reminder_label">Promemoria</string>
+    <string name="pushNewMail_msg">Nuova email ricevuta.</string>
+    <string name="notificationSync_msg">Sincronizzazione delle notifiche</string>
+    <string name="scheduleAlarmError_msg">Impossibile impostare un allarme. Ti preghiamo di aggiornare l\'applicazione.</string>
+    <string name="wantToSendReport_msg">SI è verificato qualcosa di imprevisto. Vuoi inviare un report dell\'errore? Puoi anche scriverci un messaggio per aiutarci a sistemare quest\'errore.</string>
+    <string name="downloadCompleted_msg">Download completato</string>
+    <string name="unlockCredentials_action">Sblocca credenziali</string>
+    <string name="delete_action">Elimina</string>
+    <string name="markRead_action">Segnala come letto</string>
+    <string name="sendLogs_action">Invia log</string>
+    <string name="account_label">Utente</string>
+</resources>

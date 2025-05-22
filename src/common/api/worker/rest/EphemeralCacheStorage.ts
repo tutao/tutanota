@@ -1,16 +1,22 @@
-import { Entity, ListElementEntity, ServerModelParsedInstance, TypeModel } from "../../common/EntityTypes.js"
-import { EntityRestClient } from "./EntityRestClient.js"
-import { firstBiggerThanSecond } from "../../common/utils/EntityUtils.js"
-import { CacheStorage, expandId, LastUpdateTime } from "./DefaultEntityRestCache.js"
-import { assertNotNull, clone, getFromMap, getTypeString, remove, TypeRef } from "@tutao/tutanota-utils"
-import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions.js"
-import { Type as TypeId } from "../../common/EntityConstants.js"
-import { ProgrammingError } from "../../common/error/ProgrammingError.js"
-import { customIdToBase64Url, ensureBase64Ext } from "../offline/OfflineStorage.js"
-import { AttributeModel } from "../../common/AttributeModel"
-import { ModelMapper } from "../crypto/ModelMapper"
-import { parseTypeString } from "@tutao/tutanota-utils/dist/TypeRef"
+import {
+	BlobElementEntity,
+	Entity,
+	ListElementEntity,
+	ServerModelParsedInstance,
+	SomeEntity,
+	TypeModel
+} from "../../common/EntityTypes.js"
+import {firstBiggerThanSecond} from "../../common/utils/EntityUtils.js"
+import {CacheStorage, expandId, LastUpdateTime} from "./DefaultEntityRestCache.js"
+import {assertNotNull, clone, getFromMap, getTypeString, remove, TypeRef} from "@tutao/tutanota-utils"
+import {CustomCacheHandlerMap} from "./cacheHandler/CustomCacheHandler.js"
+import {Type as TypeId} from "../../common/EntityConstants.js"
+import {ProgrammingError} from "../../common/error/ProgrammingError.js"
+import {customIdToBase64Url, ensureBase64Ext} from "../offline/OfflineStorage.js"
+import {AttributeModel} from "../../common/AttributeModel"
+import {ModelMapper} from "../crypto/ModelMapper"
+import {parseTypeString} from "@tutao/tutanota-utils/dist/TypeRef"
+import {ServerTypeModelResolver} from "../../common/EntityFunctions"
 
 /** Cache for a single list. */
 type ListCache = {
@@ -42,12 +48,15 @@ export class EphemeralCacheStorage implements CacheStorage {
 	private readonly entities: Map<string, Map<Id, ServerModelParsedInstance>> = new Map()
 	private readonly lists: Map<string, ListTypeCache> = new Map()
 	private readonly blobEntities: Map<string, BlobElementTypeCache> = new Map()
-	private readonly customCacheHandlerMap: CustomCacheHandlerMap = new CustomCacheHandlerMap()
 	private lastUpdateTime: number | null = null
 	private userId: Id | null = null
 	private lastBatchIdPerGroup = new Map<Id, Id>()
 
-	constructor(private readonly modelMapper: ModelMapper) {}
+	constructor
+    (private readonly modelMapper: ModelMapper,
+     private readonly typeModelResolver: ServerTypeModelResolver,
+     private readonly customCacheHandlerMap: CustomCacheHandlerMap
+     ) {}
 
 	init({ userId }: EphemeralStorageInitArgs) {
 		this.userId = userId
@@ -68,7 +77,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	async getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null> {
 		// We downcast because we can't prove that map has correct entity on the type level
 		const type = getTypeString(typeRef)
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		id = ensureBase64Ext(typeModel, id)
 		switch (typeModel.type) {
 			case TypeId.Element:
@@ -82,105 +91,114 @@ export class EphemeralCacheStorage implements CacheStorage {
 		}
 	}
 
-	async provideFromRangeParsed(
-		typeRef: TypeRef<unknown>,
-		listId: string,
-		startElementId: string,
-		count: number,
-		reverse: boolean,
-	): Promise<ServerModelParsedInstance[]> {
-		const typeModel = await resolveServerTypeReference(typeRef)
-		startElementId = ensureBase64Ext(typeModel, startElementId)
+    async provideFromRangeParsed(
+        typeRef: TypeRef<unknown>,
+        listId: string,
+        startElementId: string,
+        count: number,
+        reverse: boolean,
+    ): Promise<ServerModelParsedInstance[]> {
+        const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+        startElementId = ensureBase64Ext(typeModel, startElementId)
 
-		const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
+        const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
 
-		if (listCache == null) {
-			return []
-		}
+        if (listCache == null) {
+            return []
+        }
 
-		let range = listCache.allRange
-		let ids: Id[]
-		if (reverse) {
-			let i
-			for (i = range.length - 1; i >= 0; i--) {
-				if (firstBiggerThanSecond(startElementId, range[i])) {
-					break
-				}
-			}
-			if (i >= 0) {
-				let startIndex = i + 1 - count
-				if (startIndex < 0) {
-					// startElementId index may be negative if more elements have been requested than available when getting elements reverse.
-					startIndex = 0
-				}
-				ids = range.slice(startIndex, i + 1)
-				ids.reverse()
-			} else {
-				ids = []
-			}
-		} else {
-			const i = range.findIndex((id) => firstBiggerThanSecond(id, startElementId))
-			ids = range.slice(i, i + count)
-		}
-		let result: ServerModelParsedInstance[] = []
-		for (let a = 0; a < ids.length; a++) {
-			const cachedInstance = listCache.elements.get(ids[a])
-			if (cachedInstance != null) {
-				const clonedInstance = clone(cachedInstance)
-				result.push(clonedInstance)
-			}
-		}
-		return result
-	}
+        let range = listCache.allRange
+        let ids: Id[]
+        if (reverse) {
+            let i
+            for (i = range.length - 1; i >= 0; i--) {
+                if (firstBiggerThanSecond(startElementId, range[i])) {
+                    break
+                }
+            }
+            if (i >= 0) {
+                let startIndex = i + 1 - count
+                if (startIndex < 0) {
+                    // startElementId index may be negative if more elements have been requested than available when getting elements reverse.
+                    startIndex = 0
+                }
+                ids = range.slice(startIndex, i + 1)
+                ids.reverse()
+            } else {
+                ids = []
+            }
+        } else {
+            const i = range.findIndex((id) => firstBiggerThanSecond(id, startElementId))
+            ids = range.slice(i, i + count)
+        }
+        let result: ServerModelParsedInstance[] = []
+        for (let a = 0; a < ids.length; a++) {
+            const cachedInstance = listCache.elements.get(ids[a])
+            if (cachedInstance != null) {
+                const clonedInstance = clone(cachedInstance)
+                result.push(clonedInstance)
+            }
+        }
+        return result
+    }
 
-	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: string, elementIds: string[]): Promise<ServerModelParsedInstance[]> {
-		const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
+    async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: string, elementIds: string[]): Promise<ServerModelParsedInstance[]> {
+        const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
 
-		const typeModel = await resolveServerTypeReference(typeRef)
-		elementIds = elementIds.map((el) => ensureBase64Ext(typeModel, el))
+        const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+        elementIds = elementIds.map((el) => ensureBase64Ext(typeModel, el))
 
-		if (listCache == null) {
-			return []
-		}
-		let result: Array<ServerModelParsedInstance> = []
-		for (let a = 0; a < elementIds.length; a++) {
-			const cachedItem = listCache.elements.get(elementIds[a])
-			if (cachedItem) {
-				const clonedItem = clone(cachedItem)
-				result.push(clonedItem)
-			}
-		}
-		return result
-	}
+        if (listCache == null) {
+            return []
+        }
+        let result: Array<ServerModelParsedInstance> = []
+        for (let a = 0; a < elementIds.length; a++) {
+            const cachedItem = listCache.elements.get(elementIds[a])
+            if (cachedItem) {
+                const clonedItem = clone(cachedItem)
+                result.push(clonedItem)
+            }
+        }
+        return result
+    }
 
-	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<ServerModelParsedInstance[]> {
-		const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
+    async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<ServerModelParsedInstance[]> {
+        const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
 
-		if (listCache == null) {
-			return []
-		}
+        if (listCache == null) {
+            return []
+        }
 
-		return listCache.allRange.map((id) => clone(listCache.elements.get(id)!))
-	}
+        return listCache.allRange.map((id) => clone(listCache.elements.get(id)!))
+    }
 
-	async get<T extends Entity>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<T | null> {
-		const parsedInstance = await this.getParsed(typeRef, listId, id)
-		if (parsedInstance == null) {
-			return null
-		}
-		return await this.modelMapper.mapToInstance<T>(typeRef, parsedInstance)
-	}
+    async get<T extends Entity>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<T | null> {
+        const parsedInstance = await this.getParsed(typeRef, listId, id)
+        if (parsedInstance == null) {
+            return null
+        }
+        return await this.modelMapper.mapToInstance<T>(typeRef, parsedInstance)
+    }
 
-	async deleteIfExists<T>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
-		const type = getTypeString(typeRef)
-		const typeModel = await resolveServerTypeReference(typeRef)
+	async deleteIfExists<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
+		elementId: Id,
+	): Promise<void> {
+        const type = getTypeString(typeRef)
+        const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		elementId = ensureBase64Ext(typeModel, elementId)
+
+		const handler = this.customCacheHandlerMap.get(typeRef)
+		const id: T["_id"] = listId == null ? elementId : [listId, elementId]
+		await handler?.onBeforeCacheDeletion?.(id)
+
 		switch (typeModel.type) {
 			case TypeId.Element:
 				this.entities.get(type)?.delete(elementId)
 				break
 			case TypeId.ListElement: {
-				const cache = this.lists.get(type)?.get(assertNotNull(listId))
+				const cache = this.lists.get(type)?.get(assertNotNull(listId) as Id)
 				if (cache != null) {
 					cache.elements.delete(elementId)
 					remove(cache.allRange, elementId)
@@ -188,7 +206,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 				break
 			}
 			case TypeId.BlobElement:
-				this.blobEntities.get(type)?.get(assertNotNull(listId))?.elements.delete(elementId)
+				this.blobEntities.get(type)?.get(assertNotNull(listId) as Id)?.elements.delete(elementId)
 				break
 			default:
 				throw new ProgrammingError("must be a persistent type")
@@ -200,7 +218,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async isElementIdInCacheRange(typeRef: TypeRef<unknown>, listId: Id, elementId: Id): Promise<boolean> {
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		elementId = ensureBase64Ext(typeModel, elementId)
 
 		const cache = this.lists.get(getTypeString(typeRef))?.get(listId)
@@ -209,10 +227,17 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	async put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void> {
 		const instanceClone = clone(instance)
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const instanceId = AttributeModel.getAttribute<IdTuple | Id>(instanceClone, "_id", typeModel)
 		let { listId, elementId } = expandId(instanceId)
 		elementId = ensureBase64Ext(typeModel, elementId)
+
+		const handler = this.customCacheHandlerMap.get(typeRef as TypeRef<SomeEntity>)
+		if (handler?.onBeforeCacheUpdate) {
+			const typedInstance = await this.modelMapper.mapToInstance(typeRef, instance)
+			await handler.onBeforeCacheUpdate(typedInstance as SomeEntity)
+		}
+
 		switch (typeModel.type) {
 			case TypeId.Element: {
 				this.putElementEntity(typeRef, elementId, instanceClone)
@@ -264,7 +289,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 			// if the element already exists in the cache, overwrite it
 			// add new element to existing list if necessary
 			cache.elements.set(elementId, entity)
-			const typeModel = await resolveServerTypeReference(typeRef)
+			const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 			if (await this.isElementIdInCacheRange(typeRef, listId, customIdToBase64Url(typeModel, elementId))) {
 				this.insertIntoRange(cache.allRange, elementId)
 			}
@@ -309,7 +334,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 			return null
 		}
 
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		return {
 			lower: customIdToBase64Url(typeModel, listCache.lowerRangeId),
 			upper: customIdToBase64Url(typeModel, listCache.upperRangeId),
@@ -317,7 +342,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, upperId: Id): Promise<void> {
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		upperId = ensureBase64Ext(typeModel, upperId)
 		const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
 		if (listCache == null) {
@@ -327,7 +352,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		lowerId = ensureBase64Ext(typeModel, lowerId)
 		const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
 		if (listCache == null) {
@@ -344,7 +369,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	 * @param upper
 	 */
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		lower = ensureBase64Ext(typeModel, lower)
 		upper = ensureBase64Ext(typeModel, upper)
 
@@ -365,7 +390,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		return (
 			this.lists
 				.get(getTypeString(typeRef))
@@ -401,9 +426,9 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return await this.modelMapper.mapToInstances(typeRef, parsedInstances)
 	}
 
-	getCustomCacheHandlerMap(_: EntityRestClient): CustomCacheHandlerMap {
-		return this.customCacheHandlerMap
-	}
+    getCustomCacheHandlerMap(): CustomCacheHandlerMap {
+        return this.customCacheHandlerMap
+    }
 
 	getUserId(): Id {
 		return assertNotNull(this.userId, "No user id, not initialized?")
@@ -411,41 +436,43 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	async deleteAllOwnedBy(owner: Id): Promise<void> {
 		for (const [typeString, typeMap] of this.entities.entries()) {
-			const typeRef = parseTypeString(typeString)
-			const typeModel = await resolveServerTypeReference(typeRef)
+			const typeRef = parseTypeString(typeString) as TypeRef<SomeEntity>
+			const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+			const handler = this.customCacheHandlerMap.get(typeRef)
+
 			for (const [id, entity] of typeMap.entries()) {
 				const ownerGroup = AttributeModel.getAttribute<Id>(entity, "_ownerGroup", typeModel)
 				if (ownerGroup === owner) {
+					await handler?.onBeforeCacheDeletion?.(id)
 					typeMap.delete(id)
 				}
 			}
 		}
 		for (const [typeString, cacheForType] of this.lists.entries()) {
 			const typeRef = parseTypeString(typeString)
-			const typeModel = await resolveServerTypeReference(typeRef)
-			this.deleteAllOwnedByFromCache(typeModel, cacheForType, owner)
+			const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+			await this.deleteAllOwnedByFromCache(typeModel, cacheForType, owner)
 		}
 		for (const [typeString, cacheForType] of this.blobEntities.entries()) {
 			const typeRef = parseTypeString(typeString)
-			const typeModel = await resolveServerTypeReference(typeRef)
-			this.deleteAllOwnedByFromCache(typeModel, cacheForType, owner)
+			const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+			await this.deleteAllOwnedByFromCache(typeModel, cacheForType, owner)
 		}
 		this.lastBatchIdPerGroup.delete(owner)
 	}
 
-	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
-		this.lists.get(getTypeString(typeRef))?.delete(listId)
-	}
 
-	private deleteAllOwnedByFromCache(typeModel: TypeModel, cacheForType: Map<Id, ListCache | BlobElementCache>, owner: string) {
+	private async deleteAllOwnedByFromCache(typeModel: TypeModel, cacheForType: Map<Id, ListCache | BlobElementCache>, owner: string): Promise<void> {
 		// If we find at least one element in the list that is owned by our target owner, we delete the entire list.
 		// This is OK in most cases because the vast majority of lists are single owner.
 		// For the other cases, we are just clearing the cache a bit sooner than needed.
 		const listIdsToDelete: string[] = []
+		const handler = this.customCacheHandlerMap.get(new TypeRef<SomeEntity>(typeModel.app, typeModel.id))
 		for (const [listId, listCache] of cacheForType.entries()) {
-			for (const [_, element] of listCache.elements.entries()) {
+			for (const [id, element] of listCache.elements.entries()) {
 				const ownerGroup = AttributeModel.getAttribute<Id>(element, "_ownerGroup", typeModel)
 				if (ownerGroup === owner) {
+                    await handler?.onBeforeCacheDeletion?.([listId, id])
 					listIdsToDelete.push(listId)
 					break
 				}

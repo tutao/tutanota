@@ -5,12 +5,12 @@ import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaCo
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
-import type { SearchFacade } from "../../workerUtils/index/SearchFacade.js"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 
 assertMainOrNode()
 export type SearchQuery = {

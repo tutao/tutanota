@@ -1,11 +1,10 @@
 import o from "@tutao/otest"
-import { func, instance, when } from "testdouble"
+import { func, instance, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 import { LateInitializedCacheStorageImpl, OfflineStorageArgs } from "../../../../../src/common/api/worker/rest/CacheStorageProxy.js"
 import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { WorkerImpl } from "../../../../../src/mail-app/workerUtils/worker/WorkerImpl.js"
-import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { resolveClientTypeReference } from "../../../../../src/common/api/common/EntityFunctions"
+import { EphemeralCacheStorage } from "../../../../../src/common/api/worker/rest/EphemeralCacheStorage"
 
 o.spec("CacheStorageProxy", function () {
 	const userId = "userId"
@@ -14,6 +13,7 @@ o.spec("CacheStorageProxy", function () {
 	let workerMock: WorkerImpl
 	let offlineStorageMock: OfflineStorage
 	let offlineStorageProviderMock: () => Promise<null | OfflineStorage>
+	let ephemeralStorage: EphemeralCacheStorage
 
 	let proxy: LateInitializedCacheStorageImpl
 
@@ -21,12 +21,13 @@ o.spec("CacheStorageProxy", function () {
 		workerMock = instance(WorkerImpl)
 		offlineStorageMock = instance(OfflineStorage)
 		offlineStorageProviderMock = func() as () => Promise<null | OfflineStorage>
-		const modelMapper = new ModelMapper(resolveClientTypeReference, resolveClientTypeReference)
+		ephemeralStorage = object()
+
 		proxy = new LateInitializedCacheStorageImpl(
-			modelMapper,
 			async (error: Error) => {
 				await workerMock.sendError(error)
 			},
+            async () => ephemeralStorage,
 			offlineStorageProviderMock,
 		)
 	})
@@ -35,7 +36,13 @@ o.spec("CacheStorageProxy", function () {
 		o("should create a persistent storage when params are provided and offline storage is enabled", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 
-			const { isPersistent } = await proxy.initialize({ type: "offline", userId, databaseKey, timeRangeDays: null, forceNewDatabase: false })
+			const { isPersistent } = await proxy.initialize({
+				type: "offline",
+				userId,
+				databaseKey,
+				timeRangeDate: null,
+				forceNewDatabase: false,
+			})
 
 			o(isPersistent).equals(true)
 		})
@@ -51,7 +58,13 @@ o.spec("CacheStorageProxy", function () {
 		o("should create a ephemeral storage when params are provided but offline storage is disabled", async function () {
 			when(offlineStorageProviderMock()).thenResolve(null)
 
-			const { isPersistent } = await proxy.initialize({ type: "offline", userId, databaseKey, timeRangeDays: null, forceNewDatabase: false })
+			const { isPersistent } = await proxy.initialize({
+				type: "offline",
+				userId,
+				databaseKey,
+				timeRangeDate: null,
+				forceNewDatabase: false,
+			})
 
 			o(isPersistent).equals(false)
 		})
@@ -66,7 +79,13 @@ o.spec("CacheStorageProxy", function () {
 
 		o("will flag newDatabase as true when offline storage says it is", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
-			const args: OfflineStorageArgs = { type: "offline", userId, databaseKey, timeRangeDays: null, forceNewDatabase: false }
+			const args: OfflineStorageArgs = {
+				type: "offline",
+				userId,
+				databaseKey,
+				timeRangeDate: null,
+				forceNewDatabase: false,
+			}
 			when(offlineStorageMock.init(args)).thenResolve(true)
 
 			const { isNewOfflineDb } = await proxy.initialize(args)
@@ -76,7 +95,13 @@ o.spec("CacheStorageProxy", function () {
 
 		o("will flag newDatabase as false when offline storage says it is not", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
-			const args: OfflineStorageArgs = { type: "offline", userId, databaseKey, timeRangeDays: null, forceNewDatabase: false }
+			const args: OfflineStorageArgs = {
+				type: "offline",
+				userId,
+				databaseKey,
+				timeRangeDate: null,
+				forceNewDatabase: false,
+			}
 			when(offlineStorageMock.init(args)).thenResolve(false)
 
 			const { isNewOfflineDb } = await proxy.initialize(args)
@@ -89,7 +114,13 @@ o.spec("CacheStorageProxy", function () {
 
 			when(offlineStorageProviderMock()).thenReject(error)
 
-			const { isPersistent } = await proxy.initialize({ type: "offline", userId, databaseKey, timeRangeDays: null, forceNewDatabase: false })
+			const { isPersistent } = await proxy.initialize({
+				type: "offline",
+				userId,
+				databaseKey,
+				timeRangeDate: null,
+				forceNewDatabase: false,
+			})
 
 			o(isPersistent).equals(false)
 			verify(workerMock.sendError(error))

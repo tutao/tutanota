@@ -8,14 +8,20 @@ import {
 	getCacheModeBehavior,
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
-import { resolveClientTypeReference, resolveServerTypeReference, resolveTypeRefFromAppAndTypeNameLegacy } from "../../common/EntityFunctions"
-import { OperationType, reverse } from "../../common/TutanotaConstants"
-import { assertNotNull, count, difference, getFirstOrThrow, getTypeString, groupBy, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { OperationType } from "../../common/TutanotaConstants"
+import {
+	assertNotNull,
+	getFirstOrThrow,
+	getTypeString,
+	groupBy,
+	isSameTypeRef,
+	lastThrow,
+	TypeRef
+} from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
 	EntityEventBatchTypeRef,
-	EntityUpdate,
 	GroupKeyTypeRef,
 	GroupTypeRef,
 	KeyRotationTypeRef,
@@ -24,35 +30,35 @@ import {
 	RejectedSenderTypeRef,
 	SecondFactorTypeRef,
 	SessionTypeRef,
-	User,
 	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
-	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import {
 	CUSTOM_MAX_ID,
-	CUSTOM_MIN_ID,
-	elementIdPart,
+	CUSTOM_MIN_ID, elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	get_IdValue,
-	getElementId,
-	listIdPart,
+	getElementId, listIdPart,
 } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
-import { QueuedBatch } from "../EventQueue.js"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
-import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { containsEventOfType, entityUpdateToUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
+import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
+import {
+	containsEventOfType,
+	EntityUpdateData,
+	getEventOfType,
+	isUpdateForTypeRef
+} from "../../common/utils/EntityUpdateUtils.js"
 import { isCustomIdType } from "../offline/OfflineStorage.js"
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import { AttributeModel } from "../../common/AttributeModel"
+import { TypeModelResolver } from "../../common/EntityFunctions"
+import {AttributeModel} from "../../common/AttributeModel";
 
 assertWorkerOrNode()
 
@@ -165,7 +171,7 @@ export interface ExposedCacheStorage {
 
 	getLastUpdateTime(): Promise<LastUpdateTime>
 
-	clearExcludedData(): Promise<void>
+	clearExcludedData(timeRangeDate: Date): Promise<void>
 
 	/**
 	 * remove an ElementEntity from the cache by typeRef and Id.
@@ -173,9 +179,6 @@ export interface ExposedCacheStorage {
 	 * we must maintain the integrity of our list ranges.
 	 * */
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
-
-	/** delete all instances of the given type that share {@param listId}. also deletes the range of that list. */
-	deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -209,7 +212,7 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * get a map with cache handlers for the customId types this storage implementation supports
 	 * customId types that don't have a custom handler don't get served from the cache
 	 */
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap
+	getCustomCacheHandlerMap(): CustomCacheHandlerMap
 
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
 
@@ -286,7 +289,11 @@ export interface CacheStorage extends ExposedCacheStorage {
  * lowerRangeId may be anything from MIN_ID to c, upperRangeId may be anything from k to MAX_ID
  */
 export class DefaultEntityRestCache implements EntityRestCache {
-	constructor(private readonly entityRestClient: EntityRestClient, private readonly storage: CacheStorage) {}
+	constructor(
+		private readonly entityRestClient: EntityRestClient,
+		private readonly storage: CacheStorage,
+		private readonly typeModelResolver: TypeModelResolver,
+	) {}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
 		const useCache = this.shouldUseCache(typeRef, opts)
@@ -439,12 +446,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		reverse: boolean,
 		opts: EntityRestClientLoadOptions = {},
 	): Promise<T[]> {
-		const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
+		const customHandler = this.storage.getCustomCacheHandlerMap().get(typeRef)
 		if (customHandler && customHandler.loadRange) {
 			return await customHandler.loadRange(this.storage, listId, start, count, reverse)
 		}
 
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const useCache = this.shouldUseCache(typeRef, opts) && isCachedRangeType(typeModel, typeRef)
 
 		if (!useCache) {
@@ -638,8 +645,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		wasReverseRequest: boolean,
 		receivedEntities: ServerModelParsedInstance[],
 	) {
-		const typeModel = await resolveServerTypeReference(typeRef)
-		const isCustomId = isCustomIdType(await resolveClientTypeReference(typeRef))
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+		const isCustomId = isCustomIdType(await this.typeModelResolver.resolveClientTypeReference(typeRef))
 		let elementsToAdd = receivedEntities
 		if (wasReverseRequest) {
 			// Ensure that elements are cached in ascending (not reverse) order
@@ -695,7 +702,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const { lower, upper } = range
 		let indexOfStart = allRangeList.indexOf(start)
 
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
 		if (
 			(!reverse && (isCustomId ? upper === CUSTOM_MAX_ID : upper === GENERATED_MAX_ID)) ||
@@ -745,16 +752,16 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 *
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
-	async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
+	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
 		await this.recordSyncTime()
 
 		// we handle post multiple create operations separately to optimize the number of requests with getMultiple
-		const createUpdatesForLETs: EntityUpdate[] = []
-		const regularUpdates: EntityUpdate[] = [] // all updates not resulting from post multiple requests
-		const updatesArray = batch.events
-		for (const update of updatesArray) {
+		const createUpdatesForLETs: EntityUpdateData[] = []
+		const regularUpdates: EntityUpdateData[] = [] // all updates not resulting from post multiple requests
+
+		for (const update of events) {
 			// monitor application is ignored
-			if (update.application === "monitor") continue
+			if (update.typeRef.app === "monitor") continue
 			// mailSetEntries are ignored because move operations are handled as a special event (and no post multiple is possible)
 			if (
 				update.operation === OperationType.CREATE &&
@@ -770,17 +777,15 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		const createUpdatesForLETsPerList = groupBy(createUpdatesForLETs, (update) => update.instanceListId)
 
-		const postMultipleEventUpdates: EntityUpdate[][] = []
+		const postMultipleEventUpdates: EntityUpdateData[][] = []
 		// we first handle potential post multiple updates in get multiple requests
 		for (let [instanceListId, updates] of createUpdatesForLETsPerList) {
 			const firstUpdate = updates[0]
-			const typeRef = firstUpdate.typeId
-				? new TypeRef<SomeEntity>(firstUpdate.application as AppName, parseInt(firstUpdate.typeId))
-				: resolveTypeRefFromAppAndTypeNameLegacy(firstUpdate.application as AppName, firstUpdate.type)
+			const typeRef = firstUpdate.typeRef
 			const ids = updates.map((update) => update.instanceId)
 
 			// We only want to load the instances that are in cache range
-			const customHandler = this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)
+			const customHandler = this.storage.getCustomCacheHandlerMap().get(typeRef)
 			const idsInCacheRange =
 				customHandler && customHandler.getElementIdsInCacheRange
 					? await customHandler.getElementIdsInCacheRange(this.storage, instanceListId, ids)
@@ -813,14 +818,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 
-		const otherEventUpdates: EntityUpdate[] = []
 		// we need an array of UpdateEntityData
+		const otherEventUpdates: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
-			const { operation, typeId, application, type } = update
+			const { operation, typeRef } = update
 			const { instanceListId, instanceId } = getUpdateInstanceId(update)
-			const typeRef = typeId
-				? new TypeRef<SomeEntity>(application as AppName, parseInt(typeId))
-				: resolveTypeRefFromAppAndTypeNameLegacy(application as AppName, type)
 
 			switch (operation) {
 				case OperationType.UPDATE: {
@@ -831,17 +833,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
-					if (
-						isSameTypeRef(MailSetEntryTypeRef, typeRef) &&
-						containsEventOfType(
-							updatesArray.map((e) => entityUpdateToUpdateData(e)),
-							OperationType.CREATE,
-							instanceId,
-						)
-					) {
+					if (isSameTypeRef(MailSetEntryTypeRef, typeRef) && containsEventOfType(events, OperationType.CREATE, instanceId)) {
 						// move for mail is handled in create event.
 					} else if (isSameTypeRef(MailTypeRef, typeRef)) {
-						const mailTypeModel = await resolveServerTypeReference(MailTypeRef)
 						// delete mailDetails if they are available (as we don't send an event for this type)
 						const mail = await this.storage.get(typeRef, instanceListId, instanceId)
 						if (mail) {
@@ -858,7 +852,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.CREATE: {
-					const handledUpdate = await this.processCreateEvent(typeRef, update, updatesArray)
+					const handledUpdate = await this.processCreateEvent(typeRef, update, events)
 					if (handledUpdate) {
 						otherEventUpdates.push(handledUpdate)
 					}
@@ -868,14 +862,44 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					throw new ProgrammingError("Unknown operation type: " + operation)
 			}
 		}
+
+		// Pass these events to their respective handlers before writing batch ID to ensure that certain methods are not
+		// missed before batch ID is written
+		for (const update of events) {
+			const { operation, typeRef } = update
+
+			const handler = this.storage.getCustomCacheHandlerMap().get(typeRef)
+			if (handler == null) {
+				continue
+			}
+
+			const id = collapseId(update.instanceListId, update.instanceId)
+
+			switch (operation) {
+				case OperationType.CREATE:
+					await handler.onEntityEventCreate?.(id)
+					break
+				case OperationType.UPDATE:
+					await handler.onEntityEventUpdate?.(id)
+					break
+				case OperationType.DELETE:
+					await handler.onEntityEventDelete?.(id)
+					break
+			}
+		}
+
 		// the whole batch has been written successfully
-		await this.storage.putLastBatchIdForGroup(batch.groupId, batch.batchId)
+		await this.storage.putLastBatchIdForGroup(groupId, batchId)
 		// merge the results
 		return otherEventUpdates.concat(postMultipleEventUpdates.flat())
 	}
 
 	/** Returns {null} when the update should be skipped. */
-	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdate, batch: ReadonlyArray<EntityUpdate>): Promise<EntityUpdate | null> {
+	private async processCreateEvent(
+		typeRef: TypeRef<any>,
+		update: EntityUpdateData,
+		batch: ReadonlyArray<EntityUpdateData>,
+	): Promise<EntityUpdateData | null> {
 		// do not return undefined to avoid implicit returns
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
 
@@ -897,7 +921,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// If there is a custom handler we follow its decision.
 				// Otherwise, we do a range check to see if we need to keep the range up-to-date.
 				const shouldLoad =
-					(await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)?.shouldLoadOnCreateEvent?.(update)) ??
+					this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update) ??
 					(await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
 				if (shouldLoad) {
 					// No need to try to download something that's not there anymore
@@ -928,7 +952,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 */
 	private async updateListIdOfMailSetEntryAndUpdateCache(mailSetEntry: ServerModelParsedInstance, newListId: Id, elementId: Id) {
 		// In case of a move operation we have to replace the list id always, as the mailSetEntry is stored in another folder.
-		const typeModel = await resolveServerTypeReference(MailSetEntryTypeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(MailSetEntryTypeRef)
 		const attributeId = AttributeModel.getAttributeId(typeModel, "_id")
 		if (attributeId == null) {
 			throw new ProgrammingError("no _id for mail set entry in type model ")
@@ -938,7 +962,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	/** Returns {null} when the update should be skipped. */
-	private async processUpdateEvent(typeRef: TypeRef<SomeEntity>, update: EntityUpdate): Promise<EntityUpdate | null> {
+	private async processUpdateEvent(typeRef: TypeRef<SomeEntity>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		const { instanceId, instanceListId } = getUpdateInstanceId(update)
 		const cached = await this.storage.getParsed(typeRef, instanceListId, instanceId)
 		// No need to try to download something that's not there anymore
@@ -956,9 +980,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + instanceId)
 				}
 				const newEntity = await this.entityRestClient.loadParsedInstance(typeRef, collapseId(instanceListId, instanceId))
-				if (isSameTypeRef(typeRef, UserTypeRef)) {
-					await this.handleUpdatedUser(cached, newEntity)
-				}
 				await this.storage.put(typeRef, newEntity)
 				return update
 			} catch (e) {
@@ -974,23 +995,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		}
 		return update
-	}
-
-	private async handleUpdatedUser(cachedUserInstance: ServerModelParsedInstance, newUserInstance: ServerModelParsedInstance) {
-		// When we are removed from a group we just get an update for our user
-		// with no membership on it. We need to clean up all the entities that
-		// belong to that group since we shouldn't be able to access them anymore
-		// and we won't get any update or another chance to clean them up.
-		const oldUser = await this.entityRestClient.mapInstanceToEntity<User>(UserTypeRef, cachedUserInstance)
-		if (oldUser._id !== this.storage.getUserId()) {
-			return
-		}
-		const newUser = await this.entityRestClient.mapInstanceToEntity<User>(UserTypeRef, newUserInstance)
-		const removedShips = difference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
-		for (const ship of removedShips) {
-			console.log("Lost membership on ", ship._id, ship.groupType)
-			await this.storage.deleteAllOwnedBy(ship.group)
-		}
 	}
 
 	/**
@@ -1055,7 +1059,10 @@ export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
 	}
 }
 
-export function getUpdateInstanceId(update: EntityUpdate): { instanceListId: Id | null; instanceId: Id } {
+export function getUpdateInstanceId(update: EntityUpdateData): {
+	instanceListId: Id | null
+	instanceId: Id
+} {
 	let instanceListId
 	if (update.instanceListId === "") {
 		instanceListId = null

@@ -95,10 +95,6 @@ import("./translations/en.js")
 
 		const { BottomNav } = await import("./gui/BottomNav.js")
 
-		// this needs to stay after client.init
-		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel, (visible) => {
-			mailLocator.indexerFacade?.onVisibilityChanged(!document.hidden)
-		})
 		if (isDesktop()) {
 			import("../common/native/main/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
 		}
@@ -181,8 +177,14 @@ import("./translations/en.js")
 						mailLocator.progressTracker,
 						mailLocator.cacheStorage,
 						mailLocator.logins,
+						assertNotNull(await mailLocator.offlineStorageSettingsModel()),
 					),
 			)
+			mailLocator.logins.addPostLoginAction(async () => {
+				const { SearchOfflineRangePostLoginAction } = await import("./search/model/SearchOfflineRangePostLoginAction")
+				const offlineStorageSettings = await mailLocator.offlineStorageSettingsModel()
+				return new SearchOfflineRangePostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade)
+			})
 		}
 
 		if (isDesktop()) {

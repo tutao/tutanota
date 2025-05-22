@@ -37,7 +37,6 @@ import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFac
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade.js"
 import { OfflineStorage } from "../../../common/api/worker/offline/OfflineStorage.js"
 import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "../../../common/api/worker/offline/OfflineStorageMigrator.js"
-import { globalServerModelInfo, resolveClientTypeReference, resolveServerTypeReference } from "../../../common/api/common/EntityFunctions.js"
 import { FileFacadeSendDispatcher } from "../../../common/native/common/generatedipc/FileFacadeSendDispatcher.js"
 import { NativePushFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import { NativeCryptoFacadeSendDispatcher } from "../../../common/native/common/generatedipc/NativeCryptoFacadeSendDispatcher.js"
@@ -52,7 +51,7 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../common/api/worker/crypt
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
-import { Challenge } from "../../../common/api/entities/sys/TypeRefs.js"
+import { Challenge, UserTypeRef } from "../../../common/api/entities/sys/TypeRefs.js"
 import { LoginFailReason } from "../../../common/api/main/PageContextLoginListener.js"
 import { SessionType } from "../../../common/api/common/SessionType.js"
 import { Argon2idFacade, NativeArgon2idFacade, WASMArgon2idFacade } from "../../../common/api/worker/facades/Argon2idFacade.js"
@@ -68,7 +67,6 @@ import { RecoverCodeFacade } from "../../../common/api/worker/facades/lazy/Recov
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CalendarWorkerImpl } from "./CalendarWorkerImpl.js"
 import { CalendarOfflineCleaner } from "../offline/CalendarOfflineCleaner.js"
-import type { QueuedBatch } from "../../../common/api/worker/EventQueue.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
@@ -77,6 +75,12 @@ import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyA
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
+import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
+import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
+import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
+import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
+import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 
 assertWorkerOrNode()
 
@@ -154,15 +158,28 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
 
-	locator.instancePipeline = new InstancePipeline(resolveClientTypeReference, resolveServerTypeReference)
+	const clientModelInfo = ClientModelInfo.getInstance()
+	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo)
+	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)
+	locator.instancePipeline = new InstancePipeline(
+		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
+		typeModelResolver.resolveServerTypeReference.bind(typeModelResolver),
+	)
 	locator.rsa = await createRsaImplementation(worker)
 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
 	locator.restClient = new RestClient(suspensionHandler, domainConfig, () => locator.applicationTypesFacade)
-	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto)
+	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instancePipeline, () => locator.crypto, typeModelResolver)
 	locator.entropyFacade = new EntropyFacade(locator.user, locator.serviceExecutor, random, () => locator.keyLoader)
-	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider)
-	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instancePipeline, locator.blobAccessToken)
+	locator.blobAccessToken = new BlobAccessTokenFacade(locator.serviceExecutor, locator.user, dateProvider, typeModelResolver)
+	const entityRestClient = new EntityRestClient(
+		locator.user,
+		locator.restClient,
+		() => locator.crypto,
+		locator.instancePipeline,
+		locator.blobAccessToken,
+		typeModelResolver,
+	)
 	locator.native = worker
 
 	locator.booking = lazyMemoized(async () => {
@@ -172,12 +189,17 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const fileFacadeSendDispatcher = new FileFacadeSendDispatcher(worker)
 	const fileApp = new NativeFileApp(fileFacadeSendDispatcher, new ExportFacadeSendDispatcher(worker))
-	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(locator.restClient, fileFacadeSendDispatcher, globalServerModelInfo)
+	locator.applicationTypesFacade = await ApplicationTypesFacade.getInitialized(locator.restClient, fileFacadeSendDispatcher, serverModelInfo)
 
 	let offlineStorageProvider
 	if (isOfflineStorageAvailable()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
+			const customCacheHandler = new CustomCacheHandlerMap({
+				ref: CalendarEventTypeRef,
+				handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
+			})
+
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
@@ -185,6 +207,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS),
 				new CalendarOfflineCleaner(),
 				locator.instancePipeline.modelMapper,
+				typeModelResolver,
+				customCacheHandler,
 			)
 		}
 	} else {
@@ -195,20 +219,28 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
+	const ephemeralStorageProvider = async () => {
+		const customCacheHandler = new CustomCacheHandlerMap({
+			ref: UserTypeRef,
+			handler: new CustomUserCacheHandler(locator.cacheStorage),
+		})
+		return new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, customCacheHandler)
+	}
+
 	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(
-		locator.instancePipeline.modelMapper,
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
+        ephemeralStorageProvider,
 		offlineStorageProvider,
 	)
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	locator.cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage)
+	locator.cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver)
 
-	locator.cachingEntityClient = new EntityClient(locator.cache)
-	const nonCachingEntityClient = new EntityClient(entityRestClient)
+	locator.cachingEntityClient = new EntityClient(locator.cache, typeModelResolver)
+	const nonCachingEntityClient = new EntityClient(entityRestClient, typeModelResolver)
 
 	locator.cacheManagement = lazyMemoized(async () => {
 		const { CacheManagementFacade } = await import("../../../common/api/worker/facades/lazy/CacheManagementFacade.js")
@@ -248,13 +280,14 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.restClient,
 		locator.serviceExecutor,
 		locator.instancePipeline,
-		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor),
+		new OwnerEncSessionKeysUpdateQueue(locator.user, locator.serviceExecutor, typeModelResolver),
 		locator.cache as DefaultEntityRestCache,
 		locator.keyLoader,
 		asymmetricCrypto,
 		locator.keyVerification,
 		locator.publicKeyProvider,
 		lazyMemoized(() => locator.keyRotation),
+		typeModelResolver,
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
@@ -330,7 +363,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		/**
 		 * we don't want to try to use the cache in the login facade, because it may not be available (when no user is logged in)
 		 */
-		new EntityClient(locator.cache),
+		new EntityClient(locator.cache, typeModelResolver),
 		loginListener,
 		locator.instancePipeline,
 		locator.crypto,
@@ -347,6 +380,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await worker.sendError(error)
 		},
 		locator.cacheManagement,
+		typeModelResolver,
 	)
 
 	locator.userManagement = lazyMemoized(async () => {
@@ -417,6 +451,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.crypto,
 			mainInterface.infoMessageHandler,
 			locator.instancePipeline,
+			locator.cachingEntityClient,
 		)
 	})
 
@@ -448,7 +483,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
-		(queuedBatch: QueuedBatch[]) => noOp,
+		noOp,
 	)
 
 	locator.eventBusClient = new EventBusClient(
@@ -462,6 +497,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		mainInterface.progressTracker,
 		mainInterface.syncTracker,
 		locator.applicationTypesFacade,
+		typeModelResolver,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const
@@ -471,7 +507,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	})
 	locator.contactFacade = lazyMemoized(async () => {
 		const { ContactFacade } = await import("../../../common/api/worker/facades/lazy/ContactFacade.js")
-		return new ContactFacade(new EntityClient(locator.cache))
+		return new ContactFacade(new EntityClient(locator.cache, typeModelResolver))
 	})
 }
 

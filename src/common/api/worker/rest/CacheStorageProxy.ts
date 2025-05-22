@@ -4,8 +4,7 @@ import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from
 import { TypeRef } from "@tutao/tutanota-utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
-import { EntityRestClient } from "./EntityRestClient.js"
-import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
+import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { ModelMapper } from "../crypto/ModelMapper"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
@@ -16,7 +15,7 @@ export type OfflineStorageArgs = OfflineStorageInitArgs & {
 	type: "offline"
 }
 
-interface CacheStorageInitReturn {
+export interface CacheStorageInitReturn {
 	/** If the created storage is an OfflineStorage */
 	isPersistent: boolean
 	/** If a OfflineStorage was created, whether or not the backing database was created fresh or already existed */
@@ -29,7 +28,7 @@ export interface CacheStorageLateInitializer {
 	deInitialize(): Promise<void>
 }
 
-type SomeStorage = OfflineStorage | EphemeralCacheStorage
+export type SomeStorage = OfflineStorage | EphemeralCacheStorage
 
 /**
  * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that
@@ -47,8 +46,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 	private _inner: SomeStorage | null = null
 
 	constructor(
-		private readonly modelMapper: ModelMapper,
 		private readonly sendError: (error: Error) => Promise<void>,
+		private readonly ephemeralStorageProvider: () => Promise<EphemeralCacheStorage>,
 		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
 	) {}
 
@@ -118,7 +117,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 			}
 		}
 		// both "else" case and fallback for unavailable storage and error cases
-		const storage = new EphemeralCacheStorage(this.modelMapper)
+		const storage = await this.ephemeralStorageProvider()
 		storage.init(args)
 		return {
 			storage,
@@ -195,8 +194,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.setUpperRangeForList(typeRef, listId, id)
 	}
 
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
-		return this.inner.getCustomCacheHandlerMap(entityRestClient)
+	getCustomCacheHandlerMap(): CustomCacheHandlerMap {
+		return this.inner.getCustomCacheHandlerMap()
 	}
 
 	getUserId(): Id {
@@ -207,12 +206,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.deleteAllOwnedBy(owner)
 	}
 
-	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
-		return this.inner.deleteWholeList(typeRef, listId)
-	}
-
-	clearExcludedData(): Promise<void> {
-		return this.inner.clearExcludedData()
+	clearExcludedData(timeRangeDate: Date): Promise<void> {
+		return this.inner.clearExcludedData(timeRangeDate)
 	}
 
 	/**

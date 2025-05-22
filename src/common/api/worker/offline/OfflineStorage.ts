@@ -1,6 +1,6 @@
-import { ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, get_IdValue, getElementId } from "../../common/utils/EntityUtils.js"
-import { CacheStorage, expandId, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
+import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
+import { CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, GENERATED_MIN_ID, get_IdValue, getElementId, listIdPart } from "../../common/utils/EntityUtils.js"
+import { CacheStorage, collapseId, expandId, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
 import {
@@ -10,20 +10,21 @@ import {
 	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64UrlToBase64,
+	getFirstOrThrow,
 	getTypeString,
-	groupByAndMapUniquely,
+	groupBy,
+	groupByAndMap,
+	isEmpty,
 	mapNullable,
+	parseTypeString,
 	splitInChunks,
 	TypeRef,
 } from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
-import { resolveClientTypeReference, resolveServerTypeReference } from "../../common/EntityFunctions.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/interface"
-import { CalendarEventTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
-import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler, CustomMailEventCacheHandler } from "../rest/CustomCacheHandler.js"
-import { EntityRestClient } from "../rest/EntityRestClient.js"
+import { CustomCacheHandlerMap } from "../rest/cacheHandler/CustomCacheHandler.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
@@ -32,6 +33,7 @@ import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "../crypto/ModelMapper"
 import { AttributeModel } from "../../common/AttributeModel"
+import { TypeModelResolver } from "../../common/EntityFunctions"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -91,15 +93,14 @@ type Range = { lower: Id; upper: Id }
 export interface OfflineStorageInitArgs {
 	userId: Id
 	databaseKey: Uint8Array
-	timeRangeDays: number | null
+	timeRangeDate: Date | null
 	forceNewDatabase: boolean
 }
 
 export class OfflineStorage implements CacheStorage {
-	private customCacheHandler: CustomCacheHandlerMap | null = null
 	private userId: Id | null = null
 	private databaseKey: Uint8Array | null = null
-	private timeRangeDays: number | null = null
+	private timeRangeDate: Date | null = null
 
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
@@ -108,15 +109,17 @@ export class OfflineStorage implements CacheStorage {
 		private readonly migrator: OfflineStorageMigrator,
 		private readonly cleaner: OfflineStorageCleaner,
 		private readonly modelMapper: ModelMapper,
+		private readonly typeModelResolver: TypeModelResolver,
+		private readonly customCacheHandler: CustomCacheHandlerMap,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
 
 	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<ServerModelParsedInstance[]> {
 		const { query, params } = sql`SELECT entity
-									  FROM list_entities
-									  WHERE type = ${getTypeString(typeRef)}
-										AND listId = ${listId}`
+                                    FROM list_entities
+                                    WHERE type = ${getTypeString(typeRef)}
+                                      AND listId = ${listId}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
 
 		const instanceBytes = items.map((row) => row.entity.value as Uint8Array)
@@ -139,10 +142,10 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * @return {boolean} whether the database was newly created or not
 	 */
-	async init({ userId, databaseKey, timeRangeDays, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
+	async init({ userId, databaseKey, timeRangeDate, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
 		this.userId = userId
 		this.databaseKey = databaseKey
-		this.timeRangeDays = timeRangeDays
+		this.timeRangeDate = timeRangeDate
 		if (forceNewDatabase) {
 			if (isDesktop()) {
 				await this.interWindowEventSender.localUserDataInvalidated(userId)
@@ -185,64 +188,43 @@ export class OfflineStorage implements CacheStorage {
 		await this.sqlCipherFacade.closeDb()
 	}
 
-	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
-		const type = getTypeString(typeRef)
-		const typeModel = await resolveClientTypeReference(typeRef)
-		const encodedElementId = ensureBase64Ext(typeModel, elementId)
-		let formattedQuery
-		switch (typeModel.type) {
-			case TypeId.Element:
-				formattedQuery = sql`DELETE
-									 FROM element_entities
-									 WHERE type = ${type}
-									   AND elementId = ${encodedElementId}`
-				break
-			case TypeId.ListElement:
-				formattedQuery = sql`DELETE
-									 FROM list_entities
-									 WHERE type = ${type}
-									   AND listId = ${listId}
-									   AND elementId = ${encodedElementId}`
-				break
-			case TypeId.BlobElement:
-				formattedQuery = sql`DELETE
-									 FROM blob_element_entities
-									 WHERE type = ${type}
-									   AND listId = ${listId}
-									   AND elementId = ${encodedElementId}`
-				break
-			default:
-				throw new Error("must be a persistent type")
-		}
-		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
+	async deleteIfExists<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
+		elementId: Id,
+	): Promise<void> {
+		const fullId: T["_id"] = listId == null ? elementId : [listId, elementId]
+		await this.deleteByIds(typeRef, [fullId])
 	}
 
 	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
 		const type = getTypeString(typeRef)
-		let typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
-				formattedQuery = sql`DELETE
-									 FROM element_entities
-									 WHERE type = ${type}`
+				formattedQuery = sql`SELECT elementId
+                                     FROM element_entities
+                                     WHERE type = ${type}`
 				break
 			case TypeId.ListElement:
-				formattedQuery = sql`DELETE
-									 FROM list_entities
-									 WHERE type = ${type}`
-				await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
+				formattedQuery = sql`SELECT listId, elementId
+                                     FROM list_entities
+                                     WHERE type = ${type}`
 				await this.deleteAllRangesForType(type)
-				return
+				break
 			case TypeId.BlobElement:
-				formattedQuery = sql`DELETE
-									 FROM blob_element_entities
-									 WHERE type = ${type}`
+				formattedQuery = sql`SELECT listId, elementId
+                                     FROM blob_element_entities
+                                     WHERE type = ${type}`
 				break
 			default:
 				throw new Error("must be a persistent type")
 		}
-		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
+		const taggedRows = await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)
+		const rows = taggedRows.map(untagSqlObject) as { listId?: Id; elementId: Id }[]
+		const ids = rows.map((row) => collapseId(row.listId ?? null, customIdToBase64Url(typeModel, row.elementId)))
+		await this.deleteByIds(typeRef, ids)
 	}
 
 	/**
@@ -256,36 +238,36 @@ export class OfflineStorage implements CacheStorage {
 
 	private async deleteAllRangesForType(type: string): Promise<void> {
 		const { query, params } = sql`DELETE
-									  FROM ranges
-									  WHERE type = ${type}`
+                                    FROM ranges
+                                    WHERE type = ${type}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null> {
 		const type = getTypeString(typeRef)
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementId = ensureBase64Ext(typeModel, id)
 		let formattedQuery
 		switch (typeModel.type) {
 			case TypeId.Element:
 				formattedQuery = sql`SELECT entity
-									 from element_entities
-									 WHERE type = ${type}
-									   AND elementId = ${encodedElementId}`
+                                     from element_entities
+                                     WHERE type = ${type}
+                                       AND elementId = ${encodedElementId}`
 				break
 			case TypeId.ListElement:
 				formattedQuery = sql`SELECT entity
-									 from list_entities
-									 WHERE type = ${type}
-									   AND listId = ${listId}
-									   AND elementId = ${encodedElementId}`
+                                     from list_entities
+                                     WHERE type = ${type}
+                                       AND listId = ${listId}
+                                       AND elementId = ${encodedElementId}`
 				break
 			case TypeId.BlobElement:
 				formattedQuery = sql`SELECT entity
-									 from blob_element_entities
-									 WHERE type = ${type}
-									   AND listId = ${listId}
-									   AND elementId = ${encodedElementId}`
+                                     from blob_element_entities
+                                     WHERE type = ${type}
+                                       AND listId = ${listId}
+                                       AND elementId = ${encodedElementId}`
 				break
 			default:
 				throw new Error("must be a persistent type")
@@ -296,7 +278,7 @@ export class OfflineStorage implements CacheStorage {
 
 	async provideMultipleParsed<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<ServerModelParsedInstance>> {
 		if (elementIds.length === 0) return []
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementIds = elementIds.map((elementId) => ensureBase64Ext(typeModel, elementId))
 
 		const type = getTypeString(typeRef)
@@ -304,28 +286,28 @@ export class OfflineStorage implements CacheStorage {
 			MAX_SAFE_SQL_VARS - 2,
 			encodedElementIds,
 			(c) => sql`SELECT entity
-					   FROM list_entities
-					   WHERE type = ${type}
-						 AND listId = ${listId}
-						 AND elementId IN ${paramList(c)}`,
+                       FROM list_entities
+                       WHERE type = ${type}
+                         AND listId = ${listId}
+                         AND elementId IN ${paramList(c)}`,
 		)
 		return await this.deserializeList(serializedList.map((r) => r.entity.value as Uint8Array))
 	}
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
 		const type = getTypeString(typeRef)
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const range = await this.getRange(typeRef, listId)
 		if (range == null) {
 			throw new Error(`no range exists for ${type} and list ${listId}`)
 		}
 		const { query, params } = sql`SELECT elementId
-									  FROM list_entities
-									  WHERE type = ${type}
-										AND listId = ${listId}
-										AND (elementId = ${range.lower}
-										  OR ${firstIdBigger("elementId", range.lower)})
-										AND NOT (${firstIdBigger("elementId", range.upper)})`
+                                    FROM list_entities
+                                    WHERE type = ${type}
+                                      AND listId = ${listId}
+                                      AND (elementId = ${range.lower}
+                                        OR ${firstIdBigger("elementId", range.lower)})
+                                      AND NOT (${firstIdBigger("elementId", range.upper)})`
 		const rows = await this.sqlCipherFacade.all(query, params)
 		return rows.map((row) => customIdToBase64Url(typeModel, row.elementId.value as string))
 	}
@@ -336,7 +318,7 @@ export class OfflineStorage implements CacheStorage {
 	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
 		let range = await this.getRange(typeRef, listId)
 		if (range == null) return range
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		return {
 			lower: customIdToBase64Url(typeModel, range.lower),
 			upper: customIdToBase64Url(typeModel, range.upper),
@@ -344,7 +326,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<boolean> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 
 		const range = await this.getRange(typeRef, listId)
@@ -358,24 +340,24 @@ export class OfflineStorage implements CacheStorage {
 		count: number,
 		reverse: boolean,
 	): Promise<ServerModelParsedInstance[]> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedStartId = ensureBase64Ext(typeModel, start)
 		const type = getTypeString(typeRef)
 		let formattedQuery
 		if (reverse) {
 			formattedQuery = sql`SELECT entity
-								 FROM list_entities
-								 WHERE type = ${type}
-								   AND listId = ${listId}
-								   AND ${firstIdBigger(encodedStartId, "elementId")}
-								 ORDER BY LENGTH(elementId) DESC, elementId DESC LIMIT ${count}`
+                                 FROM list_entities
+                                 WHERE type = ${type}
+                                   AND listId = ${listId}
+                                   AND ${firstIdBigger(encodedStartId, "elementId")}
+                                 ORDER BY LENGTH(elementId) DESC, elementId DESC LIMIT ${count}`
 		} else {
 			formattedQuery = sql`SELECT entity
-								 FROM list_entities
-								 WHERE type = ${type}
-								   AND listId = ${listId}
-								   AND ${firstIdBigger("elementId", encodedStartId)}
-								 ORDER BY LENGTH(elementId) ASC, elementId ASC LIMIT ${count}`
+                                 FROM list_entities
+                                 WHERE type = ${type}
+                                   AND listId = ${listId}
+                                   AND ${firstIdBigger("elementId", encodedStartId)}
+                                 ORDER BY LENGTH(elementId) ASC, elementId ASC LIMIT ${count}`
 		}
 		const { query, params } = formattedQuery
 		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.sqlCipherFacade.all(query, params)
@@ -387,44 +369,90 @@ export class OfflineStorage implements CacheStorage {
 		return await this.modelMapper.mapToInstances(typeRef, parsed)
 	}
 
-	async put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void> {
+	async put(typeRef: TypeRef<SomeEntity>, instance: ServerModelParsedInstance): Promise<void> {
+		const handler = this.getCustomCacheHandlerMap().get(typeRef)
+		if (handler?.onBeforeCacheUpdate) {
+			// FIXME: check if serverParsedInstance is okay here
+			const typedInstance = await this.modelMapper.mapToInstance(typeRef, instance)
+			await handler.onBeforeCacheUpdate(typedInstance as SomeEntity)
+		}
+
 		const serializedInstance = await this.serialize(instance)
-		const typeModel = await resolveServerTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 
 		const { listId, elementId } = expandId(AttributeModel.getAttribute<IdTuple | Id>(instance, "_id", typeModel))
 		const ownerGroup = AttributeModel.getAttribute<Id>(instance, "_ownerGroup", typeModel)
 		const type = getTypeString(typeRef)
 		const encodedElementId = ensureBase64Ext(typeModel, elementId)
 		let formattedQuery: FormattedQuery
+
+		// Note that we have to also select and re-insert the rowid or else it will not match search index.
+		//
+		// A null rowid (i.e. not found) is fine if this is an insertion.
 		switch (typeModel.type) {
 			case TypeId.Element:
 				formattedQuery = sql`INSERT
-				OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (
-				${type},
-				${encodedElementId},
-				${ownerGroup},
-				${serializedInstance}
-				)`
+                OR REPLACE INTO element_entities (rowid, type, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowid FROM element_entities WHERE type =
+                ${type}
+                AND
+                elementId
+                =
+                ${encodedElementId}
+                LIMIT
+                1
+                ),
+                ${type},
+                ${encodedElementId},
+                ${ownerGroup},
+                ${serializedInstance}
+                )`
 				break
 			case TypeId.ListElement:
 				formattedQuery = sql`INSERT
-				OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (
-				${type},
-				${listId},
-				${encodedElementId},
-				${ownerGroup},
-				${serializedInstance}
-				)`
+                OR REPLACE INTO list_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowid FROM list_entities WHERE type =
+                ${type}
+                AND
+                listId
+                =
+                ${listId}
+                AND
+                elementId
+                =
+                ${encodedElementId}
+                LIMIT
+                1
+                ),
+                ${type},
+                ${listId},
+                ${encodedElementId},
+                ${ownerGroup},
+                ${serializedInstance}
+                )`
 				break
 			case TypeId.BlobElement:
 				formattedQuery = sql`INSERT
-				OR REPLACE INTO blob_element_entities (type, listId, elementId, ownerGroup, entity) VALUES (
-				${type},
-				${listId},
-				${encodedElementId},
-				${ownerGroup},
-				${serializedInstance}
-				)`
+                OR REPLACE INTO blob_element_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES (
+                (SELECT rowid FROM blob_element_entities WHERE type =
+                ${type}
+                AND
+                listId
+                =
+                ${listId}
+                AND
+                elementId
+                =
+                ${encodedElementId}
+                LIMIT
+                1
+                ),
+                ${type},
+                ${listId},
+                ${encodedElementId},
+                ${ownerGroup},
+                ${serializedInstance}
+                )`
 				break
 			default:
 				throw new Error("must be a persistent type")
@@ -433,55 +461,55 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {
-		lowerId = ensureBase64Ext(await resolveClientTypeReference(typeRef), lowerId)
+		lowerId = ensureBase64Ext(await this.typeModelResolver.resolveClientTypeReference(typeRef), lowerId)
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`UPDATE ranges
-									  SET lower = ${lowerId}
-									  WHERE type = ${type}
-										AND listId = ${listId}`
+                                    SET lower = ${lowerId}
+                                    WHERE type = ${type}
+                                      AND listId = ${listId}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, upperId: Id): Promise<void> {
-		upperId = ensureBase64Ext(await resolveClientTypeReference(typeRef), upperId)
+		upperId = ensureBase64Ext(await this.typeModelResolver.resolveClientTypeReference(typeRef), upperId)
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`UPDATE ranges
-									  SET upper = ${upperId}
-									  WHERE type = ${type}
-										AND listId = ${listId}`
+                                    SET upper = ${upperId}
+                                    WHERE type = ${type}
+                                      AND listId = ${listId}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		lower = ensureBase64Ext(typeModel, lower)
 		upper = ensureBase64Ext(typeModel, upper)
 
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`INSERT
-		OR REPLACE INTO ranges VALUES (
-		${type},
-		${listId},
-		${lower},
-		${upper}
-		)`
+        OR REPLACE INTO ranges VALUES (
+        ${type},
+        ${listId},
+        ${lower},
+        ${upper}
+        )`
 		return this.sqlCipherFacade.run(query, params)
 	}
 
 	async getLastBatchIdForGroup(groupId: Id): Promise<Id | null> {
 		const { query, params } = sql`SELECT batchId
-									  from lastUpdateBatchIdPerGroupId
-									  WHERE groupId = ${groupId}`
+                                    from lastUpdateBatchIdPerGroupId
+                                    WHERE groupId = ${groupId}`
 		const row = (await this.sqlCipherFacade.get(query, params)) as { batchId: TaggedSqlValue } | null
 		return (row?.batchId?.value ?? null) as Id | null
 	}
 
 	async putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void> {
 		const { query, params } = sql`INSERT
-		OR REPLACE INTO lastUpdateBatchIdPerGroupId VALUES (
-		${groupId},
-		${batchId}
-		)`
+        OR REPLACE INTO lastUpdateBatchIdPerGroupId VALUES (
+        ${groupId},
+        ${batchId}
+        )`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -504,16 +532,16 @@ export class OfflineStorage implements CacheStorage {
 
 	async deleteRange(typeRef: TypeRef<unknown>, listId: string): Promise<void> {
 		const { query, params } = sql`DELETE
-									  FROM ranges
-									  WHERE type = ${getTypeString(typeRef)}
-										AND listId = ${listId}`
+                                    FROM ranges
+                                    WHERE type = ${getTypeString(typeRef)}
+                                      AND listId = ${listId}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
 		const { query, params } = sql`SELECT entity
-									  from element_entities
-									  WHERE type = ${getTypeString(typeRef)}`
+                                    from element_entities
+                                    WHERE type = ${getTypeString(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
 
 		const instanceBytes = items.map((row) => row.entity.value as Uint8Array)
@@ -536,16 +564,7 @@ export class OfflineStorage implements CacheStorage {
 		return this.putMetadata("offline-version", version)
 	}
 
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
-		if (this.customCacheHandler == null) {
-			this.customCacheHandler = new CustomCacheHandlerMap(
-				{
-					ref: CalendarEventTypeRef,
-					handler: new CustomCalendarEventCacheHandler(entityRestClient),
-				},
-				{ ref: MailTypeRef, handler: new CustomMailEventCacheHandler() },
-			)
-		}
+	getCustomCacheHandlerMap(): CustomCacheHandlerMap {
 		return this.customCacheHandler
 	}
 
@@ -554,69 +573,84 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async deleteAllOwnedBy(owner: Id): Promise<void> {
+		await this.deleteAllElementTypesOwnedBy(owner)
+		await this.deleteAllListElementTypesOwnedBy(owner)
+		await this.deleteAllBlobElementTypesOwnedBy(owner)
 		{
 			const { query, params } = sql`DELETE
-										  FROM element_entities
-										  WHERE ownerGroup = ${owner}`
-			await this.sqlCipherFacade.run(query, params)
-		}
-		{
-			// first, check which list Ids contain entities owned by the lost group
-			const { query, params } = sql`SELECT listId, type
-										  FROM list_entities
-										  WHERE ownerGroup = ${owner}`
-			const rangeRows = await this.sqlCipherFacade.all(query, params)
-			const rows = rangeRows.map((row) => untagSqlObject(row) as { listId: string; type: string })
-			const listIdsByType: Map<string, Set<Id>> = groupByAndMapUniquely(
-				rows,
-				(row) => row.type,
-				(row) => row.listId,
-			)
-			// delete the ranges for those listIds
-			for (const [type, listIds] of listIdsByType.entries()) {
-				// this particular query uses one other SQL var for the type.
-				const safeChunkSize = MAX_SAFE_SQL_VARS - 1
-				const listIdArr = Array.from(listIds)
-				await this.runChunked(
-					safeChunkSize,
-					listIdArr,
-					(c) => sql`DELETE
-							   FROM ranges
-							   WHERE type = ${type}
-								 AND listId IN ${paramList(c)}`,
-				)
-				await this.runChunked(
-					safeChunkSize,
-					listIdArr,
-					(c) => sql`DELETE
-							   FROM list_entities
-							   WHERE type = ${type}
-								 AND listId IN ${paramList(c)}`,
-				)
-			}
-		}
-		{
-			const { query, params } = sql`DELETE
-										  FROM blob_element_entities
-										  WHERE ownerGroup = ${owner}`
-			await this.sqlCipherFacade.run(query, params)
-		}
-		{
-			const { query, params } = sql`DELETE
-										  FROM lastUpdateBatchIdPerGroupId
-										  WHERE groupId = ${owner}`
+                                        FROM lastUpdateBatchIdPerGroupId
+                                        WHERE groupId = ${owner}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 	}
 
-	async deleteWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<void> {
-		await this.lockRangesDbAccess(listId)
-		await this.deleteRange(typeRef, listId)
-		const { query, params } = sql`DELETE
-									  FROM list_entities
-									  WHERE listId = ${listId}`
-		await this.sqlCipherFacade.run(query, params)
-		await this.unlockRangesDbAccess(listId)
+	private async deleteAllBlobElementTypesOwnedBy(owner: Id) {
+		const { query, params } = sql`SELECT listId, elementId, type
+                                    FROM blob_element_entities
+                                    WHERE ownerGroup = ${owner}`
+		const taggedRows = await this.sqlCipherFacade.all(query, params)
+		const rows = taggedRows.map(untagSqlObject) as { listId: Id; elementId: Id; type: string }[]
+		const groupedByType = groupBy(rows, (row) => row.type)
+		for (const [type, rows] of groupedByType) {
+			const typeRef = parseTypeString(type) as TypeRef<BlobElementEntity>
+			await this.deleteByIds(
+				typeRef,
+				rows.map((row) => [row.listId, row.elementId]),
+			)
+		}
+	}
+
+	private async deleteAllListElementTypesOwnedBy(owner: Id) {
+		// first, check which list Ids contain entities owned by the lost group
+		const { query, params } = sql`SELECT elementId, listId, type
+                                    FROM list_entities
+                                    WHERE ownerGroup = ${owner}`
+		const rangeRows = await this.sqlCipherFacade.all(query, params)
+		type Row = { elementId: Id; listId: Id; type: string }
+		const rows = rangeRows.map((row) => untagSqlObject(row) as Row)
+		const listIdsByType: Map<string, Array<Row>> = groupByAndMap(
+			rows,
+			(row) => row.type + row.listId,
+			(row) => row,
+		)
+
+		// delete the ranges for those listIds
+		for (const [_, rows] of listIdsByType.entries()) {
+			const { type } = getFirstOrThrow(rows)
+			const typeRef = parseTypeString(type) as TypeRef<ListElementEntity>
+			// this particular query uses one other SQL var for the type.
+			const safeChunkSize = MAX_SAFE_SQL_VARS - 1
+			const listIdArr = rows.map((row) => row.listId)
+			await this.runChunked(
+				safeChunkSize,
+				listIdArr,
+				(c) => sql`DELETE
+                           FROM ranges
+                           WHERE type = ${type}
+                             AND listId IN ${paramList(c)}`,
+			)
+			await this.deleteByIds(
+				typeRef,
+				rows.map((row) => [row.listId, row.elementId]),
+			)
+		}
+	}
+
+	private async deleteAllElementTypesOwnedBy(owner: Id) {
+		const { query, params } = sql`SELECT elementId, type
+                                    FROM element_entities
+                                    WHERE ownerGroup = ${owner}`
+		const taggedRows = await this.sqlCipherFacade.all(query, params)
+		const rows = taggedRows.map(untagSqlObject) as { elementId: Id; type: string }[]
+		const groupedByType = groupByAndMap(
+			rows,
+			(row) => row.type,
+			(row) => row.elementId,
+		)
+		for (const [type, ids] of groupedByType) {
+			const typeRef = parseTypeString(type) as TypeRef<ElementEntity>
+			await this.deleteByIds(typeRef, ids)
+		}
 	}
 
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
@@ -628,38 +662,38 @@ export class OfflineStorage implements CacheStorage {
 			throw e
 		}
 		const { query, params } = sql`INSERT
-		OR REPLACE INTO metadata VALUES (
-		${key},
-		${encodedValue}
-		)`
+        OR REPLACE INTO metadata VALUES (
+        ${key},
+        ${encodedValue}
+        )`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	private async getMetadata<K extends keyof OfflineDbMeta>(key: K): Promise<OfflineDbMeta[K] | null> {
 		const { query, params } = sql`SELECT value
-									  from metadata
-									  WHERE key = ${key}`
+                                    from metadata
+                                    WHERE key = ${key}`
 		const encoded = await this.sqlCipherFacade.get(query, params)
 		return encoded && cborg.decode(encoded.value.value as Uint8Array)
 	}
 
 	/**
-	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data).
+	 * Clear out unneeded data from the offline database (i.e. old data).
 	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
-	 * @param timeRangeDays: the maximum age of days that mails should be to be kept in the database. if null, will use a default value
+	 * @param timeRangeDate the maximum age that mails should be to be kept in the database
 	 * @param userId id of the current user. default, last stored userId
 	 */
-	async clearExcludedData(timeRangeDays: number | null = this.timeRangeDays, userId: Id = this.getUserId()): Promise<void> {
-		await this.cleaner.cleanOfflineDb(this, timeRangeDays, userId, this.dateProvider.now())
+	async clearExcludedData(timeRangeDate: Date, userId: Id = this.getUserId()): Promise<void> {
+		await this.cleaner.cleanOfflineDb(this, timeRangeDate, userId, this.dateProvider.now())
 	}
 
 	private async createTables() {
 		for (let [name, definition] of Object.entries(TableDefinitions)) {
 			await this.sqlCipherFacade.run(
 				`CREATE TABLE IF NOT EXISTS ${name}
-				 (
-					 ${definition}
-				 )`,
+                 (
+                     ${definition}
+                 )`,
 				[],
 			)
 		}
@@ -668,51 +702,89 @@ export class OfflineStorage implements CacheStorage {
 	private async getRange(typeRef: TypeRef<ElementEntity | ListElementEntity>, listId: Id): Promise<Range | null> {
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`SELECT upper, lower
-									  FROM ranges
-									  WHERE type = ${type}
-										AND listId = ${listId}`
+                                    FROM ranges
+                                    WHERE type = ${type}
+                                      AND listId = ${listId}`
 		const row = (await this.sqlCipherFacade.get(query, params)) ?? null
 
 		return mapNullable(row, untagSqlObject) as Range | null
 	}
 
-	async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
-		if (elementIds.length === 0) return
-		const typeModel = await resolveClientTypeReference(typeRef)
-		const encodedElementIds = elementIds.map((elementIds) => ensureBase64Ext(typeModel, elementIds))
+	/**
+	 * A neat helper which can delete types in any lists as long as they belong to the same type.
+	 * Will invoke {@link CustomCacheHandler#onBeforeCacheDeletion}.
+	 */
+	private async deleteByIds<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]) {
+		if (isEmpty(ids)) {
+			return
+		}
+
+		const type = getTypeString(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+
+		const handler = this.getCustomCacheHandlerMap().get(typeRef)
+		if (handler && handler.onBeforeCacheDeletion) {
+			for (const id of ids) {
+				await handler.onBeforeCacheDeletion(id)
+			}
+		}
 		switch (typeModel.type) {
 			case TypeId.Element:
-				return await this.runChunked(
+				await this.runChunked(
 					MAX_SAFE_SQL_VARS - 1,
-					encodedElementIds,
+					(ids as Id[]).map((id) => ensureBase64Ext(typeModel, id)),
 					(c) => sql`DELETE
-							   FROM element_entities
-							   WHERE type = ${getTypeString(typeRef)}
-								 AND elementId IN ${paramList(c)}`,
+                               FROM element_entities
+                               WHERE type = ${type}
+                                 AND elementId IN ${paramList(c)}`,
 				)
+				break
 			case TypeId.ListElement:
-				return await this.runChunked(
-					MAX_SAFE_SQL_VARS - 2,
-					encodedElementIds,
-					(c) => sql`DELETE
-							   FROM list_entities
-							   WHERE type = ${getTypeString(typeRef)}
-								 AND listId = ${listId}
-								 AND elementId IN ${paramList(c)}`,
-				)
+				{
+					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => ensureBase64Ext(typeModel, elementIdPart(id)))
+					for (const [listId, elementIds] of byListId) {
+						await this.runChunked(
+							MAX_SAFE_SQL_VARS - 2,
+							elementIds,
+							(c) => sql`DELETE
+                                   FROM list_entities
+                                   WHERE type = ${type}
+                                     AND listId = ${listId}
+                                     AND elementId IN ${paramList(c)}`,
+						)
+					}
+				}
+				break
 			case TypeId.BlobElement:
-				return await this.runChunked(
-					MAX_SAFE_SQL_VARS - 2,
-					encodedElementIds,
-					(c) => sql`DELETE
-							   FROM blob_element_entities
-							   WHERE type = ${getTypeString(typeRef)}
-								 AND listId = ${listId}
-								 AND elementId IN ${paramList(c)}`,
-				)
+				{
+					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => ensureBase64Ext(typeModel, elementIdPart(id)))
+					for (const [listId, elementIds] of byListId) {
+						await this.runChunked(
+							MAX_SAFE_SQL_VARS - 2,
+							elementIds,
+							(c) => sql`DELETE
+                                   FROM blob_element_entities
+                                   WHERE type = ${type}
+                                     AND listId = ${listId}
+                                     AND elementId IN ${paramList(c)}`,
+						)
+					}
+				}
+				break
 			default:
 				throw new Error("must be a persistent type")
 		}
+	}
+
+	async deleteIn<T extends SomeEntity>(
+		typeRef: TypeRef<T>,
+		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
+		elementIds: Id[],
+	): Promise<void> {
+		if (isEmpty(elementIds)) return
+
+		const fullIds: T["_id"][] = listId == null ? elementIds : elementIds.map((id) => [listId, id])
+		await this.deleteByIds(typeRef, fullIds)
 	}
 
 	/**
@@ -733,7 +805,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
-		const typeModel = await resolveClientTypeReference(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
 		const encodedCutoffId = ensureBase64Ext(typeModel, rawCutoffId)
 
@@ -889,5 +961,5 @@ export function customIdToBase64Url(typeModel: TypeModel, elementId: Id): Id {
 }
 
 export interface OfflineStorageCleaner {
-	cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDays: number | null, userId: Id, now: number): Promise<void>
+	cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date | null, userId: Id, now: number): Promise<void>
 }

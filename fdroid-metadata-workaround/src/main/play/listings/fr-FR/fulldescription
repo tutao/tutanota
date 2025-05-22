@@ -1,0 +1,40 @@
+Tutanota vous permet de bénéficier des avantages du Cloud - disponibilité, flexibilité, sauvegarde automatique - sans compromis sur la sécurité. Avec le chiffrement intégré de Tutanota, vous possédez vos données, personne d'autres ne peut y accéder. Tutanota est disponible avec une interface utilisateur simple et design, avec les notifications push instantanées, la synchro automatique, la recherche plein-texte, les actions par gestes et bien plus.
+
+L'application email open source Tutanota vous permet d'envoyer des e-mails chiffrés de bout en bout ("end-to-end encryption") à qui vous le souhaitez. Les e-mails non-chiffrés qui vous sont envoyés, ainsi que tous vos contacts, sont aussi conservés et chiffrés sur les serveurs de Tutanota.
+
+Notre passion pour le respect de la vie privée !
+
+Tutanota est construit par une équipe passionnée par le droit à la vie privée pour tous. Nous sommes soutenus par une communauté active, qui nous permet d'augmenter continuellement notre équipe pour faire de Tutanota un succès sans dépendre des demandes d'investissements financiers.
+
+Tutanota vous respecte et respecte vos données :
+
+- Vous seul pouvez accéder à vos e-mails et contacts chiffrés.
+- Aucun tracking ou profilage n'est fait par Tutanota.
+- un client et une application open source.
+- Une fonction innovante de recherche plein-texte qui vous permet de fouiller votre boîte de réception.
+- Standard TLS avec le support de PFS, DMARC, DKIM, DNSSEC et DANE.
+- Réinitialisation sécurisée du mot de passe qui empêche tout accès de notre part.
+- Développé et situé à 100% en Allemagne sous les lois strictes de protections des données (RGPD).
+
+Site web officiel : https://tutanota.com
+
+Code source : https://github.com/tutao/tutanota
+
+Avec l'application Tutanota, vous pouvez:
+
+- créer votre propre adresse e-mail Tutanota (terminant par @tutanota.com, @tutanota.de, @tutamail.com, @tuta.io ou @keemail.me) avec 1Go de stockage gratuit.
+- Envoyez et recevez des e-mails chiffrés de bout en bout avec tout le monde
+- Envoyez et recevez des e-mails non-chiffrés de bout en bout. Ces mêmes e-mails sont chiffrés sur les serveurs de Tutanota.
+- Chiffrement automatique de l'bbjet, du contenu et des pièces jointes
+- Recevez des notifications "push" instantanément.
+- Proposition automatique des adresses e-mail lors de l'écriture à partir de vos contacts Tutanota ou du téléphone
+
+L'application Tutanota ne nécessite que très peu de permissions afin de préserver au maximum votre vie privée :
+
+- Accès complet au réseau : utilisé pour envoyer et recevoir des e-mails.
+- Réception des données depuis internet : pour vous notifier de la réception d'un nouvel e-mail.
+- Aperçu des connexions réseau : pour vérifier qu'une connexion à internet est bien établie.
+- Accès à vos contacts : cela permet de sélectionner des destinataires parmi les contacts sauvegardés dans votre téléphone
+- Accès à votre carte SD : cela permet l'ajout de pièces jointes aux e-mails depuis la carte SD.
+- Contrôle du vibreur : pour vous notifier de la réception d'un nouvel e-mail.
+- Désactiver le mode veille : pour vous notifier de la réception d'un nouvel e-mail.

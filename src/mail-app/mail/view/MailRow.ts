@@ -24,6 +24,7 @@ import { getSenderOrRecipientHeading } from "./MailViewerUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label"
 import { colorForBg } from "../../../common/gui/base/GuiUtils"
 import { theme } from "../../../common/gui/theme"
+import { highlightTextInQuery, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,
@@ -55,6 +56,7 @@ export class MailRow implements VirtualRow<Mail> {
 	entity: Mail | null = null
 	private subjectDom!: HTMLElement
 	private senderDom!: HTMLElement
+
 	private dateDom!: HTMLElement
 	private iconsDom!: HTMLElement
 	private unreadDom!: HTMLElement
@@ -65,29 +67,41 @@ export class MailRow implements VirtualRow<Mail> {
 	private checkboxWasVisible = shouldAlwaysShowMultiselectCheckbox()
 	private selectionSetter!: SelectableRowSelectedSetter
 
+	private highlightedStrings?: readonly SearchToken[]
+
 	constructor(
 		private readonly showFolderIcon: boolean,
 		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<MailFolder>,
 		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
+		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
 		this.top = 0
 		this.entity = null
 	}
 
 	update(mail: Mail, selected: boolean, isInMultiSelect: boolean): void {
+		const oldEntity = this.entity
 		this.entity = mail
+		const oldHighlightedStrings = this.highlightedStrings
+		this.highlightedStrings = this.getHighlightedStrings?.()
 
 		this.selectionSetter(selected, isInMultiSelect)
 		this.checkboxDom.checked = isInMultiSelect && selected
-
 		this.iconsDom.textContent = this.iconsText(mail)
 		this.dateDom.textContent = formatTimeOrDateOrYesterday(mail.receivedDate)
-		this.senderDom.textContent = getSenderOrRecipientHeading(mail, true)
-		this.subjectDom.textContent = mail.subject || NBSP
+
+		// We need to set our sender/subject, but we should do this sparingly (i.e. when state actually changes)
+		//
+		// This requires assuming the following:
+		// - `this.getHighlightedStrings()` will return the same array instance if the query hasn't changed
+		// - `mail` will be a different instance if the entity was changed on the server
+		if (oldEntity !== this.entity || oldHighlightedStrings !== this.highlightedStrings) {
+			this.setHTMLElementTextWithHighlighting(this.senderDom, getSenderOrRecipientHeading(mail, true), this.highlightedStrings)
+			this.setHTMLElementTextWithHighlighting(this.subjectDom, mail.subject, this.highlightedStrings)
+		}
 
 		if (mail.unread) {
 			this.unreadDom.classList.remove("hidden")
-
 			this.subjectDom.classList.add("b")
 			this.senderDom.classList.add("b")
 		} else {
@@ -102,6 +116,29 @@ export class MailRow implements VirtualRow<Mail> {
 		this.showCheckboxAnimated(shouldAlwaysShowMultiselectCheckbox() || isInMultiSelect)
 
 		checkboxOpacity(this.checkboxDom, selected)
+	}
+
+	private setHTMLElementTextWithHighlighting(element: HTMLElement, text: string, highlightedStrings: readonly SearchToken[] | undefined) {
+		if (!text || !highlightedStrings) {
+			element.textContent = text || NBSP // keeping at least a space will preserve alignment
+			return
+		}
+
+		// clear everything, first
+		element.innerHTML = ""
+
+		for (const substring of highlightTextInQuery(text, highlightedStrings)) {
+			if (substring.highlighted) {
+				const node = document.createElement("mark")
+				// textContent implies creating a text node (thus HTML characters will be escaped)
+				node.textContent = substring.text
+				node.className = "search-highlight"
+				element.insertBefore(node, null)
+			} else {
+				// text nodes escape HTML characters
+				element.insertBefore(document.createTextNode(substring.text), null)
+			}
+		}
 	}
 
 	private updateLabels(mail: Mail) {

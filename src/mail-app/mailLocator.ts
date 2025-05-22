@@ -1,4 +1,14 @@
-import { assertMainOrNode, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isTest } from "../common/api/common/Env.js"
+import {
+	assertMainOrNode,
+	isAndroidApp,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isElectronClient,
+	isIOSApp,
+	isOfflineStorageAvailable,
+	isTest,
+} from "../common/api/common/Env.js"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -22,8 +32,6 @@ import { CalendarFacade } from "../common/api/worker/facades/lazy/CalendarFacade
 import { MailFacade } from "../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../common/api/worker/facades/lazy/ShareFacade.js"
 import { CounterFacade } from "../common/api/worker/facades/lazy/CounterFacade.js"
-import { Indexer } from "./workerUtils/index/Indexer.js"
-import { SearchFacade } from "./workerUtils/index/SearchFacade.js"
 import { BookingFacade } from "../common/api/worker/facades/lazy/BookingFacade.js"
 import { MailAddressFacade } from "../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { BlobFacade } from "../common/api/worker/facades/lazy/BlobFacade.js"
@@ -114,6 +122,7 @@ import { MobilePaymentsFacade } from "../common/native/common/generatedipc/Mobil
 import { MAIL_PREFIX } from "../common/misc/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
+import type { CommonLocator } from "../common/api/main/CommonLocator.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { SearchCategoryTypes } from "./search/model/SearchUtils.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
@@ -126,7 +135,6 @@ import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { MobileContactSuggestionProvider } from "../common/native/main/MobileContactSuggestionProvider"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { MailImporter } from "./mail/import/MailImporter.js"
 import type { MailExportController } from "./native/main/MailExportController.js"
@@ -134,11 +142,15 @@ import { ExportFacade } from "../common/native/common/generatedipc/ExportFacade.
 import { BulkMailLoader } from "./workerUtils/index/BulkMailLoader.js"
 import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
+import { Indexer } from "./workerUtils/index/Indexer"
+import { SearchFacade } from "./workerUtils/index/SearchFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
+import { ClientModelInfo, ClientTypeModelResolver, ServerModelInfo, TypeModelResolver } from "../common/api/common/EntityFunctions"
+import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
 
 assertMainOrNode()
 
-class MailLocator {
+class MailLocator implements CommonLocator {
 	eventController!: EventController
 	search!: SearchModel
 	mailboxModel!: MailboxModel
@@ -202,6 +214,10 @@ class MailLocator {
 	private mailImporter: MailImporter | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
+
+	readonly typeModelResolver: lazy<ClientTypeModelResolver> = lazyMemoized(() => {
+		return ClientModelInfo.getInstance()
+	})
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -275,6 +291,7 @@ class MailLocator {
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
 		const calendarEventsRepository = await this.calendarEventsRepository()
+		const offlineStorageSettings = await this.offlineStorageSettingsModel()
 		return () => {
 			return new SearchViewModel(
 				searchRouter,
@@ -293,6 +310,7 @@ class MailLocator {
 				redraw,
 				deviceConfig.getMailAutoSelectBehavior(),
 				deviceConfig.getClientOnlyCalendars(),
+				offlineStorageSettings,
 			)
 		}
 	}
@@ -492,7 +510,7 @@ class MailLocator {
 
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
 		const { MailViewerViewModel } = await import("../mail-app/mail/view/MailViewerViewModel.js")
-		return ({ mail, showFolder }) =>
+		return ({ mail, showFolder, highlightedTokens }) =>
 			new MailViewerViewModel(
 				mail,
 				showFolder,
@@ -513,6 +531,7 @@ class MailLocator {
 				this.mailFacade,
 				this.cryptoFacade,
 				() => this.contactImporter(),
+				highlightedTokens ?? [],
 			)
 	}
 
@@ -763,7 +782,7 @@ class MailLocator {
 		this.progressTracker = new ProgressTracker()
 		this.syncTracker = new SyncTracker()
 		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
-		this.entityClient = new EntityClient(restInterface)
+		this.entityClient = new EntityClient(restInterface, this.typeModelResolver())
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -805,6 +824,7 @@ class MailLocator {
 			this.logins,
 			this.eventController,
 			() => this.usageTestController,
+			this.typeModelResolver(),
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.Const = Const
@@ -1205,6 +1225,14 @@ class MailLocator {
 		const { MailExportController } = await import("./native/main/MailExportController.js")
 		return new MailExportController(this.mailExportFacade, htmlSanitizer, this.exportFacade, this.logins, this.mailboxModel, await this.scheduler())
 	})
+
+	async offlineStorageSettingsModel(): Promise<OfflineStorageSettingsModel | null> {
+		if (isOfflineStorageAvailable()) {
+			return new OfflineStorageSettingsModel(this.logins.getUserController(), deviceConfig)
+		} else {
+			return null
+		}
+	}
 
 	/**
 	 * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
