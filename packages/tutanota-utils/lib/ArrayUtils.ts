@@ -20,6 +20,18 @@ export function numberRange(min: number, max: number): Array<number> {
 }
 
 /**
+ * Create a generator for integer range in [min; max).
+ */
+export function* lazyNumberRange(min: number, max: number): Generator<number> {
+	let current = min
+
+	while (current < max) {
+		yield current
+		current++
+	}
+}
+
+/**
  * Compares two arrays for equality based on ===.
  * @param {Array} a1 The first array.
  * @param {Array} a2 The second array.
