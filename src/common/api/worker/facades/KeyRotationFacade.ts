@@ -13,7 +13,6 @@ import {
 	createKeyPair,
 	createMembershipPutIn,
 	createPubEncKeyData,
-	createPublicKeySignature,
 	createRecoverCodeData,
 	createUserGroupKeyRotationData,
 	createUserGroupKeyRotationPostIn,
@@ -29,7 +28,6 @@ import {
 	GroupMembershipUpdateData,
 	GroupMemberTypeRef,
 	GroupTypeRef,
-	IdentityKeyPair,
 	KeyMac,
 	KeyPair,
 	KeyRotation,
@@ -50,7 +48,6 @@ import {
 	GroupKeyRotationType,
 	GroupType,
 	PublicKeyIdentifierType,
-	PublicKeySignatureType,
 } from "../../common/TutanotaConstants.js"
 import {
 	assertNotNull,
@@ -851,10 +848,21 @@ export class KeyRotationFacade {
 	private async generateGroupKeys(group: Group): Promise<GeneratedGroupKeys> {
 		const symGroupKeyBytes = this.cryptoWrapper.aes256RandomKey()
 		const keyPair = await this.createNewKeyPairValue(group, symGroupKeyBytes)
+		const identityKeyPair = group.identityKeyPair
+		const newGroupKeyVersion = checkKeyVersionConstraints(parseKeyVersion(group.groupKeyVersion) + 1)
+		if (identityKeyPair != null && keyPair != null) {
+			keyPair.signature = await this.publicKeySignatureFacade.signPublicKey(
+				{ object: keyPair, version: newGroupKeyVersion },
+				{
+					object: bytesToEd25519PrivateKey(identityKeyPair.privateEd25519Key),
+					version: parseKeyVersion(identityKeyPair.identityKeyVersion),
+				},
+			)
+		}
 		return {
 			symGroupKey: {
 				object: symGroupKeyBytes,
-				version: checkKeyVersionConstraints(parseKeyVersion(group.groupKeyVersion) + 1),
+				version: newGroupKeyVersion,
 			},
 			encryptedKeyPair: keyPair,
 		}
@@ -865,44 +873,23 @@ export class KeyRotationFacade {
 	 */
 	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedPqKeyPairsMaybeWithSignature | null> {
 		if (groupToRotate.currentKeys) {
-			return this.generateAndEncryptPqKeyPairs(newSymmetricGroupKey, groupToRotate.identityKeyPair, groupToRotate.groupKeyVersion)
+			return this.generateAndEncryptPqKeyPairs(newSymmetricGroupKey)
 		} else {
 			return null
 		}
 	}
 
-	private async generateAndEncryptPqKeyPairs(
-		symmmetricEncryptionKey: Aes256Key,
-		identityKeyPair: IdentityKeyPair | null,
-		currentGroupKeyVersion: string | null,
-	): Promise<EncryptedPqKeyPairsMaybeWithSignature> {
+	private async generateAndEncryptPqKeyPairs(symmmetricEncryptionKey: Aes256Key): Promise<EncryptedPqKeyPairsMaybeWithSignature> {
 		const newPqPairs = await this.pqFacade.generateKeyPairs()
-		let encryptedKeyPair: EncryptedPqKeyPairsMaybeWithSignature = {
+		return {
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
 			pubEccKey: newPqPairs.x25519KeyPair.publicKey,
 			symEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
 			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
 			symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
-			signature: null,
+			signature: null, //we create the signature later once we have the correct version
 		}
-		if (identityKeyPair != null && currentGroupKeyVersion != null) {
-			const newKeyPairVersion = parseKeyVersion(currentGroupKeyVersion) + 1
-			const signature = await this.publicKeySignatureFacade.signPublicKey(
-				assertNotNull(makeKeyPair(encryptedKeyPair)),
-				bytesToEd25519PrivateKey(identityKeyPair.privateEd25519Key),
-				checkKeyVersionConstraints(newKeyPairVersion),
-			)
-			const publicKeySignature = createPublicKeySignature({
-				signature,
-				signingKeyVersion: identityKeyPair.identityKeyVersion,
-				signatureType: PublicKeySignatureType.TutaCrypt,
-				publicKeyVersion: newKeyPairVersion.toString(),
-			})
-
-			encryptedKeyPair.signature = publicKeySignature
-		}
-		return encryptedKeyPair
 	}
 
 	/**
@@ -1221,7 +1208,7 @@ export class KeyRotationFacade {
 			userGroupKey.version,
 			pwKey,
 		)
-		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey, null, null)
+		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
 		const adminDistPublicKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
 
 		const tag = this.keyAuthenticationFacade.computeTag({

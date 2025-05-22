@@ -1,4 +1,4 @@
-import { CounterType, GroupType, PublicKeyIdentifierType, PublicKeySignatureType } from "../../../common/TutanotaConstants.js"
+import { CounterType, GroupType, PublicKeyIdentifierType } from "../../../common/TutanotaConstants.js"
 import type { ContactListGroupRoot, InternalGroupData, UserAreaGroupData } from "../../../entities/tutanota/TypeRefs.js"
 import {
 	createCreateMailGroupData,
@@ -8,7 +8,7 @@ import {
 	createUserAreaGroupDeleteData,
 	createUserAreaGroupPostData,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, freshVersioned, getFirstOrThrow, neverNull, Versioned } from "@tutao/tutanota-utils"
 import {
 	createIdentityKeyPair,
 	createIdentityKeyPostIn,
@@ -16,7 +16,6 @@ import {
 	createKeyPair,
 	createMembershipAddData,
 	createMembershipRemoveData,
-	createPublicKeySignature,
 	CustomerTypeRef,
 	Group,
 	GroupInfoTypeRef,
@@ -39,7 +38,7 @@ import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
 import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
-import { AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { AbstractEncryptedKeyPair, AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
@@ -47,11 +46,6 @@ import { Ed25519Facade } from "../Ed25519Facade"
 import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
 
 assertWorkerOrNode()
-
-export type PublicKeySigningData = {
-	currentKeyPair: KeyPair
-	keyPairVersion: KeyVersion
-}
 
 export class GroupManagementFacade {
 	constructor(
@@ -107,9 +101,10 @@ export class GroupManagementFacade {
 		await this.createIdentityKeyPair(
 			mailGroupPostOut.mailGroup,
 			{
-				currentKeyPair,
-				keyPairVersion: 0, //new group
+				object: currentKeyPair,
+				version: 0, //new group
 			},
+			[],
 			adminGroupKey,
 		)
 	}
@@ -252,7 +247,12 @@ export class GroupManagementFacade {
 	 * @param encryptingKey the key to encrypt the private key. by default the current group key is used.
 	 *        this is useful in case group members must not have access to the private key.
 	 */
-	async createIdentityKeyPair(groupId: Id, publicKeySigningData: PublicKeySigningData, encryptingKey: VersionedKey | undefined = undefined): Promise<void> {
+	async createIdentityKeyPair(
+		groupId: Id,
+		currentKeyPairToBeSigned: Versioned<AbstractEncryptedKeyPair>,
+		formerKeyPairsToBeSigned: Versioned<AbstractEncryptedKeyPair>[],
+		encryptingKey: VersionedKey | undefined = undefined,
+	): Promise<void> {
 		const newEd25519IdentityKeyPair = await this.ed25519Facade.generateKeypair()
 		const currentGroupKey = await this.getCurrentGroupKeyViaAdminEncGKey(groupId)
 		if (encryptingKey == null) {
@@ -284,28 +284,41 @@ export class GroupManagementFacade {
 				tag,
 			}),
 		})
-		//sign the public encryption keys (current and former group keys) and store the signature in the signature field
-		let signature = await this.publicKeySignatureFacade.signPublicKey(
-			publicKeySigningData.currentKeyPair,
-			newEd25519IdentityKeyPair.private_key,
-			publicKeySigningData.keyPairVersion,
-		)
-		let publicKeySignatures = [
-			createPublicKeySignature({
-				signature,
-				signingKeyVersion: identityKeyVersion.toString(),
-				signatureType: PublicKeySignatureType.TutaCrypt, //FIXME
-				publicKeyVersion: publicKeySigningData.keyPairVersion.toString(),
-			}),
-		]
 
+		//sign the public encryption keys (current and former group keys) and store the signature in the signature field
+		const signature = await this.publicKeySignatureFacade.signPublicKey(currentKeyPairToBeSigned, {
+			object: newEd25519IdentityKeyPair.private_key,
+			version: identityKeyVersion,
+		})
 		//TODO handle former group keys once this is called for existing groups
 		await this.serviceExecutor.post(
 			IdentityKeyService,
 			createIdentityKeyPostIn({
 				identityKeyPair,
-				signatures: publicKeySignatures,
+				signatures: [signature],
 			}),
+		)
+	}
+
+	async createIdentityKeyPairForExistingUsers(): Promise<void> {
+		const userGroupId = this.userFacade.getUserGroupId()
+		let userGroup = await this.entityClient.load(GroupTypeRef, userGroupId)
+
+		let currentKeys = assertNotNull(userGroup.currentKeys)
+		if (currentKeys.pubRsaKey != null && currentKeys.pubEccKey == null) {
+			await this.asymmetricCryptoFacade.createNewX25519KeyPair(userGroupId)
+			userGroup = await this.cacheManagementFacade.reloadGroup(userGroupId)
+			currentKeys = assertNotNull(userGroup.currentKeys)
+		}
+		const formerKeyPairs = await this.keyLoaderFacade.loadAllFormerEncryptedKeyPairs(userGroup)
+
+		await this.createIdentityKeyPair(
+			userGroupId,
+			{
+				object: currentKeys,
+				version: parseKeyVersion(userGroup.groupKeyVersion),
+			},
+			formerKeyPairs,
 		)
 	}
 
@@ -329,16 +342,24 @@ export class GroupManagementFacade {
 		for (const groupId of teamGroupIds) {
 			try {
 				// it can be the case that some groups already have an identity key, so we check first
-				const group = await this.entityClient.load(GroupTypeRef, groupId)
+				let group = await this.entityClient.load(GroupTypeRef, groupId)
 				if (group.identityKeyPair) continue
 
 				// shared mailbox group members don't need access to identity keys, that's the responsibility of the admins
+				let currentKeys = assertNotNull(group.currentKeys)
+				//if we have an RSA only keypair we generate the ecc key now so we do not have to sign again
+				if (currentKeys.pubRsaKey != null && currentKeys.pubEccKey == null) {
+					await this.asymmetricCryptoFacade.createNewX25519KeyPair(groupId)
+					group = await this.cacheManagementFacade.reloadGroup(groupId)
+					currentKeys = assertNotNull(group.currentKeys)
+				}
 				await this.createIdentityKeyPair(
 					groupId,
 					{
-						currentKeyPair: assertNotNull(group.currentKeys),
-						keyPairVersion: parseKeyVersion(group.groupKeyVersion),
+						object: currentKeys,
+						version: parseKeyVersion(group.groupKeyVersion),
 					},
+					[], //TODO
 					adminGroupKey,
 				)
 			} catch (error) {

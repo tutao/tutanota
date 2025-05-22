@@ -120,10 +120,14 @@ export class UserManagementFacade {
 		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data)
 
 		const currentKeyPair = await this.groupManagement.createKeyPairFromGroupData(userGroupData)
-		await this.groupManagement.createIdentityKeyPair(userGroup, {
-			currentKeyPair,
-			keyPairVersion: 0, // new group
-		})
+		await this.groupManagement.createIdentityKeyPair(
+			userGroup,
+			{
+				object: currentKeyPair,
+				version: 0, // new group
+			},
+			[],
+		)
 
 		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 	}

@@ -106,7 +106,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 
 			// execute callback
 			await captor.values![0]()
-			verify(gfm.createIdentityKeyPair(matchers.anything(), matchers.anything()))
+			verify(gfm.createIdentityKeyPair(matchers.anything(), matchers.anything(), matchers.anything()))
 		})
 
 		o("does not stop if UserIdentityKeyCreation rollout throws", async function () {
@@ -126,7 +126,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 
 			// execute callback
 			const error = object<Error>()
-			when(gfm.createIdentityKeyPair(matchers.anything(), matchers.anything())).thenReject(error)
+			when(gfm.createIdentityKeyPair(matchers.anything(), matchers.anything(), matchers.anything())).thenReject(error)
 			await captor.values![0]()
 
 			// @ts-ignore

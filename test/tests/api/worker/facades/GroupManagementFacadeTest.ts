@@ -1,5 +1,5 @@
 import o from "../../../../../packages/otest/dist/otest.js"
-import { GroupManagementFacade, PublicKeySigningData } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
+import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { CounterFacade } from "../../../../../src/common/api/worker/facades/lazy/CounterFacade.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
@@ -465,8 +465,7 @@ o.spec("GroupManagementFacadeTest", function () {
 		})
 
 		o("success internal user", async function () {
-			let publicKeySigningData: PublicKeySigningData = object() //TODO
-			await groupManagementFacade.createIdentityKeyPair(userGroupId, publicKeySigningData)
+			await groupManagementFacade.createIdentityKeyPair(userGroupId, object(), [])
 
 			verify(
 				serviceExecutor.post(
@@ -504,8 +503,7 @@ o.spec("GroupManagementFacadeTest", function () {
 					admin: adminGroupId,
 				}),
 			)
-			let publicKeySigningData: PublicKeySigningData = object() //TODO
-			await groupManagementFacade.createIdentityKeyPair(userGroupId, publicKeySigningData)
+			await groupManagementFacade.createIdentityKeyPair(userGroupId, object(), [])
 
 			verify(
 				serviceExecutor.post(
@@ -545,8 +543,7 @@ o.spec("GroupManagementFacadeTest", function () {
 					admin: adminGroupId,
 				}),
 			)
-			let publicKeySigningData: PublicKeySigningData = object() //TODO
-			await groupManagementFacade.createIdentityKeyPair(userGroupId, publicKeySigningData, adminGroupKey)
+			await groupManagementFacade.createIdentityKeyPair(userGroupId, object(), [], adminGroupKey)
 
 			verify(
 				serviceExecutor.post(
@@ -627,7 +624,7 @@ o.spec("GroupManagementFacadeTest", function () {
 				await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
 
 				for (const groupId of groupIds) {
-					verify(groupManagementFacade.createIdentityKeyPair(groupId, anything(), adminGroupKey))
+					verify(groupManagementFacade.createIdentityKeyPair(groupId, anything(), [], adminGroupKey))
 				}
 			})
 
@@ -643,8 +640,8 @@ o.spec("GroupManagementFacadeTest", function () {
 
 				await groupManagementFacade.createIdentityKeyPairForExistingTeamGroups()
 
-				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId1, anything(), adminGroupKey), { times: 0 })
-				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId2, anything(), adminGroupKey))
+				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId1, anything(), [], adminGroupKey), { times: 0 })
+				verify(groupManagementFacade.createIdentityKeyPair(teamGroupId2, anything(), [], adminGroupKey))
 			})
 
 			o("errors bubble up", async function () {

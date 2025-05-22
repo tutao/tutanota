@@ -275,10 +275,14 @@ async function signup(
 				const login = await logins.createSession(mailAddress, password, SessionType.Temporary)
 
 				const currentUserKeyPair = await groupManagementFacade.createKeyPairFromGroupData(userGroupData)
-				await groupManagementFacade.createIdentityKeyPair(login.userGroupInfo.group, {
-					currentKeyPair: currentUserKeyPair,
-					keyPairVersion: 0, //new group
-				})
+				await groupManagementFacade.createIdentityKeyPair(
+					login.userGroupInfo.group,
+					{
+						object: currentUserKeyPair,
+						version: 0, //new group
+					},
+					[],
+				)
 			}
 			return {
 				mailAddress,

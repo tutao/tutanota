@@ -10,7 +10,6 @@ import {
 	bytesToKyberPublicKey,
 	decapsulateKyber,
 	decryptKey,
-	Ed25519KeyPair,
 	ed25519PrivateKeyToBytes,
 	ed25519PublicKeyToBytes,
 	ed25519SignatureToBytes,
@@ -406,6 +405,9 @@ o.spec("CompatibilityTest", function () {
 			encryptionKeyPair.pubEccKey = null
 			encryptionKeyPair.pubKyberKey = null
 			encryptionKeyPair.pubRsaKey = null
+			const keyPairVersion = checkKeyVersionConstraints(td.keyPairVersion)
+
+			const versionedEncryptionKeyPair = { object: encryptionKeyPair, version: keyPairVersion }
 
 			if (td.pubEccKey) {
 				encryptionKeyPair.pubEccKey = hexToUint8Array(td.pubEccKey)
@@ -418,8 +420,6 @@ o.spec("CompatibilityTest", function () {
 				encryptionKeyPair.pubKyberKey = hexToUint8Array(td.pubKyberKey)
 			}
 
-			const keyPairVersion = checkKeyVersionConstraints(td.keyPairVersion)
-
 			const alicePublicKeyBytes = hexToUint8Array(td.alicePublicKeyHex)
 			const alicePublicKey = bytesToEd25519PublicKey(alicePublicKeyBytes)
 			const alicePrivateKey = bytesToEd25519PrivateKey(hexToUint8Array(td.alicePrivateKeyHex))
@@ -431,16 +431,16 @@ o.spec("CompatibilityTest", function () {
 			o(uint8ArrayToHex(ed25519PublicKeyToBytes(alicePublicKey))).deepEquals(td.alicePublicKeyHex)
 			o(uint8ArrayToHex(ed25519SignatureToBytes(signature))).deepEquals(td.signature)
 
-			const serializedMessage = facade.serializePublicKeyForSigning(encryptionKeyPair, keyPairVersion)
-			o(serializedMessage).deepEquals(message)
+			const { encodedKeyPairForSigning } = facade.serializePublicKeyForSigning(versionedEncryptionKeyPair)
+			o(encodedKeyPairForSigning).deepEquals(message)
 
-			const reproducedSignature = await facade.signPublicKey(encryptionKeyPair, alicePrivateKey, keyPairVersion)
+			const { signature: reproducedSignature } = await facade.signPublicKey(versionedEncryptionKeyPair, alicePrivateKey)
 			o(reproducedSignature).deepEquals(signature)
 
 			const identityKeyPair: IdentityKeyPair = object()
 			identityKeyPair.publicEd25519Key = alicePublicKeyBytes
 
-			o(await facade.verifyPublicKeySignature(encryptionKeyPair, identityKeyPair, keyPairVersion, reproducedSignature)).equals(true)
+			o(await facade.verifyPublicKeySignature(versionedEncryptionKeyPair, identityKeyPair, reproducedSignature)).equals(true)
 		}
 	})
 

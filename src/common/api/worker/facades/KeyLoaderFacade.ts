@@ -1,12 +1,20 @@
 import { EntityClient } from "../../common/EntityClient.js"
-import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs, isRsaOrRsaX25519KeyPair } from "@tutao/tutanota-crypto"
+import {
+	AbstractEncryptedKeyPair,
+	AesKey,
+	AsymmetricKeyPair,
+	decryptKey,
+	decryptKeyPair,
+	EncryptedKeyPairs,
+	isRsaOrRsaX25519KeyPair,
+} from "@tutao/tutanota-crypto"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "../../entities/sys/TypeRefs.js"
 import { isKeyVersion, KeyVersion, Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
-import { assertNotNull, lazyAsync } from "@tutao/tutanota-utils"
+import { lazyAsync } from "@tutao/tutanota-utils"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -149,6 +157,23 @@ export class KeyLoaderFacade {
 		return this.validateAndDecryptKeyPair(keyPair, keyPairGroupId, symGroupKey)
 	}
 
+	/**
+	 * Loads all former keypairs for a group
+	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
+	 */
+	async loadAllFormerEncryptedKeyPairs(group: Group): Promise<Versioned<AbstractEncryptedKeyPair>[]> {
+		const formerKeysList: string = group.formerGroupKeys.list
+		return (await this.entityClient.loadAll(GroupKeyTypeRef, formerKeysList)).map((groupKey) => {
+			if (groupKey.keyPair == null) {
+				throw new Error("Groupkey does not have a keypair")
+			}
+			return {
+				object: groupKey.keyPair,
+				version: convertCustomIdToKeyVersion(getElementId(groupKey)),
+			}
+		})
+	}
+
 	async loadFormerGroupKeyInstance(group: Group, version: KeyVersion): Promise<GroupKey> {
 		const formerKeysList = group.formerGroupKeys.list
 		return await this.entityClient.load(GroupKeyTypeRef, [formerKeysList, convertKeyVersionToCustomId(version)])
@@ -225,6 +250,10 @@ export class KeyLoaderFacade {
 		}
 		return decryptedKeyPair
 	}
+}
+
+function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
+	return parseKeyVersion(customIdToString(customId))
 }
 
 function convertKeyVersionToCustomId(version: KeyVersion): Id {

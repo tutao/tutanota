@@ -97,14 +97,10 @@ export class EventBusEventCoordinator implements EventBusListener {
 
 		if (this.userFacade.isLeader()) {
 			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation, async () => {
-				const userGroupId = this.userFacade.getUserGroupId()
 				const gmf = await this.groupManagementFacade()
-				const userGroup = await this.entityClient.load(GroupTypeRef, userGroupId)
+
 				try {
-					await gmf.createIdentityKeyPair(userGroupId, {
-						currentKeyPair: assertNotNull(userGroup.currentKeys),
-						keyPairVersion: parseKeyVersion(userGroup.groupKeyVersion),
-					})
+					await gmf.createIdentityKeyPairForExistingUsers()
 				} catch (error) {
 					console.log("error when creating user identity key pair", error)
 					this.sendError(error)

@@ -1,12 +1,12 @@
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { Ed25519Facade, EncodedEd25519Signature } from "./Ed25519Facade"
-import { IdentityKeyPair, KeyPair } from "../../entities/sys/TypeRefs"
-import { assertNotNull, byteArraysToBytes, bytesToByteArrays, KeyVersion } from "@tutao/tutanota-utils"
+import { createPublicKeySignature, IdentityKeyPair, PublicKeySignature } from "../../entities/sys/TypeRefs"
+import { assertNotNull, byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/tutanota-utils"
 import { InvalidDataError } from "../../common/error/RestError"
 import { asPublicKeySignatureType, PublicKeySignatureType } from "../../common/TutanotaConstants"
 import { assertNull } from "@tutao/tutanota-utils/dist/Utils"
 import { checkKeyVersionConstraints } from "./KeyLoaderFacade"
-import { bytesToEd25519PublicKey, Ed25519PrivateKey } from "@tutao/tutanota-crypto"
+import { AbstractEncryptedKeyPair, bytesToEd25519PublicKey, Ed25519PrivateKey } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -30,7 +30,11 @@ export class PublicKeySignatureFacade {
 	 * Throws for invalid key pair types or key pair version that do not fit into a byte or are not integers
 	 * @VisibleForTesting
 	 */
-	serializePublicKeyForSigning(encryptionKeyPair: KeyPair, keyPairVersion: KeyVersion): Uint8Array {
+	serializePublicKeyForSigning(versionedEncryptionKeyPair: Versioned<AbstractEncryptedKeyPair>): {
+		encodedKeyPairForSigning: Uint8Array
+		signatureType: PublicKeySignatureType
+	} {
+		const encryptionKeyPair = versionedEncryptionKeyPair.object
 		let firstPubKeyComponent: Uint8Array
 		let secondPubKeyComponent: Uint8Array
 		let signatureType: PublicKeySignatureType
@@ -51,10 +55,10 @@ export class PublicKeySignatureFacade {
 		}
 		const keyPairVersionAsBytes = new Uint8Array(1)
 		const signatureTypeAsBytes = new Uint8Array(1)
-		if (keyPairVersion > 255) {
+		if (versionedEncryptionKeyPair.version > 255) {
 			throw new InvalidDataError("currently not possible to parse key pair versions that do not fit into one byte")
 		}
-		keyPairVersionAsBytes[0] = keyPairVersion
+		keyPairVersionAsBytes[0] = versionedEncryptionKeyPair.version
 
 		const signatureTypeEnumValue = parseInt(signatureType)
 		if (signatureTypeEnumValue > 255) {
@@ -62,7 +66,10 @@ export class PublicKeySignatureFacade {
 		}
 		signatureTypeAsBytes[0] = signatureTypeEnumValue
 
-		return byteArraysToBytes([signatureTypeAsBytes, keyPairVersionAsBytes, firstPubKeyComponent, secondPubKeyComponent])
+		return {
+			encodedKeyPairForSigning: byteArraysToBytes([signatureTypeAsBytes, keyPairVersionAsBytes, firstPubKeyComponent, secondPubKeyComponent]),
+			signatureType,
+		}
 	}
 
 	/**
@@ -111,18 +118,23 @@ export class PublicKeySignatureFacade {
 		}
 	}
 
-	async signPublicKey(encryptionKeyPair: KeyPair, privateIdentityKey: Ed25519PrivateKey, keyPairVersion: KeyVersion): Promise<EncodedEd25519Signature> {
-		const encodedKeyPairForSigning = this.serializePublicKeyForSigning(encryptionKeyPair, keyPairVersion)
-		return this.ed25519Facade.sign(privateIdentityKey, encodedKeyPairForSigning)
+	async signPublicKey(encryptionKeyPair: Versioned<AbstractEncryptedKeyPair>, privateIdentityKey: Versioned<Ed25519PrivateKey>): Promise<PublicKeySignature> {
+		const { encodedKeyPairForSigning, signatureType } = this.serializePublicKeyForSigning(encryptionKeyPair)
+		const signatureBytes = await this.ed25519Facade.sign(privateIdentityKey.object, encodedKeyPairForSigning)
+		return createPublicKeySignature({
+			signature: signatureBytes,
+			signingKeyVersion: privateIdentityKey.version.toString(),
+			signatureType,
+			publicKeyVersion: encryptionKeyPair.version.toString(),
+		})
 	}
 
 	async verifyPublicKeySignature(
-		encryptionKeyPair: KeyPair,
+		encryptionKeyPair: Versioned<AbstractEncryptedKeyPair>,
 		identityKeyPair: IdentityKeyPair,
-		keyPairVersion: KeyVersion,
 		signatureBytes: EncodedEd25519Signature,
 	): Promise<boolean> {
-		const encodedKeyPairForSigning = this.serializePublicKeyForSigning(encryptionKeyPair, keyPairVersion)
+		const { encodedKeyPairForSigning } = this.serializePublicKeyForSigning(encryptionKeyPair)
 		const publicIdentityKey = bytesToEd25519PublicKey(identityKeyPair.publicEd25519Key)
 		return this.ed25519Facade.verifySignature(publicIdentityKey, signatureBytes, encodedKeyPairForSigning)
 	}

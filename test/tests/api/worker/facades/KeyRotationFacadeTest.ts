@@ -24,7 +24,6 @@ import {
 	IdentityKeyPairTypeRef,
 	KeyMac,
 	KeyMacTypeRef,
-	KeyPair,
 	KeyPairTypeRef,
 	KeyRotation,
 	KeyRotationsRefTypeRef,
@@ -40,6 +39,7 @@ import {
 	UserTypeRef,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
+	AbstractEncryptedKeyPair,
 	Aes256Key,
 	AesKey,
 	bitArrayToUint8Array,
@@ -1601,12 +1601,11 @@ o.spec("KeyRotationFacadeTest", function () {
 
 				verify(
 					publicKeySignatureFacade.signPublicKey(
-						matchers.argThat((arg) => {
-							verifyKeyPair(arg, generatedKeyPairs.get(NEW_USER_GROUP_KEY.object)!)
-							return true
+						matchers.argThat((arg: Versioned<AbstractEncryptedKeyPair>) => {
+							verifyKeyPair(arg.object, generatedKeyPairs.get(NEW_USER_GROUP_KEY.object)!)
+							return parseKeyVersion(keyVersionAfterRotation)
 						}),
 						bytesToEd25519PrivateKey(privateIdentityKey),
-						parseKeyVersion(keyVersionAfterRotation),
 					),
 				)
 
@@ -1939,12 +1938,11 @@ o.spec("KeyRotationFacadeTest", function () {
 				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture()))
 				verify(
 					publicKeySignatureFacade.signPublicKey(
-						matchers.argThat((arg) => {
-							verifyKeyPair(arg, generatedKeyPairs)
-							return true
+						matchers.argThat((arg: Versioned<AbstractEncryptedKeyPair>) => {
+							verifyKeyPair(arg.object, generatedKeyPairs)
+							return arg.version === parseKeyVersion(keyVersionAfterRotation)
 						}),
 						bytesToEd25519PrivateKey(privateIdentityKey),
-						parseKeyVersion(keyVersionAfterRotation),
 					),
 				)
 
@@ -2408,7 +2406,7 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 	return results
 }
 
-function verifyKeyPair(keyPair: KeyPair | null | undefined, mockedKeyPairs: MockedKeyPairs) {
+function verifyKeyPair(keyPair: AbstractEncryptedKeyPair | null | undefined, mockedKeyPairs: MockedKeyPairs) {
 	o(keyPair).notEquals(null)
 	o(keyPair?.symEncPrivEccKey).deepEquals(mockedKeyPairs.encryptedEccPrivKey)
 	o(keyPair?.pubEccKey).deepEquals(mockedKeyPairs.encodedx25519PublicKey)
