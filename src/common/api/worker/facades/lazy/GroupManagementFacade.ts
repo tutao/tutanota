@@ -13,14 +13,12 @@ import {
 	createIdentityKeyPair,
 	createIdentityKeyPostIn,
 	createKeyMac,
-	createKeyPair,
 	createMembershipAddData,
 	createMembershipRemoveData,
 	CustomerTypeRef,
 	Group,
 	GroupInfoTypeRef,
 	GroupTypeRef,
-	KeyPair,
 	PubEncKeyData,
 	User,
 	UserTypeRef,
@@ -38,7 +36,7 @@ import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
 import { _encryptKeyWithVersionedKey, _encryptString, CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
-import { AbstractEncryptedKeyPair, AesKey, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { AesKey, AsymmetricKeyPair, PQKeyPairs } from "@tutao/tutanota-crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
@@ -97,29 +95,15 @@ export class GroupManagementFacade {
 		})
 		const mailGroupPostOut = await this.serviceExecutor.post(MailGroupService, data)
 
-		const currentKeyPair: KeyPair = await this.createKeyPairFromGroupData(mailGroupData)
 		await this.createIdentityKeyPair(
 			mailGroupPostOut.mailGroup,
 			{
-				object: currentKeyPair,
+				object: keyPair,
 				version: 0, //new group
 			},
 			[],
 			adminGroupKey,
 		)
-	}
-
-	async createKeyPairFromGroupData(groupData: InternalGroupData): Promise<KeyPair> {
-		// Async function, because it is used from the main thread.
-		return createKeyPair({
-			pubRsaKey: groupData.pubRsaKey,
-			symEncPrivRsaKey: groupData.groupEncPrivRsaKey,
-			pubEccKey: groupData.pubEccKey,
-			symEncPrivEccKey: groupData.groupEncPrivEccKey,
-			pubKyberKey: groupData.pubKyberKey,
-			symEncPrivKyberKey: groupData.groupEncPrivKyberKey,
-			signature: null,
-		})
 	}
 
 	/**
@@ -249,8 +233,8 @@ export class GroupManagementFacade {
 	 */
 	async createIdentityKeyPair(
 		groupId: Id,
-		currentKeyPairToBeSigned: Versioned<AbstractEncryptedKeyPair>,
-		formerKeyPairsToBeSigned: Versioned<AbstractEncryptedKeyPair>[],
+		currentKeyPairToBeSigned: Versioned<AsymmetricKeyPair>,
+		formerKeyPairsToBeSigned: Versioned<AsymmetricKeyPair>[],
 		encryptingKey: VersionedKey | undefined = undefined,
 	): Promise<void> {
 		const newEd25519IdentityKeyPair = await this.ed25519Facade.generateKeypair()
@@ -304,22 +288,14 @@ export class GroupManagementFacade {
 		const userGroupId = this.userFacade.getUserGroupId()
 		let userGroup = await this.entityClient.load(GroupTypeRef, userGroupId)
 
-		let currentKeys = assertNotNull(userGroup.currentKeys)
-		if (currentKeys.pubRsaKey != null && currentKeys.pubEccKey == null) {
-			await this.asymmetricCryptoFacade.createNewX25519KeyPair(userGroupId)
-			userGroup = await this.cacheManagementFacade.reloadGroup(userGroupId)
-			currentKeys = assertNotNull(userGroup.currentKeys)
-		}
-		const formerKeyPairs = await this.keyLoaderFacade.loadAllFormerEncryptedKeyPairs(userGroup)
+		let currentKeyPairs = await this.keyLoaderFacade.loadCurrentKeyPair(userGroupId)
+		await this.asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(currentKeyPairs.object, userGroupId)
+		userGroup = await this.cacheManagementFacade.reloadGroup(userGroupId)
+		currentKeyPairs = await this.keyLoaderFacade.loadCurrentKeyPair(userGroupId)
 
-		await this.createIdentityKeyPair(
-			userGroupId,
-			{
-				object: currentKeys,
-				version: parseKeyVersion(userGroup.groupKeyVersion),
-			},
-			formerKeyPairs,
-		)
+		const formerKeyPairs = await this.keyLoaderFacade.loadAllFormerKeyPairs(userGroup)
+
+		await this.createIdentityKeyPair(userGroupId, currentKeyPairs, formerKeyPairs)
 	}
 
 	/**

@@ -5,10 +5,13 @@ import { bytesToEd25519PublicKey } from "@tutao/tutanota-crypto"
 import { PublicKeySignatureType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { IdentityKeyPair } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 
 o.spec("PublicKeySignatureFacadeTest", function () {
-	let ed25519Facade
-	let publicKeySignatureFacade
+	let ed25519Facade: Ed25519Facade
+	let cryptoWrapper: CryptoWrapper
+	let publicKeySignatureFacade: PublicKeySignatureFacade
 	let tutaCryptKeyPair
 	let rsaEccKeyPair
 	let rsaOnlyKeyPair
@@ -16,7 +19,8 @@ o.spec("PublicKeySignatureFacadeTest", function () {
 
 	o.beforeEach(function () {
 		ed25519Facade = object()
-		publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade)
+		cryptoWrapper = object()
+		publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 		let pubEccKey = new Uint8Array([1, 1, 1])
 		let pubKyberKey = new Uint8Array([2, 2, 2])
 		let pubRsaKey = new Uint8Array([3, 3, 3])

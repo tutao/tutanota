@@ -269,7 +269,7 @@ export class AsymmetricCryptoFacade {
 		}
 	}
 
-	async createNewX25519KeyPair(keyGroupId: string): Promise<X25519KeyPair> {
+	private async createNewX25519KeyPair(keyGroupId: string): Promise<X25519KeyPair> {
 		const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
 		const newX25519KeyPair = this.cryptoWrapper.generateEccKeyPair()
 		const symEncPrivEccKey = this.cryptoWrapper.encryptX25519Key(symGroupKey.object, newX25519KeyPair.privateKey)

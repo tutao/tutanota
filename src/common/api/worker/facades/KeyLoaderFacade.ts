@@ -161,7 +161,7 @@ export class KeyLoaderFacade {
 	 * Loads all former keypairs for a group
 	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
 	 */
-	async loadAllFormerEncryptedKeyPairs(group: Group): Promise<Versioned<AbstractEncryptedKeyPair>[]> {
+	async loadAllFormerKeyPairs(group: Group): Promise<Versioned<AsymmetricKeyPair>[]> {
 		const formerKeysList: string = group.formerGroupKeys.list
 		return (await this.entityClient.loadAll(GroupKeyTypeRef, formerKeysList)).map((groupKey) => {
 			if (groupKey.keyPair == null) {

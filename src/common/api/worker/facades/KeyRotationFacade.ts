@@ -157,6 +157,11 @@ type EncryptedUserGroupKeys = {
 	authVerifier: Uint8Array
 }
 
+type EncryptedAndPlaintextKeyPair = {
+	plaintextKeyPair: PQKeyPairs
+	encryptedKeyPair: EncryptedPqKeyPairsMaybeWithSignature
+}
+
 /**
  * Facade to handle key rotation requests. Maintains and processes @PendingKeyRotation
  */
@@ -847,12 +852,13 @@ export class KeyRotationFacade {
 
 	private async generateGroupKeys(group: Group): Promise<GeneratedGroupKeys> {
 		const symGroupKeyBytes = this.cryptoWrapper.aes256RandomKey()
-		const keyPair = await this.createNewKeyPairValue(group, symGroupKeyBytes)
+		const maybeKeyPair = await this.createNewKeyPairValue(group, symGroupKeyBytes)
 		const identityKeyPair = group.identityKeyPair
 		const newGroupKeyVersion = checkKeyVersionConstraints(parseKeyVersion(group.groupKeyVersion) + 1)
-		if (identityKeyPair != null && keyPair != null) {
-			keyPair.signature = await this.publicKeySignatureFacade.signPublicKey(
-				{ object: keyPair, version: newGroupKeyVersion },
+		if (identityKeyPair != null && maybeKeyPair != null) {
+			const { encryptedKeyPair, plaintextKeyPair } = maybeKeyPair
+			encryptedKeyPair.signature = await this.publicKeySignatureFacade.signPublicKey(
+				{ object: plaintextKeyPair, version: newGroupKeyVersion },
 				{
 					object: bytesToEd25519PrivateKey(identityKeyPair.privateEd25519Key),
 					version: parseKeyVersion(identityKeyPair.identityKeyVersion),
@@ -864,14 +870,14 @@ export class KeyRotationFacade {
 				object: symGroupKeyBytes,
 				version: newGroupKeyVersion,
 			},
-			encryptedKeyPair: keyPair,
+			encryptedKeyPair: maybeKeyPair != null ? maybeKeyPair.encryptedKeyPair : null,
 		}
 	}
 
 	/**
 	 * Not all groups have key pairs, but if they do we need to rotate them as well.
 	 */
-	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedPqKeyPairsMaybeWithSignature | null> {
+	private async createNewKeyPairValue(groupToRotate: Group, newSymmetricGroupKey: Aes256Key): Promise<EncryptedAndPlaintextKeyPair | null> {
 		if (groupToRotate.currentKeys) {
 			return this.generateAndEncryptPqKeyPairs(newSymmetricGroupKey)
 		} else {
@@ -879,16 +885,19 @@ export class KeyRotationFacade {
 		}
 	}
 
-	private async generateAndEncryptPqKeyPairs(symmmetricEncryptionKey: Aes256Key): Promise<EncryptedPqKeyPairsMaybeWithSignature> {
+	private async generateAndEncryptPqKeyPairs(symmmetricEncryptionKey: Aes256Key): Promise<EncryptedAndPlaintextKeyPair> {
 		const newPqPairs = await this.pqFacade.generateKeyPairs()
 		return {
-			pubRsaKey: null,
-			symEncPrivRsaKey: null,
-			pubEccKey: newPqPairs.x25519KeyPair.publicKey,
-			symEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
-			pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
-			symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
-			signature: null, //we create the signature later once we have the correct version
+			plaintextKeyPair: newPqPairs,
+			encryptedKeyPair: {
+				pubRsaKey: null,
+				symEncPrivRsaKey: null,
+				pubEccKey: newPqPairs.x25519KeyPair.publicKey,
+				symEncPrivEccKey: this.cryptoWrapper.encryptX25519Key(symmmetricEncryptionKey, newPqPairs.x25519KeyPair.privateKey),
+				pubKyberKey: this.cryptoWrapper.kyberPublicKeyToBytes(newPqPairs.kyberKeyPair.publicKey),
+				symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
+				signature: null, //we create the signature later once we have the correct version
+			},
 		}
 	}
 
@@ -1208,7 +1217,7 @@ export class KeyRotationFacade {
 			userGroupKey.version,
 			pwKey,
 		)
-		const adminDistributionKeyPair = await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)
+		const adminDistributionKeyPair = (await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)).encryptedKeyPair
 		const adminDistPublicKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
 
 		const tag = this.keyAuthenticationFacade.computeTag({

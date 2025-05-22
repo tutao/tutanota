@@ -1,12 +1,26 @@
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { Ed25519Facade, EncodedEd25519Signature } from "./Ed25519Facade"
-import { createPublicKeySignature, IdentityKeyPair, PublicKeySignature } from "../../entities/sys/TypeRefs"
-import { assertNotNull, byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/tutanota-utils"
+import { createPublicKeySignature, PublicKeySignature } from "../../entities/sys/TypeRefs"
+import { byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/tutanota-utils"
 import { InvalidDataError } from "../../common/error/RestError"
 import { asPublicKeySignatureType, PublicKeySignatureType } from "../../common/TutanotaConstants"
-import { assertNull } from "@tutao/tutanota-utils/dist/Utils"
 import { checkKeyVersionConstraints } from "./KeyLoaderFacade"
-import { AbstractEncryptedKeyPair, bytesToEd25519PublicKey, Ed25519PrivateKey } from "@tutao/tutanota-crypto"
+import {
+	AsymmetricKeyPair,
+	Ed25519PrivateKey,
+	Ed25519PublicKey,
+	isPqKeyPairs,
+	isPqPublicKey,
+	isRsaOrRsaX25519KeyPair,
+	isRsaPublicKey,
+	isRsaX25519KeyPair,
+	KeyPairType,
+	kyberPublicKeyToBytes,
+	PublicKey,
+} from "@tutao/tutanota-crypto"
+import { CryptoWrapper } from "../crypto/CryptoWrapper"
+import { rsaPublicKeyToBytes } from "../../../../../packages/tutanota-crypto/lib/encryption/Rsa"
+import { isRsaX25519PublicKey } from "../../../../../packages/tutanota-crypto/lib/encryption/AsymmetricKeyPair"
 
 assertWorkerOrNode()
 
@@ -22,7 +36,7 @@ export type DeserializedPublicKeyForSigning = {
  * Helper class to encode/decode key pairs in order to sign and verify public encryption keys with identity keys.
  */
 export class PublicKeySignatureFacade {
-	constructor(private readonly ed25519Facade: Ed25519Facade) {}
+	constructor(private readonly ed25519Facade: Ed25519Facade, private readonly cryptoWrapper: CryptoWrapper) {}
 
 	/*
 	 * Returns the public keys canonicalized in the following order:
@@ -30,35 +44,36 @@ export class PublicKeySignatureFacade {
 	 * Throws for invalid key pair types or key pair version that do not fit into a byte or are not integers
 	 * @VisibleForTesting
 	 */
-	serializePublicKeyForSigning(versionedEncryptionKeyPair: Versioned<AbstractEncryptedKeyPair>): {
+	serializePublicKeyForSigning(versionedPublicKey: Versioned<PublicKey>): {
 		encodedKeyPairForSigning: Uint8Array
 		signatureType: PublicKeySignatureType
 	} {
-		const encryptionKeyPair = versionedEncryptionKeyPair.object
+		const publicKey = versionedPublicKey.object
 		let firstPubKeyComponent: Uint8Array
 		let secondPubKeyComponent: Uint8Array
 		let signatureType: PublicKeySignatureType
-		if (encryptionKeyPair.pubRsaKey != null) {
-			assertNull(encryptionKeyPair.pubKyberKey, "Must either have a public kyber or an rsa key")
-			secondPubKeyComponent = encryptionKeyPair.pubRsaKey
-			if (encryptionKeyPair.pubEccKey != null) {
-				firstPubKeyComponent = encryptionKeyPair.pubEccKey
-				signatureType = PublicKeySignatureType.RsaEcc
-			} else {
-				firstPubKeyComponent = new Uint8Array(0)
-				signatureType = PublicKeySignatureType.RsaFormerGroupKey
-			}
-		} else {
-			firstPubKeyComponent = assertNotNull(encryptionKeyPair.pubEccKey, "Must have a public ecc key if no rsa key is present")
-			secondPubKeyComponent = assertNotNull(encryptionKeyPair.pubKyberKey, "Must have a public kyber key if no rsa key is present")
+		if (isPqPublicKey(publicKey)) {
+			firstPubKeyComponent = publicKey.x25519PublicKey
+			secondPubKeyComponent = kyberPublicKeyToBytes(publicKey.kyberPublicKey)
 			signatureType = PublicKeySignatureType.TutaCrypt
+		} else if (isRsaX25519PublicKey(publicKey)) {
+			firstPubKeyComponent = publicKey.publicEccKey
+			secondPubKeyComponent = rsaPublicKeyToBytes(publicKey)
+			signatureType = PublicKeySignatureType.RsaEcc
+		} else if (isRsaPublicKey(publicKey)) {
+			firstPubKeyComponent = new Uint8Array(0)
+			secondPubKeyComponent = rsaPublicKeyToBytes(publicKey)
+			signatureType = PublicKeySignatureType.RsaFormerGroupKey
+		} else {
+			throw new Error("invalid key pair type")
 		}
+
 		const keyPairVersionAsBytes = new Uint8Array(1)
 		const signatureTypeAsBytes = new Uint8Array(1)
-		if (versionedEncryptionKeyPair.version > 255) {
+		if (versionedPublicKey.version > 255) {
 			throw new InvalidDataError("currently not possible to parse key pair versions that do not fit into one byte")
 		}
-		keyPairVersionAsBytes[0] = versionedEncryptionKeyPair.version
+		keyPairVersionAsBytes[0] = versionedPublicKey.version
 
 		const signatureTypeEnumValue = parseInt(signatureType)
 		if (signatureTypeEnumValue > 255) {
@@ -118,24 +133,57 @@ export class PublicKeySignatureFacade {
 		}
 	}
 
-	async signPublicKey(encryptionKeyPair: Versioned<AbstractEncryptedKeyPair>, privateIdentityKey: Versioned<Ed25519PrivateKey>): Promise<PublicKeySignature> {
-		const { encodedKeyPairForSigning, signatureType } = this.serializePublicKeyForSigning(encryptionKeyPair)
+	async signPublicKey(
+		versionedEncryptionKeyPair: Versioned<AsymmetricKeyPair>,
+		privateIdentityKey: Versioned<Ed25519PrivateKey>,
+	): Promise<PublicKeySignature> {
+		const encryptionKeyPair = versionedEncryptionKeyPair.object
+		let publicEncryptionKey = this.extractAndValidatePublicKey(encryptionKeyPair)
+		const { encodedKeyPairForSigning, signatureType } = this.serializePublicKeyForSigning({
+			object: publicEncryptionKey,
+			version: versionedEncryptionKeyPair.version,
+		})
 		const signatureBytes = await this.ed25519Facade.sign(privateIdentityKey.object, encodedKeyPairForSigning)
 		return createPublicKeySignature({
 			signature: signatureBytes,
 			signingKeyVersion: privateIdentityKey.version.toString(),
 			signatureType,
-			publicKeyVersion: encryptionKeyPair.version.toString(),
+			publicKeyVersion: versionedEncryptionKeyPair.version.toString(),
 		})
 	}
 
 	async verifyPublicKeySignature(
-		encryptionKeyPair: Versioned<AbstractEncryptedKeyPair>,
-		identityKeyPair: IdentityKeyPair,
+		encryptionKeyPair: Versioned<PublicKey>,
+		publicIdentityKey: Ed25519PublicKey,
 		signatureBytes: EncodedEd25519Signature,
 	): Promise<boolean> {
 		const { encodedKeyPairForSigning } = this.serializePublicKeyForSigning(encryptionKeyPair)
-		const publicIdentityKey = bytesToEd25519PublicKey(identityKeyPair.publicEd25519Key)
 		return this.ed25519Facade.verifySignature(publicIdentityKey, signatureBytes, encodedKeyPairForSigning)
+	}
+
+	private extractAndValidatePublicKey(encryptionKeyPair: AsymmetricKeyPair) {
+		let publicEncryptionKey: PublicKey
+		if (isPqKeyPairs(encryptionKeyPair)) {
+			const x25519PublicKey = this.cryptoWrapper.verifyPublicX25519Key(encryptionKeyPair.x25519KeyPair)
+			const kyberPublicKey = this.cryptoWrapper.verifyKyberPublicKey(encryptionKeyPair.kyberKeyPair)
+			return { kyberPublicKey, x25519PublicKey, keyPairType: KeyPairType.TUTA_CRYPT }
+		} else if (isRsaOrRsaX25519KeyPair(encryptionKeyPair)) {
+			const rsaPublicKey = this.cryptoWrapper.verifyRsaPublicKey(encryptionKeyPair)
+			if (isRsaX25519KeyPair(encryptionKeyPair)) {
+				const x25519PublicKey = this.cryptoWrapper.verifyPublicX25519Key({
+					publicKey: encryptionKeyPair.publicEccKey,
+					privateKey: encryptionKeyPair.privateEccKey,
+				})
+				return {
+					...rsaPublicKey,
+					publicEccKey: x25519PublicKey,
+					keyPairType: KeyPairType.RSA_AND_X25519,
+				}
+			} else {
+				return { ...rsaPublicKey, keyPairType: KeyPairType.RSA }
+			}
+		} else {
+			throw new Error("invalid key pair type")
+		}
 	}
 }

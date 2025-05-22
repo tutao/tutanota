@@ -60,6 +60,7 @@ import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { IdentityKeyPair, KeyPair } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 
 const originalRandom = random.generateRandomData
 
@@ -399,7 +400,8 @@ o.spec("CompatibilityTest", function () {
 	o("ed25519 - public key signature", async function () {
 		for (const td of testData.ed25519Tests) {
 			const ed25519Facade = await createEd25519Facade()
-			const facade = new PublicKeySignatureFacade(ed25519Facade)
+			const cryptoWrapper = new CryptoWrapper()
+			const facade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 
 			const encryptionKeyPair: KeyPair = object()
 			encryptionKeyPair.pubEccKey = null
