@@ -322,19 +322,14 @@ export class GroupManagementFacade {
 				if (group.identityKeyPair) continue
 
 				// shared mailbox group members don't need access to identity keys, that's the responsibility of the admins
-				let currentKeys = assertNotNull(group.currentKeys)
 				//if we have an RSA only keypair we generate the ecc key now so we do not have to sign again
-				if (currentKeys.pubRsaKey != null && currentKeys.pubEccKey == null) {
-					await this.asymmetricCryptoFacade.createNewX25519KeyPair(groupId)
-					group = await this.cacheManagementFacade.reloadGroup(groupId)
-					currentKeys = assertNotNull(group.currentKeys)
-				}
+				let currentKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(groupId)
+				await this.asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(currentKeyPair.object, groupId)
+				group = await this.cacheManagementFacade.reloadGroup(groupId)
+				currentKeyPair = await this.keyLoaderFacade.loadCurrentKeyPair(groupId)
 				await this.createIdentityKeyPair(
 					groupId,
-					{
-						object: currentKeys,
-						version: parseKeyVersion(group.groupKeyVersion),
-					},
+					currentKeyPair,
 					[], //TODO
 					adminGroupKey,
 				)

@@ -1,20 +1,12 @@
 import { EntityClient } from "../../common/EntityClient.js"
-import {
-	AbstractEncryptedKeyPair,
-	AesKey,
-	AsymmetricKeyPair,
-	decryptKey,
-	decryptKeyPair,
-	EncryptedKeyPairs,
-	isRsaOrRsaX25519KeyPair,
-} from "@tutao/tutanota-crypto"
+import { AesKey, AsymmetricKeyPair, decryptKey, decryptKeyPair, EncryptedKeyPairs, isRsaOrRsaX25519KeyPair } from "@tutao/tutanota-crypto"
 import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "../../entities/sys/TypeRefs.js"
 import { isKeyVersion, KeyVersion, Versioned } from "@tutao/tutanota-utils/dist/Utils.js"
 import { UserFacade } from "./UserFacade.js"
 import { NotFoundError } from "../../common/error/RestError.js"
 import { customIdToString, getElementId, isSameId, stringToCustomId } from "../../common/utils/EntityUtils.js"
 import { KeyCache } from "./KeyCache.js"
-import { lazyAsync } from "@tutao/tutanota-utils"
+import { lazyAsync, promiseMap } from "@tutao/tutanota-utils"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -162,14 +154,15 @@ export class KeyLoaderFacade {
 	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
 	 */
 	async loadAllFormerKeyPairs(group: Group): Promise<Versioned<AsymmetricKeyPair>[]> {
-		const formerKeysList: string = group.formerGroupKeys.list
-		return (await this.entityClient.loadAll(GroupKeyTypeRef, formerKeysList)).map((groupKey) => {
-			if (groupKey.keyPair == null) {
-				throw new Error("Groupkey does not have a keypair")
-			}
+		const currentGroupKey = await this.getCurrentSymGroupKey(group._id)
+		// this request makes sure everything is cached
+		// decryption and parsing will be inefficient if there are many former keys
+		const formerKeys = await this.entityClient.loadAll(GroupKeyTypeRef, group.formerGroupKeys.list)
+		return promiseMap(formerKeys, async (groupKey) => {
+			const requestedVersion = convertCustomIdToKeyVersion(getElementId(groupKey))
 			return {
-				object: groupKey.keyPair,
-				version: convertCustomIdToKeyVersion(getElementId(groupKey)),
+				object: await this.loadKeyPairImpl(group, requestedVersion, currentGroupKey, -1),
+				version: requestedVersion,
 			}
 		})
 	}
