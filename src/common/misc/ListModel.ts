@@ -421,7 +421,7 @@ export class ListModel<ItemType, IdType> {
 
 	sort() {
 		const filteredItems = this.rawState.filteredItems.slice().sort(this.config.sortCompare)
-		const unfilteredItems = this.rawState.filteredItems.slice().sort(this.config.sortCompare)
+		const unfilteredItems = this.rawState.unfilteredItems.slice().sort(this.config.sortCompare)
 		this.updateState({ filteredItems, unfilteredItems })
 	}
 

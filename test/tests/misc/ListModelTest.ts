@@ -661,4 +661,74 @@ o.spec("ListModel", function () {
 			})
 		})
 	})
+	o.spec("sorting the list", () => {
+		enum NumberListSortingMode {
+			Ascending,
+			Descending,
+		}
+
+		let currentNumberListSortingMode: NumberListSortingMode
+		let numberList: ListModel<number, number>
+
+		o.beforeEach(async () => {
+			currentNumberListSortingMode = NumberListSortingMode.Ascending
+			numberList = new ListModel({
+				fetch: async (_item, _count) => {
+					return {
+						items: [1, 5, 4, 2, 3],
+						complete: true,
+					}
+				},
+
+				sortCompare: (item1, item2) => {
+					if (currentNumberListSortingMode == NumberListSortingMode.Ascending) {
+						return item1 - item2
+					} else {
+						return item2 - item1
+					}
+				},
+
+				getItemId: (item) => item,
+
+				isSameId: (id1, id2) => id1 === id2,
+
+				autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
+			})
+			await numberList.loadInitial()
+		})
+
+		o.test("all items are initially sorted on insertion", () => {
+			o.check(numberList.getUnfilteredAsArray()).deepEquals([1, 2, 3, 4, 5])
+			o.check(numberList.state.items).deepEquals([1, 2, 3, 4, 5])
+		})
+
+		o.test("items can be manually resorted if the sorting order changes", () => {
+			currentNumberListSortingMode = NumberListSortingMode.Descending
+
+			o.check(numberList.getUnfilteredAsArray()).deepEquals([1, 2, 3, 4, 5])
+			o.check(numberList.state.items).deepEquals([1, 2, 3, 4, 5])
+
+			numberList.sort()
+
+			o.check(numberList.getUnfilteredAsArray()).deepEquals([5, 4, 3, 2, 1])
+			o.check(numberList.state.items).deepEquals([5, 4, 3, 2, 1])
+		})
+
+		o.test("sorting with filters sorts the whole list and the filtered list", () => {
+			function numberIsEven(n: number): boolean {
+				return n % 2 == 0
+			}
+
+			numberList.setFilter(numberIsEven)
+
+			o.check(numberList.getUnfilteredAsArray()).deepEquals([1, 2, 3, 4, 5])
+			o.check(numberList.state.items).deepEquals([2, 4])
+
+			currentNumberListSortingMode = NumberListSortingMode.Descending
+			numberList.sort()
+
+			o.check(numberList.getUnfilteredAsArray()).deepEquals([5, 4, 3, 2, 1])
+			o.check(numberList.state.items).deepEquals([4, 2])
+		})
+	})
 })
