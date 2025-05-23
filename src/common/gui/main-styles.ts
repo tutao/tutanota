@@ -261,7 +261,7 @@ styles.registerStyle("main", () => {
 			border: `1px solid ${theme.outline}`,
 		},
 		".border-top": {
-			"border-top": `1px solid ${theme.outline}`,
+			"border-top": `1px solid ${theme.outline_variant}`,
 		},
 		"#shadow-mail-body.break-pre pre": {
 			"white-space": "pre-wrap",
@@ -670,10 +670,10 @@ styles.registerStyle("main", () => {
 		},
 		// borders
 		".border-bottom": {
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".border-left": {
-			"border-left": `1px solid ${theme.outline}`,
+			"border-left": `1px solid ${theme.outline_variant}`,
 		},
 		// colors
 		".bg-transparent": {
@@ -880,7 +880,7 @@ styles.registerStyle("main", () => {
 			"padding-right": "16px",
 		},
 		".dropdown-info + .dropdown-button": {
-			"border-top": `1px solid ${theme.outline}`,
+			"border-top": `1px solid ${theme.outline_variant}`,
 		},
 		".dropdown-info + .dropdown-info": {
 			"padding-top": "0",
@@ -1355,7 +1355,7 @@ styles.registerStyle("main", () => {
 			"will-change": "border-width, border-color, color, background-color",
 		},
 		".wizard-breadcrumb-line": {
-			"border-top": `3px dotted ${theme.outline}`,
+			"border-top": `3px dotted ${theme.outline_variant}`,
 			height: 0,
 			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
 			"will-change": "border-top-style, border-top-color",
@@ -1457,7 +1457,7 @@ styles.registerStyle("main", () => {
             to set all nav elements to border-box, we must make sure to not break any existing styling
             */
 			"box-sizing": "border-box",
-			"border-top": `1px solid ${theme.outline}`,
+			"border-top": `1px solid ${theme.outline_variant}`,
 			height: `calc(${size.bottom_nav_bar}px + env(safe-area-inset-bottom))`,
 			background: theme.surface,
 			"padding-bottom": "env(safe-area-inset-bottom)",
@@ -1956,7 +1956,7 @@ styles.registerStyle("main", () => {
 			width: "100%",
 		},
 		".table-header-border tr:first-child": {
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".table td": {
 			"vertical-align": "middle",
@@ -2228,7 +2228,7 @@ styles.registerStyle("main", () => {
 			opacity: 0,
 		},
 		".calendar-hour": {
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 			height: px(size.calendar_hour_height),
 			flex: "1 0 auto",
 		},
@@ -2405,7 +2405,7 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-long-events-header": {
 			overflow: "hidden",
-			"border-bottom": `1px solid ${theme.outline}`,
+			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".calendar-month-week-number": {
 			"font-size": "12px",
