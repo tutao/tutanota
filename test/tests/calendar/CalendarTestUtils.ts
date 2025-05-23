@@ -1,12 +1,4 @@
-import {
-	AccountType,
-	ContactAddressType,
-	FeatureType,
-	GroupType,
-	KeyVerificationState,
-	ShareCapability,
-	TimeFormat,
-} from "../../../src/common/api/common/TutanotaConstants.js"
+import { AccountType, ContactAddressType, FeatureType, GroupType, ShareCapability, TimeFormat } from "../../../src/common/api/common/TutanotaConstants.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import {
 	BookingsRefTypeRef,
@@ -42,6 +34,7 @@ import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
+import { PresentableKeyVerificationState } from "../../../src/common/api/main/RecipientsModel"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -56,7 +49,7 @@ export const ownerRecipient: Recipient = {
 	name: ownerAddress.name,
 	type: RecipientType.INTERNAL,
 	contact: null,
-	verificationState: KeyVerificationState.NO_ENTRY,
+	verificationState: PresentableKeyVerificationState.NONE,
 }
 export const ownerAlias = createEncryptedMailAddress({
 	address: "calendarowneralias@tutanota.de",
@@ -67,7 +60,7 @@ export const ownerAliasRecipient: Recipient = {
 	name: ownerAlias.name,
 	type: RecipientType.INTERNAL,
 	contact: null,
-	verificationState: KeyVerificationState.NO_ENTRY,
+	verificationState: PresentableKeyVerificationState.NONE,
 }
 export const otherAddress = createEncryptedMailAddress({
 	address: "someone@tutanota.de",
@@ -87,7 +80,7 @@ export const otherRecipient: Recipient = {
 			}),
 		],
 	}),
-	verificationState: KeyVerificationState.NO_ENTRY,
+	verificationState: PresentableKeyVerificationState.NONE,
 }
 export const otherAddress2 = createEncryptedMailAddress({
 	address: "someoneelse@tutanota.de",
@@ -107,7 +100,7 @@ export const otherRecipient2: Recipient = {
 			}),
 		],
 	}),
-	verificationState: KeyVerificationState.NO_ENTRY,
+	verificationState: PresentableKeyVerificationState.NONE,
 }
 
 export const thirdAddress = createEncryptedMailAddress({ address: "somethirdaddress@tuta.com", name: "thirdperson" })
@@ -125,7 +118,7 @@ export const thirdRecipient: Recipient = {
 			}),
 		],
 	}),
-	verificationState: KeyVerificationState.NO_ENTRY,
+	verificationState: PresentableKeyVerificationState.NONE,
 }
 
 export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([

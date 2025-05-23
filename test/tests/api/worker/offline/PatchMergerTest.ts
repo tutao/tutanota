@@ -79,7 +79,6 @@ o.spec("PatchMergerTest", () => {
 			instance(DefaultEntityRestCache),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
-			async () => instance(KeyVerificationFacade),
 			instance(PublicKeyProvider),
 			() => instance(KeyRotationFacade),
 			typeModelResolver,

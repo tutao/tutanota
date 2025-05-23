@@ -1,10 +1,10 @@
 import { Stage, UsageTest } from "@tutao/tutanota-usagetests"
-import { KeyVerificationMethodType } from "../../api/common/TutanotaConstants"
+import { IdentityKeyVerificationMethod } from "../../api/common/TutanotaConstants"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 
 export type TestTracks = {
-	[KeyVerificationMethodType.text]: UsageTest
-	[KeyVerificationMethodType.qr]: UsageTest
+	[IdentityKeyVerificationMethod.text]: UsageTest
+	[IdentityKeyVerificationMethod.qr]: UsageTest
 }
 
 export enum KeyVerificationScanCompleteMetric {
@@ -30,8 +30,8 @@ export class KeyVerificationUsageTestUtils {
 
 		this.regretTest = regretTest
 		this.tracks = {
-			[KeyVerificationMethodType.text]: textUsageTest,
-			[KeyVerificationMethodType.qr]: qrUsageTest,
+			[IdentityKeyVerificationMethod.text]: textUsageTest,
+			[IdentityKeyVerificationMethod.qr]: qrUsageTest,
 		}
 	}
 
@@ -42,23 +42,23 @@ export class KeyVerificationUsageTestUtils {
 		}
 	}
 
-	private track(method: KeyVerificationMethodType): UsageTest {
+	private track(method: IdentityKeyVerificationMethod): UsageTest {
 		return this.tracks[method]
 	}
 
-	async start(method: KeyVerificationMethodType) {
+	async start(method: IdentityKeyVerificationMethod) {
 		const stageNumber = 0
 		const stage: Stage = this.track(method).getStage(stageNumber)
 
 		await stage.complete()
 	}
 
-	async verified(method: KeyVerificationMethodType) {
+	async verified(method: IdentityKeyVerificationMethod) {
 		let stageNumber: number
 
-		if (method === KeyVerificationMethodType.text) {
+		if (method === IdentityKeyVerificationMethod.text) {
 			stageNumber = 1
-		} else if (method === KeyVerificationMethodType.qr) {
+		} else if (method === IdentityKeyVerificationMethod.qr) {
 			stageNumber = 2
 		} else {
 			throw new ProgrammingError("verified() is only implemented for Text/QR")
@@ -70,8 +70,8 @@ export class KeyVerificationUsageTestUtils {
 	}
 
 	// only for QR
-	async scan_complete(method: KeyVerificationMethodType, status: KeyVerificationScanCompleteMetric) {
-		if (method !== KeyVerificationMethodType.qr) {
+	async scan_complete(method: IdentityKeyVerificationMethod, status: KeyVerificationScanCompleteMetric) {
+		if (method !== IdentityKeyVerificationMethod.qr) {
 			throw new ProgrammingError("scan_complete() is only implemented for QR tests")
 		}
 

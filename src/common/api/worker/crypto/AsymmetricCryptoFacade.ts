@@ -19,7 +19,7 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus } from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, lazyAsync, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -32,6 +32,7 @@ import { PublicKeyIdentifier, PublicKeyProvider } from "../facades/PublicKeyProv
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { TypeId } from "../../common/EntityTypes"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
+import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
 
@@ -80,30 +81,20 @@ export class AsymmetricCryptoFacade {
 	 * @param senderKeyVersion the version of the senderIdentityPubKey.
 	 */
 	async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: KeyVersion): Promise<EncryptionAuthStatus> {
-		const keyVerificationFacade = await this.lazyKeyVerificationFacade()
-
-		let authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-
-		const publicKey = await this.publicKeyProvider.loadPubKey(identifier, senderKeyVersion)
-
-		const publicEccKey = this.getSenderEccKey(publicKey)
-
-		if (publicEccKey != null) {
-			if (!arrayEquals(publicEccKey, senderIdentityPubKey)) {
+		let authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+		try {
+			const publicKey = await this.publicKeyProvider.loadPubKey(identifier, senderKeyVersion)
+			const publicEccKey = this.getSenderEccKey(publicKey.publicEncryptionKey)
+			if (publicEccKey != null && arrayEquals(publicEccKey, senderIdentityPubKey)) {
+				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+			}
+		} catch (e) {
+			if (e instanceof KeyVerificationMismatchError) {
 				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+			} else {
+				throw e
 			}
-
-			// Compare against trusted identity (if possible)
-			if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS) {
-				// FIXME check key verification result from loadPubKey, requires signed encryption keys.
-				// if ((await keyVerificationFacade.resolveVerificationState(identifier.identifier, publicKey)) === KeyVerificationState.MISMATCH) {
-				// 	authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-				// }
-			}
-		} else {
-			authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		}
-
 		return authStatus
 	}
 
