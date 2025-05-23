@@ -5,6 +5,7 @@ import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/commo
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { IdentityKeyService, PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import {
+	createIdentityKeyGetOut,
 	createPublicKeyGetOut,
 	createSystemKeysReturn,
 	Group,
@@ -14,6 +15,7 @@ import {
 	KeyMacTypeRef,
 	PubDistributionKey,
 	PublicKeyGetOut,
+	PublicKeySignature,
 	SystemKeysReturn,
 } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
@@ -37,7 +39,11 @@ import { brandKeyMac, IdentityPubKeyAuthenticationParams, KeyAuthenticationFacad
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { createTestEntity } from "../../../TestUtils"
 import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
-import { PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
+
+const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 
 o.spec("PublicKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
@@ -54,13 +60,15 @@ o.spec("PublicKeyProviderTest", function () {
 	let kyberPublicKey: Uint8Array
 	let rawEd25519PublicKey: Uint8Array
 	let ed25519PublicKey: Ed25519PublicKey
+	let keyVerificationFacade: KeyVerificationFacade
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
 		entityClient = object()
 		keyAuthenticationFacade = object()
 		keyLoaderFacade = object()
-		publicKeyProvider = new PublicKeyProvider(serviceExecutor, entityClient, keyAuthenticationFacade, keyLoaderFacade)
+		keyVerificationFacade = object()
+		publicKeyProvider = new PublicKeyProvider(serviceExecutor, entityClient, keyAuthenticationFacade, keyLoaderFacade, async () => keyVerificationFacade)
 
 		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)
@@ -73,19 +81,29 @@ o.spec("PublicKeyProviderTest", function () {
 		ed25519PublicKey = bytesToEd25519PublicKey(rawEd25519PublicKey)
 
 		publicKeyIdentifier = object()
+		publicKeyIdentifier.identifier = PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS
+		publicKeyIdentifier.identifierType = PublicKeyIdentifierType.MAIL_ADDRESS
+
 		currentVersion = 2
+
+		when(keyVerificationFacade.isSupported()).thenResolve(true)
 	})
 
 	o.spec("loadCurrentPubKey", function () {
-		o("success pq keys", async function () {
+		o("success pq keys (manually verified)", async function () {
+			const signature: PublicKeySignature = object()
+			signature.signature = object()
 			const publicKeyGetOut = createPublicKeyGetOut({
 				pubKeyVersion: String(currentVersion),
 				pubRsaKey: null,
 				pubKyberKey: kyberPublicKey,
 				pubEccKey: x25519PublicKey,
-				signature: null,
+				signature,
 			})
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
+			when(keyVerificationFacade.verify(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
+				EncryptionKeyVerificationState.VERIFIED_MANUAL,
+			)
 
 			const expectedPublicKey: Versioned<PQPublicKeys> = {
 				version: 2,
@@ -96,21 +114,28 @@ o.spec("PublicKeyProviderTest", function () {
 				},
 			}
 			const pubKeys = await publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier)
-			o(pubKeys).deepEquals(expectedPublicKey)
+			o(pubKeys.publicEncryptionKey).deepEquals(expectedPublicKey)
+			o(pubKeys.verificationState).equals(EncryptionKeyVerificationState.VERIFIED_MANUAL)
+			verify(keyVerificationFacade.verify(publicKeyIdentifier.identifier, matchers.anything(), signature.signature), { times: 1 })
 		})
 
-		o("success rsa keys", async function () {
+		o("success rsa keys (manually verified)", async function () {
 			const rsaTestData = getFirstOrThrow(testData.rsaEncryptionTests)
 			const rsaPublicKey = hexToUint8Array(rsaTestData.publicKey)
+			const signature: PublicKeySignature = object()
+			signature.signature = object()
 			const publicKeyGetOut = createPublicKeyGetOut({
 				pubEccKey: null,
 				pubKyberKey: null,
 				pubRsaKey: rsaPublicKey,
 				pubKeyVersion: "0",
-				signature: null,
+				signature,
 			})
 
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
+			when(keyVerificationFacade.verify(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
+				EncryptionKeyVerificationState.VERIFIED_MANUAL,
+			)
 
 			const decodedRsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(rsaPublicKey))
 
@@ -125,7 +150,94 @@ o.spec("PublicKeyProviderTest", function () {
 				},
 			}
 			const pubKeys = await publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier)
-			o(pubKeys).deepEquals(expectedPublicKey)
+			o(pubKeys.publicEncryptionKey).deepEquals(expectedPublicKey)
+			o(pubKeys.verificationState).equals(EncryptionKeyVerificationState.VERIFIED_MANUAL)
+			verify(keyVerificationFacade.verify(publicKeyIdentifier.identifier, matchers.anything(), signature.signature), { times: 1 })
+		})
+
+		o("success pq keys (TOFU)", async function () {
+			const signature: PublicKeySignature = object()
+			signature.signature = object()
+			const publicKeyGetOut = createPublicKeyGetOut({
+				pubKeyVersion: String(currentVersion),
+				pubRsaKey: null,
+				pubKyberKey: kyberPublicKey,
+				pubEccKey: x25519PublicKey,
+				signature,
+			})
+			const identityKeyGetOut = createIdentityKeyGetOut({
+				publicIdentityKey: new Uint8Array([1, 2, 3]),
+				publicIdentityKeyVersion: "0",
+			})
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
+			when(serviceExecutor.get(IdentityKeyService, matchers.anything())).thenResolve(identityKeyGetOut)
+			when(keyVerificationFacade.verify(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
+				EncryptionKeyVerificationState.NO_ENTRY,
+				EncryptionKeyVerificationState.VERIFIED_TOFU,
+			)
+
+			const expectedPublicKey: Versioned<PQPublicKeys> = {
+				version: 2,
+				object: {
+					keyPairType: KeyPairType.TUTA_CRYPT,
+					x25519PublicKey: x25519PublicKey,
+					kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
+				},
+			}
+			const pubKeys = await publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier)
+			o(pubKeys.publicEncryptionKey).deepEquals(expectedPublicKey)
+			o(pubKeys.verificationState).equals(EncryptionKeyVerificationState.VERIFIED_TOFU)
+			verify(keyVerificationFacade.trust(publicKeyIdentifier.identifier, matchers.anything(), IdentityKeySourceOfTrust.TOFU))
+			verify(keyVerificationFacade.verify(publicKeyIdentifier.identifier, matchers.anything(), signature.signature), { times: 2 })
+		})
+
+		o("no identity key, no signature (TOFU) result in NO_ENTRY", async function () {
+			const publicKeyGetOut = createPublicKeyGetOut({
+				pubKeyVersion: String(currentVersion),
+				pubRsaKey: null,
+				pubKyberKey: kyberPublicKey,
+				pubEccKey: x25519PublicKey,
+				signature: null,
+			})
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
+			when(serviceExecutor.get(IdentityKeyService, matchers.anything())).thenReject(new NotFoundError("no identity key"))
+			when(keyVerificationFacade.verify(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
+				EncryptionKeyVerificationState.NO_ENTRY,
+			)
+
+			const expectedPublicKey: Versioned<PQPublicKeys> = {
+				version: 2,
+				object: {
+					keyPairType: KeyPairType.TUTA_CRYPT,
+					x25519PublicKey: x25519PublicKey,
+					kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
+				},
+			}
+			const pubKeys = await publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier)
+			o(pubKeys.publicEncryptionKey).deepEquals(expectedPublicKey)
+			o(pubKeys.verificationState).equals(EncryptionKeyVerificationState.NO_ENTRY)
+			verify(keyVerificationFacade.verify(publicKeyIdentifier.identifier, matchers.anything(), null), { times: 1 })
+		})
+
+		o("no identity key, existing signature (TOFU) result in KeyVerificationMismatch", async function () {
+			const signature: PublicKeySignature = object()
+			signature.signature = object()
+			const publicKeyGetOut = createPublicKeyGetOut({
+				pubKeyVersion: String(currentVersion),
+				pubRsaKey: null,
+				pubKyberKey: kyberPublicKey,
+				pubEccKey: x25519PublicKey,
+				signature,
+			})
+			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
+			when(serviceExecutor.get(IdentityKeyService, matchers.anything())).thenReject(new NotFoundError("no identity key"))
+			when(keyVerificationFacade.verify(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
+				EncryptionKeyVerificationState.NO_ENTRY,
+			)
+
+			const error = await assertThrows(KeyVerificationMismatchError, async () => publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier))
+			o(error.message).equals("no identity key for: " + PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS)
+			verify(keyVerificationFacade.verify(publicKeyIdentifier.identifier, matchers.anything(), signature.signature), { times: 1 })
 		})
 
 		o("rsa key in version other than 0", async function () {
@@ -148,8 +260,6 @@ o.spec("PublicKeyProviderTest", function () {
 		const requestedVersion = 1
 
 		o("success", async function () {
-			const pubKyberKey = object<Uint8Array>()
-			const pubEccKey = object<Uint8Array>()
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
 				createPublicKeyGetOut({
 					pubKeyVersion: String(requestedVersion),
@@ -170,7 +280,7 @@ o.spec("PublicKeyProviderTest", function () {
 			}
 
 			const pubKeys = await publicKeyProvider.loadPubKey(publicKeyIdentifier, requestedVersion)
-			o(pubKeys).deepEquals(expectedPublicKey)
+			o(pubKeys.publicEncryptionKey).deepEquals(expectedPublicKey)
 		})
 
 		o("invalid version returned", async function () {
@@ -266,12 +376,12 @@ o.spec("PublicKeyProviderTest", function () {
 				keyAuthenticationFacade.verifyTag(
 					matchers.argThat((params: IdentityPubKeyAuthenticationParams) => {
 						return (
-							params.tagType == "IDENTITY_PUB_KEY_TAG" &&
+							params.tagType === "IDENTITY_PUB_KEY_TAG" &&
 							arrayEquals(params.untrustedKey.identityPubKey, ed25519PublicKey) &&
-							params.sourceOfTrust.symmetricGroupKey == userGroupKey &&
-							params.bindingData.groupId == userGroup._id &&
-							String(params.bindingData.groupKeyVersion) == identityPublicKeyMac.taggingKeyVersion &&
-							String(params.bindingData.publicIdentityKeyVersion) == identityPublicKeyMac.taggedKeyVersion
+							params.sourceOfTrust.symmetricGroupKey === userGroupKey &&
+							params.bindingData.groupId === userGroup._id &&
+							String(params.bindingData.groupKeyVersion) === identityPublicKeyMac.taggingKeyVersion &&
+							String(params.bindingData.publicIdentityKeyVersion) === identityPublicKeyMac.taggedKeyVersion
 						)
 					}),
 					identityPublicKeyMac.tag,
@@ -369,13 +479,16 @@ o.spec("PublicKeyProvider - convert keys", function () {
 	let entityClient: EntityClient
 	let keyAuthenticationFacade: KeyAuthenticationFacade
 	let keyLoaderFacade: KeyLoaderFacade
+	let keyVerificationFacade: KeyVerificationFacade
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
 		entityClient = object()
 		keyAuthenticationFacade = object()
 		keyLoaderFacade = object()
-		publicKeyProvider = new PublicKeyProvider(serviceExecutor, entityClient, keyAuthenticationFacade, keyLoaderFacade)
+		keyVerificationFacade = object()
+
+		publicKeyProvider = new PublicKeyProvider(serviceExecutor, entityClient, keyAuthenticationFacade, keyLoaderFacade, async () => keyVerificationFacade)
 
 		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)

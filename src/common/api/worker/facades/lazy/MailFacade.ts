@@ -113,7 +113,6 @@ import {
 	promiseFilter,
 	promiseMap,
 	splitInChunks,
-	Versioned,
 } from "@tutao/tutanota-utils"
 import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
@@ -134,7 +133,6 @@ import {
 	generateRandomSalt,
 	keyToUint8Array,
 	murmurHash,
-	PublicKey,
 	random,
 	sha256Hash,
 } from "@tutao/tutanota-crypto"
@@ -151,7 +149,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
-import { PublicKeyProvider } from "../PublicKeyProvider.js"
+import { LoadedPublicEncryptionKey, PublicKeyProvider } from "../PublicKeyProvider.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
@@ -884,12 +882,13 @@ export class MailFacade {
 		}
 	}
 
-	getRecipientKeyData(mailAddress: string): Promise<Versioned<PublicKey> | null> {
+	getRecipientKeyData(mailAddress: string): Promise<LoadedPublicEncryptionKey | null> {
 		return this.publicKeyProvider
 			.loadCurrentPubKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: mailAddress,
 			})
+			.then((value) => value)
 			.catch(ofClass(NotFoundError, () => null))
 	}
 

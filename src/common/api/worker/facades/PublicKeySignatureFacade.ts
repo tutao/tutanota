@@ -96,10 +96,10 @@ export class PublicKeySignatureFacade {
 	deserializePublicKeyForSigning(serializedPublicKey: Uint8Array): DeserializedPublicKeyForSigning {
 		const byteArrays = bytesToByteArrays(serializedPublicKey, 4)
 
-		if (byteArrays[0].length != 1) {
+		if (byteArrays[0].length !== 1) {
 			throw new InvalidDataError("signature types greater than one byte are not yet supported")
 		}
-		if (byteArrays[1].length != 1) {
+		if (byteArrays[1].length !== 1) {
 			throw new InvalidDataError("key pair versions greater than one byte are not yet supported")
 		}
 		const signatureType: PublicKeySignatureType = asPublicKeySignatureType(byteArrays[0][0].toString())

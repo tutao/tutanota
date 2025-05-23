@@ -344,7 +344,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 						const identityKeyPairFromRequest = requestData.identityKeyPair
 						const signaturesFromRequest = requestData.signatures
 						o(signaturesFromRequest.length).equals(1)
-						return identityKeyPairFromRequest.privateEd25519Key == encPrivIdentityKey.key && signaturesFromRequest[0] == signature
+						return identityKeyPairFromRequest.privateEd25519Key === encPrivIdentityKey.key && signaturesFromRequest[0] === signature
 					})
 					o(expectedCalls!.length).equals(1)
 				}

@@ -5,7 +5,7 @@ import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel, PublicIdentity } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import jsQR from "jsqr"
-import { KeyVerificationMethodType, KeyVerificationResultType } from "../../../api/common/TutanotaConstants"
+import { IdentityKeyVerificationMethod, IdentityKeyQrVerificationResult } from "../../../api/common/TutanotaConstants"
 import { isApp } from "../../../api/common/Env"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
@@ -70,7 +70,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 			m(Card, {
 				style: { padding: "0" },
 			}),
-			model.getKeyVerificationResult() === KeyVerificationResultType.QR_OK
+			model.getKeyVerificationResult() === IdentityKeyQrVerificationResult.QR_OK
 				? this.renderConfirmation(assertNotNull(model.getPublicIdentity()))
 				: this.renderQrVideoStream(model),
 			m(
@@ -78,12 +78,12 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 				m(LoginButton, {
 					label: markAsVerifiedTranslationKey,
 					onclick: async () => {
-						await model.trust(KeyVerificationMethodType.qr)
+						await model.trust(IdentityKeyVerificationMethod.qr)
 						goToSuccessPage()
 					},
-					disabled: model.getKeyVerificationResult() !== KeyVerificationResultType.QR_OK,
+					disabled: model.getKeyVerificationResult() !== IdentityKeyQrVerificationResult.QR_OK,
 					icon:
-						model.getKeyVerificationResult() !== KeyVerificationResultType.QR_OK
+						model.getKeyVerificationResult() !== IdentityKeyQrVerificationResult.QR_OK
 							? undefined
 							: m(Icon, {
 									icon: Icons.Checkmark,
@@ -227,7 +227,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 				if (code) {
 					// at this point, a QR code has been detected and decoded
 					const verificationResult = await model.validateQrCodeAddress(code)
-					if (verificationResult !== KeyVerificationResultType.QR_OK) {
+					if (verificationResult !== IdentityKeyQrVerificationResult.QR_OK) {
 						this.goToErrorPage?.(this.resultToErrorType(verificationResult))
 					}
 
@@ -244,15 +244,15 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		})
 	}
 
-	resultToErrorType(kr: KeyVerificationResultType | undefined): QrCodePageErrorType {
+	resultToErrorType(kr: IdentityKeyQrVerificationResult | undefined): QrCodePageErrorType {
 		switch (kr) {
-			case KeyVerificationResultType.QR_FINGERPRINT_MISMATCH: {
+			case IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH: {
 				return "qr_code_mismatch"
 			}
-			case KeyVerificationResultType.QR_MAIL_ADDRESS_NOT_FOUND: {
+			case IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND: {
 				return "email_not_found"
 			}
-			case KeyVerificationResultType.QR_MALFORMED_PAYLOAD: {
+			case IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD: {
 				return "malformed_qr"
 			}
 		}

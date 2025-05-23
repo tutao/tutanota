@@ -4,13 +4,14 @@ import {
 	GroupTypeRef,
 	PubDistributionKey,
 	PublicKeyGetOut,
+	PublicKeySignature,
 	type SystemKeysReturn,
 } from "../../entities/sys/TypeRefs.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { IdentityKeyService, PublicKeyService } from "../../entities/sys/Services.js"
 import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
-import { uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { InvalidDataError, NotFoundError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -29,22 +30,30 @@ import {
 import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { EntityClient } from "../../common/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade"
+import { KeyVerificationFacade } from "./lazy/KeyVerificationFacade"
+import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 
 export type PublicKeyIdentifier = {
 	identifier: string
 	identifierType: PublicKeyIdentifierType
 }
 
-type PublicKeyRawData = {
+export type PublicKeyRawData = {
 	pubKeyVersion: NumberString
 	pubEccKey: null | Uint8Array
 	pubKyberKey: null | Uint8Array
 	pubRsaKey: null | Uint8Array
+	signature: null | PublicKeySignature
 }
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString
 	publicIdentityKey: Uint8Array
+}
+
+export type LoadedPublicEncryptionKey = {
+	publicEncryptionKey: Versioned<PublicKey>
+	verificationState: EncryptionKeyVerificationState
 }
 
 /**
@@ -57,17 +66,18 @@ export class PublicKeyProvider {
 		private readonly entityClient: EntityClient,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 	) {}
 
 	/**
-     * Loads the public identity key from the given group and id assuming that there is an identity key.
-     * Authenticates the public data using the symmetric group key.
-     *
-     * @param groupId The group to load the identity key for, must be a user group or a shared mail group.
-
-     * @throws CryptoError in case the MAC tag of the public key cannot be verified.
-     * @return the requested identity key, or null if it is not available.
-     */
+	 * Loads the public identity key from the given group id and authenticates the public data
+	 * using a symmetric group key. This function should be used whenever we use/display our own
+	 * public identity key (user group or shared mail group) and not the identity key of a recipient.
+	 *
+	 * @param groupId The group to load the identity key for, must be a user group or a shared mail group.
+	 * @throws CryptoError in case the MAC tag of the public key cannot be verified.
+	 * @return the requested identity key, or null if it is not available.
+	 */
 	async loadPublicIdentityKeyFromGroup(groupId: Id): Promise<Versioned<SigningPublicKey> | null> {
 		const group = await this.entityClient.load(GroupTypeRef, groupId)
 		const groupIdentityKeyPair = group.identityKeyPair
@@ -105,6 +115,10 @@ export class PublicKeyProvider {
 		return identityKey
 	}
 
+	/**
+	 *  Loads the public identity key of
+	 * @param pubKeyIdentifier
+	 */
 	async loadPublicIdentityKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Versioned<SigningPublicKey> | null> {
 		const requestData = createIdentityKeyGetIn({
 			version: null,
@@ -139,23 +153,71 @@ export class PublicKeyProvider {
 		}
 	}
 
-	async loadCurrentPubKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Versioned<PublicKey>> {
+	async loadCurrentPubKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<LoadedPublicEncryptionKey> {
 		return this.loadPubKey(pubKeyIdentifier, null)
 	}
 
-	async loadPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<Versioned<PublicKey>> {
+	/**
+	 * Loads a public encryption key for the given identifier. Ensures that key verification is executed when
+	 * identifier type is MAIL_ADDRESS. Existing signatures on public keys are verified against the local trust database.
+	 * Implements TOFU transparently.
+	 *
+	 * @param pubKeyIdentifier
+	 * @param version
+	 * @throws KeyVerificationMismatchError in case of key verification failure
+	 */
+	async loadPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<LoadedPublicEncryptionKey> {
 		const requestData = createPublicKeyGetIn({
 			version: version != null ? String(version) : null,
 			identifier: pubKeyIdentifier.identifier,
 			identifierType: pubKeyIdentifier.identifierType,
 		})
 		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, requestData)
-		const pubKeys = this.convertFromPublicKeyGetOut(publicKeyGetOut)
-		this.enforceRsaKeyVersionConstraint(pubKeys)
-		if (version != null && pubKeys.version !== version) {
+		const publicEncryptionKey = this.convertFromPublicKeyGetOut(publicKeyGetOut)
+		this.enforceRsaKeyVersionConstraint(publicEncryptionKey)
+		if (version != null && publicEncryptionKey.version !== version) {
 			throw new InvalidDataError("the server returned a key version that was not requested")
 		}
-		return pubKeys
+
+		const keyVerificationFacade = await this.lazyKeyVerificationFacade()
+		if (pubKeyIdentifier.identifierType === PublicKeyIdentifierType.MAIL_ADDRESS && (await keyVerificationFacade.isSupported())) {
+			const mailAddress = pubKeyIdentifier.identifier
+
+			const encodedPublicEncryptionKeySignature = publicKeyGetOut.signature ? publicKeyGetOut.signature.signature : null
+
+			let verificationState = await keyVerificationFacade.verify(mailAddress, publicEncryptionKey, encodedPublicEncryptionKeySignature)
+
+			if (verificationState === EncryptionKeyVerificationState.NO_ENTRY) {
+				// TOFU: identity key is not yet in the trust database. Load and add it now.
+				const tofuIdentityKey = await this.loadPublicIdentityKey(pubKeyIdentifier)
+				if (tofuIdentityKey == null) {
+					if (publicKeyGetOut.signature) {
+						throw new KeyVerificationMismatchError("no identity key for: " + mailAddress)
+					} else {
+						// For now, we want to accept a public key not having a signature IF there is
+						// also no identity key. This is for backwards compatbility.
+						return {
+							verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+							publicEncryptionKey: publicEncryptionKey,
+						}
+					}
+				}
+
+				await keyVerificationFacade.trust(mailAddress, tofuIdentityKey, IdentityKeySourceOfTrust.TOFU)
+				verificationState = await keyVerificationFacade.verify(mailAddress, publicEncryptionKey, encodedPublicEncryptionKeySignature)
+			}
+
+			return {
+				verificationState: verificationState,
+				publicEncryptionKey: publicEncryptionKey,
+			}
+		} else {
+			// if identifier type has not been MAIL_ADDRESS or key verification is not supported
+			return {
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+				publicEncryptionKey: publicEncryptionKey,
+			}
+		}
 	}
 
 	/**
@@ -177,6 +239,7 @@ export class PublicKeyProvider {
 			pubEccKey: publicKeys.pubEccKey,
 			pubKyberKey: publicKeys.pubKyberKey,
 			pubKeyVersion: publicKeys.pubKeyVersion,
+			signature: publicKeys.signature,
 		})
 	}
 
@@ -186,6 +249,7 @@ export class PublicKeyProvider {
 			pubEccKey: publicKeys.systemAdminPubEccKey,
 			pubKyberKey: publicKeys.systemAdminPubKyberKey,
 			pubKeyVersion: publicKeys.systemAdminPubKeyVersion,
+			signature: null,
 		})
 	}
 
@@ -200,6 +264,7 @@ export class PublicKeyProvider {
 			pubEccKey: kp.pubEccKey,
 			pubKyberKey: kp.pubKyberKey,
 			pubKeyVersion: pubKeyVersion.toString(),
+			signature: null,
 		})
 		if (isVersionedPqPublicKey(publicKey)) {
 			return publicKey
@@ -210,8 +275,7 @@ export class PublicKeyProvider {
 
 	/**
 	 * Converts some form of public PQ keys to the PQPublicKeys type. Assumes pubEccKey and pubKyberKey exist.
-	 * @param kp
-	 * @param pubKeyVersion
+	 * @param pubDistributionKey
 	 */
 	public convertFromPubDistributionKey(pubDistributionKey: PubDistributionKey): Versioned<PQPublicKeys> {
 		const publicKey = this.convertFromPublicKeyRawData({
@@ -219,6 +283,7 @@ export class PublicKeyProvider {
 			pubEccKey: pubDistributionKey.pubEccKey,
 			pubKyberKey: pubDistributionKey.pubKyberKey,
 			pubKeyVersion: "0", // for distribution keys the version is always 0 because they are only used for the rotation and never rotated.
+			signature: null,
 		})
 		if (isVersionedPqPublicKey(publicKey)) {
 			return publicKey
