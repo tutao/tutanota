@@ -449,9 +449,10 @@ export class CalendarModel {
 
 			/**
 			 * Sync strategy
-			 * - Replace duplicates
+			 * - Deduplicate events with same UID
+			 * - Remove duplicated and not imported events
+			 * - Update existing events
 			 * - Add new
-			 * - Remove rest
 			 */
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedExternalEvents, existingEventList, currentCalendarGroupRoot, getTimeZone())
 			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
@@ -469,6 +470,7 @@ export class CalendarModel {
 			const eventsToRemove = existingEventList.filter(
 				(existingEvent) => !parsedExternalEvents.some((externalEvent) => externalEvent.event.uid === existingEvent.uid),
 			)
+			eventsToRemove.push(...this.findDuplicatedEvents(existingEventList))
 
 			const creationRequests = Math.ceil(eventsForCreation.length / POST_MULTIPLE_LIMIT)
 			const totalRequests = creationRequests + eventsToRemove.length + eventsToUpdate.length
@@ -506,6 +508,22 @@ export class CalendarModel {
 			}
 			throw new Error(errorMessage)
 		}
+	}
+
+	private findDuplicatedEvents(events: CalendarEvent[]): CalendarEvent[] {
+		const duplicatedEvents: CalendarEvent[] = []
+
+		// The last item don't have anything to be compared with, so length - 2
+		for (let index = 0; index < events.length - 2; index++) {
+			const event = events[index]
+			const isDuplicate = events.slice(index + 1).some((it) => event.uid === it.uid)
+			if (isDuplicate) {
+				duplicatedEvents.push(event)
+			}
+		}
+
+		console.log(`[CalendarModel] Found ${duplicatedEvents.length} events duplicated`)
+		return duplicatedEvents
 	}
 
 	private async processExternalCalendarOperations(
@@ -565,8 +583,8 @@ export class CalendarModel {
 			operationsLog.updated++
 		}
 		operationsLog.skipped = duplicatesCount - operationsLog.updated
-		console.log(TAG, `${operationsLog.skipped} events skipped (duplication without changes)`)
-		console.log(TAG, `${operationsLog.updated} events updated (duplication with changes)`)
+		console.log(TAG, `${operationsLog.skipped} events skipped (same UID without changes)`)
+		console.log(TAG, `${operationsLog.updated} events updated (same UID with changes)`)
 
 		// Add new event
 		for (const { event } of eventsForCreation) {
