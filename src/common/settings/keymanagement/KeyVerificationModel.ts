@@ -1,6 +1,11 @@
 import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { assertNotNull, Hex, Versioned } from "@tutao/tutanota-utils"
-import { KeyVerificationMethodType, KeyVerificationResultType, KeyVerificationSourceOfTrust, PublicKeyIdentifierType } from "../../api/common/TutanotaConstants"
+import {
+	IdentityKeyVerificationMethod,
+	IdentityKeyQrVerificationResult,
+	IdentityKeySourceOfTrust,
+	PublicKeyIdentifierType,
+} from "../../api/common/TutanotaConstants"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { KeyVerificationScanCompleteMetric, KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 import { PublicKeyProvider } from "../../api/worker/facades/PublicKeyProvider"
@@ -23,10 +28,10 @@ export class KeyVerificationModel {
 
 	// Tracking the wizard state
 	mailAddressInput: string = ""
-	private result: KeyVerificationResultType | null = null
+	private result: IdentityKeyQrVerificationResult | null = null
 
 	// Relevant for the regret usage test only. Can be removed after testing is done.
-	private chosenMethod: KeyVerificationMethodType | null = null
+	private chosenMethod: IdentityKeyVerificationMethod | null = null
 
 	constructor(
 		private readonly keyVerificationFacade: KeyVerificationFacade,
@@ -41,16 +46,16 @@ export class KeyVerificationModel {
 		this.mailAddressInput = ""
 	}
 
-	private setKeyVerificationResult(resultType: KeyVerificationResultType): KeyVerificationResultType {
+	private setKeyVerificationResult(resultType: IdentityKeyQrVerificationResult): IdentityKeyQrVerificationResult {
 		this.result = resultType
 		return this.result
 	}
 
-	public async validateQrCodeAddress(qrCode: QRCode): Promise<KeyVerificationResultType> {
+	public async validateQrCodeAddress(qrCode: QRCode): Promise<IdentityKeyQrVerificationResult> {
 		try {
 			const payload: KeyVerificationQrPayload = JSON.parse(qrCode.data) as KeyVerificationQrPayload
 			if (payload.mailAddress == null || payload.fingerprint == null) {
-				return this.setKeyVerificationResult(KeyVerificationResultType.QR_MALFORMED_PAYLOAD)
+				return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD)
 			}
 
 			const identityKey = await this.loadIdentityKeyForMailAddress(payload.mailAddress)
@@ -58,25 +63,25 @@ export class KeyVerificationModel {
 			if (identityKey) {
 				if (identityKey.fingerprint === payload.fingerprint) {
 					// MalformedQrPayloadError: malformed payload
-					return this.setKeyVerificationResult(KeyVerificationResultType.QR_OK)
+					return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_OK)
 				} else {
-					return this.setKeyVerificationResult(KeyVerificationResultType.QR_FINGERPRINT_MISMATCH)
+					return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH)
 				}
 			} else {
-				return this.setKeyVerificationResult(KeyVerificationResultType.QR_MAIL_ADDRESS_NOT_FOUND)
+				return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND)
 			}
 		} catch (e) {
 			if (e instanceof SyntaxError) {
 				// SyntaxError: JSON.parse failed
-				return this.setKeyVerificationResult(KeyVerificationResultType.QR_MALFORMED_PAYLOAD)
+				return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD)
 			} else {
 				throw e
 			}
 		} finally {
-			if (this.result === KeyVerificationResultType.QR_OK) {
-				await this.test.scan_complete(KeyVerificationMethodType.qr, KeyVerificationScanCompleteMetric.Success)
+			if (this.result === IdentityKeyQrVerificationResult.QR_OK) {
+				await this.test.scan_complete(IdentityKeyVerificationMethod.qr, KeyVerificationScanCompleteMetric.Success)
 			} else {
-				await this.test.scan_complete(KeyVerificationMethodType.qr, KeyVerificationScanCompleteMetric.Failure)
+				await this.test.scan_complete(IdentityKeyVerificationMethod.qr, KeyVerificationScanCompleteMetric.Failure)
 			}
 		}
 	}
@@ -102,13 +107,13 @@ export class KeyVerificationModel {
 		return this.publicIdentityKey
 	}
 
-	public async trust(method: KeyVerificationMethodType) {
+	public async trust(method: IdentityKeyVerificationMethod) {
 		const identityKey = assertNotNull(this.publicIdentityKey)
-		await this.keyVerificationFacade.trust(identityKey.mailAddress, identityKey.key, KeyVerificationSourceOfTrust.Manual)
+		await this.keyVerificationFacade.trust(identityKey.mailAddress, identityKey.key, IdentityKeySourceOfTrust.Manual)
 		await this.test.verified(method)
 	}
 
-	public async handleMethodSwitch(newMethod: KeyVerificationMethodType) {
+	public async handleMethodSwitch(newMethod: IdentityKeyVerificationMethod) {
 		if (this.chosenMethod != null && this.chosenMethod !== newMethod) {
 			// user regrets their previous choice
 			await this.test.regret()
@@ -118,11 +123,11 @@ export class KeyVerificationModel {
 		this.chosenMethod = newMethod
 	}
 
-	public getChosenMethod(): KeyVerificationMethodType | null {
+	public getChosenMethod(): IdentityKeyVerificationMethod | null {
 		return this.chosenMethod
 	}
 
-	public getKeyVerificationResult(): KeyVerificationResultType | null {
+	public getKeyVerificationResult(): IdentityKeyQrVerificationResult | null {
 		return this.result
 	}
 

@@ -6,9 +6,9 @@ import { KeyVerificationUsageTestUtils } from "../../../../src/common/settings/k
 import { PublicKeyProvider } from "../../../../src/common/api/worker/facades/PublicKeyProvider"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	KeyVerificationMethodType,
-	KeyVerificationResultType,
-	KeyVerificationSourceOfTrust,
+	IdentityKeyVerificationMethod,
+	IdentityKeyQrVerificationResult,
+	IdentityKeySourceOfTrust,
 	PublicKeyIdentifierType,
 } from "../../../../src/common/api/common/TutanotaConstants"
 import { SigningPublicKey } from "../../../../src/common/api/worker/facades/Ed25519Facade"
@@ -34,31 +34,31 @@ o.spec("KeyVerificationModelTest", function () {
 
 	o.spec("test handleMethodSwitch()", function () {
 		o("start text verification", async function () {
-			await keyVerificationModel.handleMethodSwitch(KeyVerificationMethodType.text)
+			await keyVerificationModel.handleMethodSwitch(IdentityKeyVerificationMethod.text)
 
-			verify(keyVerificationTestUtils.start(KeyVerificationMethodType.text))
+			verify(keyVerificationTestUtils.start(IdentityKeyVerificationMethod.text))
 			verify(keyVerificationTestUtils.regret(), { times: 0 })
 
-			o(keyVerificationModel.getChosenMethod()).equals(KeyVerificationMethodType.text)
+			o(keyVerificationModel.getChosenMethod()).equals(IdentityKeyVerificationMethod.text)
 		})
 
 		o("start qr verification", async function () {
-			await keyVerificationModel.handleMethodSwitch(KeyVerificationMethodType.qr)
+			await keyVerificationModel.handleMethodSwitch(IdentityKeyVerificationMethod.qr)
 
-			verify(keyVerificationTestUtils.start(KeyVerificationMethodType.qr))
+			verify(keyVerificationTestUtils.start(IdentityKeyVerificationMethod.qr))
 			verify(keyVerificationTestUtils.regret(), { times: 0 })
 
-			o(keyVerificationModel.getChosenMethod()).equals(KeyVerificationMethodType.qr)
+			o(keyVerificationModel.getChosenMethod()).equals(IdentityKeyVerificationMethod.qr)
 		})
 
 		o("start text verification with regret", async function () {
-			await keyVerificationModel.handleMethodSwitch(KeyVerificationMethodType.qr)
-			await keyVerificationModel.handleMethodSwitch(KeyVerificationMethodType.text)
+			await keyVerificationModel.handleMethodSwitch(IdentityKeyVerificationMethod.qr)
+			await keyVerificationModel.handleMethodSwitch(IdentityKeyVerificationMethod.text)
 
-			verify(keyVerificationTestUtils.start(KeyVerificationMethodType.text))
+			verify(keyVerificationTestUtils.start(IdentityKeyVerificationMethod.text))
 			verify(keyVerificationTestUtils.regret())
 
-			o(keyVerificationModel.getChosenMethod()).equals(KeyVerificationMethodType.text)
+			o(keyVerificationModel.getChosenMethod()).equals(IdentityKeyVerificationMethod.text)
 		})
 	})
 
@@ -100,13 +100,13 @@ o.spec("KeyVerificationModelTest", function () {
 
 			await keyVerificationModel.loadIdentityKeyForMailAddress("alice@tuta.com")
 
-			await keyVerificationModel.trust(KeyVerificationMethodType.text)
-			verify(keyVerificationFacade.trust("alice@tuta.com", publicIdentityKey, KeyVerificationSourceOfTrust.Manual))
-			verify(keyVerificationTestUtils.verified(KeyVerificationMethodType.text))
+			await keyVerificationModel.trust(IdentityKeyVerificationMethod.text)
+			verify(keyVerificationFacade.trust("alice@tuta.com", publicIdentityKey, IdentityKeySourceOfTrust.Manual))
+			verify(keyVerificationTestUtils.verified(IdentityKeyVerificationMethod.text))
 
-			await keyVerificationModel.trust(KeyVerificationMethodType.qr)
-			verify(keyVerificationFacade.trust("alice@tuta.com", publicIdentityKey, KeyVerificationSourceOfTrust.Manual))
-			verify(keyVerificationTestUtils.verified(KeyVerificationMethodType.qr))
+			await keyVerificationModel.trust(IdentityKeyVerificationMethod.qr)
+			verify(keyVerificationFacade.trust("alice@tuta.com", publicIdentityKey, IdentityKeySourceOfTrust.Manual))
+			verify(keyVerificationTestUtils.verified(IdentityKeyVerificationMethod.qr))
 		})
 	})
 
@@ -141,7 +141,7 @@ o.spec("KeyVerificationModelTest", function () {
 	o.spec("test validateQrCodeAddress()", function () {
 		o("success", async function () {
 			const qrCode: QRCode = object()
-			let result: KeyVerificationResultType
+			let result: IdentityKeyQrVerificationResult
 			const publicIdentityKey: Versioned<SigningPublicKey> = object()
 			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(publicIdentityKey)
 			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenResolve("aabbccdd")
@@ -150,8 +150,8 @@ o.spec("KeyVerificationModelTest", function () {
 
 			result = await keyVerificationModel.validateQrCodeAddress(qrCode)
 
-			o(result).equals(KeyVerificationResultType.QR_OK)
-			o(keyVerificationModel.getKeyVerificationResult()).equals(KeyVerificationResultType.QR_OK)
+			o(result).equals(IdentityKeyQrVerificationResult.QR_OK)
+			o(keyVerificationModel.getKeyVerificationResult()).equals(IdentityKeyQrVerificationResult.QR_OK)
 			verify(
 				publicKeyProvider.loadPublicIdentityKey({
 					identifier: "alice@tuta.com",
@@ -166,25 +166,25 @@ o.spec("KeyVerificationModelTest", function () {
 			qrCode.data = "this is no json"
 
 			const result = await keyVerificationModel.validateQrCodeAddress(qrCode)
-			o(result).equals(KeyVerificationResultType.QR_MALFORMED_PAYLOAD)
+			o(result).equals(IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD)
 		})
 
 		o("valid JSON payload with missing properties", async function () {
 			const qrCode: QRCode = object()
-			let result: KeyVerificationResultType
+			let result: IdentityKeyQrVerificationResult
 
 			qrCode.data = `{"mailAddress": "alice@tuta.com"}`
 			result = await keyVerificationModel.validateQrCodeAddress(qrCode)
-			o(result).equals(KeyVerificationResultType.QR_MALFORMED_PAYLOAD)
+			o(result).equals(IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD)
 
 			qrCode.data = `{"fingerprint": "aabbccdd"}`
 			result = await keyVerificationModel.validateQrCodeAddress(qrCode)
-			o(result).equals(KeyVerificationResultType.QR_MALFORMED_PAYLOAD)
+			o(result).equals(IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD)
 		})
 
 		o("no identity key for mail address", async function () {
 			const qrCode: QRCode = object()
-			let result: KeyVerificationResultType
+			let result: IdentityKeyQrVerificationResult
 			const publicIdentityKey: Versioned<SigningPublicKey> = object()
 			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(null)
 
@@ -192,8 +192,8 @@ o.spec("KeyVerificationModelTest", function () {
 
 			result = await keyVerificationModel.validateQrCodeAddress(qrCode)
 
-			o(result).equals(KeyVerificationResultType.QR_MAIL_ADDRESS_NOT_FOUND)
-			o(keyVerificationModel.getKeyVerificationResult()).equals(KeyVerificationResultType.QR_MAIL_ADDRESS_NOT_FOUND)
+			o(result).equals(IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND)
+			o(keyVerificationModel.getKeyVerificationResult()).equals(IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND)
 			verify(
 				publicKeyProvider.loadPublicIdentityKey({
 					identifier: "alice@tuta.com",
@@ -205,7 +205,7 @@ o.spec("KeyVerificationModelTest", function () {
 
 		o("fingerprint mismatch", async function () {
 			const qrCode: QRCode = object()
-			let result: KeyVerificationResultType
+			let result: IdentityKeyQrVerificationResult
 			const publicIdentityKey: Versioned<SigningPublicKey> = object()
 			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(publicIdentityKey)
 			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenResolve("another fingerprint")
@@ -214,8 +214,8 @@ o.spec("KeyVerificationModelTest", function () {
 
 			result = await keyVerificationModel.validateQrCodeAddress(qrCode)
 
-			o(result).equals(KeyVerificationResultType.QR_FINGERPRINT_MISMATCH)
-			o(keyVerificationModel.getKeyVerificationResult()).equals(KeyVerificationResultType.QR_FINGERPRINT_MISMATCH)
+			o(result).equals(IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH)
+			o(keyVerificationModel.getKeyVerificationResult()).equals(IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH)
 			verify(
 				publicKeyProvider.loadPublicIdentityKey({
 					identifier: "alice@tuta.com",
