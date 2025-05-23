@@ -11,14 +11,7 @@ import {
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import {
-	deconstructMailSetEntryId,
-	elementIdPart,
-	firstBiggerThanSecond,
-	getElementId,
-	isSameId,
-	listIdPart,
-} from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, firstBiggerThanSecond, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
@@ -386,7 +379,13 @@ export class MailViewModel {
 	}
 
 	clearStickyMail() {
-		this.stickyMailId = null
+		if (this.stickyMailId) {
+			// if (!this.listModel?.getMail(elementIdPart(this.stickyMailId))) {
+			// 	this.clearConversationViewModel()
+			// }
+			this.stickyMailId = null
+			this.clearConversationViewModel()
+		}
 	}
 
 	currentFolderDeletesPermanently(): boolean {
@@ -580,13 +579,17 @@ export class MailViewModel {
 					this.mailOpenedListener.onEmailOpened(targetItem)
 				}
 			} else {
-				this.conversationViewModel?.dispose()
-				this.conversationViewModel = null
-				this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
+				this.clearConversationViewModel()
 			}
 		}
 		this.updateUrl()
 		this.updateUi()
+	}
+
+	private clearConversationViewModel() {
+		this.conversationViewModel?.dispose()
+		this.conversationViewModel = null
+		this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
 	}
 
 	private updateUrl() {

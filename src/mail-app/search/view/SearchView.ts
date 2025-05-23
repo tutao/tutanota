@@ -508,6 +508,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						viewModel: conversationViewModel,
 						actionableMailViewerViewModel: () => conversationViewModel.primaryViewModel(),
 						delayBodyRendering: Promise.resolve(),
+						//FIXME: moreActions should actually return the more actions
+						moreActions: (mailViewerModel) => ({}),
 					}),
 				})
 			}

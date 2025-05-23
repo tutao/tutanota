@@ -35,6 +35,7 @@ import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander
 import { ColumnWidth, Table } from "../../../common/gui/base/Table"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
+import { MailExportViewer } from "../../settings/MailExportViewer"
 
 export type MailViewerMoreActions = {
 	disallowExternalContentAction?: () => void
@@ -257,7 +258,7 @@ export function multipleMailViewerMoreActions(exportAction: (() => void) | null,
 	return moreButtons
 }
 
-export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Array<DropdownButtonAttrs> {
+export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, moreActions: MailViewerMoreActions): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 	if (viewModel.isUnread()) {
 		moreButtons.push({
@@ -289,7 +290,7 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 		})
 	}
 
-	moreButtons.push(...mailViewerMoreActions(getMailViewerMoreActions(viewModel)))
+	moreButtons.push(...mailViewerMoreActions(moreActions))
 
 	// adding more optional buttons? put them above the report action so the new button
 	// is not sometimes where the report action usually sits.
@@ -300,24 +301,52 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel): Arr
 export function getMailViewerMoreActions(viewModel: MailViewerViewModel): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
-	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
-		actions.disallowExternalContentAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block)
-	}
+	// if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
+	// 	actions.disallowExternalContentAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block)
+	// }
+	//
+	// if (viewModel.canPersistBlockingStatus() && viewModel.isBlockingExternalImages()) {
+	// 	actions.showImagesAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
+	// }
+	//
+	// if (viewModel.isListUnsubscribe()) {
+	// 	actions.unsubscribeAction = () => unsubscribe(viewModel)
+	// }
+	//
+	// if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
+	// 	actions.printAction = () => window.print()
+	// }
 
-	if (viewModel.canPersistBlockingStatus() && viewModel.isBlockingExternalImages()) {
-		actions.showImagesAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
-	}
+	// FIXME
 
-	if (viewModel.isListUnsubscribe()) {
-		actions.unsubscribeAction = () => unsubscribe(viewModel)
-	}
+	// if (viewModel.canReport()) {
+	// 	actions.reportMailAction = () => showReportMailDialog()
+	// }
 
-	if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
-		actions.printAction = () => window.print()
-	}
+	return actions
+}
 
-	if (viewModel.canReport()) {
-		actions.reportMailAction = () => reportMail(viewModel)
+export function getMailViewerMoreActions2({ report }: { report: (() => unknown) | null }): MailViewerMoreActions {
+	const actions: MailViewerMoreActions = {}
+
+	// if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
+	// 	actions.disallowExternalContentAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block)
+	// }
+	//
+	// if (viewModel.canPersistBlockingStatus() && viewModel.isBlockingExternalImages()) {
+	// 	actions.showImagesAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
+	// }
+	//
+	// if (viewModel.isListUnsubscribe()) {
+	// 	actions.unsubscribeAction = () => unsubscribe(viewModel)
+	// }
+	//
+	// if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
+	// 	actions.printAction = () => window.print()
+	// }
+
+	if (report) {
+		actions.reportMailAction = report
 	}
 
 	return actions
@@ -394,14 +423,7 @@ function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
 		})
 }
 
-function reportMail(viewModel: MailViewerViewModel) {
-	const sendReport = (reportType: MailReportType) => {
-		viewModel
-			.reportMail(reportType)
-			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-			.finally(m.redraw)
-	}
-
+export function showReportMailDialog(onReport: (type: MailReportType) => unknown) {
 	const dialog = Dialog.showActionDialog({
 		title: "reportEmail_action",
 		child: () =>
@@ -427,7 +449,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 						m(Button, {
 							label: "reportPhishing_action",
 							click: () => {
-								sendReport(MailReportType.PHISHING)
+								onReport(MailReportType.PHISHING)
 								dialog.close()
 							},
 							type: ButtonType.Secondary,
@@ -435,7 +457,7 @@ function reportMail(viewModel: MailViewerViewModel) {
 						m(Button, {
 							label: "reportSpam_action",
 							click: () => {
-								sendReport(MailReportType.SPAM)
+								onReport(MailReportType.SPAM)
 								dialog.close()
 							},
 							type: ButtonType.Secondary,

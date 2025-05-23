@@ -21,7 +21,7 @@ import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, promptAndDeleteMails, showMoveMailsDropdown, trashMails } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
-import { editDraft, singleMailViewerMoreActions } from "./MailViewerUtils.js"
+import { editDraft, MailViewerMoreActions, singleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { AttachmentBubble, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
@@ -47,6 +47,7 @@ export interface MailViewerHeaderAttrs {
 	createMailAddressContextButtons: MailAddressDropdownCreator
 	isPrimary: boolean
 	importFile: (file: TutanotaFile) => void
+	moreActions: MailViewerMoreActions
 }
 
 /** The upper part of the mail viewer, everything but the mail body itself. */
@@ -734,7 +735,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		})
 	}
 
-	private prepareMoreActions({ viewModel }: MailViewerHeaderAttrs) {
+	private prepareMoreActions({ viewModel, moreActions }: MailViewerHeaderAttrs) {
 		return createDropdown({
 			lazyButtons: () => {
 				let actionButtons: DropdownButtonAttrs[] = []
@@ -817,7 +818,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 					actionButtons.push(deleteOrTrashAction)
 
-					actionButtons.push(...singleMailViewerMoreActions(viewModel))
+					actionButtons.push(...singleMailViewerMoreActions(viewModel, moreActions))
 				}
 
 				return actionButtons
