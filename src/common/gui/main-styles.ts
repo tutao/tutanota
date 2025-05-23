@@ -2936,6 +2936,7 @@ styles.registerStyle("main", () => {
 			"font-weight": "bold",
 			"background-color": theme.highlight_bg,
 			color: theme.highlight_fg,
+			"border-radius": "3px",
 		},
 	}
 })
