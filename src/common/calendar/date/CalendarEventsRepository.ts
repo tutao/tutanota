@@ -20,7 +20,7 @@ import { elementIdPart, getListId, isSameId, listIdPart } from "../../api/common
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { findAllAndRemove, incrementDate, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
+import { deepEqual, findAllAndRemove, incrementDate, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
 import { CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, OperationType, RepeatPeriod } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
@@ -29,6 +29,7 @@ import { generateLocalEventElementId, getAllDayDateUTC } from "../../api/common/
 import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils.js"
+import { UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -55,11 +56,11 @@ interface ContactWrapper {
  */
 export class CalendarEventsRepository {
 	/** timestamps of the beginning of months that we already loaded */
-	private readonly loadedMonths = new Set<number>()
+	private readonly loadedMonths = new Map<number, string[]>()
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
-
 	private clientOnlyEvents: Map<number, BirthdayEventRegistry[]> = new Map()
+	private calendarMemberships: string[]
 
 	constructor(
 		private readonly calendarModel: CalendarModel,
@@ -71,7 +72,10 @@ export class CalendarEventsRepository {
 		private readonly logins: LoginController,
 	) {
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
-
+		this.calendarMemberships = this.logins
+			.getUserController()
+			.getCalendarMemberships()
+			.map((membership) => membership.group)
 		// Detect when group infos has been reset and reset our data in turn.
 		// There is probably another way, we could reduce and also compute symmetric difference.
 		// This might fire right away but it should be harmless then.
@@ -95,18 +99,34 @@ export class CalendarEventsRepository {
 		return await this.logins.getUserController().isNewPaidPlan()
 	}
 
-	async loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: IProgressMonitor, canceled: Stream<boolean>): Promise<void> {
+	async loadMonthsIfNeeded(
+		daysInMonths: Array<Date>,
+		canceled: Stream<boolean>,
+		progressMonitor: IProgressMonitor | null,
+		calendarToLoad?: string,
+	): Promise<void> {
 		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
 			for (const dayInMonth of daysInMonths) {
 				if (canceled()) return
 
 				const monthRange = getMonthRange(dayInMonth, this.zone)
-
-				if (!this.loadedMonths.has(monthRange.start)) {
-					this.loadedMonths.add(monthRange.start)
-
+				if (!this.loadedMonths.has(monthRange.start) || !this.isCalendarLoadedForRange(monthRange.start, calendarToLoad)) {
 					try {
-						const calendarInfos = await this.calendarModel.getCalendarInfos()
+						let calendarInfos = await this.calendarModel.getCalendarInfos()
+
+						if (!this.loadedMonths.has(monthRange.start)) {
+							this.loadedMonths.set(monthRange.start, Array.from(calendarInfos.keys()))
+						}
+
+						if (calendarToLoad != null) {
+							const calendarToLoadInfo = calendarInfos.get(calendarToLoad)
+							if (calendarToLoadInfo == null) {
+								throw Error("Trying to load a calendar that doesn't exists")
+							}
+
+							calendarInfos = new Map<string, CalendarInfo>([[calendarToLoad, calendarToLoadInfo]])
+						}
+
 						const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
 						this.replaceEvents(eventsMap)
 						this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
@@ -115,11 +135,19 @@ export class CalendarEventsRepository {
 						throw e
 					}
 				}
-				progressMonitor.workDone(1)
+				progressMonitor?.workDone(1)
 			}
 		})
 		this.pendingLoadRequest = promiseForThisLoadRequest
 		await promiseForThisLoadRequest
+	}
+
+	private isCalendarLoadedForRange(range: number, calendarId: string | null | undefined): boolean {
+		if (calendarId == null) {
+			return false
+		}
+
+		return this.loadedMonths.get(range)?.includes(calendarId) ?? false
 	}
 
 	private async addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
@@ -131,13 +159,17 @@ export class CalendarEventsRepository {
 			// to prevent unnecessary churn, we only add the event if we have the months it covers loaded.
 			const eventStartMonth = getMonthRange(getEventStart(event, this.zone), this.zone)
 			const eventEndMonth = getMonthRange(getEventEnd(event, this.zone), this.zone)
-			if (this.loadedMonths.has(eventStartMonth.start)) await this.addDaysForEvent(event, eventStartMonth)
+			if (this.isCalendarLoadedForRange(eventStartMonth.start, event._ownerGroup)) {
+				await this.addDaysForEvent(event, eventStartMonth)
+			}
 			// no short event covers more than two months, so this should cover everything.
-			if (eventEndMonth.start != eventStartMonth.start && this.loadedMonths.has(eventEndMonth.start)) await this.addDaysForEvent(event, eventEndMonth)
+			if (eventEndMonth.start != eventStartMonth.start && this.isCalendarLoadedForRange(eventEndMonth.start, event._ownerGroup)) {
+				await this.addDaysForEvent(event, eventEndMonth)
+			}
 		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
 			this.removeExistingEvent(event)
 
-			for (const firstDayTimestamp of this.loadedMonths) {
+			for (const [firstDayTimestamp, _] of this.loadedMonths) {
 				const loadedMonth = getMonthRange(new Date(firstDayTimestamp), this.zone)
 
 				if (event.repeatRule != null) {
@@ -158,6 +190,17 @@ export class CalendarEventsRepository {
 
 	private cloneEvents(): Map<number, Array<CalendarEvent>> {
 		return new Map(Array.from(this.daysToEvents().entries()).map(([day, events]) => [day, events.slice()]))
+	}
+
+	private removeEventForCalendar(calendarId: string) {
+		const isValidEvent = (ev: CalendarEvent) => !(ev._ownerGroup === calendarId)
+		const mapExistingEvents = ([day, events]: [number, CalendarEvent[]]): [number, CalendarEvent[]] => [
+			day,
+			events.slice().filter((ev) => isValidEvent(ev)),
+		]
+
+		let filtered_events = new Map(Array.from(this.daysToEvents().entries()).map(mapExistingEvents))
+		this.daysToEvents(filtered_events)
 	}
 
 	private removeBirthdayEventsForContact(contactId: string, month: number | null) {
@@ -252,7 +295,26 @@ export class CalendarEventsRepository {
 				} else if (update.operation === OperationType.DELETE) {
 					this.removeDaysForEvent([update.instanceListId, update.instanceId])
 				}
+			} else if (isUpdateForTypeRef(UserTypeRef, update) && update.operation === OperationType.UPDATE) {
+				// Possible accepting/leaving a shared calendar, check if memberships has changed
+				await this.handleMembershipChanges()
 			}
+		}
+	}
+
+	private async handleMembershipChanges() {
+		const updatedMemberships = this.logins.getUserController().getCalendarMemberships()
+		if (!deepEqual(this.calendarMemberships, updatedMemberships)) {
+			const newCalendars = updatedMemberships.filter((membership) => !this.calendarMemberships.includes(membership.group))
+			const removedCalendars = this.calendarMemberships.filter((membership) => !updatedMemberships.some((it) => it.group === membership))
+			const dates = Array.from(this.loadedMonths.keys()).map((it) => new Date(it))
+
+			await Promise.all(newCalendars.map((calendar) => this.loadMonthsIfNeeded(dates, stream(false), null, calendar.group)))
+			for (const calendar of removedCalendars) {
+				this.removeEventForCalendar(calendar)
+			}
+
+			this.calendarMemberships = updatedMemberships.map((it) => it.group)
 		}
 	}
 
