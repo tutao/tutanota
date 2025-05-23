@@ -242,7 +242,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	}
 
 	async markAsKeyVerificationMismatch(): Promise<void> {
-		this.overrideVerificationState = KeyVerificationState.MISMATCH
+		//this.overrideVerificationState = KeyVerificationState.MISMATCH
 		await this.lazyVerificationState.reload()
 	}
 }

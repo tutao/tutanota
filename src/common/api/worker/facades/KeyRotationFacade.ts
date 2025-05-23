@@ -1062,11 +1062,11 @@ export class KeyRotationFacade {
 			identifierType: PublicKeyIdentifierType.GROUP_ID,
 		})
 		const adminGroupKeyVersion = parseKeyVersion(taggedKeyVersion)
-		if (currentAdminPubKeys.version !== adminGroupKeyVersion) {
+		if (currentAdminPubKeys.publicEncryptionKey.version !== adminGroupKeyVersion) {
 			throw new Error("the public key service did not return the tagged key version to verify the admin public key")
 		}
 
-		if (!isVersionedPqPublicKey(currentAdminPubKeys)) {
+		if (!isVersionedPqPublicKey(currentAdminPubKeys.publicEncryptionKey)) {
 			throw new Error("the public key is not a pq public key")
 		}
 
@@ -1074,7 +1074,7 @@ export class KeyRotationFacade {
 			{
 				tagType: "NEW_ADMIN_PUB_KEY_TAG",
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey.object },
-				untrustedKey: { newAdminPubKey: currentAdminPubKeys.object },
+				untrustedKey: { newAdminPubKey: currentAdminPubKeys.publicEncryptionKey.object },
 				bindingData: {
 					userGroupId,
 					adminGroupId,
@@ -1088,11 +1088,11 @@ export class KeyRotationFacade {
 		const pubAdminGroupEncUserGroupKey = await this.encryptUserGroupKeyForAdminAsymmetrically(
 			userGroupId,
 			newUserGroupKeys,
-			currentAdminPubKeys,
+			currentAdminPubKeys.publicEncryptionKey,
 			adminGroupId,
 			currentUserGroupKey,
 		)
-		return { pubAdminGroupEncUserGroupKey, adminGroupKeyVersion: currentAdminPubKeys.version }
+		return { pubAdminGroupEncUserGroupKey, adminGroupKeyVersion: currentAdminPubKeys.publicEncryptionKey.version }
 	}
 
 	private async handleUserGroupKeyRotationAsAdmin(

@@ -85,7 +85,7 @@ export class AsymmetricCryptoFacade {
 
 		const publicKey = await this.publicKeyProvider.loadPubKey(identifier, senderKeyVersion)
 
-		const publicEccKey = this.getSenderEccKey(publicKey)
+		const publicEccKey = this.getSenderEccKey(publicKey.publicEncryptionKey)
 
 		if (publicEccKey != null) {
 			if (!arrayEquals(publicEccKey, senderIdentityPubKey)) {

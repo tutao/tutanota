@@ -1,12 +1,13 @@
 import { assertWorkerOrNode } from "../../common/Env.js"
-import { Ed25519Facade, EncodedEd25519Signature } from "./Ed25519Facade"
+import { Ed25519Facade, EncodedEd25519Signature, SigningPublicKey } from "./Ed25519Facade"
 import { IdentityKeyPair, KeyPair } from "../../entities/sys/TypeRefs"
-import { assertNotNull, byteArraysToBytes, bytesToByteArrays, KeyVersion } from "@tutao/tutanota-utils"
+import { assertNotNull, byteArraysToBytes, bytesToByteArrays, KeyVersion, Versioned } from "@tutao/tutanota-utils"
 import { InvalidDataError } from "../../common/error/RestError"
 import { asPublicKeySignatureType, PublicKeySignatureType } from "../../common/TutanotaConstants"
 import { assertNull } from "@tutao/tutanota-utils/dist/Utils"
 import { checkKeyVersionConstraints } from "./KeyLoaderFacade"
 import { bytesToEd25519PublicKey, Ed25519PrivateKey } from "@tutao/tutanota-crypto"
+import type { PublicKeyRawData } from "./PublicKeyProvider"
 
 assertWorkerOrNode()
 
@@ -125,5 +126,14 @@ export class PublicKeySignatureFacade {
 		const encodedKeyPairForSigning = this.serializePublicKeyForSigning(encryptionKeyPair, keyPairVersion)
 		const publicIdentityKey = bytesToEd25519PublicKey(identityKeyPair.publicEd25519Key)
 		return this.ed25519Facade.verifySignature(publicIdentityKey, signatureBytes, encodedKeyPairForSigning)
+	}
+
+	async verifyPublicEncryptionKeySignature(
+		identityKeyPair: Versioned<SigningPublicKey>,
+		encryptionKeyPair: PublicKeyRawData,
+		signatureBytes: EncodedEd25519Signature,
+	): Promise<boolean> {
+		// TODO: Implement verification using a public key.
+		return false
 	}
 }

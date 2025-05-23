@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { BubbleTextField, BubbleTextFieldAttrs } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
 import { px, size } from "./size.js"
-import { Icon, IconSize, progressIcon } from "./base/Icon.js"
+import { Icon, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
 import { DropdownChildAttrs } from "./base/Dropdown.js"
@@ -14,7 +14,6 @@ import { SearchDropDown } from "./SearchDropDown.js"
 import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
-import { KeyVerificationState } from "../api/common/TutanotaConstants.js"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -75,31 +74,35 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			items: attrs.recipients,
 			getBubbleIcon: (recipient: Recipient) => {
-				if (recipient.verificationState === KeyVerificationState.MISMATCH) {
-					return m(Icon, {
-						icon: Icons.AlertCircle,
-						size: IconSize.Large, // we want 20px
-						style: {
-							fill: theme.error_color,
-							position: "relative",
-							top: "4px",
-							right: "1px",
-						},
-					})
-				} else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
-					return m(Icon, {
-						icon: Icons.Shield,
-						size: IconSize.Normal,
-						style: {
-							fill: theme.content_accent,
-							position: "relative",
-							top: "2px",
-							right: "1px",
-						},
-					})
-				} else {
-					return null
-				}
+				// FIXME
+				/*
+                if (recipient.verificationState === KeyVerificationState.MISMATCH) {
+                    return m(Icon, {
+                        icon: Icons.AlertCircle,
+                        size: IconSize.Large, // we want 20px
+                        style: {
+                            fill: theme.error_color,
+                            position: "relative",
+                            top: "4px",
+                            right: "1px",
+                        },
+                    })
+                } else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
+                    return m(Icon, {
+                        icon: Icons.Shield,
+                        size: IconSize.Normal,
+                        style: {
+                            fill: theme.content_accent,
+                            position: "relative",
+                            top: "2px",
+                            right: "1px",
+                        },
+                    })
+                } else {
+                    return null
+                }
+                 */
+				return null
 			},
 			renderBubbleText: (recipient: Recipient) => {
 				const name = recipient.name

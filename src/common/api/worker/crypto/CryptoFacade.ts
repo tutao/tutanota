@@ -691,10 +691,10 @@ export class CryptoFacade {
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
 			// Clients need to support symmetric decryption from external users. We can always encrypt symmetrically when old clients are deactivated that don't support tuta-crypt.
-			if (isVersionedPqPublicKey(publicKey) && isExternalSender) {
+			if (isVersionedPqPublicKey(publicKey.publicEncryptionKey) && isExternalSender) {
 				return this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
 			} else {
-				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKey, senderUserGroupId)
+				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKey.publicEncryptionKey, senderUserGroupId)
 			}
 		} catch (e) {
 			if (e instanceof NotFoundError) {

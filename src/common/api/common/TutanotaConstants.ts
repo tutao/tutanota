@@ -516,8 +516,8 @@ export const enum KeyVerificationResultType {
 
 export enum KeyVerificationState {
 	NO_ENTRY, // Identity is not trusted by user
-	VERIFIED, // Identity is trusted and verified
-	MISMATCH, // Identity is trusted but not verified
+	VERIFIED_MANUAL, // Identity is manually trusted and verified
+	VERIFIED_TOFU, // Identity is trusted and verified via TOFU
 }
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25

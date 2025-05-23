@@ -889,6 +889,7 @@ export class MailFacade {
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: mailAddress,
 			})
+			.then((value) => value.publicEncryptionKey)
 			.catch(ofClass(NotFoundError, () => null))
 	}
 

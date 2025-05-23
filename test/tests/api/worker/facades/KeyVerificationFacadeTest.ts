@@ -5,10 +5,15 @@ import { matchers, object, verify, when } from "testdouble"
 import { SqlType, TaggedSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { KeyVerificationSourceOfTrust, KeyVerificationState } from "../../../../../src/common/api/common/TutanotaConstants"
-import { bytesToEd25519PublicKey, PQPublicKeys, sha256Hash } from "@tutao/tutanota-crypto"
+import { bytesToEd25519PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import testData from "../crypto/CompatibilityTestData.json"
-import { Ed25519Facade, EncodedEd25519Signature, SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
+import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { Mode } from "../../../../../src/common/api/common/Env"
+import { PublicKeyRawData } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
+import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
 const { anything } = matchers
 
@@ -24,10 +29,11 @@ const PUBLIC_KEY_TRUSTED_IDENTITY: TrustedIdentity = {
 	sourceOfTrust: KeyVerificationSourceOfTrust.Manual,
 }
 
+const TRUSTED_MAIL_ADDRESS = "trust-me@tuta.com"
 const PUBLIC_KEY_FINGERPRINT_SQL_RESULT: Record<string, TaggedSqlValue> = {
 	mailAddress: {
 		type: SqlType.String,
-		value: "test@example.com",
+		value: TRUSTED_MAIL_ADDRESS,
 	},
 	publicIdentityKey: {
 		type: SqlType.Bytes,
@@ -52,7 +58,7 @@ const USER_GROUP_ID = "userGroupId"
 o.spec("KeyVerificationFacadeTest", function () {
 	let keyVerification: KeyVerificationFacade
 	let sqlCipherFacade: SqlCipherFacade
-	let ed25519Facade: Ed25519Facade
+	let publicKeySignatureFacade: PublicKeySignatureFacade
 
 	let backupEnv: any
 
@@ -61,9 +67,9 @@ o.spec("KeyVerificationFacadeTest", function () {
 		backupEnv = globalThis.env
 
 		sqlCipherFacade = object()
-		ed25519Facade = object()
+		publicKeySignatureFacade = object()
 
-		keyVerification = new KeyVerificationFacade(sqlCipherFacade, ed25519Facade)
+		keyVerification = new KeyVerificationFacade(sqlCipherFacade, publicKeySignatureFacade)
 	})
 
 	o.afterEach(function () {
@@ -84,14 +90,14 @@ o.spec("KeyVerificationFacadeTest", function () {
 		})
 
 		o("trusting an identity", async function () {
-			await keyVerification.trust("trust-me@tuta.com", PUBLIC_KEY_TRUSTED_IDENTITY.publicIdentityKey, KeyVerificationSourceOfTrust.Manual)
+			await keyVerification.trust(TRUSTED_MAIL_ADDRESS, PUBLIC_KEY_TRUSTED_IDENTITY.publicIdentityKey, KeyVerificationSourceOfTrust.Manual)
 
 			const query =
 				"\n\t\t\tINSERT INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)\n\t\t\tVALUES (?, ?, ?, ?, ?)"
 			const params: TaggedSqlValue[] = [
 				{
 					type: SqlType.String,
-					value: "trust-me@tuta.com",
+					value: TRUSTED_MAIL_ADDRESS,
 				},
 				{
 					type: SqlType.Bytes,
@@ -122,13 +128,14 @@ o.spec("KeyVerificationFacadeTest", function () {
 		})
 
 		o("checking for trust", async function () {
-			await keyVerification.isTrusted("is-trusted@tuta.com")
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(PUBLIC_KEY_FINGERPRINT_SQL_RESULT)
+			const trusted = await keyVerification.isTrusted(TRUSTED_MAIL_ADDRESS)
 
 			const query = `SELECT * FROM identity_store WHERE mailAddress = ?`
 			const params: TaggedSqlValue[] = [
 				{
 					type: SqlType.String,
-					value: "is-trusted@tuta.com",
+					value: TRUSTED_MAIL_ADDRESS,
 				},
 			]
 			verify(sqlCipherFacade.get(query, params))
@@ -136,21 +143,76 @@ o.spec("KeyVerificationFacadeTest", function () {
 	})
 
 	o.spec("verification state gets resolved correctly", function () {
-		o("trusted and verified keys result in VERIFIED", async function () {
-			when(ed25519Facade.verifySignature(anything(), anything(), anything())).thenResolve(true)
-			const signature: EncodedEd25519Signature = object()
-			const encryptionPublicKey: Versioned<PQPublicKeys> = object()
-			const state = await keyVerification.verify(PUBLIC_KEY_TRUSTED_IDENTITY.publicIdentityKey, encryptionPublicKey, signature)
-			o(state).equals(KeyVerificationState.VERIFIED)
+		o("manually trusted and verified keys result in VERIFIED_MANUAL", async function () {
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(PUBLIC_KEY_FINGERPRINT_SQL_RESULT)
+			when(publicKeySignatureFacade.verifyPublicEncryptionKeySignature(anything(), anything(), anything())).thenResolve(true)
+			const encryptionPublicKey: PublicKeyRawData = object()
+			const state = await keyVerification.verify(TRUSTED_MAIL_ADDRESS, encryptionPublicKey)
+			o(state).equals(KeyVerificationState.VERIFIED_MANUAL)
+		})
+
+		o("tofu trusted and verified keys result in VERIFIED_TOFU", async function () {
+			when(publicKeySignatureFacade.verifyPublicEncryptionKeySignature(anything(), anything(), anything())).thenResolve(true)
+			const TOFU_SQL_RESULT: Record<string, TaggedSqlValue> = {}
+			Object.assign(TOFU_SQL_RESULT, PUBLIC_KEY_FINGERPRINT_SQL_RESULT, {
+				sourceOfTrust: {
+					type: SqlType.Number,
+					value: KeyVerificationSourceOfTrust.TOFU,
+				},
+			})
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(TOFU_SQL_RESULT)
+
+			const encryptionPublicKey: PublicKeyRawData = object()
+			const state = await keyVerification.verify(TRUSTED_MAIL_ADDRESS, encryptionPublicKey)
+			o(state).equals(KeyVerificationState.VERIFIED_TOFU)
 		})
 
 		o("trusted but unverified keys result in MISMATCH", async function () {
-			when(ed25519Facade.verifySignature(anything(), anything(), anything())).thenResolve(false)
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(PUBLIC_KEY_FINGERPRINT_SQL_RESULT)
+			when(publicKeySignatureFacade.verifyPublicEncryptionKeySignature(anything(), anything(), anything())).thenResolve(false)
 
-			const signature: EncodedEd25519Signature = object()
-			const encryptionPublicKey: Versioned<PQPublicKeys> = object()
-			const state = await keyVerification.verify(PUBLIC_KEY_TRUSTED_IDENTITY.publicIdentityKey, encryptionPublicKey, signature)
-			o(state).equals(KeyVerificationState.MISMATCH)
+			const encryptionPublicKey: PublicKeyRawData = object()
+
+			await assertThrows(KeyVerificationMismatchError, async () => {
+				await keyVerification.verify(TRUSTED_MAIL_ADDRESS, encryptionPublicKey)
+			})
+		})
+
+		o("untrusted keys result in NO_ENTRY", async function () {
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(null)
+
+			const encryptionPublicKey: PublicKeyRawData = object()
+			const state = await keyVerification.verify(TRUSTED_MAIL_ADDRESS, encryptionPublicKey)
+			o(state).equals(KeyVerificationState.NO_ENTRY)
+			verify(publicKeySignatureFacade.verifyPublicEncryptionKeySignature(anything(), anything(), anything()), { times: 0 })
+		})
+
+		o("trusted keys without retreived signatures result in a mismatch error", async function () {
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(PUBLIC_KEY_FINGERPRINT_SQL_RESULT)
+
+			const encryptionPublicKey: PublicKeyRawData = object()
+			encryptionPublicKey.signature = null
+
+			await assertThrows(KeyVerificationMismatchError, async () => {
+				await keyVerification.verify(TRUSTED_MAIL_ADDRESS, encryptionPublicKey)
+			})
+			verify(publicKeySignatureFacade.verifyPublicEncryptionKeySignature(anything(), anything(), anything()), { times: 0 })
+		})
+
+		o("non-Ed25519 signatures result in an error", async function () {
+			const invalidTypeSqlResult: Record<string, TaggedSqlValue> = {}
+			Object.assign(invalidTypeSqlResult, PUBLIC_KEY_FINGERPRINT_SQL_RESULT, {
+				identityKeyType: {
+					type: SqlType.Number,
+					value: 10,
+				},
+			})
+			when(sqlCipherFacade.get(anything(), anything())).thenResolve(invalidTypeSqlResult)
+			const encryptionPublicKey: PublicKeyRawData = object()
+			await assertThrows(ProgrammingError, async () => {
+				await keyVerification.verify(TRUSTED_MAIL_ADDRESS, encryptionPublicKey)
+			})
+			verify(publicKeySignatureFacade.verifyPublicEncryptionKeySignature(anything(), anything(), anything()), { times: 0 })
 		})
 	})
 
@@ -158,11 +220,11 @@ o.spec("KeyVerificationFacadeTest", function () {
 		o("acquire existing identity from trust database", async function () {
 			when(sqlCipherFacade.get(anything(), anything())).thenResolve(PUBLIC_KEY_FINGERPRINT_SQL_RESULT)
 
-			const result = await keyVerification.getTrustedIdentity("test@example.com")
+			const result = await keyVerification.getTrustedIdentity(TRUSTED_MAIL_ADDRESS)
 			o(result).deepEquals(PUBLIC_KEY_TRUSTED_IDENTITY)
 
 			const query = "SELECT * FROM identity_store WHERE mailAddress = ?"
-			const params: TaggedSqlValue[] = [{ type: SqlType.String, value: "test@example.com" }]
+			const params: TaggedSqlValue[] = [{ type: SqlType.String, value: TRUSTED_MAIL_ADDRESS }]
 
 			verify(sqlCipherFacade.get(query, params))
 		})
@@ -222,8 +284,9 @@ o.spec("KeyVerificationFacadeTest", function () {
 
 	o("database should NOT be queried when key verification is not supported", async function () {
 		globalThis.env.mode = Mode.Browser
-		const verificationState = await keyVerification.verify(object(), object(), object())
-		o(verificationState).equals(KeyVerificationState.NO_ENTRY)
+		await assertThrows(ProgrammingError, async () => {
+			await keyVerification.verify(object(), object())
+		})
 		verify(sqlCipherFacade.get(anything(), anything()), { times: 0 })
 	})
 })

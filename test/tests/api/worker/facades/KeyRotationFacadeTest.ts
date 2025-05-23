@@ -63,6 +63,7 @@ import {
 	CryptoProtocolVersion,
 	GroupKeyRotationType,
 	GroupType,
+	KeyVerificationState,
 	PublicKeyIdentifierType,
 	ShareCapability,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
@@ -91,7 +92,7 @@ import {
 	KeyAuthenticationFacade,
 	PubDistKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { LoadedPublicEncryptionKey, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 
@@ -319,7 +320,12 @@ function prepareUserKeyRotation(
 			keyPairType: KeyPairType.TUTA_CRYPT,
 		},
 	}
-	when(mocks.publicKeyProvider.loadCurrentPubKey(matchers.anything())).thenResolve(adminPublicKey)
+	const loadedAdminPublicKey: LoadedPublicEncryptionKey = {
+		publicEncryptionKey: adminPublicKey,
+		verificationState: KeyVerificationState.NO_ENTRY,
+	}
+
+	when(mocks.publicKeyProvider.loadCurrentPubKey(matchers.anything())).thenResolve(loadedAdminPublicKey)
 	const customer = createTestEntity(CustomerTypeRef, { adminGroup: "adminGroupId" })
 
 	when(mocks.entityClient.load(CustomerTypeRef, matchers.anything())).thenResolve(customer)
@@ -1722,8 +1728,11 @@ o.spec("KeyRotationFacadeTest", function () {
 				rsaPublicKey.keyPairType = KeyPairType.RSA
 
 				when(publicKeyProvider.loadCurrentPubKey(matchers.anything())).thenResolve({
-					version: 1,
-					object: rsaPublicKey,
+					publicEncryptionKey: {
+						version: 1,
+						object: rsaPublicKey,
+					},
+					verificationState: KeyVerificationState.NO_ENTRY,
 				})
 
 				await assertThrows(Error, async function () {

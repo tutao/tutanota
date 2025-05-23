@@ -4,13 +4,14 @@ import {
 	GroupTypeRef,
 	PubDistributionKey,
 	PublicKeyGetOut,
+	PublicKeySignature,
 	type SystemKeysReturn,
 } from "../../entities/sys/TypeRefs.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { IdentityKeyService, PublicKeyService } from "../../entities/sys/Services.js"
 import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
-import { uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
+import { lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
+import { KeyVerificationSourceOfTrust, KeyVerificationState, PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { InvalidDataError, NotFoundError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -29,22 +30,30 @@ import {
 import { SigningKeyPairType, SigningPublicKey } from "./Ed25519Facade"
 import { EntityClient } from "../../common/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade"
+import { KeyVerificationFacade } from "./lazy/KeyVerificationFacade"
+import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 
 export type PublicKeyIdentifier = {
 	identifier: string
 	identifierType: PublicKeyIdentifierType
 }
 
-type PublicKeyRawData = {
+export type PublicKeyRawData = {
 	pubKeyVersion: NumberString
 	pubEccKey: null | Uint8Array
 	pubKyberKey: null | Uint8Array
 	pubRsaKey: null | Uint8Array
+	signature: null | PublicKeySignature
 }
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString
 	publicIdentityKey: Uint8Array
+}
+
+export type LoadedPublicEncryptionKey = {
+	publicEncryptionKey: Versioned<PublicKey>
+	verificationState: KeyVerificationState
 }
 
 /**
@@ -57,6 +66,7 @@ export class PublicKeyProvider {
 		private readonly entityClient: EntityClient,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 	) {}
 
 	/**
@@ -139,11 +149,20 @@ export class PublicKeyProvider {
 		}
 	}
 
-	async loadCurrentPubKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<Versioned<PublicKey>> {
+	async loadCurrentPubKey(pubKeyIdentifier: PublicKeyIdentifier): Promise<LoadedPublicEncryptionKey> {
 		return this.loadPubKey(pubKeyIdentifier, null)
 	}
 
-	async loadPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<Versioned<PublicKey>> {
+	/**
+	 * Loads a public encryption key for the given identifier. Ensures that key verification is executed when
+	 * identifier type is MAIL_ADDRESS. Existing signatures on public keys are verified against the local trust database.
+	 * Implements TOFU transparently.
+	 *
+	 * @param pubKeyIdentifier
+	 * @param version
+	 * @throws KeyVerificationMismatchError in case of key verification failure
+	 */
+	async loadPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<LoadedPublicEncryptionKey> {
 		const requestData = createPublicKeyGetIn({
 			version: version ? String(version) : null,
 			identifier: pubKeyIdentifier.identifier,
@@ -155,7 +174,45 @@ export class PublicKeyProvider {
 		if (version != null && pubKeys.version !== version) {
 			throw new InvalidDataError("the server returned a key version that was not requested")
 		}
-		return pubKeys
+
+		if (pubKeyIdentifier.identifierType === PublicKeyIdentifierType.MAIL_ADDRESS) {
+			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
+			const mailAddress = pubKeyIdentifier.identifier
+
+			let verificationState = await keyVerificationFacade.verify(mailAddress, publicKeyGetOut)
+
+			if (verificationState === KeyVerificationState.NO_ENTRY) {
+				// TOFU: identity key is not yet in the trust database. Load and add it now.
+
+				const tofuIdentityKey = await this.loadPublicIdentityKey(pubKeyIdentifier)
+				if (tofuIdentityKey == null) {
+					if (publicKeyGetOut.signature) {
+						throw new KeyVerificationMismatchError("no identity key for: " + mailAddress)
+					} else {
+						// For now, we want to accept a public key not having a signature IF there is
+						// also no identity key. This is for backwards compatbility.
+						return {
+							verificationState: KeyVerificationState.NO_ENTRY,
+							publicEncryptionKey: pubKeys,
+						}
+					}
+				}
+
+				await keyVerificationFacade.trust(mailAddress, tofuIdentityKey, KeyVerificationSourceOfTrust.TOFU)
+				verificationState = await keyVerificationFacade.verify(mailAddress, publicKeyGetOut)
+			}
+
+			return {
+				verificationState: verificationState,
+				publicEncryptionKey: pubKeys,
+			}
+		} else {
+			// if identifier type has not been MAIL_ADDRESS
+			return {
+				verificationState: KeyVerificationState.NO_ENTRY,
+				publicEncryptionKey: pubKeys,
+			}
+		}
 	}
 
 	/**
@@ -177,6 +234,7 @@ export class PublicKeyProvider {
 			pubEccKey: publicKeys.pubEccKey,
 			pubKyberKey: publicKeys.pubKyberKey,
 			pubKeyVersion: publicKeys.pubKeyVersion,
+			signature: publicKeys.signature,
 		})
 	}
 
@@ -186,6 +244,7 @@ export class PublicKeyProvider {
 			pubEccKey: publicKeys.systemAdminPubEccKey,
 			pubKyberKey: publicKeys.systemAdminPubKyberKey,
 			pubKeyVersion: publicKeys.systemAdminPubKeyVersion,
+			signature: null,
 		})
 	}
 
@@ -200,6 +259,7 @@ export class PublicKeyProvider {
 			pubEccKey: kp.pubEccKey,
 			pubKyberKey: kp.pubKyberKey,
 			pubKeyVersion: pubKeyVersion.toString(),
+			signature: null,
 		})
 		if (isVersionedPqPublicKey(publicKey)) {
 			return publicKey
@@ -219,6 +279,7 @@ export class PublicKeyProvider {
 			pubEccKey: pubDistributionKey.pubEccKey,
 			pubKyberKey: pubDistributionKey.pubKyberKey,
 			pubKeyVersion: "0", // for distribution keys the version is always 0 because they are only used for the rotation and never rotated.
+			signature: null,
 		})
 		if (isVersionedPqPublicKey(publicKey)) {
 			return publicKey

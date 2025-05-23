@@ -1,13 +1,16 @@
 import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
 import { KeyVerificationSourceOfTrust, KeyVerificationState } from "../../../common/TutanotaConstants"
 import { concat, Hex, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { bytesToEd25519PublicKey, ed25519PublicKeyToBytes, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { bytesToEd25519PublicKey, ed25519PublicKeyToBytes, sha256Hash } from "@tutao/tutanota-crypto"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../offline/Sql"
 import { TaggedSqlValue } from "../../offline/SqlValue"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
-import { Ed25519Facade, EncodedEd25519Signature, SigningKeyPairType, SigningPublicKey } from "../Ed25519Facade"
+import { SigningKeyPairType, SigningPublicKey } from "../Ed25519Facade"
 import { checkKeyVersionConstraints } from "../KeyLoaderFacade"
+import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
+import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
+import type { PublicKeyRawData } from "../PublicKeyProvider"
 
 assertWorkerOrNode()
 
@@ -18,7 +21,7 @@ export interface TrustedIdentity {
 }
 
 export class KeyVerificationFacade {
-	constructor(private readonly sqlCipherFacade: SqlCipherFacade, private readonly ed25519Facade: Ed25519Facade) {}
+	constructor(private readonly sqlCipherFacade: SqlCipherFacade, private readonly publicKeySignatureFacade: PublicKeySignatureFacade) {}
 
 	async isSupported(): Promise<boolean> {
 		// SQLite database is unavailable in a browser environment
@@ -146,22 +149,44 @@ export class KeyVerificationFacade {
 		return uint8ArrayToHex(sha256Hash(this.concatenateFingerprint(publicKey)))
 	}
 
-	async verify(
-		identityKey: Versioned<SigningPublicKey>,
-		encryptionKey: Versioned<PublicKey>,
-		signature: EncodedEd25519Signature,
-	): Promise<KeyVerificationState> {
+	async verify(mailAddress: string, encryptionKey: PublicKeyRawData): Promise<KeyVerificationState> {
 		const isSupported = await this.isSupported()
 		if (!isSupported) {
+			throw new ProgrammingError("key verification is not supported in this environment")
+		}
+
+		// Load identity key from trust database
+		const trustedIdentity = await this.getTrustedIdentity(mailAddress)
+
+		if (trustedIdentity == null) {
 			return KeyVerificationState.NO_ENTRY
 		}
-		// FIXME create message from encryption key and verify key
-		const verifySignatureMessage: Uint8Array = new Uint8Array()
-		const verificationResult = await this.ed25519Facade.verifySignature(identityKey.object.key, verifySignatureMessage, signature)
-		if (verificationResult) {
-			return KeyVerificationState.VERIFIED
+		if (encryptionKey.signature == null) {
+			throw new KeyVerificationMismatchError("missing signature for identity: " + mailAddress)
+		}
+
+		const identityKey = trustedIdentity.publicIdentityKey
+
+		if (identityKey.object.type !== SigningKeyPairType.Ed25519) {
+			throw new ProgrammingError("expected identity public key of type Ed25519")
+		}
+
+		const validSignature = await this.publicKeySignatureFacade.verifyPublicEncryptionKeySignature(
+			identityKey,
+			encryptionKey,
+			encryptionKey.signature.signature,
+		)
+
+		if (validSignature) {
+			if (trustedIdentity.sourceOfTrust === KeyVerificationSourceOfTrust.Manual) {
+				return KeyVerificationState.VERIFIED_MANUAL
+			} else if (trustedIdentity.sourceOfTrust === KeyVerificationSourceOfTrust.TOFU) {
+				return KeyVerificationState.VERIFIED_TOFU
+			} else {
+				throw new ProgrammingError("source of trust not implemented: " + trustedIdentity.sourceOfTrust)
+			}
 		} else {
-			return KeyVerificationState.MISMATCH
+			throw new KeyVerificationMismatchError("encryption key not signed with a valid signature")
 		}
 	}
 }

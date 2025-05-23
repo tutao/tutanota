@@ -7,6 +7,7 @@ import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	GroupType,
+	KeyVerificationState,
 	PermissionType,
 	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
@@ -100,7 +101,7 @@ import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
-import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { LoadedPublicEncryptionKey, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
@@ -693,12 +694,31 @@ o.spec("CryptoFacadeTest", function () {
 				},
 			},
 		}
+		const loadedPublicKey: LoadedPublicEncryptionKey = {
+			publicEncryptionKey: recipientPublicKeys,
+			verificationState: KeyVerificationState.NO_ENTRY,
+		}
 		when(
 			publicKeyProvider.loadCurrentPubKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: recipientMailAddress,
 			}),
-		).thenResolve(recipientPublicKeys)
+		).thenResolve(loadedPublicKey)
+
+		const senderPublicKeysV0: Versioned<PQPublicKeys> = {
+			version: 0,
+			object: {
+				keyPairType: KeyPairType.TUTA_CRYPT,
+				x25519PublicKey: senderKeyPair.pubEccKey!,
+				kyberPublicKey: { raw: senderKeyPair.pubKyberKey! },
+			},
+		}
+
+		const loadedPublicKeyV0: LoadedPublicEncryptionKey = {
+			publicEncryptionKey: senderPublicKeysV0,
+			verificationState: KeyVerificationState.NO_ENTRY,
+		}
+
 		when(
 			publicKeyProvider.loadPubKey(
 				{
@@ -707,14 +727,7 @@ o.spec("CryptoFacadeTest", function () {
 				},
 				0,
 			),
-		).thenResolve({
-			version: 0,
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				x25519PublicKey: senderKeyPair.pubEccKey!,
-				kyberPublicKey: { raw: senderKeyPair.pubKyberKey! },
-			},
-		})
+		).thenResolve(loadedPublicKeyV0)
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({
 			object: senderGroupKey,
@@ -786,16 +799,24 @@ o.spec("CryptoFacadeTest", function () {
 			version: 0,
 			object: object(),
 		}
+		const loadedRecipientPublicKey: LoadedPublicEncryptionKey = {
+			publicEncryptionKey: recipientPublicKeys,
+			verificationState: KeyVerificationState.NO_ENTRY,
+		}
 		when(
 			publicKeyProvider.loadCurrentPubKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: recipientMailAddress,
 			}),
-		).thenResolve(recipientPublicKeys)
+		).thenResolve(loadedRecipientPublicKey)
 
 		const senderPublicKeys: Versioned<PQPublicKeys> = {
 			version: 0,
 			object: object(),
+		}
+		const loadedSenderPublicKey: LoadedPublicEncryptionKey = {
+			publicEncryptionKey: senderPublicKeys,
+			verificationState: KeyVerificationState.NO_ENTRY,
 		}
 
 		when(
@@ -803,7 +824,7 @@ o.spec("CryptoFacadeTest", function () {
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: senderMailAddress,
 			}),
-		).thenResolve(senderPublicKeys)
+		).thenResolve(loadedSenderPublicKey)
 
 		when(entityClient.load(GroupTypeRef, senderUserGroup._id)).thenResolve(senderUserGroup)
 		when(keyLoaderFacade.getCurrentSymGroupKey(senderUserGroup._id)).thenResolve({
