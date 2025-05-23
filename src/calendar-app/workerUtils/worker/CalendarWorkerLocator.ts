@@ -278,7 +278,21 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.publicKeySignatureFacade = new PublicKeySignatureFacade(locator.ed25519Facade, locator.cryptoWrapper)
 
 	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
-	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement, locator.cryptoWrapper)
+	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement,locator.cryptoWrapper)
+
+	locator.keyVerification = lazyMemoized(async () => {
+		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+		return new KeyVerificationFacade(locator.sqlCipherFacade, locator.publicKeySignatureFacade)
+	})
+
+	locator.publicKeyProvider = new PublicKeyProvider(
+		locator.serviceExecutor,
+		locator.cachingEntityClient,
+		keyAuthenticationFacade,
+		locator.keyLoader,
+		locator.keyVerification,
+	)
+
 	const asymmetricCrypto = new AsymmetricCryptoFacade(
 		locator.rsa,
 		locator.pqFacade,
@@ -297,12 +311,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cryptoWrapper,
 		keyAuthenticationFacade,
 	)
-	locator.publicKeyProvider = new PublicKeyProvider(locator.serviceExecutor, locator.cachingEntityClient, keyAuthenticationFacade, locator.keyLoader)
-
-	locator.keyVerification = lazyMemoized(async () => {
-		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
-		return new KeyVerificationFacade(locator.sqlCipherFacade, locator.ed25519Facade)
-	})
 
 	locator.crypto = new CryptoFacade(
 		locator.user,
@@ -314,7 +322,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.cache as DefaultEntityRestCache,
 		locator.keyLoader,
 		asymmetricCrypto,
-		locator.keyVerification,
 		locator.publicKeyProvider,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,

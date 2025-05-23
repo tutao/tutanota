@@ -652,6 +652,8 @@ export type PublicKeyGetOut = {
 	pubKeyVersion: NumberString;
 	pubEccKey: null | Uint8Array;
 	pubKyberKey: null | Uint8Array;
+
+	signature: null | PublicKeySignature;
 }
 export const SaltDataTypeRef: TypeRef<SaltData> = new TypeRef("sys", 417)
 

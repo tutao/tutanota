@@ -4,7 +4,12 @@ import { RsaImplementation } from "../../../../../src/common/api/worker/crypto/R
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import { CryptoProtocolVersion, EncryptionAuthStatus, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import {
+	CryptoProtocolVersion,
+	EncryptionAuthStatus,
+	EncryptionKeyVerificationState,
+	PublicKeyIdentifierType,
+} from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import {
@@ -29,7 +34,7 @@ import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn } from "../../../..
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { LoadedPublicEncryptionKey, PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
@@ -92,7 +97,11 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					publicEccKey: senderIdentityPubKey,
 				},
 			}
-			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaEccPublicKey)
+			const loadedPublicKey: LoadedPublicEncryptionKey = {
+				publicEncryptionKey: versionedRsaEccPublicKey,
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+			}
+			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender(
 				{
@@ -117,7 +126,11 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					version: 0,
 				},
 			}
-			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaPublicKey)
+			const loadedPublicKey: LoadedPublicEncryptionKey = {
+				publicEncryptionKey: versionedRsaPublicKey,
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+			}
+			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender(
 				{
@@ -143,7 +156,11 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					publicEccKey: new Uint8Array([4, 5, 6]),
 				},
 			}
-			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(versionedRsaEccPublicKey)
+			const loadedPublicKey: LoadedPublicEncryptionKey = {
+				publicEncryptionKey: versionedRsaEccPublicKey,
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+			}
+			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender(
 				{
@@ -188,6 +205,10 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					publicEccKey: new Uint8Array([4, 5, 6]),
 				},
 			}
+			const loadedPublicKey: LoadedPublicEncryptionKey = {
+				publicEncryptionKey: versionedRsaEccPublicKey,
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+			}
 			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
 				decryptedSymKeyBytes: symKey,
 				senderIdentityPubKey: object(),
@@ -200,7 +221,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					},
 					parseKeyVersion(senderKeyVersion),
 				),
-			).thenResolve(versionedRsaEccPublicKey)
+			).thenResolve(loadedPublicKey)
 
 			await assertThrows(CryptoError, () =>
 				asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(keyPair, pubEncKeyData, {

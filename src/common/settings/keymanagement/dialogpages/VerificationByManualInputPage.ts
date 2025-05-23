@@ -11,7 +11,7 @@ import { KeyVerificationModel } from "../KeyVerificationModel"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
-import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
+import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 
 type VerificationByTextPageAttrs = {
@@ -88,7 +88,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 				m(LoginButton, {
 					label: markAsVerifiedTranslationKey,
 					onclick: async () => {
-						await model.trust(KeyVerificationMethodType.text)
+						await model.trust(IdentityKeyVerificationMethod.text)
 						goToSuccessPage()
 					},
 					disabled: !publicIdentity,

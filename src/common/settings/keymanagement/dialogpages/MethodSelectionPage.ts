@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { KeyVerificationMethodType } from "../../../api/common/TutanotaConstants"
+import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { RadioSelectorOption } from "../../../gui/base/RadioSelector"
 import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel"
 import { SectionButton } from "../../../gui/base/buttons/SectionButton"
@@ -19,7 +19,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 	view(vnode: Vnode<MethodSelectionPageAttrs>): Children {
 		const model = vnode.attrs.model
 
-		const makeOption = (name: MaybeTranslation, value: KeyVerificationMethodType): RadioSelectorOption<KeyVerificationMethodType> => ({
+		const makeOption = (name: MaybeTranslation, value: IdentityKeyVerificationMethod): RadioSelectorOption<IdentityKeyVerificationMethod> => ({
 			name,
 			value,
 		})
@@ -49,11 +49,11 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 				),
 				[
 					this.renderTextMethodButton(async () => {
-						await model.handleMethodSwitch(KeyVerificationMethodType.text)
+						await model.handleMethodSwitch(IdentityKeyVerificationMethod.text)
 						vnode.attrs.goToEmailInputPage()
 					}),
 					this.renderQRMethodButton(async () => {
-						await model.handleMethodSwitch(KeyVerificationMethodType.qr)
+						await model.handleMethodSwitch(IdentityKeyVerificationMethod.qr)
 						vnode.attrs.goToQrScanPage()
 					}),
 				],
