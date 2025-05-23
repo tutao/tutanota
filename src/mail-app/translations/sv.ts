@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-05-20T13:07:21Z",
+	"updated_at": "2025-05-22T12:10:59Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1983,7 +1983,7 @@ export default {
 		"webAssemblyNotSupported1_msg": "Din webbläsare stöder inte WebAssembly och kommer inte att stödjas i framtida versioner av Tuta.",
 		"webAssemblyNotSupported2_msg": "Uppgradera din webbläsare eller ladda ner vår app.",
 		"websites_label": "Webbsidor",
-		"wednesday_label": "Fredag",
+		"wednesday_label": "Onsdag",
 		"weekNumber_label": "Vecka {week}",
 		"weekScrollTime_label": "Standard tid",
 		"weekScrollTime_msg": "Tid för tredagars- och veckovyer där scrollning sker.",

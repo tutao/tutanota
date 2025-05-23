@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Kalendáře";
 TutaoNoTitleLabel = "<Bez názvu>";
 TutaoWidgetDescription = "Zobrazit dnešní nadcházející události";
 TutaoDefaultCalendarNameTitle = "Osobní";
+TutaoWidgetMissingConfigurationErrorMsg = "Nastavte prosím tento widget";
 TutaoBirthdayEventTitle = "Narozeniny: {name}";
 TutaoBirthdayEventAgeTitle = "{age} let";
 TutaoBirthdayCalendarLabel = "Narozeniny";

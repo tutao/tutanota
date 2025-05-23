@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-05-15T12:48:27Z",
+	"updated_at": "2025-05-23T06:53:26Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1391,6 +1391,7 @@ export default {
 		"pricing.gdpr_label": "V souladu s GDPR",
 		"pricing.gdpr_tooltip": "Všechna data jsou uchovávána v souladu s přísnými evropskými předpisy o ochraně osobních údajů podle GDPR.",
 		"pricing.getStarted_label": "Začínáme",
+		"pricing.globalFirstYearDiscountRibbon_label": "Ušetřete {amount}",
 		"pricing.includesTaxes_msg": "Včetně daně.",
 		"pricing.legendAsterisk_msg": "Sleva na tarif Legend platí pouze na první rok. Následná cena bude 96 € za rok.",
 		"pricing.login_title": "Přihlášení na vlastních stránkách",
@@ -2011,6 +2012,7 @@ export default {
 		"whyLeave_msg": "Mrzí nás, že odcházíte! Co můžeme vylepšit?",
 		"widgetCredentialsError_msg": "Přihlaste se prosím v aplikaci Calendar",
 		"widgetDescription_msg": "Zobrazit dnešní nadcházející události",
+		"widgetMissingConfigurationError_msg": "Nastavte prosím tento widget",
 		"widgetNoCredentialsInfo_msg": "Žádné přihlašovací údaje k dispozici",
 		"widgetNoEvents_msg": "Žádné události",
 		"widgetOpenApp_action": "Otevřít aplikaci",

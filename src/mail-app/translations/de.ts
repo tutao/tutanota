@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-05-20T13:14:00Z",
+	"updated_at": "2025-05-23T07:39:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1388,6 +1388,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Nachdem du Legend gebucht hast, kontaktiere unseren Support über das Fragezeichen links neben deiner Mailbox, damit wir den Multi-User-Support aktivieren können. Jede*r erhält ein eigenes Postfach mit 500 GB & 30 Alias-E-Mail-Adressen (8 € pro Nutzer/Monat). Eine geteilte Mailbox (8 € pro Monat) erhält ebenfalls 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "Nachdem du Revolutionary gebucht hast, kontaktiere unseren Support über das Fragezeichen links neben deiner Mailbox, damit wir den Multi-User-Support aktivieren können. Jede*r erhält ein eigenes Postfach mit 20 GB & 15 Alias-E-Mail-Adressen (3 € pro Nutzer/Monat). Eine geteilte Mailbox (3 € pro Monat) erhält ebenfalls 20 GB.",
 		"pricing.family_label": "Familienoption",
+		"pricing.firstYearDiscount_revo_legend_msg": "Der Rabatt gilt nur für das erste Jahr. Danach beträgt der jährliche Preis {revo-price} für Revolutionary und {legend-price} für Legend.",
 		"pricing.folders_label": "Unbegrenzte Ordner",
 		"pricing.gdprDataProcessing_label": "DSGVO-Vereinbarung zur Datenverarbeitung",
 		"pricing.gdpr_label": "DSGVO-konform",
@@ -2015,7 +2016,7 @@ export default {
 		"whyLeave_msg": "Schade, dass du kündigen möchtest. Wie können wir uns verbessern?",
 		"widgetCredentialsError_msg": "Bitte melde dich in der Kalender-App an",
 		"widgetDescription_msg": "Heute anstehenden Termine anzeigen",
-		"widgetMissingConfigurationError_msg": "Bitte konfiguriere dieses Widget, um Kalender-Einträge zu sehen.",
+		"widgetMissingConfigurationError_msg": "Bitte konfiguriere dieses Widget",
 		"widgetNoCredentialsInfo_msg": "Keine Login-Daten vorhanden",
 		"widgetNoEvents_msg": "Keine Termine",
 		"widgetOpenApp_action": "Die App öffnen",

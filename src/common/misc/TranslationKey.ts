@@ -1367,6 +1367,7 @@ export type TranslationKeyType =
 	| "pricing.familyLegend_tooltip"
 	| "pricing.familyRevolutionary_tooltip"
 	| "pricing.family_label"
+	| "pricing.firstYearDiscount_revo_legend_msg"
 	| "pricing.folders_label"
 	| "pricing.gdprDataProcessing_label"
 	| "pricing.gdpr_label"
