@@ -11,14 +11,7 @@ import {
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import {
-	deconstructMailSetEntryId,
-	elementIdPart,
-	firstBiggerThanSecond,
-	getElementId,
-	isSameId,
-	listIdPart,
-} from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, firstBiggerThanSecond, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
@@ -253,6 +246,8 @@ export class MailViewModel {
 			return
 		}
 		if (cached) {
+			// Mails opened through the notification were not getting the inbox rule applied to them, so we apply it here
+			this.mailModel.applyInboxRuleToMail(cached)
 			console.log(TAG, "displaying cached mail", mailId)
 			await this.displayExplicitMailTarget(cached)
 		}
@@ -375,6 +370,22 @@ export class MailViewModel {
 		}
 
 		return await this.getResolvedMails(actionableMails)
+	}
+
+	removeStickyMail(mails: readonly IdTuple[]) {
+		if (this.stickyMailId && mails.length === 1 && isSameId(elementIdPart(mails[0]), elementIdPart(this.stickyMailId))) {
+			this.stickyMailId = null
+		}
+	}
+
+	clearStickyMail() {
+		if (this.stickyMailId) {
+			// if (!this.listModel?.getMail(elementIdPart(this.stickyMailId))) {
+			// 	this.clearConversationViewModel()
+			// }
+			this.stickyMailId = null
+			this.clearConversationViewModel()
+		}
 	}
 
 	currentFolderDeletesPermanently(): boolean {
@@ -568,13 +579,17 @@ export class MailViewModel {
 					this.mailOpenedListener.onEmailOpened(targetItem)
 				}
 			} else {
-				this.conversationViewModel?.dispose()
-				this.conversationViewModel = null
-				this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
+				this.clearConversationViewModel()
 			}
 		}
 		this.updateUrl()
 		this.updateUi()
+	}
+
+	private clearConversationViewModel() {
+		this.conversationViewModel?.dispose()
+		this.conversationViewModel = null
+		this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
 	}
 
 	private updateUrl() {
@@ -622,18 +637,7 @@ export class MailViewModel {
 
 		let importMailStateUpdates: Array<EntityUpdateData> = []
 		for (const update of updates) {
-			if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(folder.entries, update.instanceListId)) {
-				if (update.operation === OperationType.DELETE && this.stickyMailId != null) {
-					const { mailId } = deconstructMailSetEntryId(update.instanceId)
-					if (isSameId(mailId, elementIdPart(this.stickyMailId))) {
-						// Reset target before we dispatch event to the list so that our handler in onListStateChange() has up-to-date state.
-						this.stickyMailId = null
-					}
-				}
-			} else if (
-				isUpdateForTypeRef(ImportMailStateTypeRef, update) &&
-				(update.operation == OperationType.CREATE || update.operation == OperationType.UPDATE)
-			) {
+			if (isUpdateForTypeRef(ImportMailStateTypeRef, update) && (update.operation == OperationType.CREATE || update.operation == OperationType.UPDATE)) {
 				importMailStateUpdates.push(update)
 			}
 
