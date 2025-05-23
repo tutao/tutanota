@@ -19,6 +19,7 @@ import { EventController } from "../../../common/api/main/EventController"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,
+	DateWrapper,
 	Group,
 	GroupInfo,
 	GroupInfoTypeRef,
@@ -29,12 +30,14 @@ import {
 	UserAlarmInfoTypeRef,
 } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
+	AdvancedRepeatRule,
 	CalendarEvent,
 	CalendarEventTypeRef,
 	CalendarEventUpdate,
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
+	CalendarRepeatRule,
 	createDefaultAlarmInfo,
 	createGroupSettings,
 	FileTypeRef,
@@ -59,6 +62,7 @@ import {
 	listIdPart,
 	POST_MULTIPLE_LIMIT,
 	removeTechnicalFields,
+	Stripped,
 } from "../../../common/api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
@@ -145,6 +149,45 @@ export function assertEventValidity(event: CalendarEvent) {
 			throw new UserError("pre1970Start_msg")
 		case CalendarEventValidity.Valid:
 		// event is valid, nothing to do
+	}
+}
+
+function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
+	const sameUid = eventA.uid === eventB.uid
+	const sameSequence = eventA.sequence == eventB.sequence
+	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
+
+	return sameUid && sameSequence && sameRecurrenceId
+}
+
+type StrippedRepeatRule = Stripped<
+	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
+		excludedDates: Stripped<DateWrapper>[]
+		advancedRules: Stripped<AdvancedRepeatRule>[]
+	}
+>
+
+function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
+	if (!repeatRule) {
+		return null
+	}
+	return {
+		frequency: repeatRule.frequency ?? "",
+		endType: repeatRule.endType ?? "",
+		endValue: repeatRule.endValue ?? "",
+		interval: repeatRule.interval ?? "",
+		timeZone: repeatRule.timeZone ?? "",
+		excludedDates: repeatRule.excludedDates
+			? repeatRule.excludedDates.map((ex) => ({
+					date: ex.date,
+			  }))
+			: [],
+		advancedRules: repeatRule.advancedRules
+			? repeatRule.advancedRules.map((rule) => ({
+					ruleType: rule.ruleType,
+					interval: rule.interval,
+			  }))
+			: [],
 	}
 }
 
@@ -457,7 +500,7 @@ export class CalendarModel {
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedExternalEvents, existingEventList, currentCalendarGroupRoot, getTimeZone())
 			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
 			const eventsToUpdate = duplicates.filter((event) => {
-				const existingEvent = existingEventList.find((existing) => event.uid === existing.uid)
+				const existingEvent = existingEventList.find((existing) => shallowIsSameEvent(event, existing))
 
 				if (!existingEvent) {
 					console.warn("Found a duplicate without an existing event!")
@@ -516,7 +559,7 @@ export class CalendarModel {
 		// The last item don't have anything to be compared with, so length - 2
 		for (let index = 0; index < events.length - 2; index++) {
 			const event = events[index]
-			const isDuplicate = events.slice(index + 1).some((it) => event.uid === it.uid)
+			const isDuplicate = events.slice(index + 1).some((it) => shallowIsSameEvent(event, it))
 			if (isDuplicate) {
 				duplicatedEvents.push(event)
 			}
@@ -606,6 +649,9 @@ export class CalendarModel {
 	}
 
 	private eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
+		const rruleA = createStrippedRepeatRule(a.repeatRule)
+		const rruleB = createStrippedRepeatRule(b.repeatRule)
+
 		return (
 			a.startTime.valueOf() === b.startTime.valueOf() &&
 			a.endTime.valueOf() === b.endTime.valueOf() &&
@@ -615,7 +661,7 @@ export class CalendarModel {
 			a.location === b.location &&
 			a.description === b.description &&
 			deepEqual(a.organizer, b.organizer) &&
-			deepEqual(a.repeatRule, b.repeatRule) &&
+			deepEqual(rruleA, rruleB) &&
 			a.recurrenceId?.valueOf() === b.recurrenceId?.valueOf()
 		)
 	}
