@@ -1109,6 +1109,11 @@ export class SendMailModel {
 function recipientsFilter(recipientList: ReadonlyArray<PartialRecipient>): Array<PartialRecipient> {
 	// we pack each recipient along with its cleaned address, deduplicate the array by comparing cleaned and then unpack the original recipient
 	// this prevents us from changing the values contained in the array and still keeps the cleanAddress calls out of the n^2 loop
-	const cleanedList = recipientList.filter((r) => isMailAddress(r.address, false)).map((a) => ({ recipient: a, cleaned: cleanMailAddress(a.address) }))
+	const cleanedList = recipientList
+		.filter((r) => isMailAddress(r.address, false))
+		.map((a) => ({
+			recipient: a,
+			cleaned: cleanMailAddress(a.address),
+		}))
 	return deduplicate(cleanedList, (a, b) => a.cleaned === b.cleaned).map((a) => a.recipient)
 }

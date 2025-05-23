@@ -96,6 +96,9 @@ import {
 import { mailLocator } from "../../mailLocator.js"
 
 import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDialog.js"
+import { theme } from "../../../common/gui/theme"
+import { Icon } from "../../../common/gui/base/Icon"
+import { px, size } from "../../../common/gui/size"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -157,6 +160,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	// if we're set to block external content, but there is no content to block,
 	// we don't want to show the banner.
 	private blockedExternalContent: number = 0
+	private isQuotedExpanded: boolean = false
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
@@ -197,6 +201,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			this.editor.setHTML(model.getBody())
 
 			const editorDom = this.editor.getDOM()
+			const quotes = Array.from(editorDom.querySelectorAll(".tutanota_quote")) as HTMLElement[]
+			for (const quote of quotes) {
+				this.createCollapsedBlockQuote(quote, false)
+			}
 			const contrastFixNeeded = isMailContrastFixNeeded(editorDom)
 			// If mail body cannot be displayed as-is on the dark background then apply the background and text color
 			// fix. This class will change tutanota-quote's inside of it.
@@ -301,6 +309,45 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m.redraw()
 			})
 		})
+	}
+
+	private updateCollapsedQuotes(dom: ParentNode, showQuote: boolean) {
+		const quotes: NodeListOf<HTMLElement> = dom.querySelectorAll("[tuta-collapsed-quote]")
+		for (const quoteWrap of Array.from(quotes)) {
+			const quote = quoteWrap.children[0] as HTMLElement
+			quote.style.display = showQuote ? "" : "none"
+			const quoteIndicator = quoteWrap.children[1] as HTMLElement
+			quoteIndicator.style.display = showQuote ? "none" : ""
+		}
+	}
+
+	private createCollapsedBlockQuote(quote: HTMLElement, expanded: boolean) {
+		const quoteWrap = document.createElement("div")
+		// used to query quotes later
+		quoteWrap.setAttribute("tuta-collapsed-quote", "true")
+
+		quote.replaceWith(quoteWrap)
+		quote.style.display = expanded ? "" : "none"
+
+		const quoteIndicator = document.createElement("div")
+		quoteIndicator.classList.add("flex")
+		quoteIndicator.style.borderLeft = `2px solid ${theme.content_border}`
+		quoteIndicator.style.display = expanded ? "none" : ""
+
+		m.render(
+			quoteIndicator,
+			m(Icon, {
+				icon: Icons.More,
+				class: "icon-xl mlr",
+				container: "div",
+				style: {
+					fill: theme.navigation_menu_icon,
+				},
+			}),
+		)
+
+		quoteWrap.appendChild(quote)
+		quoteWrap.appendChild(quoteIndicator)
 	}
 
 	private downloadInlineImage(model: SendMailModel, cid: string) {
@@ -526,6 +573,22 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					m(this.editor),
 				),
 				m(".pb"),
+				m(ToggleButton, {
+					icon: Icons.More,
+					title: "showText_action",
+					toggled: this.isQuotedExpanded,
+					onToggled: () => {
+						this.isQuotedExpanded = !this.isQuotedExpanded
+						this.updateCollapsedQuotes(this.editor.getDOM(), this.isQuotedExpanded)
+						m.redraw()
+						// this.quoteState = this.shouldDisplayCollapsedQuotes() ? "collapsed" : "expanded"
+						// if (this.shadowDomRoot) this.updateCollapsedQuotes(this.shadowDomRoot, this.shouldDisplayCollapsedQuotes())
+					},
+					style: {
+						height: "24px",
+						width: px(size.button_height_compact),
+					},
+				}),
 			],
 		)
 	}
