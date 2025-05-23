@@ -23,7 +23,7 @@ function getBgColor({ isSelected }: { isSelected: boolean }) {
 		if (isSelected) {
 			return theme.experimental_primary_container
 		} else {
-			return theme.content_bg
+			return theme.surface
 		}
 	} else {
 		if (isSelected) {
@@ -49,7 +49,7 @@ function getBoxShadow() {
  * Determines the text color for the PlanBox component based on the selection state and theme.
  */
 function getTextColor({ isSelected }: { isSelected: boolean }) {
-	return `${isSelected ? theme.experimental_on_primary_container : theme.content_fg}`
+	return `${isSelected ? theme.experimental_on_primary_container : theme.on_surface}`
 }
 
 /**
@@ -60,13 +60,13 @@ function getOutlineColor({ isSelected }: { isSelected: boolean }) {
 		if (isSelected) {
 			return "transparent"
 		} else {
-			return theme.content_border
+			return theme.on_surface
 		}
 	} else {
 		if (isSelected) {
 			return "transparent"
 		} else {
-			return theme.content_fg
+			return theme.on_surface
 		}
 	}
 }
@@ -87,7 +87,7 @@ function getFeatureIconColor({ isSelected, planType }: { isSelected: boolean; pl
 		if (isSelected) {
 			return theme.experimental_tertiary
 		} else {
-			return theme.content_accent
+			return theme.primary
 		}
 	}
 }

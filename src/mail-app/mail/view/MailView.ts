@@ -131,7 +131,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				view: () => {
 					const folder = this.mailViewModel.getFolder()
 					return m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
+						backgroundColor: theme.surface_container,
 						desktopToolbar: () => m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.mailViewModel)), this.renderFilterButton()),
 						columnLayout: folder
 							? m(
@@ -289,7 +289,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private renderSingleMailViewer(header: AppHeaderAttrs, viewModel: ConversationViewModel) {
 		return m(BackgroundColumnLayout, {
-			backgroundColor: theme.navigation_bg,
+			backgroundColor: theme.surface_container,
 			desktopToolbar: () => m(DesktopViewerToolbar, this.mailViewerSingleActions(viewModel)),
 			mobileHeader: () =>
 				m(MobileHeader, {
@@ -337,7 +337,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private renderMultiMailViewer(header: AppHeaderAttrs) {
 		return m(BackgroundColumnLayout, {
-			backgroundColor: theme.navigation_bg,
+			backgroundColor: theme.surface_container,
 			desktopToolbar: () => m(DesktopViewerToolbar, this.mailViewerMultiActions()),
 			mobileHeader: () =>
 				m(MobileHeader, {
