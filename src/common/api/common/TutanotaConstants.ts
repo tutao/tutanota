@@ -499,27 +499,27 @@ export enum SecondFactorType {
 	webauthn = "2", // actually refers to u2f in client
 }
 
-export enum KeyVerificationSourceOfTrust {
+export enum IdentityKeySourceOfTrust {
 	Manual = 0,
 	TOFU = 1,
 }
 
-export enum KeyVerificationMethodType {
+export enum IdentityKeyVerificationMethod {
 	text = "0",
 	qr = "1",
 }
 
-export const enum KeyVerificationResultType {
+export const enum IdentityKeyQrVerificationResult {
 	QR_OK = "0",
 	QR_MALFORMED_PAYLOAD = "1",
 	QR_MAIL_ADDRESS_NOT_FOUND = "2",
 	QR_FINGERPRINT_MISMATCH = "3",
 }
 
-export enum KeyVerificationState {
-	NO_ENTRY, // Identity is not trusted by user
-	VERIFIED, // Identity is trusted and verified
-	MISMATCH, // Identity is trusted but not verified
+export enum EncryptionKeyVerificationState {
+	NO_ENTRY, // No entry in the trust database (e.g. web client)
+	VERIFIED_MANUAL, // Identity is manually trusted and verified
+	VERIFIED_TOFU, // Identity is trusted and verified via TOFU
 }
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
