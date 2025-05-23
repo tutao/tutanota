@@ -1,21 +1,23 @@
 import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
-import { KeyVerificationSourceOfTrust, KeyVerificationState } from "../../../common/TutanotaConstants"
+import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust } from "../../../common/TutanotaConstants"
 import { concat, Hex, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { bytesToEd25519PublicKey, ed25519PublicKeyToBytes, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../offline/Sql"
 import { TaggedSqlValue } from "../../offline/SqlValue"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
-import { Ed25519Facade, EncodedEd25519Signature, SigningKeyPairType, SigningPublicKey } from "../Ed25519Facade"
+import { EncodedEd25519Signature, SigningKeyPairType, SigningPublicKey } from "../Ed25519Facade"
 import { checkKeyVersionConstraints } from "../KeyLoaderFacade"
 import type { OfflineStorageTable } from "../../offline/OfflineStorage"
+import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
+import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
 
 export interface TrustedIdentity {
 	publicIdentityKey: Versioned<SigningPublicKey>
 	fingerprint: Hex
-	sourceOfTrust: KeyVerificationSourceOfTrust
+	sourceOfTrust: IdentityKeySourceOfTrust
 }
 
 /**
@@ -29,8 +31,12 @@ export const KeyVerificationTableDefinitions: Record<string, OfflineStorageTable
 	},
 })
 
+/**
+ * Facade for managing trust state of identity keys by adding or removing identity keys per email address into the trust store.
+ * It also provides a method to verify public encryption key signatures with trusted identity keys.
+ */
 export class KeyVerificationFacade {
-	constructor(private readonly sqlCipherFacade: SqlCipherFacade, private readonly ed25519Facade: Ed25519Facade) {}
+	constructor(private readonly sqlCipherFacade: SqlCipherFacade, private readonly publicKeySignatureFacade: PublicKeySignatureFacade) {}
 
 	async isSupported(): Promise<boolean> {
 		// SQLite database is unavailable in a browser environment
@@ -46,7 +52,7 @@ export class KeyVerificationFacade {
 			throw new ProgrammingError("unexpected signing key pair type, " + keyType)
 		}
 		const ed25519PublicKey = bytesToEd25519PublicKey(entry.publicIdentityKey.value as Uint8Array)
-		const sourceOfTrust = entry.sourceOfTrust.value as KeyVerificationSourceOfTrust
+		const sourceOfTrust = entry.sourceOfTrust.value as IdentityKeySourceOfTrust
 
 		const versionedSigningKey: Versioned<SigningPublicKey> = {
 			object: {
@@ -83,8 +89,8 @@ export class KeyVerificationFacade {
 	/**
 	 * Adds an identity to the trust database.
 	 */
-	async trust(mailAddress: string, identityKey: Versioned<SigningPublicKey>, sourceOfTrust: KeyVerificationSourceOfTrust) {
-		if (sourceOfTrust === KeyVerificationSourceOfTrust.Manual && (await this.isTrusted(mailAddress))) {
+	async trust(mailAddress: string, identityKey: Versioned<SigningPublicKey>, sourceOfTrust: IdentityKeySourceOfTrust) {
+		if (sourceOfTrust === IdentityKeySourceOfTrust.Manual && (await this.isTrusted(mailAddress))) {
 			// we allow overwriting an existing trusted entry when the user manual verified a key.
 			await this.untrust(mailAddress)
 		}
@@ -158,22 +164,50 @@ export class KeyVerificationFacade {
 		return uint8ArrayToHex(sha256Hash(this.concatenateFingerprint(publicKey)))
 	}
 
-	async verify(
-		identityKey: Versioned<SigningPublicKey>,
-		encryptionKey: Versioned<PublicKey>,
-		signature: EncodedEd25519Signature,
-	): Promise<KeyVerificationState> {
+	/**
+	 * Verifies the given public encryption key signature by using a trusted identity key.
+	 * @param mailAddress Mail address of the the the public key was retrieved from
+	 * @param encryptionKey The public encryption key to check.
+	 * @param signature The existing signature of the public encryption key.
+	 * @return EncryptionKeyVerificationState The verification state whether it is Manual or Tofu trusted key. Returns No_Entry if there is no trusted identity.
+	 * @throws KeyVerificationMismatchError in case the signature is not valid
+	 */
+	async verify(mailAddress: string, encryptionKey: Versioned<PublicKey>, signature: EncodedEd25519Signature | null): Promise<EncryptionKeyVerificationState> {
 		const isSupported = await this.isSupported()
 		if (!isSupported) {
-			return KeyVerificationState.NO_ENTRY
+			throw new ProgrammingError("key verification is not supported in this environment")
 		}
-		// FIXME create message from encryption key and verify key
-		const verifySignatureMessage: Uint8Array = new Uint8Array()
-		const verificationResult = await this.ed25519Facade.verifySignature(identityKey.object.key, verifySignatureMessage, signature)
-		if (verificationResult) {
-			return KeyVerificationState.VERIFIED
+
+		// Load identity key from trust database
+		const trustedIdentity = await this.getTrustedIdentity(mailAddress)
+
+		if (trustedIdentity == null) {
+			return EncryptionKeyVerificationState.NO_ENTRY
+		}
+
+		// Raise an error if an identity key exists but no signature has been loaded from the public key service.
+		if (signature == null) {
+			throw new KeyVerificationMismatchError("missing signature for identity: " + mailAddress)
+		}
+
+		const identityKey = trustedIdentity.publicIdentityKey
+
+		if (identityKey.object.type !== SigningKeyPairType.Ed25519) {
+			throw new ProgrammingError("expected identity public key of type Ed25519")
+		}
+
+		const validSignature = await this.publicKeySignatureFacade.verifyPublicKeySignature(encryptionKey, identityKey.object.key, signature)
+
+		if (validSignature) {
+			if (trustedIdentity.sourceOfTrust === IdentityKeySourceOfTrust.Manual) {
+				return EncryptionKeyVerificationState.VERIFIED_MANUAL
+			} else if (trustedIdentity.sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
+				return EncryptionKeyVerificationState.VERIFIED_TOFU
+			} else {
+				throw new ProgrammingError("source of trust not implemented: " + trustedIdentity.sourceOfTrust)
+			}
 		} else {
-			return KeyVerificationState.MISMATCH
+			throw new KeyVerificationMismatchError("encryption key not signed with a valid signature")
 		}
 	}
 }

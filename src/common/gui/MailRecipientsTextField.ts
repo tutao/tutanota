@@ -14,7 +14,7 @@ import { SearchDropDown } from "./SearchDropDown.js"
 import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
-import { KeyVerificationState } from "../api/common/TutanotaConstants.js"
+import { PresentableKeyVerificationState } from "../api/main/RecipientsModel"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -75,7 +75,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			items: attrs.recipients,
 			getBubbleIcon: (recipient: Recipient) => {
-				if (recipient.verificationState === KeyVerificationState.MISMATCH) {
+				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
 					return m(Icon, {
 						icon: Icons.AlertCircle,
 						size: IconSize.Large, // we want 20px
@@ -86,7 +86,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 							right: "1px",
 						},
 					})
-				} else if (recipient.verificationState === KeyVerificationState.VERIFIED) {
+				} else if (recipient.verificationState === PresentableKeyVerificationState.SECURE) {
 					return m(Icon, {
 						icon: Icons.Shield,
 						size: IconSize.Normal,

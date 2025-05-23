@@ -3,7 +3,6 @@ import {
 	downcast,
 	isSameTypeRef,
 	lazy,
-	lazyAsync,
 	neverNull,
 	ofClass,
 	promiseMap,
@@ -27,19 +26,17 @@ import {
 import { HttpMethod, PatchOperationType, TypeModelResolver } from "../../common/EntityFunctions"
 import {
 	BucketPermission,
+	BucketPermissionTypeRef,
+	createInstanceSessionKey,
 	createPatch,
 	createPatchList,
+	createUpdatePermissionKeyData,
+	GroupInfoTypeRef,
 	GroupMembership,
+	GroupTypeRef,
 	InstanceSessionKey,
 	PatchListTypeRef,
 	Permission,
-} from "../../entities/sys/TypeRefs.js"
-import {
-	BucketPermissionTypeRef,
-	createInstanceSessionKey,
-	createUpdatePermissionKeyData,
-	GroupInfoTypeRef,
-	GroupTypeRef,
 	PermissionTypeRef,
 	PushIdentifierTypeRef,
 } from "../../entities/sys/TypeRefs.js"
@@ -57,7 +54,7 @@ import {
 } from "../../entities/tutanota/TypeRefs.js"
 import { NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
-import type { ClientModelEncryptedParsedInstance, ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../common/EntityTypes"
+import type { ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
@@ -80,23 +77,21 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { computePatchPayload, elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
 import { PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion, Nullable } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
 import { typeModelToRestPath } from "../rest/EntityRestClient"
-import { convertJsToDbType } from "./ModelMapper"
-import { ValueType } from "../../common/EntityConstants"
 import { AttributeModel } from "../../common/AttributeModel"
+import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
 
@@ -116,7 +111,6 @@ export class CryptoFacade {
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
-		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 		private readonly publicKeyProvider: PublicKeyProvider,
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 		private readonly typeModelResolver: TypeModelResolver,
@@ -658,13 +652,6 @@ export class CryptoFacade {
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 			})
 
-			// Check if recipient is still verified for recipientMailAddress
-			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
-			// FIXME get verification state from public key result
-			// if ((await keyVerificationFacade.resolveVerificationState(recipientMailAddress, publicKey)) == KeyVerificationState.MISMATCH) {
-			// 	keyVerificationMismatchRecipients.push(recipientMailAddress)
-			// }
-
 			// We do not create any key data in case there is one not found recipient or not verified, but we want to
 			// collect ALL failed recipients when iterating a recipient list.
 			if (notFoundRecipients.length !== 0 || keyVerificationMismatchRecipients.length !== 0) {
@@ -674,14 +661,18 @@ export class CryptoFacade {
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
 			// Clients need to support symmetric decryption from external users. We can always encrypt symmetrically when old clients are deactivated that don't support tuta-crypt.
-			if (isVersionedPqPublicKey(publicKey) && isExternalSender) {
+			if (isVersionedPqPublicKey(publicKey.publicEncryptionKey) && isExternalSender) {
 				return this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
 			} else {
-				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKey, senderUserGroupId)
+				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKey.publicEncryptionKey, senderUserGroupId)
 			}
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				notFoundRecipients.push(recipientMailAddress)
+				return null
+			}
+			if (e instanceof KeyVerificationMismatchError) {
+				keyVerificationMismatchRecipients.push(recipientMailAddress)
 				return null
 			} else if (e instanceof TooManyRequestsError) {
 				throw new RecipientNotResolvedError("")
