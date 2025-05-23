@@ -7,9 +7,9 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { matchers, object, replace, verify, when } from "testdouble"
-import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
+import { PresentableKeyVerificationState, RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../../src/common/api/common/recipients/Recipient.js"
-import { AccountType, CalendarAttendeeStatus, KeyVerificationState, ShareCapability } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { AccountType, CalendarAttendeeStatus, ShareCapability } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { UserTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { CalendarOperation, EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
@@ -281,7 +281,7 @@ o.spec("CalendarEventWhoModel", function () {
 					type: RecipientType.EXTERNAL,
 					contact: otherRecipient.contact,
 					status: CalendarAttendeeStatus.ADDED,
-					verificationState: KeyVerificationState.NO_ENTRY,
+					verificationState: PresentableKeyVerificationState.NONE,
 				},
 			])("the single non-organizer guest is in guests array")
 			o(model.ownGuest).deepEquals(model.organizer)("the own guest is the organizer")
@@ -319,7 +319,7 @@ o.spec("CalendarEventWhoModel", function () {
 				type: RecipientType.INTERNAL,
 				status: CalendarAttendeeStatus.ACCEPTED,
 				contact: null,
-				verificationState: KeyVerificationState.NO_ENTRY,
+				verificationState: PresentableKeyVerificationState.NONE,
 			})
 			const result = model.result
 			o(result.attendees.map((a) => a.address)).deepEquals([ownerAddress, otherAddress])
@@ -405,7 +405,7 @@ o.spec("CalendarEventWhoModel", function () {
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 					type: RecipientType.UNKNOWN,
 					contact: null,
-					verificationState: KeyVerificationState.NO_ENTRY,
+					verificationState: PresentableKeyVerificationState.NONE,
 				},
 			])
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "", strength: 0 })("password is not set")
@@ -417,7 +417,7 @@ o.spec("CalendarEventWhoModel", function () {
 					status: CalendarAttendeeStatus.NEEDS_ACTION,
 					type: RecipientType.EXTERNAL,
 					contact: otherRecipient.contact,
-					verificationState: KeyVerificationState.NO_ENTRY,
+					verificationState: PresentableKeyVerificationState.NONE,
 				},
 			])
 			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "otherPassword", strength: 1 })

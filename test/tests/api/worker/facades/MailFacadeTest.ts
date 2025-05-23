@@ -6,6 +6,7 @@ import {
 	MailTypeRef,
 	ReportedMailFieldMarkerTypeRef,
 	SecureExternalRecipientKeyDataTypeRef,
+	SendDraftData,
 	SendDraftDataTypeRef,
 	SymEncInternalRecipientKeyDataTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -15,7 +16,7 @@ import {
 	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	ReportedMailFieldType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { matchers, object } from "testdouble"
+import { matchers, object, when } from "testdouble"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
@@ -29,8 +30,12 @@ import { ProgrammingError } from "../../../../../src/common/api/common/error/Pro
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
-import { verify } from "@tutao/tutanota-test-utils"
+import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
+import { Recipient } from "../../../../../src/common/api/common/recipients/Recipient"
+import { AesKey } from "@tutao/tutanota-crypto"
+import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError"
+import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -590,6 +595,112 @@ o.spec("MailFacade test", function () {
 			}
 
 			verify(serviceExecutor.post(UnreadMailStateService, matchers.anything()), { times: expectedBatches })
+		})
+	})
+
+	o.spec("addRecipientKeyData", function () {
+		o("correctly throws RecipientsNotFoundError", async function () {
+			const bucketKey: AesKey = object()
+			const sendDraftData: SendDraftData = object()
+			const senderMailGroupId: Id = object()
+
+			const notFoundRecipient1: Recipient = object()
+			// @ts-ignore
+			notFoundRecipient1.address = "one@tuta.com"
+
+			const notFoundRecipient2: Recipient = object()
+			// @ts-ignore
+			notFoundRecipient2.address = "two@tuta.com"
+
+			const someRecipient1: Recipient = object()
+			const someRecipient2: Recipient = object()
+
+			const recipients: Array<Recipient> = [someRecipient1, notFoundRecipient1, someRecipient2, notFoundRecipient2]
+
+			const captor = matchers.captor()
+			when(
+				cryptoFacade.encryptBucketKeyForInternalRecipient(
+					matchers.anything(),
+					matchers.anything(),
+					notFoundRecipient1.address,
+					captor.capture(),
+					matchers.anything(),
+				),
+			).thenDo(() => {
+				const notFoundRecipients: string[] = captor.value
+				notFoundRecipients.push(notFoundRecipient1.address)
+			})
+
+			when(
+				cryptoFacade.encryptBucketKeyForInternalRecipient(
+					matchers.anything(),
+					matchers.anything(),
+					notFoundRecipient2.address,
+					captor.capture(),
+					matchers.anything(),
+				),
+			).thenDo(() => {
+				const notFoundRecipients: string[] = captor.value
+				notFoundRecipients.push(notFoundRecipient2.address)
+			})
+
+			const err = await assertThrows(RecipientsNotFoundError, async () => {
+				// @ts-ignore
+				await facade.addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
+			})
+			o(err.message).equals(`${notFoundRecipient1.address}\n${notFoundRecipient2.address}`)
+		})
+
+		o("correctly throws KeyVerificationMismatchError", async function () {
+			const bucketKey: AesKey = object()
+			const sendDraftData: SendDraftData = object()
+			const senderMailGroupId: Id = object()
+
+			const unverifiedRecipient1: Recipient = object()
+			// @ts-ignore
+			unverifiedRecipient1.address = "one@tuta.com"
+
+			const unverifiedRecipient2: Recipient = object()
+			// @ts-ignore
+			unverifiedRecipient2.address = "two@tuta.com"
+
+			const someRecipient1: Recipient = object()
+			const someRecipient2: Recipient = object()
+
+			const recipients: Array<Recipient> = [someRecipient1, unverifiedRecipient1, someRecipient2, unverifiedRecipient2]
+
+			const captor = matchers.captor()
+			when(
+				cryptoFacade.encryptBucketKeyForInternalRecipient(
+					matchers.anything(),
+					matchers.anything(),
+					unverifiedRecipient1.address,
+					matchers.anything(),
+					captor.capture(),
+				),
+			).thenDo(() => {
+				const mismatchRecipients: string[] = captor.value
+				mismatchRecipients.push(unverifiedRecipient1.address)
+			})
+
+			when(
+				cryptoFacade.encryptBucketKeyForInternalRecipient(
+					matchers.anything(),
+					matchers.anything(),
+					unverifiedRecipient2.address,
+					matchers.anything(),
+					captor.capture(),
+				),
+			).thenDo(() => {
+				const mismatchRecipients: string[] = captor.value
+				mismatchRecipients.push(unverifiedRecipient2.address)
+			})
+
+			const err = await assertThrows(KeyVerificationMismatchError, async () => {
+				// @ts-ignore
+				await facade.addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
+			})
+			o(err.data).deepEquals([unverifiedRecipient1.address, unverifiedRecipient2.address])
 		})
 	})
 })

@@ -50,7 +50,6 @@ import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
-import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 
 const { anything, argThat } = matchers
 
@@ -121,7 +120,6 @@ o.spec("EntityRestClient", function () {
 			instance(DefaultEntityRestCache),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
-			async () => instance(KeyVerificationFacade),
 			instance(PublicKeyProvider),
 			() => instance(KeyRotationFacade),
 		)

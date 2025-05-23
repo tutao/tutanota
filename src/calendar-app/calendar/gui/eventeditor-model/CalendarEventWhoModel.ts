@@ -12,8 +12,8 @@ import { PartialRecipient, Recipient, RecipientType } from "../../../../common/a
 import { haveSameId, Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/tutanota-utils"
-import { CalendarAttendeeStatus, ConversationType, KeyVerificationState, ShareCapability } from "../../../../common/api/common/TutanotaConstants.js"
-import { RecipientsModel, ResolveMode } from "../../../../common/api/main/RecipientsModel.js"
+import { CalendarAttendeeStatus, ConversationType, ShareCapability } from "../../../../common/api/common/TutanotaConstants.js"
+import { PresentableKeyVerificationState, RecipientsModel, ResolveMode } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { isSecurePassword } from "../../../../common/misc/passwords/PasswordUtils.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
@@ -395,7 +395,7 @@ export class CalendarEventWhoModel {
 				status: a.status as CalendarAttendeeStatus,
 				type: RecipientType.UNKNOWN,
 				contact: null,
-				verificationState: KeyVerificationState.NO_ENTRY,
+				verificationState: PresentableKeyVerificationState.NONE,
 			}
 		}
 	}

@@ -106,6 +106,7 @@ impl PublicKeyProvider {
 					pubEccKey: None,
 					pubKyberKey: None,
 					pubRsaKey: Some(rsa_pub_key),
+					signature: _,
 				} => PublicKey::Rsa(RSAPublicKey::deserialize(rsa_pub_key.as_slice()).unwrap()),
 				PublicKeyGetOut {
 					_format,
@@ -113,6 +114,7 @@ impl PublicKeyProvider {
 					pubEccKey: Some(ecc_pub_key),
 					pubKyberKey: None,
 					pubRsaKey: Some(rsa_pub_key),
+					signature: _,
 				} => PublicKey::RsaX25519(RsaX25519PublicKeys {
 					rsa_public_key: RSAPublicKey::deserialize(rsa_pub_key.as_slice()).unwrap(),
 					x25519_public_key: X25519PublicKey::from_bytes(ecc_pub_key.as_slice()).unwrap(),
@@ -123,6 +125,7 @@ impl PublicKeyProvider {
 					pubEccKey: Some(ecc_pub_key),
 					pubKyberKey: Some(kyber_pub_key),
 					pubRsaKey: None,
+					signature: _,
 				} => PublicKey::TutaCrypt(TutaCryptPublicKeys {
 					x25519_public_key: X25519PublicKey::from_bytes(ecc_pub_key.as_slice()).unwrap(),
 					kyber_public_key: KyberPublicKey::from_bytes(kyber_pub_key.as_slice()).unwrap(),
@@ -208,6 +211,7 @@ mod tests {
 						pubKeyVersion: current_key_version as i64,
 						pubKyberKey: Some(pub_kyber_key.to_vec()),
 						pubRsaKey: None,
+						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -243,6 +247,7 @@ mod tests {
 						pubKeyVersion: current_key_version as i64,
 						pubKyberKey: None,
 						pubRsaKey: Some(pub_rsa_key.to_vec()),
+						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -295,6 +300,7 @@ mod tests {
 						pubKeyVersion: requested_version as i64,
 						pubKyberKey: Some(get_kyber_pub_key_bytes().to_vec()),
 						pubRsaKey: None,
+						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -339,6 +345,7 @@ mod tests {
 						pubKeyVersion: current_key_version as i64,
 						pubKyberKey: Some(pub_kyber_key.to_vec()),
 						pubRsaKey: None,
+						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -375,6 +382,7 @@ mod tests {
 						pubKeyVersion: requested_version as i64,
 						pubKyberKey: None,
 						pubRsaKey: Some(pub_rsa_key.to_vec()),
+						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);
@@ -417,6 +425,7 @@ mod tests {
 						pubKeyVersion: bad_version_from_server,
 						pubKyberKey: Some(pub_key_for_mock.clone()),
 						pubRsaKey: None,
+						signature: None,
 					})
 				});
 			let public_key_provider = make_public_key_provider(service_executor);

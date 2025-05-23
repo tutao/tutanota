@@ -3047,7 +3047,17 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {}
+		"associations": {
+			"2599": {
+				"final": false,
+				"name": "signature",
+				"id": 2599,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2570,
+				"dependency": null
+			}
+		}
 	},
 	"417": {
 		"name": "SaltData",
