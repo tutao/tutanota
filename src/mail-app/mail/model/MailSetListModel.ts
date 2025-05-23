@@ -85,7 +85,7 @@ export interface MailSetListModel {
 	 *
 	 * If the items have not changed, then subsequent calls will return the same array.
 	 */
-	getSelectedAsArray(): Mail[]
+	getSelectedAsArray(): readonly Mail[]
 
 	/**
 	 * Set the filter
