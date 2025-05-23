@@ -33,6 +33,7 @@ import { AssociationType, Cardinality, Type as TypeId, ValueType } from "../../c
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "../crypto/ModelMapper"
+import { CacheTableDefinitions, TableDefinitions } from "../../common/OfflineStorageConstants"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -81,22 +82,6 @@ export interface OfflineDbMeta extends VersionMetadataEntries {
 	timeRangeDays: number
 }
 
-export const TableDefinitions = Object.freeze({
-	// plus ownerGroup added in a migration
-	list_entities:
-		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
-	// plus ownerGroup added in a migration
-	element_entities: "type TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, elementId)",
-	ranges: "type TEXT NOT NULL, listId TEXT NOT NULL, lower TEXT NOT NULL, upper TEXT NOT NULL, PRIMARY KEY (type, listId)",
-	lastUpdateBatchIdPerGroupId: "groupId TEXT NOT NULL, batchId TEXT NOT NULL, PRIMARY KEY (groupId)",
-	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
-	blob_element_entities:
-		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
-	identity_store:
-		"mailAddress TEXT NOT NULL, publicIdentityKey BLOB NOT NULL, identityKeyVersion INTEGER NOT NULL, identityKeyType INTEGER NOT NULL, " +
-		"sourceOfTrust INTEGER NOT NULL, PRIMARY KEY (mailAddress, identityKeyVersion)",
-} as const)
-
 type Range = { lower: Id; upper: Id }
 
 export interface OfflineStorageInitArgs {
@@ -123,6 +108,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	/**
+	 * @param forceNewDatabase Wipe all pinned identity keys and all cached data from offline storage
 	 * @return {boolean} whether the database was newly created or not
 	 */
 	async init({ userId, databaseKey, timeRangeDays, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
@@ -143,7 +129,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		} catch (e) {
 			if (e instanceof OutOfSyncError) {
 				console.warn("Offline db is out of sync!", e)
-				await this.recreateDbFile(userId, databaseKey)
+				await this.recreateCacheTables(userId, databaseKey)
 				await this.migrator.migrate(this, this.sqlCipherFacade)
 			} else {
 				throw e
@@ -153,11 +139,10 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		return (await this.getLastUpdateTime()).type === "never"
 	}
 
-	private async recreateDbFile(userId: string, databaseKey: Uint8Array): Promise<void> {
+	private async recreateCacheTables(userId: string, databaseKey: Uint8Array): Promise<void> {
 		console.log(`recreating DB file for userId ${userId}`)
-		await this.sqlCipherFacade.closeDb()
-		await this.sqlCipherFacade.deleteDb(userId)
-		await this.sqlCipherFacade.openDb(userId, databaseKey)
+		await this.sqlCipherFacade.dropTables(CacheTableDefinitions)
+		// remaining tables will not be touched
 		await this.createTables()
 	}
 
@@ -472,14 +457,8 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		await this.putMetadata("lastUpdateTime", ms)
 	}
 
-	async purgeStorage(): Promise<void> {
-		for (let name of Object.keys(TableDefinitions)) {
-			await this.sqlCipherFacade.run(
-				`DELETE
-                 FROM ${name}`,
-				[],
-			)
-		}
+	async purgeCacheStorage(): Promise<void> {
+		return this.sqlCipherFacade.emptyTables(CacheTableDefinitions)
 	}
 
 	async deleteRange(typeRef: TypeRef<unknown>, listId: string): Promise<void> {

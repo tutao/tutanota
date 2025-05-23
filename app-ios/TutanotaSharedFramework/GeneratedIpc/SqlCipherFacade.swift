@@ -4,6 +4,12 @@
 import Foundation
 
 public protocol SqlCipherFacade {
+	func emptyTables(
+		_ tableNames: [String]
+	) async throws -> Void
+	func dropTables(
+		_ tableNames: [String]
+	) async throws -> Void
 	func openDb(
 		_ userId: String,
 		_ dbKey: DataWrapper

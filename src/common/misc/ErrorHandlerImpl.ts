@@ -32,6 +32,7 @@ import { OfflineDbClosedError } from "../api/common/error/OfflineDbClosedError.j
 import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
+import { CacheTableDefinitions } from "../api/common/OfflineStorageConstants"
 
 assertMainOrNode()
 
@@ -88,7 +89,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		const { userId } = logins.getUserController()
 		if (isDesktop()) {
 			await interWindowEventSender?.localUserDataInvalidated(userId)
-			await worker.getWorkerInterface().sqlCipherFacade.deleteDb(userId)
+			await worker.getWorkerInterface().sqlCipherFacade.dropTables(CacheTableDefinitions)
 		}
 		await logins.logout(false)
 		await windowFacade.reload({ noAutoLogin: true })

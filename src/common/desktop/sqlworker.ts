@@ -39,6 +39,8 @@ if (parentPort != null) {
 			openDb: (msg: Request<"openDb">) => sqlCipherFacade.openDb(msg.args[0], msg.args[1]),
 			run: (msg: Request<"run">) => sqlCipherFacade.run(msg.args[0], msg.args[1]),
 			unlockRangesDbAccess: (msg: Request<"unlockRangesDbAccess">) => sqlCipherFacade.unlockRangesDbAccess(msg.args[0]),
+			emptyTables: (msg: Request<"emptyTables">) => sqlCipherFacade.emptyTables(msg.args[0]),
+			dropTables: (msg: Request<"dropTables">) => sqlCipherFacade.dropTables(msg.args[0]),
 		}
 
 		const workerTransport = new MessageDispatcher(

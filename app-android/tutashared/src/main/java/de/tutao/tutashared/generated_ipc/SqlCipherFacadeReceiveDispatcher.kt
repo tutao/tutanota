@@ -14,6 +14,20 @@ class SqlCipherFacadeReceiveDispatcher(
 	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
+			"emptyTables" -> {
+				val tableNames: List<String> = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.emptyTables(
+					tableNames,
+				)
+				return json.encodeToString(result)
+			}
+			"dropTables" -> {
+				val tableNames: List<String> = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.dropTables(
+					tableNames,
+				)
+				return json.encodeToString(result)
+			}
 			"openDb" -> {
 				val userId: String = json.decodeFromString(arg[0])
 				val dbKey: DataWrapper = json.decodeFromString(arg[1])

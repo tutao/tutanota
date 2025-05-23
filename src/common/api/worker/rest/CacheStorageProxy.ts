@@ -140,8 +140,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.getWholeList(typeRef, listId)
 	}
 
-	purgeStorage(): Promise<void> {
-		return this.inner.purgeStorage()
+	purgeCacheStorage(): Promise<void> {
+		return this.inner.purgeCacheStorage()
 	}
 
 	put(originalEntity: SomeEntity): Promise<void> {

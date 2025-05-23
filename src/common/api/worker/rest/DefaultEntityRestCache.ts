@@ -220,7 +220,10 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
-	purgeStorage(): Promise<void>
+	/**
+	 * Purge cache data, leaving the rest of the data alone.
+	 */
+	purgeCacheStorage(): Promise<void>
 
 	putLastUpdateTime(value: number): Promise<void>
 
@@ -325,7 +328,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	purgeStorage(): Promise<void> {
 		console.log("Purging the user's offline database")
-		return this.storage.purgeStorage()
+		return this.storage.purgeCacheStorage()
 	}
 
 	async isOutOfSync(): Promise<boolean> {

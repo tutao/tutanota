@@ -10,6 +10,18 @@ public class SqlCipherFacadeReceiveDispatcher {
 	}
 	public func dispatch(method: String, arg: [String]) async throws -> String {
 		switch method {
+		case "emptyTables":
+			let tableNames = try! JSONDecoder().decode([String].self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.emptyTables(
+				tableNames
+			)
+			return "null"
+		case "dropTables":
+			let tableNames = try! JSONDecoder().decode([String].self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.dropTables(
+				tableNames
+			)
+			return "null"
 		case "openDb":
 			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let dbKey = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)

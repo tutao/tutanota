@@ -90,7 +90,7 @@ export function changeCardinalityFromAnyToZeroOrOne(attribute: string): Migratio
 }
 
 export async function clearDatabase(storage: OfflineStorage) {
-	await storage.purgeStorage()
+	await storage.purgeCacheStorage()
 	await writeModelVersions(storage)
 }
 
