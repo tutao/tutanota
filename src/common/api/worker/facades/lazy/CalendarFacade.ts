@@ -70,7 +70,6 @@ import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
 import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils.js"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
-import { resolveClientTypeReference } from "../../../common/EntityFunctions"
 import { ClientModelUntypedInstance } from "../../../common/EntityTypes"
 
 assertWorkerOrNode()
@@ -207,31 +206,16 @@ export class CalendarFacade {
 			event.hashedUid = hashUid(assertNotNull(event.uid, "tried to save calendar event without uid."))
 		}
 
-		const user = this.userFacade.getLoggedInUser()
-
-		const numEvents = eventsWrapper.length
-		let eventsWithAlarms: Array<AlarmNotificationsPerEvent>
-		try {
-			eventsWithAlarms = await this.saveMultipleAlarms(user, eventsWrapper)
-		} catch (e) {
-			if (e instanceof SetupMultipleError) {
-				console.log("Saving alarms failed.", e)
-				throw new ImportError(e.errors[0], "Could not save alarms.", numEvents)
-			}
-			throw e
-		}
-		for (const { event, alarmInfoIds } of eventsWithAlarms) {
-			event.alarmInfos = alarmInfoIds
-		}
+		let eventsWithAlarms = await this.setupEventAlarms(eventsWrapper)
 		currentProgress = 33
 		await onProgress(currentProgress)
+
 		const eventsWithAlarmsByEventListId = groupBy(eventsWithAlarms, (eventWrapper) => getListId(eventWrapper.event))
 		let collectedAlarmNotifications: AlarmNotification[] = []
 		//we have different lists for short and long events so this is 1 or 2
 		const size = eventsWithAlarmsByEventListId.size
 		let failed = 0
 		let errors = [] as Array<TutanotaError>
-
 		for (const [listId, eventsWithAlarmsOfOneList] of eventsWithAlarmsByEventListId) {
 			let successfulEvents = eventsWithAlarmsOfOneList
 			await this.cachingEntityClient
@@ -273,6 +257,25 @@ export class CalendarFacade {
 				throw new ImportError(errors[0], "Could not save events.", failed)
 			}
 		}
+	}
+
+	private async setupEventAlarms(eventsWrapper: Array<EventWrapper>) {
+		const numEvents = eventsWrapper.length
+		let eventsWithAlarms: Array<AlarmNotificationsPerEvent> = []
+		try {
+			const user = this.userFacade.getLoggedInUser()
+			eventsWithAlarms = await this.saveMultipleAlarms(user, eventsWrapper)
+		} catch (e) {
+			if (e instanceof SetupMultipleError) {
+				console.log("Saving alarms failed.", e)
+				throw new ImportError(e.errors[0], "Could not save alarms.", numEvents)
+			}
+			throw e
+		}
+		for (const { event, alarmInfoIds } of eventsWithAlarms) {
+			event.alarmInfos = alarmInfoIds
+		}
+		return eventsWithAlarms
 	}
 
 	async saveCalendarEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, oldEvent: CalendarEvent | null): Promise<void> {

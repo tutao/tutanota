@@ -9,6 +9,7 @@ import {
 	downcast,
 	filterInt,
 	getFromMap,
+	isNotEmpty,
 	isSameDay,
 	Require,
 	splitInChunks,
@@ -19,6 +20,7 @@ import { EventController } from "../../../common/api/main/EventController"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,
+	DateWrapper,
 	Group,
 	GroupInfo,
 	GroupInfoTypeRef,
@@ -29,12 +31,14 @@ import {
 	UserAlarmInfoTypeRef,
 } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
+	AdvancedRepeatRule,
 	CalendarEvent,
 	CalendarEventTypeRef,
 	CalendarEventUpdate,
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
+	CalendarRepeatRule,
 	createDefaultAlarmInfo,
 	createGroupSettings,
 	FileTypeRef,
@@ -59,6 +63,7 @@ import {
 	listIdPart,
 	POST_MULTIPLE_LIMIT,
 	removeTechnicalFields,
+	Stripped,
 } from "../../../common/api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
@@ -100,6 +105,7 @@ import {
 	EventImportRejectionReason,
 	EventWrapper,
 	parseCalendarStringData,
+	shallowIsSameEvent,
 	sortOutParsedEvents,
 	SyncStatus,
 } from "../../../common/calendar/import/ImportExportUtils.js"
@@ -145,6 +151,37 @@ export function assertEventValidity(event: CalendarEvent) {
 			throw new UserError("pre1970Start_msg")
 		case CalendarEventValidity.Valid:
 		// event is valid, nothing to do
+	}
+}
+
+type StrippedRepeatRule = Stripped<
+	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
+		excludedDates: Stripped<DateWrapper>[]
+		advancedRules: Stripped<AdvancedRepeatRule>[]
+	}
+>
+
+function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
+	if (!repeatRule) {
+		return null
+	}
+	return {
+		frequency: repeatRule.frequency ?? "",
+		endType: repeatRule.endType ?? "",
+		endValue: repeatRule.endValue ?? "",
+		interval: repeatRule.interval ?? "",
+		timeZone: repeatRule.timeZone ?? "",
+		excludedDates: repeatRule.excludedDates
+			? repeatRule.excludedDates.map((ex) => ({
+					date: ex.date,
+			  }))
+			: [],
+		advancedRules: repeatRule.advancedRules
+			? repeatRule.advancedRules.map((rule) => ({
+					ruleType: rule.ruleType,
+					interval: rule.interval,
+			  }))
+			: [],
 	}
 }
 
@@ -457,7 +494,7 @@ export class CalendarModel {
 			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(parsedExternalEvents, existingEventList, currentCalendarGroupRoot, getTimeZone())
 			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
 			const eventsToUpdate = duplicates.filter((event) => {
-				const existingEvent = existingEventList.find((existing) => event.uid === existing.uid)
+				const existingEvent = existingEventList.find((existing) => shallowIsSameEvent(event, existing))
 
 				if (!existingEvent) {
 					console.warn("Found a duplicate without an existing event!")
@@ -468,7 +505,7 @@ export class CalendarModel {
 			})
 
 			const eventsToRemove = existingEventList.filter(
-				(existingEvent) => !parsedExternalEvents.some((externalEvent) => externalEvent.event.uid === existingEvent.uid),
+				(existingEvent) => !parsedExternalEvents.some((externalEvent) => shallowIsSameEvent(externalEvent.event, existingEvent)),
 			)
 			eventsToRemove.push(...this.findDuplicatedEvents(existingEventList))
 
@@ -516,7 +553,7 @@ export class CalendarModel {
 		// The last item don't have anything to be compared with, so length - 2
 		for (let index = 0; index < events.length - 2; index++) {
 			const event = events[index]
-			const isDuplicate = events.slice(index + 1).some((it) => event.uid === it.uid)
+			const isDuplicate = events.slice(index + 1).some((it) => shallowIsSameEvent(event, it))
 			if (isDuplicate) {
 				duplicatedEvents.push(event)
 			}
@@ -570,7 +607,7 @@ export class CalendarModel {
 
 		// Replacing duplicates with changes
 		for (const duplicatedEvent of eventsToUpdate) {
-			const existingEvent = existingEventList.find((event) => event.uid === duplicatedEvent.uid)
+			const existingEvent = existingEventList.find((event) => shallowIsSameEvent(event, duplicatedEvent))
 			if (!existingEvent) {
 				console.warn("Found a duplicate without an existing event after filtering!")
 				continue
@@ -601,11 +638,16 @@ export class CalendarModel {
 			assertEventValidity(event)
 			operationsLog.created++
 		}
-		await this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
+		if (isNotEmpty(eventsForCreation)) {
+			await this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
+		}
 		console.log(TAG, `${operationsLog.created} events created`)
 	}
 
 	private eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
+		const rruleA = createStrippedRepeatRule(a.repeatRule)
+		const rruleB = createStrippedRepeatRule(b.repeatRule)
+
 		return (
 			a.startTime.valueOf() === b.startTime.valueOf() &&
 			a.endTime.valueOf() === b.endTime.valueOf() &&
@@ -615,7 +657,7 @@ export class CalendarModel {
 			a.location === b.location &&
 			a.description === b.description &&
 			deepEqual(a.organizer, b.organizer) &&
-			deepEqual(a.repeatRule, b.repeatRule) &&
+			deepEqual(rruleA, rruleB) &&
 			a.recurrenceId?.valueOf() === b.recurrenceId?.valueOf()
 		)
 	}
@@ -1056,6 +1098,7 @@ export class CalendarModel {
 		newEvent.organizer = icsEvent.organizer
 		newEvent.repeatRule = icsEvent.repeatRule
 		newEvent.recurrenceId = icsEvent.recurrenceId
+
 		return await this.doUpdateEvent(dbEvent, newEvent)
 	}
 

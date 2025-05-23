@@ -14,7 +14,14 @@ import {
 	EncryptedMailAddressTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { DateTime } from "luxon"
-import { AlarmInfo, AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfoTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import {
+	AlarmInfo,
+	AlarmInfoTypeRef,
+	createDateWrapper,
+	DateWrapperTypeRef,
+	RepeatRuleTypeRef,
+	UserAlarmInfoTypeRef,
+} from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
 import { getAllDayDateUTC } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { getDateInZone } from "./CalendarTestUtils.js"
@@ -1433,6 +1440,46 @@ END:VCALENDAR`
 			)
 			o(rejectedEvents.size).equals(0)
 			o(eventsForCreation[0].event.repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
+		})
+		o("sync calendar with altered instances are added as exclusions", function () {
+			const rrule = createTestEntity(RepeatRuleTypeRef)
+			const parsedProgenitor = createTestEntity(CalendarEventTypeRef, {
+				uid: "hello",
+				startTime: getDateInZone("2023-01-02T13:00"),
+				endTime: getDateInZone("2023-01-02T13:05"),
+				repeatRule: rrule,
+			}) as Require<"uid", CalendarEvent>
+
+			const existingProgenitor = createTestEntity(CalendarEventTypeRef, {
+				uid: "hello",
+				startTime: getDateInZone("2023-01-02T13:00"),
+				endTime: getDateInZone("2023-01-02T13:05"),
+				repeatRule: {
+					...rrule,
+					excludedDates: [createDateWrapper({ date: getDateInZone("2023-01-02T13:00") })],
+				},
+			}) as Require<"uid", CalendarEvent>
+
+			const altered = createTestEntity(CalendarEventTypeRef, {
+				uid: "hello",
+				startTime: getDateInZone("2023-01-02T14:00"),
+				endTime: getDateInZone("2023-01-02T14:05"),
+				recurrenceId: getDateInZone("2023-01-02T13:00"),
+			}) as Require<"uid", CalendarEvent>
+
+			const { rejectedEvents, eventsForCreation } = sortOutParsedEvents(
+				[
+					{ event: parsedProgenitor, alarms: [] },
+					{ event: altered, alarms: [] },
+				],
+				[existingProgenitor],
+				createTestEntity(CalendarGroupRootTypeRef),
+				zone,
+			)
+
+			o(rejectedEvents.size).equals(1)
+			o(eventsForCreation[0].event.recurrenceId?.getTime()).equals(altered.recurrenceId?.getTime())
+			o(parsedProgenitor.repeatRule?.excludedDates[0].date.getTime()).equals(altered.recurrenceId?.getTime())
 		})
 	})
 

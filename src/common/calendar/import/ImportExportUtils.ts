@@ -54,7 +54,8 @@ function makeInstanceIdentifier(event: CalendarEvent): string {
 export type RejectedEvents = Map<EventImportRejectionReason, Array<CalendarEvent>>
 
 /** sort the parsed events into the ones we want to create and the ones we want to reject (stating a rejection reason)
- * will assign event id according to the calendarGroupRoot and the long/short event status */
+ * and if necessary adds excluded dates to the parsed progenitor. This function will assign event id according to
+ * the calendarGroupRoot and the long/short event status */
 export function sortOutParsedEvents(
 	parsedEvents: ParsedEvent[],
 	existingEvents: Array<CalendarEvent>,
@@ -65,6 +66,19 @@ export function sortOutParsedEvents(
 	eventsForCreation: Array<EventWrapper>
 } {
 	const instanceIdentifierToEventMap = new Map()
+
+	// We need to sort existingEvents to move all the progenitors to the beginning of the list
+	// So they can be processed before their alteredInstances
+	existingEvents.sort((a, b) => {
+		if (a.recurrenceId != null && b.recurrenceId == null) {
+			return 1
+		} else if (a.recurrenceId == null && b.recurrenceId != null) {
+			return -1
+		}
+
+		return 0
+	})
+
 	for (const existingEvent of existingEvents) {
 		if (existingEvent.uid == null) continue
 		instanceIdentifierToEventMap.set(makeInstanceIdentifier(existingEvent), existingEvent)
@@ -79,6 +93,32 @@ export function sortOutParsedEvents(
 		for (const { event, alarms } of flatParsedEvents) {
 			if (flatParsedEvents.length > 1)
 				console.warn("[ImportExportUtils] Found events with same uid: flatParsedEvents with more than one entry", { flatParsedEvents })
+
+			for (let alarmInfo of alarms) {
+				alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
+			}
+
+			if (progenitor?.event.repeatRule != null && event.recurrenceId != null) {
+				insertIntoSortedArray(
+					createDateWrapper({ date: event.recurrenceId }),
+					progenitor.event.repeatRule.excludedDates,
+					(left, right) => left.date.getTime() - right.date.getTime(),
+					() => true,
+				)
+				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, event))) {
+					alteredInstances.push({ event, alarms })
+				}
+			} else if (event.recurrenceId != null) {
+				treatProgenitorExcludedDates(
+					event,
+					getFromMap(rejectedEvents, EventImportRejectionReason.Duplicate, () => []),
+				)
+
+				if (!existingEvents.some((ev) => shallowIsSameEvent(ev, event))) {
+					alteredInstances.push({ event, alarms })
+				}
+			}
+
 			const rejectionReason = shouldBeSkipped(event, instanceIdentifierToEventMap)
 			if (rejectionReason != null) {
 				getFromMap(rejectedEvents, rejectionReason, () => []).push(event)
@@ -93,25 +133,11 @@ export function sortOutParsedEvents(
 				repeatRule.timeZone = getTimeZone()
 			}
 
-			for (let alarmInfo of alarms) {
-				alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
-			}
-
 			assignEventId(event, zone, calendarGroupRoot)
 			if (event.recurrenceId == null) {
 				// the progenitor must be null here since we would have
 				// rejected the second uid-progenitor event in shouldBeSkipped.
 				progenitor = { event, alarms }
-			} else {
-				if (progenitor?.event.repeatRule != null) {
-					insertIntoSortedArray(
-						createDateWrapper({ date: event.recurrenceId }),
-						progenitor.event.repeatRule.excludedDates,
-						(left, right) => left.date.getTime() - right.date.getTime(),
-						() => true,
-					)
-				}
-				alteredInstances.push({ event, alarms })
 			}
 		}
 		if (progenitor != null) eventsForCreation.push(progenitor)
@@ -119,6 +145,19 @@ export function sortOutParsedEvents(
 	}
 
 	return { rejectedEvents, eventsForCreation }
+}
+
+/*
+ * Looks for the progenitor of an altered instance inside a given event list and
+ * updates only the progenitor in place with the excluded instance.
+ */
+function treatProgenitorExcludedDates(alteredInstance: CalendarEvent, events: CalendarEvent[]) {
+	if (alteredInstance.recurrenceId == null) {
+		throw Error(`Tried to handle an excluded date without recurrence id, event ${alteredInstance._id}`)
+	}
+
+	const event = events.find((ev) => ev.uid === alteredInstance.uid && ev.repeatRule != null && ev.recurrenceId == null)
+	event?.repeatRule?.excludedDates.push(createDateWrapper({ date: alteredInstance.recurrenceId }))
 }
 
 /** importer internals exported for testing */
@@ -151,4 +190,12 @@ export function checkURLString(url: string): TranslationKey | URL {
 
 export function hasValidProtocol(url: URL, validProtocols: string[]) {
 	return validProtocols.includes(url.protocol)
+}
+
+export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
+	const sameUid = eventA.uid === eventB.uid
+	const sameSequence = eventA.sequence == eventB.sequence
+	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
+
+	return sameUid && sameSequence && sameRecurrenceId
 }
