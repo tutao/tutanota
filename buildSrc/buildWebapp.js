@@ -203,7 +203,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 			{
 				name: "sw-banner",
 				banner() {
-					return `function filesToCache() { return ${JSON.stringify(filesToCache)} }
+					return `function filesToCache() { return ${JSON.stringify(filesToCache.sort())} }
 					function version() { return "${version}" }
 					function customDomainCacheExclusions() { return ${JSON.stringify(customDomainFileExclusions)} }`
 				},
