@@ -38,8 +38,9 @@ import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entit
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
 import { clamp, pad } from "@tutao/tutanota-utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
+import { getMailFilterForType, MailFilterType } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 
-o.spec("MailListModelTest", () => {
+o.spec("MailListModel", () => {
 	let model: MailListModel
 
 	const mailboxDetail: MailboxDetail = {
@@ -109,27 +110,31 @@ o.spec("MailListModelTest", () => {
 		return Number(deconstructMailSetEntryId(mailSetElementId).mailId)
 	}
 
-	async function setUpTestData(count: number, initialLabels: MailFolder[], offline: boolean) {
+	async function setUpTestData(
+		count: number,
+		initialLabels: MailFolder[],
+		offline: boolean,
+		mailTemplate: (idx: number) => Mail = (idx) =>
+			createTestEntity(MailTypeRef, {
+				_id: makeMailId(idx),
+				sets: [mailSet._id, ...initialLabels.map((l) => l._id)],
+			}),
+	) {
 		const mailSetEntries: MailSetEntry[] = []
-		const mails: Mail[][] = [[], [], [], [], [], [], [], [], [], []]
+		const mailBags: Mail[][] = [[], [], [], [], [], [], [], [], [], []]
 
 		for (let i = 0; i < count; i++) {
-			const mailBag = i % 10
-			const mailId: IdTuple = makeMailId(i)
+			const mailBag = i % mailBags.length
+			const mail = mailTemplate(i)
 
-			const mail = createTestEntity(MailTypeRef, {
-				_id: mailId,
-				sets: [mailSet._id, ...initialLabels.map((l) => l._id)],
-			})
-
-			mails[mailBag].push(mail)
+			mailBags[mailBag].push(mail)
 
 			mailSetEntries.push(
 				createMailSetEntry({
 					_id: [mailSetEntriesListId, makeMailSetElementId(i)],
 					_ownerGroup,
 					_permissions: "1234",
-					mail: mailId,
+					mail: mail._id,
 				}),
 			)
 		}
@@ -160,7 +165,7 @@ o.spec("MailListModelTest", () => {
 		}
 
 		async function getMailsMock(_mailTypeRef: any, mailBag: string, elements: Id[]): Promise<Mail[]> {
-			const mailsInMailBag = mails[Number(mailBag)] ?? []
+			const mailsInMailBag = mailBags[Number(mailBag)] ?? []
 			return mailsInMailBag.filter((mail) => elements.includes(getElementId(mail)))
 		}
 
@@ -281,6 +286,40 @@ o.spec("MailListModelTest", () => {
 		const loadedMail = await model.loadAndSelect(unloadedMail, () => false)
 		o(loadedMail).notEquals(null)
 		o(loadedMail).equals(model.getMail(unloadedMail))
+	})
+
+	o.spec("filters", () => {
+		o.test("with empty filter list it returns all items", async () => {
+			await setUpTestData(4, [], false)
+			await model.loadInitial()
+			model.setFilter([])
+			o.check(model.mails.length).equals(4)
+		})
+
+		o.test("with single filter it returns matching items only", async () => {
+			await setUpTestData(4, [], false, (idx) =>
+				createTestEntity(MailTypeRef, {
+					_id: makeMailId(idx),
+					unread: idx % 2 === 0,
+				}),
+			)
+			await model.loadInitial()
+			model.setFilter([getMailFilterForType(MailFilterType.Unread)])
+			o.check(model.mails.map(getElementId)).deepEquals([pad(2, GENERATED_MAX_ID.length), pad(0, GENERATED_MAX_ID.length)])
+		})
+
+		o.test("with composite filter it returns matching items only", async () => {
+			await setUpTestData(4, [], false, (idx) =>
+				createTestEntity(MailTypeRef, {
+					_id: makeMailId(idx),
+					unread: idx % 2 === 0,
+					attachments: idx === 2 ? [["attachListId", "attachElemId"]] : [],
+				}),
+			)
+			await model.loadInitial()
+			model.setFilter([getMailFilterForType(MailFilterType.Unread), getMailFilterForType(MailFilterType.WithAttachments)])
+			o.check(model.mails.map(getElementId)).deepEquals([pad(2, GENERATED_MAX_ID.length)])
+		})
 	})
 
 	o.spec("handleEntityUpdate", () => {

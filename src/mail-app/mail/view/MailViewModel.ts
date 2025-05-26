@@ -64,7 +64,7 @@ export class MailViewModel {
 	 */
 	private loadingTargetId: Id | null = null
 	private conversationViewModel: ConversationViewModel | null = null
-	private _filterType: MailFilterType | null = null
+	private _filterType: ReadonlySet<MailFilterType> = new Set()
 
 	/**
 	 * We remember the last URL used for each folder so if we switch between folders we can keep the selected mail.
@@ -96,13 +96,14 @@ export class MailViewModel {
 		return this._folder ? getMailSetKind(this._folder) : null
 	}
 
-	get filterType(): MailFilterType | null {
+	get filterType(): ReadonlySet<MailFilterType> {
 		return this._filterType
 	}
 
-	setFilter(filter: MailFilterType | null) {
+	setFilter(filter: ReadonlySet<MailFilterType>) {
 		this._filterType = filter
-		this.listModel?.setFilter(getMailFilterForType(filter))
+		const filterFunctions = Array.from(filter).map(getMailFilterForType)
+		this.listModel?.setFilter(filterFunctions)
 	}
 
 	async showMailWithMailSetId(mailsetId?: Id, mailId?: Id): Promise<void> {
@@ -468,7 +469,7 @@ export class MailViewModel {
 		if (!oldFolderId || !isSameId(oldFolderId, folder._id)) {
 			// Cancel old load all
 			this.listModel?.cancelLoadAll()
-			this._filterType = null
+			this._filterType = new Set()
 
 			// the open folder has changed which means we need another list model with data for this list
 			this.updateListModel()
@@ -526,7 +527,7 @@ export class MailViewModel {
 		2000,
 		async (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
 			const ourFolder = this.getFolder()
-			if (ourFolder == null || (this._filterType != null && this.filterType !== MailFilterType.Unread)) {
+			if (ourFolder == null || (this._filterType != null && this.filterType.has(MailFilterType.Unread))) {
 				return
 			}
 

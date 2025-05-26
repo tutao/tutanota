@@ -1,13 +1,13 @@
 import m, { Component } from "mithril"
 import { Dialog, DialogType } from "../../../../common/gui/base/Dialog.js"
-import { lang, Translation } from "../../../../common/misc/LanguageViewModel.js"
+import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { DatePicker } from "./DatePicker.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
-import { formatDateWithWeekdayAndYear } from "../../../../common/misc/Formatter.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
-import { debounceStart, NBSP, noOp } from "@tutao/tutanota-utils"
-
+import { debounceStart, noOp } from "@tutao/tutanota-utils"
+import { IconButton, IconButtonAttrs } from "../../../../common/gui/base/IconButton"
+import { Icons } from "../../../../common/gui/base/icons/Icons"
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
@@ -15,18 +15,22 @@ assertMainOrNode()
 /**
  * Shows a dialog in which the user can select a start date and an end date. Start and end date does not need to be selected, then they are null and regarded as unlimited.
  */
-export function showDateRangeSelectionDialog<T>(
-	startOfTheWeekOffset: number,
-	start: Date,
-	end: Date,
-	dateValidator: (startDate: Date | null, endDate: Date | null) => string | null = () => null,
-): Promise<{
-	start: Date
+export function showDateRangeSelectionDialog({
+	start,
+	optionalStartDate,
+	end,
+	startOfTheWeekOffset,
+	dateValidator = () => null,
+}: {
+	startOfTheWeekOffset: number
+	start: Date | null
+	end: Date
+	optionalStartDate: boolean
+	dateValidator: (startDate: Date | null, endDate: Date | null) => string | null
+}): Promise<{
+	start: typeof start
 	end: Date
 }> {
-	const helpLabel = (date: Date | null): Translation =>
-		date != null ? lang.makeTranslation("date", formatDateWithWeekdayAndYear(date)) : lang.getTranslation("unlimited_label")
-
 	const validateDates = debounceStart(750, (startDate, endDate) => {
 		warning = dateValidator(startDate, endDate)
 		m.redraw()
@@ -38,38 +42,62 @@ export function showDateRangeSelectionDialog<T>(
 	const form: Component = {
 		view: () =>
 			m(
-				".flex.col",
-				m(".flex-space-between", [
-					m(
-						".pr-s.flex-grow.max-width-200.flex-space-between.flex-column",
-						m(DatePicker, {
-							date: startDate,
-							onDateSelected: (date) => {
-								warning = null
-								startDate = date
-								validateDates(startDate, endDate)
-							},
-							startOfTheWeekOffset,
-							label: "dateFrom_label",
-							nullSelectionText: helpLabel(start),
-						}),
-					),
-					m(
-						".pl-s.flex-grow.max-width-200.flex-space-between.flex-column",
-						m(DatePicker, {
-							date: endDate,
-							onDateSelected: (date) => {
-								warning = null
-								endDate = date
-								validateDates(startDate, endDate)
-							},
-							startOfTheWeekOffset,
-							label: "dateTo_label",
-							nullSelectionText: helpLabel(end),
-						}),
-					),
-				]),
-				m(".mt", { style: { minHeight: px(2 * size.font_size_base * size.line_height) } }, warning ?? NBSP),
+				".flex.col.pt",
+				m(
+					"",
+					{
+						style: {
+							display: "grid",
+							"grid-template-columns": "2fr 6fr 1fr",
+							"grid-gap": px(size.vpad_small),
+							"align-items": "center",
+						},
+					},
+					[
+						m("", lang.get("dateFrom_label")),
+						m(
+							".flex-grow.flex-space-between.flex-column",
+							m(DatePicker, {
+								useInputButton: true,
+								date: startDate ?? undefined,
+								onDateSelected: (date) => {
+									warning = null
+									startDate = date
+									validateDates(startDate, endDate)
+								},
+								startOfTheWeekOffset,
+								label: "dateFrom_label",
+								nullSelectionText: optionalStartDate ? "unlimited_label" : undefined,
+							}),
+						),
+						startDate && optionalStartDate
+							? m(IconButton, {
+									icon: Icons.Cancel,
+									title: "remove_action",
+									click: () => {
+										startDate = null
+										warning = null
+									},
+							  } satisfies IconButtonAttrs)
+							: m(".button-height.button-width-fixed"),
+						m("", lang.get("dateTo_label")),
+						m(
+							".flex-grow.flex-space-between.flex-column",
+							m(DatePicker, {
+								useInputButton: true,
+								date: endDate,
+								onDateSelected: (date) => {
+									warning = null
+									endDate = date
+									validateDates(startDate, endDate)
+								},
+								startOfTheWeekOffset,
+								label: "dateTo_label",
+							}),
+						),
+					],
+				),
+				warning ? m(".mt.center", warning) : null,
 			),
 	}
 	return newPromise((resolve) => {
@@ -82,7 +110,7 @@ export function showDateRangeSelectionDialog<T>(
 					const start = startDate
 					const end = endDate
 
-					if (start.getTime() > end.getTime()) {
+					if (start && start.getTime() > end.getTime()) {
 						Dialog.message("startAfterEnd_label")
 					} else {
 						dialog.close()

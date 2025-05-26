@@ -82,6 +82,7 @@ import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { compareMails } from "../../mail/model/MailUtils"
 import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
+import { getSharedGroupName } from "../../../common/sharing/GroupUtils"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -103,14 +104,15 @@ export class SearchViewModel {
 		return this._includeRepeatingEvents
 	}
 
-	get warning(): "long" | "startafterend" | null {
-		if (this.startDate && this.startDate.getTime() > this.endDate.getTime()) {
-			return "startafterend"
-		} else if (this.startDate && this.endDate.getTime() - this.startDate.getTime() > YEAR_IN_MILLIS) {
-			return "long"
-		} else {
-			return null
+	public checkDates(startDate: Date | null, endDate: Date | null): "long" | "startafterend" | null {
+		if (startDate && endDate) {
+			if (startDate.getTime() > endDate.getTime()) {
+				return "startafterend"
+			} else if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
+				return "long"
+			}
 		}
+		return null
 	}
 
 	/**
@@ -158,8 +160,19 @@ export class SearchViewModel {
 
 	// isn't an IdTuple because it is two list ids
 	private _selectedCalendar: readonly [Id, Id] | string | null = null
-	get selectedCalendar(): readonly [Id, Id] | string | null {
-		return this._selectedCalendar
+	get selectedCalendar(): CalendarInfo | string | null {
+		const calendars = this.getAvailableCalendars()
+		return (
+			calendars.find((calendar) => {
+				if (typeof calendar.info === "string") {
+					return calendar.info === this._selectedCalendar
+				}
+
+				// It isn't a string, so it can be only a Calendar Info
+				const calendarValue = calendar.info
+				return isSameId([calendarValue.groupRoot.longEvents, calendarValue.groupRoot.shortEvents], this._selectedCalendar)
+			})?.info ?? null
+		)
 	}
 
 	private _mailboxes: MailboxDetail[] = []
@@ -175,7 +188,7 @@ export class SearchViewModel {
 	// Contains load more results even when searchModel doesn't.
 	// Load more should probably be moved to the model to update it's result stream.
 	private searchResult: SearchResult | null = null
-	private mailFilterType: MailFilterType | null = null
+	private mailFilterType: ReadonlySet<MailFilterType> = new Set()
 	private latestMailRestriction: SearchRestriction | null = null
 	private latestCalendarRestriction: SearchRestriction | null = null
 	private mailboxSubscription: Stream<void> | null = null
@@ -225,6 +238,32 @@ export class SearchViewModel {
 		return this.lazyCalendarInfos
 	}
 
+	getAvailableCalendars(): Array<{ info: CalendarInfo | string; name: string }> {
+		if (this.getLazyCalendarInfos().isLoaded() && this.getUserHasNewPaidPlan().isLoaded()) {
+			// Load user's calendar list
+			const items: {
+				info: CalendarInfo | string
+				name: string
+			}[] = Array.from(this.getLazyCalendarInfos().getLoaded().values()).map((ci) => ({
+				info: ci,
+				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
+			}))
+
+			if (this.getUserHasNewPaidPlan().getSync()) {
+				const localCalendars = this.getLocalCalendars().map((cal) => ({
+					info: cal.id,
+					name: cal.name,
+				}))
+
+				items.push(...localCalendars)
+			}
+
+			return items
+		} else {
+			return []
+		}
+	}
+
 	getUserHasNewPaidPlan() {
 		return this.userHasNewPaidPlan
 	}
@@ -236,7 +275,7 @@ export class SearchViewModel {
 		this.extendIndexConfirmationCallback = extendIndexConfirmationCallback
 		this.resultSubscription = this.search.result.map((result) => {
 			if (!result || !isSameTypeRef(result.restriction.type, MailTypeRef)) {
-				this.mailFilterType = null
+				this.mailFilterType = new Set()
 			}
 
 			if (this.searchResult == null || result == null || !areResultsForTheSameQuery(result, this.searchResult)) {
@@ -316,27 +355,28 @@ export class SearchViewModel {
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
+		const query = args.query ?? ""
 		let restriction
 		try {
 			restriction = getRestriction(requestedPath)
 		} catch (e) {
 			// if restriction is broken replace it with non-broken version
-			this.router.routeTo(args.query, createRestriction(SearchCategoryTypes.mail, null, null, null, [], null))
+			this.router.routeTo(query, createRestriction(SearchCategoryTypes.mail, null, null, null, [], null))
 			return
 		}
 
-		this.currentQuery = args.query
+		this.currentQuery = query
 		const lastQuery = this.search.lastQueryString()
 		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
 		const listModel = this._listModel
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
-		if (Object.hasOwn(args, "query") && this.search.isNewSearch(args.query, restriction)) {
+		if (Object.hasOwn(args, "query") && this.search.isNewSearch(query, restriction)) {
 			this.searchResult = null
 			listModel.updateLoadingStatus(ListLoadingState.Loading)
 			this.search
 				.search(
 					{
-						query: args.query,
+						query,
 						restriction,
 						minSuggestionCount: 0,
 						maxResults,
@@ -637,19 +677,27 @@ export class SearchViewModel {
 		}
 	}
 
-	get mailFilter(): MailFilterType | null {
+	get mailFilter(): ReadonlySet<MailFilterType> {
 		return this.mailFilterType
 	}
 
-	setMailFilter(filter: MailFilterType | null) {
+	setMailFilter(filter: ReadonlySet<MailFilterType>) {
 		this.mailFilterType = filter
 		this.applyMailFilterIfNeeded()
 	}
 
 	private applyMailFilterIfNeeded() {
 		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
-			const filterFunction = getMailFilterForType(this.mailFilterType)
-			const liftedFilter: ListFilter<SearchResultListEntry> | null = filterFunction ? (entry) => filterFunction(entry.entry as Mail) : null
+			const filters = Array.from(this.mailFilterType).map(getMailFilterForType)
+			const filterFunction = (item: Mail) => {
+				for (const filter of filters) {
+					if (!filter(item)) {
+						return false
+					}
+				}
+				return true
+			}
+			const liftedFilter: ListFilter<SearchResultListEntry> | null = (entry) => filterFunction(entry.entry as Mail)
 			this._listModel?.setFilter(liftedFilter)
 		}
 	}
@@ -677,7 +725,7 @@ export class SearchViewModel {
 					this._startDate ? getStartOfDay(this._startDate).getTime() : null,
 					this._endDate ? getEndOfDay(this._endDate).getTime() : null,
 					null,
-					this.getFolderIds(),
+					this.getCalendarLists(),
 					this._includeRepeatingEvents,
 				),
 			)
@@ -686,11 +734,12 @@ export class SearchViewModel {
 		}
 	}
 
-	private getFolderIds() {
+	private getCalendarLists(): string[] {
 		if (typeof this.selectedCalendar === "string") {
 			return [this.selectedCalendar]
 		} else if (this.selectedCalendar != null) {
-			return [...this.selectedCalendar]
+			const calendarInfo = this.selectedCalendar
+			return [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
 		}
 
 		return []

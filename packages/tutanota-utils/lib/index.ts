@@ -47,7 +47,21 @@ export {
 	collectToMap,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
-export { intersection, trisectingDiff, setAddAll, max, maxBy, findBy, min, minBy, mapWith, mapWithout, setEquals, setMap } from "./CollectionUtils.js"
+export {
+	intersection,
+	trisectingDiff,
+	setAddAll,
+	max,
+	maxBy,
+	findBy,
+	min,
+	minBy,
+	mapWith,
+	mapWithout,
+	setEquals,
+	setMap,
+	setDifference,
+} from "./CollectionUtils.js"
 export {
 	DAY_IN_MILLIS,
 	YEAR_IN_MILLIS,

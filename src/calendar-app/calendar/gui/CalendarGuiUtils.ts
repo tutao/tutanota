@@ -920,7 +920,13 @@ export const getClientOnlyColors = (userId: Id, clientOnlyCalendarsInfo: Map<Id,
 	return colors
 }
 
-export const getClientOnlyCalendars = (userId: Id, clientOnlyCalendarInfo: Map<Id, ClientOnlyCalendarsInfo>) => {
+export const getClientOnlyCalendars = (
+	userId: Id,
+	clientOnlyCalendarInfo: Map<Id, ClientOnlyCalendarsInfo>,
+): (ClientOnlyCalendarsInfo & {
+	id: string
+	name: string
+})[] => {
 	const userCalendars: (ClientOnlyCalendarsInfo & { id: string; name: string })[] = []
 
 	for (const [id, key] of CLIENT_ONLY_CALENDARS) {

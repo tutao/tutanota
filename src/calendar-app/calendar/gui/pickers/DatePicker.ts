@@ -6,7 +6,7 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { px } from "../../../../common/gui/size.js"
 import { theme } from "../../../../common/gui/theme.js"
 
-import { getStartOfDay, isSameDayOfDate, memoized } from "@tutao/tutanota-utils"
+import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { TextField, TextFieldType } from "../../../../common/gui/base/TextField.js"
@@ -84,7 +84,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		])
 	}
 
-	private renderInputButtonPicker({ disabled, date, onDateSelected, label }: DatePickerAttrs): Children {
+	private renderInputButtonPicker({ disabled, date, onDateSelected, label, nullSelectionText }: DatePickerAttrs): Children {
 		return m.fragment({}, [
 			isApp()
 				? m("input.fill-absolute.invisible.tutaui-button-outline", {
@@ -110,7 +110,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				ariaLabel: lang.getTranslationText(label),
 				inputValue: this.inputText,
 				oninput: (newValue: string) => (this.inputText = newValue),
-				display: formatDateWithWeekdayAndYear(date ?? new Date()),
+				display: date ? formatDateWithWeekdayAndYear(date) : nullSelectionText ? lang.getTranslationText(nullSelectionText) : NBSP,
 				variant: InputButtonVariant.OUTLINE,
 				disabled,
 				type: TextFieldType.Text,

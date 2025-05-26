@@ -188,6 +188,9 @@ styles.registerStyle("main", () => {
 		".b": {
 			"font-weight": "bold",
 		},
+		".font-weight-500": {
+			"font-weight": "500",
+		},
 		".font-weight-600": {
 			"font-weight": "600",
 		},
@@ -417,6 +420,9 @@ styles.registerStyle("main", () => {
 		".pt-xs": {
 			"padding-top": px(size.vpad_xs),
 		},
+		".pt-hpad-button": {
+			"padding-top": px(size.hpad_button),
+		},
 		".pb-0": {
 			"padding-bottom": 0,
 		},
@@ -450,6 +456,9 @@ styles.registerStyle("main", () => {
 		},
 		".pb-floating": {
 			"padding-bottom": px(size.button_floating_size + size.hpad_large),
+		},
+		".pb-hpad-button": {
+			"padding-bottom": px(size.hpad_button),
 		},
 		// allow scrolling across the floating button
 		".plr": {
@@ -485,6 +494,9 @@ styles.registerStyle("main", () => {
 		},
 		".pr-vpad-s": {
 			"padding-right": px(size.vpad_small),
+		},
+		".pr-vpad-m": {
+			"padding-right": px(size.vpad),
 		},
 		".pr-m": {
 			"padding-right": px(size.vpad),
@@ -1070,6 +1082,12 @@ styles.registerStyle("main", () => {
 		".flex-no-grow": {
 			flex: "0",
 		},
+		".flex-shrink": {
+			"flex-shrink": "1",
+		},
+		".flex-shrink-children *": {
+			"flex-shrink": "1",
+		},
 		".no-shrink": {
 			"flex-shrink": "0",
 		},
@@ -1399,6 +1417,39 @@ styles.registerStyle("main", () => {
 		".state-bg:active, .state-bg[pressed=true]": {
 			background: stateBgActive,
 			"transition-duration": ".3s",
+		},
+		// State layer roughly like in Material 3.
+		// Inserts a pseudoelement above the background but before the content with alpha.
+		".state-bg-2": {
+			// We have to position pseudoelement
+			position: "relative",
+			// disable default focus indicator because we have our own for this element
+			outline: "none",
+		},
+		".state-bg-2::before": {
+			"background-color": `var(--state-bg-color, ${theme.content_fg})`,
+			opacity: "0",
+			transition: "opacity 0.6s",
+			content: "''",
+			display: "block",
+			height: "100%",
+			position: "absolute",
+			width: "100%",
+			// not adding these will position it relative to the inner side of the padding
+			top: "0",
+			left: "0",
+		},
+		":where(.mouse-nav) .state-bg-2:hover::before, :where(.keyboard-nav) .state-bg-2:hover::before": {
+			"transition-duration": ".3s",
+			opacity: "0.08",
+		},
+		":where(.keyboard-nav) .state-bg-2:focus::before": {
+			"transition-duration": ".3s",
+			opacity: "0.12",
+		},
+		".state-bg-2:active::before, .state-bg-2[pressed=true]:active::before": {
+			"transition-duration": ".3s",
+			opacity: "0.12",
 		},
 		".flash": {
 			transition: `opacity ${DefaultAnimationTime}ms`,

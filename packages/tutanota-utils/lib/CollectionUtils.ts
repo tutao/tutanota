@@ -125,3 +125,16 @@ export function trisectingDiff<T>(
 
 	return { kept, added, deleted }
 }
+
+/**
+ * return a new set containing every item from {@param set1} that isn't in {@param set2}
+ */
+export function setDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): Set<T> {
+	const result = new Set<T>()
+	for (const item of set1) {
+		if (!set2.has(item)) {
+			result.add(item)
+		}
+	}
+	return result
+}
