@@ -5,14 +5,12 @@ import Stream from "mithril/stream"
 import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
-import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
+import { BaseThemeId, Theme, ThemeId, ThemePreference } from "./theme"
 import { logoDefaultGrey, themes } from "./builtinThemes"
-import { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
-import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
+import { getWhitelabelCustomizations, ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
-import { locator } from "../api/main/CommonLocator.js"
 
 assertMainOrNodeBoot()
 
@@ -76,29 +74,29 @@ export class ThemeController {
 	 * Since the number of new tokens is less than the number of old tokens, it is impossible to map all colors. Thus, this is just for mitigation purposes.
 	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
 	 */
-	public static mapOldToNewColorTokens(customizations: Partial<ThemeCustomizations>): ThemeCustomizations {
+	public static mapOldToNewColorTokens(customizations: ThemeCustomizations | keyof typeof oldToNewColorTokenMap): ThemeCustomizations {
 		let mappedCustomizations: Record<string, string> = {}
 		for (const [oldToken, hex] of Object.entries(customizations)) {
 			if (!oldToken || !hex) continue
-			const newToken: string | undefined = oldToNewColorTokenMap[oldToken]
+			const newToken: keyof Theme | undefined = oldToNewColorTokenMap[oldToken]
 			if (newToken) {
 				mappedCustomizations[newToken] = hex
 			}
 			mappedCustomizations[oldToken] = hex
 		}
-		return downcast(mappedCustomizations)
+		return mappedCustomizations as ThemeCustomizations
 	}
 
 	/**
 	 * Color token mapper from the new to the old.
 	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
 	 */
-	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): ThemeCustomizations {
+	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string> {
 		let mappedCustomizations: Record<string, string> = {}
 
 		for (const [newToken, hex] of Object.entries(customizations)) {
 			if (!newToken || !hex) continue
-			const mappedOldTokens: string[] | undefined = newToOldColorTokenMap[newToken]
+			const mappedOldTokens = newToOldColorTokenMap[newToken as keyof typeof newToOldColorTokenMap]
 			if (mappedOldTokens) {
 				for (const oldToken of mappedOldTokens) {
 					mappedCustomizations[oldToken] = hex
@@ -107,7 +105,7 @@ export class ThemeController {
 			mappedCustomizations[newToken] = hex
 		}
 
-		return downcast(mappedCustomizations)
+		return mappedCustomizations
 	}
 
 	/**
@@ -370,7 +368,7 @@ export class WebThemeFacade implements ThemeFacade {
 	}
 }
 
-const oldToNewColorTokenMap: Record<string, string> = {
+const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 	button_bubble_bg: "secondary",
 	button_bubble_fg: "on_secondary",
 	content_bg: "surface",
@@ -404,7 +402,7 @@ const oldToNewColorTokenMap: Record<string, string> = {
 	error_color: "error",
 } as const
 
-const newToOldColorTokenMap: Record<string, string[]> = {
+const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
 	secondary: ["button_bubble_bg", "navigation_menu_bg"],
 	on_secondary: ["button_bubble_fg", "navigation_menu_icon"],
 	surface: ["content_bg", "header_bg", "list_bg", "elevated_bg"],
