@@ -8,7 +8,7 @@ import { UserController } from "../../../api/main/UserController.js"
 import { Dialog } from "../../../gui/base/Dialog.js"
 
 /**
- * News item that informs admin users that the new pricing offer is ending soon.
+ * This news item informs admin users that color customization may need updating.
  */
 export class UpdateColorCustomizationNews implements NewsListItem {
 	constructor(private readonly newsModel: NewsModel, private readonly userController: UserController) {}
