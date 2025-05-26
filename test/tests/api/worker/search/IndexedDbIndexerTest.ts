@@ -10,7 +10,7 @@ import {
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade.js"
 import { ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/mail-app/workerUtils/index/IndexedDbIndexer.js"
-import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError.js"
+import { NotAuthorizedError, NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
 import { ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { OutOfSyncError } from "../../../../../src/common/api/common/error/OutOfSyncError.js"
 import { assertThrows, mock } from "@tutao/tutanota-test-utils"
@@ -1066,6 +1066,144 @@ o.spec("IndexedDbIndexer", () => {
 			verify(core.writeGroupDataBatchId(groupId, batchId2))
 			verify(mailIndexer.processEntityEvents(events2, groupId, batchId2))
 			verify(contactIndexer.processEntityEvents(events2, groupId, batchId2))
+		})
+
+		o.spec("handles mail updates", () => {
+			let indexer: IndexedDbIndexer
+
+			const testBatch = {
+				events: [
+					{
+						typeRef: MailTypeRef,
+						operation: OperationType.CREATE,
+						instanceId: "id-1",
+						instanceListId: "create",
+					},
+					{
+						typeRef: ContactTypeRef,
+						operation: OperationType.CREATE,
+						instanceId: "id-2",
+						instanceListId: "create",
+					},
+					{
+						typeRef: MailTypeRef,
+						operation: OperationType.CREATE,
+						instanceId: "id-3",
+						instanceListId: "create",
+					},
+
+					{
+						typeRef: MailTypeRef,
+						operation: OperationType.UPDATE,
+						instanceId: "id-4",
+						instanceListId: "update",
+					},
+					{
+						typeRef: ContactTypeRef,
+						operation: OperationType.UPDATE,
+						instanceId: "id-5",
+						instanceListId: "update",
+					},
+					{
+						typeRef: MailTypeRef,
+						operation: OperationType.UPDATE,
+						instanceId: "id-6",
+						instanceListId: "update",
+					},
+
+					{
+						typeRef: MailTypeRef,
+						operation: OperationType.DELETE,
+						instanceId: "id-7",
+						instanceListId: "delete",
+					},
+					{
+						typeRef: ContactTypeRef,
+						operation: OperationType.DELETE,
+						instanceId: "id-8",
+						instanceListId: "delete",
+					},
+					{
+						typeRef: MailTypeRef,
+						operation: OperationType.DELETE,
+						instanceId: "id-9",
+						instanceListId: "delete",
+					},
+				],
+				groupId: "blah",
+				batchId: "asdf",
+			}
+
+			o.beforeEach(() => {
+				indexer = mock(indexerTemplate, (mock) => {
+					mock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
+					mock.initDeferred = defer()
+					mock._indexedGroupIds = [testBatch.groupId]
+					mock.initDeferred.resolve()
+				})
+			})
+
+			o.test("create", async () => {
+				await indexer._processEntityEvents(testBatch)
+				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
+				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
+				verify(mailIndexer.afterMailCreated(matchers.anything()), { times: 2 })
+				verify(core.writeGroupDataBatchId(testBatch.groupId, testBatch.batchId))
+			})
+			o.test("update", async () => {
+				await indexer._processEntityEvents(testBatch)
+				verify(mailIndexer.afterMailUpdated(["update", "id-4"]))
+				verify(mailIndexer.afterMailUpdated(["update", "id-6"]))
+				verify(mailIndexer.afterMailUpdated(matchers.anything()), { times: 2 })
+				verify(core.writeGroupDataBatchId(testBatch.groupId, testBatch.batchId))
+			})
+			o.test("delete", async () => {
+				await indexer._processEntityEvents(testBatch)
+				verify(mailIndexer.afterMailDeleted(["delete", "id-7"]))
+				verify(mailIndexer.afterMailDeleted(["delete", "id-9"]))
+				verify(mailIndexer.afterMailDeleted(matchers.anything()), { times: 2 })
+				verify(core.writeGroupDataBatchId(testBatch.groupId, testBatch.batchId))
+			})
+
+			o.test("gracefully handles not found errors", async () => {
+				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new NotFoundError("Not found :("))
+				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new NotFoundError("Not found :("))
+				await indexer._processEntityEvents(testBatch)
+
+				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
+				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
+				verify(mailIndexer.afterMailCreated(matchers.anything()), { times: 2 })
+
+				verify(mailIndexer.afterMailUpdated(["update", "id-4"]))
+				verify(mailIndexer.afterMailUpdated(["update", "id-6"]))
+				verify(mailIndexer.afterMailUpdated(matchers.anything()), { times: 2 })
+
+				verify(mailIndexer.afterMailDeleted(["delete", "id-7"]))
+				verify(mailIndexer.afterMailDeleted(["delete", "id-9"]))
+				verify(mailIndexer.afterMailDeleted(matchers.anything()), { times: 2 })
+
+				verify(core.writeGroupDataBatchId(testBatch.groupId, testBatch.batchId))
+			})
+
+			o.test("gracefully handles not authorized errors", async () => {
+				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new NotAuthorizedError("You shall not pass :("))
+				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new NotAuthorizedError("You shall not pass :("))
+				await indexer._processEntityEvents(testBatch)
+
+				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
+				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
+				verify(mailIndexer.afterMailCreated(matchers.anything()), { times: 2 })
+
+				verify(mailIndexer.afterMailUpdated(["update", "id-4"]))
+				verify(mailIndexer.afterMailUpdated(["update", "id-6"]))
+				verify(mailIndexer.afterMailUpdated(matchers.anything()), { times: 2 })
+
+				verify(mailIndexer.afterMailDeleted(["delete", "id-7"]))
+				verify(mailIndexer.afterMailDeleted(["delete", "id-9"]))
+				verify(mailIndexer.afterMailDeleted(matchers.anything()), { times: 2 })
+
+				verify(core.writeGroupDataBatchId(testBatch.groupId, testBatch.batchId))
+			})
 		})
 	})
 
