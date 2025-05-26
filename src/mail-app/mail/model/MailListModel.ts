@@ -236,8 +236,16 @@ export class MailListModel implements MailSetListModel {
 		await this.listModel.loadAll()
 	}
 
-	setFilter(filter: ListFilter<Mail> | null) {
-		this.listModel.setFilter(filter && ((loadedMail: LoadedMail) => filter(loadedMail.mail)))
+	setFilter(filterTypes: ReadonlyArray<ListFilter<Mail>>) {
+		const filterFunction = (item: Mail) => {
+			for (const filter of filterTypes) {
+				if (!filter(item)) {
+					return false
+				}
+			}
+			return true
+		}
+		this.listModel.setFilter((loadedMail: LoadedMail) => filterFunction(loadedMail.mail))
 	}
 
 	isEmptyAndDone(): boolean {

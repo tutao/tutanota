@@ -487,7 +487,7 @@ export enum MailFilterType {
 	WithAttachments,
 }
 
-export function getMailFilterForType(filter: MailFilterType | null): ListFilter<Mail> | null {
+export function getMailFilterForType(filter: MailFilterType): ListFilter<Mail> {
 	switch (filter) {
 		case MailFilterType.Read:
 			return (mail) => !mail.unread
@@ -495,8 +495,6 @@ export function getMailFilterForType(filter: MailFilterType | null): ListFilter<
 			return (mail) => mail.unread
 		case MailFilterType.WithAttachments:
 			return (mail) => mail.attachments.length > 0
-		case null:
-			return null
 	}
 }
 

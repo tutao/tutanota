@@ -75,6 +75,10 @@ const light_red = "#E99497"
 const logo_text_bright_grey = "#c5c7c7"
 const black = "#000000"
 
+// Secondary colors
+export const secondary_fixed = "#FFDDB2"
+export const on_secondary_fixed = "#291800"
+
 // These are constants that have been chosen because they work across themes
 // This is even lighter than hover, for special cases like inactive search bar background
 export const stateBgLike = "rgba(139,139,139,0.18)"
@@ -104,7 +108,7 @@ const getLogo = (isDark: boolean, isDefault: boolean) => {
 
 export const themes = (): Themes => {
 	const isCalendarApp = client.isCalendarApp()
-	const lightRed = Object.freeze({
+	const lightRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "light" : "light_secondary",
 		logo: getLogo(false, !isCalendarApp),
 		button_bubble_bg: grey_lighter_3,
@@ -147,8 +151,9 @@ export const themes = (): Themes => {
 		experimental_tertiary: RED_FIGHTER,
 		highlight_bg: highlight,
 		highlight_fg: black,
+		outline_variant: grey_lighter_1,
 	})
-	const darkRed = Object.freeze({
+	const darkRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
 		logo: getLogo(true, !isCalendarApp),
 		button_bubble_bg: dark_lighter_2,
@@ -193,8 +198,9 @@ export const themes = (): Themes => {
 		experimental_tertiary: RED_FIGHTER,
 		highlight_bg: highlight,
 		highlight_fg: black,
+		outline_variant: grey_darker_0,
 	})
-	const lightBlue = Object.freeze({
+	const lightBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "light" : "light_secondary",
 		// blue is not really our brand color, treat blue like whitelabel color
 		logo: getLogo(false, isCalendarApp),
@@ -238,8 +244,9 @@ export const themes = (): Themes => {
 		experimental_tertiary: BLUE_FIGHTER,
 		highlight_bg: highlight,
 		highlight_fg: black,
+		outline_variant: grey_lighter_1,
 	})
-	const darkBlue = Object.freeze({
+	const darkBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
 		logo: getLogo(true, isCalendarApp),
 		button_bubble_bg: dark_lighter_2,
@@ -284,6 +291,7 @@ export const themes = (): Themes => {
 		experimental_tertiary: BLUE_FIGHTER,
 		highlight_bg: highlight,
 		highlight_fg: black,
+		outline_variant: grey_darker_0,
 	})
 
 	return {

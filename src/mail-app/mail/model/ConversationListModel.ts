@@ -361,8 +361,19 @@ export class ConversationListModel implements MailSetListModel {
 		this.listModel.selectRangeTowards(assertNotNull(this.getConversationForMail(mail)))
 	}
 
-	setFilter(filterType: ListFilter<Mail> | null): void {
-		this.currentFilter = filterType
+	setFilter(filterTypes: ReadonlyArray<ListFilter<Mail>>): void {
+		if (isEmpty(filterTypes)) {
+			this.currentFilter = null
+		} else {
+			this.currentFilter = (item: Mail) => {
+				for (const filter of filterTypes) {
+					if (!filter(item)) {
+						return false
+					}
+				}
+				return true
+			}
+		}
 
 		// statically apply the filter here, as we don't want to re-apply the filter on the same conversation multiple times (e.g. when sorting)
 		// and we want to use this result for what mail we display
@@ -373,7 +384,7 @@ export class ConversationListModel implements MailSetListModel {
 		// filtering can change sort order, since some conversations may move around due to their displayed emails changing receivedDate
 		this.listModel.sort()
 
-		this.listModel.setFilter(filterType && ((conversation: LoadedConversation) => conversation.displayedMail != null))
+		this.listModel.setFilter(this.currentFilter && ((conversation: LoadedConversation) => conversation.displayedMail != null))
 	}
 
 	get stateStream(): Stream<ListState<Mail>> {
