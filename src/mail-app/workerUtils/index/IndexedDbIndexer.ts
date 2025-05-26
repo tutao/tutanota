@@ -16,7 +16,7 @@ import { filterIndexMemberships } from "../../../common/api/worker/search/IndexU
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { ContactList, ContactListTypeRef, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError.js"
@@ -45,7 +45,7 @@ import {
 import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { encryptKeyWithVersionedKey, VersionedKey } from "../../../common/api/worker/crypto/CryptoWrapper.js"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, entityUpdateToUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
@@ -632,6 +632,7 @@ export class IndexedDbIndexer implements Indexer {
 				return
 			}
 
+			await this.processMailEntityEvents(events)
 			await this.mailIndexer.processEntityEvents(events, groupId, batchId)
 			await this.contactIndexer.processEntityEvents(events, groupId, batchId)
 			await this.core.writeGroupDataBatchId(groupId, batchId)
@@ -648,6 +649,40 @@ export class IndexedDbIndexer implements Indexer {
 				return this.reCreateIndex()
 			} else {
 				throw e
+			}
+		}
+	}
+
+	/**
+	 * Process all mail entity events and delegates them to the indexer.
+	 *
+	 * This is required because we do not use cache handlers, so we have to call these methods on MailIndexer ourselves.
+	 *
+	 * ATTENTION: Must be called before the group batch ID is written.
+	 */
+	private async processMailEntityEvents(events: Iterable<EntityUpdateData>) {
+		for (const event of events) {
+			if (isUpdateForTypeRef(MailTypeRef, event)) {
+				const mailId: IdTuple = [event.instanceListId, event.instanceId]
+				try {
+					switch (event.operation) {
+						case OperationType.DELETE:
+							await this.mailIndexer.afterMailDeleted(mailId)
+							break
+						case OperationType.UPDATE:
+							await this.mailIndexer.afterMailUpdated(mailId)
+							break
+						case OperationType.CREATE:
+							await this.mailIndexer.afterMailCreated(mailId)
+							break
+					}
+				} catch (e) {
+					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+						continue
+					} else {
+						throw e
+					}
+				}
 			}
 		}
 	}
