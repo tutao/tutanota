@@ -150,7 +150,9 @@ export function calendarSelectionDialog(
 	groupColors: GroupColors,
 	okAction: (dialog: Dialog, selectedCalendar: CalendarInfo) => unknown,
 ) {
-	const availableCalendars = calendars.filter((calendarInfo) => hasCapabilityOnGroup(userController.user, calendarInfo.group, ShareCapability.Write))
+	const availableCalendars = calendars.filter(
+		(calendarInfo) => hasCapabilityOnGroup(userController.user, calendarInfo.group, ShareCapability.Write) && !calendarInfo.isExternal,
+	)
 	let selectedCalendar = availableCalendars[0]
 
 	const dialog = new Dialog(DialogType.EditSmall, {

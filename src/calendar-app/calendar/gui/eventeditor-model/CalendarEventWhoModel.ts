@@ -5,7 +5,6 @@ import {
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
-	GroupSettings,
 	Mail,
 } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { PartialRecipient, Recipient, RecipientType } from "../../../../common/api/common/recipients/Recipient.js"
@@ -26,7 +25,6 @@ import { ProgrammingError } from "../../../../common/api/common/error/Programmin
 import { CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
 import { getContactDisplayName } from "../../../../common/contactsFunctionality/ContactUtils.js"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
-import { hasSourceUrl } from "../../../../common/calendar/date/CalendarUtils"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 
 /** there is no point in returning recipients, the SendMailModel will re-resolve them anyway. */
@@ -175,7 +173,7 @@ export class CalendarEventWhoModel {
 	 * */
 	getAvailableCalendars(): ReadonlyArray<CalendarInfo> {
 		const { groupSettings } = this.userController.userSettingsGroupRoot
-		const calendarArray = Array.from(this.calendars.values()).filter((cal) => !this.isExternalCalendar(groupSettings, cal.group._id))
+		const calendarArray = Array.from(this.calendars.values()).filter((cal) => !cal.isExternal)
 
 		if (this.eventType === EventType.LOCKED || this.operation === CalendarOperation.EditThis) {
 			return [this.selectedCalendar]
@@ -197,11 +195,6 @@ export class CalendarEventWhoModel {
 		} else {
 			return calendarArray.filter((calendarInfo) => hasCapabilityOnGroup(this.userController.user, calendarInfo.group, ShareCapability.Write))
 		}
-	}
-
-	private isExternalCalendar(groupSettings: GroupSettings[], groupId: Id) {
-		const existingGroupSettings = groupSettings.find((gc) => gc.group === groupId)
-		return hasSourceUrl(existingGroupSettings)
 	}
 
 	private async resolveAndCacheAddress(a: PartialRecipient): Promise<void> {
@@ -470,7 +463,13 @@ export class CalendarEventWhoModel {
 		if (previousAttendee != null) {
 			this._attendees.set(address.address, previousAttendee)
 		} else {
-			this._attendees.set(address.address, createCalendarEventAttendee({ address, status: CalendarAttendeeStatus.ADDED }))
+			this._attendees.set(
+				address.address,
+				createCalendarEventAttendee({
+					address,
+					status: CalendarAttendeeStatus.ADDED,
+				}),
+			)
 		}
 		if (!this.resolvedRecipients.has(address.address)) {
 			this.resolveAndCacheAddress(address).then(this.uiUpdateCallback)
