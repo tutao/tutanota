@@ -27,6 +27,10 @@ export type Theme = {
 	error: string
 	surface: string
 	surface_container: string
+	/**
+	 * @deprecated This token should not be used.
+	 * It was created temporarily for the purpose of color theme migration.
+	 */
 	on_surface_fade: string
 	on_surface: string
 	on_surface_variant: string
