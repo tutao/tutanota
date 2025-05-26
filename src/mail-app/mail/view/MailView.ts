@@ -69,7 +69,7 @@ import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
-import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, showReportMailDialog, startExport } from "./MailViewerUtils.js"
+import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportMailDialog, startExport } from "./MailViewerUtils.js"
 import { isDraft, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
@@ -267,7 +267,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private renderFilterButton() {
 		return m(MailFilterButton, {
 			filter: this.mailViewModel.filterType,
-			setFilter: (filter) => this.mailViewModel.setFilter(filter),
+			setFilter: (filter: MailFilterType | null) => this.mailViewModel.setFilter(filter == null ? new Set() : new Set([filter])),
 		})
 	}
 

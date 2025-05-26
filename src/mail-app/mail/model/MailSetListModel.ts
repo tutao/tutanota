@@ -89,9 +89,9 @@ export interface MailSetListModel {
 
 	/**
 	 * Set the filter
-	 * @param filterType filter type to use
+	 * @param filterTypes filter type to use
 	 */
-	setFilter(filterType: ListFilter<Mail> | null): void
+	setFilter(filterTypes: ReadonlyArray<ListFilter<Mail>>): void
 
 	/**
 	 * Abort loading. No-op if not loading.

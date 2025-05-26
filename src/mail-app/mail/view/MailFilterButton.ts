@@ -6,7 +6,7 @@ import { ToggleButton } from "../../../common/gui/base/buttons/ToggleButton.js"
 import { MailFilterType } from "./MailViewerUtils.js"
 
 export interface MailFilterButtonAttrs {
-	filter: MailFilterType | null
+	filter: ReadonlySet<MailFilterType>
 	setFilter: (filter: MailFilterType | null) => unknown
 }
 
@@ -15,7 +15,7 @@ export class MailFilterButton implements ClassComponent<MailFilterButtonAttrs> {
 		return m(ToggleButton, {
 			icon: Icons.Filter,
 			title: "filter_label",
-			toggled: attrs.filter != null,
+			toggled: attrs.filter.size !== 0,
 			onToggled: (_, event) => this.showDropdown(attrs, event),
 		})
 	}
@@ -24,21 +24,21 @@ export class MailFilterButton implements ClassComponent<MailFilterButtonAttrs> {
 		createDropdown({
 			lazyButtons: () => [
 				{
-					selected: filter === MailFilterType.Unread,
+					selected: filter.has(MailFilterType.Unread),
 					label: "filterUnread_label",
 					click: () => {
 						setFilter(MailFilterType.Unread)
 					},
 				},
 				{
-					selected: filter === MailFilterType.Read,
+					selected: filter.has(MailFilterType.Read),
 					label: "filterRead_label",
 					click: () => {
 						setFilter(MailFilterType.Read)
 					},
 				},
 				{
-					selected: filter === MailFilterType.WithAttachments,
+					selected: filter.has(MailFilterType.WithAttachments),
 					label: "filterWithAttachments_label",
 					click: () => {
 						setFilter(MailFilterType.WithAttachments)

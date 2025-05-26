@@ -2016,3 +2016,4 @@ export type TranslationKeyType =
 	| "zoomOut_action"
 	| "emptyString_msg"
 	| "offlineDbUnavailableNoTypes_msg"
+	| "searchFilters_label"
