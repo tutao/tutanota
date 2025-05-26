@@ -455,25 +455,6 @@ o.spec("MailIndexer", () => {
 			return { mail, mailDetails: mailDetailsBlob.details, attachments: files }
 		}
 
-		o.spec("processEntityEvents", function () {
-			o.test("do not delete if mailIndexing is disabled", async function () {
-				await initWithEnabled(false)
-
-				const events = [createUpdate(OperationType.DELETE, mailListId, "3")]
-				await indexer.processEntityEvents(events, "group-id", "batch-id")
-				verify(entityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
-				verify(backend.onMailDeleted(matchers.anything()), { times: 0 })
-			})
-
-			o.test("deletes if mailIndexing is enabled", async function () {
-				await initWithEnabled(true)
-
-				const events = [createUpdate(OperationType.DELETE, mailListId, "3")]
-				await indexer.processEntityEvents(events, "group-id", "batch-id")
-				verify(backend.onMailDeleted(matchers.anything()))
-			})
-		})
-
 		o.spec("afterMailCreated", () => {
 			o.test("no-op if mailIndexing is disabled", async () => {
 				await initWithEnabled(false)

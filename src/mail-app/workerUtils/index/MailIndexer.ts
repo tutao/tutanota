@@ -549,12 +549,7 @@ export class MailIndexer {
 		if (!this._mailIndexingEnabled) return
 
 		for (const event of events) {
-			if (isUpdateForTypeRef(MailTypeRef, event)) {
-				const mailId: IdTuple = [event.instanceListId, event.instanceId]
-				if (event.operation === OperationType.DELETE) {
-					await this.backend.onMailDeleted(mailId)
-				}
-			} else if (isUpdateForTypeRef(ImportMailStateTypeRef, event)) {
+			if (isUpdateForTypeRef(ImportMailStateTypeRef, event)) {
 				await this.processImportStateEntityEvents(event)
 			}
 		}
@@ -564,6 +559,15 @@ export class MailIndexer {
 		await this.backend.onBeforeMailDeleted(mailId)
 	}
 
+	async afterMailDeleted(mailId: IdTuple) {
+		if (!this._mailIndexingEnabled) return
+		await this.backend.onMailDeleted(mailId)
+	}
+
+	/**
+	 * @throws NotAuthorizedError if the mail cannot be accessed (and has not been cached)
+	 * @throws NotFoundError if the mail no longer exists (and has not been cached)
+	 */
 	async afterMailCreated(mailId: IdTuple) {
 		if (!this._mailIndexingEnabled) return
 
@@ -579,10 +583,14 @@ export class MailIndexer {
 		}
 	}
 
+	/**
+	 * @throws NotAuthorizedError if the mail cannot be accessed (and has not been cached)
+	 * @throws NotFoundError if the mail no longer exists (and has not been cached)
+	 */
 	async afterMailUpdated(mailId: IdTuple) {
 		if (!this._mailIndexingEnabled) return
 
-		// At this point, the mail is cached, so there's no way we could not get it outside of something horrible happening
+		// If this is being called from offline storage, then the mail is cached. Otherwise, this can throw (which should be handled by the caller)!
 		const updatedMail = await this.entityClient.load(MailTypeRef, mailId)
 		if (!this.canIndexMail(updatedMail)) {
 			return
