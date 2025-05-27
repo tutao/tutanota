@@ -7,6 +7,7 @@ import { log } from "../DesktopLog"
 import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { isSameDay } from "@tutao/tutanota-utils"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
+import { ClientModelUntypedInstance } from "../../api/common/EntityTypes"
 import { AesKey } from "@tutao/tutanota-crypto"
 
 export class DesktopAlarmScheduler {
@@ -21,8 +22,8 @@ export class DesktopAlarmScheduler {
 		try {
 			const alarms = await this.alarmStorage.getScheduledAlarms()
 			for (const alarm of alarms) {
-				if (userId == null || alarm.user === userId) {
-					this.cancelAlarms(alarm.alarmInfo.alarmIdentifier)
+				if (userId == null || alarm.getUser() === userId) {
+					this.cancelAlarms(alarm.getAlarmId())
 				}
 			}
 			return this.alarmStorage.deleteAllAlarms(userId)
@@ -37,7 +38,10 @@ export class DesktopAlarmScheduler {
 	 */
 	async rescheduleAll(): Promise<void> {
 		const alarms = await this.alarmStorage.getScheduledAlarms()
-		for (const alarm of alarms) {
+		const decryptedAlarms = await Promise.all(
+			alarms.map((alarm) => this.alarmStorage.decryptAlarmNotification(alarm.untypedInstance as unknown as ClientModelUntypedInstance)),
+		)
+		for (const alarm of decryptedAlarms) {
 			this.scheduleAlarms(alarm)
 		}
 	}

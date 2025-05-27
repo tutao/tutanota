@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler.js"
-import { downcast, lastThrow, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { lastThrow, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
 import { DesktopNotifier, NotificationResult } from "../../../../src/common/desktop/DesktopNotifier.js"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage.js"
@@ -21,6 +21,9 @@ import {
 import { AlarmScheduler } from "../../../../src/common/calendar/date/AlarmScheduler.js"
 import { formatNotificationForDisplay } from "../../../../src/calendar-app/calendar/model/CalendarModel.js"
 import { createTestEntity } from "../../TestUtils"
+import { EncryptedAlarmNotification } from "../../../../src/common/native/common/EncryptedAlarmNotification"
+import { ClientModelInfo } from "../../../../src/common/api/common/EntityFunctions.js"
+import { ServerModelUntypedInstance } from "../../../../src/common/api/common/EntityTypes"
 
 const oldTimezone = process.env.TZ
 
@@ -48,16 +51,17 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		},
 	}
 
+	const typeModelResolver = ClientModelInfo.getInstance()
 	const standardMocks = () => {
 		// node modules
-
 		// our modules
 		const langMock = n.mock("__lang", lang).set()
 		const alarmNotificationMock = n.mock("__alarmNotification", alarmNotification).set()
-		const cryptoMock = n.mock<DesktopNativeCryptoFacade>("__crypto", crypto).set()
 
+		const cryptoMock = n.mock<DesktopNativeCryptoFacade>("__crypto", crypto).set()
 		// instances
 		const wmMock = n.mock<WindowManager>("__wm", wm).set()
+
 		const notifierMock = n.mock<DesktopNotifier>("__notifier", notifier).set()
 
 		const alarmStorage = {
@@ -66,6 +70,8 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			getPushIdentifierSessionKey: () => Promise.resolve("piSk"),
 			getScheduledAlarms: () => [],
 			removePushIdentifierKey: () => {},
+			encryptAlarmNotification: (an) => Promise.resolve(an),
+			decryptAlarmNotification: (an) => Promise.resolve(an),
 		}
 		const alarmStorageMock = n.mock<DesktopAlarmStorage>("__alarmStorage", alarmStorage).set()
 
@@ -107,7 +113,13 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 				interval: "1",
 			})
 			// crypto is a stub which just returns things back
-			alarmStorageMock.getScheduledAlarms = () => Promise.resolve([downcast<AlarmNotification>(an)])
+			alarmStorageMock.getScheduledAlarms = async () =>
+				Promise.resolve([
+					await EncryptedAlarmNotification.from(
+						(await alarmStorageMock.encryptAlarmNotification(an, null)) as ServerModelUntypedInstance,
+						typeModelResolver,
+					),
+				])
 
 			await scheduler.rescheduleAll()
 

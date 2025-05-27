@@ -115,26 +115,18 @@ export class DesktopAlarmStorage {
 
 	async storeAlarm(alarm: AlarmNotification): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
-		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === alarm.alarmInfo.alarmIdentifier)
-		allAlarms.push(alarm)
-		const encryptedAlarms = await Promise.all(
-			allAlarms.map(async (alarm) => {
-				let sessionKeyWrapper = await this.getNotificationSessionKey(alarm.notificationSessionKeys)
-				return await this.encryptAlarmNotification(alarm, assertNotNull(sessionKeyWrapper).sessionKey)
-			}),
-		)
-		await this._saveAlarms(encryptedAlarms)
+		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === alarm.alarmInfo.alarmIdentifier)
+		const sessionKeyWrapper = await this.getNotificationSessionKey(alarm.notificationSessionKeys)
+		const encryptedAlarm = await this.encryptAlarmNotification(alarm, assertNotNull(sessionKeyWrapper).sessionKey)
+		allAlarms.push(await EncryptedAlarmNotification.from(encryptedAlarm as ServerModelUntypedInstance, this.typeModelResolver))
+		await this._saveAlarms(allAlarms.map((alarm) => alarm.untypedInstance))
 	}
 
 	async deleteAlarm(identifier: string): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
-		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === identifier)
-		const encryptedAlarms = await Promise.all(
-			allAlarms.map(async (alarm) => {
-				return await this.encryptAlarmNotification(alarm, null)
-			}),
-		)
-		await this._saveAlarms(encryptedAlarms)
+		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === identifier)
+
+		await this._saveAlarms(allAlarms.map((an) => an.untypedInstance))
 	}
 
 	/**
@@ -145,17 +137,13 @@ export class DesktopAlarmStorage {
 			return this._saveAlarms([])
 		} else {
 			const allScheduledAlarms = await this.getScheduledAlarms()
-			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.user === userId)
-			const encryptedAlarms = await Promise.all(
-				allScheduledAlarms.map(async (alarm) => {
-					return await this.encryptAlarmNotification(alarm, null)
-				}),
-			)
-			return this._saveAlarms(encryptedAlarms)
+			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.getUser() === userId)
+			const untypedAlarms = allScheduledAlarms.map((an) => an.untypedInstance)
+			return this._saveAlarms(untypedAlarms)
 		}
 	}
 
-	async getScheduledAlarms(): Promise<Array<AlarmNotification>> {
+	async getScheduledAlarms(): Promise<Array<EncryptedAlarmNotification>> {
 		// the model for alarm notifications changed, and we may have stored some that are missing the
 		// excludedDates field.
 		// to be able to decrypt & map these we need to at least add a plausible value there
@@ -169,11 +157,7 @@ export class DesktopAlarmStorage {
 			await this.deleteAllAlarms(null)
 			return []
 		} else {
-			return Promise.all(
-				alarms.map(async (untypedInstance) => {
-					return await this.decryptAlarmNotification(untypedInstance)
-				}),
-			)
+			return Promise.all(alarms.map((alarm) => EncryptedAlarmNotification.from(alarm as unknown as ServerModelUntypedInstance, this.typeModelResolver)))
 		}
 	}
 
