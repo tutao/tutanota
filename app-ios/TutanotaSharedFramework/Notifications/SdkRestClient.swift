@@ -21,7 +21,7 @@ public class SdkRestClient: RestClient {
 				throw TUTErrorFactory.createError("Response headers were not a [String:String]")
 			}
 			return RestResponse(status: UInt32(httpUrlResponse.statusCode), headers: headers, body: data)
-		} catch let e { throw mapExceptionToError(e: e) }
+		} catch { throw mapExceptionToError(e: error) }
 	}
 	// see: SdkFileClient::mapExceptionToError
 	private func mapExceptionToError(e: Error) -> RestClientError {

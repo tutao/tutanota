@@ -21,7 +21,7 @@ public class SdkFileClient: FileClient {
 			let filePath = supportDir.appendingPathComponent(name)
 			let fileUrl = URL(fileURLWithPath: filePath.path)
 			try content.write(to: fileUrl, options: .atomic)
-		} catch let e { throw mapExceptionToError(e: e) }
+		} catch { throw mapExceptionToError(e: error) }
 	}
 
 	public func readContent(name: String) async throws -> Data {
@@ -30,6 +30,6 @@ public class SdkFileClient: FileClient {
 			let filePath = supportDir.appendingPathComponent(name)
 			let fileUrl = URL(fileURLWithPath: filePath.path)
 			return try Data(contentsOf: fileUrl)
-		} catch let e { throw mapExceptionToError(e: e) }
+		} catch { throw mapExceptionToError(e: error) }
 	}
 }
