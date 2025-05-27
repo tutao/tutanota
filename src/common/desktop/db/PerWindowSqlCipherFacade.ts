@@ -78,6 +78,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 	}
 
 	async deleteDb(userId: string): Promise<void> {
+		console.log("PerWindowSqlCipherFacade - deleteDb")
 		await this.refCounter.deleteDb(userId)
 	}
 
@@ -135,6 +136,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 	}
 
 	async emptyTables(tableNames: string[]): Promise<void> {
+		console.log("PerWindowSqlCipherFacade - emptyTables")
 		for (let name of tableNames) {
 			await this.run(
 				`DELETE
@@ -145,10 +147,11 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 	}
 
 	async dropTables(tableNames: string[]): Promise<void> {
+		console.log("PerWindowSqlCipherFacade - dropTables")
 		for (let name of tableNames) {
 			await this.run(
 				`DROP
-				 TABLE ${name}`,
+                    TABLE ${name}`,
 				[],
 			)
 		}

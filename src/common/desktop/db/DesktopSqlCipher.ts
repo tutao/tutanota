@@ -5,7 +5,6 @@ import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacad
 import { OfflineDbClosedError } from "../../api/common/error/OfflineDbClosedError.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { TaggedSqlValue, tagSqlObject, untagSqlValue } from "../../api/worker/offline/SqlValue.js"
-import { Mode } from "../../api/common/Env.js"
 
 export class DesktopSqlCipher implements SqlCipherFacade {
 	private _db: Database | null = null
@@ -82,6 +81,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		// integrity check breaks tests
 		integrityCheck: boolean
 	}) {
+		console.log("DesktopSqlCipher - initSqlcipher")
 		// disable MEMORY sqlcipher logs
 		// see https://github.com/tutao/tutanota/issues/8589
 		this.db.pragma("cipher_log_source = NONE")
@@ -151,6 +151,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 	}
 
 	async emptyTables(tableNames: string[]): Promise<void> {
+		console.log("DesktopSqlCipher - emptyTables")
 		for (let name of tableNames) {
 			await this.run(
 				`DELETE
@@ -161,10 +162,11 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 	}
 
 	async dropTables(tableNames: string[]): Promise<void> {
+		console.log("DesktopSqlCipher - dropTables")
 		for (let name of tableNames) {
 			await this.run(
 				`DROP
-				 TABLE ${name}`,
+                    TABLE ${name}`,
 				[],
 			)
 		}

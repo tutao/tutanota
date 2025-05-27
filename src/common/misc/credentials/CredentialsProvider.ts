@@ -82,6 +82,7 @@ export class CredentialsProvider {
 	 */
 	async deleteByUserId(userId: Id, opts: { deleteOfflineDb: boolean } = { deleteOfflineDb: true }): Promise<void> {
 		await this.interWindowEventSender?.localUserDataInvalidated(userId)
+		console.log("CredentialsProvider - deleteByUserId deleteOfflineDb: ", opts.deleteOfflineDb)
 		if (opts.deleteOfflineDb) {
 			// when explicitly removing the credentials, we do want to remove the trusted keys data as well
 			await this.sqliteCipherFacade?.deleteDb(userId)

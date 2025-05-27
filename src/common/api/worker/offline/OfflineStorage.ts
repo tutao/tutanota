@@ -114,6 +114,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	async init({ userId, databaseKey, timeRangeDays, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
 		this.userId = userId
 		this.timeRangeDays = timeRangeDays
+		console.log("OfflineStorage - init forceNewDatabase", forceNewDatabase)
 		if (forceNewDatabase) {
 			if (isDesktop()) {
 				await this.interWindowEventSender.localUserDataInvalidated(userId)

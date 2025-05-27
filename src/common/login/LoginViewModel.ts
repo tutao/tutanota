@@ -23,6 +23,7 @@ import { credentialsToUnencrypted } from "../misc/credentials/Credentials.js"
 import { UnencryptedCredentials } from "../native/common/generatedipc/UnencryptedCredentials.js"
 import { AppLock } from "./AppLock.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
+import { reloginForExpiredSession } from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -345,6 +346,8 @@ export class LoginViewModel implements ILoginViewModel {
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError && this.autoLoginCredentials) {
 				const autoLoginCredentials = this.autoLoginCredentials
+				reloginForExpiredSession()
+
 				await this.credentialsProvider.deleteByUserId(autoLoginCredentials.userId)
 				if (credentials) {
 					await this.credentialRemovalHandler.onCredentialsRemoved(credentials.credentialInfo)
