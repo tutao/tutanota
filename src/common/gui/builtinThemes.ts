@@ -16,6 +16,10 @@ const SONNE = "#FFCB00"
  * semantic colors dark as defined in Figma primitives
  */
 const SONNE_70 = "#FFECB7"
+/**
+ * Highlight color
+ */
+const highlight = "#FFDDB2"
 
 // Base color name
 const PEACH = "#FFF2EA"
@@ -141,7 +145,7 @@ export const themes = (): Themes => {
 		experimental_primary_container: PEACH,
 		experimental_on_primary_container: RED_DUNKEL,
 		experimental_tertiary: RED_FIGHTER,
-		highlight_bg: SONNE,
+		highlight_bg: highlight,
 		highlight_fg: black,
 	})
 	const darkRed = Object.freeze({
@@ -187,7 +191,7 @@ export const themes = (): Themes => {
 		experimental_primary_container: DARK_PEACH,
 		experimental_on_primary_container: dark_lighter_0,
 		experimental_tertiary: RED_FIGHTER,
-		highlight_bg: SONNE,
+		highlight_bg: highlight,
 		highlight_fg: black,
 	})
 	const lightBlue = Object.freeze({
@@ -232,7 +236,7 @@ export const themes = (): Themes => {
 		experimental_primary_container: PEACH,
 		experimental_on_primary_container: BLUE_DUNKEL,
 		experimental_tertiary: BLUE_FIGHTER,
-		highlight_bg: SONNE,
+		highlight_bg: highlight,
 		highlight_fg: black,
 	})
 	const darkBlue = Object.freeze({
@@ -278,7 +282,7 @@ export const themes = (): Themes => {
 		experimental_primary_container: DARK_PEACH,
 		experimental_on_primary_container: dark_lighter_0,
 		experimental_tertiary: BLUE_FIGHTER,
-		highlight_bg: SONNE,
+		highlight_bg: highlight,
 		highlight_fg: black,
 	})
 
