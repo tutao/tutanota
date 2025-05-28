@@ -127,7 +127,9 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (isCampaign && !isBusiness && (isIOSApp() ? priceAndConfigProvider.getIosIntroOfferEligibility() : true)) {
-			return wrapInDiv("One-time offer: Save 50% now!", { margin: "1em auto 0 auto" })
+			// The headline text for the Go European campaign should be always English
+			const text = isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"
+			return wrapInDiv(text, { margin: "1em auto 0 auto" })
 		}
 	}
 
