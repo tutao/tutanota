@@ -192,6 +192,7 @@ pipeline {
 						VERSION = "${params.appVersion.trim() ?: env.VERSION}"
 						FILE_PATH = "app-ios/releases/calendar-tutao-${VERSION}.ipa"
 						GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tuta-calendar-ios-release-${VERSION}"
+						PATH="/opt/homebrew/bin:${env.NODE_PATH}:${env.PATH}"
 					}
 					stages {
 						stage("Download artifact") {
