@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
-import { OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
+import { OfflineStoragePersistence, SearchTableDefinitions } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { OfflineStorageSearchFacade } from "../../../../../src/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer"
 import { object } from "testdouble"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
-import { assertNotNull, getTypeString } from "@tutao/tutanota-utils"
+import { assertNotNull, getTypeString, typedValues } from "@tutao/tutanota-utils"
 import { getElementId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import {
@@ -39,7 +39,11 @@ o.spec("OfflineStorageSearchFacade", () => {
 
 		// Unfortunately, this is pretty tightly coupled with real persistence
 		persistence = new OfflineStoragePersistence(sqlCipherFacade)
-		await persistence.init()
+
+		// Needs to be done manually since OfflineStorage would have done this
+		for (const { definition } of typedValues(SearchTableDefinitions)) {
+			await sqlCipherFacade.run(definition, [])
+		}
 
 		// everything except entity data
 		await sqlCipherFacade.run(

@@ -21,7 +21,6 @@ export class OfflineStorageIndexer implements Indexer {
 
 	async init() {
 		const user = assertNotNull(this.userFacade.getUser())
-		await this.persistence.init()
 		await this.mailIndexer.init(user)
 
 		const indexedGroups = (await this.persistence.getIndexedGroups()).map((data) => data.groupId)

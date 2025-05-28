@@ -1,7 +1,7 @@
 import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
 import { FeatureType, KeyVerificationSourceOfTruth, KeyVerificationState, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { assertNotNull, base64ToUint8Array, concat, Hex, lazyAsync, stringToUtf8Uint8Array, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { isVersionedPqPublicKey, isVersionedRsaX25519PublicKey, isVersionedRsaPublicKey, KeyPairType, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
+import { isVersionedPqPublicKey, isVersionedRsaPublicKey, isVersionedRsaX25519PublicKey, KeyPairType, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { NotFoundError } from "../../../common/error/RestError"
 import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../offline/Sql"
@@ -9,6 +9,7 @@ import { TaggedSqlValue } from "../../offline/SqlValue"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
 import { PublicKeyProvider } from "../PublicKeyProvider"
 import { CustomerFacade } from "./CustomerFacade"
+import type { OfflineStorageTable } from "../../offline/OfflineStorage"
 
 assertWorkerOrNode()
 
@@ -24,6 +25,17 @@ export interface PublicKeyFingerprint {
 export interface KeyVerificationDetails {
 	publicKeyFingerprint: PublicKeyFingerprint
 }
+
+/**
+ * Defines tables created for this interface
+ */
+export const KeyVerificationTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
+	trusted_identities: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS trusted_identities (mailAddress TEXT NOT NULL, fingerprint TEXT NOT NULL, keyVersion INTEGER NOT NULL, keyType INTEGER NOT NULL, PRIMARY KEY (mailAddress, keyVersion))",
+		purgedWithCache: false,
+	},
+})
 
 export class KeyVerificationFacade {
 	constructor(

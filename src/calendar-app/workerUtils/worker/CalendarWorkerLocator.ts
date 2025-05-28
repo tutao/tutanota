@@ -202,6 +202,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				handler: new CustomCalendarEventCacheHandler(entityRestClient, typeModelResolver),
 			})
 
+			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
@@ -211,6 +213,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
 				customCacheHandler,
+				KeyVerificationTableDefinitions,
 			)
 		}
 	} else {

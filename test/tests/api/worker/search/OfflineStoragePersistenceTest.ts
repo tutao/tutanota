@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import { IndexedGroupData, OfflineStoragePersistence } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
+import { IndexedGroupData, OfflineStoragePersistence, SearchTableDefinitions } from "../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher"
-import { assertNotNull, getTypeString } from "@tutao/tutanota-utils"
+import { assertNotNull, getTypeString, typedValues } from "@tutao/tutanota-utils"
 import { untagSqlObject, untagSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
@@ -33,7 +33,11 @@ o.spec("OfflineStoragePersistence", () => {
 		sqlCipherFacade = new DesktopSqlCipher(":memory:", false)
 		persistence = new OfflineStoragePersistence(sqlCipherFacade)
 		await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
-		await persistence.init()
+
+		// Needs to be done manually since OfflineStorage would have done this
+		for (const { definition } of typedValues(SearchTableDefinitions)) {
+			await sqlCipherFacade.run(definition, [])
+		}
 
 		// everything except entity data
 		await sqlCipherFacade.run(
