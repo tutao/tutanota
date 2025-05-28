@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { verify } from "@tutao/tutanota-test-utils"
-import { ensureBase64Ext, OfflineStorage, OfflineStorageCleaner } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
-import { instance, object, when } from "testdouble"
+import { ensureBase64Ext, OfflineStorage, OfflineStorageCleaner, TableDefinitions } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
+import { instance, matchers, object, when } from "testdouble"
 import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
@@ -15,7 +15,18 @@ import {
 	listIdPart,
 	timestampToGeneratedId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, getTypeString, lastThrow, mapNullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	downcast,
+	getDayShifted,
+	getFirstOrThrow,
+	getTypeString,
+	lastThrow,
+	mapNullable,
+	promiseMap,
+	typedKeys,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import {
 	BodyTypeRef,
@@ -50,6 +61,7 @@ import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/co
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -125,6 +137,7 @@ o.spec("OfflineStorageDb", function () {
 			modelMapper,
 			typeModelResolver,
 			customCacheHandlerMap,
+			{},
 		)
 	})
 
@@ -135,6 +148,62 @@ o.spec("OfflineStorageDb", function () {
 	async function toStorableInstance(entity: Entity): Promise<ServerModelParsedInstance> {
 		return downcast<ServerModelParsedInstance>(await modelMapper.mapToClientModelParsedInstance(entity._type, entity))
 	}
+
+	o.spec("additionalTables", () => {
+		o.beforeEach(async () => {
+			// to satisfy the external o.afterEach()
+			// we won't actually use this storage instance for these tests, since we don't want to test with real facades
+			await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+		})
+
+		o.test("init calls createTables which initializes all tables", async () => {
+			const sqlMock: SqlCipherFacade = object()
+			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
+				some_table: {
+					definition: "some statement will be run here",
+					purgedWithCache: false,
+				},
+				another_table: {
+					definition: "another statement will be run here",
+					purgedWithCache: true,
+				},
+			})
+			await storageWithMockedSql.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+			verify(sqlMock.run("some statement will be run here", []))
+			verify(sqlMock.run("another statement will be run here", []))
+
+			for (const table of typedKeys(TableDefinitions)) {
+				verify(
+					sqlMock.run(
+						matchers.argThat((arg: string) => arg.startsWith(`CREATE TABLE IF NOT EXISTS ${table}`)),
+						[],
+					),
+				)
+			}
+		})
+
+		o.test("purgeStorage purges all purgeable tables", async () => {
+			const sqlMock: SqlCipherFacade = object()
+			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
+				some_table: {
+					definition: "some statement will be run here",
+					purgedWithCache: false,
+				},
+				another_table: {
+					definition: "another statement will be run here",
+					purgedWithCache: true,
+				},
+			})
+			await storageWithMockedSql.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+			await storageWithMockedSql.purgeStorage()
+			verify(sqlMock.run("DROP TABLE IF EXISTS another_table", []))
+			verify(sqlMock.run("DROP TABLE IF EXISTS some_table", []), { times: 0 })
+
+			for (const table of typedKeys(TableDefinitions)) {
+				verify(sqlMock.run(`DROP TABLE IF EXISTS ${table}`, []))
+			}
+		})
+	})
 
 	o.spec("Unit test", function () {
 		async function getAllIdsForType(typeRef: TypeRef<unknown>): Promise<Id[]> {

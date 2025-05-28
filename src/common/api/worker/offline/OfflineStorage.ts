@@ -18,6 +18,9 @@ import {
 	mapNullable,
 	parseTypeString,
 	splitInChunks,
+	typedEntries,
+	typedKeys,
+	typedValues,
 	TypeRef,
 } from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
@@ -83,9 +86,6 @@ export const TableDefinitions = Object.freeze({
 	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
 	blob_element_entities:
 		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
-	trusted_identities:
-		"mailAddress TEXT NOT NULL, fingerprint TEXT NOT NULL, keyVersion INTEGER NOT NULL, keyType INTEGER NOT NULL, " +
-		"PRIMARY KEY (mailAddress, keyVersion)",
 } as const)
 
 type Range = { lower: Id; upper: Id }
@@ -95,6 +95,34 @@ export interface OfflineStorageInitArgs {
 	databaseKey: Uint8Array
 	timeRangeDate: Date | null
 	forceNewDatabase: boolean
+}
+
+/**
+ * Describes an externally-defined table to be stored in offline storage.
+ *
+ * Table definitions should be passed into the additionalTables record of OfflineStorage's constructor, setting the key
+ * to the name of the table (as written in the {@link definition} statement).
+ */
+export interface OfflineStorageTable {
+	/**
+	 * Initialization statement for the table.
+	 *
+	 * This will always be run even if the table exists, thus it should be a statement that won't error if run multiple
+	 * times (e.g. the "CREATE TABLE" command should use the "IF NOT EXISTS" clause).
+	 */
+	definition: string
+
+	/**
+	 * Set this to true if the table should be dropped whenever the cache is dropped.
+	 *
+	 * It is recommended to only set this to true if the contents of the table are dependent on the cache being in sync.
+	 *
+	 * If true, then the table is dropped whenever purgeStorage is called, such as due to an out-of-sync error
+	 *
+	 * If false, this will only be deleted if the offline database is completely deleted, such as when credentials are
+	 * deleted.
+	 */
+	purgedWithCache: boolean
 }
 
 export class OfflineStorage implements CacheStorage {
@@ -111,6 +139,7 @@ export class OfflineStorage implements CacheStorage {
 		private readonly modelMapper: ModelMapper,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly customCacheHandler: CustomCacheHandlerMap,
+		private readonly additionalTables: Record<string, OfflineStorageTable>,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
@@ -526,7 +555,16 @@ export class OfflineStorage implements CacheStorage {
 			console.warn("not purging storage since we don't have an open db")
 			return
 		}
-		await this.recreateDbFile(this.userId, this.databaseKey)
+
+		for (const tableName of typedKeys(TableDefinitions)) {
+			await this.sqlCipherFacade.run(`DROP TABLE IF EXISTS ${tableName}`, [])
+		}
+
+		for (const [tableName, { purgedWithCache }] of typedEntries(this.additionalTables)) {
+			if (purgedWithCache) {
+				await this.sqlCipherFacade.run(`DROP TABLE IF EXISTS ${tableName}`, [])
+			}
+		}
 	}
 
 	async deleteRange(typeRef: TypeRef<unknown>, listId: string): Promise<void> {
@@ -687,7 +725,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	private async createTables() {
-		for (let [name, definition] of Object.entries(TableDefinitions)) {
+		for (let [name, definition] of typedEntries(TableDefinitions)) {
 			await this.sqlCipherFacade.run(
 				`CREATE TABLE IF NOT EXISTS ${name}
                  (
@@ -695,6 +733,9 @@ export class OfflineStorage implements CacheStorage {
                  )`,
 				[],
 			)
+		}
+		for (const { definition } of typedValues(this.additionalTables)) {
+			await this.sqlCipherFacade.run(definition, [])
 		}
 	}
 

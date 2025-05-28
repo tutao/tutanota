@@ -92,6 +92,7 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 		modelMapperFromTypeModelResolver(typeModelResolver),
 		typeModelResolver,
 		handlerMap,
+		{},
 	)
 	await offlineStorage.init({
 		userId,

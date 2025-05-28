@@ -81,7 +81,7 @@ import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/C
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
 import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
@@ -101,6 +101,7 @@ import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { DateProvider } from "../../../common/api/common/DateProvider"
+import { SearchTableDefinitions } from "../index/OfflineStoragePersistence"
 
 assertWorkerOrNode()
 
@@ -290,6 +291,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
+			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+			const { SearchTableDefinitions } = await import("../index/OfflineStoragePersistence.js")
+
 			const customCacheHandler = new CustomCacheHandlerMap(
 				{
 					ref: CalendarEventTypeRef,
@@ -307,6 +311,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
 				customCacheHandler,
+				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions),
 			)
 		}
 	} else {
@@ -332,8 +337,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
-
-	locator.cacheStorage = maybeUninitializedStorage
 
 	// We don't want to cache within the admin client
 	let cache: DefaultEntityRestCache | null = null

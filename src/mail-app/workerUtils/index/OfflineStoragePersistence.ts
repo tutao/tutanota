@@ -9,28 +9,44 @@ import { elementIdPart, listIdPart } from "../../../common/api/common/utils/Enti
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
+import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
 
-const searchTables = Object.freeze([
-	"CREATE TABLE IF NOT EXISTS search_group_data (groupId TEXT NOT NULL PRIMARY KEY, groupType NUMBER NOT NULL, indexedTimestamp NUMBER NOT NULL)",
-	"CREATE TABLE IF NOT EXISTS search_metadata (key TEXT NOT NULL PRIMARY KEY, value)",
+export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
+	search_group_data: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS search_group_data (groupId TEXT NOT NULL PRIMARY KEY, groupType NUMBER NOT NULL, indexedTimestamp NUMBER NOT NULL)",
+		purgedWithCache: true,
+	},
+
+	search_metadata: {
+		definition: "CREATE TABLE IF NOT EXISTS search_metadata (key TEXT NOT NULL PRIMARY KEY, value)",
+		purgedWithCache: true,
+	},
 
 	// Full-text index of mails (contentless)
 	// list_entities.rowid = mail_index.rowid = content_mail_index = rowid
-	`CREATE VIRTUAL TABLE IF NOT EXISTS mail_index USING fts5(
-       subject,
-       toRecipients,
-       ccRecipients,
-       bccRecipients,
-       sender,
-       body,
-       attachments,
-       content='',
-       contentless_delete=1,
-       tokenize='signal_tokenizer'
-       )`,
+	mail_index: {
+		definition: `CREATE VIRTUAL TABLE IF NOT EXISTS mail_index USING fts5(
+		          subject,
+		          toRecipients,
+		          ccRecipients,
+		          bccRecipients,
+		          sender,
+		          body,
+		          attachments,
+		          content='',
+		          contentless_delete=1,
+                  tokenize='signal_tokenizer'
+              )`,
+		purgedWithCache: true,
+	},
+
 	// Content of the mail that we might need while matching, but that should not be indexed by fts5
 	// we would love to use the contentless_unindexed option, but it's only available from SQLite 3.47.0 onwards
-	"CREATE TABLE IF NOT EXISTS content_mail_index (receivedDate NUMBER NOT NULL, sets STRING NOT NULL)",
+	content_mail_index: {
+		definition: "CREATE TABLE IF NOT EXISTS content_mail_index (receivedDate NUMBER NOT NULL, sets STRING NOT NULL)",
+		purgedWithCache: true,
+	},
 
 	// Full-text index of contact names and addresses (NOT contentless)
 	// list_entities.rowid = contact_index.rowid
@@ -38,12 +54,15 @@ const searchTables = Object.freeze([
 	// This is not contentless because we want to be able to sort search results by first/last name inside the query,
 	// itself, while still using the LIMIT clause. This means duplicate data will be stored, but only a small portion of
 	// the contact in this case.
-	`CREATE VIRTUAL TABLE IF NOT EXISTS contact_index USING fts5(
-       firstName,
-       lastName,
-       mailAddresses
-       )`,
-] as const)
+	contact_index: {
+		definition: `CREATE VIRTUAL TABLE IF NOT EXISTS contact_index USING fts5(
+                  firstName,
+                  lastName,
+                  mailAddresses
+              )`,
+		purgedWithCache: true,
+	},
+})
 
 export interface IndexedGroupData {
 	groupId: Id
@@ -59,12 +78,6 @@ export class OfflineStoragePersistence {
 	static readonly CONTACTS_INDEXED = "contactsIndexed"
 
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
-
-	async init() {
-		for (const tableDef of searchTables) {
-			await this.sqlCipherFacade.run(tableDef, [])
-		}
-	}
 
 	async getIndexedGroups(): Promise<readonly IndexedGroupData[]> {
 		const { query, params } = sql`SELECT groupId, CAST(groupType as TEXT) as type, indexedTimestamp
