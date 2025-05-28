@@ -13,6 +13,7 @@ import { BootIcons } from "../gui/base/icons/BootIcons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
 import { isColorLight } from "../gui/base/Color.js"
+import { isIOSApp } from "../api/common/Env.js"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -246,7 +247,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	}
 
 	private static renderCampaignRibbon(): Children {
-		const text = lang.get("pricing.globalFirstYearDiscountRibbon_label", { "{amount}": "50%" })
+		const text = isIOSApp() ? lang.get("save_action").toUpperCase() : lang.get("pricing.globalFirstYearDiscountRibbon_label", { "{amount}": "50%" })
 
 		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)", top: "-10px" } }, [
 			// Ribbon
