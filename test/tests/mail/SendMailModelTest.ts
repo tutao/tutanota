@@ -40,7 +40,7 @@ import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { isSameId } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
-import { RecipientsModel, ResolveMode } from "../../../src/common/api/main/RecipientsModel"
+import { RecipientsModel } from "../../../src/common/api/main/RecipientsModel"
 import { ResolvableRecipientMock } from "./ResolvableRecipientMock.js"
 import { NoZoneDateProvider } from "../../../src/common/api/common/utils/NoZoneDateProvider.js"
 import { createTestEntity } from "../TestUtils.js"
@@ -164,17 +164,8 @@ o.spec("SendMailModel", function () {
 		}
 
 		recipientsModel = instance(RecipientsModel)
-		when(recipientsModel.resolve(anything(), anything())).thenDo((recipient, resolveMode) => {
-			return new ResolvableRecipientMock(
-				recipient.address,
-				recipient.name,
-				recipient.contact,
-				recipient.type,
-				[INTERNAL_RECIPIENT_1.address],
-				[],
-				resolveMode,
-				user,
-			)
+		when(recipientsModel.initialize(anything())).thenDo((recipient) => {
+			return new ResolvableRecipientMock(recipient.address, recipient.name, recipient.contact, recipient.type, [INTERNAL_RECIPIENT_1.address], [], user)
 		})
 
 		const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef)
@@ -346,12 +337,12 @@ o.spec("SendMailModel", function () {
 				contact: null,
 				type: null,
 			}
-			model.addRecipient(RecipientField.TO, recipient, ResolveMode.Eager)
+			model.addRecipient(RecipientField.TO, recipient)
 			const r1 = model.getRecipient(RecipientField.TO, recipient.address)!
 
-			model.addRecipient(RecipientField.TO, recipient, ResolveMode.Eager)
+			model.addRecipient(RecipientField.TO, recipient)
 
-			verify(recipientsModel.resolve(recipient, ResolveMode.Eager), { times: 1 })
+			verify(recipientsModel.initialize(recipient), { times: 1 })
 
 			o(model.toRecipients().length).equals(1)
 			o(model.ccRecipients().length).equals(0)
@@ -370,11 +361,11 @@ o.spec("SendMailModel", function () {
 				contact: null,
 				type: null,
 			}
-			model.addRecipient(RecipientField.TO, pablo, ResolveMode.Eager)
-			model.addRecipient(RecipientField.TO, cortez, ResolveMode.Eager)
+			model.addRecipient(RecipientField.TO, pablo)
+			model.addRecipient(RecipientField.TO, cortez)
 
-			verify(recipientsModel.resolve(pablo, ResolveMode.Eager))
-			verify(recipientsModel.resolve(cortez, ResolveMode.Eager))
+			verify(recipientsModel.initialize(pablo))
+			verify(recipientsModel.initialize(cortez))
 
 			o(model.toRecipients().length).equals(2)
 			o(model.ccRecipients().length).equals(0)
@@ -387,10 +378,10 @@ o.spec("SendMailModel", function () {
 				contact: null,
 				type: null,
 			}
-			model.addRecipient(RecipientField.TO, recipient, ResolveMode.Eager)
-			model.addRecipient(RecipientField.CC, recipient, ResolveMode.Eager)
+			model.addRecipient(RecipientField.TO, recipient)
+			model.addRecipient(RecipientField.CC, recipient)
 
-			verify(recipientsModel.resolve(recipient, ResolveMode.Eager), { times: 2 })
+			verify(recipientsModel.initialize(recipient), { times: 2 })
 
 			o(model.toRecipients().length).equals(1)
 			o(model.ccRecipients().length).equals(1)
