@@ -102,7 +102,7 @@ export class ContactImporter {
 	// will check for permission and ask for it if it is not granted
 	// @pre: only call if isApp() === true
 	async importContactsFromDeviceSafely() {
-		var isContactPermissionGranted = await this.systemPermissionHandler.hasPermission(PermissionType.Contacts)
+		let isContactPermissionGranted = await this.systemPermissionHandler.hasPermission(PermissionType.Contacts)
 
 		if (!isContactPermissionGranted) {
 			await Dialog.message("allowContactSynchronization")
