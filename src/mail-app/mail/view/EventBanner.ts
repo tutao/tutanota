@@ -5,14 +5,15 @@ import type { CalendarEvent, Mail } from "../../../common/api/entities/tutanota/
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../common/gui/base/InfoBanner.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { deduplicate, deepEqual, getStartOfDay, isNotNull, LazyLoaded } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import stream from "mithril/stream"
+import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
+import { theme } from "../../../common/gui/theme.js"
+import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -31,9 +32,13 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	 * they can't import each other and only have gui-base as a
 	 * common ancestor, where these don't belong. */
 	private readonly ReplyButtons = new LazyLoaded(async () => (await import("../../../calendar-app/calendar/gui/eventpopup/EventPreviewView.js")).ReplyButtons)
+	private agenda: Map<CalendarEvent, { event: CalendarEvent; conflict: boolean }[]> = new Map()
 
-	constructor(attrs: Vnode<EventBannerAttrs>) {
-		this.getEvents(attrs.attrs)
+	oncreate({ attrs }: Vnode<EventBannerAttrs>) {
+		this.getEvents(attrs).then((events) => {
+			this.agenda = events
+			m.redraw()
+		})
 	}
 
 	view({ attrs }: Vnode<EventBannerAttrs>): Children {
@@ -41,31 +46,100 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		if (contents == null || contents.events.length === 0) return null
 
 		const messages = contents.events
-			.map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
-				const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
-				return message == null ? null : { event, message }
-			})
+								 .map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
+									 const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
+									 return message == null ? null : { event, message }
+								 })
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
 			// banner for events that do not mention us.
-			.filter(isNotNull)
+								 .filter(isNotNull)
 
 		return messages.map(({ event, message }) =>
-			m(InfoBanner, {
-				message: () => message,
-				type: BannerType.Info,
-				icon: Icons.People,
-				buttons: [
-					{
-						label: "viewEvent_action",
-						click: (e, dom) =>
-							import("../../../calendar-app/calendar/view/CalendarInvites.js").then(({ showEventDetails }) =>
-								showEventDetails(event, dom.getBoundingClientRect(), mail),
-							),
-					},
-				],
-			} satisfies InfoBannerAttrs),
+				this.buildEventBanner(event, this.agenda.get(event) ?? [], message)
+			// m("", [
+			// 	Array.from(this.agenda.entries()).map(([event, agenda]) => {
+			// 		const eventBefore = agenda.find((e) => e.event.startTime < event.startTime)
+			// 		const eventAfter = agenda.find((e) => e.event.startTime >= event.startTime)
+			//
+			// 		return m(".flex.flex-column", [
+			// 			m("", eventBefore ? `${eventBefore?.event.startTime.toLocaleTimeString()} - ${eventBefore?.event.endTime.toLocaleTimeString()} ${eventBefore?.event.summary}${eventBefore?.conflict ? " (Conflict)" : ""}` : "No event before"),
+			// 			m("", `${event.startTime.toLocaleTimeString()} - ${event.endTime.toTimeString()} ${event.summary}`),
+			// 			m("", eventAfter ? `${eventAfter?.event.startTime.toLocaleTimeString()} - ${eventAfter?.event.endTime.toLocaleTimeString()} ${eventAfter?.event.summary}${eventAfter?.conflict ? " (Conflict)" : ""}` : "No event after"),
+			// 		])
+			// 	}),
+			// 	m(InfoBanner, {
+			// 		message: () => message,
+			// 		type: BannerType.Info,
+			// 		icon: Icons.People,
+			// 		buttons: [
+			// 			{
+			// 				label: "viewEvent_action",
+			// 				click: (e, dom) =>
+			// 					import("../../../calendar-app/calendar/view/CalendarInvites.js").then(({ showEventDetails }) =>
+			// 						showEventDetails(event, dom.getBoundingClientRect(), mail),
+			// 					),
+			// 			},
+			// 		],
+			// 	} satisfies InfoBannerAttrs),
+			// ]),
 		)
+	}
+
+	private buildEventBanner(event: CalendarEvent, agenda: { event: CalendarEvent; conflict: boolean }[], message: Children) {
+		const eventBefore = agenda.find((e) => e.event.startTime < event.startTime)
+		const eventAfter = agenda.find((e) => e.event.startTime >= event.startTime)
+
+		return m(".flex.border-radius-top-left-m.border-radius-bottom-left-m.border-nota.border-sm.fit-content", [
+			m(".flex.flex-column.nota-bg.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt", [
+				m("span.normal-font-size.accent-fg", event.startTime.toLocaleString('default', { month: "short" })),
+				m("span.big.accent-fg.b", event.startTime.getDate())
+			]),
+			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.justify-center", [
+				m(".flex.items-center", [
+					m(Icon, {
+						icon: BootIcons.Calendar,
+						container: "div",
+						class: "mr-xs",
+						style: { fill: theme.button_bubble_fg },
+						size: IconSize.Large,
+					}),
+					m("span.b.h5", event.summary)
+				]),
+				event.organizer?.address ? m(".flex.items-center.small", [
+					m("span.b", "Who:"), // FIXME Add translation
+					m("span.ml-xsm", event.organizer?.address)
+				]) : null,
+				// FIXME Fix not displaying the attending status for the invitation (Accepted, Maybe or No)
+				message
+			]),
+			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.border-nota.border-left-sm", [
+				m(".flex.flex-column", [
+					m("span.b.h5", "Overview"), // FIXME Add translation
+					m("span.small.text-fade", event.startTime.toLocaleString('default', { month: "short", day: "2-digit", year: "numeric" }))
+				]),
+				m(".flex.flex-column.mt-m", [
+					m("span.text-fade", eventBefore ? `${eventBefore.event.startTime.toLocaleString('default', {
+						hour: "2-digit",
+						minute: "2-digit"
+					})} - ${eventBefore.event.endTime.toLocaleString('default', {
+						hour: "2-digit",
+						minute: "2-digit"
+					})} ${eventBefore.event.summary}${eventBefore.conflict ? ' (Conflict)' : ''}` : "No events before"), //FIXME Add translation
+					m("span", `${event.startTime.toLocaleString('default', {
+						hour: "2-digit",
+						minute: "2-digit"
+					})} - ${event.endTime.toLocaleString('default', { hour: "2-digit", minute: "2-digit" })} ${event.summary}`),
+					m("span.text-fade", eventAfter ? `${eventAfter.event.startTime.toLocaleString('default', {
+						hour: "2-digit",
+						minute: "2-digit"
+					})} - ${eventAfter.event.endTime.toLocaleString('default', {
+						hour: "2-digit",
+						minute: "2-digit"
+					})} ${eventAfter.event.summary}${eventAfter.conflict ? ' (Conflict)' : ''}` : "No events before") //FIXME Add translation
+				])
+			])
+		])
 	}
 
 	private getMessage(event: CalendarEvent, mail: Mail, recipient: string, method: CalendarMethod): Children {
@@ -91,9 +165,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		}
 	}
 
-	private async getEvents(attrs: EventBannerAttrs) {
+	private async getEvents(attrs: EventBannerAttrs): Promise<Map<CalendarEvent, { event: CalendarEvent; conflict: boolean }[]>> {
 		if (!attrs.contents) {
-			return
+			return new Map()
 		}
 
 		/*
@@ -151,7 +225,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				(ev) => (ev.startTime <= event.endTime && ev.endTime >= event.endTime) || (ev.startTime >= event.startTime && ev.endTime <= event.endTime),
 			)
 
-			const eventList: Array<CalendarEvent> = []
+			const eventList: { event: CalendarEvent; conflict: boolean }[] = []
 
 			if (needAnEventBefore) {
 				const eventBefore = [...eventsForStartDay, ...eventsForEndDay]
@@ -159,7 +233,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					.find((ev) => ev.startTime < event.startTime)
 				console.log("Event Before (Non-Conflicting): ", eventBefore)
 				if (eventBefore) {
-					eventList.push(eventBefore)
+					eventList.push({ event: eventBefore, conflict: false })
 				}
 			} else {
 				const eventBefore = conflictingEvents
@@ -167,7 +241,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					.find((ev) => ev.startTime < event.startTime && ev.endTime <= event.endTime && ev.endTime >= event.startTime)
 				console.log("Event Before (Conflicting): ", eventBefore)
 				if (eventBefore) {
-					eventList.push(eventBefore)
+					eventList.push({ event: eventBefore, conflict: true })
 				}
 			}
 
@@ -181,7 +255,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					)
 				console.log("Event After (Non-Conflicting): ", eventAfter)
 				if (eventAfter) {
-					eventList.push(eventAfter)
+					eventList.push({ event: eventAfter, conflict: false })
 				}
 			} else {
 				const eventAfter = conflictingEvents
@@ -192,17 +266,19 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					)
 				console.log("Event After (Conflicting): ", eventAfter)
 				if (eventAfter) {
-					eventList.push(eventAfter)
+					eventList.push({ event: eventAfter, conflict: true })
 				}
 			}
 
-			eventList.push(event)
+			eventToAgenda.set(event, eventList)
 
 			console.log(conflictingEvents)
 			console.log(needAnEventBefore)
 			console.log(needAnEventAfter)
-			console.log(eventList.sort((a, b) => a.startTime.getTime() - b.startTime.getTime()))
+			console.log(eventToAgenda)
 		}
+
+		return eventToAgenda
 	}
 }
 
