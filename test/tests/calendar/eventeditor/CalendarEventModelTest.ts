@@ -35,13 +35,12 @@ import {
 	UserAlarmInfoTypeRef,
 } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { clone, identity, noOp } from "@tutao/tutanota-utils"
-import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../../../src/common/api/main/RecipientsModel.js"
+import { RecipientsModel, ResolvableRecipient } from "../../../../src/common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../src/common/api/main/LoginController.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { areExcludedDatesEqual, areRepeatRulesEqual } from "../../../../src/common/calendar/date/CalendarUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel.js"
-import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem.js"
 
 o.spec("CalendarEventModel", function () {
 	let distributor: CalendarNotificationSender
@@ -112,12 +111,12 @@ o.spec("CalendarEventModel", function () {
 			when(calendarModel.getCalendarInfos()).thenResolve(calendars)
 			when(calendarModel.resolveCalendarEventProgenitor(matchers.anything())).thenResolve(event)
 			const resolvableOwner: ResolvableRecipient = object()
-			when(resolvableOwner.resolved()).thenResolve(ownerAddress)
+			when(resolvableOwner.resolve()).thenResolve(ownerAddress)
 			const resolvableRecipient: ResolvableRecipient = object()
-			when(resolvableRecipient.resolved()).thenResolve(otherAddress)
+			when(resolvableRecipient.resolve()).thenResolve(otherAddress)
 			const resolvables = [resolvableOwner, resolvableRecipient, resolvableOwner]
 			let tryCount = 0
-			when(recipientsModel.resolve(matchers.anything(), ResolveMode.Eager)).thenDo(() => resolvables[tryCount++])
+			when(recipientsModel.initialize(matchers.anything())).thenDo(() => resolvables[tryCount++])
 			const mailboxDetail: MailboxDetail = {
 				mailbox: createTestEntity(MailBoxTypeRef),
 				mailGroupInfo: createTestEntity(GroupInfoTypeRef),
