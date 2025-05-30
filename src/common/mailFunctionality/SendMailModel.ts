@@ -37,7 +37,7 @@ import stream from "mithril/stream"
 import type { File as TutanotaFile } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "./SharedMailUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
-import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../api/main/RecipientsModel.js"
+import { RecipientsModel, ResolvableRecipient } from "../api/main/RecipientsModel.js"
 import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, Language, languages, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
 import { MailFacade } from "../api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../api/common/EntityClient.js"
@@ -468,7 +468,7 @@ export class SendMailModel {
 			this.attachFiles(attachments)
 		}
 
-		this.replyTos = recipientsFilter(replyTos ?? []).map((recipient) => this.recipientsModel.resolve(recipient, ResolveMode.Eager))
+		this.replyTos = recipientsFilter(replyTos ?? []).map((recipient) => this.recipientsModel.initialize(recipient))
 		this.previousMail = previousMail || null
 		this.previousMessageId = previousMessageId || null
 		this.mailChangedAt = this.dateProvider.now()
@@ -499,7 +499,7 @@ export class SendMailModel {
 	}
 
 	toRecipientsResolved(): Promise<Array<Recipient>> {
-		return Promise.all(this.toRecipients().map((recipient) => recipient.resolved()))
+		return Promise.all(this.toRecipients().map((recipient) => recipient.resolve()))
 	}
 
 	ccRecipients(): Array<ResolvableRecipient> {
@@ -507,7 +507,7 @@ export class SendMailModel {
 	}
 
 	ccRecipientsResolved(): Promise<Array<Recipient>> {
-		return Promise.all(this.ccRecipients().map((recipient) => recipient.resolved()))
+		return Promise.all(this.ccRecipients().map((recipient) => recipient.resolve()))
 	}
 
 	bccRecipients(): Array<ResolvableRecipient> {
@@ -515,11 +515,11 @@ export class SendMailModel {
 	}
 
 	bccRecipientsResolved(): Promise<Array<Recipient>> {
-		return Promise.all(this.bccRecipients().map((recipient) => recipient.resolved()))
+		return Promise.all(this.bccRecipients().map((recipient) => recipient.resolve()))
 	}
 
 	replyTosResolved(): Promise<Array<Recipient>> {
-		return Promise.all(this.replyTos.map((r) => r.resolved()))
+		return Promise.all(this.replyTos.map((r) => r.resolve()))
 	}
 
 	/**
@@ -528,27 +528,20 @@ export class SendMailModel {
 	 *
 	 * @returns whether the list was actually changed.
 	 */
-	private async insertRecipient(
-		fieldType: RecipientField,
-		{ address, name, type, contact }: PartialRecipient,
-		resolveMode: ResolveMode = ResolveMode.Eager,
-	): Promise<boolean> {
+	private async insertRecipient(fieldType: RecipientField, { address, name, type, contact }: PartialRecipient): Promise<boolean> {
 		let recipient = findRecipientWithAddress(this.getRecipientList(fieldType), address)
 		// Only add a recipient if it doesn't exist
 		if (!recipient) {
-			recipient = this.recipientsModel.resolve(
-				{
-					address,
-					name,
-					type,
-					contact,
-				},
-				resolveMode,
-			)
+			recipient = this.recipientsModel.initialize({
+				address,
+				name,
+				type,
+				contact,
+			})
 
 			this.getRecipientList(fieldType).push(recipient)
 
-			recipient.resolved().then(({ address, contact }) => {
+			recipient.resolve().then(({ address, contact }) => {
 				if (!this.passwords.has(address) && contact != null) {
 					this.setPassword(address, contact.presharedPassword ?? "")
 				} else {
@@ -556,10 +549,10 @@ export class SendMailModel {
 					this.onMailChanged(null)
 				}
 			})
-			await recipient.resolved()
+			await recipient.resolve()
 			return true
 		}
-		await recipient.resolved()
+		await recipient.resolve()
 		return false
 	}
 
@@ -567,8 +560,8 @@ export class SendMailModel {
 	 * Add a new recipient, this method resolves when the recipient resolves.
 	 * will notify of a changed draft state after the recipient was inserted
 	 */
-	async addRecipient(fieldType: RecipientField, partialRecipient: PartialRecipient, resolveMode: ResolveMode = ResolveMode.Eager): Promise<void> {
-		const wasAdded = await this.insertRecipient(fieldType, partialRecipient, resolveMode)
+	async addRecipient(fieldType: RecipientField, partialRecipient: PartialRecipient): Promise<void> {
+		const wasAdded = await this.insertRecipient(fieldType, partialRecipient)
 		this.markAsChangedIfNecessary(wasAdded)
 	}
 
@@ -1034,7 +1027,7 @@ export class SendMailModel {
 	 */
 	async waitForResolvedRecipients(): Promise<Recipient[]> {
 		await this.recipientsResolved.getAsync()
-		return Promise.all(this.allRecipients().map((recipient) => recipient.resolved())).catch(
+		return Promise.all(this.allRecipients().map((recipient) => recipient.resolve())).catch(
 			ofClass(TooManyRequestsError, () => {
 				throw new RecipientNotResolvedError("")
 			}),
