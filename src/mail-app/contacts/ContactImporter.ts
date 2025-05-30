@@ -38,6 +38,7 @@ import { NativeFileApp } from "../../common/native/common/FileApp.js"
 import { MobileContactsFacade } from "../../common/native/common/generatedipc/MobileContactsFacade.js"
 import { NativeContactsSyncManager } from "./model/NativeContactsSyncManager"
 import { isIOSApp } from "../../common/api/common/Env"
+import { MobileSystemFacade } from "../../common/native/common/generatedipc/MobileSystemFacade.js"
 
 export class ContactImporter {
 	constructor(
@@ -99,9 +100,14 @@ export class ContactImporter {
 	}
 
 	// will check for permission and ask for it if it is not granted
+	// @pre: only call if isApp() === true
 	async importContactsFromDeviceSafely() {
-		// check for permission
-		const isContactPermissionGranted = await this.systemPermissionHandler.requestPermission(PermissionType.Contacts, "grantContactPermissionAction")
+		var isContactPermissionGranted = await this.systemPermissionHandler.hasPermission(PermissionType.Contacts)
+
+		if (!isContactPermissionGranted) {
+			await Dialog.message("allowContactSynchronization")
+			isContactPermissionGranted = await this.systemPermissionHandler.requestPermission(PermissionType.Contacts, "allowContactReadWrite_msg")
+		}
 
 		if (isContactPermissionGranted) {
 			await this.importContactsFromDevice()
