@@ -497,6 +497,8 @@ class MailLocator {
 
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
 		const { MailViewerViewModel } = await import("../mail-app/mail/view/MailViewerViewModel.js")
+		const eventRepository = await this.calendarEventsRepository()
+
 		return ({ mail, showFolder }) =>
 			new MailViewerViewModel(
 				mail,
@@ -518,6 +520,7 @@ class MailLocator {
 				this.mailFacade,
 				this.cryptoFacade,
 				() => this.contactImporter(),
+				eventRepository,
 			)
 	}
 

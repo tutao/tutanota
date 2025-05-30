@@ -74,8 +74,9 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
-import { mailLocator } from "../../mailLocator.js"
 import { isDraft } from "../model/MailChecks"
+import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { mailLocator } from "../../mailLocator.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -143,6 +144,7 @@ export class MailViewerViewModel {
 		private readonly mailFacade: MailFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly contactImporter: lazyAsync<ContactImporter>,
+		readonly eventsRepository: CalendarEventsRepository,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
