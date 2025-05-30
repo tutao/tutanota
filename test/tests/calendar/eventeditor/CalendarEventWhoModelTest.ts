@@ -47,8 +47,8 @@ o.spec("CalendarEventWhoModel", function () {
 
 	const setupRecipient = (recipient: Recipient) => {
 		const sameAddressMatcher = matchers.argThat((p) => p.address === recipient.address)
-		when(recipients.resolve(sameAddressMatcher, matchers.anything())).thenReturn({
-			resolved: () => Promise.resolve(recipient),
+		when(recipients.initialize(sameAddressMatcher)).thenReturn({
+			resolve: () => Promise.resolve(recipient),
 		})
 	}
 
