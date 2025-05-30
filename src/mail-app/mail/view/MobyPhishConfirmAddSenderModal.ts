@@ -123,8 +123,8 @@ export class MobyPhishConfirmAddSenderModal implements ModalComponent {
 					trusted_email: this.senderAddress,
 					trusted_name: this.senderName,
 				}),
-				credentials: "include", // Include cookies for cross-origin requests
-				mode: "cors", // Explicitly request CORS mode
+				credentials: "include",
+				mode: "cors",
 			})
 
 			if (!response.ok) {

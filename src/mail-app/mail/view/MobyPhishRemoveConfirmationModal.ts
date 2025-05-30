@@ -96,7 +96,7 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 						{
 							onclick: () => this.confirmRemoveSender(),
 							disabled: this.isLoading,
-							style: { ...this.getConfirmButtonStyle(this.isLoading), color: "black" },
+							style: { ...this.getConfirmButtonStyle(this.isLoading), color: "white" },
 						},
 						this.isLoading ? "Removing..." : "Confirm Remove",
 					),
@@ -107,7 +107,7 @@ export class MobyPhishRemoveConfirmationModal implements ModalComponent {
 						{
 							onclick: () => this.closeModal(),
 							disabled: this.isLoading,
-							style: { ...this.getCancelButtonStyle(), color: "black" },
+							style: { ...this.getCancelButtonStyle(), color: "white" },
 						},
 						"Cancel",
 					),
