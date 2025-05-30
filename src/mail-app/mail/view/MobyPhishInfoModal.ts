@@ -43,7 +43,7 @@ export class MobyPhishInfoModal implements ModalComponent {
 						"button",
 						{
 							onclick: () => window.open(HELP_LINK, "_blank"),
-							style: { ...this.getLearnMoreButtonStyle(), color: "black" },
+							style: { ...this.getLearnMoreButtonStyle(), color: "white" },
 						},
 						"Learn more...",
 					),
