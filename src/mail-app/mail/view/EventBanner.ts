@@ -5,7 +5,7 @@ import type { CalendarEvent, Mail } from "../../../common/api/entities/tutanota/
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { deduplicate, deepEqual, getStartOfDay, isNotNull, LazyLoaded } from "@tutao/tutanota-utils"
+import { getStartOfDay, isNotNull, LazyLoaded } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
@@ -14,6 +14,7 @@ import stream from "mithril/stream"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
+import { eventHasSameFields } from "../../../common/calendar/import/ImportExportUtils"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -46,17 +47,17 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		if (contents == null || contents.events.length === 0) return null
 
 		const messages = contents.events
-								 .map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
-									 const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
-									 return message == null ? null : { event, message }
-								 })
+			.map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
+				const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
+				return message == null ? null : { event, message }
+			})
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
 			// banner for events that do not mention us.
-								 .filter(isNotNull)
+			.filter(isNotNull)
 
-		return messages.map(({ event, message }) =>
-				this.buildEventBanner(event, this.agenda.get(event) ?? [], message)
+		return messages.map(
+			({ event, message }) => this.buildEventBanner(event, this.agenda.get(event) ?? [], message),
 			// m("", [
 			// 	Array.from(this.agenda.entries()).map(([event, agenda]) => {
 			// 		const eventBefore = agenda.find((e) => e.event.startTime < event.startTime)
@@ -86,14 +87,21 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		)
 	}
 
-	private buildEventBanner(event: CalendarEvent, agenda: { event: CalendarEvent; conflict: boolean }[], message: Children) {
+	private buildEventBanner(
+		event: CalendarEvent,
+		agenda: {
+			event: CalendarEvent
+			conflict: boolean
+		}[],
+		message: Children,
+	) {
 		const eventBefore = agenda.find((e) => e.event.startTime < event.startTime)
 		const eventAfter = agenda.find((e) => e.event.startTime >= event.startTime)
 
 		return m(".flex.border-radius-top-left-m.border-radius-bottom-left-m.border-nota.border-sm.fit-content", [
 			m(".flex.flex-column.nota-bg.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt", [
-				m("span.normal-font-size.accent-fg", event.startTime.toLocaleString('default', { month: "short" })),
-				m("span.big.accent-fg.b", event.startTime.getDate())
+				m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { month: "short" })),
+				m("span.big.accent-fg.b", event.startTime.getDate()),
 			]),
 			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.justify-center", [
 				m(".flex.items-center", [
@@ -104,41 +112,66 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						style: { fill: theme.button_bubble_fg },
 						size: IconSize.Large,
 					}),
-					m("span.b.h5", event.summary)
+					m("span.b.h5", event.summary),
 				]),
-				event.organizer?.address ? m(".flex.items-center.small", [
-					m("span.b", "Who:"), // FIXME Add translation
-					m("span.ml-xsm", event.organizer?.address)
-				]) : null,
+				event.organizer?.address
+					? m(".flex.items-center.small", [
+							m("span.b", "Who:"), // FIXME Add translation
+							m("span.ml-xsm", event.organizer?.address),
+					  ])
+					: null,
 				// FIXME Fix not displaying the attending status for the invitation (Accepted, Maybe or No)
-				message
+				message,
 			]),
 			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.border-nota.border-left-sm", [
 				m(".flex.flex-column", [
 					m("span.b.h5", "Overview"), // FIXME Add translation
-					m("span.small.text-fade", event.startTime.toLocaleString('default', { month: "short", day: "2-digit", year: "numeric" }))
+					m(
+						"span.small.text-fade",
+						event.startTime.toLocaleString("default", {
+							month: "short",
+							day: "2-digit",
+							year: "numeric",
+						}),
+					),
 				]),
 				m(".flex.flex-column.mt-m", [
-					m("span.text-fade", eventBefore ? `${eventBefore.event.startTime.toLocaleString('default', {
-						hour: "2-digit",
-						minute: "2-digit"
-					})} - ${eventBefore.event.endTime.toLocaleString('default', {
-						hour: "2-digit",
-						minute: "2-digit"
-					})} ${eventBefore.event.summary}${eventBefore.conflict ? ' (Conflict)' : ''}` : "No events before"), //FIXME Add translation
-					m("span", `${event.startTime.toLocaleString('default', {
-						hour: "2-digit",
-						minute: "2-digit"
-					})} - ${event.endTime.toLocaleString('default', { hour: "2-digit", minute: "2-digit" })} ${event.summary}`),
-					m("span.text-fade", eventAfter ? `${eventAfter.event.startTime.toLocaleString('default', {
-						hour: "2-digit",
-						minute: "2-digit"
-					})} - ${eventAfter.event.endTime.toLocaleString('default', {
-						hour: "2-digit",
-						minute: "2-digit"
-					})} ${eventAfter.event.summary}${eventAfter.conflict ? ' (Conflict)' : ''}` : "No events before") //FIXME Add translation
-				])
-			])
+					m(
+						"span.text-fade",
+						eventBefore
+							? `${eventBefore.event.startTime.toLocaleString("default", {
+									hour: "2-digit",
+									minute: "2-digit",
+							  })} - ${eventBefore.event.endTime.toLocaleString("default", {
+									hour: "2-digit",
+									minute: "2-digit",
+							  })} ${eventBefore.event.summary}${eventBefore.conflict ? " (Conflict)" : ""}`
+							: "No events before",
+					), //FIXME Add translation
+					m(
+						"span",
+						`${event.startTime.toLocaleString("default", {
+							hour: "2-digit",
+							minute: "2-digit",
+						})} - ${event.endTime.toLocaleString("default", {
+							hour: "2-digit",
+							minute: "2-digit",
+						})} ${event.summary}`,
+					),
+					m(
+						"span.text-fade",
+						eventAfter
+							? `${eventAfter.event.startTime.toLocaleString("default", {
+									hour: "2-digit",
+									minute: "2-digit",
+							  })} - ${eventAfter.event.endTime.toLocaleString("default", {
+									hour: "2-digit",
+									minute: "2-digit",
+							  })} ${eventAfter.event.summary}${eventAfter.conflict ? " (Conflict)" : ""}`
+							: "No events before",
+					), //FIXME Add translation
+				]),
+			]),
 		])
 	}
 
@@ -165,7 +198,15 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		}
 	}
 
-	private async getEvents(attrs: EventBannerAttrs): Promise<Map<CalendarEvent, { event: CalendarEvent; conflict: boolean }[]>> {
+	private async getEvents(attrs: EventBannerAttrs): Promise<
+		Map<
+			CalendarEvent,
+			{
+				event: CalendarEvent
+				conflict: boolean
+			}[]
+		>
+	> {
 		if (!attrs.contents) {
 			return new Map()
 		}
@@ -187,47 +228,58 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		 * - Return this array ordered by startTime
 		 */
 		const eventToAgenda: Map<CalendarEvent, { event: CalendarEvent; conflict: boolean }[]> = new Map()
-		const datesToLoad = attrs.contents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat()
-		await attrs.eventsRepository.loadMonthsIfNeeded(datesToLoad, stream(false), null)
-		const events = attrs.eventsRepository.getEventsForMonths()()
+		const datesToLoad = new Set(attrs.contents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat())
+		await attrs.eventsRepository.loadMonthsIfNeeded(Array.from(datesToLoad), stream(false), null)
+		const events = attrs.eventsRepository.getEventsForMonths()() // Short and long events
+
+		console.log("Loaded Events: ", events)
 
 		for (const event of attrs.contents.events) {
-			const start = getStartOfDay(event.startTime)
-			const end = getStartOfDay(event.endTime)
-			const eventsForStartDay = events.get(start.getTime()) ?? []
-			const eventsForEndDay = events.get(end.getTime()) ?? []
+			const startOfDay = getStartOfDay(event.startTime)
+			const endOfDay = getStartOfDay(event.endTime)
+			const eventsForStartDay = events.get(startOfDay.getTime()) ?? []
+			const eventsForEndDay = events.get(endOfDay.getTime()) ?? []
+			const allEvents = Array.from(new Set([...eventsForStartDay, ...eventsForEndDay]))
 
-			const conflictingEvents = deduplicate(
-				[
-					...eventsForStartDay.filter(
-						(ev) =>
-							(ev.startTime < event.startTime && ev.endTime <= event.endTime && ev.endTime >= event.startTime) ||
-							(ev.startTime <= event.endTime && ev.endTime >= event.endTime) ||
-							(ev.startTime >= event.startTime && ev.endTime <= event.endTime),
-					),
-					...eventsForEndDay.filter(
-						(ev) =>
-							(ev.startTime < event.startTime && ev.endTime <= event.endTime) ||
-							(ev.startTime <= event.endTime && ev.endTime >= event.endTime) ||
-							(ev.startTime >= event.startTime && ev.endTime <= event.endTime),
-					),
-				],
-				(a, b) => deepEqual(a._id, b._id),
+			console.log("Start / End events: ", { eventsForStartDay, eventsForEndDay })
+			console.log("All events: ", allEvents)
+
+			const conflictingEvents = allEvents.filter(
+				(ev) =>
+					(!eventHasSameFields(ev, event) && // FIXME what to do when user already replied ot the invite? currently filtering out
+						ev.endTime > event.startTime &&
+						ev.endTime <= event.endTime) || // Ends during event
+					(ev.startTime >= event.startTime && ev.startTime < event.endTime) || // Starts during event
+					(ev.startTime <= event.startTime && ev.endTime >= event.endTime), // Fully overlaps event
 			)
+
+			console.log("Conflicting Events: ", conflictingEvents)
 
 			// Decides if we already have a conflicting event or if we should pick an event from event list that happens before the invitation
-			const needAnEventBefore = !conflictingEvents.some(
-				(ev) => ev.startTime < event.startTime && ev.endTime <= event.endTime && ev.endTime >= event.startTime,
-			)
+			const closestConflictingEventBeforeStartTime = conflictingEvents
+				.filter((ev) => ev.startTime <= event.startTime)
+				.reduce((closest: CalendarEvent, ev, index) => {
+					if (!closest) return ev
+					if (event.startTime.getTime() - ev.startTime.getTime() < event.startTime.getTime() - closest.startTime.getTime()) return ev
+					return closest
+				}, null)
+
+			console.log({ closestConflictingEventBeforeStartTime })
 
 			// Decides if we already have a conflicting event or if we should pick an event from event list that happens after the invitation
-			const needAnEventAfter = !conflictingEvents.some(
-				(ev) => (ev.startTime <= event.endTime && ev.endTime >= event.endTime) || (ev.startTime >= event.startTime && ev.endTime <= event.endTime),
-			)
+			const closestConflictingEventAfterStartTime = conflictingEvents
+				.filter((ev) => ev.startTime > event.startTime)
+				.reduce((closest: CalendarEvent, ev, index) => {
+					if (!closest) return ev
+					if (Math.abs(event.startTime.getTime() - ev.startTime.getTime()) < Math.abs(event.startTime.getTime() - closest.startTime.getTime()))
+						return ev
+					return closest
+				}, null)
+			console.log({ closestConflictingEventAfterStartTime })
 
 			const eventList: { event: CalendarEvent; conflict: boolean }[] = []
 
-			if (needAnEventBefore) {
+			if (!closestConflictingEventBeforeStartTime) {
 				const eventBefore = [...eventsForStartDay, ...eventsForEndDay]
 					.sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
 					.find((ev) => ev.startTime < event.startTime)
@@ -245,7 +297,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				}
 			}
 
-			if (needAnEventAfter) {
+			if (!closestConflictingEventAfterStartTime) {
 				const eventAfter = [...eventsForStartDay, ...eventsForEndDay]
 					.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
 					.find(
@@ -273,8 +325,8 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			eventToAgenda.set(event, eventList)
 
 			console.log(conflictingEvents)
-			console.log(needAnEventBefore)
-			console.log(needAnEventAfter)
+			console.log(closestConflictingEventBeforeStartTime)
+			console.log(closestConflictingEventAfterStartTime)
 			console.log(eventToAgenda)
 		}
 
