@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "日曆";
 TutaoNoTitleLabel = "〈無標題〉";
 TutaoWidgetDescription = "顯示今天即將進行的活動";
 TutaoDefaultCalendarNameTitle = "私人";
+TutaoWidgetMissingConfigurationErrorMsg = "請設定此部件";
 TutaoBirthdayEventTitle = "{name}生日";
 TutaoBirthdayEventAgeTitle = "{age}歲";
 TutaoBirthdayCalendarLabel = "生日";

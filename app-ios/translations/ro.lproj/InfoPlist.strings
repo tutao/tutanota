@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Calendare";
 TutaoNoTitleLabel = "<Fără titlu>";
 TutaoWidgetDescription = "Arată următoarele evenimente de azi";
 TutaoDefaultCalendarNameTitle = "Privat";
+TutaoWidgetMissingConfigurationErrorMsg = "Configurează această miniatură";
 TutaoBirthdayEventTitle = "Aniversarea lui {name}";
 TutaoBirthdayEventAgeTitle = "{age} ani";
 TutaoBirthdayCalendarLabel = "Aniversări";

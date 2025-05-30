@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Календарі";
 TutaoNoTitleLabel = "<Нема назви>";
 TutaoWidgetDescription = "Показати найближчі події на сьогодні";
 TutaoDefaultCalendarNameTitle = "Приватний";
+TutaoWidgetMissingConfigurationErrorMsg = "Просимо налаштувати цей віджет";
 TutaoBirthdayEventTitle = "День народження {name}";
 TutaoBirthdayEventAgeTitle = "{age} років";
 TutaoBirthdayCalendarLabel = "Дні народження";

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-05-22T12:10:59Z",
+	"updated_at": "2025-05-30T10:51:55Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1384,6 +1384,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Efter att du valt Legend kontaktar då vår support via frågetecknet till vänster om din brevlåda så att vi kan aktivera fleranvändarsupport. Varje medlem får en brevlåda med 500 GB och 30 alias adresser (8 € per användare/månad). Delad brevlåda (€8 per månad) får också 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "När du har valt Revolutionary kontakta då vår support via frågetecknet till vänster om din brevlåda så att vi kan aktivera fleranvändarsupport. Varje medlem får en brevlåda med 20 GB och 15 alias adresser (3 € per användare/månad). Delad brevlåda (€3 per månad) får också 20 GB.",
 		"pricing.family_label": "Familjealternativ",
+		"pricing.firstYearDiscount_revo_legend_msg": "Rabatten gäller endast det första året. Följande år kommer priset att vara {revo-price} för Revolutionary och {legend-price} för Legend.",
 		"pricing.folders_label": "Obegränsat antal mappar",
 		"pricing.gdprDataProcessing_label": "GDPR databehandlings avtal",
 		"pricing.gdpr_label": "GDPR kompatibel",
@@ -2011,7 +2012,7 @@ export default {
 		"whyLeave_msg": "Vi är ledsna att se dig gå! Vad kan vi förbättra?",
 		"widgetCredentialsError_msg": "Logga in på kalenderappen",
 		"widgetDescription_msg": "Visa dagens kommande händelser",
-		"widgetMissingConfigurationError_msg": "Saknar konfiguration av widget",
+		"widgetMissingConfigurationError_msg": "Konfigurera den här widgeten",
 		"widgetNoCredentialsInfo_msg": "Inga inloggningsuppgifter tillgängliga",
 		"widgetNoEvents_msg": "Inga händelser",
 		"widgetOpenApp_action": "Öppna appen",

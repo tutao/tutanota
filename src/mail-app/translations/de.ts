@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-05-23T07:39:12Z",
+	"updated_at": "2025-05-30T10:53:49Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -341,7 +341,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Durch die Aktivierung der Kontaktsynchronisierung werden deine Tuta-Kontakte mit anderen Anwendungen geteilt, denen du Zugriff auf dein Telefonbuch erlaubst. Deine Tuta-Kontakte werden automatisch synchronisiert.",
 		"contactsSynchronization_label": "Kontaktsynchronisierung",
 		"contactSupport_action": "Support kontaktieren",
-		"contactsUsageDescription_msg": "1. Suche Empfänger-E-Mail-Adressen in Kontakten.\\n2. Synchronisieren von Tuta-Kontakten mit deinem Gerät, falls aktiviert.",
+		"contactsUsageDescription_msg": "1. Suche Empfänger-E-Mail-Adressen in Kontakten.\\n2. Synchronisieren von Tuta-Kontakten mit deinem Gerät, falls aktiviert.\\n3. Synchronisieren von Kontakten in deinem Gerät mit deinem Tuta-Account, falls aktiviert.",
 		"contacts_label": "Kontakte",
 		"contactView_action": "Zur Kontakt-Ansicht wechseln",
 		"contentBlocked_msg": "Das automatische Nachladen von Bildern wurde zum Schutz deiner Privatsphäre verhindert.",

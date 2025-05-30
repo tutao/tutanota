@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-05-23T07:39:12Z",
+	"updated_at": "2025-05-30T10:52:05Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -337,7 +337,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Enabling contact synchronization will share your Tuta contacts to other applications that you allow to access your phonebook. Your Tuta contacts will synchronize automatically.",
 		"contactsSynchronization_label": "Contacts Synchronization",
 		"contactSupport_action": "Contact support",
-		"contactsUsageDescription_msg": "1. Find recipient email address in contacts.\\n2. Optionally synchronize Tuta contacts to your device.",
+		"contactsUsageDescription_msg": "1. Find recipient email address in contacts.\\n2. Optionally, synchronize Tuta contacts to your device.\\n3. Optionally, synchronize contacts from your device to your Tuta account.",
 		"contacts_label": "Contacts",
 		"contactView_action": "Switch to the contact view",
 		"contentBlocked_msg": "Automatic image loading has been blocked to protect your privacy.",

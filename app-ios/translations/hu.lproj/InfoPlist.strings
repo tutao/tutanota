@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Naptárak";
 TutaoNoTitleLabel = "<Nincs cím>";
 TutaoWidgetDescription = "Mutassa a közelgő eseményeket!";
 TutaoDefaultCalendarNameTitle = "Személyes";
+TutaoWidgetMissingConfigurationErrorMsg = "Kérjük, konfigurálja ezt a widgetet!";
 TutaoBirthdayEventTitle = "{name}születésnapja";
 TutaoBirthdayEventAgeTitle = "{age} éves";
 TutaoBirthdayCalendarLabel = "Születésnapok";

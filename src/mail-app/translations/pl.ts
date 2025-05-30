@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-05-15T18:48:55Z",
+	"updated_at": "2025-05-30T10:51:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1389,6 +1389,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Po wybraniu oferty Legend skontaktuj się z naszym działem pomocy technicznej za pomocą ikonki znaku zapytania znajdującej się po lewej stronie skrzynki pocztowej, abyśmy mogli aktywować obsługę wielu użytkowników. Każdy członek otrzyma skrzynkę pocztową o pojemności 500 GB pamięci i 30 aliasów e-mail (8 euro za użytkownika miesięcznie). Współdzielona skrzynka pocztowa (8 euro za miesiąc) również o pojemności 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "Po wybraniu oferty Revolutionary skontaktuj się z naszym działem pomocy technicznej za pomocą ikonki znaku zapytania znajdującej się po lewej stronie skrzynki pocztowej, abyśmy mogli aktywować obsługę wielu użytkowników. Każdy członek otrzyma skrzynkę pocztową z 20 GB pamięci i 15 aliasami e-mail (3 € za użytkownika miesięcznie). Współdzielona skrzynka pocztowa (3 euro za miesiąc) również o pojemności 20 GB.",
 		"pricing.family_label": "Opcja rodzinna",
+		"pricing.firstYearDiscount_revo_legend_msg": "Zniżka obowiązuje tylko przez pierwszy rok. Kolejna roczna cena będzie wynosić {revo-price} dla Revolutionary i {legend-price} dla Legend.",
 		"pricing.folders_label": "Nieograniczona ilość folderów",
 		"pricing.gdprDataProcessing_label": "Umowa o przetwarzaniu danych RODO",
 		"pricing.gdpr_label": "Zgodność z RODO",
@@ -2014,6 +2015,7 @@ export default {
 		"whyLeave_msg": "Przykro nam, że odchodzisz! Co możemy poprawić?",
 		"widgetCredentialsError_msg": "Zaloguj się w aplikacji Kalendarz",
 		"widgetDescription_msg": "Pokaż dzisiejsze nadchodzące wydarzenia",
+		"widgetMissingConfigurationError_msg": "Skonfiguruj ten widżet",
 		"widgetNoCredentialsInfo_msg": "Brak danych uwierzytelniających",
 		"widgetNoEvents_msg": "Brak wydarzeń",
 		"widgetOpenApp_action": "Otwórz aplikację",

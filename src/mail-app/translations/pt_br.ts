@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2025-05-15T12:48:27Z",
+	"updated_at": "2025-05-30T10:51:55Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -665,7 +665,7 @@ export default {
 		"importContacts_label": "Importar contatos",
 		"importContacts_msg": "Importe contatos da sua agenda telefônica para disponibilizá-los em seus dispositivos.",
 		"importEndNotAfterStartInEvent_msg": "{amount} de {total} eventos não têm suas datas de início antes de suas datas de encerramentos e não serão importados. ",
-		"importEventExistingUid_msg": "{quantidade} de eventos {total}  já existe e não foi substituída. Serão mantidos os eventos restantes.",
+		"importEventExistingUid_msg": "{amount} de eventos {total}  já existe e não foi substituída. Serão mantidos os eventos restantes.",
 		"importEventsError_msg": "{amount} de {total} eventos não foram importados.",
 		"importFromContactBook_label": "Importe contatos do seu dispositivo",
 		"importInvalidDatesInEvent_msg": "{amount} de {total} eventos contêm dados inválidos e não serão importados ",

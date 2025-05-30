@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Calendarios";
 TutaoNoTitleLabel = "<Sin título>";
 TutaoWidgetDescription = "Mostrar los próximos eventos de hoy";
 TutaoDefaultCalendarNameTitle = "Privado";
+TutaoWidgetMissingConfigurationErrorMsg = "Configura este widget";
 TutaoBirthdayEventTitle = "cumpleaños de {name}";
 TutaoBirthdayEventAgeTitle = "{age} años";
 TutaoBirthdayCalendarLabel = "Cumpleaños";

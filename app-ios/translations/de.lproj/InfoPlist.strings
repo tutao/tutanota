@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Die Kamera wird verwendet, um Videos aufzunehmen und diese als Anhang zu versenden.";
 NSPhotoLibraryUsageDescription = "Füge ein Bild aus deiner Bibliothek als Anhang hinzu.";
 NSMicrophoneUsageDescription = "Wird zum Aufnehmen von Videos benötigt.";
-NSContactsUsageDescription = "1. Suche Empfänger-E-Mail-Adressen in Kontakten.\n2. Synchronisieren von Tuta-Kontakten mit deinem Gerät, falls aktiviert.";
+NSContactsUsageDescription = "1. Suche Empfänger-E-Mail-Adressen in Kontakten.\n2. Synchronisieren von Tuta-Kontakten mit deinem Gerät, falls aktiviert.\n3. Synchronisieren von Kontakten in deinem Gerät mit deinem Tuta-Account, falls aktiviert.";
 NSRemindersUsageDescription = "Zeige eine Nachricht beim Empfang von E-Mails an.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Fotos";

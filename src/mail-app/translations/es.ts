@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-05-16T19:53:35Z",
+	"updated_at": "2025-05-30T10:51:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1388,6 +1388,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Después de elegir «Legend», ponte en contacto con nuestro soporte a través del signo de interrogación a la izquierda de tu buzón de correo para que podamos activar el soporte multiusuario para tu familia. Cada miembro de la familia recibirá un buzón separado con 500 GB y 30 direcciones de correo electrónico alias (8 € por usuario / mes). Un buzón compartido (8 € por mes) también obtiene 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "Después de elegir «Revolutionary», ponte en contacto con nuestro soporte a través del signo de interrogación a la izquierda de tu buzón de correo para que podamos activar el soporte multiusuario para tu familia. Cada miembro de la familia recibirá un buzón separado con 20 GB y 15 direcciones de correo electrónico alias (3 € por usuario / mes). Un buzón compartido (3 € por mes) también obtiene 20 GB.",
 		"pricing.family_label": "Opción Familia",
+		"pricing.firstYearDiscount_revo_legend_msg": "El descuento sólo se aplica al primer año. El precio anual siguiente será {revo-price} para Revolutionary y {legend-price} para Legend.",
 		"pricing.folders_label": "Carpetas ilimitadas",
 		"pricing.gdprDataProcessing_label": "Acuerdo de procesamiento de datos RGPD",
 		"pricing.gdpr_label": "Cumple con el RGPD",
@@ -2014,6 +2015,7 @@ export default {
 		"whyLeave_msg": "¿Por qué estás descontento con Tuta?",
 		"widgetCredentialsError_msg": "Inicia sesión en la aplicación Calendario",
 		"widgetDescription_msg": "Mostrar los próximos eventos de hoy",
+		"widgetMissingConfigurationError_msg": "Configura este widget",
 		"widgetNoCredentialsInfo_msg": "No hay credenciales disponibles",
 		"widgetNoEvents_msg": "Ningún acontecimiento",
 		"widgetOpenApp_action": "Abrir la aplicación",

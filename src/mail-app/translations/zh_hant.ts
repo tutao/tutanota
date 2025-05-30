@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-05-15T16:06:04Z",
+	"updated_at": "2025-05-30T10:51:55Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1383,6 +1383,7 @@ export default {
 		"pricing.familyLegend_tooltip": "選擇Legend後，請透過您的郵箱左面的問號聯絡我們的支援，以便我們啟用多用戶支援。每名成員將獲得一個500 GB的郵箱及30個電郵別名地址（每位用戶每月€8）。一個共用郵箱（每月€8）亦為500 GB。",
 		"pricing.familyRevolutionary_tooltip": "選擇Revolutionary後，請透過您的郵箱左面的問號聯絡我們的支援，以便我們啟用多用戶支援。每名成員將獲得一個20 GB的郵箱及15個電郵別名地址（每位用戶每月€3）。一個共用郵箱（每月€3）亦為20 GB。",
 		"pricing.family_label": "家庭選項",
+		"pricing.firstYearDiscount_revo_legend_msg": "折扣只適用於首年。之後每年的價格為{revo-price}（Revolutionary）和{legend-price}（Legend）。",
 		"pricing.folders_label": "無限量資料夾",
 		"pricing.gdprDataProcessing_label": "一般資料保護規則（GDPR）資料處理協議",
 		"pricing.gdpr_label": "符合一般資料保護規則（GDPR）",
@@ -2010,6 +2011,7 @@ export default {
 		"whyLeave_msg": "我們很遺憾看到您離開！我們可以改善哪些地方？",
 		"widgetCredentialsError_msg": "請在日曆應用程式上登入",
 		"widgetDescription_msg": "顯示今天即將進行的活動",
+		"widgetMissingConfigurationError_msg": "請設定此部件",
 		"widgetNoCredentialsInfo_msg": "沒有登入資料可用",
 		"widgetNoEvents_msg": "沒有活動",
 		"widgetOpenApp_action": "開啟應用程式",
