@@ -1,5 +1,5 @@
 import { PartialRecipient, Recipient } from "../api/common/recipients/Recipient.js"
-import { RecipientsModel, ResolveMode } from "../api/main/RecipientsModel.js"
+import { RecipientsModel } from "../api/main/RecipientsModel.js"
 import { ContactListInfo, ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { isMailAddress } from "./FormatValidator.js"
 import { ofClass } from "@tutao/tutanota-utils"
@@ -98,9 +98,9 @@ export class RecipientsSearchModel {
 	async resolveContactList(contactList: ContactListInfo): Promise<Array<Recipient>> {
 		const entries = await this.entityClient.loadAll(ContactListEntryTypeRef, contactList.groupRoot.entries)
 		return entries.map((entry) => {
-			// it's okay to be lazy sometimes
-			// all the places anyway resolve the recipients when they need to
-			return this.recipientsModel.resolve({ address: entry.emailAddress }, ResolveMode.Lazy)
+			// just create a resolvable recipient
+			// all the places resolve the recipients when they need to
+			return this.recipientsModel.initialize({ address: entry.emailAddress })
 		})
 	}
 
@@ -139,7 +139,7 @@ export class RecipientsSearchModel {
 			const recipientsOfContact = contact.mailAddresses
 				.map(({ address }) => address)
 				.filter(filter)
-				.map((address) => this.recipientsModel.resolve({ name, address, contact }, ResolveMode.Lazy))
+				.map((address) => this.recipientsModel.initialize({ name, address, contact }))
 
 			suggestedRecipients = suggestedRecipients.concat(recipientsOfContact)
 		}
@@ -149,7 +149,7 @@ export class RecipientsSearchModel {
 		const contactSuggestions = additionalSuggestions
 			.filter((contact) => isMailAddress(contact.address, false) && !findRecipientWithAddress(suggestedRecipients, contact.address))
 			.slice(0, MaxNativeSuggestions)
-			.map((recipient) => this.recipientsModel.resolve(recipient, ResolveMode.Lazy))
+			.map((recipient) => this.recipientsModel.initialize(recipient))
 
 		suggestedRecipients.push(...contactSuggestions)
 

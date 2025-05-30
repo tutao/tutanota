@@ -8,7 +8,6 @@ import { BoundedExecutor, LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
-import type { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { EncryptionKeyVerificationState } from "../common/TutanotaConstants.js"
 import { KeyVerificationMismatchError } from "../common/error/KeyVerificationMismatchError"
 import { LoadedPublicEncryptionKey } from "../worker/facades/PublicKeyProvider"
@@ -21,7 +20,7 @@ import { ProgrammingError } from "../common/error/ProgrammingError"
  */
 export interface ResolvableRecipient extends Recipient {
 	/** get the resolved value of the recipient, when it's ready */
-	resolved(): Promise<Recipient>
+	resolve(): Promise<Recipient>
 
 	/** check if resolution is complete */
 	isResolved(): boolean
@@ -36,11 +35,6 @@ export interface ResolvableRecipient extends Recipient {
 	setName(name: string): void
 
 	markAsKeyVerificationMismatch(): Promise<void>
-}
-
-export enum ResolveMode {
-	Lazy,
-	Eager,
 }
 
 /* For displaying the key verification result in the UI */
@@ -58,22 +52,18 @@ export class RecipientsModel {
 		private readonly loginController: LoginController,
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
-		private readonly keyVerificationFacade: KeyVerificationFacade,
 	) {}
 
 	/**
-	 * Start resolving a recipient
-	 * If resolveLazily === true, Then resolution will not be initiated (i.e. no server calls will be made) until the first call to `resolved`
+	 * Resolve a recipient
 	 */
-	resolve(recipient: PartialRecipient, resolveMode: ResolveMode): ResolvableRecipient {
+	initialize(recipient: PartialRecipient): ResolvableRecipient {
 		return new ResolvableRecipientImpl(
 			recipient,
 			this.contactModel,
 			this.loginController,
 			(mailAddress) => this.executor.run(this.resolveRecipientType(mailAddress)),
 			this.entityClient,
-			this.keyVerificationFacade,
-			resolveMode,
 		)
 	}
 
@@ -166,8 +156,6 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		private readonly loginController: LoginController,
 		private readonly typeResolver: (mailAddress: string) => Promise<[RecipientType, PresentableKeyVerificationState]>,
 		private readonly entityClient: EntityClient,
-		private readonly keyVerificationFacade: KeyVerificationFacade,
-		resolveMode: ResolveMode,
 	) {
 		this.initialInfo = { type: arg.type ?? RecipientType.UNKNOWN, verificationState: PresentableKeyVerificationState.NONE }
 		this._address = cleanMailAddress(arg.address)
@@ -189,11 +177,6 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 			}
 			return contact
 		})
-
-		if (resolveMode === ResolveMode.Eager) {
-			this.lazyInfo.load()
-			this.lazyContact.load()
-		}
 	}
 
 	setName(newName: string) {
@@ -205,7 +188,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		this.lazyContact.reload()
 	}
 
-	async resolved(): Promise<Recipient> {
+	async resolve(): Promise<Recipient> {
 		await Promise.all([this.lazyInfo.getAsync(), this.lazyContact.getAsync()])
 		return {
 			address: this.address,
@@ -222,7 +205,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	}
 
 	whenResolved(handler: (resolvedRecipient: Recipient) => void): this {
-		this.resolved().then(handler)
+		this.resolve().then(handler)
 		return this
 	}
 

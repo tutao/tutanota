@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { PresentableKeyVerificationState, RecipientsModel, ResolveMode } from "../../../src/common/api/main/RecipientsModel.js"
+import { PresentableKeyVerificationState, RecipientsModel } from "../../../src/common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
@@ -58,17 +58,17 @@ o.spec("RecipientsModel", function () {
 		entityClientMock = instance(EntityClient)
 		keyVerificationFacadeMock = instance(KeyVerificationFacade)
 
-		model = new RecipientsModel(contactModelMock, loginControllerMock, mailFacadeMock, entityClientMock, keyVerificationFacadeMock)
+		model = new RecipientsModel(contactModelMock, loginControllerMock, mailFacadeMock, entityClientMock)
 	})
 
 	o("initializes with provided contact", function () {
 		const contact = makeContactStub(contactId, otherAddress)
-		o(model.resolve({ address: otherAddress, contact }, ResolveMode.Eager).contact).deepEquals(contact)
+		o(model.initialize({ address: otherAddress, contact }).contact).deepEquals(contact)
 	})
 
 	o("doesn't try to resolve contact if contact is provided", async function () {
 		const contact = makeContactStub(contactId, otherAddress)
-		const recipient = await model.resolve({ address: otherAddress, contact }, ResolveMode.Eager).resolved()
+		const recipient = await model.initialize({ address: otherAddress, contact }).resolve()
 		o(recipient.contact).deepEquals(contact)
 		verify(entityClientMock.load(ContactTypeRef, contactId), { times: 0 })
 		verify(contactModelMock.searchForContact(otherAddress), { times: 0 })
@@ -78,7 +78,7 @@ o.spec("RecipientsModel", function () {
 		const contact = makeContactStub(contactId, otherAddress)
 		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		when(entityClientMock.load(ContactTypeRef, contactId)).thenResolve(contact)
-		const recipient = await model.resolve({ address: otherAddress, contact: contactId }, ResolveMode.Eager).resolved()
+		const recipient = await model.initialize({ address: otherAddress, contact: contactId }).resolve()
 		o(recipient.contact).deepEquals(contact)
 	})
 
@@ -88,39 +88,36 @@ o.spec("RecipientsModel", function () {
 		const contact = makeContactStub(id, otherAddress)
 		when(contactModelMock.searchForContact(otherAddress)).thenResolve(contact)
 		when(contactModelMock.getContactListId()).thenResolve("contactListId")
-		const recipient = await model.resolve({ address: otherAddress }, ResolveMode.Eager).resolved()
+		const recipient = await model.initialize({ address: otherAddress }).resolve()
 		o(recipient.contact).deepEquals(contact)
 	})
 
 	o("prioritises name that was passed in", async function () {
 		const recipient = await model
-			.resolve(
-				{ address: tutanotaAddress, name: "Pizza Tonno", contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") },
-				ResolveMode.Eager,
-			)
-			.resolved()
+			.initialize({ address: tutanotaAddress, name: "Pizza Tonno", contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") })
+			.resolve()
 		o(recipient.name).equals("Pizza Tonno")
 	})
 
 	o("uses name from contact if name not provided", async function () {
 		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		const recipient = await model
-			.resolve({ address: tutanotaAddress, contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") }, ResolveMode.Eager)
-			.resolved()
+			.initialize({ address: tutanotaAddress, contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") })
+			.resolve()
 		o(recipient.name).equals("Pizza Hawaii")
 	})
 
 	o("infers internal recipient from tutanota address, otherwise unknown", async function () {
 		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		// using lazy mode to not wait for the resolution and to not have async task running after the test is done
-		const recipient = model.resolve({ address: tutanotaAddress }, ResolveMode.Lazy)
+		const recipient = model.initialize({ address: tutanotaAddress })
 		o(recipient.type).equals(RecipientType.UNKNOWN)("Tutanota address")
-		await recipient.resolved()
+		await recipient.resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)("Tutanota address")
 
-		const otherRecipient = model.resolve({ address: otherAddress }, ResolveMode.Lazy)
+		const otherRecipient = model.initialize({ address: otherAddress })
 		o(otherRecipient.type).equals(RecipientType.UNKNOWN)("Internal address")
-		await otherRecipient.resolved()
+		await otherRecipient.resolve()
 		o(otherRecipient.type).equals(RecipientType.EXTERNAL)("Extern address")
 	})
 
@@ -134,8 +131,8 @@ o.spec("RecipientsModel", function () {
 		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(loadedPublicEncryptionKey)
 		when(mailFacadeMock.getRecipientKeyData(externalAddress)).thenResolve(null)
 
-		const internal = await model.resolve({ address: internalAddress }, ResolveMode.Eager).resolved()
-		const external = await model.resolve({ address: externalAddress }, ResolveMode.Eager).resolved()
+		const internal = await model.initialize({ address: internalAddress }).resolve()
+		const external = await model.initialize({ address: externalAddress }).resolve()
 
 		o(internal.type).equals(RecipientType.INTERNAL)("key data existed so it is INTERNAL")
 		o(external.type).equals(RecipientType.EXTERNAL)("key data did not exist so it is EXTERNAL")
@@ -147,7 +144,7 @@ o.spec("RecipientsModel", function () {
 		const loadedPublicEncryptionKey: LoadedPublicEncryptionKey = object()
 		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(loadedPublicEncryptionKey)
 
-		await assertThrows(ProgrammingError, async () => await model.resolve({ address: internalAddress }, ResolveMode.Eager).resolved())
+		await assertThrows(ProgrammingError, async () => await model.initialize({ address: internalAddress }).resolve())
 	})
 
 	o("correctly presents key verification state (when key data is available)", async function () {
@@ -161,22 +158,22 @@ o.spec("RecipientsModel", function () {
 		let recipient: Recipient
 
 		loadedPublicEncryptionKey.verificationState = EncryptionKeyVerificationState.NO_ENTRY
-		recipient = await model.resolve({ address: internalAddress }, ResolveMode.Eager).resolved()
+		recipient = await model.initialize({ address: internalAddress }).resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.NONE)("NO_ENTRY -> NONE")
 
 		loadedPublicEncryptionKey.verificationState = EncryptionKeyVerificationState.VERIFIED_MANUAL
-		recipient = await model.resolve({ address: internalAddress }, ResolveMode.Eager).resolved()
+		recipient = await model.initialize({ address: internalAddress }).resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.SECURE)("VERIFIED_MANUAL -> SECURE")
 
 		loadedPublicEncryptionKey.verificationState = EncryptionKeyVerificationState.VERIFIED_TOFU
-		recipient = await model.resolve({ address: internalAddress }, ResolveMode.Eager).resolved()
+		recipient = await model.initialize({ address: internalAddress }).resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.NONE)("VERIFIED_TOFU -> NONE")
 
 		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenReject(new KeyVerificationMismatchError(""))
-		recipient = await model.resolve({ address: internalAddress }, ResolveMode.Eager).resolved()
+		recipient = await model.initialize({ address: internalAddress }).resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.ALERT)("KeyVerificationMismatchError -> ALERT")
 	})
@@ -190,11 +187,11 @@ o.spec("RecipientsModel", function () {
 		when(mailFacadeMock.getRecipientKeyData(externalAddress)).thenResolve(null)
 
 		let recipient: Recipient
-		recipient = await model.resolve({ address: tutanotaAddress }, ResolveMode.Eager).resolved()
+		recipient = await model.initialize({ address: tutanotaAddress }).resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.NONE)
 
-		recipient = await model.resolve({ address: externalAddress }, ResolveMode.Eager).resolved()
+		recipient = await model.initialize({ address: externalAddress }).resolve()
 		o(recipient.type).equals(RecipientType.EXTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.NONE)
 	})
@@ -211,29 +208,29 @@ o.spec("RecipientsModel", function () {
 
 		let recipient: Recipient
 
-		const resolvableRecipient = model.resolve({ address: internalAddress }, ResolveMode.Eager)
+		const resolvableRecipient = model.initialize({ address: internalAddress })
 
 		// Check that the verification state is not yet set to ALERT
-		recipient = await resolvableRecipient.resolved()
+		recipient = await resolvableRecipient.resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.NONE)
 
 		// Mark it as mismatch and check that is indeed set to ALERT
 		await resolvableRecipient.markAsKeyVerificationMismatch()
-		recipient = await resolvableRecipient.resolved()
+		recipient = await resolvableRecipient.resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.ALERT)
 	})
 
 	o("ignores wrong type when tutanota address is passed in", async function () {
-		const recipient = await model.resolve({ address: tutanotaAddress, type: RecipientType.EXTERNAL }, ResolveMode.Eager).resolved()
+		const recipient = await model.initialize({ address: tutanotaAddress, type: RecipientType.EXTERNAL }).resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 	})
 
 	o("non-lazy resolution starts right away", async function () {
 		const deferred = defer()
 
-		const recipient = model.resolve({ address: tutanotaAddress }, ResolveMode.Eager)
+		const recipient = model.initialize({ address: tutanotaAddress })
 
 		recipient.whenResolved(deferred.resolve)
 
@@ -244,7 +241,7 @@ o.spec("RecipientsModel", function () {
 
 	o("lazy resolution isn't triggered until `resolved` is called", async function () {
 		when(contactModelMock.getContactListId()).thenResolve("contactListId")
-		const recipient = model.resolve({ address: otherAddress }, ResolveMode.Lazy)
+		const recipient = model.initialize({ address: otherAddress })
 
 		// see that the resolution doesn't start straight away
 		// not sure of a better way to do this
@@ -254,7 +251,7 @@ o.spec("RecipientsModel", function () {
 		verify(mailFacadeMock.getRecipientKeyData(otherAddress), { times: 0 })
 		o(recipient.isResolved()).equals(false)
 
-		await recipient.resolved()
+		await recipient.resolve()
 
 		verify(contactModelMock.searchForContact(otherAddress), { times: 1 })
 		verify(mailFacadeMock.getRecipientKeyData(otherAddress), { times: 1 })
@@ -269,7 +266,7 @@ o.spec("RecipientsModel", function () {
 
 		const handler = func() as (recipient: Recipient) => void
 
-		await model.resolve({ address: otherAddress, name: "Re Cipient" }, ResolveMode.Eager).whenResolved(handler).resolved()
+		await model.initialize({ address: otherAddress, name: "Re Cipient" }).whenResolved(handler).resolve()
 
 		verify(
 			handler({
