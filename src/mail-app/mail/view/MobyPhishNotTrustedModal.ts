@@ -96,7 +96,7 @@ export class MobyPhishNotTrustedModal implements ModalComponent {
 						"button.mobyphish-btn",
 						{
 							onclick: () => this.closeModal(),
-							style: { color: "black" },
+							style: { color: "white" },
 						},
 						"OK",
 					),

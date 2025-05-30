@@ -194,7 +194,7 @@ export class MobyPhishDenyModal implements ModalComponent {
 	private getCancelButtonStyle() {
 		return {
 			background: "transparent",
-			color: "#000",
+			color: "black",
 			border: "none",
 			padding: "15px",
 			borderRadius: "8px",

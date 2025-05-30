@@ -233,7 +233,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 					m("br"),
 					m("strong", displaySender),
 					!this.skippedInitialView ? m("br") : null,
-					!this.skippedInitialView ? `However, the actual sender is different.` : null,
+					!this.skippedInitialView ? `However, the actual sender is different or not already in your trusted senders list.` : null,
 				],
 			),
 
