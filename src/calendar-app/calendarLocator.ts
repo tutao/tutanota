@@ -186,7 +186,7 @@ class CalendarLocator implements CommonLocator {
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
-		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient, this.keyVerificationFacade)
+		return new RecipientsModel(this.contactModel, this.logins, this.mailFacade, this.entityClient)
 	})
 
 	async noZoneDateProvider(): Promise<NoZoneDateProvider> {
