@@ -13,7 +13,7 @@ import { haveSameId, Stripped } from "../../../../common/api/common/utils/Entity
 import { cleanMailAddress, findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/tutanota-utils"
 import { CalendarAttendeeStatus, ConversationType, ShareCapability } from "../../../../common/api/common/TutanotaConstants.js"
-import { PresentableKeyVerificationState, RecipientsModel, ResolveMode } from "../../../../common/api/main/RecipientsModel.js"
+import { PresentableKeyVerificationState, RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { isSecurePassword } from "../../../../common/misc/passwords/PasswordUtils.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
@@ -207,7 +207,7 @@ export class CalendarEventWhoModel {
 	private async resolveAndCacheAddress(a: PartialRecipient): Promise<void> {
 		if (this.resolvedRecipients.has(a.address)) return
 		this.pendingRecipients = this.pendingRecipients + 1
-		const recipient = await this.recipientsModel.resolve(a, ResolveMode.Eager).resolved()
+		const recipient = await this.recipientsModel.initialize(a).resolve()
 		this.cacheRecipient(recipient)
 		this.pendingRecipients = this.pendingRecipients - 1
 		if (this.pendingRecipients === 0) {

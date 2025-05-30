@@ -12,7 +12,6 @@ import { findAttendeeInAddresses } from "../../../common/api/common/utils/Common
 import { Recipient } from "../../../common/api/common/recipients/Recipient.js"
 import { CalendarEventModel, CalendarOperation, EventType } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarNotificationModel } from "../gui/eventeditor-model/CalendarNotificationModel.js"
-import { ResolveMode } from "../../../common/api/main/RecipientsModel.js"
 import { isCustomizationEnabledForCustomer } from "../../../common/api/common/utils/CustomerUtils.js"
 import { getEventType } from "../gui/CalendarGuiUtils.js"
 import { CalendarModel } from "../model/CalendarModel.js"
@@ -220,7 +219,7 @@ export class CalendarInviteHandler {
 			},
 			new Map(),
 		)
-		await model.addRecipient(RecipientField.TO, previousMail.sender, ResolveMode.Eager)
+		await model.addRecipient(RecipientField.TO, previousMail.sender)
 		// Send confidential reply to confidential mails and the other way around.
 		// If the contact is removed or the password is not there the user would see an error but they wouldn't be
 		// able to reply anyway (unless they fix it).

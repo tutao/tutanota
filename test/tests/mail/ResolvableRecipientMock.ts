@@ -1,4 +1,4 @@
-import { PresentableKeyVerificationState, ResolvableRecipient, ResolveMode } from "../../../src/common/api/main/RecipientsModel.js"
+import { PresentableKeyVerificationState, ResolvableRecipient } from "../../../src/common/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -41,15 +41,10 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 		private internalAddresses: string[],
 		/** contacts that should be resolved as though they were found by the contact model */
 		private existingContacts: Contact[],
-		resolveMode: ResolveMode,
 		private user: User,
 	) {
 		this.name = name ?? ""
 		this.type = type ?? (isTutaMailAddress(address) ? RecipientType.INTERNAL : RecipientType.UNKNOWN)
-
-		if (resolveMode === ResolveMode.Eager) {
-			this.lazyResolve.getAsync()
-		}
 	}
 
 	markAsKeyVerificationMismatch(): Promise<void> {
@@ -61,7 +56,7 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 		return this._resolved
 	}
 
-	resolved(): Promise<Recipient> {
+	resolve(): Promise<Recipient> {
 		return this.lazyResolve.getAsync()
 	}
 
