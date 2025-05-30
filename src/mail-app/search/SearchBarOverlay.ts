@@ -66,7 +66,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			]),
 			searchInOurAppsElement &&
 				m(
-					".bottom.small.pb-s.text-center",
+					".bottom.small.pt-s.pb-s.plr.text-center",
 					{
 						// avoid closing overlay before the click event can be received
 						onmousedown: (e: MouseEvent) => e.preventDefault(),
