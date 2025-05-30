@@ -510,6 +510,8 @@ class MailLocator implements CommonLocator {
 
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
 		const { MailViewerViewModel } = await import("../mail-app/mail/view/MailViewerViewModel.js")
+		const eventRepository = await this.calendarEventsRepository()
+
 		return ({ mail, showFolder, highlightedTokens }) =>
 			new MailViewerViewModel(
 				mail,
@@ -532,6 +534,7 @@ class MailLocator implements CommonLocator {
 				this.cryptoFacade,
 				() => this.contactImporter(),
 				highlightedTokens ?? [],
+				eventRepository,
 			)
 	}
 

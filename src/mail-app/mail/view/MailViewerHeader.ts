@@ -344,6 +344,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						contents: eventAttachment.contents,
 						recipient: eventAttachment.recipient,
 						mail: viewModel.mail,
+						eventsRepository: viewModel.eventsRepository,
 					} satisfies EventBannerAttrs),
 			  )
 			: null

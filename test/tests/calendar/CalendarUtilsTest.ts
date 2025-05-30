@@ -417,25 +417,99 @@ o.spec("calendar utils tests", function () {
 		})
 	})
 	o.spec("timeDiff", function () {
-		o("minor than, with 15 min diff", function () {
+		o("A minor than B, with 15 min diff", function () {
 			const timeA = new Time(8, 35)
 			const timeB = new Time(8, 50)
-			o(timeA.diff(timeB)).equals(-15)
-		})
-		o("greater than, with 15 min diff", function () {
-			const timeA = new Time(8, 50)
-			const timeB = new Time(8, 35)
 			o(timeA.diff(timeB)).equals(15)
 		})
-		o("minor than, with one hour diff", function () {
+		o("A greater than B", function () {
+			const timeA = new Time(8, 50)
+			const timeB = new Time(8, 35)
+			o(timeA.diff(timeB)).equals(1425)
+		})
+		o("A minor than B, with one hour diff", function () {
 			const timeA = new Time(8, 0)
 			const timeB = new Time(9, 0)
-			o(timeA.diff(timeB)).equals(-60)
-		})
-		o("greater than, with one hour diff", function () {
-			const timeA = new Time(9, 0)
-			const timeB = new Time(8, 0)
 			o(timeA.diff(timeB)).equals(60)
+		})
+		o("diff with midnight", function () {
+			const timeA = new Time(23, 0)
+			const timeB = new Time(0, 0)
+			o(timeA.diff(timeB)).equals(60)
+		})
+		o("diff between two days - over midnight", function () {
+			const timeA = new Time(23, 0)
+			const timeB = new Time(1, 0)
+			o(timeA.diff(timeB)).equals(120)
+		})
+	})
+	o.spec("timeAdd", function () {
+		o("add 15 minutes", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(8, 50)
+			o(timeA.add({ minutes: 15 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 1 hours", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(9, 35)
+			o(timeA.add({ hours: 1 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 1 hour and 15 minutes", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(9, 50)
+			o(timeA.add({ hours: 1, minutes: 15 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 600 minutes overflowing to 'next day'", function () {
+			const timeA = new Time(14, 0)
+			const timeB = new Time(0, 0)
+			o(timeA.add({ minutes: 600 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 10 hours overflowing to 'next day'", function () {
+			const timeA = new Time(14, 0)
+			const timeB = new Time(0, 0)
+			o(timeA.add({ hours: 10 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 70 minutes and 11 hours overflowing to 'next day'", function () {
+			const timeA = new Time(14, 0)
+			const timeB = new Time(2, 10)
+			o(timeA.add({ hours: 11, minutes: 70 }).toObject()).deepEquals(timeB.toObject())
+		})
+	})
+	o.spec("timeSub", function () {
+		o("sub 15 minutes", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(8, 20)
+			o(timeA.sub({ minutes: 15 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 1 hours", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(7, 35)
+			o(timeA.sub({ hours: 1 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 1 hour and 15 minutes", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(7, 20)
+			o(timeA.sub({ hours: 1, minutes: 15 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 90 minutes", function () {
+			const timeA = new Time(8, 30)
+			const timeB = new Time(7, 0)
+			o(timeA.sub({ hours: 0, minutes: 90 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 600 minutes overflowing to 'previous day'", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(23, 0)
+			o(timeA.sub({ minutes: 600 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 10 hours overflowing to 'previous day'", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(23, 0)
+			o(timeA.sub({ hours: 10 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 70 minutes and 11 hours overflowing to 'previous day'", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(20, 50)
+			o(timeA.sub({ hours: 11, minutes: 70 }).toObject()).deepEquals(timeB.toObject())
 		})
 	})
 	o.spec("getStartOfWeek", function () {

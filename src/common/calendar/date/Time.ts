@@ -13,7 +13,7 @@ export class Time {
 	}
 
 	private set hour(h: number) {
-		this._hour = Math.floor(h) % 24
+		this._hour = Math.abs(Math.floor(h) % 24)
 	}
 
 	get minute() {
@@ -21,7 +21,7 @@ export class Time {
 	}
 
 	private set minute(m: number) {
-		this._minute = Math.floor(m) % 60
+		this._minute = Math.abs(Math.floor(m) % 60)
 	}
 
 	constructor(hour: number, minute: number) {
@@ -159,11 +159,18 @@ export class Time {
 		}
 	}
 
-	diff(timeB: Time, absolute: boolean = false) {
-		const hourDiff = this._hour - timeB._hour
-		const minDiff = this._minute - timeB._minute
-		const diff = hourDiff * 60 + minDiff
-		return absolute ? Math.abs(diff) : diff
+	asMinutes(): number {
+		return this._hour * 60 + this._minute
+	}
+
+	/**
+	 * Finds the difference in minutes between this and the param.
+	 * @param timeB
+	 */
+	diff(timeB: Time) {
+		const timeBAsMinutes = timeB.asMinutes() === 0 ? 24 * 60 : timeB.asMinutes()
+		const timeAAsMinutes = this.asMinutes()
+		return timeAAsMinutes > timeBAsMinutes ? 24 * 60 - timeAAsMinutes + timeBAsMinutes : timeBAsMinutes - timeAAsMinutes
 	}
 
 	/**
@@ -182,6 +189,28 @@ export class Time {
 
 		let restHours = totalMinutes / 60
 		this.hour = this._hour + (param.hours ?? 0) + restHours
+		return this
+	}
+
+	/**
+	 * In place subtract operation.
+	 *
+	 * Subtract hours and/or minutes to the current time instance.
+	 *
+	 * @param {Object} param - Adjustment parameters.
+	 * @param {number} [param.hours=0] - Hours to subtract (optional, defaults to 0).
+	 * @param {number} [param.minutes=0] - Minutes to subtract (optional, defaults to 0).
+	 * @returns {this} The same instance after subtracting the time.
+	 */
+	sub(param: { hours?: number; minutes?: number }) {
+		const totalMinutes = this._minute - (param.minutes ?? 0)
+		this.minute = totalMinutes < 0 ? 60 + (totalMinutes % 60) : totalMinutes
+
+		const restHoursToSubtract = Math.floor(Math.abs(totalMinutes / 60))
+		let newTime = this._hour - (param.hours ?? 0) - restHoursToSubtract
+		const correctionFactor = this._hour - (param.hours ?? 0) < 0 && totalMinutes < 0 ? 1 : 0
+		this.hour = newTime < 0 ? 24 + ((newTime - correctionFactor) % 24) : newTime
+
 		return this
 	}
 }
