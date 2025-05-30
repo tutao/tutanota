@@ -22,7 +22,7 @@ import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { getConfirmation } from "../../gui/base/GuiUtils"
 import type { GroupSharingTexts } from "../GroupGuiUtils"
 import { getTextsForGroupType } from "../GroupGuiUtils"
-import { ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel"
+import { ResolvableRecipient } from "../../api/main/RecipientsModel"
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/utils/CommonCalendarUtils.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
@@ -194,7 +194,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						},
 					],
 					onRecipientAdded: (address, name, contact) =>
-						recipients.push(recipientsModel.resolve({ address, name, contact }, ResolveMode.Eager).whenResolved(() => m.redraw())),
+						recipients.push(recipientsModel.initialize({ address, name, contact }).whenResolved(() => m.redraw())),
 					onRecipientRemoved: (address) =>
 						findAndRemove(recipients, (recipient) => cleanMailAddress(recipient.address) === cleanMailAddress(address)),
 					onTextChanged: recipientsText,
