@@ -5,12 +5,10 @@ import {
 	constructMailSetEntryId,
 	CUSTOM_MAX_ID,
 	elementIdPart,
-	firstBiggerThanSecond,
 	firstBiggerThanSecondCustomId,
 	GENERATED_MAX_ID,
 	getElementId,
 	listIdPart,
-	timestampToGeneratedId,
 } from "../../../common/api/common/utils/EntityUtils.js"
 import {
 	FileTypeRef,
@@ -72,27 +70,34 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 	 * Clean all mail data references by MailSetEntry's in {@param entriesListId} that are older than {@param cutoffId}.
 	 */
 	private async deleteMailSetEntries(offlineStorage: OfflineStorage, entriesListId: Id, cutoffId: Id) {
-		assertNotNull(entriesListId)
-		const mailIdsToDelete: IdTuple[] = []
+		try {
+			assertNotNull(entriesListId)
+			const mailIdsToDelete: IdTuple[] = []
 
-		await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
+			await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
 
-		const mailSetEntriesToDelete: IdTuple[] = []
-		const mailSetEntries = await offlineStorage.getWholeList(MailSetEntryTypeRef, entriesListId)
-		for (let mailSetEntry of mailSetEntries) {
-			if (firstBiggerThanSecondCustomId(cutoffId, getElementId(mailSetEntry))) {
-				mailSetEntriesToDelete.push(mailSetEntry._id)
-				mailIdsToDelete.push(mailSetEntry.mail)
+			const mailSetEntriesToDelete: IdTuple[] = []
+			const mailSetEntries = await offlineStorage.getWholeList(MailSetEntryTypeRef, entriesListId)
+			for (let mailSetEntry of mailSetEntries) {
+				if (firstBiggerThanSecondCustomId(cutoffId, getElementId(mailSetEntry))) {
+					mailSetEntriesToDelete.push(mailSetEntry._id)
+					mailIdsToDelete.push(mailSetEntry.mail)
+				}
 			}
-		}
 
-		await offlineStorage.deleteIn(MailSetEntryTypeRef, entriesListId, mailSetEntriesToDelete.map(elementIdPart))
+			await offlineStorage.deleteIn(MailSetEntryTypeRef, entriesListId, mailSetEntriesToDelete.map(elementIdPart))
 
-		const mailsToDelete: Mail[] = []
-		for (let [listId, elementIds] of groupByAndMap(mailIdsToDelete, listIdPart, elementIdPart).entries()) {
-			mailsToDelete.push(...(await offlineStorage.provideMultiple(MailTypeRef, listId, elementIds)))
+			const mailsToDelete: Mail[] = []
+			for (let [listId, elementIds] of groupByAndMap(mailIdsToDelete, listIdPart, elementIdPart).entries()) {
+				mailsToDelete.push(...(await offlineStorage.provideMultiple(MailTypeRef, listId, elementIds)))
+			}
+			await this.deleteMails(offlineStorage, mailsToDelete)
+		} finally {
+			// While the cleaner was deleting mails, the range might have been changed already
+			// As this is unlikely (cleaner does not run for long) we accept eventual
+			// consistency in this case in order to avoid locking
+			await offlineStorage.updateRangeForList(MailSetEntryTypeRef, entriesListId, cutoffId)
 		}
-		await this.deleteMails(offlineStorage, mailsToDelete)
 	}
 
 	/**
