@@ -1,5 +1,4 @@
 import { escapeRegExp } from "./PlainTextSearch"
-import { isEmpty } from "@tutao/tutanota-utils"
 
 /**
  * A token that was found in {@link splitQuery}
@@ -10,10 +9,12 @@ export interface SearchToken {
 }
 
 /**
- * Split query into search tokens
+ * Split query into simple search tokens
  *
  * Words and phrases in quotes are matched exactly, where words that are not in quotes are matched partially (i.e. as a
  * prefix).
+ *
+ * Note that this will not split CJK tokens, thus non-exact tokens can still be split further by a smarter tokenizer.
  *
  * @param query query to split
  */
@@ -93,29 +94,11 @@ export function highlightTextInQuery(text: string, query: readonly SearchToken[]
 			// Continue going through the text until we either run out of text or the token is not found anymore.
 			let text = substring.text
 			while (text.length !== 0) {
-				// Start with a word boundary since, in neither case, can we match non-suffixes.
-				let prefix = "\\b"
-
-				if (!isEmpty(newStrings)) {
-					// Avoid matching the start of a string if we've already split the string.
-					//
-					// For example, if we search for "cat" and "dog" and the text is "catdog dog", we want to match
-					// "cat" and the second "dog", but avoid matching the first "dog" since it isn't actually the start
-					// of a word (as the actual start of the word - "cat" - is now in a different substring).
-					//
-					// To do this, we prepend a negative lookbehind that negates "^" (the start of the string).
-					prefix = `(?<!^)${prefix}`
-				}
-
 				// In case the user enters special characters, we want to avoid using those literally in the regexp.
 				const escapedToken = escapeRegExp(token.token)
 
-				// For exact search, also append a word boundary; otherwise we will just match start of a word boundary
-				// (partial word search)
-				const suffix = token.exact ? "\\b" : ""
-
-				// Combine to form the regex
-				const search = new RegExp(`${prefix}${escapedToken}${suffix}`, "gi")
+				// Search global and case-insensitive
+				const search = new RegExp(`${escapedToken}`, "gi")
 
 				let found = text.search(search)
 				if (found < 0) {

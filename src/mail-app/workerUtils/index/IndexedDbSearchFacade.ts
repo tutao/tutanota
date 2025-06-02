@@ -59,6 +59,7 @@ import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIn
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { SearchFacade } from "./SearchFacade"
+import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
@@ -88,10 +89,11 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	 * @param minSuggestionCount If minSuggestionCount > 0 regards the last query token as suggestion token and includes suggestion results for that token, but not less than minSuggestionCount
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
-	search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
+	async search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
 		let result: SearchResult = {
 			query,
+			tokens: await this.tokenize(query),
 			restriction,
 			results: [],
 			currentIndexTimestamp: getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction),
@@ -288,10 +290,11 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	 */
 	private addSuggestions(searchToken: string, suggestionFacade: SuggestionFacade<any>, minSuggestionCount: number, searchResult: SearchResult): Promise<any> {
 		let suggestions = suggestionFacade.getSuggestions(searchToken)
-		return promiseMap(suggestions, (suggestion) => {
+		return promiseMap(suggestions, async (suggestion) => {
 			if (searchResult.results.length < minSuggestionCount) {
 				const suggestionResult: SearchResult = {
 					query: suggestion,
+					tokens: searchResult.tokens,
 					restriction: searchResult.restriction,
 					results: searchResult.results,
 					currentIndexTimestamp: searchResult.currentIndexTimestamp,
@@ -668,6 +671,10 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	async getMoreSearchResults(searchResult: SearchResult, moreResultCount: number): Promise<SearchResult> {
 		await this.startOrContinueSearch(searchResult, moreResultCount)
 		return searchResult
+	}
+
+	async tokenize(query: string): Promise<SearchToken[]> {
+		return splitQuery(query)
 	}
 }
 

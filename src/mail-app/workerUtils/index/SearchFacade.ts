@@ -1,4 +1,5 @@
 import type { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 /**
  * Local search functions
@@ -28,4 +29,10 @@ export interface SearchFacade {
 	 * @param moreResultCount number of results
 	 */
 	getMoreSearchResults(searchResult: SearchResult, moreResultCount: number): Promise<SearchResult>
+
+	/**
+	 * Tokenize the query using the facade's tokenizer.
+	 * @param query
+	 */
+	tokenize(query: string): Promise<SearchToken[]>
 }

@@ -862,18 +862,42 @@ o.spec("OfflineStorageSearchFacade", () => {
 		}
 	})
 
-	o.spec("normalizeQuery", () => {
-		o.test("empty string returns empty string", async () => {
-			o.check(await offlineStorageSearchFacade.normalizeQuery("")).equals("")
+	o.spec("tokenize", () => {
+		o.test("empty string returns empty query", async () => {
+			o.check(await offlineStorageSearchFacade.tokenize("")).deepEquals([])
 		})
 		o.test("empty quotes are excluded", async () => {
-			o.check(await offlineStorageSearchFacade.normalizeQuery('""')).equals("")
-			o.check(await offlineStorageSearchFacade.normalizeQuery('"hello" "" "world"')).equals('"hello" "world"')
+			o.check(await offlineStorageSearchFacade.tokenize('""')).deepEquals([])
+			o.check(await offlineStorageSearchFacade.tokenize('"hello" "" "world"')).deepEquals([
+				{ token: "hello", exact: true },
+				{ token: "world", exact: true },
+			])
 		})
-		o.test("asterisks appended if non-quoted", async () => {
-			o.check(await offlineStorageSearchFacade.normalizeQuery('unquoted "quoted" unquoted again "quoted again"')).equals(
-				'"unquoted"* "quoted" "unquoted"* "again"* "quoted again"',
-			)
+		o.test("mixed exact and partial", async () => {
+			o.check(await offlineStorageSearchFacade.tokenize('unquoted "quoted" unquoted again "quoted again"')).deepEquals([
+				{ token: "unquoted", exact: false },
+				{ token: "quoted", exact: true },
+				{ token: "unquoted", exact: false },
+				{ token: "again", exact: false },
+				{ token: "quoted again", exact: true },
+			])
+		})
+	})
+
+	o.spec("normalizeQuery", () => {
+		o.test("empty query returns empty string", async () => {
+			o.check(offlineStorageSearchFacade.normalizeQuery([])).equals("")
+		})
+		o.test("mixed exact and partial", async () => {
+			o.check(
+				offlineStorageSearchFacade.normalizeQuery([
+					{ token: "partial", exact: false },
+					{ token: "exact", exact: true },
+					{ token: "partial", exact: false },
+					{ token: "again", exact: false },
+					{ token: "exact again", exact: true },
+				]),
+			).equals('"partial"* "exact" "partial"* "again"* "exact again"')
 		})
 	})
 })

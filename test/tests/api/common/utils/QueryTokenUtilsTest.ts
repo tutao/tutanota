@@ -24,30 +24,14 @@ o.spec("QueryTokenUtils", () => {
 		})
 	})
 	o.spec("highlightTextInQuery", () => {
-		o.test("does not match non-prefix", () => {
-			o.check(highlightTextInQuery("mymark", splitQuery("mark"))).deepEquals([
-				{
-					text: "mymark",
-					highlighted: false,
-				},
-			])
-			o.check(highlightTextInQuery("markmark", splitQuery("mark"))).deepEquals([
-				{ text: "mark", highlighted: true },
-				{ text: "mark", highlighted: false },
-			])
-			o.check(highlightTextInQuery("Tutanota is now Tuta", splitQuery("tuta nota"))).deepEquals([
-				{ text: "Tuta", highlighted: true },
-				{ text: "nota is now ", highlighted: false },
-				{ text: "Tuta", highlighted: true },
-			])
-		})
 		o.test("exact match", () => {
 			o.check(highlightTextInQuery("my very eager mother just sold us nine pizzas", splitQuery('"my very eager"'))).deepEquals([
 				{ text: "my very eager", highlighted: true },
 				{ text: " mother just sold us nine pizzas", highlighted: false },
 			])
 			o.check(highlightTextInQuery("Tutanota is now Tuta", splitQuery('"tuta"'))).deepEquals([
-				{ text: "Tutanota is now ", highlighted: false },
+				{ text: "Tuta", highlighted: true },
+				{ text: "nota is now ", highlighted: false },
 				{ text: "Tuta", highlighted: true },
 			])
 		})

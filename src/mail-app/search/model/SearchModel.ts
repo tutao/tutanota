@@ -73,6 +73,7 @@ export class SearchModel {
 			// if there was an empty query, just send empty result
 			const result: SearchResult = {
 				query: query,
+				tokens: [],
 				restriction: restriction,
 				results: [],
 				currentIndexTimestamp: this.indexState().currentMailIndexTimestamp,
@@ -107,6 +108,7 @@ export class SearchModel {
 				restriction,
 				results: [],
 				query,
+				tokens: [],
 			}
 
 			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)

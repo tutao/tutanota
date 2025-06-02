@@ -10,7 +10,7 @@ import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutano
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
-import { splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
+import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries
@@ -23,22 +23,25 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 	) {}
 
 	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, _maxResults?: number): Promise<SearchResult> {
-		const normalizedQuery = await this.normalizeQuery(query)
+		const tokens = await this.tokenize(query)
 
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {
-			return this.searchMails(query, normalizedQuery, restriction)
+			return this.searchMails(query, tokens, restriction)
 		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
-			return this.searchContacts(query, normalizedQuery, restriction)
+			return this.searchContacts(query, tokens, restriction)
 		} else {
 			throw new ProgrammingError(`cannot search ${restriction.type.typeId}`)
 		}
 	}
 
-	private async searchMails(originalQuery: string, normalizedQuery: string, restriction: SearchRestriction): Promise<SearchResult> {
+	private async searchMails(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
 		// folderIds always have zero or one IDs for mail search
 		if (restriction.folderIds.length > 1) {
 			throw new ProgrammingError("cannot search mails with more than one mailset search restriction")
 		}
+
+		// Create our FTS5 query
+		const normalizedQuery = this.normalizeQuery(tokens)
 
 		// An empty string will match any ID
 		const idToSearch = first(restriction.folderIds) ?? ""
@@ -78,6 +81,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		})
 		return {
 			query: originalQuery,
+			tokens,
 			restriction,
 			results: resultIds,
 			currentIndexTimestamp: getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction),
@@ -88,7 +92,10 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		}
 	}
 
-	private async searchContacts(originalQuery: string, normalizedQuery: string, restriction: SearchRestriction): Promise<SearchResult> {
+	private async searchContacts(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
+		// Create our FTS5 query
+		const normalizedQuery = this.normalizeQuery(tokens)
+
 		const preparedSqlQuery = sql`
             SELECT list_entities.listId,
                    list_entities.elementId
@@ -105,6 +112,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 
 		return {
 			query: originalQuery,
+			tokens,
 			restriction,
 			results: resultIds,
 			currentIndexTimestamp: getSearchEndTimestamp(indexTimestamp, restriction),
@@ -120,36 +128,52 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		return searchResult
 	}
 
-	/**
-	 * Split into FTS5 search tokens and return the query
-	 *
-	 * For words that are not in quotes, they will match the start of a string.
-	 * Otherwise, they will be fully matched.
-	 *
-	 * For example, `hello world this is "my string"` becomes `"hello"* "world"* "this"* "is"* "my string"`
-	 *
-	 * See https://sqlite.org/fts5.html
-	 *
-	 * @param query query to check
-	 * @return normalized query that can be used for FTS5
-	 * @private
-	 * @VisibleForTesting
-	 */
-	async normalizeQuery(query: string): Promise<string> {
-		const normalizedQuery: string[] = []
-
-		for (const token of splitQuery(query)) {
+	async tokenize(phrase: string): Promise<SearchToken[]> {
+		const tokens: SearchToken[] = []
+		for (const token of splitQuery(phrase)) {
 			if (token.exact) {
-				normalizedQuery.push(`"${token.token}"`)
+				tokens.push(token)
 			} else {
-				// split into words and, for each word, match the start of a token (e.g. "free"* will match "freedom")
+				// split further down into words (as splitQuery does not handle CJK, but the facade's tokenizer does)
 				for (const word of await this.sqlCipherFacade.tokenize(token.token)) {
 					if (word !== "") {
-						normalizedQuery.push(`"${word}"*`)
+						tokens.push({
+							token: word,
+							exact: false,
+						})
 					}
 				}
 			}
 		}
+		return tokens
+	}
+
+	/**
+	 * Take an array of tokens created from splitTokens and return an FTS5 search query.
+	 *
+	 * Non-exact tokens will have an asterisk appended to indicate they are prefixes.
+	 *
+	 * For example, splitQuery(`hello world this is "my string"`) becomes `"hello"* "world"* "this"* "is"* "my string"`
+	 *
+	 * See https://sqlite.org/fts5.html
+	 *
+	 * @param tokens tokens to normalize
+	 * @return normalized query that can be used for FTS5
+	 * @private
+	 * @VisibleForTesting
+	 */
+	normalizeQuery(tokens: readonly SearchToken[]): string {
+		const normalizedQuery: string[] = []
+
+		for (const token of tokens) {
+			if (token.exact) {
+				normalizedQuery.push(`"${token.token}"`)
+			} else {
+				// match the start of a token (e.g. "free"* will match "freedom")
+				normalizedQuery.push(`"${token.token}"*`)
+			}
+		}
+
 		return normalizedQuery.join(" ")
 	}
 }
