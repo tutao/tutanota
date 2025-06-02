@@ -1756,9 +1756,9 @@ dependencies = [
 
 [[package]]
 name = "prettyplease"
-version = "0.2.32"
+version = "0.2.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "664ec5419c51e34154eec046ebcba56312d5a2fc3b09a06da188e1ad21afadf6"
+checksum = "9dee91521343f4c5c6a63edd65e54f31f5c92fe8978c40a4282f8372194c6a7d"
 dependencies = [
  "proc-macro2",
  "syn",
@@ -2505,7 +2505,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tuta-sdk"
-version = "287.250530.0"
+version = "287.250602.0"
 dependencies = [
  "aes",
  "android_log",
@@ -2555,7 +2555,7 @@ dependencies = [
 
 [[package]]
 name = "tutao_node-mimimi"
-version = "287.250530.0"
+version = "287.250602.0"
 dependencies = [
  "base64",
  "log 0.4.27",
