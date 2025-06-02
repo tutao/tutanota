@@ -5,10 +5,9 @@ import { BaseTopLevelView } from "../../../../common/gui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../common/gui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../common/gui/nav/ViewSlider.js"
 import { CalendarEvent, Contact } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, last, LazyLoaded, lazyMemoized, memoized, noOp, stringToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "@tutao/tutanota-utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
-import { SidebarSection } from "../../../../common/gui/SidebarSection.js"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { px, size } from "../../../../common/gui/size.js"
@@ -17,7 +16,6 @@ import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnL
 import { theme } from "../../../../common/gui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../common/gui/DesktopToolbars.js"
 import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarSearchListView.js"
-import { isSameId } from "../../../../common/api/common/utils/EntityUtils.js"
 import { keyManager, Shortcut } from "../../../../common/misc/KeyManager.js"
 import { styles } from "../../../../common/gui/styles.js"
 import { BaseMobileHeader } from "../../../../common/gui/BaseMobileHeader.js"
@@ -33,7 +31,6 @@ import {
 	handleSendUpdatesClick,
 } from "../../view/EventDetailsView.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
-import { DropDownSelector, DropDownSelectorAttrs } from "../../../../common/gui/base/DropDownSelector.js"
 import { FeatureType, Keys } from "../../../../common/api/common/TutanotaConstants.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs.js"
@@ -42,8 +39,6 @@ import { MultiselectMode } from "../../../../common/gui/base/List.js"
 import { showProgressDialog } from "../../../../common/gui/dialogs/ProgressDialog.js"
 import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
-import { CalendarInfo } from "../../model/CalendarModel.js"
 import { Checkbox, CheckboxAttrs } from "../../../../common/gui/base/Checkbox.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../common/gui/MobileActionBar.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
@@ -51,8 +46,6 @@ import { calendarLocator } from "../../../calendarLocator.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../common/misc/RouteChange.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
-import { ButtonType } from "../../../../common/gui/base/Button.js"
-import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"
 import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCardViewer.js"
 import { ContactModel } from "../../../../common/contactsFunctionality/ContactModel.js"
@@ -60,6 +53,11 @@ import { PartialRecipient } from "../../../../common/api/common/recipients/Recip
 import { simulateMailToClick } from "../../gui/eventpopup/ContactPreviewView.js"
 import { DatePicker, DatePickerAttrs } from "../../gui/pickers/DatePicker.js"
 import { EventEditorDialog } from "../../gui/eventeditor-view/CalendarEventEditDialog.js"
+import { FilterChip } from "../../../../common/gui/base/FilterChip"
+import { formatDate } from "../../../../common/misc/Formatter"
+import { createDropdown } from "../../../../common/gui/base/Dropdown"
+import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError"
+import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
 
 assertMainOrNode()
 
@@ -134,20 +132,22 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private getResultColumnLayout() {
-		return m(CalendarSearchListView, {
-			listModel: this.searchViewModel.listModel,
-			onSingleSelection: (item) => {
-				this.viewSlider.focus(this.resultDetailsColumn)
-			},
-			cancelCallback: () => {
-				this.searchViewModel.sendStopLoadingSignal()
-			},
-			isFreeAccount: calendarLocator.logins.getUserController().isFreeAccount(),
-		} satisfies CalendarSearchListViewAttrs)
-	}
-
-	private renderFilterSection(): Children {
-		return m(SidebarSection, { name: "filter_label" }, this.renderCalendarFilterSection())
+		return m(".flex.col.fill-absolute", [
+			this.renderFilterBar(),
+			m(
+				".rel.flex-grow",
+				m(CalendarSearchListView, {
+					listModel: this.searchViewModel.listModel,
+					onSingleSelection: (item) => {
+						this.viewSlider.focus(this.resultDetailsColumn)
+					},
+					cancelCallback: () => {
+						this.searchViewModel.sendStopLoadingSignal()
+					},
+					isFreeAccount: calendarLocator.logins.getUserController().isFreeAccount(),
+				} satisfies CalendarSearchListViewAttrs),
+			),
+		])
 	}
 
 	oncreate(): void {
@@ -336,12 +336,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return lang.get("searchCalendar_placeholder")
 	}
 
-	private renderCalendarFilterSection(): Children {
-		return [this.renderDateRangeSelection(), this.renderCalendarFilter(), this.renderRepeatingFilter()].map((row) =>
-			m(".folder-row.plr-button.content-fg", row),
-		)
-	}
-
 	getViewSlider(): ViewSlider | null {
 		return this.viewSlider
 	}
@@ -354,32 +348,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				icon: Icons.Add,
 			})
 		} else if (client.isCalendarApp()) {
-			return m.fragment({}, [
-				this.renderSearchResultActions(),
-				m(IconButton, {
-					icon: Icons.Filter,
-					title: "filter_label",
-					click: () => {
-						const dialog = Dialog.editSmallDialog(
-							{
-								middle: "filter_label",
-								right: [
-									{
-										label: "ok_action",
-										click: () => {
-											dialog.close()
-										},
-										type: ButtonType.Primary,
-									},
-								],
-							},
-							() => m(".pt-m.pb-ml", this.renderCalendarFilterSection()),
-						)
-						dialog.setFocusOnLoadFunction(noOp)
-						dialog.show()
-					},
-				}),
-			])
+			return m.fragment({}, [this.renderSearchResultActions()])
 		}
 	}
 
@@ -490,61 +459,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}
 	}
 
-	private renderCalendarFilter(): Children {
-		if (this.searchViewModel.getLazyCalendarInfos().isLoaded() && this.searchViewModel.getUserHasNewPaidPlan().isLoaded()) {
-			const calendarInfos = this.searchViewModel.getLazyCalendarInfos().getSync() ?? []
-
-			// Load user's calendar list
-			const items: {
-				name: string
-				value: CalendarInfo | string
-			}[] = Array.from(calendarInfos.values()).map((ci) => ({
-				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
-				value: ci,
-			}))
-
-			if (this.searchViewModel.getUserHasNewPaidPlan().getSync()) {
-				const localCalendars = this.searchViewModel.getLocalCalendars().map((cal) => ({
-					name: cal.name,
-					value: cal.id,
-				}))
-
-				items.push(...localCalendars)
-			}
-
-			// Find the selected value after loading the available calendars
-			const selectedValue =
-				items.find((calendar) => {
-					if (!calendar.value) {
-						return
-					}
-
-					if (typeof calendar.value === "string") {
-						return calendar.value === this.searchViewModel.selectedCalendar
-					}
-
-					// It isn't a string, so it can be only a Calendar Info
-					const calendarValue = calendar.value
-					return isSameId([calendarValue.groupRoot.longEvents, calendarValue.groupRoot.shortEvents], this.searchViewModel.selectedCalendar)
-				})?.value ?? null
-
-			return m(
-				".ml-button",
-				m(DropDownSelector, {
-					label: "calendar_label",
-					items: [{ name: lang.get("all_label"), value: null }, ...items],
-					selectedValue,
-					selectionChangedHandler: (value: CalendarInfo | string | null) => {
-						// value can be null if default option has been selected
-						this.searchViewModel.selectCalendar(value)
-					},
-				} satisfies DropDownSelectorAttrs<CalendarInfo | string | null>),
-			)
-		} else {
-			return null
-		}
-	}
-
 	private renderRepeatingFilter(): Children {
 		return m(
 			".mlr-button",
@@ -572,5 +486,81 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				}),
 			}),
 		)
+	}
+
+	private renderFilterBar(): Children {
+		return m(".flex.gap-vpad-s.pl-vpad-m.pt-s.pb-s.scroll-x", this.renderCalendarFilterChips())
+	}
+
+	private async onCalendarDateRangeSelect() {
+		if (!this.searchViewModel.canSelectTimePeriod()) {
+			showNotAvailableForFreeDialog()
+		} else {
+			const { start, end } = await showDateRangeSelectionDialog({
+				start: this.searchViewModel.startDate,
+				end: this.searchViewModel.endDate,
+				startOfTheWeekOffset: this.startOfTheWeekOffset,
+				optionalStartDate: false,
+				dateValidator: (startDate, endDate) => {
+					switch (this.searchViewModel.checkDates(startDate, endDate)) {
+						case "long":
+							return lang.getTranslationText("longSearchRange_msg")
+						case "startafterend":
+							return lang.getTranslationText("startAfterEnd_label")
+						case null:
+							return null
+						default:
+							throw new ProgrammingError()
+					}
+				},
+			})
+			this.searchViewModel.selectStartDate(start)
+			this.searchViewModel.selectEndDate(end)
+		}
+	}
+
+	private renderCalendarFilterChips() {
+		const availableCalendars = this.searchViewModel.getAvailableCalendars()
+		const selectedCalendar = this.searchViewModel.selectedCalendar
+		return [
+			m(FilterChip, {
+				label: lang.makeTranslation(
+					"btn:date",
+					`${this.searchViewModel.startDate ? formatDate(this.searchViewModel.startDate) : lang.getTranslationText("unlimited_label")} - ${
+						isSameDayOfDate(new Date(), this.searchViewModel.endDate)
+							? lang.getTranslationText("today_label")
+							: formatDate(this.searchViewModel.endDate)
+					}`,
+				),
+				selected: true,
+				chevron: false,
+				onClick: (_) => this.onCalendarDateRangeSelect(),
+			}),
+			m(FilterChip, {
+				label: selectedCalendar
+					? lang.makeTranslation("calendar_label", availableCalendars.find((f) => f.info === this.searchViewModel.selectedCalendar)?.name ?? "")
+					: lang.getTranslation("calendar_label"),
+				selected: selectedCalendar != null,
+				chevron: true,
+				onClick: createDropdown({
+					lazyButtons: () => [
+						{
+							label: lang.getTranslation("all_label"),
+							click: () => this.searchViewModel.selectCalendar(null),
+						},
+						...availableCalendars.map((f) => ({
+							label: lang.makeTranslation(f.name, f.name),
+							click: () => this.searchViewModel.selectCalendar(f.info),
+						})),
+					],
+				}),
+			}),
+			m(FilterChip, {
+				label: lang.getTranslation("includeRepeatingEvents_action"),
+				selected: this.searchViewModel.includeRepeatingEvents,
+				chevron: false,
+				onClick: () => this.searchViewModel.selectIncludeRepeatingEvents(!this.searchViewModel.includeRepeatingEvents),
+			}),
+		]
 	}
 }
