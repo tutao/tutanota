@@ -15,6 +15,7 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExportUtils"
+import { styles } from "../../../common/gui/styles.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -99,8 +100,11 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		agenda: InviteAgenda,
 		message: Children,
 	) {
-		return m(".flex.border-radius-top-left-m.border-radius-bottom-left-m.border-nota.border-sm.fit-content", [
-			m(".flex.flex-column.nota-bg.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt", [
+		return m(".border-radius-top-left-m.border-radius-bottom-left-m.border-nota.border-sm.grid", {
+			class: styles.isSingleColumnLayout() ? "" : "fit-content",
+			style: styles.isSingleColumnLayout() ? { "grid-template-columns": "min-content 1fr" } : { "grid-template-columns": "min-content 1fr 1fr" }
+		}, [
+			m(".flex.flex-column.nota-bg.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center", [
 				m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { month: "short" })),
 				m("span.big.accent-fg.b", event.startTime.getDate()),
 			]),
@@ -124,7 +128,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				// FIXME Fix not displaying the attending status for the invitation (Accepted, Maybe or No)
 				message,
 			]),
-			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.border-nota.border-left-sm", [
+			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.border-nota", {
+				class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none fill-grid-row" : "border-left-sm",
+			}, [
 				m(".flex.flex-column", [
 					m("span.b.h5", "Overview"), // FIXME Add translation
 					m(
