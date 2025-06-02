@@ -2,6 +2,7 @@ import type { GroupType } from "../../common/TutanotaConstants"
 import type { TypeInfo } from "./IndexUtils"
 import { Base64, TypeRef } from "@tutao/tutanota-utils"
 import { Aes256Key } from "@tutao/tutanota-crypto"
+import { SearchToken } from "../../common/utils/QueryTokenUtils"
 // db types
 
 /**
@@ -133,6 +134,7 @@ export type SearchRestriction = {
 }
 export type SearchResult = {
 	query: string
+	tokens: SearchToken[]
 	restriction: SearchRestriction
 	results: IdTuple[]
 	currentIndexTimestamp: number

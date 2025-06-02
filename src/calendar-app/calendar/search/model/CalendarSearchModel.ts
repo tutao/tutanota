@@ -53,6 +53,7 @@ export class CalendarSearchModel {
 			// if there was an empty query, just send empty result
 			const result: SearchResult = {
 				query: query,
+				tokens: [],
 				restriction: restriction,
 				results: [],
 				currentIndexTimestamp: 0,
@@ -87,6 +88,7 @@ export class CalendarSearchModel {
 				restriction,
 				results: [],
 				query,
+				tokens: [],
 			}
 
 			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)

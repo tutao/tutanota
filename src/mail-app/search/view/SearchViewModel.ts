@@ -206,7 +206,7 @@ export class SearchViewModel {
 		return await this.logins.getUserController().isNewPaidPlan()
 	})
 
-	currentQuery: string = ""
+	private currentQuery: string = ""
 
 	private extendIndexConfirmationCallback: (() => Promise<boolean>) | null = null
 	private freeToAskAboutExtendingIndex: boolean = true
@@ -961,10 +961,8 @@ export class SearchViewModel {
 	}
 
 	getHighlightedStrings(): readonly SearchToken[] {
-		return this._getHighlightedStrings()
+		return this.searchResult?.tokens ?? []
 	}
-
-	private readonly _getHighlightedStrings = memoizedWithHiddenArgument(() => this.currentQuery, splitQuery)
 
 	private createList(): ListElementListModel<SearchResultListEntry> {
 		// since we recreate the list every time we set a new result object,
