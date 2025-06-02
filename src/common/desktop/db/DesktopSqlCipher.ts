@@ -25,7 +25,6 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
 		this._db = new Database(this.dbPath)
-		this._db.initTokenizer()
 		try {
 			this.initSqlcipher({ databaseKey: dbKey, enableMemorySecurity: true, integrityCheck: this.integrityCheck })
 		} catch (e) {
@@ -34,6 +33,8 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 			this._db = null
 			throw e // "file is not a database" is most likely wrong database key
 		}
+		// must be done *after* SQLCipher is initialized, or it will fail with "database is not a file" error
+		this._db.initTokenizer()
 	}
 
 	async closeDb(): Promise<void> {
