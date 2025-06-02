@@ -43,6 +43,7 @@ import { CalendarEventsRepository } from "../../../../common/calendar/date/Calen
 import { getClientOnlyCalendars } from "../../gui/CalendarGuiUtils"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
+import { getSharedGroupName } from "../../../../common/sharing/GroupUtils"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -94,8 +95,19 @@ export class CalendarSearchViewModel {
 
 	// isn't an IdTuple because it is two list ids
 	private _selectedCalendar: readonly [Id, Id] | string | null = null
-	get selectedCalendar(): readonly [Id, Id] | string | null {
-		return this._selectedCalendar
+	get selectedCalendar(): CalendarInfo | string | null {
+		const calendars = this.getAvailableCalendars()
+		return (
+			calendars.find((calendar) => {
+				if (typeof calendar.info === "string") {
+					return calendar.info === this._selectedCalendar
+				}
+
+				// It isn't a string, so it can be only a Calendar Info
+				const calendarValue = calendar.info
+				return isSameId([calendarValue.groupRoot.longEvents, calendarValue.groupRoot.shortEvents], this._selectedCalendar)
+			})?.info ?? null
+		)
 	}
 
 	// Contains load more results even when searchModel doesn't.
@@ -137,6 +149,32 @@ export class CalendarSearchViewModel {
 
 	getLazyCalendarInfos() {
 		return this.lazyCalendarInfos
+	}
+
+	getAvailableCalendars(): Array<{ info: CalendarInfo | string; name: string }> {
+		if (this.getLazyCalendarInfos().isLoaded() && this.getUserHasNewPaidPlan().isLoaded()) {
+			// Load user's calendar list
+			const items: {
+				info: CalendarInfo | string
+				name: string
+			}[] = Array.from(this.getLazyCalendarInfos().getLoaded().values()).map((ci) => ({
+				info: ci,
+				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
+			}))
+
+			if (this.getUserHasNewPaidPlan().getSync()) {
+				const localCalendars = this.getLocalCalendars().map((cal) => ({
+					info: cal.id,
+					name: cal.name,
+				}))
+
+				items.push(...localCalendars)
+			}
+
+			return items
+		} else {
+			return []
+		}
 	}
 
 	getUserHasNewPaidPlan() {
@@ -372,6 +410,17 @@ export class CalendarSearchViewModel {
 		return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
 	}
 
+	public checkDates(startDate: Date | null, endDate: Date | null): "long" | "startafterend" | null {
+		if (startDate && endDate) {
+			if (startDate.getTime() > endDate.getTime()) {
+				return "startafterend"
+			} else if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
+				return "long"
+			}
+		}
+		return null
+	}
+
 	selectCalendar(calendarInfo: CalendarInfo | string | null) {
 		if (typeof calendarInfo === "string" || calendarInfo == null) {
 			this._selectedCalendar = calendarInfo
@@ -430,17 +479,18 @@ export class CalendarSearchViewModel {
 			createRestriction(
 				this._startDate ? getStartOfDay(this._startDate).getTime() : null,
 				this._endDate ? getEndOfDay(this._endDate).getTime() : null,
-				this.getFolderIds(),
+				this.getCalendarLists(),
 				this._includeRepeatingEvents,
 			),
 		)
 	}
 
-	private getFolderIds() {
+	private getCalendarLists(): string[] {
 		if (typeof this.selectedCalendar === "string") {
 			return [this.selectedCalendar]
 		} else if (this.selectedCalendar != null) {
-			return [...this.selectedCalendar]
+			const calendarInfo = this.selectedCalendar
+			return [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
 		}
 
 		return []
