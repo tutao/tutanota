@@ -91,7 +91,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		const { userId } = logins.getUserController()
 		if (isDesktop()) {
 			await interWindowEventSender?.localUserDataInvalidated(userId)
-			await worker.getWorkerInterface().sqlCipherFacade.deleteDb(userId)
+			await worker.getWorkerInterface().cacheStorage.purgeStorage()
 		}
 		await logins.logout(false)
 		await windowFacade.reload({ noAutoLogin: true })
