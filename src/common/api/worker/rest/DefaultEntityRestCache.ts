@@ -160,6 +160,13 @@ export interface ExposedCacheStorage {
 
 	getLastUpdateTime(): Promise<LastUpdateTime>
 
+	/**
+	 * Clear the contents of the cache.
+	 *
+	 * Tables unrelated to cache will not be deleted.
+	 */
+	purgeStorage(): Promise<void>
+
 	clearExcludedData(timeRangeDate: Date): Promise<void>
 
 	/**
@@ -235,8 +242,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getLastBatchIdForGroup(groupId: Id): Promise<Id | null>
 
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
-
-	purgeStorage(): Promise<void>
 
 	putLastUpdateTime(value: number): Promise<void>
 
