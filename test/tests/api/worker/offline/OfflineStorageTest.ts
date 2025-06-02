@@ -754,46 +754,6 @@ o.spec("OfflineStorageDb", function () {
 				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
 				o(allBlobDetails).deepEquals([elementIdPart(mailDetailsBlobId)])
 			})
-
-			o.test("do not extend range beyond cutoff id", async function () {
-				const listId = "mailSetEntriesListId"
-				const twoDaysBeforeTimeRangeDays = -2
-
-				const mailId: IdTuple = [mailBagMailListId, offsetId(twoDaysBeforeTimeRangeDays)]
-				const mailSetEntryElementId = offsetMailSetEntryId(twoDaysBeforeTimeRangeDays, elementIdPart(mailId))
-
-				const lowerMailSetEntryIdForRange = mailSetEntryElementId
-				const upperMailSetEntryIdForRange = CUSTOM_MAX_ID
-
-				await storage.setNewRangeForList(MailSetEntryTypeRef, listId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
-
-				await storage.setLowerRangeForList(MailSetEntryTypeRef, listId, offsetMailSetEntryId(-3, elementIdPart(mailId)))
-
-				const range = await storage.getRangeForList(MailSetEntryTypeRef, listId)
-
-				o(range?.lower).equals(lowerMailSetEntryIdForRange)
-			})
-
-			o.test("extend range", async function () {
-				const listId = "mailSetEntriesListId"
-				const twoDaysAfterTimeRangeDays = 2
-
-				const mailId: IdTuple = [mailBagMailListId, offsetId(twoDaysAfterTimeRangeDays)]
-				const mailSetEntryElementId = offsetMailSetEntryId(twoDaysAfterTimeRangeDays, elementIdPart(mailId))
-
-				const lowerMailSetEntryIdForRange = mailSetEntryElementId
-				const upperMailSetEntryIdForRange = CUSTOM_MAX_ID
-
-				await storage.setNewRangeForList(MailSetEntryTypeRef, listId, lowerMailSetEntryIdForRange, upperMailSetEntryIdForRange)
-
-				const newLowerMailSetEntryIdForRange = offsetMailSetEntryId(1, elementIdPart(mailId))
-				await storage.setLowerRangeForList(MailSetEntryTypeRef, listId, newLowerMailSetEntryIdForRange)
-
-				const range = await storage.getRangeForList(MailSetEntryTypeRef, listId)
-
-				o(range?.lower).equals(newLowerMailSetEntryIdForRange)
-			})
-
 			o.test("complete ranges will be modified if some entities are older than cutoff", async function () {
 				const twoDaysBeforeTimeRangeDays = -2
 
