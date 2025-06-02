@@ -132,6 +132,26 @@ struct AgendaProvider: AppIntentTimelineProvider {
 	}
 }
 
+extension Image {
+	func tinted(renderingMode: WidgetRenderingMode) -> AnyView {
+		if renderingMode == .accented, #available(iOSApplicationExtension 18.0, *){
+			return AnyView(self.widgetAccentedRenderingMode(.accented))
+		}
+
+		return AnyView(self)
+	}
+}
+
+extension View {
+	func tinted(renderingMode: WidgetRenderingMode) -> AnyView {
+		if renderingMode == .accented {
+			return AnyView(self.luminanceToAlpha().widgetAccentable())
+		}
+
+		return AnyView(self)
+	}
+}
+
 struct AgendaWidgetEntryView: View {
 	var normalEvents: [CalendarEventData]
 	var allDayEvents: [CalendarEventData]
@@ -144,6 +164,8 @@ struct AgendaWidgetEntryView: View {
 		formatter.timeStyle = .short
 		return formatter
 	}()
+
+	@Environment(\.widgetRenderingMode) var renderingMode
 
 	private func AllDayHeader(allDayEvents: [CalendarEventData], weekday: String, day: String) -> some View {
 		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEvents.first?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
@@ -233,12 +255,19 @@ struct AgendaWidgetEntryView: View {
 				}
 			}
 			.buttonStyle(.plain)
-			Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor)) {
-				Image(systemName: "plus").fontWeight(.medium).foregroundStyle(Color(.onPrimary)).font(.system(size: 20))
-			}
-			.buttonStyle(.plain).frame(width: 48, height: 48).background(Color(.primary))
-			.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 8, bottomTrailing: 8, topTrailing: 8)))
+			HeaderButton()
 		}
+	}
+
+	private func HeaderButton() -> some View {
+		var image = Image(systemName: "plus")
+		let imageColor = renderingMode == .accented ? Color(.onSurface) : Color(.onPrimary)
+
+		return Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor)) {
+			image.tinted(renderingMode: renderingMode).fontWeight(.medium).foregroundStyle(imageColor).font(.system(size: 20))
+		}
+		.buttonStyle(.plain).frame(width: 48, height: 48).background(Color(.primary))
+		.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 8, bottomTrailing: 8, topTrailing: 8)))
 	}
 
 	@Environment(\.widgetFamily) var family
@@ -256,6 +285,7 @@ struct AgendaWidgetEntryView: View {
 			.frame(maxHeight: .infinity, alignment: .top)
 		}
 		.containerBackground(for: .widget) { Color(.background) }
+		.tinted(renderingMode: renderingMode)
 	}
 }
 
