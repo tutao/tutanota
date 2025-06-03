@@ -12,6 +12,7 @@ import { Dialog } from "../../common/gui/base/Dialog.js"
 import { mailLocator } from "../mailLocator.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { assert } from "@tutao/tutanota-utils"
+import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../common/subscription/TermsAndConditions"
 
 assertMainOrNode()
 
@@ -81,7 +82,11 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 
 		return m(DropDownSelector, {
 			label: "contactsSynchronization_label",
-			helpLabel: () => lang.get("contactsSynchronizationWarning_msg"),
+			helpLabel: () =>
+				m("div", [
+					lang.get("contactsSynchronizationWarning_msg"),
+					m("span.mlr-s", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
+				]),
 			items: [
 				{
 					name: lang.get("activated_label"),
