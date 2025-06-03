@@ -3683,3 +3683,30 @@ export type SurveyDataPostIn = {
 
 	surveyData: SurveyData;
 }
+export const PatchTypeRef: TypeRef<Patch> = new TypeRef("sys", 2567)
+
+export function createPatch(values: StrippedEntity<Patch>): Patch {
+	return Object.assign(create(typeModels[PatchTypeRef.typeId], PatchTypeRef), values)
+}
+
+export type Patch = {
+	_type: TypeRef<Patch>;
+
+	_id: Id;
+	patchOperation: NumberString;
+	attributePath: string;
+	value: null | string;
+}
+export const PatchListTypeRef: TypeRef<PatchList> = new TypeRef("sys", 2572)
+
+export function createPatchList(values: StrippedEntity<PatchList>): PatchList {
+	return Object.assign(create(typeModels[PatchListTypeRef.typeId], PatchListTypeRef), values)
+}
+
+export type PatchList = {
+	_type: TypeRef<PatchList>;
+
+	_format: NumberString;
+
+	patches: Patch[];
+}
