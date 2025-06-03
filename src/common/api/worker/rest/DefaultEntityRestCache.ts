@@ -37,6 +37,7 @@ import {
 	GENERATED_MIN_ID,
 	get_IdValue,
 	getElementId,
+	isCustomIdType,
 	listIdPart,
 } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
@@ -45,9 +46,9 @@ import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, 
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../common/utils/EntityUpdateUtils.js"
-import { isCustomIdType } from "../offline/OfflineStorage.js"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { AttributeModel } from "../../common/AttributeModel"
+import { collapseId, expandId } from "./RestClientIdUtils"
 
 assertWorkerOrNode()
 
@@ -1007,29 +1008,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
  */
 function isExpectedErrorForSynchronization(e: Error): boolean {
 	return e instanceof NotFoundError || e instanceof NotAuthorizedError
-}
-
-export function expandId(id: Id | IdTuple): { listId: Id | null; elementId: Id } {
-	if (typeof id === "string") {
-		return {
-			listId: null,
-			elementId: id,
-		}
-	} else {
-		const [listId, elementId] = id
-		return {
-			listId,
-			elementId,
-		}
-	}
-}
-
-export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
-	if (listId != null) {
-		return [listId, elementId]
-	} else {
-		return elementId
-	}
 }
 
 export function getUpdateInstanceId(update: EntityUpdateData): {

@@ -4,8 +4,8 @@ import { OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
-import { collapseId } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
+import { collapseId } from "../../../common/api/worker/rest/RestClientIdUtils"
 
 export class ContactIndexer {
 	constructor(private readonly entityClient: EntityClient, private readonly userFacade: UserFacade, private readonly backend: ContactIndexerBackend) {}

@@ -2,7 +2,6 @@ import type { RestClient, SuspensionBehavior } from "./RestClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { _verifyType, HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
-import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import {
 	ConnectionError,
 	InternalServerError,
@@ -29,8 +28,6 @@ import type {
 import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
-import { expandId } from "./DefaultEntityRestCache.js"
-import { QueuedBatch } from "../EventQueue.js"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { BlobServerUrl } from "../../entities/storage/TypeRefs.js"
@@ -45,6 +42,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
+import { expandId } from "./RestClientIdUtils"
 
 assertWorkerOrNode()
 
@@ -758,28 +756,4 @@ export async function doBlobRequestWithRetry<T>(doBlobRequest: () => Promise<T>,
 			return doBlobRequest()
 		}),
 	)
-}
-
-export function getIds(
-	instance: any,
-	typeModel: TypeModel,
-): {
-	listId: string | null
-	id: string
-} {
-	if (!instance._id) throw new Error("Id must be defined")
-	let listId = null
-	let id
-
-	if (typeModel.type === Type.ListElement) {
-		listId = instance._id[0]
-		id = instance._id[1]
-	} else {
-		id = instance._id
-	}
-
-	return {
-		listId,
-		id,
-	}
 }

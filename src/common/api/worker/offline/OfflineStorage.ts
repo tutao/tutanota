@@ -1,15 +1,21 @@
-import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import { CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, GENERATED_MIN_ID, get_IdValue, getElementId, listIdPart } from "../../common/utils/EntityUtils.js"
-import { CacheStorage, collapseId, expandId, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
+import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../../common/EntityTypes.js"
+import {
+	CUSTOM_MIN_ID,
+	customIdToBase64Url,
+	elementIdPart,
+	ensureBase64Ext,
+	firstBiggerThanSecond,
+	GENERATED_MIN_ID,
+	getElementId,
+	isCustomIdType,
+	listIdPart,
+} from "../../common/utils/EntityUtils.js"
+import type { CacheStorage, LastUpdateTime } from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
 import {
 	assert,
 	assertNotNull,
-	base64ExtToBase64,
-	base64ToBase64Ext,
-	base64ToBase64Url,
-	base64UrlToBase64,
 	getFirstOrThrow,
 	getTypeString,
 	groupBy,
@@ -31,12 +37,13 @@ import { CustomCacheHandlerMap } from "../rest/cacheHandler/CustomCacheHandler.j
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
-import { Type as TypeId, ValueType } from "../../common/EntityConstants.js"
+import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
 import { ModelMapper } from "../crypto/ModelMapper"
 import { AttributeModel } from "../../common/AttributeModel"
 import { TypeModelResolver } from "../../common/EntityFunctions"
+import { collapseId, expandId } from "../rest/RestClientIdUtils"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -959,28 +966,6 @@ function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): 
 		l = "?"
 	}
 	return new SqlFragment(`(CASE WHEN length(${l}) > length(${r}) THEN 1 WHEN length(${l}) < length(${r}) THEN 0 ELSE ${l} > ${r} END)`, [v, v, v])
-}
-
-export function isCustomIdType(typeModel: TypeModel): boolean {
-	const _idValue = get_IdValue(typeModel)
-	return _idValue !== undefined && _idValue.type === ValueType.CustomId
-}
-
-/**
- * We store customIds as base64ext in the db to make them sortable, but we get them as base64url from the server.
- */
-export function ensureBase64Ext(typeModel: TypeModel, elementId: Id): Id {
-	if (isCustomIdType(typeModel)) {
-		return base64ToBase64Ext(base64UrlToBase64(elementId))
-	}
-	return elementId
-}
-
-export function customIdToBase64Url(typeModel: TypeModel, elementId: Id): Id {
-	if (isCustomIdType(typeModel)) {
-		return base64ToBase64Url(base64ExtToBase64(elementId))
-	}
-	return elementId
 }
 
 export interface OfflineStorageCleaner {

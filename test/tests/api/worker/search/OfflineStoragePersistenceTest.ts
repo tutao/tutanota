@@ -6,7 +6,7 @@ import { assertNotNull, getTypeString, typedValues } from "@tutao/tutanota-utils
 import { untagSqlObject, untagSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql"
-import { getElementId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils"
+import { ensureBase64Ext, getElementId, getListId } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { createTestEntity } from "../../../TestUtils"
 import {
 	BodyTypeRef,
@@ -19,7 +19,6 @@ import {
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { ListElementEntity } from "../../../../../src/common/api/common/EntityTypes"
-import { ensureBase64Ext } from "../../../../../src/common/api/worker/offline/OfflineStorage"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])

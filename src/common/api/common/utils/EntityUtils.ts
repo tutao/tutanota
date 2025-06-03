@@ -16,10 +16,8 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { Cardinality, Type, ValueType } from "../EntityConstants.js"
-import type { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
-import { TimeRange } from "../../../../mail-app/workerUtils/index/BulkMailLoader"
-import { random } from "@tutao/tutanota-crypto"
+import { Cardinality, ValueType } from "../EntityConstants.js"
+import { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -499,3 +497,25 @@ export const LEGACY_BODY_ID = 116
 export const SUBJECT_ID = 105
 export const SENDER_ID = 111
 export const ATTACHMENTS_ID = 115
+
+export function isCustomIdType(typeModel: TypeModel): boolean {
+	const _idValue = get_IdValue(typeModel)
+	return _idValue !== undefined && _idValue.type === ValueType.CustomId
+}
+
+/**
+ * We store customIds as base64ext in the db to make them sortable, but we get them as base64url from the server.
+ */
+export function ensureBase64Ext(typeModel: TypeModel, elementId: Id): Id {
+	if (isCustomIdType(typeModel)) {
+		return base64ToBase64Ext(base64UrlToBase64(elementId))
+	}
+	return elementId
+}
+
+export function customIdToBase64Url(typeModel: TypeModel, elementId: Id): Id {
+	if (isCustomIdType(typeModel)) {
+		return base64ToBase64Url(base64ExtToBase64(elementId))
+	}
+	return elementId
+}

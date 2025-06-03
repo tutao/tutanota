@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { verify } from "@tutao/tutanota-test-utils"
-import { ensureBase64Ext, OfflineStorage, OfflineStorageCleaner, TableDefinitions } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
+import { OfflineStorage, OfflineStorageCleaner, TableDefinitions } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { instance, matchers, object, when } from "testdouble"
 import {
 	constructMailSetEntryId,
@@ -8,6 +8,7 @@ import {
 	CUSTOM_MIN_ID,
 	deconstructMailSetEntryId,
 	elementIdPart,
+	ensureBase64Ext,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	generatedIdToTimestamp,
@@ -51,7 +52,6 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/
 import { untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
 import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
-import { expandId } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache.js"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
@@ -62,6 +62,7 @@ import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMa
 import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
+import { expandId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)

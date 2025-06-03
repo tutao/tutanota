@@ -1,4 +1,4 @@
-import { EntityRestClient, EntityRestClientLoadOptions, getIds } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
+import { EntityRestClient, EntityRestClientLoadOptions } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import {
 	compareNewestFirst,
 	compareOldestFirst,
@@ -16,6 +16,7 @@ import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } 
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { Type } from "../../../../../src/common/api/common/EntityConstants.js"
 import { clientInitializedTypeModelResolver, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
+import { getIds } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 
 const authDataProvider: AuthDataProvider = {
 	createAuthHeaders(): Dict {
