@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2025-04-29T14:37:15Z",
+	"updated_at": "2025-06-03T15:11:32Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1194,6 +1194,7 @@ export default {
 		"searchDisabled_msg": "به دلیل اینکه مرورگر شما از قابلیت ذخیره داده‌ها پشتیبانی نمی‌کند، جستجو غیرفعال شده است.",
 		"searchedUntil_msg": "جستجو تا",
 		"searchEmails_placeholder": "جستجوی  ایمیل ",
+		"searchFilters_label": "فیلترهای جستجو",
 		"searchGroups_placeholder": "جستجو برای گروه‌ها",
 		"searchKnowledgebase_placeholder": "جستجوی مخزن دانش",
 		"searchMailboxes_placeholder": "جستجوی صندوق‌های پستی",

@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Zrób zdjęcie lub nagraj wideo, aby umieścić je jako załącznik.";
 NSPhotoLibraryUsageDescription = "Dodaj zdjęcie z Twojej biblioteki jako załącznik.";
 NSMicrophoneUsageDescription = "Wymagany do nagrywania filmów.";
-NSContactsUsageDescription = "1. Znajdź adres e-mail odbiorcy w kontaktach.\n2. Opcjonalnie zsynchronizuj kontakty Tuta z urządzeniem.";
+NSContactsUsageDescription = "1. Znajdź adres e-mail odbiorcy w kontaktach.\n2. Opcjonalnie zsynchronizuj kontakty Tuta z urządzeniem.\n3. Opcjonalnie zsynchronizuj kontakty z urządzenia z kontem Tuta.";
 NSRemindersUsageDescription = "Pokazuje powiadomienie, gdy zostanie odebrana nowa wiadomość.";
 TutaoShowCameraAction = "Aparat";
 TutaoChoosePhotosAction = "Zdjęcia";

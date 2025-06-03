@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-05-30T10:51:55Z",
+	"updated_at": "2025-06-03T16:43:35Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -343,7 +343,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Włączenie synchronizacji kontaktów spowoduje udostępnienie kontaktów Tuta innym aplikacjom, którym zezwolisz na dostęp do listy kontaktów. Kontakty Tuta będą synchronizowane automatycznie.",
 		"contactsSynchronization_label": "Synchronizacja kontaktów",
 		"contactSupport_action": "Skontaktuj się z działem wsparcia",
-		"contactsUsageDescription_msg": "1. Znajdź adres e-mail odbiorcy w kontaktach.\\n2. Opcjonalnie zsynchronizuj kontakty Tuta z urządzeniem.",
+		"contactsUsageDescription_msg": "1. Znajdź adres e-mail odbiorcy w kontaktach.\\n2. Opcjonalnie zsynchronizuj kontakty Tuta z urządzeniem.\\n3. Opcjonalnie zsynchronizuj kontakty z urządzenia z kontem Tuta.",
 		"contacts_label": "Kontakty",
 		"contactView_action": "Przełącz na widok kontaktów",
 		"contentBlocked_msg": "Automatyczne ładowanie obrazków zostało zablokowane ze względu na ochronę prywatności.",

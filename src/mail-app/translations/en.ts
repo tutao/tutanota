@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-05-30T10:52:05Z",
+	"updated_at": "2025-06-03T17:05:33Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -337,7 +337,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Enabling contact synchronization will share your Tuta contacts to other applications that you allow to access your phonebook. Your Tuta contacts will synchronize automatically.",
 		"contactsSynchronization_label": "Contacts Synchronization",
 		"contactSupport_action": "Contact support",
-		"contactsUsageDescription_msg": "1. Find recipient email address in contacts.\\n2. Optionally, synchronize Tuta contacts to your device.\\n3. Optionally, synchronize contacts from your device to your Tuta account.",
+		"contactsUsageDescription_msg": "Tuta can show you email recipient suggestions from contacts stored on your device. Additionally, you can allow Tuta to synchronize your contacts between your device and your Tuta account. If you enable synchronization in the settings, contacts from your device will be uploaded after being securely encrypted and your Tuta contacts will become available to other apps.",
 		"contacts_label": "Contacts",
 		"contactView_action": "Switch to the contact view",
 		"contentBlocked_msg": "Automatic image loading has been blocked to protect your privacy.",
@@ -1172,6 +1172,7 @@ export default {
 		"no_label": "No",
 		"npo50PercentDiscount_msg": "Special Offer: 50% discount!",
 		"occurrencesCount_label": "Occurrences count",
+		"offlineDbUnavailableNoTypes_msg": "Offline login is currently unavailable. Please connect to the internet and try again to fix this issue.",
 		"offlineLoginPremiumOnly_msg": "You are offline. Upgrade to a paid plan to enable offline login.",
 		"offline_label": "Offline",
 		"ok_action": "Ok",
@@ -1598,6 +1599,7 @@ export default {
 		"searchDisabled_msg": "Search has been disabled because your browser doesn't support data storage.",
 		"searchedUntil_msg": "Searched until",
 		"searchEmails_placeholder": "Search emails",
+		"searchFilters_label": "Search filters",
 		"searchGroups_placeholder": "Search for groups",
 		"searchInOurAppsLinkText_msg": "our apps",
 		"searchInOurApps_msg": "Faster and better email searching is available at {link}!",
@@ -2030,7 +2032,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"offlineDbUnavailableNoTypes_msg": "Offline login is currently unavailable. Please connect to the internet and try again to fix this issue."
+		"zoomOut_action": "Zoom Out"
 	}
 }

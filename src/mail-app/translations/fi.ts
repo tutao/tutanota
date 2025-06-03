@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-05-30T10:51:55Z",
+	"updated_at": "2025-06-03T16:43:35Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -337,7 +337,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Jos otat yhteystietojen synkronoinnin käyttöön, Tuta-yhteystietosi näkyvät muille sovelluksille, jotka pääsevät näkemään yhteystietojasi. Tuta-yhteystiedot synkronoidaan automaattisesti.",
 		"contactsSynchronization_label": "Yhteystietojen synkronointi",
 		"contactSupport_action": "Ota yhteyttä tukeen",
-		"contactsUsageDescription_msg": "1. Etsi vastaanottajan sähköpostiosoite yhteystiedoista.\\n2. Voit valinnaisesti synkronoida Tuta-yhteystietosi laitteellesi.",
+		"contactsUsageDescription_msg": "1. Etsi vastaanottajan sähköpostiosoite yhteystiedoista.\\n2. Voit valinnaisesti synkronoida Tuta-yhteystietosi laitteellesi.\\n3. Voit valinnaisesti synkronoida yhteystietosi laitteeltasi Tuta-tilillesi.",
 		"contacts_label": "Yhteystiedot",
 		"contactView_action": "Siirry yhteystietoihin",
 		"contentBlocked_msg": "Kuvia ei ladata automaattisesti yksityisyytesi suojaamiseksi.",

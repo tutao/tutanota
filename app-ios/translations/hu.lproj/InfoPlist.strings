@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Videó vagy fénykép készítése csatolmányként való hozzáadáshoz.";
 NSPhotoLibraryUsageDescription = "Adjon hozzá fényképet a könyvtárából csatolmányként!";
 NSMicrophoneUsageDescription = "Videó csatolmányként való felhasználásakor.";
-NSContactsUsageDescription = "Címzett keresése a névjegyek között.\n2. Opcionálisan szinkronizálja a Tuta kapcsolatokat eszközein.";
+NSContactsUsageDescription = "1. Keresse meg a címzett e-mail címét a contacts.\n2. Opcionálisan szinkronizálja a Tuta névjegyeket a készülékével.\n3. Opcionálisan szinkronizálja a névjegyeket a készülékről a Tuta-fiókjába.";
 NSRemindersUsageDescription = "Értesítés megjelenítése új e-mail érkezésekor.";
 TutaoShowCameraAction = "Fényképezőgép";
 TutaoChoosePhotosAction = "Fényképek";

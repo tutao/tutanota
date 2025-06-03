@@ -1,7 +1,6 @@
 NSCameraUsageDescription = "Prenez une photo ou une vidéo pour l'ajouter en pièce jointe.";
 NSPhotoLibraryUsageDescription = "Ajoutez une image de votre bibliothèque en pièce jointe.";
 NSMicrophoneUsageDescription = "Utilisé lors de l'enregistrement de vidéo en tant que pièce jointe.";
-NSContactsUsageDescription = "1. Trouvez l'adresse e-mail du destinataire dans les contacts.\n2. En option, synchronisez les contacts Tuta avec votre appareil.";
 NSRemindersUsageDescription = "Affiche une notification lors de l'arrivée d'un nouveau courriel.";
 TutaoShowCameraAction = "Appareil photo";
 TutaoChoosePhotosAction = "Photos";

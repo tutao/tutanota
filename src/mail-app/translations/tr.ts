@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-05-30T10:51:55Z",
+	"updated_at": "2025-06-03T10:03:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -341,7 +341,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Kişi senkronizasyonunu etkinleştirmek, Tuta kişilerinizi telefon rehberinize erişim izni verdiğiniz diğer uygulamalarla paylaşacaktır. Tuta kişileriniz otomatik olarak senkronize edilecektir.",
 		"contactsSynchronization_label": "Kişiler Senkronizasyonu",
 		"contactSupport_action": "Destek ile iletişime geç",
-		"contactsUsageDescription_msg": "1. Kişilerde alıcı e-posta adresini bulun.\\n2. İsteğe bağlı olarak Tuta kişilerini cihazınızla senkronize edin.",
+		"contactsUsageDescription_msg": "1. Kişiler listesinde alıcının e-posta adresini bulun.\\n2. İsteğe bağlı olarak, Tuta kişilerini cihazınızla senkronize edin.\\n3. İsteğe bağlı olarak, cihazınızdaki kişileri Tuta hesabınızla senkronize edin.",
 		"contacts_label": "Kişiler",
 		"contactView_action": "Kişi görünümüne geç",
 		"contentBlocked_msg": "Gizliliğinizi korumak için görsellerin otomatik olarak yüklenmesini engelledik.",
@@ -1388,6 +1388,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Legend planını seçtikten sonra, çoklu kullanıcı desteğini etkinleştirebilmemiz için posta kutunuzun solundaki soru işareti aracılığıyla destek ekibimizle iletişime geçin. Her üye 500 GB ve 30 takma e-posta adresi içeren bir posta kutusu elde edecektir (kullanıcı başına 8€/ay). Paylaşılan bir posta kutusu (aylık 8€) da 500 GB elde eder.",
 		"pricing.familyRevolutionary_tooltip": "Revolutionary planını seçtikten sonra, çoklu kullanıcı desteğini etkinleştirebilmemiz için posta kutunuzun solundaki soru işareti aracılığıyla destek ekibimizle iletişime geçin. Her üye 20 GB alan ve 15 e-posta takma adı içeren bir posta kutusu elde edecektir (kullanıcı başına 3€/ay). Paylaşılan bir posta kutusu (aylık 3€) da 20 GB elde eder.",
 		"pricing.family_label": "Aile seçeneği",
+		"pricing.firstYearDiscount_revo_legend_msg": "İndirim sadece ilk yıl için geçerlidir. Sonraki yıllar için fiyat Revolutionary için {revo-price}, Legend için {legend-price} olacaktır.",
 		"pricing.folders_label": "Sınırsız klasör",
 		"pricing.gdprDataProcessing_label": "GDPR veri işleme sözleşmesi",
 		"pricing.gdpr_label": "GDPR-uyumlu",
@@ -1601,6 +1602,7 @@ export default {
 		"searchDisabled_msg": "Tarayıcınız veri depolamayı desteklemediğinden arama devre dışı bırakıldı.",
 		"searchedUntil_msg": "Bu tarihe kadar arandı",
 		"searchEmails_placeholder": "Postalarda ara",
+		"searchFilters_label": "Arama filtreleri",
 		"searchGroups_placeholder": "Grupları ara",
 		"searchInOurAppsLinkText_msg": "uygulamalarımız",
 		"searchInOurApps_msg": "Daha hızlı ve iyi e-posta araması {link} adresinde mevcut!",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-05-30T10:51:55Z",
+	"updated_at": "2025-06-03T16:43:35Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -337,7 +337,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Om du aktiverar kontaktsynkronisering kommer dina Tuta kontakter att delas med andra program som du tillåter få åtkomst till din telefonbok. Dina Tuta kontakter synkroniseras automatiskt.",
 		"contactsSynchronization_label": "Synkronisering av kontakter",
 		"contactSupport_action": "Kontakta support",
-		"contactsUsageDescription_msg": "1. Hitta mottagarens e-postadress i kontakter.\\n2. Alternativt kan du synkronisera Tuta kontakter till din enhet.",
+		"contactsUsageDescription_msg": "1. Hitta mottagarens e-postadress i kontakter.\\n2. Alternativt kan du synkronisera Tuta kontakter till din enhet.\\n3. Du kan även synkronisera kontakter från din enhet till ditt Tuta konto.",
 		"contacts_label": "Kontakter",
 		"contactView_action": "Växla till kontaktvyn",
 		"contentBlocked_msg": "Automatisk bildinläsning har blockerats för att skydda din integritet.",
@@ -1598,6 +1598,7 @@ export default {
 		"searchDisabled_msg": "Sökning har inaktiverats eftersom din webbläsare inte stöder datalagring.",
 		"searchedUntil_msg": "Sökte till",
 		"searchEmails_placeholder": "Sök mejl",
+		"searchFilters_label": "Sökfilter",
 		"searchGroups_placeholder": "Sök efter grupper",
 		"searchInOurAppsLinkText_msg": "våra appar",
 		"searchInOurApps_msg": "Snabbare och bättre sökning av mejl finns på {länk}!",
