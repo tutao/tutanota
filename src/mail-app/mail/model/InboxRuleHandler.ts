@@ -12,8 +12,8 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { throttle } from "@tutao/tutanota-utils/dist/Utils.js"
-import { mailLocator } from "../../mailLocator.js"
 import { getMailHeaders } from "./MailUtils.js"
+import { MailModel } from "./MailModel"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -92,7 +92,7 @@ export function getInboxRuleTypeName(type: string): string {
 }
 
 export class InboxRuleHandler {
-	constructor(private readonly mailFacade: MailFacade, private readonly logins: LoginController) {}
+	constructor(private readonly mailFacade: MailFacade, private readonly logins: LoginController, private readonly mailModel: MailModel) {}
 
 	/**
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
@@ -112,7 +112,7 @@ export class InboxRuleHandler {
 		if (
 			mail._errors ||
 			!shouldApply ||
-			!(await isInboxFolder(mailboxDetail, mail)) ||
+			!(await isInboxFolder(this.mailModel, mailboxDetail, mail)) ||
 			!this.logins.getUserController().isPaidAccount() ||
 			mailboxDetail.mailbox.folders == null
 		) {
@@ -121,8 +121,7 @@ export class InboxRuleHandler {
 
 		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 		if (inboxRule) {
-			const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
-			const inboxFolder = assertNotNull(folders.getSystemFolderByType(MailSetKind.INBOX))
+			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder && targetFolder.folderType !== MailSetKind.INBOX) {
@@ -241,8 +240,8 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 	return mailAddress != null
 }
 
-export async function isInboxFolder(mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
-	const folders = await mailLocator.mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
+async function isInboxFolder(mailModel: MailModel, mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
+	const folders = await mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
 	const mailFolder = folders.getFolderByMail(mail)
 	return mailFolder?.folderType === MailSetKind.INBOX
 }

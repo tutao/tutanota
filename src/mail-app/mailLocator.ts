@@ -282,7 +282,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	inboxRuleHanlder(): InboxRuleHandler {
-		return new InboxRuleHandler(this.mailFacade, this.logins)
+		return new InboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
 	}
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {
