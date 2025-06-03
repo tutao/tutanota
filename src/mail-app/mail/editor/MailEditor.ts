@@ -96,6 +96,8 @@ import {
 import { mailLocator } from "../../mailLocator.js"
 
 import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDialog.js"
+import { theme } from "../../../common/gui/theme"
+import { size } from "../../../common/gui/size"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -157,6 +159,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	// if we're set to block external content, but there is no content to block,
 	// we don't want to show the banner.
 	private blockedExternalContent: number = 0
+	private collapseQuotedReply: boolean = true
+	private collapsedReply: HTMLElement | null = null
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
@@ -197,6 +201,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			this.editor.setHTML(model.getBody())
 
 			const editorDom = this.editor.getDOM()
+
 			const contrastFixNeeded = isMailContrastFixNeeded(editorDom)
 			// If mail body cannot be displayed as-is on the dark background then apply the background and text color
 			// fix. This class will change tutanota-quote's inside of it.
@@ -205,6 +210,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			}
 
 			this.processInlineImages()
+			this.editor.squire.modifyDocument(() => {
+				this.processQuotedReply(editorDom)
+			})
 
 			// Add mutation observer to remove attachments when corresponding DOM element is removed
 			new MutationObserver(onEditorChanged).observe(this.editor.getDOM(), {
@@ -213,7 +221,14 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				subtree: true,
 			})
 			// since the editor is the source for the body text, the model won't know if the body has changed unless we tell it
-			this.editor.addChangeListener(() => model.setBody(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
+			this.editor.addChangeListener(() => {
+				const editorDom = this.editor.getDOM()
+				this.editor.squire.modifyDocument(() => {
+					// we process with modifyDocument to not raise an input event as that would cause and infinite loop
+					this.processQuotedReply(editorDom)
+				})
+				model.setBody(this.getBodyHtml(editorDom))
+			})
 			this.editor.addEventListener("pasteImage", ({ detail }: ImagePasteEvent) => {
 				const items = Array.from(detail.clipboardData.items)
 				const imageItems = items.filter((item) => /image/.test(item.type))
@@ -301,6 +316,70 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m.redraw()
 			})
 		})
+	}
+
+	private processQuotedReply(dom: HTMLElement) {
+		if (!this.collapseQuotedReply) {
+			return
+		}
+
+		const alreadyCollapsedReply = dom.querySelector("[tuta-collapsed-quote=true]")
+		const collapsableReply = dom.querySelector(".tutanota_quote .tutanota_quote")
+		if (collapsableReply != null) {
+			this.collapsedReply = collapsableReply as HTMLElement
+		}
+
+		const elementToReplace = collapsableReply ?? alreadyCollapsedReply
+		// we recreate the already collapsed reply to re-add the click handler that would otherwise be removed by undo
+		if (elementToReplace != null) {
+			const quoteWrap = document.createElement("div")
+			quoteWrap.setAttribute("tuta-collapsed-quote", "true")
+
+			elementToReplace.replaceWith(quoteWrap)
+
+			const quoteIndicator = document.createElement("div")
+			quoteIndicator.style.paddingLeft = "2px"
+			quoteIndicator.style.borderLeft = `2px solid ${theme.content_border}`
+
+			m.render(
+				quoteIndicator,
+				m(
+					".ml-button.fit-content",
+					{
+						style: {
+							borderRadius: "25%",
+							border: `1px solid ${theme.list_border}`,
+						},
+					},
+					m(IconButton, {
+						icon: Icons.More,
+						title: "showText_action",
+						size: size.button_height,
+						click: () => {
+							this.collapseQuotedReply = false
+							this.editor.squire.modifyDocument(() => {
+								if (this.collapsedReply != null) {
+									quoteWrap.replaceWith(this.collapsedReply)
+									this.collapsedReply = null
+								}
+							})
+						},
+					}),
+				),
+			)
+
+			quoteWrap.appendChild(quoteIndicator)
+		}
+	}
+
+	private getBodyHtml(editorDom: HTMLElement): string {
+		const modifiedDom = replaceInlineImagesWithCids(editorDom)
+		if (this.collapsedReply != null) {
+			const collapsedQuote = modifiedDom.querySelector("[tuta-collapsed-quote=true]")
+			// note that the user may have deleted the quote, but if not, we can expand it here
+			collapsedQuote?.replaceWith(this.collapsedReply)
+		}
+		return modifiedDom.innerHTML
 	}
 
 	private downloadInlineImage(model: SendMailModel, cid: string) {
