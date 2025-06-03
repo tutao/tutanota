@@ -229,6 +229,7 @@ export type ServerModelUntypedInstance = Distinct<UntypedInstance, ServerModelTy
 export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
+	_original?: this
 	_finalIvs?: Record<number, Nullable<Uint8Array>>
 	bucketKey?: null | BucketKey
 	_ownerGroup?: null | Id

@@ -16,6 +16,7 @@ import { ClientModelParsedInstance, ModelAssociation, ServerModelParsedInstance 
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
+import { GENERATED_MIN_ID } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 
 o.spec("ModelMapper", function () {
 	const modelMapper: ModelMapper = new ModelMapper(dummyResolver as ClientTypeReferenceResolver, dummyResolver as ServerTypeReferenceResolver)
@@ -79,8 +80,10 @@ o.spec("ModelMapper", function () {
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "some encrypted string",
 				5: new Date("2025-01-01T13:00:00.000Z"),
-				3: [{ 2: "123", 6: "123456", _finalIvs: {} } as unknown as ServerModelParsedInstance],
-				4: ["associatedListId"],
+				3: [{ 2: "123", 6: "123456", _finalIvs: {}, 9: [] } as unknown as ServerModelParsedInstance],
+				12: "generatedId",
+				13: ["listId", "elementId"],
+				4: ["associatedElementId"],
 				7: true,
 				8: [["listId", "listElementId"]],
 				_finalIvs: {},
@@ -88,17 +91,20 @@ o.spec("ModelMapper", function () {
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 
 			o(mappedInstance._type).deepEquals(TestTypeRef)
+			o(mappedInstance._id).deepEquals(["listId", "elementId"])
 			o(mappedInstance.testValue).equals("some encrypted string")
 			o(mappedInstance.testBoolean).equals(true)
 			o(mappedInstance.testDate.toISOString()).equals("2025-01-01T13:00:00.000Z")
-			o(mappedInstance.testAssociation).deepEquals({
+			o(mappedInstance.testAssociation[0]).deepEquals({
 				_type: TestAggregateRef,
 				_finalIvs: {},
 				testNumber: "123",
 				_id: "123456",
+				testSecondLevelAssociation: [],
 			})
-			o(mappedInstance.testListAssociation).equals("associatedListId")
-			o(mappedInstance.testListElementAssociation).deepEquals(["listId", "listElementId"])
+			o(mappedInstance.testElementAssociation).equals("associatedElementId")
+			o(mappedInstance.testGeneratedId).equals("generatedId")
+			o(mappedInstance.testListElementAssociation).deepEquals([["listId", "listElementId"]])
 			o(mappedInstance._finalIvs).deepEquals(parsedInstance._finalIvs)
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
@@ -141,16 +147,21 @@ o.spec("ModelMapper", function () {
 			const instance: TestEntity = {
 				_type: TestTypeRef,
 				_finalIvs: {},
-				testAssociation: {
-					_type: TestAggregateRef,
-					_finalIvs: {},
-					testNumber: "123456",
-				} as TestAggregate,
+				testAssociation: [
+					{
+						_type: TestAggregateRef,
+						_finalIvs: {},
+						testNumber: "123456",
+					} as TestAggregate,
+				],
 				testBoolean: false,
 				testDate: new Date("2025-01-01T13:00:00.000Z"),
-				testListAssociation: "associatedListId",
-				testListElementAssociation: ["listId", "listElementId"],
+				testElementAssociation: "associatedElementId",
+				testListElementAssociation: [["listId", "listElementId"]],
+				testZeroOrOneListElementAssociation: null,
 				testValue: "some encrypted string",
+				testGeneratedId: GENERATED_MIN_ID,
+				_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
 			}
 			const parsedInstance: ClientModelParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, instance)
 
@@ -161,7 +172,7 @@ o.spec("ModelMapper", function () {
 			o(testAssociation[2]).equals("123456")
 			o(testAssociation[6].length).deepEquals(6) // custom generated id
 			o(testAssociation._finalIvs).deepEquals({})
-			o(parsedInstance[4]).deepEquals(["associatedListId"])
+			o(parsedInstance[4]).deepEquals(["associatedElementId"])
 			o(parsedInstance._finalIvs).deepEquals(instance._finalIvs!)
 			o(typeof parsedInstance._errors).equals("undefined")
 		})

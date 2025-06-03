@@ -519,6 +519,7 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
 	newEvent._id = existingEvent._id
 	newEvent._ownerGroup = existingEvent._ownerGroup
 	newEvent._permissions = existingEvent._permissions
+	newEvent._original = existingEvent._original
 
 	return {
 		hasUpdateWorthyChanges: eventHasChanged(newEvent, existingEvent),

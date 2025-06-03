@@ -21,7 +21,7 @@ export const testTypeModel: TypeModel = {
 			encrypted: true,
 		},
 		"5": {
-			id: 1,
+			id: 5,
 			name: "testDate",
 			type: ValueType.Date,
 			cardinality: Cardinality.One,
@@ -29,12 +29,28 @@ export const testTypeModel: TypeModel = {
 			encrypted: false,
 		},
 		"7": {
-			id: 1,
+			id: 7,
 			name: "testBoolean",
 			type: ValueType.Boolean,
-			cardinality: Cardinality.One,
+			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
+		},
+		"12": {
+			id: 12,
+			name: "testGeneratedId",
+			type: ValueType.GeneratedId,
+			cardinality: Cardinality.One,
+			final: false,
+			encrypted: false,
+		},
+		"13": {
+			id: 12,
+			name: "_id",
+			type: ValueType.GeneratedId,
+			cardinality: Cardinality.One,
+			final: false,
+			encrypted: false,
 		},
 	},
 	associations: {
@@ -42,16 +58,16 @@ export const testTypeModel: TypeModel = {
 			id: 3,
 			name: "testAssociation",
 			type: AssociationType.Aggregation,
-			cardinality: Cardinality.One,
+			cardinality: Cardinality.Any,
 			refTypeId: 43,
 			final: false,
 			dependency: "tutanota",
 		},
 		"4": {
 			id: 4,
-			name: "testListAssociation",
-			type: AssociationType.ListAssociation,
-			cardinality: Cardinality.One,
+			name: "testElementAssociation",
+			type: AssociationType.ElementAssociation,
+			cardinality: Cardinality.ZeroOrOne,
 			refTypeId: 44,
 			final: false,
 			dependency: null,
@@ -60,7 +76,16 @@ export const testTypeModel: TypeModel = {
 			id: 8,
 			name: "testListElementAssociation",
 			type: AssociationType.ListElementAssociationGenerated,
-			cardinality: Cardinality.One,
+			cardinality: Cardinality.Any,
+			refTypeId: 44,
+			final: false,
+			dependency: null,
+		},
+		"14": {
+			id: 14,
+			name: "testZeroOrOneListElementAssociation",
+			type: AssociationType.ListElementAssociationGenerated,
+			cardinality: Cardinality.ZeroOrOne,
 			refTypeId: 44,
 			final: false,
 			dependency: null,
@@ -97,6 +122,48 @@ export const testAggregateModel: TypeModel = {
 			encrypted: false,
 		},
 	},
+	associations: {
+		"9": {
+			id: 9,
+			name: "testSecondLevelAssociation",
+			type: AssociationType.Aggregation,
+			cardinality: Cardinality.Any,
+			refTypeId: 44,
+			final: false,
+			dependency: "tutanota",
+		},
+	},
+	version: 0,
+	versioned: false,
+}
+
+export const testAggregateOnAggregateModel: TypeModel = {
+	app: "tutanota",
+	encrypted: true,
+	id: 44,
+	name: "TestAggregateOnAggregate",
+	rootId: "SoMeId",
+	since: 41,
+	type: Type.Aggregated,
+	isPublic: true,
+	values: {
+		"10": {
+			id: 10,
+			name: "testBytes",
+			type: ValueType.Bytes,
+			cardinality: Cardinality.ZeroOrOne,
+			final: false,
+			encrypted: false,
+		},
+		"11": {
+			id: 11,
+			name: "_id",
+			type: ValueType.CustomId,
+			cardinality: Cardinality.One,
+			final: true,
+			encrypted: false,
+		},
+	},
 	associations: {},
 	version: 0,
 	versioned: false,
@@ -104,24 +171,41 @@ export const testAggregateModel: TypeModel = {
 
 export const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 export const TestAggregateRef = new TypeRef<TestAggregate>("tutanota", 43)
+export const TestAggregateOnAggregateRef = new TypeRef<TestAggregateOnAggregate>("tutanota", 44)
+
+export type TestAggregateOnAggregate = Entity & {
+	_id: Id
+	testBytes: null | Uint8Array
+}
 
 export type TestAggregate = Entity & {
 	_id: Id
 	testNumber: NumberString
+	testSecondLevelAssociation: TestAggregateOnAggregate[]
 }
 
 export type TestEntity = Entity & {
+	_id: IdTuple
+	testGeneratedId: Id
 	testValue: string
 	testDate: Date
-	testBoolean: boolean
-	testAssociation: TestAggregate
-	testListAssociation: Id
-	testListElementAssociation: IdTuple
+	testBoolean: boolean | null
+	testAssociation: TestAggregate[]
+	testElementAssociation: Id | null
+	testListElementAssociation: IdTuple[]
+	testZeroOrOneListElementAssociation: IdTuple | null
 }
 
 export const dummyResolver = (tr: TypeRef<unknown>) => {
-	const model = tr.typeId === 42 ? testTypeModel : testAggregateModel
-	return Promise.resolve(model)
+	switch (tr.typeId) {
+		case 42:
+			return Promise.resolve(testTypeModel)
+		case 43:
+			return Promise.resolve(testAggregateModel)
+		case 44:
+			return Promise.resolve(testAggregateOnAggregateModel)
+	}
+	return Promise.resolve(testTypeModel)
 }
 
 export function createEncryptedValueType(
