@@ -1,35 +1,33 @@
 def publishToNexus(Map params) {
 	withCredentials([usernamePassword(credentialsId: 'nexus-publish', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
-		sh  "curl --silent --show-error --fail " +
-			"-u '${NEXUS_USERNAME}':'${NEXUS_PASSWORD}' " +
-			// IP points to http://next.tutao.de/nexus, but we can't use the hostname due to reverse proxy configuration
-			"-X POST 'http://[fd:aa::70]:8081/nexus/service/rest/v1/components?repository=releases' " +
-			"-F maven2.groupId=${params.groupId} " +
-			"-F maven2.artifactId=${params.artifactId} " +
-			"-F maven2.version=${params.version} " +
-			"-F maven2.generate-pom=false " +
-			"-F maven2.asset1=@${params.assetFilePath} " +
-			"-F maven2.asset1.extension=${params.fileExtension}"
+		sh "curl --silent --show-error --fail " +
+				"-u '${NEXUS_USERNAME}':'${NEXUS_PASSWORD}' " +
+				// IP points to http://next.tutao.de/nexus, but we can't use the hostname due to reverse proxy configuration
+				"-X POST 'http://[fd:aa::70]:8081/nexus/service/rest/v1/components?repository=releases' " +
+				"-F maven2.groupId=${params.groupId} " +
+				"-F maven2.artifactId=${params.artifactId} " +
+				"-F maven2.version=${params.version} " +
+				"-F maven2.generate-pom=false " +
+				"-F maven2.asset1=@${params.assetFilePath} " +
+				"-F maven2.asset1.extension=${params.fileExtension}"
 	}
 }
 
 def downloadFromNexus(Map params) {
 	withCredentials([usernamePassword(credentialsId: 'nexus-publish', usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
 		sh "mkdir -p \$(dirname ${params.outFile})"
-		sh  "curl -o ${params.outFile} --silent --show-error --fail " +
-			"-u '${NEXUS_USERNAME}':'${NEXUS_PASSWORD}' " +
-			// IP points to http://next.tutao.de/nexus, but we can't use the hostname due to reverse proxy configuration
-			"'http://[fd:aa::70]:8081/nexus/repository/releases/${params.groupId}/${params.artifactId}/${params.version}/${params.artifactId}-${params.version}.${params.fileExtension}' "
+		sh "curl -o ${params.outFile} --silent --show-error --fail " +
+				"-u '${NEXUS_USERNAME}':'${NEXUS_PASSWORD}' " +
+				// IP points to http://next.tutao.de/nexus, but we can't use the hostname due to reverse proxy configuration
+				"'http://[fd:aa::70]:8081/nexus/repository/releases/${params.groupId}/${params.artifactId}/${params.version}/${params.artifactId}-${params.version}.${params.fileExtension}' "
 	}
 }
 
 def checkGithub() {
-    sh """
-        if test "*/master" != "${params.branch}"; then
-            echo "this build was explicitly requested to not build off master"
-            exit 0
-        fi
-    """
+	if (params.branch != "*/master") {
+		println "this build was explicitly requested to not build off master: ${params.branch}"
+		return
+	}
 	sh '''
 	    # this fails if the public repository master's tip is not in our master.
 	    # we may have more commits, though.
@@ -41,7 +39,7 @@ def checkGithub() {
 }
 
 
-def runFastlane(String app_identifier, String  lane) {
+def runFastlane(String app_identifier, String lane) {
 	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
 	script {
 		def appfile = './app-ios/fastlane/Appfile'
