@@ -21,19 +21,29 @@ pipeline {
         label 'master'
     }
     stages {
-    	stage('Check Github') {
-			steps {
-				script {
-					def util = load "ci/jenkins-lib/util.groovy"
-					util.checkGithub()
-				}
-			}
-    	}
-        stage('Build') {
-            agent {
-                label 'linux'
-            }
+        stage('Check Github') {
             steps {
+                script {
+                    def util = load "ci/jenkins-lib/util.groovy"
+                    util.checkGithub()
+                }
+            }
+        }
+        stage('Build') {
+			agent {
+				dockerfile {
+					filename 'linux-build.dockerfile'
+					label 'master'
+					dir 'ci/containers'
+					additionalBuildArgs '--format docker'
+					args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z"
+				} // docker
+		    }
+
+            steps {
+                sh 'npm -v'
+                sh 'node -v'
+
             	sh 'npm ci'
             	sh 'npm run build-packages'
 				sh 'node webapp.js release'
