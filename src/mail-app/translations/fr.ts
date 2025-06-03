@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2025-05-30T10:51:55Z",
+	"updated_at": "2025-06-03T16:43:35Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -337,7 +337,6 @@ export default {
 		"contactsSynchronizationWarning_msg": "L'activation de la synchronisation des contacts partagera vos contacts Tuta avec d'autres applications auxquelles vous autorisez l'accès au carnet de contacts de votre téléphone. Vos contacts Tuta seront automatiquement synchronisés.",
 		"contactsSynchronization_label": "Synchronisation des contacts",
 		"contactSupport_action": "Contacter le support",
-		"contactsUsageDescription_msg": "1. Trouvez l'adresse e-mail du destinataire dans les contacts.\\n2. En option, synchronisez les contacts Tuta avec votre appareil.",
 		"contacts_label": "Contacts",
 		"contactView_action": "Consulter la page des contacts",
 		"contentBlocked_msg": "Le chargement automatique de l'image a été bloqué afin de protéger votre vie privée.",

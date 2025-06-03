@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-05-30T10:53:33Z",
+	"updated_at": "2025-06-03T17:06:31Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -341,7 +341,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Durch die Aktivierung der Kontaktsynchronisierung werden Ihre Tuta-Kontakte mit anderen Anwendungen geteilt, denen Sie Zugriff auf Ihr Telefonbuch erlauben. Ihre Tuta-Kontakte werden automatisch synchronisiert.",
 		"contactsSynchronization_label": "Kontaktsynchronisierung",
 		"contactSupport_action": "Support kontaktieren",
-		"contactsUsageDescription_msg": "1. Suche Empfänger-E-Mail-Adressen in Kontakten.\\n2. Synchronisieren von Tuta-Kontakte mit Ihrem Gerät, falls aktiviert.\\3. Synchronisieren von Kontakten in Ihrem Gerät mit Ihrem Tuta-Account, falls aktiviert.",
+		"contactsUsageDescription_msg": "Tuta kann Ihnen Vorschläge für Empfänger-E-Mail-Adressen aus Ihren Kontakten zeigen. Zusätzlich können Sie Tuta erlauben, Ihre Kontakte zwischen Ihrem Gerät und Ihrem Tuta-Account zu synchronisieren. Wenn Sie die Synchronisation in den Einstellungen erlauben, werden Ihre Kontakte sicher verschlüsselt hochgeladen und andere Apps können Ihre Tuta-Kontakte verwenden.",
 		"contacts_label": "Kontakte",
 		"contactView_action": "Zur Kontakt-Ansicht wechseln",
 		"contentBlocked_msg": "Das automatische Nachladen von Bildern wurde zum Schutz Ihrer Privatsphäre verhindert.",
@@ -1176,6 +1176,7 @@ export default {
 		"no_label": "Nein",
 		"npo50PercentDiscount_msg": "Angebot: 50% Rabatt!",
 		"occurrencesCount_label": "Anzahl der Vorkommnisse",
+		"offlineDbUnavailableNoTypes_msg": "Offline-Anmeldung ist gerade nicht verfügbar. Bitte verbinden Sie sich mit dem Internet und versuchen Sie es noch einmal.",
 		"offlineLoginPremiumOnly_msg": "Sie sind offline. Wechseln Sie zu einem bezahlten Account, um die Offline-Anmeldung zu aktivieren.",
 		"offline_label": "Offline",
 		"ok_action": "OK",
@@ -1602,6 +1603,7 @@ export default {
 		"searchDisabled_msg": "Ihr Browser unterstützt das Speichern von Daten nicht. Darum ist die Suche deaktiviert.",
 		"searchedUntil_msg": "Gesucht bis",
 		"searchEmails_placeholder": "Suche nach E-Mails",
+		"searchFilters_label": "Suchfilter",
 		"searchGroups_placeholder": "Suche nach Gruppen",
 		"searchInOurAppsLinkText_msg": "unsere Apps",
 		"searchInOurApps_msg": "Eine schnellere und bessere E-Mail-Suche ist unter {link} verfügbar!",
@@ -2034,7 +2036,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"offlineDbUnavailableNoTypes_msg": "Offline-Anmeldung ist gerade nicht verfügbar. Bitte verbinden Sie sich mit dem Internet und versuchen Sie es noch einmal."
+		"zoomOut_action": "Herauszoomen"
 	}
 }
