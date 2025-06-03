@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# run swift formatter on macos
+if [ "$(uname)" = "Darwin" ]; then
+    GIT_ROOT=$(git rev-parse --show-toplevel)
+    cd "$GIT_ROOT/app-ios" || exit 1 # lint.sh need .swift-format.json in current directory
+	sh -c "$GIT_ROOT/app-ios/lint.sh style:fix" || exit 1
+    sh -c "$GIT_ROOT/app-ios/lint.sh lint:check" || exit 1
+fi
+
 # pre-commit hook to check & fix formatting. does not deal with spaces in paths.
 # this runs very quickly, so no need to filter the files
 cargo fmt --all
