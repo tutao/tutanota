@@ -28,7 +28,7 @@ import {
 	TakeOverDeletedAddressService,
 	VerifierTokenService,
 } from "../../entities/sys/Services"
-import { AccountType, asKdfType, CloseEventBusOption, Const, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
+import { asKdfType, CloseEventBusOption, Const, DEFAULT_KDF_TYPE, KdfType } from "../../common/TutanotaConstants"
 import {
 	Challenge,
 	createChangeKdfPostIn,
@@ -88,7 +88,6 @@ import { SessionType } from "../../common/SessionType"
 import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
 import { AuthDataProvider, UserFacade } from "./UserFacade"
 import { LoginFailReason } from "../../main/PageContextLoginListener.js"
-import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -571,14 +570,10 @@ export class LoginFacade {
 		})
 		const sessionId = this.getSessionId(credentials)
 		try {
-			// using offline, free, have connection         -> sync login
-			// using offline, free, no connection           -> indicate that offline login is not for free customers
-			// using offline, premium, have connection      -> async login
-			// using offline, premium, no connection        -> async login w/ later retry
-			// no offline, free, have connection            -> sync login
-			// no offline, free, no connection              -> sync login, fail with connection error
-			// no offline, premium, have connection         -> sync login
-			// no offline, premium, no connection           -> sync login, fail with connection error
+			// using offline, have connection      -> async login
+			// using offline, no connection        -> async login w/ later retry
+			// no offline, have connection         -> sync login
+			// no offline, no connection           -> sync login, fail with connection error
 
 			// If a user enables offline storage for the first time, after already having saved credentials
 			// then upon their next login, they won't have an offline database available, meaning we have to do
@@ -586,40 +581,8 @@ export class LoginFacade {
 			// the next time they log in they will be able to do asynchronous login
 			if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
 				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
-				if (user.accountType !== AccountType.PAID) {
-					// if account is free do not start offline login/async login workflow.
-					// await before return to catch errors here
-					return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo).catch(
-						ofClass(ConnectionError, async () => {
-							await this.resetSession()
-							return {
-								type: "error",
-								reason: ResumeSessionErrorReason.OfflineNotAvailableForFree,
-								asyncResumeCompleted: null,
-							}
-						}),
-					)
-				}
+				const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 				this.userFacade.setUser(user)
-
-				// Temporary workaround for the transitional period
-				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
-				// This could lead to a situation where we never loaded or saved user groupInfo but would try to use it now.
-				// We can remove this after a few versions when the bulk of people who enabled offline will upgrade.
-				let userGroupInfo: GroupInfo
-				try {
-					userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
-				} catch (e) {
-					console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
-					if (e instanceof LoginIncompleteError) {
-						// await before return to catch the errors here
-						return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
-					} else {
-						// noinspection ExceptionCaughtLocallyJS: we want to make sure we go throw the same exit point
-						throw e
-					}
-				}
-
 				// Start full login async
 				const asyncResumeSession = Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
 				const data = {
