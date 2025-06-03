@@ -577,13 +577,13 @@ o.spec(
 			const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456" style="width: 150px;">`, {
 				usePlaceholderForInlineImages: false,
 			}).html
-			o(result).equals(`<img style="width: 150px; max-width: 100%;" src="cid:123456">`)
+			o(result).equals(`<img src="cid:123456" style="width: 150px; max-width: 100%;">`)
 		})
 		o("replace max-width for inline images", function () {
 			const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456" style="max-width: 60%;">`, {
 				usePlaceholderForInlineImages: false,
 			}).html
-			o(result).equals(`<img style="max-width: 100%;" src="cid:123456">`)
+			o(result).equals(`<img src="cid:123456" style="max-width: 100%;">`)
 		})
 		o("replace max-width for external images", function () {
 			const result = htmlSanitizer.sanitizeHTML(`<img src="https://tutanota.com/images/favicon/favicon.ico">`, {
@@ -631,7 +631,7 @@ o.spec(
 				const expectedSvgDocument =
 					'<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +
 					'<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n' +
-					'<polygon stroke="#004400" fill="#009900" points="0,0 0,50 50,0" id="triangle"/>\n' +
+					'<polygon id="triangle" points="0,0 0,50 50,0" fill="#009900" stroke="#004400"/>\n' +
 					"</svg>"
 				const xssDataFile = createDataFile("xss.svg", "image/svg+xml", stringToUtf8Uint8Array(svgDocumentWithXSS), "some-cid")
 				const sanitizedDataFile = htmlSanitizer.sanitizeInlineAttachment(xssDataFile)
