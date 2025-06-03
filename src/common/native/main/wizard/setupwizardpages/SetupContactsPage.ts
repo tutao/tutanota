@@ -7,6 +7,7 @@ import { ContactImporter } from "../../../../../mail-app/contacts/ContactImporte
 import { Dialog } from "../../../../gui/base/Dialog.js"
 import { MobileSystemFacade } from "../../../common/generatedipc/MobileSystemFacade.js"
 import { renderSettingsBannerButton } from "../../../../settings/SettingsBannerButton.js"
+import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../../../subscription/TermsAndConditions"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 	view({ attrs }: Vnode<SetupContactsPageAttrs>): Children {
@@ -30,6 +31,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 				isContactSyncEnabled,
 				"mb-l",
 			),
+			m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 		]
 	}
 
