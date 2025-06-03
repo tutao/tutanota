@@ -16,6 +16,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { styles } from "../../../common/gui/styles.js"
+import { formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -29,7 +30,7 @@ type InviteAgendaEvent = {
 	conflict: boolean
 }
 
-type InviteAgenda = { before: InviteAgendaEvent | null, after: InviteAgendaEvent | null }
+type InviteAgenda = { before: InviteAgendaEvent | null, after: InviteAgendaEvent | null, current: CalendarEvent | null }
 
 /**
  * displayed above a mail that contains a calendar invite.
@@ -42,17 +43,84 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	 * common ancestor, where these don't belong. */
 	private readonly ReplyButtons = new LazyLoaded(async () => (await import("../../../calendar-app/calendar/gui/eventpopup/EventPreviewView.js")).ReplyButtons)
 	private agenda: Map<CalendarEvent, InviteAgenda> = new Map()
+	private hasFinishedLoadingEvents = false
 
 	oncreate({ attrs }: Vnode<EventBannerAttrs>) {
 		this.getEvents(attrs).then((events) => {
 			this.agenda = events
+			this.hasFinishedLoadingEvents = true
 			m.redraw()
 		})
+	}
+
+	buildSkeleton() {
+		return m(".skeleton.rel", {
+				class: styles.isDesktopLayout() ? "half-width" : "w-full",
+			},
+			m(".border-radius-m.grid.clip.loading", {
+					style: styles.isSingleColumnLayout() ? {
+						"grid-template-columns": "min-content 1fr"
+					} : {
+						"grid-template-columns": "min-content 1fr 1fr"
+					}
+				},
+				[
+					m(".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.content-message-bg.border-content-message-bg.gap-vpad-s", [
+						m(".navigation-menu-icon-bg", {
+							style: {
+								width: "25px",
+								height: "30px"
+							}
+						}, ""),
+						m(".navigation-menu-icon-bg", {
+								style: {
+									width: "45px",
+									height: "50px"
+								}
+							},
+							""),
+					]),
+					m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.navigation-menu-bg.gap-vpad-s", [
+						m(".flex.items-center.content-message-bg", {
+							style: {
+								height: "30px",
+								width: "40%"
+							}
+						}, ""),
+						m(".flex.items-center.content-message-bg", {
+							style: {
+								height: "40px",
+								width: "75%"
+							}
+						}, ""),
+					]),
+					m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.navigation-menu-bg.border-content-message-bg.gap-vpad-s", {
+						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none fill-grid-row" : "border-left-sm",
+					}, [
+						m(".flex.items-center.content-message-bg", {
+							style: {
+								height: "30px",
+								width: "40%"
+							}
+						}, ""),
+						m(".flex.items-center.content-message-bg", {
+							style: {
+								height: "70px",
+								width: "55%"
+							}
+						}, ""),
+					]),
+				])
+		)
 	}
 
 	view({ attrs }: Vnode<EventBannerAttrs>): Children {
 		const { contents, mail } = attrs
 		if (contents == null || contents.events.length === 0) return null
+
+		if (!this.hasFinishedLoadingEvents) {
+			return this.buildSkeleton()
+		}
 
 		const messages = contents.events
 								 .map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
@@ -65,33 +133,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 								 .filter(isNotNull)
 
 		return messages.map(
-			({ event, message }) => this.buildEventBanner(event, this.agenda.get(event) ?? { before: null, after: null }, message),
-			// m("", [
-			// 	Array.from(this.agenda.entries()).map(([event, agenda]) => {
-			// 		const eventBefore = agenda.find((e) => e.event.startTime < event.startTime)
-			// 		const eventAfter = agenda.find((e) => e.event.startTime >= event.startTime)
-			//
-			// 		return m(".flex.flex-column", [
-			// 			m("", eventBefore ? `${eventBefore?.event.startTime.toLocaleTimeString()} - ${eventBefore?.event.endTime.toLocaleTimeString()} ${eventBefore?.event.summary}${eventBefore?.conflict ? " (Conflict)" : ""}` : "No event before"),
-			// 			m("", `${event.startTime.toLocaleTimeString()} - ${event.endTime.toTimeString()} ${event.summary}`),
-			// 			m("", eventAfter ? `${eventAfter?.event.startTime.toLocaleTimeString()} - ${eventAfter?.event.endTime.toLocaleTimeString()} ${eventAfter?.event.summary}${eventAfter?.conflict ? " (Conflict)" : ""}` : "No event after"),
-			// 		])
-			// 	}),
-			// 	m(InfoBanner, {
-			// 		message: () => message,
-			// 		type: BannerType.Info,
-			// 		icon: Icons.People,
-			// 		buttons: [
-			// 			{
-			// 				label: "viewEvent_action",
-			// 				click: (e, dom) =>
-			// 					import("../../../calendar-app/calendar/view/CalendarInvites.js").then(({ showEventDetails }) =>
-			// 						showEventDetails(event, dom.getBoundingClientRect(), mail),
-			// 					),
-			// 			},
-			// 		],
-			// 	} satisfies InfoBannerAttrs),
-			// ]),
+			({ event, message }) => this.buildEventBanner(event, this.agenda.get(event) ?? { before: null, after: null, current: null }, message),
 		)
 	}
 
@@ -100,35 +142,36 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		agenda: InviteAgenda,
 		message: Children,
 	) {
-		return m(".border-radius-top-left-m.border-radius-bottom-left-m.border-nota.border-sm.grid", {
+		return m(".border-radius-m.border-nota.border-sm.grid", {
 			class: styles.isSingleColumnLayout() ? "" : "fit-content",
 			style: styles.isSingleColumnLayout() ? { "grid-template-columns": "min-content 1fr" } : { "grid-template-columns": "min-content 1fr 1fr" }
 		}, [
 			m(".flex.flex-column.nota-bg.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center", [
 				m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { month: "short" })),
-				m("span.big.accent-fg.b", event.startTime.getDate()),
+				m("span.big.accent-fg.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
+				m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { year: "numeric" })),
 			]),
-			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.justify-center", [
-				m(".flex.items-center", [
+			m(".flex.flex-column.plr-vpad.pb.pt.justify-start", [
+				m(".flex", [
 					m(Icon, {
 						icon: BootIcons.Calendar,
 						container: "div",
-						class: "mr-xs",
-						style: { fill: theme.button_bubble_fg },
-						size: IconSize.Large,
+						class: "mr-xsm mt-xxs",
+						style: { fill: theme.content_button },
+						size: IconSize.Medium,
 					}),
 					m("span.b.h5", event.summary),
 				]),
 				event.organizer?.address
-					? m(".flex.items-center.small", [
-						m("span.b", "Who:"), // FIXME Add translation
-						m("span.ml-xsm", event.organizer?.address),
+					? m(".flex.items-center.small.mt-s", [
+						m("span.b", "When:"), // FIXME Add translation
+						m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
 					])
 					: null,
 				// FIXME Fix not displaying the attending status for the invitation (Accepted, Maybe or No)
 				message,
 			]),
-			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.border-nota", {
+			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.mt-s.border-nota", {
 				class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none fill-grid-row" : "border-left-sm",
 			}, [
 				m(".flex.flex-column", [
@@ -183,21 +226,27 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	private getMessage(event: CalendarEvent, mail: Mail, recipient: string, method: CalendarMethod): Children {
-		const ownAttendee = findAttendeeInAddresses(event.attendees, [recipient])
+		const shallowEvent = this.agenda.get(event)?.current
+		const ownAttendee = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
 		if (method === CalendarMethod.REQUEST && ownAttendee != null) {
 			// some mails contain more than one event that we want to be able to respond to
 			// separately.
-			if (isRepliedTo(mail) && ownAttendee.status !== CalendarAttendeeStatus.NEEDS_ACTION) {
-				return m(".align-self-start.start.small", lang.get("alreadyReplied_msg"))
-			} else if (this.ReplyButtons.isLoaded()) {
-				return m(this.ReplyButtons.getLoaded(), {
+			const children: Children = []
+
+			if (this.ReplyButtons.isLoaded()) {
+				children.push(m(this.ReplyButtons.getLoaded(), {
 					ownAttendee,
 					setParticipation: async (status: CalendarAttendeeStatus) => sendResponse(event, recipient, status, mail),
-				})
+				}))
 			} else {
 				this.ReplyButtons.reload().then(m.redraw)
-				return null
 			}
+
+			if (isRepliedTo(mail) && ownAttendee.status !== CalendarAttendeeStatus.NEEDS_ACTION) {
+				children.push(m(".align-self-start.start.small", lang.get("alreadyReplied_msg")))
+			}
+
+			return children
 		} else if (method === CalendarMethod.REPLY) {
 			return m(".pt.align-self-start.start.small", lang.get("eventNotificationUpdated_msg"))
 		} else {
@@ -266,7 +315,8 @@ export class EventBanner implements Component<EventBannerAttrs> {
 
 			let eventList: InviteAgenda = {
 				before: null,
-				after: null
+				after: null,
+				current: [...eventsForStartDay, ...eventsForEndDay].find((ev) => shallowIsSameEvent(ev, event)) ?? null
 			}
 
 			if (!closestConflictingEventBeforeStartTime) {

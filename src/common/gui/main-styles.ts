@@ -227,6 +227,12 @@ styles.registerStyle("main", () => {
 			margin: 0,
 			"font-weight": "normal",
 		},
+		".navigation-menu-bg": {
+			background: theme.navigation_menu_bg,
+		},
+		".navigation-menu-icon-bg": {
+			background: theme.navigation_menu_icon,
+		},
 		".nota-bg": {
 			background: theme.tuta_color_nota,
 		},
@@ -520,6 +526,10 @@ styles.registerStyle("main", () => {
 		},
 		".pr-vpad-l": {
 			"padding-right": px(size.vpad_large),
+		},
+		".plr-vpad": {
+			"padding-left": px(size.vpad),
+			"padding-right": px(size.vpad),
 		},
 		".pr-m": {
 			"padding-right": px(size.vpad),
@@ -1218,6 +1228,9 @@ styles.registerStyle("main", () => {
 		},
 		".border-radius-bottom-left-m": {
 			"border-bottom-left-radius": px(size.border_radius_medium),
+		},
+		".border-radius-bottom-right-m": {
+			"border-bottom-right-radius": px(size.border_radius_medium),
 		},
 		".border-radius-top-right-m": {
 			"border-top-right-radius": px(size.border_radius_medium),
@@ -2967,6 +2980,9 @@ styles.registerStyle("main", () => {
 			transform: "translate(0)",
 			"text-align": "center",
 		},
+		".lh-s": {
+			"line-height": 1,
+		},
 		".lh": {
 			"line-height": 1.375,
 		},
@@ -2976,5 +2992,27 @@ styles.registerStyle("main", () => {
 		pre: {
 			margin: 0,
 		},
+		".clip": {
+			overflow: "clip"
+		},
+		".loading:before": {
+			position: "absolute",
+			content: "\"\"",
+			width: "100%",
+			height: "100%",
+			top: "0",
+			left: "0",
+			background: "linear-gradient(100deg,rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, 0) 60%)",
+			"background-size": "200% 100%",
+			"background-position-x": "180%",
+			animation: "1.5s loading ease-in-out infinite",
+
+		},
+		"@keyframes loading": {
+			"to": {
+				"background-position-x":
+					"-20%;"
+			}
+		}
 	}
 })
