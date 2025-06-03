@@ -15,7 +15,7 @@ const module = process.argv[2]
 // we have a git commit as a version in dependencies, we want the actually resolved version number
 const version = packageJson.packages[`node_modules/${module}`].version
 const paths = await buildCachedLibPaths({
-	rootDir: "test",
+	rootDir: ".",
 	platform: "linux",
 	environment: "node",
 	versionedEnvironment: `node-${process.versions.modules}`,
