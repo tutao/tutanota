@@ -32,6 +32,7 @@
 		"fix": "npm run style:fix && npm run lint:fix"
 	},
 	"dependencies": {
+		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#79a5df33a67696b8748c9a9f31f7fe4b28527135",
 		"@tutao/node-mimimi": "287.250603.0",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@tutao/tuta-wasm-loader": "287.250603.0",
@@ -45,9 +46,8 @@
 		"@types/mithril": "2.0.11",
 		"@types/qrcode-svg": "1.1.4",
 		"@types/winreg": "1.2.36",
-		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#79a5df33a67696b8748c9a9f31f7fe4b28527135",
 		"cborg": "4.2.2",
-		"dompurify": "3.2.5",
+		"dompurify": "3.2.6",
 		"electron": "34.0.1",
 		"electron-updater": "6.3.4",
 		"jsqr": "1.4.0",
