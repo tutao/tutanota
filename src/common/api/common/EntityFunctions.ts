@@ -26,7 +26,14 @@ export const enum HttpMethod {
 	GET = "GET",
 	POST = "POST",
 	PUT = "PUT",
+	PATCH = "PATCH",
 	DELETE = "DELETE",
+}
+
+export const enum PatchOperationType {
+	ADD_ITEM = "0",
+	REMOVE_ITEM = "1",
+	REPLACE = "2",
 }
 
 export const enum MediaType {

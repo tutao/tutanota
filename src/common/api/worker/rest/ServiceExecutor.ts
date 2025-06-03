@@ -118,6 +118,8 @@ export class ServiceExecutor implements IServiceExecutor {
 				return (service as PutService)["put"]
 			case HttpMethod.DELETE:
 				return (service as DeleteService)["delete"]
+			case HttpMethod.PATCH:
+				throw new ProgrammingError("Services do not implement PATCH for now")
 		}
 	}
 

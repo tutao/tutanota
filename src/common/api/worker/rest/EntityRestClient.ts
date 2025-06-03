@@ -2,7 +2,6 @@ import type { RestClient, SuspensionBehavior } from "./RestClient"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { _verifyType, HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
-import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import {
 	ConnectionError,
 	InternalServerError,
@@ -26,11 +25,10 @@ import type {
 	TypeModel,
 	UntypedInstance,
 } from "../../common/EntityTypes"
-import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
+import { computePatchPayload, computePatches, elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { expandId } from "./DefaultEntityRestCache.js"
-import { QueuedBatch } from "../EventQueue.js"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 import { BlobServerUrl } from "../../entities/storage/TypeRefs.js"
@@ -45,6 +43,7 @@ import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { AttributeModel } from "../../common/AttributeModel"
 import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
+import { createPatchList, PatchListTypeRef } from "../../entities/sys/TypeRefs"
 
 assertWorkerOrNode()
 
@@ -596,12 +595,21 @@ export class EntityRestClient implements EntityRestInterface {
 			options?.ownerKeyProvider,
 		)
 		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instance)
+		// map and encrypt instance._original and the instance
+		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type, assertNotNull(instance._original))
+		const parsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type as TypeRef<any>, instance)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
+		const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
 		const untypedInstance = await this.instancePipeline.mapAndEncrypt(downcast(instance._type), instance, sessionKey)
-		await this.restClient.request(path, HttpMethod.PUT, {
+		// figure out differing fields and build the PATCH request payload
+		const patchList = await computePatchPayload(originalParsedInstance, parsedInstance, untypedInstance, typeModel, typeReferenceResolver)
+		// PatchList has no encrypted fields (sk == null)
+		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+		await this.restClient.request(path, HttpMethod.PATCH, {
 			baseUrl: options?.baseUrl,
 			queryParams,
 			headers,
-			body: JSON.stringify(untypedInstance),
+			body: JSON.stringify(patchPayload),
 			responseType: MediaType.Json,
 		})
 	}

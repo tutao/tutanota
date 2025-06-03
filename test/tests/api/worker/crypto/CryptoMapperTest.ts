@@ -223,9 +223,9 @@ o.spec("CryptoMapper", function () {
 		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
 		const encryptedInstance: ServerModelEncryptedParsedInstance = {
 			1: "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj",
-			3: [{ 2: "123", 6: "someCustomId" }],
+			3: [{ 2: "123", 6: "someCustomId", 9: [] }],
 			7: "AWBaC3ipyi9kxJn7USkbW1SLXPjgU8T5YqpIP/dmTbyRwtXFU9tQbYBm12gNpI9KJfwO14FN25hjC3SlngSBlzs=",
-			4: ["associatedListId"],
+			4: ["associatedElementId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
 		const expectedFinalIv = new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233])
@@ -235,7 +235,7 @@ o.spec("CryptoMapper", function () {
 		o((decryptedInstance[5] as Date).toISOString()).equals("2025-01-01T13:00:00.000Z")
 
 		o(decryptedInstance[3]![0][2]).equals("123")
-		o(decryptedInstance[4]![0]).equals("associatedListId")
+		o(decryptedInstance[4]![0]).equals("associatedElementId")
 		o(typeof decryptedInstance._finalIvs[7]).equals("undefined")
 		o(Array.from(decryptedInstance["_finalIvs"][1] as Uint8Array)).deepEquals(Array.from(expectedFinalIv))
 		o(typeof decryptedInstance._errors).equals("undefined")
@@ -248,8 +248,8 @@ o.spec("CryptoMapper", function () {
 			5: new Date("2025-01-01T13:00:00.000Z"),
 			7: true,
 			// 6 is _id and will be generated
-			3: [{ 2: "123", 6: "aggregateId" }],
-			4: ["associatedListId"],
+			3: [{ 2: "123", 6: "aggregateId", 9: [] }],
+			4: ["associatedElementId"],
 			_finalIvs: { 1: new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233]) },
 		} as unknown as ClientModelParsedInstance
 		const encryptedInstance = await cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, sk)
@@ -265,14 +265,14 @@ o.spec("CryptoMapper", function () {
 		o(encryptedAggregate[2]).equals(parsedInstance[3]![0][2] as string)
 		o(encryptedAggregate[6]).equals("aggregateId")
 		o(encryptedAggregate[2])
-		o(encryptedInstance[4]![0]).equals("associatedListId")
+		o(encryptedInstance[4]![0]).equals("associatedElementId")
 	})
 
 	o("decryptParsedInstance with missing sk sets _errors", async function () {
 		const encryptedInstance: ServerModelEncryptedParsedInstance = {
 			1: "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj",
-			3: [{ 2: "123", 6: "someCustomId" }],
-			4: ["associatedListId"],
+			3: [{ 2: "123", 6: "someCustomId", 9: [] }],
+			4: ["associatedElementId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
 		const instance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, null)
@@ -285,8 +285,8 @@ o.spec("CryptoMapper", function () {
 			1: "encrypted string",
 			5: new Date("2025-01-01T13:00:00.000Z"),
 			// 6 is _id and will be generated
-			3: [{ 2: "123" }],
-			4: ["associatedListId"],
+			3: [{ 2: "123", 9: [] }],
+			4: ["associatedElementId"],
 			_finalIvs: { 1: new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233]) },
 		} as unknown as ClientModelParsedInstance
 		await assertThrows(CryptoError, () => cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, null))
@@ -297,8 +297,8 @@ o.spec("CryptoMapper", function () {
 
 		const encryptedInstance: ServerModelEncryptedParsedInstance = {
 			1: "",
-			3: [{ 2: "123", 6: "someCustomId" }],
-			4: ["associatedListId"],
+			3: [{ 2: "123", 6: "someCustomId", 9: [] }],
+			4: ["associatedElementId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
 
@@ -314,8 +314,8 @@ o.spec("CryptoMapper", function () {
 			1: "",
 			5: new Date("2025-01-01T13:00:00.000Z"),
 			// 6 is _id and will be generated
-			3: [{ 2: "123" }],
-			4: ["associatedListId"],
+			3: [{ 2: "123", 9: [] }],
+			4: ["associatedElementId"],
 			_finalIvs: { 1: null },
 		} as unknown as ClientModelParsedInstance
 
@@ -327,8 +327,8 @@ o.spec("CryptoMapper", function () {
 		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
 		const encryptedInstance: ServerModelEncryptedParsedInstance = {
 			1: "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2pmlpWEhgG5iwzqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj",
-			3: [{ 2: "123", 6: "someCustomId" }],
-			4: ["associatedListId"],
+			3: [{ 2: "123", 6: "someCustomId", 9: [] }],
+			4: ["associatedElementId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
 

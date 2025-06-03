@@ -16,6 +16,7 @@ import { type fetch as undiciFetch, type Response } from "undici"
 import { Cardinality, ValueType } from "../../src/common/api/common/EntityConstants.js"
 import { InstancePipeline } from "../../src/common/api/worker/crypto/InstancePipeline"
 import { ModelMapper } from "../../src/common/api/worker/crypto/ModelMapper"
+import { dummyResolver } from "./api/worker/crypto/InstancePipelineTestUtils"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -200,6 +201,16 @@ export function createTestEntity<T extends Entity>(typeRef: TypeRef<T>, values?:
 	}
 }
 
+export async function createTestEntityWithDummyResolver<T extends Entity>(typeRef: TypeRef<T>, values?: Partial<T>): Promise<T> {
+	const typeModel = await dummyResolver(typeRef)
+	const entity = create(typeModel, typeRef, getDefaultTestValue)
+	if (values) {
+		return Object.assign(entity, values)
+	} else {
+		return entity
+	}
+}
+
 export function mockFetchRequest(mock: typeof undiciFetch, url: string, headers: Record<string, string>, status: number, jsonObject: unknown): Promise<void> {
 	const response = object<Writeable<Response>>()
 	response.ok = status >= 200 && status < 300
@@ -267,6 +278,21 @@ export function removeAggregateIds(instance: Entity, aggregate: boolean = false)
 	}
 	return instance
 }
+
+export function removeOriginalField(instance: Entity, isRootLevel: boolean = true): Entity {
+	if (!isRootLevel && instance["_original"]) {
+		delete instance["_original"]
+	}
+	const keys = Object.keys(instance)
+	for (const key of keys) {
+		const maybeAggregate = instance[key]
+		if (maybeAggregate instanceof Object) {
+			removeOriginalField(maybeAggregate, false)
+		}
+	}
+	return instance
+}
+
 export function clientModelAsServerModel(clientModel: ClientModelInfo): ServerModelInfo {
 	let models = Object.keys(clientModel.typeModels).reduce((obj, app) => {
 		Object.assign(obj, {

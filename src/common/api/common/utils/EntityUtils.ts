@@ -1,4 +1,6 @@
 import {
+	arrayEquals,
+	assertNotNull,
 	base64ExtToBase64,
 	base64ToBase64Ext,
 	base64ToBase64Url,
@@ -16,10 +18,23 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { Cardinality, Type, ValueType } from "../EntityConstants.js"
-import type { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "../EntityTypes"
-import { TimeRange } from "../../../../mail-app/workerUtils/index/BulkMailLoader"
-import { random } from "@tutao/tutanota-crypto"
+import { Cardinality, ValueType } from "../EntityConstants.js"
+import {
+	ClientModelEncryptedParsedInstance,
+	ClientModelParsedInstance,
+	ClientModelUntypedInstance,
+	ElementEntity,
+	Entity,
+	ModelValue,
+	ParsedValue,
+	SomeEntity,
+	TypeModel,
+	UntypedValue,
+} from "../EntityTypes"
+import { ClientTypeReferenceResolver, PatchOperationType } from "../EntityFunctions"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { AttributeModel } from "../AttributeModel"
+import { createPatch, createPatchList, Patch, PatchList } from "../../entities/sys/TypeRefs"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -63,7 +78,7 @@ export const DELETE_MULTIPLE_LIMIT = 100
  */
 export type Stripped<T extends Partial<SomeEntity>> = Omit<
 	T,
-	"_id" | "_area" | "_owner" | "_ownerGroup" | "_ownerEncSessionKey" | "_ownerKeyVersion" | "_permissions" | "_errors" | "_format" | "_type"
+	"_id" | "_area" | "_owner" | "_ownerGroup" | "_ownerEncSessionKey" | "_ownerKeyVersion" | "_permissions" | "_errors" | "_format" | "_type" | "_original"
 >
 
 type OptionalEntity<T extends Entity> = T & {
@@ -72,7 +87,20 @@ type OptionalEntity<T extends Entity> = T & {
 }
 
 export type StrippedEntity<T extends Entity> =
-	| Omit<T, "_id" | "_ownerGroup" | "_ownerEncSessionKey" | "_ownerKeyVersion" | "_permissions" | "_errors" | "_format" | "_type" | "_area" | "_owner">
+	| Omit<
+			T,
+			| "_id"
+			| "_ownerGroup"
+			| "_ownerEncSessionKey"
+			| "_ownerKeyVersion"
+			| "_permissions"
+			| "_errors"
+			| "_format"
+			| "_type"
+			| "_area"
+			| "_owner"
+			| "_original"
+	  >
 	| OptionalEntity<T>
 
 /**
@@ -264,8 +292,215 @@ export function create<T>(typeModel: TypeModel, typeRef: TypeRef<T>, createDefau
 			i[association.name] = null
 		}
 	}
-
 	return i as T
+}
+
+export function areValuesDifferent(
+	valueType: Values<typeof ValueType>,
+	originalParsedValue: Nullable<ParsedValue>,
+	currentParsedValue: Nullable<ParsedValue>,
+): boolean {
+	if (originalParsedValue === null && currentParsedValue === null) {
+		return false
+	}
+	const valueChangedToOrFromNull =
+		(originalParsedValue === null && currentParsedValue !== null) || (currentParsedValue === null && originalParsedValue !== null)
+	if (valueChangedToOrFromNull) {
+		return true
+	}
+
+	switch (valueType) {
+		case ValueType.Bytes:
+			return !arrayEquals(originalParsedValue as Uint8Array, currentParsedValue as Uint8Array)
+		case ValueType.Date:
+			return originalParsedValue?.valueOf() !== currentParsedValue?.valueOf()
+		case ValueType.Number:
+		case ValueType.String:
+		case ValueType.Boolean:
+		case ValueType.CompressedString:
+			return originalParsedValue !== currentParsedValue
+		case ValueType.CustomId:
+		case ValueType.GeneratedId:
+			if (typeof originalParsedValue === "string") {
+				return !isSameId(originalParsedValue as Id, currentParsedValue as Id)
+			} else if (typeof originalParsedValue === "object") {
+				return !isSameId(originalParsedValue as IdTuple, currentParsedValue as IdTuple)
+			}
+	}
+
+	return false
+}
+
+export async function computePatchPayload(
+	originalInstance: ClientModelParsedInstance | ClientModelEncryptedParsedInstance,
+	currentInstance: ClientModelParsedInstance | ClientModelEncryptedParsedInstance,
+	currentUntypedInstance: ClientModelUntypedInstance,
+	typeModel: TypeModel,
+	typeReferenceResolver: ClientTypeReferenceResolver,
+): Promise<PatchList> {
+	const patches = await computePatches(originalInstance, currentInstance, currentUntypedInstance, typeModel, typeReferenceResolver)
+	return createPatchList({ patches: patches })
+}
+
+export async function computePatches(
+	originalInstance: ClientModelParsedInstance | ClientModelEncryptedParsedInstance,
+	currentInstance: ClientModelParsedInstance | ClientModelEncryptedParsedInstance,
+	currentUntypedInstance: ClientModelUntypedInstance,
+	typeModel: TypeModel,
+	typeReferenceResolver: ClientTypeReferenceResolver,
+): Promise<Patch[]> {
+	currentUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(currentUntypedInstance)
+	let patches: Patch[] = []
+	for (const [valueIdStr, modelValue] of Object.entries(typeModel.values)) {
+		if (modelValue.final && !(modelValue.name == "_ownerEncSessionKey" || modelValue.name == "_ownerKeyVersion")) {
+			continue
+		}
+		const attributeId = parseInt(valueIdStr)
+		let originalParsedValue = originalInstance[attributeId] as Nullable<ParsedValue>
+		let currentParsedValue = currentInstance[attributeId] as Nullable<ParsedValue>
+		let currentUntypedValue = currentUntypedInstance[attributeId] as UntypedValue
+		if (areValuesDifferent(modelValue.type, originalParsedValue, currentParsedValue)) {
+			if (currentUntypedValue !== null) {
+				patches.push(
+					createPatch({
+						attributePath: valueIdStr,
+						value: typeof currentUntypedValue === "object" ? JSON.stringify(currentUntypedValue) : currentUntypedValue,
+						patchOperation: PatchOperationType.REPLACE,
+					}),
+				)
+			} else {
+				patches.push(
+					createPatch({
+						attributePath: valueIdStr,
+						value: null,
+						patchOperation: PatchOperationType.REPLACE,
+					}),
+				)
+			}
+		}
+	}
+
+	for (const [associationIdStr, modelAssociation] of Object.entries(typeModel.associations)) {
+		if (modelAssociation.final) {
+			continue
+		}
+		const attributeId = parseInt(associationIdStr)
+		if (modelAssociation.type == "AGGREGATION") {
+			const appName = modelAssociation.dependency ?? typeModel.app
+			const typeId = modelAssociation.refTypeId
+			const aggregateTypeModel = await typeReferenceResolver(new TypeRef(appName, typeId))
+			const originalAggregatedEntities = (originalInstance[attributeId] ?? []) as Array<ClientModelParsedInstance>
+			const currentAggregatedEntities = (currentInstance[attributeId] ?? []) as Array<ClientModelParsedInstance>
+			const currentAggregatedUntypedEntities = (currentUntypedInstance[attributeId] ?? []) as Array<ClientModelUntypedInstance>
+			const addedItems = currentAggregatedUntypedEntities.filter(
+				(element) =>
+					!originalAggregatedEntities.some((item) => {
+						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+						return isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeId] as Id)
+					}),
+			)
+
+			const removedItems = originalAggregatedEntities.filter(
+				(element) =>
+					!currentAggregatedEntities.some((item) => {
+						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+						return isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeId] as Id)
+					}),
+			)
+
+			const commonItems = originalAggregatedEntities.filter(
+				(element) =>
+					!removedItems.some((item) => {
+						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+						return isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeId] as Id)
+					}),
+			)
+
+			const commonAggregateIds = commonItems.map((instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id)
+
+			const removedAggregateIds = removedItems.map((instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id)
+			for (let commonAggregateId of commonAggregateIds) {
+				const commonItemOriginal = assertNotNull(
+					originalAggregatedEntities.find((instance) => {
+						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
+					}),
+				)
+				const commonItemCurrent = assertNotNull(
+					currentAggregatedEntities.find((instance) => {
+						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
+					}),
+				)
+				const commonItemCurrentUntyped = assertNotNull(
+					currentAggregatedUntypedEntities.find((instance) => {
+						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
+					}),
+				)
+				const fullPath = `${attributeId}/${commonAggregateId}/`
+				const items = await computePatches(commonItemOriginal, commonItemCurrent, commonItemCurrentUntyped, aggregateTypeModel, typeReferenceResolver)
+				items.map((item) => {
+					item.attributePath = fullPath + item.attributePath
+				})
+				patches = patches.concat(items)
+			}
+			if (addedItems.length > 0) {
+				patches.push(
+					createPatch({
+						attributePath: attributeId.toString(),
+						value: JSON.stringify(addedItems),
+						patchOperation: PatchOperationType.ADD_ITEM,
+					}),
+				)
+			}
+			if (removedItems.length > 0) {
+				patches.push(
+					createPatch({
+						attributePath: attributeId.toString(),
+						value: JSON.stringify(removedAggregateIds),
+						patchOperation: PatchOperationType.REMOVE_ITEM,
+					}),
+				)
+			}
+		} else {
+			const originalAssociationValue = (originalInstance[attributeId] ?? []) as Array<Id | IdTuple>
+			const currentAssociationValue = (currentInstance[attributeId] ?? []) as Array<Id | IdTuple>
+			const addedItems = currentAssociationValue.filter((element) => !originalAssociationValue.some((item) => isSameId(item, element)))
+			const removedItems = originalAssociationValue.filter((element) => !currentAssociationValue.some((item) => isSameId(item, element)))
+
+			if (modelAssociation.cardinality == Cardinality.Any) {
+				if (addedItems.length > 0) {
+					patches.push(
+						createPatch({
+							attributePath: attributeId.toString(),
+							value: JSON.stringify(addedItems),
+							patchOperation: PatchOperationType.ADD_ITEM,
+						}),
+					)
+				}
+				if (removedItems.length > 0) {
+					patches.push(
+						createPatch({
+							attributePath: attributeId.toString(),
+							value: JSON.stringify(removedItems),
+							patchOperation: PatchOperationType.REMOVE_ITEM,
+						}),
+					)
+				}
+			} else if (!arrayEquals(originalAssociationValue, currentAssociationValue)) {
+				patches.push(
+					createPatch({
+						attributePath: attributeId.toString(),
+						value: JSON.stringify(addedItems),
+						patchOperation: PatchOperationType.REPLACE,
+					}),
+				)
+			}
+		}
+	}
+
+	return patches
 }
 
 function _getDefaultValue(valueName: string, value: ModelValue): any {

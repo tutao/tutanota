@@ -15,7 +15,7 @@ import { AttributeModel } from "../../../../../src/common/api/common/AttributeMo
 
 const serverModelUntypedInstanceNetworkDebugging: ServerModelUntypedInstance = {
 	"1:testValue": "test string",
-	"3:testAssociation": [{ "2:testNumber": "123" }],
+	"3:testAssociation": [{ "2:testNumber": "123", "9:testSecondLevelAssociation": [] }],
 	"4:testListAssociation": ["assocId"],
 	"5:testDate": "1735736415000",
 	"7:testBoolean": "encryptedBool",
@@ -23,7 +23,7 @@ const serverModelUntypedInstanceNetworkDebugging: ServerModelUntypedInstance = {
 
 const serverModelUntypedInstance: ServerModelUntypedInstance = {
 	"1": "test string",
-	"3": [{ "2": "123" }],
+	"3": [{ "2": "123", 9: [] }],
 	"4": ["assocId"],
 	"5": "1735736415000",
 	"7": "encryptedBool",
@@ -31,7 +31,7 @@ const serverModelUntypedInstance: ServerModelUntypedInstance = {
 
 const clientModelEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {
 	"1": "base64EncodedString",
-	"3": [{ "2": "123" }],
+	"3": [{ "2": "123", 9: [] }],
 	"4": ["assocId"],
 	"5": new Date("2025-01-01T13:00:15Z"),
 	"7": "encryptedBool",
@@ -39,7 +39,7 @@ const clientModelEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {
 
 const faultyEncryptedParsedInstance: ClientModelEncryptedParsedInstance = {
 	"1": new Uint8Array(2),
-	"3": [{ "2": "123" }],
+	"3": [{ "2": "123", 9: [] }],
 	"4": ["assocId"],
 	"5": new Date("2025-01-01T13:00:15Z"),
 } as unknown as ClientModelEncryptedParsedInstance
