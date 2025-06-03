@@ -54,5 +54,5 @@ export function convertHeaders(headers: globalThis.Headers): UndiciHeadersInit {
  * this fixes up the type of just those fields and should be relatively safe even if undici changes their response type.
  */
 export function toGlobalResponse(response: FetchResult): globalThis.Response {
-	return response as typeof response & Pick<globalThis.Response, "formData" | "clone">
+	return response as globalThis.Response
 }
