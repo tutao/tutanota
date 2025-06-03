@@ -1581,6 +1581,7 @@ export type TranslationKeyType =
 	| "searchDisabled_msg"
 	| "searchedUntil_msg"
 	| "searchEmails_placeholder"
+	| "searchFilters_label"
 	| "searchGroups_placeholder"
 	| "searchInOurAppsLinkText_msg"
 	| "searchInOurApps_msg"
@@ -2015,4 +2016,3 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
-	| "offlineDbUnavailableNoTypes_msg"

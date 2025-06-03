@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-05-30T10:53:49Z",
+	"updated_at": "2025-06-03T16:44:39Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -341,7 +341,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Durch die Aktivierung der Kontaktsynchronisierung werden deine Tuta-Kontakte mit anderen Anwendungen geteilt, denen du Zugriff auf dein Telefonbuch erlaubst. Deine Tuta-Kontakte werden automatisch synchronisiert.",
 		"contactsSynchronization_label": "Kontaktsynchronisierung",
 		"contactSupport_action": "Support kontaktieren",
-		"contactsUsageDescription_msg": "1. Suche Empfänger-E-Mail-Adressen in Kontakten.\\n2. Synchronisieren von Tuta-Kontakten mit deinem Gerät, falls aktiviert.\\n3. Synchronisieren von Kontakten in deinem Gerät mit deinem Tuta-Account, falls aktiviert.",
+		"contactsUsageDescription_msg": "Tuta kann dir Vorschläge für Empfänger-E-Mail-Adressen aus deinen Kontakten zeigen. Zusätzlich kannst du Tuta erlauben, deine Kontakte zwischen deinem Gerät und deinem Tuta-Account zu synchronisieren. Wenn du die Synchronisation in den Einstellungen erlaubst, werden deine Kontakte sicher verschlüsselt hochgeladen und andere Apps können deine Tuta-Kontakte verwenden.",
 		"contacts_label": "Kontakte",
 		"contactView_action": "Zur Kontakt-Ansicht wechseln",
 		"contentBlocked_msg": "Das automatische Nachladen von Bildern wurde zum Schutz deiner Privatsphäre verhindert.",
@@ -1602,6 +1602,7 @@ export default {
 		"searchDisabled_msg": "Dein Browser unterstützt das Speichern von Daten nicht. Darum ist die Suche deaktiviert.",
 		"searchedUntil_msg": "Gesucht bis",
 		"searchEmails_placeholder": "Suche nach E-Mails",
+		"searchFilters_label": "Suchfilter",
 		"searchGroups_placeholder": "Suche nach Gruppen",
 		"searchInOurAppsLinkText_msg": "unsere Apps",
 		"searchInOurApps_msg": "Eine schnellere und bessere E-Mail-Suche ist unter {link} verfügbar!",
@@ -2034,7 +2035,6 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"offlineDbUnavailableNoTypes_msg": "Offline-Anmeldung ist gerade nicht verfügbar. Bitte verbinde dich mit dem Internet und versuche es noch einmal."
+		"zoomOut_action": "Herauszoomen"
 	}
 }
