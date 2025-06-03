@@ -296,9 +296,11 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			: this.getSelectedContacts().length === 0 || this.contactViewModel.listModel.state.inMultiselect
 	}
 
-	view({ attrs }: Vnode<ContactViewAttrs>): Children {
+	oninit() {
 		this.getContactListInvitationRows()
+	}
 
+	view({ attrs }: Vnode<ContactViewAttrs>): Children {
 		return m(
 			"#contact.main-view",
 			m(this.viewSlider, {
