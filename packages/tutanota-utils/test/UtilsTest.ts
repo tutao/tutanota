@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import { clone, deepEqual, getChangedProps, memoized } from "../lib/Utils.js"
-import { arrayEquals } from "../lib/index.js"
+import { clone, deepEqual, getChangedProps } from "../lib/Utils.js"
+import { arrayEquals, memoized } from "../lib/index.js"
 import { func, matchers, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 

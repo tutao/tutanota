@@ -143,9 +143,7 @@ export {
 	isNotNull,
 	downcast,
 	clone,
-	lazyMemoized,
 	makeSingleUse,
-	memoized,
 	identity,
 	noOp,
 	debounce,
@@ -168,7 +166,6 @@ export {
 	mapNullable,
 	mapObject,
 	Require,
-	memoizedWithHiddenArgument,
 	BoundedExecutor,
 	freshVersioned,
 	isKeyVersion,
@@ -206,3 +203,4 @@ export { mod, clamp } from "./MathUtils.js"
 export { renderCsv } from "./Csv.js"
 
 export { tokenize } from "./Tokenizer.js"
+export { memoizedWithHiddenArgument, memoized, lazyMemoized } from "./memoized.js"
