@@ -26,7 +26,7 @@ import {
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
 import { HttpMethod, TypeModelResolver } from "../../common/EntityFunctions"
-import type { BucketPermission, GroupMembership, InstanceSessionKey, Permission } from "../../entities/sys/TypeRefs.js"
+import { BucketPermission, GroupMembership, InstanceSessionKey, PatchListTypeRef, Permission } from "../../entities/sys/TypeRefs.js"
 import {
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
@@ -73,7 +73,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
+import { computePatchPayload, elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -774,6 +774,7 @@ export class CryptoFacade {
 
 	private async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
 		const newOwnerEncSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
+		const oldInstance = structuredClone(instance)
 		this.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
 
 		const id = instance._id
@@ -787,10 +788,20 @@ export class CryptoFacade {
 			instance.encryptedParsedInstance as ClientModelEncryptedParsedInstance,
 		)
 
+		const patchList = await computePatchPayload(
+			oldInstance.encryptedParsedInstance as ClientModelEncryptedParsedInstance,
+			instance.encryptedParsedInstance as ClientModelEncryptedParsedInstance,
+			untypedInstance,
+			instance.typeModel,
+			this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver),
+		)
+
+		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+
 		await this.restClient
-			.request(path, HttpMethod.PUT, {
+			.request(path, HttpMethod.PATCH, {
 				headers,
-				body: JSON.stringify(untypedInstance),
+				body: JSON.stringify(patchPayload),
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(

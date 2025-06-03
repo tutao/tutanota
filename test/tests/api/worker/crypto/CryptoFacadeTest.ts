@@ -411,7 +411,7 @@ o.spec("CryptoFacadeTest", function () {
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
 
 		when(userFacade.createAuthHeaders()).thenReturn({})
-		when(restClient.request(anything(), HttpMethod.PUT, anything())).thenResolve(undefined)
+		when(restClient.request(anything(), HttpMethod.PATCH, anything())).thenResolve(undefined)
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
 		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 
@@ -493,7 +493,7 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
 		when(userFacade.createAuthHeaders()).thenReturn({})
-		when(restClient.request(anything(), HttpMethod.PUT, anything())).thenResolve(undefined)
+		when(restClient.request(anything(), HttpMethod.PATCH, anything())).thenResolve(undefined)
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
 		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 
@@ -566,7 +566,7 @@ o.spec("CryptoFacadeTest", function () {
 			),
 		).thenResolve({ decryptedAesKey: bk, senderIdentityPubKey: senderIdentityKeyPair.publicKey })
 		when(userFacade.createAuthHeaders()).thenReturn({})
-		when(restClient.request(anything(), HttpMethod.PUT, anything())).thenResolve(undefined)
+		when(restClient.request(anything(), HttpMethod.PATCH, anything())).thenResolve(undefined)
 		when(
 			asymmetricCryptoFacade.authenticateSender(
 				{

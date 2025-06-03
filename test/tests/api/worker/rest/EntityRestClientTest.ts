@@ -8,8 +8,14 @@ import {
 } from "../../../../../src/common/api/common/error/RestError.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { SetupMultipleError } from "../../../../../src/common/api/common/error/SetupMultipleError.js"
-import { HttpMethod, MediaType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { AccountingInfoTypeRef, CustomerTypeRef, GroupMemberTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { HttpMethod, MediaType, PatchOperationType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
+import {
+	AccountingInfoTypeRef,
+	createPatchList,
+	CustomerTypeRef,
+	GroupMemberTypeRef,
+	PatchListTypeRef,
+} from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { doBlobRequestWithRetry, EntityRestClient, tryServers, typeModelToRestPath } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
@@ -19,7 +25,18 @@ import sysModelInfo from "../../../../../src/common/api/entities/sys/ModelInfo.j
 import { AuthDataProvider, UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
 import { BlobServerAccessInfoTypeRef, BlobServerUrlTypeRef } from "../../../../../src/common/api/entities/storage/TypeRefs.js"
-import { Base64, base64ToUint8Array, deepEqual, KeyVersion, Mapper, ofClass, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	Base64,
+	base64ToUint8Array,
+	deepEqual,
+	KeyVersion,
+	Mapper,
+	ofClass,
+	promiseMap,
+	TypeRef,
+	uint8ArrayToBase64,
+} from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { BlobAccessTokenFacade } from "../../../../../src/common/api/worker/facades/BlobAccessTokenFacade.js"
 import {
@@ -1125,11 +1142,13 @@ o.spec("EntityRestClient", function () {
 			const newSupportData = createTestEntity(SupportDataTypeRef, {
 				_id: "id",
 			})
-			const untypedSupportData = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, newSupportData, null)
+			newSupportData._original = structuredClone(newSupportData)
+			const patchPayload = createPatchList({ patches: [] })
+			const untypedPatchPayload = await instancePipeline.mapAndEncrypt(PatchListTypeRef, patchPayload, null)
 			when(
-				restClient.request("/rest/tutanota/supportdata/id", HttpMethod.PUT, {
+				restClient.request("/rest/tutanota/supportdata/id", HttpMethod.PATCH, {
 					headers: { ...authHeader, v: String(version) },
-					body: JSON.stringify(untypedSupportData),
+					body: JSON.stringify(untypedPatchPayload),
 				}),
 			)
 
@@ -1152,9 +1171,10 @@ o.spec("EntityRestClient", function () {
 				_id: "id1",
 				_permissions: "permissionsId",
 				_ownerGroup: ownerGroupId,
-				_ownerEncSessionKey: ownerEncSessionKey.key,
-				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			})
+			newAccountingInfo._original = structuredClone(newAccountingInfo)
+			newAccountingInfo._ownerEncSessionKey = ownerEncSessionKey.key
+			newAccountingInfo._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 
 			when(restClient.request(anything(), anything(), anything())).thenResolve(null)
 			await entityRestClient.update(newAccountingInfo, {
@@ -1167,15 +1187,26 @@ o.spec("EntityRestClient", function () {
 			verify(
 				restClient.request(
 					"/rest/sys/accountinginfo/id1",
-					HttpMethod.PUT,
+					HttpMethod.PATCH,
 					argThat(async (options) => {
-						const untypedInstance = JSON.parse(options.body)
-						const updatedAccountingInfo = await instancePipeline.decryptAndMap(AccountingInfoTypeRef, untypedInstance, ownerKeyProviderSk)
+						// this patch list must include two patch operations: replace for _ownerEncSessionKey and _ownerKeyVersion on newAccountingInfo
+						const patchList = await instancePipeline.decryptAndMap(PatchListTypeRef, JSON.parse(options.body), null)
+						const ownerEncSessionKeyOperation = assertNotNull(
+							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name == "_ownerEncSessionKey"),
+						)
+						const ownerKeyVersionOperation = assertNotNull(
+							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name == "_ownerKeyVersion"),
+						)
 						return (
 							deepEqual(options.headers, {
 								...authHeader,
 								v: String(version),
-							}) && deepEqual(newAccountingInfo, updatedAccountingInfo)
+							}) &&
+							patchList.patches.length == 2 &&
+							ownerEncSessionKeyOperation.value == uint8ArrayToBase64(ownerEncSessionKey.key) &&
+							ownerKeyVersionOperation.value == ownerEncSessionKey.encryptingKeyVersion.toString() &&
+							ownerEncSessionKeyOperation.patchOperation == PatchOperationType.REPLACE &&
+							ownerKeyVersionOperation.patchOperation == PatchOperationType.REPLACE
 						)
 					}),
 				),

@@ -9,7 +9,7 @@ export const typeModels = {
 	"79": {
 		"name": "CustomerAccountPosting",
 		"app": "accounting",
-		"version": 8,
+		"version": 9,
 		"since": 3,
 		"type": "AGGREGATED_TYPE",
 		"id": 79,
@@ -64,7 +64,7 @@ export const typeModels = {
 	"86": {
 		"name": "CustomerAccountReturn",
 		"app": "accounting",
-		"version": 8,
+		"version": 9,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 86,

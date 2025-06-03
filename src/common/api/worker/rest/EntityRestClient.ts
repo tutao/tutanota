@@ -25,7 +25,7 @@ import type {
 	TypeModel,
 	UntypedInstance,
 } from "../../common/EntityTypes"
-import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
+import { computePatchPayload, elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
@@ -41,6 +41,7 @@ import { EntityAdapter } from "../crypto/EntityAdapter"
 import { AttributeModel } from "../../common/AttributeModel"
 import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
+import { createPatchList, PatchListTypeRef } from "../../entities/sys/TypeRefs"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { expandId } from "./RestClientIdUtils"
 
@@ -594,12 +595,21 @@ export class EntityRestClient implements EntityRestInterface {
 			options?.ownerKeyProvider,
 		)
 		const sessionKey = await this.resolveSessionKey(options?.ownerKeyProvider, instance)
+		// map and encrypt instance._original and the instance
+		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type, assertNotNull(instance._original))
+		const parsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type as TypeRef<any>, instance)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
+		const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
 		const untypedInstance = await this.instancePipeline.mapAndEncrypt(downcast(instance._type), instance, sessionKey)
-		await this.restClient.request(path, HttpMethod.PUT, {
+		// figure out differing fields and build the PATCH request payload
+		const patchList = await computePatchPayload(originalParsedInstance, parsedInstance, untypedInstance, typeModel, typeReferenceResolver)
+		// PatchList has no encrypted fields (sk == null)
+		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+		await this.restClient.request(path, HttpMethod.PATCH, {
 			baseUrl: options?.baseUrl,
 			queryParams,
 			headers,
-			body: JSON.stringify(untypedInstance),
+			body: JSON.stringify(patchPayload),
 			responseType: MediaType.Json,
 		})
 	}
