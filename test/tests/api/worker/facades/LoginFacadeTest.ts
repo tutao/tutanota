@@ -21,7 +21,7 @@ import {
 	sha256Hash,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
-import { LoginFacade, LoginListener, ResumeSessionErrorReason } from "../../../../../src/common/api/worker/facades/LoginFacade"
+import { LoginFacade, LoginListener } from "../../../../../src/common/api/worker/facades/LoginFacade"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
@@ -49,6 +49,7 @@ import { CacheManagementFacade } from "../../../../../src/common/api/worker/faca
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { CacheMode } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { RolloutFacade } from "../../../../../src/common/api/worker/facades/RolloutFacade"
+import { LoginFailReason } from "../../../../../src/common/api/main/PageContextLoginListener"
 
 const { anything, argThat } = matchers
 
@@ -299,7 +300,7 @@ o.spec("LoginFacadeTest", function () {
 						HttpMethod.GET,
 						anything(),
 					),
-				).thenResolve(JSON.stringify(await createSession(userId, accessKey, instancePipeline)))
+				).thenResolve(createSession(userId, accessKey, instancePipeline).then(JSON.stringify))
 			})
 
 			o.test("When resuming a session and there is a database key, it is passed to offline storage initialization", async function () {
@@ -365,9 +366,8 @@ o.spec("LoginFacadeTest", function () {
 				o(facade.asyncLoginState).deepEquals({ state: "running" })("Async login occurred so it is still running")
 			})
 
-			o.test("when resuming a session and a notauthenticatedError is thrown, the offline db is deleted", async function () {
+			o.test("when resuming a session and a notAuthenticatedError is thrown, the error is propagated to the main thread", async function () {
 				usingOfflineStorage = true
-				user.accountType = AccountType.FREE
 				when(
 					restClientMock.request(
 						matchers.argThat((path) => path.startsWith("/rest/sys/session/")),
@@ -376,18 +376,17 @@ o.spec("LoginFacadeTest", function () {
 					),
 				).thenReject(new NotAuthenticatedError("not your cheese"))
 
-				await o(() =>
-					facade.resumeSession(
-						credentials,
-						{
-							salt: SALT,
-							kdfType: DEFAULT_KDF_TYPE,
-						},
-						dbKey,
-						timeRangeDate,
-					),
-				).asyncThrows(NotAuthenticatedError)
-				verify(cacheStorageInitializerMock.deInitialize())
+				const res = await facade.resumeSession(
+					credentials,
+					{
+						salt: SALT,
+						kdfType: DEFAULT_KDF_TYPE,
+					},
+					dbKey,
+					timeRangeDate,
+				)
+				await res.asyncResumeCompleted
+				verify(loginListener.onLoginFailure(LoginFailReason.SessionExpired))
 			})
 
 			o.test("when resuming a session with credentials that don't have encryptedPassphraseKey it is assigned", async () => {
@@ -446,104 +445,28 @@ o.spec("LoginFacadeTest", function () {
 				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => fullLoginDeferred.resolve())
 			})
 
-			o("When using offline as a free user and with stable connection, login sync", async function () {
+			o("When using offline as a free user and with stable connection, async login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.FREE
-				await testSuccessfulSyncLogin()
+				await testSuccessfulAsyncLogin()
 			})
 
-			o("When using offline as a free user with unstable connection, no offline for free users", async function () {
+			o("When using offline as a free user with unstable connection, offline is given to free users", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.FREE
-				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
-					calls.push("sessionService")
-					throw new ConnectionError("Oopsie 1")
-				})
-
-				const result = await facade
-					.resumeSession(
-						credentials,
-						{
-							salt: user.salt!,
-							kdfType: DEFAULT_KDF_TYPE,
-						},
-						dbKey,
-						timeRangeDate,
-					)
-					.finally(() => {
-						calls.push("return")
-					})
-
-				o(result).deepEquals({
-					type: "error",
-					reason: ResumeSessionErrorReason.OfflineNotAvailableForFree,
-					asyncResumeCompleted: null,
-				})
-				o(calls).deepEquals(["sessionService", "return"])
+				await testConnectionFailingAsyncLogin()
 			})
 
 			o("When using offline as premium user with stable connection, async login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
-				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
-					calls.push("sessionService")
-					return JSON.stringify(await createSession(userId, accessKey, instancePipeline))
-				})
-
-				const deferred = defer()
-				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => deferred.resolve(null))
-
-				const result = await facade.resumeSession(
-					credentials,
-					{
-						salt: user.salt!,
-						kdfType: DEFAULT_KDF_TYPE,
-					},
-					dbKey,
-					timeRangeDate,
-				)
-
-				o(result.type).equals("success")
-
-				await deferred.promise
-
-				// we would love to prove that part of the login is done async but without injecting some asyncExecutor it's a bit tricky to do
-				// we assume to have seUser twice, once using caching entity client and once using non caching entity client.
-				o(calls).deepEquals(["setUser", "sessionService", "setUser"])
-
-				// just wait for the async login to not bleed into other test cases or to not randomly fail
-				await fullLoginDeferred.promise
+				await testSuccessfulAsyncLogin()
 			})
 
 			o("When using offline as premium user with unstable connection, async login with later retry", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
-				const connectionError = new ConnectionError("Oopsie 2")
-				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
-					calls.push("sessionService")
-					throw connectionError
-				})
-
-				const result = await facade.resumeSession(
-					credentials,
-					{
-						salt: user.salt!,
-						kdfType: DEFAULT_KDF_TYPE,
-					},
-					dbKey,
-					timeRangeDate,
-				)
-
-				// wait for async resume session
-				await result.asyncResumeCompleted
-
-				console.log("after resolve " + calls.toString())
-
-				o(result.type).equals("success")
-				o(calls).deepEquals(["setUser", "sessionService"])
-
-				// Did not finish login
-				verify(userFacade.unlockUserGroupKey(anything()), { times: 0 })
+				await testConnectionFailingAsyncLogin()
 			})
 
 			o("When not using offline as free user with connection, sync login", async function () {
@@ -611,6 +534,66 @@ o.spec("LoginFacadeTest", function () {
 					),
 				).asyncThrows(ConnectionError)
 				o(calls).deepEquals(["sessionService"])
+			}
+
+			async function testSuccessfulAsyncLogin() {
+				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
+					calls.push("sessionService")
+					return JSON.stringify(await createSession(userId, accessKey, instancePipeline))
+				})
+
+				const deferred = defer()
+				when(loginListener.onFullLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(() => deferred.resolve(null))
+
+				const result = await facade.resumeSession(
+					credentials,
+					{
+						salt: user.salt!,
+						kdfType: DEFAULT_KDF_TYPE,
+					},
+					dbKey,
+					timeRangeDate,
+				)
+
+				o(result.type).equals("success")
+
+				await deferred.promise
+
+				// we would love to prove that part of the login is done async but without injecting some asyncExecutor it's a bit tricky to do
+				// we assume to have setUser twice, once using caching entity client and once using non caching entity client.
+				o(calls).deepEquals(["setUser", "sessionService", "setUser"])
+
+				// just wait for the async login to not bleed into other test cases or to not randomly fail
+				await fullLoginDeferred.promise
+			}
+
+			async function testConnectionFailingAsyncLogin() {
+				const connectionError = new ConnectionError("Oopsie 2")
+				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
+					calls.push("sessionService")
+					throw connectionError
+				})
+
+				const result = await facade.resumeSession(
+					credentials,
+					{
+						salt: user.salt!,
+						kdfType: DEFAULT_KDF_TYPE,
+					},
+					dbKey,
+					timeRangeDate,
+				)
+
+				// wait for async resume session
+				await result.asyncResumeCompleted
+
+				console.log("after resolve " + calls.toString())
+
+				o(result.type).equals("success")
+				o(calls).deepEquals(["setUser", "sessionService"])
+
+				// Did not finish login
+				verify(userFacade.unlockUserGroupKey(anything()), { times: 0 })
 			}
 		})
 
