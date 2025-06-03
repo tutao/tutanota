@@ -81,6 +81,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 
 	postRequest(msg: Request<OutgoingRequestType>): Promise<any> {
 		msg.id = this.nextId()
+
 		return newPromise(
 			(resolve, reject) => {
 				this._messages[msg.id!] = {
