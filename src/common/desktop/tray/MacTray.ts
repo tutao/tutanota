@@ -7,15 +7,18 @@ import type { WindowManager } from "../DesktopWindowManager"
 import os from "node:os"
 import { getResourcePath } from "../resources"
 import type { PlatformTray } from "./DesktopTray"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export class MacTray implements PlatformTray {
+	private readonly dock: Electron.Dock = assertNotNull(app.dock)
+
 	needsWindowListInMenu(): boolean {
 		//MacOs Catalina started showing the window list on its own
 		return Number(os.release().slice(0, 2)) < 19
 	}
 
 	attachMenuToTray(m: Menu, tray: Tray | null): void {
-		app.dock.setMenu(m)
+		this.dock.setMenu(m)
 	}
 
 	getPlatformMenuItems(): Array<MenuItem> {
@@ -23,20 +26,20 @@ export class MacTray implements PlatformTray {
 	}
 
 	getTray(wm: WindowManager, icon: NativeImage): Tray | null {
-		if (!app.dock.isVisible()) {
-			app.dock.show()
+		if (!this.dock.isVisible()) {
+			this.dock.show()
 		}
 
 		return null
 	}
 
 	setBadge() {
-		app.dock.bounce()
-		app.dock.setBadge("●")
+		this.dock.bounce()
+		this.dock.setBadge("●")
 	}
 
 	clearBadge() {
-		app.dock.setBadge("")
+		this.dock.setBadge("")
 	}
 
 	getAppIconPathFromName(iconName: string): string {
