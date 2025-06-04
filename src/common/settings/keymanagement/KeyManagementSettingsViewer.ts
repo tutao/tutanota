@@ -59,7 +59,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		// Do not try to load trusted identities anymore until the switch to identity key verification is implemented
-		this.trustedIdentities = await this.keyVerificationFacade.getTrustedIdentities()
+		this.trustedIdentities = await this.keyVerificationFacade.getManuallyVerifiedIdentities()
 		m.redraw()
 	}
 
@@ -69,7 +69,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async reload() {
-		this.trustedIdentities = await this.keyVerificationFacade.getTrustedIdentities()
+		this.trustedIdentities = await this.keyVerificationFacade.getManuallyVerifiedIdentities()
 		m.redraw()
 	}
 
