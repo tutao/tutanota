@@ -74,16 +74,23 @@ o.spec("KeyVerificationFacadeTest", function () {
 	})
 
 	o.spec("confirm trusted identity database works as intended", function () {
+		o("load only manually verified keys", async function () {
+			const sqlResult: Record<string, TaggedSqlValue>[] = []
+			when(sqlCipherFacade.all(anything(), anything())).thenResolve(sqlResult)
+
+			await keyVerification.getManuallyVerifiedIdentities()
+
+			verify(sqlCipherFacade.all("SELECT * FROM identity_store WHERE sourceOfTrust = 0", []))
+		})
+
 		o("identity database is empty", async function () {
 			const sqlResult: Record<string, TaggedSqlValue>[] = []
 			when(sqlCipherFacade.all(anything(), anything())).thenResolve(sqlResult)
 
-			const result = await keyVerification.getTrustedIdentities()
+			const result = await keyVerification.getManuallyVerifiedIdentities()
 			const expectation = new Map<string, TrustedIdentity>()
 
 			o(result).deepEquals(expectation)
-
-			verify(sqlCipherFacade.all("SELECT * FROM identity_store", []))
 		})
 
 		o("trusting an identity", async function () {
