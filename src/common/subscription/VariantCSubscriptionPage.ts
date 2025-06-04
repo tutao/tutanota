@@ -1,7 +1,8 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { lang, type TranslationKey } from "../misc/LanguageViewModel"
-import { getPlanSelectorTest, SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+import { getPlanSelectorTest, resolvePlanSelectorVariant, SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 import { UpgradeType } from "./SubscriptionUtils"
@@ -20,7 +21,10 @@ import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
 import { completeSelectedStage, PlanSelector } from "./PlanSelector.js"
-import { getPrivateBusinessSwitchButton } from "./VariantBSubscriptionPage.js"
+import { styles } from "../gui/styles.js"
+import { Icon, IconSize } from "../gui/base/Icon.js"
+import { Icons } from "../gui/base/icons/Icons.js"
+import { theme } from "../gui/theme.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -329,5 +333,44 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 
 	isEnabled(): boolean {
 		return true
+	}
+}
+
+export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, update: VoidFunction): ButtonAttrs {
+	const isBusiness = businessUse()
+
+	return {
+		label: isBusiness ? "privateUse_action" : "forBusiness_action",
+		type: ButtonType.Primary,
+		class: ["block"], // Use block class to override the `flex` class, thus allowing the button text to be wrapped using ellipses.
+		icon:
+			isBusiness || styles.isMobileLayout()
+				? null
+				: m(Icon, {
+						icon: Icons.Business,
+						size: IconSize.Large,
+						class: "mr-xsm",
+						style: {
+							fill: theme.content_accent,
+							"vertical-align": "sub",
+						},
+				  }),
+		click: () => {
+			if (!isBusiness) {
+				const planSelectorTest = getPlanSelectorTest()
+				if (planSelectorTest.testId !== "obsolete") {
+					const usageTest = locator.usageTestController.getTest("signup.paywall.business")
+					const stage = usageTest.getStage(0)
+					stage.setMetric({
+						name: "variant",
+						value: resolvePlanSelectorVariant(planSelectorTest.variant),
+					})
+					void stage.complete()
+				}
+			}
+
+			businessUse(!isBusiness)
+			update()
+		},
 	}
 }

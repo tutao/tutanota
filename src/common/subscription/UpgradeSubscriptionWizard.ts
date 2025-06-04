@@ -31,7 +31,6 @@ import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { DialogType } from "../gui/base/Dialog.js"
-import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
 import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./VariantCSubscriptionPage.js"
 import { styles } from "../gui/styles.js"
 
@@ -269,28 +268,19 @@ export async function loadSignupWizard(
 }
 
 function initPlansPages(signupData: UpgradeSubscriptionData): {
-	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantBSubscriptionPage> | Class<VariantCSubscriptionPage>
-	attrs: UpgradeSubscriptionPageAttrs | VariantBSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
+	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantCSubscriptionPage>
+	attrs: UpgradeSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
 } {
-	const test = getPlanSelectorTest()
-	const hasUsageTest = test.active && test.testName !== "obsolete" && !isIOSApp()
 	const pricingData = signupData.planPrices.getRawPricingData()
 	const firstYearDiscount = Number(pricingData.legendaryPrices.firstYearDiscount)
 	const bonusMonth = Number(pricingData.bonusMonthsForYearlyPlan)
+	const hasDiscount =
+		pricingData.legendaryPrices.monthlyPrice !== pricingData.legendaryPrices.monthlyReferencePrice ||
+		pricingData.revolutionaryPrices.monthlyPrice !== pricingData.revolutionaryPrices.monthlyReferencePrice
+	const hasMessage = !!pricingData.messageTextId
 
-	if (hasUsageTest && firstYearDiscount === 0 && bonusMonth === 0) {
-		console.info("Assigned to variant", test.variant, "of test", test.testId, `(${test.testName})`)
-		const pageClass = test.getVariant<Class<UpgradeSubscriptionPage> | Class<VariantBSubscriptionPage> | Class<VariantCSubscriptionPage>>({
-			[1]: () => UpgradeSubscriptionPage,
-			[2]: () => VariantBSubscriptionPage,
-			[3]: () => VariantCSubscriptionPage,
-		})
-		const attrs = test.getVariant<UpgradeSubscriptionPageAttrs | VariantBSubscriptionPageAttrs | VariantCSubscriptionPageAttrs>({
-			[1]: () => new UpgradeSubscriptionPageAttrs(signupData),
-			[2]: () => new VariantBSubscriptionPageAttrs(signupData),
-			[3]: () => new VariantCSubscriptionPageAttrs(signupData),
-		})
-		return { pageClass, attrs }
+	if (firstYearDiscount === 0 && bonusMonth === 0 && !hasDiscount && !hasMessage && !isIOSApp()) {
+		return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
 	} else {
 		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
 	}
