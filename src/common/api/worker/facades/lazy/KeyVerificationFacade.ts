@@ -72,9 +72,9 @@ export class KeyVerificationFacade {
 	/**
 	 * Returns all trusted identities.
 	 */
-	async getTrustedIdentities(): Promise<Map<string, TrustedIdentity>> {
+	async getManuallyVerifiedIdentities(): Promise<Map<string, TrustedIdentity>> {
 		// @formatter:off
-		const result = await this.sqlCipherFacade.all(`SELECT * FROM identity_store`, [])
+		const result = await this.sqlCipherFacade.all(`SELECT * FROM identity_store WHERE sourceOfTrust = ${IdentityKeySourceOfTrust.Manual.valueOf()}`, [])
 		// @formatter:on
 
 		const identities = new Map<string, TrustedIdentity>()
