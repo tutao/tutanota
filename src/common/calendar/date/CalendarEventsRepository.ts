@@ -73,9 +73,9 @@ export class CalendarEventsRepository {
 	) {
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
 		this.calendarMemberships = this.logins
-									   .getUserController()
-									   .getCalendarMemberships()
-									   .map((membership) => membership.group)
+			.getUserController()
+			.getCalendarMemberships()
+			.map((membership) => membership.group)
 		// Detect when group infos has been reset and reset our data in turn.
 		// There is probably another way, we could reduce and also compute symmetric difference.
 		// This might fire right away but it should be harmless then.

@@ -77,7 +77,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 			participation.ownAttendee.status === status ? highlightColors : colors,
 		)
 
-	return m(".flex.items-center.mt-s", [
+	return m(".flex.items-center.mt-s.gap-vpad-s", [
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
