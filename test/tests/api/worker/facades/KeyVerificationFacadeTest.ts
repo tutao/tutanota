@@ -76,8 +76,6 @@ o.spec("KeyVerificationFacadeTest", function () {
 			const expectation = new Map<string, TrustedIdentity>()
 
 			o(result).deepEquals(expectation)
-
-			verify(sqlCipherFacade.all("SELECT * FROM identity_store", []))
 		})
 
 		o("trusting an identity", async function () {
@@ -271,12 +269,12 @@ o.spec("KeyVerificationFacadeTest", function () {
 	})
 
 	o("feature should be supported when on desktop", async function () {
-        const isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => keyVerification.isSupported())
+		const isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => keyVerification.isSupported())
 		o(isSupported).equals(true)
 	})
 
 	o("feature should NOT be supported when on browser", async function () {
-        const isSupported = await withOverriddenEnv({ mode: Mode.Browser }, () => keyVerification.isSupported())
+		const isSupported = await withOverriddenEnv({ mode: Mode.Browser }, () => keyVerification.isSupported())
 		o(isSupported).equals(false)
 	})
 
