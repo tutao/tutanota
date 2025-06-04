@@ -5238,6 +5238,8 @@ pub struct SurveyData {
 	pub details: Option<String>,
 	#[serde(rename = "2300")]
 	pub version: i64,
+	#[serde(rename = "2571")]
+	pub deviceAppType: Option<String>,
 }
 
 impl Entity for SurveyData {

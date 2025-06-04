@@ -85,6 +85,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						category: "4", // 4 == "Other"
 						details: this.textFieldInput,
 						reason: "33", // 33 == "Provide details"
+						deviceAppType: client.getDeviceAppType(),
 					}),
 				}),
 			)

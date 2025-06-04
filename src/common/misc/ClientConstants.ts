@@ -29,6 +29,19 @@ export const enum DeviceType {
 	OTHER_MOBILE = "Other mobile",
 }
 
+// FIXME: clarify if this enum is sufficient enough
+export const enum DeviceAppType {
+	IOS_MAIL_APP = "iOSMailApp",
+	IOS_CALENDAR_APP = "iOSCalendarApp",
+	IOS_WEB = "IOS_WEB",
+	ANDROID_MAIL_APP = "AndroidMailApp",
+	ANDROID_CALENDAR_APP = "AndroidCalendarApp",
+	ANDROID_WEB = "AndroidWeb",
+	DESKTOP_WEB = "DesktopWeb",
+	DESKTOP = "Desktop",
+	UNKNOWN = "Unknown",
+}
+
 /**
  * Some information about the environment which might be useful to the worker part
  */

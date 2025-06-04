@@ -3242,6 +3242,7 @@ export type SurveyData = {
 	reason: NumberString;
 	details: null | string;
 	version: NumberString;
+	deviceAppType: null | string;
 }
 export const IdTupleWrapperTypeRef: TypeRef<IdTupleWrapper> = new TypeRef("sys", 2315)
 

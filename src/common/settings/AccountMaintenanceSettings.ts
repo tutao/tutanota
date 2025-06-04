@@ -33,6 +33,7 @@ import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { client } from "../misc/ClientDetector.js"
 
 export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 
@@ -215,6 +216,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 												details: reason.details,
 												reason: reason.reason,
 												version: SURVEY_VERSION_NUMBER,
+												deviceAppType: client.getDeviceAppType(),
 											})
 											showDeleteAccountDialog(surveyData)
 										} else {

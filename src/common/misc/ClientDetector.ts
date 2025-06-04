@@ -1,5 +1,5 @@
-import { assertMainOrNodeBoot, isApp, Mode } from "../api/common/Env"
-import { AppType, BrowserData, BrowserType, DeviceType } from "./ClientConstants"
+import { assertMainOrNodeBoot, isApp, isBrowser, isDesktop, Mode } from "../api/common/Env"
+import { AppType, BrowserData, BrowserType, DeviceAppType, DeviceType } from "./ClientConstants"
 
 assertMainOrNodeBoot()
 
@@ -406,6 +406,33 @@ export class ClientDetector {
 
 	isMailApp() {
 		return isApp() && this.appType === AppType.Mail
+	}
+
+	// FIXME: clarify if this is sufficient enough for marketing purpose
+	getDeviceAppType(): DeviceAppType {
+		if (this.isMailApp()) {
+			return this.isIos() ? DeviceAppType.IOS_MAIL_APP : DeviceAppType.ANDROID_MAIL_APP
+		}
+
+		if (this.isCalendarApp()) {
+			return this.isIos() ? DeviceAppType.IOS_CALENDAR_APP : DeviceAppType.ANDROID_CALENDAR_APP
+		}
+
+		if (isBrowser()) {
+			if (this.device === DeviceType.IPHONE || this.device === DeviceType.IPAD) {
+				return DeviceAppType.IOS_WEB
+			} else if (this.device === DeviceType.ANDROID) {
+				return DeviceAppType.ANDROID_WEB
+			} else {
+				return DeviceAppType.DESKTOP_WEB
+			}
+		}
+
+		if (isDesktop()) {
+			return DeviceAppType.DESKTOP
+		}
+
+		return DeviceAppType.UNKNOWN
 	}
 }
 

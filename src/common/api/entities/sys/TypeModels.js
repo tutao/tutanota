@@ -12396,6 +12396,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2571": {
+				"final": true,
+				"name": "deviceAppType",
+				"id": 2571,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {}
