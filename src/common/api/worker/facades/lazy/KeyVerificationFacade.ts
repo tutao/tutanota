@@ -72,7 +72,7 @@ export class KeyVerificationFacade {
 	/**
 	 * Returns all trusted identities.
 	 */
-	async getTrustedIdentities(): Promise<Map<string, TrustedIdentity>> {
+	async getManuallyVerifiedIdentities(): Promise<Map<string, TrustedIdentity>> {
 		// @formatter:off
 		const result = await this.sqlCipherFacade.all(`SELECT * FROM identity_store WHERE sourceOfTrust = ${IdentityKeySourceOfTrust.Manual.valueOf()}`, [])
 		// @formatter:on
@@ -80,7 +80,6 @@ export class KeyVerificationFacade {
 		const identities = new Map<string, TrustedIdentity>()
 		for (let [_, row] of result.entries()) {
 			const [mailAddress, publicKeyFingerprint] = await this.deserializeDatabaseEntry(row)
-			// we could also filter here but less performant maybe
 			identities.set(mailAddress, publicKeyFingerprint)
 		}
 
