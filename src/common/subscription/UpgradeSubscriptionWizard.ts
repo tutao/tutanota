@@ -223,10 +223,8 @@ export async function loadSignupWizard(
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
 
-	const plansPage = initPlansPages(signupData)
-
 	const wizardPages = [
-		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
+		wizardPageWrapper(VariantCSubscriptionPage, new VariantCSubscriptionPageAttrs(signupData)),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs), // this page will login the user after signing up with newaccount data
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs), // this page will login the user if they are not login for iOS payment through AppStore

@@ -113,6 +113,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 
 		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
 		return m(".", [
+			m("", "Hello"),
 			m(PlanSelector, {
 				options: data.options,
 				variant: "C",
