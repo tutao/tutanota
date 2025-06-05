@@ -258,7 +258,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderFilterBar(): Children {
-		return m(".flex.gap-vpad-s.pl-vpad-m.pt-s.pb-s.scroll-x", this.renderFilterChips())
+		return m(".flex.gap-vpad-s.pl-vpad-m.pr-vpad-m.pt-s.pb-s.scroll-x", this.renderFilterChips())
 	}
 
 	private renderCategoryChip(label: TranslationKey, icon: AllIcons): Children {
