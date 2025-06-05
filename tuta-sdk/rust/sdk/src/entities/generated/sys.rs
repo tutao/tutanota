@@ -4507,6 +4507,8 @@ pub struct PaymentDataServiceGetData {
 	pub _format: i64,
 	#[serde(rename = "1863")]
 	pub clientType: Option<i64>,
+	#[serde(rename = "2638")]
+	pub subscriptionApp: i64,
 }
 
 impl Entity for PaymentDataServiceGetData {

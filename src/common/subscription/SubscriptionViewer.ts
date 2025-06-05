@@ -52,6 +52,7 @@ import {
 	isSharingActive,
 	isWhitelabelActive,
 	queryAppStoreSubscriptionOwnership,
+	SubscriptionApp,
 } from "./SubscriptionUtils"
 import { TextField } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog"
@@ -90,14 +91,6 @@ import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfact
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
-
-/*
- * Identifies from which app the user subscribed from
- */
-export enum SubscriptionApp {
-	Mail = "0",
-	Calendar = "1",
-}
 
 export class SubscriptionViewer implements UpdatableSettingsViewer {
 	readonly view: UpdatableSettingsViewer["view"]

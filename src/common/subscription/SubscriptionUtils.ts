@@ -23,6 +23,7 @@ import { PaymentDataService } from "../api/entities/sys/Services"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
+import { client } from "../misc/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "./FeatureListProvider.js"
 import { isIOSApp } from "../api/common/Env.js"
@@ -152,13 +153,23 @@ export function getPreconditionFailedPaymentMsg(data: string | null): Translatio
 	}
 }
 
+/*
+ * Identifies from which app the user subscribed from
+ */
+export enum SubscriptionApp {
+	Mail = "0",
+	Calendar = "1",
+}
+
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(async () => {
 		const clientType = getClientType()
+		const subscriptionApp = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 		const result = await locator.serviceExecutor.get(
 			PaymentDataService,
 			createPaymentDataServiceGetData({
 				clientType,
+				subscriptionApp,
 			}),
 		)
 		return result.loginUrl
