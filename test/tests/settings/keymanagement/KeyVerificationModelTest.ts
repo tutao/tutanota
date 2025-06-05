@@ -3,33 +3,36 @@ import { KeyVerificationModel } from "../../../../src/common/settings/keymanagem
 import { KeyVerificationFacade } from "../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { MobileSystemFacade } from "../../../../src/common/native/common/generatedipc/MobileSystemFacade"
 import { KeyVerificationUsageTestUtils } from "../../../../src/common/settings/keymanagement/KeyVerificationUsageTestUtils"
-import { PublicKeyProvider } from "../../../../src/common/api/worker/facades/PublicKeyProvider"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	IdentityKeyVerificationMethod,
 	IdentityKeyQrVerificationResult,
 	IdentityKeySourceOfTrust,
+	IdentityKeyVerificationMethod,
 	PublicKeyIdentifierType,
 } from "../../../../src/common/api/common/TutanotaConstants"
 import { SigningPublicKey } from "../../../../src/common/api/worker/facades/Ed25519Facade"
 import { Versioned } from "@tutao/tutanota-utils"
 import { PermissionType } from "../../../../src/common/native/common/generatedipc/PermissionType"
 import { QRCode } from "jsqr"
+import { PublicIdentityKeyProvider } from "../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
+import { TrustDBEntry } from "../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
 
 o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationModel: KeyVerificationModel
 	let keyVerificationFacade: KeyVerificationFacade
 	let mobileSystemFacade: MobileSystemFacade
 	let keyVerificationTestUtils: KeyVerificationUsageTestUtils
-	let publicKeyProvider: PublicKeyProvider
+	let publicIdentityKeyProvider: PublicIdentityKeyProvider
 
 	o.beforeEach(function () {
 		keyVerificationFacade = object()
 		mobileSystemFacade = object()
 		keyVerificationTestUtils = object()
-		publicKeyProvider = object()
+		publicIdentityKeyProvider = object()
 
-		keyVerificationModel = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade, keyVerificationTestUtils, publicKeyProvider)
+		keyVerificationModel = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade, keyVerificationTestUtils, publicIdentityKeyProvider)
 	})
 
 	o.spec("test handleMethodSwitch()", function () {
@@ -64,48 +67,62 @@ o.spec("KeyVerificationModelTest", function () {
 
 	o.spec("test loadIdentityKeyForMailAddress()", function () {
 		o("success", async function () {
-			const publicIdentityKey: Versioned<SigningPublicKey> = object()
+			const trustDBEntry: TrustDBEntry = {
+				publicIdentityKey: object(),
+				sourceOfTrust: object(),
+			}
 
-			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(publicIdentityKey)
-			when(keyVerificationFacade.calculateFingerprint(publicIdentityKey)).thenResolve("aabbccdd")
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(trustDBEntry)
+			when(keyVerificationFacade.calculateFingerprint(trustDBEntry.publicIdentityKey)).thenReturn("aabbccdd")
 
 			const publicIdentity = await keyVerificationModel.loadIdentityKeyForMailAddress("alice@tuta.com")
 
 			verify(
-				publicKeyProvider.loadPublicIdentityKey({
+				publicIdentityKeyProvider.loadPublicIdentityKey({
 					identifier: "alice@tuta.com",
 					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				}),
 			)
 			o(publicIdentity).deepEquals({
 				fingerprint: "aabbccdd",
-				key: publicIdentityKey,
+				key: trustDBEntry.publicIdentityKey,
 				mailAddress: "alice@tuta.com",
 			})
 		})
 
 		o("no identity key", async function () {
-			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(null)
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(null)
 
 			const publicIdentity = await keyVerificationModel.loadIdentityKeyForMailAddress("alice@tuta.com")
 			o(publicIdentity).equals(null)
+		})
+		o("no trust database results in programming error", async function () {
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve({
+				sourceOfTrust: IdentityKeySourceOfTrust.Not_Supported,
+				publicIdentityKey: object(),
+			})
+
+			await assertThrows(ProgrammingError, async () => await keyVerificationModel.loadIdentityKeyForMailAddress("alice@tuta.com"))
 		})
 	})
 
 	o.spec("test trust()", function () {
 		o("success", async function () {
-			const publicIdentityKey: Versioned<SigningPublicKey> = object()
+			const trustDBEntry: TrustDBEntry = {
+				publicIdentityKey: object(),
+				sourceOfTrust: object(),
+			}
 
-			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(publicIdentityKey)
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(trustDBEntry)
 
 			await keyVerificationModel.loadIdentityKeyForMailAddress("alice@tuta.com")
 
 			await keyVerificationModel.trust(IdentityKeyVerificationMethod.text)
-			verify(keyVerificationFacade.trust("alice@tuta.com", publicIdentityKey, IdentityKeySourceOfTrust.Manual))
+			verify(keyVerificationFacade.trust("alice@tuta.com", trustDBEntry.publicIdentityKey, IdentityKeySourceOfTrust.Manual))
 			verify(keyVerificationTestUtils.verified(IdentityKeyVerificationMethod.text))
 
 			await keyVerificationModel.trust(IdentityKeyVerificationMethod.qr)
-			verify(keyVerificationFacade.trust("alice@tuta.com", publicIdentityKey, IdentityKeySourceOfTrust.Manual))
+			verify(keyVerificationFacade.trust("alice@tuta.com", trustDBEntry.publicIdentityKey, IdentityKeySourceOfTrust.Manual))
 			verify(keyVerificationTestUtils.verified(IdentityKeyVerificationMethod.qr))
 		})
 	})
@@ -142,9 +159,12 @@ o.spec("KeyVerificationModelTest", function () {
 		o("success", async function () {
 			const qrCode: QRCode = object()
 			let result: IdentityKeyQrVerificationResult
-			const publicIdentityKey: Versioned<SigningPublicKey> = object()
-			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(publicIdentityKey)
-			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenResolve("aabbccdd")
+			const trustDBEntry: TrustDBEntry = {
+				publicIdentityKey: object(),
+				sourceOfTrust: object(),
+			}
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(trustDBEntry)
+			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenReturn("aabbccdd")
 
 			qrCode.data = `{"mailAddress": "alice@tuta.com", "fingerprint": "aabbccdd"}`
 
@@ -153,12 +173,12 @@ o.spec("KeyVerificationModelTest", function () {
 			o(result).equals(IdentityKeyQrVerificationResult.QR_OK)
 			o(keyVerificationModel.getKeyVerificationResult()).equals(IdentityKeyQrVerificationResult.QR_OK)
 			verify(
-				publicKeyProvider.loadPublicIdentityKey({
+				publicIdentityKeyProvider.loadPublicIdentityKey({
 					identifier: "alice@tuta.com",
 					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				}),
 			)
-			verify(keyVerificationFacade.calculateFingerprint(publicIdentityKey))
+			verify(keyVerificationFacade.calculateFingerprint(trustDBEntry.publicIdentityKey))
 		})
 
 		o("malformed JSON payload", async function () {
@@ -186,7 +206,7 @@ o.spec("KeyVerificationModelTest", function () {
 			const qrCode: QRCode = object()
 			let result: IdentityKeyQrVerificationResult
 			const publicIdentityKey: Versioned<SigningPublicKey> = object()
-			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(null)
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(null)
 
 			qrCode.data = `{"mailAddress": "alice@tuta.com", "fingerprint": "aabbccdd"}`
 
@@ -195,7 +215,7 @@ o.spec("KeyVerificationModelTest", function () {
 			o(result).equals(IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND)
 			o(keyVerificationModel.getKeyVerificationResult()).equals(IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND)
 			verify(
-				publicKeyProvider.loadPublicIdentityKey({
+				publicIdentityKeyProvider.loadPublicIdentityKey({
 					identifier: "alice@tuta.com",
 					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				}),
@@ -206,9 +226,12 @@ o.spec("KeyVerificationModelTest", function () {
 		o("fingerprint mismatch", async function () {
 			const qrCode: QRCode = object()
 			let result: IdentityKeyQrVerificationResult
-			const publicIdentityKey: Versioned<SigningPublicKey> = object()
-			when(publicKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(publicIdentityKey)
-			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenResolve("another fingerprint")
+			const trustDBEntry: TrustDBEntry = {
+				publicIdentityKey: object(),
+				sourceOfTrust: object(),
+			}
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(trustDBEntry)
+			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenReturn("another fingerprint")
 
 			qrCode.data = `{"mailAddress": "alice@tuta.com", "fingerprint": "aabbccdd"}`
 
@@ -217,12 +240,12 @@ o.spec("KeyVerificationModelTest", function () {
 			o(result).equals(IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH)
 			o(keyVerificationModel.getKeyVerificationResult()).equals(IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH)
 			verify(
-				publicKeyProvider.loadPublicIdentityKey({
+				publicIdentityKeyProvider.loadPublicIdentityKey({
 					identifier: "alice@tuta.com",
 					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				}),
 			)
-			verify(keyVerificationFacade.calculateFingerprint(publicIdentityKey))
+			verify(keyVerificationFacade.calculateFingerprint(trustDBEntry.publicIdentityKey))
 		})
 	})
 })
