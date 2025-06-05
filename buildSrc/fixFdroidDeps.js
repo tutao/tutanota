@@ -8,7 +8,6 @@ const devDependencies = [
 	"electron",
 	"electron-builder",
 	"electron-localshortcut",
-	"electron-packager",
 	"electron-updater",
 	"@electron/notarize",
 	"electron-rebuild",

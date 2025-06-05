@@ -85,7 +85,6 @@
 		"chokidar": "3.6.0",
 		"commander": "12.1.0",
 		"electron-builder": "24.13.3",
-		"electron-packager": "17.1.2",
 		"esbuild": "0.23.1",
 		"esbuild-plugin-alias-path": "2.0.2",
 		"eslint": "9.17.0",
