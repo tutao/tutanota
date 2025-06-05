@@ -8,17 +8,16 @@ import { GroupInfoTypeRef, GroupMembershipTypeRef, UserTypeRef } from "../../../
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { ContactMailAddressTypeRef, ContactTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
-import { GroupType, EncryptionKeyVerificationState } from "../../../src/common/api/common/TutanotaConstants.js"
+import { EncryptionKeyVerificationState, GroupType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
-import { KeyVerificationFacade } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { LoadedPublicEncryptionKey } from "../../../src/common/api/worker/facades/PublicKeyProvider"
+import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { ProgrammingError } from "../../../src/common/api/common/error/ProgrammingError"
 import { KeyVerificationMismatchError } from "../../../src/common/api/common/error/KeyVerificationMismatchError"
 
-o.spec("RecipientsModel", function () {
+o.spec("RecipientsModelTest", function () {
 	const contactListId = "contactListId"
 	const contactElementId = "contactElementId"
 	const contactId = [contactListId, contactElementId] as const
@@ -94,7 +93,11 @@ o.spec("RecipientsModel", function () {
 
 	o("prioritises name that was passed in", async function () {
 		const recipient = await model
-			.initialize({ address: tutanotaAddress, name: "Pizza Tonno", contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") })
+			.initialize({
+				address: tutanotaAddress,
+				name: "Pizza Tonno",
+				contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii"),
+			})
 			.resolve()
 		o(recipient.name).equals("Pizza Tonno")
 	})
@@ -102,7 +105,10 @@ o.spec("RecipientsModel", function () {
 	o("uses name from contact if name not provided", async function () {
 		when(contactModelMock.getContactListId()).thenResolve("contactListId")
 		const recipient = await model
-			.initialize({ address: tutanotaAddress, contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii") })
+			.initialize({
+				address: tutanotaAddress,
+				contact: makeContactStub(contactId, tutanotaAddress, "Pizza", "Hawaii"),
+			})
 			.resolve()
 		o(recipient.name).equals("Pizza Hawaii")
 	})
@@ -125,7 +131,7 @@ o.spec("RecipientsModel", function () {
 		const internalAddress = "internal@email.com"
 		const externalAddress = "external@email.com"
 
-		const loadedPublicEncryptionKey: LoadedPublicEncryptionKey = object()
+		const loadedPublicEncryptionKey: VerifiedPublicEncryptionKey = object()
 		loadedPublicEncryptionKey.verificationState = EncryptionKeyVerificationState.NO_ENTRY
 
 		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(loadedPublicEncryptionKey)
@@ -141,7 +147,7 @@ o.spec("RecipientsModel", function () {
 	o("correctly fails when key verification state is undefined", async function () {
 		const internalAddress = "internal@email.com"
 
-		const loadedPublicEncryptionKey: LoadedPublicEncryptionKey = object()
+		const loadedPublicEncryptionKey: VerifiedPublicEncryptionKey = object()
 		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(loadedPublicEncryptionKey)
 
 		await assertThrows(ProgrammingError, async () => await model.initialize({ address: internalAddress }).resolve())
@@ -152,7 +158,7 @@ o.spec("RecipientsModel", function () {
 
 		const internalAddress = "internal@email.com"
 
-		const loadedPublicEncryptionKey: LoadedPublicEncryptionKey = object()
+		const loadedPublicEncryptionKey: VerifiedPublicEncryptionKey = object()
 		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(loadedPublicEncryptionKey)
 
 		let recipient: Recipient
@@ -166,6 +172,11 @@ o.spec("RecipientsModel", function () {
 		recipient = await model.initialize({ address: internalAddress }).resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.SECURE)("VERIFIED_MANUAL -> SECURE")
+
+		loadedPublicEncryptionKey.verificationState = EncryptionKeyVerificationState.NOT_SUPPORTED
+		recipient = await model.initialize({ address: internalAddress }).resolve()
+		o(recipient.type).equals(RecipientType.INTERNAL)
+		o(recipient.verificationState).equals(PresentableKeyVerificationState.NONE)("NOT_SUPPORTED -> NONE")
 
 		loadedPublicEncryptionKey.verificationState = EncryptionKeyVerificationState.VERIFIED_TOFU
 		recipient = await model.initialize({ address: internalAddress }).resolve()
@@ -201,7 +212,7 @@ o.spec("RecipientsModel", function () {
 
 		const internalAddress = "internal@email.com"
 
-		const loadedPublicEncryptionKey: LoadedPublicEncryptionKey = object()
+		const loadedPublicEncryptionKey: VerifiedPublicEncryptionKey = object()
 		loadedPublicEncryptionKey.verificationState = EncryptionKeyVerificationState.NO_ENTRY
 
 		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(loadedPublicEncryptionKey)

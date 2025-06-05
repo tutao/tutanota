@@ -44,7 +44,7 @@ import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/wo
 import { DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
-import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
+import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
@@ -125,7 +125,7 @@ o.spec("EntityRestClient", function () {
 			instance(DefaultEntityRestCache),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
-			instance(PublicKeyProvider),
+			instance(PublicEncryptionKeyProvider),
 			() => instance(KeyRotationFacade),
 			typeModelResolver,
 		)
