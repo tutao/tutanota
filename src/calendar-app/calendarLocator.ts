@@ -113,10 +113,11 @@ import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
+import { PublicEncryptionKeyProvider } from "../common/api/worker/facades/PublicEncryptionKeyProvider"
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { CommonLocator } from "../common/api/main/CommonLocator"
-import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
+import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 
 assertMainOrNode()
 
@@ -146,7 +147,8 @@ class CalendarLocator implements CommonLocator {
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
-	publicKeyProvider!: PublicKeyProvider
+	publicEncryptionKeyProvider!: PublicEncryptionKeyProvider
+	publicIdentityKeyProvider!: PublicIdentityKeyProvider
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -573,7 +575,8 @@ class CalendarLocator implements CommonLocator {
 			bookingFacade,
 			mailAddressFacade,
 			keyVerificationFacade,
-			publicKeyProvider,
+			publicEncryptionKeyProvider,
+			publicIdentityKeyProvider,
 			blobFacade,
 			userManagementFacade,
 			recoverCodeFacade,
@@ -601,7 +604,8 @@ class CalendarLocator implements CommonLocator {
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.keyVerificationFacade = keyVerificationFacade
-		this.publicKeyProvider = publicKeyProvider
+		this.publicEncryptionKeyProvider = publicEncryptionKeyProvider
+		this.publicIdentityKeyProvider = publicIdentityKeyProvider
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade

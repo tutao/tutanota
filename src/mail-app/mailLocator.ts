@@ -147,8 +147,9 @@ import { SearchFacade } from "./workerUtils/index/SearchFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
-import { PublicKeyProvider } from "../common/api/worker/facades/PublicKeyProvider"
+import { PublicEncryptionKeyProvider } from "../common/api/worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
+import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 
 assertMainOrNode()
 
@@ -184,7 +185,8 @@ class MailLocator implements CommonLocator {
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
-	publicKeyProvider!: PublicKeyProvider
+	publicEncryptionKeyProvider!: PublicEncryptionKeyProvider
+	publicIdentityKeyProvider!: PublicIdentityKeyProvider
 	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	recoverCodeFacade!: RecoverCodeFacade
@@ -739,7 +741,8 @@ class MailLocator implements CommonLocator {
 			bookingFacade,
 			mailAddressFacade,
 			keyVerificationFacade,
-			publicKeyProvider,
+			publicEncryptionKeyProvider,
+			publicIdentityKeyProvider,
 			blobFacade,
 			userManagementFacade,
 			recoverCodeFacade,
@@ -771,7 +774,8 @@ class MailLocator implements CommonLocator {
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.keyVerificationFacade = keyVerificationFacade
-		this.publicKeyProvider = publicKeyProvider
+		this.publicEncryptionKeyProvider = publicEncryptionKeyProvider
+		this.publicIdentityKeyProvider = publicIdentityKeyProvider
 		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade

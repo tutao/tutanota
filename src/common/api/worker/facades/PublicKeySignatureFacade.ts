@@ -153,11 +153,11 @@ export class PublicKeySignatureFacade {
 	}
 
 	async verifyPublicKeySignature(
-		encryptionKeyPair: Versioned<PublicKey>,
+		publicEncryptionKey: Versioned<PublicKey>,
 		publicIdentityKey: Ed25519PublicKey,
 		signatureBytes: EncodedEd25519Signature,
 	): Promise<boolean> {
-		const { encodedKeyPairForSigning } = this.serializePublicKeyForSigning(encryptionKeyPair)
+		const { encodedKeyPairForSigning } = this.serializePublicKeyForSigning(publicEncryptionKey)
 		return this.ed25519Facade.verifySignature(publicIdentityKey, signatureBytes, encodedKeyPairForSigning)
 	}
 

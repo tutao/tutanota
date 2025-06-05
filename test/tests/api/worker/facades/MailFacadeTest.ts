@@ -31,7 +31,7 @@ import { downcast, KeyVersion, lazyNumberRange } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
-import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
 import { BucketKeyTypeRef, InstanceSessionKey, InstanceSessionKeyTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
@@ -53,7 +53,7 @@ o.spec("MailFacade test", function () {
 	let fileApp: NativeFileApp
 	let loginFacade: LoginFacade
 	let keyLoaderFacade: KeyLoaderFacade
-	let publicKeyProvider: PublicKeyProvider
+	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 
 	o.beforeEach(function () {
 		userFacade = object()
@@ -64,8 +64,18 @@ o.spec("MailFacade test", function () {
 		fileApp = object()
 		loginFacade = object()
 		keyLoaderFacade = object()
-		publicKeyProvider = object()
-		facade = new MailFacade(userFacade, entity, cryptoFacade, serviceExecutor, blobFacade, fileApp, loginFacade, keyLoaderFacade, publicKeyProvider)
+		publicEncryptionKeyProvider = object()
+		facade = new MailFacade(
+			userFacade,
+			entity,
+			cryptoFacade,
+			serviceExecutor,
+			blobFacade,
+			fileApp,
+			loginFacade,
+			keyLoaderFacade,
+			publicEncryptionKeyProvider,
+		)
 	})
 
 	o.spec("checkMailForPhishing", function () {
