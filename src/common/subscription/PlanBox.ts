@@ -9,7 +9,7 @@ import { theme } from "../gui/theme.js"
 import { FeatureListProvider, ReplacementKey } from "./FeatureListProvider.js"
 import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import { getReplacement, Variant } from "./PlanSelector.js"
+import { getReplacement } from "./PlanSelector.js"
 import { TranslationKeyType } from "../misc/TranslationKey.js"
 import { styles } from "../gui/styles.js"
 import { planBoxColors } from "./PlanBoxColors.js"
@@ -29,7 +29,6 @@ type PlanBoxAttrs = {
 	onclick: Callback<AvailablePlan>
 	features: ReturnType<FeatureListProvider["getFeatureList"]>
 	priceAndConfigProvider: PriceAndConfigProvider
-	variant: Variant
 	scale: CSSStyleDeclaration["scale"]
 }
 
@@ -48,9 +47,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 		m.redraw()
 	}
 
-	view({
-		attrs: { plan, isSelected, onclick, priceAndConfigProvider, price, referencePrice, selectedPaymentInterval, variant, scale },
-	}: Vnode<PlanBoxAttrs>) {
+	view({ attrs: { plan, isSelected, onclick, priceAndConfigProvider, price, referencePrice, selectedPaymentInterval, scale } }: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 
@@ -69,8 +66,8 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 					"min-height": px(270),
 					"border-style": "solid",
 					"border-color": planBoxColors.getOutlineColor({ isSelected }),
-					"border-width": isLegendPlan ? this.getLegendBorderWidth({ isSelected, variant }) : this.getRevoBorderWidth({ isSelected, variant }),
-					"border-radius": isLegendPlan ? this.getLegendBorderRadius({ variant }) : this.getRevoBorderRadius({ variant }),
+					"border-width": isLegendPlan ? this.getLegendBorderWidth(isSelected) : this.getRevoBorderWidth(isSelected),
+					"border-radius": isLegendPlan ? this.getLegendBorderRadius() : this.getRevoBorderRadius(),
 					"transform-origin": isLegendPlan ? "center right" : "center left",
 					...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
 					padding: `24px ${px(styles.isMobileLayout() ? 16 : 20)}`,
@@ -217,92 +214,44 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 		}
 	}
 
-	private getLegendBorderWidth({ isSelected, variant }: { isSelected: boolean; variant: Variant }) {
+	private getLegendBorderWidth(isSelected: boolean) {
 		if (isSelected) {
 			return "0"
 		}
 
-		if (variant === "C") {
-			if (styles.isMobileLayout()) {
-				return "2px 0 1px 1px"
-			} else {
-				return "2px 2px 1px 1px"
-			}
+		if (styles.isMobileLayout()) {
+			return "2px 0 1px 1px"
+		} else {
+			return "2px 2px 1px 1px"
 		}
-
-		if (variant === "B") {
-			if (styles.isMobileLayout()) {
-				return "2px 0 2px 1px"
-			} else {
-				return "2px 2px 2px 0"
-			}
-		}
-
-		return "0"
 	}
 
-	private getLegendBorderRadius({ variant }: { variant: Variant }) {
-		if (variant === "B") {
-			if (styles.isMobileLayout()) {
-				return "0 0 0 0"
-			} else {
-				return `0 ${px(size.border_radius_large)} ${px(size.border_radius_large)} 0`
-			}
+	private getLegendBorderRadius() {
+		if (styles.isMobileLayout()) {
+			return `0 0 0 0`
+		} else {
+			return `0 ${px(size.border_radius_large)} 0 0`
 		}
-
-		if (variant === "C") {
-			if (styles.isMobileLayout()) {
-				return `0 0 0 0`
-			} else {
-				return `0 ${px(size.border_radius_large)} 0 0`
-			}
-		}
-
-		return "0"
 	}
 
-	private getRevoBorderWidth({ isSelected, variant }: { isSelected: boolean; variant: Variant }) {
+	private getRevoBorderWidth(isSelected: boolean) {
 		if (isSelected) {
 			return "0"
 		}
 
-		if (variant === "C") {
-			if (styles.isMobileLayout()) {
-				return "2px 1px 1px 0"
-			} else {
-				return "2px 1px 1px 2px"
-			}
+		if (styles.isMobileLayout()) {
+			return "2px 1px 1px 0"
+		} else {
+			return "2px 1px 1px 2px"
 		}
-
-		if (variant === "B") {
-			if (styles.isMobileLayout()) {
-				return "2px 1px 2px 0"
-			} else {
-				return "2px 1px 2px 2px"
-			}
-		}
-
-		return "0"
 	}
 
-	private getRevoBorderRadius({ variant }: { variant: Variant }) {
-		if (variant === "B") {
-			if (styles.isMobileLayout()) {
-				return "0 0 0 0"
-			} else {
-				return `${px(size.border_radius_large)} 0 0 ${px(size.border_radius_large)}`
-			}
+	private getRevoBorderRadius() {
+		if (styles.isMobileLayout()) {
+			return `0 0 0 0`
+		} else {
+			return `${px(size.border_radius_large)} 0 0 0`
 		}
-
-		if (variant === "C") {
-			if (styles.isMobileLayout()) {
-				return `0 0 0 0`
-			} else {
-				return `${px(size.border_radius_large)} 0 0 0`
-			}
-		}
-
-		return "0"
 	}
 
 	// TODO: Update color to follow the Material 3 color rules after the color token update
