@@ -30,7 +30,7 @@ import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
-import { SubscriptionApp } from "./SubscriptionViewer"
+import { SubscriptionApp } from "./SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
 
 export type SignupFormAttrs = {
