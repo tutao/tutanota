@@ -13,7 +13,7 @@ export const dependencyMap = {
 	jszip: path.normalize("./libs/jszip.js"),
 	luxon: path.normalize("./libs/luxon.js"),
 	linkifyjs: path.normalize("./libs/linkify.js"),
-	"linkifyjs/html": path.normalize("./libs/linkify-html.js"),
+	"linkify-html": path.normalize("./libs/linkify-html.js"),
 	cborg: path.normalize("./libs/cborg.js"),
 	// below this, the modules are only running in the desktop main thread.
 	"electron-updater": path.normalize("./libs/electron-updater.mjs"),

@@ -41,7 +41,6 @@
 		"@tutao/tutanota-usagetests": "287.250603.0",
 		"@tutao/tutanota-utils": "287.250603.0",
 		"@types/better-sqlite3": "7.4.2",
-		"@types/linkifyjs": "2.1.7",
 		"@types/luxon": "3.4.2",
 		"@types/mithril": "2.0.11",
 		"@types/qrcode-svg": "1.1.4",

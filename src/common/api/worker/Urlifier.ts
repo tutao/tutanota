@@ -1,4 +1,4 @@
-import linkifyHtml from "linkifyjs/html"
+import linkifyHtml from "linkify-html"
 
 /**
  * Replaces plain text links in the given text by html links. Already existing html links are not changed.
