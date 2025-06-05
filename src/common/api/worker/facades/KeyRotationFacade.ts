@@ -105,7 +105,7 @@ import { LockedError, NotAuthenticatedError } from "../../common/error/RestError
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
-import { PublicKeyProvider } from "./PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 
@@ -192,7 +192,7 @@ export class KeyRotationFacade {
 		private readonly groupManagementFacade: lazyAsync<GroupManagementFacade>,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
 		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
 		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
 	) {

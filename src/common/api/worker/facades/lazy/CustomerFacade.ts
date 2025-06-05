@@ -68,7 +68,7 @@ import { _encryptKeyWithVersionedKey, CryptoWrapper, VersionedEncryptedKey, Vers
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
 import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
-import { PublicKeyProvider } from "../PublicKeyProvider"
+import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
 import { bitArrayToUint8Array, hexToRsaPublicKey, PQKeyPairs } from "@tutao/tutanota-crypto"
@@ -95,7 +95,7 @@ export class CustomerFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly recoverCodeFacade: RecoverCodeFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
 		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 

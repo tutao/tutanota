@@ -79,7 +79,7 @@ import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/Asymme
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
-import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
@@ -109,7 +109,7 @@ export type CalendarWorkerLocatorType = {
 	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
 	adminKeyLoader: AdminKeyLoaderFacade
-	publicKeyProvider: PublicKeyProvider
+	publicKeyProvider: PublicEncryptionKeyProvider
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
 	publicKeySignatureFacade: PublicKeySignatureFacade
@@ -249,13 +249,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new KeyVerificationFacade(locator.sqlCipherFacade, locator.publicKeySignatureFacade)
 	})
 
-	locator.publicKeyProvider = new PublicKeyProvider(
-		locator.serviceExecutor,
-		locator.cachingEntityClient,
-		keyAuthenticationFacade,
-		locator.keyLoader,
-		locator.keyVerification,
-	)
+	locator.publicKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification)
 
 	const asymmetricCrypto = new AsymmetricCryptoFacade(
 		locator.rsa,

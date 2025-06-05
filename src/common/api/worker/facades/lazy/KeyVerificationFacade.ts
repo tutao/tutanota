@@ -1,15 +1,16 @@
 import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
-import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust } from "../../../common/TutanotaConstants"
+import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { concat, Hex, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { bytesToEd25519PublicKey, ed25519PublicKeyToBytes, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
-import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
+import { bytesToEd25519PublicKey, ed25519PublicKeyToBytes, sha256Hash } from "@tutao/tutanota-crypto"
 import { sql } from "../../offline/Sql"
 import { TaggedSqlValue } from "../../offline/SqlValue"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
-import { EncodedEd25519Signature, SigningKeyPairType, SigningPublicKey } from "../Ed25519Facade"
+import { SigningKeyPairType, SigningPublicKey } from "../Ed25519Facade"
 import { checkKeyVersionConstraints } from "../KeyLoaderFacade"
 import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
+import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../PublicEncryptionKeyProvider"
+import { PublicIdentityKeyProvider } from "../PublicIdentityKeyProvider"
 
 assertWorkerOrNode()
 
@@ -24,7 +25,12 @@ export interface TrustedIdentity {
  * It also provides a method to verify public encryption key signatures with trusted identity keys.
  */
 export class KeyVerificationFacade {
-	constructor(private readonly sqlCipherFacade: SqlCipherFacade, private readonly publicKeySignatureFacade: PublicKeySignatureFacade) {}
+	constructor(
+		// TODO create a new class TrustDatabase that handles interaction with the sql database for key verification
+		//  and that is a dependency of both KeyVerificationFacade and PublicIdentityKeyProvider
+		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
+		private readonly publicIdentityKeyProvider: PublicIdentityKeyProvider,
+	) {}
 
 	async isSupported(): Promise<boolean> {
 		// SQLite database is unavailable in a browser environment
@@ -160,10 +166,13 @@ export class KeyVerificationFacade {
 	 * @return EncryptionKeyVerificationState The verification state whether it is Manual or Tofu trusted key. Returns No_Entry if there is no trusted identity.
 	 * @throws KeyVerificationMismatchError in case the signature is not valid
 	 */
-	async verify(mailAddress: string, encryptionKey: Versioned<PublicKey>, signature: EncodedEd25519Signature | null): Promise<EncryptionKeyVerificationState> {
-		const isSupported = await this.isSupported()
-		if (!isSupported) {
-			throw new ProgrammingError("key verification is not supported in this environment")
+	async verify(publicKeyIdentifier: PublicKeyIdentifier, publicEncryptionKey: Versioned<MaybeSignedPublicKey>): Promise<EncryptionKeyVerificationState> {
+		// const isSupported = await this.isSupported()
+		// if (!isSupported) {
+		// 	throw new ProgrammingError("key verification is not supported in this environment")
+		// }
+		if (publicKeyIdentifier.identifierType === PublicKeyIdentifierType.MAIL_ADDRESS) {
+		} else {
 		}
 
 		// Load identity key from trust database

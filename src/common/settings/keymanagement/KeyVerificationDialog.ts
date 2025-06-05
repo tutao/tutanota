@@ -14,7 +14,7 @@ import { VerificationResultPage } from "./dialogpages/VerificationResultPage"
 import { QrCodePageErrorType, VerificationByQrCodeInputPage } from "./dialogpages/VerificationByQrCodeInputPage"
 import { VerificationErrorPage } from "./dialogpages/VerificationErrorPage"
 import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
-import { PublicKeyProvider } from "../../api/worker/facades/PublicKeyProvider"
+import { PublicEncryptionKeyProvider } from "../../api/worker/facades/PublicEncryptionKeyProvider"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD = "CHOOSE_METHOD",
@@ -31,7 +31,7 @@ export async function showKeyVerificationDialog(
 	keyVerificationFacade: KeyVerificationFacade,
 	mobileSystemFacade: MobileSystemFacade,
 	usageTestController: UsageTestController,
-	publicKeyProvider: PublicKeyProvider,
+	publicKeyProvider: PublicEncryptionKeyProvider,
 	reloadParent: () => Promise<void>,
 ): Promise<void> {
 	const textUsageTest = usageTestController.getTest("crypto.keyVerification.text")

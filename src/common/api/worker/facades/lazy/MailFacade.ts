@@ -149,7 +149,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
-import { LoadedPublicEncryptionKey, PublicKeyProvider } from "../PublicKeyProvider.js"
+import { LoadedPublicEncryptionKey, PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider.js"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 
@@ -199,7 +199,7 @@ export class MailFacade {
 		private readonly fileApp: NativeFileApp,
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {

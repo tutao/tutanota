@@ -41,7 +41,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { CryptoWrapper } from "../../../common/api/worker/crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
@@ -72,7 +72,7 @@ export interface WorkerInterface {
 	readonly restInterface: EntityRestInterface
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoWrapper: CryptoWrapper
-	readonly publicKeyProvider: PublicKeyProvider
+	readonly publicKeyProvider: PublicEncryptionKeyProvider
 	readonly asymmetricCryptoFacade: AsymmetricCryptoFacade
 	readonly cryptoFacade: CryptoFacade
 	readonly cacheStorage: ExposedCacheStorage

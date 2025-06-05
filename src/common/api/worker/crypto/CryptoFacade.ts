@@ -81,7 +81,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import { PublicKeyProvider } from "../facades/PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvider.js"
 import { KeyVersion, Nullable } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { typeRefToRestPath } from "../rest/EntityRestClient"
@@ -107,7 +107,7 @@ export class CryptoFacade {
 		private readonly cache: DefaultEntityRestCache | null,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 	) {}
 

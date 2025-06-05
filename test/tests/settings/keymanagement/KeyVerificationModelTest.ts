@@ -3,7 +3,7 @@ import { KeyVerificationModel } from "../../../../src/common/settings/keymanagem
 import { KeyVerificationFacade } from "../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { MobileSystemFacade } from "../../../../src/common/native/common/generatedipc/MobileSystemFacade"
 import { KeyVerificationUsageTestUtils } from "../../../../src/common/settings/keymanagement/KeyVerificationUsageTestUtils"
-import { PublicKeyProvider } from "../../../../src/common/api/worker/facades/PublicKeyProvider"
+import { PublicEncryptionKeyProvider } from "../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { matchers, object, verify, when } from "testdouble"
 import {
 	IdentityKeyVerificationMethod,
@@ -21,7 +21,7 @@ o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationFacade: KeyVerificationFacade
 	let mobileSystemFacade: MobileSystemFacade
 	let keyVerificationTestUtils: KeyVerificationUsageTestUtils
-	let publicKeyProvider: PublicKeyProvider
+	let publicKeyProvider: PublicEncryptionKeyProvider
 
 	o.beforeEach(function () {
 		keyVerificationFacade = object()

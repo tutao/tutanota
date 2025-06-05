@@ -29,7 +29,7 @@ import { downcast } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
-import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
 import { Recipient } from "../../../../../src/common/api/common/recipients/Recipient"
@@ -47,7 +47,7 @@ o.spec("MailFacade test", function () {
 	let fileApp: NativeFileApp
 	let loginFacade: LoginFacade
 	let keyLoaderFacade: KeyLoaderFacade
-	let publicKeyProvider: PublicKeyProvider
+	let publicKeyProvider: PublicEncryptionKeyProvider
 
 	o.beforeEach(function () {
 		userFacade = object()

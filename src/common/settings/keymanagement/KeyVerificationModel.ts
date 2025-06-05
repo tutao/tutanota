@@ -8,7 +8,7 @@ import {
 } from "../../api/common/TutanotaConstants"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { KeyVerificationScanCompleteMetric, KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
-import { PublicKeyProvider } from "../../api/worker/facades/PublicKeyProvider"
+import { PublicEncryptionKeyProvider } from "../../api/worker/facades/PublicEncryptionKeyProvider"
 import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { QRCode } from "jsqr"
@@ -37,7 +37,7 @@ export class KeyVerificationModel {
 		private readonly keyVerificationFacade: KeyVerificationFacade,
 		private readonly mobileSystemFacade: MobileSystemFacade,
 		private readonly test: KeyVerificationUsageTestUtils,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
 	) {}
 
 	private reset() {

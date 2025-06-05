@@ -94,7 +94,7 @@ import {
 	KeyAuthenticationFacade,
 	PubDistKeyAuthenticationParams,
 } from "../../../../../src/common/api/worker/facades/KeyAuthenticationFacade.js"
-import { LoadedPublicEncryptionKey, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { LoadedPublicEncryptionKey, PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
@@ -262,7 +262,7 @@ function prepareUserKeyRotation(
 		entityClient: EntityClient
 		asymmetricCryptoFacade: AsymmetricCryptoFacade
 		keyAuthenticationFacade: KeyAuthenticationFacade
-		publicKeyProvider: PublicKeyProvider
+		publicKeyProvider: PublicEncryptionKeyProvider
 	},
 	keyRotationFacade: KeyRotationFacade,
 	userGroup: Group,
@@ -437,7 +437,7 @@ o.spec("KeyRotationFacadeTest", function () {
 	let groupManagementFacade: GroupManagementFacade
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 	let keyAuthenticationFacade: KeyAuthenticationFacade
-	let publicKeyProvider: PublicKeyProvider
+	let publicKeyProvider: PublicEncryptionKeyProvider
 	let publicKeySignatureFacade: PublicKeySignatureFacade
 	let adminKeyLoader: AdminKeyLoaderFacade
 

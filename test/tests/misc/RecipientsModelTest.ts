@@ -14,7 +14,7 @@ import { defer, delay } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 import { KeyVerificationFacade } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { LoadedPublicEncryptionKey } from "../../../src/common/api/worker/facades/PublicKeyProvider"
+import { LoadedPublicEncryptionKey } from "../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { ProgrammingError } from "../../../src/common/api/common/error/ProgrammingError"
 import { KeyVerificationMismatchError } from "../../../src/common/api/common/error/KeyVerificationMismatchError"
 

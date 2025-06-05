@@ -100,7 +100,7 @@ import { loadLibOQSWASM } from "../WASMTestUtils.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
-import { LoadedPublicEncryptionKey, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { LoadedPublicEncryptionKey, PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
@@ -113,7 +113,7 @@ const { captor, anything, argThat } = matchers
 const kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
 const pqFacade: PQFacade = new PQFacade(kyberFacade)
 let asymmetricCryptoFacade: AsymmetricCryptoFacade
-let publicKeyProvider: PublicKeyProvider
+let publicKeyProvider: PublicEncryptionKeyProvider
 
 /**
  * Helper to have all the mocked items available in the test case.

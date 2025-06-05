@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { arrayEquals, getFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { PublicKeyIdentifier, PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/ServiceExecutor.js"
 import { IdentityKeyService, PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import {
@@ -50,7 +50,7 @@ o.spec("PublicKeyProviderTest", function () {
 	let entityClient: EntityClient
 	let keyAuthenticationFacade: KeyAuthenticationFacade
 	let keyLoaderFacade: KeyLoaderFacade
-	let publicKeyProvider: PublicKeyProvider
+	let publicKeyProvider: PublicEncryptionKeyProvider
 
 	let publicKeyIdentifier: PublicKeyIdentifier
 	let currentVersion: KeyVersion
@@ -68,7 +68,7 @@ o.spec("PublicKeyProviderTest", function () {
 		keyAuthenticationFacade = object()
 		keyLoaderFacade = object()
 		keyVerificationFacade = object()
-		publicKeyProvider = new PublicKeyProvider(serviceExecutor, entityClient, keyAuthenticationFacade, keyLoaderFacade, async () => keyVerificationFacade)
+		publicKeyProvider = new PublicEncryptionKeyProvider(serviceExecutor, async () => keyVerificationFacade)
 
 		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)
@@ -279,7 +279,7 @@ o.spec("PublicKeyProviderTest", function () {
 				},
 			}
 
-			const pubKeys = await publicKeyProvider.loadPubKey(publicKeyIdentifier, requestedVersion)
+			const pubKeys = await publicKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion)
 			o(pubKeys.publicEncryptionKey).deepEquals(expectedPublicKey)
 		})
 
@@ -294,7 +294,7 @@ o.spec("PublicKeyProviderTest", function () {
 				}),
 			)
 			o(currentVersion).notEquals(requestedVersion)
-			await assertThrows(InvalidDataError, async () => publicKeyProvider.loadPubKey(publicKeyIdentifier, requestedVersion))
+			await assertThrows(InvalidDataError, async () => publicKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion))
 		})
 
 		o("rsa key in version other than 0", async function () {
@@ -309,7 +309,7 @@ o.spec("PublicKeyProviderTest", function () {
 					signature: null,
 				}),
 			)
-			await assertThrows(CryptoError, async () => publicKeyProvider.loadPubKey(publicKeyIdentifier, currentVersion))
+			await assertThrows(CryptoError, async () => publicKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, currentVersion))
 		})
 	})
 
@@ -470,8 +470,8 @@ o.spec("PublicKeyProviderTest", function () {
 	})
 })
 
-o.spec("PublicKeyProvider - convert keys", function () {
-	let publicKeyProvider: PublicKeyProvider
+o.spec("PublicEncryptionKeyProvider - convert keys", function () {
+	let publicKeyProvider: PublicEncryptionKeyProvider
 	let rsaPublicKey: Uint8Array
 	let x25519PublicKey: Uint8Array
 	let kyberPublicKey: Uint8Array
@@ -488,7 +488,7 @@ o.spec("PublicKeyProvider - convert keys", function () {
 		keyLoaderFacade = object()
 		keyVerificationFacade = object()
 
-		publicKeyProvider = new PublicKeyProvider(serviceExecutor, entityClient, keyAuthenticationFacade, keyLoaderFacade, async () => keyVerificationFacade)
+		publicKeyProvider = new PublicEncryptionKeyProvider(serviceExecutor, async () => keyVerificationFacade)
 
 		const kyberTestData = getFirstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)

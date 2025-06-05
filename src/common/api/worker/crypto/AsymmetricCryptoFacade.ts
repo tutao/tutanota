@@ -28,7 +28,7 @@ import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
-import { PublicKeyIdentifier, PublicKeyProvider } from "../facades/PublicKeyProvider.js"
+import { PublicKeyIdentifier, PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { TypeId } from "../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
@@ -59,7 +59,7 @@ export class AsymmetricCryptoFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
 	) {}
 
 	getSenderEccKey(publicKey: Versioned<PublicKey>): X25519PublicKey | null {
@@ -82,7 +82,7 @@ export class AsymmetricCryptoFacade {
 	async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: KeyVersion): Promise<EncryptionAuthStatus> {
 		let authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 		try {
-			const publicKey = await this.publicKeyProvider.loadPubKey(identifier, senderKeyVersion)
+			const publicKey = await this.publicKeyProvider.loadPublicEncryptionKey(identifier, senderKeyVersion)
 			const publicEccKey = this.getSenderEccKey(publicKey.publicEncryptionKey)
 			if (publicEccKey != null && arrayEquals(publicEccKey, senderIdentityPubKey)) {
 				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED

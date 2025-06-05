@@ -17,7 +17,7 @@ import { renderFingerprintAsQrCode } from "./FingerprintRenderers"
 import { MenuTitle } from "../../gui/titles/MenuTitle"
 import { theme } from "../../gui/theme"
 import { FingerprintRow } from "./FingerprintRow"
-import { PublicKeyProvider } from "../../api/worker/facades/PublicKeyProvider"
+import { PublicEncryptionKeyProvider } from "../../api/worker/facades/PublicEncryptionKeyProvider"
 import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
 import { ThemeController } from "../../gui/ThemeController"
 import { PublicIdentity } from "./KeyVerificationModel"
@@ -38,7 +38,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		private readonly mobileSystemFacade: MobileSystemFacade,
 		private readonly userController: UserController,
 		private readonly usageTestController: UsageTestController,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
 		private readonly themeController: ThemeController,
 	) {
 		this.ownIdentity = null
