@@ -72,10 +72,10 @@ import { RecoverCodeFacade } from "./RecoverCodeFacade.js"
 import { encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
 import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGenerator.js"
-import type { SubscriptionApp } from "../../../../subscription/SubscriptionViewer.js"
 import { PublicKeyProvider } from "../PublicKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
+import { SubscriptionApp } from "../../../../subscription/SubscriptionUtils"
 
 assertWorkerOrNode()
 
