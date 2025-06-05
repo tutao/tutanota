@@ -24,6 +24,9 @@ import { styles } from "../gui/styles.js"
 import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
+import { isIOSApp } from "../api/common/Env.js"
+import { BootIcons } from "../gui/base/icons/BootIcons.js"
+import { px, size } from "../gui/size.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -39,9 +42,12 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	private _dom: HTMLElement | null = null
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
-	private upgradeType: UpgradeType | null = null
+	private upgradeType: UpgradeType | undefined = undefined
+	private firstYearDiscount: number = 0
+	private bonusMonth: number = 0
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
+		const data = vnode.attrs.data
 		this._dom = vnode.dom as HTMLElement
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
 		this.upgradeType = vnode.attrs.data.upgradeType
@@ -66,6 +72,10 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 
 		const test = getPlanSelectorTest()
 		void test.forceRestart()
+
+		const pricingData = data.planPrices.getRawPricingData()
+		this.firstYearDiscount = Number(pricingData.legendaryPrices.firstYearDiscount)
+		this.bonusMonth = Number(pricingData.bonusMonthsForYearlyPlan)
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -113,15 +123,29 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 
 		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
 		return m(".", [
-			m("", "Hello"),
+			// Headline for campaigns / affiliates / warnings
+			this.renderHeadline(),
 			m(PlanSelector, {
 				options: data.options,
-				variant: "C",
 				actionButtons: subscriptionActionButtons,
 				featureListProvider: vnode.attrs.data.featureListProvider,
 				priceAndConfigProvider: vnode.attrs.data.planPrices,
 			}),
 		])
+	}
+
+	private renderHeadline() {
+		return m(
+			".",
+			m(Icon, {
+				icon: BootIcons.Heart,
+				size: IconSize.XL,
+				class: "center-h",
+				container: "div",
+				style: { fill: theme.experimental_tertiary, "margin-top": px(size.vpad), "margin-bottom": px(size.vpad_xsm) },
+			}),
+			m(".b.center.mb-l", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
+		)
 	}
 
 	selectFree(data: UpgradeSubscriptionData) {

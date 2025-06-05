@@ -9,7 +9,6 @@ import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { Button, ButtonType } from "../gui/base/Button.js"
 import { theme } from "../gui/theme.js"
 import { styles } from "../gui/styles.js"
 import { FreePlanBox } from "./FreePlanBox.js"
@@ -25,7 +24,6 @@ type PlanSelectorAttr = {
 	actionButtons: SubscriptionActionButtons
 	featureListProvider: FeatureListProvider
 	priceAndConfigProvider: PriceAndConfigProvider
-	variant: Variant
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -70,7 +68,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
-	view({ attrs: { options, priceAndConfigProvider, variant, featureListProvider, actionButtons } }: Vnode<PlanSelectorAttr>): Children {
+	view({ attrs: { options, priceAndConfigProvider, featureListProvider, actionButtons } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 
 		function renderFootnoteElement(): Children {
@@ -162,18 +160,16 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									scale: this.scale[personalPlan],
 									selectedPaymentInterval: options.paymentInterval,
 									priceAndConfigProvider,
-									variant: variant,
 								})
 							}),
 						),
-						variant === "C" &&
-							m(FreePlanBox, {
-								isSelected: this.currentPlan() === PlanType.Free,
-								select: () => this.currentPlan(PlanType.Free),
-								priceAndConfigProvider,
-								features: featureListProvider.getFeatureList(PlanType.Free),
-								scale: this.scale[PlanType.Free],
-							}),
+						m(FreePlanBox, {
+							isSelected: this.currentPlan() === PlanType.Free,
+							select: () => this.currentPlan(PlanType.Free),
+							priceAndConfigProvider,
+							features: featureListProvider.getFeatureList(PlanType.Free),
+							scale: this.scale[PlanType.Free],
+						}),
 					),
 				),
 				m(
@@ -208,12 +204,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 							}),
 						),
 					),
-					variant === "B" &&
-						m(Button, {
-							type: ButtonType.Secondary,
-							label: lang.makeTranslation("", "Start with a free account"),
-							click: (event, dom) => actionButtons[PlanType.Free]().onclick(event, dom),
-						}),
 				),
 				m(".flex.flex-column", [
 					m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
@@ -398,5 +388,3 @@ function getPlanMetricValue(planType: PlanType, interval?: PaymentInterval) {
 }
 
 export type SubscriptionActionButtons = Record<AvailablePlans, lazy<LoginButtonAttrs>>
-
-export type Variant = "B" | "C"
