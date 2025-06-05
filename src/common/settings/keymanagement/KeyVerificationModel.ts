@@ -1,18 +1,19 @@
 import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { assertNotNull, Hex, Versioned } from "@tutao/tutanota-utils"
 import {
-	IdentityKeyVerificationMethod,
 	IdentityKeyQrVerificationResult,
 	IdentityKeySourceOfTrust,
+	IdentityKeyVerificationMethod,
 	PublicKeyIdentifierType,
 } from "../../api/common/TutanotaConstants"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { KeyVerificationScanCompleteMetric, KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
-import { PublicKeyProvider } from "../../api/worker/facades/PublicKeyProvider"
 import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { QRCode } from "jsqr"
 import { PermissionType } from "../../native/common/generatedipc/PermissionType"
+import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 
 export type PublicIdentity = {
 	fingerprint: Hex
@@ -21,7 +22,7 @@ export type PublicIdentity = {
 }
 
 /**
- * This model tracks state across multiple pages in the key verification dialog.
+ * This model tracks state across multiple pages in the key verification dialog (when comparing identity key fingerprints).
  */
 export class KeyVerificationModel {
 	private publicIdentityKey: PublicIdentity | null = null
@@ -37,7 +38,7 @@ export class KeyVerificationModel {
 		private readonly keyVerificationFacade: KeyVerificationFacade,
 		private readonly mobileSystemFacade: MobileSystemFacade,
 		private readonly test: KeyVerificationUsageTestUtils,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicIdentityKeyProvider: PublicIdentityKeyProvider,
 	) {}
 
 	private reset() {
@@ -91,16 +92,18 @@ export class KeyVerificationModel {
 	}
 
 	async loadIdentityKeyForMailAddress(mailAddress: string): Promise<PublicIdentity | null> {
-		const identityKey = await this.publicKeyProvider.loadPublicIdentityKey({
+		const identityKey = await this.publicIdentityKeyProvider.loadPublicIdentityKey({
 			identifier: mailAddress,
 			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 		})
-		if (identityKey === null) {
+		if (identityKey == null) {
 			this.publicIdentityKey = null
+		} else if (identityKey.sourceOfTrust === IdentityKeySourceOfTrust.Not_Supported) {
+			throw new ProgrammingError("No access to trust database")
 		} else {
 			this.publicIdentityKey = {
-				fingerprint: await this.keyVerificationFacade.calculateFingerprint(identityKey),
-				key: identityKey,
+				fingerprint: this.keyVerificationFacade.calculateFingerprint(identityKey.publicIdentityKey),
+				key: identityKey.publicIdentityKey,
 				mailAddress: mailAddress,
 			}
 		}

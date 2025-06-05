@@ -81,9 +81,9 @@ import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/C
 import { MailOfflineCleaner } from "../offline/MailOfflineCleaner.js"
 import { Credentials } from "../../../common/misc/credentials/Credentials.js"
 import { AsymmetricCryptoFacade } from "../../../common/api/worker/crypto/AsymmetricCryptoFacade.js"
-import { KeyVerificationFacade, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationFacade } from "../../../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyAuthenticationFacade.js"
-import { PublicKeyProvider } from "../../../common/api/worker/facades/PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage.js"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import type { BulkMailLoader } from "../index/BulkMailLoader.js"
@@ -111,6 +111,8 @@ import { RolloutFacade } from "../../../common/api/worker/facades/RolloutFacade"
 import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
+import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
+import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
 
 assertWorkerOrNode()
 
@@ -137,7 +139,9 @@ export type WorkerLocatorType = {
 	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
 	adminKeyLoader: AdminKeyLoaderFacade
-	publicKeyProvider: PublicKeyProvider
+	publicEncryptionKeyProvider: PublicEncryptionKeyProvider
+	publicIdentityKeyProvider: PublicIdentityKeyProvider
+	identityKeyTrustDatabase: IdentityKeyTrustDatabase
 	keyRotation: KeyRotationFacade
 	ed25519Facade: Ed25519Facade
 	publicKeySignatureFacade: PublicKeySignatureFacade
@@ -308,7 +312,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
-			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
 			const { SearchTableDefinitions } = await import("../index/OfflineStoragePersistence.js")
 
 			const customCacheHandler = new CustomCacheHandlerMap(
@@ -461,18 +465,20 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.keyAuthenticationFacade,
 	)
 
-	locator.keyVerification = lazyMemoized(async () => {
-		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
-		return new KeyVerificationFacade(locator.sqlCipherFacade, locator.publicKeySignatureFacade)
-	})
-
-	locator.publicKeyProvider = new PublicKeyProvider(
+	locator.identityKeyTrustDatabase = new IdentityKeyTrustDatabase(locator.sqlCipherFacade)
+	locator.publicIdentityKeyProvider = new PublicIdentityKeyProvider(
 		locator.serviceExecutor,
 		locator.cachingEntityClient,
 		locator.keyAuthenticationFacade,
 		locator.keyLoader,
-		locator.keyVerification,
+		locator.identityKeyTrustDatabase,
 	)
+	locator.keyVerification = lazyMemoized(async () => {
+		const { KeyVerificationFacade } = await import("../../../common/api/worker/facades/lazy/KeyVerificationFacade.js")
+		return new KeyVerificationFacade(locator.publicKeySignatureFacade, locator.publicIdentityKeyProvider, locator.identityKeyTrustDatabase)
+	})
+
+	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification)
 
 	locator.asymmetricCrypto = new AsymmetricCryptoFacade(
 		locator.rsa,
@@ -481,7 +487,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.cryptoWrapper,
 		locator.serviceExecutor,
 		locator.keyVerification,
-		locator.publicKeyProvider,
+		locator.publicEncryptionKeyProvider,
 	)
 
 	locator.crypto = new CryptoFacade(
@@ -494,7 +500,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		cache,
 		locator.keyLoader,
 		locator.asymmetricCrypto,
-		locator.publicKeyProvider,
+		locator.publicEncryptionKeyProvider,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,
 	)
@@ -557,7 +563,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.groupManagement,
 		locator.asymmetricCrypto,
 		locator.keyAuthenticationFacade,
-		locator.publicKeyProvider,
+		locator.publicEncryptionKeyProvider,
 		locator.publicKeySignatureFacade,
 		locator.adminKeyLoader,
 	)
@@ -688,7 +694,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.keyLoader,
 			await locator.recoverCode(),
 			locator.asymmetricCrypto,
-			locator.publicKeyProvider,
+			locator.publicEncryptionKeyProvider,
 			locator.cryptoWrapper,
 		)
 	})
@@ -708,7 +714,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			fileApp,
 			locator.login,
 			locator.keyLoader,
-			locator.publicKeyProvider,
+			locator.publicEncryptionKeyProvider,
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
