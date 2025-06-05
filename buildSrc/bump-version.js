@@ -73,7 +73,7 @@ async function bumpVersionInCargoWorkspace(newVersionString) {
 		console.log(`rust: Updated ${workspaceFilePath} package.version to ${newVersionString}`)
 		await fs.promises.writeFile(workspaceFilePath, newContents)
 		// regenerate the lockfile
-		await $`cargo update && cargo check --all`
+		await $`cargo update tuta-sdk tutao_node-mimimi && cargo check --all`
 	}
 }
 
