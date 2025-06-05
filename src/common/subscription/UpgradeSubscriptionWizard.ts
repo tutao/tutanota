@@ -223,10 +223,8 @@ export async function loadSignupWizard(
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
 
-	const plansPage = initPlansPages(signupData)
-
 	const wizardPages = [
-		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
+		wizardPageWrapper(VariantCSubscriptionPage, new VariantCSubscriptionPageAttrs(signupData)),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs), // this page will login the user after signing up with newaccount data
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs), // this page will login the user if they are not login for iOS payment through AppStore
@@ -265,19 +263,4 @@ export async function loadSignupWizard(
 	invoiceAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 
 	wizardBuilder.dialog.show()
-}
-
-function initPlansPages(signupData: UpgradeSubscriptionData): {
-	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantCSubscriptionPage>
-	attrs: UpgradeSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
-} {
-	const pricingData = signupData.planPrices.getRawPricingData()
-	const firstYearDiscount = Number(pricingData.legendaryPrices.firstYearDiscount)
-	const bonusMonth = Number(pricingData.bonusMonthsForYearlyPlan)
-
-	if (firstYearDiscount === 0 && bonusMonth === 0) {
-		return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
-	} else {
-		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
-	}
 }
