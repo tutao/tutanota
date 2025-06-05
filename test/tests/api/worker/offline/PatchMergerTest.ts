@@ -10,8 +10,6 @@ import { ServiceExecutor } from "../../../../../src/common/api/worker/rest/Servi
 import { OwnerEncSessionKeysUpdateQueue } from "../../../../../src/common/api/worker/crypto/OwnerEncSessionKeysUpdateQueue"
 import { CacheStorage, DefaultEntityRestCache } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
-import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
 import { Entity, ModelValue, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { assertNotNull, downcast, Nullable } from "@tutao/tutanota-utils/dist/Utils"
@@ -53,6 +51,7 @@ import { encryptValue } from "../../../../../src/common/api/worker/crypto/Crypto
 import { PatchOperationError } from "../../../../../src/common/api/common/error/PatchOperationError"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { EncryptionAuthStatus } from "../../../../../src/common/api/common/TutanotaConstants"
+import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
@@ -79,7 +78,7 @@ o.spec("PatchMergerTest", () => {
 			instance(DefaultEntityRestCache),
 			keyLoaderFacadeMock,
 			instance(AsymmetricCryptoFacade),
-			instance(PublicKeyProvider),
+			instance(PublicEncryptionKeyProvider),
 			() => instance(KeyRotationFacade),
 			typeModelResolver,
 		)

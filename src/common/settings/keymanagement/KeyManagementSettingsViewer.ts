@@ -17,10 +17,10 @@ import { renderFingerprintAsQrCode } from "./FingerprintRenderers"
 import { MenuTitle } from "../../gui/titles/MenuTitle"
 import { theme } from "../../gui/theme"
 import { FingerprintRow } from "./FingerprintRow"
-import { PublicKeyProvider } from "../../api/worker/facades/PublicKeyProvider"
 import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
 import { ThemeController } from "../../gui/ThemeController"
 import { PublicIdentity } from "./KeyVerificationModel"
+import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
 
 /**
  * Section in user settings to deal with everything related to key verification.
@@ -38,7 +38,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		private readonly mobileSystemFacade: MobileSystemFacade,
 		private readonly userController: UserController,
 		private readonly usageTestController: UsageTestController,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicIdentityKeyProvider: PublicIdentityKeyProvider,
 		private readonly themeController: ThemeController,
 	) {
 		this.ownIdentity = null
@@ -47,18 +47,17 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async init() {
-		const ownIdentityKey = await this.publicKeyProvider.loadPublicIdentityKeyFromGroup(this.userController.userGroupInfo.group)
+		const ownIdentityKey = await this.publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(this.userController.userGroupInfo.group)
 		if (ownIdentityKey != null) {
 			this.ownIdentity = {
 				key: ownIdentityKey,
-				fingerprint: await this.keyVerificationFacade.calculateFingerprint(ownIdentityKey),
+				fingerprint: this.keyVerificationFacade.calculateFingerprint(ownIdentityKey),
 				mailAddress: getDefaultSenderFromUser(this.userController),
 			}
 		} else {
 			this.ownIdentity = null
 		}
 
-		// Do not try to load trusted identities anymore until the switch to identity key verification is implemented
 		this.trustedIdentities = await this.keyVerificationFacade.getManuallyVerifiedIdentities()
 		m.redraw()
 	}
@@ -120,7 +119,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 										this.keyVerificationFacade,
 										this.mobileSystemFacade,
 										this.usageTestController,
-										this.publicKeyProvider,
+										this.publicIdentityKeyProvider,
 										() => obj.reload(),
 									)
 								},

@@ -149,10 +149,11 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
-import { LoadedPublicEncryptionKey, PublicKeyProvider } from "../PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
+import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -200,7 +201,7 @@ export class MailFacade {
 		private readonly fileApp: NativeFileApp,
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -882,9 +883,9 @@ export class MailFacade {
 		}
 	}
 
-	getRecipientKeyData(mailAddress: string): Promise<LoadedPublicEncryptionKey | null> {
-		return this.publicKeyProvider
-			.loadCurrentPubKey({
+	getRecipientKeyData(mailAddress: string): Promise<VerifiedPublicEncryptionKey | null> {
+		return this.publicEncryptionKeyProvider
+			.loadCurrentPublicEncryptionKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: mailAddress,
 			})

@@ -105,7 +105,7 @@ import { LockedError, NotAuthenticatedError } from "../../common/error/RestError
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
-import { PublicKeyProvider } from "./PublicKeyProvider.js"
+import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 
@@ -192,7 +192,7 @@ export class KeyRotationFacade {
 		private readonly groupManagementFacade: lazyAsync<GroupManagementFacade>,
 		private readonly asymmetricCryptoFacade: AsymmetricCryptoFacade,
 		private readonly keyAuthenticationFacade: KeyAuthenticationFacade,
-		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
 		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
 	) {
@@ -424,7 +424,7 @@ export class KeyRotationFacade {
 
 		const newAdminGroupKeys = await this.generateGroupKeys(adminGroup)
 		const adminKeyPair = assertNotNull(newAdminGroupKeys.encryptedKeyPair)
-		const adminPubKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminKeyPair, newAdminGroupKeys.symGroupKey.version)
+		const adminPubKey = this.publicEncryptionKeyProvider.convertFromEncryptedPqKeyPairs(adminKeyPair, newAdminGroupKeys.symGroupKey.version)
 		const adminPubKeyMacList = await this.generatePubKeyTagsForNonAdminUsers(
 			adminPubKey.object,
 			newAdminGroupKeys.symGroupKey.version,
@@ -1048,7 +1048,7 @@ export class KeyRotationFacade {
 		}
 
 		// get admin group public keys
-		const currentAdminPubKeys = await this.publicKeyProvider.loadCurrentPubKey({
+		const currentAdminPubKeys = await this.publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
 			identifier: adminGroupId,
 			identifierType: PublicKeyIdentifierType.GROUP_ID,
 		})
@@ -1213,7 +1213,7 @@ export class KeyRotationFacade {
 			pwKey,
 		)
 		const adminDistributionKeyPair = (await this.generateAndEncryptPqKeyPairs(adminDistKeyPairDistributionKey)).encryptedKeyPair
-		const adminDistPublicKey = this.publicKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
+		const adminDistPublicKey = this.publicEncryptionKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
 
 		const tag = this.keyAuthenticationFacade.computeTag({
 			tagType: "PUB_DIST_KEY_TAG",
@@ -1301,7 +1301,7 @@ export class KeyRotationFacade {
 			const targetUserGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupId)
 			const givenTag = brandKeyMac(distributionKey.pubKeyMac).tag
 
-			const distributionPublicKey = this.publicKeyProvider.convertFromPubDistributionKey(distributionKey)
+			const distributionPublicKey = this.publicEncryptionKeyProvider.convertFromPubDistributionKey(distributionKey)
 			this.keyAuthenticationFacade.verifyTag(
 				{
 					tagType: "PUB_DIST_KEY_TAG",
