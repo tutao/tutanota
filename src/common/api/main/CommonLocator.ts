@@ -71,8 +71,9 @@ import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { SearchToken } from "../common/utils/QueryTokenUtils"
 import type { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites"
-import { PublicKeyProvider } from "../worker/facades/PublicKeyProvider"
+import { PublicEncryptionKeyProvider } from "../worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
+import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyProvider"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -104,7 +105,8 @@ export interface CommonLocator {
 	bookingFacade: BookingFacade
 	mailAddressFacade: MailAddressFacade
 	keyVerificationFacade: KeyVerificationFacade
-	publicKeyProvider: PublicKeyProvider
+	publicEncryptionKeyProvider: PublicEncryptionKeyProvider
+	publicIdentityKeyProvider: PublicIdentityKeyProvider
 	blobFacade: BlobFacade
 	userManagementFacade: UserManagementFacade
 	recoverCodeFacade: RecoverCodeFacade
