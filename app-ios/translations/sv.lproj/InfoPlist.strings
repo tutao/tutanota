@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Ta en bild eller video för att lägga till den som bifogad fil.";
 NSPhotoLibraryUsageDescription = "Lägg till en bild från ditt bibliotek som bifogad fil.";
 NSMicrophoneUsageDescription = "Används när du spelar in en video som bifogad fil.";
-NSContactsUsageDescription = "1. Hitta mottagarens e-postadress i kontakter.\n2. Alternativt kan du synkronisera Tuta kontakter till din enhet.\n3. Du kan även synkronisera kontakter från din enhet till ditt Tuta konto.";
+NSContactsUsageDescription = "Tuta kan visa dig förslag på e-postmottagare från kontakter som finns lagrade i din enhet. Du kan också tillåta Tuta att synkronisera dina kontakter mellan din enhet och ditt Tuta konto. Om du aktiverar synkronisering i inställningarna kommer kontakter från din enhet att laddas upp efter att ha krypterats på ett säkert sätt och dina Tuta kontakter blir tillgängliga för andra appar.";
 NSRemindersUsageDescription = "Visar en notis när nya mejl kommer.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Bilder";

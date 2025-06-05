@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-06-03T10:03:11Z",
+	"updated_at": "2025-06-04T06:31:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -341,7 +341,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Kişi senkronizasyonunu etkinleştirmek, Tuta kişilerinizi telefon rehberinize erişim izni verdiğiniz diğer uygulamalarla paylaşacaktır. Tuta kişileriniz otomatik olarak senkronize edilecektir.",
 		"contactsSynchronization_label": "Kişiler Senkronizasyonu",
 		"contactSupport_action": "Destek ile iletişime geç",
-		"contactsUsageDescription_msg": "1. Kişiler listesinde alıcının e-posta adresini bulun.\\n2. İsteğe bağlı olarak, Tuta kişilerini cihazınızla senkronize edin.\\n3. İsteğe bağlı olarak, cihazınızdaki kişileri Tuta hesabınızla senkronize edin.",
+		"contactsUsageDescription_msg": "Tuta, cihazınızda kayıtlı kişilerden e-posta alıcı önerileri gösterebilir. Ayrıca, Tuta'nın cihazınız ve Tuta hesabınız arasında kişilerinizi senkronize etmesine izin verebilirsiniz. Ayarlarda senkronizasyonu etkinleştirirseniz, cihazınızdaki kişiler güvenli bir şekilde şifrelendikten sonra yüklenecek ve Tuta kişileriniz diğer uygulamalar tarafından kullanılabilir hale gelecektir.",
 		"contacts_label": "Kişiler",
 		"contactView_action": "Kişi görünümüne geç",
 		"contentBlocked_msg": "Gizliliğinizi korumak için görsellerin otomatik olarak yüklenmesini engelledik.",

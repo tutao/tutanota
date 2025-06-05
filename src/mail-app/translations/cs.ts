@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-05-30T10:51:55Z",
+	"updated_at": "2025-06-04T09:33:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1174,6 +1174,7 @@ export default {
 		"no_label": "Ne",
 		"npo50PercentDiscount_msg": "Speciální nabídka: Sleva 50 %!",
 		"occurrencesCount_label": "Počet událostí",
+		"offlineDbUnavailableNoTypes_msg": "Bohužel teď není možně se přihlásit v off-line režimu. Připojte se prosím k internetu a zkuste to znovu.",
 		"offlineLoginPremiumOnly_msg": "Jste off-line. Chcete-li se přihlašovat i off-line, přejděte na placený účet.",
 		"offline_label": "Off-line",
 		"ok_action": "OK",
@@ -1386,6 +1387,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Po zvolení tarifu Legend, kontaktujte prosím podporu prostřednictvím otazníku nalevo od schránky, abychom vám mohli aktivovat více uživatelů. Každý člen získá vlastní schránku s 500 GB a 30 aliasy (8 € za uživatele/měsíc). Sdílená schránká (8 € za měsíc) obdrží také 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "Po zvolení tarifu Revolutionary kontaktujte prosím podporu prostřednictvím otazníku nalevo od schránky, abychom vám mohli aktivovat více uživatelů. Každý člen získá schránku s 20 GB a 15 aliasy (3 € za uživatele/měsíc). Sdílená schránka (3 € za měsíc) obdrží také 20 GB.",
 		"pricing.family_label": "Varianta pro rodinu",
+		"pricing.firstYearDiscount_revo_legend_msg": "Sleva se vztahuje pouze na první rok. Standardní cena za rok bude {revo-price} za tarif Revolutionary a {legend-price} za Legend.",
 		"pricing.folders_label": "Neomezený počet složek",
 		"pricing.gdprDataProcessing_label": "Dohoda o zpracování údajů v souladu s GDPR",
 		"pricing.gdpr_label": "V souladu s GDPR",
@@ -1598,6 +1600,7 @@ export default {
 		"searchDisabled_msg": "Váš prohlížeč nepodporuje ukládání dat, proto je hledání nefunkční.",
 		"searchedUntil_msg": "Prohledáno do",
 		"searchEmails_placeholder": "Hledat e-maily",
+		"searchFilters_label": "Filtry vyhledávání",
 		"searchGroups_placeholder": "Hledat skupiny",
 		"searchInOurAppsLinkText_msg": "naše aplikace",
 		"searchInOurApps_msg": "Rychlejší a lepší vyhledávání e-mailů je k dispozici na adrese {link}!",

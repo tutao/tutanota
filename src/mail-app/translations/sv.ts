@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-06-03T16:43:35Z",
+	"updated_at": "2025-06-04T09:50:28Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -337,7 +337,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Om du aktiverar kontaktsynkronisering kommer dina Tuta kontakter att delas med andra program som du tillåter få åtkomst till din telefonbok. Dina Tuta kontakter synkroniseras automatiskt.",
 		"contactsSynchronization_label": "Synkronisering av kontakter",
 		"contactSupport_action": "Kontakta support",
-		"contactsUsageDescription_msg": "1. Hitta mottagarens e-postadress i kontakter.\\n2. Alternativt kan du synkronisera Tuta kontakter till din enhet.\\n3. Du kan även synkronisera kontakter från din enhet till ditt Tuta konto.",
+		"contactsUsageDescription_msg": "Tuta kan visa dig förslag på e-postmottagare från kontakter som finns lagrade i din enhet. Du kan också tillåta Tuta att synkronisera dina kontakter mellan din enhet och ditt Tuta konto. Om du aktiverar synkronisering i inställningarna kommer kontakter från din enhet att laddas upp efter att ha krypterats på ett säkert sätt och dina Tuta kontakter blir tillgängliga för andra appar.",
 		"contacts_label": "Kontakter",
 		"contactView_action": "Växla till kontaktvyn",
 		"contentBlocked_msg": "Automatisk bildinläsning har blockerats för att skydda din integritet.",
@@ -1172,6 +1172,7 @@ export default {
 		"no_label": "Nej",
 		"npo50PercentDiscount_msg": "Specialerbjudande: 50% rabatt!",
 		"occurrencesCount_label": "Antal händelser",
+		"offlineDbUnavailableNoTypes_msg": "Inloggning offline är för närvarande inte tillgänglig. Anslut till internet och försök igen för att åtgärda problemet.",
 		"offlineLoginPremiumOnly_msg": "Du är offline. Uppgradera till en betald plan för att aktivera inloggning offline.",
 		"offline_label": "Offline",
 		"ok_action": "Ok",

@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "拍攝照片或影片並新增為附件。";
 NSPhotoLibraryUsageDescription = "新增您的資料庫中的圖片為附件。";
 NSMicrophoneUsageDescription = "錄製影片作為附件時使用。";
-NSContactsUsageDescription = "1. 在聯絡人中搜尋收件人的電郵地址。\n2. 可選擇將Tuta聯絡人同步至您的裝置。\n3. 可選擇將您的裝置上的聯絡人同步至您的Tuta帳戶。";
+NSContactsUsageDescription = "Tuta可根據您裝置上儲存的聯絡人向您顯示電郵收件人建議。此外，您可以允許Tuta把您的裝置和您的Tuta帳戶兩者的聯絡人同步。如果您在設定中啟用同步功能，您的裝置上的聯絡人將在安全加密後上傳，其他應用程式也可使用您的Tuta聯絡人。";
 NSRemindersUsageDescription = "有新電郵時顯示通知。";
 TutaoShowCameraAction = "相機";
 TutaoChoosePhotosAction = "照片";

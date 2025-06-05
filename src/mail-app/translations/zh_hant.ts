@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-06-03T16:43:35Z",
+	"updated_at": "2025-06-05T15:03:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -336,7 +336,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "啟用聯絡人同步會將您的Tuta聯絡人資訊分享給您允許存取您的電話簿的其他應用程式。您的Tuta聯絡人將會自動同步。",
 		"contactsSynchronization_label": "聯絡人同步",
 		"contactSupport_action": "聯絡支援",
-		"contactsUsageDescription_msg": "1. 在聯絡人中搜尋收件人的電郵地址。\\n2. 可選擇將Tuta聯絡人同步至您的裝置。\\n3. 可選擇將您的裝置上的聯絡人同步至您的Tuta帳戶。",
+		"contactsUsageDescription_msg": "Tuta可根據您裝置上儲存的聯絡人向您顯示電郵收件人建議。此外，您可以允許Tuta把您的裝置和您的Tuta帳戶兩者的聯絡人同步。如果您在設定中啟用同步功能，您的裝置上的聯絡人將在安全加密後上傳，其他應用程式也可使用您的Tuta聯絡人。",
 		"contacts_label": "聯絡人",
 		"contactView_action": "切換至聯絡人檢視模式",
 		"contentBlocked_msg": "為保護您的私隱，已阻止圖像自動載入。",
@@ -1171,6 +1171,7 @@ export default {
 		"no_label": "否",
 		"npo50PercentDiscount_msg": "特別優惠：五折！",
 		"occurrencesCount_label": "發生次數",
+		"offlineDbUnavailableNoTypes_msg": "離線登入目前無法使用。請連接網絡並再試，以修正此問題。",
 		"offlineLoginPremiumOnly_msg": "您目前離線。升級為付費計劃可啟用離線登入。",
 		"offline_label": "離線",
 		"ok_action": "OK",
@@ -1597,6 +1598,7 @@ export default {
 		"searchDisabled_msg": "搜尋功能已停用，因為您的瀏覽器不支援數據儲存。",
 		"searchedUntil_msg": "搜尋期間至",
 		"searchEmails_placeholder": "搜尋電郵",
+		"searchFilters_label": "搜尋過濾",
 		"searchGroups_placeholder": "搜尋群組",
 		"searchInOurAppsLinkText_msg": "我們的應用程式",
 		"searchInOurApps_msg": "更快和更好的電郵搜尋功能在{link}提供！",

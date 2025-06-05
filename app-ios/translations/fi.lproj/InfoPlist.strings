@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Ota kuva tai video ja lisää se liitteeksi.";
 NSPhotoLibraryUsageDescription = "Lisää kuva liitteenä.";
 NSMicrophoneUsageDescription = "Käytetään, kun videota tallennetaan liitteenä.";
-NSContactsUsageDescription = "1. Etsi vastaanottajan sähköpostiosoite yhteystiedoista.\n2. Voit valinnaisesti synkronoida Tuta-yhteystietosi laitteellesi.\n3. Voit valinnaisesti synkronoida yhteystietosi laitteeltasi Tuta-tilillesi.";
+NSContactsUsageDescription = "Tuta voi näyttää sinulle vastaanottajaehdotuksia laitteesi yhteystiedoista. Voit lisäksi synkronoida yhteystietosi laitteesi ja Tuta-tilisi välillä. Jos otat synkronoinnin käyttöön asetuksista, laitteesi yhteystiedot salataan turvallisesti ja ladataan Tutan palvelimille salattuina, ja Tuta-yhteystietosi alkavat näkyä muille sovelluksille.";
 NSRemindersUsageDescription = "Viestin saapumisilmoitus.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Valokuvat";
