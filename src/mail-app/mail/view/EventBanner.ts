@@ -17,10 +17,11 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { styles } from "../../../common/gui/styles.js"
 import { formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
-import { Icons, IconsSvg } from "../../../common/gui/base/icons/Icons.js"
+import { IconsSvg } from "../../../common/gui/base/icons/Icons.js"
 import { BannerButton } from "../../../common/gui/base/buttons/BannerButton.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { DateTime } from "../../../../libs/luxon.js"
+import { InviteAgenda, TimeView } from "../../../common/calendar/date/TimeView.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -28,13 +29,6 @@ export type EventBannerAttrs = {
 	recipient: string
 	eventsRepository: CalendarEventsRepository
 }
-
-type InviteAgendaEvent = {
-	event: CalendarEvent
-	conflict: boolean
-}
-
-type InviteAgenda = { before: InviteAgendaEvent | null; after: InviteAgendaEvent | null; current: CalendarEvent | null; conflictCount: number }
 
 /**
  * displayed above a mail that contains a calendar invite.
@@ -206,7 +200,6 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda, message: Children) {
-		const hasConflict = agenda.before?.conflict || agenda.after?.conflict
 		return m(
 			".border-radius-m.border-nota.border-sm.grid",
 			{
@@ -249,72 +242,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						: null,
 					message,
 				]),
-				m(
-					".flex.flex-column.plr-vpad.pb.pt.justify-start.border-nota",
-					{
-						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
-					},
-					[
-						m(".flex.flex-column", [
-							m(".flex", [
-								m(Icon, {
-									icon: Icons.Time,
-									container: "div",
-									class: "mr-xsm mt-xxs",
-									style: { fill: theme.content_button },
-									size: IconSize.Medium,
-								}),
-								m("span.b.h5", "Overview"),
-							]),
-							m(".flex.items-center", [
-								m(Icon, {
-									icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
-									container: "div",
-									class: "mr-xsm mt-xxs",
-									style: { fill: hasConflict ? theme.error_color : "#39D9C1" }, //FIXME add the success color to theme
-									size: IconSize.Medium,
-								}),
-								m("span.small.text-fade", hasConflict ? `${agenda.conflictCount} simultaneous events` : "No simultaneous events"), //FIXME Translations
-							]),
-						]),
-						m(".flex.flex-column.mt-m", [
-							m(
-								"span.text-fade",
-								agenda.before
-									? `${agenda.before.event.startTime.toLocaleString("default", {
-											hour: "2-digit",
-											minute: "2-digit",
-									  })} - ${agenda.before.event.endTime.toLocaleString("default", {
-											hour: "2-digit",
-											minute: "2-digit",
-									  })} ${agenda.before.event.summary}${agenda.before.conflict ? " (Conflict)" : ""}`
-									: "No events before",
-							), //FIXME Add translation
-							m(
-								"span",
-								`${event.startTime.toLocaleString("default", {
-									hour: "2-digit",
-									minute: "2-digit",
-								})} - ${event.endTime.toLocaleString("default", {
-									hour: "2-digit",
-									minute: "2-digit",
-								})} ${event.summary}`,
-							),
-							m(
-								"span.text-fade",
-								agenda.after
-									? `${agenda.after.event.startTime.toLocaleString("default", {
-											hour: "2-digit",
-											minute: "2-digit",
-									  })} - ${agenda.after.event.endTime.toLocaleString("default", {
-											hour: "2-digit",
-											minute: "2-digit",
-									  })} ${agenda.after.event.summary}${agenda.after.conflict ? " (Conflict)" : ""}`
-									: "No events before",
-							), //FIXME Add translation
-						]),
-					],
-				),
+				m(TimeView, { agenda, event }),
 			],
 		)
 	}
