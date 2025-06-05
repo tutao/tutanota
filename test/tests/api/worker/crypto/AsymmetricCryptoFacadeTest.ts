@@ -33,8 +33,8 @@ import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Ser
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { KeyVerificationFacade } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
-import { LoadedPublicEncryptionKey, PublicKeyIdentifier, PublicKeyProvider } from "../../../../../src/common/api/worker/facades/PublicKeyProvider.js"
+import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
+import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
@@ -44,7 +44,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	let cryptoWrapper: CryptoWrapper
 	let serviceExecutor: IServiceExecutor
 	let keyVerificationFacade: KeyVerificationFacade
-	let publicKeyProvider: PublicKeyProvider
+	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 
@@ -55,7 +55,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		cryptoWrapper = object()
 		serviceExecutor = object()
 		keyVerificationFacade = object()
-		publicKeyProvider = object()
+		publicEncryptionKeyProvider = object()
 		asymmetricCryptoFacade = new AsymmetricCryptoFacade(
 			rsa,
 			pqFacade,
@@ -63,7 +63,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			cryptoWrapper,
 			serviceExecutor,
 			async () => keyVerificationFacade,
-			publicKeyProvider,
+			publicEncryptionKeyProvider,
 		)
 	})
 
@@ -97,11 +97,11 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					publicEccKey: senderIdentityPubKey,
 				},
 			}
-			const loadedPublicKey: LoadedPublicEncryptionKey = {
+			const loadedPublicKey: VerifiedPublicEncryptionKey = {
 				publicEncryptionKey: versionedRsaEccPublicKey,
 				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
 			}
-			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
+			when(publicEncryptionKeyProvider.loadPublicEncryptionKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender(
 				{
@@ -126,11 +126,11 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					version: 0,
 				},
 			}
-			const loadedPublicKey: LoadedPublicEncryptionKey = {
+			const loadedPublicKey: VerifiedPublicEncryptionKey = {
 				publicEncryptionKey: versionedRsaPublicKey,
 				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
 			}
-			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
+			when(publicEncryptionKeyProvider.loadPublicEncryptionKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender(
 				{
@@ -156,11 +156,11 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					publicEccKey: new Uint8Array([4, 5, 6]),
 				},
 			}
-			const loadedPublicKey: LoadedPublicEncryptionKey = {
+			const loadedPublicKey: VerifiedPublicEncryptionKey = {
 				publicEncryptionKey: versionedRsaEccPublicKey,
 				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
 			}
-			when(publicKeyProvider.loadPubKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
+			when(publicEncryptionKeyProvider.loadPublicEncryptionKey(pubKeyIdentifier, senderKeyVersion)).thenResolve(loadedPublicKey)
 
 			const result = await asymmetricCryptoFacade.authenticateSender(
 				{
@@ -205,7 +205,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					publicEccKey: new Uint8Array([4, 5, 6]),
 				},
 			}
-			const loadedPublicKey: LoadedPublicEncryptionKey = {
+			const loadedPublicKey: VerifiedPublicEncryptionKey = {
 				publicEncryptionKey: versionedRsaEccPublicKey,
 				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
 			}
@@ -214,7 +214,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				senderIdentityPubKey: object(),
 			})
 			when(
-				publicKeyProvider.loadPubKey(
+				publicEncryptionKeyProvider.loadPublicEncryptionKey(
 					{
 						identifierType: senderIdentifierType,
 						identifier: senderIdentifier,
@@ -250,7 +250,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				identifierType: senderIdentifierType,
 			})
 
-			verify(publicKeyProvider, { times: 0 })
+			verify(publicEncryptionKeyProvider, { times: 0 })
 			o(result).deepEquals({ senderIdentityPubKey: null, decryptedAesKey: uint8ArrayToBitArray(symKey) })
 		})
 	})

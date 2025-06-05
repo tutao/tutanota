@@ -517,6 +517,7 @@ export enum SecondFactorType {
 export enum IdentityKeySourceOfTrust {
 	Manual = 0,
 	TOFU = 1,
+	Not_Supported = 2,
 }
 
 export enum IdentityKeyVerificationMethod {
@@ -532,9 +533,10 @@ export const enum IdentityKeyQrVerificationResult {
 }
 
 export enum EncryptionKeyVerificationState {
-	NO_ENTRY, // No entry in the trust database (e.g. web client)
+	NO_ENTRY, // No identity key exists
 	VERIFIED_MANUAL, // Identity is manually trusted and verified
 	VERIFIED_TOFU, // Identity is trusted and verified via TOFU
+	NOT_SUPPORTED, // Identity key verification is not supported, e.g. when loading via group id instead of mail address as identifier or when we do not have access to a trust database
 }
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25

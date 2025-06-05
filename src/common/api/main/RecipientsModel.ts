@@ -10,8 +10,8 @@ import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 import { EncryptionKeyVerificationState } from "../common/TutanotaConstants.js"
 import { KeyVerificationMismatchError } from "../common/error/KeyVerificationMismatchError"
-import { LoadedPublicEncryptionKey } from "../worker/facades/PublicKeyProvider"
 import { ProgrammingError } from "../common/error/ProgrammingError"
+import { VerifiedPublicEncryptionKey } from "../worker/facades/lazy/KeyVerificationFacade"
 
 /**
  * A recipient that can be resolved to obtain contact and recipient type
@@ -69,9 +69,9 @@ export class RecipientsModel {
 
 	private readonly resolveRecipientType: (mailAddress: string) => () => Promise<[RecipientType, PresentableKeyVerificationState]> =
 		(mailAddress: string) => async () => {
-			let loadedEncryptionKey: LoadedPublicEncryptionKey | null = null
+			let verifiedPublicEncryptionKey: VerifiedPublicEncryptionKey | null = null
 			try {
-				loadedEncryptionKey = await this.mailFacade.getRecipientKeyData(mailAddress)
+				verifiedPublicEncryptionKey = await this.mailFacade.getRecipientKeyData(mailAddress)
 			} catch (e) {
 				if (e instanceof KeyVerificationMismatchError) {
 					return [RecipientType.INTERNAL, PresentableKeyVerificationState.ALERT]
@@ -80,17 +80,19 @@ export class RecipientsModel {
 				}
 			}
 
-			if (loadedEncryptionKey != null) {
-				const keyVerificationState = loadedEncryptionKey.verificationState
-
-				if (keyVerificationState === EncryptionKeyVerificationState.NO_ENTRY) {
-					return [RecipientType.INTERNAL, PresentableKeyVerificationState.NONE]
-				} else if (keyVerificationState === EncryptionKeyVerificationState.VERIFIED_MANUAL) {
-					return [RecipientType.INTERNAL, PresentableKeyVerificationState.SECURE]
-				} else if (keyVerificationState === EncryptionKeyVerificationState.VERIFIED_TOFU) {
-					return [RecipientType.INTERNAL, PresentableKeyVerificationState.NONE]
-				} else {
-					throw new ProgrammingError("no mapping for key verification state: " + keyVerificationState)
+			if (verifiedPublicEncryptionKey != null) {
+				const keyVerificationState = verifiedPublicEncryptionKey.verificationState
+				switch (keyVerificationState) {
+					case EncryptionKeyVerificationState.NO_ENTRY:
+						return [RecipientType.INTERNAL, PresentableKeyVerificationState.NONE]
+					case EncryptionKeyVerificationState.VERIFIED_MANUAL:
+						return [RecipientType.INTERNAL, PresentableKeyVerificationState.SECURE]
+					case EncryptionKeyVerificationState.VERIFIED_TOFU:
+						return [RecipientType.INTERNAL, PresentableKeyVerificationState.NONE]
+					case EncryptionKeyVerificationState.NOT_SUPPORTED:
+						return [RecipientType.INTERNAL, PresentableKeyVerificationState.NONE]
+					default:
+						throw new ProgrammingError("no mapping for key verification state: " + keyVerificationState)
 				}
 			} else if (isTutaMailAddress(mailAddress)) {
 				return [RecipientType.INTERNAL, PresentableKeyVerificationState.NONE]
@@ -157,7 +159,10 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		private readonly typeResolver: (mailAddress: string) => Promise<[RecipientType, PresentableKeyVerificationState]>,
 		private readonly entityClient: EntityClient,
 	) {
-		this.initialInfo = { type: arg.type ?? RecipientType.UNKNOWN, verificationState: PresentableKeyVerificationState.NONE }
+		this.initialInfo = {
+			type: arg.type ?? RecipientType.UNKNOWN,
+			verificationState: PresentableKeyVerificationState.NONE,
+		}
 		this._address = cleanMailAddress(arg.address)
 
 		this._name = arg.name ?? null

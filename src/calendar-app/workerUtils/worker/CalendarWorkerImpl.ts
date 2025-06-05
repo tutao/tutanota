@@ -145,8 +145,12 @@ export class CalendarWorkerImpl implements NativeInterface {
 				return locator.crypto
 			},
 
-			async publicKeyProvider() {
-				return locator.publicKeyProvider
+			async publicEncryptionKeyProvider() {
+				return locator.publicEncryptionKeyProvider
+			},
+
+			async publicIdentityKeyProvider() {
+				return locator.publicIdentityKeyProvider
 			},
 
 			async cacheStorage() {

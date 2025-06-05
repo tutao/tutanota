@@ -1,161 +1,41 @@
-import { assertWorkerOrNode, isBrowser } from "../../../common/Env"
-import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust } from "../../../common/TutanotaConstants"
+import { assertWorkerOrNode } from "../../../common/Env"
+import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../common/TutanotaConstants"
 import { concat, Hex, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
-import { bytesToEd25519PublicKey, ed25519PublicKeyToBytes, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
-import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCipherFacade"
-import { sql } from "../../offline/Sql"
-import { TaggedSqlValue } from "../../offline/SqlValue"
+import { ed25519PublicKeyToBytes, PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import { ProgrammingError } from "../../../common/error/ProgrammingError"
-import { EncodedEd25519Signature, SigningKeyPairType, SigningPublicKey } from "../Ed25519Facade"
-import { checkKeyVersionConstraints } from "../KeyLoaderFacade"
-import type { OfflineStorageTable } from "../../offline/OfflineStorage"
+import { SigningKeyPairType, SigningPublicKey } from "../Ed25519Facade"
 import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
+import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../PublicEncryptionKeyProvider"
+import { PublicIdentityKeyProvider } from "../PublicIdentityKeyProvider"
+import { IdentityKeyTrustDatabase, TrustDBEntry } from "../IdentityKeyTrustDatabase"
 
 assertWorkerOrNode()
 
-export interface TrustedIdentity {
-	publicIdentityKey: Versioned<SigningPublicKey>
-	fingerprint: Hex
-	sourceOfTrust: IdentityKeySourceOfTrust
+export type TrustedIdentity = TrustDBEntry & { fingerprint: Hex }
+
+export type VerifiedPublicEncryptionKey = {
+	publicEncryptionKey: Versioned<PublicKey>
+	verificationState: EncryptionKeyVerificationState
 }
 
 /**
- * Defines tables created for this interface
- */
-export const KeyVerificationTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
-	trusted_identities: {
-		definition:
-			"CREATE TABLE IF NOT EXISTS trusted_identities (mailAddress TEXT NOT NULL, fingerprint TEXT NOT NULL, keyVersion INTEGER NOT NULL, keyType INTEGER NOT NULL, PRIMARY KEY (mailAddress, keyVersion))",
-		purgedWithCache: false,
-	},
-})
-
-/**
- * Facade for managing trust state of identity keys by adding or removing identity keys per email address into the trust store.
- * It also provides a method to verify public encryption key signatures with trusted identity keys.
+ * Facade to verify public encryption keys, that are signed with identity keys.
+ *
+ * Handles error and corner (such as missing identity keys for old accounts) cases and returns the verification state with the public encryption key.
+ * Calculates fingerprints for public identity keys for manual key verification.
+ * Forwards requests to the trust database when performing a manual key verification.
+ * Gets identity keys from the PublicIdentityKeyProvider which handles the trust state for identity keys.
  */
 export class KeyVerificationFacade {
 	constructor(
-		private readonly sqlCipherFacade: SqlCipherFacade,
 		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
+		private readonly publicIdentityKeyProvider: PublicIdentityKeyProvider,
+		private readonly identityKeyTrustDatabase: IdentityKeyTrustDatabase,
 	) {}
 
-	async isSupported(): Promise<boolean> {
-		// SQLite database is unavailable in a browser environment
-		return !isBrowser()
-	}
-
-	async deserializeDatabaseEntry(entry: Record<string, TaggedSqlValue>): Promise<[string, TrustedIdentity]> {
-		const mailAddress = entry.mailAddress.value as string
-
-		const keyType = entry.identityKeyType.value as SigningKeyPairType
-		const keyVersion = checkKeyVersionConstraints(entry.identityKeyVersion.value as number)
-		if (keyType !== SigningKeyPairType.Ed25519) {
-			throw new ProgrammingError("unexpected signing key pair type, " + keyType)
-		}
-		const ed25519PublicKey = bytesToEd25519PublicKey(entry.publicIdentityKey.value as Uint8Array)
-		const sourceOfTrust = entry.sourceOfTrust.value as IdentityKeySourceOfTrust
-
-		const versionedSigningKey: Versioned<SigningPublicKey> = {
-			object: {
-				type: SigningKeyPairType.Ed25519,
-				key: ed25519PublicKey,
-			},
-			version: keyVersion,
-		}
-		const publicKeyFingerprint: TrustedIdentity = {
-			publicIdentityKey: versionedSigningKey,
-			fingerprint: await this.calculateFingerprint(versionedSigningKey),
-			sourceOfTrust: sourceOfTrust,
-		}
-		return [mailAddress, publicKeyFingerprint]
-	}
-
-	/**
-	 * Returns all trusted identities.
-	 */
-	async getManuallyVerifiedIdentities(): Promise<Map<string, TrustedIdentity>> {
-		// @formatter:off
-		const result = await this.sqlCipherFacade.all(`SELECT * FROM identity_store WHERE sourceOfTrust = ${IdentityKeySourceOfTrust.Manual.valueOf()}`, [])
-		// @formatter:on
-
-		const identities = new Map<string, TrustedIdentity>()
-		for (let [_, row] of result.entries()) {
-			const [mailAddress, publicKeyFingerprint] = await this.deserializeDatabaseEntry(row)
-			identities.set(mailAddress, publicKeyFingerprint)
-		}
-
-		return identities
-	}
-
-	/**
-	 * Adds an identity to the trust database.
-	 */
-	async trust(mailAddress: string, identityKey: Versioned<SigningPublicKey>, sourceOfTrust: IdentityKeySourceOfTrust) {
-		if (sourceOfTrust === IdentityKeySourceOfTrust.Manual && (await this.isTrusted(mailAddress))) {
-			// we allow overwriting an existing trusted entry when the user manual verified a key.
-			await this.untrust(mailAddress)
-		}
-
-		const identityKeyBytes = ed25519PublicKeyToBytes(identityKey.object.key)
-		const identityKeyType = SigningKeyPairType.Ed25519
-
-		/* Insert or update mailAddress / fingerprint */
-		// @formatter:off
-		const { query, params } = sql`
-			INSERT INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)
-			VALUES (${mailAddress}, ${identityKeyBytes}, ${identityKey.version}, ${identityKeyType}, ${sourceOfTrust.valueOf()})`
-		// @formatter:on
-		await this.sqlCipherFacade.run(query, params)
-	}
-
-	/**
-	 * Removes an identity from the trust database.
-	 */
-	async untrust(mailAddress: string) {
-		// @formatter:off
-		const { query, params } = sql`DELETE FROM identity_store WHERE mailAddress = ${mailAddress}`
-		// @formatter:on
-		await this.sqlCipherFacade.run(query, params)
-	}
-
-	/**
-	 * Determines whether the trust database contains an entry for a given mail address.
-	 */
-	async isTrusted(mailAddress: string): Promise<boolean> {
-		const isSupported = await this.isSupported()
-		if (!isSupported) {
-			return false
-		}
-
-		// @formatter:off
-		const { query, params } = sql`SELECT * FROM identity_store WHERE mailAddress = ${mailAddress}`
-		// @formatter:on
-		const result = await this.sqlCipherFacade.get(query, params)
-		return result !== null
-	}
-
-	/**
-	 * Returns the fingerprint for a given mail address.
-	 *
-	 * @param mailAddress
-	 */
-	async getTrustedIdentity(mailAddress: string): Promise<TrustedIdentity | null> {
-		// @formatter:off
-		const { query, params } = sql`SELECT * FROM identity_store WHERE mailAddress = ${mailAddress}`
-		// @formatter:on
-		const result = await this.sqlCipherFacade.get(query, params)
-
-		if (result == null) {
-			return null
-		} else {
-			const [_, publicKeyFingerprint] = await this.deserializeDatabaseEntry(result)
-			return publicKeyFingerprint
-		}
-	}
-
-	public concatenateFingerprint(publicKey: Versioned<SigningPublicKey>): Uint8Array {
+	//visible for testing
+	concatenateFingerprint(publicKey: Versioned<SigningPublicKey>): Uint8Array {
 		let keyMetadata = concat(new Uint8Array([publicKey.version, publicKey.object.type]))
 		return concat(keyMetadata, ed25519PublicKeyToBytes(publicKey.object.key))
 	}
@@ -163,33 +43,41 @@ export class KeyVerificationFacade {
 	/**
 	 * Returns a hashed concatenation of the given public keys.
 	 */
-	public async calculateFingerprint(publicKey: Versioned<SigningPublicKey>): Promise<Hex> {
+	public calculateFingerprint(publicKey: Versioned<SigningPublicKey>): Hex {
 		return uint8ArrayToHex(sha256Hash(this.concatenateFingerprint(publicKey)))
 	}
 
 	/**
 	 * Verifies the given public encryption key signature by using a trusted identity key.
-	 * @param mailAddress Mail address of the the the public key was retrieved from
-	 * @param encryptionKey The public encryption key to check.
-	 * @param signature The existing signature of the public encryption key.
 	 * @return EncryptionKeyVerificationState The verification state whether it is Manual or Tofu trusted key. Returns No_Entry if there is no trusted identity.
-	 * @throws KeyVerificationMismatchError in case the signature is not valid
+	 * @param publicKeyIdentifier the mailAddress/ group the signing identity key belongs to
+	 * @param maybeSignedPublicEncryptionKey the public encryption key and maybe a signature to verify it
 	 */
-	async verify(mailAddress: string, encryptionKey: Versioned<PublicKey>, signature: EncodedEd25519Signature | null): Promise<EncryptionKeyVerificationState> {
-		const isSupported = await this.isSupported()
-		if (!isSupported) {
-			throw new ProgrammingError("key verification is not supported in this environment")
+	async verify(publicKeyIdentifier: PublicKeyIdentifier, maybeSignedPublicEncryptionKey: MaybeSignedPublicKey): Promise<VerifiedPublicEncryptionKey> {
+		const publicEncryptionKey = maybeSignedPublicEncryptionKey.publicKey
+		if (publicKeyIdentifier.identifierType !== PublicKeyIdentifierType.MAIL_ADDRESS) {
+			// currently we do not support verification of keys via group id
+			return { verificationState: EncryptionKeyVerificationState.NOT_SUPPORTED, publicEncryptionKey }
 		}
 
-		// Load identity key from trust database
-		const trustedIdentity = await this.getTrustedIdentity(mailAddress)
+		const publicKeySignature = maybeSignedPublicEncryptionKey.signature
+		const mailAddress = publicKeyIdentifier.identifier
+		const trustedIdentity = await this.publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)
 
+		// there is no identity key for the mailAddress (a legitimate case for now)
 		if (trustedIdentity == null) {
-			return EncryptionKeyVerificationState.NO_ENTRY
+			if (publicKeySignature) {
+				throw new KeyVerificationMismatchError("signature but no identity key for: " + mailAddress)
+			}
+			return {
+				verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+				publicEncryptionKey,
+			}
 		}
+		// there is an identity key for the mail address
 
 		// Raise an error if an identity key exists but no signature has been loaded from the public key service.
-		if (signature == null) {
+		if (publicKeySignature == null) {
 			throw new KeyVerificationMismatchError("missing signature for identity: " + mailAddress)
 		}
 
@@ -199,18 +87,49 @@ export class KeyVerificationFacade {
 			throw new ProgrammingError("expected identity public key of type Ed25519")
 		}
 
-		const validSignature = await this.publicKeySignatureFacade.verifyPublicKeySignature(encryptionKey, identityKey.object.key, signature)
+		const validSignature = await this.publicKeySignatureFacade.verifyPublicKeySignature(
+			publicEncryptionKey,
+			identityKey.object.key,
+			publicKeySignature.signature,
+		)
 
 		if (validSignature) {
-			if (trustedIdentity.sourceOfTrust === IdentityKeySourceOfTrust.Manual) {
-				return EncryptionKeyVerificationState.VERIFIED_MANUAL
-			} else if (trustedIdentity.sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
-				return EncryptionKeyVerificationState.VERIFIED_TOFU
-			} else {
-				throw new ProgrammingError("source of trust not implemented: " + trustedIdentity.sourceOfTrust)
+			switch (trustedIdentity.sourceOfTrust) {
+				case IdentityKeySourceOfTrust.Manual:
+					return { verificationState: EncryptionKeyVerificationState.VERIFIED_MANUAL, publicEncryptionKey }
+				case IdentityKeySourceOfTrust.TOFU:
+					return { verificationState: EncryptionKeyVerificationState.VERIFIED_TOFU, publicEncryptionKey }
+				case IdentityKeySourceOfTrust.Not_Supported:
+					return { verificationState: EncryptionKeyVerificationState.NOT_SUPPORTED, publicEncryptionKey }
+				default:
+					throw new ProgrammingError("source of trust not implemented: " + trustedIdentity.sourceOfTrust)
 			}
 		} else {
-			throw new KeyVerificationMismatchError("encryption key not signed with a valid signature")
+			throw new KeyVerificationMismatchError("encryption key signed with an invalid signature")
 		}
+	}
+
+	/**
+	 * Returns all trusted identities.
+	 */
+	async getManuallyVerifiedIdentities(): Promise<Map<string, TrustedIdentity>> {
+		const trustDbEntries = await this.identityKeyTrustDatabase.getManuallyVerifiedEntries()
+		const identities = new Map<string, TrustedIdentity>()
+		for (const [mailAddress, trustDbEntry] of trustDbEntries) {
+			identities.set(mailAddress, this.convertToTrustedIdentity(trustDbEntry))
+		}
+		return identities
+	}
+
+	async untrust(mailAddress: string) {
+		return this.identityKeyTrustDatabase.untrust(mailAddress)
+	}
+
+	async trust(mailAddress: string, identityKey: Versioned<SigningPublicKey>, sourceOfTrust: IdentityKeySourceOfTrust) {
+		return this.identityKeyTrustDatabase.trust(mailAddress, identityKey, sourceOfTrust)
+	}
+
+	private convertToTrustedIdentity(trustDBEntry: TrustDBEntry): TrustedIdentity {
+		return { ...trustDBEntry, fingerprint: this.calculateFingerprint(trustDBEntry.publicIdentityKey) }
 	}
 }
