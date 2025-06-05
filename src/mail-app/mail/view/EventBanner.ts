@@ -69,6 +69,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					style: styles.isSingleColumnLayout()
 						? {
 								"grid-template-columns": "min-content 1fr",
+								"grid-template-rows": "1fr 1fr",
 						  }
 						: {
 								"grid-template-columns": "min-content 1fr 1fr",
@@ -76,7 +77,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				},
 				[
 					m(
-						".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-BulbOutlinel.pb.pt.justify-center.content-message-bg.border-content-message-bg.gap-vpad-s",
+						".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.content-message-bg.border-content-message-bg.gap-vpad-s",
 						[
 							m(
 								".navigation-menu-icon-bg",
@@ -125,9 +126,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					m(
 						".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.navigation-menu-bg.border-content-message-bg.gap-vpad-s",
 						{
-							class: styles.isSingleColumnLayout()
-								? "border-sm border-left-none border-right-none border-bottom-none fill-grid-row"
-								: "border-left-sm",
+							class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 						},
 						[
 							m(
@@ -212,14 +211,25 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			".border-radius-m.border-nota.border-sm.grid",
 			{
 				class: styles.isSingleColumnLayout() ? "" : "fit-content",
-				style: styles.isSingleColumnLayout() ? { "grid-template-columns": "min-content 1fr" } : { "grid-template-columns": "min-content 1fr 1fr" },
+				style: styles.isSingleColumnLayout()
+					? {
+							"grid-template-columns": "min-content 1fr",
+							"grid-template-rows": "1fr 1fr",
+					  }
+					: { "grid-template-columns": "min-content 1fr 1fr" },
 			},
 			[
-				m(".flex.flex-column.nota-bg.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center", [
-					m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { month: "short" })),
-					m("span.big.accent-fg.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
-					m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { year: "numeric" })),
-				]),
+				m(
+					".flex.flex-column.nota-bg.center.items-center.pb.pt.justify-center.fill-grid-column",
+					{
+						class: styles.isSingleColumnLayout() ? "plr-vpad" : "pr-vpad-l pl-vpad-l",
+					},
+					[
+						m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { month: "short" })),
+						m("span.big.accent-fg.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
+						m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { year: "numeric" })),
+					],
+				),
 				m(".flex.flex-column.plr-vpad.pb.pt.justify-start", [
 					m(".flex", [
 						m(Icon, {
@@ -237,15 +247,12 @@ export class EventBanner implements Component<EventBannerAttrs> {
 								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
 						  ])
 						: null,
-					// FIXME Fix not displaying the attending status for the invitation (Accepted, Maybe or No)
 					message,
 				]),
 				m(
 					".flex.flex-column.plr-vpad.pb.pt.justify-start.border-nota",
 					{
-						class: styles.isSingleColumnLayout()
-							? "border-sm border-left-none border-right-none border-bottom-none fill-grid-row"
-							: "border-left-sm",
+						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 					},
 					[
 						m(".flex.flex-column", [
@@ -317,6 +324,16 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		const ownAttendee = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
 
 		const children: Children = []
+		const replyButton = m(BannerButton, {
+			borderColor: theme.content_button,
+			color: theme.content_fg,
+			click: () => this.handleViewOnCalendarAction(event),
+			text: {
+				testId: "",
+				text: "View on Calendar", // FIXME translation
+			} as Translation,
+		})
+
 		if (method === CalendarMethod.REQUEST && ownAttendee != null) {
 			// some mails contain more than one event that we want to be able to respond to
 			// separately.
@@ -331,33 +348,13 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				)
 			} else if (!needsAction) {
 				children.push(m(".align-self-start.start.small.mb-xsm.mt-s", lang.get("alreadyReplied_msg")))
-				children.push(
-					m(BannerButton, {
-						borderColor: theme.content_button,
-						color: theme.content_fg,
-						click: () => this.handleViewOnCalendarAction(event),
-						text: {
-							testId: "",
-							text: "View on Calendar",
-						} as Translation,
-					}),
-				) // FIXME translation
+				children.push(replyButton)
 			} else {
 				this.ReplyButtons.reload().then(m.redraw)
 			}
 		} else if (method === CalendarMethod.REPLY) {
 			children.push(m(".pt.align-self-start.start.small", lang.get("eventNotificationUpdated_msg")))
-			children.push(
-				m(BannerButton, {
-					borderColor: theme.content_button,
-					color: theme.content_fg,
-					click: () => this.handleViewOnCalendarAction(event),
-					text: {
-						testId: "",
-						text: "View on Calendar",
-					} as Translation,
-				}),
-			) // FIXME translation
+			children.push(replyButton)
 		} else {
 			return null
 		}

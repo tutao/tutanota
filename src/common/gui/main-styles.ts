@@ -1058,6 +1058,9 @@ styles.registerStyle("main", () => {
 		".fill-grid-row": {
 			"grid-column": "1 / -1",
 		},
+		".fill-grid-column": {
+			"grid-row": "1 / -1",
+		},
 		".gap-vpad": {
 			gap: px(size.vpad),
 		},
