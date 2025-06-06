@@ -166,7 +166,7 @@ export default {
 		"birthdayEventAge_title": "{age} years old",
 		"birthdayEvent_title": "{name}'s birthday",
 		"birthday_alt": "Birthday",
-		"blockExternalContentSender_action": "Always block sender",
+		"blockExternalContentSender_action": "Never trust sender",
 		"blue_label": "Blue",
 		"bonusMonth_msg": "You have been granted {months} bonus months.",
 		"bonus_label": "Bonus",
