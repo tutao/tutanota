@@ -43,7 +43,7 @@ export type Theme = {
 	content_accent_secondary_tuta_bday: string
 	error_container: string
 	on_error_container: string
-	success_color: string
+	success: string
 	success_container: string
 	on_success_container: string
 	tuta_color_nota: string
@@ -53,7 +53,6 @@ export type Theme = {
 	experimental_primary_container: string
 	experimental_on_primary_container: string
 	experimental_tertiary: string
-	outline_variant: string
 	go_european: string
 	on_go_european: string
 }
