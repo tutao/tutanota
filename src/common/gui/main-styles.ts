@@ -1448,7 +1448,7 @@ styles.registerStyle("main", () => {
 			outline: "none",
 		},
 		".state-bg-2::before": {
-			"background-color": `var(--state-bg-color, ${theme.content_fg})`,
+			"background-color": `var(--state-bg-color, ${theme.on_surface})`,
 			opacity: "0",
 			transition: "opacity 0.6s",
 			content: "''",
