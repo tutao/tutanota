@@ -71,7 +71,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 				: m(Icon, {
 						icon: Icons.People,
 						style: {
-							fill: theme.content_fg,
+							fill: theme.on_surface,
 							"aria-describedby": lang.get("contactListName_label"),
 						},
 				  })

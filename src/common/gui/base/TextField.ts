@@ -104,7 +104,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = this.active ? "2px" : "1px"
-		const borderColor = this.active ? theme.content_accent : theme.content_border
+		const borderColor = this.active ? theme.primary : theme.outline
 		return m(
 			".text-field.rel.overflow-hidden",
 			{

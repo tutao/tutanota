@@ -237,7 +237,7 @@ class Modal implements Component {
 	addAnimation(domLayer: HTMLElement, fadein: boolean): Promise<unknown> {
 		const start = 0
 		const end = 0.5
-		return animations.add(domLayer, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, fadein ? start : end, fadein ? end : start))
+		return animations.add(domLayer, alpha(AlphaEnum.BackgroundColor, theme.scrim, fadein ? start : end, fadein ? end : start))
 	}
 }
 

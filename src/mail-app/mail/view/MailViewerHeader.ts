@@ -114,7 +114,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								icon,
 								container: "div",
 								style: {
-									fill: theme.content_button,
+									fill: theme.on_surface_variant,
 									marginLeft: margin,
 								},
 							}),
@@ -124,7 +124,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				labels.map((label) =>
 					m(Label, {
 						text: label.name,
-						color: label.color ?? theme.content_accent,
+						color: label.color ?? theme.primary,
 					}),
 				),
 			],
@@ -174,7 +174,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									icon: getConfidentialIcon(viewModel.mail),
 									container: "div",
 									style: {
-										fill: theme.content_button,
+										fill: theme.on_surface_variant,
 									},
 									hoverText: lang.get("confidential_label"),
 							  })
@@ -184,11 +184,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							icon: getFolderIconByType(folderInfo.folderType),
 							container: "div",
 							style: {
-								fill: theme.content_button,
+								fill: theme.on_surface_variant,
 							},
 							hoverText: folderInfo.name,
 						}),
-						m(".small.font-weight-600.selectable.no-wrap", { style: { color: theme.content_button } }, [
+						m(".small.font-weight-600.selectable.no-wrap", { style: { color: theme.on_surface_variant } }, [
 							m(".noprint", dateTime), // show the short date when viewing
 							m(".noscreen", dateTimeFull), // show the date with year when printing
 						]),
@@ -245,7 +245,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									icon: Icons.Edit,
 									container: "div",
 									style: {
-										fill: theme.content_button,
+										fill: theme.on_surface_variant,
 									},
 									hoverText: lang.get("draft_label"),
 								}),
@@ -564,7 +564,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									"font-weight": "normal",
 								},
 								expanded: this.filesExpanded,
-								color: theme.content_fg,
+								color: theme.on_surface,
 								isBig: true,
 								isUnformattedLabel: true,
 								onExpandedChange: (change) => {
@@ -868,7 +868,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							icon: BootIcons.Expand,
 							container: "div",
 							style: {
-								fill: theme.content_fg,
+								fill: theme.on_surface,
 								transform: this.detailsExpanded ? "rotate(180deg)" : "",
 							},
 						}),

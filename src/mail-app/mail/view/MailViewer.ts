@@ -217,8 +217,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				{
 					style: {
 						borderRadius: "25%",
-						border: `1px solid ${theme.list_border}`,
-						backgroundColor: theme.content_bg,
+						border: `1px solid ${theme.outline_variant}`,
+						backgroundColor: theme.surface,
 					},
 				},
 				m(ToggleButton, {
@@ -276,7 +276,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			return m(IconMessageBox, {
 				message: "corrupted_msg",
 				icon: Icons.Warning,
-				color: theme.content_message_bg,
+				color: theme.on_surface_fade,
 			})
 		}
 
@@ -453,7 +453,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		const quoteIndicator = document.createElement("div")
 		quoteIndicator.classList.add("flex")
-		quoteIndicator.style.borderLeft = `2px solid ${theme.content_border}`
+		quoteIndicator.style.borderLeft = `2px solid ${theme.outline}`
 		quoteIndicator.style.display = expanded ? "none" : ""
 
 		m.render(
@@ -463,7 +463,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				class: "icon-xl mlr",
 				container: "div",
 				style: {
-					fill: theme.navigation_menu_icon,
+					fill: theme.on_surface_variant,
 				},
 			}),
 		)

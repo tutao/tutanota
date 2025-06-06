@@ -31,7 +31,7 @@ export class FolderColumnView implements Component<Attrs> {
 							if (attrs.button == null || target.scrollTop === 0) {
 								target.style.borderTop = ""
 							} else {
-								target.style.borderTop = `1px solid ${theme.content_border}`
+								target.style.borderTop = `1px solid ${theme.outline}`
 							}
 						},
 					},
