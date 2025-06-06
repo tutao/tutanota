@@ -5,7 +5,7 @@ import type { CalendarEvent, Mail } from "../../../common/api/entities/tutanota/
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { base64ToBase64Url, getHourOfDay, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, filterNull, first, getHourOfDay, getStartOfDay, isNotNull, last, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
@@ -21,7 +21,8 @@ import { Icons, IconsSvg } from "../../../common/gui/base/icons/Icons.js"
 import { BannerButton } from "../../../common/gui/base/buttons/BannerButton.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { DateTime } from "../../../../libs/luxon.js"
-import { InviteAgenda, TimeView } from "../../../common/calendar/date/TimeView.js"
+import { InviteAgenda, TimeView, TimeViewAttributes } from "../../../common/calendar/date/TimeView.js"
+import { Time } from "../../../common/calendar/date/Time"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -62,12 +63,12 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				{
 					style: styles.isSingleColumnLayout()
 						? {
-							"grid-template-columns": "min-content 1fr",
-							"grid-template-rows": "1fr 1fr",
-						}
+								"grid-template-columns": "min-content 1fr",
+								"grid-template-rows": "1fr 1fr",
+						  }
 						: {
-							"grid-template-columns": "min-content 1fr 1fr",
-						},
+								"grid-template-columns": "min-content 1fr 1fr",
+						  },
 				},
 				[
 					m(
@@ -159,14 +160,14 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		}
 
 		const messages = contents.events
-								 .map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
-									 const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
-									 return message == null ? null : { event, message }
-								 })
+			.map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
+				const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
+				return message == null ? null : { event, message }
+			})
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
 			// banner for events that do not mention us.
-								 .filter(isNotNull)
+			.filter(isNotNull)
 
 		return [
 			m(
@@ -193,16 +194,27 @@ export class EventBanner implements Component<EventBannerAttrs> {
 
 	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, message: Children) {
 		const hasConflict = agenda && (agenda.before?.conflict || agenda.after?.conflict)
-		console.log(this.agenda)
+		const events = filterNull([agenda?.before.event, agenda?.current.event, agenda?.after.event])
+
+		// const shortestEventDuration = events.reduce() // FIXME calculate shortest event duration
+		// const timeScale = getTimeScaleAccordingToEventDuration(shortestEventDuration) // FIXME implement
+		const timeScale = 1 // FIXME implement
+
+		const timeRange = {
+			start: new Time(first(events)!.startTime.getHours() ?? 0, 0),
+			end: new Time(last(events)!.startTime.getHours() ?? 0, 0),
+		}
+
+		console.log(this.agenda, { events, timeScale, timeRange })
 		return m(
 			".border-radius-m.border-nota.border-sm.grid",
 			{
 				class: styles.isSingleColumnLayout() ? "" : "fit-content",
 				style: styles.isSingleColumnLayout()
 					? {
-						"grid-template-columns": "min-content 1fr",
-						"grid-template-rows": "1fr 1fr",
-					}
+							"grid-template-columns": "min-content 1fr",
+							"grid-template-rows": "1fr 1fr",
+					  }
 					: { "grid-template-columns": "min-content 1fr 1fr" },
 			},
 			[
@@ -230,9 +242,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					]),
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-s", [
-							m("span.b", "When:"), // FIXME Add translation
-							m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
-						])
+								m("span.b", "When:"), // FIXME Add translation
+								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+						  ])
 						: null,
 					message,
 				]),
@@ -265,7 +277,13 @@ export class EventBanner implements Component<EventBannerAttrs> {
 								m("span.small.text-fade", hasConflict ? `${agenda.conflictCount} simultaneous events` : "No simultaneous events"), //FIXME Translations
 							]),
 						]),
-						agenda ? m(TimeView, { agenda, event }) : null,
+						agenda
+							? m(TimeView, {
+									events,
+									timeScale,
+									timeRange,
+							  } satisfies TimeViewAttributes)
+							: null,
 					],
 				),
 			],
@@ -369,10 +387,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				.filter((ev) => ev.startTime <= event.startTime)
 				.reduce((closest: CalendarEvent | null, ev, index) => {
 					if (!closest) return ev
-					if (
-						event.startTime.getTime() - ev.startTime.getTime() < event.startTime.getTime() - closest.startTime.getTime()
-					)
-						return ev
+					if (event.startTime.getTime() - ev.startTime.getTime() < event.startTime.getTime() - closest.startTime.getTime()) return ev
 					return closest
 				}, null)
 
@@ -381,9 +396,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				.filter((ev) => ev.startTime > event.startTime)
 				.reduce((closest: CalendarEvent | null, ev, index) => {
 					if (!closest) return ev
-					if (
-						Math.abs(event.startTime.getTime() - ev.startTime.getTime()) < Math.abs(event.startTime.getTime() - closest.startTime.getTime())
-					)
+					if (Math.abs(event.startTime.getTime() - ev.startTime.getTime()) < Math.abs(event.startTime.getTime() - closest.startTime.getTime()))
 						return ev
 					return closest
 				}, null)
@@ -394,9 +407,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			const afterStartTime = eventStartTime + oneHour
 
 			let eventList: InviteAgenda = {
-				before: { time: beforeStartTime, event: null, conflict: false },
-				after: { time: afterStartTime, event: null, conflict: false },
-				current: { time: eventStartTime, event: event, conflict: false },
+				before: { event: null, conflict: false },
+				after: { event: null, conflict: false },
+				current: { event: event, conflict: false },
 				conflictCount: conflictingEvents.length,
 			}
 
@@ -405,32 +418,36 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					.sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
 					.find(
 						(ev) =>
-							!isSameExternalEvent(ev, event) && ev.startTime <= event.startTime && (event.startTime.getTime() - ev.endTime.getTime()) <= oneHour,
+							!isSameExternalEvent(ev, event) && ev.startTime <= event.startTime && event.startTime.getTime() - ev.endTime.getTime() <= oneHour,
 					)
 
 				if (eventBefore) {
-					eventList.before = { time: beforeStartTime, event: eventBefore, conflict: false }
+					eventList.before = { event: eventBefore, conflict: false }
 				}
 			} else {
-				eventList.before = { time: beforeStartTime, event: closestConflictingEventBeforeStartTime, conflict: true }
+				eventList.before = {
+					event: closestConflictingEventBeforeStartTime,
+					conflict: true,
+				}
 			}
 
 			if (!closestConflictingEventAfterStartTime) {
 				const eventAfter = [...eventsForStartDay, ...eventsForEndDay]
 					.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
 					.find(
-						(ev) => !isSameExternalEvent(ev, event) && ev.startTime > event.startTime && (ev.startTime.getTime() - event.endTime.getTime()) <= oneHour
+						(ev) =>
+							!isSameExternalEvent(ev, event) && ev.startTime > event.startTime && ev.startTime.getTime() - event.endTime.getTime() <= oneHour,
 					)
 
 				if (eventAfter) {
-					eventList.after = { time: afterStartTime, event: eventAfter, conflict: false }
+					eventList.after = { event: eventAfter, conflict: false }
 				}
 			} else {
 				const time = getHourOfDay(
 					closestConflictingEventAfterStartTime.startTime ?? new Date(),
 					closestConflictingEventAfterStartTime.startTime.getHours() ?? 0,
 				).getTime()
-				eventList.after = { time: afterStartTime, event: closestConflictingEventAfterStartTime, conflict: true }
+				eventList.after = { event: closestConflictingEventAfterStartTime, conflict: true }
 			}
 
 			eventToAgenda.set(event.uid ?? "", eventList)
