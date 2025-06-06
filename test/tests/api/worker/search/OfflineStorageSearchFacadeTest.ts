@@ -667,6 +667,42 @@ o.spec("OfflineStorageSearchFacade", () => {
 			],
 		})
 
+		o.test("search by mail address with mailAddress field", async () => {
+			await storeAndIndexContact([drStrange])
+
+			const anyFieldRestriction = {
+				type: ContactTypeRef,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			}
+
+			const mailAddressRestriction = {
+				type: ContactTypeRef,
+				start: null,
+				end: null,
+				field: "mailAddress",
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			}
+
+			// This, without a field, finds Dr. Strange
+			const stephenVincentNoField = await offlineStorageSearchFacade.search("stephen vincent strange", anyFieldRestriction, 0)
+			o.check(stephenVincentNoField.results).deepEquals([drStrange._id])
+
+			// But if we search by just mail address, now it won't be found!
+			const stephenVincentMailAddressOnly = await offlineStorageSearchFacade.search("stephen vincent strange", mailAddressRestriction, 0)
+			o.check(stephenVincentMailAddressOnly.results).deepEquals([])
+
+			// So, we need to search for "dr.strange" as that is actually in the email address
+			const drStrangeMailAddressOnly = await offlineStorageSearchFacade.search("dr.strange", mailAddressRestriction, 0)
+			o.check(drStrangeMailAddressOnly.results).deepEquals([drStrange._id])
+		})
+
 		o.test("search by mail address domain", async () => {
 			await storeAndIndexContact([alice, bob, carter])
 			const result = await offlineStorageSearchFacade.search(

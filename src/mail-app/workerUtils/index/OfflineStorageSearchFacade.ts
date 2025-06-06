@@ -127,6 +127,12 @@ export class OfflineStorageSearchFacade implements SearchFacade {
                     contact_index.rowid = list_entities.rowid
                 WHERE contact_index = ${normalizedQuery}
                 ORDER BY contact_index.firstName, contact_index.lastName`
+
+			if (restriction.field === "mailAddress") {
+				// If we are searching by only mailAddress, we need to use a slightly different WHERE clause
+				preparedSqlQuery.query = preparedSqlQuery.query.replace("WHERE contact_index = ?", "WHERE mailAddresses MATCH ?")
+			}
+
 			const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 			const resultIds = resultRows.map(({ listId, elementId }) => {
 				return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
