@@ -145,7 +145,6 @@ export const themes = (): Themes => {
 		experimental_tertiary: RED_NOTA,
 		highlight_bg: highlight,
 		highlight_fg: black,
-		outline_variant: grey_lighter_1,
 		go_european: goEuropeanBlue,
 		on_go_european: light_white,
 	})
@@ -176,7 +175,6 @@ export const themes = (): Themes => {
 		experimental_tertiary: RED_NOTA,
 		highlight_bg: highlight,
 		highlight_fg: black,
-		outline_variant: grey_darker_0,
 		go_european: light_blue,
 		on_go_european: dark_darker_0,
 	})
@@ -208,7 +206,6 @@ export const themes = (): Themes => {
 		experimental_tertiary: BLUE_FIGHTER,
 		highlight_bg: highlight,
 		highlight_fg: black,
-		outline_variant: grey_lighter_1,
 		go_european: goEuropeanBlue,
 		on_go_european: light_white,
 	})
@@ -239,7 +236,6 @@ export const themes = (): Themes => {
 		experimental_tertiary: BLUE_FIGHTER,
 		highlight_bg: highlight,
 		highlight_fg: black,
-		outline_variant: grey_darker_0,
 		go_european: light_blue,
 		on_go_european: dark_darker_0,
 	})

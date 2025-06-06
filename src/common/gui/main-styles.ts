@@ -1448,7 +1448,7 @@ styles.registerStyle("main", () => {
 			outline: "none",
 		},
 		".state-bg-2::before": {
-			"background-color": `var(--state-bg-color, ${theme.content_fg})`,
+			"background-color": `var(--state-bg-color, ${theme.on_surface})`,
 			opacity: "0",
 			transition: "opacity 0.6s",
 			content: "''",
@@ -2642,7 +2642,7 @@ styles.registerStyle("main", () => {
 			},
 			".noscreen": {
 				display: "initial",
-				color: `${lightTheme.content_fg}`,
+				color: `${lightTheme.on_surface}`,
 			},
 			".print": {
 				color: "black",
@@ -2687,8 +2687,8 @@ styles.registerStyle("main", () => {
 				display: "block",
 			},
 			'.mail-viewer, [data-testid="collapsed-mail-view"]': {
-				color: `${lightTheme.content_fg} !important`,
-				"background-color": `${lightTheme.content_bg}`,
+				color: `${lightTheme.on_surface} !important`,
+				"background-color": `${lightTheme.on_surface}`,
 			},
 			"#mail-body": {
 				overflow: "visible",
