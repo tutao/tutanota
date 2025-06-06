@@ -8,7 +8,7 @@ import {
 	ContactListTypeRef,
 	ContactTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityClient, loadMultipleFromLists } from "../api/common/EntityClient.js"
@@ -21,7 +21,7 @@ import { compareOldestFirst, getEtId } from "../api/common/utils/EntityUtils.js"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
 import { ShareCapability } from "../api/common/TutanotaConstants.js"
 import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
-import type { SearchResult } from "../api/worker/search/SearchTypes.js"
+import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
 
 assertMainOrNode()
 
@@ -42,7 +42,7 @@ export class ContactModel {
 		private readonly entityClient: EntityClient,
 		private readonly loginController: LoginController,
 		private readonly eventController: EventController,
-		private readonly contactSearch: (query: string, field: string, minSuggestionCount: number, maxResults?: number) => Promise<SearchResult>,
+		private readonly contactSearchFacade: ContactSearchFacade | null,
 	) {
 		this.contactListId = lazyContactListId(loginController, this.entityClient)
 		this.eventController.addEntityListener(this.entityEventsReceived)
@@ -81,28 +81,37 @@ export class ContactModel {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
 		const cleanedMailAddress = cleanMailAddress(mailAddress)
-		let result
-		try {
-			result = await this.contactSearch('"' + cleanedMailAddress + '"', "mailAddress", 0)
-		} catch (e) {
-			// If IndexedDB is not supported or isn't working for some reason we load contacts from the server and
-			// search manually.
-			if (e instanceof DbError) {
-				const listId = await this.getContactListId()
-				if (listId) {
-					const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
-					return contacts.find((contact) => contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) ?? null
+
+		let result: IdTuple[] | null = null
+
+		if (this.contactSearchFacade != null) {
+			try {
+				result = await this.contactSearchFacade.findContacts(cleanedMailAddress, "mailAddress", 0)
+			} catch (e) {
+				if (e instanceof DbError) {
+					// do nothing
 				} else {
-					return null
+					throw e
 				}
-			} else {
-				throw e
 			}
 		}
-		// the result is sorted from newest to oldest, but we want to return the oldest first like before
-		result.results.sort(compareOldestFirst)
 
-		for (const contactId of result.results) {
+		// If we do not use a contact facade, or it isn't working for some reason, then we load contacts from the server
+		// and search manually.
+		if (result == null) {
+			const listId = await this.getContactListId()
+			if (listId) {
+				const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
+				return contacts.find((contact) => contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) ?? null
+			} else {
+				return null
+			}
+		}
+
+		// the result is sorted from newest to oldest, but we want to return the oldest first like before
+		result.sort(compareOldestFirst)
+
+		for (const contactId of result) {
 			try {
 				const contact = await this.entityClient.load(ContactTypeRef, contactId)
 				if (contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) {
@@ -122,12 +131,12 @@ export class ContactModel {
 	/**
 	 * @pre locator.search.indexState().indexingSupported
 	 */
-	async searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
+	async searchForContacts(query: string, field: "mailAddress" | "recipient", minSuggestionCount: number): Promise<Contact[]> {
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
-		const result = await this.contactSearch(query, field, minSuggestionCount)
-		return await loadMultipleFromLists(ContactTypeRef, this.entityClient, result.results)
+		const result = await assertNotNull(this.contactSearchFacade).findContacts(query, field, minSuggestionCount)
+		return await loadMultipleFromLists(ContactTypeRef, this.entityClient, result)
 	}
 
 	async searchForContactLists(query: string): Promise<ContactListInfo[]> {

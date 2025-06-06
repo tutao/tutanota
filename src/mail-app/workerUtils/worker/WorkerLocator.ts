@@ -102,6 +102,11 @@ import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cac
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import { SearchTableDefinitions } from "../index/OfflineStoragePersistence"
+import { ContactSearchFacade } from "../index/ContactSearchFacade"
+import { OfflineStorageSearchFacade } from "../index/OfflineStorageSearchFacade"
+import { OfflineStorageContactSearchFacade } from "../index/OfflineStorageContactSearchFacade"
+import { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade"
+import { IndexedDbContactSearchFacade } from "../index/IndexedDbContactSearchFacade"
 
 assertWorkerOrNode()
 
@@ -142,6 +147,7 @@ export type WorkerLocatorType = {
 	// search & indexing
 	indexer: lazyAsync<Indexer>
 	search: lazyAsync<SearchFacade>
+	contactSearch: lazyAsync<ContactSearchFacade>
 
 	// management facades
 	groupManagement: lazyAsync<GroupManagementFacade>
@@ -577,6 +583,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			)
 		}
 	})
+
+	locator.contactSearch = lazyMemoized(async () => {
+		const search = await locator.search()
+		if (search instanceof OfflineStorageSearchFacade) {
+			return new OfflineStorageContactSearchFacade(search)
+		} else if (search instanceof IndexedDbSearchFacade) {
+			return new IndexedDbContactSearchFacade(search, typeModelResolver)
+		} else {
+			throw new ProgrammingError("found unknown search facade type when initializing recipient suggestions")
+		}
+	})
+
 	locator.userManagement = lazyMemoized(async () => {
 		const { UserManagementFacade } = await import("../../../common/api/worker/facades/lazy/UserManagementFacade.js")
 		return new UserManagementFacade(
