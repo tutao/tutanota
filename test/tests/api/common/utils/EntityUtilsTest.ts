@@ -218,6 +218,41 @@ o.spec("EntityUtils", function () {
 			])
 		})
 
+		// fixme should we add more tests to verify that multiple modifications on an entity work?
+		o("computePatches works when modifying multiple values", async function () {
+			const testEntity = await createFilledTestEntity()
+			const date = new Date()
+			testEntity.testDate = date
+			testEntity.testBoolean = null
+
+			let sk = aes256RandomKey()
+			const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(
+				TestTypeRef,
+				assertNotNull(testEntity._original),
+			)
+			const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+			const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+			const objectDiff = await computePatches(
+				originalParsedInstance,
+				currentParsedInstance,
+				currentUntypedInstance,
+				testTypeModel,
+				dummyTypeReferenceResolver,
+			)
+			o(objectDiff).deepEquals([
+				createPatch({
+					attributePath: "5",
+					value: `${date.valueOf()}`,
+					patchOperation: PatchOperationType.REPLACE,
+				}),
+				createPatch({
+					attributePath: "7",
+					value: null,
+					patchOperation: PatchOperationType.REPLACE,
+				}),
+			])
+		})
+
 		o("computePatches works on values on the aggregates", async function () {
 			const testEntity = await createFilledTestEntity()
 			testEntity.testAssociation[0].testNumber = "1234"
