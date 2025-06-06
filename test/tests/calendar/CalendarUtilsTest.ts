@@ -416,6 +416,107 @@ o.spec("calendar utils tests", function () {
 			o(timeStringFromParts(22, 55, false)).equals("22:55")
 		})
 	})
+	o.spec("timeDiff", function () {
+		o("A minor than B, with 15 min diff", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(8, 50)
+			o(timeA.diff(timeB)).equals(15)
+		})
+		o("A greater than B", function () {
+			const timeA = new Time(8, 50)
+			const timeB = new Time(8, 35)
+			o(timeA.diff(timeB)).equals(1425)
+		})
+		o("A minor than B, with one hour diff", function () {
+			const timeA = new Time(8, 0)
+			const timeB = new Time(9, 0)
+			o(timeA.diff(timeB)).equals(60)
+		})
+		o("diff with midnight", function () {
+			const timeA = new Time(23, 0)
+			const timeB = new Time(0, 0)
+			o(timeA.diff(timeB)).equals(60)
+		})
+		o("diff between two days - over midnight", function () {
+			const timeA = new Time(23, 0)
+			const timeB = new Time(1, 0)
+			o(timeA.diff(timeB)).equals(120)
+		})
+	})
+	o.spec("timeAdd", function () {
+		o("add 15 minutes", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(8, 50)
+			o(timeA.add({ minutes: 15 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 1 hours", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(9, 35)
+			o(timeA.add({ hours: 1 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 1 hour and 15 minutes", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(9, 50)
+			o(timeA.add({ hours: 1, minutes: 15 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 600 minutes overflowing to 'next day'", function () {
+			const timeA = new Time(14, 0)
+			const timeB = new Time(0, 0)
+			o(timeA.add({ minutes: 600 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 10 hours overflowing to 'next day'", function () {
+			const timeA = new Time(14, 0)
+			const timeB = new Time(0, 0)
+			o(timeA.add({ hours: 10 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("add 70 minutes and 11 hours overflowing to 'next day'", function () {
+			const timeA = new Time(14, 0)
+			const timeB = new Time(2, 10)
+			o(timeA.add({ hours: 11, minutes: 70 }).toObject()).deepEquals(timeB.toObject())
+		})
+	})
+	o.spec("timeSub", function () {
+		o("sub 15 minutes", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(8, 20)
+			o(timeA.sub({ minutes: 15 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 30 minutes from minute 0", function () {
+			const timeA = new Time(8, 0)
+			const timeB = new Time(7, 30)
+			o(timeA.sub({ minutes: 30 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 1 hours", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(7, 35)
+			o(timeA.sub({ hours: 1 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 1 hour and 15 minutes", function () {
+			const timeA = new Time(8, 35)
+			const timeB = new Time(7, 20)
+			o(timeA.sub({ hours: 1, minutes: 15 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 90 minutes", function () {
+			const timeA = new Time(8, 30)
+			const timeB = new Time(7, 0)
+			o(timeA.sub({ hours: 0, minutes: 90 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 600 minutes overflowing to 'previous day'", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(23, 0)
+			o(timeA.sub({ minutes: 600 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 10 hours overflowing to 'previous day'", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(23, 0)
+			o(timeA.sub({ hours: 10 }).toObject()).deepEquals(timeB.toObject())
+		})
+		o("sub 70 minutes and 11 hours overflowing to 'previous day'", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(20, 50)
+			o(timeA.sub({ hours: 11, minutes: 70 }).toObject()).deepEquals(timeB.toObject())
+		})
+	})
 	o.spec("getStartOfWeek", function () {
 		o("works", function () {
 			o(getStartOfWeek(new Date(2019, 6, 7), 0).toISOString()).equals(new Date(2019, 6, 7).toISOString())
@@ -1752,8 +1853,18 @@ o.spec("calendar utils tests", function () {
 				frequency: RepeatPeriod.DAILY,
 				interval: "1",
 			})
-			const progenitor = createTestEntity(CalendarEventTypeRef, { startTime: new Date(), endTime: new Date(), repeatRule }) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
+			const progenitor = createTestEntity(CalendarEventTypeRef, {
+				startTime: new Date(),
+				endTime: new Date(),
+				repeatRule,
+			}) as CalendarEventProgenitor
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(true)
 		})
 
 		o("event without repeat rule has less than two occurrences", function () {
@@ -1762,7 +1873,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date(),
 				repeatRule: null,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(false)
 		})
 
 		o("event with higher count than exclusions+1 has more left", function () {
@@ -1779,7 +1896,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(true)
 		})
 
 		o("event with count and enough exclusions has less than two left", function () {
@@ -1799,7 +1922,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(false)
 		})
 
 		o("event with count and enough exclusions has less than two left, first is excluded", function () {
@@ -1819,7 +1948,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(false)
 		})
 
 		o("event with end date and enough exclusions has less than two left, first is excluded", function () {
@@ -1849,7 +1984,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(false)
 		})
 
 		o("event with end date and enough exclusions has more than two left, first is excluded", function () {
@@ -1879,7 +2020,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(true)
 		})
 
 		o("event with end date and enough exclusions has more than two left, first is excluded", function () {
@@ -1962,7 +2109,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(true)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(true)
 		})
 
 		o("event with one occurrence (count), no exclusions", function () {
@@ -1979,7 +2132,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(false)
 		})
 
 		o("event with one occurrence (untilDate), no exclusions", function () {
@@ -2006,7 +2165,13 @@ o.spec("calendar utils tests", function () {
 				endTime: new Date("2023-03-02T23:00:00Z"),
 				repeatRule,
 			}) as CalendarEventProgenitor
-			o(calendarEventHasMoreThanOneOccurrencesLeft({ progenitor, ownerGroup: "", alteredInstances: [] })).equals(false)
+			o(
+				calendarEventHasMoreThanOneOccurrencesLeft({
+					progenitor,
+					ownerGroup: "",
+					alteredInstances: [],
+				}),
+			).equals(false)
 		})
 	})
 	o.spec("getEventType", function () {
@@ -2025,14 +2190,24 @@ o.spec("calendar utils tests", function () {
 		})
 
 		o("if no ownergroup but organizer, gets OWN", function () {
-			const event: Partial<CalendarEvent> = { organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "my@address.to", name: "my" }) }
+			const event: Partial<CalendarEvent> = {
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+					address: "my@address.to",
+					name: "my",
+				}),
+			}
 			const calendars = new Map()
 			const ownMailAddresses = ["my@address.to"]
 			o(getEventType(event, calendars, ownMailAddresses, userController)).equals(EventType.OWN)
 		})
 
 		o("if no ownergroup and not organizer, gets INVITE", function () {
-			const event: Partial<CalendarEvent> = { organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }) }
+			const event: Partial<CalendarEvent> = {
+				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
+					address: "no@address.to",
+					name: "my",
+				}),
+			}
 			const calendars = new Map()
 			const ownMailAddresses = ["my@address.to"]
 			o(getEventType(event, calendars, ownMailAddresses, userController)).equals(EventType.INVITE)
@@ -2134,7 +2309,12 @@ o.spec("calendar utils tests", function () {
 			organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "no@address.to", name: "my" }),
 			_ownerGroup: "ownergroup",
 			attendees: [
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: createTestEntity(EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }) }),
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: "bla",
+						name: "blabla",
+					}),
+				}),
 			],
 		}
 		const calendars = new Map()
@@ -2167,7 +2347,12 @@ o.spec("calendar utils tests", function () {
 			organizer: createTestEntity(EncryptedMailAddressTypeRef, { address: "other@address.to", name: "other" }),
 			_ownerGroup: "ownergroup",
 			attendees: [
-				createTestEntity(CalendarEventAttendeeTypeRef, { address: createTestEntity(EncryptedMailAddressTypeRef, { address: "bla", name: "blabla" }) }),
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: "bla",
+						name: "blabla",
+					}),
+				}),
 			],
 		}
 		const calendars = new Map()
