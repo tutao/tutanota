@@ -304,6 +304,11 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	// Updates the view model's copy of the view dom and scrolls to the current `scrollPosition`
 	private handleScrollOnUpdate(attrs: CalendarAgendaViewAttrs, vnode: VnodeDOM): void {
 		attrs.onViewChanged(vnode)
+
+		if (this.lastScrollPosition === attrs.scrollPosition) {
+			return
+		}
+
 		if (getIfLargeScroll(this.lastScrollPosition, attrs.scrollPosition)) {
 			vnode.dom.scrollTo({ top: attrs.scrollPosition, behavior: "smooth" })
 		} else {
@@ -325,11 +330,27 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		let eventsNodes: Child[] = []
 		for (const [eventIndex, event] of events.entries()) {
 			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.startTime)) {
-				eventsNodes.push(m(".mt-xs.mb-xs", { key: "timeIndicator" }, m(CalendarTimeIndicator, { circleLeftTangent: true })))
+				eventsNodes.push(m(".mt-xs.mb-xs", { id: "timeIndicator", key: "timeIndicator" }, m(CalendarTimeIndicator, { circleLeftTangent: true })))
 			}
 			if (currentTime && event.startTime < currentTime) {
 				newScrollPosition += agendaItemHeight + agendaGap
 			}
+
+			const getSibling = (target: HTMLElement, forward: boolean): HTMLElement | null => {
+				let sibling: HTMLElement | null
+				if (forward) {
+					sibling = target.nextElementSibling as HTMLElement | null
+				} else {
+					sibling = target.previousElementSibling as HTMLElement | null
+				}
+
+				if (sibling?.attributes.getNamedItem("id")?.value === "timeIndicator") {
+					return getSibling(sibling, forward)
+				}
+
+				return sibling
+			}
+
 			eventsNodes.push(
 				m(CalendarAgendaItemView, {
 					key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
@@ -340,11 +361,10 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					keyDown: (domEvent) => {
 						const target = domEvent.target as HTMLElement
 						if (isKeyPressed(domEvent.key, Keys.UP, Keys.K) && !domEvent.repeat) {
-							const previousItem = target.previousElementSibling as HTMLElement | null
+							const previousItem = getSibling(target, false)
 							const previousIndex = eventIndex - 1
 							if (previousItem) {
 								previousItem.focus()
-								attrs.onScrollPositionChange(previousItem.offsetTop)
 								if (previousIndex >= 0 && !styles.isSingleColumnLayout()) {
 									keyDown(events[previousIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
 									return
@@ -354,11 +374,11 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							}
 						}
 						if (isKeyPressed(domEvent.key, Keys.DOWN, Keys.J) && !domEvent.repeat) {
-							const nextItem = target.nextElementSibling as HTMLElement | null
+							const nextItem = getSibling(target, true)
+
 							const nextIndex = eventIndex + 1
 							if (nextItem) {
 								nextItem.focus()
-								attrs.onScrollPositionChange(nextItem.offsetTop)
 								if (nextIndex < events.length && !styles.isSingleColumnLayout()) {
 									keyDown(events[nextIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
 									return
