@@ -45,6 +45,7 @@ import { BulkMailLoader } from "../index/BulkMailLoader.js"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
 import { Indexer } from "../index/Indexer"
 import { SearchFacade } from "../index/SearchFacade"
+import { ContactSearchFacade } from "../index/ContactSearchFacade"
 
 assertWorkerOrNode()
 
@@ -62,6 +63,7 @@ export interface WorkerInterface {
 	readonly counterFacade: CounterFacade
 	readonly indexerFacade: Indexer
 	readonly searchFacade: SearchFacade
+	readonly contactSearchFacade: ContactSearchFacade
 	readonly bookingFacade: BookingFacade
 	readonly mailAddressFacade: MailAddressFacade
 	readonly keyVerificationFacade: KeyVerificationFacade
@@ -189,6 +191,10 @@ export class WorkerImpl implements NativeInterface {
 
 			async searchFacade() {
 				return locator.search()
+			},
+
+			async contactSearchFacade() {
+				return locator.contactSearch()
 			},
 
 			async bookingFacade() {

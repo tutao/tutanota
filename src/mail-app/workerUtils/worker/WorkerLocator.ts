@@ -101,7 +101,9 @@ import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { DateProvider } from "../../../common/api/common/DateProvider"
-import { SearchTableDefinitions } from "../index/OfflineStoragePersistence"
+import type { ContactSearchFacade } from "../index/ContactSearchFacade"
+import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"
+import type { OfflineStorageSearchFacade } from "../index/OfflineStorageSearchFacade.js"
 
 assertWorkerOrNode()
 
@@ -142,6 +144,7 @@ export type WorkerLocatorType = {
 	// search & indexing
 	indexer: lazyAsync<Indexer>
 	search: lazyAsync<SearchFacade>
+	contactSearch: lazyAsync<ContactSearchFacade>
 
 	// management facades
 	groupManagement: lazyAsync<GroupManagementFacade>
@@ -577,6 +580,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			)
 		}
 	})
+
+	locator.contactSearch = lazyMemoized(async () => {
+		const search = await locator.search()
+		if (isOfflineStorageAvailable()) {
+			const { OfflineStorageContactSearchFacade } = await import("../index/OfflineStorageContactSearchFacade")
+			return new OfflineStorageContactSearchFacade(search as OfflineStorageSearchFacade)
+		} else {
+			const { IndexedDbContactSearchFacade } = await import("../index/IndexedDbContactSearchFacade")
+			return new IndexedDbContactSearchFacade(search as IndexedDbSearchFacade, typeModelResolver)
+		}
+	})
+
 	locator.userManagement = lazyMemoized(async () => {
 		const { UserManagementFacade } = await import("../../../common/api/worker/facades/lazy/UserManagementFacade.js")
 		return new UserManagementFacade(

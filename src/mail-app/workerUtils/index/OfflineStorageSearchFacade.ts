@@ -119,19 +119,16 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			// Create our FTS5 query
 			const normalizedQuery = this.normalizeQuery(tokens)
 
+			const columnList = contactFieldToColumn(restriction.field)
+			const queryString = columnList != null ? `{${columnList}} : ${normalizedQuery}` : normalizedQuery
 			const preparedSqlQuery = sql`
                 SELECT list_entities.listId,
                        list_entities.elementId
                 FROM contact_index
                          INNER JOIN list_entities ON
                     contact_index.rowid = list_entities.rowid
-                WHERE contact_index = ${normalizedQuery}
+                WHERE contact_index = ${queryString}
                 ORDER BY contact_index.firstName, contact_index.lastName`
-
-			if (restriction.field === "mailAddress") {
-				// If we are searching by only mailAddress, we need to use a slightly different WHERE clause
-				preparedSqlQuery.query = preparedSqlQuery.query.replace("WHERE contact_index = ?", "WHERE mailAddresses MATCH ?")
-			}
 
 			const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
 			const resultIds = resultRows.map(({ listId, elementId }) => {
@@ -224,5 +221,17 @@ function mailFieldToColumn(field: string | null): string[] | null {
 			return ["attachments"]
 		default:
 			throw new ProgrammingError(`Unknown field "${field}" passed into mailFieldToColumn`)
+	}
+}
+
+function contactFieldToColumn(field: string | null): string[] | null {
+	switch (field) {
+		case "mailAddresses":
+			// note the plural in the column name
+			return ["mailAddresses"]
+		case null:
+			return null
+		default:
+			throw new ProgrammingError(`Unknown field "${field}" passed into contactFieldToColumn`)
 	}
 }

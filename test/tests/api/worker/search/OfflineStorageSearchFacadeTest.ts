@@ -684,7 +684,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				type: ContactTypeRef,
 				start: null,
 				end: null,
-				field: "mailAddress",
+				field: "mailAddresses",
 				attributeIds: null,
 				folderIds: [],
 				eventSeries: null,

@@ -8,7 +8,7 @@ import {
 	ContactListTypeRef,
 	ContactTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityClient, loadMultipleFromLists } from "../api/common/EntityClient.js"
@@ -17,11 +17,11 @@ import { EntityEventsListener, EventController } from "../api/main/EventControll
 import { LoginIncompleteError } from "../api/common/error/LoginIncompleteError.js"
 import { cleanMailAddress } from "../api/common/utils/CommonCalendarUtils.js"
 import { DbError } from "../api/common/error/DbError.js"
-import { compareOldestFirst, getEtId } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, getEtId, sortCompareById } from "../api/common/utils/EntityUtils.js"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
 import { ShareCapability } from "../api/common/TutanotaConstants.js"
 import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
-import type { SearchResult } from "../api/worker/search/SearchTypes.js"
+import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
 
 assertMainOrNode()
 
@@ -42,7 +42,7 @@ export class ContactModel {
 		private readonly entityClient: EntityClient,
 		private readonly loginController: LoginController,
 		private readonly eventController: EventController,
-		private readonly contactSearch: (query: string, field: string, minSuggestionCount: number, maxResults?: number) => Promise<SearchResult>,
+		private readonly contactSearchFacade: ContactSearchFacade | null,
 	) {
 		this.contactListId = lazyContactListId(loginController, this.entityClient)
 		this.eventController.addEntityListener(this.entityEventsReceived)
@@ -80,54 +80,51 @@ export class ContactModel {
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
-		const cleanedMailAddress = cleanMailAddress(mailAddress)
-		let result
-		try {
-			result = await this.contactSearch('"' + cleanedMailAddress + '"', "mailAddress", 0)
-		} catch (e) {
-			// If IndexedDB is not supported or isn't working for some reason we load contacts from the server and
-			// search manually.
-			if (e instanceof DbError) {
-				const listId = await this.getContactListId()
-				if (listId) {
-					const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
-					return contacts.find((contact) => contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) ?? null
-				} else {
-					return null
-				}
-			} else {
-				throw e
-			}
-		}
-		// the result is sorted from newest to oldest, but we want to return the oldest first like before
-		result.results.sort(compareOldestFirst)
 
-		for (const contactId of result.results) {
+		const listId = await this.getContactListId()
+		// No contacts for external users and we can't search if we can't load contacts
+		if (listId == null) {
+			return null
+		}
+
+		const cleanedMailAddress = cleanMailAddress(mailAddress)
+		// If we do not use a contact facade, or it isn't working for some reason, then we load all contacts from the server
+		const result: Contact[] = (await this.findContactsUsingFacade(cleanedMailAddress, listId)) ?? (await this.entityClient.loadAll(ContactTypeRef, listId))
+
+		// the result is sorted from newest to oldest, but we want to return the oldest first like before
+		result.sort(sortCompareById)
+
+		// searchFacade is not guaranteed to return an exact match, but we are looking for an exact match for the given
+		// mail address
+		return result.find((contact) => contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) ?? null
+	}
+
+	private async findContactsUsingFacade(cleanedMailAddress: string, listId: string) {
+		if (this.contactSearchFacade != null) {
 			try {
-				const contact = await this.entityClient.load(ContactTypeRef, contactId)
-				if (contact.mailAddresses.some((a) => cleanMailAddress(a.address) === cleanedMailAddress)) {
-					return contact
-				}
+				const ids = await this.contactSearchFacade.findContacts(cleanedMailAddress, "mailAddresses")
+				return await this.entityClient.loadMultiple(ContactTypeRef, listId, ids.map(elementIdPart))
 			} catch (e) {
-				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-					continue
+				if (e instanceof DbError) {
+					return null
 				} else {
 					throw e
 				}
 			}
+		} else {
+			return null
 		}
-		return null
 	}
 
 	/**
 	 * @pre locator.search.indexState().indexingSupported
 	 */
-	async searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
+	async searchForContacts(query: string, field: "mailAddresses" | null, minSuggestionCount: number): Promise<Contact[]> {
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
-		const result = await this.contactSearch(query, field, minSuggestionCount)
-		return await loadMultipleFromLists(ContactTypeRef, this.entityClient, result.results)
+		const result = await assertNotNull(this.contactSearchFacade).findContacts(query, field, minSuggestionCount)
+		return await loadMultipleFromLists(ContactTypeRef, this.entityClient, result)
 	}
 
 	async searchForContactLists(query: string): Promise<ContactListInfo[]> {

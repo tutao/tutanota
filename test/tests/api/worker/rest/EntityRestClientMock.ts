@@ -116,7 +116,9 @@ export class EntityRestClientMock extends EntityRestClient {
 
 			const listElement = this._getListEntry(listId, elementId)
 
-			if (listElement == null) throw new NotFoundError(`List element ${listId} ${elementId} not found`)
+			if (listElement == null) {
+				throw new NotFoundError(`List element ${listId} ${elementId} not found`)
+			}
 			return downcast(listElement)
 		} else if (typeof id === "string") {
 			//element request
