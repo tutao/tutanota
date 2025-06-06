@@ -765,9 +765,7 @@ class CalendarLocator implements CommonLocator {
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
-		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, () => {
-			throw new DbError("Calendar cannot search for contacts through db")
-		})
+		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, null)
 
 		// THEME
 		// We need it because we want to run tests in node and real HTMLSanitizer does not work there.

@@ -113,9 +113,8 @@ export class RecipientsSearchModel {
 			return []
 		}
 
-		// ensure match word order for email addresses mainly
 		const contacts = await this.contactModel
-			.searchForContacts(`"${query}"`, "recipient", 10)
+			.searchForContacts(query, null, 10)
 			.catch(
 				ofClass(DbError, async () => {
 					const listId = await this.contactModel.getContactListId()

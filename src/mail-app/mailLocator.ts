@@ -148,6 +148,7 @@ import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
+import type { ContactSearchFacade } from "./workerUtils/index/ContactSearchFacade"
 
 assertMainOrNode()
 
@@ -179,6 +180,7 @@ class MailLocator implements CommonLocator {
 	counterFacade!: CounterFacade
 	indexerFacade!: Indexer
 	searchFacade!: SearchFacade
+	contactSearchFacade!: ContactSearchFacade
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	keyVerificationFacade!: KeyVerificationFacade
@@ -750,6 +752,7 @@ class MailLocator implements CommonLocator {
 			contactFacade,
 			bulkMailLoader,
 			mailExportFacade,
+			contactSearchFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -762,6 +765,7 @@ class MailLocator implements CommonLocator {
 		this.counterFacade = counterFacade
 		this.indexerFacade = indexerFacade
 		this.searchFacade = searchFacade
+		this.contactSearchFacade = contactSearchFacade
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.keyVerificationFacade = keyVerificationFacade
@@ -957,20 +961,7 @@ class MailLocator implements CommonLocator {
 				: new FileControllerNative(blobFacade, guiDownload, this.nativeInterfaces.fileApp)
 
 		const { ContactModel } = await import("../common/contactsFunctionality/ContactModel.js")
-		this.contactModel = new ContactModel(
-			this.entityClient,
-			this.logins,
-			this.eventController,
-			async (query: string, field: string, minSuggestionCount: number, maxResults?: number) => {
-				const { createRestriction } = await import("./search/model/SearchUtils.js")
-				return mailLocator.searchFacade.search(
-					query,
-					createRestriction(SearchCategoryTypes.contact, null, null, field, [], null),
-					minSuggestionCount,
-					maxResults,
-				)
-			},
-		)
+		this.contactModel = new ContactModel(this.entityClient, this.logins, this.eventController, this.contactSearchFacade)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 
 		// THEME
