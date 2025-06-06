@@ -399,7 +399,7 @@ const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 	navigation_button_icon_selected: "on_primary",
 	navigation_menu_bg: "secondary",
 	navigation_menu_icon: "on_secondary",
-	error_color: "error",
+	error: "error",
 } as const
 
 const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
@@ -415,5 +415,5 @@ const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
 	surface_container: ["list_alternate_bg", "navigation_bg"],
 	outline_variant: ["list_border", "navigation_border"],
 	scrim: ["modal_bg"],
-	error: ["error_color"],
+	error: ["error"],
 } as const

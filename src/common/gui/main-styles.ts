@@ -233,10 +233,10 @@ styles.registerStyle("main", () => {
 			"font-weight": "normal",
 		},
 		".navigation-menu-bg": {
-			background: theme.navigation_menu_bg,
+			background: theme.secondary,
 		},
 		".navigation-menu-icon-bg": {
-			background: theme.navigation_menu_icon,
+			background: theme.on_secondary,
 		},
 		".nota-bg": {
 			background: theme.tuta_color_nota,
@@ -245,7 +245,7 @@ styles.registerStyle("main", () => {
 			"border-color": theme.tuta_color_nota,
 		},
 		".border-accent": {
-			"border-color": theme.content_accent,
+			"border-color": theme.primary,
 		},
 		".border-sm": {
 			"border-style": "solid",
@@ -782,7 +782,7 @@ styles.registerStyle("main", () => {
 			content: "''",
 			width: "100vw",
 			height: "1px",
-			background: theme.content_border,
+			background: theme.outline_variant,
 			position: "absolute",
 			bottom: "-1px",
 		},
@@ -791,7 +791,7 @@ styles.registerStyle("main", () => {
 			"border-bottom": `1px solid ${theme.outline}`,
 		},
 		".border-right": {
-			"border-right": `1px solid ${theme.content_border}`,
+			"border-right": `1px solid ${theme.outline}`,
 		},
 		".border-left": {
 			"border-left": `1px solid ${theme.outline}`,
@@ -843,7 +843,7 @@ styles.registerStyle("main", () => {
 			"background-color": theme.on_surface_fade,
 		},
 		".button-bubble-bg": {
-			"background-color": theme.button_bubble_bg,
+			"background-color": theme.secondary,
 		},
 		".elevated-bg": {
 			"background-color": getElevatedBackground(),
@@ -1584,7 +1584,7 @@ styles.registerStyle("main", () => {
 			outline: "none",
 		},
 		".state-bg-2::before": {
-			"background-color": `var(--state-bg-color, ${theme.content_fg})`,
+			"background-color": `var(--state-bg-color, ${theme.on_surface})`,
 			opacity: "0",
 			transition: "opacity 0.6s",
 			content: "''",
@@ -2649,15 +2649,15 @@ styles.registerStyle("main", () => {
 			color: theme.on_surface_fade,
 		},
 		".success-container": {
-			"background-color": theme.success_container_color,
-			color: theme.on_success_container_color,
+			"background-color": theme.success_container,
+			color: theme.on_success_container,
 		},
 		".error-container": {
-			"background-color": theme.error_container_color,
-			color: theme.on_error_container_color,
+			"background-color": theme.error_container,
+			color: theme.on_error_container,
 		},
 		".on-success-container-color": {
-			color: theme.on_success_container_color,
+			color: theme.on_success_container,
 		},
 		".calendar-invite-field": {
 			"min-width": "80px",
@@ -2789,7 +2789,7 @@ styles.registerStyle("main", () => {
 			},
 			".noscreen": {
 				display: "initial",
-				color: `${lightTheme.content_fg}`,
+				color: `${lightTheme.on_surface}`,
 			},
 			".print": {
 				color: "black",
@@ -2831,8 +2831,8 @@ styles.registerStyle("main", () => {
 				display: "block",
 			},
 			'.mail-viewer, [data-testid="collapsed-mail-view"]': {
-				color: `${lightTheme.content_fg} !important`,
-				"background-color": `${lightTheme.content_bg}`,
+				color: `${lightTheme.on_surface} !important`,
+				"background-color": `${lightTheme.on_surface}`,
 			},
 			"#mail-body": {
 				overflow: "visible",
@@ -3165,13 +3165,13 @@ styles.registerStyle("main", () => {
 			overflow: "clip",
 		},
 		".skeleton-bg-1": {
-			background: theme.navigation_border,
+			background: theme.outline_variant,
 		},
 		".skeleton-bg-2": {
-			background: theme.navigation_bg,
+			background: theme.surface_container,
 		},
 		".skeleton-border-1": {
-			"border-color": theme.navigation_border,
+			"border-color": theme.outline_variant,
 		},
 		".skeleton:after": {
 			position: "absolute",
@@ -3179,9 +3179,9 @@ styles.registerStyle("main", () => {
 			width: "100%",
 			height: "100%",
 			background: `linear-gradient(90deg,
-				${hexToRGBAString(theme.content_button_icon, 0)},
-				${hexToRGBAString(theme.content_button_icon, 0.3)},
-				${hexToRGBAString(theme.content_button_icon, 0)})`,
+				${hexToRGBAString(theme.on_primary, 0)},
+				${hexToRGBAString(theme.on_primary, 0.3)},
+				${hexToRGBAString(theme.on_primary, 0)})`,
 			transform: "translateX(-100%)",
 			animation: "1.5s loading ease-in-out infinite",
 		},
@@ -3192,7 +3192,7 @@ styles.registerStyle("main", () => {
 		},
 		".time-indicator": {
 			position: "absolute",
-			background: theme.content_accent,
+			background: theme.primary,
 			height: px(2),
 			width: "100%",
 			"z-index": 1,
@@ -3202,7 +3202,7 @@ styles.registerStyle("main", () => {
 			display: "block",
 			width: "12px",
 			height: "12px",
-			background: theme.content_accent,
+			background: theme.primary,
 			position: "absolute",
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
