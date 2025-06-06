@@ -5,12 +5,28 @@ import { DateTime } from "luxon"
  * A wrapper around time handling for the calendar stuff, mostly for the CalendarEventWhenModel
  */
 export class Time {
-	readonly hour: number
-	readonly minute: number
+	private _hour: number = 0
+	private _minute: number = 0
+
+	get hour() {
+		return this._hour
+	}
+
+	private set hour(h: number) {
+		this._hour = Math.abs(Math.floor(h) % 24)
+	}
+
+	get minute() {
+		return this._minute
+	}
+
+	private set minute(m: number) {
+		this._minute = Math.abs(Math.floor(m) % 60)
+	}
 
 	constructor(hour: number, minute: number) {
-		this.hour = Math.floor(hour) % 24
-		this.minute = Math.floor(minute) % 60
+		this.hour = hour
+		this.minute = minute
 	}
 
 	/**
@@ -94,19 +110,19 @@ export class Time {
 	 */
 	toDate(baseDate?: Date): Date {
 		const date = baseDate ? new Date(baseDate) : new Date()
-		date.setHours(this.hour)
-		date.setMinutes(this.minute)
+		date.setHours(this._hour)
+		date.setMinutes(this._minute)
 		date.setSeconds(0)
 		date.setMilliseconds(0)
 		return date
 	}
 
 	toDateTime(baseDate: Date, zone: string): DateTime {
-		return DateTime.fromJSDate(baseDate, { zone }).set(this)
+		return DateTime.fromJSDate(baseDate, { zone }).set({ hour: this._hour, minute: this._minute })
 	}
 
 	equals(otherTime: Time): boolean {
-		return this.hour === otherTime.hour && this.minute === otherTime.minute
+		return this._hour === otherTime._hour && this._minute === otherTime._minute
 	}
 
 	toString(amPmFormat: boolean): string {
@@ -114,22 +130,22 @@ export class Time {
 	}
 
 	to12HourString(): string {
-		const minutesString = pad(this.minute, 2)
+		const minutesString = pad(this._minute, 2)
 
-		if (this.hour === 0) {
+		if (this._hour === 0) {
 			return `12:${minutesString} am`
-		} else if (this.hour === 12) {
+		} else if (this._hour === 12) {
 			return `12:${minutesString} pm`
-		} else if (this.hour > 12) {
-			return `${this.hour - 12}:${minutesString} pm`
+		} else if (this._hour > 12) {
+			return `${this._hour - 12}:${minutesString} pm`
 		} else {
-			return `${this.hour}:${minutesString} am`
+			return `${this._hour}:${minutesString} am`
 		}
 	}
 
 	to24HourString(): string {
-		const hours = pad(this.hour, 2)
-		const minutes = pad(this.minute, 2)
+		const hours = pad(this._hour, 2)
+		const minutes = pad(this._minute, 2)
 		return `${hours}:${minutes}`
 	}
 
@@ -138,8 +154,65 @@ export class Time {
 		minutes: number
 	} {
 		return {
-			hours: this.hour,
-			minutes: this.minute,
+			hours: this._hour,
+			minutes: this._minute,
 		}
+	}
+
+	asMinutes(): number {
+		return this._hour * 60 + this._minute
+	}
+
+	/**
+	 * Finds the difference in minutes between this and the param.
+	 * @param timeB
+	 */
+	diff(timeB: Time) {
+		const timeBAsMinutes = timeB.asMinutes() === 0 ? 24 * 60 : timeB.asMinutes()
+		const timeAAsMinutes = this.asMinutes()
+		return timeAAsMinutes > timeBAsMinutes ? 24 * 60 - timeAAsMinutes + timeBAsMinutes : timeBAsMinutes - timeAAsMinutes
+	}
+
+	/**
+	 * In place addition operation.
+	 *
+	 * Adds hours and/or minutes to the current time instance.
+	 *
+	 * @param {Object} param - Adjustment parameters.
+	 * @param {number} [param.hours=0] - Hours to add (optional, defaults to 0).
+	 * @param {number} [param.minutes=0] - Minutes to add (optional, defaults to 0).
+	 * @returns {this} The same instance after adding the time.
+	 */
+	add(param: { hours?: number; minutes?: number }) {
+		const totalMinutes = this._minute + (param.minutes ?? 0)
+		this.minute = totalMinutes % 60
+
+		let restHours = totalMinutes / 60
+		this.hour = this._hour + (param.hours ?? 0) + restHours
+		return this
+	}
+
+	/**
+	 * In place subtract operation.
+	 *
+	 * Subtract hours and/or minutes to the current time instance.
+	 *
+	 * @param {Object} param - Adjustment parameters.
+	 * @param {number} [param.hours=0] - Hours to subtract (optional, defaults to 0).
+	 * @param {number} [param.minutes=0] - Minutes to subtract (optional, defaults to 0).
+	 * @returns {this} The same instance after subtracting the time.
+	 */
+	sub(param: { hours?: number; minutes?: number }) {
+		const totalMinutes = this._minute - (param.minutes ?? 0)
+		this.minute = totalMinutes < 0 ? 60 + (totalMinutes % 60) : totalMinutes
+
+		// We need to borrow one hour so we need to subtract this borrowed hour from the total
+		const minutesCorrectionFactor = totalMinutes % 60 != 0 && totalMinutes < 0 ? 1 : 0
+		const restHoursToSubtract = Math.floor(Math.abs(totalMinutes / 60))
+		const newHour = this._hour - (param.hours ?? 0) - restHoursToSubtract - minutesCorrectionFactor
+
+		this.hour = newHour < 0 ? 24 + (newHour % 24) : newHour
+
+		return this
 	}
 }
