@@ -470,6 +470,36 @@ o.spec("OfflineStorageSearchFacade", () => {
 					0,
 				)
 				o.check(resultWithQuotesAndWords.results).deepEquals([testMail3.mail._id])
+
+				const resultWithOpenQuote = await offlineStorageSearchFacade.search(
+					`"`,
+					{
+						type: MailTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultWithOpenQuote.results).deepEquals([])
+
+				const resultWithEmptyQuotes = await offlineStorageSearchFacade.search(
+					`""`,
+					{
+						type: MailTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultWithEmptyQuotes.results).deepEquals([])
 			})
 			o.test("when looking for Japanese text it will find any kanji", async () => {
 				const testMail1: MailWithDetailsAndAttachments = {
@@ -750,6 +780,37 @@ o.spec("OfflineStorageSearchFacade", () => {
 			o.check(result.results).deepEquals([noFirstName._id, alice._id, bob._id, carter._id, noLastName._id])
 		})
 		o.spec("exact match", () => {
+			o.test("empty quotes", async () => {
+				const resultWithOpenQuote = await offlineStorageSearchFacade.search(
+					`"`,
+					{
+						type: ContactTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultWithOpenQuote.results).deepEquals([])
+
+				const resultWithEmptyQuotes = await offlineStorageSearchFacade.search(
+					`""`,
+					{
+						type: ContactTypeRef,
+						start: null,
+						end: null,
+						field: null,
+						attributeIds: null,
+						folderIds: [],
+						eventSeries: null,
+					},
+					0,
+				)
+				o.check(resultWithEmptyQuotes.results).deepEquals([])
+			})
 			o.test("name", async () => {
 				await storeAndIndexContact([alice, bob, carter, drStrange])
 

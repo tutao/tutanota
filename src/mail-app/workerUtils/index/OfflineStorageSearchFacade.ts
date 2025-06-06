@@ -5,7 +5,7 @@ import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { MailIndexer } from "./MailIndexer"
 import { getSearchEndTimestamp } from "../../../common/api/worker/search/IndexUtils"
-import { first, isSameTypeRef } from "@tutao/tutanota-utils"
+import { first, isEmpty, isSameTypeRef } from "@tutao/tutanota-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
@@ -34,57 +34,13 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		}
 	}
 
-	private async searchMails(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
-		// folderIds always have zero or one IDs for mail search
-		if (restriction.folderIds.length > 1) {
-			throw new ProgrammingError("cannot search mails with more than one mailset search restriction")
-		}
-
-		// Create our FTS5 query
-		const normalizedQuery = this.normalizeQuery(tokens)
-
-		// An empty string will match any ID
-		const idToSearch = first(restriction.folderIds) ?? ""
-
-		// Match a field to a column.
-		//
-		// In FTS5, single columns are matched like `column : "token1" "token2"` or, for multiple columns (as OR), you
-		// can use `{column1 column2} : "token1" "token2" (note that matching one column like this is also allowed).
-		//
-		// Otherwise, we pass the query string as-is.
-		const columnList = mailFieldToColumn(restriction.field)?.join(" ")
-		const queryString = columnList != null ? `{${columnList}} : ${normalizedQuery}` : normalizedQuery
-
-		// Do the actual search query.
-		//
-		// This will also filter based on date range and sets, and it will order by received date in descending order so
-		// that newer emails appear first in the returned list.
-		//
-		// Note: We use instr() for checking for sets, but there's a small gotcha: instr() is 1-indexed, returning 0
-		// if not found, 1 for the first char, etc.; see https://www.sqlitetutorial.net/sqlite-functions/sqlite-instr/
-		const preparedSqlQuery = sql`
-            SELECT list_entities.listId,
-                   list_entities.elementId
-            FROM mail_index
-                     INNER JOIN list_entities ON
-                mail_index.rowid = list_entities.rowid
-                     INNER JOIN content_mail_index ON
-                list_entities.rowid = content_mail_index.rowid
-            WHERE mail_index = ${queryString}
-              AND instr(content_mail_index.sets, ${idToSearch}) > 0
-              AND content_mail_index.receivedDate <= ${restriction.start ?? Number.MAX_SAFE_INTEGER}
-              AND content_mail_index.receivedDate >= ${restriction.end ?? 0}
-            ORDER BY content_mail_index.receivedDate DESC`
-		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
-		const resultIds = resultRows.map(({ listId, elementId }) => {
-			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
-		})
+	private emptySearchResult(query: string, restriction: SearchRestriction, currentIndexTimestamp: number): SearchResult {
 		return {
-			query: originalQuery,
-			tokens,
+			query,
+			tokens: [],
 			restriction,
-			results: resultIds,
-			currentIndexTimestamp: getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction),
+			results: [],
+			currentIndexTimestamp,
 			lastReadSearchIndexRow: [],
 			matchWordOrder: false,
 			moreResults: [],
@@ -92,34 +48,101 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		}
 	}
 
-	private async searchContacts(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
-		// Create our FTS5 query
-		const normalizedQuery = this.normalizeQuery(tokens)
+	private async searchMails(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
+		// folderIds always have zero or one IDs for mail search
+		if (restriction.folderIds.length > 1) {
+			throw new ProgrammingError("cannot search mails with more than one mailset search restriction")
+		}
 
-		const preparedSqlQuery = sql`
-            SELECT list_entities.listId,
-                   list_entities.elementId
-            FROM contact_index
-                     INNER JOIN list_entities ON
-                contact_index.rowid = list_entities.rowid
-            WHERE contact_index = ${normalizedQuery}
-            ORDER BY contact_index.firstName, contact_index.lastName`
-		const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
-		const resultIds = resultRows.map(({ listId, elementId }) => {
-			return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
-		})
+		if (isEmpty(tokens)) {
+			return this.emptySearchResult(originalQuery, restriction, getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction))
+		} else {
+			// Create our FTS5 query
+			const normalizedQuery = this.normalizeQuery(tokens)
+
+			// An empty string will match any ID
+			const idToSearch = first(restriction.folderIds) ?? ""
+
+			// Match a field to a column.
+			//
+			// In FTS5, single columns are matched like `column : "token1" "token2"` or, for multiple columns (as OR), you
+			// can use `{column1 column2} : "token1" "token2" (note that matching one column like this is also allowed).
+			//
+			// Otherwise, we pass the query string as-is.
+			const columnList = mailFieldToColumn(restriction.field)?.join(" ")
+			const queryString = columnList != null ? `{${columnList}} : ${normalizedQuery}` : normalizedQuery
+
+			// Do the actual search query.
+			//
+			// This will also filter based on date range and sets, and it will order by received date in descending order so
+			// that newer emails appear first in the returned list.
+			//
+			// Note: We use instr() for checking for sets, but there's a small gotcha: instr() is 1-indexed, returning 0
+			// if not found, 1 for the first char, etc.; see https://www.sqlitetutorial.net/sqlite-functions/sqlite-instr/
+			const preparedSqlQuery = sql`
+                SELECT list_entities.listId,
+                       list_entities.elementId
+                FROM mail_index
+                         INNER JOIN list_entities ON
+                    mail_index.rowid = list_entities.rowid
+                         INNER JOIN content_mail_index ON
+                    list_entities.rowid = content_mail_index.rowid
+                WHERE mail_index = ${queryString}
+                  AND instr(content_mail_index.sets, ${idToSearch}) > 0
+                  AND content_mail_index.receivedDate <= ${restriction.start ?? Number.MAX_SAFE_INTEGER}
+                  AND content_mail_index.receivedDate >= ${restriction.end ?? 0}
+                ORDER BY content_mail_index.receivedDate DESC`
+			const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
+			const resultIds = resultRows.map(({ listId, elementId }) => {
+				return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
+			})
+			return {
+				query: originalQuery,
+				tokens,
+				restriction,
+				results: resultIds,
+				currentIndexTimestamp: getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction),
+				lastReadSearchIndexRow: [],
+				matchWordOrder: false,
+				moreResults: [],
+				moreResultsEntries: [],
+			}
+		}
+	}
+
+	private async searchContacts(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
 		const indexTimestamp = (await this.contactIndexer.areContactsIndexed()) ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
 
-		return {
-			query: originalQuery,
-			tokens,
-			restriction,
-			results: resultIds,
-			currentIndexTimestamp: getSearchEndTimestamp(indexTimestamp, restriction),
-			lastReadSearchIndexRow: [],
-			matchWordOrder: false,
-			moreResults: [],
-			moreResultsEntries: [],
+		if (isEmpty(tokens)) {
+			return this.emptySearchResult(originalQuery, restriction, getSearchEndTimestamp(indexTimestamp, restriction))
+		} else {
+			// Create our FTS5 query
+			const normalizedQuery = this.normalizeQuery(tokens)
+
+			const preparedSqlQuery = sql`
+                SELECT list_entities.listId,
+                       list_entities.elementId
+                FROM contact_index
+                         INNER JOIN list_entities ON
+                    contact_index.rowid = list_entities.rowid
+                WHERE contact_index = ${normalizedQuery}
+                ORDER BY contact_index.firstName, contact_index.lastName`
+			const resultRows = await this.sqlCipherFacade.all(preparedSqlQuery.query, preparedSqlQuery.params)
+			const resultIds = resultRows.map(({ listId, elementId }) => {
+				return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
+			})
+
+			return {
+				query: originalQuery,
+				tokens,
+				restriction,
+				results: resultIds,
+				currentIndexTimestamp: getSearchEndTimestamp(indexTimestamp, restriction),
+				lastReadSearchIndexRow: [],
+				matchWordOrder: false,
+				moreResults: [],
+				moreResultsEntries: [],
+			}
 		}
 	}
 
