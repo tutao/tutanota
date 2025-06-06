@@ -15,13 +15,14 @@ await program
 	.option("-s, --serve", "Start a local server to serve the website")
 	.option("--ignore-migrations", "Dont check offline database migrations.")
 	.option("--network-debugging", "activate network debugging, sending attributeNames and attributeIds in the json request/response payloads", false)
+	.option("-D, --dev-tools", "Start the desktop client with DevTools open")
 	.action(async (stage, host, options) => {
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
 			program.outputHelp()
 			process.exit(1)
 		}
 
-		const { clean, watch, serve, startDesktop, desktopBuildOnly, ignoreMigrations, app, networkDebugging } = options
+		const { clean, watch, serve, startDesktop, desktopBuildOnly, ignoreMigrations, app, networkDebugging, devTools } = options
 
 		if (serve) {
 			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
@@ -42,7 +43,7 @@ await program
 
 			if (startDesktop) {
 				const buildDir = app === "calendar" ? "build-calendar-app" : "build"
-				const env = Object.assign({}, process.env, { ELECTRON_ENABLE_SECURITY_WARNINGS: "TRUE" })
+				const env = Object.assign({}, process.env, { ELECTRON_ENABLE_SECURITY_WARNINGS: "TRUE", ELECTRON_START_WITH_DEV_TOOLS: devTools })
 				// we don't want to quit here because we want to keep piping output to our stdout.
 				spawn("npx", [`electron --inspect=5858 ./${buildDir}/`], {
 					shell: true,
