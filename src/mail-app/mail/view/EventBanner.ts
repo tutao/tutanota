@@ -1,11 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { CalendarAttendeeStatus, CalendarMethod } from "../../../common/api/common/TutanotaConstants"
+import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import type { CalendarEvent, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { base64ToBase64Url, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, getHourOfDay, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
@@ -14,7 +14,7 @@ import stream from "mithril/stream"
 import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
-import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExportUtils"
+import { isSameExternalEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { styles } from "../../../common/gui/styles.js"
 import { formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { Icons, IconsSvg } from "../../../common/gui/base/icons/Icons.js"
@@ -40,7 +40,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	 * they can't import each other and only have gui-base as a
 	 * common ancestor, where these don't belong. */
 	private readonly ReplyButtons = new LazyLoaded(async () => (await import("../../../calendar-app/calendar/gui/eventpopup/EventPreviewView.js")).ReplyButtons)
-	private agenda: WeakMap<CalendarEvent, InviteAgenda> = new WeakMap()
+	private agenda: Map<string, InviteAgenda> = new Map()
 	private hasFinishedLoadingEvents = false
 
 	oncreate({ attrs }: Vnode<EventBannerAttrs>) {
@@ -62,12 +62,12 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				{
 					style: styles.isSingleColumnLayout()
 						? {
-								"grid-template-columns": "min-content 1fr",
-								"grid-template-rows": "1fr 1fr",
-						  }
+							"grid-template-columns": "min-content 1fr",
+							"grid-template-rows": "1fr 1fr",
+						}
 						: {
-								"grid-template-columns": "min-content 1fr 1fr",
-						  },
+							"grid-template-columns": "min-content 1fr 1fr",
+						},
 				},
 				[
 					m(
@@ -159,14 +159,14 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		}
 
 		const messages = contents.events
-			.map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
-				const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
-				return message == null ? null : { event, message }
-			})
+								 .map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
+									 const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
+									 return message == null ? null : { event, message }
+								 })
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
 			// banner for events that do not mention us.
-			.filter(isNotNull)
+								 .filter(isNotNull)
 
 		return [
 			m(
@@ -184,33 +184,25 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					])
 				}),
 			),
-			messages.map(({ event, message }) =>
-				this.buildEventBanner(
-					event,
-					this.agenda.get(event) ?? {
-						before: null,
-						after: null,
-						current: null,
-						conflictCount: 0,
-					},
-					message,
-				),
-			),
+			messages.map(({ event, message }) => {
+				console.log(event, message)
+				return this.buildEventBanner(event, this.agenda.get(event.uid ?? "") ?? null, message)
+			}),
 		]
 	}
 
-	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda, message: Children) {
-		const hasConflict = agenda.before?.conflict || agenda.after?.conflict
-
+	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, message: Children) {
+		const hasConflict = agenda && (agenda.before?.conflict || agenda.after?.conflict)
+		console.log(this.agenda)
 		return m(
 			".border-radius-m.border-nota.border-sm.grid",
 			{
 				class: styles.isSingleColumnLayout() ? "" : "fit-content",
 				style: styles.isSingleColumnLayout()
 					? {
-							"grid-template-columns": "min-content 1fr",
-							"grid-template-rows": "1fr 1fr",
-					  }
+						"grid-template-columns": "min-content 1fr",
+						"grid-template-rows": "1fr 1fr",
+					}
 					: { "grid-template-columns": "min-content 1fr 1fr" },
 			},
 			[
@@ -238,9 +230,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					]),
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-s", [
-								m("span.b", "When:"), // FIXME Add translation
-								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
-						  ])
+							m("span.b", "When:"), // FIXME Add translation
+							m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+						])
 						: null,
 					message,
 				]),
@@ -273,7 +265,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 								m("span.small.text-fade", hasConflict ? `${agenda.conflictCount} simultaneous events` : "No simultaneous events"), //FIXME Translations
 							]),
 						]),
-						m(TimeView, { agenda, event }),
+						agenda ? m(TimeView, { agenda, event }) : null,
 					],
 				),
 			],
@@ -281,7 +273,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	private getMessage(event: CalendarEvent, mail: Mail, recipient: string, method: CalendarMethod): Children {
-		const shallowEvent = this.agenda.get(event)?.current
+		const shallowEvent = this.agenda.get(event.uid ?? "")?.current.event
 		const ownAttendee = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
 
 		const children: Children = []
@@ -324,7 +316,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	private handleViewOnCalendarAction(event: CalendarEvent) {
-		const currentEvent = this.agenda.get(event)?.current
+		const currentEvent = this.agenda.get(event.uid ?? "")?.current.event
 		if (!currentEvent) {
 			throw new ProgrammingError("Missing corresponding event in calendar")
 		}
@@ -333,7 +325,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		m.route.set(`/calendar/agenda/${eventDate}/${eventId}`)
 	}
 
-	private async getEvents(attrs: EventBannerAttrs): Promise<WeakMap<CalendarEvent, InviteAgenda>> {
+	private async getEvents(attrs: EventBannerAttrs): Promise<Map<string, InviteAgenda>> {
 		if (!attrs.contents) {
 			return new Map()
 		}
@@ -352,11 +344,11 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		 * - If there's no conflicting after event, get one from event list that starts and ends after the invitation
 		 * - Build an object that should contain the event before and after, these can be null, meaning that there's no event at the time
 		 */
-		const eventToAgenda: WeakMap<CalendarEvent, InviteAgenda> = new WeakMap()
+		const eventToAgenda: Map<string, InviteAgenda> = new Map()
 		const datesToLoad = new Set(attrs.contents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat())
 		await attrs.eventsRepository.loadMonthsIfNeeded(Array.from(datesToLoad), stream(false), null)
 		const events = attrs.eventsRepository.getEventsForMonths()() // Short and long events
-
+		console.log(attrs.contents.events)
 		for (const event of attrs.contents.events) {
 			const startOfDay = getStartOfDay(event.startTime)
 			const endOfDay = getStartOfDay(event.endTime)
@@ -366,7 +358,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 
 			const conflictingEvents = allEvents.filter(
 				(ev) =>
-					!shallowIsSameEvent(ev, event) &&
+					!isSameExternalEvent(ev, event) &&
 					((ev.endTime > event.startTime && ev.endTime <= event.endTime) || // Ends during event
 						(ev.startTime >= event.startTime && ev.startTime < event.endTime) || // Starts during event
 						(ev.startTime <= event.startTime && ev.endTime >= event.endTime)), // Fully overlaps event
@@ -377,7 +369,10 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				.filter((ev) => ev.startTime <= event.startTime)
 				.reduce((closest: CalendarEvent | null, ev, index) => {
 					if (!closest) return ev
-					if (event.startTime.getTime() - ev.startTime.getTime() < event.startTime.getTime() - closest.startTime.getTime()) return ev
+					if (
+						event.startTime.getTime() - ev.startTime.getTime() < event.startTime.getTime() - closest.startTime.getTime()
+					)
+						return ev
 					return closest
 				}, null)
 
@@ -386,43 +381,59 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				.filter((ev) => ev.startTime > event.startTime)
 				.reduce((closest: CalendarEvent | null, ev, index) => {
 					if (!closest) return ev
-					if (Math.abs(event.startTime.getTime() - ev.startTime.getTime()) < Math.abs(event.startTime.getTime() - closest.startTime.getTime()))
+					if (
+						Math.abs(event.startTime.getTime() - ev.startTime.getTime()) < Math.abs(event.startTime.getTime() - closest.startTime.getTime())
+					)
 						return ev
 					return closest
 				}, null)
 
+			const oneHour = SECOND_MS * 3600
+			const eventStartTime = getHourOfDay(event?.startTime ?? new Date(), event?.startTime.getHours() ?? 0).getTime()
+			const beforeStartTime = eventStartTime - oneHour
+			const afterStartTime = eventStartTime + oneHour
+
 			let eventList: InviteAgenda = {
-				before: null,
-				after: null,
-				current: [...eventsForStartDay, ...eventsForEndDay].find((ev) => shallowIsSameEvent(ev, event)) ?? null,
+				before: { time: beforeStartTime, event: null, conflict: false },
+				after: { time: afterStartTime, event: null, conflict: false },
+				current: { time: eventStartTime, event: event, conflict: false },
 				conflictCount: conflictingEvents.length,
 			}
 
 			if (!closestConflictingEventBeforeStartTime) {
 				const eventBefore = [...eventsForStartDay, ...eventsForEndDay]
 					.sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
-					.find((ev) => !shallowIsSameEvent(ev, event) && ev.startTime <= event.startTime)
+					.find(
+						(ev) =>
+							!isSameExternalEvent(ev, event) && ev.startTime <= event.startTime && (event.startTime.getTime() - ev.endTime.getTime()) <= oneHour,
+					)
 
 				if (eventBefore) {
-					eventList.before = { event: eventBefore, conflict: false }
+					eventList.before = { time: beforeStartTime, event: eventBefore, conflict: false }
 				}
 			} else {
-				eventList.before = { event: closestConflictingEventBeforeStartTime, conflict: true }
+				eventList.before = { time: beforeStartTime, event: closestConflictingEventBeforeStartTime, conflict: true }
 			}
 
 			if (!closestConflictingEventAfterStartTime) {
 				const eventAfter = [...eventsForStartDay, ...eventsForEndDay]
 					.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-					.find((ev) => ev.startTime > event.startTime)
+					.find(
+						(ev) => !isSameExternalEvent(ev, event) && ev.startTime > event.startTime && (ev.startTime.getTime() - event.endTime.getTime()) <= oneHour
+					)
 
 				if (eventAfter) {
-					eventList.after = { event: eventAfter, conflict: false }
+					eventList.after = { time: afterStartTime, event: eventAfter, conflict: false }
 				}
 			} else {
-				eventList.after = { event: closestConflictingEventAfterStartTime, conflict: true }
+				const time = getHourOfDay(
+					closestConflictingEventAfterStartTime.startTime ?? new Date(),
+					closestConflictingEventAfterStartTime.startTime.getHours() ?? 0,
+				).getTime()
+				eventList.after = { time: afterStartTime, event: closestConflictingEventAfterStartTime, conflict: true }
 			}
 
-			eventToAgenda.set(event, eventList)
+			eventToAgenda.set(event.uid ?? "", eventList)
 		}
 
 		return eventToAgenda

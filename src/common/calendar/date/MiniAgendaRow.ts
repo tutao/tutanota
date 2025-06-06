@@ -2,15 +2,17 @@ import m, { Component, Vnode } from "mithril"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
 import { DateTime } from "luxon"
 import { px } from "../../gui/size"
+import { formatShortTime, formatTime } from "../../misc/Formatter.js"
+import { styles } from "../../gui/styles.js"
 
-interface MiniAgendaRowAttributes {
+export interface MiniAgendaRowAttributes {
 	time: number
 	events: Array<CalendarEvent>
 }
 
 export class MiniAgendaRow implements Component<MiniAgendaRowAttributes> {
 	view({ attrs }: Vnode<MiniAgendaRowAttributes>) {
-		m(
+		return m(
 			"", // mini-agenda-row
 			{
 				style: {
@@ -20,7 +22,7 @@ export class MiniAgendaRow implements Component<MiniAgendaRowAttributes> {
 				},
 			},
 			[
-				m("span", "09:00 P.M"),
+				m("span", styles.isDesktopLayout() ? formatTime(new Date(attrs.time)) : formatShortTime(new Date(attrs.time))),
 				m(
 					"",
 					{
@@ -34,51 +36,40 @@ export class MiniAgendaRow implements Component<MiniAgendaRowAttributes> {
 						},
 					},
 					[
-						m(
-							"",
-							{
-								style: {
-									background: "red",
-								},
-								oncreate: (node) => {
-									const height = node.dom.parentElement?.parentElement?.clientHeight ?? 0
-									const ev = attrs.events[0]
+						attrs.events.map((ev) => {
+							return m(
+								"",
+								{
+									style: {
+										background: this.getRandomColor(),
+									},
+									oncreate: (node) => {
+										const height = node.dom.parentElement?.parentElement?.clientHeight ?? 0
 
-									const element = node.dom as HTMLElement
-									const timeDiff = Math.abs(DateTime.fromJSDate(ev.startTime).diff(DateTime.fromJSDate(ev.endTime), "hours").hours)
+										const element = node.dom as HTMLElement
+										const timeDiff = Math.abs(DateTime.fromJSDate(ev.startTime).diff(DateTime.fromJSDate(ev.endTime), "hours").hours)
 
-									element.style.height = px(height * timeDiff)
-									element.style.maxHeight = px(height * 3)
-									console.log(Math.floor(ev.startTime.getMinutes() / height / 12))
-									element.style.gridRow = `${Math.floor(ev.startTime.getMinutes() / (height / 12))}`
-								},
-							},
-							"My event",
-						),
-						m(
-							"",
-							{
-								style: {
-									background: "blue",
-								},
-								oncreate: (node) => {
-									const height = node.dom.parentElement?.parentElement?.clientHeight ?? 0
-									const ev = attrs.event
+										element.style.height = px(height * timeDiff)
+										element.style.maxHeight = px(height * 3)
 
-									const element = node.dom as HTMLElement
-									const timeDiff = Math.abs(DateTime.fromJSDate(ev.startTime).diff(DateTime.fromJSDate(ev.endTime), "hours").hours)
-
-									element.style.height = px(height * timeDiff)
-									element.style.maxHeight = px(height * 3)
-									console.log(Math.floor(ev.startTime.getMinutes() / height / 12))
-									element.style.gridRow = `${Math.floor(ev.startTime.getMinutes() / (height / 12))}`
+										element.style.gridRow = `${Math.floor(ev.startTime.getMinutes() / (height / 12))}`
+									},
 								},
-							},
-							"My event2",
-						),
+								ev.summary,
+							)
+						}),
 					],
 				),
 			],
 		)
+	}
+
+	getRandomColor() {
+		var letters = "0123456789ABCDEF"
+		var color = "#"
+		for (var i = 0; i < 6; i++) {
+			color += letters[Math.floor(Math.random() * 16)]
+		}
+		return color
 	}
 }

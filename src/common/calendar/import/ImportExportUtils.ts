@@ -193,6 +193,13 @@ export function hasValidProtocol(url: URL, validProtocols: string[]) {
 	return validProtocols.includes(url.protocol)
 }
 
+export function isSameExternalEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
+	const sameUid = eventA.uid === eventB.uid
+	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
+
+	return sameUid && sameRecurrenceId
+}
+
 export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
 	const sameUid = eventA.uid === eventB.uid
 	const sameSequence = eventA.sequence == eventB.sequence
@@ -221,9 +228,9 @@ export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
 
 export type StrippedRepeatRule = Stripped<
 	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
-		excludedDates: Stripped<DateWrapper>[]
-		advancedRules: Stripped<AdvancedRepeatRule>[]
-	}
+	excludedDates: Stripped<DateWrapper>[]
+	advancedRules: Stripped<AdvancedRepeatRule>[]
+}
 >
 
 export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
@@ -238,14 +245,14 @@ export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null):
 		timeZone: repeatRule.timeZone ?? "",
 		excludedDates: repeatRule.excludedDates
 			? repeatRule.excludedDates.map((ex) => ({
-					date: ex.date,
-			  }))
+				date: ex.date,
+			}))
 			: [],
 		advancedRules: repeatRule.advancedRules
 			? repeatRule.advancedRules.map((rule) => ({
-					ruleType: rule.ruleType,
-					interval: rule.interval,
-			  }))
+				ruleType: rule.ruleType,
+				interval: rule.interval,
+			}))
 			: [],
 	}
 }
