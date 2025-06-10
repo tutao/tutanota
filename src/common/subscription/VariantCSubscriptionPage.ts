@@ -43,8 +43,8 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
 	private upgradeType: UpgradeType | undefined = undefined
-	private firstYearDiscount: number = 0
-	private bonusMonth: number = 0
+	private hasGlobalFirstYearDiscount: boolean = false
+	private bonusMonthsForYearlyPlan: number = 0
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
 		const data = vnode.attrs.data
@@ -74,8 +74,8 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		void test.forceRestart()
 
 		const pricingData = data.planPrices.getRawPricingData()
-		this.firstYearDiscount = Number(pricingData.legendaryPrices.firstYearDiscount)
-		this.bonusMonth = Number(pricingData.bonusMonthsForYearlyPlan)
+		this.hasGlobalFirstYearDiscount = pricingData.hasGlobalFirstYearDiscount
+		this.bonusMonthsForYearlyPlan = parseInt(pricingData.bonusMonthsForYearlyPlan)
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -135,17 +135,25 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	}
 
 	private renderHeadline() {
-		return m(
-			".",
-			m(Icon, {
-				icon: BootIcons.Heart,
-				size: IconSize.XL,
-				class: "center-h",
-				container: "div",
-				style: { fill: theme.experimental_tertiary, "margin-top": px(size.vpad), "margin-bottom": px(size.vpad_xsm) },
-			}),
-			m(".b.center.mb-l", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
-		)
+		if (this.hasGlobalFirstYearDiscount) {
+			return m(
+				".",
+				m(Icon, {
+					icon: BootIcons.Heart,
+					size: IconSize.XL,
+					class: "center-h",
+					container: "div",
+					style: { fill: theme.experimental_tertiary, "margin-top": px(size.vpad), "margin-bottom": px(size.vpad_xsm) },
+				}),
+				m(".b.center.mb-l", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
+			)
+		} else if (this.bonusMonthsForYearlyPlan > 0) {
+			return m(
+				".",
+				// TODO: Add handling for bonus months
+				m(".b.center.mb-l", ""),
+			)
+		}
 	}
 
 	selectFree(data: UpgradeSubscriptionData) {

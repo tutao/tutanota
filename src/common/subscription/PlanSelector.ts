@@ -197,10 +197,27 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									"margin-inline": "auto",
 								},
 							},
+							// FIXME: Add campaign button
 							m(LoginButton, {
 								label: "continue_action",
 								type: LoginButtonType.FullWidth,
 								onclick: (event, dom) => actionButtons[this.currentPlan() as AvailablePlans]().onclick(event, dom),
+							}),
+							m(LoginButton, {
+								label: lang.makeTranslation("", "Go European"), // This text shall not be translated.
+								class: "go-european-button",
+								icon: m("img.block", {
+									src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
+									alt: "",
+									rel: "noreferrer",
+									loading: "lazy",
+									decoding: "async",
+									style: {
+										height: px(30),
+										width: px(30),
+									},
+								}),
+								onclick: () => console.log("hoge"),
 							}),
 						),
 					),
