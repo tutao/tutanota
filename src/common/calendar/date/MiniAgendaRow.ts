@@ -4,6 +4,7 @@ import { DateTime } from "luxon"
 import { px } from "../../gui/size"
 import { formatShortTime, formatTime } from "../../misc/Formatter.js"
 import { styles } from "../../gui/styles.js"
+import { generateRandomColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 
 export interface MiniAgendaRowAttributes {
 	time: number
@@ -41,7 +42,7 @@ export class MiniAgendaRow implements Component<MiniAgendaRowAttributes> {
 								"",
 								{
 									style: {
-										background: this.getRandomColor(),
+										background: generateRandomColor(),
 									},
 									oncreate: (node) => {
 										const height = node.dom.parentElement?.parentElement?.clientHeight ?? 0
@@ -62,14 +63,5 @@ export class MiniAgendaRow implements Component<MiniAgendaRowAttributes> {
 				),
 			],
 		)
-	}
-
-	getRandomColor() {
-		var letters = "0123456789ABCDEF"
-		var color = "#"
-		for (var i = 0; i < 6; i++) {
-			color += letters[Math.floor(Math.random() * 16)]
-		}
-		return color
 	}
 }

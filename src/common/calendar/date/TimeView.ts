@@ -2,6 +2,8 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "./Time"
 import { clone } from "@tutao/tutanota-utils"
+import { generateRandomColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { deepMemoized } from "@tutao/tutanota-utils/dist/memoized"
 
 interface AgendaEventWrapper {
 	event: CalendarEvent
@@ -15,7 +17,7 @@ export interface InviteAgenda {
 	conflictCount: number
 }
 
-const TIME_SCALE_BASE_VALUE = 60
+const TIME_SCALE_BASE_VALUE = 60 // 60 minutes
 /**
  * {@link TIME_SCALE_BASE_VALUE} / {@link TimeScale} = Time interval applied to the agenda time column
  * @example
@@ -25,33 +27,46 @@ const TIME_SCALE_BASE_VALUE = 60
  * const scale2: TimeScale = 2
  * const intervalOf30Minutes = TIME_SCALE_BASE_VALUE / timeScale2
  *
- * const scale3: TimeScale = 3
+ * const scale3: TimeScale = 4
  * const intervalOf15Minutes = TIME_SCALE_BASE_VALUE / timeScale3
  * */
-type TimeScale = 1 | 2 | 4
-type TimeRange = {
+export type TimeScale = 1 | 2 | 4
+export type TimeRange = {
 	start: Time
 	end: Time
 }
 
+export enum EventConflictRenderPolicy {
+	OVERLAP,
+	PARALLEL,
+}
+
 export interface TimeViewAttributes {
 	events: Array<AgendaEventWrapper>
+	/**
+	 * {@link TimeScale} applied to this TimeView
+	 */
 	timeScale: TimeScale
 	/**
-	 * Range used to generate the Time column and the number of time intervals/slots to position the events
+	 * {@link TimeRange} used to generate the Time column and the number of time intervals/slots to position the events
 	 * 0 <= start < end < 24:00
 	 */
 	timeRange: TimeRange
-	// FIXME define conflict rendering policy (e.g overlap or parallel)
+	conflictRenderPolicy: EventConflictRenderPolicy
 }
 
 type AgendaData = Map<string, Array<AgendaEventWrapper>>
 
 export class TimeView implements Component<TimeViewAttributes> {
 	view({ attrs }: Vnode<TimeViewAttributes>) {
-		const { timeScale, timeRange, events } = attrs
-		const rowHeight = 46
+		const { timeScale, timeRange, events, conflictRenderPolicy } = attrs
 		const miniAgendaData: AgendaData = this.organizeAgenda(timeScale, timeRange, events)
+
+		const rowHeight = 46
+		const subRowCount = 12 * miniAgendaData.size
+		const subRowHeight = rowHeight / 12
+
+		const subRowAsMinutes = 60 / timeScale / 12
 
 		console.log({ attrs, miniAgendaData })
 
@@ -68,12 +83,10 @@ export class TimeView implements Component<TimeViewAttributes> {
 					".grid",
 					{
 						oncreate(vnode): any {
-							const subRowCount = 12 * miniAgendaData.size
-							const subRowHeight = rowHeight / 12
 							;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, ${subRowHeight}px)`
 						},
 					},
-					this.buildColumns(Array.from(miniAgendaData.values()).flat()),
+					this.buildEventsColumns(miniAgendaData, timeRange, subRowAsMinutes, conflictRenderPolicy),
 				), // Events
 				// m(MiniAgendaRow, {
 				// 	time: beforeTime,
@@ -160,7 +173,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 	private organizeAgenda(timeScale: TimeScale, timeRange: TimeRange, events: Array<AgendaEventWrapper>): AgendaData {
 		let timeInterval = TIME_SCALE_BASE_VALUE / timeScale
-		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + 60) / timeInterval
+		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeInterval) / timeInterval
 		const agendaData: AgendaData = new Map()
 
 		console.log(timeRange, numberOfIntervals)
@@ -184,7 +197,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return agendaData
 	}
 
-	private buildTimeColumn(times: Array<string>, rowHeight: number, numberOfIntervals: number): Child {
+	private buildTimeColumn = deepMemoized((times: Array<string>, rowHeight: number, numberOfIntervals: number): Child => {
 		return m(
 			".grid",
 			{
@@ -194,11 +207,37 @@ export class TimeView implements Component<TimeViewAttributes> {
 			},
 			times.map((time) => m(".flex.items-center", time)),
 		)
-	}
+	})
 
-	private buildColumns(agendaEntries: Array<AgendaEventWrapper>): Children {
-		let columns: Children = null
+	private buildEventsColumns = deepMemoized(
+		(agendaEntries: AgendaData, timeRange: TimeRange, subRowAsMinutes: number, conflictRenderPolicy: EventConflictRenderPolicy): Children => {
+			return Array.from(agendaEntries.values())
+				.flat()
+				.map((event) => {
+					const { start, end } = this.getRowPosition(event, timeRange, subRowAsMinutes)
+					return m(
+						// EventBubble
+						"",
+						{
+							style: {
+								"grid-column": conflictRenderPolicy === EventConflictRenderPolicy.OVERLAP ? 1 : "initial",
+								background: generateRandomColor(),
+								"grid-row": `${start} / ${end}`,
+							},
+						},
+						event.event.summary,
+					)
+				})
+		},
+	)
 
-		return columns
+	private getRowPosition(event: AgendaEventWrapper, timeRange: TimeRange, subRowAsMinutes: number) {
+		const startTimeSpan = timeRange.start.diff(new Time(event.event.startTime.getHours(), event.event.startTime.getMinutes()))
+		const start = Math.floor(startTimeSpan / subRowAsMinutes) + 1
+
+		const endTimeSpan = timeRange.start.diff(new Time(event.event.endTime.getHours(), event.event.endTime.getMinutes()))
+		const end = Math.floor(endTimeSpan / subRowAsMinutes) + 1
+
+		return { start, end }
 	}
 }

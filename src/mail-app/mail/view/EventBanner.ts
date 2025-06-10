@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import type { CalendarEvent, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventAttendee, Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -11,17 +11,17 @@ import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import stream from "mithril/stream"
-import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
+import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { isSameExternalEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { styles } from "../../../common/gui/styles.js"
 import { formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
-import { Icons, IconsSvg } from "../../../common/gui/base/icons/Icons.js"
+import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { BannerButton } from "../../../common/gui/base/buttons/BannerButton.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { DateTime } from "../../../../libs/luxon.js"
-import { InviteAgenda, TimeView, TimeViewAttributes } from "../../../common/calendar/date/TimeView.js"
+import { EventConflictRenderPolicy, InviteAgenda, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../common/calendar/date/TimeView.js"
 import { Time } from "../../../common/calendar/date/Time"
 
 export type EventBannerAttrs = {
@@ -53,6 +53,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	buildSkeleton() {
+		// FIXME Improve skeleton
 		return m(
 			".skeleton.rel",
 			{
@@ -170,23 +171,22 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			.filter(isNotNull)
 
 		return [
-			m(
-				".flex.flex-wrap",
-				Object.entries(IconsSvg).map(([name, svg]) => {
-					return m(".flex.flex-column.plr", [
-						m(Icon, {
-							icon: name as AllIcons,
-							container: "div",
-							class: "mr-xsm mt-xxs",
-							style: { fill: theme.content_button },
-							size: IconSize.Medium,
-						}),
-						m("span.small", name),
-					])
-				}),
-			),
+			// m( // FIXME Remove icons debug
+			// 	".flex.flex-wrap",
+			// 	Object.entries(IconsSvg).map(([name, svg]) => {
+			// 		return m(".flex.flex-column.plr", [
+			// 			m(Icon, {
+			// 				icon: name as AllIcons,
+			// 				container: "div",
+			// 				class: "mr-xsm mt-xxs",
+			// 				style: { fill: theme.content_button },
+			// 				size: IconSize.Medium,
+			// 			}),
+			// 			m("span.small", name),
+			// 		])
+			// 	}),
+			// ),
 			messages.map(({ event, message }) => {
-				console.log(event, message)
 				return this.buildEventBanner(event, this.agenda.get(event.uid ?? "") ?? null, message)
 			}),
 		]
@@ -198,18 +198,18 @@ export class EventBanner implements Component<EventBannerAttrs> {
 
 		// const shortestEventDuration = events.reduce() // FIXME calculate shortest event duration
 		// const timeScale = getTimeScaleAccordingToEventDuration(shortestEventDuration) // FIXME implement
-		const timeScale = 1 // FIXME implement
+		const timeScale: TimeScale = 2 // FIXME Remove, using for development
 
 		const currentEventStartTime = agenda?.current.event?.startTime.getHours()!
-		const startTime = new Time(currentEventStartTime, 0).sub({ hours: 1 })
-		const endTime = new Time(currentEventStartTime, 0).add({ hours: 1 })
-
-		const timeRange = {
-			start: startTime,
-			end: endTime,
+		const timeRangeStart = new Time(currentEventStartTime, 0).sub({ minutes: 60 / timeScale })
+		const timeRangeStartEnd = new Time(currentEventStartTime, 0).add({ minutes: 60 / timeScale })
+		const timeRange: TimeRange = {
+			start: timeRangeStart,
+			end: timeRangeStartEnd,
 		}
 
-		console.log(this.agenda, { events, timeScale, timeRange })
+		console.log({ agenda: this.agenda, events, timeScale, timeRange })
+		/* Event Banner */
 		return m(
 			".border-radius-m.border-nota.border-sm.grid",
 			{
@@ -222,6 +222,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					: { "grid-template-columns": "min-content 1fr 1fr" },
 			},
 			[
+				/* Date Column */
 				m(
 					".flex.flex-column.nota-bg.center.items-center.pb.pt.justify-center.fill-grid-column",
 					{
@@ -233,6 +234,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { year: "numeric" })),
 					],
 				),
+				/* Invite Column */
 				m(".flex.flex-column.plr-vpad.pb.pt.justify-start", [
 					m(".flex", [
 						m(Icon, {
@@ -252,7 +254,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						: null,
 					message,
 				]),
-
+				/* Time Overview */
 				m(
 					".flex.flex-column.plr-vpad.pb.pt.justify-start.border-nota",
 					{
@@ -286,8 +288,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 									events,
 									timeScale,
 									timeRange,
+									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
 							  } satisfies TimeViewAttributes)
-							: null,
+							: m("", "ERROR: Could not load the agenda for this day."),
 					],
 				),
 			],
@@ -296,7 +299,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 
 	private getMessage(event: CalendarEvent, mail: Mail, recipient: string, method: CalendarMethod): Children {
 		const shallowEvent = this.agenda.get(event.uid ?? "")?.current.event
-		const ownAttendee = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
+		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
 
 		const children: Children = []
 		const replyButton = m(BannerButton, {

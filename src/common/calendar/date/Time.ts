@@ -206,10 +206,12 @@ export class Time {
 		const totalMinutes = this._minute - (param.minutes ?? 0)
 		this.minute = totalMinutes < 0 ? 60 + (totalMinutes % 60) : totalMinutes
 
+		// We need to borrow one hour so we need to subtract this borrowed hour from the total
+		const minutesCorrectionFactor = totalMinutes % 60 != 0 && totalMinutes < 0 ? 1 : 0
 		const restHoursToSubtract = Math.floor(Math.abs(totalMinutes / 60))
-		let newTime = this._hour - (param.hours ?? 0) - restHoursToSubtract
-		const correctionFactor = this._hour - (param.hours ?? 0) < 0 && totalMinutes < 0 ? 1 : 0
-		this.hour = newTime < 0 ? 24 + ((newTime - correctionFactor) % 24) : newTime
+		const newHour = this._hour - (param.hours ?? 0) - restHoursToSubtract - minutesCorrectionFactor
+
+		this.hour = newHour < 0 ? 24 + (newHour % 24) : newHour
 
 		return this
 	}

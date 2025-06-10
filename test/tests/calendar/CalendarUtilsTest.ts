@@ -481,6 +481,11 @@ o.spec("calendar utils tests", function () {
 			const timeB = new Time(8, 20)
 			o(timeA.sub({ minutes: 15 }).toObject()).deepEquals(timeB.toObject())
 		})
+		o("sub 30 minutes from minute 0", function () {
+			const timeA = new Time(8, 0)
+			const timeB = new Time(7, 30)
+			o(timeA.sub({ minutes: 30 }).toObject()).deepEquals(timeB.toObject())
+		})
 		o("sub 1 hours", function () {
 			const timeA = new Time(8, 35)
 			const timeB = new Time(7, 35)
