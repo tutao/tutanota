@@ -5,7 +5,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
-import { stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
+import { goEuropeanBlue, stateBgActive, stateBgFocus, stateBgHover, stateBgLike } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -765,7 +765,7 @@ styles.registerStyle("main", () => {
 		},
 		".go-european-button": {
 			"background-color": "#FEDC59",
-			color: theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013E85" : "#232323",
+			color: theme.themeId === "light" || theme.themeId === "light_secondary" ? goEuropeanBlue : "#232323",
 			"font-weight": "700",
 			display: "flex",
 			"justify-content": "center",
@@ -2156,7 +2156,7 @@ styles.registerStyle("main", () => {
 			background: theme.tuta_color_nota,
 		},
 		".ribbon-go-european": {
-			background: "#013E85",
+			background: goEuropeanBlue,
 			color: "#ffffff",
 			height: "27px",
 			display: "flex",
@@ -2172,10 +2172,10 @@ styles.registerStyle("main", () => {
 			right: 0,
 		},
 		".ribbon-go-european:after": {
-			"border-left": `6px solid #013E85!important`,
+			"border-left": `6px solid ${goEuropeanBlue} !important`,
 		},
 		".ribbon-go-european:before": {
-			"border-right": `6px solid #013E85!important`,
+			"border-right": `6px solid ${goEuropeanBlue} important`,
 		},
 		".ribbon-horizontal.nota:after": {
 			"border-left": `6px solid ${theme.tuta_color_nota}`,

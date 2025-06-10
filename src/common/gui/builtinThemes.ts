@@ -88,6 +88,7 @@ export const stateBgActive = "rgba(139,139,139,0.38)"
 export const logoDefaultGrey = logo_text_bright_grey
 export const tutaRed = red
 export const tutaDunkel = dunkel
+export const goEuropeanBlue = blue
 
 type Themes = Record<ThemeId, Theme>
 

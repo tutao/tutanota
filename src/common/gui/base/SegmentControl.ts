@@ -1,6 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../size"
 import { theme } from "../theme.js"
+import { goEuropeanBlue } from "../builtinThemes.js"
 
 export type SegmentControlItem<T> = {
 	name: string
@@ -19,7 +20,7 @@ export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 	view(vnode: Vnode<SegmentControlAttrs<T>>): Children {
 		const { shouldApplyCampaignColor, selectedValue, items, itemMaxWidth } = vnode.attrs
 
-		const campaignColor = theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013e85" : "#fff"
+		const campaignColor = theme.themeId === "light" || theme.themeId === "light_secondary" ? goEuropeanBlue : "#fff"
 
 		return [
 			m(

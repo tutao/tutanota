@@ -14,6 +14,7 @@ import { InfoIcon } from "../gui/base/InfoIcon.js"
 import { theme } from "../gui/theme.js"
 import { isColorLight } from "../gui/base/Color.js"
 import { isIOSApp } from "../api/common/Env.js"
+import { goEuropeanBlue } from "../gui/builtinThemes.js"
 
 export type BuyOptionBoxAttr = {
 	heading: string | Children
@@ -188,7 +189,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							height: "100%",
 							...(attrs.highlighted &&
 								attrs.hasFirstYearDiscount && {
-									border: `2px solid ${theme.themeId === "light" || theme.themeId === "light_secondary" ? "#013E85" : "#ffffff"}`,
+									border: `2px solid ${theme.themeId === "light" || theme.themeId === "light_secondary" ? goEuropeanBlue : "#ffffff"}`,
 									padding: px(9),
 								}),
 						},
