@@ -14,6 +14,7 @@ import { TranslationKeyType } from "../misc/TranslationKey.js"
 import { styles } from "../gui/styles.js"
 import { planBoxColors } from "./PlanBoxColors.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { goEuropeanBlue } from "../gui/builtinThemes.js"
 
 type AvailablePlan = PlanType.Revolutionary | PlanType.Legend
 
@@ -50,9 +51,8 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 	view({ attrs: { plan, isSelected, onclick, priceAndConfigProvider, price, referencePrice, selectedPaymentInterval, scale } }: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
-
+		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const strikethroughPrice = isYearly ? referencePrice : undefined
-
 		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected)
 
 		return m(
@@ -66,126 +66,153 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 					"min-height": px(270),
 					"border-style": "solid",
 					"border-color": planBoxColors.getOutlineColor({ isSelected }),
-					"border-width": isLegendPlan ? this.getLegendBorderWidth(isSelected) : this.getRevoBorderWidth(isSelected),
+					"border-width": isLegendPlan
+						? this.getLegendBorderWidth(isSelected, hasGlobalFirstYearDiscount)
+						: this.getRevoBorderWidth(isSelected, hasGlobalFirstYearDiscount),
 					"border-radius": isLegendPlan ? this.getLegendBorderRadius() : this.getRevoBorderRadius(),
 					"transform-origin": isLegendPlan ? "center right" : "center left",
 					...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
-					padding: `24px ${px(styles.isMobileLayout() ? 16 : 20)}`,
+					overflow: "hidden",
 				},
 				onclick: () => onclick?.(plan),
 			},
 			[
-				m(
-					".flex.items-center.pb",
-					{
-						style: {
-							gap: "8px",
-							"border-bottom": `1px solid ${this.getIconColor({ isSelected })}`,
-							...(styles.isMobileLayout()
-								? {
-										"align-items": plan === PlanType.Revolutionary ? "flex-end" : "flex-start",
-										"flex-direction": "column",
-								  }
-								: {
-										...(plan === PlanType.Revolutionary && { "flex-direction": "row-reverse" }),
-								  }),
-						},
-					},
-					m("input[type=radio].m-0.big-radio", {
-						name: "BuyOptionBox",
-						checked: isSelected,
-						style: {
-							"accent-color": theme.experimental_on_primary_container,
-						},
-					}),
+				hasGlobalFirstYearDiscount &&
 					m(
-						// we need some margin for the discount banner for longer translations shown on the website
-						".text-center.flex.col.center-horizontally.m-0.font-mdio",
+						".full-width.pt-xs.pb-xs.text-center.b.smaller",
 						{
 							style: {
-								"font-size": px(styles.isMobileLayout() ? 18 : 20),
+								"background-color": goEuropeanBlue,
+								color: "#fff",
 							},
 						},
-						PlanTypeToName[plan],
+						lang.get("pricing.saveAmount_label", { "{amount}": "50%" }),
 					),
-				),
 				m(
-					".flex",
+					"",
 					{
 						style: {
-							"align-self": isLegendPlan ? "start" : "end",
+							padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
 						},
-					},
-					m(".smaller.mt-s", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
-				),
-				m(
-					".flex-space-between.gap-hpad.mt.mb",
-					{
-						style: { "flex-direction": isLegendPlan ? "row-reverse" : "row" },
 					},
 					[
 						m(
-							"",
+							".flex.items-center.pb",
 							{
 								style: {
-									height: px(35),
-									fill: this.getIconColor({ isSelected }),
+									gap: "8px",
+									"border-bottom": `1px solid ${this.getIconColor({ isSelected })}`,
+									...(styles.isMobileLayout()
+										? {
+												"align-items": plan === PlanType.Revolutionary ? "flex-end" : "flex-start",
+												"flex-direction": "column",
+										  }
+										: {
+												...(plan === PlanType.Revolutionary && { "flex-direction": "row-reverse" }),
+										  }),
 								},
 							},
-							!this.revoIconSvg || !this.legendIconSvg || styles.bodyWidth <= 420
-								? null
-								: m.trust(isLegendPlan ? this.legendIconSvg : this.revoIconSvg),
-						),
-						m(
-							".flex.flex-column",
-							{
+							m("input[type=radio].m-0.big-radio", {
+								name: "BuyOptionBox",
+								checked: isSelected,
 								style: {
-									"align-items": isLegendPlan ? "start" : "end",
+									"accent-color": theme.experimental_on_primary_container,
 								},
-							},
+							}),
 							m(
-								".flex",
+								// we need some margin for the discount banner for longer translations shown on the website
+								".text-center.flex.col.center-horizontally.m-0.font-mdio",
 								{
 									style: {
-										gap: px(3),
-										"align-items": "end",
-										"flex-direction": isLegendPlan ? "row-reverse" : "row",
+										"font-size": px(styles.isMobileLayout() ? 18 : 20),
 									},
 								},
-								strikethroughPrice?.trim() !== ""
-									? m(
-											".strike",
-											{
-												style: {
-													fontSize: px(size.font_size_smaller),
-													justifySelf: "end",
-												},
-											},
-											strikethroughPrice,
-									  )
-									: m(""),
+								PlanTypeToName[plan],
+							),
+						),
+						m(
+							".flex",
+							{
+								style: {
+									"align-self": isLegendPlan ? "start" : "end",
+								},
+							},
+							m(".smaller.mt-s", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
+						),
+						m(
+							".flex-space-between.gap-hpad.mt.mb",
+							{
+								style: { "flex-direction": isLegendPlan ? "row-reverse" : "row" },
+							},
+							[
 								m(
-									".h1",
+									"",
 									{
 										style: {
-											"line-height": "100%",
+											height: px(35),
+											fill: this.getIconColor({ isSelected }),
 										},
 									},
-									price,
+									!this.revoIconSvg || !this.legendIconSvg || styles.bodyWidth <= 420
+										? null
+										: m.trust(isLegendPlan ? this.legendIconSvg : this.revoIconSvg),
 								),
-							),
-							m(".small.flex", { style: { "justify-content": "center", "column-gap": px(1) } }, m("span", lang.get("pricing.perMonth_label"))),
+								m(
+									".flex.flex-column",
+									{
+										style: {
+											"align-items": isLegendPlan ? "start" : "end",
+										},
+									},
+									m(
+										".flex",
+										{
+											style: {
+												gap: px(3),
+												"align-items": "end",
+												"flex-direction": isLegendPlan ? "row-reverse" : "row",
+											},
+										},
+										strikethroughPrice?.trim() !== ""
+											? m(
+													".strike",
+													{
+														style: {
+															fontSize: px(size.font_size_smaller),
+															justifySelf: "end",
+														},
+													},
+													strikethroughPrice,
+											  )
+											: m(""),
+										m(
+											".h1",
+											{
+												style: {
+													"line-height": "100%",
+												},
+											},
+											price,
+										),
+									),
+									m(
+										".small.flex",
+										{ style: { "justify-content": "center", "column-gap": px(1) } },
+										m("span", lang.get("pricing.perMonth_label")),
+									),
+								),
+							],
+						),
+
+						m(
+							".flex.flex-column.gap-vpad-s",
+							renderFeature("pricing.comparisonStorage_msg", Icons.PricingStorage, "storage"),
+							renderFeature("pricing.calendarsPremium_label", Icons.PricingCalendar),
+							renderFeature("pricing.mailAddressAliasesShort_label", Icons.PricingMail, "mailAddressAliases"),
+							renderFeature("pricing.comparisonCustomDomains_msg", Icons.PricingCustomDomain, "customDomains"),
+							renderFeature(isLegendPlan ? "pricing.comparisonSupportPro_msg" : "pricing.comparisonSupportPremium_msg", Icons.PricingSupport),
 						),
 					],
-				),
-
-				m(
-					".flex.flex-column.gap-vpad-s",
-					renderFeature("pricing.comparisonStorage_msg", Icons.PricingStorage, "storage"),
-					renderFeature("pricing.calendarsPremium_label", Icons.PricingCalendar),
-					renderFeature("pricing.mailAddressAliasesShort_label", Icons.PricingMail, "mailAddressAliases"),
-					renderFeature("pricing.comparisonCustomDomains_msg", Icons.PricingCustomDomain, "customDomains"),
-					renderFeature(isLegendPlan ? "pricing.comparisonSupportPro_msg" : "pricing.comparisonSupportPremium_msg", Icons.PricingSupport),
 				),
 			],
 		)
@@ -214,13 +241,13 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 		}
 	}
 
-	private getLegendBorderWidth(isSelected: boolean) {
+	private getLegendBorderWidth(isSelected: boolean, hasGlobalFirstYearDiscount: boolean) {
 		if (isSelected) {
 			return "0"
 		}
 
 		if (styles.isMobileLayout()) {
-			return "2px 0 1px 1px"
+			return `${hasGlobalFirstYearDiscount ? "0" : "2px"} 0 1px 1px`
 		} else {
 			return "2px 2px 1px 1px"
 		}
@@ -234,13 +261,13 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 		}
 	}
 
-	private getRevoBorderWidth(isSelected: boolean) {
+	private getRevoBorderWidth(isSelected: boolean, hasGlobalFirstYearDiscount: boolean) {
 		if (isSelected) {
 			return "0"
 		}
 
 		if (styles.isMobileLayout()) {
-			return "2px 1px 1px 0"
+			return `${hasGlobalFirstYearDiscount ? "0" : "2px"} 1px 1px 0`
 		} else {
 			return "2px 1px 1px 2px"
 		}
