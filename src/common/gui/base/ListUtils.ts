@@ -1,11 +1,12 @@
 import { ListElement } from "../../api/common/utils/EntityUtils.js"
 import { Shortcut } from "../../misc/KeyManager.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
-import { mapLazily } from "@tutao/tutanota-utils"
+import { mapLazily, NBSP } from "@tutao/tutanota-utils"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
 import { isBrowser } from "../../api/common/Env.js"
 import { ListElementListModel } from "../../misc/ListElementListModel"
+import { SearchToken, splitTextForHighlighting } from "../../api/common/utils/QueryTokenUtils"
 
 export const ACTION_DISTANCE = 150
 export const PageSize = 100
@@ -100,5 +101,28 @@ export function onlySingleSelection<T>(state: ListState<T>): T | null {
 		return state.selectedItems.values().next().value
 	} else {
 		return null
+	}
+}
+
+export function setHTMLElementTextWithHighlighting(element: HTMLElement, text: string, highlightedStrings: readonly SearchToken[] | undefined): void {
+	if (!text || !highlightedStrings) {
+		element.textContent = text || NBSP // keeping at least a space will preserve alignment
+		return
+	}
+
+	// clear everything, first
+	element.innerHTML = ""
+
+	for (const substring of splitTextForHighlighting(text, highlightedStrings)) {
+		if (substring.highlighted) {
+			const node = document.createElement("mark")
+			// textContent implies creating a text node (thus HTML characters will be escaped)
+			node.textContent = substring.text
+			node.className = "search-highlight"
+			element.insertBefore(node, null)
+		} else {
+			// text nodes escape HTML characters
+			element.insertBefore(document.createTextNode(substring.text), null)
+		}
 	}
 }

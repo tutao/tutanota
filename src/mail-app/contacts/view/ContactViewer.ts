@@ -36,6 +36,7 @@ import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
 import type { AllIcons } from "../../../common/gui/base/Icon.js"
 
 import { getContactTitle } from "../../../common/gui/base/GuiUtils.js"
+import { highlightTextInQuery, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 assertMainOrNode()
 
@@ -45,6 +46,7 @@ export interface ContactViewerAttrs {
 	editAction?: (contact: Contact) => unknown
 	deleteAction?: (contacts: Contact[]) => unknown
 	extendedActions?: boolean
+	highlightedStrings?: readonly SearchToken[]
 }
 
 /**
@@ -82,7 +84,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 					".flex-space-between.flex-wrap.mt-m",
 					m(".left.flex-grow-shrink-150", [
 						m(".h2.selectable.text-break", [
-							this.contactAppellation(contact),
+							this.renderContactName(contact, attrs.highlightedStrings),
 							NBSP, // alignment in case nothing is present here
 						]),
 						phoneticName ? m("", phoneticName) : null,
@@ -101,6 +103,14 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			this.renderWebsitesAndInstantMessengers(contact),
 			this.renderComment(contact),
 		])
+	}
+
+	private renderContactName(contact: Contact, highlightedStrings: readonly SearchToken[] | undefined): Children {
+		if (highlightedStrings) {
+			return highlightTextInQuery(this.contactAppellation(contact), highlightedStrings)
+		} else {
+			return this.contactAppellation(contact)
+		}
 	}
 
 	private renderExtendedActions(contact: Contact, attrs: ContactViewerAttrs) {
@@ -349,7 +359,12 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 	private renderMailAddress(contact: Contact, address: ContactAddress, onWriteMail: ContactViewerAttrs["onWriteMail"]): Children {
 		const newMailButton = m(IconButton, {
 			title: "sendMail_alt",
-			click: () => onWriteMail({ name: `${contact.firstName} ${contact.lastName}`.trim(), address: address.address, contact: contact }),
+			click: () =>
+				onWriteMail({
+					name: `${contact.firstName} ${contact.lastName}`.trim(),
+					address: address.address,
+					contact: contact,
+				}),
 			icon: Icons.PencilSquare,
 			size: ButtonSize.Compact,
 		})

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { highlightTextInQuery, splitQuery } from "../../../../../src/common/api/common/utils/QueryTokenUtils"
+import { splitTextForHighlighting, splitQuery } from "../../../../../src/common/api/common/utils/QueryTokenUtils"
 
 o.spec("QueryTokenUtils", () => {
 	o.spec("splitQuery", () => {
@@ -25,18 +25,18 @@ o.spec("QueryTokenUtils", () => {
 	})
 	o.spec("highlightTextInQuery", () => {
 		o.test("exact match", () => {
-			o.check(highlightTextInQuery("my very eager mother just sold us nine pizzas", splitQuery('"my very eager"'))).deepEquals([
+			o.check(splitTextForHighlighting("my very eager mother just sold us nine pizzas", splitQuery('"my very eager"'))).deepEquals([
 				{ text: "my very eager", highlighted: true },
 				{ text: " mother just sold us nine pizzas", highlighted: false },
 			])
-			o.check(highlightTextInQuery("Tutanota is now Tuta", splitQuery('"tuta"'))).deepEquals([
+			o.check(splitTextForHighlighting("Tutanota is now Tuta", splitQuery('"tuta"'))).deepEquals([
 				{ text: "Tuta", highlighted: true },
 				{ text: "nota is now ", highlighted: false },
 				{ text: "Tuta", highlighted: true },
 			])
 		})
 		o.test("partial match", () => {
-			o.check(highlightTextInQuery("my very eager mother just sold us nine pizzas", splitQuery("my very eage moth nin"))).deepEquals([
+			o.check(splitTextForHighlighting("my very eager mother just sold us nine pizzas", splitQuery("my very eage moth nin"))).deepEquals([
 				{ text: "my", highlighted: true },
 				{ text: " ", highlighted: false },
 				{ text: "very", highlighted: true },
@@ -48,14 +48,14 @@ o.spec("QueryTokenUtils", () => {
 				{ text: "nin", highlighted: true },
 				{ text: "e pizzas", highlighted: false },
 			])
-			o.check(highlightTextInQuery("Tutanota is now Tuta", splitQuery("tuta"))).deepEquals([
+			o.check(splitTextForHighlighting("Tutanota is now Tuta", splitQuery("tuta"))).deepEquals([
 				{ text: "Tuta", highlighted: true },
 				{ text: "nota is now ", highlighted: false },
 				{ text: "Tuta", highlighted: true },
 			])
 		})
 		o.test("mix exact and partial match", () => {
-			o.check(highlightTextInQuery("my very eager mother just sold us nine pizzas", splitQuery('"my very eager" pizza'))).deepEquals([
+			o.check(splitTextForHighlighting("my very eager mother just sold us nine pizzas", splitQuery('"my very eager" pizza'))).deepEquals([
 				{ text: "my very eager", highlighted: true },
 				{ text: " mother just sold us nine ", highlighted: false },
 				{ text: "pizza", highlighted: true },

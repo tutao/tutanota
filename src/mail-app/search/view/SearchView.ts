@@ -590,7 +590,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 									selectedEntities: selectedContacts,
 									selectNone: () => this.searchViewModel.listModel.selectNone(),
 							  })
-							: m(ContactCardViewer, { contact: selectedContacts[0], onWriteMail: writeMail }),
+							: m(ContactCardViewer, {
+									contact: selectedContacts[0],
+									onWriteMail: writeMail,
+									highlightedStrings: this.searchViewModel.getHighlightedStrings(),
+							  }),
 					),
 			})
 		} else if (getCurrentSearchMode() === SearchCategoryTypes.mail) {

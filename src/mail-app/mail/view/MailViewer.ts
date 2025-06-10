@@ -34,7 +34,7 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { createNewContact } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getExistingRuleForType } from "../model/MailUtils.js"
 import { createResizeObserver } from "@tutao/tutanota-utils/dist/Utils"
-import { highlightTextInQuery, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { splitTextForHighlighting, SearchToken, highlightTextInQuery } from "../../../common/api/common/utils/QueryTokenUtils"
 
 assertMainOrNode()
 
@@ -180,13 +180,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			{
 				"data-testid": `h:${lang.getTestId("subject_label")}`,
 			},
-			highlightTextInQuery(attrs.viewModel.getSubject(), attrs.viewModel.getHighlightedStrings()).map((t) => {
-				if (t.highlighted) {
-					return m("mark.search-highlight", t.text)
-				} else {
-					return t.text
-				}
-			}),
+			highlightTextInQuery(attrs.viewModel.getSubject(), attrs.viewModel.getHighlightedStrings()),
 		)
 	}
 

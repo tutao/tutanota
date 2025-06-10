@@ -33,7 +33,7 @@ import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MoveMode } from "../model/MailModel"
-import { highlightTextInQuery } from "../../../common/api/common/utils/QueryTokenUtils"
+import { highlightTextInQuery, splitTextForHighlighting } from "../../../common/api/common/utils/QueryTokenUtils"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -200,13 +200,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderAddress(mailViewerViewModel: MailViewerViewModel, name: string, address: string): Children {
 		const displayed = getMailAddressDisplayText(name, address, false)
-		return highlightTextInQuery(displayed, mailViewerViewModel.getHighlightedStrings()).map((t) => {
-			if (t.highlighted) {
-				return m("mark.search-highlight", t.text)
-			} else {
-				return t.text
-			}
-		})
+		return highlightTextInQuery(displayed, mailViewerViewModel.getHighlightedStrings())
 	}
 
 	private renderSubjectActionsLine(attrs: MailViewerHeaderAttrs) {

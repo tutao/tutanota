@@ -11,7 +11,8 @@ import { getContactListName } from "../../../common/contactsFunctionality/Contac
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import m, { Children } from "mithril"
 import { px, size } from "../../../common/gui/size.js"
-import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
+import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
+import { splitTextForHighlighting, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 export const shiftByForCheckbox = px(size.checkbox_size + size.hpad)
 export const translateXShow = `translateX(${shiftByForCheckbox})`
@@ -27,22 +28,34 @@ export class ContactRow implements VirtualRow<Contact> {
 	private domAddress!: HTMLElement
 	private checkboxDom!: HTMLInputElement
 	private checkboxWasVisible: boolean
+	private highlightedStrings?: readonly SearchToken[]
 
-	constructor(private readonly onSelected: (entity: Contact, selected: boolean) => unknown, private readonly shouldShowCheckbox: () => boolean) {
+	constructor(
+		private readonly onSelected: (entity: Contact, selected: boolean) => unknown,
+		private readonly shouldShowCheckbox: () => boolean,
+		private readonly getHighlightedStrings?: () => readonly SearchToken[],
+	) {
 		this.top = 0
 		this.entity = null
 		this.checkboxWasVisible = this.shouldShowCheckbox()
 	}
 
 	update(contact: Contact, selected: boolean, isInMultiSelect: boolean): void {
+		const oldEntity = this.entity
 		this.entity = contact
+		const oldHighlightedStrings = this.highlightedStrings
+		this.highlightedStrings = this.getHighlightedStrings?.()
+
 		this.selectionUpdater(selected, isInMultiSelect)
 		this.showCheckboxAnimated(this.shouldShowCheckbox() || isInMultiSelect)
 		checkboxOpacity(this.checkboxDom, selected)
 		this.checkboxDom.checked = selected && isInMultiSelect
 
-		this.domName.textContent = getContactListName(contact)
-		this.domAddress.textContent = contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : NBSP
+		if (oldEntity !== this.entity || oldHighlightedStrings !== this.highlightedStrings) {
+			const address = contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : NBSP
+			setHTMLElementTextWithHighlighting(this.domName, getContactListName(contact), this.highlightedStrings)
+			setHTMLElementTextWithHighlighting(this.domAddress, address, this.highlightedStrings)
+		}
 	}
 
 	/**

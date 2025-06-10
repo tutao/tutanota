@@ -1,4 +1,5 @@
 import { escapeRegExp } from "./PlainTextSearch"
+import m, { Children } from "mithril"
 
 /**
  * A token that was found in {@link splitQuery}
@@ -50,11 +51,21 @@ export function splitQuery(query: string): SearchToken[] {
 }
 
 /**
- * Result of {@link highlightTextInQuery}
+ * Result of {@link splitTextForHighlighting}
  */
 export interface HighlightSubstring {
 	text: string
 	highlighted: boolean
+}
+
+export function highlightTextInQuery(text: string, query: readonly SearchToken[]): Children {
+	return splitTextForHighlighting(text, query).map((t) => {
+		if (t.highlighted) {
+			return m("mark.search-highlight", t.text)
+		} else {
+			return t.text
+		}
+	})
 }
 
 /**
@@ -75,7 +86,7 @@ export interface HighlightSubstring {
  * @param text  text to match against
  * @param query tokens to search with (see {@link splitQuery})
  */
-export function highlightTextInQuery(text: string, query: readonly SearchToken[]): HighlightSubstring[] {
+export function splitTextForHighlighting(text: string, query: readonly SearchToken[]): HighlightSubstring[] {
 	// Start with an initial substring which is just the entire string.
 	//
 	// If, for some reason, none of the tokens are found, then this is all we'll return.

@@ -4,6 +4,7 @@ import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ContactViewer } from "./ContactViewer.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 export interface ContactCardAttrs {
 	contact: Contact
@@ -12,12 +13,13 @@ export interface ContactCardAttrs {
 	deleteAction?: (contacts: Contact[]) => unknown
 	extendedActions?: boolean
 	style?: Record<string, any>
+	highlightedStrings?: readonly SearchToken[]
 }
 
 /** Wraps contact viewer in a nice card. */
 export class ContactCardViewer implements Component<ContactCardAttrs> {
 	view({ attrs }: Vnode<ContactCardAttrs>): Children {
-		const { contact, onWriteMail, editAction, deleteAction, extendedActions } = attrs
+		const { contact, onWriteMail, editAction, deleteAction, extendedActions, highlightedStrings } = attrs
 		return [
 			m(
 				".border-radius-big.rel",
@@ -34,6 +36,7 @@ export class ContactCardViewer implements Component<ContactCardAttrs> {
 					editAction,
 					deleteAction,
 					extendedActions,
+					highlightedStrings,
 				}),
 			),
 			m(".mt-l"),
