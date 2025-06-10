@@ -979,6 +979,27 @@ o.spec("OfflineStorageSearchFacade", () => {
 				{ token: "quoted again", exact: true },
 			])
 		})
+		o.test("extra characters are tokenized without being normalized", async () => {
+			o.check(await offlineStorageSearchFacade.tokenize("Das Franzbrötchen ist lecker!")).deepEquals([
+				{ token: "Das", exact: false },
+				{ token: "Franzbrötchen", exact: false },
+				{ token: "ist", exact: false },
+				{ token: "lecker", exact: false },
+			])
+			o.check(await offlineStorageSearchFacade.tokenize("오래 살면서 감자튀김 먹기")).deepEquals([
+				{ token: "오래", exact: false },
+				{ token: "살면서", exact: false },
+				{ token: "감자튀김", exact: false },
+				{ token: "먹기", exact: false },
+			])
+			o.check(await offlineStorageSearchFacade.tokenize("le premier jour de l’année")).deepEquals([
+				{ token: "le", exact: false },
+				{ token: "premier", exact: false },
+				{ token: "jour", exact: false },
+				{ token: "de", exact: false },
+				{ token: "l’année", exact: false },
+			])
+		})
 	})
 
 	o.spec("normalizeQuery", () => {
