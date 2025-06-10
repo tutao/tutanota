@@ -11,6 +11,7 @@ import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facade
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
+import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -55,6 +56,7 @@ export class CalendarEventPreviewViewModel {
 		ownAttendee: CalendarEventAttendee | null,
 		private readonly lazyIndexEntry: () => Promise<CalendarEventUidIndexEntry | null>,
 		private readonly eventModelFactory: (mode: CalendarOperation) => Promise<CalendarEventModel | null>,
+		private readonly highlightedStrings?: readonly SearchToken[],
 		private readonly uiUpdateCallback: () => void = m.redraw,
 	) {
 		this._ownAttendee = clone(ownAttendee)
@@ -222,6 +224,7 @@ export class CalendarEventPreviewViewModel {
 			(s) =>
 				htmlSanitizer.sanitizeHTML(convertTextToHtml(s), {
 					blockExternalContent: false,
+					highlightedStrings: this.highlightedStrings,
 				}).html,
 		)
 	}

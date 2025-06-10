@@ -56,6 +56,7 @@ import type { GroupColors } from "./CalendarView.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -79,6 +80,7 @@ export type CalendarEventEditModelsFactory = (mode: CalendarOperation, event: Ca
 export type CalendarEventPreviewModelFactory = (
 	selectedEvent: CalendarEvent,
 	calendars: ReadonlyMap<string, CalendarInfo>,
+	highlightedTokens: readonly SearchToken[],
 ) => Promise<CalendarEventPreviewViewModel>
 export type CalendarContactPreviewModelFactory = (event: CalendarEvent, contact: Contact, canEdit: boolean) => Promise<CalendarContactPreviewViewModel>
 export type CalendarPreviewModels = CalendarEventPreviewViewModel | CalendarContactPreviewViewModel
@@ -572,7 +574,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				const contact = await this.contactModel.loadContactFromId([contactIdParts[0], contactIdParts[1]])
 				previewModel = await this.createCalendarContactPreviewModel(event, contact, true)
 			} else {
-				previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos)
+				previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos, [])
 			}
 
 			this.previewedEvent({ event, model: previewModel })

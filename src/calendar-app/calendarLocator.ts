@@ -115,6 +115,7 @@ import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVeri
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { CommonLocator } from "../common/api/main/CommonLocator"
+import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 
 assertMainOrNode()
 
@@ -867,7 +868,11 @@ class CalendarLocator implements CommonLocator {
 		return new SchedulerImpl(dateProvider, window, window)
 	}
 
-	async calendarEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>): Promise<CalendarEventPreviewViewModel> {
+	async calendarEventPreviewModel(
+		selectedEvent: CalendarEvent,
+		calendars: ReadonlyMap<string, CalendarInfo>,
+		highlightedTokens: readonly SearchToken[],
+	): Promise<CalendarEventPreviewViewModel> {
 		const { findAttendeeInAddresses } = await import("../common/api/common/utils/CommonCalendarUtils.js")
 		const { getEventType } = await import("./calendar/gui/CalendarGuiUtils.js")
 		const { CalendarEventPreviewViewModel } = await import("./calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
@@ -891,6 +896,7 @@ class CalendarLocator implements CommonLocator {
 			ownAttendee,
 			lazyIndexEntry,
 			async (mode: CalendarOperation) => this.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
+			highlightedTokens,
 		)
 
 		// If we have a preview model we want to display the description

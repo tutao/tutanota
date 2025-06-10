@@ -147,6 +147,7 @@ import { SearchFacade } from "./workerUtils/index/SearchFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
+import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 
 assertMainOrNode()
 
@@ -1092,7 +1093,11 @@ class MailLocator implements CommonLocator {
 		return new SchedulerImpl(dateProvider, window, window)
 	}
 
-	async calendarEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>): Promise<CalendarEventPreviewViewModel> {
+	async calendarEventPreviewModel(
+		selectedEvent: CalendarEvent,
+		calendars: ReadonlyMap<string, CalendarInfo>,
+		highlightedTokens: readonly SearchToken[],
+	): Promise<CalendarEventPreviewViewModel> {
 		const { findAttendeeInAddresses } = await import("../common/api/common/utils/CommonCalendarUtils.js")
 		const { getEventType } = await import("../calendar-app/calendar/gui/CalendarGuiUtils.js")
 		const { CalendarEventPreviewViewModel } = await import("../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
@@ -1116,6 +1121,7 @@ class MailLocator implements CommonLocator {
 			ownAttendee,
 			lazyIndexEntry,
 			async (mode: CalendarOperation) => this.calendarEventModel(mode, selectedEvent, mailboxDetails, mailboxProperties, null),
+			highlightedTokens,
 		)
 
 		// If we have a preview model we want to display the description

@@ -70,6 +70,7 @@ import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
+import { SearchToken } from "../common/utils/QueryTokenUtils"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -154,7 +155,11 @@ export interface CommonLocator {
 		responseTo: Mail | null,
 	): Promise<CalendarEventModel | null>
 
-	calendarEventPreviewModel(selectedEvent: CalendarEvent, calendars: ReadonlyMap<string, CalendarInfo>): Promise<CalendarEventPreviewViewModel>
+	calendarEventPreviewModel(
+		selectedEvent: CalendarEvent,
+		calendars: ReadonlyMap<string, CalendarInfo>,
+		highlightedTokens: readonly SearchToken[],
+	): Promise<CalendarEventPreviewViewModel>
 
 	calendarContactPreviewModel(event: CalendarEvent, contact: Contact, canEdit: boolean): Promise<CalendarContactPreviewViewModel>
 

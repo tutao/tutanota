@@ -36,7 +36,8 @@ import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
 import type { AllIcons } from "../../../common/gui/base/Icon.js"
 
 import { getContactTitle } from "../../../common/gui/base/GuiUtils.js"
-import { highlightTextInQuery, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
 
 assertMainOrNode()
 
@@ -107,7 +108,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 
 	private renderContactName(contact: Contact, highlightedStrings: readonly SearchToken[] | undefined): Children {
 		if (highlightedStrings) {
-			return highlightTextInQuery(this.contactAppellation(contact), highlightedStrings)
+			return highlightTextInQueryAsChildren(this.contactAppellation(contact), highlightedStrings)
 		} else {
 			return this.contactAppellation(contact)
 		}

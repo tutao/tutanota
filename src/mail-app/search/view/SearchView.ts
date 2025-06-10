@@ -140,7 +140,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
 			const calendars = await this.searchViewModel.getLazyCalendarInfos().getAsync()
-			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendars)
+			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendars, this.searchViewModel.getHighlightedStrings())
 			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
 			return eventPreviewModel
 		}).load(),
@@ -881,6 +881,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
+					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
 				} satisfies EventDetailsViewAttrs),
 			),
 		)

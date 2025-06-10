@@ -79,7 +79,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
 			const calendars = await this.searchViewModel.getLazyCalendarInfos().getAsync()
-			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendars)
+			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendars, [])
 			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
 			return eventPreviewModel
 		}).load(),

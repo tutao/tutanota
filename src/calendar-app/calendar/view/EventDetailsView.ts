@@ -7,11 +7,13 @@ import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { styles } from "../../../common/gui/styles.js"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 export interface EventDetailsViewAttrs {
 	eventPreviewModel: CalendarEventPreviewViewModel
 	deleteCallback?: () => void
 	editCallback?: () => void
+	highlightedStrings?: readonly SearchToken[]
 }
 
 export class EventDetailsView implements Component<EventDetailsViewAttrs> {
@@ -33,6 +35,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 					sanitizedDescription: this.model.getSanitizedDescription(),
 					participation: this.model.getParticipationSetterAndThen(() => null),
 					calendarEventPreviewModel: this.model,
+					highlightedStrings: attrs.highlightedStrings,
 				}),
 			),
 			m(".flex.mt-xs", [this.renderSendUpdateButton(), this.renderEditButton(attrs.editCallback), this.renderDeleteButton(attrs.deleteCallback)]),
