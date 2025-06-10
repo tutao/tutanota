@@ -12,7 +12,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { getReplacement } from "./PlanSelector.js"
 import { TranslationKeyType } from "../misc/TranslationKey.js"
 import { styles } from "../gui/styles.js"
-import { planBoxColors } from "./PlanBoxColors.js"
+import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { goEuropeanBlue } from "../gui/builtinThemes.js"
 
@@ -54,13 +54,15 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const strikethroughPrice = isYearly ? referencePrice : undefined
 		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected)
+		// Only for Go European campaign, this should be removed after the campaign.
+		const localTheme = hasGlobalFirstYearDiscount ? getBlueTheme() : theme
 
 		return m(
 			`.cursor-pointer.buyOptionBox-v2${isSelected ? ".selected" : ""}`,
 			{
 				style: {
 					"background-color": planBoxColors.getBgColor({ isSelected }),
-					color: planBoxColors.getTextColor({ isSelected }),
+					color: planBoxColors.getTextColor({ isSelected, hasGlobalFirstYearDiscount }),
 					scale,
 					"z-index": isSelected ? "1" : "initial",
 					"min-height": px(270),
@@ -116,7 +118,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 								name: "BuyOptionBox",
 								checked: isSelected,
 								style: {
-									"accent-color": theme.experimental_on_primary_container,
+									"accent-color": localTheme.experimental_on_primary_container,
 								},
 							}),
 							m(
@@ -134,7 +136,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 							".flex",
 							{
 								style: {
-									"align-self": isLegendPlan ? "start" : "end",
+									"justify-content": isLegendPlan ? "start" : "end",
 								},
 							},
 							m(".smaller.mt-s", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
@@ -219,6 +221,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 	}
 
 	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, isSelected: boolean) {
+		const hasGlobalFirstYearDiscount = provider.getRawPricingData().hasGlobalFirstYearDiscount
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey) => {
 			return m(
 				".flex",
@@ -232,7 +235,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 						icon,
 						size: IconSize.Normal,
 						style: {
-							fill: planBoxColors.getFeatureIconColor({ isSelected, planType }),
+							fill: planBoxColors.getFeatureIconColor({ isSelected, planType, hasGlobalFirstYearDiscount }),
 						},
 					}),
 					m(".smaller", lang.get(langKey, getReplacement(replacement, planType, provider))),

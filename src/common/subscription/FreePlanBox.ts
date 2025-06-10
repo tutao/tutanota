@@ -9,7 +9,7 @@ import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { getReplacement } from "./PlanSelector.js"
 import { TranslationKeyType } from "../misc/TranslationKey.js"
-import { planBoxColors } from "./PlanBoxColors.js"
+import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
 import { styles } from "../gui/styles.js"
 
 type FreePlanBoxAttrs = {
@@ -22,14 +22,17 @@ type FreePlanBoxAttrs = {
 
 export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 	view({ attrs: { isSelected, select, scale, priceAndConfigProvider } }: Vnode<FreePlanBoxAttrs>) {
+		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const renderFeature = this.generateRenderFeature(priceAndConfigProvider, isSelected)
+		// Only for Go European campaign, this should be removed after the campaign.
+		const localTheme = hasGlobalFirstYearDiscount ? getBlueTheme() : theme
 
 		return m(
 			".cursor-pointer.buyOptionBox-v2",
 			{
 				style: {
 					"background-color": planBoxColors.getBgColor({ isSelected }),
-					color: planBoxColors.getTextColor({ isSelected }),
+					color: planBoxColors.getTextColor({ isSelected, hasGlobalFirstYearDiscount }),
 					display: "flex",
 					"z-index": isSelected ? "1" : "initial",
 					scale,
@@ -62,7 +65,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 						name: "BuyOptionBox",
 						checked: isSelected,
 						style: {
-							"accent-color": theme.experimental_on_primary_container,
+							"accent-color": localTheme.experimental_on_primary_container,
 						},
 					}),
 				),
@@ -92,6 +95,8 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 	}
 
 	private generateRenderFeature = (provider: PriceAndConfigProvider, isSelected: boolean) => {
+		const hasGlobalFirstYearDiscount = provider.getRawPricingData().hasGlobalFirstYearDiscount
+
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey, shouldShift?: boolean) => {
 			return m(
 				".flex",
@@ -107,7 +112,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 						icon,
 						size: IconSize.Normal,
 						style: {
-							fill: planBoxColors.getFeatureIconColor({ isSelected, planType: PlanType.Free }),
+							fill: planBoxColors.getFeatureIconColor({ isSelected, planType: PlanType.Free, hasGlobalFirstYearDiscount }),
 						},
 					}),
 					m(".smaller", lang.get(langKey, getReplacement(replacement, PlanType.Free, provider))),
