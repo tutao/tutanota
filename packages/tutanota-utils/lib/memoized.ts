@@ -1,5 +1,5 @@
 import { arrayEquals } from "./ArrayUtils.js"
-import { lazy } from "./Utils.js"
+import { deepEqual, lazy } from "./Utils.js"
 
 /**
  * Function which accepts another function. On first invocation
@@ -33,6 +33,29 @@ export function memoized<F extends (...args: any[]) => any>(fn: F): F {
 
 	const memoizedFunction = (...args: Parameters<F>) => {
 		if (!didCache || !arrayEquals(lastArgs, args)) {
+			lastArgs = args
+			didCache = true
+			lastResult = fn(...args)
+		}
+
+		return lastResult
+	}
+	return memoizedFunction as F
+}
+
+/**
+ * Returns a cached version of {@param fn}.
+ * Cached function checks that argument is deeply the same and if it is then it returns the cached result.
+ * If the cached argument has changed then {@param fn} will be called with new argument and result will be cached again.
+ * Only remembers the last argument.
+ */
+export function deepMemoized<F extends (...args: any[]) => any>(fn: F): F {
+	let lastArgs: unknown[]
+	let lastResult: Parameters<F>
+	let didCache = false
+
+	const memoizedFunction = (...args: Parameters<F>) => {
+		if (!didCache || !deepEqual(lastArgs, args)) {
 			lastArgs = args
 			didCache = true
 			lastResult = fn(...args)
