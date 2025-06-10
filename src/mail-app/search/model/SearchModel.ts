@@ -97,6 +97,8 @@ export class SearchModel {
 				currentDate = incrementMonth(currentDate, 1)
 			}
 
+			const tokens = tokenize(query.trim())
+
 			const calendarResult: SearchResult = {
 				// index related, keep empty
 				currentIndexTimestamp: 0,
@@ -108,7 +110,9 @@ export class SearchModel {
 				restriction,
 				results: [],
 				query,
-				tokens: [],
+				tokens: tokens.map((t) => {
+					return { token: t, exact: false }
+				}),
 			}
 
 			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
@@ -133,7 +137,6 @@ export class SearchModel {
 			assertNonNull(restriction.start)
 			assertNonNull(restriction.end)
 
-			const tokens = tokenize(query.trim())
 			// we want event instances that occur on multiple days to only appear once, but want
 			// separate instances of event series to occur on their own.
 			const alreadyAdded: Set<string> = new Set()

@@ -1,5 +1,4 @@
 import { escapeRegExp } from "./PlainTextSearch"
-import m, { Children } from "mithril"
 
 /**
  * A token that was found in {@link splitQuery}
@@ -56,16 +55,6 @@ export function splitQuery(query: string): SearchToken[] {
 export interface HighlightSubstring {
 	text: string
 	highlighted: boolean
-}
-
-export function highlightTextInQuery(text: string, query: readonly SearchToken[]): Children {
-	return splitTextForHighlighting(text, query).map((t) => {
-		if (t.highlighted) {
-			return m("mark.search-highlight", t.text)
-		} else {
-			return t.text
-		}
-	})
 }
 
 /**

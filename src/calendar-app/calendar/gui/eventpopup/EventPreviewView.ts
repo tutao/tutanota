@@ -30,16 +30,18 @@ import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.j
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
-
 import { formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
+import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
+import { highlightTextInQueryAsChildren } from "../../../../common/gui/TextHighlightViewUtils"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
 	event: Omit<CalendarEvent, "description">
 	sanitizedDescription: string | null
 	participation?: ReturnType<typeof CalendarEventPreviewViewModel.prototype.getParticipationSetterAndThen>
+	highlightedStrings?: readonly SearchToken[]
 }
 
 /** the buttons enabling the user to view their current participation status on an event and to trigger a change to it, including
@@ -96,14 +98,19 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	view(vnode: Vnode<EventPreviewViewAttrs>): Children {
-		const { event, sanitizedDescription, participation, calendarEventPreviewModel } = vnode.attrs
+		const { event, sanitizedDescription, participation, calendarEventPreviewModel, highlightedStrings } = vnode.attrs
 		const attendees = prepareAttendees(event.attendees, event.organizer)
 		const eventTitle = getDisplayEventTitle(event.summary)
 
 		const renderInfo = calendarEventPreviewModel.getCalendarRenderInfo()
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
-			this.renderRow(BootIcons.Calendar, [m("span.h3", eventTitle)], true, true),
+			this.renderRow(
+				BootIcons.Calendar,
+				[m("span.h3", highlightedStrings ? highlightTextInQueryAsChildren(eventTitle, highlightedStrings) : eventTitle)],
+				true,
+				true,
+			),
 			renderInfo
 				? this.renderCalendar(renderInfo.name, renderInfo.color, RENDER_TYPE_TRANSLATION_MAP.get(renderInfo.renderType) ?? "yourCalendars_label")
 				: null,
@@ -115,7 +122,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			this.renderLocation(event.location),
 			this.renderAttendeesSection(attendees, participation),
 			this.renderAttendanceSection(event, attendees, participation),
-			this.renderDescription(sanitizedDescription),
+			this.renderDescription(sanitizedDescription, highlightedStrings),
 		])
 	}
 
@@ -218,7 +225,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		])
 	}
 
-	private renderDescription(sanitizedDescription: string | null) {
+	private renderDescription(sanitizedDescription: string | null, highlightedStrings?: readonly SearchToken[]) {
 		if (sanitizedDescription == null || sanitizedDescription.length === 0) return null
 		return this.renderRow(Icons.AlignLeft, [m.trust(sanitizedDescription)], true)
 	}

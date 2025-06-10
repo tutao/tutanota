@@ -17,9 +17,9 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { isNotNull, noOp, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, promptAndDeleteMails, showMoveMailsDropdown, trashMails } from "./MailGuiUtils.js"
+import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { editDraft, MailViewerMoreActions, singleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
@@ -33,7 +33,7 @@ import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MoveMode } from "../model/MailModel"
-import { highlightTextInQuery, splitTextForHighlighting } from "../../../common/api/common/utils/QueryTokenUtils"
+import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -200,7 +200,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderAddress(mailViewerViewModel: MailViewerViewModel, name: string, address: string): Children {
 		const displayed = getMailAddressDisplayText(name, address, false)
-		return highlightTextInQuery(displayed, mailViewerViewModel.getHighlightedStrings())
+		return highlightTextInQueryAsChildren(displayed, mailViewerViewModel.getHighlightedStrings())
 	}
 
 	private renderSubjectActionsLine(attrs: MailViewerHeaderAttrs) {

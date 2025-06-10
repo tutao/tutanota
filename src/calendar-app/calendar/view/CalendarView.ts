@@ -1465,7 +1465,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private openDeletePopup(calendarEvent: CalendarEvent, domEvent: KeyboardEvent) {
-		locator.calendarEventPreviewModel(calendarEvent, this.viewModel.calendarInfos).then((eventPreviewModel: CalendarEventPreviewViewModel) => {
+		locator.calendarEventPreviewModel(calendarEvent, this.viewModel.calendarInfos, []).then((eventPreviewModel: CalendarEventPreviewViewModel) => {
 			showDeletePopup(eventPreviewModel, new MouseEvent("click", {}), domEvent.target as HTMLElement)
 		})
 	}
@@ -1488,7 +1488,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			popupComponent = new ContactEventPopup(popupModel as CalendarContactPreviewViewModel, eventBubbleRect)
 		} else {
 			const calendars = await this.viewModel.getCalendarInfosCreateIfNeeded()
-			getPreviewModel = locator.calendarEventPreviewModel(selectedEvent, calendars)
+			getPreviewModel = locator.calendarEventPreviewModel(selectedEvent, calendars, [])
 			const [popupModel, htmlSanitizer] = await Promise.all([getPreviewModel, htmlSanitizerPromise])
 			popupComponent = new CalendarEventPopup(popupModel as CalendarEventPreviewViewModel, eventBubbleRect, htmlSanitizer)
 		}

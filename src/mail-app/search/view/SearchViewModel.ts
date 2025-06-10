@@ -81,7 +81,7 @@ import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { compareMails } from "../../mail/model/MailUtils"
 import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
-import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { getSharedGroupName } from "../../../common/sharing/GroupUtils"
 
 const SEARCH_PAGE_SIZE = 100

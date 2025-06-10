@@ -3,14 +3,15 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import m, { Children, VnodeDOM } from "mithril"
 
 import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelectedSetter } from "../../../common/gui/SelectableRowContainer.js"
-import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
+import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { ViewHolder } from "../../../common/gui/base/List.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 
-import { formatEventDuration, getClientOnlyColors, getDisplayEventTitle, getEventColor, getGroupColors } from "./CalendarGuiUtils.js"
+import { formatEventDuration, getClientOnlyColors, getEventColor, getGroupColors } from "./CalendarGuiUtils.js"
 import { GroupColors } from "../view/CalendarView.js"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number
@@ -22,8 +23,9 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 	private calendarIndicatorDom!: HTMLElement
 	private summaryDom!: HTMLElement
 	private durationDom!: HTMLElement
+	private highlightedStrings?: readonly SearchToken[]
 
-	constructor(readonly domElement: HTMLElement) {
+	constructor(readonly domElement: HTMLElement, private readonly getHighlightedStrings?: () => readonly SearchToken[]) {
 		this.top = 0
 		this.entity = null
 
@@ -37,8 +39,15 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 	}
 
 	update(event: CalendarEvent, selected: boolean, isInMultiSelect: boolean): void {
+		const oldEntity = this.entity
 		this.entity = event
-		this.summaryDom.innerText = getDisplayEventTitle(event.summary)
+		const oldHighlightedStrings = this.highlightedStrings
+		this.highlightedStrings = this.getHighlightedStrings?.()
+
+		if (oldEntity !== this.entity || oldHighlightedStrings !== this.highlightedStrings) {
+			setHTMLElementTextWithHighlighting(this.summaryDom, event.summary, this.highlightedStrings)
+		}
+
 		this.calendarIndicatorDom.style.backgroundColor = `#${getEventColor(event, this.colors)}`
 		this.durationDom.innerText = formatEventDuration(this.entity, getTimeZone(), false)
 
@@ -99,8 +108,8 @@ export class KindaCalendarRow implements ViewHolder<CalendarEvent> {
 	domElement: HTMLElement
 	entity: CalendarEvent | null = null
 
-	constructor(dom: HTMLElement) {
-		this.cr = new CalendarRow(dom)
+	constructor(dom: HTMLElement, private readonly getHighlightedStrings?: () => readonly SearchToken[]) {
+		this.cr = new CalendarRow(dom, getHighlightedStrings)
 		this.domElement = dom
 		m.render(dom, this.cr.render())
 	}
