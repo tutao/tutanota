@@ -90,7 +90,7 @@ export class MailModel {
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
-		private readonly inboxRuleHandler: InboxRuleHandler | null,
+		private readonly inboxRuleHandler: () => InboxRuleHandler | null,
 	) {}
 
 	// only init listeners once
@@ -175,7 +175,7 @@ export class MailModel {
 									// We only apply rules on server if we are the leader in case of incoming messages
 									return (
 										mailboxDetail &&
-										this.inboxRuleHandler?.findAndApplyMatchingRule(
+										this.inboxRuleHandler()?.findAndApplyMatchingRule(
 											mailboxDetail,
 											mail,
 											this.connectivityModel ? this.connectivityModel.isLeader() : false,
@@ -205,10 +205,11 @@ export class MailModel {
 	}
 
 	async applyInboxRuleToMail(mail: Mail) {
-		if (this.inboxRuleHandler) {
+		const inboxRuleHandler = this.inboxRuleHandler()
+		if (inboxRuleHandler) {
 			const mailboxDetail = await this.getMailboxDetailsForMail(mail)
 			if (mailboxDetail) {
-				this.inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
+				inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
 			}
 		}
 	}

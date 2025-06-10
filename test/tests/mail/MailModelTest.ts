@@ -53,7 +53,7 @@ o.spec("MailModelTest", function () {
 			logins,
 			mailFacade,
 			null,
-			null,
+			() => null,
 		)
 		// not pretty, but works
 		// model.mailboxDetails(mailboxDetails as MailboxDetail[])
