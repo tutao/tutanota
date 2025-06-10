@@ -15,8 +15,8 @@ import {
 	shouldAlwaysShowMultiselectCheckbox,
 } from "../../../common/gui/SelectableRowContainer.js"
 import { px, size } from "../../../common/gui/size.js"
-import { NBSP, noOp } from "@tutao/tutanota-utils"
-import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
+import { noOp } from "@tutao/tutanota-utils"
+import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
 import { getConfidentialFontIcon, isTutanotaTeamMail } from "./MailGuiUtils.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -24,7 +24,7 @@ import { getSenderOrRecipientHeading } from "./MailViewerUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label"
 import { colorForBg } from "../../../common/gui/base/GuiUtils"
 import { theme } from "../../../common/gui/theme"
-import { highlightTextInQuery, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,
@@ -96,8 +96,8 @@ export class MailRow implements VirtualRow<Mail> {
 		// - `this.getHighlightedStrings()` will return the same array instance if the query hasn't changed
 		// - `mail` will be a different instance if the entity was changed on the server
 		if (oldEntity !== this.entity || oldHighlightedStrings !== this.highlightedStrings) {
-			this.setHTMLElementTextWithHighlighting(this.senderDom, getSenderOrRecipientHeading(mail, true), this.highlightedStrings)
-			this.setHTMLElementTextWithHighlighting(this.subjectDom, mail.subject, this.highlightedStrings)
+			setHTMLElementTextWithHighlighting(this.senderDom, getSenderOrRecipientHeading(mail, true), this.highlightedStrings)
+			setHTMLElementTextWithHighlighting(this.subjectDom, mail.subject, this.highlightedStrings)
 		}
 
 		if (mail.unread) {
@@ -118,30 +118,7 @@ export class MailRow implements VirtualRow<Mail> {
 		checkboxOpacity(this.checkboxDom, selected)
 	}
 
-	private setHTMLElementTextWithHighlighting(element: HTMLElement, text: string, highlightedStrings: readonly SearchToken[] | undefined) {
-		if (!text || !highlightedStrings) {
-			element.textContent = text || NBSP // keeping at least a space will preserve alignment
-			return
-		}
-
-		// clear everything, first
-		element.innerHTML = ""
-
-		for (const substring of highlightTextInQuery(text, highlightedStrings)) {
-			if (substring.highlighted) {
-				const node = document.createElement("mark")
-				// textContent implies creating a text node (thus HTML characters will be escaped)
-				node.textContent = substring.text
-				node.className = "search-highlight"
-				element.insertBefore(node, null)
-			} else {
-				// text nodes escape HTML characters
-				element.insertBefore(document.createTextNode(substring.text), null)
-			}
-		}
-	}
-
-	private updateLabels(mail: Mail) {
+	private updateLabels(mail: Mail): void {
 		const labels = this.getLabelsForMail(mail)
 
 		for (const [i, element] of this.labelsDom.entries()) {
@@ -158,7 +135,7 @@ export class MailRow implements VirtualRow<Mail> {
 		this.moreLabelsIndicatorDom.style.display = labels.length > this.labelsDom.length ? "" : "none"
 	}
 
-	private showCheckboxAnimated(show: boolean) {
+	private showCheckboxAnimated(show: boolean): void {
 		// this causes a slide animation where checkbox pops up and the text is shifted to make space for it.
 		// we can't animate the width of the checkbox as it causes the layout shifts and is very slow so instead we change the padding of the text elements in
 		// a single step and then shift them in an animation. The effect is almost the same as if we would expand/shrink the checkbox.
@@ -209,7 +186,7 @@ export class MailRow implements VirtualRow<Mail> {
 		this.checkboxWasVisible = shouldShowCheckbox
 	}
 
-	private showCheckbox(show: boolean) {
+	private showCheckbox(show: boolean): void {
 		let translate
 		let scale
 		let padding

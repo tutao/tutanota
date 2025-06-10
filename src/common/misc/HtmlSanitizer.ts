@@ -3,7 +3,7 @@ import { downcast, isEmpty, stringToUtf8Uint8Array, utf8Uint8ArrayToString } fro
 import { DataFile } from "../api/common/DataFile"
 import { encodeSVG } from "../gui/base/GuiUtils.js"
 import DOMPurify, { Config } from "dompurify"
-import { highlightTextInQuery, SearchToken } from "../api/common/utils/QueryTokenUtils"
+import { splitTextForHighlighting, SearchToken } from "../api/common/utils/QueryTokenUtils"
 
 /** Data url for an SVG image that will be shown in place of external content. */
 export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = encodeSVG(ReplacementImage)
@@ -461,7 +461,7 @@ export class HtmlSanitizer {
 
 			if (isTextElement(node)) {
 				const dataBefore = node.data
-				const substrings = highlightTextInQuery(dataBefore, config.highlightedStrings)
+				const substrings = splitTextForHighlighting(dataBefore, config.highlightedStrings)
 
 				// First, check if we even have anything that needs highlighted
 				if (isEmpty(substrings) || (substrings.length === 1 && !substrings[0].highlighted)) {

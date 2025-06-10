@@ -11,6 +11,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { styles } from "../../../common/gui/styles.js"
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer.js"
+import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 assertMainOrNode()
 
@@ -79,8 +80,9 @@ export class KindaContactRow implements ViewHolder<Contact> {
 		dom: HTMLElement,
 		onToggleSelection: (item: Contact) => unknown,
 		shouldShowCheckbox: () => boolean = () => shouldAlwaysShowMultiselectCheckbox(),
+		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
-		this.cr = new ContactRow(onToggleSelection, shouldShowCheckbox)
+		this.cr = new ContactRow(onToggleSelection, shouldShowCheckbox, getHighlightedStrings)
 		this.domElement = dom
 		m.render(dom, this.cr.render())
 	}

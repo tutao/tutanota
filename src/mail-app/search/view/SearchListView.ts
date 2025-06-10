@@ -16,6 +16,7 @@ import { styles } from "../../../common/gui/styles.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer"
 
 assertMainOrNode()
 
@@ -144,7 +145,12 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		swipe: null,
 		createElement: (dom) => {
 			const row: SearchResultListRow = new SearchResultListRow(
-				new KindaContactRow(dom, () => row.entity && this.listModel.onSingleExclusiveSelection(row.entity)),
+				new KindaContactRow(
+					dom,
+					() => row.entity && this.listModel.onSingleExclusiveSelection(row.entity),
+					() => shouldAlwaysShowMultiselectCheckbox(),
+					() => this.attrs.highlightedStrings,
+				),
 			)
 			m.render(dom, row.render())
 			return row
