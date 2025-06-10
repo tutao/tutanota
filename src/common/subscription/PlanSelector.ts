@@ -71,6 +71,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	view({ attrs: { options, priceAndConfigProvider, featureListProvider, actionButtons } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
+		const isPaidPlanSelected = this.currentPlan() === PlanType.Revolutionary || this.currentPlan() === PlanType.Legend
 
 		function renderFootnoteElement(): Children {
 			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly) {
@@ -198,26 +199,26 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									"margin-inline": "auto",
 								},
 							},
-							// FIXME: Add campaign button
 							m(LoginButton, {
 								// The label text for go european campaign shall not be translated.
-								label: hasGlobalFirstYearDiscount ? lang.makeTranslation("", "Go European") : "continue_action",
+								label: hasGlobalFirstYearDiscount && isPaidPlanSelected ? lang.makeTranslation("", "Go European") : "continue_action",
 								type: LoginButtonType.FullWidth,
 								onclick: (event, dom) => actionButtons[this.currentPlan() as AvailablePlans]().onclick(event, dom),
-								...(hasGlobalFirstYearDiscount && {
-									class: "go-european-button",
-									icon: m("img.block", {
-										src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
-										alt: "",
-										rel: "noreferrer",
-										loading: "lazy",
-										decoding: "async",
-										style: {
-											height: px(30),
-											width: px(30),
-										},
+								...(hasGlobalFirstYearDiscount &&
+									isPaidPlanSelected && {
+										class: "go-european-button",
+										icon: m("img.block", {
+											src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
+											alt: "",
+											rel: "noreferrer",
+											loading: "lazy",
+											decoding: "async",
+											style: {
+												height: px(30),
+												width: px(30),
+											},
+										}),
 									}),
-								}),
 							}),
 						),
 					),
