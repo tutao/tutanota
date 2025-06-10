@@ -26,7 +26,6 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
-import { px, size } from "../gui/size.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -137,15 +136,14 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	private renderHeadline() {
 		if (this.hasGlobalFirstYearDiscount) {
 			return m(
-				".",
+				".flex-center.items-center.gap-hpad.mb-l",
 				m(Icon, {
 					icon: BootIcons.Heart,
 					size: IconSize.XL,
-					class: "center-h",
 					container: "div",
-					style: { fill: theme.experimental_tertiary, "margin-top": px(size.vpad), "margin-bottom": px(size.vpad_xsm) },
+					style: { fill: theme.experimental_tertiary },
 				}),
-				m(".b.center.mb-l", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
+				m(".b.center", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
 			)
 		} else if (this.bonusMonthsForYearlyPlan > 0) {
 			return m(
