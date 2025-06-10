@@ -14,7 +14,6 @@ import { TranslationKeyType } from "../misc/TranslationKey.js"
 import { styles } from "../gui/styles.js"
 import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { goEuropeanBlue } from "../gui/builtinThemes.js"
 
 type AvailablePlan = PlanType.Revolutionary | PlanType.Legend
 
@@ -61,22 +60,9 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 			`.cursor-pointer.buyOptionBox-v2${isSelected ? ".selected" : ""}`,
 			{
 				style: {
-					"background-color": planBoxColors.getBgColor({ isSelected }),
-					color: planBoxColors.getTextColor({ isSelected, hasGlobalFirstYearDiscount }),
 					scale,
 					"z-index": isSelected ? "1" : "initial",
-					"min-height": px(270),
-					"border-style": "solid",
-					"border-color": planBoxColors.getOutlineColor({ isSelected }),
-					"border-width": isLegendPlan
-						? this.getLegendBorderWidth(isSelected, hasGlobalFirstYearDiscount)
-						: this.getRevoBorderWidth(isSelected, hasGlobalFirstYearDiscount),
-					"border-radius": isLegendPlan ? this.getLegendBorderRadius() : this.getRevoBorderRadius(),
-					"transform-origin": isLegendPlan ? "center right" : "center left",
-					...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
-					overflow: "hidden",
 				},
-				onclick: () => onclick?.(plan),
 			},
 			[
 				hasGlobalFirstYearDiscount &&
@@ -84,8 +70,13 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 						".full-width.pt-xs.pb-xs.text-center.b.smaller",
 						{
 							style: {
-								"background-color": goEuropeanBlue,
-								color: "#fff",
+								"background-color": theme.go_european,
+								color: theme.on_go_european,
+								...(!styles.isMobileLayout() && {
+									"border-radius": `${isLegendPlan ? "0" : px(size.border_radius_large)} ${
+										isLegendPlan ? px(size.border_radius_large) : "0"
+									} 0 0`,
+								}),
 							},
 						},
 						lang.get("pricing.saveAmount_label", { "{amount}": "50%" }),
@@ -94,8 +85,23 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 					"",
 					{
 						style: {
+							"background-color": planBoxColors.getBgColor({ isSelected }),
+							color: planBoxColors.getTextColor({ isSelected, hasGlobalFirstYearDiscount }),
+							"min-height": px(270),
+							"border-style": "solid",
+							"border-color": planBoxColors.getOutlineColor({ isSelected }),
+							"border-width": isLegendPlan
+								? this.getLegendBorderWidth(isSelected, hasGlobalFirstYearDiscount)
+								: this.getRevoBorderWidth(isSelected, hasGlobalFirstYearDiscount),
+							"border-radius": isLegendPlan
+								? this.getLegendBorderRadius(hasGlobalFirstYearDiscount)
+								: this.getRevoBorderRadius(hasGlobalFirstYearDiscount),
+							"transform-origin": isLegendPlan ? "center right" : "center left",
+							...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
+							overflow: "hidden",
 							padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
 						},
+						onclick: () => onclick?.(plan),
 					},
 					[
 						m(
@@ -244,43 +250,45 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 		}
 	}
 
-	private getLegendBorderWidth(isSelected: boolean, hasGlobalFirstYearDiscount: boolean) {
+	private getLegendBorderWidth(isSelected: boolean, hasBanner: boolean) {
 		if (isSelected) {
 			return "0"
 		}
 
+		const topBorderWidth = hasBanner ? "0" : "2px"
 		if (styles.isMobileLayout()) {
-			return `${hasGlobalFirstYearDiscount ? "0" : "2px"} 0 1px 1px`
+			return `${topBorderWidth} 0 1px 1px`
 		} else {
-			return "2px 2px 1px 1px"
+			return `${topBorderWidth} 2px 1px 1px`
 		}
 	}
 
-	private getLegendBorderRadius() {
+	private getLegendBorderRadius(hasBanner: boolean) {
 		if (styles.isMobileLayout()) {
 			return `0 0 0 0`
 		} else {
-			return `0 ${px(size.border_radius_large)} 0 0`
+			return `0 ${hasBanner ? "0" : px(size.border_radius_large)} 0 0`
 		}
 	}
 
-	private getRevoBorderWidth(isSelected: boolean, hasGlobalFirstYearDiscount: boolean) {
+	private getRevoBorderWidth(isSelected: boolean, hasBanner: boolean) {
 		if (isSelected) {
 			return "0"
 		}
 
+		const topBorderWidth = hasBanner ? "0" : "2px"
 		if (styles.isMobileLayout()) {
-			return `${hasGlobalFirstYearDiscount ? "0" : "2px"} 1px 1px 0`
+			return `${topBorderWidth} 1px 1px 0`
 		} else {
-			return "2px 1px 1px 2px"
+			return `${topBorderWidth} 1px 1px 2px`
 		}
 	}
 
-	private getRevoBorderRadius() {
+	private getRevoBorderRadius(hasBanner: boolean) {
 		if (styles.isMobileLayout()) {
 			return `0 0 0 0`
 		} else {
-			return `${px(size.border_radius_large)} 0 0 0`
+			return `${hasBanner ? "0" : px(size.border_radius_large)} 0 0 0`
 		}
 	}
 

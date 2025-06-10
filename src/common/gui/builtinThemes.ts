@@ -150,6 +150,8 @@ export const themes = (): Themes => {
 		highlight_bg: highlight,
 		highlight_fg: black,
 		outline_variant: grey_lighter_1,
+		go_european: goEuropeanBlue,
+		on_go_european: light_white,
 	})
 	const darkRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -194,6 +196,8 @@ export const themes = (): Themes => {
 		highlight_bg: highlight,
 		highlight_fg: black,
 		outline_variant: grey_darker_0,
+		go_european: light_blue,
+		on_go_european: dark_darker_0,
 	})
 	const lightBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -237,6 +241,8 @@ export const themes = (): Themes => {
 		highlight_bg: highlight,
 		highlight_fg: black,
 		outline_variant: grey_lighter_1,
+		go_european: goEuropeanBlue,
+		on_go_european: light_white,
 	})
 	const darkBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -281,6 +287,8 @@ export const themes = (): Themes => {
 		highlight_bg: highlight,
 		highlight_fg: black,
 		outline_variant: grey_darker_0,
+		go_european: light_blue,
+		on_go_european: dark_darker_0,
 	})
 
 	return {

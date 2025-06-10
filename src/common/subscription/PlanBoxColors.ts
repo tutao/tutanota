@@ -1,4 +1,4 @@
-import { getCurrentThemeName, Theme, theme } from "../gui/theme.js"
+import { getCurrentThemeName, getElevatedBackground, Theme, theme } from "../gui/theme.js"
 import { PlanType } from "../api/common/TutanotaConstants.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { themes } from "../gui/builtinThemes.js"
@@ -30,7 +30,7 @@ function getBgColor({ isSelected }: { isSelected: boolean }) {
 		if (isSelected) {
 			return "#D7C3B8"
 		} else {
-			return "#303030"
+			return getElevatedBackground()
 		}
 	}
 }
