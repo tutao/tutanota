@@ -271,7 +271,7 @@ class MailLocator implements CommonLocator {
 			conversationViewModelFactory,
 			this.mailOpenedListener,
 			deviceConfig,
-			this.inboxRuleHanlder(),
+			this.inboxRuleHandler(),
 			router,
 			await this.redraw(),
 		)
@@ -282,9 +282,9 @@ class MailLocator implements CommonLocator {
 		return new AffiliateViewModel()
 	})
 
-	inboxRuleHanlder(): InboxRuleHandler {
+	readonly inboxRuleHandler = lazyMemoized(() => {
 		return new InboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
-	}
+	})
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {
 		const { SearchViewModel } = await import("../mail-app/search/view/SearchViewModel.js")
@@ -800,7 +800,7 @@ class MailLocator implements CommonLocator {
 			this.logins,
 			this.mailFacade,
 			this.connectivityModel,
-			this.inboxRuleHanlder(),
+			this.inboxRuleHandler,
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
