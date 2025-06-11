@@ -2,11 +2,11 @@
 
 // it would be faster to just run from "../node_modules/.bin/tsc" because we wouldn't need to wait for the (sluggish) npm to start
 // but since we are imported from other places (like admin client) we don't have a luxury of knowing where our node_modules will end up.
-import { $, cd, glob, usePowerShell } from "zx"
+import { $, cd, glob, usePwsh } from "zx"
 import fs from "node:fs/promises"
 
 if (process.platform === "win32") {
-	usePowerShell()
+	usePwsh()
 }
 
 /**

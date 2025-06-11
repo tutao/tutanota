@@ -1,5 +1,5 @@
 import { Argument, program } from "commander"
-import { usePowerShell } from "zx"
+import { usePwsh } from "zx"
 import { rm } from "node:fs/promises"
 import { NapiCli } from "@napi-rs/cli"
 
@@ -19,7 +19,7 @@ function getTargets(platform) {
 	switch (platform) {
 		case "win":
 		case "win32":
-			usePowerShell()
+			usePwsh()
 			return ["x86_64-pc-windows-msvc"]
 		case "linux":
 			return ["x86_64-unknown-linux-gnu"]
