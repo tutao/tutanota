@@ -226,13 +226,11 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		const timeInterval = TIME_SCALE_BASE_VALUE / timeScale
 		const timeRangeStart = Time.fromDate(eventFocusBound).sub({ minutes: timeInterval })
 		const timeRangeStartEnd = Time.fromDate(eventFocusBound).add({ minutes: timeInterval })
-
 		const timeRange: TimeRange = {
 			start: timeRangeStart,
 			end: timeRangeStartEnd,
 		}
 
-		console.log({ agenda: this.agenda, events, timeScale, timeRange })
 		/* Event Banner */
 		return m(
 			".border-radius-m.border-nota.border-sm.grid",

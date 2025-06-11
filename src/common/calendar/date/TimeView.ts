@@ -71,20 +71,17 @@ export interface TimeViewAttributes {
 	baselineTimeForEventPositionCalculation: Time
 }
 
-interface AgendaData {
-	timeKeys: Array<string>
-	allEvents: Array<AgendaEventWrapper>
-}
-
 export class TimeView implements Component<TimeViewAttributes> {
+	/*
+	 * Must filter the array to get events using the same logic from conflict detection
+	 * But instead of event start and end we use range start end
+	 */
 	view({ attrs }: Vnode<TimeViewAttributes>) {
 		const { timeScale, timeRange, events, conflictRenderPolicy, baselineTimeForEventPositionCalculation } = attrs
-		const { timeKeys, allEvents } = this.organizeAgenda(timeScale, timeRange, events)
+		const timeColumnIntervals = this.createTimeColumnIntervals(timeScale, timeRange)
 
-		const subRowCount = 12 * timeKeys.length
+		const subRowCount = 12 * timeColumnIntervals.length
 		const subRowAsMinutes = 60 / timeScale / 12
-
-		console.log({ timeKeys, allEvents })
 
 		return m(
 			".grid.overflow-hidden", // mini-agenda
@@ -94,7 +91,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 				},
 			},
 			[
-				this.buildTimeColumn(timeKeys), // Time column
+				this.buildTimeColumn(timeColumnIntervals), // Time column
 				m(
 					".grid.pr-xs.pl-xs.gap.z1",
 					{
@@ -103,7 +100,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 						},
 					},
 					this.buildEventsColumns(
-						allEvents,
+						events,
 						timeRange,
 						subRowAsMinutes,
 						conflictRenderPolicy,
@@ -195,13 +192,10 @@ export class TimeView implements Component<TimeViewAttributes> {
 		// )
 	}
 
-	private organizeAgenda(timeScale: TimeScale, timeRange: TimeRange, events: Array<AgendaEventWrapper>): AgendaData {
+	private createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<string> {
 		let timeInterval = TIME_SCALE_BASE_VALUE / timeScale
 		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeInterval) / timeInterval
-		const agendaData: AgendaData = {
-			timeKeys: [],
-			allEvents: [],
-		}
+		const timeKeys = []
 
 		for (let i = 0; i < numberOfIntervals; i++) {
 			const agendaRowTime = clone(timeRange.start).add({ minutes: timeInterval * i })
@@ -209,18 +203,10 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 			const lowerBoundTime = clone(agendaRowTime)
 			const upperBound = agendaRowTime.add({ minutes: timeInterval })
-
-			const eventsAtCurrentInterval = events.filter(({ event }) => {
-				const baseDate = event.startTime
-				const lowerBound = lowerBoundTime.toDate(baseDate).getTime()
-				return event.startTime.getTime() >= lowerBound && event.startTime.getTime() < upperBound.toDate(baseDate).getTime()
-			})
-
-			agendaData.timeKeys.push(timeKey)
-			agendaData.allEvents.push(...eventsAtCurrentInterval)
+			timeKeys.push(timeKey)
 		}
 
-		return agendaData
+		return timeKeys
 	}
 
 	private buildTimeColumn = deepMemoized((times: Array<string>): Child => {
