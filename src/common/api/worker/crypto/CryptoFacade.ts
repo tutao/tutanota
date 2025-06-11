@@ -794,6 +794,7 @@ export class CryptoFacade {
 			untypedInstance,
 			instance.typeModel,
 			this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver),
+			env.networkDebugging,
 		)
 
 		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)

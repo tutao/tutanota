@@ -36,7 +36,6 @@ import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel.js"
 import { createPatch } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
-import { compressString } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 
 o.spec("EntityUtils", function () {
 	o("TimestampToHexGeneratedId ", function () {
@@ -159,6 +158,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([])
 		})
@@ -181,6 +181,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -208,6 +209,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -237,6 +239,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -269,6 +272,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -296,6 +300,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -331,6 +336,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -358,6 +364,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -413,6 +420,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -452,6 +460,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -479,6 +488,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -507,6 +517,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -554,6 +565,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
@@ -587,6 +599,7 @@ o.spec("EntityUtils", function () {
 				currentUntypedInstance,
 				testTypeModel,
 				dummyTypeReferenceResolver,
+				false,
 			)
 			o(objectDiff).deepEquals([
 				createPatch({
