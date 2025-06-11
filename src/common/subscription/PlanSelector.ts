@@ -3,8 +3,8 @@ import { lang } from "../misc/LanguageViewModel"
 import { PlanBox } from "./PlanBox.js"
 import { formatMonthlyPrice, formatPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { FeatureListProvider, ReplacementKey, SelectedSubscriptionOptions, UpgradePriceType } from "./FeatureListProvider"
-import { downcast, lazy } from "@tutao/tutanota-utils"
-import { AvailablePlanType, CustomDomainType, CustomDomainTypeCountName, Keys, NewBusinessPlans, PlanType, TabIndex } from "../api/common/TutanotaConstants.js"
+import { assertNotNull, downcast, lazy } from "@tutao/tutanota-utils"
+import { AvailablePlanType, CustomDomainType, CustomDomainTypeCountName, Keys, PaymentMethodType, PlanType, PlanTypeToName,NewBusinessPlans,  TabIndex } from "../api/common/TutanotaConstants.js"
 import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
@@ -18,12 +18,15 @@ import { boxShadow } from "../gui/main-styles.js"
 import { getPlanSelectorTest } from "./UpgradeSubscriptionWizard.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { AccountingInfo } from "../api/entities/sys/TypeRefs"
+import { isIOSApp } from "../api/common/Env"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
 	actionButtons: SubscriptionActionButtons
 	featureListProvider: FeatureListProvider
 	priceAndConfigProvider: PriceAndConfigProvider
+	accountingInfo: AccountingInfo | null
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -68,10 +71,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
-	view({ attrs: { options, priceAndConfigProvider, featureListProvider, actionButtons } }: Vnode<PlanSelectorAttr>): Children {
+	view({ attrs: { options, priceAndConfigProvider, featureListProvider, actionButtons, accountingInfo } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const isPaidPlanSelected = this.currentPlan() === PlanType.Revolutionary || this.currentPlan() === PlanType.Legend
+		const shouldShowApplePrices = this.shouldShowApplePrices(downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod))
 
 		const renderFootnoteElement = (): Children => {
 			const revoReferencePrice = formatPrice(
@@ -191,11 +195,17 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 								},
 							},
 							[PlanType.Revolutionary, PlanType.Legend].map((personalPlan: PlanType.Legend | PlanType.Revolutionary) => {
-								const { referencePriceStr, priceStr } = this.getPriceStr({
+								const getPriceStrProps = {
 									priceAndConfigProvider,
 									targetPlan: personalPlan,
 									paymentInterval: options.paymentInterval(),
-								})
+								}
+								const { referencePriceStr, priceStr } = shouldShowApplePrices
+									? this.getApplePriceStr(getPriceStrProps)
+									: this.getPriceStr(getPriceStrProps)
+								const hasCampaign = shouldShowApplePrices
+									? priceAndConfigProvider.getIosIntroOfferEligibility()
+									: priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 
 								return m(PlanBox, {
 									price: priceStr,
@@ -207,6 +217,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									scale: this.scale[personalPlan],
 									selectedPaymentInterval: options.paymentInterval,
 									priceAndConfigProvider,
+									hasCampaign,
+									isApplePrice: shouldShowApplePrices,
 								})
 							}),
 						),
@@ -253,6 +265,10 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		)
 	}
 
+	private shouldShowApplePrices(paymentMethod?: PaymentMethodType): boolean {
+		return isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
+	}
+
 	private getPriceStr({
 		priceAndConfigProvider,
 		targetPlan,
@@ -263,7 +279,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		targetPlan: PlanType.Legend | PlanType.Revolutionary
 	}) {
 		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(paymentInterval, targetPlan, UpgradePriceType.PlanActualPrice)
-
 		let priceStr: string
 		let referencePriceStr: string | undefined = undefined
 		const referencePrice = priceAndConfigProvider.getSubscriptionPrice(paymentInterval, targetPlan, UpgradePriceType.PlanReferencePrice)
@@ -277,6 +292,29 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			referencePriceStr = formatMonthlyPrice(monthlyReferencePrice, PaymentInterval.Monthly)
 		}
 
+		return { priceStr, referencePriceStr }
+	}
+
+	private getApplePriceStr({
+		priceAndConfigProvider,
+		targetPlan,
+		paymentInterval,
+	}: {
+		priceAndConfigProvider: PriceAndConfigProvider
+		paymentInterval: PaymentInterval
+		targetPlan: PlanType.Legend | PlanType.Revolutionary
+	}) {
+		const { displayYearlyPerYear, displayMonthlyPerMonth, displayOfferYearlyPerYear } = assertNotNull(
+			priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase()),
+		)
+		let priceStr: string
+		let referencePriceStr: string | undefined = undefined
+		if (paymentInterval === PaymentInterval.Yearly) {
+			priceStr = displayOfferYearlyPerYear ?? displayYearlyPerYear
+			referencePriceStr = !!displayOfferYearlyPerYear ? displayYearlyPerYear : undefined
+		} else {
+			priceStr = displayMonthlyPerMonth
+		}
 		return { priceStr, referencePriceStr }
 	}
 

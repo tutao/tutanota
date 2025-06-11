@@ -30,6 +30,8 @@ type PlanBoxAttrs = {
 	features: ReturnType<FeatureListProvider["getFeatureList"]>
 	priceAndConfigProvider: PriceAndConfigProvider
 	scale: CSSStyleDeclaration["scale"]
+	hasCampaign: boolean
+	isApplePrice: boolean
 }
 
 export class PlanBox implements Component<PlanBoxAttrs> {
@@ -47,14 +49,15 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 		m.redraw()
 	}
 
-	view({ attrs: { plan, isSelected, onclick, priceAndConfigProvider, price, referencePrice, selectedPaymentInterval, scale } }: Vnode<PlanBoxAttrs>) {
+	view({
+		attrs: { plan, isSelected, onclick, priceAndConfigProvider, price, referencePrice, selectedPaymentInterval, scale, hasCampaign, isApplePrice },
+	}: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
-		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const strikethroughPrice = isYearly ? referencePrice : undefined
 		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected)
 		// Only for Go European campaign, this should be removed after the campaign.
-		const localTheme = hasGlobalFirstYearDiscount ? getBlueTheme() : theme
+		const localTheme = hasCampaign ? getBlueTheme() : theme
 
 		return m(
 			`.cursor-pointer.buyOptionBox-v2${isSelected ? ".selected" : ""}`,
@@ -65,7 +68,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 				},
 			},
 			[
-				hasGlobalFirstYearDiscount &&
+				hasCampaign &&
 					m(
 						".full-width.pt-xs.pb-xs.text-center.b.smaller",
 						{
@@ -86,17 +89,15 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 					{
 						style: {
 							"background-color": planBoxColors.getBgColor({ isSelected }),
-							color: planBoxColors.getTextColor({ isSelected, hasGlobalFirstYearDiscount }),
+							color: planBoxColors.getTextColor({ isSelected, hasGlobalFirstYearDiscount: hasCampaign }),
 							"min-height": px(270),
 							height: "100%",
 							"border-style": "solid",
 							"border-color": planBoxColors.getOutlineColor({ isSelected }),
 							"border-width": isLegendPlan
-								? this.getLegendBorderWidth(isSelected, hasGlobalFirstYearDiscount)
-								: this.getRevoBorderWidth(isSelected, hasGlobalFirstYearDiscount),
-							"border-radius": isLegendPlan
-								? this.getLegendBorderRadius(hasGlobalFirstYearDiscount)
-								: this.getRevoBorderRadius(hasGlobalFirstYearDiscount),
+								? this.getLegendBorderWidth(isSelected, hasCampaign)
+								: this.getRevoBorderWidth(isSelected, hasCampaign),
+							"border-radius": isLegendPlan ? this.getLegendBorderRadius(hasCampaign) : this.getRevoBorderRadius(hasCampaign),
 							"transform-origin": isLegendPlan ? "center right" : "center left",
 							...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
 							overflow: "hidden",
@@ -180,6 +181,8 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 												gap: px(3),
 												"align-items": "end",
 												"flex-direction": isLegendPlan ? "row-reverse" : "row",
+												"flex-wrap": "wrap",
+												"justify-content": isLegendPlan ? "start" : "end",
 											},
 										},
 										strikethroughPrice?.trim() !== ""
@@ -199,6 +202,8 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 											{
 												style: {
 													"line-height": "100%",
+													"font-size": px(20),
+													"font-weight": "bold",
 												},
 											},
 											price,
@@ -208,7 +213,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 										".small.flex",
 										{ style: { "justify-content": "center", "column-gap": px(1) } },
 										m("span", lang.get("pricing.perMonth_label")),
-										hasGlobalFirstYearDiscount && m("sup", { style: { "font-size": px(8) } }, "1"),
+										hasCampaign && m("sup", { style: { "font-size": px(8) } }, "1"),
 									),
 								),
 							],

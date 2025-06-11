@@ -129,6 +129,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				actionButtons: subscriptionActionButtons,
 				featureListProvider: vnode.attrs.data.featureListProvider,
 				priceAndConfigProvider: vnode.attrs.data.planPrices,
+				accountingInfo: vnode.attrs.data.accountingInfo,
 			}),
 		])
 	}
