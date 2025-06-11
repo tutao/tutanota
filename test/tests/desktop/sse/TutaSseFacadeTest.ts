@@ -31,6 +31,7 @@ import {
 	mockFetchRequest,
 	removeAggregateIds,
 	removeFinalIvs,
+	removeOriginals,
 } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
@@ -216,6 +217,7 @@ o.spec("TutaSseFacade", () => {
 					sseInfo,
 					matchers.argThat((actualNotificationInfo) => {
 						actualNotificationInfo.mailId._id = null
+						removeOriginals(actualNotificationInfo)
 						return deepEqual(actualNotificationInfo, notificationInfo)
 					}),
 				),
@@ -224,6 +226,7 @@ o.spec("TutaSseFacade", () => {
 				alarmScheduler.handleCreateAlarm(
 					matchers.argThat((actualAlarmNotification) => {
 						removeAggregateIds(actualAlarmNotification, true)
+						removeOriginals(actualAlarmNotification)
 						return deepEqual(removeFinalIvs(actualAlarmNotification), removeFinalIvs(alarmNotification))
 					}),
 				),

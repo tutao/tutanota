@@ -49,7 +49,7 @@ import {
 	RecipientsTypeRef,
 	SupportDataTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { type Entity, TypeModel } from "../../../../../src/common/api/common/EntityTypes"
 import { PersistenceResourcePostReturnTypeRef } from "../../../../../src/common/api/entities/base/TypeRefs"
@@ -197,6 +197,7 @@ o.spec("EntityRestClient", function () {
 			const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sk)
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(instanceWithDebuggingInfo))
 			const loadResult = await entityRestClient.load(expectedInstance._type, id1)
+			removeOriginals(loadResult)
 			o(expectedInstance as any).deepEquals(loadResult)
 		})
 
@@ -222,6 +223,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify(untypedCalendarInstance))
 
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1])
+			removeOriginals(result)
 			o(result as any).deepEquals(calendar)
 		})
 
@@ -245,7 +247,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify(untypedAccountingInfo))
 
 			const result = await entityRestClient.load(AccountingInfoTypeRef, id1)
-
+			removeOriginals(result)
 			o(result as any).deepEquals(accountingInfo)
 		})
 
@@ -281,6 +283,7 @@ o.spec("EntityRestClient", function () {
 			const calendaroWithDebug = await instancePipeline.mapAndEncrypt(calendar._type, calendar, sk)
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify(calendaroWithDebug))
 			const resultWithDebug = await entityRestClient.load(calendar._type, [calendarListId, id1])
+			removeOriginals(resultWithDebug)
 			o(resultWithDebug as any).deepEquals(calendar)
 		})
 
@@ -317,7 +320,7 @@ o.spec("EntityRestClient", function () {
 			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], {
 				ownerKeyProvider: async (_: KeyVersion) => ownerGroupKey.object,
 			})
-
+			removeOriginals(result)
 			o(result as any).deepEquals(calendar)
 		})
 	})
@@ -356,7 +359,7 @@ o.spec("EntityRestClient", function () {
 
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedCalWithDebug1, untypedCalWithDebug2]))
 			const loadRangeResult = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
-
+			loadRangeResult.map(removeOriginals)
 			o(expectedLoadRangeResult as any).deepEquals(loadRangeResult)
 		})
 
@@ -395,6 +398,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([untypedCal1, untypedCal2]))
 
 			const result = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
+			result.map(removeOriginals)
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
 			o(result as any).deepEquals([calendar1, calendar2])
@@ -431,7 +435,7 @@ o.spec("EntityRestClient", function () {
 			)
 
 			const loadMultipleResult = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
-
+			loadMultipleResult.map(removeOriginals)
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
 			o(expectedLoadMultipleResult as any).deepEquals(loadMultipleResult)
@@ -460,7 +464,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([untypedSupportData1, untypedSupportData2]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
-
+			result.map(removeOriginals)
 			// There's some weird optimization for list requests where the types to migrate
 			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
 			o(result as any).deepEquals([supportData1, supportData2])
@@ -492,7 +496,7 @@ o.spec("EntityRestClient", function () {
 				}),
 				{ times: 1 },
 			)
-
+			result.map(removeOriginals)
 			o(result as any).deepEquals([supportData1, supportData2])
 		})
 
@@ -531,7 +535,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([untypedSupportData2]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
-
+			result.map(removeOriginals)
 			o(result as any).deepEquals([supportData1, supportData2])
 		})
 
@@ -590,7 +594,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([untypedSupportData3]))
 
 			const result = await entityRestClient.loadMultiple(SupportDataTypeRef, null, ids)
-
+			result.map(removeOriginals)
 			o(result as any).deepEquals([supportData1, supportData2, supportData3])
 		})
 
@@ -648,7 +652,7 @@ o.spec("EntityRestClient", function () {
 			when(restClient.request(anything(), HttpMethod.GET, anything())).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
-
+			result.map(removeOriginals)
 			let expectedOptions = {
 				headers: {},
 				queryParams: { ids: "0,1,2,3,4", ...authHeader, blobAccessToken, v: String(tutanotaModelInfo.version) },
@@ -759,7 +763,7 @@ o.spec("EntityRestClient", function () {
 			).thenResolve(JSON.stringify([untypedBlob1, untypedBlob2]))
 
 			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
-
+			result.map(removeOriginals)
 			verify(restClient.request(`${await typeRefToRestPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, anything()), { times: 2 })
 
 			// There's some weird optimization for list requests where the types to migrate

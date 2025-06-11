@@ -282,11 +282,29 @@ The last expected item is ${JSON.stringify(expectedArray.at(-1))} but got ${JSON
 
 export function removeFinalIvs(instance: Entity): Entity {
 	delete instance["_finalIvs"]
+	delete instance["_original"]
 	const keys = Object.keys(instance)
 	for (const key of keys) {
 		const maybeAggregate = instance[key]
 		if (maybeAggregate instanceof Object) {
 			removeFinalIvs(maybeAggregate)
+		}
+	}
+	return instance
+}
+
+export function removeOriginals(instance: Entity | null): Entity | null {
+	if (instance === null) {
+		return null
+	}
+	if (instance["_original"]) {
+		delete instance["_original"]
+	}
+	const keys = Object.keys(instance)
+	for (const key of keys) {
+		const maybeAggregate = instance[key]
+		if (maybeAggregate instanceof Object) {
+			removeOriginals(maybeAggregate)
 		}
 	}
 	return instance
