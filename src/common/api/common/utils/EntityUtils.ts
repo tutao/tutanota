@@ -342,8 +342,9 @@ export async function computePatchPayload(
 	currentUntypedInstance: ClientModelUntypedInstance,
 	typeModel: TypeModel,
 	typeReferenceResolver: ClientTypeReferenceResolver,
+	isNetworkDebuggingEnabled: boolean,
 ): Promise<PatchList> {
-	const patches = await computePatches(originalInstance, currentInstance, currentUntypedInstance, typeModel, typeReferenceResolver)
+	const patches = await computePatches(originalInstance, currentInstance, currentUntypedInstance, typeModel, typeReferenceResolver, isNetworkDebuggingEnabled)
 	return createPatchList({ patches: patches })
 }
 
@@ -354,17 +355,22 @@ export async function computePatches(
 	modifiedUntypedInstance: ClientModelUntypedInstance,
 	typeModel: TypeModel,
 	typeReferenceResolver: ClientTypeReferenceResolver,
+	isNetworkDebuggingEnabled: boolean,
 ): Promise<Patch[]> {
-	modifiedUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(modifiedUntypedInstance)
 	let patches: Patch[] = []
 	for (const [valueIdStr, modelValue] of Object.entries(typeModel.values)) {
 		if (modelValue.final && !(modelValue.name == "_ownerEncSessionKey" || modelValue.name == "_ownerKeyVersion")) {
 			continue
 		}
 		const attributeId = parseInt(valueIdStr)
+		let attributeIdStr = valueIdStr
+		if (env.networkDebugging) {
+			// keys are in the format attributeId:attributeName when networkDebugging is enabled
+			attributeIdStr += ":" + modelValue.name
+		}
 		let originalParsedValue = originalInstance[attributeId] as Nullable<ParsedValue>
 		let modifiedParsedValue = modifiedInstance[attributeId] as Nullable<ParsedValue>
-		let modifiedUntypedValue = modifiedUntypedInstance[attributeId] as UntypedValue
+		let modifiedUntypedValue = modifiedUntypedInstance[attributeIdStr] as UntypedValue
 		if (areValuesDifferent(modelValue.type, originalParsedValue, modifiedParsedValue)) {
 			let value: string | null = null
 			if (modifiedUntypedValue !== null) {
@@ -372,7 +378,7 @@ export async function computePatches(
 			}
 			patches.push(
 				createPatch({
-					attributePath: valueIdStr,
+					attributePath: attributeIdStr,
 					value: value,
 					patchOperation: PatchOperationType.REPLACE,
 				}),
@@ -385,18 +391,28 @@ export async function computePatches(
 			continue
 		}
 		const attributeId = parseInt(associationIdStr)
+		let attributeIdStr = associationIdStr
+		if (env.networkDebugging) {
+			// keys are in the format attributeId:attributeName when networkDebugging is enabled
+			attributeIdStr += ":" + modelAssociation.name
+		}
 		if (modelAssociation.type == AssociationType.Aggregation) {
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const typeId = modelAssociation.refTypeId
 			const aggregateTypeModel = await typeReferenceResolver(new TypeRef(appName, typeId))
 			const originalAggregatedEntities = (originalInstance[attributeId] ?? []) as Array<ClientModelParsedInstance>
 			const modifiedAggregatedEntities = (modifiedInstance[attributeId] ?? []) as Array<ClientModelParsedInstance>
-			const modifiedAggregatedUntypedEntities = (modifiedUntypedInstance[attributeId] ?? []) as Array<ClientModelUntypedInstance>
+			const modifiedAggregatedUntypedEntities = (modifiedUntypedInstance[attributeIdStr] ?? []) as Array<ClientModelUntypedInstance>
 			const addedItems = modifiedAggregatedUntypedEntities.filter(
 				(element) =>
 					!originalAggregatedEntities.some((item) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
-						return isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeId] as Id)
+						let aggregateIdAttributeIdStr = aggregateIdAttributeId.toString()
+						if (env.networkDebugging) {
+							// keys are in the format attributeId:attributeName when networkDebugging is enabled
+							aggregateIdAttributeIdStr += ":" + "_id"
+						}
+						return isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeIdStr] as Id)
 					}),
 			)
 
@@ -433,16 +449,22 @@ export async function computePatches(
 				const commonItemModifiedUntyped = assertNotNull(
 					modifiedAggregatedUntypedEntities.find((instance) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
-						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
+						let aggregateIdAttributeIdStr = aggregateIdAttributeId.toString()
+						if (env.networkDebugging) {
+							// keys are in the format attributeId:attributeName when networkDebugging is enabled
+							aggregateIdAttributeIdStr += ":" + "_id"
+						}
+						return isSameId(instance[aggregateIdAttributeIdStr] as Id, commonAggregateId)
 					}),
 				)
-				const fullPath = `${attributeId}/${commonAggregateId}/`
+				const fullPath = `${attributeIdStr}/${commonAggregateId}/`
 				const items = await computePatches(
 					commonItemOriginal,
 					commonItemModified,
 					commonItemModifiedUntyped,
 					aggregateTypeModel,
 					typeReferenceResolver,
+					isNetworkDebuggingEnabled,
 				)
 				items.map((item) => {
 					item.attributePath = fullPath + item.attributePath
@@ -456,7 +478,7 @@ export async function computePatches(
 					)
 					patches.push(
 						createPatch({
-							attributePath: attributeId.toString(),
+							attributePath: attributeIdStr,
 							value: JSON.stringify(removedAggregateIds),
 							patchOperation: PatchOperationType.REMOVE_ITEM,
 						}),
@@ -475,7 +497,7 @@ export async function computePatches(
 				// ZeroOrOne with original aggregation on server is []
 				patches.push(
 					createPatch({
-						attributePath: attributeId.toString(),
+						attributePath: attributeIdStr,
 						value: JSON.stringify(modifiedAggregatedUntypedEntities),
 						patchOperation: PatchOperationType.ADD_ITEM,
 					}),
@@ -507,10 +529,19 @@ export async function computePatches(
 			// Only Any associations support ADD_ITEM and REMOVE_ITEM operations
 			// All cardinalities support REPLACE operation
 			if (modelAssociation.cardinality == Cardinality.Any) {
+				if (addedItems.length > 0) {
+					patches.push(
+						createPatch({
+							attributePath: attributeIdStr,
+							value: JSON.stringify(addedItems),
+							patchOperation: PatchOperationType.ADD_ITEM,
+						}),
+					)
+				}
 				if (removedItems.length > 0) {
 					patches.push(
 						createPatch({
-							attributePath: attributeId.toString(),
+							attributePath: attributeIdStr,
 							value: JSON.stringify(removedItems),
 							patchOperation: PatchOperationType.REMOVE_ITEM,
 						}),
@@ -528,7 +559,7 @@ export async function computePatches(
 			} else if (!deepEqual(originalAssociationValue, modifiedAssociationValue)) {
 				patches.push(
 					createPatch({
-						attributePath: attributeId.toString(),
+						attributePath: attributeIdStr,
 						value: JSON.stringify(modifiedAssociationValue),
 						patchOperation: PatchOperationType.REPLACE,
 					}),
