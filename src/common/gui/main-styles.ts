@@ -533,6 +533,9 @@ styles.registerStyle("main", () => {
 		".pr": {
 			"padding-right": px(size.hpad),
 		},
+		".pr-xs": {
+			"padding-right": px(size.vpad_xs),
+		},
 		".pr-s": {
 			"padding-right": px(size.hpad_small),
 		},
@@ -568,6 +571,10 @@ styles.registerStyle("main", () => {
 		".plr-2l": {
 			"padding-left": px(size.hpad_large * 2),
 			"padding-right": px(size.hpad_large * 2),
+		},
+		".ptb-button-double": {
+			"padding-top": px(size.hpad_button * 2),
+			"padding-bottom": px(size.hpad_button * 2),
 		},
 		".pl-l": {
 			"padding-left": px(size.hpad_large),
@@ -664,6 +671,9 @@ styles.registerStyle("main", () => {
 			"min-width": 0,
 			"white-space": "nowrap",
 		},
+		".min-width-l": {
+			"min-width": px(size.icon_segment_control_button_width),
+		},
 		".min-width-0": {
 			"min-width": 0,
 		},
@@ -730,9 +740,21 @@ styles.registerStyle("main", () => {
 		".will-change-alpha": {
 			"will-change": "alpha",
 		},
+		".after-as-border-bottom:after": {
+			// Hacky solution to create a border that extends the whole parent
+			content: "''",
+			width: "100vw",
+			height: "1px",
+			background: theme.content_border,
+			position: "absolute",
+			bottom: "-1px",
+		},
 		// borders
 		".border-bottom": {
 			"border-bottom": `1px solid ${theme.content_border}`,
+		},
+		".border-right": {
+			"border-right": `1px solid ${theme.content_border}`,
 		},
 		".border-left": {
 			"border-left": `1px solid ${theme.content_border}`,
@@ -1072,6 +1094,9 @@ styles.registerStyle("main", () => {
 		},
 		".fill-grid-column": {
 			"grid-row": "1 / -1",
+		},
+		".gap": {
+			gap: px(size.vpad_unit),
 		},
 		".gap-vpad": {
 			gap: px(size.vpad),

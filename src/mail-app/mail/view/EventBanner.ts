@@ -11,17 +11,26 @@ import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import stream from "mithril/stream"
-import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
+import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { isSameExternalEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { styles } from "../../../common/gui/styles.js"
-import { formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
-import { Icons } from "../../../common/gui/base/icons/Icons.js"
+import { formatEventTimes, generateRandomColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { Icons, IconsSvg } from "../../../common/gui/base/icons/Icons.js"
 import { BannerButton } from "../../../common/gui/base/buttons/BannerButton.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { DateTime } from "../../../../libs/luxon.js"
-import { EventConflictRenderPolicy, InviteAgenda, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../common/calendar/date/TimeView.js"
+import {
+	EventConflictRenderPolicy,
+	InviteAgenda,
+	TIME_SCALE_BASE_VALUE,
+	TimeRange,
+	TimeScale,
+	TimeScaleTuple,
+	TimeView,
+	TimeViewAttributes,
+} from "../../../common/calendar/date/TimeView.js"
 import { Time } from "../../../common/calendar/date/Time"
 
 export type EventBannerAttrs = {
@@ -171,21 +180,22 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			.filter(isNotNull)
 
 		return [
-			// m( // FIXME Remove icons debug
-			// 	".flex.flex-wrap",
-			// 	Object.entries(IconsSvg).map(([name, svg]) => {
-			// 		return m(".flex.flex-column.plr", [
-			// 			m(Icon, {
-			// 				icon: name as AllIcons,
-			// 				container: "div",
-			// 				class: "mr-xsm mt-xxs",
-			// 				style: { fill: theme.content_button },
-			// 				size: IconSize.Medium,
-			// 			}),
-			// 			m("span.small", name),
-			// 		])
-			// 	}),
-			// ),
+			m(
+				// FIXME Remove icons debug
+				".flex.flex-wrap",
+				Object.entries(IconsSvg).map(([name, svg]) => {
+					return m(".flex.flex-column.plr", [
+						m(Icon, {
+							icon: name as AllIcons,
+							container: "div",
+							class: "mr-xsm mt-xxs",
+							style: { fill: theme.content_button },
+							size: IconSize.Medium,
+						}),
+						m("span.small", name),
+					])
+				}),
+			),
 			messages.map(({ event, message }) => {
 				return this.buildEventBanner(event, this.agenda.get(event.uid ?? "") ?? null, message)
 			}),
@@ -196,13 +206,27 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		const hasConflict = agenda && (agenda.before?.conflict || agenda.after?.conflict)
 		const events = filterNull([agenda?.before, agenda?.current, agenda?.after])
 
-		// const shortestEventDuration = events.reduce() // FIXME calculate shortest event duration
-		// const timeScale = getTimeScaleAccordingToEventDuration(shortestEventDuration) // FIXME implement
-		const timeScale: TimeScale = 2 // FIXME Remove, using for development
+		const shortestEventDuration = events.reduce((shortestEventDuration, currentEventWrapper) => {
+			const startTime = Time.fromDate(currentEventWrapper.event.startTime)
+			const endTime = Time.fromDate(currentEventWrapper.event.endTime)
+			const duration = startTime.diff(endTime)
+			if (shortestEventDuration === -1) {
+				return duration
+			}
+			return duration < shortestEventDuration ? duration : shortestEventDuration
+		}, -1)
+		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestEventDuration)
 
-		const currentEventStartTime = agenda?.current.event?.startTime.getHours()!
-		const timeRangeStart = new Time(currentEventStartTime, 0).sub({ minutes: 60 / timeScale })
-		const timeRangeStartEnd = new Time(currentEventStartTime, 0).add({ minutes: 60 / timeScale })
+		let eventFocusBound = agenda?.current.event?.startTime!
+		if (agenda?.before?.conflict) {
+			eventFocusBound = agenda?.current.event?.startTime!
+		} else if (agenda?.after?.conflict) {
+			eventFocusBound = agenda?.after?.event.startTime!
+		}
+		const timeInterval = TIME_SCALE_BASE_VALUE / timeScale
+		const timeRangeStart = Time.fromDate(eventFocusBound).sub({ minutes: timeInterval })
+		const timeRangeStartEnd = Time.fromDate(eventFocusBound).add({ minutes: timeInterval })
+
 		const timeRange: TimeRange = {
 			start: timeRangeStart,
 			end: timeRangeStartEnd,
@@ -261,7 +285,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 					},
 					[
-						m(".flex.flex-column", [
+						m(".flex.flex-column.mb-s", [
 							m(".flex", [
 								m(Icon, {
 									icon: Icons.Time,
@@ -289,12 +313,31 @@ export class EventBanner implements Component<EventBannerAttrs> {
 									timeScale,
 									timeRange,
 									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+									baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
 							  } satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
 				),
 			],
 		)
+	}
+
+	/**
+	 * @param eventDuration - Duration in minutes
+	 * @private
+	 */
+	private getTimeScaleAccordingToEventDuration(eventDuration: number): TimeScale {
+		const scalesInMinutes: Array<TimeScaleTuple> = [
+			[1, TIME_SCALE_BASE_VALUE],
+			[2, TIME_SCALE_BASE_VALUE / 2],
+			[4, TIME_SCALE_BASE_VALUE / 4],
+		]
+		const entry = scalesInMinutes.reduce((smallestScale, currentScale) => {
+			const [scale, scaleInMinutes] = currentScale
+			if (eventDuration <= scaleInMinutes) return currentScale
+			return smallestScale
+		}, scalesInMinutes[0])
+		return (entry ? entry[0] : 1) as TimeScale
 	}
 
 	private getMessage(event: CalendarEvent, mail: Mail, recipient: string, method: CalendarMethod): Children {
@@ -413,7 +456,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			let eventList: InviteAgenda = {
 				before: null,
 				after: null,
-				current: { event: event, conflict: false },
+				current: { event: event, conflict: false, color: "#39D9C166", featured: true },
 				conflictCount: conflictingEvents.length,
 			}
 
@@ -426,12 +469,19 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					)
 
 				if (eventBefore) {
-					eventList.before = { event: eventBefore, conflict: false }
+					eventList.before = {
+						event: eventBefore,
+						conflict: false,
+						color: generateRandomColor(),
+						featured: false,
+					} // FIXME Colors
 				}
 			} else {
 				eventList.before = {
 					event: closestConflictingEventBeforeStartTime,
 					conflict: true,
+					color: generateRandomColor(), // FIXME Colors
+					featured: false,
 				}
 			}
 
@@ -444,16 +494,29 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					)
 
 				if (eventAfter) {
-					eventList.after = { event: eventAfter, conflict: false }
+					eventList.after = {
+						event: eventAfter,
+						conflict: false,
+						color: generateRandomColor(),
+						featured: false,
+					} // FIXME Colors
 				}
 			} else {
 				const time = getHourOfDay(
 					closestConflictingEventAfterStartTime.startTime ?? new Date(),
 					closestConflictingEventAfterStartTime.startTime.getHours() ?? 0,
 				).getTime()
-				eventList.after = { event: closestConflictingEventAfterStartTime, conflict: true }
+				eventList.after = {
+					event: closestConflictingEventAfterStartTime,
+					conflict: true,
+					color: generateRandomColor(),
+					featured: false,
+				} // FIXME Colors
 			}
 
+			if (eventList.after?.conflict || eventList.before?.conflict) {
+				eventList.current.color = "#FFCB007F" // FIXME Colors
+			}
 			eventToAgenda.set(event.uid ?? "", eventList)
 		}
 

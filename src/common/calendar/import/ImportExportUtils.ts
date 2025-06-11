@@ -228,9 +228,9 @@ export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
 
 export type StrippedRepeatRule = Stripped<
 	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
-	excludedDates: Stripped<DateWrapper>[]
-	advancedRules: Stripped<AdvancedRepeatRule>[]
-}
+		excludedDates: Stripped<DateWrapper>[]
+		advancedRules: Stripped<AdvancedRepeatRule>[]
+	}
 >
 
 export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
@@ -245,14 +245,14 @@ export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null):
 		timeZone: repeatRule.timeZone ?? "",
 		excludedDates: repeatRule.excludedDates
 			? repeatRule.excludedDates.map((ex) => ({
-				date: ex.date,
-			}))
+					date: ex.date,
+			  }))
 			: [],
 		advancedRules: repeatRule.advancedRules
 			? repeatRule.advancedRules.map((rule) => ({
-				ruleType: rule.ruleType,
-				interval: rule.interval,
-			}))
+					ruleType: rule.ruleType,
+					interval: rule.interval,
+			  }))
 			: [],
 	}
 }
