@@ -40,45 +40,45 @@ styles.registerStyle("main", () => {
 	return {
 		"#link-tt": isElectronClient()
 			? {
-					"pointer-events": "none",
-					"font-size": px(size.font_size_small),
-					"padding-left": px(size.hpad_small),
-					"padding-right": px(size.hpad_small),
-					"padding-top": px(size.vpad_xs),
-					position: "fixed",
-					bottom: px(size.vpad_xs),
-					left: px(size.vpad_xs),
-					"text-align": "center",
-					color: theme.content_bg,
-					"text-decoration": "none",
-					"background-color": theme.content_fg,
-					border: "1px solid " + theme.content_bg,
-					opacity: 0,
-					transition: "opacity .1s linear",
-					"font-family": "monospace",
-			  }
+				"pointer-events": "none",
+				"font-size": px(size.font_size_small),
+				"padding-left": px(size.hpad_small),
+				"padding-right": px(size.hpad_small),
+				"padding-top": px(size.vpad_xs),
+				position: "fixed",
+				bottom: px(size.vpad_xs),
+				left: px(size.vpad_xs),
+				"text-align": "center",
+				color: theme.content_bg,
+				"text-decoration": "none",
+				"background-color": theme.content_fg,
+				border: "1px solid " + theme.content_bg,
+				opacity: 0,
+				transition: "opacity .1s linear",
+				"font-family": "monospace",
+			}
 			: {},
 		"#link-tt.reveal": isElectronClient()
 			? {
-					opacity: 1,
-					transition: "opacity .1s linear",
-					"z-index": 9999,
-			  }
+				opacity: 1,
+				transition: "opacity .1s linear",
+				"z-index": 9999,
+			}
 			: {},
 		"*:not(input):not(textarea)": isAdminClient()
 			? {}
 			: {
-					"user-select": "none",
+				"user-select": "none",
 
-					/* disable selection/Copy for UI elements*/
-					"-ms-user-select": "none",
-					"-webkit-user-select": "none",
-					"-moz-user-select": "none",
-					"-webkit-touch-callout": "none",
+				/* disable selection/Copy for UI elements*/
+				"-ms-user-select": "none",
+				"-webkit-user-select": "none",
+				"-moz-user-select": "none",
+				"-webkit-touch-callout": "none",
 
-					/* disable the IOS popup when long-press on a link */
-					"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
-			  },
+				/* disable the IOS popup when long-press on a link */
+				"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
+			},
 		"*:not(input):not(textarea):not([draggable='true'])": {
 			"-webkit-user-drag": "none",
 		},
@@ -242,6 +242,9 @@ styles.registerStyle("main", () => {
 		".border-nota": {
 			"border-color": theme.tuta_color_nota,
 		},
+		".border-accent": {
+			"border-color": theme.content_accent,
+		},
 		".border-sm": {
 			"border-style": "solid",
 			"border-width": "2px",
@@ -382,6 +385,9 @@ styles.registerStyle("main", () => {
 		".ml-xsm": {
 			"margin-left": px(size.vpad_xsm),
 		},
+		".mr-xxs": {
+			"margin-right": px(size.vpad_xxs)
+		},
 		".mr-xsm": {
 			"margin-right": px(size.vpad_xsm),
 		},
@@ -504,6 +510,9 @@ styles.registerStyle("main", () => {
 		".pb-hpad-button": {
 			"padding-bottom": px(size.hpad_button),
 		},
+		".p-xsm": {
+			"padding": px(size.vpad_xsm),
+		},
 		// allow scrolling across the floating button
 		".plr": {
 			"padding-left": px(size.hpad),
@@ -532,6 +541,13 @@ styles.registerStyle("main", () => {
 		},
 		".pr": {
 			"padding-right": px(size.hpad),
+		},
+		".plr-unit": {
+			"padding-right": px(size.vpad_unit),
+			"padding-left": px(size.vpad_unit)
+		},
+		".pr-xs": {
+			"padding-right": px(size.vpad_xs),
 		},
 		".pr-s": {
 			"padding-right": px(size.hpad_small),
@@ -568,6 +584,10 @@ styles.registerStyle("main", () => {
 		".plr-2l": {
 			"padding-left": px(size.hpad_large * 2),
 			"padding-right": px(size.hpad_large * 2),
+		},
+		".ptb-button-double": {
+			"padding-top": px(size.hpad_button * 2),
+			"padding-bottom": px(size.hpad_button * 2),
 		},
 		".pl-l": {
 			"padding-left": px(size.hpad_large),
@@ -664,6 +684,9 @@ styles.registerStyle("main", () => {
 			"min-width": 0,
 			"white-space": "nowrap",
 		},
+		".min-width-l": {
+			"min-width": px(size.icon_segment_control_button_width),
+		},
 		".min-width-0": {
 			"min-width": 0,
 		},
@@ -724,15 +747,30 @@ styles.registerStyle("main", () => {
 		".view-columns": {
 			overflow: "hidden",
 		},
+		".grid-auto-columns": {
+			"grid-auto-columns": "1fr"
+		},
 		".view-column": {
 			"will-change": "transform",
 		},
 		".will-change-alpha": {
 			"will-change": "alpha",
 		},
+		".after-as-border-bottom:after": {
+			// Hacky solution to create a border that extends the whole parent
+			content: "''",
+			width: "100vw",
+			height: "1px",
+			background: theme.content_border,
+			position: "absolute",
+			bottom: "-1px",
+		},
 		// borders
 		".border-bottom": {
 			"border-bottom": `1px solid ${theme.content_border}`,
+		},
+		".border-right": {
+			"border-right": `1px solid ${theme.content_border}`,
 		},
 		".border-left": {
 			"border-left": `1px solid ${theme.content_border}`,
@@ -913,18 +951,18 @@ styles.registerStyle("main", () => {
 		},
 		"::-webkit-scrollbar": !client.isMobileDevice()
 			? {
-					background: "transparent",
-					width: scrollbarWidthHeight, // width of vertical scrollbar
-					height: scrollbarWidthHeight, // width of horizontal scrollbar
-			  }
+				background: "transparent",
+				width: scrollbarWidthHeight, // width of vertical scrollbar
+				height: scrollbarWidthHeight, // width of horizontal scrollbar
+			}
 			: {},
 		"::-webkit-scrollbar-thumb": !client.isMobileDevice()
 			? {
-					background: theme.content_button,
-					// reduce the background
-					"border-left": "15px solid transparent",
-					"background-clip": "padding-box",
-			  }
+				background: theme.content_button,
+				// reduce the background
+				"border-left": "15px solid transparent",
+				"background-clip": "padding-box",
+			}
 			: {},
 		"*::-webkit-scrollbar-thumb:hover": {
 			"border-left": "8px solid transparent",
@@ -966,6 +1004,9 @@ styles.registerStyle("main", () => {
 		},
 		".dropdown-info + .dropdown-info": {
 			"padding-top": "0",
+		},
+		".text-wrap": {
+			"text-wrap": "auto"
 		},
 		".text-center": {
 			"text-align": "center",
@@ -1092,6 +1133,9 @@ styles.registerStyle("main", () => {
 		},
 		".fill-grid-column": {
 			"grid-row": "1 / -1",
+		},
+		".gap": {
+			gap: px(size.vpad_unit),
 		},
 		".gap-vpad": {
 			gap: px(size.vpad),
@@ -1898,20 +1942,20 @@ styles.registerStyle("main", () => {
 		},
 		".nav-button:hover": !isApp()
 			? {
-					// "text-decoration": "underline",
-					// opacity: 0.7,
-			  }
+				// "text-decoration": "underline",
+				// opacity: 0.7,
+			}
 			: {},
 		".nav-button:focus": client.isDesktopDevice()
 			? {
-					// "text-decoration": "underline",
-					// opacity: 0.7,
-			  }
+				// "text-decoration": "underline",
+				// opacity: 0.7,
+			}
 			: {},
 		"button:focus, button:hover": client.isDesktopDevice()
 			? {
-					opacity: 0.7,
-			  }
+				opacity: 0.7,
+			}
 			: {},
 		".button-icon": {
 			width: px(size.button_icon_bg_size),
@@ -2565,8 +2609,8 @@ styles.registerStyle("main", () => {
 		},
 		".color-option:not(.selected):focus-within, .color-option:not(.selected):hover": client.isDesktopDevice()
 			? {
-					opacity: 0.7,
-			  }
+				opacity: 0.7,
+			}
 			: {},
 		".custom-color-container .text-field": {
 			"padding-top": "0px",
@@ -2579,6 +2623,17 @@ styles.registerStyle("main", () => {
 			// slash in content is content alt. so that it's ignored by screen readers
 			content: '"#" / ""',
 			color: theme.content_message_bg,
+		},
+		".success-container": {
+			"background-color": theme.success_container_color,
+			"color": theme.on_success_container_color,
+		},
+		".error-container": {
+			"background-color": theme.error_container_color,
+			"color": theme.on_error_container_color,
+		},
+		".on-success-container-color": {
+			"color": theme.on_success_container_color,
 		},
 		".calendar-invite-field": {
 			"min-width": "80px",
