@@ -49,7 +49,7 @@ import { createEventElementId } from "../../../../../src/common/api/common/utils
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { CacheMode, EntityRestClient } from "../../../../../src/common/api/worker/rest/EntityRestClient.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
@@ -682,6 +682,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(thrown.message).equals("error from test")
 				verify(entityRestClient.loadParsedInstance(MailSetEntryTypeRef, instance._id, anything()), { times: 1 })
 				const result2 = await cache.load(MailSetEntryTypeRef, newInstance._id)
+				removeOriginals(result2)
 				o(result2).deepEquals(newInstance)("Cached instance is a newInstance")
 			})
 
@@ -810,7 +811,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				await cache.entityEventsReceived([createUpdate(MailTypeRef, getListId(mail), getElementId(mail), OperationType.CREATE)], "batchId", groupId)
 
-				o(await storage.get(MailTypeRef, getListId(mail), getElementId(mail))).deepEquals(mail)
+				o(removeOriginals(await storage.get(MailTypeRef, getListId(mail), getElementId(mail)))).deepEquals(mail)
 			})
 
 			o("list element update notifications are not put into cache", async function () {
@@ -839,6 +840,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await cache.entityEventsReceived([createUpdate(MailTypeRef, "listId1", createId("id2"), OperationType.DELETE)], "batchId", groupId)
 				const mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
 				// The entity is provided from the cache
+				mails.map(removeOriginals)
 				o(mails).deepEquals([originalMails[0], originalMails[2]])
 			})
 		}) // entityEventsReceived
@@ -849,8 +851,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
 			const mailDetailsBlob1 = await cache.load(MailDetailsBlobTypeRef, [archiveId, createId("id1")])
+			removeOriginals(mailDetailsBlob1)
 			o(mailDetailsBlob1 == mailDetailsBlob).equals(false)
 			const mailDetailsBlob2 = await cache.load(MailDetailsBlobTypeRef, [archiveId, createId("id1")])
+			removeOriginals(mailDetailsBlob2)
 			o(mailDetailsBlob1 == mailDetailsBlob2).equals(false)
 		})
 
@@ -858,8 +862,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			let mail = createMailInstance("listId1", "id1", "hello")
 			await storage.put(MailTypeRef, await toStorableInstance(mail))
 			const mail1 = await cache.load(MailTypeRef, ["listId1", createId("id1")])
+			removeOriginals(mail1)
 			o(mail1 == mail).equals(false)
 			const mail2 = await cache.load(MailTypeRef, ["listId1", createId("id1")])
+			removeOriginals(mail2)
 			o(mail1 == mail2).equals(false)
 		})
 
@@ -876,18 +882,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			// load the mails in reverse because this is the mail use case. return them in reverse to have the intuitive order
 			const mails = await cache.loadRange(MailTypeRef, "listId1", startId, count, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(clone([mail3, mail2, mail1]))
 
 			verify(entityRestClient.loadParsedInstancesRange(MailTypeRef, "listId1", startId, count, true, anything()), { times: 1 })
 
-			return clone([mail1, mail2, mail3])
+			return clone([mail1, mail2, mail3].map(removeOriginals)! as Mail[])
 		}
 
 		o("when reading from the cache, the entities will be cloned (range requests)", async function () {
 			const originalMails = await setupMailList(true, true)
-
 			// the range request will be provided from the cache
 			const mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails)
 			o(mails[0] == originalMails[0]).equals(false)
 			o(mails[1] == originalMails[1]).equals(false)
@@ -896,28 +903,34 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 		o("list elements are provided from cache - range min to max loaded", async function () {
 			const originalMails = await setupMailList(true, true)
-
 			let mails
 
 			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails)
 
 			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 1, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 
 			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails)
 
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id1"), 2, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(1, 3))
 
 			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MAX_ID, 3, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals([originalMails[2], originalMails[1], originalMails[0]])
 
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 1, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 3, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 		})
 
@@ -925,16 +938,22 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const originalMails = await setupMailList(true, false)
 			let mails
 			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails)
 			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 1, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id1"), 2, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(1, 3))
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 1, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 3, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id0"), 3, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals([])
 		})
 
@@ -942,15 +961,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const originalMails = await setupMailList(false, true)
 			let mails
 			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MAX_ID, 3, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals([originalMails[2], originalMails[1], originalMails[0]])
 			mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MAX_ID, 2, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals([originalMails[2], originalMails[1]])
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id5"), 1, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals([])
-
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 1, true)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(0, 1))
 			mails = await cache.loadRange(MailTypeRef, "listId1", createId("id1"), 2, false)
+			mails.map(removeOriginals)
 			o(mails).deepEquals(originalMails.slice(1, 3))
 		})
 
@@ -970,9 +993,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadParsedInstancesRange)
 
 			const result = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
-
+			result.map(removeOriginals)
 			o(result).deepEquals([cachedMails[0], cachedMails[1], cachedMails[2], clone(mail4)])
-			o((await storage.get(MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
 			o(loadParsedInstancesRange.callCount).equals(1) // entities are provided from server
 
 			unmockAttribute(loadRangeMock)
@@ -993,9 +1016,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 
 			const result = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 2, false)
-
+			result.map(removeOriginals)
 			o(result).deepEquals([cachedMails[2], clone(mail4)])
-			o((await storage.get(MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mail4), getElementId(mail4)))!).deepEquals(mail4)
 			o(loadRange.callCount).equals(1) // entities are provided from server
 
 			unmockAttribute(loadRangeMock)
@@ -1015,8 +1038,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 			const result = await cache.loadRange(MailTypeRef, "listId1", createId("id2"), 4, true)
-
-			o((await storage.get(MailTypeRef, getListId(mail0), getElementId(mail0)))!).deepEquals(mail0)
+			result.map(removeOriginals)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mail0), getElementId(mail0)))!).deepEquals(mail0)
 			o(result).deepEquals([cachedMails[0], clone(mail0)])
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			unmockAttribute(loadRangeMock)
@@ -1036,8 +1059,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 			const result = await cache.loadRange(MailTypeRef, "listId1", createId("id1"), 4, true)
-
-			o((await storage.get(MailTypeRef, getListId(mail0), getElementId(mail0)))!).deepEquals(mail0)
+			result.map(removeOriginals)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mail0), getElementId(mail0)))!).deepEquals(mail0)
 			o(result).deepEquals([clone(mail0)])
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			unmockAttribute(mock)
@@ -1062,13 +1085,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 			const result = await cache.loadRange(MailTypeRef, listId, createId("id5"), 4, false)
-
+			result.map(removeOriginals)
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			o(result).deepEquals([clone(mail6)])
 
 			// further range reads are fully taken from range
 			const result2 = await cache.loadRange(MailTypeRef, listId, createId("id1"), 4, false)
-
+			result2.map(removeOriginals)
 			o(loadRange.callCount).equals(1) // entities are provided from cache
 			o(result2).deepEquals([cachedMails[1], cachedMails[2], clone(mail5), clone(mail6)])
 			unmockAttribute(loadRangeMock)
@@ -1089,9 +1112,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 			const result = await cache.loadRange(MailTypeRef, "listId1", createId("ic6"), 4, true)
-
+			result.map(removeOriginals)
 			o(result).deepEquals([clone(mailFirst)])
-			o((await storage.get(MailTypeRef, getListId(mailFirst), getElementId(mailFirst)))!).deepEquals(mailFirst)
+			o(removeOriginals(await storage.get(MailTypeRef, getListId(mailFirst), getElementId(mailFirst)))!).deepEquals(mailFirst)
 			o(loadRange.callCount).equals(1) // entities are provided from server
 			unmockAttribute(mock)
 		})
@@ -1180,11 +1203,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 			const result1 = await cache.loadRange(GroupKeyTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
+			result1.map(removeOriginals)
 			o(loadRange.callCount).equals(1) // second call deliviers custom id items from cache.
 
 			o(result1).deepEquals([ref])
 			const result2 = await cache.loadRange(GroupKeyTypeRef, "listId1", CUSTOM_MIN_ID, 1, false)
-
+			result2.map(removeOriginals)
 			o(result2).deepEquals([ref])
 			o(loadRange.callCount).equals(1) // second call delivers custom id it	ems from cache.
 			unmockAttribute(mock)
@@ -1214,7 +1238,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const originalUpper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
 
 			const result1 = await cache.loadRange(MailTypeRef, listId1, GENERATED_MAX_ID, 5, true)
-
+			result1.map(removeOriginals)
 			o(loadRange.callCount).equals(1)("entities are provided from server")
 			o(loadRange.args[2]).equals(originalUpper)("starts extending range beginning with upperId")
 			o(await storage.isElementIdInCacheRange(MailTypeRef, listId1, GENERATED_MAX_ID)).equals(true)("MAX ID is in cache range")
@@ -1223,7 +1247,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			// further requests are resolved from the cache
 			const result2 = await cache.loadRange(MailTypeRef, listId1, GENERATED_MAX_ID, 5, true)
-
+			result2.map(removeOriginals)
 			o(result2).deepEquals(expectedResult)
 			o(loadRange.callCount).equals(1) // entities are provided from cache
 			unmockAttribute(mock)
@@ -1254,7 +1278,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const originalLower = (await storage.getRangeForList(MailTypeRef, listId1))?.lower
 
 			const result1 = await cache.loadRange(MailTypeRef, listId1, GENERATED_MIN_ID, 5, false)
-
+			result1.map(removeOriginals)
 			o(loadRange.callCount).equals(1)("entities are provided from server")
 			o(loadRange.args[2]).equals(originalLower)("starts extending range beginning with lowerId")
 			o(await storage.isElementIdInCacheRange(MailTypeRef, listId1, GENERATED_MIN_ID)).equals(true)("MIN ID is in cache range")
@@ -1263,7 +1287,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			// further requests are resolved from the cache
 			const result2 = await cache.loadRange(MailTypeRef, listId1, GENERATED_MIN_ID, 5, false)
-
+			result2.map(removeOriginals)
 			o(result2).deepEquals(expectedResult)
 			o(loadRange.callCount).equals(1)("server is called only once at the end") // entities are provided from cache
 			unmockAttribute(mock)
@@ -1303,7 +1327,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				])
 
 				const result = await cache.loadRange(MailTypeRef, listId, id3, 2, false)
-
+				result.map(removeOriginals)
 				o(result).deepEquals([mail4, mail5])
 
 				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
@@ -1357,7 +1381,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 
 				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 2, false)
-
+				result.map(removeOriginals)
 				o(result).deepEquals([mails[0], mails[1]])
 
 				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
@@ -1394,7 +1418,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 
 				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MAX_ID, 2, true)
-
+				result.map(removeOriginals)
 				o(result).deepEquals([mails[mails.length - 1], mails[mails.length - 2]])
 
 				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
@@ -1443,7 +1467,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				])
 
 				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 10, false)
-
+				result.map(removeOriginals)
 				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
 					lower: GENERATED_MIN_ID,
 					upper: GENERATED_MAX_ID,
@@ -1467,7 +1491,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
 
 			const result = await cache.loadMultiple(MailTypeRef, listId, ids)
-
+			result.map(removeOriginals)
 			o(result).deepEquals(notInCache.concat(inCache))("all mails are in cache")
 			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
 			o(loadMultipleParsedInstances.args).deepEquals([MailTypeRef, listId, notInCache.map(getElementId), undefined, {}])(
@@ -1559,10 +1583,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			when(entityRestClient.loadParsedInstance(anything(), anything(), anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver)
 			const firstLoaded = await cache.load(ContactTypeRef, contactId)
+			removeOriginals(firstLoaded)
 			o(firstLoaded).deepEquals(contactOnTheServer)
 			// @ts-ignore
 			verify(entityRestClient.loadParsedInstance(anything(), anything(), anything()), { times: 1 })
 			const secondLoaded = await cache.load(ContactTypeRef, contactId)
+			removeOriginals(secondLoaded)
 			o(secondLoaded).deepEquals(contactOnTheServer)
 			// @ts-ignore
 			verify(entityRestClient.loadParsedInstance(anything(), anything(), anything()), { times: 1 })
@@ -1625,7 +1651,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadedEntity = await cache.load(MailAddressToGroupTypeRef, id)
 			await cache.load(MailAddressToGroupTypeRef, id)
-
+			removeOriginals(loadedEntity)
 			o(loadedEntity).deepEquals(entity)
 			verify(client.loadParsedInstance(MailAddressToGroupTypeRef, id), { ignoreExtraArgs: true, times: 1 })
 		})
@@ -1644,7 +1670,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadedEntity = await cache.load(RootInstanceTypeRef, id)
 			await cache.load(RootInstanceTypeRef, id)
-
+			removeOriginals(loadedEntity)
 			o(loadedEntity).deepEquals(entity)
 			verify(client.loadParsedInstance(RootInstanceTypeRef, id), { ignoreExtraArgs: true, times: 1 })
 		})
@@ -1671,7 +1697,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const loadedEntity = await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
 			await cache.loadMultiple(MailAddressToGroupTypeRef, null, ids)
-
+			loadedEntity.map(removeOriginals)
 			o(loadedEntity).deepEquals([firstEntity, secondEntity])
 			verify(client.loadMultipleParsedInstances(MailAddressToGroupTypeRef, null, ids), {
 				ignoreExtraArgs: true,
@@ -1705,6 +1731,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 			const loadedEntity = await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
+			loadedEntity.map(removeOriginals)
 			await cache.loadMultiple(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])])
 
 			o(loadedEntity).deepEquals([firstEntity, secondEntity])
@@ -1756,21 +1783,25 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 				const cacheBypassed1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				removeOriginals(cacheBypassed1)
 				o(cacheBypassed1).deepEquals(contactOnTheServer)
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 1 })
 
 				const cacheBypassed2 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				removeOriginals(cacheBypassed2)
 				o(cacheBypassed2).deepEquals(contactOnTheServer)
 				// Since we're bypassing it, it should still be loaded remotely (but still cached)
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
 				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
+				removeOriginals(cached)
 				o(cached).deepEquals(contactOnTheServer)
 				// We aren't bypassing it with Cache, so it should just use the cache
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
 				const cacheBypassed3 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.WriteOnly })
+				removeOriginals(cacheBypassed3)
 				o(cacheBypassed3).deepEquals(contactOnTheServer)
 				// Bypassing again; should be loaded remotely
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 3 })
@@ -1808,6 +1839,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.WriteOnly,
 				})
+				cacheBypassed1.map(removeOriginals)
 				o(cacheBypassed1).deepEquals([contactAOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), { times: 1 })
@@ -1815,6 +1847,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cacheBypassed2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.WriteOnly,
 				})
+				cacheBypassed2.map(removeOriginals)
 				o(cacheBypassed2).deepEquals([contactAOnTheServer])
 				// Still bypassing
 				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), { times: 2 })
@@ -1822,6 +1855,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
 					cacheMode: CacheMode.ReadAndWrite,
 				})
+				cached.map(removeOriginals)
 				o(true).equals(cached.some((a) => deepEqual(a, contactAOnTheServer)))
 				o(true).equals(cached.some((b) => deepEqual(b, contactBOnTheServer)))
 				// Not bypassing; should have both contacts now, but only asked for B from server
@@ -1831,6 +1865,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cacheBypassed3 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
 					cacheMode: CacheMode.WriteOnly,
 				})
+				cacheBypassed3.map(removeOriginals)
 				o(cacheBypassed3).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Bypassed again
 				verify(
@@ -1857,21 +1892,25 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver)
 
 				const cacheReadonly1 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				removeOriginals(cacheReadonly1)
 				o(cacheReadonly1).deepEquals(contactOnTheServer)
 				// Fresh cache; should be loaded remotely (but not cached)
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 1 })
 
 				const cacheReadonly2 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				removeOriginals(cacheReadonly2)
 				o(cacheReadonly2).deepEquals(contactOnTheServer)
 				// It wasn't cached before, so it should be loaded remotely again
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 2 })
 
 				const cached = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadAndWrite })
+				removeOriginals(cached)
 				o(cached).deepEquals(contactOnTheServer)
 				// Again, it wasn't cached before, so it should be loaded remotely again
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 3 })
 
 				const cacheReadonly3 = await cache.load(ContactTypeRef, contactId, { cacheMode: CacheMode.ReadOnly })
+				removeOriginals(cacheReadonly3)
 				o(cacheReadonly3).deepEquals(contactOnTheServer)
 				// Since it was cached before, it won't be loaded remotely
 				verify(client.loadParsedInstance(ContactTypeRef, contactId, anything()), { times: 3 })
@@ -1907,11 +1946,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cacheReadOnly1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
 					cacheMode: CacheMode.ReadOnly,
 				})
+				cacheReadOnly1.map(removeOriginals)
 				o(cacheReadOnly1).deepEquals([contactAOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
 				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), { times: 1 })
 
 				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, { cacheMode: CacheMode.ReadAndWrite })
+				cached.map(removeOriginals)
 				o(cached).deepEquals([contactAOnTheServer])
 				// Wasn't written earlier; should be written now
 				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), { times: 2 })
@@ -1919,6 +1960,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const cacheReadOnly2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
 					cacheMode: CacheMode.ReadOnly,
 				})
+				cacheReadOnly2.map(removeOriginals)
 				o(true).equals(cacheReadOnly2.some((a) => deepEqual(a, contactAOnTheServer)))
 				o(true).equals(cacheReadOnly2.some((b) => deepEqual(b, contactBOnTheServer)))
 				// Should have only asked for B from server since we cached A earlier
@@ -1957,12 +1999,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 
 				const cached = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
+				cached.map(removeOriginals)
 				o(cached).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Wasn't saved before
 				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 				verify(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
 
 				const cacheReadonly2 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadOnly })
+				cacheReadonly2.map(removeOriginals)
 				o(cacheReadonly2).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Was saved before now
 				verify(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything()), { times: 1 })
@@ -2004,12 +2048,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
 
 				const cached = await cache.loadRange(ContactTypeRef, listId, createId("1"), 2, false, { cacheMode: CacheMode.ReadAndWrite })
+				cached.map(removeOriginals)
 				o(cached).deepEquals([contactBOnTheServer])
 				// Was saved before now
 				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
 				verify(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })
 
 				const cacheReadonly2 = await cache.loadRange(ContactTypeRef, listId, createId("0"), 2, false, { cacheMode: CacheMode.ReadOnly })
+				cacheReadonly2.map(removeOriginals)
 				o(cacheReadonly2).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Only the second one was saved
 				verify(client.loadRange(ContactTypeRef, listId, createId("1"), 2, false, anything()), { times: 1 })

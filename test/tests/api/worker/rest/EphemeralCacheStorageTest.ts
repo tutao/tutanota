@@ -9,7 +9,7 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
@@ -58,6 +58,7 @@ o.spec("EphemeralCacheStorage", function () {
 			await storage.put(MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance as ServerModelParsedInstance)
 
 			mailDetailsBlobFromDb = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+			removeOriginals(mailDetailsBlobFromDb)
 			o(mailDetailsBlobFromDb).deepEquals(storableMailDetailsBlob)
 
 			await storage.deleteIfExists(MailDetailsBlobTypeRef, archiveId, blobElementId)
@@ -102,9 +103,17 @@ o.spec("EphemeralCacheStorage", function () {
 		})
 
 		o.test("put calls the cache handler", async function () {
-			const user = createTestEntity(UserTypeRef, { _id: userId, _ownerGroup: "ownerGroup" }, { populateAggregates: true })
+			const user = createTestEntity(
+				UserTypeRef,
+				{
+					_id: userId,
+					_ownerGroup: "ownerGroup",
+				},
+				{ populateAggregates: true },
+			)
 			const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
-
+			user.userGroup._original = structuredClone(user.userGroup)
+			user._original = structuredClone(user)
 			const userCacheHandler: CustomCacheHandler<User> = object()
 			when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
 
@@ -113,7 +122,14 @@ o.spec("EphemeralCacheStorage", function () {
 		})
 
 		o.test("deleteIfExists calls the cache handler", async function () {
-			const user = createTestEntity(UserTypeRef, { _id: userId, _ownerGroup: "ownerGroup" }, { populateAggregates: true })
+			const user = createTestEntity(
+				UserTypeRef,
+				{
+					_id: userId,
+					_ownerGroup: "ownerGroup",
+				},
+				{ populateAggregates: true },
+			)
 			const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
 
 			const userCacheHandler: CustomCacheHandler<User> = object()
@@ -130,7 +146,14 @@ o.spec("EphemeralCacheStorage", function () {
 			const groupId = "groupId"
 
 			o.test("calls the cache handler for element types", async function () {
-				const user = createTestEntity(UserTypeRef, { _id: userId, _ownerGroup: groupId }, { populateAggregates: true })
+				const user = createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: groupId,
+					},
+					{ populateAggregates: true },
+				)
 				const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
 
 				const userCacheHandler: CustomCacheHandler<User> = object()
@@ -144,7 +167,14 @@ o.spec("EphemeralCacheStorage", function () {
 
 			o.test("calls the cache handler for list element types", async function () {
 				const id: IdTuple = ["listId", "id1"]
-				const entityToStore = createTestEntity(MailTypeRef, { _id: id, _ownerGroup: groupId }, { populateAggregates: true })
+				const entityToStore = createTestEntity(
+					MailTypeRef,
+					{
+						_id: id,
+						_ownerGroup: groupId,
+					},
+					{ populateAggregates: true },
+				)
 				const storableEntity = (await modelMapper.mapToClientModelParsedInstance(MailTypeRef, entityToStore)) as unknown as ServerModelParsedInstance
 
 				const customCacheHandler: CustomCacheHandler<Mail> = object()
@@ -158,7 +188,14 @@ o.spec("EphemeralCacheStorage", function () {
 
 			o.test("calls the cache handler for blob element types", async function () {
 				const id: IdTuple = ["listId", "id1"]
-				const entityToStore = createTestEntity(MailDetailsBlobTypeRef, { _id: id, _ownerGroup: groupId }, { populateAggregates: true })
+				const entityToStore = createTestEntity(
+					MailDetailsBlobTypeRef,
+					{
+						_id: id,
+						_ownerGroup: groupId,
+					},
+					{ populateAggregates: true },
+				)
 				const storableEntity = (await modelMapper.mapToClientModelParsedInstance(
 					MailDetailsBlobTypeRef,
 					entityToStore,

@@ -219,10 +219,8 @@ export class ModelMapper {
 			}
 		}
 
-		// _original is used for PATCH requests, and is not required for most tests
-		if (!isTest()) {
-			clientInstance._original = structuredClone(clientInstance)
-		}
+		clientInstance._original = structuredClone(clientInstance)
+
 		return clientInstance as T
 	}
 

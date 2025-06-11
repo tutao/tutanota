@@ -11,7 +11,7 @@ import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { LoginIncompleteError } from "../../../../../src/common/api/common/error/LoginIncompleteError.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { InstancePipeline } from "../../../../../src/common/api/worker/crypto/InstancePipeline"
 import { CustomerAccountReturnTypeRef } from "../../../../../src/common/api/entities/accounting/TypeRefs"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
@@ -594,6 +594,7 @@ o.spec("ServiceExecutor", function () {
 
 			delete downcast(response)._finalIvs
 			delete downcast(customerAccountReturn)._finalIvs
+			removeOriginals(response)
 			o(response).deepEquals(customerAccountReturn)
 			verify(
 				restClient.request(
@@ -621,6 +622,7 @@ o.spec("ServiceExecutor", function () {
 
 			delete downcast(response)._finalIvs
 			delete downcast(customerAccountReturn)._finalIvs
+			removeOriginals(response)
 
 			o(response).deepEquals(customerAccountReturn)
 			verify(

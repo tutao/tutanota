@@ -300,7 +300,7 @@ o.spec("EntityUtils", function () {
 			o(objectDiff).deepEquals([
 				createPatch({
 					attributePath: "8",
-					value: '[["listId","elementId"], ["list2Id", "element2Id"]]',
+					value: '[["listId","elementId"],["list2Id","element2Id"]]',
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
 			])
@@ -335,7 +335,7 @@ o.spec("EntityUtils", function () {
 			o(objectDiff).deepEquals([
 				createPatch({
 					attributePath: "8",
-					value: '[["listId2","elementId2"], ["listId3", "elementId3"]]',
+					value: '[["listId2","elementId2"],["listId3","elementId3"]]',
 					patchOperation: PatchOperationType.REMOVE_ITEM,
 				}),
 			])

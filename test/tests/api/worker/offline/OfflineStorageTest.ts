@@ -54,7 +54,7 @@ import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConsta
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
-import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
@@ -253,6 +253,8 @@ o.spec("OfflineStorageDb", function () {
 					},
 					{ populateAggregates: true },
 				)
+				user.userGroup._original = structuredClone(user.userGroup)
+				user._original = structuredClone(user)
 				const storableUser = await toStorableInstance(user)
 
 				const userCacheHandler: CustomCacheHandler<User> = object()
@@ -552,11 +554,13 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(MailTypeRef, await toStorableInstance(storableMail1))
 
 					mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1, elementId2])
+					mails.map(removeOriginals)
 					o.check(mails).deepEquals([storableMail1])
 
 					await storage.put(MailTypeRef, await toStorableInstance(storableMail2))
 
 					mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1, elementId2])
+					mails.map(removeOriginals)
 					o.check(mails).deepEquals([storableMail1, storableMail2])
 				})
 			})
@@ -602,12 +606,14 @@ o.spec("OfflineStorageDb", function () {
 						_permissions: "permissions",
 						mail: ["mailListId", "mailId"],
 					})
+					storableMailSetEntry1._original = structuredClone(storableMailSetEntry1)
 					const storableMailSetEntry2 = createTestEntity(MailSetEntryTypeRef, {
 						_id: [listId, elementId2],
 						_ownerGroup: "ownerGroup",
 						_permissions: "permissions",
 						mail: ["mailListId", "mailId"],
 					})
+					storableMailSetEntry2._original = structuredClone(storableMailSetEntry2)
 
 					await storage.init({ userId: elementId1, databaseKey, timeRangeDate, forceNewDatabase: false })
 
@@ -648,7 +654,7 @@ o.spec("OfflineStorageDb", function () {
 					await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(storableMailDetails))
 
 					mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
-
+					removeOriginals(mailDetailsBlob)
 					o.check(mailDetailsBlob).deepEquals(storableMailDetails)
 
 					await storage.deleteIfExists(MailDetailsBlobTypeRef, archiveId, blobElementId)
@@ -1717,7 +1723,7 @@ o.spec("OfflineStorageDb", function () {
 				spamFolder,
 			)
 
-			const everyEntity: Array<SomeEntity> = [
+			let everyEntity: Array<SomeEntity> = [
 				userMailbox,
 				inboxFolder,
 				trashFolder,
@@ -1774,6 +1780,9 @@ o.spec("OfflineStorageDb", function () {
 			const assertContents = async ({ _id, _type }, expected, msg) => {
 				const { listId, elementId } = expandId(_id)
 				let valueFromDb = await storage.get(_type, listId, elementId)
+				if (valueFromDb !== null) {
+					removeOriginals(valueFromDb)
+				}
 				return o.check(valueFromDb).deepEquals(expected)(msg)
 			}
 

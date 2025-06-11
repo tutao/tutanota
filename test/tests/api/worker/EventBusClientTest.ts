@@ -27,7 +27,7 @@ import { SleepDetector } from "../../../../src/common/api/worker/utils/SleepDete
 import { WsConnectionState } from "../../../../src/common/api/main/WorkerClient.js"
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { ExposedProgressTracker } from "../../../../src/common/api/main/ProgressTracker.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
@@ -291,7 +291,7 @@ o.spec("EventBusClientTest", function () {
 		const expectedCounterUpdate = { ...counterUpdate }
 		Object.assign(expectedCounterUpdate, { _finalIvs: {} })
 		Object.assign(expectedCounterUpdate.counterValues[0], { _finalIvs: {} })
-		o(updateCaptor.values).deepEquals([expectedCounterUpdate])
+		o(updateCaptor.values!.map(removeOriginals)).deepEquals([expectedCounterUpdate])
 	})
 
 	o("verify new hash is set when entity updates are processed", async function () {
