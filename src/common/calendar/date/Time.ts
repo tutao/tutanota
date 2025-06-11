@@ -215,4 +215,24 @@ export class Time {
 
 		return this
 	}
+
+	/*
+	 * Checks if this is after {@link param}
+	 *
+	 * @param {Time} timeB - Time to compare this with
+	 * @returns {boolean} Whether this is after or not timeB
+	 */
+	isAfter(timeB: Time) {
+		return this.asMinutes() > timeB.asMinutes()
+	}
+
+	/*
+	 * Checks if this is before {@link param}
+	 *
+	 * @param {Time} timeB - Time to compare this with
+	 * @returns {boolean} Whether this is before or not timeB
+	 */
+	isBefore(timeB: Time) {
+		return this.asMinutes() < timeB.asMinutes()
+	}
 }

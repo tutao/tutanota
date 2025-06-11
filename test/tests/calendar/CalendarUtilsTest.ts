@@ -517,6 +517,34 @@ o.spec("calendar utils tests", function () {
 			o(timeA.sub({ hours: 11, minutes: 70 }).toObject()).deepEquals(timeB.toObject())
 		})
 	})
+	o.spec("compareTimes", function () {
+		o("A is before B (isBefore)", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(23, 0)
+			o(timeA.isBefore(timeB)).equals(true)
+		})
+		o("A is after B (isBefore)", function () {
+			const timeA = new Time(23, 0)
+			const timeB = new Time(9, 0)
+			o(timeA.isBefore(timeB)).equals(false)
+		})
+		o("A is before B (isAfter)", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(23, 0)
+			o(timeA.isAfter(timeB)).equals(false)
+		})
+		o("A is after B (isAfter)", function () {
+			const timeA = new Time(23, 0)
+			const timeB = new Time(9, 0)
+			o(timeA.isAfter(timeB)).equals(true)
+		})
+		o("A is equal B", function () {
+			const timeA = new Time(9, 0)
+			const timeB = new Time(9, 0)
+			o(timeA.isAfter(timeB)).equals(false)
+			o(timeA.isBefore(timeB)).equals(false)
+		})
+	})
 	o.spec("getStartOfWeek", function () {
 		o("works", function () {
 			o(getStartOfWeek(new Date(2019, 6, 7), 0).toISOString()).equals(new Date(2019, 6, 7).toISOString())
