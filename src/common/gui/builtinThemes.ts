@@ -17,9 +17,34 @@ const SONNE = "#FFCB00"
  */
 const SONNE_70 = "#FFECB7"
 /**
+ * semantic error ghost color light as defined in Figma primitives
+ */
+const SONNE_GHOST = "#FFCB007F" //7F = 50% from 255
+/**
+ * semantic error ghost color dark as defined in Figma primitives
+ */
+const SONNE_GHOST_70 = "#FFECB7D9" //D9 = 85% from 255
+/**
  * Highlight color
  */
 const highlight = "#FFDDB2"
+
+/*
+ * Semantic success color light as defined in figma primitives
+ */
+const GREEN = "#39D9C1"
+/*
+ * Semantic ghost success color light as defined in figma primitives
+ */
+const GREEN_GHOST = "#39D9C166" //66 = 40% from 255
+/*
+ * Semantic success color dark as defined in figma primitives
+ */
+const GREEN_70 = "#99D2C5"
+/*
+ * Semantic success color dark as defined in figma primitives
+ */
+const GREEN_GHOST_70 = "#99D2C5E5" //E5 = 90% from 255
 
 // Base color name
 const PEACH = "#FFF2EA"
@@ -143,6 +168,8 @@ export const themes = (): Themes => {
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
 		error_color: SONNE,
+		error_container_color: SONNE_GHOST,
+		on_error_container_color: dark_lighter_0,
 		tuta_color_nota: red_nota,
 		experimental_primary_container: PEACH,
 		experimental_on_primary_container: RED_DUNKEL,
@@ -152,6 +179,9 @@ export const themes = (): Themes => {
 		outline_variant: grey_lighter_1,
 		go_european: goEuropeanBlue,
 		on_go_european: light_white,
+		success_color: GREEN,
+		success_container_color: GREEN_GHOST_70,
+		on_success_container_color: dark_lighter_0
 	})
 	const darkRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -189,6 +219,8 @@ export const themes = (): Themes => {
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
 		error_color: SONNE_70,
+		error_container_color: SONNE_GHOST_70,
+		on_error_container_color: dark_lighter_0,
 		tuta_color_nota: red_nota,
 		experimental_primary_container: DARK_PEACH,
 		experimental_on_primary_container: dark_lighter_0,
@@ -198,6 +230,9 @@ export const themes = (): Themes => {
 		outline_variant: grey_darker_0,
 		go_european: light_blue,
 		on_go_european: dark_darker_0,
+		success_color: GREEN_70,
+		success_container_color: GREEN_GHOST_70,
+		on_success_container_color: dark_lighter_0
 	})
 	const lightBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -234,6 +269,8 @@ export const themes = (): Themes => {
 		navigation_menu_bg: grey_lighter_3,
 		navigation_menu_icon: grey,
 		error_color: SONNE,
+		error_container_color: SONNE_GHOST,
+		on_error_container_color: dark_lighter_0,
 		tuta_color_nota: blue_nota,
 		experimental_primary_container: PEACH,
 		experimental_on_primary_container: BLUE_DUNKEL,
@@ -243,6 +280,9 @@ export const themes = (): Themes => {
 		outline_variant: grey_lighter_1,
 		go_european: goEuropeanBlue,
 		on_go_european: light_white,
+		success_color: GREEN,
+		success_container_color: GREEN_GHOST,
+		on_success_container_color: dark_lighter_0
 	})
 	const darkBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -280,6 +320,8 @@ export const themes = (): Themes => {
 		navigation_menu_bg: dark_darker_0,
 		navigation_menu_icon: light_grey,
 		error_color: SONNE_70,
+		error_container_color: SONNE_GHOST_70,
+		on_error_container_color: dark_lighter_0,
 		tuta_color_nota: blue_nota,
 		experimental_primary_container: DARK_PEACH,
 		experimental_on_primary_container: dark_lighter_0,
@@ -289,6 +331,9 @@ export const themes = (): Themes => {
 		outline_variant: grey_darker_0,
 		go_european: light_blue,
 		on_go_european: dark_darker_0,
+		success_color: GREEN_70,
+		success_container_color: GREEN_GHOST_70,
+		on_success_container_color: dark_lighter_0
 	})
 
 	return {
