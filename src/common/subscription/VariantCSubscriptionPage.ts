@@ -136,14 +136,15 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	private renderHeadline() {
 		if (this.hasGlobalFirstYearDiscount) {
 			return m(
-				".flex-center.items-center.gap-hpad.mb-l",
+				".flex-center.items-center.gap-hpad.mb",
 				m(Icon, {
 					icon: BootIcons.Heart,
 					size: IconSize.XL,
 					container: "div",
 					style: { fill: theme.experimental_tertiary },
 				}),
-				m(".b.center", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
+				// This text should not be translated to other languages.
+				m(".b.center.smaller", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
 			)
 		} else if (this.bonusMonthsForYearlyPlan > 0) {
 			return m(

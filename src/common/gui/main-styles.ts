@@ -770,6 +770,11 @@ styles.registerStyle("main", () => {
 			display: "flex",
 			"justify-content": "center",
 			"align-items": "center",
+			height: "54px !important",
+			gap: px(size.hpad_button),
+		},
+		".go-european-button-free": {
+			height: "54px !important",
 			gap: px(size.hpad_button),
 		},
 		"go-european-button-icon": {

@@ -88,6 +88,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 							"background-color": planBoxColors.getBgColor({ isSelected }),
 							color: planBoxColors.getTextColor({ isSelected, hasGlobalFirstYearDiscount }),
 							"min-height": px(270),
+							height: "100%",
 							"border-style": "solid",
 							"border-color": planBoxColors.getOutlineColor({ isSelected }),
 							"border-width": isLegendPlan
@@ -207,6 +208,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 										".small.flex",
 										{ style: { "justify-content": "center", "column-gap": px(1) } },
 										m("span", lang.get("pricing.perMonth_label")),
+										hasGlobalFirstYearDiscount && m("sup", { style: { "font-size": px(8) } }, "1"),
 									),
 								),
 							],

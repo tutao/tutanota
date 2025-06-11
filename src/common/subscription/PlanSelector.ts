@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
 import { PlanBox } from "./PlanBox.js"
-import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { formatMonthlyPrice, formatPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { FeatureListProvider, ReplacementKey, SelectedSubscriptionOptions, UpgradePriceType } from "./FeatureListProvider"
 import { downcast, lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, CustomDomainType, CustomDomainTypeCountName, Keys, NewBusinessPlans, PlanType, TabIndex } from "../api/common/TutanotaConstants.js"
@@ -73,12 +73,57 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const isPaidPlanSelected = this.currentPlan() === PlanType.Revolutionary || this.currentPlan() === PlanType.Legend
 
-		function renderFootnoteElement(): Children {
-			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly) {
-				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("firstMonthForFreeDetail_msg")))
+		const renderFootnoteElement = (): Children => {
+			const revoReferencePrice = formatPrice(
+				priceAndConfigProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanReferencePrice),
+				true,
+			)
+			const legendReferencePrice = formatPrice(
+				priceAndConfigProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Legend, UpgradePriceType.PlanReferencePrice),
+				true,
+			)
+
+			if (hasGlobalFirstYearDiscount && isYearly) {
+				return m(
+					".flex.column-gap-s",
+					m("span", m("sup", "1")),
+					m(
+						"span",
+						lang.get("pricing.firstYearDiscount_revo_legend_msg", {
+							"{revo-price}": revoReferencePrice,
+							"{legend-price}": legendReferencePrice,
+						}),
+					),
+				)
 			}
 
 			return undefined
+		}
+
+		const renderActionButton = (): Children => {
+			return m(LoginButton, {
+				// The label text for go european campaign shall not be translated.
+				label: hasGlobalFirstYearDiscount && isPaidPlanSelected ? lang.makeTranslation("", "Go European") : "continue_action",
+				type: LoginButtonType.FullWidth,
+				onclick: (event, dom) => actionButtons[this.currentPlan() as AvailablePlans]().onclick(event, dom),
+				...(hasGlobalFirstYearDiscount && {
+					// As we modify the size of the Login button for the campaign,
+					class: isPaidPlanSelected ? "go-european-button" : "go-european-button-free",
+					icon:
+						isPaidPlanSelected &&
+						m("img.block", {
+							src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
+							alt: "",
+							rel: "noreferrer",
+							loading: "lazy",
+							decoding: "async",
+							style: {
+								height: px(36),
+								width: px(36),
+							},
+						}),
+				}),
+			})
 		}
 
 		return m(
@@ -146,7 +191,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 								},
 							},
 							[PlanType.Revolutionary, PlanType.Legend].map((personalPlan: PlanType.Legend | PlanType.Revolutionary) => {
-								const { referencePriceStr, priceStr } = this.getPrices({
+								const { referencePriceStr, priceStr } = this.getPriceStr({
 									priceAndConfigProvider,
 									targetPlan: personalPlan,
 									paymentInterval: options.paymentInterval(),
@@ -177,11 +222,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				m(
 					".flex.flex-column.gap-vpad",
 					m(
-						"#continue-wrapper.flex-v-center",
+						"#continue-wrapper.flex-v-center.plr",
 						{
 							style: this.shouldFixButtonPos() && {
 								position: "fixed",
-								height: px(size.button_floating_size),
+								height: px(size.button_floating_size + size.vpad_xsm * 2),
 								bottom: 0,
 								left: 0,
 								right: 0,
@@ -194,44 +239,21 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 							"",
 							{
 								style: {
-									"min-width": px(265),
-									"max-width": px(265),
+									"min-width": styles.isMobileLayout() ? "100%" : px(265),
+									"max-width": styles.isMobileLayout() ? "100%" : px(265),
 									"margin-inline": "auto",
 								},
 							},
-							m(LoginButton, {
-								// The label text for go european campaign shall not be translated.
-								label: hasGlobalFirstYearDiscount && isPaidPlanSelected ? lang.makeTranslation("", "Go European") : "continue_action",
-								type: LoginButtonType.FullWidth,
-								onclick: (event, dom) => actionButtons[this.currentPlan() as AvailablePlans]().onclick(event, dom),
-								...(hasGlobalFirstYearDiscount &&
-									isPaidPlanSelected && {
-										class: "go-european-button",
-										icon: m("img.block", {
-											src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
-											alt: "",
-											rel: "noreferrer",
-											loading: "lazy",
-											decoding: "async",
-											style: {
-												height: px(30),
-												width: px(30),
-											},
-										}),
-									}),
-							}),
+							renderActionButton(),
 						),
 					),
 				),
-				m(".flex.flex-column", [
-					m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
-					m(".smaller.mb", renderFootnoteElement()),
-				]),
+				m(".flex.flex-column", [m(".small.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")), m(".small.mb", renderFootnoteElement())]),
 			],
 		)
 	}
 
-	private getPrices({
+	private getPriceStr({
 		priceAndConfigProvider,
 		targetPlan,
 		paymentInterval,
