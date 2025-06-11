@@ -41,7 +41,7 @@ import { EntityAdapter } from "../crypto/EntityAdapter"
 import { AttributeModel } from "../../common/AttributeModel"
 import { PersistenceResourcePostReturnTypeRef } from "../../entities/base/TypeRefs"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
-import { createPatchList, PatchListTypeRef } from "../../entities/sys/TypeRefs"
+import { PatchListTypeRef } from "../../entities/sys/TypeRefs"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { expandId } from "./RestClientIdUtils"
 
@@ -602,7 +602,14 @@ export class EntityRestClient implements EntityRestInterface {
 		const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
 		const untypedInstance = await this.instancePipeline.mapAndEncrypt(downcast(instance._type), instance, sessionKey)
 		// figure out differing fields and build the PATCH request payload
-		const patchList = await computePatchPayload(originalParsedInstance, parsedInstance, untypedInstance, typeModel, typeReferenceResolver)
+		const patchList = await computePatchPayload(
+			originalParsedInstance,
+			parsedInstance,
+			untypedInstance,
+			typeModel,
+			typeReferenceResolver,
+			env.networkDebugging,
+		)
 		// PatchList has no encrypted fields (sk == null)
 		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
 		await this.restClient.request(path, HttpMethod.PATCH, {
