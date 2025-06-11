@@ -366,7 +366,7 @@ export async function computePatches(
 		let modifiedParsedValue = modifiedInstance[attributeId] as Nullable<ParsedValue>
 		let modifiedUntypedValue = modifiedUntypedInstance[attributeId] as UntypedValue
 		if (areValuesDifferent(modelValue.type, originalParsedValue, modifiedParsedValue)) {
-			let value = null
+			let value: string | null = null
 			if (modifiedUntypedValue !== null) {
 				value = typeof modifiedUntypedValue === "object" ? JSON.stringify(modifiedUntypedValue) : modifiedUntypedValue
 			}

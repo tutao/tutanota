@@ -17,6 +17,7 @@ import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { GENERATED_MIN_ID } from "../../../../../src/common/api/common/utils/EntityUtils.js"
+import { removeOriginals } from "../../../TestUtils"
 
 o.spec("ModelMapper", function () {
 	const modelMapper: ModelMapper = new ModelMapper(dummyResolver as ClientTypeReferenceResolver, dummyResolver as ServerTypeReferenceResolver)
@@ -89,7 +90,7 @@ o.spec("ModelMapper", function () {
 				_finalIvs: {},
 			} as unknown as ServerModelParsedInstance
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
-
+			removeOriginals(mappedInstance)
 			o(mappedInstance._type).deepEquals(TestTypeRef)
 			o(mappedInstance._id).deepEquals(["listId", "elementId"])
 			o(mappedInstance.testValue).equals("some encrypted string")
