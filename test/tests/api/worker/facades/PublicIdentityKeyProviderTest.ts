@@ -81,12 +81,12 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 				keyAuthenticationFacade.verifyTag(
 					matchers.argThat((params: IdentityPubKeyAuthenticationParams) => {
 						return (
-							params.tagType == "IDENTITY_PUB_KEY_TAG" &&
+							params.tagType === "IDENTITY_PUB_KEY_TAG" &&
 							arrayEquals(params.untrustedKey.identityPubKey, ed25519PublicKey) &&
-							params.sourceOfTrust.symmetricGroupKey == userGroupKey &&
-							params.bindingData.groupId == userGroup._id &&
-							String(params.bindingData.groupKeyVersion) == identityPublicKeyMac.taggingKeyVersion &&
-							String(params.bindingData.publicIdentityKeyVersion) == identityPublicKeyMac.taggedKeyVersion
+							params.sourceOfTrust.symmetricGroupKey === userGroupKey &&
+							params.bindingData.groupId === userGroup._id &&
+							String(params.bindingData.groupKeyVersion) === identityPublicKeyMac.taggingKeyVersion &&
+							String(params.bindingData.publicIdentityKeyVersion) === identityPublicKeyMac.taggedKeyVersion
 						)
 					}),
 					identityPublicKeyMac.tag,
