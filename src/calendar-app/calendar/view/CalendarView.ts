@@ -59,7 +59,7 @@ import {
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
-import { NotFoundError } from "../../../common/api/common/error/RestError"
+import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"
@@ -1291,19 +1291,22 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 		}
 
-		locator.entityClient.update(userSettingsGroupRoot).then(() => {
-			if (shouldSyncExternal)
-				this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
-					showSnackBar({
-						message: lang.makeTranslation("exception_msg", e.message),
-						button: {
-							label: "ok_action",
-							click: noOp,
-						},
-						waitingTime: 500,
+		locator.entityClient
+			.update(userSettingsGroupRoot)
+			.then(() => {
+				if (shouldSyncExternal)
+					this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
+						showSnackBar({
+							message: lang.makeTranslation("exception_msg", e.message),
+							button: {
+								label: "ok_action",
+								click: noOp,
+							},
+							waitingTime: 500,
+						})
 					})
-				})
-		})
+			})
+			.catch(ofClass(LockedError, noOp))
 		dialog.close()
 	}
 

@@ -4,7 +4,7 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { TextField } from "../../gui/base/TextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast, noOp, ofClass } from "@tutao/tutanota-utils"
 import { Dialog } from "../../gui/base/Dialog.js"
 import { ReceivedGroupInvitation } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId } from "../../api/common/utils/EntityUtils.js"
@@ -20,6 +20,7 @@ import { AlarmInterval } from "../../calendar/date/CalendarUtils.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { serializeAlarmInterval } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ColorPickerView } from "../../gui/base/colorPicker/ColorPickerView"
+import { LockedError } from "../../api/common/error/RestError"
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -61,7 +62,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 						userSettingsGroupRoot.groupSettings.push(groupSettings)
 					}
 
-					locator.entityClient.update(userSettingsGroupRoot)
+					locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 				})
 			}
 		})

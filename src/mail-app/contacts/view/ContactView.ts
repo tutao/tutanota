@@ -695,7 +695,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			existingGroupSettings.name = newName
 		}
 
-		locator.entityClient.update(userSettingsGroupRoot)
+		locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 		// Updating the contactListInfo.name directly, so it updates for the user right away
 		contactListInfo.name = newName
 	}
