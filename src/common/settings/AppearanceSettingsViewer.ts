@@ -5,7 +5,7 @@ import type { DropDownSelectorAttrs } from "../gui/base/DropDownSelector.js"
 import { DropDownSelector, SelectorItemList } from "../gui/base/DropDownSelector.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { TimeFormat, WeekStart } from "../api/common/TutanotaConstants.js"
-import { downcast, incrementDate, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { downcast, incrementDate, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { getHourCycle } from "../../common/misc/Formatter"
 import { ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
@@ -15,6 +15,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "../../../libs/luxon.js"
+import { LockedError } from "../api/common/error/RestError"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
@@ -90,7 +91,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: downcast(userSettingsGroupRoot.timeFormat),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.timeFormat = value
-				locator.entityClient.update(userSettingsGroupRoot)
+				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 			},
 		}
 		const weekdayFormat = new Intl.DateTimeFormat(lang.languageTag, {
@@ -122,7 +123,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectedValue: downcast(userSettingsGroupRoot.startOfTheWeek),
 			selectionChangedHandler: (value) => {
 				userSettingsGroupRoot.startOfTheWeek = value
-				locator.entityClient.update(userSettingsGroupRoot)
+				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 			},
 		}
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
@@ -150,7 +151,13 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 
 		const themeDropDownAttrs: DropDownSelectorAttrs<ThemePreference> = {
 			label: "switchColorTheme_action",
-			items: [...themeOptions(client.isCalendarApp()).map(({ name, value }) => ({ name: lang.get(name), value: value })), ...customOptions],
+			items: [
+				...themeOptions(client.isCalendarApp()).map(({ name, value }) => ({
+					name: lang.get(name),
+					value: value,
+				})),
+				...customOptions,
+			],
 			selectedValue: locator.themeController.themePreference,
 			selectionChangedHandler: (value) => locator.themeController.setThemePreference(value),
 			dropdownWidth: 300,

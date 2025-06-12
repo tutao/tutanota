@@ -23,7 +23,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
-import { first, LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
+import { first, LazyLoaded, noOp, ofClass, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
@@ -76,6 +76,7 @@ import { showSupportDialog } from "../../common/support/SupportDialog"
 import { Icon, IconSize } from "../../common/gui/base/Icon"
 import { MailExportViewer } from "./MailExportViewer"
 import { getSupportUsageTestStage } from "../../common/support/SupportUsageTestUtils.js"
+import { LockedError } from "../../common/api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -955,12 +956,15 @@ function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 				logins.getUserController().userSettingsGroupRoot.groupSettings.push(newSettings)
 			}
 
-			locator.entityClient.update(userSettingsGroupRoot).then(() => {
-				if (isSharedGroupOwner(instance.group, logins.getUserController().user)) {
-					instance.groupInfo.name = newName
-					locator.entityClient.update(instance.groupInfo)
-				}
-			})
+			locator.entityClient
+				.update(userSettingsGroupRoot)
+				.then(() => {
+					if (isSharedGroupOwner(instance.group, logins.getUserController().user)) {
+						instance.groupInfo.name = newName
+						locator.entityClient.update(instance.groupInfo)
+					}
+				})
+				.catch(ofClass(LockedError, noOp))
 		},
 	})
 }
