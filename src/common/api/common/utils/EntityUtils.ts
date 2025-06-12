@@ -471,16 +471,7 @@ export async function computePatches(
 				})
 				patches = patches.concat(items)
 			}
-
-			if (addedItems.length > 0) {
-				patches.push(
-					createPatch({
-						attributePath: attributeIdStr,
-						value: JSON.stringify(addedItems),
-						patchOperation: PatchOperationType.ADD_ITEM,
-					}),
-				)
-			}
+			// We need to first remove, then add for aggregations with ZeroOrOne cardinality as there would briefly be two entries otherwise
 			if (removedItems.length > 0) {
 				const removedAggregateIds = removedItems.map(
 					(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
@@ -490,6 +481,15 @@ export async function computePatches(
 						attributePath: attributeIdStr,
 						value: JSON.stringify(removedAggregateIds),
 						patchOperation: PatchOperationType.REMOVE_ITEM,
+					}),
+				)
+			}
+			if (addedItems.length > 0) {
+				patches.push(
+					createPatch({
+						attributePath: attributeIdStr,
+						value: JSON.stringify(addedItems),
+						patchOperation: PatchOperationType.ADD_ITEM,
 					}),
 				)
 			}
@@ -503,21 +503,21 @@ export async function computePatches(
 			// Only Any associations support ADD_ITEM and REMOVE_ITEM operations
 			// All cardinalities support REPLACE operation
 			if (modelAssociation.cardinality == Cardinality.Any) {
-				if (addedItems.length > 0) {
-					patches.push(
-						createPatch({
-							attributePath: attributeIdStr,
-							value: JSON.stringify(addedItems),
-							patchOperation: PatchOperationType.ADD_ITEM,
-						}),
-					)
-				}
 				if (removedItems.length > 0) {
 					patches.push(
 						createPatch({
 							attributePath: attributeIdStr,
 							value: JSON.stringify(removedItems),
 							patchOperation: PatchOperationType.REMOVE_ITEM,
+						}),
+					)
+				}
+				if (addedItems.length > 0) {
+					patches.push(
+						createPatch({
+							attributePath: attributeIdStr,
+							value: JSON.stringify(addedItems),
+							patchOperation: PatchOperationType.ADD_ITEM,
 						}),
 					)
 				}
