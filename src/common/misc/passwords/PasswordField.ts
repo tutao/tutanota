@@ -7,9 +7,9 @@ import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
 import { isSecurePassword, scaleToVisualPasswordStrength } from "./PasswordUtils.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
 import type { lazy } from "@tutao/tutanota-utils"
-import type { TranslationKey, MaybeTranslation } from "../LanguageViewModel.js"
+import type { MaybeTranslation } from "../LanguageViewModel.js"
 
-type StatusSetting = Status | "auto"
+export type StatusSetting = Status | "auto" | "disabled"
 
 export interface PasswordFieldAttrs extends Omit<TextFieldAttrs, "label" | "type"> {
 	label?: MaybeTranslation
@@ -36,6 +36,7 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 					textFieldAttrs.injectionsRight ? textFieldAttrs.injectionsRight() : null,
 				]
 			},
+			disabled: true,
 		})
 	}
 
@@ -69,7 +70,12 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 	}
 
 	private static parseStatusSetting(status: StatusSetting | undefined, password: string, strength: number | undefined): Status | null {
-		if (status === "auto" && strength != undefined) {
+		if (status === "disabled") {
+			return {
+				type: "neutral",
+				text: "emailAddressFirst_msg",
+			}
+		} else if (status === "auto" && strength != undefined) {
 			return PasswordField.getPasswordStatus(password, strength!)
 		} else if (status && typeof status !== "string") {
 			return status

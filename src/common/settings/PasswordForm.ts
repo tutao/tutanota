@@ -12,7 +12,7 @@ import { theme } from "../gui/theme.js"
 import { px, size } from "../gui/size.js"
 import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
-import { PasswordField, PasswordFieldAttrs } from "../misc/passwords/PasswordField.js"
+import { PasswordField, PasswordFieldAttrs, StatusSetting } from "../misc/passwords/PasswordField.js"
 
 assertMainOrNode()
 
@@ -29,12 +29,6 @@ export interface PasswordModelConfig {
 	readonly reservedStrings?: () => string[]
 }
 
-const enum PasswordFieldType {
-	Old,
-	New,
-	Confirm,
-}
-
 export class PasswordModel {
 	private newPassword = ""
 	private oldPassword = ""
@@ -43,6 +37,7 @@ export class PasswordModel {
 	private readonly __mailValid?: Stream<boolean>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
+	public disabled: boolean = false
 
 	constructor(
 		private readonly usageTestController: UsageTestController,
@@ -125,8 +120,10 @@ export class PasswordModel {
 		)
 	}
 
-	getOldPasswordStatus(): Status {
-		if (this.config.checkOldPassword && this.oldPassword === "") {
+	getOldPasswordStatus(): StatusSetting {
+		if (this.disabled) {
+			return "disabled"
+		} else if (this.config.checkOldPassword && this.oldPassword === "") {
 			return {
 				type: "neutral",
 				text: "oldPasswordNeutral_msg",
@@ -206,9 +203,13 @@ export class PasswordModel {
 		return this.passwordStrength
 	}
 
-	private getErrorFromStatus(status: Status): TranslationKey | null {
+	private getErrorFromStatus(status: StatusSetting): TranslationKey | null {
 		if (!status) return null
-		return status.type !== "valid" ? status.text : null
+		if (typeof status === "string") {
+			return "emailAddressFirst_msg"
+		} else {
+			return status.type !== "valid" ? status.text : null
+		}
 	}
 
 	private calculatePasswordStrength(): number {

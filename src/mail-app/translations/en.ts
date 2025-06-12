@@ -2032,6 +2032,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"emailAddressFirst_msg": "Please first select an email address above."
 	}
 }
