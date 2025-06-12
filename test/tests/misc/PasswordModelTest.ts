@@ -3,6 +3,7 @@ import { PasswordModel } from "../../../src/common/settings/PasswordForm.js"
 import { matchers, object, when } from "testdouble"
 import { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
+import stream from "mithril/stream"
 
 o.spec("PasswordModelTest", function () {
 	let passwordModel: PasswordModel | null = null
@@ -13,11 +14,16 @@ o.spec("PasswordModelTest", function () {
 		let logins: LoginController = object()
 		let usageTestController: UsageTestController = object()
 		when(usageTestController.getTest(matchers.anything())).thenReturn({})
-		passwordModel = new PasswordModel(usageTestController, logins, {
-			checkOldPassword: false,
-			enforceStrength: true,
-			reservedStrings: () => reservedStrings,
-		})
+		passwordModel = new PasswordModel(
+			usageTestController,
+			logins,
+			{
+				checkOldPassword: false,
+				enforceStrength: true,
+				reservedStrings: () => reservedStrings,
+			},
+			stream(false),
+		)
 	})
 
 	o.spec("calculatePasswordStrength -> reserved strings are considered", function () {
