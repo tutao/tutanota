@@ -111,16 +111,20 @@ class IosMobileSystemFacade: MobileSystemFacade {
 			DispatchQueue.main.async { UIApplication.shared.open(URL(string: "https://itunes.apple.com/us/app/id922429609")!) }
 		}
 	}
+
 	func getInstallationDate() async throws -> String {
 		let documentsURL = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
 		let creationDate = try FileManager.default.attributesOfItem(atPath: documentsURL.path)[FileAttributeKey.creationDate] as! Date
 		let creationTimeInMilliseconds = Int(creationDate.timeIntervalSince1970 * 1000)
 		return String(creationTimeInMilliseconds)
 	}
+
 	func requestInAppRating() async throws {
 		let windowScene = await UIApplication.shared.connectedScenes.first as! UIWindowScene
 		await SKStoreReviewController.requestReview(in: windowScene)
 	}
 
 	func openCalendarApp(_ query: String) async throws { TUTSLog("Tried to open Calendar App from Calendar App") }
+
+	func print() async throws { throw TutanotaError(message: "Not implemented") }
 }

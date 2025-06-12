@@ -52,4 +52,7 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async storeServerRemoteOrigin(...args: Parameters<MobileSystemFacade["storeServerRemoteOrigin"]>) {
 		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "storeServerRemoteOrigin", ...args])
 	}
+	async print(...args: Parameters<MobileSystemFacade["print"]>) {
+		return this.transport.invokeNative("ipc", ["MobileSystemFacade", "print", ...args])
+	}
 }

@@ -664,6 +664,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailViewerMoreActions: getMailViewerMoreActions({
 						viewModel: conversationViewModel.primaryViewModel(),
 						report: this.getReportAction(conversationViewModel.primaryViewModel()),
+						print: this.getPrintAction(),
 					}),
 				})
 				return m(BackgroundColumnLayout, {
@@ -699,6 +700,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							getMailViewerMoreActions({
 								viewModel: mailViewerModel,
 								report: this.getReportAction(mailViewerModel),
+								print: this.getPrintAction(),
 							}),
 					}),
 				})
@@ -927,6 +929,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				mailViewerMoreActions: getMailViewerMoreActions({
 					viewModel: conversationViewModel.primaryViewModel(),
 					report: this.getReportAction(conversationViewModel.primaryViewModel()),
+					print: this.getPrintAction(),
 				}),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
@@ -1369,6 +1372,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				onClick: () => this.searchViewModel.selectIncludeRepeatingEvents(!this.searchViewModel.includeRepeatingEvents),
 			}),
 		]
+	}
+
+	private getPrintAction() {
+		return () => locator.systemFacade.print()
 	}
 }
 
