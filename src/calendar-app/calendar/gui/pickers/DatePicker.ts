@@ -132,7 +132,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				},
 				onkeydown: (event: KeyboardEvent) => {
 					const key = keyboardEventToKeyPress(event)
-					return this.handleInputKeyEvents(key, disabled, onDateSelected)
+					if (!this.handleInputKeyEvents(key, disabled, onDateSelected)) {
+						event.preventDefault()
+						event.stopPropagation()
+					}
 				},
 				containerStyle: isApp()
 					? {
@@ -237,15 +240,14 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					}
 
 					this.documentInteractionListener = listener
-					// We only listen for events on the main view and exclude the modal and overlay layers.
-					// This is done to avoid weird behaviours caused by focus shifting to and from modals
-					const mainViewDom = document.querySelector(".main-view") as HTMLElement
-					mainViewDom.addEventListener("click", listener, true)
-					mainViewDom.addEventListener("focus", listener, true)
+
+					const inputViewDom = document.querySelector("#root") as HTMLElement
+					inputViewDom.addEventListener("click", listener, true)
+					inputViewDom.addEventListener("focus", listener, true)
 				},
 				onremove: () => {
 					if (this.documentInteractionListener) {
-						const mainViewDom = document.querySelector(".main-view") as HTMLElement
+						const mainViewDom = document.querySelector("#root") as HTMLElement
 						mainViewDom.removeEventListener("click", this.documentInteractionListener, true)
 						mainViewDom.removeEventListener("focus", this.documentInteractionListener, true)
 					}
@@ -332,13 +334,16 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		return null
 	})
 
-	private handleInputKeyEvents(key: KeyPress, disabled: boolean | undefined, onDateSelected: (date: Date) => unknown) {
-		if (isKeyPressed(key.key, Keys.RETURN)) {
-			if (!disabled && !key.shift && !key.ctrl && !key.meta) {
+	private handleInputKeyEvents(key: KeyPress, disabled: boolean | undefined, onDateSelected: (date: Date) => unknown): boolean {
+		if (isKeyPressed(key.key, Keys.RETURN) && !disabled && !key.shift && !key.ctrl && !key.meta) {
+			if (this.showingDropdown) {
+				this.handleInput(this.inputText, onDateSelected)
+				this.showingDropdown = false
+			} else {
 				this.showingDropdown = true
 			}
+			return false
 		}
-
 		return this.handleEscapePress(key)
 	}
 
