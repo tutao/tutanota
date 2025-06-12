@@ -6,7 +6,7 @@ import { PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import Stream from "mithril/stream"
 import { theme } from "../gui/theme.js"
-import { FeatureListProvider, ReplacementKey } from "./FeatureListProvider.js"
+import { ReplacementKey } from "./FeatureListProvider.js"
 import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { getReplacement } from "./PlanSelector.js"
@@ -14,6 +14,7 @@ import { TranslationKeyType } from "../misc/TranslationKey.js"
 import { styles } from "../gui/styles.js"
 import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { isIOSApp } from "../api/common/Env"
 
 type AvailablePlan = PlanType.Revolutionary | PlanType.Legend
 
@@ -27,11 +28,9 @@ type PlanBoxAttrs = {
 	isSelected: boolean
 	plan: AvailablePlan
 	onclick: Callback<AvailablePlan>
-	features: ReturnType<FeatureListProvider["getFeatureList"]>
 	priceAndConfigProvider: PriceAndConfigProvider
 	scale: CSSStyleDeclaration["scale"]
 	hasCampaign: boolean
-	isApplePrice: boolean
 }
 
 export class PlanBox implements Component<PlanBoxAttrs> {
@@ -50,12 +49,12 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 	}
 
 	view({
-		attrs: { plan, isSelected, onclick, priceAndConfigProvider, price, referencePrice, selectedPaymentInterval, scale, hasCampaign, isApplePrice },
+		attrs: { plan, isSelected, onclick, priceAndConfigProvider, price, referencePrice, selectedPaymentInterval, scale, hasCampaign },
 	}: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const strikethroughPrice = isYearly ? referencePrice : undefined
-		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected)
+		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected, hasCampaign)
 		// Only for Go European campaign, this should be removed after the campaign.
 		const localTheme = hasCampaign ? getBlueTheme() : theme
 
@@ -82,14 +81,14 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 								}),
 							},
 						},
-						lang.get("pricing.saveAmount_label", { "{amount}": "50%" }),
+						(isIOSApp() ? lang.get("save_action") : lang.get("pricing.saveAmount_label", { "{amount}": "50%" })).toUpperCase(),
 					),
 				m(
 					"",
 					{
 						style: {
 							"background-color": planBoxColors.getBgColor({ isSelected }),
-							color: planBoxColors.getTextColor({ isSelected, hasGlobalFirstYearDiscount: hasCampaign }),
+							color: planBoxColors.getTextColor({ isSelected, hasCampaign }),
 							"min-height": px(270),
 							height: "100%",
 							"border-style": "solid",
@@ -233,8 +232,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 		)
 	}
 
-	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, isSelected: boolean) {
-		const hasGlobalFirstYearDiscount = provider.getRawPricingData().hasGlobalFirstYearDiscount
+	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, isSelected: boolean, hasCampaign: boolean) {
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey) => {
 			return m(
 				".flex",
@@ -248,7 +246,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 						icon,
 						size: IconSize.Normal,
 						style: {
-							fill: planBoxColors.getFeatureIconColor({ isSelected, planType, hasGlobalFirstYearDiscount }),
+							fill: planBoxColors.getFeatureIconColor({ isSelected, planType, hasCampaign }),
 						},
 					}),
 					m(".smaller", lang.get(langKey, getReplacement(replacement, planType, provider))),

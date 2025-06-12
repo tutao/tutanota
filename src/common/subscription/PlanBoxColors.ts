@@ -49,8 +49,8 @@ function getBoxShadow() {
 /**
  * Determines the text color for the PlanBox component based on the selection state and theme.
  */
-function getTextColor({ isSelected, hasGlobalFirstYearDiscount }: { isSelected: boolean; hasGlobalFirstYearDiscount?: boolean }) {
-	const localTheme = hasGlobalFirstYearDiscount ? getBlueTheme() : theme
+function getTextColor({ isSelected, hasCampaign }: { isSelected: boolean; hasCampaign?: boolean }) {
+	const localTheme = hasCampaign ? getBlueTheme() : theme
 	return `${isSelected ? localTheme.experimental_on_primary_container : localTheme.content_fg}`
 }
 
@@ -76,16 +76,8 @@ function getOutlineColor({ isSelected }: { isSelected: boolean }) {
 /**
  * Determines the icon and divider color for the PlanBox component based on the selection state and theme.
  */
-function getFeatureIconColor({
-	isSelected,
-	planType,
-	hasGlobalFirstYearDiscount,
-}: {
-	isSelected: boolean
-	planType: PlanType
-	hasGlobalFirstYearDiscount?: boolean
-}) {
-	const localTheme = hasGlobalFirstYearDiscount ? getBlueTheme() : theme
+function getFeatureIconColor({ isSelected, planType, hasCampaign }: { isSelected: boolean; planType: PlanType; hasCampaign?: boolean }) {
+	const localTheme = hasCampaign ? getBlueTheme() : theme
 
 	if (planType === PlanType.Free) {
 		if (isSelected) {

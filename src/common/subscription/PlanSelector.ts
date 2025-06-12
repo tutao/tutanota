@@ -18,15 +18,13 @@ import { boxShadow } from "../gui/main-styles.js"
 import { getPlanSelectorTest } from "./UpgradeSubscriptionWizard.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { AccountingInfo } from "../api/entities/sys/TypeRefs"
-import { isIOSApp } from "../api/common/Env"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
 	actionButtons: SubscriptionActionButtons
-	featureListProvider: FeatureListProvider
 	priceAndConfigProvider: PriceAndConfigProvider
-	accountingInfo: AccountingInfo | null
+	hasCampaign: boolean
+	isApplePrice: boolean
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -71,11 +69,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
-	view({ attrs: { options, priceAndConfigProvider, featureListProvider, actionButtons, accountingInfo } }: Vnode<PlanSelectorAttr>): Children {
+	view({ attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
-		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const isPaidPlanSelected = this.currentPlan() === PlanType.Revolutionary || this.currentPlan() === PlanType.Legend
-		const shouldShowApplePrices = this.shouldShowApplePrices(downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod))
 
 		const renderFootnoteElement = (): Children => {
 			const revoReferencePrice = formatPrice(
@@ -87,7 +83,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				true,
 			)
 
-			if (hasGlobalFirstYearDiscount && isYearly) {
+			if (hasCampaign && isYearly) {
 				return m(
 					".flex.column-gap-s",
 					m("span", m("sup", "1")),
@@ -107,10 +103,10 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		const renderActionButton = (): Children => {
 			return m(LoginButton, {
 				// The label text for go european campaign shall not be translated.
-				label: hasGlobalFirstYearDiscount && isPaidPlanSelected ? lang.makeTranslation("", "Go European") : "continue_action",
+				label: hasCampaign && isPaidPlanSelected ? lang.makeTranslation("", "Go European") : "continue_action",
 				type: LoginButtonType.FullWidth,
 				onclick: (event, dom) => actionButtons[this.currentPlan() as AvailablePlans]().onclick(event, dom),
-				...(hasGlobalFirstYearDiscount && {
+				...(hasCampaign && {
 					// As we modify the size of the Login button for the campaign,
 					class: isPaidPlanSelected ? "go-european-button" : "go-european-button-free",
 					icon:
@@ -200,25 +196,20 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									targetPlan: personalPlan,
 									paymentInterval: options.paymentInterval(),
 								}
-								const { referencePriceStr, priceStr } = shouldShowApplePrices
+								const { referencePriceStr, priceStr } = isApplePrice
 									? this.getApplePriceStr(getPriceStrProps)
 									: this.getPriceStr(getPriceStrProps)
-								const hasCampaign = shouldShowApplePrices
-									? priceAndConfigProvider.getIosIntroOfferEligibility()
-									: priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 
 								return m(PlanBox, {
 									price: priceStr,
 									referencePrice: referencePriceStr,
 									plan: personalPlan,
-									features: featureListProvider.getFeatureList(personalPlan),
 									isSelected: personalPlan === this.currentPlan(),
 									onclick: (newPlan) => this.currentPlan(newPlan),
 									scale: this.scale[personalPlan],
 									selectedPaymentInterval: options.paymentInterval,
 									priceAndConfigProvider,
 									hasCampaign,
-									isApplePrice: shouldShowApplePrices,
 								})
 							}),
 						),
@@ -226,8 +217,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 							isSelected: this.currentPlan() === PlanType.Free,
 							select: () => this.currentPlan(PlanType.Free),
 							priceAndConfigProvider,
-							features: featureListProvider.getFeatureList(PlanType.Free),
 							scale: this.scale[PlanType.Free],
+							hasCampaign,
 						}),
 					),
 				),
@@ -263,10 +254,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				m(".flex.flex-column", [m(".small.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")), m(".small.mb", renderFootnoteElement())]),
 			],
 		)
-	}
-
-	private shouldShowApplePrices(paymentMethod?: PaymentMethodType): boolean {
-		return isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
 	}
 
 	private getPriceStr({

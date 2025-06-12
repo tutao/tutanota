@@ -10,13 +10,13 @@ import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Keys, NewBusinessPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { Keys, NewBusinessPlans, PaymentMethodType, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { locator } from "../api/main/CommonLocator"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
-import { lazy } from "@tutao/tutanota-utils"
+import { downcast, lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { completeSelectedStage, PlanSelector } from "./PlanSelector.js"
@@ -42,8 +42,6 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
 	private upgradeType: UpgradeType | undefined = undefined
-	private hasGlobalFirstYearDiscount: boolean = false
-	private bonusMonthsForYearlyPlan: number = 0
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
 		const data = vnode.attrs.data
@@ -71,18 +69,16 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 
 		const test = getPlanSelectorTest()
 		void test.forceRestart()
-
-		const pricingData = data.planPrices.getRawPricingData()
-		this.hasGlobalFirstYearDiscount = pricingData.hasGlobalFirstYearDiscount
-		this.bonusMonthsForYearlyPlan = parseInt(pricingData.bonusMonthsForYearlyPlan)
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		const data = vnode.attrs.data
-		let availablePlans = vnode.attrs.data.acceptedPlans
+	view({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
+		const { featureListProvider, planPrices, acceptedPlans, newAccountData, accountingInfo } = data
+		let availablePlans = acceptedPlans
+		const isApplePrice = shouldShowApplePrices(downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod))
+		const hasCampaign = isApplePrice ? planPrices.getIosIntroOfferEligibility() : planPrices.getRawPricingData().hasGlobalFirstYearDiscount
 		// newAccountData is filled in when signing up and then going back in the signup process
 		// If the user has selected a tuta.com address we want to prevent them from selecting a free plan at this point
-		if (!!data.newAccountData && data.newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
+		if (!!newAccountData && newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
 			availablePlans = availablePlans.filter((plan) => plan != PlanType.Free)
 		}
 
@@ -111,11 +107,11 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 					allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
 					currentPlanType: data.currentPlan,
 					actionButtons: subscriptionActionButtons,
-					featureListProvider: vnode.attrs.data.featureListProvider,
-					priceAndConfigProvider: vnode.attrs.data.planPrices,
-					multipleUsersAllowed: vnode.attrs.data.multipleUsersAllowed,
+					featureListProvider: featureListProvider,
+					priceAndConfigProvider: planPrices,
+					multipleUsersAllowed: data.multipleUsersAllowed,
 					msg: data.msg,
-					accountingInfo: vnode.attrs.data.accountingInfo,
+					accountingInfo: accountingInfo,
 				}),
 			])
 		}
@@ -123,37 +119,29 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
 		return m(".", [
 			// Headline for campaigns / affiliates / warnings
-			this.renderHeadline(),
+			hasCampaign && this.renderCampaignHeadline(),
 			m(PlanSelector, {
 				options: data.options,
 				actionButtons: subscriptionActionButtons,
-				featureListProvider: vnode.attrs.data.featureListProvider,
-				priceAndConfigProvider: vnode.attrs.data.planPrices,
-				accountingInfo: vnode.attrs.data.accountingInfo,
+				priceAndConfigProvider: planPrices,
+				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
+				isApplePrice,
 			}),
 		])
 	}
 
-	private renderHeadline() {
-		if (this.hasGlobalFirstYearDiscount) {
-			return m(
-				".flex-center.items-center.gap-hpad.mb",
-				m(Icon, {
-					icon: BootIcons.Heart,
-					size: IconSize.XL,
-					container: "div",
-					style: { fill: theme.experimental_tertiary },
-				}),
-				// This text should not be translated to other languages.
-				m(".b.center.smaller", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
-			)
-		} else if (this.bonusMonthsForYearlyPlan > 0) {
-			return m(
-				".",
-				// TODO: Add handling for bonus months
-				m(".b.center.mb-l", ""),
-			)
-		}
+	private renderCampaignHeadline() {
+		return m(
+			".flex-center.items-center.gap-hpad.mb",
+			m(Icon, {
+				icon: BootIcons.Heart,
+				size: IconSize.XL,
+				container: "div",
+				style: { fill: theme.experimental_tertiary },
+			}),
+			// This text should not be translated to other languages.
+			m(".b.center.smaller", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
+		)
 	}
 
 	selectFree(data: UpgradeSubscriptionData) {
@@ -263,6 +251,10 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 			onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 		})
 	}
+}
+
+function shouldShowApplePrices(paymentMethod?: PaymentMethodType): boolean {
+	return isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
 }
 
 function confirmFreeSubscription(): Promise<boolean> {
