@@ -89,7 +89,7 @@ export class AsymmetricCryptoFacade {
 			}
 		} catch (e) {
 			if (e instanceof KeyVerificationMismatchError) {
-				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+				authStatus = EncryptionAuthStatus.KEY_VERIFICATION_ERROR_MISMATCH
 			} else {
 				throw e
 			}

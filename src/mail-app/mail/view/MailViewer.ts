@@ -152,6 +152,22 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	view(vnode: Vnode<MailViewerAttrs>): Children {
 		this.handleContentBlockingOnRender()
 
+		// show dialog here if KEY_VERIFICATION_ERROR_MISMATCH, part of the column view of the mail ?
+		// if (vnode.attrs.viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.KEY_VERIFICATION_ERROR_MISMATCH) {
+		if (true) {
+			// force condition for now
+			Dialog.confirm(
+				lang.makeTranslation(
+					"confirm_msg",
+					"The identity behind this mail address changed, do you still want to trust it?", // make translation later
+				),
+			).then((confirmed) => {
+				if (confirmed) {
+					// this.viewModel.deleteCalendar(calendarInfo).catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
+				}
+			})
+		}
+
 		return [
 			m(".mail-viewer.overflow-x-hidden", [
 				this.renderMailHeader(vnode.attrs),
