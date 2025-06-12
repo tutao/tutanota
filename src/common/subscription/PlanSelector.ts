@@ -24,6 +24,7 @@ type PlanSelectorAttr = {
 	actionButtons: SubscriptionActionButtons
 	priceAndConfigProvider: PriceAndConfigProvider
 	hasCampaign: boolean
+	hidePaidPlans: boolean
 	isApplePrice: boolean
 }
 
@@ -45,7 +46,10 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		[PlanType.Free]: "initial",
 	}
 
-	oncreate() {
+	oncreate({ attrs: { hidePaidPlans } }: Vnode<PlanSelectorAttr>) {
+		// Set the default selection to free when we need to hide paid plans. This would be the case if the user already has a paid Apple account.
+		if (hidePaidPlans) this.currentPlan(PlanType.Free)
+
 		// Set the scale of the selected plan box to `1.03` after a timeout to animate the scale of the selected plan box on loading.
 		this.scaleTimeout = setTimeout(() => {
 			this.scale = { ...this.scale, [PlanType.Revolutionary]: SELECTED_PLAN_SCALE.toString() }
@@ -69,7 +73,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
-	view({ attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
+	view({ attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, hidePaidPlans, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 		const isPaidPlanSelected = this.currentPlan() === PlanType.Revolutionary || this.currentPlan() === PlanType.Legend
 
@@ -133,6 +137,36 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			})
 		}
 
+		const renderPaymentIntervalSwitch = () => {
+			return m(
+				".flex.gap-hpad",
+				{
+					style: {
+						"align-items": "center",
+					},
+				},
+				m(
+					"div",
+					{
+						class: [isYearly ? "font-weight-600" : "", "right", "full-width"].join(" "),
+					},
+					"Yearly",
+				),
+				m(PaymentIntervalSwitch, {
+					state: isYearly ? "left" : "right",
+					onclick: (value) => options.paymentInterval(value === "left" ? PaymentInterval.Yearly : PaymentInterval.Monthly),
+					ariaLabel: lang.get("emptyString_msg"),
+				}),
+				m(
+					"div",
+					{
+						class: [!isYearly ? "font-weight-600" : "", "left", "full-width"].join(" "),
+					},
+					"Monthly",
+				),
+			)
+		}
+
 		return m(
 			".flex.flex-column.gap-vpad-l",
 			{
@@ -144,33 +178,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			[
 				m(
 					"#plan-selector.flex.flex-column.gap-vpad-l",
-					m(
-						".flex.gap-hpad",
-						{
-							style: {
-								"align-items": "center",
-							},
-						},
-						m(
-							"div",
-							{
-								class: [isYearly ? "font-weight-600" : "", "right", "full-width"].join(" "),
-							},
-							"Yearly",
-						),
-						m(PaymentIntervalSwitch, {
-							state: isYearly ? "left" : "right",
-							onclick: (value) => options.paymentInterval(value === "left" ? PaymentInterval.Yearly : PaymentInterval.Monthly),
-							ariaLabel: lang.get("emptyString_msg"),
-						}),
-						m(
-							"div",
-							{
-								class: [!isYearly ? "font-weight-600" : "", "left", "full-width"].join(" "),
-							},
-							"Monthly",
-						),
-					),
+					!hidePaidPlans && renderPaymentIntervalSwitch(),
 					m(
 						".flex-column",
 						{
@@ -197,29 +205,30 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									width: "100%",
 								},
 							},
-							[PlanType.Revolutionary, PlanType.Legend].map((personalPlan: PlanType.Legend | PlanType.Revolutionary) => {
-								const getPriceStrProps = {
-									priceAndConfigProvider,
-									targetPlan: personalPlan,
-									paymentInterval: options.paymentInterval(),
-								}
-								const { referencePriceStr, priceStr } = isApplePrice
-									? this.getApplePriceStr(getPriceStrProps)
-									: this.getPriceStr(getPriceStrProps)
+							!hidePaidPlans &&
+								[PlanType.Revolutionary, PlanType.Legend].map((personalPlan: PlanType.Legend | PlanType.Revolutionary) => {
+									const getPriceStrProps = {
+										priceAndConfigProvider,
+										targetPlan: personalPlan,
+										paymentInterval: options.paymentInterval(),
+									}
+									const { referencePriceStr, priceStr } = isApplePrice
+										? this.getApplePriceStr(getPriceStrProps)
+										: this.getPriceStr(getPriceStrProps)
 
-								return m(PlanBox, {
-									price: priceStr,
-									referencePrice: referencePriceStr,
-									plan: personalPlan,
-									isSelected: personalPlan === this.currentPlan(),
-									onclick: (newPlan) => this.currentPlan(newPlan),
-									scale: this.scale[personalPlan],
-									selectedPaymentInterval: options.paymentInterval,
-									priceAndConfigProvider,
-									hasCampaign,
-									isApplePrice,
-								})
-							}),
+									return m(PlanBox, {
+										price: priceStr,
+										referencePrice: referencePriceStr,
+										plan: personalPlan,
+										isSelected: personalPlan === this.currentPlan(),
+										onclick: (newPlan) => this.currentPlan(newPlan),
+										scale: this.scale[personalPlan],
+										selectedPaymentInterval: options.paymentInterval,
+										priceAndConfigProvider,
+										hasCampaign,
+										isApplePrice,
+									})
+								}),
 						),
 						m(FreePlanBox, {
 							isSelected: this.currentPlan() === PlanType.Free,
@@ -259,7 +268,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 						),
 					),
 				),
-				m(".flex.flex-column", [m(".small.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")), m(".small.mb", renderFootnoteElement())]),
+				!hidePaidPlans &&
+					m(".flex.flex-column", [
+						m(".small.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
+						m(".small.mb", renderFootnoteElement()),
+					]),
 			],
 		)
 	}

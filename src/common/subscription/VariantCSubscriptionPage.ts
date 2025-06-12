@@ -10,13 +10,13 @@ import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Keys, NewBusinessPlans, PaymentMethodType, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { Keys, NewBusinessPlans, PaymentMethodType, PlanType, PlanTypeToName, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { locator } from "../api/main/CommonLocator"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { UpgradePriceType } from "./FeatureListProvider"
-import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
-import { downcast, lazy } from "@tutao/tutanota-utils"
+import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
+import { assertNotNull, downcast, lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { completeSelectedStage, PlanSelector } from "./PlanSelector.js"
@@ -44,7 +44,6 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	private upgradeType: UpgradeType | undefined = undefined
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
-		const data = vnode.attrs.data
 		this._dom = vnode.dom as HTMLElement
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
 		this.upgradeType = vnode.attrs.data.upgradeType
@@ -75,7 +74,10 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		const { featureListProvider, planPrices, acceptedPlans, newAccountData, accountingInfo } = data
 		let availablePlans = acceptedPlans
 		const isApplePrice = shouldShowApplePrices(downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod))
-		const hasCampaign = isApplePrice ? planPrices.getIosIntroOfferEligibility() : planPrices.getRawPricingData().hasGlobalFirstYearDiscount
+		const hasCampaign = isApplePrice
+			? planPrices.getIosIntroOfferEligibility() && this.hasAppleIntroOffer(planPrices)
+			: planPrices.getRawPricingData().hasGlobalFirstYearDiscount
+
 		// newAccountData is filled in when signing up and then going back in the signup process
 		// If the user has selected a tuta.com address we want to prevent them from selecting a free plan at this point
 		if (!!newAccountData && newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
@@ -120,14 +122,20 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		return m(".", [
 			// Headline for campaigns / affiliates / warnings
 			hasCampaign && this.renderCampaignHeadline(),
+			data.msg && this.renderHeadline(lang.getTranslationText(data.msg)),
 			m(PlanSelector, {
 				options: data.options,
 				actionButtons: subscriptionActionButtons,
 				priceAndConfigProvider: planPrices,
 				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
+				hidePaidPlans: availablePlans.includes(PlanType.Free) && availablePlans.length === 1,
 				isApplePrice,
 			}),
 		])
+	}
+
+	private renderHeadline(message: string) {
+		return m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", message))
 	}
 
 	private renderCampaignHeadline() {
@@ -142,6 +150,44 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 			// This text should not be translated to other languages.
 			m(".b.center.smaller", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
 		)
+	}
+
+	private hasAppleIntroOffer(priceAndConfigProvider: PriceAndConfigProvider): boolean {
+		const { referencePriceStr: revoReferencePriceStr } = this.getApplePriceStr({
+			priceAndConfigProvider,
+			targetPlan: PlanType.Revolutionary,
+			paymentInterval: PaymentInterval.Yearly,
+		})
+		const { referencePriceStr: legendReferencePriceStr } = this.getApplePriceStr({
+			priceAndConfigProvider,
+			targetPlan: PlanType.Legend,
+			paymentInterval: PaymentInterval.Yearly,
+		})
+
+		return !!revoReferencePriceStr || !!legendReferencePriceStr
+	}
+
+	private getApplePriceStr({
+		priceAndConfigProvider,
+		targetPlan,
+		paymentInterval,
+	}: {
+		priceAndConfigProvider: PriceAndConfigProvider
+		paymentInterval: PaymentInterval
+		targetPlan: PlanType
+	}) {
+		const { displayYearlyPerYear, displayMonthlyPerMonth, displayOfferYearlyPerYear } = assertNotNull(
+			priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase()),
+		)
+		let priceStr: string
+		let referencePriceStr: string | undefined = undefined
+		if (paymentInterval === PaymentInterval.Yearly) {
+			priceStr = displayOfferYearlyPerYear ?? displayYearlyPerYear
+			referencePriceStr = !!displayOfferYearlyPerYear ? displayYearlyPerYear : undefined
+		} else {
+			priceStr = displayMonthlyPerMonth
+		}
+		return { priceStr, referencePriceStr }
 	}
 
 	selectFree(data: UpgradeSubscriptionData) {
@@ -243,7 +289,6 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 
 	createUpgradeButton(data: UpgradeSubscriptionData, planType: PlanType): lazy<LoginButtonAttrs> {
 		const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
-
 		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
 
 		return () => ({
@@ -341,9 +386,11 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 		return false
 	}
 
-	public rightAction = (update: VoidFunction): ButtonAttrs => {
-		return getPrivateBusinessSwitchButton(this.data.options.businessUse, update)
-	}
+	public rightAction = isIOSApp()
+		? undefined
+		: (update: VoidFunction): ButtonAttrs => {
+				return getPrivateBusinessSwitchButton(this.data.options.businessUse, update)
+		  }
 
 	isEnabled(): boolean {
 		return true
