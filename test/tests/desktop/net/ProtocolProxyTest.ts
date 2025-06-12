@@ -60,7 +60,7 @@ o.spec("ProtocolProxy", function () {
 
 			const responseHeaders = {
 				"access-control-allow-origin": "*",
-				"access-control-allow-methods": "POST, GET, PUT, DELETE",
+				"access-control-allow-methods": "POST, GET, PUT, PATCH, DELETE",
 				"access-control-allow-headers": "*",
 			}
 			const responseHttp = await httpCaptor.value(request("http://no/where"))
