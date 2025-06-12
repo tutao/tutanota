@@ -2036,6 +2036,7 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"emailAddressFirst_msg": "Bitte zuerst oben eine E-Mail-Adresse auswählen."
 	}
 }

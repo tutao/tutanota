@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { lang } from "../../misc/LanguageViewModel"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
 import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
