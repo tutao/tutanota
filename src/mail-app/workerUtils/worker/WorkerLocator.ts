@@ -750,7 +750,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		mainInterface.progressTracker,
-        typeModelResolver,
+		typeModelResolver,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

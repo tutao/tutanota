@@ -580,7 +580,7 @@ o.spec("LoginFacadeTest", function () {
 						kdfType: DEFAULT_KDF_TYPE,
 					},
 					dbKey,
-                    timeRangeDate,
+					timeRangeDate,
 				)
 
 				// wait for async resume session

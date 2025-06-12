@@ -57,7 +57,7 @@ o.spec("EventBusClientTest", function () {
 			socketFactory,
 			sleepDetector,
 			progressTrackerMock,
-            typeModelResolver,
+			typeModelResolver,
 		)
 	}
 
