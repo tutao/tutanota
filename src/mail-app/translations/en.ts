@@ -2033,6 +2033,7 @@ export default {
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"emailAddressFirst_msg": "Please first select an email address above."
+		"emailAddressFirst_msg": "Please first select an email address above.",
+		"invalidSignup_msg": "The signup process was interrupted. Please try again."
 	}
 }

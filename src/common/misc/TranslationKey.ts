@@ -2018,3 +2018,4 @@ export type TranslationKeyType =
 	| "zoomOut_action"
 	| "emptyString_msg"
 	| "emailAddressFirst_msg"
+	| "invalidSignup_msg"
