@@ -12,6 +12,7 @@ export enum InputMode {
 
 export interface SingleLineTextFieldAttrs<T extends TextFieldType> extends Pick<Component, "oncreate"> {
 	value: string | number
+	// testId: string
 	ariaLabel: string
 	disabled?: boolean
 	/**
@@ -140,6 +141,7 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 			type: attrs.inputMode === InputMode.NONE ? undefined : attrs.type,
 			inputMode: attrs.inputMode,
 			readonly: attrs.readonly,
+			// "data-testid": `tf:${attrs.testId}`,
 			...this.getInputProperties(attrs),
 		})
 	}

@@ -71,4 +71,6 @@ export class ResolvableRecipientMock implements ResolvableRecipient {
 	whenResolved(onResolved: (resolvedRecipient: Recipient) => void): this {
 		throw new Error("STUB")
 	}
+
+	reset(): void {}
 }

@@ -647,6 +647,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				!viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) ||
 			viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 
+		// display dialog here if KEY_VERIFICATION_ERROR_MISMATCH?
+
 		if (authFailedHard) {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",

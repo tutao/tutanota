@@ -1061,6 +1061,8 @@ export enum EncryptionAuthStatus {
 	TUTACRYPT_SENDER = "4",
 	/** the entity was encrypted with RSA although TutaCrypt keys were available */
 	RSA_DESPITE_TUTACRYPT = "5",
+	/** there is a key verification error between the trusted DB and the signature of the given entity **/
+	KEY_VERIFICATION_ERROR_MISMATCH = "6",
 }
 
 export const enum MailReportType {

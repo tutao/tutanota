@@ -92,6 +92,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 			m(
 				".fill-absolute.scroll.plr-l.pb-xl",
 				{
+					"data-testid": "section:keymanagement-settings",
 					style: {
 						backgroundColor: theme.navigation_bg,
 						gap: "16px",

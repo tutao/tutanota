@@ -15,8 +15,6 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { isTutaMailAddress } from "../mailFunctionality/SharedMailUtils.js"
-import { deviceConfig } from "../misc/DeviceConfig"
-import { getFirstOrThrow } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -201,9 +199,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 			let result: ValidationResult
 			try {
-				const available = getFirstOrThrow(
-					await locator.mailAddressFacade.areMailAddressesAvailable(deviceConfig.getSignupToken(), [cleanMailAddress]),
-				).available
+				// TODO verify with CS team if this is the right fix.
+				const available = await locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress)
 				result = available
 					? { isValid: true, errorId: null }
 					: {
