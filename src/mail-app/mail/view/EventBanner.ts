@@ -5,23 +5,24 @@ import { CalendarEvent, CalendarEventAttendee, Mail } from "../../../common/api/
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { base64ToBase64Url, filterNull, getHourOfDay, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, clone, filterNull, getHourOfDay, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import stream from "mithril/stream"
-import { AllIcons, Icon, IconSize } from "../../../common/gui/base/Icon.js"
+import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { isSameExternalEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { styles } from "../../../common/gui/styles.js"
 import { formatEventTimes, generateRandomColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
-import { Icons, IconsSvg } from "../../../common/gui/base/icons/Icons.js"
+import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { BannerButton } from "../../../common/gui/base/buttons/BannerButton.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { DateTime } from "../../../../libs/luxon.js"
 import {
+	AgendaEventWrapper,
 	EventConflictRenderPolicy,
 	InviteAgenda,
 	TIME_SCALE_BASE_VALUE,
@@ -32,6 +33,7 @@ import {
 	TimeViewAttributes,
 } from "../../../common/calendar/date/TimeView.js"
 import { Time } from "../../../common/calendar/date/Time"
+import { px, size } from "../../../common/gui/size.js"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -73,12 +75,12 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				{
 					style: styles.isSingleColumnLayout()
 						? {
-								"grid-template-columns": "min-content 1fr",
-								"grid-template-rows": "1fr 1fr",
-						  }
+							"grid-template-columns": "min-content 1fr",
+							"grid-template-rows": "1fr 1fr",
+						}
 						: {
-								"grid-template-columns": "min-content 1fr 1fr",
-						  },
+							"grid-template-columns": "min-content 1fr 1fr",
+						},
 				},
 				[
 					m(
@@ -170,59 +172,67 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		}
 
 		const messages = contents.events
-			.map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
-				const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
-				return message == null ? null : { event, message }
-			})
+								 .map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
+									 const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
+									 return message == null ? null : { event, message }
+								 })
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
 			// banner for events that do not mention us.
-			.filter(isNotNull)
+								 .filter(isNotNull)
 
-		return [
-			m(
-				// FIXME Remove icons debug
-				".flex.flex-wrap",
-				Object.entries(IconsSvg).map(([name, svg]) => {
-					return m(".flex.flex-column.plr", [
-						m(Icon, {
-							icon: name as AllIcons,
-							container: "div",
-							class: "mr-xsm mt-xxs",
-							style: { fill: theme.content_button },
-							size: IconSize.Medium,
-						}),
-						m("span.small", name),
-					])
-				}),
-			),
-			messages.map(({ event, message }) => {
-				return this.buildEventBanner(event, this.agenda.get(event.uid ?? "") ?? null, message)
-			}),
-		]
+		return messages.map(({ event, message }) => {
+			return this.buildEventBanner(event, this.agenda.get(event.uid ?? "") ?? null, message)
+		})
+	}
+
+	private findShortestDuration(a: CalendarEvent, b: CalendarEvent) {
+		const startTimeA = Time.fromDate(a.startTime)
+		const endTimeA = Time.fromDate(a.endTime)
+		const durationA = startTimeA.diff(endTimeA)
+
+		const startTimeB = Time.fromDate(b.startTime)
+		const endTimeB = Time.fromDate(b.endTime)
+		const durationB = startTimeB.diff(endTimeB)
+
+		return durationA < durationB ? durationA : durationB
+	}
+
+	private filterOutOfRangeEvents(range: TimeRange, events: Array<AgendaEventWrapper>, baseDate: Date, timeInterval: number): Array<AgendaEventWrapper> {
+		const rangeStartDate = range.start.toDate(baseDate)
+		const rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
+
+		const evs = events.flatMap((event) => {
+			if ((event.event.endTime > rangeStartDate && event.event.endTime <= rangeEndDate) || // Ends during event
+				(event.event.startTime >= rangeStartDate && event.event.startTime < rangeEndDate) || // Starts during event
+				(event.event.startTime <= rangeStartDate && event.event.endTime >= rangeEndDate)) { // Overlaps range
+				return [event]
+			}
+
+			return []
+		})
+
+		console.log(evs)
+		return evs
 	}
 
 	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, message: Children) {
 		const hasConflict = agenda && (agenda.before?.conflict || agenda.after?.conflict)
 		const events = filterNull([agenda?.before, agenda?.current, agenda?.after])
 
-		const shortestEventDuration = events.reduce((shortestEventDuration, currentEventWrapper) => {
-			const startTime = Time.fromDate(currentEventWrapper.event.startTime)
-			const endTime = Time.fromDate(currentEventWrapper.event.endTime)
-			const duration = startTime.diff(endTime)
-			if (shortestEventDuration === -1) {
-				return duration
-			}
-			return duration < shortestEventDuration ? duration : shortestEventDuration
-		}, -1)
-		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestEventDuration)
-
 		let eventFocusBound = agenda?.current.event?.startTime!
+		let shortestTimeFrame: number = this.findShortestDuration(event, event);
+
 		if (agenda?.before?.conflict) {
 			eventFocusBound = agenda?.current.event?.startTime!
+			shortestTimeFrame = this.findShortestDuration(agenda.current.event, agenda.before.event)
 		} else if (agenda?.after?.conflict) {
 			eventFocusBound = agenda?.after?.event.startTime!
+			shortestTimeFrame = this.findShortestDuration(agenda.current.event, agenda.after.event)
 		}
+
+		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
+
 		const timeInterval = TIME_SCALE_BASE_VALUE / timeScale
 		const timeRangeStart = Time.fromDate(eventFocusBound).sub({ minutes: timeInterval })
 		const timeRangeStartEnd = Time.fromDate(eventFocusBound).add({ minutes: timeInterval })
@@ -233,27 +243,33 @@ export class EventBanner implements Component<EventBannerAttrs> {
 
 		/* Event Banner */
 		return m(
-			".border-radius-m.border-nota.border-sm.grid",
+			".border-radius-m.border-accent.border-sm.grid",
 			{
 				class: styles.isSingleColumnLayout() ? "" : "fit-content",
 				style: styles.isSingleColumnLayout()
 					? {
-							"grid-template-columns": "min-content 1fr",
-							"grid-template-rows": "1fr 1fr",
-					  }
-					: { "grid-template-columns": "min-content 1fr 1fr" },
+						"grid-template-columns": "min-content 1fr",
+						"grid-template-rows": "1fr 1fr",
+						"max-width": "100%",
+						"width": "100%",
+					}
+					: {
+						"grid-template-columns": "min-content min-content 1fr",
+						"max-width": px(size.two_column_layout_width),
+						"width": "100%",
+					},
 			},
 			[
 				/* Date Column */
 				m(
-					".flex.flex-column.nota-bg.center.items-center.pb.pt.justify-center.fill-grid-column",
+					".flex.flex-column.accent-bg.center.items-center.pb.pt.justify-center.fill-grid-column",
 					{
 						class: styles.isSingleColumnLayout() ? "plr-vpad" : "pr-vpad-l pl-vpad-l",
 					},
 					[
-						m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { month: "short" })),
-						m("span.big.accent-fg.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
-						m("span.normal-font-size.accent-fg", event.startTime.toLocaleString("default", { year: "numeric" })),
+						m("span.normal-font-size", event.startTime.toLocaleString("default", { month: "short" })),
+						m("span.big.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
+						m("span.normal-font-size", event.startTime.toLocaleString("default", { year: "numeric" })),
 					],
 				),
 				/* Invite Column */
@@ -266,19 +282,19 @@ export class EventBanner implements Component<EventBannerAttrs> {
 							style: { fill: theme.content_button },
 							size: IconSize.Medium,
 						}),
-						m("span.b.h5", event.summary),
+						m("span.b.h5.text-ellipsis-multi-line", event.summary),
 					]),
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-s", [
-								m("span.b", "When:"), // FIXME Add translation
-								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
-						  ])
+							m("span.b", "When:"), // FIXME Add translation
+							m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+						])
 						: null,
 					message,
 				]),
 				/* Time Overview */
 				m(
-					".flex.flex-column.plr-vpad.pb.pt.justify-start.border-nota",
+					".flex.flex-column.plr-vpad.pb.pt.justify-start.border-accent",
 					{
 						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 					},
@@ -299,7 +315,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 									icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
 									container: "div",
 									class: "mr-xsm",
-									style: { fill: hasConflict ? theme.error_color : "#39D9C1" }, //FIXME add the success color to theme
+									style: { fill: hasConflict ? theme.error_color : theme.success_color },
 									size: IconSize.Medium,
 								}),
 								m("span.small.text-fade", hasConflict ? `${agenda.conflictCount} simultaneous events` : "No simultaneous events"), //FIXME Translations
@@ -307,12 +323,13 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						]),
 						agenda
 							? m(TimeView, {
-									events,
-									timeScale,
-									timeRange,
-									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-									baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
-							  } satisfies TimeViewAttributes)
+								events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+								timeScale,
+								timeRange,
+								conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+								baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
+								dates: [getStartOfDay(agenda.current.event.startTime)]
+							} satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
 				),
@@ -454,7 +471,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			let eventList: InviteAgenda = {
 				before: null,
 				after: null,
-				current: { event: event, conflict: false, color: "#39D9C166", featured: true },
+				current: { event: event, conflict: false, color: theme.success_container_color, featured: true },
 				conflictCount: conflictingEvents.length,
 			}
 
@@ -513,7 +530,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			}
 
 			if (eventList.after?.conflict || eventList.before?.conflict) {
-				eventList.current.color = "#FFCB007F" // FIXME Colors
+				eventList.current.color = theme.error_container_color
 			}
 			eventToAgenda.set(event.uid ?? "", eventList)
 		}

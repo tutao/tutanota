@@ -6,8 +6,9 @@ import { deepMemoized } from "@tutao/tutanota-utils/dist/memoized"
 import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
+import { theme } from "../../gui/theme.js"
 
-interface AgendaEventWrapper {
+export interface AgendaEventWrapper {
 	event: CalendarEvent
 	conflict: boolean
 	color: string
@@ -69,6 +70,10 @@ export interface TimeViewAttributes {
 	 * This is taken into consideration when defining the row the event is attached to
 	 */
 	baselineTimeForEventPositionCalculation: Time
+	/**
+	 * Days to render events
+	 */
+	dates: Array<Date>
 }
 
 export class TimeView implements Component<TimeViewAttributes> {
@@ -77,7 +82,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 * But instead of event start and end we use range start end
 	 */
 	view({ attrs }: Vnode<TimeViewAttributes>) {
-		const { timeScale, timeRange, events, conflictRenderPolicy, baselineTimeForEventPositionCalculation } = attrs
+		const { timeScale, timeRange, events, conflictRenderPolicy, baselineTimeForEventPositionCalculation, dates } = attrs
 		const timeColumnIntervals = this.createTimeColumnIntervals(timeScale, timeRange)
 
 		const subRowCount = 12 * timeColumnIntervals.length
@@ -87,109 +92,33 @@ export class TimeView implements Component<TimeViewAttributes> {
 			".grid.overflow-hidden", // mini-agenda
 			{
 				style: {
-					"grid-template-columns": "auto 1fr",
+					"grid-template-columns": `auto repeat(${dates.length}, 1fr)`,
 				},
 			},
 			[
 				this.buildTimeColumn(timeColumnIntervals), // Time column
-				m(
-					".grid.pr-xs.pl-xs.gap.z1",
-					{
-						oncreate(vnode): any {
-							;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
+				dates.map((date) => {
+					return m(
+						".grid.plr-unit.gap.z1.grid-auto-columns",
+						{
+							oncreate(vnode): any {
+								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
+							},
 						},
-					},
-					this.buildEventsColumns(
-						events,
-						timeRange,
-						subRowAsMinutes,
-						conflictRenderPolicy,
-						subRowCount,
-						timeScale,
-						baselineTimeForEventPositionCalculation,
-					),
-				), // Events
-				// m(MiniAgendaRow, {
-				// 	time: beforeTime,
-				// 	events: beforeEvents,
-				// } satisfies MiniAgendaRowAttributes),
-				// m(MiniAgendaRow, {
-				// 	time: middleTime,
-				// 	events: duringEvents,
-				// } satisfies MiniAgendaRowAttributes),
-				// m(MiniAgendaRow, {
-				// 	time: afterTime,
-				// 	events: afterEvents,
-				// } satisfies MiniAgendaRowAttributes),
+						this.buildEventsColumn(
+							events,
+							timeRange,
+							subRowAsMinutes,
+							conflictRenderPolicy,
+							subRowCount,
+							timeScale,
+							baselineTimeForEventPositionCalculation,
+							date
+						),
+					)
+				})
 			],
 		)
-
-		// return m(
-		// 	".flex.flex-column.plr-vpad.pb.pt.justify-start.border-nota",
-		// 	{
-		// 		class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
-		// 	},
-		// 	[
-		// 		m(".flex.flex-column", [
-		// 			m(".flex", [
-		// 				m(Icon, {
-		// 					icon: Icons.Time,
-		// 					container: "div",
-		// 					class: "mr-xsm mt-xxs",
-		// 					style: { fill: theme.content_button },
-		// 					size: IconSize.Medium,
-		// 				}),
-		// 				m("span.b.h5", "Overview"),
-		// 			]),
-		// 			m(".flex.items-center", [
-		// 				m(Icon, {
-		// 					icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
-		// 					container: "div",
-		// 					class: "mr-xsm mt-xxs",
-		// 					style: { fill: hasConflict ? theme.error_color : "#39D9C1" }, //FIXME add the success color to theme
-		// 					size: IconSize.Medium,
-		// 				}),
-		// 				m("span.small.text-fade", hasConflict ? `${agenda.conflictCount} simultaneous events` : "No simultaneous events"), //FIXME Translations
-		// 			]),
-		// 		]),
-		// 		m(".flex.flex-column.mt-m", [
-		// 			m(
-		// 				"span.text-fade",
-		// 				agenda.before
-		// 					? `${agenda.before.event.startTime.toLocaleString("default", {
-		// 						hour: "2-digit",
-		// 						minute: "2-digit",
-		// 					})} - ${agenda.before.event.endTime.toLocaleString("default", {
-		// 						hour: "2-digit",
-		// 						minute: "2-digit",
-		// 					})} ${agenda.before.event.summary}${agenda.before.conflict ? " (Conflict)" : ""}`
-		// 					: "No events before",
-		// 			), //FIXME Add translation
-		// 			m(
-		// 				"span",
-		// 				`${attrs.event.startTime.toLocaleString("default", {
-		// 					hour: "2-digit",
-		// 					minute: "2-digit",
-		// 				})} - ${attrs.event.endTime.toLocaleString("default", {
-		// 					hour: "2-digit",
-		// 					minute: "2-digit",
-		// 				})} ${attrs.event.summary}`,
-		// 			),
-		// 			m(
-		// 				"span.text-fade",
-		// 				agenda.after
-		// 					? `${agenda.after.event.startTime.toLocaleString("default", {
-		// 						hour: "2-digit",
-		// 						minute: "2-digit",
-		// 					})} - ${agenda.after.event.endTime.toLocaleString("default", {
-		// 						hour: "2-digit",
-		// 						minute: "2-digit",
-		// 					})} ${agenda.after.event.summary}${agenda.after.conflict ? " (Conflict)" : ""}`
-		// 					: "No events before",
-		// 			), //FIXME Add translation
-		// 		]),
-		// 	],
-		// )
 	}
 
 	private createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<string> {
@@ -219,7 +148,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			},
 			times.map((time, index) =>
 				m(
-					".flex.ptb-button-double.small.pr-vpad-s.border-right.rel",
+					".flex.ptb-button-double.small.pr-vpad-s.border-right.rel.items-center",
 					{
 						class: index !== times.length - 1 ? "after-as-border-bottom" : "",
 					},
@@ -229,7 +158,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 		)
 	})
 
-	private buildEventsColumns = deepMemoized(
+	private buildEventsColumn = deepMemoized(
 		(
 			agendaEntries: Array<AgendaEventWrapper>,
 			timeRange: TimeRange,
@@ -238,6 +167,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			subRowCount: number,
 			timeScale: TimeScale,
 			focusedTime: Time,
+			baseDate: Date
 		): Children => {
 			console.log({
 				agendaEntries,
@@ -249,11 +179,11 @@ export class TimeView implements Component<TimeViewAttributes> {
 				focusedTime,
 			})
 			return agendaEntries.map((event, _, events) => {
-				const { start, end } = this.getRowPosition(event.event, timeRange, subRowAsMinutes, subRowCount, timeScale)
+				const { start, end } = this.getRowPosition(event.event, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
 				const hasAnyConflict = events.some((ev) => ev.conflict)
 				return m(
 					// EventBubble
-					".border-radius-small.text-ellipsis",
+					".border-radius.text-ellipsis-multi-line.p-xsm.on-success-container-color.small",
 					{
 						style: {
 							"min-height": px(0),
@@ -265,35 +195,39 @@ export class TimeView implements Component<TimeViewAttributes> {
 							"border-bottom-right-radius": Time.fromDate(event.event.endTime).isAfter(timeRange.end) ? "0" : undefined,
 							"border-top-left-radius": Time.fromDate(event.event.startTime).isBefore(timeRange.start) ? "0" : undefined,
 							"border-top-right-radius": Time.fromDate(event.event.startTime).isBefore(timeRange.start) ? "0" : undefined,
-							border: event.featured ? "2px dashed #013E85" : "none",
+							border: event.featured ? `1.5px dashed ${theme.on_success_container_color}` : "none",
 							"border-top": Time.fromDate(event.event.startTime).isBefore(timeRange.start) ? "none" : undefined,
 							"border-bottom": Time.fromDate(event.event.endTime).isAfter(timeRange.end) ? "none" : undefined,
+							"-webkit-line-clamp": 2
 						},
 					},
 					event.featured
-						? m(".flex.items-center", [
-								m(Icon, {
-									icon: hasAnyConflict ? Icons.Warning : Icons.Checkmark,
-									container: "div",
-									class: "mr-xsm mt-xxs",
-									size: IconSize.Medium,
-								}),
-								m("span.b.text-ellipsis", event.event.summary),
-						  ])
+						? m(".flex.items-start", [
+							m(Icon, {
+								icon: hasAnyConflict ? Icons.ExclamationMark : Icons.Checkmark,
+								container: "div",
+								class: "mr-xxs",
+								size: IconSize.Normal,
+								style: {
+									fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color
+								}
+							}),
+							m(".text-wrap.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
+						])
 						: event.event.summary,
 				)
 			})
 		},
 	)
 
-	private getRowPosition(event: CalendarEvent, timeRange: TimeRange, subRowAsMinutes: number, subRowCount: number, timeScale: TimeScale) {
+	private getRowPosition(event: CalendarEvent, timeRange: TimeRange, subRowAsMinutes: number, subRowCount: number, timeScale: TimeScale, baseDate: Date) {
 		let timeInterval = TIME_SCALE_BASE_VALUE / timeScale
 
 		const startTimeSpan = timeRange.start.diff(Time.fromDate(event.startTime))
-		const start = Math.floor(startTimeSpan / subRowAsMinutes) + 1
+		const start = event.startTime < baseDate || timeRange.start.isAfter(Time.fromDate(event.startTime)) ? 1 : Math.floor(startTimeSpan / subRowAsMinutes) + 1
 
 		const endTimeSpan = timeRange.start.diff(Time.fromDate(event.endTime))
-		const end = Math.min(Math.floor(endTimeSpan / subRowAsMinutes) + 1, subRowCount)
+		const end = Math.min(Math.floor(endTimeSpan / subRowAsMinutes) + 1, subRowCount + 1)
 
 		return { start, end }
 	}
