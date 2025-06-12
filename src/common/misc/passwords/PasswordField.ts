@@ -7,7 +7,7 @@ import { CompletenessIndicator } from "../../gui/CompletenessIndicator.js"
 import { isSecurePassword, scaleToVisualPasswordStrength } from "./PasswordUtils.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
 import type { lazy } from "@tutao/tutanota-utils"
-import type { TranslationKey, MaybeTranslation } from "../LanguageViewModel.js"
+import type { MaybeTranslation } from "../LanguageViewModel.js"
 
 type StatusSetting = Status | "auto"
 
