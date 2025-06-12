@@ -52,6 +52,7 @@ import { DbStub } from "../../../../test/tests/api/worker/search/DbStub"
 import { DateProvider } from "../../../common/api/common/DateProvider"
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 
 export type InitParams = {
 	user: User
@@ -208,6 +209,7 @@ export class IndexedDbIndexer implements Indexer {
 				})
 
 				this.initDeferred.reject(e)
+				this.db.initWithError(new IndexingNotSupportedError("indexer could not be initializer", e))
 				throw e
 			}
 		}

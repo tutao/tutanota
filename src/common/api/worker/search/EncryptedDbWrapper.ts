@@ -17,6 +17,10 @@ export class EncryptedDbWrapper {
 		this.initDefer.resolve()
 	}
 
+	initWithError(error: Error) {
+		this.initDefer.reject(error)
+	}
+
 	async encryptionData(): Promise<DbEncryptionData> {
 		await this.initDefer.promise
 		return assertNotNull(this._encryptionData)
