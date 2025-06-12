@@ -113,7 +113,7 @@ function handleAssetProtocol(session: Session, assetDir: string, pathModule: typ
 const optionsResponse = lazyMemoized<Response>(() => {
 	const headers = new Headers()
 	headers.set("Access-Control-Allow-Origin", "*")
-	headers.set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE")
+	headers.set("Access-Control-Allow-Methods", "POST, GET, PUT, PATCH, DELETE")
 	headers.set("Access-Control-Allow-Headers", "*")
 	return new Response(null, {
 		status: 200,
