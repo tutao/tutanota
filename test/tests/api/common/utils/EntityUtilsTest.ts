@@ -375,6 +375,34 @@ o.spec("EntityUtils", function () {
 			])
 		})
 
+		o("computePatches works on ZeroOrOne non-aggregation list element associations and replace operation", async function () {
+			const testEntity = await createFilledTestEntity()
+			testEntity.testZeroOrOneListElementAssociation = ["listId", "elementId"]
+
+			let sk = aes256RandomKey()
+			const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(
+				TestTypeRef,
+				assertNotNull(testEntity._original),
+			)
+			const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+			const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+			let objectDiff = await computePatches(
+				originalParsedInstance,
+				currentParsedInstance,
+				currentUntypedInstance,
+				testTypeModel,
+				dummyTypeReferenceResolver,
+				false,
+			)
+			o(objectDiff).deepEquals([
+				createPatch({
+					attributePath: "14",
+					value: '[["listId","elementId"]]',
+					patchOperation: PatchOperationType.REPLACE,
+				}),
+			])
+		})
+
 		o("computePatches works on ZeroOrOne non-aggregation associations and replace operation setting to null", async function () {
 			const testEntity = await createFilledTestEntity()
 			testEntity.testElementAssociation = null
@@ -612,6 +640,7 @@ o.spec("EntityUtils", function () {
 				testDate: new Date("2025-01-01T13:00:00.000Z"),
 				testElementAssociation: "associatedElementId",
 				testListElementAssociation: [["listId", "listElementId"]],
+				testZeroOrOneListElementAssociation: null,
 				testValue: "some encrypted string",
 				testGeneratedId: GENERATED_MIN_ID,
 				_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],

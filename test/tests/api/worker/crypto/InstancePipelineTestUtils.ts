@@ -81,6 +81,15 @@ export const testTypeModel: TypeModel = {
 			final: false,
 			dependency: null,
 		},
+		"14": {
+			id: 14,
+			name: "testZeroOrOneListElementAssociation",
+			type: AssociationType.ListElementAssociationGenerated,
+			cardinality: Cardinality.ZeroOrOne,
+			refTypeId: 44,
+			final: false,
+			dependency: null,
+		},
 	},
 	version: 0,
 	versioned: false,
@@ -184,6 +193,7 @@ export type TestEntity = Entity & {
 	testAssociation: TestAggregate[]
 	testElementAssociation: Id | null
 	testListElementAssociation: IdTuple[]
+	testZeroOrOneListElementAssociation: IdTuple | null
 }
 
 export const dummyResolver = (tr: TypeRef<unknown>) => {

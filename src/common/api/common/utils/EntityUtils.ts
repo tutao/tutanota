@@ -8,6 +8,7 @@ import {
 	base64UrlToBase64,
 	clone,
 	compare,
+	deepEqual,
 	Hex,
 	hexToBase64,
 	isSameTypeRef,
@@ -520,11 +521,11 @@ export async function computePatches(
 						}),
 					)
 				}
-			} else if (!arrayEquals(originalAssociationValue, modifiedAssociationValue)) {
+			} else if (!deepEqual(originalAssociationValue, modifiedAssociationValue)) {
 				patches.push(
 					createPatch({
 						attributePath: attributeIdStr,
-						value: JSON.stringify(addedItems),
+						value: JSON.stringify(modifiedAssociationValue),
 						patchOperation: PatchOperationType.REPLACE,
 					}),
 				)
