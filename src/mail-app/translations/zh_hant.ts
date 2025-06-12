@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-06-05T15:03:21Z",
+	"updated_at": "2025-06-11T08:21:33Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -165,7 +165,7 @@ export default {
 		"birthdayEventAge_title": "{age}歲",
 		"birthdayEvent_title": "{name}生日",
 		"birthday_alt": "生日",
-		"blockExternalContentSender_action": "每次都封鎖寄件人",
+		"blockExternalContentSender_action": "每次都封鎖圖像",
 		"blue_label": "藍色",
 		"bonusMonth_msg": "您獲得{months}個獎賞月。",
 		"bonus_label": "獎賞",
@@ -592,7 +592,7 @@ export default {
 		"enterDomainIntroduction_msg": "您只需要數個步驟就可以在Tuta中使用您的自訂電郵域名。",
 		"enterMissingPassword_msg": "沒有偵測到密碼。請輸入密碼。",
 		"enterName_msg": "請輸入名稱。",
-		"enterPaymentDataFirst_msg": "訂購更多套餐前，請先輸入您的付款資料。",
+		"enterPaymentDataFirst_msg": "訂購附加套餐前，請先輸入您的付款資料。",
 		"enterPresharedPassword_msg": "請輸入您與寄件人約定好的密碼。",
 		"envelopeSenderInfo_msg": "技術寄件人與「寄件人」的電郵地址不同。由於「寄件人」的地址可以偽造，因此技術寄件人也會顯示出來，以便了解真正是誰發送此電郵。",
 		"errorAtLine_msg": "第{index}行出現錯誤：{error}",

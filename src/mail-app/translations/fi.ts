@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-06-04T16:09:03Z",
+	"updated_at": "2025-06-11T18:52:16Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -166,7 +166,7 @@ export default {
 		"birthdayEventAge_title": "{age}-vuotias",
 		"birthdayEvent_title": "Henkilön {name} syntymäpäivä",
 		"birthday_alt": "Syntymäpäivä",
-		"blockExternalContentSender_action": "Estä lähettäjä aina",
+		"blockExternalContentSender_action": "Estä kuvat aina",
 		"blue_label": "Sininen",
 		"bonusMonth_msg": "Olet saanut {months} lisäkuukautta.",
 		"bonus_label": "Bonus",

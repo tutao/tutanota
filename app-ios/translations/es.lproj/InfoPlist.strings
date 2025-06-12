@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Toma una imagen o un vídeo para añadirlo como adjunto.";
 NSPhotoLibraryUsageDescription = "Añadir una imagen de tu librería como adjunto.";
 NSMicrophoneUsageDescription = "Usado cuando se graba un vídeo como adjunto.";
-NSContactsUsageDescription = "1. Busca la dirección de correo electrónico del destinatario en contactos.\n2. Opcionalmente, sincroniza los contactos de Tuta con tu dispositivo.";
+NSContactsUsageDescription = "Tuta puede mostrarte sugerencias de destinatarios de correo electrónico a partir de los contactos almacenados en tu dispositivo. Además, puedes permitir que Tuta sincronice tus contactos entre tu dispositivo y tu cuenta de Tuta. Si activas la sincronización en la configuración, los contactos de tu dispositivo se cargarán después de haber sido cifrados de forma segura y tus contactos de Tuta estarán disponibles para otras aplicaciones.";
 NSRemindersUsageDescription = "Muestra una notificación al recibir un mensaje.";
 TutaoShowCameraAction = "Cámara";
 TutaoChoosePhotosAction = "Fotos";

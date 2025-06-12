@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-06-03T17:05:59Z",
+	"updated_at": "2025-06-10T11:47:10Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -170,7 +170,7 @@ export default {
 		"birthdayEventAge_title": "{age} Jahre alt",
 		"birthdayEvent_title": "{name}s Geburtstag",
 		"birthday_alt": "Geburtstag",
-		"blockExternalContentSender_action": "Diese Adresse immer blockieren",
+		"blockExternalContentSender_action": "Bilder immer blockieren",
 		"blue_label": "Blau",
 		"bonusMonth_msg": "Du hast {months} Bonus-Monate erhalten.",
 		"bonus_label": "Bonus",

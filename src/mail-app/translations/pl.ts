@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-06-03T16:43:35Z",
+	"updated_at": "2025-06-10T11:47:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -343,7 +343,7 @@ export default {
 		"contactsSynchronizationWarning_msg": "Włączenie synchronizacji kontaktów spowoduje udostępnienie kontaktów Tuta innym aplikacjom, którym zezwolisz na dostęp do listy kontaktów. Kontakty Tuta będą synchronizowane automatycznie.",
 		"contactsSynchronization_label": "Synchronizacja kontaktów",
 		"contactSupport_action": "Skontaktuj się z działem wsparcia",
-		"contactsUsageDescription_msg": "1. Znajdź adres e-mail odbiorcy w kontaktach.\\n2. Opcjonalnie zsynchronizuj kontakty Tuta z urządzeniem.\\n3. Opcjonalnie zsynchronizuj kontakty z urządzenia z kontem Tuta.",
+		"contactsUsageDescription_msg": "Tuta może wyświetlać sugestie odbiorców wiadomości e-mail na podstawie kontaktów zapisanych w urządzeniu. Dodatkowo możesz zezwolić Tuta na synchronizację kontaktów między urządzeniem a kontem Tuta. Jeśli włączysz synchronizację w ustawieniach, kontakty z urządzenia zostaną przesłane po bezpiecznym zaszyfrowaniu, a kontakty Tuta staną się dostępne dla innych aplikacji.",
 		"contacts_label": "Kontakty",
 		"contactView_action": "Przełącz na widok kontaktów",
 		"contentBlocked_msg": "Automatyczne ładowanie obrazków zostało zablokowane ze względu na ochronę prywatności.",
@@ -1177,6 +1177,7 @@ export default {
 		"no_label": "Nie",
 		"npo50PercentDiscount_msg": "Oferta specjalna: 50% rabatu!",
 		"occurrencesCount_label": "Liczba wystąpień",
+		"offlineDbUnavailableNoTypes_msg": "Logowanie offline jest obecnie niedostępne. Połącz się z internetem i spróbuj ponownie, aby rozwiązać tę niedogodność.",
 		"offlineLoginPremiumOnly_msg": "Jesteś w trybie offline. Wybierz płatną ofertę, aby mieć możliwość logowania się w trybie offline.",
 		"offline_label": "Rozłączono",
 		"ok_action": "OK",
@@ -1602,6 +1603,7 @@ export default {
 		"searchDisabled_msg": "Wyłączyliśmy funkcję wyszukiwania, ponieważ twoja przeglądarka nie obsługuje przechowywania danych.",
 		"searchedUntil_msg": "Wyszukiwane do",
 		"searchEmails_placeholder": "Wyszukaj wiadomości",
+		"searchFilters_label": "Filtry wyszukiwania",
 		"searchGroups_placeholder": "Szukaj grup",
 		"searchInOurAppsLinkText_msg": "nasze aplikacje",
 		"searchInOurApps_msg": "Szybsze i lepsze wyszukiwanie wiadomości e-mail jest dostępne pod adresem {link}!",
