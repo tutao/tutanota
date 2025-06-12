@@ -20,7 +20,7 @@ import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { InvalidDataError } from "../api/common/error/RestError"
+import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError"
 import { locator } from "../api/main/CommonLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -287,6 +287,11 @@ function signup(
 		.catch(
 			ofClass(InvalidDataError, () => {
 				Dialog.message("invalidRegistrationCode_msg")
+			}),
+		)
+		.catch(
+			ofClass(PreconditionFailedError, (e) => {
+				Dialog.message("invalidSignup_msg")
 			}),
 		)
 		.finally(() => operation.done())
