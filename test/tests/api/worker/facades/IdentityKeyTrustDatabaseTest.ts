@@ -11,6 +11,8 @@ import { hexToUint8Array } from "@tutao/tutanota-utils"
 import testData from "../crypto/CompatibilityTestData.json"
 import { bytesToEd25519PublicKey } from "@tutao/tutanota-crypto"
 import { withOverriddenEnv } from "../../../TestUtils"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {
@@ -61,27 +63,15 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 		globalThis.env = backupEnv
 	})
 
-	o.spec("confirm trusted identity database works as intended", function () {
-		o("identity database is empty", async function () {
-			const sqlResult: Record<string, TaggedSqlValue>[] = []
-			when(sqlCipherFacade.all(anything(), anything())).thenResolve(sqlResult)
-
-			const result = await identityKeyTrustDatabase.getManuallyVerifiedEntries()
-			const expectation = new Map<string, TrustedIdentity>()
-
-			o(result).deepEquals(expectation)
-
-			// @formatter:off
-			verify(sqlCipherFacade.all(`SELECT * FROM identity_store WHERE sourceOfTrust = ${IdentityKeySourceOfTrust.Manual.valueOf()}`, []))
-			// @formatter:on
-		})
-
-		o("trusting an identity", async function () {
-			await identityKeyTrustDatabase.trust(TRUSTED_MAIL_ADDRESS, PUBLIC_KEY_TRUST_ENTRY.publicIdentityKey, IdentityKeySourceOfTrust.Manual)
+	o.spec("trust", function () {
+		o("manually trusting an identity", async function () {
+			const result = await identityKeyTrustDatabase.trust(TRUSTED_MAIL_ADDRESS, PUBLIC_KEY_TRUST_ENTRY.publicIdentityKey, IdentityKeySourceOfTrust.Manual)
+			o(result.sourceOfTrust).equals(IdentityKeySourceOfTrust.Manual)
+			o(result.publicIdentityKey).deepEquals(PUBLIC_KEY_TRUST_ENTRY.publicIdentityKey)
 
 			// @formatter:off
 			const query =
-				"\n\t\t\tINSERT INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)\n\t\t\tVALUES (?, ?, ?, ?, ?)"
+				"\n\t\t\tINSERT OR REPLACE INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)\n\t\t\tVALUES (?, ?, ?, ?, ?)"
 			// @formatter:on
 			const params: TaggedSqlValue[] = [
 				{
@@ -107,6 +97,67 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 			]
 			verify(sqlCipherFacade.run(query, params))
 		})
+		o("trusting an identity with TOFU", async function () {
+			const result = await identityKeyTrustDatabase.trust(TRUSTED_MAIL_ADDRESS, PUBLIC_KEY_TRUST_ENTRY.publicIdentityKey, IdentityKeySourceOfTrust.TOFU)
+			o(result.sourceOfTrust).equals(IdentityKeySourceOfTrust.TOFU)
+			o(result.publicIdentityKey).deepEquals(PUBLIC_KEY_TRUST_ENTRY.publicIdentityKey)
+
+			// @formatter:off
+			const query =
+				"\n\t\t\tINSERT INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)\n\t\t\tVALUES (?, ?, ?, ?, ?)"
+			// @formatter:on
+			const params: TaggedSqlValue[] = [
+				{
+					type: SqlType.String,
+					value: TRUSTED_MAIL_ADDRESS,
+				},
+				{
+					type: SqlType.Bytes,
+					value: PUBLIC_KEY_BYTES,
+				},
+				{
+					type: SqlType.Number,
+					value: 0,
+				},
+				{
+					type: SqlType.Number,
+					value: SigningKeyPairType.Ed25519,
+				},
+				{
+					type: SqlType.Number,
+					value: IdentityKeySourceOfTrust.TOFU,
+				},
+			]
+			verify(sqlCipherFacade.run(query, params))
+		})
+		o("trusting an identity with Not_supported throws", async function () {
+			await assertThrows(
+				ProgrammingError,
+				async () =>
+					await identityKeyTrustDatabase.trust(
+						TRUSTED_MAIL_ADDRESS,
+						PUBLIC_KEY_TRUST_ENTRY.publicIdentityKey,
+						IdentityKeySourceOfTrust.Not_Supported,
+					),
+			)
+			verify(sqlCipherFacade.run(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+	})
+
+	o.spec("confirm trusted identity database works as intended", function () {
+		o("identity database is empty", async function () {
+			const sqlResult: Record<string, TaggedSqlValue>[] = []
+			when(sqlCipherFacade.all(anything(), anything())).thenResolve(sqlResult)
+
+			const result = await identityKeyTrustDatabase.getManuallyVerifiedEntries()
+			const expectation = new Map<string, TrustedIdentity>()
+
+			o(result).deepEquals(expectation)
+
+			// @formatter:off
+			verify(sqlCipherFacade.all(`SELECT * FROM identity_store WHERE sourceOfTrust = ${IdentityKeySourceOfTrust.Manual.valueOf()}`, []))
+			// @formatter:on
+		})
 
 		o("distrusting an identity", async function () {
 			await identityKeyTrustDatabase.untrust("untrust-me@tuta.com")
@@ -116,23 +167,6 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 			// @formatter:on
 			const params: TaggedSqlValue[] = [{ type: SqlType.String, value: "untrust-me@tuta.com" }]
 			verify(sqlCipherFacade.run(query, params))
-		})
-
-		o("checking for trust", async function () {
-			when(sqlCipherFacade.get(anything(), anything())).thenResolve(PUBLIC_KEY_SQL_RESULT)
-			const trusted = await identityKeyTrustDatabase.isTrusted(TRUSTED_MAIL_ADDRESS)
-
-			// @formatter:off
-			const query = `SELECT * FROM identity_store WHERE mailAddress = ?`
-			// @formatter:on
-			const params: TaggedSqlValue[] = [
-				{
-					type: SqlType.String,
-					value: TRUSTED_MAIL_ADDRESS,
-				},
-			]
-			verify(sqlCipherFacade.get(query, params))
-			o(trusted).equals(true)
 		})
 	})
 	o.spec("trusted identity acquisition", function () {
