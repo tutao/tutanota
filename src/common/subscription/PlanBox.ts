@@ -202,7 +202,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 								m(
 									".small.flex",
 									{ style: { "justify-content": "center", "column-gap": px(1) } },
-									m("span", lang.get("pricing.perMonth_label")),
+									m("span", isApplePrice && isYearly ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")),
 									hasCampaign && m("sup", { style: { "font-size": px(8) } }, "1"),
 								),
 							),

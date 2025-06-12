@@ -74,14 +74,21 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		const isPaidPlanSelected = this.currentPlan() === PlanType.Revolutionary || this.currentPlan() === PlanType.Legend
 
 		const renderFootnoteElement = (): Children => {
-			const revoReferencePrice = formatPrice(
-				priceAndConfigProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanReferencePrice),
-				true,
-			)
-			const legendReferencePrice = formatPrice(
-				priceAndConfigProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Legend, UpgradePriceType.PlanReferencePrice),
-				true,
-			)
+			const getRevoPriceStrProps = {
+				priceAndConfigProvider,
+				paymentInterval: PaymentInterval.Yearly,
+				targetPlan: PlanType.Revolutionary,
+			}
+			const { referencePriceStr: revoRefPriceStr } = isApplePrice ? this.getApplePriceStr(getRevoPriceStrProps) : this.getPriceStr(getRevoPriceStrProps)
+
+			const getLegendPriceStrProps = {
+				priceAndConfigProvider,
+				paymentInterval: PaymentInterval.Yearly,
+				targetPlan: PlanType.Legend,
+			}
+			const { referencePriceStr: legendRefPriceStr } = isApplePrice
+				? this.getApplePriceStr(getLegendPriceStrProps)
+				: this.getPriceStr(getLegendPriceStrProps)
 
 			if (hasCampaign && isYearly) {
 				return m(
@@ -90,8 +97,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					m(
 						"span",
 						lang.get("pricing.firstYearDiscount_revo_legend_msg", {
-							"{revo-price}": revoReferencePrice,
-							"{legend-price}": legendReferencePrice,
+							"{revo-price}": revoRefPriceStr ?? "",
+							"{legend-price}": legendRefPriceStr ?? "",
 						}),
 					),
 				)
@@ -264,7 +271,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}: {
 		priceAndConfigProvider: PriceAndConfigProvider
 		paymentInterval: PaymentInterval
-		targetPlan: PlanType.Legend | PlanType.Revolutionary
+		targetPlan: PlanType
 	}) {
 		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(paymentInterval, targetPlan, UpgradePriceType.PlanActualPrice)
 		let priceStr: string
@@ -290,7 +297,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}: {
 		priceAndConfigProvider: PriceAndConfigProvider
 		paymentInterval: PaymentInterval
-		targetPlan: PlanType.Legend | PlanType.Revolutionary
+		targetPlan: PlanType
 	}) {
 		const { displayYearlyPerYear, displayMonthlyPerMonth, displayOfferYearlyPerYear } = assertNotNull(
 			priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase()),
