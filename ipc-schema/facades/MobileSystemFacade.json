@@ -112,6 +112,10 @@
 				}
 			],
 			"ret": "void"
+		},
+		"print": {
+			"arg": [],
+			"ret": "void"
 		}
 	}
 }
