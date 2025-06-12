@@ -33,55 +33,55 @@ type GetPagesFunc<PageKey extends string> = (dialog: Dialog, navigateToPage: (ta
  * type Page = "event" | "guests"
  *
  * new MultiPageDialog<Page>("event", (
- * 	dialog, // : Dialog,
- * 	navigateToPage, // : (targetPage: "event" | "guests") => void,
- * 	goBack, // : (targetPage?: "event" | "guests") => void,
+ *    dialog, // : Dialog,
+ *    navigateToPage, // : (targetPage: "event" | "guests") => void,
+ *    goBack, // : (targetPage?: "event" | "guests") => void,
  * ) => ({
- * 	event: {
- * 		// The content of the events page shown within the dialog.
- * 		// It could also be a separate class implementing `Component` interface representing the content.
- * 		content: [
- * 			m("h1", "Jogging, 14:00-14:30"),
- * 			m("button", {
- * 				// When clicking the button, doing a forwards transition to the page `guests`
- * 				onclick: () => navigateToPage("guests"),
- * 			}, "Manage guests"),
- * 		],
- * 		// The title of the 'events' page, shown in the dialog's header bar
- * 		title: "Jogging",
- * 		// A button, displayed in the dialog's header bar for the respective page.
- * 		leftAction: { label: "close_alt", title: "close_alt", type: ButtonType.Secondary, click: () => dialog.onClose() },
- * 	},
- * 	guests: {
- * 		content: m("", [
- * 			m("h1", "Guests"),
- * 			m("h3", "John Doe"),
- * 			m("h3", "Jane Doe"),
- * 		]),
- * 		leftAction: {
- * 			label: "back_action",
- * 			title: "back_action",
- * 			type: ButtonType.Secondary,
- * 			// When clicked, perform a backwards animation to the `event` page.
- * 			click: () => goBack("event"),
- * 		},
- * 		rightAction: {
- * 			label: "save_action", title: "save_action", type: ButtonType.Primary, click: () => {
- * 				// ... do something and close the dialog afterward.
+ *    event: {
+ *        // The content of the events page shown within the dialog.
+ *        // It could also be a separate class implementing `Component` interface representing the content.
+ *        content: [
+ *            m("h1", "Jogging, 14:00-14:30"),
+ *            m("button", {
+ *                // When clicking the button, doing a forwards transition to the page `guests`
+ *                onclick: () => navigateToPage("guests"),
+ *            }, "Manage guests"),
+ *        ],
+ *        // The title of the 'events' page, shown in the dialog's header bar
+ *        title: "Jogging",
+ *        // A button, displayed in the dialog's header bar for the respective page.
+ *        leftAction: { label: "close_alt", title: "close_alt", type: ButtonType.Secondary, click: () => dialog.onClose() },
+ *    },
+ *    guests: {
+ *        content: m("", [
+ *            m("h1", "Guests"),
+ *            m("h3", "John Doe"),
+ *            m("h3", "Jane Doe"),
+ *        ]),
+ *        leftAction: {
+ *            label: "back_action",
+ *            title: "back_action",
+ *            type: ButtonType.Secondary,
+ *            // When clicked, perform a backwards animation to the `event` page.
+ *            click: () => goBack("event"),
+ *        },
+ *        rightAction: {
+ *            label: "save_action", title: "save_action", type: ButtonType.Primary, click: () => {
+ *                // ... do something and close the dialog afterward.
  *
- * 				dialog.onClose()
- * 			},
- * 		},
- * 		title: "Guests for jogging event",
- * 		onClose: () => {
- * 			// ... do something before the dialog is closed and close it afterward with `dialog.close()`
+ *                dialog.onClose()
+ *            },
+ *        },
+ *        title: "Guests for jogging event",
+ *        onClose: () => {
+ *            // ... do something before the dialog is closed and close it afterward with `dialog.close()`
  *
- * 			dialog.close()
- * 		},
- * 	},
+ *            dialog.close()
+ *        },
+ *    },
  * }), 600)
- * 	.getDialog()
- * 	.show()
+ *    .getDialog()
+ *    .show()
  *
  * @template PageKey - A union type representing the pages the dialog is using. Must be string.
  * @class
