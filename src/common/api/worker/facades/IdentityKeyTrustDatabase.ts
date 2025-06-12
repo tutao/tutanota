@@ -62,20 +62,33 @@ export class IdentityKeyTrustDatabase {
 	 * Adds an identity to the trust database.
 	 */
 	async trust(mailAddress: string, identityKey: Versioned<SigningPublicKey>, sourceOfTrust: IdentityKeySourceOfTrust): Promise<TrustDBEntry> {
-		if (sourceOfTrust === IdentityKeySourceOfTrust.Manual && (await this.isTrusted(mailAddress))) {
-			// we allow overwriting an existing trusted entry when the user manual verified a key.
-			await this.untrust(mailAddress)
-		}
-
 		const identityKeyBytes = ed25519PublicKeyToBytes(identityKey.object.key)
 		const identityKeyType = SigningKeyPairType.Ed25519
-
-		// @formatter:off
-		const { query, params } = sql`
+		let sqlQuery
+		switch (sourceOfTrust) {
+			case IdentityKeySourceOfTrust.Manual:
+				//when the source of trust is Manual we want to override a TOFU trusted entry if it exists
+				// @formatter:off
+				sqlQuery = sql`
+			INSERT OR REPLACE INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)
+			VALUES (${mailAddress}, ${identityKeyBytes}, ${identityKey.version}, ${identityKeyType}, ${sourceOfTrust.valueOf()})`
+				// @formatter:on
+				break
+			case IdentityKeySourceOfTrust.TOFU:
+				//we do not want to override a manual trusted entry with TOFU if it exists
+				// @formatter:off
+				sqlQuery = sql`
 			INSERT INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)
 			VALUES (${mailAddress}, ${identityKeyBytes}, ${identityKey.version}, ${identityKeyType}, ${sourceOfTrust.valueOf()})`
-		// @formatter:on
-		await this.sqlCipherFacade.run(query, params)
+				// @formatter:on
+				break
+			case IdentityKeySourceOfTrust.Not_Supported:
+				throw new ProgrammingError("source of trust not allowed: " + sourceOfTrust)
+			default:
+				throw new ProgrammingError("source of trust not implemented: " + sourceOfTrust)
+		}
+
+		await this.sqlCipherFacade.run(sqlQuery.query, sqlQuery.params)
 		return { sourceOfTrust, publicIdentityKey: identityKey }
 	}
 
@@ -87,23 +100,6 @@ export class IdentityKeyTrustDatabase {
 		const { query, params } = sql`DELETE FROM identity_store WHERE mailAddress = ${mailAddress}`
 		// @formatter:on
 		await this.sqlCipherFacade.run(query, params)
-	}
-
-	/**
-	 * Determines whether the trust database contains an entry for a given mail address.
-	 * @VisibleForTesting
-	 */
-	async isTrusted(mailAddress: string): Promise<boolean> {
-		const isSupported = await this.isSupported()
-		if (!isSupported) {
-			return false
-		}
-
-		// @formatter:off
-		const { query, params } = sql`SELECT * FROM identity_store WHERE mailAddress = ${mailAddress}`
-		// @formatter:on
-		const result = await this.sqlCipherFacade.get(query, params)
-		return result !== null
 	}
 
 	/**
