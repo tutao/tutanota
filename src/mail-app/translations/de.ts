@@ -2037,6 +2037,7 @@ export default {
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"emailAddressFirst_msg": "Bitte zuerst oben eine E-Mail-Adresse auswählen."
+		"emailAddressFirst_msg": "Bitte zuerst oben eine E-Mail-Adresse auswählen.",
+		"invalidSignup_msg": "Die Registrierung wurde unterbrochen. Bitte versuche es noch einmal."
 	}
 }
