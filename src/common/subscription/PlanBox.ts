@@ -31,6 +31,7 @@ type PlanBoxAttrs = {
 	priceAndConfigProvider: PriceAndConfigProvider
 	scale: CSSStyleDeclaration["scale"]
 	hasCampaign: boolean
+	isApplePrice: boolean
 }
 
 export class PlanBox implements Component<PlanBoxAttrs> {
@@ -49,7 +50,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 	}
 
 	view({
-		attrs: { plan, isSelected, onclick, priceAndConfigProvider, price, referencePrice, selectedPaymentInterval, scale, hasCampaign },
+		attrs: { price, referencePrice, selectedPaymentInterval, isSelected, plan, onclick, priceAndConfigProvider, scale, hasCampaign, isApplePrice },
 	}: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
@@ -64,6 +65,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 				style: {
 					scale,
 					"z-index": isSelected ? "1" : "initial",
+					"transform-origin": isLegendPlan ? "center right" : "center left",
 				},
 			},
 			[
@@ -87,17 +89,16 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 					"",
 					{
 						style: {
-							"background-color": planBoxColors.getBgColor({ isSelected }),
-							color: planBoxColors.getTextColor({ isSelected, hasCampaign }),
+							"background-color": planBoxColors.getBgColor(isSelected),
+							color: planBoxColors.getTextColor(isSelected, hasCampaign),
 							"min-height": px(270),
 							height: "100%",
 							"border-style": "solid",
-							"border-color": planBoxColors.getOutlineColor({ isSelected }),
+							"border-color": planBoxColors.getOutlineColor(isSelected),
 							"border-width": isLegendPlan
 								? this.getLegendBorderWidth(isSelected, hasCampaign)
 								: this.getRevoBorderWidth(isSelected, hasCampaign),
 							"border-radius": isLegendPlan ? this.getLegendBorderRadius(hasCampaign) : this.getRevoBorderRadius(hasCampaign),
-							"transform-origin": isLegendPlan ? "center right" : "center left",
 							...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
 							overflow: "hidden",
 							padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
@@ -141,82 +142,71 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 						),
 						m(
 							".flex",
-							{
-								style: {
-									"justify-content": isLegendPlan ? "start" : "end",
-								},
-							},
+							{ style: { "justify-content": isLegendPlan ? "start" : "end" } },
 							m(".smaller.mt-s", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
 						),
-						m(
-							".flex-space-between.gap-hpad.mt.mb",
-							{
-								style: { "flex-direction": isLegendPlan ? "row-reverse" : "row" },
-							},
-							[
+						m(".flex-space-between.gap-hpad.mt.mb", { style: { "flex-direction": isLegendPlan ? "row-reverse" : "row" } }, [
+							m(
+								"",
+								{
+									style: {
+										height: px(35),
+										fill: this.getIconColor({ isSelected }),
+									},
+								},
+								!this.revoIconSvg || !this.legendIconSvg || styles.bodyWidth <= 420
+									? null
+									: m.trust(isLegendPlan ? this.legendIconSvg : this.revoIconSvg),
+							),
+							m(
+								".flex.flex-column",
+								{
+									style: {
+										"align-items": isLegendPlan ? "start" : "end",
+									},
+								},
 								m(
-									"",
+									".flex",
 									{
 										style: {
-											height: px(35),
-											fill: this.getIconColor({ isSelected }),
+											gap: px(3),
+											"align-items": "end",
+											"flex-direction": isLegendPlan ? "row-reverse" : "row",
+											"flex-wrap": "wrap",
+											"justify-content": isLegendPlan ? "start" : "end",
 										},
 									},
-									!this.revoIconSvg || !this.legendIconSvg || styles.bodyWidth <= 420
-										? null
-										: m.trust(isLegendPlan ? this.legendIconSvg : this.revoIconSvg),
-								),
-								m(
-									".flex.flex-column",
-									{
-										style: {
-											"align-items": isLegendPlan ? "start" : "end",
-										},
-									},
+									strikethroughPrice?.trim() !== ""
+										? m(
+												".strike",
+												{
+													style: {
+														fontSize: px(size.font_size_smaller),
+														justifySelf: "end",
+													},
+												},
+												strikethroughPrice,
+										  )
+										: m(""),
 									m(
-										".flex",
+										".h1",
 										{
 											style: {
-												gap: px(3),
-												"align-items": "end",
-												"flex-direction": isLegendPlan ? "row-reverse" : "row",
-												"flex-wrap": "wrap",
-												"justify-content": isLegendPlan ? "start" : "end",
+												"line-height": "100%",
+												...(isApplePrice && { "font-size": px(20), "font-weight": "bold" }),
 											},
 										},
-										strikethroughPrice?.trim() !== ""
-											? m(
-													".strike",
-													{
-														style: {
-															fontSize: px(size.font_size_smaller),
-															justifySelf: "end",
-														},
-													},
-													strikethroughPrice,
-											  )
-											: m(""),
-										m(
-											".h1",
-											{
-												style: {
-													"line-height": "100%",
-													"font-size": px(20),
-													"font-weight": "bold",
-												},
-											},
-											price,
-										),
-									),
-									m(
-										".small.flex",
-										{ style: { "justify-content": "center", "column-gap": px(1) } },
-										m("span", lang.get("pricing.perMonth_label")),
-										hasCampaign && m("sup", { style: { "font-size": px(8) } }, "1"),
+										price,
 									),
 								),
-							],
-						),
+								m(
+									".small.flex",
+									{ style: { "justify-content": "center", "column-gap": px(1) } },
+									m("span", lang.get("pricing.perMonth_label")),
+									hasCampaign && m("sup", { style: { "font-size": px(8) } }, "1"),
+								),
+							),
+						]),
 
 						m(
 							".flex.flex-column.gap-vpad-s",
@@ -246,7 +236,7 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 						icon,
 						size: IconSize.Normal,
 						style: {
-							fill: planBoxColors.getFeatureIconColor({ isSelected, planType, hasCampaign }),
+							fill: planBoxColors.getFeatureIconColor(isSelected, planType, hasCampaign),
 						},
 					}),
 					m(".smaller", lang.get(langKey, getReplacement(replacement, planType, provider))),

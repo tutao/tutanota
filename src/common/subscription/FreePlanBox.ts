@@ -4,7 +4,7 @@ import { lang } from "../misc/LanguageViewModel"
 import { PlanType } from "../api/common/TutanotaConstants"
 import { PriceAndConfigProvider } from "./PriceUtils"
 import { theme } from "../gui/theme.js"
-import { FeatureListProvider, ReplacementKey } from "./FeatureListProvider.js"
+import { ReplacementKey } from "./FeatureListProvider.js"
 import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { getReplacement } from "./PlanSelector.js"
@@ -30,8 +30,8 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 			".cursor-pointer.buyOptionBox-v2",
 			{
 				style: {
-					"background-color": planBoxColors.getBgColor({ isSelected }),
-					color: planBoxColors.getTextColor({ isSelected, hasCampaign }),
+					"background-color": planBoxColors.getBgColor(isSelected),
+					color: planBoxColors.getTextColor(isSelected, hasCampaign),
 					display: "flex",
 					"z-index": isSelected ? "1" : "initial",
 					scale,
@@ -42,7 +42,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 					"border-width": this.getBorderWidth({ isSelected }),
 					"border-radius": this.getBorderRadius(),
 					"border-style": "solid",
-					"border-color": planBoxColors.getOutlineColor({ isSelected }),
+					"border-color": planBoxColors.getOutlineColor(isSelected),
 					padding: "24px 16px",
 				},
 				onclick: () => select(),
@@ -109,7 +109,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 						icon,
 						size: IconSize.Normal,
 						style: {
-							fill: planBoxColors.getFeatureIconColor({ isSelected, planType: PlanType.Free, hasCampaign }),
+							fill: planBoxColors.getFeatureIconColor(isSelected, PlanType.Free, hasCampaign),
 						},
 					}),
 					m(".smaller", lang.get(langKey, getReplacement(replacement, PlanType.Free, provider))),

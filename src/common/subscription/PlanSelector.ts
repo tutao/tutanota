@@ -2,9 +2,9 @@ import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril
 import { lang } from "../misc/LanguageViewModel"
 import { PlanBox } from "./PlanBox.js"
 import { formatMonthlyPrice, formatPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
-import { FeatureListProvider, ReplacementKey, SelectedSubscriptionOptions, UpgradePriceType } from "./FeatureListProvider"
+import { ReplacementKey, SelectedSubscriptionOptions, UpgradePriceType } from "./FeatureListProvider"
 import { assertNotNull, downcast, lazy } from "@tutao/tutanota-utils"
-import { AvailablePlanType, CustomDomainType, CustomDomainTypeCountName, Keys, PaymentMethodType, PlanType, PlanTypeToName,NewBusinessPlans,  TabIndex } from "../api/common/TutanotaConstants.js"
+import { AvailablePlanType, CustomDomainType, CustomDomainTypeCountName, Keys, PlanType, PlanTypeToName,NewBusinessPlans,  TabIndex } from "../api/common/TutanotaConstants.js"
 import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
@@ -210,6 +210,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									selectedPaymentInterval: options.paymentInterval,
 									priceAndConfigProvider,
 									hasCampaign,
+									isApplePrice,
 								})
 							}),
 						),

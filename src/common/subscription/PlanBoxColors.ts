@@ -19,7 +19,7 @@ export const planBoxColors = {
 /**
  * Determines the background color for the PlanBox component based on the selection state and theme.
  */
-function getBgColor({ isSelected }: { isSelected: boolean }) {
+function getBgColor(isSelected: boolean) {
 	if (locator.themeController.isLightTheme()) {
 		if (isSelected) {
 			return theme.experimental_primary_container
@@ -49,7 +49,7 @@ function getBoxShadow() {
 /**
  * Determines the text color for the PlanBox component based on the selection state and theme.
  */
-function getTextColor({ isSelected, hasCampaign }: { isSelected: boolean; hasCampaign?: boolean }) {
+function getTextColor(isSelected: boolean, hasCampaign?: boolean) {
 	const localTheme = hasCampaign ? getBlueTheme() : theme
 	return `${isSelected ? localTheme.experimental_on_primary_container : localTheme.content_fg}`
 }
@@ -57,7 +57,7 @@ function getTextColor({ isSelected, hasCampaign }: { isSelected: boolean; hasCam
 /**
  * Determines the border color for the PlanBox component based on the selection state and theme.
  */
-function getOutlineColor({ isSelected }: { isSelected: boolean }) {
+function getOutlineColor(isSelected: boolean) {
 	if (locator.themeController.isLightTheme()) {
 		if (isSelected) {
 			return "transparent"
@@ -76,7 +76,7 @@ function getOutlineColor({ isSelected }: { isSelected: boolean }) {
 /**
  * Determines the icon and divider color for the PlanBox component based on the selection state and theme.
  */
-function getFeatureIconColor({ isSelected, planType, hasCampaign }: { isSelected: boolean; planType: PlanType; hasCampaign?: boolean }) {
+function getFeatureIconColor(isSelected: boolean, planType: PlanType, hasCampaign?: boolean) {
 	const localTheme = hasCampaign ? getBlueTheme() : theme
 
 	if (planType === PlanType.Free) {
