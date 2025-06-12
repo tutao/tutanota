@@ -9,7 +9,6 @@ import { ButtonType } from "../gui/base/Button.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import m, { Children } from "mithril"
 import { TextField } from "../gui/base/TextField.js"
-import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { theme } from "../gui/theme"
 import { getColorLuminance, isMonochrome } from "../gui/base/Color"
 
@@ -142,7 +141,11 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 			],
 			middle: "captchaDisplay_label",
 		}
-		const imageData = `data:image/png;base64,${uint8ArrayToBase64(challenge)}`
+		// FIXME: just assumes audio right now
+		// const imageData = `data:image/png;base64,${uint8ArrayToBase64(challenge)}`
+		// FIXME: revoke
+		const audioBlob = new Blob([challenge], { type: "audio/wav" })
+		const audioBlobUrl = URL.createObjectURL(audioBlob)
 
 		dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => {
@@ -157,11 +160,18 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 				return [
 					m(DialogHeaderBar, actionBarAttrs),
 					m(".plr-l.pb", [
-						m("img.pt-ml.center-h.block", {
-							src: imageData,
-							alt: lang.get("captchaDisplay_label"),
-							style: captchaFilter,
+						// FIXME: translate
+						m("", "Big clock strikes every hour, small clock strikes every quarter of an hour. What time is it?"),
+						// FIXME: make it not ugly
+						m("audio", {
+							controls: true,
+							src: audioBlobUrl,
 						}),
+						// m("img.pt-ml.center-h.block", {
+						// 	src: imageData,
+						// 	alt: lang.get("captchaDisplay_label"),
+						// 	style: captchaFilter,
+						// }),
 						m(TextField, {
 							label: lang.makeTranslation("captcha_input", lang.get("captchaInput_label") + " (hh:mm)"),
 							helpLabel: () => lang.get("captchaInfo_msg"),
