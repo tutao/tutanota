@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { BubbleTextField, BubbleTextFieldAttrs } from "./base/BubbleTextField.js"
+import { BubbleTextField, BubbleTextFieldAttrs, BubbleTextFieldClickBehaviour } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
 import { px, size } from "./size.js"
 import { Icon, IconSize, progressIcon } from "./base/Icon.js"
@@ -14,15 +14,17 @@ import { SearchDropDown } from "./SearchDropDown.js"
 import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
-import { PresentableKeyVerificationState } from "../api/main/RecipientsModel"
+import { PresentableKeyVerificationState, ResolvableRecipient } from "../api/main/RecipientsModel"
+import { showKeyVerificationErrorRecoveryDialog } from "../settings/keymanagement/KeyVerificationRecoverDialog"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
 	text: string
 	onTextChanged: (text: string) => void
-	recipients: ReadonlyArray<Recipient>
+	recipients: ReadonlyArray<ResolvableRecipient>
 	onRecipientAdded: (address: string, name: string | null, contact: Contact | null) => void
 	onRecipientRemoved: (address: string) => void
+	onRecipientClicked?: (address: string) => void
 	getRecipientClickedDropdownAttrs?: (address: string) => Promise<DropdownChildAttrs[]>
 	injectionsRight?: Children | null
 	disabled: boolean
@@ -46,7 +48,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 	}
 
 	private renderTextField(attrs: MailRecipientsTextFieldAttrs): Children {
-		const bubbleTextFieldAttrs: BubbleTextFieldAttrs<Recipient> = {
+		const bubbleTextFieldAttrs: BubbleTextFieldAttrs<ResolvableRecipient> = {
 			label: attrs.label,
 			text: attrs.text,
 			helpLabel: attrs.helpLabel,
@@ -107,7 +109,17 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 
 				return lang.makeTranslation(recipient.address, getMailAddressDisplayText(name, recipient.address, false) + verified)
 			},
-			getBubbleDropdownAttrs: async (recipient) => (await attrs.getRecipientClickedDropdownAttrs?.(recipient.address)) ?? [],
+			onClick: (recipient: ResolvableRecipient) => {
+				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
+					showKeyVerificationErrorRecoveryDialog(recipient)
+					return BubbleTextFieldClickBehaviour.SKIP_DROPDOWN
+				} else {
+					return BubbleTextFieldClickBehaviour.SHOW_DROPDOWN
+				}
+			},
+			getBubbleDropdownAttrs: async (recipient) => {
+				return (await attrs.getRecipientClickedDropdownAttrs?.(recipient.address)) ?? []
+			},
 			onBackspace: () => {
 				if (attrs.text === "" && attrs.recipients.length > 0) {
 					const { address } = attrs.recipients.slice().pop()!

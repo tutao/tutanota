@@ -35,6 +35,8 @@ export interface ResolvableRecipient extends Recipient {
 	setName(name: string): void
 
 	markAsKeyVerificationMismatch(): Promise<void>
+
+	reset(): void
 }
 
 /* For displaying the key verification result in the UI */
@@ -182,6 +184,11 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 			}
 			return contact
 		})
+	}
+
+	reset() {
+		this.lazyInfo.reset()
+		this.lazyContact.reset()
 	}
 
 	setName(newName: string) {
