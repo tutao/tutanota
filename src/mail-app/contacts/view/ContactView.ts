@@ -625,6 +625,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				this.contactListViewModel.updateSelectedContactList(contactListInfo.groupRoot.entries)
 				this.viewSlider.focus(this.listColumn)
 			},
+			alwaysShowMoreButton: client.isMobileDevice(),
 			moreButton: moreButton,
 		} satisfies SidebarSectionRowAttrs)
 	}
