@@ -14,7 +14,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 	private let alarmManager: AlarmManager
 	private let notificationsHandler: NotificationsHandler
 	private var bridge: RemoteBridge!
-	private var webView: WKWebView!
+	private(set) var webView: WKWebView!
 	private var sqlCipherFacade: IosSqlCipherFacade
 
 	private var keyboardSize = 0

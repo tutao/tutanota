@@ -116,4 +116,10 @@ class IosMobileSystemFacade: MobileSystemFacade {
 		let windowScene = await UIApplication.shared.connectedScenes.first as! UIWindowScene
 		await SKStoreReviewController.requestReview(in: windowScene)
 	}
+	@MainActor func print() async throws {
+		let printController = UIPrintInteractionController.shared
+		// we do not set UIPrintInfo, we just assume the default
+		printController.printFormatter = self.viewController.webView.viewPrintFormatter()
+		printController.present(animated: true)
+	}
 }
