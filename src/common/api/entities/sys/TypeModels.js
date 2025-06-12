@@ -3048,13 +3048,13 @@ export const typeModels = {
 			}
 		},
 		"associations": {
-			"2599": {
+			"2603": {
 				"final": false,
 				"name": "signature",
-				"id": 2599,
+				"id": 2603,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 2570,
+				"refTypeId": 2574,
 				"dependency": null
 			}
 		}

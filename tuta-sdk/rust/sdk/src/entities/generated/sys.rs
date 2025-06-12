@@ -1099,7 +1099,7 @@ pub struct PublicKeyGetOut {
 	#[serde(rename = "2149")]
 	#[serde(with = "serde_bytes")]
 	pub pubKyberKey: Option<Vec<u8>>,
-	#[serde(rename = "2599")]
+	#[serde(rename = "2603")]
 	pub signature: Option<PublicKeySignature>,
 }
 
