@@ -152,6 +152,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		)
 	}
 
+	// FIXME: Make this method to resusable. There are copied methods for UpgradeSubscriptionPage and SubscriptionSelector.
 	private hasAppleIntroOffer(priceAndConfigProvider: PriceAndConfigProvider): boolean {
 		const { referencePriceStr: revoReferencePriceStr } = this.getApplePriceStr({
 			priceAndConfigProvider,
@@ -167,6 +168,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		return !!revoReferencePriceStr || !!legendReferencePriceStr
 	}
 
+	// FIXME: Make this method to resusable. There are copied methods for UpgradeSubscriptionPage, SubscriptionSelector, etc.
 	private getApplePriceStr({
 		priceAndConfigProvider,
 		targetPlan,

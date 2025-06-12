@@ -46,6 +46,7 @@ export type BuyOptionBoxAttr = {
 	hasFirstYearDiscount?: boolean
 	isFirstMonthForFree?: boolean
 	hasPriceFootnote?: boolean
+	isApplePrice?: boolean
 }
 
 export type BuyOptionDetailsAttr = {
@@ -197,7 +198,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 					[
 						getRibbon(),
 						typeof attrs.heading === "string" ? this.renderHeading(attrs.heading) : attrs.heading,
-						this.renderPrice(attrs.price, isYearly ? attrs.referencePrice : undefined),
+						this.renderPrice(attrs.price, attrs.isApplePrice, isYearly ? attrs.referencePrice : undefined),
 						m(
 							".small.flex",
 							{ style: { "justify-content": "center", "column-gap": px(1) } },
@@ -223,7 +224,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		)
 	}
 
-	private renderPrice(price: string, strikethroughPrice?: string) {
+	private renderPrice(price: string, isApplePrice?: boolean, strikethroughPrice?: string) {
 		return m(
 			".pt-ml.text-center",
 			{ style: { display: "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center" } },
@@ -242,7 +243,8 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						strikethroughPrice,
 				  )
 				: m(""),
-			m(".h1", price),
+			isApplePrice && m("br"),
+			m(".h1", { style: { ...(isApplePrice && { "font-size": px(20), "font-weight": "bold" }) } }, price),
 			m(""),
 		)
 	}

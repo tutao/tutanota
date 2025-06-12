@@ -9,12 +9,12 @@ import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { Keys, PaymentMethodType, PlanType, PlanTypeToName, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { locator } from "../api/main/CommonLocator"
 import { UsageTest } from "@tutao/tutanota-usagetests"
 import { UpgradePriceType } from "./FeatureListProvider"
-import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
+import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
@@ -22,7 +22,7 @@ import { completeSelectedStage } from "./PlanSelector.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { px } from "../gui/size.js"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { assertNotNull, downcast, newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -229,9 +229,11 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 	createUpgradeButton(data: UpgradeSubscriptionData, planType: PlanType): lazy<LoginButtonAttrs> {
 		const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
-
 		const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
-		const isGlobalCampaign = data.planPrices.getRawPricingData().hasGlobalFirstYearDiscount
+		const isApplePrice = shouldShowApplePrices(downcast<PaymentMethodType | undefined>(data.accountingInfo?.paymentMethod))
+		const isGlobalCampaign = isApplePrice
+			? data.planPrices.getIosIntroOfferEligibility() && this.hasAppleIntroOffer(data.planPrices)
+			: data.planPrices.getRawPricingData().hasGlobalFirstYearDiscount
 
 		// global discount
 		if (isYearly && isGlobalCampaign && (planType === PlanType.Legend || planType === PlanType.Revolutionary)) {
@@ -258,6 +260,48 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
 		})
 	}
+
+	private hasAppleIntroOffer(priceAndConfigProvider: PriceAndConfigProvider): boolean {
+		const { referencePriceStr: revoReferencePriceStr } = this.getApplePriceStr({
+			priceAndConfigProvider,
+			targetPlan: PlanType.Revolutionary,
+			paymentInterval: PaymentInterval.Yearly,
+		})
+		const { referencePriceStr: legendReferencePriceStr } = this.getApplePriceStr({
+			priceAndConfigProvider,
+			targetPlan: PlanType.Legend,
+			paymentInterval: PaymentInterval.Yearly,
+		})
+
+		return !!revoReferencePriceStr || !!legendReferencePriceStr
+	}
+
+	private getApplePriceStr({
+		priceAndConfigProvider,
+		targetPlan,
+		paymentInterval,
+	}: {
+		priceAndConfigProvider: PriceAndConfigProvider
+		paymentInterval: PaymentInterval
+		targetPlan: PlanType
+	}) {
+		const { displayYearlyPerYear, displayMonthlyPerMonth, displayOfferYearlyPerYear } = assertNotNull(
+			priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase()),
+		)
+		let priceStr: string
+		let referencePriceStr: string | undefined = undefined
+		if (paymentInterval === PaymentInterval.Yearly) {
+			priceStr = displayOfferYearlyPerYear ?? displayYearlyPerYear
+			referencePriceStr = !!displayOfferYearlyPerYear ? displayYearlyPerYear : undefined
+		} else {
+			priceStr = displayMonthlyPerMonth
+		}
+		return { priceStr, referencePriceStr }
+	}
+}
+
+function shouldShowApplePrices(paymentMethod?: PaymentMethodType): boolean {
+	return isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
 }
 
 function confirmFreeSubscription(): Promise<boolean> {

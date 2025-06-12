@@ -135,7 +135,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 	view(vnode: Vnode<SubscriptionSelectorAttr>): Children {
 		// Add BuyOptionBox margin twice to the boxWidth received
-		const { acceptedPlans, priceInfoTextId, priceAndConfigProvider, msg, featureListProvider, currentPlanType, options, boxWidth } = vnode.attrs
+		const { acceptedPlans, priceInfoTextId, priceAndConfigProvider, msg, featureListProvider, currentPlanType, options, boxWidth, accountingInfo } =
+			vnode.attrs
 
 		const columnWidth = boxWidth + BOX_MARGIN * 2
 		const inMobileView: boolean = (this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2) == true
@@ -151,7 +152,10 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// Show the business segmentControl for signup, if both personal & business plans are allowed
 		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !isIOSApp()
 
-		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
+		const isApplePrice = this.shouldShowApplePrices(downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod))
+		const hasCampaign = isApplePrice
+			? priceAndConfigProvider.getIosIntroOfferEligibility() && this.hasAppleIntroOffer(priceAndConfigProvider)
+			: priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 
 		let subscriptionPeriodInfoMsg = !signup && currentPlan !== PlanType.Free ? lang.get("switchSubscriptionInfo_msg") + " " : ""
 		if (options.businessUse()) {
@@ -170,7 +174,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 
 		const getFootnoteElement: () => Children = () => {
-			if (hasGlobalFirstYearDiscount && !options.businessUse() && isYearly) {
+			if (hasCampaign && !options.businessUse() && isYearly) {
 				const { revoPrice, legendPrice } = this.getReferencePrices({
 					priceAndConfigProvider,
 					paymentMethod: downcast<PaymentMethodType | undefined>(vnode.attrs.accountingInfo?.paymentMethod),
@@ -213,15 +217,9 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				const hasFirstYearDiscount = (() => {
 					if (this.shouldShowApplePrices(paymentMethod)) {
 						const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[personalPlan].toLowerCase())
-						return (
-							hasGlobalFirstYearDiscount &&
-							isPersonalPaidPlan &&
-							isYearly &&
-							!!prices?.isEligibleForIntroOffer &&
-							!!prices?.displayOfferYearlyPerYear
-						)
+						return hasCampaign && isPersonalPaidPlan && isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
 					} else {
-						return hasGlobalFirstYearDiscount && isPersonalPaidPlan && isYearly
+						return hasCampaign && isPersonalPaidPlan && isYearly
 					}
 				})()
 
@@ -260,7 +258,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				currentPlanType,
 				priceInfoTextId,
 				options.businessUse(),
-				hasGlobalFirstYearDiscount,
+				hasCampaign,
 				priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && (!currentPlanType || currentPlanType === PlanType.Free),
 			),
 			m(
@@ -283,6 +281,44 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 	private shouldShowApplePrices(paymentMethod?: PaymentMethodType) {
 		return isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
+	}
+
+	private hasAppleIntroOffer(priceAndConfigProvider: PriceAndConfigProvider): boolean {
+		const { referencePriceStr: revoReferencePriceStr } = this.getApplePriceStr({
+			priceAndConfigProvider,
+			targetPlan: PlanType.Revolutionary,
+			paymentInterval: PaymentInterval.Yearly,
+		})
+		const { referencePriceStr: legendReferencePriceStr } = this.getApplePriceStr({
+			priceAndConfigProvider,
+			targetPlan: PlanType.Legend,
+			paymentInterval: PaymentInterval.Yearly,
+		})
+
+		return !!revoReferencePriceStr || !!legendReferencePriceStr
+	}
+
+	private getApplePriceStr({
+		priceAndConfigProvider,
+		targetPlan,
+		paymentInterval,
+	}: {
+		priceAndConfigProvider: PriceAndConfigProvider
+		paymentInterval: PaymentInterval
+		targetPlan: PlanType
+	}) {
+		const { displayYearlyPerYear, displayMonthlyPerMonth, displayOfferYearlyPerYear } = assertNotNull(
+			priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase()),
+		)
+		let priceStr: string
+		let referencePriceStr: string | undefined = undefined
+		if (paymentInterval === PaymentInterval.Yearly) {
+			priceStr = displayOfferYearlyPerYear ?? displayYearlyPerYear
+			referencePriceStr = !!displayOfferYearlyPerYear ? displayYearlyPerYear : undefined
+		} else {
+			priceStr = displayMonthlyPerMonth
+		}
+		return { priceStr, referencePriceStr }
 	}
 
 	/**
@@ -443,6 +479,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			targetSubscription,
 			hasFirstYearDiscount: hasFirstYearDiscount,
 			isFirstMonthForFree: appliesFirstMonthForFree,
+			isApplePrice: this.shouldShowApplePrices(downcast<PaymentMethodType | undefined>(paymentMethod)),
 		}
 	}
 
