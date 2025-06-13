@@ -74,7 +74,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private readonly searchViewModel: CalendarSearchViewModel
 	private readonly contactModel: ContactModel
 	private readonly startOfTheWeekOffset: number
-	private datePickerWarning: MaybeTranslation | null = null
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {

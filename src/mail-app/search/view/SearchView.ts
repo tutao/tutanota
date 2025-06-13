@@ -892,6 +892,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			"#search.main-view",
 			m(this.viewSlider, {
 				header: m(Header, {
+					firstColWidth: this.folderColumn.width,
 					searchBar: () =>
 						m(searchBar, {
 							placeholder: this.searchBarPlaceholder(),
