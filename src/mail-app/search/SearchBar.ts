@@ -123,7 +123,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			"form.full-width",
 			{
 				style: {
-					"max-width": styles.isUsingBottomNavigation() ? "" : px(350),
+					"min-width": styles.isUsingBottomNavigation() ? "" : px(size.second_col_max_width),
+					"max-width": styles.isUsingBottomNavigation() ? "" : px(size.second_col_max_width),
 				},
 				onsubmit: (e: SubmitEvent) => {
 					e.stopPropagation()
@@ -551,7 +552,13 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return !m.route.get().startsWith("/search")
 	}
 
-	private filterResults(instances: Array<Entry>, restriction: SearchRestriction): { filteredEntries: Entries; couldShowMore: boolean } {
+	private filterResults(
+		instances: Array<Entry>,
+		restriction: SearchRestriction,
+	): {
+		filteredEntries: Entries
+		couldShowMore: boolean
+	} {
 		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			// Sort contacts by name
 			return {
@@ -569,7 +576,10 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
 			}
 		}
-		return { filteredEntries: instances.slice(0, MAX_SEARCH_PREVIEW_RESULTS), couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS }
+		return {
+			filteredEntries: instances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+			couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
+		}
 	}
 
 	private onFocus() {

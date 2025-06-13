@@ -11,6 +11,7 @@ import { NewsModel } from "../misc/news/NewsModel.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
+import { size as sizes } from "./size"
 
 assertMainOrNode()
 
@@ -27,11 +28,16 @@ export interface HeaderAttrs extends AppHeaderAttrs {
 	searchBar?: () => Children
 	/** content in the center of the search bar, where title and offline status normally are */
 	centerContent?: () => Children
+	/** adjusts the width of the logo display area, mostly so that the search bar is in the right place*/
+	firstColWidth?: number
 }
 
 export class Header implements ClassComponent<HeaderAttrs> {
 	view({ attrs }: Vnode<HeaderAttrs>): Children {
-		return m(DesktopBaseHeader, [m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }), this.renderNavigation(attrs)])
+		return m(DesktopBaseHeader, { firstColWidth: attrs.firstColWidth ?? sizes.first_col_max_width }, [
+			m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
+			this.renderNavigation(attrs),
+		])
 	}
 
 	/**
@@ -39,12 +45,14 @@ export class Header implements ClassComponent<HeaderAttrs> {
 	 * @private
 	 */
 	private renderNavigation(attrs: HeaderAttrs): Children {
-		return m(".flex-grow.flex.justify-end.items-center", [
-			attrs.searchBar ? attrs.searchBar() : null,
-			m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
-			m(".nav-bar-spacer"),
-			m(NavBar, this.renderButtons()),
-		])
+		return [
+			attrs.searchBar ? m(".ml-hpad_small", attrs.searchBar()) : null,
+			m(".flex-grow.flex.justify-end.items-center", [
+				m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
+				m(".nav-bar-spacer"),
+				m(NavBar, this.renderButtons()),
+			]),
+		]
 	}
 
 	private renderButtons(): Children {

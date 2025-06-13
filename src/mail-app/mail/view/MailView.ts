@@ -428,6 +428,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			},
 			m(this.viewSlider, {
 				header: m(Header, {
+					firstColWidth: this.folderColumn.width,
 					rightView: this.renderHeaderRightView(),
 					searchBar: () =>
 						// not showing search for external users
