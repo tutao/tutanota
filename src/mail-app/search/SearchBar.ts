@@ -311,14 +311,14 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			}
 		} else if (window.innerWidth < 500) {
 			overlayRect = {
-				top: px(size.navbar_height_mobile + 6),
+				bottom: px(size.vpad),
 				left: px(16),
 				right: px(16),
 				zIndex: LayerType.LowPriorityOverlay,
 			}
 		} else {
 			overlayRect = {
-				top: px(size.navbar_height_mobile + 6),
+				bottom: px(size.vpad),
 				left: px(domRect.left),
 				right: px(window.innerWidth - domRect.right),
 				zIndex: LayerType.LowPriorityOverlay,
@@ -551,7 +551,13 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return !m.route.get().startsWith("/search")
 	}
 
-	private filterResults(instances: Array<Entry>, restriction: SearchRestriction): { filteredEntries: Entries; couldShowMore: boolean } {
+	private filterResults(
+		instances: Array<Entry>,
+		restriction: SearchRestriction,
+	): {
+		filteredEntries: Entries
+		couldShowMore: boolean
+	} {
 		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			// Sort contacts by name
 			return {
@@ -569,7 +575,10 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
 			}
 		}
-		return { filteredEntries: instances.slice(0, MAX_SEARCH_PREVIEW_RESULTS), couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS }
+		return {
+			filteredEntries: instances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+			couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
+		}
 	}
 
 	private onFocus() {
