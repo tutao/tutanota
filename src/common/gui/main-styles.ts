@@ -9,6 +9,7 @@ import { goEuropeanBlue, stateBgActive, stateBgFocus, stateBgHover, stateBgLike 
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { hexToRGBAString } from "./base/Color"
 
 assertMainOrNode()
 
@@ -40,45 +41,45 @@ styles.registerStyle("main", () => {
 	return {
 		"#link-tt": isElectronClient()
 			? {
-				"pointer-events": "none",
-				"font-size": px(size.font_size_small),
-				"padding-left": px(size.hpad_small),
-				"padding-right": px(size.hpad_small),
-				"padding-top": px(size.vpad_xs),
-				position: "fixed",
-				bottom: px(size.vpad_xs),
-				left: px(size.vpad_xs),
-				"text-align": "center",
-				color: theme.content_bg,
-				"text-decoration": "none",
-				"background-color": theme.content_fg,
-				border: "1px solid " + theme.content_bg,
-				opacity: 0,
-				transition: "opacity .1s linear",
-				"font-family": "monospace",
-			}
+					"pointer-events": "none",
+					"font-size": px(size.font_size_small),
+					"padding-left": px(size.hpad_small),
+					"padding-right": px(size.hpad_small),
+					"padding-top": px(size.vpad_xs),
+					position: "fixed",
+					bottom: px(size.vpad_xs),
+					left: px(size.vpad_xs),
+					"text-align": "center",
+					color: theme.content_bg,
+					"text-decoration": "none",
+					"background-color": theme.content_fg,
+					border: "1px solid " + theme.content_bg,
+					opacity: 0,
+					transition: "opacity .1s linear",
+					"font-family": "monospace",
+			  }
 			: {},
 		"#link-tt.reveal": isElectronClient()
 			? {
-				opacity: 1,
-				transition: "opacity .1s linear",
-				"z-index": 9999,
-			}
+					opacity: 1,
+					transition: "opacity .1s linear",
+					"z-index": 9999,
+			  }
 			: {},
 		"*:not(input):not(textarea)": isAdminClient()
 			? {}
 			: {
-				"user-select": "none",
+					"user-select": "none",
 
-				/* disable selection/Copy for UI elements*/
-				"-ms-user-select": "none",
-				"-webkit-user-select": "none",
-				"-moz-user-select": "none",
-				"-webkit-touch-callout": "none",
+					/* disable selection/Copy for UI elements*/
+					"-ms-user-select": "none",
+					"-webkit-user-select": "none",
+					"-moz-user-select": "none",
+					"-webkit-touch-callout": "none",
 
-				/* disable the IOS popup when long-press on a link */
-				"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
-			},
+					/* disable the IOS popup when long-press on a link */
+					"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
+			  },
 		"*:not(input):not(textarea):not([draggable='true'])": {
 			"-webkit-user-drag": "none",
 		},
@@ -386,7 +387,7 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.vpad_xsm),
 		},
 		".mr-xxs": {
-			"margin-right": px(size.vpad_xxs)
+			"margin-right": px(size.vpad_xxs),
 		},
 		".mr-xsm": {
 			"margin-right": px(size.vpad_xsm),
@@ -511,7 +512,7 @@ styles.registerStyle("main", () => {
 			"padding-bottom": px(size.hpad_button),
 		},
 		".p-xsm": {
-			"padding": px(size.vpad_xsm),
+			padding: px(size.vpad_xsm),
 		},
 		// allow scrolling across the floating button
 		".plr": {
@@ -544,7 +545,7 @@ styles.registerStyle("main", () => {
 		},
 		".plr-unit": {
 			"padding-right": px(size.vpad_unit),
-			"padding-left": px(size.vpad_unit)
+			"padding-left": px(size.vpad_unit),
 		},
 		".pr-xs": {
 			"padding-right": px(size.vpad_xs),
@@ -748,7 +749,7 @@ styles.registerStyle("main", () => {
 			overflow: "hidden",
 		},
 		".grid-auto-columns": {
-			"grid-auto-columns": "1fr"
+			"grid-auto-columns": "1fr",
 		},
 		".view-column": {
 			"will-change": "transform",
@@ -951,18 +952,18 @@ styles.registerStyle("main", () => {
 		},
 		"::-webkit-scrollbar": !client.isMobileDevice()
 			? {
-				background: "transparent",
-				width: scrollbarWidthHeight, // width of vertical scrollbar
-				height: scrollbarWidthHeight, // width of horizontal scrollbar
-			}
+					background: "transparent",
+					width: scrollbarWidthHeight, // width of vertical scrollbar
+					height: scrollbarWidthHeight, // width of horizontal scrollbar
+			  }
 			: {},
 		"::-webkit-scrollbar-thumb": !client.isMobileDevice()
 			? {
-				background: theme.content_button,
-				// reduce the background
-				"border-left": "15px solid transparent",
-				"background-clip": "padding-box",
-			}
+					background: theme.content_button,
+					// reduce the background
+					"border-left": "15px solid transparent",
+					"background-clip": "padding-box",
+			  }
 			: {},
 		"*::-webkit-scrollbar-thumb:hover": {
 			"border-left": "8px solid transparent",
@@ -1006,7 +1007,7 @@ styles.registerStyle("main", () => {
 			"padding-top": "0",
 		},
 		".text-wrap": {
-			"text-wrap": "auto"
+			"text-wrap": "auto",
 		},
 		".text-center": {
 			"text-align": "center",
@@ -1942,20 +1943,20 @@ styles.registerStyle("main", () => {
 		},
 		".nav-button:hover": !isApp()
 			? {
-				// "text-decoration": "underline",
-				// opacity: 0.7,
-			}
+					// "text-decoration": "underline",
+					// opacity: 0.7,
+			  }
 			: {},
 		".nav-button:focus": client.isDesktopDevice()
 			? {
-				// "text-decoration": "underline",
-				// opacity: 0.7,
-			}
+					// "text-decoration": "underline",
+					// opacity: 0.7,
+			  }
 			: {},
 		"button:focus, button:hover": client.isDesktopDevice()
 			? {
-				opacity: 0.7,
-			}
+					opacity: 0.7,
+			  }
 			: {},
 		".button-icon": {
 			width: px(size.button_icon_bg_size),
@@ -2609,8 +2610,8 @@ styles.registerStyle("main", () => {
 		},
 		".color-option:not(.selected):focus-within, .color-option:not(.selected):hover": client.isDesktopDevice()
 			? {
-				opacity: 0.7,
-			}
+					opacity: 0.7,
+			  }
 			: {},
 		".custom-color-container .text-field": {
 			"padding-top": "0px",
@@ -2626,14 +2627,14 @@ styles.registerStyle("main", () => {
 		},
 		".success-container": {
 			"background-color": theme.success_container_color,
-			"color": theme.on_success_container_color,
+			color: theme.on_success_container_color,
 		},
 		".error-container": {
 			"background-color": theme.error_container_color,
-			"color": theme.on_error_container_color,
+			color: theme.on_error_container_color,
 		},
 		".on-success-container-color": {
-			"color": theme.on_success_container_color,
+			color: theme.on_success_container_color,
 		},
 		".calendar-invite-field": {
 			"min-width": "80px",
@@ -3143,21 +3144,30 @@ styles.registerStyle("main", () => {
 		".clip": {
 			overflow: "clip",
 		},
-		".loading:before": {
+		".skeleton-bg-1": {
+			background: theme.navigation_border,
+		},
+		".skeleton-bg-2": {
+			background: theme.navigation_bg,
+		},
+		".skeleton-border-1": {
+			"border-color": theme.navigation_border,
+		},
+		".skeleton:after": {
 			position: "absolute",
 			content: '""',
 			width: "100%",
 			height: "100%",
-			top: "0",
-			left: "0",
-			background: "linear-gradient(100deg,rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, 0) 60%)",
-			"background-size": "200% 100%",
-			"background-position-x": "180%",
+			background: `linear-gradient(90deg,
+				${hexToRGBAString(theme.content_button_icon, 0)},
+				${hexToRGBAString(theme.content_button_icon, 0.3)},
+				${hexToRGBAString(theme.content_button_icon, 0)})`,
+			transform: "translateX(-100%)",
 			animation: "1.5s loading ease-in-out infinite",
 		},
 		"@keyframes loading": {
 			to: {
-				"background-position-x": "-20%;",
+				transform: "translateX(100%)",
 			},
 		},
 	}
