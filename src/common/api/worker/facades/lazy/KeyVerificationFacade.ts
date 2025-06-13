@@ -42,8 +42,9 @@ export class KeyVerificationFacade {
 
 	/**
 	 * Returns a hashed concatenation of the given public keys.
+	 * Needs to be async because this function is used in main thread.
 	 */
-	public calculateFingerprint(publicKey: Versioned<SigningPublicKey>): Hex {
+	public async calculateFingerprint(publicKey: Versioned<SigningPublicKey>): Promise<Hex> {
 		return uint8ArrayToHex(sha256Hash(this.concatenateFingerprint(publicKey)))
 	}
 
@@ -116,7 +117,7 @@ export class KeyVerificationFacade {
 		const trustDbEntries = await this.identityKeyTrustDatabase.getManuallyVerifiedEntries()
 		const identities = new Map<string, TrustedIdentity>()
 		for (const [mailAddress, trustDbEntry] of trustDbEntries) {
-			identities.set(mailAddress, this.convertToTrustedIdentity(trustDbEntry))
+			identities.set(mailAddress, await this.convertToTrustedIdentity(trustDbEntry))
 		}
 		return identities
 	}
@@ -129,7 +130,7 @@ export class KeyVerificationFacade {
 		return this.identityKeyTrustDatabase.trust(mailAddress, identityKey, sourceOfTrust)
 	}
 
-	private convertToTrustedIdentity(trustDBEntry: TrustDBEntry): TrustedIdentity {
-		return { ...trustDBEntry, fingerprint: this.calculateFingerprint(trustDBEntry.publicIdentityKey) }
+	private async convertToTrustedIdentity(trustDBEntry: TrustDBEntry): Promise<TrustedIdentity> {
+		return { ...trustDBEntry, fingerprint: await this.calculateFingerprint(trustDBEntry.publicIdentityKey) }
 	}
 }

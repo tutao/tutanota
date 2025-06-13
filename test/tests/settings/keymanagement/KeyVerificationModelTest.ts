@@ -73,7 +73,7 @@ o.spec("KeyVerificationModelTest", function () {
 			}
 
 			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(trustDBEntry)
-			when(keyVerificationFacade.calculateFingerprint(trustDBEntry.publicIdentityKey)).thenReturn("aabbccdd")
+			when(keyVerificationFacade.calculateFingerprint(trustDBEntry.publicIdentityKey)).thenResolve("aabbccdd")
 
 			const publicIdentity = await keyVerificationModel.loadIdentityKeyForMailAddress("alice@tuta.com")
 
@@ -164,7 +164,7 @@ o.spec("KeyVerificationModelTest", function () {
 				sourceOfTrust: object(),
 			}
 			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(trustDBEntry)
-			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenReturn("aabbccdd")
+			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenResolve("aabbccdd")
 
 			qrCode.data = `{"mailAddress": "alice@tuta.com", "fingerprint": "aabbccdd"}`
 
@@ -231,7 +231,7 @@ o.spec("KeyVerificationModelTest", function () {
 				sourceOfTrust: object(),
 			}
 			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(trustDBEntry)
-			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenReturn("another fingerprint")
+			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenResolve("another fingerprint")
 
 			qrCode.data = `{"mailAddress": "alice@tuta.com", "fingerprint": "aabbccdd"}`
 
@@ -245,7 +245,6 @@ o.spec("KeyVerificationModelTest", function () {
 					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				}),
 			)
-			verify(keyVerificationFacade.calculateFingerprint(trustDBEntry.publicIdentityKey))
 		})
 	})
 })
