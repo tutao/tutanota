@@ -1,6 +1,6 @@
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { MailIndexer } from "./MailIndexer"
-import { assertNotNull, difference, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, difference } from "@tutao/tutanota-utils"
 import { filterIndexMemberships } from "../../../common/api/worker/search/IndexUtils"
 import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { GroupType, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
@@ -8,7 +8,7 @@ import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { ContactIndexer } from "./ContactIndexer"
-import { CancelledError } from "../../../common/api/common/error/CancelledError"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 export class OfflineStorageIndexer implements Indexer {
 	constructor(
@@ -19,10 +19,25 @@ export class OfflineStorageIndexer implements Indexer {
 		private readonly contactIndexer: ContactIndexer,
 	) {}
 
-	async init() {
+	async partialLoginInit() {
 		const user = assertNotNull(this.userFacade.getUser())
 		await this.mailIndexer.init(user)
+		await this.mailIndexer.enableMailIndexing()
 
+		await this.infoMessageHandler.onSearchIndexStateUpdate({
+			initializing: false,
+			mailIndexEnabled: this.mailIndexer.mailIndexingEnabled,
+			progress: 0,
+			currentMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
+			aimedMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
+			indexedMailCount: 0,
+			failedIndexingUpTo: null,
+		})
+	}
+
+	async fullLoginInit(): Promise<void> {
+		const user = assertNotNull(this.userFacade.getUser())
+		// Added mail groups will be indexed when extendMailIndex() will be called later
 		const indexedGroups = (await this.persistence.getIndexedGroups()).map((data) => data.groupId)
 		const userGroups = filterIndexMemberships(user).map((membership) => membership.group)
 		const removedGroups = difference(indexedGroups, userGroups)
@@ -37,28 +52,14 @@ export class OfflineStorageIndexer implements Indexer {
 		}
 
 		await this.contactIndexer.indexFullContactList()
-
-		// Added mail groups will be indexed when extendMailIndex() will be called later
-
-		await this.infoMessageHandler.onSearchIndexStateUpdate({
-			initializing: false,
-			mailIndexEnabled: this.mailIndexer.mailIndexingEnabled,
-			progress: 0,
-			currentMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
-			aimedMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
-			indexedMailCount: 0,
-			failedIndexingUpTo: null,
-		})
 	}
 
 	async enableMailIndexing() {
-		const user = assertNotNull(this.userFacade.getUser(), "enableMailIndexing user")
-		await this.mailIndexer.enableMailIndexing()
-		this.mailIndexer.doInitialMailIndexing(user).catch(ofClass(CancelledError, noOp))
+		// no-op, mail indexing is always enabled for sqlite search
 	}
 
 	async disableMailIndexing() {
-		await this.mailIndexer.disableMailIndexing()
+		throw new ProgrammingError("Operation not supported for sqlite search index")
 	}
 
 	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id) {

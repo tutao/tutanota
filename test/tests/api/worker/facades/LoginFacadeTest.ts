@@ -134,10 +134,11 @@ o.spec("LoginFacadeTest", function () {
 		entityClientMock = instance(EntityClient)
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
-		loginListener = object<LoginListener>()
+		loginListener = object()
+		when(loginListener.onPartialLoginSuccess(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
 		typeModelResolver = clientInitializedTypeModelResolver()
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
-		cryptoFacadeMock = object<CryptoFacade>()
+		cryptoFacadeMock = object()
 		usingOfflineStorage = false
 		cacheStorageInitializerMock = object()
 		when(

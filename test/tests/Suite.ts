@@ -158,6 +158,7 @@ import "./api/worker/search/OfflineStorageContactSearchFacadeTest.js"
 import "./api/worker/rest/CustomUserCacheHandlerTest.js"
 import "./api/common/utils/QueryTokenUtilsTest.js"
 import "./contacts/ContactModelTest.js"
+import "./api/worker/search/OfflinestorageIndexerTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"

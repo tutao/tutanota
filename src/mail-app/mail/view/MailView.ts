@@ -434,7 +434,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						locator.logins.isInternalUserLoggedIn()
 							? m(LazySearchBar, {
 									placeholder: lang.get("searchEmails_placeholder"),
-									disabled: !locator.logins.isFullyLoggedIn(),
 							  })
 							: null,
 					...attrs.header,

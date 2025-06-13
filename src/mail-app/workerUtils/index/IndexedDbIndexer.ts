@@ -16,7 +16,7 @@ import { filterIndexMemberships } from "../../../common/api/worker/search/IndexU
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"
-import { ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { IndexerCore } from "./IndexerCore.js"
 import { OutOfSyncError } from "../../../common/api/common/error/OutOfSyncError.js"
@@ -29,7 +29,6 @@ import { InvalidDatabaseStateError } from "../../../common/api/common/error/Inva
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { deleteObjectStores } from "../../../common/api/worker/utils/DbUtils.js"
 import { aes256EncryptSearchIndexEntry, aes256RandomKey, AesKey, decryptKey, IV_BYTE_LENGTH, random, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
-import { CacheInfo } from "../../../common/api/worker/facades/LoginFacade.js"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import {
 	ElementDataOS,
@@ -56,7 +55,6 @@ import { IndexingNotSupportedError } from "../../../common/api/common/error/Inde
 
 export type InitParams = {
 	user: User
-	keyLoaderFacade: KeyLoaderFacade
 }
 
 const DB_VERSION: number = 3
@@ -116,7 +114,7 @@ export class IndexedDbIndexer implements Indexer {
 
 	constructor(
 		private readonly serverDateProvider: DateProvider,
-		/** @private visibelForTesting */
+		/** @private visibleForTesting */
 		private readonly db: EncryptedDbWrapper,
 		private readonly core: IndexerCore,
 		private readonly infoMessageHandler: InfoMessageHandler,
@@ -124,6 +122,7 @@ export class IndexedDbIndexer implements Indexer {
 		private readonly mailIndexer: MailIndexer,
 		private readonly contactIndexer: ContactIndexer,
 		private readonly typeModelResolver: ClientTypeModelResolver,
+		private readonly keyLoaderFacade: KeyLoaderFacade,
 	) {
 		// correctly initialized during init()
 		this._indexedGroupIds = []
@@ -143,13 +142,16 @@ export class IndexedDbIndexer implements Indexer {
 		this._realtimeEventQueue.pause()
 	}
 
+	async partialLoginInit() {
+		// no-op: this is not intended to be used offline / partial login
+	}
+
 	/**
 	 * Opens a new DbFacade and initializes the metadata if it is not there yet
 	 */
-	async init({ user, keyLoaderFacade, retryOnError, cacheInfo }: IndexerInitParams): Promise<void> {
+	async fullLoginInit({ user, retryOnError }: IndexerInitParams): Promise<void> {
 		this.initParams = {
 			user,
-			keyLoaderFacade,
 		}
 		this.initDeferred = defer()
 
@@ -158,11 +160,11 @@ export class IndexedDbIndexer implements Indexer {
 			await this.mailIndexer.init(user)
 			const metaData = await getIndexerMetaData(this.db.dbFacade, MetaDataOS)
 			if (metaData == null) {
-				const userGroupKey = keyLoaderFacade.getCurrentSymUserGroupKey()
+				const userGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
 				// database was opened for the first time - create new tables
 				await this.createIndexTables(user, userGroupKey)
 			} else {
-				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
+				const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
 				await this.loadIndexTables(user, userGroupKey, metaData)
 			}
 			this.initDeferred.resolve()
@@ -178,7 +180,7 @@ export class IndexedDbIndexer implements Indexer {
 			})
 
 			this.core.startProcessing()
-			await this.indexOrLoadContactListIfNeeded(user, cacheInfo)
+			await this.indexOrLoadContactListIfNeeded()
 			await this.mailIndexer.mailboxIndexingPromise
 
 			// pause event processing until mail indexing is finished
@@ -219,16 +221,11 @@ export class IndexedDbIndexer implements Indexer {
 		return b64UserIdHash(user._id)
 	}
 
-	private async indexOrLoadContactListIfNeeded(user: User, cacheInfo: CacheInfo | undefined) {
+	private async indexOrLoadContactListIfNeeded() {
 		try {
 			const contactsIndexed = await this.contactIndexer.areContactsIndexed()
 			if (!contactsIndexed) {
 				await this.contactIndexer.indexFullContactList()
-			}
-			//If we do not have to index the contact list we might still need to download it so we cache it in the offline storage
-			else if (cacheInfo?.isNewOfflineDb) {
-				const contactList: ContactList = await this.entity.loadRoot(ContactListTypeRef, user.userGroup.group)
-				await this.entity.loadAll(ContactTypeRef, contactList.contacts)
 			}
 		} catch (e) {
 			// external users have no contact list.
@@ -261,9 +258,8 @@ export class IndexedDbIndexer implements Indexer {
 
 		if (!this.core.isStoppedProcessing()) {
 			await this.deleteIndex(this.initParams.user._id)
-			await this.init({
+			await this.fullLoginInit({
 				user: this.initParams.user,
-				keyLoaderFacade: this.initParams.keyLoaderFacade,
 			})
 		}
 	}
@@ -327,9 +323,8 @@ export class IndexedDbIndexer implements Indexer {
 		const mailIndexingWasEnabled = this.mailIndexer.mailIndexingEnabled
 		this.mailIndexer.disableMailIndexing()
 		// do not try to init again on error
-		return this.init({
+		return this.fullLoginInit({
 			user: this.initParams.user,
-			keyLoaderFacade: this.initParams.keyLoaderFacade,
 			retryOnError: false,
 		}).then(() => {
 			if (mailIndexingWasEnabled) {
@@ -698,7 +693,7 @@ export class IndexedDbIndexer implements Indexer {
 				continue
 			}
 			this.initParams.user = await this.entity.load(UserTypeRef, event.instanceId)
-			await updateEncryptionMetadata(this.db.dbFacade, this.initParams.keyLoaderFacade, MetaDataOS)
+			await updateEncryptionMetadata(this.db.dbFacade, this.keyLoaderFacade, MetaDataOS)
 		}
 	}
 

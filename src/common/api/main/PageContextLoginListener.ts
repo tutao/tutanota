@@ -29,6 +29,10 @@ export class PageContextLoginListener implements LoginListener {
 		return this.loginPromise.promise
 	}
 
+	async onPartialLoginSuccess(_sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
+		// no-op
+	}
+
 	/**
 	 * Full login reached: any network requests can be made
 	 */

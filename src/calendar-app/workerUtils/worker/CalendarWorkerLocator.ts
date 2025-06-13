@@ -340,6 +340,9 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	)
 
 	const loginListener: LoginListener = {
+		async onPartialLoginSuccess(_sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
+			// no-op
+		},
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
 		},
