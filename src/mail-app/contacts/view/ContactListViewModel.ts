@@ -32,6 +32,7 @@ export class ContactListViewModel {
 	private listModelStateStream: Stream<unknown> | null = null
 	private sortedContactListInfos: Stream<ReadonlyArray<ContactListInfo>> = stream([])
 	private sortedSharedContactListInfos: Stream<ReadonlyArray<ContactListInfo>> = stream([])
+	readonly receivedGroupInvitations: Stream<ReceivedGroupInvitation[]>
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -42,7 +43,9 @@ export class ContactListViewModel {
 		private readonly contactListInvitations: ReceivedGroupInvitationsModel<GroupType.ContactList>,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
-	) {}
+	) {
+		this.receivedGroupInvitations = contactListInvitations.invitations
+	}
 
 	async showListAndEntry(listId?: Id, entryId?: Id) {
 		this.selectedContactList = listId ?? null
@@ -120,10 +123,6 @@ export class ContactListViewModel {
 
 	getSharedContactListInfos(): ReadonlyArray<ContactListInfo> {
 		return this.sortedSharedContactListInfos() ?? []
-	}
-
-	getContactListInvitations(): Array<ReceivedGroupInvitation> {
-		return this.contactListInvitations.invitations()
 	}
 
 	private readonly getContactsForSelectedContactListEntry = debounce(50, async () => {

@@ -7,7 +7,7 @@ import { ContactEditor } from "../ContactEditor"
 import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { assertNotNull, clear, getFirstOrThrow, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ContactMergeAction, Keys } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -27,7 +27,7 @@ import { styles } from "../../../common/gui/styles"
 import { size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
-import { SidebarSection } from "../../../common/gui/SidebarSection"
+import { SidebarSection, SidebarSectionAttrs } from "../../../common/gui/SidebarSection"
 import { attachDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
@@ -66,6 +66,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { BottomNav } from "../../gui/BottomNav.js"
 import { SidebarSectionRow, SidebarSectionRowAttrs } from "../../../common/gui/base/SidebarSectionRow"
 import { client } from "../../../common/misc/ClientDetector"
+import type { ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs"
 
 assertMainOrNode()
 
@@ -83,7 +84,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	private contactViewModel: ContactViewModel
 	private contactListViewModel: ContactListViewModel
 	private detailsColumn: ViewColumn
-	private invitationRows: Children
+	private contactListInvitationSection: Vnode<SidebarSectionAttrs> | null = null
 
 	oncreate: TopLevelView["oncreate"]
 	onremove: TopLevelView["onremove"]
@@ -297,7 +298,9 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	oninit() {
-		this.getContactListInvitationRows()
+		this.contactListViewModel.receivedGroupInvitations.map((invitations) => {
+			this.updateContactListInvitationsSection(invitations)
+		})
 	}
 
 	view({ attrs }: Vnode<ContactViewAttrs>): Children {
@@ -528,28 +531,30 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						),
 				  )
 				: null,
-			this.contactListViewModel.getContactListInvitations().length > 0
-				? m(
-						SidebarSection,
-						{
-							name: "contactListInvitations_label",
-						},
-						this.invitationRows,
-				  )
-				: null,
+			this.contactListInvitationSection,
 		]
 	}
 
-	private getContactListInvitationRows() {
-		import("../../../common/sharing/view/GroupInvitationFolderRow.js")
-			.then(({ GroupInvitationFolderRow }) => {
-				this.invitationRows = this.contactListViewModel.getContactListInvitations().map((invitation) =>
+	updateContactListInvitationsSection(receivedInvitations: ReceivedGroupInvitation[]) {
+		if (isEmpty(receivedInvitations)) {
+			this.contactListInvitationSection = null
+		} else {
+			import("../../../common/sharing/view/GroupInvitationFolderRow.js").then(({ GroupInvitationFolderRow }) => {
+				const invitationRows = receivedInvitations.map((invitation) =>
 					m(GroupInvitationFolderRow, {
 						invitation,
 					}),
 				)
+
+				this.contactListInvitationSection = m(
+					SidebarSection,
+					{
+						name: "contactListInvitations_label",
+					},
+					invitationRows,
+				)
 			})
-			.then(m.redraw)
+		}
 	}
 
 	private renderFolderMoreButton(): Children {
