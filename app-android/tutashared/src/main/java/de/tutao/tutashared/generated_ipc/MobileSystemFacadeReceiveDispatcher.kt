@@ -109,6 +109,11 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"print" -> {
+				val result: Unit = this.facade.print(
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for MobileSystemFacade: $method")
 		}
 	}

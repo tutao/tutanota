@@ -223,9 +223,7 @@ class AndroidMobileSystemFacade(
 		return SystemUtils.getInstallationDate(activity.packageManager, activity.packageName)
 	}
 
-	override suspend fun requestInAppRating() {
-		TODO("Not yet implemented")
-	}
+	override suspend fun requestInAppRating() = throw NotImplementedError()
 
 	override suspend fun requestWidgetRefresh() {
 		try {
@@ -254,4 +252,6 @@ class AndroidMobileSystemFacade(
 		val remoteStorage = RemoteStorage(db)
 		remoteStorage.storeRemoteUrl(origin)
 	}
+
+	override suspend fun print() = throw NotImplementedError()
 }

@@ -25,7 +25,7 @@ import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.j
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
 import { ListFilter } from "../../../common/misc/ListModel.js"
-import { isDesktop } from "../../../common/api/common/Env.js"
+import { isApp, isDesktop } from "../../../common/api/common/Env.js"
 import { isDraft } from "../model/MailChecks.js"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { exportMails } from "../export/Exporter"
@@ -297,7 +297,15 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, more
 	return moreButtons
 }
 
-export function getMailViewerMoreActions({ viewModel, report }: { viewModel: MailViewerViewModel; report: (() => unknown) | null }): MailViewerMoreActions {
+export function getMailViewerMoreActions({
+	viewModel,
+	report,
+	print,
+}: {
+	viewModel: MailViewerViewModel
+	report: (() => unknown) | null
+	print: () => Promise<void>
+}): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
 	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
@@ -312,8 +320,8 @@ export function getMailViewerMoreActions({ viewModel, report }: { viewModel: Mai
 		actions.unsubscribeAction = () => unsubscribe(viewModel)
 	}
 
-	if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
-		actions.printAction = () => window.print()
+	if ((isApp() || typeof window.print === "function") && viewModel.canPrint()) {
+		actions.printAction = print
 	}
 
 	if (report) {

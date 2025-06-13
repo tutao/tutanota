@@ -74,4 +74,6 @@ public protocol MobileSystemFacade {
 	func storeServerRemoteOrigin(
 		_ origin: String
 	) async throws -> Void
+	func print(
+	) async throws -> Void
 }

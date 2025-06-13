@@ -5,6 +5,8 @@ import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
+import android.print.PrintAttributes
+import android.print.PrintManager
 import android.provider.Settings
 import android.util.Base64
 import android.util.Log
@@ -213,15 +215,32 @@ class AndroidMobileSystemFacade(
 	}
 
 	override suspend fun requestInAppRating() {
-		TODO("Not yet implemented")
+		throw NotImplementedError("requestInAppRating")
 	}
 
 	override suspend fun requestWidgetRefresh() {
-		TODO("Not yet implemented")
+		throw NotImplementedError("requestWidgetRefresh")
 	}
 
 	override suspend fun storeServerRemoteOrigin(origin: String) {
 		val remoteStorage = RemoteStorage(db)
 		remoteStorage.storeRemoteUrl(origin)
+	}
+
+	override suspend fun print() {
+		withContext(Dispatchers.Main) {
+			val printManager = activity.getSystemService(PrintManager::class.java)
+			val jobName = "${activity.getString(R.string.app_name)} Document"
+
+			// Get a print adapter instance
+			val printAdapter = activity.webView.createPrintDocumentAdapter(jobName)
+
+			// Create a print job with name and adapter instance
+			printManager.print(
+				jobName,
+				printAdapter,
+				PrintAttributes.Builder().build()
+			)
+		}
 	}
 }
