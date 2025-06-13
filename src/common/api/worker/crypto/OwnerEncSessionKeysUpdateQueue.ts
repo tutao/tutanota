@@ -10,7 +10,7 @@ import { TypeModelResolver } from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
-export const UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS = 50
+export const UPDATE_SESSION_KEYS_SERVICE_DEBOUNCE_MS = 2500
 
 /**
  * This queue collects updates for ownerEncSessionKeys and debounces the update request to the UpdateSessionKeysService,

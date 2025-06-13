@@ -1268,6 +1268,10 @@ pub struct EntityUpdate {
 	pub operation: i64,
 	#[serde(rename = "2556")]
 	pub typeId: Option<i64>,
+	#[serde(rename = "2617")]
+	pub instance: Option<String>,
+	#[serde(rename = "2618")]
+	pub patch: Option<PatchList>,
 }
 
 impl Entity for EntityUpdate {
@@ -5980,24 +5984,6 @@ impl Entity for Patch {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct PatchList {
-	#[serde(rename = "2573")]
-	pub _format: i64,
-	#[serde(rename = "2574")]
-	pub patches: Vec<Patch>,
-}
-
-impl Entity for PatchList {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: AppName::Sys,
-			type_id: TypeId::from(2572),
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct IdentityKeyPair {
 	#[serde(rename = "2576")]
 	pub _id: Option<CustomId>,
@@ -6144,6 +6130,24 @@ impl Entity for RolloutGetOut {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2607),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PatchList {
+	#[serde(rename = "2615")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2616")]
+	pub patches: Vec<Patch>,
+}
+
+impl Entity for PatchList {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2614),
 		}
 	}
 }

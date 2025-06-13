@@ -25,8 +25,16 @@ import {
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
-import { HttpMethod, TypeModelResolver } from "../../common/EntityFunctions"
-import { BucketPermission, GroupMembership, InstanceSessionKey, PatchListTypeRef, Permission } from "../../entities/sys/TypeRefs.js"
+import { HttpMethod, PatchOperationType, TypeModelResolver } from "../../common/EntityFunctions"
+import {
+	BucketPermission,
+	createPatch,
+	createPatchList,
+	GroupMembership,
+	InstanceSessionKey,
+	PatchListTypeRef,
+	Permission,
+} from "../../entities/sys/TypeRefs.js"
 import {
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
@@ -87,6 +95,9 @@ import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
 import { typeModelToRestPath } from "../rest/EntityRestClient"
+import { convertJsToDbType } from "./ModelMapper"
+import { ValueType } from "../../common/EntityConstants"
+import { AttributeModel } from "../../common/AttributeModel"
 
 assertWorkerOrNode()
 
@@ -774,7 +785,6 @@ export class CryptoFacade {
 
 	private async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
 		const newOwnerEncSessionKey = encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
-		const oldInstance = structuredClone(instance)
 		this.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
 
 		const id = instance._id
@@ -783,19 +793,27 @@ export class CryptoFacade {
 		const headers = this.userFacade.createAuthHeaders()
 		headers.v = String(instance.typeModel.version)
 
-		const untypedInstance = await this.instancePipeline.typeMapper.applyDbTypes(
-			instance.typeModel as ClientTypeModel,
-			instance.encryptedParsedInstance as ClientModelEncryptedParsedInstance,
-		)
+		let ownerEncSessionKeyAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")).toString()
+		let ownerKeyVersionAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerKeyVersion")).toString()
+		if (env.networkDebugging) {
+			ownerEncSessionKeyAttributeIdStr += ":_ownerEncSessionKey"
+			ownerKeyVersionAttributeIdStr += ":_ownerKeyVersion"
+		}
 
-		const patchList = await computePatchPayload(
-			oldInstance.encryptedParsedInstance as ClientModelEncryptedParsedInstance,
-			instance.encryptedParsedInstance as ClientModelEncryptedParsedInstance,
-			untypedInstance,
-			instance.typeModel,
-			this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver),
-			env.networkDebugging,
-		)
+		const patchList = createPatchList({
+			patches: [
+				createPatch({
+					patchOperation: PatchOperationType.REPLACE,
+					value: uint8ArrayToBase64(newOwnerEncSessionKey.key),
+					attributePath: ownerEncSessionKeyAttributeIdStr,
+				}),
+				createPatch({
+					patchOperation: PatchOperationType.REPLACE,
+					value: newOwnerEncSessionKey.encryptingKeyVersion.toString(),
+					attributePath: ownerKeyVersionAttributeIdStr,
+				}),
+			],
+		})
 
 		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
 

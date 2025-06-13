@@ -11,7 +11,6 @@ import {
 	deepEqual,
 	Hex,
 	hexToBase64,
-	isEmpty,
 	isSameTypeRef,
 	pad,
 	repeat,
@@ -25,9 +24,11 @@ import {
 	ClientModelEncryptedParsedInstance,
 	ClientModelParsedInstance,
 	ClientModelUntypedInstance,
+	ClientTypeModel,
 	ElementEntity,
 	Entity,
 	ModelValue,
+	ParsedInstance,
 	ParsedValue,
 	SomeEntity,
 	TypeModel,
@@ -37,7 +38,7 @@ import { ClientTypeReferenceResolver, PatchOperationType } from "../EntityFuncti
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AttributeModel } from "../AttributeModel"
 import { createPatch, createPatchList, Patch, PatchList } from "../../entities/sys/TypeRefs"
-import { instance } from "testdouble"
+import { ProgrammingError } from "../error/ProgrammingError"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -359,7 +360,7 @@ export async function computePatches(
 ): Promise<Patch[]> {
 	let patches: Patch[] = []
 	for (const [valueIdStr, modelValue] of Object.entries(typeModel.values)) {
-		if (modelValue.final && !(modelValue.name == "_ownerEncSessionKey" || modelValue.name == "_ownerKeyVersion")) {
+		if (modelValue.final) {
 			continue
 		}
 		const attributeId = parseInt(valueIdStr)
@@ -396,6 +397,7 @@ export async function computePatches(
 			// keys are in the format attributeId:attributeName when networkDebugging is enabled
 			attributeIdStr += ":" + modelAssociation.name
 		}
+
 		if (modelAssociation.type == AssociationType.Aggregation) {
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const typeId = modelAssociation.refTypeId
@@ -403,6 +405,15 @@ export async function computePatches(
 			const originalAggregatedEntities = (originalInstance[attributeId] ?? []) as Array<ClientModelParsedInstance>
 			const modifiedAggregatedEntities = (modifiedInstance[attributeId] ?? []) as Array<ClientModelParsedInstance>
 			const modifiedAggregatedUntypedEntities = (modifiedUntypedInstance[attributeIdStr] ?? []) as Array<ClientModelUntypedInstance>
+
+			const modifiedAggregateIds = modifiedAggregatedEntities.map(
+				(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
+			)
+			if (!isDistinctAggregateIds(modifiedAggregateIds)) {
+				throw new ProgrammingError(
+					"Duplicate aggregate ids in the modified instance: " + AttributeModel.getAttribute(modifiedInstance, "_id", typeModel),
+				)
+			}
 			const addedItems = modifiedAggregatedUntypedEntities.filter(
 				(element) =>
 					!originalAggregatedEntities.some((item) => {
@@ -430,6 +441,23 @@ export async function computePatches(
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
 						return isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeId] as Id)
 					}),
+			)
+
+			// fixme optimize this, also think about cases where duplicate aggregated entities are actually valid (e.g. contact mail address can have same entries?)
+			const commonItemsWithDifferingIds = originalAggregatedEntities.filter((element) =>
+				modifiedAggregatedEntities.some((item) => {
+					const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+					const hasSameId = isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeId] as Id)
+					// TODO
+					// check id
+					// check other fields except finalIvs
+					// check finalIvs
+
+					// all matches -> replace values
+					// if id does not match, but finalIvs and content -> remove one instance
+					// if ids dont match, finalIvs do not match, content matches -> keep both
+					return !hasSameId && deepEqual(removeTechnicalFields(structuredClone(element)), removeTechnicalFields(structuredClone(item)))
+				}),
 			)
 
 			const commonAggregateIds = commonItems.map((instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id)
@@ -471,53 +499,26 @@ export async function computePatches(
 				})
 				patches = patches.concat(items)
 			}
-			if (modelAssociation.cardinality == Cardinality.Any) {
-				if (removedItems.length > 0) {
-					const removedAggregateIds = removedItems.map(
-						(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
-					)
-					patches.push(
-						createPatch({
-							attributePath: attributeIdStr,
-							value: JSON.stringify(removedAggregateIds),
-							patchOperation: PatchOperationType.REMOVE_ITEM,
-						}),
-					)
-				}
-				if (addedItems.length > 0) {
-					patches.push(
-						createPatch({
-							attributePath: attributeIdStr,
-							value: JSON.stringify(addedItems),
-							patchOperation: PatchOperationType.ADD_ITEM,
-						}),
-					)
-				}
-			} else if (isEmpty(originalAggregatedEntities)) {
-				// ZeroOrOne with original aggregation on server is []
+			if (removedItems.length > 0) {
+				const removedAggregateIds = removedItems.map(
+					(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
+				)
 				patches.push(
 					createPatch({
 						attributePath: attributeIdStr,
-						value: JSON.stringify(modifiedAggregatedUntypedEntities),
+						value: JSON.stringify(removedAggregateIds),
+						patchOperation: PatchOperationType.REMOVE_ITEM,
+					}),
+				)
+			}
+			if (addedItems.length > 0) {
+				patches.push(
+					createPatch({
+						attributePath: attributeIdStr,
+						value: JSON.stringify(addedItems),
 						patchOperation: PatchOperationType.ADD_ITEM,
 					}),
 				)
-			} else {
-				// ZeroOrOne or One with original aggregation on server already there (i.e. it is a list of one)
-				const aggregateId = AttributeModel.getAttribute(assertNotNull(originalAggregatedEntities[0]), "_id", aggregateTypeModel)
-				const fullPath = `${attributeIdStr}/${aggregateId}/`
-				const items = await computePatches(
-					originalAggregatedEntities[0],
-					modifiedAggregatedEntities[0],
-					modifiedAggregatedUntypedEntities[0],
-					aggregateTypeModel,
-					typeReferenceResolver,
-					isNetworkDebuggingEnabled,
-				)
-				items.map((item) => {
-					item.attributePath = fullPath + item.attributePath
-				})
-				patches = patches.concat(items)
 			}
 		} else {
 			// non aggregation associations
@@ -529,15 +530,6 @@ export async function computePatches(
 			// Only Any associations support ADD_ITEM and REMOVE_ITEM operations
 			// All cardinalities support REPLACE operation
 			if (modelAssociation.cardinality == Cardinality.Any) {
-				if (addedItems.length > 0) {
-					patches.push(
-						createPatch({
-							attributePath: attributeIdStr,
-							value: JSON.stringify(addedItems),
-							patchOperation: PatchOperationType.ADD_ITEM,
-						}),
-					)
-				}
 				if (removedItems.length > 0) {
 					patches.push(
 						createPatch({
@@ -637,6 +629,11 @@ export function timestampToGeneratedId(timestamp: number, serverBytes: number = 
 	return base64ToBase64Ext(hexToBase64(hex))
 }
 
+function isDistinctAggregateIds(array: Array<Id>) {
+	const checkSet = new Set(array)
+	return checkSet.size === array.length
+}
+
 /**
  * Extracts the timestamp from a GeneratedId
  * @param base64Ext The id as base64Ext
@@ -692,10 +689,10 @@ export function assertIsEntity2<T extends SomeEntity>(type: TypeRef<T>): (entity
  * Only use for new entities, the {@param entity} won't be usable for updates anymore after this.
  */
 export function removeTechnicalFields<E extends Partial<SomeEntity>>(entity: E) {
-	// we want to restrict outer function to entity types but internally we also want to handle aggregates
+	// we want to restrict outer function to entity types, but internally we also want to handle aggregates
 	function _removeTechnicalFields(erased: Record<string, any>) {
 		for (const key of Object.keys(erased)) {
-			if (key.startsWith("_finalEncrypted") || key.startsWith("_defaultEncrypted") || key.startsWith("_errors")) {
+			if (key.startsWith("_finalIvs") || key.startsWith("_errors")) {
 				delete erased[key]
 			} else {
 				const value = erased[key]
@@ -707,6 +704,7 @@ export function removeTechnicalFields<E extends Partial<SomeEntity>>(entity: E) 
 	}
 
 	_removeTechnicalFields(entity)
+	return entity
 }
 
 /**

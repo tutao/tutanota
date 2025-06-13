@@ -2,11 +2,10 @@ import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { CLIENT_ONLY_CALENDARS, OperationType } from "../../../../common/api/common/TutanotaConstants.js"
+import { CLIENT_ONLY_CALENDARS } from "../../../../common/api/common/TutanotaConstants.js"
 import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../../../../common/api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
 import {
-	assertNotNull,
 	deepEqual,
 	downcast,
 	getEndOfDay,
@@ -30,7 +29,7 @@ import stream from "mithril/stream"
 import { generateCalendarInstancesInRange, retrieveClientOnlyEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
-import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
 import m from "mithril"
 import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -200,49 +199,8 @@ export class CalendarSearchViewModel {
 
 	private readonly entityEventsListener: EntityEventsListener = async (updates) => {
 		for (const update of updates) {
-			const mergedUpdate = this.mergeOperationsIfNeeded(update, updates)
-
-			if (mergedUpdate == null) continue
-
-			await this.entityEventReceived(mergedUpdate)
+			await this.entityEventReceived(update)
 		}
-	}
-
-	private mergeOperationsIfNeeded(update: EntityUpdateData, updates: readonly EntityUpdateData[]): EntityUpdateData | null {
-		// We are trying to keep the mails that are moved and would match the search criteria displayed.
-		// This is a bit hacky as we reimplement part of the filtering by list.
-		// Ideally search result would update by itself and we would only need to reconcile the changes.
-		if (!isUpdateForTypeRef(MailTypeRef, update) || this.searchResult == null) {
-			return update
-		}
-		if (update.operation === OperationType.CREATE && containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
-			// This is a move operation, is destination list included in the restrictions?
-			if (this.listIdMatchesRestriction(update.instanceListId, this.searchResult.restriction)) {
-				// If it's included, we want to keep showing the item but we will simulate the UPDATE
-				return { ...update, operation: OperationType.UPDATE }
-			} else {
-				// If it's not going to be included we might as well skip the create operation
-				return null
-			}
-		} else if (update.operation === OperationType.DELETE && containsEventOfType(updates, OperationType.CREATE, update.instanceId)) {
-			// This is a move operation and we are in the delete part of it.
-			// Grab the other part to check the move destination.
-			const createOperation = assertNotNull(getEventOfType(updates, OperationType.CREATE, update.instanceId))
-			// Is destination included in the search?
-			if (this.listIdMatchesRestriction(createOperation.instanceListId, this.searchResult.restriction)) {
-				// If so, skip the delete.
-				return null
-			} else {
-				// Otherwise delete
-				return update
-			}
-		} else {
-			return update
-		}
-	}
-
-	private listIdMatchesRestriction(listId: string, restriction: SearchRestriction): boolean {
-		return restriction.folderIds.length === 0 || restriction.folderIds.includes(listId)
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {

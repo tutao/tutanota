@@ -104,6 +104,8 @@ import { DateProvider } from "../../../common/api/common/DateProvider"
 import type { ContactSearchFacade } from "../index/ContactSearchFacade"
 import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"
 import type { OfflineStorageSearchFacade } from "../index/OfflineStorageSearchFacade.js"
+import { PatchMerger } from "../../../common/api/worker/offline/PatchMerger"
+import { EventInstancePrefetcher } from "../../../common/api/worker/EventInstancePrefetcher"
 
 assertWorkerOrNode()
 
@@ -115,6 +117,7 @@ export type WorkerLocatorType = {
 	asymmetricCrypto: AsymmetricCryptoFacade
 	crypto: CryptoFacade
 	instancePipeline: InstancePipeline
+	patchMerger: PatchMerger
 	applicationTypesFacade: ApplicationTypesFacade
 	cacheStorage: CacheStorage
 	cache: EntityRestInterface
@@ -341,10 +344,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto)
+
 	// We don't want to cache within the admin client
 	let cache: DefaultEntityRestCache | null = null
 	if (!isAdminClient()) {
-		cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver)
+		cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, locator.patchMerger)
 	}
 
 	locator.cache = cache ?? entityRestClient
@@ -370,7 +375,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				// We create empty CustomCacheHandlerMap because this cache is separate anyway and user updates don't matter.
 				const cacheStorage = new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, new CustomCacheHandlerMap())
 				return new BulkMailLoader(
-					new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage, typeModelResolver), typeModelResolver),
+					new EntityClient(new DefaultEntityRestCache(entityRestClient, cacheStorage, typeModelResolver, locator.patchMerger), typeModelResolver),
 					new EntityClient(entityRestClient, typeModelResolver),
 					mailFacade,
 				)
@@ -703,7 +708,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			await indexer.processEntityEvents(events, batchId, groupId)
 		},
 	)
-
+	const prefetcher = new EventInstancePrefetcher(locator.cacheStorage, locator.cache, typeModelResolver)
 	locator.eventBusClient = new EventBusClient(
 		eventBusCoordinator,
 		cache ?? new AdminClientDummyEntityRestCache(),
@@ -715,6 +720,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		mainInterface.progressTracker,
 		mainInterface.syncTracker,
 		typeModelResolver,
+		locator.crypto,
+		prefetcher,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

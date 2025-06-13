@@ -11,8 +11,7 @@ import { instance, matchers, object, when } from "testdouble"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
-import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler.js"
+import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { getElementId, getListId } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
@@ -27,9 +26,7 @@ o.spec("MailModelTest", function () {
 	inboxFolder.folderType = MailSetKind.INBOX
 	const anotherFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "archiveId"] })
 	anotherFolder.folderType = MailSetKind.ARCHIVE
-	let mailboxDetails: Partial<MailboxDetail>[]
 	let logins: LoginController
-	let inboxRuleHandler: InboxRuleHandler
 	let mailFacade: MailFacade
 	const restClient: EntityRestClientMock = new EntityRestClientMock()
 
@@ -44,7 +41,6 @@ o.spec("MailModelTest", function () {
 		when(userController.isUpdateForLoggedInUserInstance(matchers.anything(), matchers.anything())).thenReturn(false)
 		when(logins.getUserController()).thenReturn(userController)
 
-		inboxRuleHandler = object()
 		model = new MailModel(
 			downcast({}),
 			mailboxModel,
@@ -55,8 +51,6 @@ o.spec("MailModelTest", function () {
 			null,
 			() => null,
 		)
-		// not pretty, but works
-		// model.mailboxDetails(mailboxDetails as MailboxDetail[])
 	})
 	o("doesn't send notification for another folder", async function () {
 		const mailSetEntry = createTestEntity(MailSetEntryTypeRef, { _id: [anotherFolder.entries, "mailSetEntryId"] })
@@ -102,6 +96,9 @@ o.spec("MailModelTest", function () {
 			operation,
 			instanceListId,
 			instanceId,
+			instance: null,
+			patches: null,
+			isPrefetched: false,
 		}
 	}
 })

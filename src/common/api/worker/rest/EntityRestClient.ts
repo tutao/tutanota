@@ -217,7 +217,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly authDataProvider: AuthDataProvider,
 		private readonly restClient: RestClient,
 		private readonly lazyCrypto: lazy<CryptoFacade>,
-		private readonly instancePipeline: InstancePipeline,
+		public readonly instancePipeline: InstancePipeline,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly typeModelResolver: TypeModelResolver,
 	) {}
@@ -600,7 +600,8 @@ export class EntityRestClient implements EntityRestInterface {
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToClientModelParsedInstance(instance._type as TypeRef<any>, instance)
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
 		const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
-		const untypedInstance = await this.instancePipeline.mapAndEncrypt(downcast(instance._type), instance, sessionKey)
+		const encryptedParsedInstance = await this.instancePipeline.cryptoMapper.encryptParsedInstance(typeModel, parsedInstance, sessionKey)
+		const untypedInstance = await this.instancePipeline.typeMapper.applyDbTypes(typeModel, encryptedParsedInstance)
 		// figure out differing fields and build the PATCH request payload
 		const patchList = await computePatchPayload(
 			originalParsedInstance,

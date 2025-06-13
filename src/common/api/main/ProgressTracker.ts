@@ -1,6 +1,7 @@
 import stream from "mithril/stream"
-import type { ProgressMonitorId } from "../common/utils/ProgressMonitor"
-import { ProgressMonitor } from "../common/utils/ProgressMonitor"
+import { IProgressMonitor, ProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { EstimatingProgressMonitor } from "../common/utils/EstimatingProgressMonitor"
+import Es from "../../../mail-app/translations/es"
 
 export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "workDoneForMonitor">
 
@@ -12,7 +13,7 @@ export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "
 export class ProgressTracker {
 	// Will stream a number between 0 and 1
 	onProgressUpdate: stream<number>
-	private readonly monitors: Map<ProgressMonitorId, ProgressMonitor>
+	private readonly monitors: Map<ProgressMonitorId, EstimatingProgressMonitor>
 	private idCounter: ProgressMonitorId
 
 	constructor() {
@@ -31,8 +32,8 @@ export class ProgressTracker {
 	 */
 	registerMonitorSync(work: number): ProgressMonitorId {
 		const id = this.idCounter++
-		const monitor = new ProgressMonitor(work, (percentage) => this.onProgress(id, percentage))
-
+		const monitor = new EstimatingProgressMonitor(work, (percentage) => this.onProgress(id, percentage))
+		monitor.continueEstimation()
 		this.monitors.set(id, monitor)
 
 		return id
@@ -47,7 +48,7 @@ export class ProgressTracker {
 		this.getMonitor(id)?.workDone(amount)
 	}
 
-	getMonitor(id: ProgressMonitorId): ProgressMonitor | null {
+	getMonitor(id: ProgressMonitorId): IProgressMonitor | null {
 		return this.monitors.get(id) ?? null
 	}
 

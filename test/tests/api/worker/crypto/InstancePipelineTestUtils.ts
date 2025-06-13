@@ -132,6 +132,15 @@ export const testAggregateModel: TypeModel = {
 			final: false,
 			dependency: "tutanota",
 		},
+		"10": {
+			id: 10,
+			name: "testZeroOrOneAggregation",
+			type: AssociationType.Aggregation,
+			cardinality: Cardinality.ZeroOrOne,
+			refTypeId: 44,
+			final: false,
+			dependency: "tutanota",
+		},
 	},
 	version: 0,
 	versioned: false,
@@ -182,6 +191,7 @@ export type TestAggregate = Entity & {
 	_id: Id
 	testNumber: NumberString
 	testSecondLevelAssociation: TestAggregateOnAggregate[]
+	testZeroOrOneAggregation: TestAggregateOnAggregate | null
 }
 
 export type TestEntity = Entity & {

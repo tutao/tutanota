@@ -418,6 +418,9 @@ o.spec("CalendarViewModel", function () {
 				instanceListId: getListId(eventToDrag),
 				instanceId: getElementId(eventToDrag),
 				operation: OperationType.CREATE,
+				instance: null,
+				patches: null,
+				isPrefetched: false,
 			}
 			const updatedEventFromServer = makeEvent(getElementId(eventToDrag), newData, new Date(2021, 0, 5, 14, 30), assertNotNull(eventToDrag.uid))
 			entityClientMock.addListInstances(updatedEventFromServer)
