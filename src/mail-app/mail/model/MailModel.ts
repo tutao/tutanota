@@ -18,8 +18,6 @@ import {
 	splitInChunks,
 } from "@tutao/tutanota-utils"
 import {
-	ConversationEntry,
-	ConversationEntryTypeRef,
 	Mail,
 	MailboxGroupRoot,
 	MailboxProperties,
@@ -39,13 +37,13 @@ import {
 	SimpleMoveMailTarget,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { containsEventOfType, EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import m from "mithril"
 import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { InboxRuleHandler } from "./InboxRuleHandler.js"
@@ -156,11 +154,7 @@ export class MailModel {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				await this.init()
 				m.redraw()
-			} else if (
-				isUpdateForTypeRef(MailTypeRef, update) &&
-				update.operation === OperationType.CREATE &&
-				!containsEventOfType(updates, OperationType.DELETE, update.instanceId)
-			) {
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
 				if (this.inboxRuleHandler && this.connectivityModel) {
 					const mailId: IdTuple = [update.instanceListId, update.instanceId]
 					try {
@@ -591,45 +585,6 @@ export class MailModel {
 
 	getImportedMailSets(): Array<MailFolder> {
 		return [...this.mailSets.values()].filter((f) => f.folders.importedMailSet).map((f) => f.folders.importedMailSet!)
-	}
-
-	async loadConversationsForAllMails(mails: ReadonlyArray<Mail>): Promise<ReadonlyArray<Mail>> {
-		let conversationEntries: ConversationEntry[] = []
-		for (const mail of mails) {
-			await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(mail.conversationEntry)).then(
-				async (entries) => {
-					conversationEntries.push(...entries)
-				},
-				async (e) => {
-					// Most likely the conversation entry list does not exist anymore. The server does not distinguish between the case when the
-					// list does not exist and when we have no permission on it (and for good reasons, it prevents enumeration).
-					// Most often it happens when we are not fully synced with the server yet and the primary mail does not even exist.
-					if (!(e instanceof NotAuthorizedError)) {
-						throw e
-					}
-				},
-			)
-		}
-
-		// If there are no conversationEntries (somehow they didn't load), just return the mails back
-		if (conversationEntries.length < 0) {
-			return mails
-		}
-
-		const byList = groupBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
-		const allMails: Mail[] = []
-		for (const [listId, conversations] of byList.entries()) {
-			if (!listId) continue
-			const loaded = await this.entityClient.loadMultiple(
-				MailTypeRef,
-				listId,
-				conversations.map((c) => elementIdPart(assertNotNull(c.mail))),
-			)
-
-			allMails.push(...loaded)
-		}
-
-		return allMails
 	}
 
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */

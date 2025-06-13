@@ -259,19 +259,6 @@ export class MailViewerViewModel {
 			}
 
 			m.redraw()
-
-			// We need the conversation entry in order to reply to the message.
-			// We don't want the user to have to wait for it to load when they click reply,
-			// So we load it here pre-emptively to make sure it is in the cache.
-			this.entityClient.load(ConversationEntryTypeRef, this.mail.conversationEntry).catch((e) => {
-				if (e instanceof NotFoundError) {
-					console.log("could load conversation entry as it has been moved/deleted already", e)
-				} else if (isOfflineError(e)) {
-					console.log("failed to load conversation entry, because of a lost connection", e)
-				} else {
-					throw e
-				}
-			})
 		} finally {
 			this.renderIsDelayed = false
 		}

@@ -859,15 +859,6 @@ o.spec("MailIndexer", () => {
 	}
 })
 
-function createUpdate(operation: OperationType, listId: Id, instanceId: Id): EntityUpdateData {
-	return {
-		operation: operation,
-		instanceListId: listId,
-		instanceId: instanceId,
-		typeRef: MailTypeRef,
-	}
-}
-
 function createMailInstances({
 	subject,
 	mailSetEntryId,

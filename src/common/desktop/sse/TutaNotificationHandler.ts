@@ -5,7 +5,7 @@ import { LanguageViewModel } from "../../misc/LanguageViewModel"
 import { IdTupleWrapper, NotificationInfo } from "../../api/entities/sys/TypeRefs"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
 import { ExtendedNotificationMode } from "../../native/common/generatedipc/ExtendedNotificationMode"
-import { assertNotNull, base64ToBase64Url, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull } from "@tutao/tutanota-utils"
 import { log } from "../DesktopLog"
 import tutanotaModelInfo from "../../api/entities/tutanota/ModelInfo"
 import { handleRestError } from "../../api/common/error/RestError"
@@ -19,7 +19,8 @@ import { StrippedEntity } from "../../api/common/utils/EntityUtils"
 import { EncryptedParsedInstance, ServerModelUntypedInstance, TypeModel } from "../../api/common/EntityTypes"
 import { AttributeModel } from "../../api/common/AttributeModel"
 import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
-import { ClientTypeModelResolver, TypeModelResolver } from "../../api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "../../api/common/EntityFunctions"
+import { UnencryptedCredentials } from "../../native/common/generatedipc/UnencryptedCredentials"
 
 const TAG = "[notifications]"
 
@@ -27,6 +28,7 @@ export type MailMetadata = {
 	senderAddress: string
 	firstRecipientAddress: string | null
 	id: IdTuple
+	notificationInfo: StrippedEntity<NotificationInfo>
 }
 
 export class TutaNotificationHandler {
@@ -44,32 +46,44 @@ export class TutaNotificationHandler {
 		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {}
 
-	async onMailNotification(sseInfo: SseInfo, notificationInfo: StrippedEntity<NotificationInfo>) {
-		const appWindow = this.windowManager.getAll().find((window) => window.getUserId() === notificationInfo.userId)
+	async onMailNotification(sseInfo: SseInfo, notificationInfos: Array<StrippedEntity<NotificationInfo>>) {
+		const infosByListId = groupBy(notificationInfos, (ni) => assertNotNull(ni.mailId).listId)
+		for (const [listId, infos] of infosByListId.entries()) {
+			const firstNotificationInfo = getFirstOrThrow(infos)
+			const appWindow = this.windowManager.getAll().find((window) => window.getUserId() === firstNotificationInfo.userId)
 
-		if (appWindow && appWindow.isFocused()) {
-			// no need for notification if user is looking right at the window
-			return
-		}
+			if (appWindow && appWindow.isFocused()) {
+				// no need for notification if user is looking right at the window
+				continue
+			}
 
-		// we can't download the email if we don't have access to credentials
-		const canShowExtendedNotification =
-			(await this.nativeCredentialFacade.getCredentialEncryptionMode()) === CredentialEncryptionMode.DEVICE_LOCK &&
-			(await this.sseStorage.getExtendedNotificationConfig(notificationInfo.userId)) !== ExtendedNotificationMode.NoSenderOrSubject
-		if (!canShowExtendedNotification) {
-			const notificationId = notificationInfo.mailId
-				? `${notificationInfo.mailId.listId},${notificationInfo.mailId?.listElementId}`
-				: notificationInfo.userId
-			this.notifier.submitGroupedNotification(this.lang.get("pushNewMail_msg"), notificationInfo.mailAddress, notificationId, (res) =>
-				this.onMailNotificationClick(res, notificationInfo),
-			)
-			return
+			// we can't download the email if we don't have access to credentials
+			const canShowExtendedNotification =
+				(await this.nativeCredentialFacade.getCredentialEncryptionMode()) === CredentialEncryptionMode.DEVICE_LOCK &&
+				(await this.sseStorage.getExtendedNotificationConfig(firstNotificationInfo.userId)) !== ExtendedNotificationMode.NoSenderOrSubject
+			if (!canShowExtendedNotification) {
+				const notificationId = firstNotificationInfo.mailId
+					? `${firstNotificationInfo.mailId.listId},${firstNotificationInfo.mailId?.listElementId}`
+					: firstNotificationInfo.userId
+				this.notifier.submitGroupedNotification(this.lang.get("pushNewMail_msg"), firstNotificationInfo.mailAddress, notificationId, (res) =>
+					this.onMailNotificationClick(res, firstNotificationInfo),
+				)
+			} else {
+				const credentials = await this.nativeCredentialFacade.loadByUserId(firstNotificationInfo.userId)
+				if (credentials == null) {
+					log.warn(`Not found credentials to download notification, userId ${firstNotificationInfo.userId}`)
+					continue
+				}
+				const infosToFetch = infos.slice(0, 5) // don't show notifications for more than five mails at a time
+				const mailMetadata = await this.downloadMailMetadata(sseInfo, listId, infosToFetch, credentials)
+				console.log(">>>>>>>>>>>>", mailMetadata)
+				for (const mailMeta of mailMetadata) {
+					this.notifier.submitGroupedNotification(mailMeta.senderAddress, mailMeta.firstRecipientAddress ?? "", mailMeta.id.join(","), (res) =>
+						this.onMailNotificationClick(res, mailMeta.notificationInfo),
+					)
+				}
+			}
 		}
-		const mailMetadata = await this.downloadMailMetadata(sseInfo, notificationInfo)
-		if (mailMetadata == null) return
-		this.notifier.submitGroupedNotification(mailMetadata.senderAddress, mailMetadata.firstRecipientAddress ?? "", mailMetadata.id.join(","), (res) =>
-			this.onMailNotificationClick(res, notificationInfo),
-		)
 	}
 
 	private onMailNotificationClick(res: NotificationResult, notificationInfo: StrippedEntity<NotificationInfo>) {
@@ -91,15 +105,21 @@ export class TutaNotificationHandler {
 		}
 	}
 
-	private async downloadMailMetadata(sseInfo: SseInfo, ni: StrippedEntity<NotificationInfo>): Promise<MailMetadata | null> {
-		const url = this.makeMailMetadataUrl(sseInfo, assertNotNull(ni.mailId))
-
+	private async downloadMailMetadata(
+		sseInfo: SseInfo,
+		listId: Id,
+		notificationInfos: Array<StrippedEntity<NotificationInfo>>,
+		credentials: UnencryptedCredentials,
+	): Promise<Array<MailMetadata>> {
+		const result: Array<MailMetadata> = []
 		// decrypt access token
-		const credentials = await this.nativeCredentialFacade.loadByUserId(ni.userId)
-		if (credentials == null) {
-			log.warn(`Not found credentials to download notification, userId ${ni.userId}`)
-			return null
-		}
+		const first = notificationInfos[0]
+
+		const url = this.makeMailMetadataUrl(
+			sseInfo,
+			assertNotNull(listId),
+			notificationInfos.map((ni) => assertNotNull(ni.mailId)),
+		)
 
 		log.debug(TAG, "downloading mail notification metadata")
 		const headers: Record<string, string> = {
@@ -114,22 +134,39 @@ export class TutaNotificationHandler {
 				throw handleRestError(neverNull(response.status), url.toString(), response.headers.get("Error-Id"), null)
 			}
 
-			const parsedResponse = await response.json()
+			const untypedInstances = (await response.json()) as Array<ServerModelUntypedInstance>
 
 			const mailModel = await this.typeModelResolver.resolveClientTypeReference(MailTypeRef)
 			const mailAddressModel = await this.typeModelResolver.resolveClientTypeReference(MailAddressTypeRef)
-			const mailEncryptedParsedInstance: EncryptedParsedInstance = await this.nativeInstancePipeline.typeMapper.applyJsTypes(
-				mailModel,
-				parsedResponse as ServerModelUntypedInstance,
+
+			result.push(
+				...(await Promise.all(
+					untypedInstances.map(async (untypedInstance) => {
+						const mailEncryptedParsedInstance: EncryptedParsedInstance = await this.nativeInstancePipeline.typeMapper.applyJsTypes(
+							mailModel,
+							untypedInstance,
+						)
+						const notificationInfo = notificationInfos.filter(
+							(info) =>
+								assertNotNull(info.mailId).listElementId ===
+								AttributeModel.getAttribute<IdTuple>(mailEncryptedParsedInstance, "_id", mailModel)[1],
+						)[0]
+						return this.encryptedMailToMailMetaData(mailModel, mailAddressModel, mailEncryptedParsedInstance, notificationInfo)
+					}),
+				)),
 			)
-			return this.encryptedMailToMailMetaData(mailModel, mailAddressModel, mailEncryptedParsedInstance)
 		} catch (e) {
 			log.debug(TAG, "Error fetching mail metadata, " + (e as Error).message)
-			return null
 		}
+		return result
 	}
 
-	private encryptedMailToMailMetaData(mailModel: TypeModel, mailAddressModel: TypeModel, mi: EncryptedParsedInstance): MailMetadata {
+	private encryptedMailToMailMetaData(
+		mailModel: TypeModel,
+		mailAddressModel: TypeModel,
+		mi: EncryptedParsedInstance,
+		notificationInfo: StrippedEntity<NotificationInfo>,
+	): MailMetadata {
 		const mailId = AttributeModel.getAttribute<IdTuple>(mi, "_id", mailModel)
 
 		const firstRecipient = AttributeModel.getAttributeorNull<EncryptedParsedInstance[] | null>(mi, "firstRecipient", mailModel)
@@ -140,12 +177,15 @@ export class TutaNotificationHandler {
 			id: mailId,
 			senderAddress: senderAddress,
 			firstRecipientAddress: firstRecipient ? AttributeModel.getAttribute(firstRecipient[0], "address", mailAddressModel) : null,
+			notificationInfo,
 		}
 	}
 
-	private makeMailMetadataUrl(sseInfo: SseInfo, mailId: IdTupleWrapper): URL {
+	private makeMailMetadataUrl(sseInfo: SseInfo, listId: Id, mailIds: Array<IdTupleWrapper>): URL {
 		const url = new URL(sseInfo.sseOrigin)
-		url.pathname = `rest/tutanota/mail/${base64ToBase64Url(mailId.listId)}/${base64ToBase64Url(mailId.listElementId)}`
+		const listElementIds = mailIds.map((mailId) => base64ToBase64Url(mailId.listElementId)).join(",")
+		url.pathname = `rest/tutanota/mail/${base64ToBase64Url(listId)}`
+		url.searchParams.set("ids", listElementIds)
 		return url
 	}
 

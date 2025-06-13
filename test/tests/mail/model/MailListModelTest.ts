@@ -49,6 +49,10 @@ o.spec("MailListModel", () => {
 		mailGroup: createTestEntity(GroupTypeRef),
 		mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
 	}
+	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
+		instance: null,
+		patches: null,
+	}
 
 	const mailSetEntriesListId = "entries"
 	const _ownerGroup = "me"
@@ -351,6 +355,8 @@ o.spec("MailListModel", () => {
 				instanceListId: getListId(labels[1]),
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			}
 
 			entityUpdateData.operation = OperationType.UPDATE
@@ -371,6 +377,8 @@ o.spec("MailListModel", () => {
 				instanceListId: getListId(labels[1]),
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			}
 			entityUpdateData.operation = OperationType.DELETE
 
@@ -389,6 +397,8 @@ o.spec("MailListModel", () => {
 				instanceListId: listIdPart(someMail.mailSetEntryId),
 				instanceId: elementIdPart(someMail.mailSetEntryId),
 				operation: OperationType.DELETE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			}
 
 			const oldItems = model.items
@@ -422,6 +432,8 @@ o.spec("MailListModel", () => {
 				instanceListId: getListId(newEntry),
 				instanceId: getElementId(newEntry),
 				operation: OperationType.CREATE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			}
 
 			when(entityClient.load(MailSetEntryTypeRef, newEntry._id)).thenResolve(newEntry)
@@ -476,6 +488,8 @@ o.spec("MailListModel", () => {
 				instanceListId: getListId(mail),
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			}
 			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
@@ -494,6 +508,8 @@ o.spec("MailListModel", () => {
 				instanceListId: getListId(mail),
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			}
 			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 			entityUpdateData.operation = OperationType.DELETE

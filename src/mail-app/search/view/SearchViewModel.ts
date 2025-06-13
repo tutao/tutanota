@@ -59,7 +59,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
-import { containsEventOfType, EntityUpdateData, getEventOfType, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import m from "mithril"
@@ -309,49 +309,8 @@ export class SearchViewModel {
 
 	private readonly entityEventsListener: EntityEventsListener = async (updates) => {
 		for (const update of updates) {
-			const mergedUpdate = this.mergeOperationsIfNeeded(update, updates)
-
-			if (mergedUpdate == null) continue
-
-			await this.entityEventReceived(mergedUpdate)
+			await this.entityEventReceived(update)
 		}
-	}
-
-	private mergeOperationsIfNeeded(update: EntityUpdateData, updates: readonly EntityUpdateData[]): EntityUpdateData | null {
-		// We are trying to keep the mails that are moved and would match the search criteria displayed.
-		// This is a bit hacky as we reimplement part of the filtering by list.
-		// Ideally search result would update by itself and we would only need to reconcile the changes.
-		if (!isUpdateForTypeRef(MailTypeRef, update) || this.searchResult == null) {
-			return update
-		}
-		if (update.operation === OperationType.CREATE && containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
-			// This is a move operation, is destination list included in the restrictions?
-			if (this.listIdMatchesRestriction(update.instanceListId, this.searchResult.restriction)) {
-				// If it's included, we want to keep showing the item but we will simulate the UPDATE
-				return { ...update, operation: OperationType.UPDATE }
-			} else {
-				// If it's not going to be included we might as well skip the create operation
-				return null
-			}
-		} else if (update.operation === OperationType.DELETE && containsEventOfType(updates, OperationType.CREATE, update.instanceId)) {
-			// This is a move operation and we are in the delete part of it.
-			// Grab the other part to check the move destination.
-			const createOperation = assertNotNull(getEventOfType(updates, OperationType.CREATE, update.instanceId))
-			// Is destination included in the search?
-			if (this.listIdMatchesRestriction(createOperation.instanceListId, this.searchResult.restriction)) {
-				// If so, skip the delete.
-				return null
-			} else {
-				// Otherwise delete
-				return update
-			}
-		} else {
-			return update
-		}
-	}
-
-	private listIdMatchesRestriction(listId: string, restriction: SearchRestriction): boolean {
-		return restriction.folderIds.length === 0 || restriction.folderIds.includes(listId)
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {

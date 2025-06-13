@@ -203,35 +203,33 @@ export class ConversationViewModel {
 		return listIdPart(this._primaryViewModel.mail.conversationEntry)
 	}
 
-	private async loadConversation() {
+	private async loadConversation(): Promise<void> {
 		try {
-			if (!this.showFullConversation()) {
-				this.conversation = this.conversationItemsForSelectedMailOnly()
-			} else {
-				// Catch errors but only for loading conversation entries.
-				// if success, proceed with loading mails
-				// otherwise do the error handling
-				this.conversation = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry)).then(
-					async (entries) => {
-						// if the primary mail is not along conversation then only display the primary mail
-						if (!entries.some((entry) => isSameId(entry.mail, this.primaryMail._id))) {
-							return this.conversationItemsForSelectedMailOnly()
-						} else {
-							const allMails = await this.loadMails(entries)
-							return this.createConversationItems(entries, allMails)
-						}
-					},
-					async (e) => {
-						if (e instanceof NotAuthorizedError) {
-							// Most likely the conversation entry list does not exist anymore. The server does not distinguish between the case when the
-							// list does not exist and when we have no permission on it (and for good reasons, it prevents enumeration).
-							// Most often it happens when we are not fully synced with the server yet and the primary mail does not even exist.
-							return this.conversationItemsForSelectedMailOnly()
-						} else {
-							throw e
-						}
-					},
-				)
+			// Catch errors but only for loading conversation entries.
+			// if success, proceed with loading mails
+			// otherwise do the error handling
+			try {
+				if (!this.showFullConversation()) {
+					this.conversation = this.conversationItemsForSelectedMailOnly()
+				} else {
+					const entries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
+					// if the primary mail is not along conversation then only display the primary mail
+					if (!entries.some((entry) => isSameId(entry.mail, this.primaryMail._id))) {
+						this.conversation = this.conversationItemsForSelectedMailOnly()
+					} else {
+						const allMails = await this.loadMails(entries)
+						this.conversation = this.createConversationItems(entries, allMails)
+					}
+				}
+			} catch (e) {
+				if (e instanceof NotAuthorizedError) {
+					// Most likely the conversation entry list does not exist anymore. The server does not distinguish between the case when the
+					// list does not exist and when we have no permission on it (and for good reasons, it prevents enumeration).
+					// Most often it happens when we are not fully synced with the server yet and the primary mail does not even exist.
+					this.conversation = this.conversationItemsForSelectedMailOnly()
+				} else {
+					throw e
+				}
 			}
 		} finally {
 			this.onUiUpdate()

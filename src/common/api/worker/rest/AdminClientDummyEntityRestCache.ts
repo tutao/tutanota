@@ -1,5 +1,4 @@
 import { ListElementEntity, SomeEntity } from "../../common/EntityTypes"
-import { QueuedBatch } from "../EventQueue.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { EntityRestCache } from "./DefaultEntityRestCache.js"
@@ -13,6 +12,10 @@ export class AdminClientDummyEntityRestCache implements EntityRestCache {
 
 	async erase<T extends SomeEntity>(instance: T): Promise<void> {
 		throw new ProgrammingError("erase not implemented")
+	}
+
+	deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Iterable<Id>): Promise<void> {
+		throw new Error("deleteFromCacheIdExists not implemented.")
 	}
 
 	async eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>): Promise<void> {
