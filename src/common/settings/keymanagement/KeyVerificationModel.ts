@@ -102,7 +102,7 @@ export class KeyVerificationModel {
 			throw new ProgrammingError("No access to trust database")
 		} else {
 			this.publicIdentityKey = {
-				fingerprint: this.keyVerificationFacade.calculateFingerprint(identityKey.publicIdentityKey),
+				fingerprint: await this.keyVerificationFacade.calculateFingerprint(identityKey.publicIdentityKey),
 				key: identityKey.publicIdentityKey,
 				mailAddress: mailAddress,
 			}

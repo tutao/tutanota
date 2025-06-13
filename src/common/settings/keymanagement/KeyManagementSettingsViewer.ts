@@ -51,7 +51,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		if (ownIdentityKey != null) {
 			this.ownIdentity = {
 				key: ownIdentityKey,
-				fingerprint: this.keyVerificationFacade.calculateFingerprint(ownIdentityKey),
+				fingerprint: await this.keyVerificationFacade.calculateFingerprint(ownIdentityKey),
 				mailAddress: getDefaultSenderFromUser(this.userController),
 			}
 		} else {
