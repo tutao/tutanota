@@ -32,7 +32,7 @@
 		"fix": "npm run style:fix && npm run lint:fix"
 	},
 	"dependencies": {
-		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#59a4e2dbed43359645c03881ccaf8e6b9d9051fa",
+		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#8d7eaa36321d7147faa3583231635855d8a991e7",
 		"@tutao/node-mimimi": "287.250612.1",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@tutao/tuta-wasm-loader": "287.250612.1",
