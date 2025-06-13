@@ -11,6 +11,7 @@ import {
 	deepEqual,
 	Hex,
 	hexToBase64,
+	isEmpty,
 	isSameTypeRef,
 	pad,
 	repeat,
@@ -36,6 +37,7 @@ import { ClientTypeReferenceResolver, PatchOperationType } from "../EntityFuncti
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AttributeModel } from "../AttributeModel"
 import { createPatch, createPatchList, Patch, PatchList } from "../../entities/sys/TypeRefs"
+import { instance } from "testdouble"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -422,7 +424,7 @@ export async function computePatches(
 					}),
 			)
 
-			const existingItems = originalAggregatedEntities.filter(
+			const commonItems = originalAggregatedEntities.filter(
 				(element) =>
 					!removedItems.some((item) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
@@ -430,23 +432,21 @@ export async function computePatches(
 					}),
 			)
 
-			const existingAggregateIds = existingItems.map(
-				(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
-			)
-			for (let existingAggregateId of existingAggregateIds) {
-				const existingItemOriginal = assertNotNull(
+			const commonAggregateIds = commonItems.map((instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id)
+			for (let commonAggregateId of commonAggregateIds) {
+				const commonItemOriginal = assertNotNull(
 					originalAggregatedEntities.find((instance) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
-						return isSameId(instance[aggregateIdAttributeId] as Id, existingAggregateId)
+						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
 					}),
 				)
-				const existingItemModified = assertNotNull(
+				const commonItemModified = assertNotNull(
 					modifiedAggregatedEntities.find((instance) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
-						return isSameId(instance[aggregateIdAttributeId] as Id, existingAggregateId)
+						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
 					}),
 				)
-				const existingItemModifiedUntyped = assertNotNull(
+				const commonItemModifiedUntyped = assertNotNull(
 					modifiedAggregatedUntypedEntities.find((instance) => {
 						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
 						let aggregateIdAttributeIdStr = aggregateIdAttributeId.toString()
@@ -454,14 +454,14 @@ export async function computePatches(
 							// keys are in the format attributeId:attributeName when networkDebugging is enabled
 							aggregateIdAttributeIdStr += ":" + "_id"
 						}
-						return isSameId(instance[aggregateIdAttributeIdStr] as Id, existingAggregateId)
+						return isSameId(instance[aggregateIdAttributeIdStr] as Id, commonAggregateId)
 					}),
 				)
-				const fullPath = `${attributeIdStr}/${existingAggregateId}/`
+				const fullPath = `${attributeIdStr}/${commonAggregateId}/`
 				const items = await computePatches(
-					existingItemOriginal,
-					existingItemModified,
-					existingItemModifiedUntyped,
+					commonItemOriginal,
+					commonItemModified,
+					commonItemModifiedUntyped,
 					aggregateTypeModel,
 					typeReferenceResolver,
 					isNetworkDebuggingEnabled,
@@ -471,27 +471,53 @@ export async function computePatches(
 				})
 				patches = patches.concat(items)
 			}
-			// We need to first remove, then add for aggregations with ZeroOrOne cardinality as there would briefly be two entries otherwise
-			if (removedItems.length > 0) {
-				const removedAggregateIds = removedItems.map(
-					(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
-				)
+			if (modelAssociation.cardinality == Cardinality.Any) {
+				if (removedItems.length > 0) {
+					const removedAggregateIds = removedItems.map(
+						(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
+					)
+					patches.push(
+						createPatch({
+							attributePath: attributeIdStr,
+							value: JSON.stringify(removedAggregateIds),
+							patchOperation: PatchOperationType.REMOVE_ITEM,
+						}),
+					)
+				}
+				if (addedItems.length > 0) {
+					patches.push(
+						createPatch({
+							attributePath: attributeIdStr,
+							value: JSON.stringify(addedItems),
+							patchOperation: PatchOperationType.ADD_ITEM,
+						}),
+					)
+				}
+			} else if (isEmpty(originalAggregatedEntities)) {
+				// ZeroOrOne with original aggregation on server is []
 				patches.push(
 					createPatch({
 						attributePath: attributeIdStr,
-						value: JSON.stringify(removedAggregateIds),
-						patchOperation: PatchOperationType.REMOVE_ITEM,
-					}),
-				)
-			}
-			if (addedItems.length > 0) {
-				patches.push(
-					createPatch({
-						attributePath: attributeIdStr,
-						value: JSON.stringify(addedItems),
+						value: JSON.stringify(modifiedAggregatedUntypedEntities),
 						patchOperation: PatchOperationType.ADD_ITEM,
 					}),
 				)
+			} else {
+				// ZeroOrOne or One with original aggregation on server already there (i.e. it is a list of one)
+				const aggregateId = AttributeModel.getAttribute(assertNotNull(originalAggregatedEntities[0]), "_id", aggregateTypeModel)
+				const fullPath = `${attributeIdStr}/${aggregateId}/`
+				const items = await computePatches(
+					originalAggregatedEntities[0],
+					modifiedAggregatedEntities[0],
+					modifiedAggregatedUntypedEntities[0],
+					aggregateTypeModel,
+					typeReferenceResolver,
+					isNetworkDebuggingEnabled,
+				)
+				items.map((item) => {
+					item.attributePath = fullPath + item.attributePath
+				})
+				patches = patches.concat(items)
 			}
 		} else {
 			// non aggregation associations
