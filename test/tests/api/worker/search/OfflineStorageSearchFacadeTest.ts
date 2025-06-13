@@ -997,7 +997,16 @@ o.spec("OfflineStorageSearchFacade", () => {
 				{ token: "premier", exact: false },
 				{ token: "jour", exact: false },
 				{ token: "de", exact: false },
-				{ token: "l’année", exact: false },
+				{ token: "l", exact: false },
+				{ token: "année", exact: false },
+			])
+			o.check(await offlineStorageSearchFacade.tokenize("le premier jour de l'année")).deepEquals([
+				{ token: "le", exact: false },
+				{ token: "premier", exact: false },
+				{ token: "jour", exact: false },
+				{ token: "de", exact: false },
+				{ token: "l", exact: false },
+				{ token: "année", exact: false },
 			])
 		})
 	})
