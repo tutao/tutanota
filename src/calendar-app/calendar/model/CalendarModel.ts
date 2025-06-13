@@ -33,6 +33,7 @@ import {
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,
+	CalendarEventAttendee,
 	CalendarEventTypeRef,
 	CalendarEventUpdate,
 	CalendarEventUpdateTypeRef,
@@ -41,6 +42,7 @@ import {
 	CalendarRepeatRule,
 	createDefaultAlarmInfo,
 	createGroupSettings,
+	EncryptedMailAddress,
 	FileTypeRef,
 	GroupSettings,
 	UserSettingsGroupRootTypeRef,
@@ -182,6 +184,32 @@ function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): Stripp
 					interval: rule.interval,
 			  }))
 			: [],
+	}
+}
+
+type StrippedCalendarEventAttendee = Stripped<
+	Omit<CalendarEventAttendee, "address"> & {
+		address: Stripped<EncryptedMailAddress>
+	}
+>
+
+function createStrippedAttendees(attendees: CalendarEventAttendee[]): StrippedCalendarEventAttendee[] {
+	return attendees.map((attendee: CalendarEventAttendee) => {
+		return {
+			status: attendee.status,
+			address: createStrippedMailAddress(attendee.address)!,
+		}
+	})
+}
+
+function createStrippedMailAddress(mailAddress: EncryptedMailAddress | null): Stripped<EncryptedMailAddress> | null {
+	if (!mailAddress) {
+		return null
+	}
+
+	return {
+		address: mailAddress.address,
+		name: mailAddress.name,
 	}
 }
 
@@ -644,19 +672,24 @@ export class CalendarModel {
 		console.log(TAG, `${operationsLog.created} events created`)
 	}
 
-	private eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
+	// visible for testing
+	public eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
 		const rruleA = createStrippedRepeatRule(a.repeatRule)
 		const rruleB = createStrippedRepeatRule(b.repeatRule)
+		const attendeesA = createStrippedAttendees(a.attendees)
+		const attendeesB = createStrippedAttendees(b.attendees)
+		const organizerA = createStrippedMailAddress(a.organizer)
+		const organizerB = createStrippedMailAddress(b.organizer)
 
 		return (
 			a.startTime.valueOf() === b.startTime.valueOf() &&
 			a.endTime.valueOf() === b.endTime.valueOf() &&
-			deepEqual({ ...a.attendees }, { ...b.attendees }) &&
+			deepEqual({ ...attendeesA }, { ...attendeesB }) &&
 			a.summary === b.summary &&
 			a.sequence === b.sequence &&
 			a.location === b.location &&
 			a.description === b.description &&
-			deepEqual(a.organizer, b.organizer) &&
+			deepEqual(organizerA, organizerB) &&
 			deepEqual(rruleA, rruleB) &&
 			a.recurrenceId?.valueOf() === b.recurrenceId?.valueOf()
 		)
