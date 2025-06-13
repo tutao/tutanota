@@ -49,6 +49,7 @@ import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionali
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
+import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const { anything, argThat } = matchers
 
@@ -88,6 +89,10 @@ const BODY_TEXT_1 = "lorem ipsum dolor yaddah yaddah"
 const SUBJECT_LINE_1 = "Did you get that thing I sent ya"
 const STRONG_PASSWORD = "@()IE!)(@FME)0-123jfDSA32SDACmmnvnvddEW"
 const WEAK_PASSWORD = "123"
+const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
+	instance: null,
+	patches: null,
+}
 
 o.spec("SendMailModel", function () {
 	o.before(function () {
@@ -575,36 +580,48 @@ o.spec("SendMailModel", function () {
 				operation: OperationType.CREATE,
 				instanceListId: "",
 				instanceId: "",
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			await model.handleEntityEvent({
 				typeRef: UserTypeRef,
 				operation: OperationType.CREATE,
 				instanceListId: "",
 				instanceId: "",
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			await model.handleEntityEvent({
 				typeRef: CustomerTypeRef,
 				operation: OperationType.CREATE,
 				instanceListId: "",
 				instanceId: "",
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			await model.handleEntityEvent({
 				typeRef: NotificationMailTypeRef,
 				operation: OperationType.CREATE,
 				instanceListId: "",
 				instanceId: "",
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			await model.handleEntityEvent({
 				typeRef: ChallengeTypeRef,
 				operation: OperationType.CREATE,
 				instanceListId: "",
 				instanceId: "",
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			await model.handleEntityEvent({
 				typeRef: MailTypeRef,
 				operation: OperationType.CREATE,
 				instanceListId: "",
 				instanceId: "",
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			verify(entity.load(anything(), anything(), anything()), { times: 0 })
 		})
@@ -635,6 +652,8 @@ o.spec("SendMailModel", function () {
 				operation: OperationType.UPDATE,
 				instanceListId,
 				instanceId,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			o(model.allRecipients().length).equals(2)
 			const updatedRecipient = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
@@ -668,6 +687,8 @@ o.spec("SendMailModel", function () {
 				operation: OperationType.UPDATE,
 				instanceListId,
 				instanceId,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
@@ -681,6 +702,8 @@ o.spec("SendMailModel", function () {
 				operation: OperationType.DELETE,
 				instanceListId,
 				instanceId,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))

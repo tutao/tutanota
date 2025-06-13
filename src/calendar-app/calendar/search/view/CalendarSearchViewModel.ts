@@ -218,7 +218,8 @@ export class CalendarSearchViewModel {
 		if (update.operation === OperationType.CREATE && containsEventOfType(updates, OperationType.DELETE, update.instanceId)) {
 			// This is a move operation, is destination list included in the restrictions?
 			if (this.listIdMatchesRestriction(update.instanceListId, this.searchResult.restriction)) {
-				// If it's included, we want to keep showing the item but we will simulate the UPDATE
+				// If it's included, we want to keep showing the item, but we will simulate the UPDATE
+				console.log("should not come here please!", update)
 				return { ...update, operation: OperationType.UPDATE }
 			} else {
 				// If it's not going to be included we might as well skip the create operation

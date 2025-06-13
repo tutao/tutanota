@@ -217,7 +217,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly authDataProvider: AuthDataProvider,
 		private readonly restClient: RestClient,
 		private readonly lazyCrypto: lazy<CryptoFacade>,
-		private readonly instancePipeline: InstancePipeline,
+		public readonly instancePipeline: InstancePipeline,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly typeModelResolver: TypeModelResolver,
 	) {}

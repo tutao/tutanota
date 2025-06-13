@@ -73,12 +73,18 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				instanceId: userId,
 				instanceListId: "",
 				operation: OperationType.UPDATE,
+				instance: null,
+				patches: null,
+				isPrefetched: false,
 			},
 			{
 				typeRef: UserGroupKeyDistributionTypeRef,
 				instanceId: userGroupId,
 				instanceListId: "",
 				operation: OperationType.CREATE,
+				instance: null,
+				patches: null,
+				isPrefetched: false,
 			},
 		]
 
@@ -97,6 +103,9 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				instanceId: userId,
 				instanceListId: "",
 				operation: OperationType.UPDATE,
+				instance: null,
+				patches: null,
+				isPrefetched: false,
 			},
 		]
 
@@ -117,6 +126,9 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				instanceListId,
 				instanceId,
 				operation: OperationType.CREATE,
+				instance: null,
+				patches: null,
+				isPrefetched: false,
 			},
 		]
 

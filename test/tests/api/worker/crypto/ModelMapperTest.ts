@@ -81,7 +81,7 @@ o.spec("ModelMapper", function () {
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "some encrypted string",
 				5: new Date("2025-01-01T13:00:00.000Z"),
-				3: [{ 2: "123", 6: "123456", _finalIvs: {}, 9: [] } as unknown as ServerModelParsedInstance],
+				3: [{ 2: "123", 6: "123456", _finalIvs: {}, 9: [], 10: [] } as unknown as ServerModelParsedInstance],
 				12: "generatedId",
 				13: ["listId", "elementId"],
 				4: ["associatedElementId"],
@@ -102,6 +102,7 @@ o.spec("ModelMapper", function () {
 				testNumber: "123",
 				_id: "123456",
 				testSecondLevelAssociation: [],
+				testZeroOrOneAggregation: null,
 			})
 			o(mappedInstance.testElementAssociation).equals("associatedElementId")
 			o(mappedInstance.testGeneratedId).equals("generatedId")

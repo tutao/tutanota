@@ -1,25 +1,29 @@
 import o from "@tutao/otest"
 import { batchMod, EntityModificationType, EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
-import { EntityUpdateTypeRef, GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
 import { ContactTypeRef, MailboxGroupRootTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
-import { createTestEntity } from "../../../TestUtils.js"
 
 o.spec("EventQueueTest", function () {
 	let queue: EventQueue
 	let processElement: any
 	let lastProcess: { resolve: () => void; reject: (Error) => void; promise: Promise<void> }
 
+	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
+		instance: null,
+		patches: null,
+	}
 	const newUpdate = (type: OperationType, instanceId: string): EntityUpdateData => {
 		return {
 			operation: type,
 			instanceId,
 			instanceListId: "",
 			typeRef: MailTypeRef,
+			...noPatchesAndInstance,
 		} as Partial<EntityUpdateData> as EntityUpdateData
 	}
 
@@ -322,6 +326,9 @@ o.spec("EventQueueTest", function () {
 				operation: type,
 				instanceId,
 				instanceListId: listId,
+				instance: null,
+				patches: null,
+				isPrefetched: false,
 			}
 		}
 	})
@@ -340,6 +347,8 @@ o.spec("EventQueueTest", function () {
 							instanceId,
 							instanceListId,
 							operation: OperationType.CREATE,
+							...noPatchesAndInstance,
+							isPrefetched: false,
 						},
 					],
 					{
@@ -347,6 +356,8 @@ o.spec("EventQueueTest", function () {
 						instanceId,
 						instanceListId,
 						operation: OperationType.CREATE,
+						...noPatchesAndInstance,
+						isPrefetched: false,
 					},
 				),
 			).equals(EntityModificationType.CREATE)
@@ -362,12 +373,16 @@ o.spec("EventQueueTest", function () {
 							instanceId: "instanceId2",
 							instanceListId,
 							operation: OperationType.DELETE,
+							...noPatchesAndInstance,
+							isPrefetched: false,
 						},
 						{
 							typeRef: MailTypeRef,
 							instanceId,
 							instanceListId,
 							operation: OperationType.CREATE,
+							...noPatchesAndInstance,
+							isPrefetched: false,
 						},
 					],
 					{
@@ -375,6 +390,8 @@ o.spec("EventQueueTest", function () {
 						instanceId,
 						instanceListId,
 						operation: OperationType.CREATE,
+						...noPatchesAndInstance,
+						isPrefetched: false,
 					},
 				),
 			).equals(EntityModificationType.CREATE)
@@ -390,12 +407,16 @@ o.spec("EventQueueTest", function () {
 							instanceId,
 							instanceListId: "instanceListId2",
 							operation: OperationType.DELETE,
+							...noPatchesAndInstance,
+							isPrefetched: false,
 						},
 						{
 							typeRef: MailTypeRef,
 							instanceId,
 							instanceListId,
 							operation: OperationType.CREATE,
+							...noPatchesAndInstance,
+							isPrefetched: false,
 						},
 					],
 					{
@@ -403,6 +424,8 @@ o.spec("EventQueueTest", function () {
 						instanceId,
 						instanceListId,
 						operation: OperationType.CREATE,
+						...noPatchesAndInstance,
+						isPrefetched: false,
 					},
 				),
 			).equals(EntityModificationType.CREATE)
@@ -418,12 +441,16 @@ o.spec("EventQueueTest", function () {
 							instanceId,
 							instanceListId,
 							operation: OperationType.DELETE,
+							...noPatchesAndInstance,
+							isPrefetched: false,
 						},
 						{
 							typeRef: MailTypeRef,
 							instanceId,
 							instanceListId,
 							operation: OperationType.CREATE,
+							...noPatchesAndInstance,
+							isPrefetched: false,
 						},
 					],
 					{
@@ -431,6 +458,8 @@ o.spec("EventQueueTest", function () {
 						instanceId,
 						instanceListId,
 						operation: OperationType.CREATE,
+						...noPatchesAndInstance,
+						isPrefetched: false,
 					},
 				),
 			).equals(EntityModificationType.CREATE)
@@ -446,6 +475,8 @@ o.spec("EventQueueTest", function () {
 							instanceId,
 							instanceListId,
 							operation: OperationType.CREATE,
+							...noPatchesAndInstance,
+							isPrefetched: false,
 						},
 					],
 					{
@@ -453,6 +484,8 @@ o.spec("EventQueueTest", function () {
 						instanceId,
 						instanceListId,
 						operation: OperationType.DELETE,
+						...noPatchesAndInstance,
+						isPrefetched: false,
 					},
 				),
 			).equals(EntityModificationType.CREATE)

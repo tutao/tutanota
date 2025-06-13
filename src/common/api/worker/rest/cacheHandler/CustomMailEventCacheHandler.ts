@@ -14,6 +14,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		//  - we need them to display the folder contents
 		//  - will very likely be loaded by indexer later
 		//  - we might have the instance in offline cache already because of notification process
+		// however, they are already preloaded by the EventBusClient
 		return true
 	}
 

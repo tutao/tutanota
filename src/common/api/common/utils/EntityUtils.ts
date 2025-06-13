@@ -11,7 +11,6 @@ import {
 	deepEqual,
 	Hex,
 	hexToBase64,
-	isEmpty,
 	isSameTypeRef,
 	pad,
 	repeat,
@@ -37,7 +36,7 @@ import { ClientTypeReferenceResolver, PatchOperationType } from "../EntityFuncti
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AttributeModel } from "../AttributeModel"
 import { createPatch, createPatchList, Patch, PatchList } from "../../entities/sys/TypeRefs"
-import { instance } from "testdouble"
+import { ProgrammingError } from "../error/ProgrammingError"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -359,7 +358,7 @@ export async function computePatches(
 ): Promise<Patch[]> {
 	let patches: Patch[] = []
 	for (const [valueIdStr, modelValue] of Object.entries(typeModel.values)) {
-		if (modelValue.final && !(modelValue.name == "_ownerEncSessionKey" || modelValue.name == "_ownerKeyVersion")) {
+		if (modelValue.final) {
 			continue
 		}
 		const attributeId = parseInt(valueIdStr)
@@ -396,6 +395,7 @@ export async function computePatches(
 			// keys are in the format attributeId:attributeName when networkDebugging is enabled
 			attributeIdStr += ":" + modelAssociation.name
 		}
+
 		if (modelAssociation.type == AssociationType.Aggregation) {
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const typeId = modelAssociation.refTypeId
@@ -403,6 +403,15 @@ export async function computePatches(
 			const originalAggregatedEntities = (originalInstance[attributeId] ?? []) as Array<ClientModelParsedInstance>
 			const modifiedAggregatedEntities = (modifiedInstance[attributeId] ?? []) as Array<ClientModelParsedInstance>
 			const modifiedAggregatedUntypedEntities = (modifiedUntypedInstance[attributeIdStr] ?? []) as Array<ClientModelUntypedInstance>
+
+			const modifiedAggregateIds = modifiedAggregatedEntities.map(
+				(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
+			)
+			if (!isDistinctAggregateIds(modifiedAggregateIds)) {
+				throw new ProgrammingError(
+					"Duplicate aggregate ids in the modified instance: " + AttributeModel.getAttribute(modifiedInstance, "_id", typeModel),
+				)
+			}
 			const addedItems = modifiedAggregatedUntypedEntities.filter(
 				(element) =>
 					!originalAggregatedEntities.some((item) => {
@@ -471,53 +480,28 @@ export async function computePatches(
 				})
 				patches = patches.concat(items)
 			}
-			if (modelAssociation.cardinality == Cardinality.Any) {
-				if (removedItems.length > 0) {
-					const removedAggregateIds = removedItems.map(
-						(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
-					)
-					patches.push(
-						createPatch({
-							attributePath: attributeIdStr,
-							value: JSON.stringify(removedAggregateIds),
-							patchOperation: PatchOperationType.REMOVE_ITEM,
-						}),
-					)
-				}
-				if (addedItems.length > 0) {
-					patches.push(
-						createPatch({
-							attributePath: attributeIdStr,
-							value: JSON.stringify(addedItems),
-							patchOperation: PatchOperationType.ADD_ITEM,
-						}),
-					)
-				}
-			} else if (isEmpty(originalAggregatedEntities)) {
-				// ZeroOrOne with original aggregation on server is []
+
+			if (addedItems.length > 0) {
 				patches.push(
 					createPatch({
 						attributePath: attributeIdStr,
-						value: JSON.stringify(modifiedAggregatedUntypedEntities),
+						value: JSON.stringify(addedItems),
 						patchOperation: PatchOperationType.ADD_ITEM,
 					}),
 				)
-			} else {
-				// ZeroOrOne or One with original aggregation on server already there (i.e. it is a list of one)
-				const aggregateId = AttributeModel.getAttribute(assertNotNull(originalAggregatedEntities[0]), "_id", aggregateTypeModel)
-				const fullPath = `${attributeIdStr}/${aggregateId}/`
-				const items = await computePatches(
-					originalAggregatedEntities[0],
-					modifiedAggregatedEntities[0],
-					modifiedAggregatedUntypedEntities[0],
-					aggregateTypeModel,
-					typeReferenceResolver,
-					isNetworkDebuggingEnabled,
+			}
+
+			if (removedItems.length > 0) {
+				const removedAggregateIds = removedItems.map(
+					(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
 				)
-				items.map((item) => {
-					item.attributePath = fullPath + item.attributePath
-				})
-				patches = patches.concat(items)
+				patches.push(
+					createPatch({
+						attributePath: attributeIdStr,
+						value: JSON.stringify(removedAggregateIds),
+						patchOperation: PatchOperationType.REMOVE_ITEM,
+					}),
+				)
 			}
 		} else {
 			// non aggregation associations
@@ -529,15 +513,6 @@ export async function computePatches(
 			// Only Any associations support ADD_ITEM and REMOVE_ITEM operations
 			// All cardinalities support REPLACE operation
 			if (modelAssociation.cardinality == Cardinality.Any) {
-				if (addedItems.length > 0) {
-					patches.push(
-						createPatch({
-							attributePath: attributeIdStr,
-							value: JSON.stringify(addedItems),
-							patchOperation: PatchOperationType.ADD_ITEM,
-						}),
-					)
-				}
 				if (removedItems.length > 0) {
 					patches.push(
 						createPatch({
@@ -635,6 +610,23 @@ export function timestampToHexGeneratedId(timestamp: number, serverBytes: number
 export function timestampToGeneratedId(timestamp: number, serverBytes: number = 0): Id {
 	let hex = timestampToHexGeneratedId(timestamp, serverBytes)
 	return base64ToBase64Ext(hexToBase64(hex))
+}
+
+export function distinctItems(array: Array<any>) {
+	return array.reduce((acc: Array<any>, current) => {
+		if (!acc.some((item) => deepEqual(item, current))) {
+			acc.push(current)
+		}
+		return acc
+	}, [])
+}
+
+function isDistinctAggregateIds(array: Array<Id>) {
+	const checkSet = new Set(array)
+
+	// Strict equality
+	// Return boolean value
+	return checkSet.size === array.length
 }
 
 /**

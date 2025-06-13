@@ -81,6 +81,8 @@ import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/Type
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../common/api/worker/rest/EphemeralCacheStorage"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
+import { PatchMerger } from "../../../common/api/worker/offline/PatchMerger"
+import { EventInstancePrefetcher } from "../../../common/api/worker/EventInstancePrefetcher"
 
 assertWorkerOrNode()
 
@@ -90,6 +92,7 @@ export type CalendarWorkerLocatorType = {
 	serviceExecutor: IServiceExecutor
 	crypto: CryptoFacade
 	instancePipeline: InstancePipeline
+	patchMerger: PatchMerger
 	applicationTypesFacade: ApplicationTypesFacade
 	cacheStorage: CacheStorage
 	cache: EntityRestInterface
@@ -242,7 +245,9 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	locator.cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver)
+	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto)
+
+	locator.cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, locator.patchMerger)
 
 	locator.cachingEntityClient = new EntityClient(locator.cache, typeModelResolver)
 	const nonCachingEntityClient = new EntityClient(entityRestClient, typeModelResolver)
@@ -494,6 +499,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		noOp,
 	)
 
+	const eventInstancePrefetcher = new EventInstancePrefetcher(locator.cacheStorage, locator.cache, typeModelResolver)
+
 	locator.eventBusClient = new EventBusClient(
 		eventBusCoordinator,
 		locator.cache as EntityRestCache,
@@ -505,6 +512,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		mainInterface.progressTracker,
 		mainInterface.syncTracker,
 		typeModelResolver,
+		locator.crypto,
+		eventInstancePrefetcher,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

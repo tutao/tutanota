@@ -1,5 +1,5 @@
 import { OperationType } from "../common/TutanotaConstants.js"
-import { findAllAndRemove, isSameTypeRef } from "@tutao/tutanota-utils"
+import { findAllAndRemove, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import { ProgrammingError } from "../common/error/ProgrammingError.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
@@ -70,7 +70,7 @@ function lastOperationKey(update: EntityUpdateData): LastOperationKey {
 
 export class EventQueue {
 	/** Batches to process. Oldest first. */
-	private readonly eventQueue: Array<WritableQueuedBatch>
+	public readonly eventQueue: Array<WritableQueuedBatch>
 	// the last processed operation for a given entity id
 	private readonly lastOperationForEntity: Map<LastOperationKey, QueuedBatch>
 	private processingBatch: QueuedBatch | null

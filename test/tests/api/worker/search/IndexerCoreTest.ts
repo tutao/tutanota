@@ -36,7 +36,6 @@ import { ElementDataOS, GroupDataOS, ObjectStoreName, SearchIndexMetaDataOS, Sea
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
-import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { CancelledError } from "../../../../../src/common/api/common/error/CancelledError.js"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
@@ -1029,12 +1028,6 @@ o.spec("IndexerCore", () => {
 
 		const instanceId = "L-dNNLe----1"
 		const instanceIdTimestamp = generatedIdToTimestamp(instanceId)
-		const event: EntityUpdateData = {
-			typeRef: MailTypeRef,
-			instanceId,
-			instanceListId: "",
-			operation: OperationType.CREATE,
-		}
 		const metaRowId = 3
 		const anotherMetaRowId = 4
 		const transaction: any = {
@@ -1093,12 +1086,6 @@ o.spec("IndexerCore", () => {
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
 		let instanceId = "123"
-		let event: EntityUpdateData = {
-			typeRef: MailTypeRef,
-			instanceId,
-			instanceListId: "",
-			operation: OperationType.CREATE,
-		}
 		let transaction: any = {
 			get: (os, key) => {
 				o.check(os).equals(ElementDataOS)

@@ -137,7 +137,7 @@ export class CryptoMapper {
 		return decrypted
 	}
 
-	private async decryptAggregateAssociation(
+	public async decryptAggregateAssociation(
 		associationServerTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		sk: Nullable<AesKey>,

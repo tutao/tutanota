@@ -5,6 +5,7 @@ import {
 	ConnectionError,
 	handleRestError,
 	NotAuthorizedError,
+	NotFoundError,
 	ServiceUnavailableError,
 	SessionExpiredError,
 } from "../common/error/RestError"
@@ -12,34 +13,56 @@ import {
 	createWebsocketLeaderStatus,
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
+	EntityUpdate,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityDataTypeRef,
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import { binarySearch, delay, identity, lastThrow, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
+import {
+	AppName,
+	assertNotNull,
+	binarySearch,
+	delay,
+	getTypeString,
+	groupBy,
+	identity,
+	isNotNull,
+	isSameTypeRef,
+	lastThrow,
+	ofClass,
+	promiseMap,
+	randomIntFromInterval,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
-import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
+import { CloseEventBusOption, GroupType, OperationType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
 import { EntityClient } from "../common/EntityClient"
 import type { QueuedBatch } from "./EventQueue.js"
 import { EventQueue } from "./EventQueue.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
-import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId } from "../common/utils/EntityUtils"
+import { compareOldestFirst, elementIdPart, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, listIdPart } from "../common/utils/EntityUtils"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { TypeModelResolver } from "../common/EntityFunctions.js"
-import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
+import { Mail, MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
-import { Entity, ServerModelUntypedInstance } from "../common/EntityTypes"
+import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "../common/EntityTypes"
 import { InstancePipeline } from "./crypto/InstancePipeline"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
+import { parseKeyVersion } from "./facades/KeyLoaderFacade"
+import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
+import { CryptoFacade } from "./crypto/CryptoFacade"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { EntityAdapter } from "./crypto/EntityAdapter"
+import { EventInstancePrefetcher } from "./EventInstancePrefetcher"
 
 assertWorkerOrNode()
 
@@ -121,7 +144,7 @@ export class EventBusClient {
 
 	private lastAntiphishingMarkersId: Id | null = null
 
-	/** Queue to process all events. */
+	/** Qrueue to process all events. */
 	private readonly eventQueue: EventQueue
 
 	/** Queue that handles incoming websocket messages only. Caches them until we process downloaded ones and then adds them to eventQueue. */
@@ -152,6 +175,8 @@ export class EventBusClient {
 		private readonly progressTracker: ExposedProgressTracker,
 		private readonly syncTracker: SyncTracker,
 		private readonly typeModelResolver: TypeModelResolver,
+		private readonly cryptoFacade: CryptoFacade,
+		private readonly eventInstancePrefetcher: EventInstancePrefetcher,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
 		this.state = EventBusState.Terminated
@@ -160,7 +185,7 @@ export class EventBusClient {
 		this.socket = null
 		this.reconnectTimer = null
 		this.connectTimer = null
-		this.eventQueue = new EventQueue("ws_opt", true, (modification) => this.eventQueueCallback(modification))
+		this.eventQueue = new EventQueue("ws_opt", false, (modification) => this.eventQueueCallback(modification))
 		this.entityUpdateMessageQueue = new EventQueue("ws_msg", false, (batch) => this.entityUpdateMessageQueueCallback(batch))
 		this.reset()
 	}
@@ -297,7 +322,11 @@ export class EventBusClient {
 			case MessageType.EntityUpdate: {
 				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
 				this.typeModelResolver.setServerApplicationTypesModelHash(entityUpdateData.applicationTypesHash)
-				const updates = await promiseMap(entityUpdateData.entityUpdates, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
+				const updates = await promiseMap(entityUpdateData.entityUpdates, async (event) => {
+					let instance = await this.getInstanceFromEntityEvent(event)
+					return entityUpdateToUpdateData(this.typeModelResolver, event, instance)
+				})
+
 				this.entityUpdateMessageQueue.add(entityUpdateData.eventBatchId, entityUpdateData.eventBatchOwner, updates)
 				break
 			}
@@ -329,6 +358,24 @@ export class EventBusClient {
 				console.log("ws message with unknown type", type)
 				break
 		}
+	}
+
+	private async getInstanceFromEntityEvent(event: EntityUpdate): Promise<Nullable<ServerModelParsedInstance>> {
+		if (event.instance != null) {
+			const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId!))
+			const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+			const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
+			const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
+			const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+			if (this.userFacade.hasGroup(assertNotNull(entityAdapter._ownerGroup))) {
+				// if the user was just assigned to a new group, it might it is not yet on the user facade,
+				// we can't decrypt the instance in that case.
+				const migratedEntity = await this.cryptoFacade.applyMigrations(typeRef, entityAdapter)
+				const sessionKey = await this.cryptoFacade.resolveSessionKey(migratedEntity)
+				return await this.instancePipeline.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sessionKey)
+			}
+		}
+		return null
 	}
 
 	private onClose(event: CloseEvent) {
@@ -518,8 +565,12 @@ export class EventBusClient {
 		// Count all batches that will actually be processed so that the progress is correct
 		let totalExpectedBatches = 0
 		for (const batch of timeSortedEventBatches) {
-			const updates = await promiseMap(batch.events, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
+			const updates = await promiseMap(batch.events, async (event) => {
+				const instance = await this.getInstanceFromEntityEvent(event)
+				return entityUpdateToUpdateData(this.typeModelResolver, event, instance)
+			})
 			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), updates, eventQueue)
+
 			if (batchWasAddedToQueue) {
 				// Set as last only if it was inserted with success
 				this.lastInitialEventBatch = getElementId(batch)
@@ -533,6 +584,9 @@ export class EventBusClient {
 		console.log("ws", `progress monitor expects ${totalExpectedBatches} events`)
 		await progressMonitor.workDone(1) // show progress right away
 		eventQueue.setProgressMonitor(progressMonitor)
+
+		const allEventsFlatMap = this.eventQueue.eventQueue.flatMap((eventQ) => eventQ.events)
+		await this.eventInstancePrefetcher.preloadEntities(allEventsFlatMap)
 
 		// We don't have any missing update, we can just set the sync as finished
 		if (totalExpectedBatches === 0) {
@@ -641,7 +695,7 @@ export class EventBusClient {
 
 		if (index < 0) {
 			lastForGroup.splice(-index, 0, batchId)
-			// only add the batch if it was not process before
+			// only add the batch if it was not processed before
 			wasAdded = eventQueue.add(batchId, groupId, events)
 		} else {
 			wasAdded = false
@@ -651,7 +705,7 @@ export class EventBusClient {
 			lastForGroup.shift()
 		}
 
-		this.lastEntityEventIds.set(batchId, lastForGroup)
+		this.lastEntityEventIds.set(groupId, lastForGroup)
 
 		if (wasAdded) {
 			this.lastAddedBatchForGroup.set(groupId, batchId)

@@ -528,6 +528,34 @@ o.spec("EntityUtils", function () {
 			])
 		})
 
+		o("computePatches works on aggregations of cardinality zeroorone", async function () {
+			const testEntity = await createFilledTestEntity()
+			testEntity.testAssociation[0].testZeroOrOneAggregation = null
+
+			let sk = aes256RandomKey()
+			const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(
+				TestTypeRef,
+				assertNotNull(testEntity._original),
+			)
+			const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+			const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+			let objectDiff = await computePatches(
+				originalParsedInstance,
+				currentParsedInstance,
+				currentUntypedInstance,
+				testTypeModel,
+				dummyTypeReferenceResolver,
+				false,
+			)
+			o(objectDiff).deepEquals([
+				createPatch({
+					attributePath: "3/aggId/10",
+					value: '["aggOnAggId"]',
+					patchOperation: PatchOperationType.REMOVE_ITEM,
+				}),
+			])
+		})
+
 		o("computePatches works on aggregates on aggregations and additem operation", async function () {
 			const testEntity = await createFilledTestEntity()
 
@@ -634,6 +662,12 @@ o.spec("EntityUtils", function () {
 								testBytes: null,
 							} as TestAggregateOnAggregate,
 						],
+						testZeroOrOneAggregation: {
+							_type: TestAggregateOnAggregateRef,
+							_finalIvs: {},
+							_id: "aggOnAggId",
+							testBytes: null,
+						} as TestAggregateOnAggregate,
 					} as TestAggregate,
 				],
 				testBoolean: false,

@@ -102,9 +102,12 @@ o.spec("ContactIndexer", () => {
 
 function createUpdate(operation: OperationType, instanceListId: Id, instanceId: Id, typeRef: TypeRef<any> = ContactTypeRef): EntityUpdateData {
 	return {
-		operation,
-		instanceId,
-		instanceListId,
-		typeRef,
+		operation: operation,
+		instanceId: instanceId,
+		instanceListId: instanceListId,
+		typeRef: typeRef,
+		instance: null,
+		patches: null,
+		isPrefetched: false,
 	}
 }

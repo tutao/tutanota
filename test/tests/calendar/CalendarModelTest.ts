@@ -42,6 +42,11 @@ import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 import { EntityRestClient } from "../../../src/common/api/worker/rest/EntityRestClient"
 
 o.spec("CalendarModel", function () {
+	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
+		instance: null,
+		patches: null,
+	}
+
 	o.spec("calendar events have same fields", function () {
 		let restClientMock: EntityRestClient
 		let calendarFacadeMock: CalendarFacade
@@ -769,6 +774,8 @@ o.spec("CalendarModel", function () {
 				instanceListId: listIdPart(eventUpdate._id),
 				instanceId: elementIdPart(eventUpdate._id),
 				operation: OperationType.CREATE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile))!).deepEquals(eventUpdate)
@@ -784,6 +791,8 @@ o.spec("CalendarModel", function () {
 				instanceListId: listIdPart(calendarFile._id),
 				instanceId: elementIdPart(calendarFile._id),
 				operation: OperationType.UPDATE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)
