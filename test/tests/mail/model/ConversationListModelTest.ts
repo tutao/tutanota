@@ -39,8 +39,9 @@ import { ConnectionError } from "../../../../src/common/api/common/error/RestErr
 import { clamp, pad } from "@tutao/tutanota-utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
+import { ListLoadingState } from "../../../../src/common/gui/base/List"
 
-o.spec("ConversationListModelTest", () => {
+o.spec("ConversationListModel", () => {
 	let model: ConversationListModel
 
 	const mailboxDetail: MailboxDetail = {
@@ -110,9 +111,10 @@ o.spec("ConversationListModelTest", () => {
 		return Number(deconstructMailSetEntryId(mailSetElementId).mailId)
 	}
 
-	async function setUpTestData(count: number, initialLabels: MailFolder[], offline: boolean, mailsPerConversation: number) {
+	async function setUpTestData(count: number, initialLabels: MailFolder[], offline: boolean, mailsPerConversation: number): Promise<Mail[]> {
 		const mailSetEntries: MailSetEntry[] = []
 		const mails: Mail[][] = [[], [], [], [], [], [], [], [], [], []]
+		const allMails: Mail[] = []
 
 		for (let i = 0; i < count; i++) {
 			const mailBag = i % 10
@@ -126,6 +128,7 @@ o.spec("ConversationListModelTest", () => {
 			})
 
 			mails[mailBag].push(mail)
+			allMails.push(mail)
 
 			mailSetEntries.push(
 				createMailSetEntry({
@@ -183,6 +186,8 @@ o.spec("ConversationListModelTest", () => {
 			when(entityClient.loadRange(MailSetEntryTypeRef, mailSetEntriesListId, matchers.anything(), matchers.anything(), true)).thenDo(getMailSetEntryMock)
 			when(entityClient.loadMultiple(MailTypeRef, matchers.anything(), matchers.anything())).thenDo(getMailsMock)
 		}
+
+		return allMails.reverse()
 	}
 
 	o.test("loads PageSize items and sets labels correctly", async () => {
@@ -219,6 +224,31 @@ o.spec("ConversationListModelTest", () => {
 		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
 			times: 0,
 		})
+	})
+
+	o.test("loads fewer than PageSize items while offline, loadMore will fail", async () => {
+		const mails = await setUpTestData(PageSize - 1, labels, true, 1)
+		await model.loadInitial()
+		o(model.mails.length).equals(PageSize - 1)
+		o(model.mails).deepEquals(mails)
+		for (const mail of model.mails) {
+			o(model.getLabelsForMail(mail)).deepEquals(labels)
+		}
+		verify(cacheStorage.provideFromRange(MailSetEntryTypeRef, mailSetEntriesListId, CUSTOM_MAX_ID, PageSize, true), {
+			times: 1,
+		})
+		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
+			times: 0,
+		})
+		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
+			times: 0,
+		})
+		o.check(model.loadingStatus).equals(ListLoadingState.Idle)
+
+		await model.loadMore()
+		o(model.mails.length).equals(PageSize - 1)
+		o(model.mails).deepEquals(mails)
+		o.check(model.loadingStatus).equals(ListLoadingState.ConnectionLost)
 	})
 
 	o.test("applies inbox rules if inbox", async () => {

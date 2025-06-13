@@ -480,6 +480,9 @@ export class ConversationListModel implements MailSetListModel {
 					items = await this.loadMailsFromCache(startingId, count)
 					if (items.length === 0) {
 						throw e // we couldn't get anything from the cache!
+					} else {
+						// set the last
+						this.lastFetchedMailSetEntryId = elementIdPart(lastThrow(items).mailSetEntryId)
 					}
 				}
 			} else {
