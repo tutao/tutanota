@@ -81,7 +81,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			if (state.indexState.failedIndexingUpTo != null) {
 				return this.renderError(state.indexState.failedIndexingUpTo, attrs)
 			} else if (state.indexState.progress !== 0) {
-				return this._renderProgress(state, attrs)
+				return this._renderProgress(state)
 			} else {
 				return null
 			}
@@ -90,7 +90,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		}
 	}
 
-	_renderProgress(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
+	_renderProgress(state: SearchBarState): Children {
 		return m(".flex.col.rel", [
 			m(
 				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s",
@@ -102,9 +102,9 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 				},
 				[
 					m(
-						".top.flex-space-between.col",
+						".flex-space-between.col",
 						m(
-							".bottom.flex-space-between",
+							".flex-space-between",
 							m(
 								"",
 								lang.get("indexedMails_label", {
