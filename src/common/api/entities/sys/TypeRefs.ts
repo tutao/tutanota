@@ -2761,6 +2761,7 @@ export type PaymentDataServiceGetData = {
 
 	_format: NumberString;
 	clientType: null | NumberString;
+	subscriptionApp: NumberString;
 }
 export const TypeInfoTypeRef: TypeRef<TypeInfo> = new TypeRef("sys", 1869)
 
