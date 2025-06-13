@@ -93,7 +93,7 @@ export function sortOutParsedEvents(
 
 		for (const { event, alarms } of flatParsedEvents) {
 			if (flatParsedEvents.length > 1)
-				console.warn("[ImportExportUtils] Found events with same uid: flatParsedEvents with more than one entry", { flatParsedEvents })
+				console.warn("[ImportExportUtils] Found events with same uid: flatParsedEvents with more than one entry")
 
 			for (let alarmInfo of alarms) {
 				alarmInfo.alarmIdentifier = generateEventElementId(Date.now())

@@ -16,7 +16,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { isSameExternalEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { styles } from "../../../common/gui/styles.js"
-import { formatEventTimes, generateRandomColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { formatEventTimes, getEventColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { BannerButton } from "../../../common/gui/base/buttons/BannerButton.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
@@ -40,6 +40,7 @@ export type EventBannerAttrs = {
 	mail: Mail
 	recipient: string
 	eventsRepository: CalendarEventsRepository
+	groupColors: Map<Id, string>
 }
 
 /**
@@ -328,7 +329,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 								timeRange,
 								conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
 								baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
-								dates: [getStartOfDay(agenda.current.event.startTime)]
+								dates: [getStartOfDay(agenda.current.event.startTime)],
 							} satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
@@ -431,7 +432,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		const datesToLoad = new Set(attrs.contents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat())
 		await attrs.eventsRepository.loadMonthsIfNeeded(Array.from(datesToLoad), stream(false), null)
 		const events = attrs.eventsRepository.getEventsForMonths()() // Short and long events
-		console.log(attrs.contents.events)
+
 		for (const event of attrs.contents.events) {
 			const startOfDay = getStartOfDay(event.startTime)
 			const endOfDay = getStartOfDay(event.endTime)
@@ -487,15 +488,15 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					eventList.before = {
 						event: eventBefore,
 						conflict: false,
-						color: generateRandomColor(),
+						color: `#${getEventColor(eventBefore, attrs.groupColors)}`,
 						featured: false,
-					} // FIXME Colors
+					}
 				}
 			} else {
 				eventList.before = {
 					event: closestConflictingEventBeforeStartTime,
 					conflict: true,
-					color: generateRandomColor(), // FIXME Colors
+					color: `#${getEventColor(closestConflictingEventBeforeStartTime, attrs.groupColors)}`,
 					featured: false,
 				}
 			}
@@ -512,9 +513,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					eventList.after = {
 						event: eventAfter,
 						conflict: false,
-						color: generateRandomColor(),
+						color: `#${getEventColor(eventAfter, attrs.groupColors)}`,
 						featured: false,
-					} // FIXME Colors
+					}
 				}
 			} else {
 				const time = getHourOfDay(
@@ -524,9 +525,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				eventList.after = {
 					event: closestConflictingEventAfterStartTime,
 					conflict: true,
-					color: generateRandomColor(),
+					color: `#${getEventColor(closestConflictingEventAfterStartTime, attrs.groupColors)}`,
 					featured: false,
-				} // FIXME Colors
+				}
 			}
 
 			if (eventList.after?.conflict || eventList.before?.conflict) {
