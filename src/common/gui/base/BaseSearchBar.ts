@@ -42,7 +42,6 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 					"min-height": px(inputLineHeight + 2),
 					"margin-top": px(6),
 					"margin-bottom": px(6),
-					"max-width": styles.isUsingBottomNavigation() ? "" : px(350),
 				},
 				oncreate: ({ dom }) => {
 					attrs.onWrapperCreated?.(dom as HTMLElement)

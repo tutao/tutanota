@@ -310,6 +310,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				header: styles.isSingleColumnLayout()
 					? null
 					: m(Header, {
+							firstColWidth: this.folderColumn.width,
 							searchBar: () =>
 								this.inContactListView()
 									? null
