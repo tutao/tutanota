@@ -5,9 +5,8 @@ import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "@tutao/tuta
 import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { bytesToEd25519PublicKey, sha256Hash } from "@tutao/tutanota-crypto"
 import testData from "../crypto/CompatibilityTestData.json"
-import { EncodedEd25519Signature, SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
-import { Mode } from "../../../../../src/common/api/common/Env"
-import { withOverriddenEnv } from "../../../TestUtils"
+import { SigningKeyPairType, SigningPublicKey } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
+import { createTestEntity } from "../../../TestUtils"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
@@ -15,9 +14,7 @@ import { ProgrammingError } from "../../../../../src/common/api/common/error/Pro
 import { PublicIdentityKeyProvider } from "../../../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
 import { MaybeSignedPublicKey, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
-import { createTestEntity } from "../../../TestUtils"
 import { PublicKeySignatureTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
-import { TaggedSqlValue } from "../../../../../src/common/api/worker/offline/SqlValue"
 
 const { anything } = matchers
 
@@ -171,7 +168,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 
 	o.spec("fingerprint calculation is robust", function () {
 		o("generic fingerprint calculation works", async function () {
-			const fingerprint = keyVerification.calculateFingerprint(trustDBEntry.publicIdentityKey)
+			const fingerprint = await keyVerification.calculateFingerprint(trustDBEntry.publicIdentityKey)
 			o(fingerprint).deepEquals(PUBLIC_KEY_FINGERPRINT)
 		})
 
