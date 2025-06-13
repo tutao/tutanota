@@ -1315,6 +1315,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			".main-view",
 			m(this.viewSlider, {
 				header: m(Header, {
+					firstColWidth: this.sidebarColumn.width,
 					searchBar: attrs.lazySearchBar,
 					...attrs.header,
 				}),
