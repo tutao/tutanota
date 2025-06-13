@@ -34,6 +34,7 @@ import {
 } from "../../../common/calendar/date/TimeView.js"
 import { Time } from "../../../common/calendar/date/Time"
 import { px, size } from "../../../common/gui/size.js"
+import { Skeleton } from "../../../common/gui/base/Skeleton"
 
 export type EventBannerAttrs = {
 	contents: ParsedIcalFileContent
@@ -65,102 +66,91 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	buildSkeleton() {
-		// FIXME Improve skeleton
 		return m(
-			".skeleton.rel",
+			".border-sm.skeleton-border-1.border-radius-m.grid.clip",
 			{
-				class: styles.isDesktopLayout() ? "half-width" : "w-full",
-			},
-			m(
-				".border-radius-m.grid.clip.loading",
-				{
-					style: styles.isSingleColumnLayout()
-						? {
+				class: styles.isSingleColumnLayout() ? "" : "fit-content",
+				style: styles.isSingleColumnLayout()
+					? {
 							"grid-template-columns": "min-content 1fr",
 							"grid-template-rows": "1fr 1fr",
-						}
-						: {
-							"grid-template-columns": "min-content 1fr 1fr",
+							"max-width": "100%",
+							width: "100%",
+					  }
+					: {
+							"grid-template-columns": "min-content 40% 1fr",
+							"max-width": px(size.two_column_layout_width),
+							width: "100%",
+					  },
+			},
+			[
+				m(".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.skeleton-bg-1.gap-vpad-xs.fill-grid-column", [
+					m(Skeleton, {
+						style: {
+							width: "25px",
+							height: "20px",
 						},
-				},
-				[
-					m(
-						".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.content-message-bg.border-content-message-bg.gap-vpad-s",
-						[
-							m(
-								".navigation-menu-icon-bg",
-								{
-									style: {
-										width: "25px",
-										height: "30px",
-									},
-								},
-								"",
-							),
-							m(
-								".navigation-menu-icon-bg",
-								{
-									style: {
-										width: "45px",
-										height: "50px",
-									},
-								},
-								"",
-							),
-						],
-					),
-					m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.navigation-menu-bg.gap-vpad-s", [
-						m(
-							".flex.items-center.content-message-bg",
-							{
-								style: {
-									height: "30px",
-									width: "40%",
-								},
-							},
-							"",
-						),
-						m(
-							".flex.items-center.content-message-bg",
-							{
-								style: {
-									height: "40px",
-									width: "75%",
-								},
-							},
-							"",
-						),
-					]),
-					m(
-						".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.navigation-menu-bg.border-content-message-bg.gap-vpad-s",
-						{
-							class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
+					}),
+					m(Skeleton, {
+						style: {
+							width: "36px",
+							height: "40px",
 						},
-						[
-							m(
-								".flex.items-center.content-message-bg",
-								{
-									style: {
-										height: "30px",
-										width: "40%",
-									},
-								},
-								"",
-							),
-							m(
-								".flex.items-center.content-message-bg",
-								{
-									style: {
-										height: "70px",
-										width: "55%",
-									},
-								},
-								"",
-							),
-						],
-					),
-				],
-			),
+					}),
+					m(Skeleton, {
+						style: {
+							width: "25px",
+							height: "20px",
+						},
+					}),
+				]),
+				m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.skeleton-bg-2.gap-vpad-xs", [
+					m(Skeleton, {
+						style: {
+							width: "75%",
+							height: "30px",
+						},
+					}),
+					m(Skeleton, {
+						style: {
+							width: "60%",
+							height: "18px",
+						},
+					}),
+					m(Skeleton, {
+						style: {
+							width: styles.isSingleColumnLayout() ? "70%" : "100%",
+							height: "40px",
+						},
+					}),
+				]),
+				m(
+					".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.skeleton-bg-2.gap-vpad-xs.skeleton-border-1",
+					{
+						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
+					},
+					[
+						m(Skeleton, {
+							style: {
+								width: "75%",
+								height: "30px",
+							},
+						}),
+						m(Skeleton, {
+							style: {
+								width: "50%",
+								height: "18px",
+							},
+						}),
+						m(Skeleton, {
+							style: {
+								width: styles.isSingleColumnLayout() ? "100%" : "100%",
+								height: styles.isSingleColumnLayout() ? "100%" : "120px",
+							},
+						}),
+					],
+				),
+			],
 		)
 	}
 
@@ -173,14 +163,14 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		}
 
 		const messages = contents.events
-								 .map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
-									 const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
-									 return message == null ? null : { event, message }
-								 })
+			.map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
+				const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
+				return message == null ? null : { event, message }
+			})
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
 			// banner for events that do not mention us.
-								 .filter(isNotNull)
+			.filter(isNotNull)
 
 		return messages.map(({ event, message }) => {
 			return this.buildEventBanner(event, this.agenda.get(event.uid ?? "") ?? null, message)
@@ -204,9 +194,12 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		const rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
 
 		const evs = events.flatMap((event) => {
-			if ((event.event.endTime > rangeStartDate && event.event.endTime <= rangeEndDate) || // Ends during event
+			if (
+				(event.event.endTime > rangeStartDate && event.event.endTime <= rangeEndDate) || // Ends during event
 				(event.event.startTime >= rangeStartDate && event.event.startTime < rangeEndDate) || // Starts during event
-				(event.event.startTime <= rangeStartDate && event.event.endTime >= rangeEndDate)) { // Overlaps range
+				(event.event.startTime <= rangeStartDate && event.event.endTime >= rangeEndDate)
+			) {
+				// Overlaps range
 				return [event]
 			}
 
@@ -222,7 +215,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		const events = filterNull([agenda?.before, agenda?.current, agenda?.after])
 
 		let eventFocusBound = agenda?.current.event?.startTime!
-		let shortestTimeFrame: number = this.findShortestDuration(event, event);
+		let shortestTimeFrame: number = this.findShortestDuration(event, event)
 
 		if (agenda?.before?.conflict) {
 			eventFocusBound = agenda?.current.event?.startTime!
@@ -249,16 +242,16 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				class: styles.isSingleColumnLayout() ? "" : "fit-content",
 				style: styles.isSingleColumnLayout()
 					? {
-						"grid-template-columns": "min-content 1fr",
-						"grid-template-rows": "1fr 1fr",
-						"max-width": "100%",
-						"width": "100%",
-					}
+							"grid-template-columns": "min-content 1fr",
+							"grid-template-rows": "1fr 1fr",
+							"max-width": "100%",
+							width: "100%",
+					  }
 					: {
-						"grid-template-columns": "min-content min-content 1fr",
-						"max-width": px(size.two_column_layout_width),
-						"width": "100%",
-					},
+							"grid-template-columns": "min-content min-content 1fr",
+							"max-width": px(size.two_column_layout_width),
+							width: "100%",
+					  },
 			},
 			[
 				/* Date Column */
@@ -274,7 +267,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					],
 				),
 				/* Invite Column */
-				m(".flex.flex-column.plr-vpad.pb.pt.justify-start", [
+				m(".flex.flex-column.plr-vpad.pb.pt", [
 					m(".flex", [
 						m(Icon, {
 							icon: BootIcons.Calendar,
@@ -287,15 +280,15 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					]),
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-s", [
-							m("span.b", "When:"), // FIXME Add translation
-							m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
-						])
+								m("span.b", "When:"), // FIXME Add translation
+								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+						  ])
 						: null,
 					message,
 				]),
 				/* Time Overview */
 				m(
-					".flex.flex-column.plr-vpad.pb.pt.justify-start.border-accent",
+					".flex.flex-column.plr-vpad.pb.pt.border-accent",
 					{
 						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 					},
@@ -324,13 +317,13 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						]),
 						agenda
 							? m(TimeView, {
-								events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
-								timeScale,
-								timeRange,
-								conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-								baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
-								dates: [getStartOfDay(agenda.current.event.startTime)],
-							} satisfies TimeViewAttributes)
+									events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+									timeScale,
+									timeRange,
+									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+									baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
+									dates: [getStartOfDay(agenda.current.event.startTime)],
+							  } satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
 				),
