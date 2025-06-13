@@ -168,6 +168,10 @@ export type PassphraseKeyData = {
 
 export interface LoginListener {
 	/**
+	 * Partial login reached (offline or online login), user can be accessed but network requests might fail.
+	 */
+	onPartialLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void>
+	/**
 	 * Full login reached: any network requests can be made
 	 */
 	onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void>
@@ -298,7 +302,9 @@ export class LoginFacade {
 			userId: sessionData.userId,
 			type: CredentialType.Internal,
 		}
-		this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
+		this.loginListener
+			.onPartialLoginSuccess(sessionType, cacheInfo, credentials)
+			.finally(() => this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials))
 
 		if (!isAdminClient()) {
 			await this.keyRotationFacade.initialize(userPassphraseKey, modernKdfType)
@@ -482,7 +488,10 @@ export class LoginFacade {
 			userId,
 			type: CredentialType.External,
 		}
-		this.loginListener.onFullLoginSuccess(SessionType.Login, cacheInfo, credentials)
+		this.loginListener
+			.onPartialLoginSuccess(SessionType.Login, cacheInfo, credentials)
+			.finally(() => this.loginListener.onFullLoginSuccess(SessionType.Login, cacheInfo, credentials))
+
 		return {
 			user,
 			userGroupInfo,
@@ -626,9 +635,10 @@ export class LoginFacade {
 					userGroupInfo,
 					sessionId,
 				}
+
+				await this.loginListener.onPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
 				return { type: "success", data, asyncResumeCompleted: env.mode === "Test" ? asyncResumeSession : null }
 			} else {
-				// await before return to catch errors here
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}
 		} catch (e) {
@@ -696,8 +706,17 @@ export class LoginFacade {
 			throw new ProgrammingError("no key or password stored in credentials!")
 		}
 
+		const previousUser = this.userFacade.getUser()
 		const { user, userGroupInfo } = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey)
-		this.loginListener.onFullLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey)
+
+		let partialLoginPromise: Promise<void>
+		if (previousUser == null) {
+			// user was not set which means partial login could not have been called earlier, call it here
+			partialLoginPromise = this.loginListener.onPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey)
+		} else {
+			partialLoginPromise = Promise.resolve()
+		}
+		partialLoginPromise.finally(() => this.loginListener.onFullLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey))
 
 		this.asyncLoginState = { state: "idle" }
 

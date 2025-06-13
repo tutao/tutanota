@@ -416,6 +416,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				mail,
 				contact,
 				typeModelResolver,
+				locator.keyLoader,
 			)
 		}
 	})
@@ -508,12 +509,17 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 
 	const loginListener: LoginListener = {
+		async onPartialLoginSuccess(sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
+			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
+				const indexer = await locator.indexer()
+				await indexer.partialLoginInit()
+			}
+		},
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
 				console.log("initIndexer after log in")
-
-				initIndexer(worker, cacheInfo, locator.keyLoader)
+				fullLoginIndexerInit(worker)
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
@@ -730,35 +736,29 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
-async function initIndexer(worker: WorkerImpl, cacheInfo: CacheInfo, keyLoaderFacade: KeyLoaderFacade): Promise<void> {
+async function fullLoginIndexerInit(worker: WorkerImpl): Promise<void> {
 	const indexer = await locator.indexer()
 	try {
-		await indexer.init({
+		await indexer.fullLoginInit({
 			user: assertNotNull(locator.user.getUser()),
-			cacheInfo,
-			keyLoaderFacade,
 		})
 	} catch (e) {
 		if (e instanceof ServiceUnavailableError) {
 			console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
 			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ServiceUnavailableError")
-			return initIndexer(worker, cacheInfo, keyLoaderFacade)
+			return fullLoginIndexerInit(worker)
 		} else if (e instanceof ConnectionError) {
 			console.log("Retry init indexer in 30 seconds after ConnectionError")
 			await delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS)
 			console.log("_initIndexer after ConnectionError")
-			return initIndexer(worker, cacheInfo, keyLoaderFacade)
+			return fullLoginIndexerInit(worker)
 		} else {
 			// not awaiting
 			console.log("send indexer error to main thread", e)
 			worker.sendError(e)
 			return
 		}
-	}
-	if (cacheInfo.isPersistent && cacheInfo.isNewOfflineDb) {
-		// not awaiting
-		indexer.enableMailIndexing()
 	}
 }
 

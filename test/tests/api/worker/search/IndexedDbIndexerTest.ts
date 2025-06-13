@@ -96,6 +96,7 @@ o.spec("IndexedDbIndexer", () => {
 			mailIndexer,
 			contactIndexer,
 			clientTypeModelResolver,
+			keyLoaderFacade,
 		)
 	})
 
@@ -169,7 +170,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 
-			await indexer.init({ user, keyLoaderFacade })
+			await indexer.fullLoginInit({ user })
 
 			o.check(idbStub.getValue(GroupDataOS, "user-group-id")).deepEquals(loadedGroupData)
 			o.check(idbStub.getValue(MetaDataOS, Metadata.mailIndexingEnabled)).equals(false)
@@ -216,7 +217,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			when(keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)).thenResolve(userGroupKey.object)
 
-			await indexer.init({ user, keyLoaderFacade })
+			await indexer.fullLoginInit({ user })
 			const { key } = await dbWithStub.encryptionData()
 			o.check(key).deepEquals(dbKey)
 			verify(loadGroupDiff(user))
@@ -258,7 +259,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			when(keyLoaderFacade.loadSymUserGroupKey(userGroupKeyVersion)).thenResolve(userGroupKey.object)
 
-			await indexer.init({ user, keyLoaderFacade })
+			await indexer.fullLoginInit({ user })
 			const { key } = await dbWithStub.encryptionData()
 			o.check(key).deepEquals(dbKey)
 			verify(loadGroupDiff(user))
@@ -1229,28 +1230,15 @@ o.spec("IndexedDbIndexer", () => {
 		o.test("When init() is called and contacts have already been indexed they are not indexed again", async function () {
 			when(contactIndexer.areContactsIndexed()).thenResolve(true)
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
-			await indexer.init({ user, keyLoaderFacade })
+			await indexer.fullLoginInit({ user })
 			verify(contactIndexer.indexFullContactList(), { times: 0 })
 		})
 
 		o.test("When init() is called and contacts have not been indexed before, they are indexed", async function () {
 			when(contactIndexer.areContactsIndexed()).thenResolve(false)
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
-			await indexer.init({ user, keyLoaderFacade })
+			await indexer.fullLoginInit({ user })
 			verify(contactIndexer.indexFullContactList())
-		})
-
-		o.test("When init() is called with a fresh db and contacts have not been indexed, they will be downloaded", async function () {
-			when(contactIndexer.areContactsIndexed()).thenResolve(true)
-			const cacheInfo: CacheInfo = {
-				isPersistent: true,
-				isNewOfflineDb: true,
-				databaseKey: new Uint8Array([1, 2, 3]),
-			}
-
-			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
-			await indexer.init({ user, keyLoaderFacade, cacheInfo })
-			verify(entityClient.loadAll(ContactTypeRef, contactList.contacts))
 		})
 
 		o.test("When init() is called with a fresh db and contacts are not yet indexed, they will be indexed and not downloaded", async function () {
@@ -1262,7 +1250,7 @@ o.spec("IndexedDbIndexer", () => {
 			}
 
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
-			await indexer.init({ user, keyLoaderFacade, cacheInfo })
+			await indexer.fullLoginInit({ user })
 
 			verify(contactIndexer.indexFullContactList())
 			verify(entityClient.loadAll(ContactTypeRef, contactList.contacts), { times: 0 })
@@ -1278,7 +1266,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 
-			await indexer.init({ user, keyLoaderFacade, cacheInfo })
+			await indexer.fullLoginInit({ user })
 		})
 	})
 	o.spec("enable/disable mailIndexing", function () {
@@ -1304,7 +1292,7 @@ o.spec("IndexedDbIndexer", () => {
 			const t = await idbStub.createTransaction()
 			t.put(GroupDataOS, userGroupId, { groupType: GroupType.User })
 
-			await indexer.init({ user, keyLoaderFacade })
+			await indexer.fullLoginInit({ user })
 		})
 
 		o.spec("enableMailIndexing", function () {

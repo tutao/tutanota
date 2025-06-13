@@ -1,17 +1,17 @@
 import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import type { User } from "../../../common/api/entities/sys/TypeRefs"
-import { KeyLoaderFacade } from "../../../common/api/worker/facades/KeyLoaderFacade"
-import { CacheInfo } from "../../../common/api/worker/facades/LoginFacade"
 
 export interface IndexerInitParams {
 	user: User
-	keyLoaderFacade: KeyLoaderFacade
 	retryOnError?: boolean
-	cacheInfo?: CacheInfo
 }
 
 export interface Indexer {
-	init(params: IndexerInitParams): Promise<void>
+	/** Init upon partial login */
+	partialLoginInit(): Promise<void>
+
+	/** Init upon full login */
+	fullLoginInit(params: IndexerInitParams): Promise<void>
 
 	enableMailIndexing(): Promise<void>
 

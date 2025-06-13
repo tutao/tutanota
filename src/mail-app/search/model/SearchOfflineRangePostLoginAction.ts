@@ -1,6 +1,7 @@
 import { LoggedInEvent, PostLoginAction } from "../../../common/api/main/LoginController"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { Indexer } from "../../workerUtils/index/Indexer"
+import { SessionType } from "../../../common/api/common/SessionType"
 
 /**
  * The search range is tied to the offline storage settings.
@@ -11,9 +12,11 @@ export class SearchOfflineRangePostLoginAction implements PostLoginAction {
 
 	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {}
 
-	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {
-		await this.offlineStorageSettings.init()
-		// noinspection ES6MissingAwait
-		this.indexer.resizeMailIndex(this.offlineStorageSettings.getTimeRange().getTime())
+	async onFullLoginSuccess(event: LoggedInEvent): Promise<void> {
+		if (event.sessionType === SessionType.Persistent) {
+			await this.offlineStorageSettings.init()
+			// noinspection ES6MissingAwait
+			this.indexer.resizeMailIndex(this.offlineStorageSettings.getTimeRange().getTime())
+		}
 	}
 }
