@@ -594,7 +594,7 @@ export class CalendarModel {
 			for (const event of eventsToRemove) {
 				await this.deleteEvent(event).catch((err) => {
 					if (err instanceof NotFoundError) {
-						console.log(`Already deleted event, removing from cache`, event)
+						console.log(`Already deleted event, removing from cache`, event._id)
 						return this.calendarFacade.removeEventFromCache(listIdPart(event._id), elementIdPart(event._id))
 					}
 
