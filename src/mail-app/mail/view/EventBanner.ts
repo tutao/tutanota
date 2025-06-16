@@ -5,7 +5,7 @@ import { CalendarEvent, CalendarEventAttendee, Mail } from "../../../common/api/
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { base64ToBase64Url, clone, filterNull, getHourOfDay, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, clone, deepEqual, filterNull, getHourOfDay, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
@@ -155,7 +155,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	view({ attrs }: Vnode<EventBannerAttrs>): Children {
-		const { contents, mail } = attrs
+		const { contents } = attrs
 		if (contents == null || contents.events.length === 0) return null
 
 		if (!this.hasFinishedLoadingEvents) {
@@ -164,7 +164,14 @@ export class EventBanner implements Component<EventBannerAttrs> {
 
 		const messages = contents.events
 			.map((event: CalendarEvent): { event: CalendarEvent; message: Children } | None => {
-				const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method)
+				const message = this.getMessage(event, attrs.mail, attrs.recipient, contents.method, () => {
+					this.getEvents(attrs, true)
+						.then((events) => {
+							this.agenda = events
+							this.updateAttendeeStatusIfNeeded(event, attrs.recipient, this.agenda.get(event.uid ?? "")?.existingEvent)
+						})
+						.finally(m.redraw)
+				})
 				return message == null ? null : { event, message }
 			})
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
@@ -347,12 +354,12 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		return (entry ? entry[0] : 1) as TimeScale
 	}
 
-	private getMessage(event: CalendarEvent, mail: Mail, recipient: string, method: CalendarMethod): Children {
-		const shallowEvent = this.agenda.get(event.uid ?? "")?.current.event
+	private getMessage(event: CalendarEvent, mail: Mail, recipient: string, method: CalendarMethod, responseCallback?: (...args: any[]) => unknown): Children {
+		const shallowEvent = this.agenda.get(event.uid ?? "")?.existingEvent
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
 
 		const children: Children = []
-		const replyButton = m(BannerButton, {
+		const viewOnCalendarButton = m(BannerButton, {
 			borderColor: theme.content_button,
 			color: theme.content_fg,
 			click: () => this.handleViewOnCalendarAction(event),
@@ -366,23 +373,28 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			// some mails contain more than one event that we want to be able to respond to
 			// separately.
 
-			const needsAction = !isRepliedTo(mail) || ownAttendee.status === CalendarAttendeeStatus.NEEDS_ACTION
+			const needsAction =
+				!isRepliedTo(mail) ||
+				ownAttendee.status === CalendarAttendeeStatus.NEEDS_ACTION ||
+				(isRepliedTo(mail) && ownAttendee.status === CalendarAttendeeStatus.DECLINED)
 			if (needsAction && this.ReplyButtons.isLoaded()) {
 				children.push(
 					m(this.ReplyButtons.getLoaded(), {
 						ownAttendee,
-						setParticipation: async (status: CalendarAttendeeStatus) => sendResponse(event, recipient, status, mail),
+						setParticipation: async (status: CalendarAttendeeStatus) => {
+							sendResponse(shallowEvent ?? event, recipient, status, mail, responseCallback)
+						},
 					}),
 				)
 			} else if (!needsAction) {
 				children.push(m(".align-self-start.start.small.mb-xsm.mt-s", lang.get("alreadyReplied_msg")))
-				children.push(replyButton)
+				children.push(viewOnCalendarButton)
 			} else {
 				this.ReplyButtons.reload().then(m.redraw)
 			}
 		} else if (method === CalendarMethod.REPLY) {
 			children.push(m(".pt.align-self-start.start.small", lang.get("eventNotificationUpdated_msg")))
-			children.push(replyButton)
+			children.push(viewOnCalendarButton)
 		} else {
 			return null
 		}
@@ -391,7 +403,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	private handleViewOnCalendarAction(event: CalendarEvent) {
-		const currentEvent = this.agenda.get(event.uid ?? "")?.current.event
+		const currentEvent = this.agenda.get(event.uid ?? "")?.existingEvent
 		if (!currentEvent) {
 			throw new ProgrammingError("Missing corresponding event in calendar")
 		}
@@ -414,7 +426,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		ownAttendee.status = existingOwnAttendee.status
 	}
 
-	private async getEvents(attrs: EventBannerAttrs): Promise<Map<string, InviteAgenda>> {
+	private async getEvents(attrs: EventBannerAttrs, forceReload: boolean = false): Promise<Map<string, InviteAgenda>> {
 		if (!attrs.contents) {
 			return new Map()
 		}
@@ -434,8 +446,12 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		 * - Build an object that should contain the event before and after, these can be null, meaning that there's no event at the time
 		 */
 		const eventToAgenda: Map<string, InviteAgenda> = new Map()
-		const datesToLoad = new Set(attrs.contents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat())
-		await attrs.eventsRepository.loadMonthsIfNeeded(Array.from(datesToLoad), stream(false), null)
+		const datesToLoad = attrs.contents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat()
+		if (forceReload) {
+			await attrs.eventsRepository.forceLoadEventsAt(datesToLoad)
+		} else {
+			await attrs.eventsRepository.loadMonthsIfNeeded(datesToLoad, stream(false), null)
+		}
 		const events = attrs.eventsRepository.getEventsForMonths()() // Short and long events
 
 		for (const event of attrs.contents.events) {
@@ -480,6 +496,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				before: null,
 				after: null,
 				current: { event, conflict: false, color: theme.success_container_color, featured: true },
+				existingEvent: currentExistingEvent,
 				conflictCount: conflictingEvents.length,
 			}
 
@@ -548,7 +565,13 @@ export class EventBanner implements Component<EventBannerAttrs> {
 }
 
 /** show a progress dialog while sending a response to the event's organizer and update the ui. will always send a reply, even if the status did not change. */
-export function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) {
+export function sendResponse(
+	event: CalendarEvent,
+	recipient: string,
+	status: CalendarAttendeeStatus,
+	previousMail: Mail,
+	responseCallback?: (...args: any[]) => unknown,
+) {
 	showProgressDialog(
 		"pleaseWait_msg",
 		import("../../../calendar-app/calendar/view/CalendarInvites.js").then(async ({ getLatestEvent }) => {
@@ -568,6 +591,7 @@ export function sendResponse(event: CalendarEvent, recipient: string, status: Ca
 			if (replyResult === ReplyResult.ReplySent) {
 				ownAttendee.status = status
 			}
+			responseCallback && (await responseCallback())
 			m.redraw()
 		}),
 	)

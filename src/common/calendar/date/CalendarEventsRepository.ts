@@ -99,6 +99,26 @@ export class CalendarEventsRepository {
 		return await this.logins.getUserController().isNewPaidPlan()
 	}
 
+	async forceLoadEventsAt(daysInMonths: Array<Date>): Promise<void> {
+		for (const dayInMonth of daysInMonths) {
+			const monthRange = getMonthRange(dayInMonth, this.zone)
+			try {
+				let calendarInfos = await this.calendarModel.getCalendarInfos()
+
+				if (!this.loadedMonths.has(monthRange.start)) {
+					this.loadedMonths.set(monthRange.start, Array.from(calendarInfos.keys()))
+				}
+
+				const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
+				this.replaceEvents(eventsMap)
+				this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
+			} catch (e) {
+				this.loadedMonths.delete(monthRange.start)
+				throw e
+			}
+		}
+	}
+
 	async loadMonthsIfNeeded(
 		daysInMonths: Array<Date>,
 		canceled: Stream<boolean>,
