@@ -34,6 +34,7 @@ import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MoveMode } from "../model/MailModel"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
+import { getGroupColors } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -331,12 +332,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderEventBanner(viewModel: MailViewerViewModel): Children {
 		const eventAttachment = viewModel.getCalendarEventAttachment()
-		const groupSettings = viewModel.logins.getUserController().userSettingsGroupRoot.groupSettings
-
-		const groupColors: Map<Id, string> = groupSettings.reduce((acc, gc) => {
-			acc.set(gc.group, gc.color)
-			return acc
-		}, new Map())
+		const groupColors: Map<Id, string> = getGroupColors(viewModel.logins.getUserController().userSettingsGroupRoot)
 		return eventAttachment
 			? m(
 					"." + responsiveCardHMargin(),

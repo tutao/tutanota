@@ -3170,5 +3170,15 @@ styles.registerStyle("main", () => {
 				transform: "translateX(100%)",
 			},
 		},
+		".time-indicator:before": {
+			content: "''",
+			display: "block",
+			width: "12px",
+			height: "12px",
+			background: theme.content_accent,
+			position: "absolute",
+			transform: "translate(-50%, calc(-50% + 1px))",
+			"border-radius": "50%",
+		},
 	}
 })
