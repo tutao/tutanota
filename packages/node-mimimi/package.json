@@ -15,8 +15,8 @@
 	"devDependencies": {
 		"@tutao/otest": "299.250715.0",
 		"@napi-rs/cli": "3.0.0-alpha.68",
-		"typescript": "5.3.3",
-		"zx": "8.1.5"
+		"typescript": "5.8.3",
+		"zx": "8.6.1"
 	},
 	"engines": {
 		"node": ">= 20"

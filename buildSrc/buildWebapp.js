@@ -47,7 +47,9 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const polyfillBundle = await rollup({
 		input: ["src/polyfill.ts"],
 		plugins: [
-			typescript(),
+			typescript({
+				tsconfig: tsConfig,
+			}),
 			minify && terser(),
 			// nodeResolve is for our own modules
 			nodeResolve({
@@ -180,10 +182,18 @@ import "./${builtWorkerFile}"`,
 		await createHtml(env.create({ staticUrl: restUrl, version, mode: "App", dist: true, domainConfigs, networkDebugging }), app)
 	}
 
-	await bundleServiceWorker(chunks, version, minify, buildDir)
+	await bundleServiceWorker(chunks, version, minify, buildDir, tsConfig)
 }
 
-async function bundleServiceWorker(bundles, version, minify, buildDir) {
+/**
+ * @param bundles {string[]}
+ * @param version {string}
+ * @param minify {boolean}
+ * @param buildDir {string}
+ * @param tsConfig {string}
+ * @returns {Promise<void>}
+ */
+async function bundleServiceWorker(bundles, version, minify, buildDir, tsConfig) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
 	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
 		// we always include English
@@ -199,7 +209,9 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 	const swBundle = await rollup({
 		input: ["src/common/serviceworker/sw.ts"],
 		plugins: [
-			typescript(),
+			typescript({
+				tsconfig: tsConfig,
+			}),
 			minify && terser(),
 			{
 				name: "sw-banner",

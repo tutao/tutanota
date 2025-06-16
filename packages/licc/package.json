@@ -15,12 +15,12 @@
 	"author": "",
 	"license": "GPL-3.0",
 	"dependencies": {
-		"commander": "9.3.0",
+		"commander": "14.0.0",
 		"json5": "^2.2.1",
-		"zx": "6.1.0"
+		"zx": "8.5.5"
 	},
 	"devDependencies": {
-		"typescript": "5.3.3",
+		"typescript": "5.8.3",
 		"@tutao/tutanota-test-utils": "299.250715.0",
 		"@tutao/otest": "299.250715.0"
 	}

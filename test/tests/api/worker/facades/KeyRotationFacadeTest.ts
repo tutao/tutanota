@@ -227,8 +227,8 @@ const keyRotationsListId = "keyRotationsListId"
 const invitationsListId = "invitationsListId"
 const groupKeyUpdatesListId = "groupKeyUpdatesListId"
 
-function prepareRecoverData(recoverData: RecoverData, recoverCodeFacade: RecoverCodeFacade) {
-	recoverData = {
+function prepareRecoverData(recoverCodeFacade: RecoverCodeFacade) {
+	const recoverData = {
 		hexCode: "hexCode",
 		recoverCodeEncUserGroupKey: NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.key,
 		userKeyVersion: NEW_USER_GROUP_ENC_RECOVER_CODE_KEY.encryptingKeyVersion,
@@ -452,6 +452,7 @@ o.spec("KeyRotationFacade", function () {
 		asymmetricCryptoFacade = object()
 		keyAuthenticationFacade = object()
 		publicKeyProvider = object()
+		groupKeyVersion0 = [1, 2, 3]
 		keyRotationFacade = new KeyRotationFacade(
 			entityClientMock,
 			keyLoaderFacadeMock,
@@ -953,7 +954,6 @@ o.spec("KeyRotationFacade", function () {
 		o.spec("Admin group key rotation", function () {
 			let userGroup: Group
 			let adminGroup: Group
-			let recoverData: RecoverData
 			let generatedKeyPairs: Map<AesKey, MockedKeyPairs>
 			o.beforeEach(function () {
 				userGroup = makeGroupWithMembership(userGroupId, user).group
@@ -966,7 +966,7 @@ o.spec("KeyRotationFacade", function () {
 				adminGroup.adminGroupKeyVersion = String(CURRENT_ADMIN_GROUP_ENC_CURRENT_ADMIN_GROUP_KEY.encryptingKeyVersion)
 				adminGroup.type = GroupType.Admin
 				adminGroup.currentKeys = object()
-				prepareRecoverData(recoverData, recoverCodeFacade)
+				prepareRecoverData(recoverCodeFacade)
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
 				when(groupManagementFacade.hasAdminEncGKey(adminGroup)).thenReturn(true)
 				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
@@ -1483,7 +1483,6 @@ o.spec("KeyRotationFacade", function () {
 		o.spec("User group key rotation", function () {
 			let userGroup: Group
 			let generatedKeyPairs: Map<AesKey, MockedKeyPairs>
-			let recoverData: RecoverData
 
 			o.beforeEach(function () {
 				userGroup = makeGroupWithMembership(userGroupId, user).group
@@ -1492,7 +1491,7 @@ o.spec("KeyRotationFacade", function () {
 				userGroup.adminGroupKeyVersion = String(CURRENT_ADMIN_GROUP_ENC_CURRENT_USER_GROUP_KEY.encryptingKeyVersion)
 				userGroup.type = GroupType.User
 				userGroup.currentKeys = object()
-				prepareRecoverData(recoverData, recoverCodeFacade)
+				prepareRecoverData(recoverCodeFacade)
 
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
 				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)
@@ -1690,8 +1689,6 @@ o.spec("KeyRotationFacade", function () {
 		o.spec("User group key rotation - multiple admin", function () {
 			let userGroup: Group
 			let generatedKeyPairs: Map<AesKey, MockedKeyPairs>
-			let recoverData: RecoverData
-
 			let adminGroup: Group
 
 			o.beforeEach(function () {
@@ -1706,7 +1703,7 @@ o.spec("KeyRotationFacade", function () {
 				adminGroup.type = GroupType.Admin
 				adminGroup.currentKeys = object()
 
-				prepareRecoverData(recoverData, recoverCodeFacade)
+				prepareRecoverData(recoverCodeFacade)
 
 				when(groupManagementFacade.hasAdminEncGKey(userGroup)).thenReturn(true)
 				when(userFacade.deriveLegacyUserDistKey(userGroupId, PW_KEY)).thenReturn(DISTRIBUTION_KEY)

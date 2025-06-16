@@ -22,9 +22,9 @@
 	],
 	"dependencies": {
 		"@tutao/otest": "299.250715.0",
-		"testdouble": "3.18.0"
+		"testdouble": "3.20.2"
 	},
 	"devDependencies": {
-		"typescript": "5.3.3"
+		"typescript": "5.8.3"
 	}
 }

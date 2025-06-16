@@ -161,6 +161,7 @@ o.spec("LoginFacadeTest", function () {
 		})
 		userFacade = object()
 		entropyFacade = object()
+		blobAccessTokenFacade = object()
 		databaseKeyFactoryMock = object()
 		argon2idFacade = object()
 		when(argon2idFacade.generateKeyFromPassphrase(anything(), anything())).thenResolve(PASSWORD_KEY)

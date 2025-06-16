@@ -594,7 +594,7 @@ o.spec("OfflineStorageDb", function () {
 
 					await storage.putMultiple(UserTypeRef, await Promise.all(storableUsers.map(async (u) => await toStorableInstance(u))))
 
-					storedUsers = [await storage.get(UserTypeRef, null, userId1), await storage.get(UserTypeRef, null, userId2)]
+					storedUsers = [assertNotNull(await storage.get(UserTypeRef, null, userId1)), assertNotNull(await storage.get(UserTypeRef, null, userId2))]
 					o(storedUsers.map(removeOriginals)).deepEquals(storableUsers)
 				})
 			})

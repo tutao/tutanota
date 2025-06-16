@@ -1,5 +1,5 @@
 import type { HeadersInit, RequestInit, Response } from "undici"
-import { Agent, fetch as undiciFetch } from "undici"
+import { Agent, fetch as undiciFetch, Headers } from "undici"
 
 export type UndiciResponse = Response
 export type UndiciRequestInit = RequestInit
@@ -39,10 +39,12 @@ export const customFetch: FetchImpl = async (target: string | URL, init?: Undici
  * for example in the protocol interceptors.
  */
 export function convertHeaders(headers: globalThis.Headers): UndiciHeadersInit {
-	const result: Record<string, string | ReadonlyArray<string>> = {}
+	const result = new Headers()
 	// false positive: Headers are not arrays and also not really iterable
 	// eslint-disable-next-line unicorn/no-array-for-each
-	headers.forEach((val, key) => (result[key] = val))
+	headers.forEach((val, key) => {
+		result.append(key, val)
+	})
 	return result
 }
 

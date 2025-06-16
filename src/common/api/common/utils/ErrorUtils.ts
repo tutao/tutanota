@@ -74,7 +74,7 @@ export function hasError<K>(instance: Entity | ParsedInstance, key?: K): boolean
 /**
  * Checks whether {@param e} is an error that can error before we are fully logged in and connected.
  */
-export function isOfflineError(e: Error) {
+export function isOfflineError(e: Error): boolean {
 	return e instanceof ConnectionError || e instanceof LoginIncompleteError
 }
 
