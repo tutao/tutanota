@@ -20,6 +20,7 @@ export class CalendarEventPreviewViewModel {
 	readonly canEdit: boolean
 	readonly canDelete: boolean
 	readonly canSendUpdates: boolean
+	readonly isOrganizer: boolean
 	/** for editing, an event that has only one non-deleted instance is still considered repeating
 	 * because we might reschedule that instance and then unexclude some deleted instances.
 	 *
@@ -60,6 +61,8 @@ export class CalendarEventPreviewViewModel {
 		private readonly uiUpdateCallback: () => void = m.redraw,
 	) {
 		this._ownAttendee = clone(ownAttendee)
+		this.isOrganizer = calendarEvent.organizer?.address === ownAttendee?.address.address
+
 		if (this.calendarEvent._ownerGroup == null) {
 			this.canEdit = false
 			this.canDelete = false
@@ -99,7 +102,7 @@ export class CalendarEventPreviewViewModel {
 		ownAttendee: CalendarEventAttendee
 		setParticipation: (status: CalendarAttendeeStatus) => Promise<unknown>
 	} {
-		if (this.ownAttendee == null || this.eventType !== EventType.INVITE) return null
+		if (this.ownAttendee == null || this.isOrganizer) return null
 		return {
 			ownAttendee: this.ownAttendee,
 			setParticipation: async (status) => {

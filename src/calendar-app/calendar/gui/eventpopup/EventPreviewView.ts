@@ -79,13 +79,10 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 			participation.ownAttendee.status === status ? highlightColors : colors,
 		)
 
-	return m(".flex.col", [
-		m(".small", lang.get("invitedToEvent_msg")),
-		m(".flex.items-center.mt-s", [
-			m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
-			m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
-			m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
-		]),
+	return m(".flex.items-center.mt-s.gap-vpad-s", [
+		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
+		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
+		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
 	])
 })
 
@@ -202,7 +199,10 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		participation: EventPreviewViewAttrs["participation"],
 	): Children {
 		if (attendees.length === 0 || participation == null || event._ownerGroup == null) return null
-		return m(".flex.pb-s", [this.renderSectionIndicator(BootIcons.Contacts), m(ReplyButtons, participation)])
+		return m(".flex.pb-s", [
+			this.renderSectionIndicator(BootIcons.Contacts),
+			m(".flex.flex-column", [m(".small", lang.get("invitedToEvent_msg")), m(ReplyButtons, participation)]),
+		])
 	}
 
 	private renderAttendee(attendee: CalendarEventAttendee, participation: EventPreviewViewAttrs["participation"]): Children {

@@ -30,6 +30,7 @@ import { ContactModel } from "../../../../src/common/contactsFunctionality/Conta
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { downcast } from "@tutao/tutanota-utils"
+import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -51,6 +52,7 @@ o.spec("MailViewerViewModel", function () {
 	let sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel> = () => Promise.resolve(sendMailModel)
 	let cryptoFacade: CryptoFacade
 	let contactImporter: ContactImporter
+	let eventsRepository: CalendarEventsRepository
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
@@ -67,6 +69,7 @@ o.spec("MailViewerViewModel", function () {
 		mailFacade = object()
 		cryptoFacade = object()
 		contactImporter = object()
+		eventsRepository = object()
 		prepareMailWithHeaders(mailFacade, headers)
 
 		return new MailViewerViewModel(
@@ -87,6 +90,7 @@ o.spec("MailViewerViewModel", function () {
 			cryptoFacade,
 			async () => contactImporter,
 			[],
+			eventsRepository,
 		)
 	}
 

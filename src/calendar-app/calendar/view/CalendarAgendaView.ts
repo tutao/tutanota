@@ -1,5 +1,5 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { incrementDate, isSameDay } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, incrementDate, isSameDay, stringToBase64 } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEvent, Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -354,6 +354,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			eventsNodes.push(
 				m(CalendarAgendaItemView, {
 					key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
+					id: base64ToBase64Url(stringToBase64(event._id.join("/"))),
 					event: event,
 					color: getEventColor(event, colors),
 					selected: event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,

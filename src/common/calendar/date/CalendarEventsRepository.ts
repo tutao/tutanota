@@ -110,7 +110,7 @@ export class CalendarEventsRepository {
 				if (canceled()) return
 
 				const monthRange = getMonthRange(dayInMonth, this.zone)
-				if (!this.loadedMonths.has(monthRange.start) || !this.isCalendarLoadedForRange(monthRange.start, calendarToLoad)) {
+				if (!this.loadedMonths.has(monthRange.start) || (calendarToLoad != null && !this.isCalendarLoadedForRange(monthRange.start, calendarToLoad))) {
 					try {
 						let calendarInfos = await this.calendarModel.getCalendarInfos()
 

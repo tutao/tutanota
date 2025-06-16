@@ -19,6 +19,7 @@ export interface CalendarAgendaItemViewAttrs {
 	timeText: string
 	selected?: boolean
 	height?: number
+	id: string
 }
 
 export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewAttrs> {
@@ -32,6 +33,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 			{
 				// Implement the background color via JavaScript on Desktop, so we can react to `attrs.selected`
 				class: styles.isDesktopLayout() ? "hide-outline" : "state-bg",
+				id: attrs.id,
 				tabIndex: TabIndex.Default,
 				onclick: attrs.click,
 				onkeydown: (event: KeyboardEvent) => attrs.keyDown(event),

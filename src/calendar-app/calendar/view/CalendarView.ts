@@ -75,7 +75,7 @@ import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../.
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
-import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
+import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
@@ -1339,7 +1339,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			}
 		} else {
 			this.currentViewType = CalendarViewTypeByValue[args.view as CalendarViewType] ? args.view : CalendarViewType.MONTH
-
 			const eventIdParam = args.eventId
 			const urlDateParam = args.date
 
@@ -1375,13 +1374,22 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					this.viewModel.setSelectedTime(undefined)
 				}
 
-				if (eventIdParam && isApp() && this.eventDetails) {
+				if (eventIdParam && (!isApp() || this.eventDetails)) {
 					try {
 						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
 						locator.logins.waitForFullLogin().then(() => {
 							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
-								if (this.viewSlider.focusedColumn != this.eventDetails && this.eventDetails) {
+								if (isApp() && this.viewSlider.focusedColumn != this.eventDetails && this.eventDetails) {
 									this.viewSlider.focus(this.eventDetails)
+								} else if (!isApp() && !styles.isDesktopLayout()) {
+									const eventElement = document.getElementById(eventIdParam)
+									if (eventElement && this.viewModel.previewedEventTuple()?.event) {
+										this.showCalendarEventPopup(
+											this.viewModel.previewedEventTuple()?.event!,
+											eventElement.getBoundingClientRect(),
+											this.htmlSanitizer,
+										)
+									}
 								}
 							})
 						})
