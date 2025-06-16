@@ -184,9 +184,10 @@ export class CalendarInviteHandler {
 		}
 		const calendars = await this.calendarModel.getCalendarInfos()
 		const type = getEventType(event, calendars, [attendee.address.address], this.logins.getUserController())
-		if (type === EventType.SHARED_RO || type === EventType.LOCKED) {
+
+		if (type === EventType.SHARED_RO) {
 			// if the Event type is shared read only, the event will be updated by the response, trying to update the calendar here will result in error
-			// since there is no write permission. (Same issue can happen with locked, no write permission)
+			// since there is no write permission.
 			return ReplyResult.ReplySent
 		}
 		const calendar = findFirstPrivateCalendar(calendars)

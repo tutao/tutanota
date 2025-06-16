@@ -21,6 +21,7 @@ export interface InviteAgenda {
 	before: AgendaEventWrapper | null
 	after: AgendaEventWrapper | null
 	current: AgendaEventWrapper
+	existingEvent?: CalendarEvent
 	conflictCount: number
 }
 
@@ -106,7 +107,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 							m.redraw()
 						})
 					}
-				}
+				},
 			},
 			[
 				this.buildTimeColumn(timeColumnIntervals), // Time column
@@ -143,8 +144,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 				background: theme.content_accent,
 				height: px(2),
 				width: "100%",
-				display: this.timeRowHeight == null ? "none" : "initial"
-			}
+				display: this.timeRowHeight == null ? "none" : "initial",
+			},
 		})
 	}
 
@@ -224,17 +225,17 @@ export class TimeView implements Component<TimeViewAttributes> {
 					},
 					event.featured
 						? m(".flex.items-start", [
-							m(Icon, {
-								icon: hasAnyConflict ? Icons.ExclamationMark : Icons.Checkmark,
-								container: "div",
-								class: "mr-xxs",
-								size: IconSize.Normal,
-								style: {
-									fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color,
-								},
-							}),
-							m(".text-wrap.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
-						])
+								m(Icon, {
+									icon: hasAnyConflict ? Icons.ExclamationMark : Icons.Checkmark,
+									container: "div",
+									class: "mr-xxs",
+									size: IconSize.Normal,
+									style: {
+										fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color,
+									},
+								}),
+								m(".text-wrap.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
+						  ])
 						: event.event.summary,
 				)
 			})
