@@ -100,7 +100,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 						channel: "latest",
 						publishAutoUpdate: true,
 						useMultipleRangeRequest: false,
-				  }
+					}
 				: undefined,
 			directories: {
 				output: "installers",
@@ -110,11 +110,10 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 				to: "./icons/",
 			},
 			win: {
-				// relative to the project dirm which is ./build/
+				// relative to the project dir which is ./build/
 				extraFiles: ["mapirs.dll"],
 				verifyUpdateCodeSignature: sign,
-				signDlls: sign,
-				publisherName: "Tutao GmbH",
+				signExts: [".dll", ".node"],
 				sign: sign ? "./buildSrc/winsigner.cjs" : undefined,
 				signingHashAlgorithms: sign ? ["sha256"] : undefined,
 				target: [
@@ -154,15 +153,12 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 								target: "dmg",
 								arch: architecture,
 							},
-					  ],
+						],
 			},
 			linux: {
 				icon: path.join(path.dirname(iconPath), "icon/"),
 				synopsis: "Tuta Mail Desktop Client",
 				category: "Network",
-				desktop: {
-					StartupWMClass: appName,
-				},
 				target: [
 					{
 						target: unpacked ? "dir" : "AppImage",

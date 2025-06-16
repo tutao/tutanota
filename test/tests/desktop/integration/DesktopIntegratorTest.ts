@@ -161,7 +161,7 @@ o.spec("DesktopIntegrator Test", () => {
 
 		// node modules
 		const electronMock = n.mock<typeof import("electron")>("electron", electron).set()
-		const fsExtraMock = n.mock<typeof import("fs")>("fs-extra", fsExtra).set()
+		const fsExtraMock = n.mock<typeof import("fs")>("fs", fsExtra).set()
 		const winregMock = n.mock<WinregStatic & { mockedInstances: Array<any> }>("winreg", winreg).set()
 		const cpMock = n.mock<typeof import("child_process")>("child_process", cp).set()
 		const wmMock = n.mock<WindowManager>("wm", wm).set()
@@ -291,7 +291,7 @@ o.spec("DesktopIntegrator Test", () => {
 
 		o("enable when on", async function () {
 			const fsExtraMock = n
-				.mock<typeof import("fs")>("fs-extra", fsExtra)
+				.mock<typeof import("fs")>("fs", fsExtra)
 				.with({
 					promises: {
 						access: (path, mode) => Promise.resolve(),
@@ -307,7 +307,7 @@ o.spec("DesktopIntegrator Test", () => {
 
 		o("disable when on", async function () {
 			const fsExtraMock = n
-				.mock<typeof import("fs")>("fs-extra", fsExtra)
+				.mock<typeof import("fs")>("fs", fsExtra)
 				.with({
 					promises: {
 						access: () => Promise.resolve(),
@@ -442,7 +442,7 @@ o.spec("DesktopIntegrator Test", () => {
 
 		o("runIntegration with integration, outdated version", async function () {
 			const fsExtraMock = n
-				.mock<typeof import("fs")>("fs-extra", fsExtra)
+				.mock<typeof import("fs")>("fs", fsExtra)
 				.with({
 					readFileSync: () => "X-Tutanota-Version=notAppVersion",
 					promises: {
@@ -481,7 +481,7 @@ o.spec("DesktopIntegrator Test", () => {
 			n.setPlatform("linux")
 			process.env.APPIMAGE = "/appimage/path/file.appImage"
 			const fsExtraMock = n
-				.mock<typeof import("fs")>("fs-extra", fsExtra)
+				.mock<typeof import("fs")>("fs", fsExtra)
 				.with({
 					readFileSync: () => "X-Tutanota-Version=appVersion",
 					promises: {
@@ -502,7 +502,7 @@ o.spec("DesktopIntegrator Test", () => {
 
 		o("runIntegration without integration, blacklisted", async function () {
 			const fsExtraMock = n
-				.mock<typeof import("fs")>("fs-extra", fsExtra)
+				.mock<typeof import("fs")>("fs", fsExtra)
 				.with({
 					readFileSync: () => "/another/blacklisted/file.appImage\n/appimage/path/file.appImage",
 					promises: {
@@ -524,7 +524,7 @@ o.spec("DesktopIntegrator Test", () => {
 			n.setPlatform("linux")
 			process.env.APPIMAGE = "/appimage/path/file.appImage"
 			const fsExtraMock = n
-				.mock<typeof import("fs")>("fs-extra", fsExtra)
+				.mock<typeof import("fs")>("fs", fsExtra)
 				.with({
 					readFileSync: () => "/another/blacklisted/file.appImage\n/appimage/path/file.appImage",
 					promises: {
