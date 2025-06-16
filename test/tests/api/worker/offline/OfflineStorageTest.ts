@@ -49,7 +49,7 @@ import {
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/common/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import { untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
+import { SqlType, untagSqlObject } from "../../../../../src/common/api/worker/offline/SqlValue.js"
 import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
@@ -151,14 +151,16 @@ o.spec("OfflineStorageDb", function () {
 	}
 
 	o.spec("additionalTables", () => {
+		let sqlMock: SqlCipherFacade
+
 		o.beforeEach(async () => {
+			sqlMock = object()
 			// to satisfy the external o.afterEach()
 			// we won't actually use this storage instance for these tests, since we don't want to test with real facades
 			await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
 		})
 
 		o.test("init calls createTables which initializes all tables", async () => {
-			const sqlMock: SqlCipherFacade = object()
 			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
 				some_table: {
 					definition: "some statement will be run here",
@@ -184,7 +186,10 @@ o.spec("OfflineStorageDb", function () {
 		})
 
 		o.test("purgeStorage purges all purgeable tables", async () => {
-			const sqlMock: SqlCipherFacade = object()
+			when(sqlMock.get(matchers.contains("SELECT COUNT(*) as metadata_exists"), matchers.anything())).thenResolve({
+				metadata_exists: { type: SqlType.Number, value: 1 },
+			})
+
 			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
 				some_table: {
 					definition: "some statement will be run here",
@@ -201,8 +206,52 @@ o.spec("OfflineStorageDb", function () {
 			verify(sqlMock.run("DROP TABLE IF EXISTS some_table", []), { times: 0 })
 
 			for (const table of typedKeys(TableDefinitions)) {
-				verify(sqlMock.run(`DROP TABLE IF EXISTS ${table}`, []))
+				verify(sqlMock.run(`DROP TABLE IF EXISTS ${table}`, []), {
+					times: TableDefinitions[table].purgedWithCache ? 1 : 0,
+				})
 			}
+		})
+
+		o.test("purgeStorage calls onBeforePurged", async () => {
+			when(sqlMock.get(matchers.contains("SELECT COUNT(*) as metadata_exists"), matchers.anything())).thenResolve({
+				metadata_exists: { type: SqlType.Number, value: 1 },
+			})
+
+			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
+				some_table: {
+					definition: "some statement will be run here",
+					purgedWithCache: false,
+					async onBeforePurged(sqlCipherFacade: SqlCipherFacade) {
+						sqlCipherFacade.run("onBeforePurged was called", [])
+					},
+				},
+				another_table: {
+					definition: "another statement will be run here",
+					purgedWithCache: true,
+				},
+			})
+			await storageWithMockedSql.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+			await storageWithMockedSql.purgeStorage()
+			verify(sqlMock.run("onBeforePurged was called", []), { times: 1 })
+		})
+
+		o.test("tables are created after migration", async function () {
+			when(sqlMock.get(matchers.contains("SELECT COUNT(*) as metadata_exists"), matchers.anything())).thenResolve({
+				metadata_exists: { type: SqlType.Number, value: 1 },
+			})
+
+			const storageWithMockedSql = new OfflineStorage(sqlMock, object(), object(), object(), object(), object(), object(), object(), {
+				some_table: {
+					definition: "some statement will be run here",
+					purgedWithCache: false,
+				},
+			})
+
+			when(migratorMock.migrate(storageWithMockedSql, dbFacade)).thenDo(() => {
+				verify(sqlMock.run("some statement will be run here", []), { times: 1 })
+			})
+			await storageWithMockedSql.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+			verify(sqlMock.run("some statement will be run here", []), { times: 2 })
 		})
 	})
 

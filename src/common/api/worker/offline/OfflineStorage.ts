@@ -25,7 +25,6 @@ import {
 	parseTypeString,
 	splitInChunks,
 	typedEntries,
-	typedKeys,
 	typedValues,
 	TypeRef,
 } from "@tutao/tutanota-utils"
@@ -36,7 +35,7 @@ import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "../rest/cacheHandler/CustomCacheHandler.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
-import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject } from "./SqlValue.js"
+import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
@@ -84,16 +83,41 @@ export interface OfflineDbMeta {
 
 export const TableDefinitions = Object.freeze({
 	// plus ownerGroup added in a migration
-	list_entities:
-		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
+	list_entities: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS list_entities (type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId))",
+		purgedWithCache: true,
+	},
 	// plus ownerGroup added in a migration
-	element_entities: "type TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, elementId)",
-	ranges: "type TEXT NOT NULL, listId TEXT NOT NULL, lower TEXT NOT NULL, upper TEXT NOT NULL, PRIMARY KEY (type, listId)",
-	lastUpdateBatchIdPerGroupId: "groupId TEXT NOT NULL, batchId TEXT NOT NULL, PRIMARY KEY (groupId)",
-	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
-	blob_element_entities:
-		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
-} as const)
+	element_entities: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS element_entities (type TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, elementId))",
+		purgedWithCache: true,
+	},
+	ranges: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS ranges (type TEXT NOT NULL, listId TEXT NOT NULL, lower TEXT NOT NULL, upper TEXT NOT NULL, PRIMARY KEY (type, listId))",
+		purgedWithCache: true,
+	},
+	lastUpdateBatchIdPerGroupId: {
+		definition: "CREATE TABLE IF NOT EXISTS lastUpdateBatchIdPerGroupId (groupId TEXT NOT NULL, batchId TEXT NOT NULL, PRIMARY KEY (groupId))",
+		purgedWithCache: true,
+	},
+	metadata: {
+		definition: "CREATE TABLE IF NOT EXISTS metadata (key TEXT NOT NULL, value BLOB, PRIMARY KEY (key))",
+		purgedWithCache: false,
+		onBeforePurged: async (sqlCipherFacade: SqlCipherFacade) => {
+			if (await tableExists(sqlCipherFacade, "metadata")) {
+				await sqlCipherFacade.run("DELETE FROM metadata WHERE key = 'lastUpdateTime'", [])
+			}
+		},
+	},
+	blob_element_entities: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS blob_element_entities (type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId))",
+		purgedWithCache: true,
+	},
+} as const) satisfies Record<string, OfflineStorageTable>
 
 type Range = { lower: Id; upper: Id }
 
@@ -130,12 +154,20 @@ export interface OfflineStorageTable {
 	 * deleted.
 	 */
 	purgedWithCache: boolean
+
+	/**
+	 * Action to perform before the table is dropped
+	 *
+	 * Could also be used to perform an action **instead** of dropping the table when {@link purgedWithStorage} is false
+	 */
+	onBeforePurged?: (sqlCipherFacade: SqlCipherFacade) => Promise<void>
 }
 
 export class OfflineStorage implements CacheStorage {
 	private userId: Id | null = null
 	private databaseKey: Uint8Array | null = null
 	private timeRangeDate: Date | null = null
+	private readonly allTables: Record<string, OfflineStorageTable>
 
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
@@ -146,9 +178,10 @@ export class OfflineStorage implements CacheStorage {
 		private readonly modelMapper: ModelMapper,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly customCacheHandler: CustomCacheHandlerMap,
-		private readonly additionalTables: Record<string, OfflineStorageTable>,
+		additionalTables: Record<string, OfflineStorageTable>,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
+		this.allTables = Object.freeze(Object.assign({}, additionalTables, TableDefinitions))
 	}
 
 	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<ServerModelParsedInstance[]> {
@@ -203,6 +236,9 @@ export class OfflineStorage implements CacheStorage {
 				throw e
 			}
 		}
+		// We createTables again in case they were purged in a migration
+		await this.createTables()
+
 		// if nothing is written here, it means it's a new database
 		return (await this.getLastUpdateTime()).type === "never"
 	}
@@ -563,11 +599,10 @@ export class OfflineStorage implements CacheStorage {
 			return
 		}
 
-		for (const tableName of typedKeys(TableDefinitions)) {
-			await this.sqlCipherFacade.run(`DROP TABLE IF EXISTS ${tableName}`, [])
-		}
-
-		for (const [tableName, { purgedWithCache }] of typedEntries(this.additionalTables)) {
+		for (const [tableName, { purgedWithCache, onBeforePurged }] of typedEntries(this.allTables)) {
+			if (onBeforePurged != null) {
+				await onBeforePurged(this.sqlCipherFacade)
+			}
 			if (purgedWithCache) {
 				await this.sqlCipherFacade.run(`DROP TABLE IF EXISTS ${tableName}`, [])
 			}
@@ -732,16 +767,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	private async createTables() {
-		for (let [name, definition] of typedEntries(TableDefinitions)) {
-			await this.sqlCipherFacade.run(
-				`CREATE TABLE IF NOT EXISTS ${name}
-                 (
-                     ${definition}
-                 )`,
-				[],
-			)
-		}
-		for (const { definition } of typedValues(this.additionalTables)) {
+		for (const { definition } of typedValues(this.allTables)) {
 			await this.sqlCipherFacade.run(definition, [])
 		}
 	}
@@ -973,4 +999,13 @@ export interface OfflineStorageCleaner {
 	 * Delete instances from db that are older than timeRangeDays.
 	 */
 	cleanOfflineDb(offlineStorage: OfflineStorage, timeRangeDate: Date | null, userId: Id, now: number): Promise<void>
+}
+
+export async function tableExists(sqlCipherFacade: SqlCipherFacade, table: string): Promise<boolean> {
+	// Read the schema for the table https://sqlite.org/schematab.html
+	const { query, params } = sql`SELECT COUNT(*) as metadata_exists
+                                FROM sqlite_schema
+                                WHERE name = ${table}`
+	const result = assertNotNull(await sqlCipherFacade.get(query, params))
+	return untagSqlValue(result["metadata_exists"]) === 1
 }
