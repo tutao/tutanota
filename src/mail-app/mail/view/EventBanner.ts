@@ -194,9 +194,12 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		const rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
 
 		return events.flatMap((event) => {
-			if ((event.event.endTime > rangeStartDate && event.event.endTime <= rangeEndDate) || // Ends during event
+			if (
+				(event.event.endTime > rangeStartDate && event.event.endTime <= rangeEndDate) || // Ends during event
 				(event.event.startTime >= rangeStartDate && event.event.startTime < rangeEndDate) || // Starts during event
-				(event.event.startTime <= rangeStartDate && event.event.endTime >= rangeEndDate)) { // Overlaps range
+				(event.event.startTime <= rangeStartDate && event.event.endTime >= rangeEndDate)
+			) {
+				// Overlaps range
 				return [event]
 			}
 
@@ -274,9 +277,9 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					]),
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-s", [
-							m("span.b", lang.get("when_label")),
-							m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
-						])
+								m("span.b", lang.get("when_label")),
+								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+						  ])
 						: null,
 					message,
 				]),
@@ -311,14 +314,14 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						]),
 						agenda
 							? m(TimeView, {
-								events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
-								timeScale,
-								timeRange,
-								conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-								baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
-								dates: [getStartOfDay(agenda.current.event.startTime)],
-								timeIndicator: Time.fromDate(agenda.current.event.startTime)
-							} satisfies TimeViewAttributes)
+									events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+									timeScale,
+									timeRange,
+									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+									baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
+									dates: [getStartOfDay(agenda.current.event.startTime)],
+									timeIndicator: Time.fromDate(agenda.current.event.startTime),
+							  } satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
 				),
