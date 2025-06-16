@@ -25,7 +25,7 @@ import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.j
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
 import { ListFilter } from "../../../common/misc/ListModel.js"
-import { isApp, isDesktop } from "../../../common/api/common/Env.js"
+import { isDesktop } from "../../../common/api/common/Env.js"
 import { isDraft } from "../model/MailChecks.js"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { exportMails } from "../export/Exporter"
@@ -304,7 +304,7 @@ export function getMailViewerMoreActions({
 }: {
 	viewModel: MailViewerViewModel
 	report: (() => unknown) | null
-	print: () => Promise<void>
+	print: (() => unknown) | null
 }): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
@@ -320,7 +320,7 @@ export function getMailViewerMoreActions({
 		actions.unsubscribeAction = () => unsubscribe(viewModel)
 	}
 
-	if ((isApp() || typeof window.print === "function") && viewModel.canPrint()) {
+	if (print && viewModel.canPrint()) {
 		actions.printAction = print
 	}
 

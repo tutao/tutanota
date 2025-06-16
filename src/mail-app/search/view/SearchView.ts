@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { assertMainOrNode, isBrowser } from "../../../common/api/common/Env"
+import { assertMainOrNode, isApp, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -1374,8 +1374,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		]
 	}
 
-	private getPrintAction() {
-		return () => locator.systemFacade.print()
+	private getPrintAction(): (() => unknown) | null {
+		if (isApp()) {
+			return () => locator.systemFacade.print()
+		} else if (typeof window.print === "function") {
+			return () => window.print()
+		} else {
+			return null
+		}
 	}
 }
 

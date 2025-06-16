@@ -293,8 +293,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		})
 	}
 
-	private getPrintAction() {
-		return () => locator.systemFacade.print()
+	private getPrintAction(): (() => unknown) | null {
+		if (isApp()) {
+			return () => locator.systemFacade.print()
+		} else if (typeof window.print === "function") {
+			return () => window.print()
+		} else {
+			return null
+		}
 	}
 
 	private getReportAction(viewModel: MailViewerViewModel): (() => unknown) | null {
