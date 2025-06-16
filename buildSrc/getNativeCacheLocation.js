@@ -9,18 +9,21 @@
  * */
 import fs from "node:fs/promises"
 import { buildCachedLibPaths } from "./nativeLibraryProvider.js"
+import { getValidArchitecture, removeNpmNamespacePrefix } from "./buildUtils.js"
 
 const packageJson = JSON.parse(await fs.readFile("package-lock.json", "utf-8"))
-const module = process.argv[2]
+const packageName = process.argv[2]
 // we have a git commit as a version in dependencies, we want the actually resolved version number
-const version = packageJson.packages[`node_modules/${module}`].version
+const version = packageJson.packages[`node_modules/${packageName}`].version
+const moduleName = removeNpmNamespacePrefix(packageName)
+const platform = "linux"
 const paths = await buildCachedLibPaths({
 	rootDir: ".",
-	platform: "linux",
+	platform: platform,
 	environment: "node",
 	versionedEnvironment: `node-${process.versions.modules}`,
-	nodeModule: module,
+	nodeModule: moduleName,
 	libraryVersion: version,
-	architecture: process.arch,
+	architecture: getValidArchitecture(platform, process.arch),
 })
 console.log(paths[process.arch])
