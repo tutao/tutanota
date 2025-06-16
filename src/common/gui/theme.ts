@@ -52,7 +52,7 @@ export type Theme = {
 	navigation_menu_bg?: string
 	navigation_menu_icon: string
 	error_color: string
-	error_container_color: string,
+	error_container_color: string
 	on_error_container_color: string
 	success_color: string
 	success_container_color: string
