@@ -400,6 +400,20 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		m.route.set(`/calendar/agenda/${eventDate}/${eventId}`)
 	}
 
+	private updateAttendeeStatusIfNeeded(inviteEvent: CalendarEvent, ownAttendeeAddress: string, existingEvent?: CalendarEvent) {
+		if (!existingEvent) {
+			return
+		}
+
+		const ownAttendee = findAttendeeInAddresses(inviteEvent.attendees, [ownAttendeeAddress])
+		const existingOwnAttendee = findAttendeeInAddresses(existingEvent.attendees, [ownAttendeeAddress])
+		if (!ownAttendee || !existingOwnAttendee) {
+			return
+		}
+
+		ownAttendee.status = existingOwnAttendee.status
+	}
+
 	private async getEvents(attrs: EventBannerAttrs): Promise<Map<string, InviteAgenda>> {
 		if (!attrs.contents) {
 			return new Map()
@@ -439,6 +453,8 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						(ev.startTime <= event.startTime && ev.endTime >= event.endTime)), // Fully overlaps event
 			)
 
+			const currentExistingEvent = allEvents.find((e) => isSameExternalEvent(e, event))
+			this.updateAttendeeStatusIfNeeded(event, attrs.recipient, currentExistingEvent)
 			// Decides if we already have a conflicting event or if we should pick an event from event list that happens before the invitation
 			const closestConflictingEventBeforeStartTime = conflictingEvents
 				.filter((ev) => ev.startTime <= event.startTime)
@@ -463,7 +479,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			let eventList: InviteAgenda = {
 				before: null,
 				after: null,
-				current: { event: event, conflict: false, color: theme.success_container_color, featured: true },
+				current: { event, conflict: false, color: theme.success_container_color, featured: true },
 				conflictCount: conflictingEvents.length,
 			}
 
