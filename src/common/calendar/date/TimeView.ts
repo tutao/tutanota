@@ -99,6 +99,14 @@ export class TimeView implements Component<TimeViewAttributes> {
 				style: {
 					"grid-template-columns": `auto repeat(${dates.length}, 1fr)`,
 				},
+				oninit: (vnode: VnodeDOM) => {
+					if (this.timeRowHeight == null) {
+						window.requestAnimationFrame(() => {
+							this.timeRowHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replaceAll("px", "")) / subRowCount
+							m.redraw()
+						})
+					}
+				}
 			},
 			[
 				this.buildTimeColumn(timeColumnIntervals), // Time column
@@ -108,12 +116,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 						{
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
-							},
-							onupdate: (vnode: VnodeDOM) => {
-								if (this.timeRowHeight == null) {
-									this.timeRowHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replaceAll("px", "")) / subRowCount
-									m.redraw()
-								}
 							},
 						},
 						[
@@ -127,15 +129,23 @@ export class TimeView implements Component<TimeViewAttributes> {
 	}
 
 	private buildTimeIndicator(timeRange: TimeRange, subRowAsMinutes: number, time?: Time): Children {
-		if (!time || this.timeRowHeight == null) {
+		if (!time) {
 			return null
 		}
 
 		const startTimeSpan = timeRange.start.diff(time)
 		const start = Math.floor(startTimeSpan / subRowAsMinutes)
-		const offsetTop = this.timeRowHeight * start
 
-		return m(".time-indicator", { style: { top: px(offsetTop), position: "absolute", background: theme.content_accent, height: px(2), width: "100%" } })
+		return m(".time-indicator", {
+			style: {
+				top: px((this.timeRowHeight ?? 0) * start),
+				position: "absolute",
+				background: theme.content_accent,
+				height: px(2),
+				width: "100%",
+				display: this.timeRowHeight == null ? "none" : "initial"
+			}
+		})
 	}
 
 	private createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<string> {
@@ -214,17 +224,17 @@ export class TimeView implements Component<TimeViewAttributes> {
 					},
 					event.featured
 						? m(".flex.items-start", [
-								m(Icon, {
-									icon: hasAnyConflict ? Icons.ExclamationMark : Icons.Checkmark,
-									container: "div",
-									class: "mr-xxs",
-									size: IconSize.Normal,
-									style: {
-										fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color,
-									},
-								}),
-								m(".text-wrap.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
-						  ])
+							m(Icon, {
+								icon: hasAnyConflict ? Icons.ExclamationMark : Icons.Checkmark,
+								container: "div",
+								class: "mr-xxs",
+								size: IconSize.Normal,
+								style: {
+									fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color,
+								},
+							}),
+							m(".text-wrap.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
+						])
 						: event.event.summary,
 				)
 			})
