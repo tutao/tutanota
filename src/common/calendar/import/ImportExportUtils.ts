@@ -199,6 +199,13 @@ export function hasValidProtocol(url: URL, validProtocols: string[]) {
 	return validProtocols.includes(url.protocol)
 }
 
+export function isSameExternalEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
+	const sameUid = eventA.uid === eventB.uid
+	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
+
+	return sameUid && sameRecurrenceId
+}
+
 export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
 	const sameUid = eventA.uid === eventB.uid
 	const sameSequence = eventA.sequence == eventB.sequence
