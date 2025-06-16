@@ -81,7 +81,6 @@ export interface TimeViewAttributes {
 
 export class TimeView implements Component<TimeViewAttributes> {
 	private timeRowHeight?: number
-	private timeColumn: Child = null
 
 	/*
 	 * Must filter the array to get events using the same logic from conflict detection
@@ -94,11 +93,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 		const subRowCount = 12 * timeColumnIntervals.length
 		const subRowAsMinutes = TIME_SCALE_BASE_VALUE / timeScale / 12
 
-		window.requestAnimationFrame(() => {
-			this.timeColumn = this.buildTimeColumn(timeColumnIntervals)
-			m.redraw()
-		})
-
 		return m(
 			".grid.overflow-hidden", // mini-agenda
 			{
@@ -107,13 +101,19 @@ export class TimeView implements Component<TimeViewAttributes> {
 				},
 			},
 			[
-				this.timeColumn, // Time column
+				this.buildTimeColumn(timeColumnIntervals), // Time column
 				dates.map((date) => {
 					return m(
 						".grid.plr-unit.gap.z1.grid-auto-columns.rel",
 						{
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
+							},
+							onupdate: (vnode: VnodeDOM) => {
+								if (this.timeRowHeight == null) {
+									this.timeRowHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replaceAll("px", "")) / subRowCount
+									m.redraw()
+								}
 							},
 						},
 						[
@@ -131,11 +131,9 @@ export class TimeView implements Component<TimeViewAttributes> {
 			return null
 		}
 
-		const timeUnitHeight = this.timeRowHeight / 12
-
 		const startTimeSpan = timeRange.start.diff(time)
 		const start = Math.floor(startTimeSpan / subRowAsMinutes)
-		const offsetTop = timeUnitHeight * start
+		const offsetTop = this.timeRowHeight * start
 
 		return m(".time-indicator", { style: { top: px(offsetTop), position: "absolute", background: theme.content_accent, height: px(2), width: "100%" } })
 	}
@@ -166,11 +164,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 				m(
 					".flex.ptb-button-double.small.pr-vpad-s.border-right.rel.items-center",
 					{
-						oncreate: (vnode: VnodeDOM) => {
-							if (this.timeRowHeight == null) {
-								this.timeRowHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replaceAll("px", ""))
-							}
-						},
 						class: index !== times.length - 1 ? "after-as-border-bottom" : "",
 					},
 					time,
