@@ -1,4 +1,4 @@
-import m, { Child, Children, Component, Vnode } from "mithril"
+import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "./Time"
 import { clone } from "@tutao/tutanota-utils"
@@ -7,6 +7,8 @@ import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
+import { colorForBg } from "../../gui/base/GuiUtils.js"
+import { formatTime } from "../../misc/Formatter.js"
 
 export interface AgendaEventWrapper {
 	event: CalendarEvent
@@ -74,19 +76,28 @@ export interface TimeViewAttributes {
 	 * Days to render events
 	 */
 	dates: Array<Date>
+	timeIndicator?: Time
 }
 
 export class TimeView implements Component<TimeViewAttributes> {
+	private timeRowHeight?: number
+	private timeColumn: Child = null
+
 	/*
 	 * Must filter the array to get events using the same logic from conflict detection
 	 * But instead of event start and end we use range start end
 	 */
 	view({ attrs }: Vnode<TimeViewAttributes>) {
-		const { timeScale, timeRange, events, conflictRenderPolicy, baselineTimeForEventPositionCalculation, dates } = attrs
+		const { timeScale, timeRange, events, conflictRenderPolicy, baselineTimeForEventPositionCalculation, dates, timeIndicator } = attrs
 		const timeColumnIntervals = this.createTimeColumnIntervals(timeScale, timeRange)
 
 		const subRowCount = 12 * timeColumnIntervals.length
-		const subRowAsMinutes = 60 / timeScale / 12
+		const subRowAsMinutes = TIME_SCALE_BASE_VALUE / timeScale / 12
+
+		window.requestAnimationFrame(() => {
+			this.timeColumn = this.buildTimeColumn(timeColumnIntervals)
+			m.redraw()
+		})
 
 		return m(
 			".grid.overflow-hidden", // mini-agenda
@@ -96,29 +107,37 @@ export class TimeView implements Component<TimeViewAttributes> {
 				},
 			},
 			[
-				this.buildTimeColumn(timeColumnIntervals), // Time column
+				this.timeColumn, // Time column
 				dates.map((date) => {
 					return m(
-						".grid.plr-unit.gap.z1.grid-auto-columns",
+						".grid.plr-unit.gap.z1.grid-auto-columns.rel",
 						{
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},
 						},
-						this.buildEventsColumn(
-							events,
-							timeRange,
-							subRowAsMinutes,
-							conflictRenderPolicy,
-							subRowCount,
-							timeScale,
-							baselineTimeForEventPositionCalculation,
-							date
-						),
+						[
+							this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
+							this.buildEventsColumn(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date),
+						],
 					)
-				})
+				}),
 			],
 		)
+	}
+
+	private buildTimeIndicator(timeRange: TimeRange, subRowAsMinutes: number, time?: Time): Children {
+		if (!time || this.timeRowHeight == null) {
+			return null
+		}
+
+		const timeUnitHeight = this.timeRowHeight / 12
+
+		const startTimeSpan = timeRange.start.diff(time)
+		const start = Math.floor(startTimeSpan / subRowAsMinutes)
+		const offsetTop = timeUnitHeight * start
+
+		return m(".time-indicator", { style: { top: px(offsetTop), position: "absolute", background: theme.content_accent, height: px(2), width: "100%" } })
 	}
 
 	private createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<string> {
@@ -128,11 +147,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 		for (let i = 0; i < numberOfIntervals; i++) {
 			const agendaRowTime = clone(timeRange.start).add({ minutes: timeInterval * i })
-			const timeKey = agendaRowTime.toString(true) // FIXME Respect user decision
 
-			const lowerBoundTime = clone(agendaRowTime)
-			const upperBound = agendaRowTime.add({ minutes: timeInterval })
-			timeKeys.push(timeKey)
+			timeKeys.push(formatTime(agendaRowTime.toDate()))
 		}
 
 		return timeKeys
@@ -150,6 +166,11 @@ export class TimeView implements Component<TimeViewAttributes> {
 				m(
 					".flex.ptb-button-double.small.pr-vpad-s.border-right.rel.items-center",
 					{
+						oncreate: (vnode: VnodeDOM) => {
+							if (this.timeRowHeight == null) {
+								this.timeRowHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replaceAll("px", ""))
+							}
+						},
 						class: index !== times.length - 1 ? "after-as-border-bottom" : "",
 					},
 					time,
@@ -166,21 +187,17 @@ export class TimeView implements Component<TimeViewAttributes> {
 			conflictRenderPolicy: EventConflictRenderPolicy,
 			subRowCount: number,
 			timeScale: TimeScale,
-			focusedTime: Time,
-			baseDate: Date
+			baseDate: Date,
 		): Children => {
-			console.log({
-				agendaEntries,
-				timeRange,
-				subRowAsMinutes,
-				conflictRenderPolicy,
-				subRowCount,
-				timeScale,
-				focusedTime,
-			})
+			const timeRangeAsDate = {
+				start: timeRange.start.toDate(baseDate),
+				end: timeRange.end.toDate(baseDate),
+			}
+
 			return agendaEntries.map((event, _, events) => {
 				const { start, end } = this.getRowPosition(event.event, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
 				const hasAnyConflict = events.some((ev) => ev.conflict)
+
 				return m(
 					// EventBubble
 					".border-radius.text-ellipsis-multi-line.p-xsm.on-success-container-color.small",
@@ -190,30 +207,31 @@ export class TimeView implements Component<TimeViewAttributes> {
 							"min-width": px(0),
 							"grid-column": conflictRenderPolicy === EventConflictRenderPolicy.OVERLAP ? 1 : undefined,
 							background: event.color,
+							color: !event.featured ? colorForBg(event.color) : undefined,
 							"grid-row": `${start} / ${end}`,
-							"border-bottom-left-radius": Time.fromDate(event.event.endTime).isAfter(timeRange.end) ? "0" : undefined,
-							"border-bottom-right-radius": Time.fromDate(event.event.endTime).isAfter(timeRange.end) ? "0" : undefined,
-							"border-top-left-radius": Time.fromDate(event.event.startTime).isBefore(timeRange.start) ? "0" : undefined,
-							"border-top-right-radius": Time.fromDate(event.event.startTime).isBefore(timeRange.start) ? "0" : undefined,
+							"border-bottom-left-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
+							"border-bottom-right-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
+							"border-top-left-radius": event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
+							"border-top-right-radius": event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
 							border: event.featured ? `1.5px dashed ${theme.on_success_container_color}` : "none",
-							"border-top": Time.fromDate(event.event.startTime).isBefore(timeRange.start) ? "none" : undefined,
-							"border-bottom": Time.fromDate(event.event.endTime).isAfter(timeRange.end) ? "none" : undefined,
-							"-webkit-line-clamp": 2
+							"border-top": event.event.startTime < timeRangeAsDate.start ? "none" : undefined,
+							"border-bottom": event.event.endTime > timeRangeAsDate.end ? "none" : undefined,
+							"-webkit-line-clamp": 2,
 						},
 					},
 					event.featured
 						? m(".flex.items-start", [
-							m(Icon, {
-								icon: hasAnyConflict ? Icons.ExclamationMark : Icons.Checkmark,
-								container: "div",
-								class: "mr-xxs",
-								size: IconSize.Normal,
-								style: {
-									fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color
-								}
-							}),
-							m(".text-wrap.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
-						])
+								m(Icon, {
+									icon: hasAnyConflict ? Icons.ExclamationMark : Icons.Checkmark,
+									container: "div",
+									class: "mr-xxs",
+									size: IconSize.Normal,
+									style: {
+										fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color,
+									},
+								}),
+								m(".text-wrap.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
+						  ])
 						: event.event.summary,
 				)
 			})
@@ -224,7 +242,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 		let timeInterval = TIME_SCALE_BASE_VALUE / timeScale
 
 		const startTimeSpan = timeRange.start.diff(Time.fromDate(event.startTime))
-		const start = event.startTime < baseDate || timeRange.start.isAfter(Time.fromDate(event.startTime)) ? 1 : Math.floor(startTimeSpan / subRowAsMinutes) + 1
+		const start =
+			event.startTime < baseDate || timeRange.start.isAfter(Time.fromDate(event.startTime)) ? 1 : Math.floor(startTimeSpan / subRowAsMinutes) + 1
 
 		const endTimeSpan = timeRange.start.diff(Time.fromDate(event.endTime))
 		const end = Math.min(Math.floor(endTimeSpan / subRowAsMinutes) + 1, subRowCount + 1)

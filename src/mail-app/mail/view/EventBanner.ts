@@ -193,21 +193,15 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		const rangeStartDate = range.start.toDate(baseDate)
 		const rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
 
-		const evs = events.flatMap((event) => {
-			if (
-				(event.event.endTime > rangeStartDate && event.event.endTime <= rangeEndDate) || // Ends during event
+		return events.flatMap((event) => {
+			if ((event.event.endTime > rangeStartDate && event.event.endTime <= rangeEndDate) || // Ends during event
 				(event.event.startTime >= rangeStartDate && event.event.startTime < rangeEndDate) || // Starts during event
-				(event.event.startTime <= rangeStartDate && event.event.endTime >= rangeEndDate)
-			) {
-				// Overlaps range
+				(event.event.startTime <= rangeStartDate && event.event.endTime >= rangeEndDate)) { // Overlaps range
 				return [event]
 			}
 
 			return []
 		})
-
-		console.log(evs)
-		return evs
 	}
 
 	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, message: Children) {
@@ -267,7 +261,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					],
 				),
 				/* Invite Column */
-				m(".flex.flex-column.plr-vpad.pb.pt", [
+				m(".flex.flex-column.plr-vpad.pb.pt.justify-start", [
 					m(".flex", [
 						m(Icon, {
 							icon: BootIcons.Calendar,
@@ -280,15 +274,15 @@ export class EventBanner implements Component<EventBannerAttrs> {
 					]),
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-s", [
-								m("span.b", "When:"), // FIXME Add translation
-								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
-						  ])
+							m("span.b", lang.get("when_label")),
+							m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+						])
 						: null,
 					message,
 				]),
 				/* Time Overview */
 				m(
-					".flex.flex-column.plr-vpad.pb.pt.border-accent",
+					".flex.flex-column.plr-vpad.pb.pt.justify-start.border-accent",
 					{
 						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 					},
@@ -317,13 +311,14 @@ export class EventBanner implements Component<EventBannerAttrs> {
 						]),
 						agenda
 							? m(TimeView, {
-									events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
-									timeScale,
-									timeRange,
-									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-									baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
-									dates: [getStartOfDay(agenda.current.event.startTime)],
-							  } satisfies TimeViewAttributes)
+								events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+								timeScale,
+								timeRange,
+								conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+								baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
+								dates: [getStartOfDay(agenda.current.event.startTime)],
+								timeIndicator: Time.fromDate(agenda.current.event.startTime)
+							} satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
 				),
