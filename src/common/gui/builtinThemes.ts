@@ -181,7 +181,7 @@ export const themes = (): Themes => {
 		outline_variant: grey_lighter_1,
 		success_color: GREEN,
 		success_container_color: GREEN_GHOST_70,
-		on_success_container_color: dark_lighter_0
+		on_success_container_color: dark_lighter_0,
 	})
 	const darkRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -233,7 +233,7 @@ export const themes = (): Themes => {
 		outline_variant: grey_darker_0,
 		success_color: GREEN_70,
 		success_container_color: GREEN_GHOST_70,
-		on_success_container_color: dark_lighter_0
+		on_success_container_color: dark_lighter_0,
 	})
 	const lightBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -284,7 +284,7 @@ export const themes = (): Themes => {
 		outline_variant: grey_lighter_1,
 		success_color: GREEN,
 		success_container_color: GREEN_GHOST,
-		on_success_container_color: dark_lighter_0
+		on_success_container_color: dark_lighter_0,
 	})
 	const darkBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -336,7 +336,7 @@ export const themes = (): Themes => {
 		outline_variant: grey_darker_0,
 		success_color: GREEN_70,
 		success_container_color: GREEN_GHOST_70,
-		on_success_container_color: dark_lighter_0
+		on_success_container_color: dark_lighter_0,
 	})
 
 	return {
