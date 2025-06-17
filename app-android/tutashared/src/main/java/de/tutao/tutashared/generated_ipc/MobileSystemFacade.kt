@@ -77,4 +77,6 @@ interface MobileSystemFacade {
 	suspend fun storeServerRemoteOrigin(
 		origin: String,
 	): Unit
+	suspend fun print(
+	): Unit
 }

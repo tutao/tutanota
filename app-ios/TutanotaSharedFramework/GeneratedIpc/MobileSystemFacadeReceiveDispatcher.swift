@@ -90,6 +90,10 @@ public class MobileSystemFacadeReceiveDispatcher {
 				origin
 			)
 			return "null"
+		case "print":
+			try await self.facade.print(
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

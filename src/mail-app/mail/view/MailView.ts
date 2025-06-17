@@ -288,8 +288,19 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailViewerMoreActions: getMailViewerMoreActions({
 				viewModel: viewModel.primaryViewModel(),
 				report: this.getReportAction(viewModel.primaryViewModel()),
+				print: this.getPrintAction(),
 			}),
 		})
+	}
+
+	private getPrintAction(): (() => unknown) | null {
+		if (isApp()) {
+			return () => locator.systemFacade.print()
+		} else if (typeof window.print === "function") {
+			return () => window.print()
+		} else {
+			return null
+		}
 	}
 
 	private getReportAction(viewModel: MailViewerViewModel): (() => unknown) | null {
@@ -349,6 +360,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					return getMailViewerMoreActions({
 						viewModel: mailViewerModel,
 						report: this.getReportAction(mailViewerModel),
+						print: this.getPrintAction(),
 					})
 				},
 			}),
@@ -456,6 +468,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								mailViewerMoreActions: getMailViewerMoreActions({
 									viewModel: this.conversationViewModel.primaryViewModel(),
 									report: this.getReportAction(this.conversationViewModel.primaryViewModel()),
+									print: this.getPrintAction(),
 								}),
 						  })
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()

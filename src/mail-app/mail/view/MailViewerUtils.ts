@@ -297,7 +297,15 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, more
 	return moreButtons
 }
 
-export function getMailViewerMoreActions({ viewModel, report }: { viewModel: MailViewerViewModel; report: (() => unknown) | null }): MailViewerMoreActions {
+export function getMailViewerMoreActions({
+	viewModel,
+	report,
+	print,
+}: {
+	viewModel: MailViewerViewModel
+	report: (() => unknown) | null
+	print: (() => unknown) | null
+}): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
 	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
@@ -312,8 +320,8 @@ export function getMailViewerMoreActions({ viewModel, report }: { viewModel: Mai
 		actions.unsubscribeAction = () => unsubscribe(viewModel)
 	}
 
-	if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
-		actions.printAction = () => window.print()
+	if (print && viewModel.canPrint()) {
+		actions.printAction = print
 	}
 
 	if (report) {

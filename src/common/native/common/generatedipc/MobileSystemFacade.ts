@@ -62,4 +62,6 @@ export interface MobileSystemFacade {
 	 * Sends the URL from the remote origin to be stored on the device
 	 */
 	storeServerRemoteOrigin(origin: string): Promise<void>
+
+	print(): Promise<void>
 }
