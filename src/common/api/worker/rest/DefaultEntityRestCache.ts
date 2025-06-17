@@ -894,9 +894,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			} else {
 				// If there is a custom handler we follow its decision.
 				// Otherwise, we do a range check to see if we need to keep the range up-to-date.
-				const shouldLoad =
-					this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update) ??
-					(await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
+				const shouldLoadOnCreateEvent = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
+				const instanceRangeIsCached = await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId)
+				const instanceNotCached = (await this.storage.getParsed(typeRef, instanceListId, instanceId)) == null
+				const shouldLoad = shouldLoadOnCreateEvent ?? (instanceRangeIsCached && instanceNotCached)
 				if (shouldLoad) {
 					// No need to try to download something that's not there anymore
 					// We do not consult custom handlers here because they are only needed for list elements.

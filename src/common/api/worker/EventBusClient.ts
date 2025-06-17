@@ -12,13 +12,28 @@ import {
 	createWebsocketLeaderStatus,
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
+	EntityUpdate,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
 	WebsocketEntityDataTypeRef,
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import { binarySearch, delay, identity, lastThrow, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
+import {
+	AppName,
+	assertNotNull,
+	binarySearch,
+	delay,
+	groupBy,
+	identity,
+	isNotNull,
+	isSameTypeRef,
+	lastThrow,
+	ofClass,
+	promiseMap,
+	randomIntFromInterval,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
@@ -26,20 +41,25 @@ import { EntityClient } from "../common/EntityClient"
 import type { QueuedBatch } from "./EventQueue.js"
 import { EventQueue } from "./EventQueue.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
-import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId } from "../common/utils/EntityUtils"
+import { compareOldestFirst, elementIdPart, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, listIdPart } from "../common/utils/EntityUtils"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { TypeModelResolver } from "../common/EntityFunctions.js"
-import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
+import { Mail, MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
 import { Entity, ServerModelUntypedInstance } from "../common/EntityTypes"
 import { InstancePipeline } from "./crypto/InstancePipeline"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
+import { parseKeyVersion } from "./facades/KeyLoaderFacade"
+import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
+import { CryptoFacade } from "./crypto/CryptoFacade"
+import { EntityAdapter } from "./crypto/EntityAdapter"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 assertWorkerOrNode()
 
@@ -152,6 +172,7 @@ export class EventBusClient {
 		private readonly progressTracker: ExposedProgressTracker,
 		private readonly syncTracker: SyncTracker,
 		private readonly typeModelResolver: TypeModelResolver,
+		private readonly cryptoFacade: CryptoFacade,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
 		this.state = EventBusState.Terminated
@@ -297,7 +318,11 @@ export class EventBusClient {
 			case MessageType.EntityUpdate: {
 				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
 				this.typeModelResolver.setServerApplicationTypesModelHash(entityUpdateData.applicationTypesHash)
-				const updates = await promiseMap(entityUpdateData.entityUpdates, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
+				const updates = await promiseMap(entityUpdateData.entityUpdates, async (event) => {
+					const instance = await this.getInstanceFromEntityEvent(event)
+					return entityUpdateToUpdateData(this.typeModelResolver, event, instance)
+				})
+
 				this.entityUpdateMessageQueue.add(entityUpdateData.eventBatchId, entityUpdateData.eventBatchOwner, updates)
 				break
 			}
@@ -328,6 +353,21 @@ export class EventBusClient {
 			default:
 				console.log("ws message with unknown type", type)
 				break
+		}
+	}
+
+	private async getInstanceFromEntityEvent(event: EntityUpdate): Promise<Nullable<ServerModelParsedInstance>> {
+		if (event.instance != null) {
+			const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId!))
+			const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+			const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
+			const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
+			const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+			const migratedEntity = await this.cryptoFacade.applyMigrations(typeRef, entityAdapter)
+			const sessionKey = await this.cryptoFacade.resolveSessionKey(migratedEntity)
+			return await this.instancePipeline.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sessionKey)
+		} else {
+			return null
 		}
 	}
 
@@ -518,8 +558,12 @@ export class EventBusClient {
 		// Count all batches that will actually be processed so that the progress is correct
 		let totalExpectedBatches = 0
 		for (const batch of timeSortedEventBatches) {
-			const updates = await promiseMap(batch.events, (event) => entityUpdateToUpdateData(this.typeModelResolver, event))
+			const updates = await promiseMap(batch.events, async (event) => {
+				const instance = await this.getInstanceFromEntityEvent(event)
+				return entityUpdateToUpdateData(this.typeModelResolver, event, instance)
+			})
 			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), updates, eventQueue)
+
 			if (batchWasAddedToQueue) {
 				// Set as last only if it was inserted with success
 				this.lastInitialEventBatch = getElementId(batch)
@@ -534,6 +578,8 @@ export class EventBusClient {
 		await progressMonitor.workDone(1) // show progress right away
 		eventQueue.setProgressMonitor(progressMonitor)
 
+		await this.preloadEntities()
+
 		// We don't have any missing update, we can just set the sync as finished
 		if (totalExpectedBatches === 0) {
 			this.syncTracker.markSyncAsDone()
@@ -542,6 +588,69 @@ export class EventBusClient {
 		// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
 		// It is possible that we will record the time before the batch will be processed but the risk is low.
 		await this.cache.recordSyncTime()
+	}
+
+	/**
+	 * We preload list element entities in case we get updates for multiple instances of a single list.
+	 * So that single item requests for those instances will be served from the cache.
+	 */
+	private async preloadEntities() {
+		const start = new Date().getTime()
+		console.log("====== PREFETCH ============")
+		const preloadMap = this.groupUpdatedInstances()
+		await this.loadGroupedListElementEntities(preloadMap)
+		console.log("====== PREFETCH END ============", new Date().getTime() - start, "ms")
+	}
+
+	private async loadGroupedListElementEntities(preloadMap: Map<string, Map<Id, Array<Id>>>) {
+		for (const [typeref, groupedListIds] of preloadMap.entries()) {
+			for (const [listId, elementIds] of groupedListIds.entries()) {
+				if (elementIds.length > 1) {
+					const typeRef = new TypeRef<any>(typeref.split("/")[0] as AppName, parseInt(typeref.split("/")[1]))
+					const instances = await this.entity.loadMultiple(typeRef, listId, elementIds)
+					if (isSameTypeRef(MailTypeRef, typeRef)) {
+						const mailsWithMailDetails: Array<Mail> = instances.filter((mail: Mail) => isNotNull(mail.mailDetails))
+
+						const mailDetailsByList = groupBy(mailsWithMailDetails, (m) => listIdPart(assertNotNull(m.mailDetails)))
+						for (const [listId, mails] of mailDetailsByList.entries()) {
+							const mailDetailsElementIds = mails.map((m) => elementIdPart(assertNotNull(m.mailDetails)))
+							const initialMap: Map<Id, Mail> = new Map()
+							const mailDetailsElementIdToMail = mails.reduce((previous: Map<Id, Mail>, current) => {
+								previous.set(elementIdPart(assertNotNull(current.mailDetails)), current)
+								return previous
+							}, initialMap)
+							await this.entity.loadMultiple(MailDetailsBlobTypeRef, listId, mailDetailsElementIds, async (mailDetailsElementId: Id) => {
+								const mail = assertNotNull(mailDetailsElementIdToMail.get(mailDetailsElementId))
+								return {
+									key: mail._ownerEncSessionKey,
+									encryptingKeyVersion: parseKeyVersion(mail._ownerKeyVersion ?? "0"),
+								} as VersionedEncryptedKey
+							})
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private groupUpdatedInstances(): Map<string, Map<Id, Array<Id>>> {
+		const preloadMap: Map<string, Map<Id, Array<Id>>> = new Map()
+		const queuedEvents = this.eventQueue.eventQueue
+		for (const e of queuedEvents) {
+			for (const entityUpdateData of e.events) {
+				const typeIdentifier = `${entityUpdateData.typeRef.app}/${entityUpdateData.typeRef.typeId}`
+				if (entityUpdateData.instanceListId) {
+					if (!preloadMap.has(typeIdentifier)) {
+						preloadMap.set(typeIdentifier, new Map().set(entityUpdateData.instanceListId, [entityUpdateData.instanceId]))
+					} else if (!preloadMap.get(typeIdentifier)!.has(entityUpdateData.instanceListId)) {
+						preloadMap.get(typeIdentifier)?.set(entityUpdateData.instanceListId, [entityUpdateData.instanceId])
+					} else {
+						preloadMap.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.push(entityUpdateData.instanceId)
+					}
+				}
+			}
+		}
+		return preloadMap
 	}
 
 	private async loadEntityEventsForGroup(groupId: Id): Promise<EntityEventBatch[]> {
@@ -641,7 +750,7 @@ export class EventBusClient {
 
 		if (index < 0) {
 			lastForGroup.splice(-index, 0, batchId)
-			// only add the batch if it was not process before
+			// only add the batch if it was not processed before
 			wasAdded = eventQueue.add(batchId, groupId, events)
 		} else {
 			wasAdded = false
@@ -651,7 +760,7 @@ export class EventBusClient {
 			lastForGroup.shift()
 		}
 
-		this.lastEntityEventIds.set(batchId, lastForGroup)
+		this.lastEntityEventIds.set(groupId, lastForGroup)
 
 		if (wasAdded) {
 			this.lastAddedBatchForGroup.set(groupId, batchId)
