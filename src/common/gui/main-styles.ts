@@ -3143,6 +3143,12 @@ styles.registerStyle("main", () => {
 				transform: "translateX(100%)",
 			},
 		},
+		".time-indicator": {
+			position: "absolute",
+			background: theme.content_accent,
+			height: px(2),
+			width: "100%",
+		},
 		".time-indicator:before": {
 			content: "''",
 			display: "block",

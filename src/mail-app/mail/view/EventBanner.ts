@@ -5,7 +5,7 @@ import { CalendarEvent, CalendarEventAttendee, Mail } from "../../../common/api/
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { findAttendeeInAddresses } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { base64ToBase64Url, clone, deepEqual, filterNull, getHourOfDay, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, clone, filterNull, getHourOfDay, getStartOfDay, isNotNull, LazyLoaded, stringToBase64 } from "@tutao/tutanota-utils"
 import { ParsedIcalFileContent, ReplyResult } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { mailLocator } from "../../mailLocator.js"
 import { isRepliedTo } from "./MailViewerUtils.js"
@@ -22,15 +22,14 @@ import { BannerButton } from "../../../common/gui/base/buttons/BannerButton.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { DateTime } from "../../../../libs/luxon.js"
 import {
-	AgendaEventWrapper,
 	EventConflictRenderPolicy,
-	InviteAgenda,
 	TIME_SCALE_BASE_VALUE,
 	TimeRange,
 	TimeScale,
 	TimeScaleTuple,
 	TimeView,
 	TimeViewAttributes,
+	TimeViewEventWrapper,
 } from "../../../common/calendar/date/TimeView.js"
 import { Time } from "../../../common/calendar/date/Time"
 import { px, size } from "../../../common/gui/size.js"
@@ -42,6 +41,14 @@ export type EventBannerAttrs = {
 	recipient: string
 	eventsRepository: CalendarEventsRepository
 	groupColors: Map<Id, string>
+}
+
+export interface InviteAgenda {
+	before: TimeViewEventWrapper | null
+	after: TimeViewEventWrapper | null
+	main: TimeViewEventWrapper
+	existingEvent?: CalendarEvent
+	conflictCount: number
 }
 
 /**
@@ -196,7 +203,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 		return durationA < durationB ? durationA : durationB
 	}
 
-	private filterOutOfRangeEvents(range: TimeRange, events: Array<AgendaEventWrapper>, baseDate: Date, timeInterval: number): Array<AgendaEventWrapper> {
+	private filterOutOfRangeEvents(range: TimeRange, events: Array<TimeViewEventWrapper>, baseDate: Date, timeInterval: number): Array<TimeViewEventWrapper> {
 		const rangeStartDate = range.start.toDate(baseDate)
 		const rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
 
@@ -215,18 +222,18 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, message: Children) {
-		const hasConflict = agenda && (agenda.before?.conflict || agenda.after?.conflict)
-		const events = filterNull([agenda?.before, agenda?.current, agenda?.after])
+		const hasConflict = agenda && (agenda.before?.conflictsWithMainEvent || agenda.after?.conflictsWithMainEvent)
+		const events = filterNull([agenda?.before, agenda?.main, agenda?.after])
 
-		let eventFocusBound = agenda?.current.event?.startTime!
+		let eventFocusBound = agenda?.main.event?.startTime!
 		let shortestTimeFrame: number = this.findShortestDuration(event, event)
 
-		if (agenda?.before?.conflict) {
-			eventFocusBound = agenda?.current.event?.startTime!
-			shortestTimeFrame = this.findShortestDuration(agenda.current.event, agenda.before.event)
-		} else if (agenda?.after?.conflict) {
+		if (agenda?.before?.conflictsWithMainEvent) {
+			eventFocusBound = agenda?.main.event?.startTime!
+			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
+		} else if (agenda?.after?.conflictsWithMainEvent) {
 			eventFocusBound = agenda?.after?.event.startTime!
-			shortestTimeFrame = this.findShortestDuration(agenda.current.event, agenda.after.event)
+			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
 		}
 
 		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
@@ -325,9 +332,8 @@ export class EventBanner implements Component<EventBannerAttrs> {
 									timeScale,
 									timeRange,
 									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-									baselineTimeForEventPositionCalculation: Time.fromDate(eventFocusBound),
-									dates: [getStartOfDay(agenda.current.event.startTime)],
-									timeIndicator: Time.fromDate(agenda.current.event.startTime),
+									dates: [getStartOfDay(agenda.main.event.startTime)],
+									timeIndicator: Time.fromDate(agenda.main.event.startTime),
 							  } satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
@@ -495,7 +501,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			let eventList: InviteAgenda = {
 				before: null,
 				after: null,
-				current: { event, conflict: false, color: theme.success_container_color, featured: true },
+				main: { event, conflictsWithMainEvent: false, color: theme.success_container_color, featured: true },
 				existingEvent: currentExistingEvent,
 				conflictCount: conflictingEvents.length,
 			}
@@ -511,7 +517,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				if (eventBefore) {
 					eventList.before = {
 						event: eventBefore,
-						conflict: false,
+						conflictsWithMainEvent: false,
 						color: `#${getEventColor(eventBefore, attrs.groupColors)}`,
 						featured: false,
 					}
@@ -519,7 +525,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			} else {
 				eventList.before = {
 					event: closestConflictingEventBeforeStartTime,
-					conflict: true,
+					conflictsWithMainEvent: true,
 					color: `#${getEventColor(closestConflictingEventBeforeStartTime, attrs.groupColors)}`,
 					featured: false,
 				}
@@ -536,7 +542,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				if (eventAfter) {
 					eventList.after = {
 						event: eventAfter,
-						conflict: false,
+						conflictsWithMainEvent: false,
 						color: `#${getEventColor(eventAfter, attrs.groupColors)}`,
 						featured: false,
 					}
@@ -548,14 +554,14 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				).getTime()
 				eventList.after = {
 					event: closestConflictingEventAfterStartTime,
-					conflict: true,
+					conflictsWithMainEvent: true,
 					color: `#${getEventColor(closestConflictingEventAfterStartTime, attrs.groupColors)}`,
 					featured: false,
 				}
 			}
 
-			if (eventList.after?.conflict || eventList.before?.conflict) {
-				eventList.current.color = theme.error_container_color
+			if (eventList.after?.conflictsWithMainEvent || eventList.before?.conflictsWithMainEvent) {
+				eventList.main.color = theme.error_container_color
 			}
 			eventToAgenda.set(event.uid ?? "", eventList)
 		}
@@ -591,7 +597,9 @@ export function sendResponse(
 			if (replyResult === ReplyResult.ReplySent) {
 				ownAttendee.status = status
 			}
-			responseCallback && (await responseCallback())
+			if (responseCallback) {
+				await responseCallback()
+			}
 			m.redraw()
 		}),
 	)
