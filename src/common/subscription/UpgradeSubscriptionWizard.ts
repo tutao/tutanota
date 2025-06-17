@@ -143,19 +143,6 @@ export function getPlanSelectorTest() {
 	return test
 }
 
-export function resolvePlanSelectorVariant(variant: number) {
-	switch (variant) {
-		case 1:
-			return "A"
-		case 2:
-			return "B"
-		case 3:
-			return "C"
-		default:
-			throw new Error("Encountered invalid variant. Expected 1, 2 or 3.")
-	}
-}
-
 export async function loadSignupWizard(
 	subscriptionParameters: SubscriptionParameters | null,
 	registrationDataId: string | null,
