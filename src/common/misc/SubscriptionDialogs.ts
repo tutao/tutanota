@@ -21,7 +21,7 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: AvailablePlan
 		NewPersonalPlans.includes(downcast(customerInfo.plan))
 	const msg = businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg"
 
-	await wizard.showUpgradeWizard(locator.logins, acceptedPlans, msg)
+	await wizard.showUpgradeWizard({ logins: locator.logins, acceptedPlans, msg })
 }
 
 export function createNotAvailableForFreeClickHandler(acceptedPlans: AvailablePlanType[], click: ClickHandler, available: () => boolean): ClickHandler {
@@ -54,7 +54,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 	if (confirmed) {
 		if (userController.isFreeAccount()) {
 			const wizard = await import("../subscription/UpgradeSubscriptionWizard")
-			return wizard.showUpgradeWizard(locator.logins)
+			return wizard.showUpgradeWizard({ logins: locator.logins })
 		} else {
 			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(userController.user))
 			const { getAvailableMatchingPlans } = await import("../subscription/SubscriptionUtils.js")
@@ -102,7 +102,7 @@ export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlan
 export async function showUpgradeWizardOrSwitchSubscriptionDialog(userController: UserController): Promise<void> {
 	if (userController.isFreeAccount()) {
 		const { showUpgradeWizard } = await import("../subscription/UpgradeSubscriptionWizard")
-		await showUpgradeWizard(locator.logins)
+		await showUpgradeWizard({ logins: locator.logins })
 	} else {
 		await showSwitchPlanDialog(userController, NewPaidPlans)
 	}

@@ -73,12 +73,13 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 		const localTheme = hasCampaign ? getBlueTheme() : theme
 
 		return m(
-			`.cursor-pointer.buyOptionBox-v2${isSelected ? ".selected" : ""}`,
+			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
 				style: {
 					scale,
 					"z-index": isSelected ? "1" : "initial",
 					"transform-origin": isLegendPlan ? "center right" : "center left",
+					"pointer-event": isDisabled ? "none" : "initial",
 				},
 			},
 
@@ -113,7 +114,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						overflow: "hidden",
 						padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
 					},
-					onclick: () => onclick?.(plan),
+					onclick: () => !isDisabled && onclick?.(plan),
 				},
 
 				m(

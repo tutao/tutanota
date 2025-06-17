@@ -45,9 +45,13 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}
 
 	oncreate({ attrs: { availablePlans } }: Vnode<PlanSelectorAttr>) {
-		// Set the default selection to free when we need to hide paid plans. This would be the case if the user already has a paid Apple account.
-		const hidePaidPlans = availablePlans.includes(PlanType.Free) && availablePlans.length === 1
-		if (hidePaidPlans) this.currentPlan(PlanType.Free)
+		if (availablePlans.includes(PlanType.Free) && availablePlans.length === 1) {
+			// Only Free plan is available. This would be the case if the user already has a paid Apple account.
+			this.currentPlan(PlanType.Free)
+		} else if (!availablePlans.includes(PlanType.Revolutionary) && availablePlans.includes(PlanType.Legend)) {
+			// Only Legend plan is available
+			this.currentPlan(PlanType.Legend)
+		}
 
 		// Set the scale of the selected plan box to `1.03` after a timeout to animate the scale of the selected plan box on loading.
 		this.scaleTimeout = setTimeout(() => {
@@ -195,7 +199,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									return m(PaidPlanBox, {
 										price: priceStr,
 										referencePrice: referencePriceStr,
-										plan: plan,
+										plan,
 										isSelected: plan === this.currentPlan(),
 										isDisabled:
 											(plan === PlanType.Revolutionary && !availablePlans.includes(PlanType.Revolutionary)) ||

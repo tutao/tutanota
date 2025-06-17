@@ -99,7 +99,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 					priceInfoTextId: data.priceInfoTextId,
 					boxWidth: 230,
 					boxHeight: 270,
-					acceptedPlans: NewBusinessPlans,
+					acceptedPlans: NewBusinessPlans.filter((businessPlan) => acceptedPlans.includes(businessPlan)),
 					allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
 					currentPlanType: data.currentPlan,
 					actionButtons: actionButtons,
@@ -139,7 +139,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				actionButtons,
 				priceAndConfigProvider: planPrices,
 				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
-				hidePaidPlans: availablePlans.includes(PlanType.Free) && availablePlans.length === 1,
+				availablePlans,
 				isApplePrice,
 			}),
 		])

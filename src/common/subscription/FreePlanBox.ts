@@ -28,7 +28,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 		const localTheme = hasCampaign ? getBlueTheme() : theme
 
 		return m(
-			".cursor-pointer.buyOptionBox-v2",
+			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
 				style: {
 					"background-color": planBoxColors.getBgColor(isSelected, isDisabled),
