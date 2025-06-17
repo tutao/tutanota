@@ -1,13 +1,21 @@
-import { CalendarEvent, CalendarGroupRoot } from "../../api/entities/tutanota/TypeRefs.js"
+import {
+	AdvancedRepeatRule,
+	CalendarEvent,
+	CalendarEventAttendee,
+	CalendarGroupRoot,
+	CalendarRepeatRule,
+	EncryptedMailAddress,
+} from "../../api/entities/tutanota/TypeRefs.js"
 import type { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
 import { ParsedCalendarData, ParsedEvent } from "./CalendarImporter.js"
-import { getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
+import { deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
-import { createDateWrapper } from "../../api/entities/sys/TypeRefs.js"
+import { createDateWrapper, DateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
 import { lang, type TranslationKey } from "../../misc/LanguageViewModel.js"
 import { assertValidURL } from "@tutao/tutanota-utils/dist/Utils.js"
+import { Stripped } from "../../api/common/utils/EntityUtils"
 
 export enum EventImportRejectionReason {
 	Pre1970,
@@ -197,4 +205,83 @@ export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent)
 	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
 
 	return sameUid && sameSequence && sameRecurrenceId
+}
+
+export function eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
+	const rruleA = createStrippedRepeatRule(a.repeatRule)
+	const rruleB = createStrippedRepeatRule(b.repeatRule)
+	const attendeesA = createStrippedAttendees(a.attendees)
+	const attendeesB = createStrippedAttendees(b.attendees)
+	const organizerA = createStrippedMailAddress(a.organizer)
+	const organizerB = createStrippedMailAddress(b.organizer)
+
+	return (
+		a.startTime.valueOf() === b.startTime.valueOf() &&
+		a.endTime.valueOf() === b.endTime.valueOf() &&
+		deepEqual({ ...attendeesA }, { ...attendeesB }) &&
+		a.summary === b.summary &&
+		a.sequence === b.sequence &&
+		a.location === b.location &&
+		a.description === b.description &&
+		deepEqual(organizerA, organizerB) &&
+		deepEqual(rruleA, rruleB) &&
+		a.recurrenceId?.valueOf() === b.recurrenceId?.valueOf()
+	)
+}
+
+export type StrippedRepeatRule = Stripped<
+	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
+		excludedDates: Stripped<DateWrapper>[]
+		advancedRules: Stripped<AdvancedRepeatRule>[]
+	}
+>
+
+export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
+	if (!repeatRule) {
+		return null
+	}
+	return {
+		frequency: repeatRule.frequency ?? "",
+		endType: repeatRule.endType ?? "",
+		endValue: repeatRule.endValue ?? "",
+		interval: repeatRule.interval ?? "",
+		timeZone: repeatRule.timeZone ?? "",
+		excludedDates: repeatRule.excludedDates
+			? repeatRule.excludedDates.map((ex) => ({
+					date: ex.date,
+			  }))
+			: [],
+		advancedRules: repeatRule.advancedRules
+			? repeatRule.advancedRules.map((rule) => ({
+					ruleType: rule.ruleType,
+					interval: rule.interval,
+			  }))
+			: [],
+	}
+}
+
+export type StrippedCalendarEventAttendee = Stripped<
+	Omit<CalendarEventAttendee, "address"> & {
+		address: Stripped<EncryptedMailAddress>
+	}
+>
+
+export function createStrippedAttendees(attendees: CalendarEventAttendee[]): StrippedCalendarEventAttendee[] {
+	return attendees.map((attendee: CalendarEventAttendee) => {
+		return {
+			status: attendee.status,
+			address: createStrippedMailAddress(attendee.address)!,
+		}
+	})
+}
+
+export function createStrippedMailAddress(mailAddress: EncryptedMailAddress | null): Stripped<EncryptedMailAddress> | null {
+	if (!mailAddress) {
+		return null
+	}
+
+	return {
+		address: mailAddress.address,
+		name: mailAddress.name,
+	}
 }
