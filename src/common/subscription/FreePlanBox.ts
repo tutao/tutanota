@@ -14,6 +14,7 @@ import { getFeaturePlaceholderReplacement } from "./SubscriptionUtils.js"
 
 type FreePlanBoxAttrs = {
 	isSelected: boolean
+	isDisabled: boolean
 	select: VoidFunction
 	priceAndConfigProvider: PriceAndConfigProvider
 	scale: CSSStyleDeclaration["scale"]
@@ -21,7 +22,7 @@ type FreePlanBoxAttrs = {
 }
 
 export class FreePlanBox implements Component<FreePlanBoxAttrs> {
-	view({ attrs: { isSelected, select, priceAndConfigProvider, scale, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
+	view({ attrs: { isSelected, isDisabled, select, priceAndConfigProvider, scale, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
 		const renderFeature = this.generateRenderFeature(priceAndConfigProvider, isSelected, hasCampaign)
 		// Only for Go European campaign, this should be removed after the campaign.
 		const localTheme = hasCampaign ? getBlueTheme() : theme
@@ -30,7 +31,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 			".cursor-pointer.buyOptionBox-v2",
 			{
 				style: {
-					"background-color": planBoxColors.getBgColor(isSelected),
+					"background-color": planBoxColors.getBgColor(isSelected, isDisabled),
 					color: planBoxColors.getTextColor(isSelected, hasCampaign),
 					display: "flex",
 					"z-index": isSelected ? "1" : "initial",
@@ -44,8 +45,9 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 					"border-style": "solid",
 					"border-color": planBoxColors.getOutlineColor(isSelected),
 					padding: "24px 16px",
+					"pointer-events": isDisabled ? "none" : "initial",
 				},
-				onclick: () => select(),
+				onclick: () => !isDisabled && select(),
 			},
 			[
 				m(

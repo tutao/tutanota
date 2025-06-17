@@ -20,7 +20,12 @@ export const planBoxColors = {
 /**
  * Determines the background color for the PlanBox component based on the selection state and theme.
  */
-function getBgColor(isSelected: boolean) {
+function getBgColor(isSelected: boolean, isDisabled: boolean) {
+	// FIXME: Refine the design
+	if (isDisabled) {
+		return theme.content_border
+	}
+
 	if (locator.themeController.isLightTheme()) {
 		if (isSelected) {
 			return theme.experimental_primary_container

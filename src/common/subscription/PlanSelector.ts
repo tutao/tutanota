@@ -4,7 +4,7 @@ import { PaidPlanBox } from "./PaidPlanBox.js"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
-import { PlanType } from "../api/common/TutanotaConstants.js"
+import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
 import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
@@ -22,7 +22,7 @@ type PlanSelectorAttr = {
 	actionButtons: SubscriptionActionButtons
 	priceAndConfigProvider: PriceAndConfigProvider
 	hasCampaign: boolean
-	hidePaidPlans: boolean
+	availablePlans: AvailablePlanType[]
 	isApplePrice: boolean
 }
 
@@ -44,8 +44,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		[PlanType.Free]: "initial",
 	}
 
-	oncreate({ attrs: { hidePaidPlans } }: Vnode<PlanSelectorAttr>) {
+	oncreate({ attrs: { availablePlans } }: Vnode<PlanSelectorAttr>) {
 		// Set the default selection to free when we need to hide paid plans. This would be the case if the user already has a paid Apple account.
+		const hidePaidPlans = availablePlans.includes(PlanType.Free) && availablePlans.length === 1
 		if (hidePaidPlans) this.currentPlan(PlanType.Free)
 
 		// Set the scale of the selected plan box to `1.03` after a timeout to animate the scale of the selected plan box on loading.
@@ -70,8 +71,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
-	view({ attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, hidePaidPlans, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
+	view({ attrs: { options, priceAndConfigProvider, actionButtons, availablePlans, hasCampaign, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
+		const hidePaidPlans = availablePlans.includes(PlanType.Free) && availablePlans.length === 1
 
 		const renderFootnoteElement = (): Children => {
 			const getRevoPriceStrProps = {
@@ -182,10 +184,10 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 								},
 							},
 							!hidePaidPlans &&
-								[PlanType.Revolutionary, PlanType.Legend].map((personalPlan: PlanType.Legend | PlanType.Revolutionary) => {
+								[PlanType.Revolutionary, PlanType.Legend].map((plan: PlanType.Legend | PlanType.Revolutionary) => {
 									const getPriceStrProps = {
 										priceAndConfigProvider,
-										targetPlan: personalPlan,
+										targetPlan: plan,
 										paymentInterval: options.paymentInterval(),
 									}
 									const { referencePriceStr, priceStr } = isApplePrice ? getApplePriceStr(getPriceStrProps) : getPriceStr(getPriceStrProps)
@@ -193,10 +195,13 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									return m(PaidPlanBox, {
 										price: priceStr,
 										referencePrice: referencePriceStr,
-										plan: personalPlan,
-										isSelected: personalPlan === this.currentPlan(),
+										plan: plan,
+										isSelected: plan === this.currentPlan(),
+										isDisabled:
+											(plan === PlanType.Revolutionary && !availablePlans.includes(PlanType.Revolutionary)) ||
+											(plan === PlanType.Legend && !availablePlans.includes(PlanType.Legend)),
 										onclick: (newPlan) => this.currentPlan(newPlan),
-										scale: this.scale[personalPlan],
+										scale: this.scale[plan],
 										selectedPaymentInterval: options.paymentInterval,
 										priceAndConfigProvider,
 										hasCampaign,
@@ -206,6 +211,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 						),
 						m(FreePlanBox, {
 							isSelected: this.currentPlan() === PlanType.Free,
+							isDisabled: !availablePlans.includes(PlanType.Free),
 							select: () => this.currentPlan(PlanType.Free),
 							priceAndConfigProvider,
 							scale: this.scale[PlanType.Free],

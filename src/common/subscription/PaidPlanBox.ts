@@ -26,6 +26,7 @@ type PlanBoxAttrs = {
 	referencePrice?: string
 	selectedPaymentInterval: Stream<PaymentInterval>
 	isSelected: boolean
+	isDisabled: boolean
 	plan: AvailablePlan
 	onclick: Callback<AvailablePlan>
 	priceAndConfigProvider: PriceAndConfigProvider
@@ -50,7 +51,19 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 	}
 
 	view({
-		attrs: { price, referencePrice, selectedPaymentInterval, isSelected, plan, onclick, priceAndConfigProvider, scale, hasCampaign, isApplePrice },
+		attrs: {
+			price,
+			referencePrice,
+			selectedPaymentInterval,
+			isSelected,
+			isDisabled,
+			plan,
+			onclick,
+			priceAndConfigProvider,
+			scale,
+			hasCampaign,
+			isApplePrice,
+		},
 	}: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
@@ -88,7 +101,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				"",
 				{
 					style: {
-						"background-color": planBoxColors.getBgColor(isSelected),
+						"background-color": planBoxColors.getBgColor(isSelected, isDisabled),
 						color: planBoxColors.getTextColor(isSelected, hasCampaign),
 						"min-height": px(270),
 						height: "100%",
