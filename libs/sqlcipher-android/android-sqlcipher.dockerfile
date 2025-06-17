@@ -2,6 +2,7 @@ FROM quay.io/toolbx-images/debian-toolbox@sha256:4ebacb09e266143c6394bc6e1304950
 WORKDIR /
 
 ENV ANDROID_NDK_VERSION="25.2.9519653"
+ENV ANDROID_SQLCIPHER_OUTPUT_DIR=/build-sqlcipher/
 
 RUN apt update && apt install -y curl openjdk-21-jdk-headless gcc tclsh make
 
@@ -20,6 +21,6 @@ COPY build-sqlcipher-android.sh build-sqlcipher-android.sh
 COPY build-openssl-libraries.sh build-openssl-libraries.sh
 
 # Do not override entrypoint as Jenkins plugin expects to run commands inside of it
-# Running the container without any arguments will just run the script, otherwishe the user can run another command if
+# Running the container without any arguments will just run the script, otherwishe th   e user can run another command if
 # passsed in.
 CMD "/build-sqlcipher-android.sh"

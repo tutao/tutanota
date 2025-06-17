@@ -56,4 +56,4 @@ make build-release
 popd
 
 # Move the output out of the container
-mv sqlcipher-android/sqlcipher/build/outputs/aar/sqlcipher-android-$SQLCIPHER_ANDROID_VERSION-release.aar /build-sqlcipher/
+mv sqlcipher-android/sqlcipher/build/outputs/aar/sqlcipher-android-$SQLCIPHER_ANDROID_VERSION-release.aar $ANDROID_SQLCIPHER_OUTPUT_DIR
