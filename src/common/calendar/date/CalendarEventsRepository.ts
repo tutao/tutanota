@@ -25,7 +25,7 @@ import { CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, OperationType, RepeatPeriod } f
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
-import { generateLocalEventElementId, getAllDayDateUTC } from "../../api/common/utils/CommonCalendarUtils.js"
+import { generateLocalEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils.js"
@@ -337,12 +337,10 @@ export class CalendarEventsRepository {
 			fullDateIso = contact.birthdayIso.replace("-", "1970")
 		}
 
-		const birthday = new Date(fullDateIso!)
-
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
-		const startDate = getAllDayDateUTC(new Date(birthday))
-		const endDate = getAllDayDateUTC(incrementDate(new Date(startDate), 1))
+		const startDate = new Date(fullDateIso!) // Uses fullDateIso as UTC value, therefore it creates a new Date applying the local timezone on top of fullDateIso
+		const endDate = incrementDate(new Date(startDate), 1)
 
 		const newEvent = createCalendarEvent({
 			sequence: "0",
