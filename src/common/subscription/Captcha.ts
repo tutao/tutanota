@@ -54,7 +54,7 @@ export async function runCaptchaFlow(
 		const captchaReturn = await locator.serviceExecutor.get(
 			RegistrationCaptchaService,
 			createRegistrationCaptchaServiceGetData({
-				token: campaignToken,
+				campaignToken: campaignToken,
 				mailAddress,
 				signupToken: deviceConfig.getSignupToken(),
 				businessUseSelected: isBusinessUse,
