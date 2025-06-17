@@ -5945,3 +5945,43 @@ impl Entity for SurveyDataPostIn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct Patch {
+	#[serde(rename = "2568")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2569")]
+	pub patchOperation: i64,
+	#[serde(rename = "2570")]
+	pub attributePath: String,
+	#[serde(rename = "2571")]
+	pub value: Option<String>,
+}
+
+impl Entity for Patch {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2567),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PatchList {
+	#[serde(rename = "2573")]
+	pub _format: i64,
+	#[serde(rename = "2574")]
+	pub patches: Vec<Patch>,
+}
+
+impl Entity for PatchList {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2572),
+		}
+	}
+}
