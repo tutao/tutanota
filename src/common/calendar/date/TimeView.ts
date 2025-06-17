@@ -10,19 +10,17 @@ import { theme } from "../../gui/theme.js"
 import { colorForBg } from "../../gui/base/GuiUtils.js"
 import { formatTime } from "../../misc/Formatter.js"
 
-export interface AgendaEventWrapper {
+export interface TimeViewEventWrapper {
 	event: CalendarEvent
-	conflict: boolean
+	conflictsWithMainEvent: boolean
+	/**
+	 * Color applied to the event bubble background
+	 */
 	color: string
+	/**
+	 * Applies special style, color border and shows success or warning icon before event title
+	 */
 	featured: boolean
-}
-
-export interface InviteAgenda {
-	before: AgendaEventWrapper | null
-	after: AgendaEventWrapper | null
-	current: AgendaEventWrapper
-	existingEvent?: CalendarEvent
-	conflictCount: number
 }
 
 export const TIME_SCALE_BASE_VALUE = 60 // 60 minutes
@@ -58,25 +56,24 @@ export enum EventConflictRenderPolicy {
 }
 
 export interface TimeViewAttributes {
-	events: Array<AgendaEventWrapper>
+	/**
+	 * Days to render events
+	 */
+	dates: Array<Date>
+	events: Array<TimeViewEventWrapper>
 	/**
 	 * {@link TimeScale} applied to this TimeView
 	 */
 	timeScale: TimeScale
 	/**
 	 * {@link TimeRange} used to generate the Time column and the number of time intervals/slots to position the events
+	 *
 	 * 0 <= start < end < 24:00
+	 *
+	 * End time is inclusive and is considered the beginning of the last interval
 	 */
 	timeRange: TimeRange
 	conflictRenderPolicy: EventConflictRenderPolicy
-	/**
-	 * This is taken into consideration when defining the row the event is attached to
-	 */
-	baselineTimeForEventPositionCalculation: Time
-	/**
-	 * Days to render events
-	 */
-	dates: Array<Date>
 	timeIndicator?: Time
 }
 
@@ -88,7 +85,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 * But instead of event start and end we use range start end
 	 */
 	view({ attrs }: Vnode<TimeViewAttributes>) {
-		const { timeScale, timeRange, events, conflictRenderPolicy, baselineTimeForEventPositionCalculation, dates, timeIndicator } = attrs
+		const { timeScale, timeRange, events, conflictRenderPolicy, dates, timeIndicator } = attrs
 		const timeColumnIntervals = this.createTimeColumnIntervals(timeScale, timeRange)
 
 		const subRowCount = 12 * timeColumnIntervals.length
@@ -112,6 +109,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			[
 				this.buildTimeColumn(timeColumnIntervals), // Time column
 				dates.map((date) => {
+					// Events Columns
 					return m(
 						".grid.plr-unit.gap.z1.grid-auto-columns.rel",
 						{
@@ -140,10 +138,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return m(".time-indicator", {
 			style: {
 				top: px((this.timeRowHeight ?? 0) * start),
-				position: "absolute",
-				background: theme.content_accent,
-				height: px(2),
-				width: "100%",
 				display: this.timeRowHeight == null ? "none" : "initial",
 			},
 		})
@@ -185,7 +179,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 	private buildEventsColumn = deepMemoized(
 		(
-			agendaEntries: Array<AgendaEventWrapper>,
+			agendaEntries: Array<TimeViewEventWrapper>,
 			timeRange: TimeRange,
 			subRowAsMinutes: number,
 			conflictRenderPolicy: EventConflictRenderPolicy,
@@ -199,8 +193,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 			}
 
 			return agendaEntries.map((event, _, events) => {
-				const { start, end } = this.getRowPosition(event.event, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
-				const hasAnyConflict = events.some((ev) => ev.conflict)
+				const { start, end } = this.getRowBounds(event.event, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
+				const hasAnyConflict = events.some((ev) => ev.conflictsWithMainEvent)
 
 				return m(
 					// EventBubble
@@ -213,10 +207,10 @@ export class TimeView implements Component<TimeViewAttributes> {
 							background: event.color,
 							color: !event.featured ? colorForBg(event.color) : undefined,
 							"grid-row": `${start} / ${end}`,
-							"border-bottom-left-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-							"border-bottom-right-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
 							"border-top-left-radius": event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
 							"border-top-right-radius": event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
+							"border-bottom-left-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
+							"border-bottom-right-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
 							border: event.featured ? `1.5px dashed ${theme.on_success_container_color}` : "none",
 							"border-top": event.event.startTime < timeRangeAsDate.start ? "none" : undefined,
 							"border-bottom": event.event.endTime > timeRangeAsDate.end ? "none" : undefined,
@@ -242,15 +236,13 @@ export class TimeView implements Component<TimeViewAttributes> {
 		},
 	)
 
-	private getRowPosition(event: CalendarEvent, timeRange: TimeRange, subRowAsMinutes: number, subRowCount: number, timeScale: TimeScale, baseDate: Date) {
-		let timeInterval = TIME_SCALE_BASE_VALUE / timeScale
+	private getRowBounds(event: CalendarEvent, timeRange: TimeRange, subRowAsMinutes: number, subRowCount: number, timeScale: TimeScale, baseDate: Date) {
+		const diffFromRangeStartToEventStart = timeRange.start.diff(Time.fromDate(event.startTime))
+		const eventStartsBeforeRange = event.startTime < baseDate || Time.fromDate(event.startTime).isBefore(timeRange.start)
+		const start = eventStartsBeforeRange ? 1 : Math.floor(diffFromRangeStartToEventStart / subRowAsMinutes) + 1
 
-		const startTimeSpan = timeRange.start.diff(Time.fromDate(event.startTime))
-		const start =
-			event.startTime < baseDate || timeRange.start.isAfter(Time.fromDate(event.startTime)) ? 1 : Math.floor(startTimeSpan / subRowAsMinutes) + 1
-
-		const endTimeSpan = timeRange.start.diff(Time.fromDate(event.endTime))
-		const end = Math.min(Math.floor(endTimeSpan / subRowAsMinutes) + 1, subRowCount + 1)
+		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(event.endTime))
+		const end = Math.min(Math.floor(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1, subRowCount + 1)
 
 		return { start, end }
 	}
