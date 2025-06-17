@@ -23,7 +23,7 @@ import {
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, findAndRemove, KeyVersion, ofClass } from "@tutao/tutanota-utils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { PreconditionFailedError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
@@ -49,17 +49,20 @@ export class MailAddressFacade {
 		return this.serviceExecutor.get(MailAddressAliasService, data)
 	}
 
+	/** used to check mail address availability for an existing account (alias, additional user) */
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
 		if (this.userFacade.isFullyLoggedIn()) {
 			const data = createDomainMailAddressAvailabilityData({ mailAddress })
 			return this.serviceExecutor.get(DomainMailAddressAvailabilityService, data).then((result) => result.available)
 		} else {
-			return this.areMailAddressesAvailable([mailAddress]).then((result) => getFirstOrThrow(result).available)
+			throw new ProgrammingError("tried to get mail address availability while not fully logged in")
 		}
 	}
 
-	async areMailAddressesAvailable(mailAddresses: string[]): Promise<MailAddressAvailability[]> {
+	/** used to check mail address availability during signup */
+	async areMailAddressesAvailable(signupToken: string, mailAddresses: string[]): Promise<MailAddressAvailability[]> {
 		const data = createMultipleMailAddressAvailabilityData({
+			signupToken,
 			mailAddresses: mailAddresses.map((mailAddress) => createStringWrapper({ value: mailAddress })),
 		})
 		const result = await this.serviceExecutor.get(MultipleMailAddressAvailabilityService, data)
