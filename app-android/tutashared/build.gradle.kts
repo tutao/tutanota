@@ -153,7 +153,7 @@ dependencies {
 	// (despite not throwing this error)."
 	// This is not really a problem for us because we never build a separate AAR out of tutashared, it is just a
 	// module.
-	compileOnly(files("../libs/sqlcipher-android-4.7.2-release.aar"))
+	compileOnly(files("../libs/sqlcipher-android.aar"))
 
 	implementation("androidx.sqlite:sqlite-ktx:2.4.0")
 
