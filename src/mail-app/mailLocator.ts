@@ -91,8 +91,7 @@ import { ThemeFacade } from "../common/native/common/generatedipc/ThemeFacade.js
 import { MobileSystemFacade } from "../common/native/common/generatedipc/MobileSystemFacade.js"
 import { MobileContactsFacade } from "../common/native/common/generatedipc/MobileContactsFacade.js"
 import { NativeCredentialsFacade } from "../common/native/common/generatedipc/NativeCredentialsFacade.js"
-import { MailAddressNameChanger, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
-import { GroupInfo } from "../common/api/entities/sys/TypeRefs.js"
+import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
@@ -124,7 +123,6 @@ import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
 import type { CommonLocator } from "../common/api/main/CommonLocator.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
-import { SearchCategoryTypes } from "./search/model/SearchUtils.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
 import { isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
@@ -599,13 +597,13 @@ class MailLocator implements CommonLocator {
 			this.mailAddressFacade,
 			this.logins,
 			this.eventController,
-			this.logins.getUserController().userGroupInfo,
+			{ user: this.logins.getUserController().user, userGroupInfo: this.logins.getUserController().userGroupInfo },
 			nameChanger,
 			await this.redraw(),
 		)
 	}
 
-	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
+	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: UserInfo): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../common/settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
 		return new MailAddressTableModel(
@@ -614,7 +612,7 @@ class MailLocator implements CommonLocator {
 			this.mailAddressFacade,
 			this.logins,
 			this.eventController,
-			userGroupInfo,
+			userInfo,
 			nameChanger,
 			await this.redraw(),
 		)

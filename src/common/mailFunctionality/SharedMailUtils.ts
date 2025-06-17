@@ -17,7 +17,7 @@ import {
 } from "../api/common/TutanotaConstants.js"
 import { UserController } from "../api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../api/common/utils/GroupUtils.js"
-import { lang, Language, Translation, TranslationKey } from "../misc/LanguageViewModel.js"
+import { lang, Language, TranslationKey } from "../misc/LanguageViewModel.js"
 import { MailboxDetail } from "./MailboxModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
@@ -138,7 +138,7 @@ export function getMailboxName(logins: LoginController, mailboxDetails: MailboxD
 	if (!logins.isInternalUserLoggedIn()) {
 		return lang.get("mailbox_label")
 	} else if (isUserMailbox(mailboxDetails)) {
-		return getDefaultSender(logins, mailboxDetails)
+		return neverNull(logins.getUserController().userGroupInfo.mailAddress)
 	} else {
 		return getGroupInfoDisplayName(assertNotNull(mailboxDetails.mailGroupInfo, "mailboxDetails without mailGroupInfo?"))
 	}

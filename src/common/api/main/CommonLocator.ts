@@ -43,7 +43,7 @@ import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { WebMobileFacade } from "../../native/main/WebMobileFacade.js"
 import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
-import { MailAddressTableModel } from "../../settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressTableModel, UserInfo } from "../../settings/mailaddress/MailAddressTableModel.js"
 import { GroupInfo } from "../entities/sys/TypeRefs.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { Router } from "../../gui/ScopedRouter.js"
@@ -138,7 +138,7 @@ export interface CommonLocator {
 
 	mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel>
 
-	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel>
+	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: UserInfo): Promise<MailAddressTableModel>
 
 	sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<SendMailModel>
 

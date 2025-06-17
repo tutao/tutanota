@@ -16,6 +16,7 @@ import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import {
+	createChangePrimaryAddressServicePutIn,
 	createMailAddressProperties,
 	createMailboxProperties,
 	MailboxGroupRoot,
@@ -30,6 +31,7 @@ import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 
 import { VersionedKey } from "../../crypto/CryptoWrapper.js"
+import { ChangePrimaryAddressService } from "../../../entities/tutanota/Services"
 
 assertWorkerOrNode()
 
@@ -99,6 +101,14 @@ export class MailAddressFacade {
 			group: targetGroupId,
 		})
 		await this.serviceExecutor.delete(MailAddressAliasService, deleteData)
+	}
+
+	async setPrimaryMailAddress(userId: Id, address: string): Promise<void> {
+		const data = createChangePrimaryAddressServicePutIn({
+			address,
+			user: userId,
+		})
+		await this.serviceExecutor.put(ChangePrimaryAddressService, data)
 	}
 
 	/**

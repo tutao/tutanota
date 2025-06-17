@@ -73,8 +73,7 @@ import { ThemeFacade } from "../common/native/common/generatedipc/ThemeFacade.js
 import { MobileSystemFacade } from "../common/native/common/generatedipc/MobileSystemFacade.js"
 import { MobileContactsFacade } from "../common/native/common/generatedipc/MobileContactsFacade.js"
 import { NativeCredentialsFacade } from "../common/native/common/generatedipc/NativeCredentialsFacade.js"
-import { MailAddressNameChanger, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
-import { GroupInfo } from "../common/api/entities/sys/TypeRefs.js"
+import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
@@ -104,7 +103,6 @@ import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
 import type { ParsedEvent } from "../common/calendar/gui/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
-import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
@@ -444,13 +442,13 @@ class CalendarLocator implements CommonLocator {
 			this.mailAddressFacade,
 			this.logins,
 			this.eventController,
-			this.logins.getUserController().userGroupInfo,
+			{ user: this.logins.getUserController().user, userGroupInfo: this.logins.getUserController().userGroupInfo },
 			nameChanger,
 			await this.redraw(),
 		)
 	}
 
-	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
+	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: UserInfo): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../common/settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
 		return new MailAddressTableModel(
@@ -459,7 +457,7 @@ class CalendarLocator implements CommonLocator {
 			this.mailAddressFacade,
 			this.logins,
 			this.eventController,
-			userGroupInfo,
+			userInfo,
 			nameChanger,
 			await this.redraw(),
 		)
