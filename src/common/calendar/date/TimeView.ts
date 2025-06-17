@@ -9,6 +9,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
 import { colorForBg } from "../../gui/base/GuiUtils.js"
 import { formatTime } from "../../misc/Formatter.js"
+import { getTimeZone } from "./CalendarUtils"
 
 export interface TimeViewEventWrapper {
 	event: CalendarEvent
@@ -187,9 +188,14 @@ export class TimeView implements Component<TimeViewAttributes> {
 			timeScale: TimeScale,
 			baseDate: Date,
 		): Children => {
+			const interval = TIME_SCALE_BASE_VALUE / timeScale
 			const timeRangeAsDate = {
 				start: timeRange.start.toDate(baseDate),
-				end: timeRange.end.toDate(baseDate),
+				/**
+				 * We sum one more interval because it is inclusive
+				 * @see TimeViewAttributes.timeRange
+				 */
+				end: timeRange.end.toDateTime(baseDate, getTimeZone()).plus({ minute: interval }).toJSDate(),
 			}
 
 			return agendaEntries.map((event, _, events) => {
