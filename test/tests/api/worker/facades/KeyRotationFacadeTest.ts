@@ -369,6 +369,7 @@ function prepareMultiAdminUserKeyRotation(
 		symEncPrivKyberKey: object(),
 		pubRsaKey: null,
 		symEncPrivRsaKey: null,
+		signature: null,
 	})
 	const adminDistPqKeyPair = object<PQKeyPairs>()
 	const adminGroupDistributionKeyPairKey = object<Aes256Key>()
@@ -644,6 +645,7 @@ o.spec("KeyRotationFacade", function () {
 					symEncPrivKyberKey: generatedKeyPair.encryptedKyberPrivKey,
 					pubRsaKey: null,
 					symEncPrivRsaKey: null,
+					signature: null,
 				})
 				o(update.keyPair).deepEquals(sentKeyPairs)
 				o(update.group).equals(groupId)
@@ -1860,6 +1862,7 @@ o.spec("KeyRotationFacade", function () {
 					symEncPrivKyberKey: generatedKeyPairs.encryptedKyberPrivKey,
 					pubRsaKey: null,
 					symEncPrivRsaKey: null,
+					signature: null,
 				})
 				o(update.keyPair).deepEquals(sentKeyPairs)
 				o(update.group).equals(groupId)

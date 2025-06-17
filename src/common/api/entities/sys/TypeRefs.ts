@@ -20,6 +20,8 @@ export type KeyPair = {
 	symEncPrivEccKey: null | Uint8Array;
 	pubKyberKey: null | Uint8Array;
 	symEncPrivKyberKey: null | Uint8Array;
+
+	signature: null | PublicKeySignature;
 }
 export const GroupTypeRef: TypeRef<Group> = new TypeRef("sys", 5)
 
@@ -51,8 +53,9 @@ export type Group = {
 	members: Id;
 	archives: ArchiveType[];
 	storageCounter: null | Id;
-	formerGroupKeys: null | GroupKeysRef;
+	formerGroupKeys: GroupKeysRef;
 	pubAdminGroupEncGKey: null | PubEncKeyData;
+	identityKeyPair: null | IdentityKeyPair;
 }
 export const GroupInfoTypeRef: TypeRef<GroupInfo> = new TypeRef("sys", 14)
 
@@ -681,6 +684,8 @@ export type PublicKeyGetOut = {
 	pubKeyVersion: NumberString;
 	pubEccKey: null | Uint8Array;
 	pubKyberKey: null | Uint8Array;
+
+	signature: null | PublicKeySignature;
 }
 export const SaltDataTypeRef: TypeRef<SaltData> = new TypeRef("sys", 417)
 
@@ -2539,7 +2544,7 @@ export type UserGroupRoot = {
 	_ownerGroup: null | Id;
 
 	invitations: Id;
-	keyRotations: null | KeyRotationsRef;
+	keyRotations: KeyRotationsRef;
 	groupKeyUpdates: null | GroupKeyUpdatesRef;
 }
 export const PaymentErrorInfoTypeRef: TypeRef<PaymentErrorInfo> = new TypeRef("sys", 1632)
@@ -3937,4 +3942,109 @@ export type PatchList = {
 	_format: NumberString;
 
 	patches: Patch[];
+}
+export const IdentityKeyPairTypeRef: TypeRef<IdentityKeyPair> = new TypeRef("sys", 2575)
+
+export function createIdentityKeyPair(values: StrippedEntity<IdentityKeyPair>): IdentityKeyPair {
+    return Object.assign(create(typeModels[IdentityKeyPairTypeRef.typeId], IdentityKeyPairTypeRef), values)
+}
+
+export type IdentityKeyPair = {
+	_type: TypeRef<IdentityKeyPair>;
+	_original?: IdentityKeyPair
+
+	_id: Id;
+	identityKeyVersion: NumberString;
+	encryptingKeyVersion: NumberString;
+	publicEd25519Key: Uint8Array;
+	privateEd25519Key: Uint8Array;
+
+	publicKeyMac: KeyMac;
+}
+export const PublicKeySignatureTypeRef: TypeRef<PublicKeySignature> = new TypeRef("sys", 2582)
+
+export function createPublicKeySignature(values: StrippedEntity<PublicKeySignature>): PublicKeySignature {
+    return Object.assign(create(typeModels[PublicKeySignatureTypeRef.typeId], PublicKeySignatureTypeRef), values)
+}
+
+export type PublicKeySignature = {
+	_type: TypeRef<PublicKeySignature>;
+	_original?: PublicKeySignature
+
+	_id: Id;
+	signature: Uint8Array;
+	signingKeyVersion: NumberString;
+	signatureType: NumberString;
+	publicKeyVersion: NumberString;
+}
+export const IdentityKeyGetInTypeRef: TypeRef<IdentityKeyGetIn> = new TypeRef("sys", 2590)
+
+export function createIdentityKeyGetIn(values: StrippedEntity<IdentityKeyGetIn>): IdentityKeyGetIn {
+    return Object.assign(create(typeModels[IdentityKeyGetInTypeRef.typeId], IdentityKeyGetInTypeRef), values)
+}
+
+export type IdentityKeyGetIn = {
+	_type: TypeRef<IdentityKeyGetIn>;
+	_original?: IdentityKeyGetIn
+
+	_format: NumberString;
+	version: null | NumberString;
+	identifierType: NumberString;
+	identifier: string;
+}
+export const IdentityKeyGetOutTypeRef: TypeRef<IdentityKeyGetOut> = new TypeRef("sys", 2595)
+
+export function createIdentityKeyGetOut(values: StrippedEntity<IdentityKeyGetOut>): IdentityKeyGetOut {
+    return Object.assign(create(typeModels[IdentityKeyGetOutTypeRef.typeId], IdentityKeyGetOutTypeRef), values)
+}
+
+export type IdentityKeyGetOut = {
+	_type: TypeRef<IdentityKeyGetOut>;
+	_original?: IdentityKeyGetOut
+
+	_format: NumberString;
+	publicIdentityKey: Uint8Array;
+	publicIdentityKeyVersion: NumberString;
+}
+export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2599)
+
+export function createIdentityKeyPostIn(values: StrippedEntity<IdentityKeyPostIn>): IdentityKeyPostIn {
+    return Object.assign(create(typeModels[IdentityKeyPostInTypeRef.typeId], IdentityKeyPostInTypeRef), values)
+}
+
+export type IdentityKeyPostIn = {
+	_type: TypeRef<IdentityKeyPostIn>;
+	_original?: IdentityKeyPostIn
+
+	_format: NumberString;
+
+	identityKeyPair: IdentityKeyPair;
+	signatures: PublicKeySignature[];
+}
+export const RolloutTypeRef: TypeRef<Rollout> = new TypeRef("sys", 2604)
+
+export function createRollout(values: StrippedEntity<Rollout>): Rollout {
+    return Object.assign(create(typeModels[RolloutTypeRef.typeId], RolloutTypeRef), values)
+}
+
+export type Rollout = {
+	_type: TypeRef<Rollout>;
+	_original?: Rollout
+
+	_id: Id;
+	rolloutType: NumberString;
+}
+export const RolloutGetOutTypeRef: TypeRef<RolloutGetOut> = new TypeRef("sys", 2607)
+
+export function createRolloutGetOut(values: StrippedEntity<RolloutGetOut>): RolloutGetOut {
+    return Object.assign(create(typeModels[RolloutGetOutTypeRef.typeId], RolloutGetOutTypeRef), values)
+}
+
+export type RolloutGetOut = {
+	_type: TypeRef<RolloutGetOut>;
+	_original?: RolloutGetOut
+
+	_format: NumberString;
+
+	rollouts: Rollout[];
 }

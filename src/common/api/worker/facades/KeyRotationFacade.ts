@@ -68,10 +68,8 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./
 import {
 	Aes256Key,
 	AesKey,
-	PublicKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
-	X25519KeyPair,
 	EncryptedPqKeyPairs,
 	getKeyLengthBytes,
 	isEncryptedPqKeyPairs,
@@ -79,7 +77,9 @@ import {
 	KEY_LENGTH_BYTES_AES_256,
 	PQKeyPairs,
 	PQPublicKeys,
+	PublicKey,
 	uint8ArrayToKey,
+	X25519KeyPair,
 } from "@tutao/tutanota-crypto"
 import { PQFacade } from "./PQFacade.js"
 import {
@@ -687,7 +687,12 @@ export class KeyRotationFacade {
 		const distributionKeyEncNewUserGroupKey = this.cryptoWrapper.encryptKey(legacyUserDistKey, newUserGroupKeys.symGroupKey.object)
 		const authVerifier = createAuthVerifier(passphraseKey)
 		const newGroupKeyEncCurrentGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(newUserGroupKeys.symGroupKey, currentGroupKey.object)
-		return { membershipSymEncNewGroupKey, distributionKeyEncNewUserGroupKey, authVerifier, newGroupKeyEncCurrentGroupKey }
+		return {
+			membershipSymEncNewGroupKey,
+			distributionKeyEncNewUserGroupKey,
+			authVerifier,
+			newGroupKeyEncCurrentGroupKey,
+		}
 	}
 
 	private async handlePendingInvitations(targetGroup: Group, newTargetGroupKey: VersionedKey) {
@@ -825,9 +830,9 @@ export class KeyRotationFacade {
 	}
 
 	/*
-	Gets the userGroupKey for the given userId via the adminEncGKey and symmetrically encrypts the given newGroupKey with it. Note that the logged-in user needs
-	 to be the admin of the same customer that the uer with userId belongs to.
-	 */
+    Gets the userGroupKey for the given userId via the adminEncGKey and symmetrically encrypts the given newGroupKey with it. Note that the logged-in user needs
+     to be the admin of the same customer that the uer with userId belongs to.
+     */
 	private async encryptGroupKeyForOtherUsers(userId: Id, newGroupKey: VersionedKey): Promise<VersionedEncryptedKey> {
 		const groupManagementFacade = await this.groupManagementFacade()
 		const user = await this.entityClient.load(UserTypeRef, userId)
@@ -1402,5 +1407,15 @@ function hasNonQuantumSafeKeys(...keys: AesKey[]) {
 }
 
 function makeKeyPair(keyPair: EncryptedPqKeyPairs | null): KeyPair | null {
-	return keyPair != null ? createKeyPair(keyPair) : null
+	return keyPair != null
+		? createKeyPair({
+				pubEccKey: keyPair.pubEccKey,
+				symEncPrivEccKey: keyPair.symEncPrivEccKey,
+				pubKyberKey: keyPair.pubKyberKey,
+				symEncPrivKyberKey: keyPair.symEncPrivKyberKey,
+				pubRsaKey: keyPair.pubRsaKey,
+				symEncPrivRsaKey: keyPair.symEncPrivRsaKey,
+				signature: null,
+		  })
+		: null
 }

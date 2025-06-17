@@ -121,7 +121,8 @@ o.spec("KeyLoaderFacadeTest", function () {
 		userGroup = createTestEntity(GroupTypeRef, {
 			_id: "my userGroup",
 			groupKeyVersion: String(userGroupKey.version),
-			formerGroupKeys: null,
+			formerGroupKeys: object(),
+			identityKeyPair: null,
 		})
 
 		membership = createTestEntity(GroupMembershipTypeRef, {
@@ -206,6 +207,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+				signature: null,
 			})
 			keyCache = object()
 			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
@@ -225,6 +227,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+				signature: null,
 			})
 			keyCache = object()
 			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)
@@ -254,6 +257,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				symEncPrivKyberKey: null,
 				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
+				signature: null,
 			})
 			keyCache = object()
 			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade)

@@ -3996,3 +3996,41 @@ impl Entity for ResolveConversationsServiceGetOut {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserAccountPostOut {
+	#[serde(rename = "1665")]
+	pub _format: i64,
+	#[serde(rename = "1666")]
+	pub userId: GeneratedId,
+	#[serde(rename = "1667")]
+	pub userGroup: GeneratedId,
+}
+
+impl Entity for UserAccountPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1664),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailGroupPostOut {
+	#[serde(rename = "1669")]
+	pub _format: i64,
+	#[serde(rename = "1670")]
+	pub mailGroup: GeneratedId,
+}
+
+impl Entity for MailGroupPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1668),
+		}
+	}
+}

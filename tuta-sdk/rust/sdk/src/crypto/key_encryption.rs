@@ -155,6 +155,7 @@ mod tests {
 					.unwrap(),
 			),
 			symEncPrivRsaKey: Some(generate_random_string::<17>().as_bytes().to_vec()),
+			signature: None,
 		};
 
 		let decrypted_key_pair =
@@ -196,6 +197,7 @@ mod tests {
 					)
 					.unwrap(),
 			),
+			signature: None,
 		};
 
 		let decrypted_key_pair =
@@ -248,6 +250,7 @@ mod tests {
 					)
 					.unwrap(),
 			),
+			signature: None,
 		};
 
 		let decrypted_key_pair =

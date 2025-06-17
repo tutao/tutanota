@@ -58,6 +58,7 @@ o.spec("PublicKeyProviderTest", function () {
 				pubRsaKey: null,
 				pubKyberKey: kyberPublicKey,
 				pubEccKey: x25519PublicKey,
+				signature: null,
 			})
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
 
@@ -81,6 +82,7 @@ o.spec("PublicKeyProviderTest", function () {
 				pubKyberKey: null,
 				pubRsaKey: rsaPublicKey,
 				pubKeyVersion: "0",
+				signature: null,
 			})
 
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(publicKeyGetOut)
@@ -110,6 +112,7 @@ o.spec("PublicKeyProviderTest", function () {
 					pubRsaKey,
 					pubKyberKey: null,
 					pubEccKey: null,
+					signature: null,
 				}),
 			)
 			await assertThrows(CryptoError, async () => publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier))
@@ -128,6 +131,7 @@ o.spec("PublicKeyProviderTest", function () {
 					pubRsaKey: null,
 					pubKyberKey: kyberPublicKey,
 					pubEccKey: x25519PublicKey,
+					signature: null,
 				}),
 			)
 
@@ -151,6 +155,7 @@ o.spec("PublicKeyProviderTest", function () {
 					pubRsaKey: null,
 					pubKyberKey: kyberPublicKey,
 					pubEccKey: x25519PublicKey,
+					signature: null,
 				}),
 			)
 			o(currentVersion).notEquals(requestedVersion)
@@ -166,6 +171,7 @@ o.spec("PublicKeyProviderTest", function () {
 					pubRsaKey,
 					pubKyberKey: null,
 					pubEccKey: null,
+					signature: null,
 				}),
 			)
 			await assertThrows(CryptoError, async () => publicKeyProvider.loadPubKey(publicKeyIdentifier, currentVersion))
@@ -175,7 +181,13 @@ o.spec("PublicKeyProviderTest", function () {
 	o.spec("version validation", function () {
 		o("throws if the version is negative", async function () {
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
-				createPublicKeyGetOut({ pubKeyVersion: "-1", pubRsaKey: object(), pubKyberKey: null, pubEccKey: null }),
+				createPublicKeyGetOut({
+					pubKeyVersion: "-1",
+					pubRsaKey: object(),
+					pubKyberKey: null,
+					pubEccKey: null,
+					signature: null,
+				}),
 			)
 
 			const e = await assertThrows(CryptoError, async () => publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier))
@@ -184,7 +196,13 @@ o.spec("PublicKeyProviderTest", function () {
 
 		o("throws if the version is not an integer", async function () {
 			when(serviceExecutor.get(PublicKeyService, matchers.anything())).thenResolve(
-				createPublicKeyGetOut({ pubKeyVersion: "1.5", pubRsaKey: object(), pubKyberKey: null, pubEccKey: null }),
+				createPublicKeyGetOut({
+					pubKeyVersion: "1.5",
+					pubRsaKey: object(),
+					pubKyberKey: null,
+					pubEccKey: null,
+					signature: null,
+				}),
 			)
 
 			const e = await assertThrows(CryptoError, async () => publicKeyProvider.loadCurrentPubKey(publicKeyIdentifier))
@@ -218,6 +236,7 @@ o.spec("PublicKeyProvider - convert keys", function () {
 			pubKyberKey: kyberPublicKey,
 			pubRsaKey: null,
 			pubKeyVersion: "1",
+			signature: null,
 		})
 
 		const fromPublicKeyGetOut = publicKeyProvider.convertFromPublicKeyGetOut(publicKeyGetOut)
@@ -240,6 +259,7 @@ o.spec("PublicKeyProvider - convert keys", function () {
 			pubKyberKey: null,
 			pubRsaKey: rsaPublicKey,
 			pubKeyVersion: "1",
+			signature: null,
 		})
 		const fromPublicKeyGetOut = publicKeyProvider.convertFromPublicKeyGetOut(publicKeyGetOut)
 
@@ -264,6 +284,7 @@ o.spec("PublicKeyProvider - convert keys", function () {
 			pubKyberKey: null,
 			pubRsaKey: rsaPublicKey,
 			pubKeyVersion: "1",
+			signature: null,
 		})
 		const fromPublicKeyGetOut = publicKeyProvider.convertFromPublicKeyGetOut(publicKeyGetOut)
 
@@ -292,6 +313,7 @@ o.spec("PublicKeyProvider - convert keys", function () {
 					pubKyberKey: null,
 					pubRsaKey: null,
 					pubKeyVersion: "1",
+					signature: null,
 				}),
 			),
 		)
@@ -305,6 +327,7 @@ o.spec("PublicKeyProvider - convert keys", function () {
 					pubKyberKey: null,
 					pubRsaKey: null,
 					pubKeyVersion: "1",
+					signature: null,
 				}),
 			),
 		)
@@ -319,6 +342,7 @@ o.spec("PublicKeyProvider - convert keys", function () {
 					pubKyberKey: kyberPublicKey,
 					pubRsaKey: null,
 					pubKeyVersion: "1",
+					signature: null,
 				}),
 			),
 		)
