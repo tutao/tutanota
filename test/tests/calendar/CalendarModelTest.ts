@@ -40,6 +40,7 @@ import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 import { EntityRestClient } from "../../../src/common/api/worker/rest/EntityRestClient"
+import { eventHasSameFields } from "../../../src/common/calendar/import/ImportExportUtils"
 
 o.spec("CalendarModel", function () {
 	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
@@ -97,44 +98,44 @@ o.spec("CalendarModel", function () {
 			eventB = structuredClone(eventA)
 		})
 		o.test("calendar events A and B are identical", function () {
-			o.check(calendarModel.eventHasSameFields(eventA, eventB)).equals(true)
+			o.check(eventHasSameFields(eventA, eventB)).equals(true)
 		})
 		o.test("calendar events A are B same if ids do not match", function () {
 			eventA._id = ["listId", "elementId"]
-			o.check(calendarModel.eventHasSameFields(eventA, eventB)).equals(true)
+			o.check(eventHasSameFields(eventA, eventB)).equals(true)
 		})
 		o.test("calendar events A are B same if aggregatedIds do not match", function () {
 			eventA.organizer!._id = "newId"
 			eventB.attendees.map((attendee) => {
 				attendee._id = "newId"
 			})
-			o.check(calendarModel.eventHasSameFields(eventA, eventB)).equals(true)
+			o.check(eventHasSameFields(eventA, eventB)).equals(true)
 		})
 		o.test("calendar events A and B are NOT same if non technical field organizer name changes", function () {
 			eventA.organizer!.name = "newName"
-			o.check(calendarModel.eventHasSameFields(eventA, eventB)).equals(false)
+			o.check(eventHasSameFields(eventA, eventB)).equals(false)
 		})
 		o.test("calendar events A and B are NOT same if non technical field attendees status changes", function () {
 			eventB.attendees.map((attendee) => {
 				attendee.status = CalendarAttendeeStatus.ADDED
 			})
-			o.check(calendarModel.eventHasSameFields(eventA, eventB)).equals(false)
+			o.check(eventHasSameFields(eventA, eventB)).equals(false)
 		})
 		o.test("calendar events A and B are NOT same if non technical field summary changes", function () {
 			eventB.summary = "newSummary"
-			o.check(calendarModel.eventHasSameFields(eventA, eventB)).equals(false)
+			o.check(eventHasSameFields(eventA, eventB)).equals(false)
 		})
 		o.test("calendar events A and B are NOT same if non technical field startTime changes", function () {
 			const newStartTime = new Date()
 			newStartTime.setTime(122342)
 			eventB.startTime = newStartTime
-			o.check(calendarModel.eventHasSameFields(eventA, eventB)).equals(false)
+			o.check(eventHasSameFields(eventA, eventB)).equals(false)
 		})
 		o.test("calendar events A and B are NOT same if non technical field endTime changes", function () {
 			const newEndTime = new Date()
 			newEndTime.setTime(122342)
 			eventA.endTime = newEndTime
-			o.check(calendarModel.eventHasSameFields(eventA, eventB)).equals(false)
+			o.check(eventHasSameFields(eventA, eventB)).equals(false)
 		})
 	})
 	o.spec("incrementByRepeatPeriod", function () {
