@@ -2215,7 +2215,7 @@ export type RegistrationCaptchaServiceGetData = {
 	_original?: RegistrationCaptchaServiceGetData
 
 	_format: NumberString;
-	token: null | string;
+	campaignToken: null | string;
 	mailAddress: string;
 	signupToken: null | string;
 	paidSubscriptionSelected: boolean;
@@ -3092,6 +3092,7 @@ export type MultipleMailAddressAvailabilityData = {
 	_original?: MultipleMailAddressAvailabilityData
 
 	_format: NumberString;
+	signupToken: null | string;
 
 	mailAddresses: StringWrapper[];
 }

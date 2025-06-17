@@ -3396,7 +3396,7 @@ pub struct RegistrationCaptchaServiceGetData {
 	#[serde(rename = "1480")]
 	pub _format: i64,
 	#[serde(rename = "1481")]
-	pub token: Option<String>,
+	pub campaignToken: Option<String>,
 	#[serde(rename = "1482")]
 	pub mailAddress: String,
 	#[serde(rename = "1731")]
@@ -4721,6 +4721,8 @@ impl Entity for MailAddressAvailability {
 pub struct MultipleMailAddressAvailabilityData {
 	#[serde(rename = "2031")]
 	pub _format: i64,
+	#[serde(rename = "2612")]
+	pub signupToken: Option<String>,
 	#[serde(rename = "2032")]
 	pub mailAddresses: Vec<StringWrapper>,
 }
