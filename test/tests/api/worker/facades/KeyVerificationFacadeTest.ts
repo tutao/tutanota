@@ -27,6 +27,7 @@ const PUBLIC_KEY_GET_OUT: PublicKeyGetOut = {
 	pubEccKey: stringToUtf8Uint8Array("ecc-key"),
 	pubKyberKey: stringToUtf8Uint8Array("kyb-key"),
 	pubRsaKey: null,
+	signature: null,
 }
 const PUBLIC_KEY: Versioned<PQPublicKeys> = {
 	version: 0,

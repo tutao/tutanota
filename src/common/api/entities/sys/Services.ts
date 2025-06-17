@@ -37,6 +37,9 @@ import { GiftCardCreateReturnTypeRef } from "./TypeRefs.js"
 import { GiftCardDeleteDataTypeRef } from "./TypeRefs.js"
 import { GroupKeyRotationInfoGetOutTypeRef } from "./TypeRefs.js"
 import { GroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { IdentityKeyGetInTypeRef } from "./TypeRefs.js"
+import { IdentityKeyGetOutTypeRef } from "./TypeRefs.js"
+import { IdentityKeyPostInTypeRef } from "./TypeRefs.js"
 import { InvoiceDataGetInTypeRef } from "./TypeRefs.js"
 import { InvoiceDataGetOutTypeRef } from "./TypeRefs.js"
 import { LocationServiceGetReturnTypeRef } from "./TypeRefs.js"
@@ -69,6 +72,7 @@ import { RegistrationServiceDataTypeRef } from "./TypeRefs.js"
 import { RegistrationReturnTypeRef } from "./TypeRefs.js"
 import { ResetFactorsDeleteDataTypeRef } from "./TypeRefs.js"
 import { ResetPasswordPostInTypeRef } from "./TypeRefs.js"
+import { RolloutGetOutTypeRef } from "./TypeRefs.js"
 import { SaltDataTypeRef } from "./TypeRefs.js"
 import { SaltReturnTypeRef } from "./TypeRefs.js"
 import { SecondFactorAuthAllowedReturnTypeRef } from "./TypeRefs.js"
@@ -292,6 +296,15 @@ export const GroupKeyRotationService = Object.freeze({
 	delete: null,
 } as const)
 
+export const IdentityKeyService = Object.freeze({
+	app: "sys",
+	name: "IdentityKeyService",
+	get: { data: IdentityKeyGetInTypeRef, return: IdentityKeyGetOutTypeRef },
+	post: { data: IdentityKeyPostInTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
 export const InvoiceDataService = Object.freeze({
 	app: "sys",
 	name: "InvoiceDataService",
@@ -414,6 +427,15 @@ export const ResetPasswordService = Object.freeze({
 	name: "ResetPasswordService",
 	get: null,
 	post: { data: ResetPasswordPostInTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
+export const RolloutService = Object.freeze({
+	app: "sys",
+	name: "RolloutService",
+	get: { data: null, return: RolloutGetOutTypeRef },
+	post: null,
 	put: null,
 	delete: null,
 } as const)
