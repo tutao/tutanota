@@ -23,7 +23,7 @@ o.spec("QueryTokenUtils", () => {
 			])
 		})
 	})
-	o.spec("highlightTextInQuery", () => {
+	o.spec("splitTextForHighlighting", () => {
 		o.test("exact match", () => {
 			o.check(splitTextForHighlighting("my very eager mother just sold us nine pizzas", splitQuery('"my very eager"'))).deepEquals([
 				{ text: "my very eager", highlighted: true },
@@ -60,6 +60,31 @@ o.spec("QueryTokenUtils", () => {
 				{ text: " mother just sold us nine ", highlighted: false },
 				{ text: "pizza", highlighted: true },
 				{ text: "s", highlighted: false },
+			])
+		})
+		o.test("tokens are substrings of other tokens", () => {
+			o.check(splitTextForHighlighting("is this a mail or a thesis", splitQuery("is this a mail or a thesis"))).deepEquals([
+				{ text: "is", highlighted: true },
+				{ text: " ", highlighted: false },
+				{ text: "this", highlighted: true },
+				{ text: " ", highlighted: false },
+				{ text: "a", highlighted: true },
+				{ text: " ", highlighted: false },
+				{ text: "mail", highlighted: true },
+				{ text: " ", highlighted: false },
+				{ text: "or", highlighted: true },
+				{ text: " ", highlighted: false },
+				{ text: "a", highlighted: true },
+				{ text: " ", highlighted: false },
+				{ text: "thesis", highlighted: true },
+			])
+			o.check(splitTextForHighlighting("is this a mail or a thesis", splitQuery('"is this a mail or a thesis"'))).deepEquals([
+				{ text: "is this a mail or a thesis", highlighted: true },
+			])
+		})
+		o.test("empty query", () => {
+			o.check(splitTextForHighlighting("this will just be returned back", [])).deepEquals([
+				{ text: "this will just be returned back", highlighted: false },
 			])
 		})
 	})

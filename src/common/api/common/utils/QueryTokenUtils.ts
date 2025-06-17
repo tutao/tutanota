@@ -1,4 +1,5 @@
 import { escapeRegExp } from "./PlainTextSearch"
+import { assertNotNull, isEmpty } from "@tutao/tutanota-utils"
 
 /**
  * A token that was found in {@link splitQuery}
@@ -76,74 +77,49 @@ export interface HighlightSubstring {
  * @param query tokens to search with (see {@link splitQuery})
  */
 export function splitTextForHighlighting(text: string, query: readonly SearchToken[]): HighlightSubstring[] {
-	// Start with an initial substring which is just the entire string.
-	//
-	// If, for some reason, none of the tokens are found, then this is all we'll return.
-	let substrings: HighlightSubstring[] = [{ text, highlighted: false }]
+	// Re-return the text if there is nothing to highlight to avoid searching for literal nothingness.
+	if (isEmpty(query)) {
+		return [{ text, highlighted: false }]
+	}
 
-	// Go through each search token and find instances of it in our substrings.
-	for (const token of query) {
-		const newStrings: HighlightSubstring[] = []
-		for (const substring of substrings) {
-			// This substring is already to be marked/highlighted; do not search inside of it.
-			if (substring.highlighted) {
-				newStrings.push(substring)
-				continue
-			}
+	// Build it into a regex with an or (|) expression.
+	const querySorted = query.map(({ token }) => escapeRegExp(token)).join("|")
+	const search = new RegExp(`(${querySorted})`, "gi")
 
-			// Continue going through the text until we either run out of text or the token is not found anymore.
-			let text = substring.text
-			while (text.length !== 0) {
-				// In case the user enters special characters, we want to avoid using those literally in the regexp.
-				const escapedToken = escapeRegExp(token.token)
+	// Next, use matchAll to find all results
+	const found = text.matchAll(search)
 
-				// Search global and case-insensitive
-				const search = new RegExp(`${escapedToken}`, "gi")
+	// Go through all search results and build our substrings
+	const substrings: HighlightSubstring[] = []
+	let offset = 0
+	for (const foundString of found) {
+		// Get all text before the search result (foundString.index should never be null from string.prototype.matchAll)
+		const beforeFound = text.slice(offset, assertNotNull(foundString.index))
+		const found = foundString[0] // refers to the string that was found
 
-				let found = text.search(search)
-				if (found < 0) {
-					// not found
-					break
-				}
-
-				// Get all text before the search result
-				const beforeFound = text.slice(0, found)
-
-				// ...and all text after the search result
-				const afterFoundIndex = found + token.token.length
-				const afterFound = text.slice(afterFoundIndex)
-
-				// ...and lastly the search result itself
-				const foundString = text.slice(found, afterFoundIndex)
-
-				if (beforeFound !== "") {
-					// if we have any text found before the search result, we want to add it
-					//
-					// due to the above negative lookbehind, this can only happen if this is the first substring
-					newStrings.push({
-						text: beforeFound,
-						highlighted: false,
-					})
-				}
-
-				// Push our actual search result; we can't just push token.token as we want to preserve capitalization
-				newStrings.push({
-					text: foundString,
-					highlighted: true,
-				})
-
-				text = afterFound
-			}
-
-			// If we have any text left, re-insert it so it can be searched again with the next token
-			if (text.length !== 0) {
-				newStrings.push({
-					text,
-					highlighted: false,
-				})
-			}
+		if (beforeFound !== "") {
+			// if we have any text found before the search result, we want to add it
+			substrings.push({
+				text: beforeFound,
+				highlighted: false,
+			})
 		}
-		substrings = newStrings
+
+		// Push our actual search result
+		substrings.push({
+			text: found,
+			highlighted: true,
+		})
+
+		offset += found.length + beforeFound.length
+	}
+
+	// Any remaining text can be reinserted
+	if (offset < text.length) {
+		substrings.push({
+			text: text.slice(offset),
+			highlighted: false,
+		})
 	}
 
 	return substrings
