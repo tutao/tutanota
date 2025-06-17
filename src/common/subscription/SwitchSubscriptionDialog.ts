@@ -188,7 +188,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 	if (newPlanType === PlanType.Free) {
 		if (mailLocator.mailModel) {
 			// there is no mailLocator for the calendar app
-			for (const importedMailSet of mailLocator.mailModel.getImportedMailSets()) mailLocator.mailModel.finallyDeleteCustomMailFolder(importedMailSet)
+			for (const importedMailSet of mailLocator.mailModel.getImportedMailSets()) void mailLocator.mailModel.finallyDeleteCustomMailFolder(importedMailSet)
 		}
 	}
 }
@@ -218,7 +218,7 @@ async function doSwitchToPaidPlan(
 		} catch (e) {
 			if (e instanceof MobilePaymentError) {
 				console.error("AppStore subscription failed", e)
-				Dialog.message("appStoreSubscriptionError_msg", e.message)
+				void Dialog.message("appStoreSubscriptionError_msg", e.message)
 			} else {
 				throw e
 			}
