@@ -4034,3 +4034,23 @@ impl Entity for MailGroupPostOut {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ChangePrimaryAddressServicePutIn {
+	#[serde(rename = "1672")]
+	pub _format: i64,
+	#[serde(rename = "1674")]
+	pub address: String,
+	#[serde(rename = "1673")]
+	pub user: GeneratedId,
+}
+
+impl Entity for ChangePrimaryAddressServicePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1671),
+		}
+	}
+}

@@ -114,6 +114,12 @@ function addressDropdownButtons(attrs: MailAddressTableAttrs, addressInfo: Addre
 						switchAliasStatus(addressInfo, attrs)
 					},
 				})
+				buttons.push({
+					label: "setPrimaryMailAddress_label",
+					click: () => {
+						makeAliasPrimary(addressInfo, attrs.model)
+					},
+				})
 			}
 			return buttons
 		}
@@ -136,6 +142,12 @@ function addressDropdownButtons(attrs: MailAddressTableAttrs, addressInfo: Addre
 					label: "delete_action",
 					click: () => {
 						switchAliasStatus(addressInfo, attrs)
+					},
+				})
+				buttons.push({
+					label: "setPrimaryMailAddress_label",
+					click: () => {
+						makeAliasPrimary(addressInfo, attrs.model)
 					},
 				})
 			}
@@ -200,6 +212,10 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 		.catch(ofClass(LimitReachedError, () => attrs.model.handleTooManyAliases()))
 		.catch(ofClass(UpgradeRequiredError, (e) => showPlanUpgradeRequiredDialog(e.plans, e.message)))
 	await showProgressDialog("pleaseWait_msg", updateModel)
+}
+
+async function makeAliasPrimary(alias: AddressInfo, model: MailAddressTableModel) {
+	await model.setPrimaryAddress(alias.address)
 }
 
 function showSenderNameChangeDialog(model: MailAddressTableModel, alias: { address: string; name: string }) {

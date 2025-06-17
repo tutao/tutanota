@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailAddressNameChanger, MailAddressTableModel } from "../../../../src/common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../../../../src/common/settings/mailaddress/MailAddressTableModel.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { matchers, object, when } from "testdouble"
 import { MailAddressFacade } from "../../../../src/common/api/worker/facades/lazy/MailAddressFacade.js"
@@ -20,7 +20,7 @@ o.spec("MailAddressTableModel", function () {
 	let nameChanger: MailAddressNameChanger
 	let mailAddressFacade: MailAddressFacade
 	let entityClient: EntityClient
-	let userGroupInfo: GroupInfo
+	let userInfo: UserInfo
 
 	o.beforeEach(function () {
 		nameChanger = object<MailAddressNameChanger>()
@@ -28,14 +28,14 @@ o.spec("MailAddressTableModel", function () {
 
 		const priceServiceMock = createUpgradePriceServiceMock(clone(PLAN_PRICES))
 		entityClient = object<EntityClient>()
-		userGroupInfo = object<GroupInfo>()
+		userInfo = object<UserInfo>()
 		model = new MailAddressTableModel(
 			entityClient,
 			priceServiceMock,
 			mailAddressFacade,
 			object<LoginController>(),
 			object<EventController>(),
-			userGroupInfo,
+			userInfo,
 			nameChanger,
 			noOp,
 		)
@@ -44,7 +44,7 @@ o.spec("MailAddressTableModel", function () {
 	o("suggest buying plans with more mail addresses - some new paid plans provide more aliases", async function () {
 		when(mailAddressFacade.addMailAlias(matchers.anything(), matchers.anything())).thenReject(new LimitReachedError("limit reached"))
 		const alias1 = createTestEntity(MailAddressAliasTypeRef)
-		userGroupInfo.mailAddressAliases = Array(15).fill(alias1)
+		userInfo.userGroupInfo.mailAddressAliases = Array(15).fill(alias1)
 		const error = await assertThrows(UpgradeRequiredError, () => model.addAlias("overthelimit@tuta.com", "Over, the Limit"))
 		o(error.constructor.name).equals(UpgradeRequiredError.name)
 		o(error.plans).deepEquals([PlanType.Legend, PlanType.Advanced, PlanType.Unlimited])
@@ -53,14 +53,14 @@ o.spec("MailAddressTableModel", function () {
 	o("suggest buying plans with more mail addresses - no other plans available", async function () {
 		when(mailAddressFacade.addMailAlias(matchers.anything(), matchers.anything())).thenReject(new LimitReachedError("limit reached"))
 		const alias1 = createTestEntity(MailAddressAliasTypeRef)
-		userGroupInfo.mailAddressAliases = Array(30).fill(alias1)
+		userInfo.userGroupInfo.mailAddressAliases = Array(30).fill(alias1)
 		await o(() => model.addAlias("overthelimit@tuta.com", "Over, the Limit")).asyncThrows(UserError)
 	})
 
 	o("suggest buying plans with more mail addresses - inactive email aliases", async function () {
 		when(mailAddressFacade.addMailAlias(matchers.anything(), matchers.anything())).thenReject(new LimitReachedError("limit reached"))
 		const alias1 = createTestEntity(MailAddressAliasTypeRef, { enabled: false })
-		userGroupInfo.mailAddressAliases = Array(30).fill(alias1)
+		userInfo.userGroupInfo.mailAddressAliases = Array(30).fill(alias1)
 		await o(() => model.addAlias("overthelimit@tuta.com", "Over, the Limit")).asyncThrows(UserError)
 	})
 })

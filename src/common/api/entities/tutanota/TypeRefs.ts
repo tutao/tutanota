@@ -2529,3 +2529,18 @@ export type MailGroupPostOut = {
 
 	mailGroup: Id;
 }
+export const ChangePrimaryAddressServicePutInTypeRef: TypeRef<ChangePrimaryAddressServicePutIn> = new TypeRef("tutanota", 1671)
+
+export function createChangePrimaryAddressServicePutIn(values: StrippedEntity<ChangePrimaryAddressServicePutIn>): ChangePrimaryAddressServicePutIn {
+    return Object.assign(create(typeModels[ChangePrimaryAddressServicePutInTypeRef.typeId], ChangePrimaryAddressServicePutInTypeRef), values)
+}
+
+export type ChangePrimaryAddressServicePutIn = {
+	_type: TypeRef<ChangePrimaryAddressServicePutIn>;
+	_original?: ChangePrimaryAddressServicePutIn
+
+	_format: NumberString;
+	address: string;
+
+	user: Id;
+}

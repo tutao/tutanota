@@ -85,7 +85,10 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			}
 			this.mailAddressTableModel = this.isItMe()
 				? await locator.mailAddressTableModelForOwnMailbox()
-				: await locator.mailAddressTableModelForAdmin(mailMembership.group, user._id, this.userGroupInfo)
+				: await locator.mailAddressTableModelForAdmin(mailMembership.group, user._id, {
+						user,
+						userGroupInfo: this.userGroupInfo,
+				  })
 			m.redraw()
 		})
 

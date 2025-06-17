@@ -5,7 +5,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { EventController } from "../../api/main/EventController.js"
 import { OperationType } from "../../api/common/TutanotaConstants.js"
 import { EmailDomainData, getAvailableDomains } from "./MailAddressesUtils.js"
-import { GroupInfo, GroupInfoTypeRef, MailAddressAliasServiceReturn } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfo, GroupInfoTypeRef, MailAddressAliasServiceReturn, User } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, lazyMemoized } from "@tutao/tutanota-utils"
 import { LimitReachedError } from "../../api/common/error/RestError.js"
 import { UserError } from "../../api/main/UserError.js"
@@ -39,6 +39,11 @@ export interface MailAddressNameChanger {
 	removeSenderName(address: string): Promise<AddressToName>
 }
 
+export interface UserInfo {
+	user: User
+	userGroupInfo: GroupInfo
+}
+
 /** Model for showing the list of mail addresses and optionally adding more, enabling/disabling/setting names for them. */
 export class MailAddressTableModel {
 	private nameMappings: AddressToName | null = null
@@ -64,7 +69,7 @@ export class MailAddressTableModel {
 		private readonly mailAddressFacade: MailAddressFacade,
 		private readonly logins: LoginController,
 		private readonly eventController: EventController,
-		private userGroupInfo: GroupInfo,
+		private userInfo: UserInfo,
 		private readonly nameChanger: MailAddressNameChanger,
 		private readonly redraw: () => unknown,
 	) {}
@@ -87,14 +92,14 @@ export class MailAddressTableModel {
 			return []
 		}
 
-		const primaryAddress = assertNotNull(this.userGroupInfo.mailAddress)
+		const primaryAddress = assertNotNull(this.userInfo.userGroupInfo.mailAddress)
 		const primaryAddressInfo = {
 			name: nameMappings.get(primaryAddress) ?? "",
 			address: primaryAddress,
 			status: AddressStatus.Primary,
 		}
 
-		const aliasesInfo = this.userGroupInfo.mailAddressAliases
+		const aliasesInfo = this.userInfo.userGroupInfo.mailAddressAliases
 			.slice()
 			.sort((a, b) => (a.mailAddress > b.mailAddress ? 1 : -1))
 			.map(({ mailAddress, enabled }) => {
@@ -122,7 +127,7 @@ export class MailAddressTableModel {
 	 */
 	async addAlias(alias: string, senderName: string): Promise<void> {
 		try {
-			await this.mailAddressFacade.addMailAlias(this.userGroupInfo.group, alias)
+			await this.mailAddressFacade.addMailAlias(this.userInfo.userGroupInfo.group, alias)
 			await this.setAliasName(alias, senderName)
 		} catch (e) {
 			if (e instanceof LimitReachedError) {
@@ -137,22 +142,33 @@ export class MailAddressTableModel {
 	}
 
 	async setAliasStatus(address: string, restore: boolean): Promise<void> {
-		await this.mailAddressFacade.setMailAliasStatus(this.userGroupInfo.group, address, restore)
+		await this.mailAddressFacade.setMailAliasStatus(this.userInfo.userGroupInfo.group, address, restore)
 		this.redraw()
 		this.nameMappings = await this.nameChanger.removeSenderName(address)
 		this.redraw()
 	}
 
+	async setPrimaryAddress(address: string): Promise<void> {
+		const oldPrimaryAddress = assertNotNull(this.userInfo.userGroupInfo.mailAddress)
+		await this.mailAddressFacade.setPrimaryMailAddress(this.userInfo.user._id, address)
+
+		const defaultSender = this.logins.getUserController().props.defaultSender
+		if (defaultSender && defaultSender === oldPrimaryAddress) {
+			this.logins.getUserController().props.defaultSender = address
+			this.entityClient.update(this.logins.getUserController().props)
+		}
+	}
+
 	defaultSenderName(): string {
-		return this.userGroupInfo.name
+		return this.userInfo.userGroupInfo.name
 	}
 
 	private entityEventsReceived = async (updates: ReadonlyArray<EntityUpdateData>) => {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				await this.loadNames()
-			} else if (isUpdateFor(this.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
-				this.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
+			} else if (isUpdateFor(this.userInfo.userGroupInfo, update) && update.operation === OperationType.UPDATE) {
+				this.userInfo.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userInfo.userGroupInfo._id)
 				await this.loadAliasCount()
 			}
 		}
@@ -164,7 +180,7 @@ export class MailAddressTableModel {
 	}
 
 	private async loadAliasCount() {
-		this.aliasCount = await this.mailAddressFacade.getAliasCounters(this.userGroupInfo.group)
+		this.aliasCount = await this.mailAddressFacade.getAliasCounters(this.userInfo.userGroupInfo.group)
 	}
 
 	/**
@@ -177,7 +193,7 @@ export class MailAddressTableModel {
 		// If so, show an upgrade dialog. Otherwise, inform the user that they reached the maximum number of aliases.
 		const plansWithMoreAliases = await getAvailableMatchingPlans(
 			this.serviceExecutor,
-			(config) => Number(config.nbrOfAliases) > this.userGroupInfo.mailAddressAliases.length,
+			(config) => Number(config.nbrOfAliases) > this.userInfo.userGroupInfo.mailAddressAliases.length,
 		)
 		if (plansWithMoreAliases.length > 0) {
 			throw new UpgradeRequiredError("moreAliasesRequired_msg", plansWithMoreAliases)
