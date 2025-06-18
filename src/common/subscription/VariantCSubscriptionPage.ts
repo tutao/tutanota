@@ -312,15 +312,13 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 	}
 }
 
-export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, update: VoidFunction): ButtonAttrs {
-	const isBusiness = businessUse()
-
+export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, update?: VoidFunction): ButtonAttrs {
 	return {
-		label: isBusiness ? "privateUse_action" : "forBusiness_action",
+		label: businessUse() ? "privateUse_action" : "forBusiness_action",
 		type: ButtonType.Primary,
 		class: ["block"], // Use block class to override the `flex` class, thus allowing the button text to be wrapped using ellipses.
 		icon:
-			isBusiness || styles.isMobileLayout()
+			businessUse() || styles.isMobileLayout()
 				? null
 				: m(Icon, {
 						icon: Icons.Business,
@@ -332,8 +330,8 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, upd
 						},
 				  }),
 		click: () => {
-			businessUse(!isBusiness)
-			update()
+			businessUse(!businessUse())
+			update?.()
 		},
 	}
 }

@@ -24,10 +24,11 @@ type PlanSelectorAttr = {
 	hasCampaign: boolean
 	availablePlans: AvailablePlanType[]
 	isApplePrice: boolean
+	currentPlan?: PlanType
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
-	private readonly currentPlan: Stream<AvailablePlans> = stream(PlanType.Revolutionary)
+	private readonly selectedPlan: Stream<AvailablePlans> = stream(PlanType.Revolutionary)
 	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
 
 	/**
@@ -47,17 +48,17 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	oncreate({ attrs: { availablePlans } }: Vnode<PlanSelectorAttr>) {
 		if (availablePlans.includes(PlanType.Free) && availablePlans.length === 1) {
 			// Only Free plan is available. This would be the case if the user already has a paid Apple account.
-			this.currentPlan(PlanType.Free)
+			this.selectedPlan(PlanType.Free)
 		} else if (!availablePlans.includes(PlanType.Revolutionary) && availablePlans.includes(PlanType.Legend)) {
 			// Only Legend plan is available
-			this.currentPlan(PlanType.Legend)
+			this.selectedPlan(PlanType.Legend)
 		}
 
 		// Set the scale of the selected plan box to `1.03` after a timeout to animate the scale of the selected plan box on loading.
 		this.scaleTimeout = setTimeout(() => {
 			this.scale = { ...this.scale, [PlanType.Revolutionary]: SELECTED_PLAN_SCALE.toString() }
 			// Subscribe to the current plan to update the scale of the selected plan box when the user selects a different plan.
-			this.currentPlan.map(this.scaleCurrentPlan)
+			this.selectedPlan.map(this.scaleCurrentPlan)
 		}, 500)
 
 		this.handleResize()
@@ -77,6 +78,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 	view({ attrs: { options, priceAndConfigProvider, actionButtons, availablePlans, hasCampaign, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
+		const isPaidPlanSelected = this.selectedPlan() === PlanType.Revolutionary || this.selectedPlan() === PlanType.Legend
 		const hidePaidPlans = availablePlans.includes(PlanType.Free) && availablePlans.length === 1
 
 		const renderFootnoteElement = (): Children => {
@@ -116,7 +118,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				// The label text for go european campaign shall not be translated.
 				label: "continue_action",
 				type: LoginButtonType.FullWidth,
-				onclick: (event, dom) => actionButtons[this.currentPlan() as AvailablePlans]().onclick(event, dom),
+				onclick: (event, dom) => actionButtons[this.selectedPlan() as AvailablePlans]().onclick(event, dom),
 				...(hasCampaign && {
 					// As we modify the size of the Login button for the campaign, the normal "Continue" button should have the same size to avoid layout shifting
 					class: "go-european-button",
@@ -200,11 +202,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 										price: priceStr,
 										referencePrice: referencePriceStr,
 										plan,
-										isSelected: plan === this.currentPlan(),
+										isSelected: plan === this.selectedPlan(),
 										isDisabled:
 											(plan === PlanType.Revolutionary && !availablePlans.includes(PlanType.Revolutionary)) ||
 											(plan === PlanType.Legend && !availablePlans.includes(PlanType.Legend)),
-										onclick: (newPlan) => this.currentPlan(newPlan),
+										onclick: (newPlan) => this.selectedPlan(newPlan),
 										scale: this.scale[plan],
 										selectedPaymentInterval: options.paymentInterval,
 										priceAndConfigProvider,
@@ -214,9 +216,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 								}),
 						),
 						m(FreePlanBox, {
-							isSelected: this.currentPlan() === PlanType.Free,
+							isSelected: this.selectedPlan() === PlanType.Free,
 							isDisabled: !availablePlans.includes(PlanType.Free),
-							select: () => this.currentPlan(PlanType.Free),
+							select: () => this.selectedPlan(PlanType.Free),
 							priceAndConfigProvider,
 							scale: this.scale[PlanType.Free],
 							hasCampaign,
