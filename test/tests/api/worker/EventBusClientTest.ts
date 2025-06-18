@@ -32,6 +32,7 @@ import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade"
 
 o.spec("EventBusClientTest", function () {
 	let ebc: EventBusClient
@@ -48,6 +49,7 @@ o.spec("EventBusClientTest", function () {
 	let socketFactory: (path: string) => WebSocket
 	let typeModelResolver: TypeModelResolver
 	let entityClient: EntityClient
+	let cryptoFacadeMock: CryptoFacade
 
 	function initEventBus() {
 		ebc = new EventBusClient(
@@ -61,6 +63,7 @@ o.spec("EventBusClientTest", function () {
 			progressTrackerMock,
 			syncTrackerMock,
 			typeModelResolver,
+			cryptoFacadeMock,
 		)
 	}
 
@@ -124,6 +127,7 @@ o.spec("EventBusClientTest", function () {
 		typeModelResolver = clientInitializedTypeModelResolver()
 		entityClient = new EntityClient(restClient, typeModelResolver)
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		cryptoFacadeMock = object()
 		initEventBus()
 	})
 
@@ -174,6 +178,7 @@ o.spec("EventBusClientTest", function () {
 				operation: OperationType.CREATE,
 				instanceId: update.instanceId,
 				instanceListId: update.instanceListId,
+				instance: null,
 			}
 
 			const eventsReceivedDefer = defer()

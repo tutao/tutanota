@@ -715,6 +715,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		mainInterface.progressTracker,
 		mainInterface.syncTracker,
 		typeModelResolver,
+		locator.crypto,
 	)
 	locator.login.init(locator.eventBusClient)
 	locator.Const = Const

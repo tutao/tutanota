@@ -902,17 +902,22 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					// No need to try to download something that's not there anymore
 					// We do not consult custom handlers here because they are only needed for list elements.
 					console.log("downloading create event for", getTypeString(typeRef), instanceListId, instanceId)
-					return this.entityRestClient
-						.loadParsedInstance(typeRef, [instanceListId, instanceId])
-						.then((entity) => this.storage.put(typeRef, entity))
-						.then(() => update)
-						.catch((e) => {
-							if (isExpectedErrorForSynchronization(e)) {
-								return null
-							} else {
-								throw e
-							}
-						})
+					if (update.instance) {
+						await this.storage.put(update.typeRef, update.instance)
+						return update
+					} else {
+						return this.entityRestClient
+							.loadParsedInstance(typeRef, [instanceListId, instanceId])
+							.then((entity) => this.storage.put(typeRef, entity))
+							.then(() => update)
+							.catch((e) => {
+								if (isExpectedErrorForSynchronization(e)) {
+									return null
+								} else {
+									throw e
+								}
+							})
+					}
 				} else {
 					return update
 				}
@@ -954,8 +959,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				if (isSameTypeRef(typeRef, GroupTypeRef)) {
 					console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + instanceId)
 				}
-				const newEntity = await this.entityRestClient.loadParsedInstance(typeRef, collapseId(instanceListId, instanceId))
-				await this.storage.put(typeRef, newEntity)
+
+				if (update.instance) {
+					await this.storage.put(update.typeRef, update.instance)
+				} else {
+					const newEntity = await this.entityRestClient.loadParsedInstance(typeRef, collapseId(instanceListId, instanceId))
+					await this.storage.put(typeRef, newEntity)
+				}
 				return update
 			} catch (e) {
 				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.

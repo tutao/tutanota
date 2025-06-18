@@ -134,6 +134,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		}
 
 		let createUpdate = function (typeRef: TypeRef<any>, listId: Id, id: Id, operation: OperationType): EntityUpdateData {
+			// fixme maybe pass the instance to the function?
 			return {
 				typeRef: typeRef,
 				instanceId: id,

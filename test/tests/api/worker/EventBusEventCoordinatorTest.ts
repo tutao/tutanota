@@ -97,6 +97,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				instanceId: userId,
 				instanceListId: "",
 				operation: OperationType.UPDATE,
+				instance: null,
 			},
 		]
 
@@ -117,6 +118,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				instanceListId,
 				instanceId,
 				operation: OperationType.CREATE,
+				instance: null,
 			},
 		]
 

@@ -52,14 +52,14 @@ import { Mail, MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataT
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
-import { Entity, ServerModelUntypedInstance } from "../common/EntityTypes"
+import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "../common/EntityTypes"
 import { InstancePipeline } from "./crypto/InstancePipeline"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
 import { parseKeyVersion } from "./facades/KeyLoaderFacade"
 import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
 import { CryptoFacade } from "./crypto/CryptoFacade"
-import { EntityAdapter } from "./crypto/EntityAdapter"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { EntityAdapter } from "./crypto/EntityAdapter"
 
 assertWorkerOrNode()
 
