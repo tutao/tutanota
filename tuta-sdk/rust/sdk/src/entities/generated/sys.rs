@@ -1268,6 +1268,8 @@ pub struct EntityUpdate {
 	pub operation: i64,
 	#[serde(rename = "2556")]
 	pub typeId: Option<i64>,
+	#[serde(rename = "2612")]
+	pub instance: Option<String>,
 }
 
 impl Entity for EntityUpdate {

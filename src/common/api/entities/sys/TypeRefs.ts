@@ -802,6 +802,7 @@ export type EntityUpdate = {
 	instanceId: string;
 	operation: NumberString;
 	typeId: null | NumberString;
+	instance: null | string;
 }
 export const VersionTypeRef: TypeRef<Version> = new TypeRef("sys", 480)
 
