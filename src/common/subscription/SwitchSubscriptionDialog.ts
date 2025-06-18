@@ -51,14 +51,21 @@ import { getPrivateBusinessSwitchButton } from "./VariantCSubscriptionPage.js"
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
  * Note: Only shown if the user is already a Premium user.
  */
-// FIXME: Do we need to allow both old and new plan selector? Can we use the new one for all?
-export async function showSwitchDialog(
-	customer: Customer,
-	accountingInfo: AccountingInfo,
-	lastBooking: Booking,
-	acceptedPlans: AvailablePlanType[],
-	reason: MaybeTranslation | null,
-): Promise<void> {
+export async function showSwitchDialog({
+	customer,
+	accountingInfo,
+	lastBooking,
+	acceptedPlans,
+	reason,
+	useNewPlanSelector = false,
+}: {
+	customer: Customer
+	accountingInfo: AccountingInfo
+	lastBooking: Booking
+	acceptedPlans: AvailablePlanType[]
+	reason: MaybeTranslation | null
+	useNewPlanSelector?: boolean
+}): Promise<void> {
 	if (hasRunningAppStoreSubscription(accountingInfo) && !isIOSApp()) {
 		await showManageThroughAppStoreDialog()
 		return
@@ -274,7 +281,9 @@ function createPlanButton(
 			) {
 				return
 			}
-			if (await Dialog.confirm(lang.getTranslation("upgradePlan_msg", { "{plan}": PlanTypeToName[targetSubscription] }))) {
+			if (
+				await Dialog.confirm(lang.getTranslation("upgradePlan_msg", { "{plan}": PlanTypeToName[targetSubscription] }), "paymentDataValidation_action")
+			) {
 				await showProgressDialog(
 					"pleaseWait_msg",
 					doSwitchToPaidPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo),

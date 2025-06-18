@@ -176,7 +176,13 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					console.warn("No booking but payment method is AppStore?")
 					return
 				}
-				return showSwitchDialog(this.customer, this.accountingInfo, lastBooking, AvailablePlans, null)
+				return showSwitchDialog({
+					customer: this.customer,
+					accountingInfo: this.accountingInfo,
+					lastBooking,
+					acceptedPlans: AvailablePlans,
+					reason: null,
+				})
 			}
 		} else {
 			const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
