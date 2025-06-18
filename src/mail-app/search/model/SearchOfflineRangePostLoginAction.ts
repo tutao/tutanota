@@ -10,13 +10,13 @@ import { SessionType } from "../../../common/api/common/SessionType"
 export class SearchOfflineRangePostLoginAction implements PostLoginAction {
 	constructor(private readonly offlineStorageSettings: OfflineStorageSettingsModel, private readonly indexer: Indexer) {}
 
-	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {}
-
-	async onFullLoginSuccess(event: LoggedInEvent): Promise<void> {
+	async onPartialLoginSuccess(event: LoggedInEvent): Promise<void> {
 		if (event.sessionType === SessionType.Persistent) {
 			await this.offlineStorageSettings.init()
 			// noinspection ES6MissingAwait
 			this.indexer.resizeMailIndex(this.offlineStorageSettings.getTimeRange().getTime())
 		}
 	}
+
+	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {}
 }
