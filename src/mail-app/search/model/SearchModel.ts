@@ -52,6 +52,11 @@ export class SearchModel {
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
+		const lastQueryDates = {
+			start: this.lastQuery?.restriction?.start,
+			end: this.lastQuery?.restriction?.end,
+		}
+
 		if (this.lastQuery && searchQueryEquals(searchQuery, this.lastQuery)) {
 			return this.lastSearchPromise
 		}
@@ -125,7 +130,8 @@ export class SearchModel {
 			}
 
 			const hasNewPaidPlan = await calendarModel.canLoadBirthdaysCalendar()
-			if (hasNewPaidPlan) {
+			const isNewSearchRange = lastQueryDates.start !== searchQuery.restriction.start || lastQueryDates.end !== searchQuery.restriction.end
+			if (hasNewPaidPlan && isNewSearchRange) {
 				await calendarModel.loadContactsBirthdays()
 			}
 

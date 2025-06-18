@@ -16,7 +16,7 @@ import {
 	isClientOnlyCalendar,
 } from "./CalendarUtils.js"
 import { Birthday, CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { elementIdPart, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
@@ -320,7 +320,12 @@ export class CalendarEventsRepository {
 
 	public pushClientOnlyEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
 		let clientOnlyEventsOfThisMonth = this.clientOnlyEvents.get(month) ?? []
-		clientOnlyEventsOfThisMonth.push({ baseYear, event: newEvent })
+		const index = clientOnlyEventsOfThisMonth.findIndex((ev) => getElementId(ev.event) === getElementId(newEvent))
+		if (index === -1) {
+			clientOnlyEventsOfThisMonth.push({ baseYear, event: newEvent })
+		} else {
+			clientOnlyEventsOfThisMonth[index] = { baseYear, event: newEvent }
+		}
 		this.clientOnlyEvents.set(month, clientOnlyEventsOfThisMonth)
 	}
 
