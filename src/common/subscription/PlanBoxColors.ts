@@ -20,12 +20,7 @@ export const planBoxColors = {
 /**
  * Determines the background color for the PlanBox component based on the selection state and theme.
  */
-function getBgColor(isSelected: boolean, isDisabled: boolean) {
-	// FIXME: Refine the design
-	if (isDisabled) {
-		return theme.content_border
-	}
-
+function getBgColor(isSelected: boolean) {
 	if (locator.themeController.isLightTheme()) {
 		if (isSelected) {
 			return theme.experimental_primary_container
@@ -55,9 +50,21 @@ function getBoxShadow() {
 /**
  * Determines the text color for the PlanBox component based on the selection state and theme.
  */
-function getTextColor(isSelected: boolean, hasCampaign?: boolean) {
+function getTextColor(isSelected: boolean, isDisabled: boolean, hasCampaign?: boolean) {
 	const localTheme = hasCampaign ? getBlueTheme() : theme
-	return `${isSelected ? localTheme.experimental_on_primary_container : localTheme.content_fg}`
+	if (isDisabled) {
+		if (locator.themeController.isLightTheme()) {
+			return "#b8b8b8"
+		} else {
+			return "#d5d5d5"
+		}
+	}
+
+	if (isSelected) {
+		return localTheme.experimental_on_primary_container
+	} else {
+		return localTheme.content_fg
+	}
 }
 
 /**
@@ -82,10 +89,10 @@ function getOutlineColor(isSelected: boolean) {
 /**
  * Determines the icon and divider color for the PlanBox component based on the selection state and theme.
  */
-function getFeatureIconColor(isSelected: boolean, planType: PlanType, hasCampaign?: boolean) {
+function getFeatureIconColor(isSelected: boolean, isDisabled: boolean, planType: PlanType, hasCampaign?: boolean) {
 	const localTheme = hasCampaign ? getBlueTheme() : theme
 
-	if (planType === PlanType.Free) {
+	if (planType === PlanType.Free || isDisabled) {
 		if (isSelected) {
 			return localTheme.experimental_tertiary
 		} else if (locator.themeController.isLightTheme()) {

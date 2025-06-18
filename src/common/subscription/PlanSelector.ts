@@ -45,12 +45,12 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		[PlanType.Free]: "initial",
 	}
 
-	oncreate({ attrs: { availablePlans } }: Vnode<PlanSelectorAttr>) {
+	oncreate({ attrs: { availablePlans, currentPlan } }: Vnode<PlanSelectorAttr>) {
 		if (availablePlans.includes(PlanType.Free) && availablePlans.length === 1) {
 			// Only Free plan is available. This would be the case if the user already has a paid Apple account.
 			this.selectedPlan(PlanType.Free)
-		} else if (!availablePlans.includes(PlanType.Revolutionary) && availablePlans.includes(PlanType.Legend)) {
-			// Only Legend plan is available
+		} else if ((!availablePlans.includes(PlanType.Revolutionary) && availablePlans.includes(PlanType.Legend)) || currentPlan === PlanType.Revolutionary) {
+			// Only Legend plan is available or the current plan is Revolutionary
 			this.selectedPlan(PlanType.Legend)
 		}
 
@@ -76,7 +76,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
-	view({ attrs: { options, priceAndConfigProvider, actionButtons, availablePlans, hasCampaign, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
+	view({
+		attrs: { options, priceAndConfigProvider, actionButtons, availablePlans, hasCampaign, isApplePrice, currentPlan },
+	}: Vnode<PlanSelectorAttr>): Children {
+		console.log("currentPlan", currentPlan)
+
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 		const isPaidPlanSelected = this.selectedPlan() === PlanType.Revolutionary || this.selectedPlan() === PlanType.Legend
 		const hidePaidPlans = availablePlans.includes(PlanType.Free) && availablePlans.length === 1
@@ -205,7 +209,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 										isSelected: plan === this.selectedPlan(),
 										isDisabled:
 											(plan === PlanType.Revolutionary && !availablePlans.includes(PlanType.Revolutionary)) ||
-											(plan === PlanType.Legend && !availablePlans.includes(PlanType.Legend)),
+											(plan === PlanType.Legend && !availablePlans.includes(PlanType.Legend)) ||
+											currentPlan === plan,
+										isCurrentPlan: currentPlan === plan,
 										onclick: (newPlan) => this.selectedPlan(newPlan),
 										scale: this.scale[plan],
 										selectedPaymentInterval: options.paymentInterval,
@@ -217,7 +223,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 						),
 						m(FreePlanBox, {
 							isSelected: this.selectedPlan() === PlanType.Free,
-							isDisabled: !availablePlans.includes(PlanType.Free),
+							isDisabled: !availablePlans.includes(PlanType.Free) || currentPlan === PlanType.Free,
+							isCurrentPlan: currentPlan === PlanType.Free,
 							select: () => this.selectedPlan(PlanType.Free),
 							priceAndConfigProvider,
 							scale: this.scale[PlanType.Free],

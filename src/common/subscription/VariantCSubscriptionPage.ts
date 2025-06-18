@@ -141,6 +141,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
 				availablePlans,
 				isApplePrice,
+				currentPlan: data.currentPlan ?? undefined,
 			}),
 		])
 	}

@@ -11,10 +11,12 @@ import { TranslationKeyType } from "../misc/TranslationKey.js"
 import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
 import { styles } from "../gui/styles.js"
 import { getFeaturePlaceholderReplacement } from "./SubscriptionUtils.js"
+import { CurrentPlanLabel } from "./parts/CurrentPlanLabel.js"
 
 type FreePlanBoxAttrs = {
 	isSelected: boolean
 	isDisabled: boolean
+	isCurrentPlan: boolean
 	select: VoidFunction
 	priceAndConfigProvider: PriceAndConfigProvider
 	scale: CSSStyleDeclaration["scale"]
@@ -22,8 +24,8 @@ type FreePlanBoxAttrs = {
 }
 
 export class FreePlanBox implements Component<FreePlanBoxAttrs> {
-	view({ attrs: { isSelected, isDisabled, select, priceAndConfigProvider, scale, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
-		const renderFeature = this.generateRenderFeature(priceAndConfigProvider, isSelected, hasCampaign)
+	view({ attrs: { isSelected, isDisabled, isCurrentPlan, select, priceAndConfigProvider, scale, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
+		const renderFeature = this.generateRenderFeature(priceAndConfigProvider, isSelected, isDisabled, hasCampaign)
 		// Only for Go European campaign, this should be removed after the campaign.
 		const localTheme = hasCampaign ? getBlueTheme() : theme
 
@@ -31,8 +33,8 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
 				style: {
-					"background-color": planBoxColors.getBgColor(isSelected, isDisabled),
-					color: planBoxColors.getTextColor(isSelected, hasCampaign),
+					"background-color": planBoxColors.getBgColor(isSelected),
+					color: planBoxColors.getTextColor(isSelected, isDisabled, hasCampaign),
 					display: "flex",
 					"z-index": isSelected ? "1" : "initial",
 					scale,
@@ -53,22 +55,27 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 				m(
 					".flex-space-between.items-center.pb",
 					m(
-						// we need some margin for the discount banner for longer translations shown on the website
-						".text-center.flex.col.center-horizontally.m-0.font-mdio",
-						{
-							style: {
-								"font-size": px(styles.isMobileLayout() ? 18 : 20),
+						".flex.items-center.column-gap",
+						m(
+							// we need some margin for the discount banner for longer translations shown on the website
+							".text-center.flex.col.center-horizontally.m-0.font-mdio",
+							{
+								style: {
+									"font-size": px(styles.isMobileLayout() ? 18 : 20),
+								},
 							},
-						},
-						"Free",
+							"Free",
+						),
+						isCurrentPlan && m(CurrentPlanLabel),
 					),
-					m("input[type=radio].m-0.big-radio", {
-						name: "BuyOptionBox",
-						checked: isSelected,
-						style: {
-							"accent-color": localTheme.experimental_on_primary_container,
-						},
-					}),
+					!isDisabled &&
+						m("input[type=radio].m-0.big-radio", {
+							name: "BuyOptionBox",
+							checked: isSelected,
+							style: {
+								"accent-color": localTheme.experimental_on_primary_container,
+							},
+						}),
 				),
 
 				m(
@@ -95,7 +102,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 		return `${px(size.vpad_small)} ${px(size.hpad_medium)}`
 	}
 
-	private generateRenderFeature = (provider: PriceAndConfigProvider, isSelected: boolean, hasCampaign: boolean) => {
+	private generateRenderFeature = (provider: PriceAndConfigProvider, isSelected: boolean, isDisabled: boolean, hasCampaign: boolean) => {
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey, shouldShift?: boolean) => {
 			return m(
 				".flex",
@@ -111,7 +118,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 						icon,
 						size: IconSize.Normal,
 						style: {
-							fill: planBoxColors.getFeatureIconColor(isSelected, PlanType.Free, hasCampaign),
+							fill: planBoxColors.getFeatureIconColor(isSelected, isDisabled, PlanType.Free, hasCampaign),
 						},
 					}),
 					m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, PlanType.Free, provider))),

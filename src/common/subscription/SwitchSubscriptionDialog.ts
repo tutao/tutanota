@@ -274,7 +274,7 @@ function createPlanButton(
 			) {
 				return
 			}
-			if (await Dialog.confirm(lang.getTranslation("upgradePlan_msg"))) {
+			if (await Dialog.confirm(lang.getTranslation("upgradePlan_msg", { "{plan}": PlanTypeToName[targetSubscription] }))) {
 				await showProgressDialog(
 					"pleaseWait_msg",
 					doSwitchToPaidPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo),
