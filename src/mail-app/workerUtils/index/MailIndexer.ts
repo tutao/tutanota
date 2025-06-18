@@ -308,6 +308,21 @@ export class MailIndexer {
 			const backend = assertNotNull(this._backend, "MailIndexer#init wasn't called yet!")
 			await backend.truncateAllCurrentIndexTimestamps(newTimestamp)
 			await this.updateCurrentIndexTimestamp(user)
+
+			// Inform the UI that it's changed.
+			//
+			// If we're somehow currently indexing, this will be updated later.
+			if (!this.isIndexing) {
+				await this.infoMessageHandler.onSearchIndexStateUpdate({
+					initializing: false,
+					mailIndexEnabled: this.mailIndexingEnabled,
+					progress: 0,
+					currentMailIndexTimestamp: this.currentIndexTimestamp,
+					aimedMailIndexTimestamp: this.currentIndexTimestamp,
+					indexedMailCount: 0,
+					failedIndexingUpTo: null,
+				})
+			}
 		}
 	}
 

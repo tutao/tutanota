@@ -611,26 +611,38 @@ o.spec("MailIndexer", () => {
 
 	o.spec("resizeMailIndex", function () {
 		o.test("truncates if already indexed range", async function () {
-			let newOldTimestamp = 2000
-			const currentIndexTimestamp = newOldTimestamp - 1000
+			const startingTimestamp = 1000
+			const targetTimestamp = 2000
 
 			// shouldn't be used by anything
 			bulkMailLoader = object()
 
+			let currentTimestamp = startingTimestamp
 			when(backend.truncateAllCurrentIndexTimestamps(matchers.anything())).thenDo(async (timestamp) => {
-				newOldTimestamp = timestamp
+				currentTimestamp = timestamp
 			})
 
 			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenDo(async (_: string[]) => {
-				return new Map([[mailGroup1, currentIndexTimestamp]])
+				return new Map([[mailGroup1, currentTimestamp]])
 			})
 
 			await initWithEnabled(true)
-			await indexer.resizeMailIndex(user, newOldTimestamp)
+			await indexer.resizeMailIndex(user, targetTimestamp)
 
-			verify(backend.truncateAllCurrentIndexTimestamps(newOldTimestamp))
+			verify(backend.truncateAllCurrentIndexTimestamps(targetTimestamp))
 			verify(backend.getCurrentIndexTimestamps([mailGroup1]), { times: 2 })
 			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(
+				infoMessageHandler.onSearchIndexStateUpdate({
+					initializing: false,
+					mailIndexEnabled: true,
+					progress: 0,
+					currentMailIndexTimestamp: currentTimestamp,
+					aimedMailIndexTimestamp: currentTimestamp,
+					indexedMailCount: 0,
+					failedIndexingUpTo: null,
+				}),
+			)
 		})
 
 		o.test("extends", async function () {
