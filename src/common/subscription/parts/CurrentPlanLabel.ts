@@ -5,7 +5,7 @@ import { px, size } from "../../gui/size.js"
 export class CurrentPlanLabel implements Component {
 	view() {
 		return m(
-			"span.small",
+			"span.small.fit-height",
 			{
 				style: {
 					color: planBoxColors.getTextColor(false, false),

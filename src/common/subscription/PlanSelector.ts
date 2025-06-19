@@ -25,6 +25,8 @@ type PlanSelectorAttr = {
 	availablePlans: AvailablePlanType[]
 	isApplePrice: boolean
 	currentPlan?: PlanType
+	allowSwitchingPaymentInterval: boolean
+	showMultiUser: boolean
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -77,7 +79,17 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}
 
 	view({
-		attrs: { options, priceAndConfigProvider, actionButtons, availablePlans, hasCampaign, isApplePrice, currentPlan },
+		attrs: {
+			options,
+			priceAndConfigProvider,
+			actionButtons,
+			availablePlans,
+			hasCampaign,
+			isApplePrice,
+			currentPlan,
+			allowSwitchingPaymentInterval,
+			showMultiUser,
+		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		console.log("currentPlan", currentPlan)
 
@@ -165,9 +177,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			[
 				m(
 					"#plan-selector.flex.flex-column.gap-vpad-l",
-					!hidePaidPlans && renderPaymentIntervalSwitch(),
+					!hidePaidPlans && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch(),
 					m(
-						".flex-column",
+						`.flex-column${allowSwitchingPaymentInterval ? "" : ".mt"}`,
 						{
 							"data-testid": "dialog:select-subscription",
 							style: {
@@ -218,6 +230,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 										priceAndConfigProvider,
 										hasCampaign,
 										isApplePrice,
+										showMultiUser,
 									})
 								}),
 						),

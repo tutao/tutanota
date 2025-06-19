@@ -142,6 +142,8 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				availablePlans,
 				isApplePrice,
 				currentPlan: data.currentPlan ?? undefined,
+				allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
+				showMultiUser: false,
 			}),
 		])
 	}

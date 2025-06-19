@@ -35,6 +35,7 @@ type PlanBoxAttrs = {
 	scale: CSSStyleDeclaration["scale"]
 	hasCampaign: boolean
 	isApplePrice: boolean
+	showMultiUser: boolean
 }
 
 export class PaidPlanBox implements Component<PlanBoxAttrs> {
@@ -66,14 +67,26 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 			scale,
 			hasCampaign,
 			isApplePrice,
+			showMultiUser,
 		},
 	}: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const strikethroughPrice = isYearly ? referencePrice : undefined
-		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected, isDisabled, hasCampaign)
 		// Only for Go European campaign as the campaign needs to use the blue theme always. This should be removed after the campaign.
 		const localTheme = hasCampaign ? getBlueTheme() : theme
+
+		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected, isDisabled, hasCampaign)
+		const getPriceHintStr = (): String => {
+			if (showMultiUser) {
+				return lang.get("pricing.perUserMonth_label")
+			}
+			if (isApplePrice && isYearly) {
+				return lang.get("pricing.perYear_label")
+			} else {
+				return lang.get("pricing.perMonth_label")
+			}
+		}
 
 		return m(
 			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
@@ -136,14 +149,15 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 								  }),
 						},
 					},
-					!isDisabled &&
-						m("input[type=radio].m-0.big-radio", {
-							name: "BuyOptionBox",
-							checked: isSelected,
-							style: {
-								"accent-color": localTheme.experimental_on_primary_container,
-							},
-						}),
+					m("input[type=radio].m-0.big-radio", {
+						name: "BuyOptionBox",
+						checked: isSelected,
+						style: {
+							"accent-color": localTheme.experimental_on_primary_container,
+							opacity: isDisabled ? "0" : "1",
+						},
+						disabled: isDisabled,
+					}),
 					m(
 						".text-center.flex.col.center-horizontally.m-0.font-mdio",
 						{
@@ -158,12 +172,12 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 					".flex.mt-s",
 					{
 						style: {
-							"justify-content": isCurrentPlan ? "space-between" : isLegendPlan ? "start" : "end",
+							"justify-content": isLegendPlan ? "start" : "end",
 							"flex-direction": isLegendPlan ? "row-reverse" : "row",
+							height: px(size.button_height_compact),
 						},
 					},
-					isCurrentPlan && m(CurrentPlanLabel),
-					m(".smaller", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
+					isCurrentPlan ? m(CurrentPlanLabel) : m(".smaller", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
 				),
 				m(".flex-space-between.gap-hpad.mt.mb", { style: { "flex-direction": isLegendPlan ? "row-reverse" : "row" } }, [
 					m(
@@ -220,7 +234,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						m(
 							".small.flex",
 							{ style: { "justify-content": "center", "column-gap": px(1) } },
-							m("span", isApplePrice && isYearly ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")),
+							m("span", getPriceHintStr()),
 							hasCampaign && m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
 					),

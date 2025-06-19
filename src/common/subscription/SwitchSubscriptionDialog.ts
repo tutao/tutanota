@@ -87,7 +87,6 @@ export async function showSwitchDialog({
 	const businessUse = stream(currentPlanInfo.businessUse)
 	const paymentInterval = stream(PaymentInterval.Yearly) // always default to yearly
 	const options = { businessUse, paymentInterval }
-	// FIXME: Check if it is OK to ignore for personal plans
 	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
 
 	if (currentPlanInfo.planType != null && LegacyPlans.includes(currentPlanInfo.planType)) {
@@ -144,6 +143,8 @@ export async function showSwitchDialog({
 					availablePlans: acceptedPlans,
 					isApplePrice: false,
 					currentPlan: currentPlanInfo.planType,
+					allowSwitchingPaymentInterval: currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
+					showMultiUser: multipleUsersAllowed,
 				}),
 			)
 		},
