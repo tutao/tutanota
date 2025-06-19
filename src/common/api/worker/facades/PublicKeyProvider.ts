@@ -44,7 +44,7 @@ export class PublicKeyProvider {
 
 	async loadPubKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<Versioned<PublicKey>> {
 		const requestData = createPublicKeyGetIn({
-			version: version ? String(version) : null,
+			version: version != null ? String(version) : null,
 			identifier: pubKeyIdentifier.identifier,
 			identifierType: pubKeyIdentifier.identifierType,
 		})
