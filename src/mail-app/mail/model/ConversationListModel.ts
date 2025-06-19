@@ -42,12 +42,12 @@ export interface LoadedConversation {
 	// list ID of the conversation
 	readonly conversationId: Id
 
-	// mails in the conversation that are in the current list
+	// mail set entry IDs in the conversation that are in the current list
 	//
 	// this is assumed to be sorted by order
 	readonly mails: Id[]
 
-	// element ID of the mail to display
+	// element ID of the mail set entry to display
 	displayedMail: Id | null
 }
 
@@ -242,6 +242,9 @@ export class ConversationListModel implements MailSetListModel {
 			}
 		} else {
 			this.conversationMap.delete(conversation.conversationId)
+			// we set displayedMail to null because deleteLoadedItem is async, meaning the conversation might still be in the list
+			// while the mail is deleted. so if we try to display the mail before the conversation is deleted, it will err.
+			conversation.displayedMail = null
 			await this.listModel.deleteLoadedItem(conversation.conversationId)
 		}
 	}
