@@ -240,8 +240,10 @@ ANDROID_LIB_ROOT=$4
      fi
 
      make clean
+     # avoid building libssl
+     # see https://github.com/openssl/openssl/issues/4597
      PATH=${TOOLCHAIN_BIN_PATH}:${PATH} \
-         make build_libs
+         make build_generated libcrypto.a
 
      if [[ $? -ne 0 ]]; then
          echo "Error executing make for platform:${SQLCIPHER_TARGET_PLATFORM}"
