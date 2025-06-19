@@ -329,11 +329,14 @@ styles.registerStyle("main", () => {
 		".mt": {
 			"margin-top": px(size.vpad),
 		},
+		".mt-xxs": {
+			"margin-top": px(2),
+		},
 		".mt-xs": {
 			"margin-top": px(size.vpad_xs),
 		},
-		".mt-xxs": {
-			"margin-top": px(2),
+		".mt-xsm-15": {
+			"margin-top": px(size.vpad_xsm * 1.5),
 		},
 		".mt-s": {
 			"margin-top": px(size.vpad_small),
@@ -350,6 +353,9 @@ styles.registerStyle("main", () => {
 		".mt-form": {
 			"margin-top": px(size.hpad_medium),
 		},
+		".mt-hpad-small": {
+			"margin-top": px(size.hpad_small),
+		},
 		".mb-0": {
 			"margin-bottom": 0,
 		},
@@ -361,6 +367,9 @@ styles.registerStyle("main", () => {
 		},
 		".mb-xs": {
 			"margin-bottom": px(size.vpad_xs),
+		},
+		".mb-xsm-15": {
+			"margin-bottom": px(size.vpad_xsm * 1.5),
 		},
 		".mb-l": {
 			"margin-bottom": px(size.vpad_large),
@@ -447,6 +456,9 @@ styles.registerStyle("main", () => {
 		".p0": {
 			padding: "0",
 		},
+		".p-xsm": {
+			padding: px(size.vpad_xsm),
+		},
 		".pt": {
 			"padding-top": px(size.vpad),
 		},
@@ -467,6 +479,9 @@ styles.registerStyle("main", () => {
 		},
 		".pt-xl": {
 			"padding-top": px(size.vpad_xl),
+		},
+		".pt-xxs": {
+			"padding-top": px(size.vpad_xxs),
 		},
 		".pt-xs": {
 			"padding-top": px(size.vpad_xs),
@@ -490,6 +505,9 @@ styles.registerStyle("main", () => {
 		".drag": {
 			"touch-action": "auto",
 		},
+		".pb-xxs": {
+			"padding-bottom": px(size.vpad_xxs),
+		},
 		".pb-xs": {
 			"padding-bottom": px(size.vpad_xs),
 		},
@@ -510,9 +528,6 @@ styles.registerStyle("main", () => {
 		},
 		".pb-hpad-button": {
 			"padding-bottom": px(size.hpad_button),
-		},
-		".p-xsm": {
-			padding: px(size.vpad_xsm),
 		},
 		// allow scrolling across the floating button
 		".plr": {
@@ -572,6 +587,10 @@ styles.registerStyle("main", () => {
 		".plr-s": {
 			"padding-left": px(size.hpad_small),
 			"padding-right": px(size.hpad_small),
+		},
+		".plr-sm": {
+			"padding-left": px(6),
+			"padding-right": px(6),
 		},
 		".plr-m": {
 			"padding-left": px(size.hpad),
@@ -821,6 +840,9 @@ styles.registerStyle("main", () => {
 		},
 		".content-message-bg": {
 			"background-color": theme.content_message_bg,
+		},
+		".button-bubble-bg": {
+			"background-color": theme.button_bubble_bg,
 		},
 		".elevated-bg": {
 			"background-color": getElevatedBackground(),
@@ -1146,6 +1168,9 @@ styles.registerStyle("main", () => {
 		},
 		".gap-vpad-s": {
 			gap: px(size.vpad_small),
+		},
+		".gap-vpad-xs-15": {
+			gap: px(size.vpad_xsm * 1.5),
 		},
 		".gap-vpad-s-15": {
 			gap: px(size.vpad_small * 1.5),
@@ -3175,6 +3200,7 @@ styles.registerStyle("main", () => {
 			background: theme.content_accent,
 			height: px(2),
 			width: "100%",
+			"z-index": 1,
 		},
 		".time-indicator:before": {
 			content: "''",
