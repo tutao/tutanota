@@ -99,6 +99,7 @@ import { TutanotaError } from "@tutao/tutanota-error"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
+import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4
@@ -721,7 +722,7 @@ o.spec("KeyRotationFacade", function () {
 					o(update.groupKeyUpdatesForMembers).deepEquals([])
 				})
 
-				o("Rotated group has pending invitations, where no re-invite is possible", async function () {
+				o("Rotated group has pending invitations, where no re-invite is possible because recipient is not found", async function () {
 					keyRotationFacade.setPendingKeyRotations({
 						pwKey: null,
 						adminOrUserGroupKeyRotation: null,
@@ -744,6 +745,43 @@ o.spec("KeyRotationFacade", function () {
 
 					when(shareFacade.prepareGroupInvitation(anything(), groupInfo, [inviteeMailAddress], capability)).thenReject(
 						new RecipientsNotFoundError([inviteeMailAddress].join("\n")),
+					)
+
+					await keyRotationFacade.processPendingKeyRotation(user)
+
+					const captor = matchers.captor()
+					verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture()))
+					verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
+					const sentData: GroupKeyRotationPostIn = captor.value
+					o(sentData.groupKeyUpdates.length).equals(1)
+					const update = sentData.groupKeyUpdates[0]
+					o(update.group).equals(groupId)
+					o(update.groupKeyVersion).equals("1")
+					o(update.groupKeyUpdatesForMembers).deepEquals([])
+				})
+				o("Rotated group has pending invitations, where no re-invite is possible because key verification fails", async function () {
+					keyRotationFacade.setPendingKeyRotations({
+						pwKey: null,
+						adminOrUserGroupKeyRotation: null,
+						teamOrCustomerGroupKeyRotations: [],
+						userAreaGroupsKeyRotations: makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
+					})
+
+					prepareKeyMocks(cryptoWrapperMock)
+
+					const invitationId: IdTuple = [invitationsListId, "invitationElementId"]
+					const inviteeMailAddress = "inviteeMailAddress"
+					const capability = ShareCapability.Invite
+					when(entityClientMock.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([
+						createTestEntity(SentGroupInvitationTypeRef, {
+							receivedInvitation: invitationId,
+							inviteeMailAddress: inviteeMailAddress,
+							capability: capability,
+						}),
+					])
+
+					when(shareFacade.prepareGroupInvitation(anything(), groupInfo, [inviteeMailAddress], capability)).thenReject(
+						new KeyVerificationMismatchError("").setData([inviteeMailAddress]),
 					)
 
 					await keyRotationFacade.processPendingKeyRotation(user)
