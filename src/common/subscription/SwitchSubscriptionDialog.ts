@@ -90,6 +90,10 @@ export async function showSwitchDialog({
 	// FIXME: Check if it is OK to ignore for personal plans
 	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
 
+	if (currentPlanInfo.planType != null && LegacyPlans.includes(currentPlanInfo.planType)) {
+		reason = "currentPlanDiscontinued_msg"
+	}
+
 	const headerBarAttrs: DialogHeaderBarAttrs = {
 		left: [
 			{
@@ -274,13 +278,6 @@ function createPlanButton(
 		label: "buy_action",
 		...(shouldApplyDiscount && { class: "go-european-button" }),
 		onclick: async () => {
-			// Show an extra dialog in the case that someone is upgrading from a legacy plan to a new plan because they can't revert.
-			if (
-				LegacyPlans.includes(currentPlanInfo.planType) &&
-				!(await Dialog.confirm(lang.getTranslation("upgradePlan_msg", { "{plan}": PlanTypeToName[targetSubscription] })))
-			) {
-				return
-			}
 			if (
 				await Dialog.confirm(lang.getTranslation("upgradePlan_msg", { "{plan}": PlanTypeToName[targetSubscription] }), "paymentDataValidation_action")
 			) {
