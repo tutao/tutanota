@@ -49,7 +49,7 @@ ANDROID_LIB_ROOT=$4
  no-dsa no-dh no-ec no-ecdsa no-tls1 \
  no-rfc3779 no-whirlpool no-srp \
  no-mdc2 no-ecdh no-engine \
- no-srtp"
+ no-srtp no-quic -Wno-macro-redefined"
 
  rm -rf ${ANDROID_LIB_ROOT}
 
