@@ -60,7 +60,7 @@ export class PublicEncryptionKeyProvider {
 	 */
 	async loadPublicEncryptionKey(pubKeyIdentifier: PublicKeyIdentifier, version: KeyVersion | null): Promise<VerifiedPublicEncryptionKey> {
 		const requestData = createPublicKeyGetIn({
-			version: version ? String(version) : null,
+			version: version != null ? String(version) : null,
 			identifier: pubKeyIdentifier.identifier,
 			identifierType: pubKeyIdentifier.identifierType,
 		})
