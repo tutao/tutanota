@@ -378,22 +378,22 @@ o.spec("ApplicationWindow Test", function () {
 		o(url.searchParams.get("theme")).equals(themeJson)
 	})
 
-	o.test("redirect to start page after failing to load a page due to 404", async function () {
+	o.test("redirect to start page after failing to load a page", async function () {
 		const { wmMock, electronMock, electronLocalshortcutMock, themeFacade, remoteBridge } = standardMocks()
 		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, themeFacade, remoteBridge)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		await bwInstance.__loadedUrl.promise
 		bwInstance.__loadedUrl = defer()
-		bwInstance.webContents.callbacks["did-fail-load"]({}, -6, "ERR_FILE_NOT_FOUND")
+		bwInstance.webContents.callbacks["did-fail-load"]({}, -6)
 		await bwInstance.__loadedUrl.promise
 		o(bwInstance.loadURL.callCount).equals(2)
 		const themeJson = JSON.stringify(await themeFacade.getCurrentThemeWithFallback())
 		const url = new URL(bwInstance.loadURL.args[0])
 		o(url.searchParams.get("noAutoLogin")).equals("true")
 		o(url.searchParams.get("theme")).equals(themeJson)
-		downcast(w._browserWindow.webContents).callbacks["did-fail-load"]({}, -6, "ERR_SOME_OTHER_ONE")
+		downcast(w._browserWindow.webContents).callbacks["did-fail-load"]({}, -6)
 		await delay(10)
-		o(bwInstance.loadURL.callCount).equals(2)
+		o(bwInstance.loadURL.callCount).equals(3)
 	})
 
 	o.test("shortcut creation, linux", function () {
