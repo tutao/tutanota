@@ -2018,3 +2018,6 @@ export type TranslationKeyType =
 	| "zoomOut_action"
 	| "emptyString_msg"
 	| "pricing.firstYearDiscount_revo_legend_msg"
+	| "pricing.goEuropeanHeadline_msg"
+	| "pricing.goEuropeanHeadlineIos_msg"
+	| "pricing.firstYearDiscountIos_revo_legend_msg"

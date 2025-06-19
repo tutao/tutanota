@@ -185,7 +185,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					m("span", m("sup", "1")),
 					m(
 						"span",
-						lang.get("pricing.firstYearDiscount_revo_legend_msg", {
+						lang.get(isApplePrice ? "pricing.firstYearDiscountIos_revo_legend_msg" : "pricing.firstYearDiscount_revo_legend_msg", {
 							"{revo-price}": revoPrice,
 							"{legend-price}": legendPrice,
 						}),
@@ -216,7 +216,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				const hasFirstYearDiscount = (() => {
 					if (shouldShowApplePrices(accountingInfo)) {
 						const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[personalPlan].toLowerCase())
-						return hasCampaign && isPersonalPaidPlan && isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
+						return isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
 					} else {
 						return hasCampaign && isPersonalPaidPlan && isYearly
 					}

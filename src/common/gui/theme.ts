@@ -2,7 +2,6 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 import { isColorLight } from "./base/Color"
 import { logoDefaultGrey, tutaDunkel, tutaRed } from "./builtinThemes"
 import { getTutaLogoSvg } from "./base/Logo.js"
-import { client } from "../misc/ClientDetector.js"
 
 assertMainOrNodeBoot()
 
@@ -125,18 +124,5 @@ export function getLightOrDarkTutaLogo(isCalendarApp: boolean): string {
 		return getTutaLogoSvg(tutaRed, tutaDunkel)
 	} else {
 		return getTutaLogoSvg(logoDefaultGrey, logoDefaultGrey)
-	}
-}
-
-export function getCurrentThemeName(): "lightRed" | "lightBlue" | "darkRed" | "darkBlue" {
-	const isCalendarApp = client.isCalendarApp()
-	if (theme.themeId === "light") {
-		return isCalendarApp ? "lightBlue" : "lightRed"
-	} else if (theme.themeId === "light_secondary") {
-		return isCalendarApp ? "lightRed" : "lightBlue"
-	} else if (theme.themeId === "dark") {
-		return isCalendarApp ? "darkBlue" : "darkRed"
-	} else {
-		return isCalendarApp ? "darkRed" : "darkBlue"
 	}
 }

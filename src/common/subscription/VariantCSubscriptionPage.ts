@@ -125,7 +125,12 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 						style: { fill: theme.experimental_tertiary },
 					}),
 					// This text should not be translated to other languages.
-					m(".b.center.smaller", isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"),
+					m(
+						".b.center.smaller",
+						isIOSApp()
+							? lang.getTranslationText("pricing.goEuropeanHeadlineIos_msg")
+							: lang.getTranslation("pricing.goEuropeanHeadline_msg", { "{amount}": "50%" }).text,
+					),
 				),
 			// Headline for general messages
 			data.msg && m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", lang.getTranslationText(data.msg))),

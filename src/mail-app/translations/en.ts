@@ -1385,7 +1385,8 @@ export default {
 		"pricing.familyLegend_tooltip": "After choosing Legend, contact our support via the question mark to the left of your mailbox so that we can activate multi-user support. Each member will get a mailbox with 500 GB & 30 alias email addresses (€8 per user/mth). A shared mailbox (€8 per mth) also gets 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "After choosing Revolutionary, contact our support via the question mark to the left of your mailbox so that we can activate multi-user support. Each member will get a mailbox with 20 GB & 15 alias email addresses (€3 per user/mth). A shared mailbox (€3 per mth) also gets 20 GB.",
 		"pricing.family_label": "Family option",
-		"pricing.firstYearDiscount_revo_legend_msg": "Discount only applies for the first year. Following yearly price will be {revo-price} for Revolutionary and {legend-price} for Legend.",
+		"pricing.firstYearDiscount_revo_legend_msg": "Discount only applies for the first year. Following yearly price per month will be {revo-price} for Revolutionary and {legend-price} for Legend.",
+		"pricing.firstYearDiscountIos_revo_legend_msg": "Discount only applies for the first year. Following yearly price will be {revo-price} for Revolutionary and {legend-price} for Legend.",
 		"pricing.folders_label": "Unlimited folders",
 		"pricing.gdprDataProcessing_label": "GDPR data processing agreement",
 		"pricing.gdpr_label": "GDPR-compliant",
@@ -2033,5 +2034,7 @@ export default {
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
+		"pricing.goEuropeanHeadline_msg": "Go European: One-time offer, save {amount} now!",
+		"pricing.goEuropeanHeadlineIos_msg": "Go European: One-time offer, save now!"
 	}
 }

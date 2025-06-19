@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
-import { PlanBox } from "./PlanBox.js"
+import { PaidPlanBox } from "./PaidPlanBox.js"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
@@ -72,7 +72,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 	view({ attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, hidePaidPlans, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
-		const isPaidPlanSelected = this.currentPlan() === PlanType.Revolutionary || this.currentPlan() === PlanType.Legend
 
 		const renderFootnoteElement = (): Children => {
 			const getRevoPriceStrProps = {
@@ -95,7 +94,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					m("span", m("sup", "1")),
 					m(
 						"span",
-						lang.get("pricing.firstYearDiscount_revo_legend_msg", {
+						lang.get(isApplePrice ? "pricing.firstYearDiscountIos_revo_legend_msg" : "pricing.firstYearDiscount_revo_legend_msg", {
 							"{revo-price}": revoRefPriceStr ?? "",
 							"{legend-price}": legendRefPriceStr ?? "",
 						}),
@@ -109,25 +108,23 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		const renderActionButton = (): Children => {
 			return m(LoginButton, {
 				// The label text for go european campaign shall not be translated.
-				label: hasCampaign && isPaidPlanSelected ? lang.makeTranslation("", "Go European") : "continue_action",
+				label: "continue_action",
 				type: LoginButtonType.FullWidth,
 				onclick: (event, dom) => actionButtons[this.currentPlan() as AvailablePlans]().onclick(event, dom),
 				...(hasCampaign && {
 					// As we modify the size of the Login button for the campaign, the normal "Continue" button should have the same size to avoid layout shifting
-					class: isPaidPlanSelected ? "go-european-button" : "go-european-button-free",
-					icon:
-						isPaidPlanSelected &&
-						m("img.block", {
-							src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
-							style: {
-								height: px(36),
-								width: px(36),
-							},
-						}),
+					class: "go-european-button",
+					icon: m("img.block", {
+						src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
+						alt: "",
+						rel: "noreferrer",
+						loading: "lazy",
+						decoding: "async",
+						style: {
+							height: px(36),
+							width: px(36),
+						},
+					}),
 				}),
 			})
 		}
@@ -193,7 +190,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									}
 									const { referencePriceStr, priceStr } = isApplePrice ? getApplePriceStr(getPriceStrProps) : getPriceStr(getPriceStrProps)
 
-									return m(PlanBox, {
+									return m(PaidPlanBox, {
 										price: priceStr,
 										referencePrice: referencePriceStr,
 										plan: personalPlan,

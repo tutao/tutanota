@@ -782,10 +782,6 @@ styles.registerStyle("main", () => {
 			"align-items": "center",
 			gap: px(size.hpad_button),
 		},
-		".go-european-button-free": {
-			height: "54px !important",
-			gap: px(size.hpad_button),
-		},
 		"go-european-button-icon": {
 			display: "inline-block",
 			width: px(30),

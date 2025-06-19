@@ -1,7 +1,8 @@
-import { getCurrentThemeName, getElevatedBackground, Theme, theme } from "../gui/theme.js"
+import { getElevatedBackground, Theme, theme } from "../gui/theme.js"
 import { PlanType } from "../api/common/TutanotaConstants.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { themes } from "../gui/builtinThemes.js"
+import { client } from "../misc/ClientDetector.js"
 
 // TODO: Update color to follow the Material 3 color rules after the color token update
 
@@ -100,13 +101,10 @@ function getFeatureIconColor(isSelected: boolean, planType: PlanType, hasCampaig
  * Get blue theme with the current light/dark theme selection. This should only be used for the Go European campaign.
  */
 export function getBlueTheme(): Theme {
-	if (getCurrentThemeName() === "lightRed") {
-		return themes().light_secondary
-	} else if (getCurrentThemeName() === "lightBlue") {
-		return themes().light
-	} else if (getCurrentThemeName() === "darkRed") {
-		return themes().dark_secondary
+	const isCalendarApp = client.isCalendarApp()
+	if (theme.themeId === "light" || theme.themeId === "light_secondary") {
+		return isCalendarApp ? themes().light : themes().light_secondary
 	} else {
-		return themes().dark
+		return isCalendarApp ? themes().dark : themes().dark_secondary
 	}
 }

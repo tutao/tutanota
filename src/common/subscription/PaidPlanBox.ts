@@ -34,7 +34,7 @@ type PlanBoxAttrs = {
 	isApplePrice: boolean
 }
 
-export class PlanBox implements Component<PlanBoxAttrs> {
+export class PaidPlanBox implements Component<PlanBoxAttrs> {
 	private revoIconSvg: string | undefined
 	private legendIconSvg: string | undefined
 
@@ -162,13 +162,11 @@ export class PlanBox implements Component<PlanBoxAttrs> {
 							},
 						},
 						m(
-							".flex",
+							".flex.items-end.wrap",
 							{
 								style: {
 									gap: px(3),
-									"align-items": "end",
 									"flex-direction": isLegendPlan ? "row-reverse" : "row",
-									"flex-wrap": "wrap",
 									"justify-content": isLegendPlan ? "start" : "end",
 								},
 							},
