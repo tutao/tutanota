@@ -108,6 +108,7 @@ import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.
 import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
+import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 
 assertWorkerOrNode()
 
@@ -717,15 +718,18 @@ export class KeyRotationFacade {
 			try {
 				await prepareGroupReInvites(inviteeMailAddresses)
 			} catch (e) {
+				let reducedInviteeAddresses: string[]
 				// we accept removing pending invitations that we cannot send again (e.g. because the user was deactivated)
 				if (e instanceof RecipientsNotFoundError) {
-					const notFoundRecipients = e.message.split("\n")
-					const reducedInviteeAddresses = inviteeMailAddresses.filter((address) => !notFoundRecipients.includes(address))
-					if (reducedInviteeAddresses.length) {
-						await prepareGroupReInvites(reducedInviteeAddresses)
-					}
+					const keyNotResolvedRecipients = e.message.split("\n")
+					reducedInviteeAddresses = inviteeMailAddresses.filter((address) => !keyNotResolvedRecipients.includes(address))
+				} else if (e instanceof KeyVerificationMismatchError) {
+					reducedInviteeAddresses = inviteeMailAddresses.filter((address) => !e.data.includes(address))
 				} else {
 					throw e
+				}
+				if (reducedInviteeAddresses.length) {
+					await prepareGroupReInvites(reducedInviteeAddresses)
 				}
 			}
 		}
