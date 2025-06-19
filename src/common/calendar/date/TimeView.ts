@@ -1,7 +1,7 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "./Time"
-import { clone } from "@tutao/tutanota-utils"
+import { clone, getStartOfNextDay } from "@tutao/tutanota-utils"
 import { deepMemoized } from "@tutao/tutanota-utils/dist/memoized"
 import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
@@ -76,6 +76,7 @@ export interface TimeViewAttributes {
 	timeRange: TimeRange
 	conflictRenderPolicy: EventConflictRenderPolicy
 	timeIndicator?: Time
+	hasAnyConflict?: boolean
 }
 
 export class TimeView implements Component<TimeViewAttributes> {
@@ -86,7 +87,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 * But instead of event start and end we use range start end
 	 */
 	view({ attrs }: Vnode<TimeViewAttributes>) {
-		const { timeScale, timeRange, events, conflictRenderPolicy, dates, timeIndicator } = attrs
+		const { timeScale, timeRange, events, conflictRenderPolicy, dates, timeIndicator, hasAnyConflict } = attrs
 		const timeColumnIntervals = this.createTimeColumnIntervals(timeScale, timeRange)
 
 		const subRowCount = 12 * timeColumnIntervals.length
@@ -120,7 +121,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 						},
 						[
 							this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
-							this.buildEventsColumn(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date),
+							this.buildEventsColumn(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date, hasAnyConflict),
 						],
 					)
 				}),
@@ -187,6 +188,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			subRowCount: number,
 			timeScale: TimeScale,
 			baseDate: Date,
+			hasAnyConflict: boolean = false,
 		): Children => {
 			const interval = TIME_SCALE_BASE_VALUE / timeScale
 			const timeRangeAsDate = {
@@ -200,7 +202,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 			return agendaEntries.map((event, _, events) => {
 				const { start, end } = this.getRowBounds(event.event, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
-				const hasAnyConflict = events.some((ev) => ev.conflictsWithMainEvent)
 
 				return m(
 					// EventBubble
@@ -234,7 +235,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 										fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color,
 									},
 								}),
-								m(".text-wrap.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
+								m(".break-word.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
 						  ])
 						: event.event.summary,
 				)
@@ -243,12 +244,15 @@ export class TimeView implements Component<TimeViewAttributes> {
 	)
 
 	private getRowBounds(event: CalendarEvent, timeRange: TimeRange, subRowAsMinutes: number, subRowCount: number, timeScale: TimeScale, baseDate: Date) {
+		const interval = TIME_SCALE_BASE_VALUE / timeScale
 		const diffFromRangeStartToEventStart = timeRange.start.diff(Time.fromDate(event.startTime))
 		const eventStartsBeforeRange = event.startTime < baseDate || Time.fromDate(event.startTime).isBefore(timeRange.start)
 		const start = eventStartsBeforeRange ? 1 : Math.floor(diffFromRangeStartToEventStart / subRowAsMinutes) + 1
 
 		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(event.endTime))
-		const end = Math.min(Math.floor(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1, subRowCount + 1)
+		const eventEndsAfterRange =
+			event.endTime > getStartOfNextDay(baseDate) || Time.fromDate(event.endTime).isAfter(clone(timeRange.end).add({ minutes: interval }))
+		const end = eventEndsAfterRange ? -1 : Math.floor(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
 
 		return { start, end }
 	}
