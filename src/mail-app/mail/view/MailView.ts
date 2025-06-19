@@ -1134,46 +1134,48 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 				[
 					m(".flex.col", [
-						Array.from(mailLocator.mailModel.getLabelsByGroupId(mailboxDetail.mailGroup._id).values()).map((label) => {
-							const path = `${MAIL_PREFIX}/${getElementId(label)}`
+						Array.from(mailLocator.mailModel.getLabelsByGroupId(mailboxDetail.mailGroup._id).values())
+							.sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
+							.map((label) => {
+								const path = `${MAIL_PREFIX}/${getElementId(label)}`
 
-							return m(SidebarSectionRow, {
-								icon: Icons.Label,
-								iconColor: getLabelColor(label.color),
-								label: lang.makeTranslation(`folder:${label.name}`, label.name),
-								path,
-								isSelectedPrefix: inEditMode ? false : path,
-								disabled: inEditMode,
-								onClick: () => {
-									if (!inEditMode) {
-										this.viewSlider.focus(this.listColumn)
-									}
-								},
-								alwaysShowMoreButton: inEditMode,
-								moreButton: attachDropdown({
-									mainButtonAttrs: {
-										icon: Icons.More,
-										title: "more_label",
+								return m(SidebarSectionRow, {
+									icon: Icons.Label,
+									iconColor: getLabelColor(label.color),
+									label: lang.makeTranslation(`folder:${label.name}`, label.name),
+									path,
+									isSelectedPrefix: inEditMode ? false : path,
+									disabled: inEditMode,
+									onClick: () => {
+										if (!inEditMode) {
+											this.viewSlider.focus(this.listColumn)
+										}
 									},
-									childAttrs: () => [
-										{
-											label: "edit_action",
-											icon: Icons.Edit,
-											click: () => {
-												this.showLabelEditDialog(label)
-											},
+									alwaysShowMoreButton: inEditMode,
+									moreButton: attachDropdown({
+										mainButtonAttrs: {
+											icon: Icons.More,
+											title: "more_label",
 										},
-										{
-											label: "delete_action",
-											icon: Icons.Trash,
-											click: () => {
-												this.showLabelDeleteDialog(label)
+										childAttrs: () => [
+											{
+												label: "edit_action",
+												icon: Icons.Edit,
+												click: () => {
+													this.showLabelEditDialog(label)
+												},
 											},
-										},
-									],
-								}),
-							})
-						}),
+											{
+												label: "delete_action",
+												icon: Icons.Trash,
+												click: () => {
+													this.showLabelDeleteDialog(label)
+												},
+											},
+										],
+									}),
+								})
+							}),
 					]),
 				],
 			),
