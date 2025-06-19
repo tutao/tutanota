@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
@@ -17,7 +17,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
@@ -295,17 +295,26 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderBanners(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
 		if (viewModel.isCollapsed()) return null
+
+		const phishingBanner = this.renderPhishingWarning(viewModel)
+		const externalContentBanner = this.renderExternalContentBanner(attrs)
+
+		const banners: ChildArray = []
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
-		return [
-			m(
-				"." + responsiveCardHMargin(),
-				this.renderPhishingWarning(viewModel) ?? viewModel.isWarningDismissed()
-					? null
-					: this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel),
-			),
-			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
-			m("hr.hr.mt-xs." + responsiveCardHMargin()),
-		].filter(Boolean)
+		if (phishingBanner) {
+			banners.push(m("." + responsiveCardHMargin(), phishingBanner))
+		}
+		if (!!phishingBanner && !viewModel.isWarningDismissed()) {
+			banners.push(
+				m("." + responsiveCardHMargin(), this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel)),
+			)
+		}
+		if (externalContentBanner) {
+			banners.push(m("." + responsiveCardHMargin(), externalContentBanner))
+		}
+
+		const hasEventInvitation = viewModel.getCalendarEventAttachment()
+		return isEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-xs." + responsiveCardHMargin())] : [...banners]
 	}
 
 	private renderConnectionLostBanner(viewModel: MailViewerViewModel): Children {
