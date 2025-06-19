@@ -43,13 +43,159 @@ ANDROID_LIB_ROOT=$4
  esac
 
  NDK_TOOLCHAIN_VERSION=4.9
+
+# This is a list of all the features from Configure script.
+# There are some that are disabled by default and some that are cascading from other things
+#     "acvp-tests", casc fips
+#    "afalgeng", maybe needed?
+#    "apps", maybe needed?
+#    "argon2", new
+#    "aria", new
+#    "asan", def
+#    "asm", needed
+#    "async", maybe needed?
+#    "atexit", maybe needed?
+#    "autoalginit", maybe needed?
+#    "autoerrinit", maybe needed?
+#    "autoload-config", maybe needed?
+#    "bf", old
+#    "blake2", new
+#    "brotli", def
+#    "brotli-dynamic", def
+#    "buildtest-c++", def
+#    "bulk", big switch
+#    "cached-fetch", needed
+#    "camellia", old
+#    "capieng", def for non-win
+#    "winstore", new
+#    "cast", old
+#    "chacha", new
+#    "cmac", new
+#    "cmp", new
+#    "cms", new, some s/mime stuff
+#    "comp", new
+#    "crypto-mdebug", def
+#    "ct", new, cert transparency
+#    "default-thread-pool", maybe needed?
+#    "demos", def
+#    "h3demo", def
+#    "hqinterop", def
+#    "deprecated", new
+#    "des", new
+#    "devcryptoeng", def
+#    "dgram", new, casc sock
+#    "dh", old
+#    "docs", new
+#    "dsa", old
+#    "dso", new
+#    "dtls", casc dgram
+#    "dynamic-engine",
+#    "ec", old
+#"ec2m", casc ec
+#    "ec_nistp_64_gcc_128", def
+#    "ecdh", old, cash ec
+#    "ecdsa", old, casc ec
+#    "ecx", casc ec
+#    "egd", def
+#    "engine", old, casc deprecated-3.0
+#    "err", needed
+#    "external-tests", def
+#    "filenames", needed
+#    "fips", def
+#    "fips-securitychecks", casc fips
+#    "fips-post", csc fips
+#    "fips-jitter", def
+#    "fuzz-afl", def
+#    "fuzz-libfuzzer", def
+#    "gost", casc ec
+#    "http", new
+#    "idea", old
+#    "integrity-only-ciphers", new, tls
+#    "jitter", def
+#    "ktls", def
+#    "legacy", new
+#    "loadereng", maybe needed?
+#    "makedepend", maybe needed?
+#    "md2", def
+#    "md4", old
+#    "mdc2", old
+#    "ml-dsa", new
+#    "ml-kem", new
+#    "module", maybe needed?
+#    "msan", def
+#    "multiblock", maybe needed?
+#    "nextprotoneg", new, tls
+#    "ocb", new
+#    "ocsp", new
+#    "padlockeng", maybe needed?
+#    "pic", needed
+#    "pie", def
+#    "pinshared", maybe needed?
+#    "poly1305", new
+#    "posix-io", maybe needed?
+#    "psk", new
+#    "quic", casc dgram
+#    "unstable-qlog",
+#    "rc2", old
+#    "rc4", old
+#    "rc5", def
+#    "rdrand", maybe needed
+#    "rfc3779", old
+#    "rmd160", new
+#    "scrypt",
+#    "sctp", def, casc dgram
+#"secure-memory", maybe needed?
+#    "seed", old
+#    "shared", maybe needed?
+#    "siphash", new,
+#    "siv", casc cmac
+#    "slh-dsa", new
+#    "sm2", casc sm3, casc ec
+#    "sm2-precomp", new
+#    "sm3", new
+#    "sm4", new
+#    "sock", old
+#    "srp", old
+#    "srtp", new
+#    "sse2", needed,
+#    "ssl", new
+#    "ssl-trace", new
+#    "static-engine", maybe needed
+#    "stdio", maybe needed
+#    "sslkeylog", def
+#    "tests", new
+#    "tfo", def, casc sock
+#    "thread-pool", maybe needed?
+#    "threads", maybe needed?
+#    "tls", new
+#    "tls-deprecated-ec", casc ec
+#    "trace", def
+#    "ts", new
+#    "ubsan", def
+#    "ui-console", new
+#    "unit-test", def
+#    "uplink", new
+#    "weak-ssl-ciphers", def
+#    "whirlpool", old
+#    "zlib", def
+#    "zlib-dynamic", def
+#    "zstd", def
+#    "zstd-dynamic", def
+
  OPENSSL_CONFIGURE_OPTIONS="-fPIC -fstack-protector-all no-idea no-camellia \
  no-seed no-bf no-cast no-rc2 no-rc4 no-rc5 no-md2 \
  no-md4 no-ecdh no-sock no-ssl3 \
  no-dsa no-dh no-ec no-ecdsa no-tls1 \
  no-rfc3779 no-whirlpool no-srp \
- no-mdc2 no-ecdh no-engine \
- no-srtp no-quic -Wno-macro-redefined"
+ no-mdc2 no-engine \
+ no-srtp no-des no-comp no-sm3 no-cmac no-legacy \
+ no-argon2 no-blake2 no-http no-zlib no-zstd no-deprecated no-ec \
+ no-dgram no-sock no-tls no-cmp no-aria no-winstore \
+ no-chacha no-cms no-ct no-docs no-dso no-http no-integrity-only-ciphers \
+ no-ml-dsa no-ml-kem no-nextprotoneg no-ocb no-ocsp no-poly1305 no-psk \
+ no-rmd160 no-scrypt no-siphash no-slh-dsa no-sm2-precomp no-sm4 no-ssl \
+ no-ssl-trace no-tests no-ts no-ui-console no-uplink \
+ -Wno-macro-redefined"
 
  rm -rf ${ANDROID_LIB_ROOT}
 
