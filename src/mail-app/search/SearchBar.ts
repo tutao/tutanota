@@ -11,26 +11,21 @@ import { isKeyPressed, keyManager } from "../../common/misc/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
 import { Dialog } from "../../common/gui/base/Dialog"
 import type { WhitelabelChild } from "../../common/api/entities/sys/TypeRefs.js"
-import { FULL_INDEXED_TIMESTAMP, Keys } from "../../common/api/common/TutanotaConstants"
+import { Keys } from "../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../common/api/common/Env"
 import { styles } from "../../common/gui/styles"
 import { client } from "../../common/misc/ClientDetector"
 import { debounce, downcast, isSameTypeRef, memoized, mod, ofClass, TypeRef } from "@tutao/tutanota-utils"
 import { BrowserType } from "../../common/misc/ClientConstants"
-import { hasMoreResults } from "./model/SearchModel"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../common/api/worker/search/SearchTypes"
 import { assertIsEntity, getElementId } from "../../common/api/common/utils/EntityUtils"
-import { compareContacts } from "../contacts/view/ContactGuiUtils"
 import { LayerType } from "../../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
 import { SearchRouter } from "../../common/search/view/SearchRouter.js"
 import { PageSize } from "../../common/gui/base/ListUtils.js"
-import { generateCalendarInstancesInRange, isClientOnlyCalendar, retrieveClientOnlyEventsForUser } from "../../common/calendar/date/CalendarUtils.js"
 import { ListElementEntity } from "../../common/api/common/EntityTypes.js"
-
-import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
 import { mailLocator } from "../mailLocator.js"
 
 assertMainOrNode()
@@ -421,12 +416,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			}
 
 			if (!mailLocator.search.isNewSearch(query, restriction) && oldQuery === query) {
-				const result = mailLocator.search.result()
-
-				if (this.isQuickSearch() && result) {
-					this.showResultsInOverlay(result)
-				}
-
 				this.busy = false
 			} else {
 				if (query.trim() !== "") {
@@ -469,8 +458,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 	/** Given the result from the search load additional results if needed and then display them or set URL. */
 	private loadAndDisplayResult(query: string, result: SearchResult | null, limit: number | null) {
-		const safeResult = result,
-			safeLimit = limit
+		const safeResult = result
 
 		this.updateState({
 			searchResult: safeResult,
@@ -481,16 +469,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		}
 
 		if (this.isQuickSearch()) {
-			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				mailLocator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
-					if (mailLocator.search.isNewSearch(query, moreResults.restriction)) {
-						return
-					} else {
-						this.loadAndDisplayResult(query, moreResults, limit)
-					}
-				})
-			} else {
-				this.showResultsInOverlay(safeResult)
+			if (query !== "") {
+				this.updateSearchUrl(this.state().query)
+				setTimeout(() => this.domInput.focus(), 100) // FIXME: just for testing
 			}
 		} else {
 			// instances will be displayed as part of the list of the search view, when the search view is displayed
@@ -514,71 +495,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		})
 	}
 
-	private async showResultsInOverlay(result: SearchResult): Promise<void> {
-		const filteredEvents = result.results.filter(([calendarId, eventId]) => !isClientOnlyCalendar(calendarId))
-
-		const eventsRepository = await mailLocator.calendarEventsRepository()
-		const entries = [
-			...(await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, filteredEvents)),
-			...(await retrieveClientOnlyEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
-		]
-
-		// If there was no new search while we've been downloading the result
-		if (!mailLocator.search.isNewSearch(result.query, result.restriction)) {
-			const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
-
-			if (
-				result.query.trim() !== "" &&
-				(filteredEntries.length === 0 || hasMoreResults(result) || couldShowMore || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
-			) {
-				const moreEntry: ShowMoreAction = {
-					resultCount: result.results.length,
-					shownCount: filteredEntries.length,
-					indexTimestamp: result.currentIndexTimestamp,
-					allowShowMore: true,
-				}
-				filteredEntries.push(moreEntry)
-			}
-
-			this.updateState({
-				entities: filteredEntries,
-				selected: filteredEntries[0],
-			})
-		}
-	}
-
 	private isQuickSearch(): boolean {
 		return !m.route.get().startsWith("/search")
-	}
-
-	private filterResults(
-		instances: Array<Entry>,
-		restriction: SearchRestriction,
-	): {
-		filteredEntries: Entries
-		couldShowMore: boolean
-	} {
-		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
-			// Sort contacts by name
-			return {
-				filteredEntries: instances
-					.slice() // we can't modify the given array
-					.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
-					.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-				couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
-			}
-		} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
-			const range = { start: restriction.start ?? 0, end: restriction.end ?? 0 }
-			const generatedInstances = generateCalendarInstancesInRange(downcast(instances), range, MAX_SEARCH_PREVIEW_RESULTS + 1)
-			return {
-				filteredEntries: generatedInstances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-				couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
-			}
-		}
-		return {
-			filteredEntries: instances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-			couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
-		}
 	}
 
 	private onFocus() {
