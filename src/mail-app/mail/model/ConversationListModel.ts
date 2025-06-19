@@ -528,7 +528,8 @@ export class ConversationListModel implements MailSetListModel {
 				addedItems.push(conversation)
 				this.conversationMap.set(conversationId, conversation)
 			} else {
-				insertIntoSortedArray(mailSetEntryElementId, existingConversation.mails, reverseCompareMailSetId)
+				// if the create event is of a mail instance that's already loaded, we replace it to avoid duplicates
+				insertIntoSortedArray(mailSetEntryElementId, existingConversation.mails, reverseCompareMailSetId, () => true)
 				this.updateDisplayedMailForConversation(existingConversation)
 
 				if (existingConversation.displayedMail === mailSetEntryElementId) {
@@ -632,6 +633,11 @@ export class ConversationListModel implements MailSetListModel {
 	// @VisibleForTesting
 	_getMailMap(): ReadonlyMap<Id, LoadedMail> {
 		return this.mailMap
+	}
+
+	// @VisibleForTesting
+	_getConversationMap(): Map<Id, LoadedConversation> {
+		return this.conversationMap
 	}
 }
 

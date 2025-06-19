@@ -36,7 +36,7 @@ import { EntityUpdateData } from "../../../../src/common/api/common/utils/Entity
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
-import { clamp, pad } from "@tutao/tutanota-utils"
+import { clamp, lastThrow, pad } from "@tutao/tutanota-utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
 import { ListLoadingState } from "../../../../src/common/gui/base/List"
@@ -351,6 +351,31 @@ o.spec("ConversationListModel", () => {
 		const loadedMail = await model.loadAndSelect(unloadedMail, () => false)
 		o(loadedMail).notEquals(null)
 		o(loadedMail).equals(model.getMail(unloadedMail))
+	})
+
+	o.test("handle create events while already loaded", async () => {
+		const loadedMails = await setUpTestData(PageSize, labels, false, 1)
+		const mail = lastThrow(loadedMails)
+		await model.loadInitial()
+
+		// the loaded mails are in reverse order, so we take the 0th element to get the last
+		const mailSetEntryId: IdTuple = [mailSetEntriesListId, makeMailSetElementId(0)]
+		const entityUpdateData: EntityUpdateData = {
+			typeRef: MailSetEntryTypeRef,
+			instanceListId: listIdPart(mailSetEntryId),
+			instanceId: elementIdPart(mailSetEntryId),
+			operation: OperationType.CREATE,
+		}
+
+		when(entityClient.load(MailSetEntryTypeRef, mailSetEntryId)).thenResolve(
+			createTestEntity(MailSetEntryTypeRef, {
+				_id: mailSetEntryId,
+				mail: mail._id,
+			}),
+		)
+
+		await model.handleEntityUpdate(entityUpdateData)
+		o.check(model._getConversationMap().get(listIdPart(mail.conversationEntry))!.mails).deepEquals([elementIdPart(mailSetEntryId)])
 	})
 
 	o.spec("handleEntityUpdate", () => {
