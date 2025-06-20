@@ -64,7 +64,7 @@ import { Recipients, RecipientType } from "../../../common/api/common/recipients
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MailRecipientsTextField } from "../../../common/gui/MailRecipientsTextField.js"
 import { getContactDisplayName } from "../../../common/contactsFunctionality/ContactUtils.js"
-import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
+import { PresentableKeyVerificationState, ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
 
 import { animateToolbar, RichTextToolbar } from "../../../common/gui/base/RichTextToolbar.js"
 import { readLocalFiles } from "../../../common/file/FileController"
@@ -96,6 +96,7 @@ import {
 import { mailLocator } from "../../mailLocator.js"
 
 import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDialog.js"
+import { showKeyVerificationErrorRecoveryDialog } from "../../../common/settings/keymanagement/KeyVerificationRecoverDialog"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -779,6 +780,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			contextButtons.push({
 				label: "remove_action",
 				click: () => this.sendMailModel.removeRecipient(recipient, field, false),
+			})
+		}
+
+		if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
+			contextButtons.push({
+				label: "showVerificationError_action",
+				click: () => showKeyVerificationErrorRecoveryDialog(recipient),
 			})
 		}
 
