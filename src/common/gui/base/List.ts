@@ -151,7 +151,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			m("ul.list.rel.click", {
 				oncreate: ({ dom }) => {
 					this.innerDom = dom as HTMLElement
-					this.initializeDom(dom as HTMLElement, attrs)
+					this.initializeDom(dom as HTMLElement, attrs.renderConfig)
 					this.updateDomElements(attrs)
 					this.state = attrs.state
 					this.lastThemeId = theme.themeId
@@ -166,7 +166,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 						// so we trick mithril into thinking that nothing was rendered before. mithril will reset the DOM for us too.
 						// @ts-ignore
 						dom.vnodes = null
-						this.initializeDom(dom as HTMLElement, attrs)
+						this.initializeDom(dom as HTMLElement, attrs.renderConfig)
 					}
 					// if the state has changed or the theme has changed we need to update the DOM
 					if (this.state !== attrs.state || this.lastThemeId !== theme.themeId) {
@@ -207,12 +207,12 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 
 	private readonly VIRTUAL_LIST_LENGTH = 100
 
-	private initializeDom(dom: HTMLElement, attrs: ListAttrs<T, VH>) {
+	private initializeDom(dom: HTMLElement, renderConfig: RenderConfig<T, VH>) {
 		const rows: ListRow<T, VH>[] = []
 		m.render(
 			dom,
 			// hardcoded number of elements for now
-			[numberRange(0, this.VIRTUAL_LIST_LENGTH - 1).map(() => this.createRow(attrs, rows)), this.renderStatusRow()],
+			[numberRange(0, this.VIRTUAL_LIST_LENGTH - 1).map(() => this.createRow(renderConfig, rows)), this.renderStatusRow()],
 		)
 
 		this.rows = rows
@@ -220,7 +220,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			throw new ProgrammingError(`invalid rows length, expected ${this.VIRTUAL_LIST_LENGTH} rows, got ${this.rows.length}`)
 		}
 
-		if (attrs.renderConfig.swipe) {
+		if (renderConfig.swipe) {
 			this.swipeHandler?.attach()
 		} else {
 			this.swipeHandler.detach()
@@ -232,25 +232,25 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		this.loadMoreIfNecessary(attrs, visibleElementHeight)
 	}
 
-	private createRow(attrs: ListAttrs<T, VH>, rows: ListRow<T, VH>[]) {
+	private createRow(renderConfig: RenderConfig<T, VH>, rows: ListRow<T, VH>[]) {
 		return m("li.list-row.nofocus", {
-			draggable: attrs.renderConfig.dragStart ? "true" : undefined,
+			draggable: renderConfig.dragStart ? "true" : undefined,
 			tabindex: TabIndex.Default,
 			oncreate: (vnode: VnodeDOM) => {
 				const dom = vnode.dom as HTMLElement
 				const row = {
-					row: attrs.renderConfig.createElement(dom),
+					row: renderConfig.createElement(dom),
 					domElement: dom,
 					top: -1,
 					entity: null,
 				}
 				rows.push(row)
-				this.setRowEventListeners(attrs, dom, row)
+				this.setRowEventListeners(renderConfig, dom, row)
 			},
 		})
 	}
 
-	private setRowEventListeners(attrs: ListAttrs<T, VH>, domElement: HTMLElement, row: ListRow<T, VH>) {
+	private setRowEventListeners(renderConfig: RenderConfig<T, VH>, domElement: HTMLElement, row: ListRow<T, VH>) {
 		const LONG_PRESS_DURATION_MS = 400
 		let touchStartTime: number | null = null
 
@@ -286,12 +286,12 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			requestAnimationFrame(() => {
 				if (row.domElement) row.domElement!.style.background = ""
 			})
-			if (attrs.renderConfig.dragStart) {
-				if (row.entity && this.state) attrs.renderConfig.dragStart(e, row.entity, this.state.selectedItems)
+			if (renderConfig.dragStart) {
+				if (row.entity && this.state) renderConfig.dragStart(e, row.entity, this.state.selectedItems)
 			}
 		}
 
-		if (attrs.renderConfig.multiselectionAllowed === MultiselectMode.Enabled) {
+		if (renderConfig.multiselectionAllowed === MultiselectMode.Enabled) {
 			let timeoutId: TimeoutID | null
 			let touchStartCoords: { x: number; y: number } | null = null
 			domElement.addEventListener("touchstart", (e: TouchEvent) => {
@@ -301,7 +301,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				timeoutId = setTimeout(() => {
 					// check that virtualRow.entity exists because we had error feedbacks about it
 					if (row.entity) {
-						attrs.onSingleTogglingMultiselection(row.entity)
+						this.lastAttrs.onSingleTogglingMultiselection(row.entity)
 					}
 					m.redraw()
 				}, LONG_PRESS_DURATION_MS)
