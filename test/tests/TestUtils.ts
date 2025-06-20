@@ -2,7 +2,7 @@ import type { BrowserData } from "../../src/common/misc/ClientConstants.js"
 import { DbEncryptionData } from "../../src/common/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/mail-app/workerUtils/index/IndexerCore.js"
 import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFacade.js"
-import { assertNotNull, clone, deepEqual, defer, Thunk, typedEntries, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, deepEqual, defer, isNotNull, Thunk, typedEntries, TypeRef } from "@tutao/tutanota-utils"
 import type { DesktopKeyStoreFacade } from "../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/tutanota-test-utils"
 import { aes256RandomKey, fixedIv, uint8ArrayToKey } from "@tutao/tutanota-crypto"
@@ -293,19 +293,10 @@ export function removeFinalIvs(instance: Entity): Entity {
 	return instance
 }
 
-export function removeOriginals(instance: Entity | null): Entity | null {
-	if (instance === null) {
-		return null
-	}
-	if (instance["_original"]) {
+export function removeOriginals<T extends Entity>(instance: T | null): T | null {
+	if (isNotNull(instance) && typeof instance == "object") {
 		delete instance["_original"]
-	}
-	const keys = Object.keys(instance)
-	for (const key of keys) {
-		const maybeAggregate = instance[key]
-		if (maybeAggregate instanceof Object) {
-			removeOriginals(maybeAggregate)
-		}
+		Object.values(instance).filter(isNotNull).forEach(removeOriginals)
 	}
 	return instance
 }

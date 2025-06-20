@@ -761,6 +761,7 @@ o.spec("IndexedDbIndexer", () => {
 							instanceId: "event1",
 							type: "",
 							instance: null,
+							patch: null,
 						}),
 						createEntityUpdate({
 							typeId: MailTypeRef.typeId.toString(),
@@ -770,6 +771,7 @@ o.spec("IndexedDbIndexer", () => {
 							instanceId: "event2",
 							type: "",
 							instance: null,
+							patch: null,
 						}),
 					],
 				}),

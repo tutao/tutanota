@@ -15,7 +15,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		//  - will very likely be loaded by indexer later
 		//  - we might have the instance in offline cache already because of notification process
 		// however, they are already preloaded by the EventBusClient
-		return false
+		return true
 	}
 
 	async onBeforeCacheDeletion(id: IdTuple): Promise<void> {

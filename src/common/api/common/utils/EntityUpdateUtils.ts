@@ -1,7 +1,7 @@
 import { OperationType } from "../TutanotaConstants.js"
-import { EntityUpdate } from "../../entities/sys/TypeRefs.js"
-import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance, SomeEntity, UntypedInstance } from "../EntityTypes.js"
-import { AppName, isSameTypeRef, isSameTypeRefByAttr, TypeRef } from "@tutao/tutanota-utils"
+import { EntityUpdate, Patch } from "../../entities/sys/TypeRefs.js"
+import { ServerModelParsedInstance, SomeEntity } from "../EntityTypes.js"
+import { AppName, assertNotNull, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { isSameId } from "./EntityUtils.js"
 import { ClientTypeModelResolver } from "../EntityFunctions"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
@@ -9,12 +9,18 @@ import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.
  */
+
 export type EntityUpdateData = {
 	typeRef: TypeRef<any>
 	instanceListId: string
 	instanceId: string
 	operation: OperationType
 	instance?: Nullable<ServerModelParsedInstance>
+
+	// null: when server did not sent patchList.
+	// emptyList: this might be cases where we re-wrote an instance into the server-database without changing anything.
+	// length > 0: normal case for patch
+	patches?: Nullable<Array<Patch>> // todo: remove ?
 }
 
 export async function entityUpdateToUpdateData(
@@ -26,12 +32,20 @@ export async function entityUpdateToUpdateData(
 	const typeIdOfEntityUpdateType = typeId
 		? new TypeRef<SomeEntity>(update.application as AppName, typeId)
 		: clientTypeModelResolver.resolveTypeRefFromAppAndTypeNameLegacy(update.application as AppName, update.type)
+
+	// if (update.operation === OperationType.CREATE) {
+	// 	assertNotNull(update.instance, "All create update should have a instance attached")
+	// } else if (update.operation === OperationType.UPDATE) {
+	// 	assertNotNull(update.patch, "All update event should have list of patches attached")
+	// }
+
 	return {
 		typeRef: typeIdOfEntityUpdateType,
 		instanceListId: update.instanceListId,
 		instanceId: update.instanceId,
 		operation: update.operation as OperationType,
-		instance: instance,
+		patches: update.patch?.patches ?? null,
+		instance,
 	}
 }
 

@@ -5,6 +5,7 @@ import {
 	ConnectionError,
 	handleRestError,
 	NotAuthorizedError,
+	NotFoundError,
 	ServiceUnavailableError,
 	SessionExpiredError,
 } from "../common/error/RestError"
@@ -24,12 +25,16 @@ import {
 	assertNotNull,
 	binarySearch,
 	delay,
+	getTypeString,
 	groupBy,
+	groupByAndMap,
 	identity,
+	isEmpty,
 	isNotNull,
 	isSameTypeRef,
 	lastThrow,
 	ofClass,
+	parseTypeString,
 	promiseMap,
 	randomIntFromInterval,
 	TypeRef,
@@ -605,18 +610,39 @@ export class EventBusClient {
 		console.log("====== PREFETCH END ============", new Date().getTime() - start, "ms")
 	}
 
-	private async loadGroupedListElementEntities(preloadMap: Map<string, Map<Id, Array<Id>>>) {
-		for (const [typeref, groupedListIds] of preloadMap.entries()) {
+	// @return  Map<typeString, Array<ListId>> that failed to load
+	private async loadGroupedListElementEntities(preloadMap: Map<string, Map<Id, Array<Id>>>): Promise<Map<string, Array<Id>>> {
+		const failedLists = new Map<string, Array<Id>>()
+
+		for (const [typeRefString, groupedListIds] of preloadMap.entries()) {
+			const typeRef: TypeRef<any> = parseTypeString(typeRefString)
+
 			for (const [listId, elementIds] of groupedListIds.entries()) {
-				if (elementIds.length > 1) {
-					const typeRef = new TypeRef<any>(typeref.split("/")[0] as AppName, parseInt(typeref.split("/")[1]))
-					const instances = await this.entity.loadMultiple(typeRef, listId, elementIds)
-					if (isSameTypeRef(MailTypeRef, typeRef)) {
-						await this.fetchMailDetailsBlob(instances)
+				if (!isEmpty(elementIds)) {
+					try {
+						const instances = await this.entity.loadMultiple(typeRef, listId, elementIds)
+						if (isSameTypeRef(MailTypeRef, typeRef)) {
+							await this.fetchMailDetailsBlob(instances)
+						}
+					} catch (e) {
+						if (isExpectedErrorForSynchronization(e)) {
+							console.log(`could not preload, probably lost group membership ( or not added yet ) for list ${typeRefString}/${listId}`)
+
+							// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
+							// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
+							await this.cache.deleteFromCacheIfExists(typeRef, listId, elementIds)
+
+							// discuss: what to do in this case? since after this, these elements will not be requested again
+						} else {
+							console.warn(`failed to preload ${typeRefString}/${listId}`, e)
+						}
+						const _pushedOrAdded = failedLists.get(typeRefString)?.push(listId) ?? failedLists.set(typeRefString, Array.of(listId))
 					}
 				}
 			}
 		}
+
+		return failedLists
 	}
 
 	private async fetchMailDetailsBlob(instances: any[]) {
@@ -641,20 +667,19 @@ export class EventBusClient {
 	}
 
 	private groupUpdatedInstances(): Map<string, Map<Id, Array<Id>>> {
-		const preloadMap: Map<string, Map<Id, Array<Id>>> = new Map()
-		const queuedEvents = this.eventQueue.eventQueue
-		for (const e of queuedEvents) {
-			for (const entityUpdateData of e.events) {
-				const typeIdentifier = `${entityUpdateData.typeRef.app}/${entityUpdateData.typeRef.typeId}`
-				if (entityUpdateData.instanceListId) {
-					if (!preloadMap.has(typeIdentifier)) {
-						preloadMap.set(typeIdentifier, new Map().set(entityUpdateData.instanceListId, [entityUpdateData.instanceId]))
-					} else if (!preloadMap.get(typeIdentifier)!.has(entityUpdateData.instanceListId)) {
-						preloadMap.get(typeIdentifier)?.set(entityUpdateData.instanceListId, [entityUpdateData.instanceId])
-					} else {
-						preloadMap.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.push(entityUpdateData.instanceId)
-					}
-				}
+		let preloadMap = new Map<string, Map<Id, Array<Id>>>()
+		for (const eventQ of this.eventQueue.eventQueue) {
+			// disucss: does all of the entity events at this point supposed to not have .patches & .instances?
+			// if not, we might not want to load the instance of event that have those attached
+
+			const groupedByTypeString = groupBy(eventQ.events, (u) => getTypeString(u.typeRef))
+			for (const [typeString, updatesPerType] of groupedByTypeString.entries()) {
+				const groupedByListId = groupByAndMap(
+					updatesPerType.values(),
+					(u) => u.instanceListId,
+					(u) => u.instanceId,
+				)
+				preloadMap.set(typeString, groupedByListId)
 			}
 		}
 		return preloadMap
@@ -823,4 +848,12 @@ export class EventBusClient {
 			.map((membership) => membership.group)
 			.concat(this.userFacade.getLoggedInUser().userGroup.group)
 	}
+}
+
+/**
+ * Returns whether the error is expected for the cases where our local state might not be up-to-date with the server yet. E.g. we might be processing an update
+ * for the instance that was already deleted. Normally this would be optimized away but it might still happen due to timing.
+ */
+function isExpectedErrorForSynchronization(e: Error): boolean {
+	return e instanceof NotFoundError || e instanceof NotAuthorizedError
 }
