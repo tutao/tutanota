@@ -11,7 +11,7 @@ import {
 	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { elementIdPart, firstBiggerThanSecond, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
@@ -312,6 +312,7 @@ export class MailViewModel {
 	}
 
 	private async loadAndSelectMail(folder: MailFolder, mailId: Id) {
+		let pagesLoaded = 0
 		const foundMail = await this.listModel?.loadAndSelect(
 			mailId,
 			() =>
@@ -321,8 +322,8 @@ export class MailViewModel {
 				!this.listModel ||
 				// if the target mail has changed, stop
 				this.loadingTargetId !== mailId ||
-				// if we loaded past the target item we won't find it, stop
-				(this.listModel.lastItem != null && firstBiggerThanSecond(mailId, getElementId(this.listModel.lastItem))),
+				// if the selected mail has deleted or changed folder, stop
+				pagesLoaded++ >= 10,
 		)
 		if (foundMail == null) {
 			console.log("did not find mail", folder, mailId)
