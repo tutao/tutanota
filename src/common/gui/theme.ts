@@ -22,7 +22,6 @@ export type Theme = {
 	button_bubble_bg: string
 	button_bubble_fg: string
 	content_bg: string
-	content_bg_tuta_bday: string
 	content_fg: string
 	content_button: string
 	content_button_selected: string
@@ -30,8 +29,6 @@ export type Theme = {
 	content_button_icon_selected: string
 	content_button_icon_bg?: string
 	content_accent: string
-	content_accent_tuta_bday: string
-	content_accent_secondary_tuta_bday: string
 	content_border: string
 	content_message_bg: string
 	header_bg: string
@@ -63,6 +60,8 @@ export type Theme = {
 	experimental_on_primary_container: string
 	experimental_tertiary: string
 	outline_variant: string
+	go_european: string
+	on_go_european: string
 }
 
 const themeSingleton = {}

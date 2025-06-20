@@ -4,32 +4,34 @@ import { lang } from "../misc/LanguageViewModel"
 import { PlanType } from "../api/common/TutanotaConstants"
 import { PriceAndConfigProvider } from "./PriceUtils"
 import { theme } from "../gui/theme.js"
-import { FeatureListProvider, ReplacementKey } from "./FeatureListProvider.js"
+import { ReplacementKey } from "./FeatureListProvider.js"
 import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
-import { getReplacement } from "./PlanSelector.js"
 import { TranslationKeyType } from "../misc/TranslationKey.js"
-import { planBoxColors } from "./PlanBoxColors.js"
+import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
 import { styles } from "../gui/styles.js"
+import { getFeaturePlaceholderReplacement } from "./SubscriptionUtils.js"
 
 type FreePlanBoxAttrs = {
 	isSelected: boolean
 	select: VoidFunction
-	features: ReturnType<FeatureListProvider["getFeatureList"]>
 	priceAndConfigProvider: PriceAndConfigProvider
 	scale: CSSStyleDeclaration["scale"]
+	hasCampaign: boolean
 }
 
 export class FreePlanBox implements Component<FreePlanBoxAttrs> {
-	view({ attrs: { isSelected, select, scale, priceAndConfigProvider } }: Vnode<FreePlanBoxAttrs>) {
-		const renderFeature = this.generateRenderFeature(priceAndConfigProvider, isSelected)
+	view({ attrs: { isSelected, select, priceAndConfigProvider, scale, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
+		const renderFeature = this.generateRenderFeature(priceAndConfigProvider, isSelected, hasCampaign)
+		// Only for Go European campaign, this should be removed after the campaign.
+		const localTheme = hasCampaign ? getBlueTheme() : theme
 
 		return m(
 			".cursor-pointer.buyOptionBox-v2",
 			{
 				style: {
-					"background-color": planBoxColors.getBgColor({ isSelected }),
-					color: planBoxColors.getTextColor({ isSelected }),
+					"background-color": planBoxColors.getBgColor(isSelected),
+					color: planBoxColors.getTextColor(isSelected, hasCampaign),
 					display: "flex",
 					"z-index": isSelected ? "1" : "initial",
 					scale,
@@ -40,7 +42,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 					"border-width": this.getBorderWidth({ isSelected }),
 					"border-radius": this.getBorderRadius(),
 					"border-style": "solid",
-					"border-color": planBoxColors.getOutlineColor({ isSelected }),
+					"border-color": planBoxColors.getOutlineColor(isSelected),
 					padding: "24px 16px",
 				},
 				onclick: () => select(),
@@ -62,7 +64,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 						name: "BuyOptionBox",
 						checked: isSelected,
 						style: {
-							"accent-color": theme.experimental_on_primary_container,
+							"accent-color": localTheme.experimental_on_primary_container,
 						},
 					}),
 				),
@@ -91,7 +93,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 		return `${px(size.vpad_small)} ${px(size.hpad_medium)}`
 	}
 
-	private generateRenderFeature = (provider: PriceAndConfigProvider, isSelected: boolean) => {
+	private generateRenderFeature = (provider: PriceAndConfigProvider, isSelected: boolean, hasCampaign: boolean) => {
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey, shouldShift?: boolean) => {
 			return m(
 				".flex",
@@ -107,10 +109,10 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 						icon,
 						size: IconSize.Normal,
 						style: {
-							fill: planBoxColors.getFeatureIconColor({ isSelected, planType: PlanType.Free }),
+							fill: planBoxColors.getFeatureIconColor(isSelected, PlanType.Free, hasCampaign),
 						},
 					}),
-					m(".smaller", lang.get(langKey, getReplacement(replacement, PlanType.Free, provider))),
+					m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, PlanType.Free, provider))),
 				],
 			)
 		}

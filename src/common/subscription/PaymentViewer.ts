@@ -354,7 +354,19 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			)
 		} else {
 			if (client.device == DeviceType.ANDROID) {
-				return Dialog.message("invoiceFailedWebview_msg", () => m("div", m("a", { href: InfoLink.Webview, target: "_blank" }, InfoLink.Webview)))
+				return Dialog.message("invoiceFailedWebview_msg", () =>
+					m(
+						"div",
+						m(
+							"a",
+							{
+								href: InfoLink.Webview,
+								target: "_blank",
+							},
+							InfoLink.Webview,
+						),
+					),
+				)
 			} else if (client.isIos()) {
 				return Dialog.message("invoiceFailedIOS_msg")
 			} else {
@@ -445,7 +457,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					return showProgressDialog(
 						"pleaseWait_msg",
 						locator.serviceExecutor
-							.put(DebitService, createDebitServicePutData({ invoice: null }))
+							.put(DebitService, createDebitServicePutData({}))
 							.catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
 							.catch(ofClass(PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
 							.catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))

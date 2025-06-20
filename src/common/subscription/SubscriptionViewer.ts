@@ -13,6 +13,7 @@ import {
 	OperationType,
 	PaymentMethodType,
 	PlanType,
+	SubscriptionApp,
 } from "../api/common/TutanotaConstants"
 import {
 	AccountingInfo,
@@ -90,14 +91,6 @@ import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfact
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
-
-/*
- * Identifies from which app the user subscribed from
- */
-export enum SubscriptionApp {
-	Mail = "0",
-	Calendar = "1",
-}
 
 export class SubscriptionViewer implements UpdatableSettingsViewer {
 	readonly view: UpdatableSettingsViewer["view"]

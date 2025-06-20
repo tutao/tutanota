@@ -14,11 +14,14 @@ Can be run as:
 ```shell
 mkdir build-sqlcipher
 podman build -t android-sqlcipher --network=host -f android-sqlcipher.dockerfile
+source android-sqlcipher-ver
 podman run --rm \
-  -e SQLCIPHER_VERSION=4.7.0 \
-  -e SQLCIPHER_ANDROID_VERSION=4.7.2 \
+  -e SQLCIPHER_VERSION=$SQLCIPHER_VERSION \
+  -e SQLCIPHER_ANDROID_VERSION=$SQLCIPHER_ANDROID_VERSION \
   -v $(pwd):/workspace:ro \
   -v $(pwd)/build-sqlcipher:/build-sqlcipher \
   -it android-sqlcipher
 # This will produce the artifact at build-sqlcipher/sqlcipher-android-4.7.2-release.aar
+# Move it to its final destination
+mv build-sqlcipher/sqlcipher-android-${SQLCIPHER_ANDROID_VERSION}-release.aar app-android/libs/sqlcipher-android.aar
 ```

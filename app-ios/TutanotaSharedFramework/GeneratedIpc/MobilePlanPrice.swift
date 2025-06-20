@@ -6,24 +6,24 @@ public struct MobilePlanPrice : Codable {
 		name: String,
 		rawMonthlyPerMonth: String,
 		rawYearlyPerYear: String,
-		rawYearlyPerMonth: String,
 		displayMonthlyPerMonth: String,
 		displayYearlyPerYear: String,
-		displayYearlyPerMonth: String
+		displayOfferYearlyPerYear: String?,
+		isEligibleForIntroOffer: Bool
 	) {
 		self.name = name
 		self.rawMonthlyPerMonth = rawMonthlyPerMonth
 		self.rawYearlyPerYear = rawYearlyPerYear
-		self.rawYearlyPerMonth = rawYearlyPerMonth
 		self.displayMonthlyPerMonth = displayMonthlyPerMonth
 		self.displayYearlyPerYear = displayYearlyPerYear
-		self.displayYearlyPerMonth = displayYearlyPerMonth
+		self.displayOfferYearlyPerYear = displayOfferYearlyPerYear
+		self.isEligibleForIntroOffer = isEligibleForIntroOffer
 	}
 	public let name: String
 	public let rawMonthlyPerMonth: String
 	public let rawYearlyPerYear: String
-	public let rawYearlyPerMonth: String
 	public let displayMonthlyPerMonth: String
 	public let displayYearlyPerYear: String
-	public let displayYearlyPerMonth: String
+	public let displayOfferYearlyPerYear: String?
+	public let isEligibleForIntroOffer: Bool
 }

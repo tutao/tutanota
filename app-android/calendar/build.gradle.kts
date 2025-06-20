@@ -19,8 +19,8 @@ android {
 		applicationId = "de.tutao.calendar"
 		minSdk = 26
 		targetSdk = 34
-		versionCode = 140
-		versionName = "287.250616.0"
+		versionCode = 141
+		versionName = "291.250618.0"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -184,7 +184,7 @@ dependencies {
 	kapt("androidx.room:room-compiler:$room_version")
 
 
-	implementation(files("../libs/sqlcipher-android-4.7.2-release.aar"))
+	implementation(files("../libs/sqlcipher-android.aar"))
 
 	implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
 	implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")

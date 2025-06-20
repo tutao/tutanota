@@ -11,7 +11,7 @@ import { UserError } from "../api/main/UserError.js"
 import { isIOSApp } from "../api/common/Env"
 import { MobilePlanPrice } from "../native/common/generatedipc/MobilePlanPrice"
 import { locator } from "../api/main/CommonLocator.js"
-import { isReferenceDateWithinTutaBirthdayCampaign } from "../misc/ElevenYearsTutaUtils.js"
+import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard.js"
 
 export const enum PaymentInterval {
 	Monthly = 1,
@@ -185,16 +185,18 @@ export class PriceAndConfigProvider {
 	/**
 	 * Returns the subscription price with the currency formatting on iOS and as a plain period seperated number on other platforms
 	 */
-	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, subscription: PlanType, type: UpgradePriceType): SubscriptionPrice {
+	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, data: UpgradeSubscriptionData): SubscriptionPrice {
+		const subscription = data.type
+
 		if (isIOSApp()) {
-			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval, type)
+			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval)
 		} else {
 			const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
 			return { displayPrice: formatPrice(price, true), rawPrice: price.toString() }
 		}
 	}
 
-	private getAppStorePaymentsSubscriptionPrice(subscription: PlanType, paymentInterval: PaymentInterval, type: UpgradePriceType) {
+	private getAppStorePaymentsSubscriptionPrice(subscription: PlanType, paymentInterval: PaymentInterval) {
 		const planName = PlanTypeToName[subscription]
 		const applePrices = this.getMobilePrices().get(planName.toLowerCase())
 
@@ -202,22 +204,10 @@ export class PriceAndConfigProvider {
 			throw new Error(`no such iOS plan ${planName}`)
 		}
 
-		const isTutaBirthdayCampaign = isReferenceDateWithinTutaBirthdayCampaign(Const.CURRENT_DATE ?? new Date())
-
 		switch (paymentInterval) {
 			case PaymentInterval.Monthly:
 				return { displayPrice: applePrices.displayMonthlyPerMonth, rawPrice: applePrices.rawMonthlyPerMonth }
 			case PaymentInterval.Yearly: {
-				if (isTutaBirthdayCampaign && subscription === PlanType.Legend && type === UpgradePriceType.PlanActualPrice) {
-					const revolutionaryPlanPrice = this.getMobilePrices().get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())
-
-					if (!revolutionaryPlanPrice) {
-						throw new Error("no such iOS plan for Revolutionary.")
-					}
-
-					return { displayPrice: revolutionaryPlanPrice.displayYearlyPerYear, rawPrice: revolutionaryPlanPrice.rawYearlyPerYear }
-				}
-
 				return { displayPrice: applePrices.displayYearlyPerYear, rawPrice: applePrices.rawYearlyPerYear }
 			}
 		}
@@ -262,6 +252,21 @@ export class PriceAndConfigProvider {
 		} else {
 			return null
 		}
+	}
+
+	/**
+	 * Return if the user is eligible for paid plans with an introductory discount offer from Apple Payment.
+	 */
+	getIosIntroOfferEligibility(): boolean {
+		if (!isIOSApp()) return false
+
+		let res = false
+		for (const [key, price] of assertNotNull(this.mobilePrices)) {
+			if (price.isEligibleForIntroOffer) {
+				res = true
+			}
+		}
+		return res
 	}
 }
 

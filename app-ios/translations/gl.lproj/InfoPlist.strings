@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Tome unha fotografía ou vídeo para engadilo como anexo.";
 NSPhotoLibraryUsageDescription = "Engade unha imaxe da túa biblioteca como anexo.";
 NSMicrophoneUsageDescription = "Utilizado cando se grava un vídeo como anexo.";
-NSContactsUsageDescription = "1. Atopar o enderezo de correo da correspondente nos contactos.\n2. Optativamente sincroniza os contactos de Tuta co teu dispositivo.";
+NSContactsUsageDescription = "Tuta pode mostrar suxestións para as correspondentes do correo procedentes dos contactos gardados no teu dispositivo. Ademais, podes permitir que Tuta sincronice os teus contactos entre o teu dispositivo e a conta Tuta. Se activas a sincronización nos axustes, os contactos do dispositivo subiranse despois de cifralos de xeito seguro e estarán dispoñibles para outras aplicacións.";
 NSRemindersUsageDescription = "Mostra notificación cando chega un novo correo.";
 TutaoShowCameraAction = "Cámara";
 TutaoChoosePhotosAction = "Fotografías";
@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Calendarios";
 TutaoNoTitleLabel = "<Sen título>";
 TutaoWidgetDescription = "Mostrar os eventos para hoxe";
 TutaoDefaultCalendarNameTitle = "Privado";
+TutaoWidgetMissingConfigurationErrorMsg = "Configura este widget";
 TutaoBirthdayEventTitle = "Aniversario de {name}";
 TutaoBirthdayEventAgeTitle = "{age} anos de idade";
 TutaoBirthdayCalendarLabel = "Aniversarios";

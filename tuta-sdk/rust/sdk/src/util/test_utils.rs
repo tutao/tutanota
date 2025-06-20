@@ -40,10 +40,7 @@ pub fn generate_random_string<const SIZE: usize>() -> String {
 }
 
 #[must_use]
-pub fn generate_random_group(
-	current_keys: Option<KeyPair>,
-	former_keys: Option<GroupKeysRef>,
-) -> Group {
+pub fn generate_random_group(current_keys: Option<KeyPair>, former_keys: GroupKeysRef) -> Group {
 	let group_id = GeneratedId::test_random();
 	Group {
 		_format: 0,
@@ -90,6 +87,7 @@ pub fn generate_random_group(
 		}),
 		storageCounter: None,
 		user: None,
+		identityKeyPair: None,
 	}
 }
 

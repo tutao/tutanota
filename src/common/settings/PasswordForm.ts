@@ -3,7 +3,6 @@ import { Autocomplete } from "../gui/base/TextField.js"
 import { getPasswordStrength, isSecurePassword } from "../misc/passwords/PasswordUtils.js"
 import type { TranslationKey } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
-import type { Status } from "../gui/base/StatusField.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils.js"
@@ -12,7 +11,9 @@ import { theme } from "../gui/theme.js"
 import { px, size } from "../gui/size.js"
 import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
+import stream from "mithril/stream"
 import { PasswordField, PasswordFieldAttrs } from "../misc/passwords/PasswordField.js"
+import { Status } from "../gui/base/StatusField"
 
 assertMainOrNode()
 
@@ -29,20 +30,15 @@ export interface PasswordModelConfig {
 	readonly reservedStrings?: () => string[]
 }
 
-const enum PasswordFieldType {
-	Old,
-	New,
-	Confirm,
-}
-
 export class PasswordModel {
 	private newPassword = ""
 	private oldPassword = ""
 	private repeatedPassword = ""
 	private passwordStrength: number
-	private readonly __mailValid?: Stream<boolean>
+	private readonly __mailValid: Stream<boolean>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
+	private disabled: boolean = false
 
 	constructor(
 		private readonly usageTestController: UsageTestController,
@@ -52,7 +48,7 @@ export class PasswordModel {
 	) {
 		this.passwordStrength = this.calculatePasswordStrength()
 
-		this.__mailValid = mailValid
+		this.__mailValid = mailValid ?? stream(true)
 		this.__signupFreeTest = this.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = this.usageTestController.getTest("signup.paid")
 	}
@@ -71,7 +67,7 @@ export class PasswordModel {
 	}
 
 	setNewPassword(newPassword: string) {
-		if (this.__mailValid && this.__mailValid()) {
+		if (this.__mailValid()) {
 			// Email address selection finished (email address is available and clicked in password field)
 			// Only the started test's (either free or paid clicked) stage is completed here
 			this.__signupFreeTest?.getStage(2).complete()
@@ -88,6 +84,10 @@ export class PasswordModel {
 	recalculatePasswordStrength() {
 		this.passwordStrength = this.calculatePasswordStrength()
 		this._checkBothValidAndSendPing()
+	}
+
+	getIsDisabled(): boolean {
+		return !this.__mailValid()
 	}
 
 	getOldPassword(): string {
@@ -118,11 +118,15 @@ export class PasswordModel {
 	}
 
 	getErrorMessageId(): TranslationKey | null {
-		return (
-			this.getErrorFromStatus(this.getOldPasswordStatus()) ??
-			this.getErrorFromStatus(this.getNewPasswordStatus()) ??
-			this.getErrorFromStatus(this.getRepeatedPasswordStatus())
-		)
+		if (this.disabled) {
+			return "emailAddressFirst_msg"
+		} else {
+			return (
+				this.getErrorFromStatus(this.getOldPasswordStatus()) ??
+				this.getErrorFromStatus(this.getNewPasswordStatus()) ??
+				this.getErrorFromStatus(this.getRepeatedPasswordStatus())
+			)
+		}
 	}
 
 	getOldPasswordStatus(): Status {
@@ -245,18 +249,10 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							oninput: (input) => attrs.model.setOldPassword(input),
 							autocompleteAs: Autocomplete.currentPassword,
 							fontSize: px(size.font_size_smaller),
+							disabled: attrs.model.getIsDisabled(),
 					  } satisfies PasswordFieldAttrs)
 					: null,
-				m(PasswordField, {
-					label: "newPassword_label",
-					value: attrs.model.getNewPassword(),
-					passwordStrength: attrs.model.getPasswordStrength(),
-					helpLabel: () => this.renderPasswordGeneratorHelp(attrs),
-					status: attrs.model.getNewPasswordStatus(),
-					oninput: (input) => attrs.model.setNewPassword(input),
-					autocompleteAs: Autocomplete.newPassword,
-					fontSize: px(size.font_size_smaller),
-				}),
+				attrs.model.getIsDisabled() ? this.renderDisabledPasswordField(attrs) : this.renderNewPasswordField(attrs),
 				attrs.model.config.hideConfirmation
 					? null
 					: m(PasswordField, {
@@ -266,17 +262,50 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							status: attrs.model.getRepeatedPasswordStatus(),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(size.font_size_smaller),
+							disabled: attrs.model.getIsDisabled(),
 					  }),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 			],
 		)
 	}
 
+	private renderDisabledPasswordField(attrs: PasswordFormAttrs): Children {
+		return m(PasswordField, {
+			label: "newPassword_label",
+			value: attrs.model.getNewPassword(),
+			status: { type: "invalid", text: "emailAddressFirst_msg" },
+			helpLabel: () => this.renderPasswordGeneratorHelp(attrs),
+			oninput: (input) => attrs.model.setNewPassword(input),
+			autocompleteAs: Autocomplete.newPassword,
+			fontSize: px(size.font_size_smaller),
+			disabled: true,
+		})
+	}
+
+	private renderNewPasswordField(attrs: PasswordFormAttrs): Children {
+		return m(PasswordField, {
+			label: "newPassword_label",
+			value: attrs.model.getNewPassword(),
+			passwordStrength: attrs.model.getPasswordStrength(),
+			helpLabel: () => this.renderPasswordGeneratorHelp(attrs),
+			status: attrs.model.getNewPasswordStatus(),
+			oninput: (input) => attrs.model.setNewPassword(input),
+			autocompleteAs: Autocomplete.newPassword,
+			fontSize: px(size.font_size_smaller),
+			disabled: attrs.model.getIsDisabled(),
+		})
+	}
+
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
 		return m(
 			"button.b.mr-xs.hover.click.darkest-hover.mt-xs",
 			{
-				style: { display: "inline-block", color: theme.navigation_button_selected },
+				disabled: attrs.model.getIsDisabled(),
+				style: {
+					visibility: attrs.model.getIsDisabled() ? "hidden" : "visible",
+					display: "inline-block",
+					color: theme.navigation_button_selected,
+				},
 				onclick: async () => {
 					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
 					m.redraw()

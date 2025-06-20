@@ -26,6 +26,7 @@ import { CreateMailFolderReturnTypeRef } from "./TypeRefs.js"
 import { UpdateMailFolderDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailFolderDataTypeRef } from "./TypeRefs.js"
 import { CreateMailGroupDataTypeRef } from "./TypeRefs.js"
+import { MailGroupPostOutTypeRef } from "./TypeRefs.js"
 import { DeleteGroupDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailDataTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
@@ -45,6 +46,7 @@ import { TranslationGetInTypeRef } from "./TypeRefs.js"
 import { TranslationGetOutTypeRef } from "./TypeRefs.js"
 import { UnreadMailStatePostInTypeRef } from "./TypeRefs.js"
 import { UserAccountCreateDataTypeRef } from "./TypeRefs.js"
+import { UserAccountPostOutTypeRef } from "./TypeRefs.js"
 
 export const ApplyLabelService = Object.freeze({
 	app: "tutanota",
@@ -167,7 +169,7 @@ export const MailGroupService = Object.freeze({
 	app: "tutanota",
 	name: "MailGroupService",
 	get: null,
-	post: { data: CreateMailGroupDataTypeRef, return: null },
+	post: { data: CreateMailGroupDataTypeRef, return: MailGroupPostOutTypeRef },
 	put: null,
 	delete: { data: DeleteGroupDataTypeRef, return: null },
 } as const)
@@ -284,7 +286,7 @@ export const UserAccountService = Object.freeze({
 	app: "tutanota",
 	name: "UserAccountService",
 	get: null,
-	post: { data: UserAccountCreateDataTypeRef, return: null },
+	post: { data: UserAccountCreateDataTypeRef, return: UserAccountPostOutTypeRef },
 	put: null,
 	delete: null,
 } as const)

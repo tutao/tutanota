@@ -27,6 +27,8 @@ pub struct KeyPair {
 	#[serde(rename = "2147")]
 	#[serde(with = "serde_bytes")]
 	pub symEncPrivKyberKey: Option<Vec<u8>>,
+	#[serde(rename = "2589")]
+	pub signature: Option<PublicKeySignature>,
 }
 
 impl Entity for KeyPair {
@@ -81,9 +83,11 @@ pub struct Group {
 	#[serde(rename = "2092")]
 	pub storageCounter: Option<GeneratedId>,
 	#[serde(rename = "2273")]
-	pub formerGroupKeys: Option<GroupKeysRef>,
+	pub formerGroupKeys: GroupKeysRef,
 	#[serde(rename = "2475")]
 	pub pubAdminGroupEncGKey: Option<PubEncKeyData>,
+	#[serde(rename = "2588")]
+	pub identityKeyPair: Option<IdentityKeyPair>,
 }
 
 impl Entity for Group {
@@ -1095,6 +1099,8 @@ pub struct PublicKeyGetOut {
 	#[serde(rename = "2149")]
 	#[serde(with = "serde_bytes")]
 	pub pubKyberKey: Option<Vec<u8>>,
+	#[serde(rename = "2611")]
+	pub signature: Option<PublicKeySignature>,
 }
 
 impl Entity for PublicKeyGetOut {
@@ -3349,6 +3355,8 @@ pub struct UpgradePriceServiceReturn {
 	pub bonusMonthsForYearlyPlan: i64,
 	#[serde(rename = "2555")]
 	pub firstMonthForFreeForYearlyPlan: bool,
+	#[serde(rename = "2613")]
+	pub hasGlobalFirstYearDiscount: bool,
 	#[serde(rename = "1473")]
 	pub premiumPrices: PlanPrices,
 	#[serde(rename = "1474")]
@@ -3390,7 +3398,7 @@ pub struct RegistrationCaptchaServiceGetData {
 	#[serde(rename = "1480")]
 	pub _format: i64,
 	#[serde(rename = "1481")]
-	pub token: Option<String>,
+	pub campaignToken: Option<String>,
 	#[serde(rename = "1482")]
 	pub mailAddress: String,
 	#[serde(rename = "1731")]
@@ -3894,7 +3902,7 @@ pub struct UserGroupRoot {
 	#[serde(rename = "1624")]
 	pub invitations: GeneratedId,
 	#[serde(rename = "2294")]
-	pub keyRotations: Option<KeyRotationsRef>,
+	pub keyRotations: KeyRotationsRef,
 	#[serde(rename = "2383")]
 	pub groupKeyUpdates: Option<GroupKeyUpdatesRef>,
 }
@@ -4485,6 +4493,8 @@ pub struct PaymentDataServiceGetData {
 	pub _format: i64,
 	#[serde(rename = "1863")]
 	pub clientType: Option<i64>,
+	#[serde(rename = "2614")]
+	pub subscriptionApp: i64,
 }
 
 impl Entity for PaymentDataServiceGetData {
@@ -4715,6 +4725,8 @@ impl Entity for MailAddressAvailability {
 pub struct MultipleMailAddressAvailabilityData {
 	#[serde(rename = "2031")]
 	pub _format: i64,
+	#[serde(rename = "2612")]
+	pub signupToken: Option<String>,
 	#[serde(rename = "2032")]
 	pub mailAddresses: Vec<StringWrapper>,
 }
@@ -5942,6 +5954,198 @@ impl Entity for SurveyDataPostIn {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2563),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct Patch {
+	#[serde(rename = "2568")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2569")]
+	pub patchOperation: i64,
+	#[serde(rename = "2570")]
+	pub attributePath: String,
+	#[serde(rename = "2571")]
+	pub value: Option<String>,
+}
+
+impl Entity for Patch {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2567),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PatchList {
+	#[serde(rename = "2573")]
+	pub _format: i64,
+	#[serde(rename = "2574")]
+	pub patches: Vec<Patch>,
+}
+
+impl Entity for PatchList {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2572),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyPair {
+	#[serde(rename = "2576")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2577")]
+	pub identityKeyVersion: i64,
+	#[serde(rename = "2578")]
+	pub encryptingKeyVersion: i64,
+	#[serde(rename = "2579")]
+	#[serde(with = "serde_bytes")]
+	pub publicEd25519Key: Vec<u8>,
+	#[serde(rename = "2580")]
+	#[serde(with = "serde_bytes")]
+	pub privateEd25519Key: Vec<u8>,
+	#[serde(rename = "2581")]
+	pub publicKeyMac: KeyMac,
+}
+
+impl Entity for IdentityKeyPair {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2575),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PublicKeySignature {
+	#[serde(rename = "2583")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2584")]
+	#[serde(with = "serde_bytes")]
+	pub signature: Vec<u8>,
+	#[serde(rename = "2585")]
+	pub signingKeyVersion: i64,
+	#[serde(rename = "2586")]
+	pub signatureType: i64,
+	#[serde(rename = "2587")]
+	pub publicKeyVersion: i64,
+}
+
+impl Entity for PublicKeySignature {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2582),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyGetIn {
+	#[serde(rename = "2591")]
+	pub _format: i64,
+	#[serde(rename = "2592")]
+	pub version: Option<i64>,
+	#[serde(rename = "2593")]
+	pub identifierType: i64,
+	#[serde(rename = "2594")]
+	pub identifier: String,
+}
+
+impl Entity for IdentityKeyGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2590),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyGetOut {
+	#[serde(rename = "2596")]
+	pub _format: i64,
+	#[serde(rename = "2597")]
+	#[serde(with = "serde_bytes")]
+	pub publicIdentityKey: Vec<u8>,
+	#[serde(rename = "2598")]
+	pub publicIdentityKeyVersion: i64,
+}
+
+impl Entity for IdentityKeyGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2595),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct IdentityKeyPostIn {
+	#[serde(rename = "2600")]
+	pub _format: i64,
+	#[serde(rename = "2601")]
+	pub identityKeyPair: IdentityKeyPair,
+	#[serde(rename = "2602")]
+	pub signatures: Vec<PublicKeySignature>,
+}
+
+impl Entity for IdentityKeyPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2599),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct Rollout {
+	#[serde(rename = "2605")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2606")]
+	pub rolloutType: i64,
+}
+
+impl Entity for Rollout {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2604),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct RolloutGetOut {
+	#[serde(rename = "2608")]
+	pub _format: i64,
+	#[serde(rename = "2609")]
+	pub rollouts: Vec<Rollout>,
+}
+
+impl Entity for RolloutGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2607),
 		}
 	}
 }

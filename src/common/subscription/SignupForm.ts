@@ -10,6 +10,7 @@ import {
 	AccountType,
 	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
 	DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN,
+	SubscriptionApp,
 	TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
 } from "../api/common/TutanotaConstants"
 
@@ -20,7 +21,7 @@ import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { InvalidDataError } from "../api/common/error/RestError"
+import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError"
 import { locator } from "../api/main/CommonLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -30,7 +31,6 @@ import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
-import { SubscriptionApp } from "./SubscriptionViewer"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -287,6 +287,11 @@ function signup(
 		.catch(
 			ofClass(InvalidDataError, () => {
 				Dialog.message("invalidRegistrationCode_msg")
+			}),
+		)
+		.catch(
+			ofClass(PreconditionFailedError, (e) => {
+				Dialog.message("invalidSignup_msg")
 			}),
 		)
 		.finally(() => operation.done())

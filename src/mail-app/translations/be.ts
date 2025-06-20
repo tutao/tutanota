@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2025-06-10T11:47:02Z",
+	"updated_at": "2025-06-18T10:08:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1168,6 +1168,7 @@ export default {
 		"no_label": "Не",
 		"npo50PercentDiscount_msg": "Спэцыяльная прапанова: 50% зьніжкі!",
 		"occurrencesCount_label": "Колькасьць выпадкаў",
+		"offlineDbUnavailableNoTypes_msg": "Оффлайнавы уваход у дадзены момант недаступны. Калі ласкам, падлучыся да Інтэрнэту і паспрабуй ізноў, каб выправіць памылку.",
 		"offlineLoginPremiumOnly_msg": "Ты па-за сеткаю. Падключы платную падпіску, каб уваходзіць у пошту нават знаходзячыся па-за сеткаю.",
 		"offline_label": "Па-за сеткаю",
 		"ok_action": "Файна",
@@ -1592,6 +1593,7 @@ export default {
 		"searchDisabled_msg": "Функцыя пошуку была выключана, бо твой аглядальнік не патрымлівае захаванне даных.",
 		"searchedUntil_msg": "Шукаць да",
 		"searchEmails_placeholder": "Шукаць імэйлы",
+		"searchFilters_label": "Пошукавыя фільтры",
 		"searchGroups_placeholder": "Шукаць групы",
 		"searchInOurAppsLinkText_msg": "нашыя праграмы",
 		"searchInOurApps_msg": "Хутчэйшый і лепшый пошук імэйлаў даступны тут {link}!",
@@ -2002,6 +2004,7 @@ export default {
 		"whyLeave_msg": "Нам шкада, што ты пакідаеш нас. Што мы маглі б палепшыць?",
 		"widgetCredentialsError_msg": "Калі ласка, зарэгіструйся ў праграме-календары",
 		"widgetDescription_msg": "Паказаць сённяшнія надыходзячыя падзеі",
+		"widgetMissingConfigurationError_msg": "Калі ласка, сканфуґуруй ўіджэт",
 		"widgetNoCredentialsInfo_msg": "Няма даных уваходу",
 		"widgetNoEvents_msg": "Няма падзей",
 		"widgetOpenApp_action": "Адкрыць праграму",
