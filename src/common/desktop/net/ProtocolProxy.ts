@@ -83,7 +83,9 @@ function handleAssetProtocol(session: Session, assetDir: string, pathModule: typ
 	session.protocol.handle(ASSET_PROTOCOL, async (request: Request): Promise<Response> => {
 		const fail = (msg: string) => {
 			log.debug(TAG, msg)
-			return new Response(null, { status: 404 })
+			// electron does not dispatch did-fail-load when we return a valid response e.g. 404 or 500.
+			// unexpected error at least get dispatched
+			throw new Error(`assert protocol failure: ${msg}`)
 		}
 		// in node, new URL will normalize the path and remove /.. and /. elements.
 		// this doesn't work in browsers, so the startsWith check below should stay just to be sure
@@ -98,7 +100,7 @@ function handleAssetProtocol(session: Session, assetDir: string, pathModule: typ
 				return fail(`Invalid asset URL ${request.url} w/ pathname ${url.pathname} got resolved to ${filePath})`)
 			} else {
 				try {
-					return fileFetch(filePath, fsModule)
+					return await fileFetch(filePath, fsModule)
 				} catch (e) {
 					return fail(`failed to read asset at ${request.url}: ${e.message}`)
 				}

@@ -413,17 +413,14 @@ export class ApplicationWindow {
 			})
 			.on("did-fail-load", (evt, errorCode, errorDesc, validatedURL) => {
 				log.debug(TAG, "failed to load resource: ", validatedURL, errorDesc)
-
-				if (errorDesc === "ERR_FILE_NOT_FOUND") {
-					this.getInitialUrl({
-						noAutoLogin: true,
+				this.getInitialUrl({
+					noAutoLogin: true,
+				})
+					.then((initialUrl) => {
+						log.debug(TAG, "redirecting to start page...", initialUrl)
+						return this._browserWindow.loadURL(initialUrl)
 					})
-						.then((initialUrl) => {
-							log.debug(TAG, "redirecting to start page...", initialUrl)
-							return this._browserWindow.loadURL(initialUrl)
-						})
-						.then(() => log.debug(TAG, "...redirected"))
-				}
+					.then(() => log.debug(TAG, "...redirected"))
 			})
 			// @ts-ignore
 			.on("remote-require", (e) => e.preventDefault())

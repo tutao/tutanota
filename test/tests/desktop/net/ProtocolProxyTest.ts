@@ -4,6 +4,7 @@ import { OutgoingHttpHeader } from "node:http"
 import { func, matchers, object, verify, when } from "testdouble"
 import { doHandleProtocols, handleProtocols } from "../../../../src/common/desktop/net/ProtocolProxy.js"
 import { utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertThrows } from "@tutao/tutanota-test-utils"
 
 o.spec("ProtocolProxy", function () {
 	let fetchMock
@@ -137,8 +138,8 @@ o.spec("ProtocolProxy", function () {
 			when(protocol.handle("asset", captor.capture())).thenReturn(undefined)
 			doHandleProtocols(ses, "/tutanota/assets", fetchMock, path, fs)
 			const request = { url: "basset://app/noodles.txt" }
-			const responseFromSubject = await captor.value(request)
-			o(await responseFromSubject.status).deepEquals(404)
+			const error = await assertThrows(Error, () => captor.value(request))
+			o.check(error.message).equals("assert protocol failure: passed non-asset url to asset handler: basset://app/noodles.txt")
 		})
 
 		o("rejects non-app hostname", async function () {
@@ -146,8 +147,8 @@ o.spec("ProtocolProxy", function () {
 			when(protocol.handle("asset", captor.capture())).thenReturn(undefined)
 			doHandleProtocols(ses, "/tutanota/assets", fetchMock, path, fs)
 			const request = { url: "asset://bop/noodles.txt" }
-			const responseFromSubject = await captor.value(request)
-			o(await responseFromSubject.status).deepEquals(404)
+			const error = await assertThrows(Error, () => captor.value(request))
+			o.check(error.message).equals("assert protocol failure: Invalid asset:// URL: asset://bop/noodles.txt")
 		})
 	})
 })
