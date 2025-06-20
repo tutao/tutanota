@@ -63,27 +63,27 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 					state: attrs.listModel.state,
 					renderConfig,
 					onLoadMore: () => {
-						attrs.listModel?.loadMore()
+						this.listModel.loadMore()
 					},
 					onRetryLoading: () => {
-						attrs.listModel?.retryLoading()
+						this.listModel.retryLoading()
 					},
 					onSingleSelection: (item: SearchResultListEntry) => {
-						attrs.listModel?.onSingleSelection(item)
+						this.listModel.onSingleSelection(item)
 						attrs.onSingleSelection(item)
 					},
 					onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
-						attrs.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
+						this.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
 					},
 					onRangeSelectionTowards: (item: SearchResultListEntry) => {
-						attrs.listModel.selectRangeTowards(item)
+						this.listModel.selectRangeTowards(item)
 					},
-					onStopLoading() {
+					onStopLoading: () => {
 						if (attrs.cancelCallback != null) {
 							attrs.cancelCallback()
 						}
 
-						attrs.listModel.stopLoading()
+						this.listModel.stopLoading()
 					},
 			  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
 	}
