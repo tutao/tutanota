@@ -3996,3 +3996,23 @@ impl Entity for ResolveConversationsServiceGetOut {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ChangePrimaryAddressServicePutIn {
+	#[serde(rename = "1665")]
+	pub _format: i64,
+	#[serde(rename = "1667")]
+	pub address: String,
+	#[serde(rename = "1666")]
+	pub user: GeneratedId,
+}
+
+impl Entity for ChangePrimaryAddressServicePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1664),
+		}
+	}
+}
