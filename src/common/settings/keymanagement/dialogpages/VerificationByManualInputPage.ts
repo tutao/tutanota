@@ -44,6 +44,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					style: { padding: "0" },
 				},
 				m(SingleLineTextField, {
+					// testId: lang.getTestId("mailAddress_label"),
 					ariaLabel: lang.get("mailAddress_label"),
 					placeholder: lang.get("mailAddress_label"),
 					disabled: false,
