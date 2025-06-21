@@ -155,6 +155,12 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 				{
 					onclick: async () => {
 						if (isConfirmDisabled) return
+						console.log(
+							`🔒 MOBYPHISH_LOG: Confirm button clicked in initial modal, selectedSender="${this.selectedSenderEmail}", actualSender="${
+								this.viewModel.getSender().address
+							}"`,
+						)
+
 						this.isLoading = true
 						this.errorMessage = null
 						m.redraw()
@@ -173,6 +179,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 								m.redraw()
 							}
 						} else {
+							console.log(`🔒 MOBYPHISH_LOG: Email mismatch detected, showing warning view`)
 							this.modalState = "warning"
 							this.isLoading = false
 							m.redraw()
@@ -268,6 +275,8 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 				"button.mobyphish-btn",
 				{
 					onclick: async () => {
+						console.log(`🔒 MOBYPHISH_LOG: "Report as Phishing" button clicked for sender="${this.viewModel.getSender().address}"`)
+
 						const senderEmail = this.viewModel.getSender().address
 						const userEmail = this.viewModel.logins.getUserController().loginUsername
 
@@ -285,7 +294,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 							})
 
 							if (response.ok) {
-								console.log(`Reported phishing attempt: ${senderEmail}`)
+								console.log(`🔒 MOBYPHISH_LOG: Successfully reported phishing attempt for sender="${senderEmail}"`)
 								await this.viewModel.fetchSenderData()
 								if (this.modalHandle) {
 									modal.remove(this.modalHandle)
@@ -294,10 +303,10 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 								}
 								m.redraw()
 							} else {
-								console.error("Failed to report phishing.")
+								console.error("🔒 MOBYPHISH_LOG: Failed to report phishing")
 							}
 						} catch (error) {
-							console.error("Error reporting phishing:", error)
+							console.error("🔒 MOBYPHISH_LOG: Error reporting phishing:", error)
 						}
 					},
 					disabled: this.isLoading,
@@ -310,6 +319,8 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 				"button.mobyphish-outline-btn",
 				{
 					onclick: async () => {
+						console.log(`🔒 MOBYPHISH_LOG: "Add to Trusted List" button clicked for sender="${this.viewModel.getSender().address}"`)
+
 						if (this.isLoading || !canAddSender) return
 						this.isLoading = true
 						this.errorMessage = null
@@ -326,9 +337,12 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 								}),
 							})
 							if (!response.ok) throw new Error("Failed to add sender.")
+
+							console.log(`🔒 MOBYPHISH_LOG: Successfully added sender="${address}" to trusted list`)
 							await this.viewModel.updateSenderStatus("confirmed")
 							modal.remove(this.modalHandle!)
 						} catch (err: any) {
+							console.error(`🔒 MOBYPHISH_LOG: Error adding sender to trusted list:`, err)
 							this.errorMessage = err.message || "Error occurred while adding."
 							this.isLoading = false
 							m.redraw()

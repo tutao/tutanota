@@ -242,6 +242,8 @@ export class MailViewerViewModel {
 	}
 
 	async updateSenderStatus(status: string): Promise<void> {
+		console.log(`🔒 MOBYPHISH_LOG: updateSenderStatus called with status="${status}" for sender="${this.mail.sender.address}"`)
+
 		const userEmail = this.logins.getUserController().loginUsername
 		const emailId = this.mail._id[1]
 
@@ -264,12 +266,13 @@ export class MailViewerViewModel {
 
 			if (!response.ok) throw new Error("Failed to update sender status.")
 
-			console.log(`Sender status updated: ${status}`)
+			console.log(`🔒 MOBYPHISH_LOG: Successfully updated sender status to "${status}" for sender="${this.mail.sender.address}"`)
 			this.senderStatus = status
 
 			await this.fetchSenderData()
 
 			if (status === "confirmed" || status === "trusted_once") {
+				console.log(`🔒 MOBYPHISH_LOG: Sender confirmed/trusted - loading content and expanding mail`)
 				this.setSenderConfirmed(true)
 				this.contentBlockingStatus = ContentBlockingStatus.AlwaysShow
 				this.sanitizeResult = null
@@ -281,17 +284,21 @@ export class MailViewerViewModel {
 				m.redraw()
 			}
 		} catch (error) {
-			console.error("Error updating sender status:", error)
+			console.error(`🔒 MOBYPHISH_LOG: Error updating sender status to "${status}":`, error)
 			await this.fetchSenderData()
 			m.redraw()
 		}
 	}
 
 	showPhishingModal(): void {
+		console.log(`🔒 MOBYPHISH_LOG: showPhishingModal called for sender="${this.mail.sender.address}", isSenderConfirmed=${this.isSenderConfirmed()}`)
+
 		if (this.isSenderConfirmed()) {
+			console.log(`🔒 MOBYPHISH_LOG: Sender already confirmed, not showing modal`)
 			return
 		}
 
+		console.log(`🔒 MOBYPHISH_LOG: Displaying MobyPhishConfirmSenderModal`)
 		const modalInstance = new MobyPhishConfirmSenderModal(this, this.trustedSenders())
 		const handle = modal.display(modalInstance)
 		modalInstance.setModalHandle(handle)
@@ -300,7 +307,7 @@ export class MailViewerViewModel {
 	async resetSenderStatusForCurrentEmail(): Promise<void> {
 		const userEmail = this.logins.getUserController().loginUsername
 		const emailId = this.mail._id[1]
-		console.log(`ViewModel: Attempting to reset status for emailId=${emailId}`)
+		console.log(`🔒 MOBYPHISH_LOG: resetSenderStatusForCurrentEmail called for emailId=${emailId}, sender="${this.mail.sender.address}"`)
 
 		try {
 			const response = await fetch(`${TRUSTED_SENDERS_API_URL}/reset-single-email-status`, {
@@ -323,7 +330,7 @@ export class MailViewerViewModel {
 				throw new Error(errorData.message || `Failed to reset email status (${response.status})`)
 			}
 
-			console.log(`ViewModel: Successfully reset status for emailId=${emailId}. Refetching data.`)
+			console.log(`🔒 MOBYPHISH_LOG: Successfully reset status for emailId=${emailId}. Refetching data.`)
 
 			// Reset internal state immediately for responsiveness
 			this.senderStatus = "" // Or null, matching fetchSenderData's default
@@ -344,7 +351,7 @@ export class MailViewerViewModel {
 			}
 			m.redraw()
 		} catch (error) {
-			console.error("ViewModel: Error resetting sender status:", error)
+			console.error(`🔒 MOBYPHISH_LOG: Error resetting sender status for emailId=${emailId}:`, error)
 			// Optionally show user error message here
 			// showUserError(new UserError("Failed to untrust sender. Please try again."));
 			// Refetch data even on error to ensure consistency

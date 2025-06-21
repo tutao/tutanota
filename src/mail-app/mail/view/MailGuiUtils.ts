@@ -35,6 +35,8 @@ import { isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 
 export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): Promise<boolean> {
+	console.log(`📧 EMAIL_DELETION_LOG: Showing delete confirmation dialog for ${mails.length} mail(s)`)
+
 	let trashMails: Mail[] = []
 	let moveMails: Mail[] = []
 	for (let mail of mails) {
@@ -46,8 +48,10 @@ export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): 
 		const isFinalDelete = folder && isSpamOrTrashFolder(folders, folder)
 		if (isFinalDelete) {
 			trashMails.push(mail)
+			console.log(`📧 EMAIL_DELETION_LOG: Mail ${mail._id[1]} will be permanently deleted (final delete)`)
 		} else {
 			moveMails.push(mail)
+			console.log(`📧 EMAIL_DELETION_LOG: Mail ${mail._id[1]} will be moved to trash`)
 		}
 	}
 
@@ -62,8 +66,10 @@ export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): 
 	}
 
 	if (confirmationTextId != null) {
+		console.log(`📧 EMAIL_DELETION_LOG: Showing confirmation dialog with message: ${confirmationTextId}`)
 		return Dialog.confirm(confirmationTextId, "ok_action")
 	} else {
+		console.log(`📧 EMAIL_DELETION_LOG: No confirmation needed, proceeding with deletion`)
 		return Promise.resolve(true)
 	}
 }
@@ -72,13 +78,20 @@ export async function showDeleteConfirmationDialog(mails: ReadonlyArray<Mail>): 
  * @return whether emails were deleted
  */
 export function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<Mail>, onConfirm: () => void): Promise<boolean> {
+	console.log(`📧 EMAIL_DELETION_LOG: Starting delete process for ${mails.length} mail(s), mail IDs: ${mails.map((m) => m._id[1]).join(", ")}`)
+
 	return showDeleteConfirmationDialog(mails).then((confirmed) => {
 		if (confirmed) {
+			console.log(`📧 EMAIL_DELETION_LOG: User confirmed deletion of ${mails.length} mail(s)`)
 			onConfirm()
 			return mailModel
 				.deleteMails(mails)
-				.then(() => true)
+				.then(() => {
+					console.log(`📧 EMAIL_DELETION_LOG: Successfully deleted ${mails.length} mail(s)`)
+					return true
+				})
 				.catch((e) => {
+					console.log(`📧 EMAIL_DELETION_LOG: Failed to delete mails - error: ${e.message}`)
 					//LockedError should no longer be thrown!?!
 					if (e instanceof PreconditionFailedError || e instanceof LockedError) {
 						return Dialog.message("operationStillActive_msg").then(() => false)
@@ -87,6 +100,7 @@ export function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<
 					}
 				})
 		} else {
+			console.log(`📧 EMAIL_DELETION_LOG: User cancelled deletion of ${mails.length} mail(s)`)
 			return Promise.resolve(false)
 		}
 	})

@@ -429,14 +429,30 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.DELETE,
 				exec: () => {
-					if (this.mailViewModel.listModel) this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
+					if (this.mailViewModel.listModel) {
+						const selectedMails = this.mailViewModel.listModel.getSelectedAsArray()
+						console.log(
+							`📧 EMAIL_DELETION_LOG: DELETE key pressed for ${selectedMails.length} mail(s), mail IDs: ${selectedMails
+								.map((m) => m._id[1])
+								.join(", ")}`,
+						)
+						this.deleteMails(selectedMails)
+					}
 				},
 				help: "deleteEmails_action",
 			},
 			{
 				key: Keys.BACKSPACE,
 				exec: () => {
-					if (this.mailViewModel.listModel) this.deleteMails(this.mailViewModel.listModel.getSelectedAsArray())
+					if (this.mailViewModel.listModel) {
+						const selectedMails = this.mailViewModel.listModel.getSelectedAsArray()
+						console.log(
+							`📧 EMAIL_DELETION_LOG: BACKSPACE key pressed for ${selectedMails.length} mail(s), mail IDs: ${selectedMails
+								.map((m) => m._id[1])
+								.join(", ")}`,
+						)
+						this.deleteMails(selectedMails)
+					}
 				},
 				help: "deleteEmails_action",
 			},
@@ -875,6 +891,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private deleteMails(mails: Mail[]): Promise<boolean> {
+		console.log(`📧 EMAIL_DELETION_LOG: deleteMails() called from MailView for ${mails.length} mail(s), mail IDs: ${mails.map((m) => m._id[1]).join(", ")}`)
 		return promptAndDeleteMails(mailLocator.mailModel, mails, noOp)
 	}
 

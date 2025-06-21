@@ -754,6 +754,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		// --- Button Actions ---
 		const confirmAction = async () => {
+			console.log(
+				`🔒 MOBYPHISH_LOG: Confirm button clicked for sender="${
+					viewModel.getSender().address
+				}", isTrusted=${isTrusted}, senderStatus="${senderStatus}"`,
+			)
+
 			if (isTrusted && !(senderStatus === "confirmed" || senderStatus === "trusted_once")) {
 				await viewModel.updateSenderStatus("confirmed")
 			} else if (!isTrusted) {
@@ -764,12 +770,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 
 		const addAction = () => {
+			console.log(`🔒 MOBYPHISH_LOG: Add sender button clicked for sender="${viewModel.getSender().address}", isTrusted=${isTrusted}`)
+
 			const modalInstance = isTrusted ? new MobyPhishAlreadyTrustedModal(viewModel) : new MobyPhishConfirmAddSenderModal(viewModel)
 			const handle = modal.display(modalInstance)
 			modalInstance.setModalHandle?.(handle)
 		}
 
 		const trustOnceAction = () => {
+			console.log(`🔒 MOBYPHISH_LOG: Trust once button clicked for sender="${viewModel.getSender().address}", isTrusted=${isTrusted}`)
+
 			if (isTrusted) {
 				const modalInstance = new MobyPhishAlreadyTrustedModal(viewModel)
 				const handle = modal.display(modalInstance)
@@ -780,12 +790,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 
 		const removeAction = () => {
+			console.log(`🔒 MOBYPHISH_LOG: Remove sender button clicked for sender="${viewModel.getSender().address}", isTrusted=${isTrusted}`)
+
 			const modalInstance = isTrusted ? new MobyPhishRemoveConfirmationModal(viewModel) : new MobyPhishNotTrustedModal()
 			const handle = modal.display(modalInstance)
 			modalInstance.setModalHandle?.(handle)
 		}
 
 		const showInfoModal = () => {
+			console.log(`🔒 MOBYPHISH_LOG: Learn more button clicked`)
+
 			const modalInstance = new MobyPhishInfoModal()
 			const handle = modal.display(modalInstance)
 			modalInstance.setModalHandle?.(handle)
@@ -818,7 +832,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				{
 					label: "mobyPhish_untrust",
 					icon: m(Icon, { icon: Icons.Trash }),
-					click: async () => await viewModel.resetSenderStatusForCurrentEmail(),
+					click: async () => {
+						console.log(`🔒 MOBYPHISH_LOG: Untrust button clicked for sender="${viewModel.getSender().address}"`)
+						await viewModel.resetSenderStatusForCurrentEmail()
+					},
 				},
 			]
 		} else if (senderStatus === "confirmed" || senderStatus === "added_to_trusted" || (isTrusted && senderStatus === "")) {

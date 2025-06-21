@@ -107,7 +107,12 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 	private deleteButton({ viewModel }: MobileMailActionBarAttrs): Children {
 		return m(IconButton, {
 			title: "delete_action",
-			click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
+			click: () => {
+				console.log(
+					`📧 EMAIL_DELETION_LOG: Delete button clicked from mobile action bar for mail ID: ${viewModel.mail._id[1]}, sender: ${viewModel.mail.sender.address}`,
+				)
+				promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp)
+			},
 			icon: Icons.Trash,
 		})
 	}

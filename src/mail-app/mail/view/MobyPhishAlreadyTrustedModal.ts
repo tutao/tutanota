@@ -81,7 +81,12 @@ export class MobyPhishAlreadyTrustedModal implements ModalComponent {
 					m(
 						"button.mobyphish-btn",
 						{
-							onclick: () => this.closeModal(),
+							onclick: () => {
+								console.log(
+									`🔒 MOBYPHISH_LOG: OK button clicked in MobyPhishAlreadyTrustedModal for sender="${this.viewModel.getSender().address}"`,
+								)
+								this.closeModal()
+							},
 							style: { color: "black" },
 						},
 						"OK",

@@ -51,6 +51,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { isSpamOrTrashFolder } from "./MailChecks.js"
+import { emailDeletionMonitor } from "../../email-deletion-monitor.js"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -368,8 +369,10 @@ export class MailModel {
 			for (const [listId, mailsInList] of mailsPerList) {
 				if (sourceMailFolder) {
 					if (isSpamOrTrashFolder(folders, sourceMailFolder)) {
+						emailDeletionMonitor.logEmailDeletion(mailsInList, sourceMailFolder, "PERMANENT_DELETE")
 						await this.finallyDeleteMails(mailsInList)
 					} else {
+						emailDeletionMonitor.logEmailDeletion(mailsInList, sourceMailFolder, "MOVE_TO_TRASH")
 						await this._moveMails(mailsInList, trashFolder)
 					}
 				} else {

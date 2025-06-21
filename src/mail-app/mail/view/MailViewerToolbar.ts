@@ -96,6 +96,9 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return m(IconButton, {
 			title: "delete_action",
 			click: () => {
+				console.log(
+					`📧 EMAIL_DELETION_LOG: Delete button clicked from toolbar for ${mails.length} mail(s), mail IDs: ${mails.map((m) => m._id[1]).join(", ")}`,
+				)
 				promptAndDeleteMails(mailModel, mails, selectNone)
 			},
 			icon: Icons.Trash,
