@@ -2028,4 +2028,3 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
-	| "captchaChecking_msg"

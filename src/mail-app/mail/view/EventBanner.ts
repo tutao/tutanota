@@ -308,7 +308,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 									style: { fill: theme.content_fg },
 									size: IconSize.Medium,
 								}),
-								m("span.b.h5", "Time Overview"), // FIXME translation
+								m("span.b.h5", lang.get("timeOverview_title")),
 							]),
 							agenda
 								? m(".flex.items-center.mt-hpad-small", [
@@ -393,7 +393,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 			click: () => this.handleViewOnCalendarAction(event),
 			text: {
 				testId: "",
-				text: "View on Calendar", // FIXME translation
+				text: lang.get("viewOnCalendar_action"),
 			} as Translation,
 		})
 
@@ -607,7 +607,6 @@ export class EventBanner implements Component<EventBannerAttrs> {
 	}
 
 	private renderConflictInfoText(conflictCount: number, allDayEvents: Array<TimeViewEventWrapper>) {
-		//FIXME Translations
 		const hasOnlyAllDayConflicts = conflictCount > 0 && conflictCount === allDayEvents.length
 		return m(
 			".small.flex.gap-vpad-xs-15.items-center",
@@ -617,11 +616,16 @@ export class EventBanner implements Component<EventBannerAttrs> {
 				},
 			},
 			[
-				!hasOnlyAllDayConflicts ? m("span", conflictCount > 0 ? [m("strong", conflictCount), " simultaneous events"] : "No simultaneous events") : null,
+				!hasOnlyAllDayConflicts
+					? m(
+							"span",
+							conflictCount > 0 ? [m("strong", conflictCount), ` ${lang.get("simultaneousEvents_msg")}`] : lang.get("noSimultaneousEvents_msg"),
+					  )
+					: null,
 				isNotEmpty(allDayEvents)
 					? m("span.border-radius.button-bubble-bg.pt-xxs.pb-xxs.plr-sm.text-break", [
-							m("strong", allDayEvents.length === 1 ? "1 all day: " : `${allDayEvents.length} `),
-							allDayEvents.length === 1 ? allDayEvents[0].event.summary : "all day",
+							m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
+							allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
 					  ])
 					: null,
 			],
