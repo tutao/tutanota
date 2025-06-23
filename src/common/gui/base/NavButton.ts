@@ -111,14 +111,17 @@ export class NavButton implements Component<NavButtonAttrs> {
 	}
 
 	createButtonAttributes(a: NavButtonAttrs): RouteLinkAttrs {
+		const isCurrent = isNavButtonSelected(a)
+
 		let attr: RouteLinkAttrs = {
 			role: "button",
+			"aria-current": isCurrent || undefined,
 			// role button for screen readers
 			href: this._getUrl(a.href),
 			style: {
-				color: isNavButtonSelected(a) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
+				color: isCurrent || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
 				"font-size": a.fontSize ? px(a.fontSize) : "",
-				background: (isNavButtonSelected(a) && a.persistentBackground) || this._draggedOver ? stateBgHover : "",
+				background: (isCurrent && a.persistentBackground) || this._draggedOver ? stateBgHover : "",
 			},
 			title: lang.getTranslationText(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
