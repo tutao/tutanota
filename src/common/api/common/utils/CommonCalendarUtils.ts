@@ -1,6 +1,5 @@
 import { DAY_IN_MILLIS } from "@tutao/tutanota-utils"
-import type { CalendarEvent } from "../../entities/tutanota/TypeRefs.js"
-import { EncryptedMailAddress } from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEvent, EncryptedMailAddress } from "../../entities/tutanota/TypeRefs.js"
 import { stringToCustomId } from "./EntityUtils"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 
@@ -114,7 +113,11 @@ export function cleanMailAddress(address: string): string {
 /**
  * get the first attendee from the list of attendees/guests that corresponds to one of the given recipient addresses, if there is one
  */
-export function findAttendeeInAddresses<T extends { address: EncryptedMailAddress }>(attendees: ReadonlyArray<T>, addresses: ReadonlyArray<string>): T | null {
+export function findAttendeeInAddresses<
+	T extends {
+		address: EncryptedMailAddress
+	},
+>(attendees: ReadonlyArray<T>, addresses: ReadonlyArray<string>): T | null {
 	// the filters are necessary because of #5147
 	// we may get passed addresses and attendees that could not be decrypted and don't have addresses.
 	const lowerCaseAddresses = addresses.filter(Boolean).map(cleanMailAddress)
@@ -124,7 +127,11 @@ export function findAttendeeInAddresses<T extends { address: EncryptedMailAddres
 /**
  * find the first of a list of recipients that have the given address assigned
  */
-export function findRecipientWithAddress<T extends { address: string }>(recipients: ReadonlyArray<T>, address: string): T | null {
+export function findRecipientWithAddress<
+	T extends {
+		address: string
+	},
+>(recipients: ReadonlyArray<T>, address: string): T | null {
 	const cleanAddress = cleanMailAddress(address)
 	return recipients.find((r) => cleanMailAddress(r.address) === cleanAddress) ?? null
 }
@@ -244,4 +251,11 @@ export function formatJSDate(date: Date) {
 	const day = date.getDate()
 
 	return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
+}
+
+export function isSameExternalEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
+	const sameUid = eventA.uid === eventB.uid
+	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
+
+	return sameUid && sameRecurrenceId
 }

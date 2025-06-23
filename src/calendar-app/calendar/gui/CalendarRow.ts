@@ -9,9 +9,11 @@ import { ViewHolder } from "../../../common/gui/base/List.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 
-import { formatEventDuration, getClientOnlyColors, getEventColor, getGroupColors } from "./CalendarGuiUtils.js"
+import { formatEventDuration, getClientOnlyColors, getEventColor } from "./CalendarGuiUtils.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+
+import { getGroupColors } from "../../../common/misc/GroupColors"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number

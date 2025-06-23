@@ -130,7 +130,7 @@ import { isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { AppType } from "../common/misc/ClientConstants.js"
-import { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
+import { ParsedEvent } from "../common/calendar/gui/CalendarImporter.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { KeyLoaderFacade } from "../common/api/worker/facades/KeyLoaderFacade.js"
@@ -1055,8 +1055,8 @@ class MailLocator implements CommonLocator {
 				return acc
 			}, new Map())
 
-			const { calendarSelectionDialog, parseCalendarFile } = await import("../common/calendar/import/CalendarImporter.js")
-			const { handleCalendarImport } = await import("../common/calendar/import/CalendarImporterDialog.js")
+			const { calendarSelectionDialog, parseCalendarFile } = await import("../common/calendar/gui/CalendarImporter.js")
+			const { handleCalendarImport } = await import("../common/calendar/gui/CalendarImporterDialog.js")
 
 			let parsedEvents: ParsedEvent[] = []
 

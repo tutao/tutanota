@@ -5,7 +5,7 @@ import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils.js"
-import { SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
@@ -157,4 +157,12 @@ export function compareMails(mail1: Mail, mail2: Mail): number {
 	} else {
 		return dateDifference
 	}
+}
+
+/**
+ * @returns {boolean} true if the given mail was already replied to. Otherwise false.
+ * Note that it also returns true if the mail was replied to AND forwarded.
+ */
+export function isRepliedTo(mail: Mail): boolean {
+	return mail.replyType === ReplyType.REPLY || mail.replyType === ReplyType.REPLY_FORWARD
 }

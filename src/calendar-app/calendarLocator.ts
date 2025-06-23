@@ -102,7 +102,7 @@ import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../common/misc/RouteChange.js"
 import { AppType } from "../common/misc/ClientConstants.js"
-import type { ParsedEvent } from "../common/calendar/import/CalendarImporter.js"
+import type { ParsedEvent } from "../common/calendar/gui/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DbError } from "../common/api/common/error/DbError.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
@@ -805,7 +805,7 @@ class CalendarLocator implements CommonLocator {
 		const files = await this.fileApp.getFilesMetaData(filesUris)
 		const areAllICSFiles = files.every((file) => file.mimeType === CALENDAR_MIME_TYPE)
 		if (areAllICSFiles) {
-			const { importCalendarFile, parseCalendarFile } = await import("../common/calendar/import/CalendarImporter.js")
+			const { importCalendarFile, parseCalendarFile } = await import("../common/calendar/gui/CalendarImporter.js")
 
 			let parsedEvents: ParsedEvent[] = []
 			for (const fileRef of files) {

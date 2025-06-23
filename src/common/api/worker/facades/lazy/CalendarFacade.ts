@@ -67,7 +67,7 @@ import { CalendarInfo } from "../../../../../calendar-app/calendar/model/Calenda
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
-import type { EventWrapper } from "../../../../calendar/import/ImportExportUtils.js"
+import type { EventWrapper } from "../../../../calendar/gui/ImportExportUtils.js"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
 import { ClientModelUntypedInstance } from "../../../common/EntityTypes"

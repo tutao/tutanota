@@ -1072,7 +1072,7 @@ export class MailViewerViewModel {
 	private async importCalendar(file: TutanotaFile) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
-			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
+			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const data = parseCalendarFile(dataFile)
 			await importCalendarFile(await mailLocator.calendarModel(), this.logins.getUserController(), data.contents)

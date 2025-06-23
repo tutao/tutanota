@@ -1,4 +1,4 @@
-import { Keys, MailReportType, MailState, ReplyType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
+import { Keys, MailReportType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
 import { $Promisable, assertNotNull, groupByAndMap, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
@@ -504,14 +504,6 @@ export function getMailFilterForType(filter: MailFilterType): ListFilter<Mail> {
 		case MailFilterType.WithAttachments:
 			return (mail) => mail.attachments.length > 0
 	}
-}
-
-/**
- * @returns {boolean} true if the given mail was already replied to. Otherwise false.
- * Note that it also returns true if the mail was replied to AND forwarded.
- */
-export function isRepliedTo(mail: Mail): boolean {
-	return mail.replyType === ReplyType.REPLY || mail.replyType === ReplyType.REPLY_FORWARD
 }
 
 export function canDoDragAndDropExport(): boolean {

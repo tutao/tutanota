@@ -36,7 +36,7 @@ import {
 } from "../../../common/calendar/date/CalendarUtils"
 import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
-import { askIfShouldSendCalendarUpdatesToAttendees, getClientOnlyColors, getEventType, getGroupColors, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
+import { askIfShouldSendCalendarUpdatesToAttendees, getClientOnlyColors, getEventType, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
@@ -57,6 +57,8 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+
+import { getGroupColors } from "../../../common/misc/GroupColors"
 
 export type EventsOnDays = {
 	days: Array<Date>

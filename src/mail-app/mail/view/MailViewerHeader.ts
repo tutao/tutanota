@@ -6,7 +6,6 @@ import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander
 import { File as TutanotaFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { EventBanner, EventBannerAttrs } from "./EventBanner.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
@@ -34,7 +33,8 @@ import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MoveMode } from "../model/MailModel"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
-import { getGroupColors } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { EventBanner, EventBannerAttrs } from "./EventBanner"
+import { getGroupColors } from "../../../common/misc/GroupColors"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -342,11 +342,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderEventBanner(viewModel: MailViewerViewModel): Children {
 		const eventAttachment = viewModel.getCalendarEventAttachment()
 		const groupColors: Map<Id, string> = getGroupColors(viewModel.logins.getUserController().userSettingsGroupRoot)
+
 		return eventAttachment
 			? m(
 					"." + responsiveCardHMargin(),
 					m(EventBanner, {
-						contents: eventAttachment.contents,
+						iCalContents: eventAttachment.contents,
 						recipient: eventAttachment.recipient,
 						mail: viewModel.mail,
 						eventsRepository: viewModel.eventsRepository,

@@ -5,7 +5,7 @@ import { BaseMobileHeader } from "../../../common/gui/BaseMobileHeader.js"
 import { OfflineIndicator } from "../../../common/gui/base/OfflineIndicator.js"
 import { ProgressBar } from "../../../common/gui/base/ProgressBar.js"
 import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
-import { MobileHeaderAttrs, MobileHeaderBackButton, MobileHeaderMenuButton, MobileHeaderTitle } from "../../../common/gui/MobileHeader.js"
+import { MobileHeaderBackButton, MobileHeaderMenuButton, MobileHeaderTitle } from "../../../common/gui/MobileHeader.js"
 import { AppHeaderAttrs } from "../../../common/gui/Header.js"
 import { attachDropdown } from "../../../common/gui/base/Dropdown.js"
 import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
@@ -18,7 +18,7 @@ import { isApp } from "../../../common/api/common/Env.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../common/gui/base/NavButton.js"
-import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 
@@ -84,7 +84,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 		if (attrs.viewType === CalendarViewType.AGENDA && history.state?.origin === CalendarViewType.MONTH) {
 			return m(MobileHeaderBackButton, {
 				backAction: () => {
-					const date = history.state.dateString ?? new Date().toISOString().substring(0, 10)
+					const date = history.state.dateString ?? formatJSDate(new Date())
 					m.route.set("/calendar/:view/:date", {
 						view: CalendarViewType.MONTH,
 						date,
@@ -95,7 +95,10 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 			return null
 		}
 
-		return m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: () => attrs.viewSlider.focusPreviousColumn() })
+		return m(MobileHeaderMenuButton, {
+			newsModel: attrs.newsModel,
+			backAction: () => attrs.viewSlider.focusPreviousColumn(),
+		})
 	}
 
 	private renderSearchNavigationButton() {
