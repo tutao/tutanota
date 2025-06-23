@@ -1,6 +1,6 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
-import { Time } from "./Time"
+import { Time } from "../date/Time"
 import { clone, getStartOfNextDay } from "@tutao/tutanota-utils"
 import { deepMemoized } from "@tutao/tutanota-utils/dist/memoized"
 import { px } from "../../gui/size.js"
@@ -9,7 +9,7 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
 import { colorForBg } from "../../gui/base/GuiUtils.js"
 import { formatTime } from "../../misc/Formatter.js"
-import { getTimeZone } from "./CalendarUtils"
+import { getTimeZone } from "../date/CalendarUtils"
 
 export interface TimeViewEventWrapper {
 	event: CalendarEvent
@@ -148,7 +148,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 	private createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<string> {
 		let timeInterval = TIME_SCALE_BASE_VALUE / timeScale
 		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeInterval) / timeInterval
-		const timeKeys = []
+		const timeKeys: Array<string> = []
 
 		for (let i = 0; i < numberOfIntervals; i++) {
 			const agendaRowTime = clone(timeRange.start).add({ minutes: timeInterval * i })

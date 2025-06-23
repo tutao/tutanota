@@ -40,7 +40,7 @@ import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 import { EntityRestClient } from "../../../src/common/api/worker/rest/EntityRestClient"
-import { eventHasSameFields } from "../../../src/common/calendar/import/ImportExportUtils"
+import { eventHasSameFields } from "../../../src/common/calendar/gui/ImportExportUtils"
 
 o.spec("CalendarModel", function () {
 	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {

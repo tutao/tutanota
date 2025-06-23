@@ -45,7 +45,7 @@ import {
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
-import type { ParsedCalendarData, ParsedEvent } from "../../../common/calendar/import/CalendarImporter.js"
+import type { ParsedCalendarData, ParsedEvent } from "../../../common/calendar/gui/CalendarImporter.js"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -105,7 +105,7 @@ import {
 	shallowIsSameEvent,
 	sortOutParsedEvents,
 	SyncStatus,
-} from "../../../common/calendar/import/ImportExportUtils.js"
+} from "../../../common/calendar/gui/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
@@ -743,7 +743,7 @@ export class CalendarModel {
 			const file = await this.entityClient.load(FileTypeRef, fileId, { cacheMode: CacheMode.WriteOnly })
 			// const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
-			const { parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
+			const { parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
 			return await parseCalendarFile(dataFile)
 		} catch (e) {
 			if (e instanceof SessionKeyNotFoundError) {
