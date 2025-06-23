@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-06-19T07:39:18Z",
+	"updated_at": "2025-06-23T07:28:07Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -558,6 +558,7 @@ export default {
 		"editMessage_label": "Nachricht bearbeiten",
 		"editTemplate_action": "Vorlage bearbeiten",
 		"edit_action": "Bearbeiten",
+		"emailAddressFirst_msg": "Bitte wählen Sie zuerst oben eine E-Mail-Adresse aus.",
 		"emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktivieren Sie diese dort zuerst.",
 		"emailProcessing_label": "E-Mail-Verarbeitung",
 		"emailPushNotification_action": "Benachrichtigungs-E-Mail-Adresse hinzufügen",
@@ -817,6 +818,7 @@ export default {
 		"invalidRecipients_msg": "Bitte korrigieren Sie die ungültigen E-Mail-Adressen:",
 		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax",
 		"invalidRegistrationCode_msg": "Der Registrierungs-Code is ungültig.",
+		"invalidSignup_msg": "Die Registrierung wurde unterbrochen. Bitte versuchen Sie es erneut.",
 		"invalidTimePeriod_msg": "Der eingegebene Zeitraum ist ungültig.",
 		"invalidURLProtocol_msg": "Ungültiges Protokoll. Bitte geben Sie eine URL mit https ein.",
 		"invalidURL_msg": "Ungültige URL. Bitte überprüfen und ändern Sie die URL.",
@@ -1944,7 +1946,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Die Bezahldaten werden überprüft. Bitte haben Sie etwas Geduld, dies kann bis zu einer Minute dauern.",
 		"update_action": "Aktualisieren",
 		"upgradeConfirm_msg": "Bestätigen Sie Ihre Bestellung!",
-		"upgradeNeeded_msg": "Sie dürfen leider noch keine E-Mails senden oder empfangen (außer an sales@tutao.de), da Sie zuerst die Buchung eines bezahlten Abo abschließen müssen.",
+		"upgradeNeeded_msg": "Sie können derzeit nur E-Mails mit sales@tutao.de austauschen, weil Sie die Buchung eines kostenpflichtigen Abonnements bei der Registrierung nicht abgeschlossen haben. Sie können die Buchung innerhalb von 14 Tagen nach der Registrierung abschließen, andernfalls wird Ihr Konto dann deaktiviert.",
 		"upgradePlan_msg": "Ihr Abonnement wird zu {plan} erweitert.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Später",
@@ -2039,8 +2041,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"emailAddressFirst_msg": "Please first select an email address above.",
-		"invalidSignup_msg": "The signup process was interrupted. Please try again."
+		"zoomOut_action": "Herauszoomen"
 	}
 }

@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-06-18T22:06:35Z",
+	"updated_at": "2025-06-23T07:28:06Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1387,6 +1387,7 @@ export default {
 		"pricing.familyLegend_tooltip": "Після обрання пакета Legend зв'яжіться з нашою службою підтримки через знак питання ліворуч від вашої поштової скриньки, щоб ми змогли активувати багатокористувацьку. Кожен учасник отримає окрему поштову скриньку на 500 ГБ і 30 псевдонімів (€8 за користувача/місяць). Спільна поштова скринька (€8 на місяць) також отримує 500 ГБ.",
 		"pricing.familyRevolutionary_tooltip": "Після вибору пакета Revolutionary зв'яжіться з нашою службою підтримки через знак питання ліворуч від вашої поштової скриньки, щоб ми могли активувати багатокористувацьку підтримку. Кожен учасник отримає окрему поштову скриньку на 20 ГБ і 15 псевдонімів (€3 за користувача/місяць). Спільна поштова скринька (€3 за місяць) також отримує 20 ГБ.",
 		"pricing.family_label": "Варіант для сім'ї",
+		"pricing.firstYearDiscountIos_revo_legend_msg": "Знижка діє тільки протягом першого року. Наступна річна ціна складе {revo-price} для тарифу Revolutionary і {legend-price} для тарифу Legend.",
 		"pricing.firstYearDiscount_revo_legend_msg": "Знижка діє тільки протягом першого року. Наступна щорічна ціна за місяць становитиме {revo-price} для тарифу Revolutionary та {legend-price} для тарифу Legend.",
 		"pricing.folders_label": "Необмежена кількість папок",
 		"pricing.gdprDataProcessing_label": "Угода GDPR про обробку даних ",
@@ -1394,6 +1395,8 @@ export default {
 		"pricing.gdpr_tooltip": "Всі дані зберігаються з дотриманням суворих європейських правил захисту даних відповідно до GDPR.",
 		"pricing.getStarted_label": "Розпочати",
 		"pricing.globalFirstYearDiscountRibbon_label": "ЕКОНОМІЯ {amount}",
+		"pricing.goEuropeanHeadlineIos_msg": "Станьте європейцем: Одноразова пропозиція, заощаджуйте вже зараз!",
+		"pricing.goEuropeanHeadline_msg": "Станьте європейцем: Одноразова пропозиція, заощаджуйте {amount} вже зараз!",
 		"pricing.includesTaxes_msg": "Включно з податками.",
 		"pricing.legendAsterisk_msg": "Знижка за тарифом Legend діє лише на перший рік. Подальша ціна становитиме 96€ на рік.",
 		"pricing.login_title": "Вхід на власному сайті",

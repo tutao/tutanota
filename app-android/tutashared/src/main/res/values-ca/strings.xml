@@ -10,4 +10,14 @@
     <string name="markRead_action">Marcar com a llegit</string>
     <string name="sendLogs_action">Envia els registres</string>
     <string name="account_label">Usuari</string>
+    <string name="calendars_label">Calendaris</string>
+    <string name="widgetNoCredentialsInfo_msg">No hi ha credencials disponibles</string>
+    <string name="widgetUnexpectedError_msg">Ups! S\'ha produït un error.</string>
+    <string name="widgetCredentialsError_msg">Si us plau, inicia la sessió a l\'aplicació Calendari</string>
+    <string name="widgetOpenApp_action">Obre l\'aplicació</string>
+    <string name="widgetNoEvents_msg">Sense esdeveniments</string>
+    <string name="widgetDescription_msg">Mostra els propers esdeveniments d\'avui</string>
+    <string name="birthdayCalendar_label">Aniversaris</string>
+    <string name="birthdayEvent_title">L\'aniversari de {Nom}</string>
+    <string name="birthdayEventAge_title">{edat} anys</string>
 </resources>

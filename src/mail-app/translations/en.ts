@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-06-19T07:39:17Z",
+	"updated_at": "2025-06-23T07:28:06Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -554,6 +554,7 @@ export default {
 		"editMessage_label": "Edit message",
 		"editTemplate_action": "Edit template",
 		"edit_action": "Edit",
+		"emailAddressFirst_msg": "Please first select an email address above.",
 		"emailAddressInUse_msg": "The email address is still used by another user. Please deactivate it there first.",
 		"emailProcessing_label": "Email processing",
 		"emailPushNotification_action": "Add notification email address",
@@ -813,6 +814,7 @@ export default {
 		"invalidRecipients_msg": "Please correct or remove the invalid email addresses:",
 		"invalidRegexSyntax_msg": "Invalid regex syntax",
 		"invalidRegistrationCode_msg": "This registration code is invalid.",
+		"invalidSignup_msg": "The signup process was interrupted. Please try again.",
 		"invalidTimePeriod_msg": "The entered time period is invalid.",
 		"invalidURLProtocol_msg": "Invalid protocol. Please provide an URL that uses https.",
 		"invalidURL_msg": "Invalid URL format. Please check and modify the URL.",
@@ -1940,7 +1942,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Verifying payment data. Please be patient, this can take up to one minute.",
 		"update_action": "Update",
 		"upgradeConfirm_msg": "Confirm your order!",
-		"upgradeNeeded_msg": "You are currently only allowed to exchange emails with the Tuta sales support at sales@tutao.de because you did not finish ordering a paid plan during signup. You can complete this process within 14 days after signup, after which your account will be deactivated.",
+		"upgradeNeeded_msg": "You can currently only exchange emails with sales@tutao.de because you did not complete the booking of a paid subscription during registration. You can complete the booking within 14 days of registering, otherwise your account will be deactivated.",
 		"upgradePlan_msg": "Your plan will be upgraded to {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Later",
@@ -2035,8 +2037,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"emailAddressFirst_msg": "Please first select an email address above.",
-		"invalidSignup_msg": "The signup process was interrupted. Please try again.",
+		"zoomOut_action": "Zoom Out"
 	}
 }

@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Fă o poză sau un video pentru a le atașa.";
 NSPhotoLibraryUsageDescription = "Atașează o poză din galerie.";
 NSMicrophoneUsageDescription = "Folosit când înregistrezi un video pentru a-l atașa.";
-NSContactsUsageDescription = "1. Caută adresa de e-mail a destinatarului în contacte.\n2. Facultativ, sincronează contactele Tuta cu aparatul tău.";
+NSContactsUsageDescription = "Tuta poate sugera destinatari de e-mail din contactele stocate în aparat. În plus, dacă i se permite, Tuta poate sincroniza contactele între aparat și contul Tuta. Dacă se activează sincronizarea, contactele din aparat vor fi încărcate după ce au fost cifrate în siguranță, iar contactele din Tuta vor deveni disponibile pentru alte aplicații.";
 NSRemindersUsageDescription = "Afișează notificări atunci când sosesc mesaje noi.";
 TutaoShowCameraAction = "Camera";
 TutaoChoosePhotosAction = "Fotografii";
