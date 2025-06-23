@@ -150,7 +150,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private readonly onkeydown = (e: KeyboardEvent) => {
-		const { selected, entities } = this.state()
+		const { selected, entities, query, searchResult } = this.state()
 
 		const keyHandlers = [
 			{
@@ -164,11 +164,15 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			{
 				key: Keys.RETURN,
 				exec: () => {
-					if (selected) {
-						this.selectResult(selected)
-					} else {
-						this.search()
+					if (query !== "") {
+						if (searchResult?.query === query) {
+							searchRouter.routeTo(query, searchResult.restriction)
+							m.redraw()
+						} else {
+							this.doSearch(this.state().query, this.getRestriction(), m.redraw)
+						}
 					}
+
 					// blur() is used to hide keyboard on return button click
 					this.domInput.blur()
 				},
