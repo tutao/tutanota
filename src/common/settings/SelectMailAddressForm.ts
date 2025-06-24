@@ -15,8 +15,6 @@ import { ButtonSize } from "../gui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { isTutaMailAddress } from "../mailFunctionality/SharedMailUtils.js"
-import { deviceConfig } from "../misc/DeviceConfig"
-import { getFirstOrThrow } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -30,6 +28,7 @@ export interface SelectMailAddressFormAttrs {
 	injectionsRightButtonAttrs?: IconButtonAttrs | null
 	onDomainChanged: (domain: EmailDomainData) => unknown
 	mailAddressNAError?: TranslationKey
+	signupToken?: string
 }
 
 export interface ValidationResult {
@@ -201,9 +200,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 			let result: ValidationResult
 			try {
-				const available = getFirstOrThrow(
-					await locator.mailAddressFacade.areMailAddressesAvailable(deviceConfig.getSignupToken(), [cleanMailAddress]),
-				).available
+				const available = await locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress, attrs.signupToken)
 				result = available
 					? { isValid: true, errorId: null }
 					: {

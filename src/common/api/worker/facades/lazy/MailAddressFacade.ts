@@ -23,7 +23,7 @@ import {
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
-import { assertNotNull, findAndRemove, KeyVersion, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/tutanota-utils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { PreconditionFailedError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
@@ -49,24 +49,25 @@ export class MailAddressFacade {
 		return this.serviceExecutor.get(MailAddressAliasService, data)
 	}
 
-	/** used to check mail address availability for an existing account (alias, additional user) */
-	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
+	/**
+	 * used to check mail address availability for an existing account (alias, additional user) and during signup.
+	 * when used during signup, the token signup token must be passed.
+	 */
+	async isMailAddressAvailable(mailAddress: string, signupToken?: string): Promise<boolean> {
 		if (this.userFacade.isFullyLoggedIn()) {
 			const data = createDomainMailAddressAvailabilityData({ mailAddress })
-			return this.serviceExecutor.get(DomainMailAddressAvailabilityService, data).then((result) => result.available)
+			const availability = await this.serviceExecutor.get(DomainMailAddressAvailabilityService, data)
+			return availability.available
+		} else if (signupToken != null) {
+			const data = createMultipleMailAddressAvailabilityData({
+				signupToken,
+				mailAddresses: [createStringWrapper({ value: mailAddress })],
+			})
+			const result = await this.serviceExecutor.get(MultipleMailAddressAvailabilityService, data)
+			return getFirstOrThrow(result.availabilities).available
 		} else {
-			throw new ProgrammingError("tried to get mail address availability while not fully logged in")
+			throw new ProgrammingError("tried to get mail address availability while not fully logged in without a signup token")
 		}
-	}
-
-	/** used to check mail address availability during signup */
-	async areMailAddressesAvailable(signupToken: string, mailAddresses: string[]): Promise<MailAddressAvailability[]> {
-		const data = createMultipleMailAddressAvailabilityData({
-			signupToken,
-			mailAddresses: mailAddresses.map((mailAddress) => createStringWrapper({ value: mailAddress })),
-		})
-		const result = await this.serviceExecutor.get(MultipleMailAddressAvailabilityService, data)
-		return result.availabilities
 	}
 
 	/**

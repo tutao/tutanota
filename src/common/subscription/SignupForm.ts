@@ -31,6 +31,7 @@ import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
 import { SubscriptionApp } from "./SubscriptionViewer"
+import { deviceConfig } from "../misc/DeviceConfig"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -128,6 +129,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			onBusyStateChanged: (isBusy) => {
 				this._isMailVerificationBusy = isBusy
 			},
+			signupToken: deviceConfig.getSignupToken(),
 		}
 		const confirmTermsCheckBoxAttrs: CheckboxAttrs = {
 			label: renderTermsLabel,
