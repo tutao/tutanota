@@ -7,7 +7,7 @@ import { isAdminClient, isTest } from "../common/Env.js"
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
-import { AccountType, OperationType, RolloutType } from "../common/TutanotaConstants.js"
+import { OperationType, RolloutType } from "../common/TutanotaConstants.js"
 import { lazyAsync } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
@@ -69,14 +69,6 @@ export class EventBusEventCoordinator implements EventBusListener {
 
 	onLeaderStatusChanged(leaderStatus: WebsocketLeaderStatus) {
 		this.connectivityListener.onLeaderStatusChanged(leaderStatus)
-		if (!isAdminClient()) {
-			const user = this.userFacade.getUser()
-			if (leaderStatus.leaderStatus && user && user.accountType !== AccountType.EXTERNAL) {
-				this.keyRotationFacade.processPendingKeyRotationsAndUpdates(user)
-			} else {
-				this.keyRotationFacade.reset()
-			}
-		}
 	}
 
 	onCounterChanged(counter: WebsocketCounterData) {
@@ -87,28 +79,39 @@ export class EventBusEventCoordinator implements EventBusListener {
 		this.syncTracker.markSyncAsDone()
 
 		if (this.userFacade.isLeader()) {
-			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation, async () => {
-				const identityKeyCreator = await this.identityKeyCreator()
+			const userIdentityKeyCreationAction = {
+				execute: async () => {
+					const identityKeyCreator = await this.identityKeyCreator()
 
-				try {
-					await identityKeyCreator.createIdentityKeyPairForExistingUsers()
-				} catch (error) {
-					console.log("error when creating user identity key pair", error)
-					this.sendError(error)
-				}
-			})
+					try {
+						await identityKeyCreator.createIdentityKeyPairForExistingUsers()
+					} catch (error) {
+						console.log("error when creating user identity key pair", error)
+						this.sendError(error)
+					}
+				},
+			}
+			await this.rolloutFacade.configureRollout(RolloutType.UserIdentityKeyCreation, userIdentityKeyCreationAction)
 
-			await this.rolloutFacade.processRollout(RolloutType.SharedMailboxIdentityKeyCreation, async () => {
-				const identityKeyCreator = await this.identityKeyCreator()
-				const groupManagementFacade = await this.groupManagementFacade()
-				try {
-					const teamGroups = await groupManagementFacade.loadTeamGroupIds()
-					await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(teamGroups)
-				} catch (error) {
-					console.log(`error when creating shared mailbox identity key pairs`, error)
-					this.sendError(error)
-				}
-			})
+			const sharedMailboxIdentityKeyCreationAction = {
+				execute: async () => {
+					const identityKeyCreator = await this.identityKeyCreator()
+					const groupManagementFacade = await this.groupManagementFacade()
+					try {
+						const teamGroups = await groupManagementFacade.loadTeamGroupIds()
+						await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(teamGroups)
+					} catch (error) {
+						console.log(`error when creating shared mailbox identity key pairs`, error)
+						this.sendError(error)
+					}
+				},
+			}
+			await this.rolloutFacade.configureRollout(RolloutType.SharedMailboxIdentityKeyCreation, sharedMailboxIdentityKeyCreationAction)
+
+			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation)
+			await this.rolloutFacade.processRollout(RolloutType.SharedMailboxIdentityKeyCreation)
+			await this.rolloutFacade.processRollout(RolloutType.AdminOrUserGroupKeyRotation)
+			await this.rolloutFacade.processRollout(RolloutType.OtherGroupKeyRotation)
 		}
 	}
 
