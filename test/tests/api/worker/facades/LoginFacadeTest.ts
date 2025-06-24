@@ -31,7 +31,7 @@ import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFac
 import { ChangeKdfService, SaltService, SessionService } from "../../../../../src/common/api/entities/sys/Services"
 import { Credentials } from "../../../../../src/common/misc/credentials/Credentials"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType } from "../../../../../src/common/api/common/TutanotaConstants"
+import { AccountType, Const, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "../../../../../src/common/api/common/TutanotaConstants"
 import { AccessExpiredError, ConnectionError, NotAuthenticatedError } from "../../../../../src/common/api/common/error/RestError"
 import { SessionType } from "../../../../../src/common/api/common/SessionType"
 import { HttpMethod, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
@@ -42,7 +42,7 @@ import { EntropyFacade } from "../../../../../src/common/api/worker/facades/Entr
 import { DatabaseKeyFactory } from "../../../../../src/common/misc/credentials/DatabaseKeyFactory.js"
 import { Argon2idFacade } from "../../../../../src/common/api/worker/facades/Argon2idFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils.js"
-import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
+import { KeyRotationFacade, KeyRotationRolloutAction } from "../../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CredentialType } from "../../../../../src/common/misc/credentials/CredentialType.js"
 import { _encryptString } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
@@ -194,6 +194,7 @@ o.spec("LoginFacadeTest", function () {
 		eventBusClientMock = instance(EventBusClient)
 
 		facade.init(eventBusClientMock)
+		when(rolloutFacade.getScheduledRolloutTypes()).thenResolve([])
 	})
 
 	o.spec("Creating new sessions", function () {
@@ -257,6 +258,32 @@ o.spec("LoginFacadeTest", function () {
 				o(credentials.encryptedPassword).notEquals(null)
 				o(credentials.type).equals(CredentialType.Internal)
 				o(credentials.accessToken).equals(accessToken)
+			})
+
+			o.spec("Rollouts are configured", function () {
+				o.test("AdminOrUserGroupKeyRotation rollout is configured", async function () {
+					when(rolloutFacade.getScheduledRolloutTypes()).thenResolve([RolloutType.AdminOrUserGroupKeyRotation])
+
+					await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
+					verify(
+						rolloutFacade.configureRollout(
+							RolloutType.AdminOrUserGroupKeyRotation,
+							argThat((arg) => arg instanceof KeyRotationRolloutAction),
+						),
+					)
+				})
+
+				o.test("OtherGroupKeyRotation rollout is configured", async function () {
+					when(rolloutFacade.getScheduledRolloutTypes()).thenResolve([RolloutType.OtherGroupKeyRotation])
+
+					await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
+					verify(
+						rolloutFacade.configureRollout(
+							RolloutType.OtherGroupKeyRotation,
+							argThat((arg) => arg instanceof KeyRotationRolloutAction),
+						),
+					)
+				})
 			})
 		})
 	})

@@ -42,17 +42,17 @@ import {
 	UserTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import {
+	AccountType,
 	asPublicKeyIdentifier,
 	assertEnumValue,
 	CryptoProtocolVersion,
 	GroupKeyRotationType,
 	GroupType,
 	PublicKeyIdentifierType,
+	RolloutType,
 } from "../../common/TutanotaConstants.js"
 import {
 	assertNotNull,
-	defer,
-	DeferredObject,
 	downcast,
 	getFirstOrThrow,
 	groupBy,
@@ -83,13 +83,7 @@ import {
 	X25519KeyPair,
 } from "@tutao/tutanota-crypto"
 import { PQFacade } from "./PQFacade.js"
-import {
-	AdminGroupKeyRotationService,
-	GroupKeyRotationInfoService,
-	GroupKeyRotationService,
-	MembershipService,
-	UserGroupKeyRotationService,
-} from "../../entities/sys/Services.js"
+import { AdminGroupKeyRotationService, GroupKeyRotationService, MembershipService, UserGroupKeyRotationService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { CryptoFacade } from "../crypto/CryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
@@ -109,6 +103,7 @@ import { PublicEncryptionKeyProvider } from "./PublicEncryptionKeyProvider.js"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
+import { RolloutAction } from "./RolloutFacade"
 
 assertWorkerOrNode()
 
@@ -122,8 +117,7 @@ export enum MultiAdminGroupKeyAdminActionPath {
 /**
  * Type to keep a pending key rotation and the password key in memory as long as the key rotation has not been processed.
  */
-type PendingKeyRotation = {
-	pwKey: Aes256Key | null
+export type PendingKeyRotation = {
 	//If we rotate the admin group we always want to rotate the user group for the admin user.
 	// Therefore, we do not need to save two different key rotations for this case.
 	adminOrUserGroupKeyRotation: KeyRotation | null
@@ -168,17 +162,11 @@ type EncryptedAndPlaintextKeyPair = {
  */
 export class KeyRotationFacade {
 	/**
-	 * @VisibleForTesting
-	 */
-	pendingKeyRotations: PendingKeyRotation
-	/**
 	 * Keeps track of which User and Team groups have performed Key Rotation (only for the current session).
 	 * Other group types may be included, but it is not guaranteed.
 	 * @private
 	 */
 	private groupIdsThatPerformedKeyRotations: Set<Id>
-	private readonly facadeInitializedDeferredObject: DeferredObject<void>
-	private pendingGroupKeyUpdateIds: IdTuple[] // already rotated groups for which we need to update the memberships (GroupKeyUpdateIds all in one list)
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -197,46 +185,17 @@ export class KeyRotationFacade {
 		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
 		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
 	) {
-		this.pendingKeyRotations = {
-			pwKey: null,
-			adminOrUserGroupKeyRotation: null,
-			teamOrCustomerGroupKeyRotations: [],
-			userAreaGroupsKeyRotations: [],
-		}
-		this.facadeInitializedDeferredObject = defer<void>()
-		this.pendingGroupKeyUpdateIds = []
 		this.groupIdsThatPerformedKeyRotations = new Set<Id>()
-	}
-
-	/**
-	 * Initialize the facade with the data it needs to perform rotations later.
-	 * Needs to be called during login when the password key is still available.
-	 * @param pwKey the user's passphrase key. May or may not be kept in memory, depending on whether a UserGroup key rotation is scheduled.
-	 * @param modernKdfType true if argon2id. no admin or user key rotation should be executed if false.
-	 */
-	public async initialize(pwKey: Aes256Key, modernKdfType: boolean) {
-		const result = await this.serviceExecutor.get(GroupKeyRotationInfoService, null)
-		if (result.userOrAdminGroupKeyRotationScheduled && modernKdfType) {
-			// If we have not migrated to argon2 we postpone key rotation until next login.
-			this.pendingKeyRotations.pwKey = pwKey
-		}
-		this.pendingGroupKeyUpdateIds = result.groupKeyUpdates
-		this.facadeInitializedDeferredObject.resolve()
 	}
 
 	/**
 	 * Processes pending key rotations and performs follow-up tasks such as updating memberships for groups rotated by another user.
 	 * @param user
 	 */
-	async processPendingKeyRotationsAndUpdates(user: User): Promise<void> {
+	async loadAndProcessPendingKeyRotations(user: User, pwKey: Aes256Key | null): Promise<void> {
 		try {
-			try {
-				await this.loadPendingKeyRotations(user)
-				await this.processPendingKeyRotation(user)
-			} finally {
-				// we still try updating memberships if there was an error with rotations
-				await this.updateGroupMemberships(this.pendingGroupKeyUpdateIds)
-			}
+			const pendingKeyRotations = await this.loadPendingKeyRotations(user)
+			await this.processPendingKeyRotation(pendingKeyRotations, user, pwKey)
 		} catch (e) {
 			if (e instanceof LockedError || e instanceof NotAuthenticatedError) {
 				// we catch here so that we also catch errors in the `finally` block
@@ -255,7 +214,7 @@ export class KeyRotationFacade {
 	 * This routine should be optimized in the future by saving a flag on the user to determine whether a key rotation is required or not.
 	 * @VisibleForTesting
 	 */
-	async loadPendingKeyRotations(user: User) {
+	async loadPendingKeyRotations(user: User): Promise<PendingKeyRotation> {
 		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, user.userGroup.group)
 		const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
 		const keyRotationsByType = groupBy(pendingKeyRotations, (keyRotation) => keyRotation.groupKeyRotationType)
@@ -269,8 +228,7 @@ export class KeyRotationFacade {
 			.filter(isNotNull)
 		let customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
 		const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray[0]
-		this.pendingKeyRotations = {
-			pwKey: this.pendingKeyRotations.pwKey,
+		return {
 			adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotation ? adminOrUserGroupKeyRotation : null,
 			teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) || []),
 			userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) || [],
@@ -281,48 +239,43 @@ export class KeyRotationFacade {
 	 * Processes the internal list of @PendingKeyRotation. Key rotations and (if existent) password keys are deleted after processing.
 	 * @VisibleForTesting
 	 */
-	async processPendingKeyRotation(user: User) {
-		await this.facadeInitializedDeferredObject.promise
+	async processPendingKeyRotation(pendingKeyRotations: PendingKeyRotation, user: User, pwKey: Aes256Key | null) {
 		// first admin, then user and then user area
-		try {
-			if (this.pendingKeyRotations.adminOrUserGroupKeyRotation && this.pendingKeyRotations.pwKey) {
-				const groupKeyRotationType = assertEnumValue(GroupKeyRotationType, this.pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType)
-				switch (groupKeyRotationType) {
-					case GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount:
-						await this.rotateMultipleAdminsGroupKeys(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
-						break
-					case GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount:
-					case GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount:
-						await this.rotateSingleAdminGroupKeys(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
-						break
-					case GroupKeyRotationType.User:
-						await this.rotateUserGroupKey(user, this.pendingKeyRotations.pwKey, this.pendingKeyRotations.adminOrUserGroupKeyRotation)
-						break
-				}
-				this.pendingKeyRotations.adminOrUserGroupKeyRotation = null
+		if (pendingKeyRotations.adminOrUserGroupKeyRotation && pwKey) {
+			const groupKeyRotationType = assertEnumValue(GroupKeyRotationType, pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType)
+			switch (groupKeyRotationType) {
+				case GroupKeyRotationType.AdminGroupKeyRotationMultipleAdminAccount:
+					await this.rotateMultipleAdminsGroupKeys(user, pwKey, pendingKeyRotations.adminOrUserGroupKeyRotation)
+					break
+				case GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount:
+				case GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount:
+					await this.rotateSingleAdminGroupKeys(user, pwKey, pendingKeyRotations.adminOrUserGroupKeyRotation)
+					break
+				case GroupKeyRotationType.User:
+					await this.rotateUserGroupKey(user, pwKey, pendingKeyRotations.adminOrUserGroupKeyRotation)
+					break
 			}
-		} finally {
-			this.pendingKeyRotations.pwKey = null
+			pendingKeyRotations.adminOrUserGroupKeyRotation = null
 		}
 
 		//user area, team and customer key rotations are send in a single request, so that they can be processed in parallel
 		const serviceData = createGroupKeyRotationPostIn({ groupKeyUpdates: [] })
-		if (!isEmpty(this.pendingKeyRotations.teamOrCustomerGroupKeyRotations)) {
-			const groupKeyRotationData = await this.rotateCustomerOrTeamGroupKeys(user)
+		if (!isEmpty(pendingKeyRotations.teamOrCustomerGroupKeyRotations)) {
+			const groupKeyRotationData = await this.rotateCustomerOrTeamGroupKeys(user, pendingKeyRotations)
 			if (groupKeyRotationData != null) {
 				serviceData.groupKeyUpdates = groupKeyRotationData
 			}
-			this.pendingKeyRotations.teamOrCustomerGroupKeyRotations = []
+			pendingKeyRotations.teamOrCustomerGroupKeyRotations = []
 		}
 
 		let invitationData: GroupInvitationPostData[] = []
-		if (!isEmpty(this.pendingKeyRotations.userAreaGroupsKeyRotations)) {
-			const { groupKeyRotationData, preparedReInvites } = await this.rotateUserAreaGroupKeys(user)
+		if (!isEmpty(pendingKeyRotations.userAreaGroupsKeyRotations)) {
+			const { groupKeyRotationData, preparedReInvites } = await this.rotateUserAreaGroupKeys(user, pendingKeyRotations)
 			invitationData = preparedReInvites
 			if (groupKeyRotationData != null) {
 				serviceData.groupKeyUpdates = serviceData.groupKeyUpdates.concat(groupKeyRotationData)
 			}
-			this.pendingKeyRotations.userAreaGroupsKeyRotations = []
+			pendingKeyRotations.userAreaGroupsKeyRotations = []
 		}
 		if (serviceData.groupKeyUpdates.length <= 0) {
 			return
@@ -358,7 +311,10 @@ export class KeyRotationFacade {
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
-	private async rotateUserAreaGroupKeys(user: User): Promise<{
+	private async rotateUserAreaGroupKeys(
+		user: User,
+		pendingKeyRotations: PendingKeyRotation,
+	): Promise<{
 		groupKeyRotationData: GroupKeyRotationData[]
 		preparedReInvites: GroupInvitationPostData[]
 	}> {
@@ -372,7 +328,7 @@ export class KeyRotationFacade {
 
 		const groupKeyUpdates = new Array<GroupKeyRotationData>()
 		let preparedReInvites: GroupInvitationPostData[] = []
-		for (const keyRotation of this.pendingKeyRotations.userAreaGroupsKeyRotations) {
+		for (const keyRotation of pendingKeyRotations.userAreaGroupsKeyRotations) {
 			const { groupKeyRotationData, preparedReInvitations } = await this.prepareKeyRotationForAreaGroup(keyRotation, currentUserGroupKey, user)
 			groupKeyUpdates.push(groupKeyRotationData)
 			preparedReInvites = preparedReInvites.concat(preparedReInvitations)
@@ -382,7 +338,7 @@ export class KeyRotationFacade {
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
-	private async rotateCustomerOrTeamGroupKeys(user: User) {
+	private async rotateCustomerOrTeamGroupKeys(user: User, pendingKeyRotations: PendingKeyRotation) {
 		//group key rotation is skipped if
 		// * user is not an admin user
 		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupType.Admin)
@@ -401,7 +357,7 @@ export class KeyRotationFacade {
 		}
 
 		const groupKeyUpdates = new Array<GroupKeyRotationData>()
-		for (const keyRotation of this.pendingKeyRotations.teamOrCustomerGroupKeyRotations) {
+		for (const keyRotation of pendingKeyRotations.teamOrCustomerGroupKeyRotations) {
 			const groupKeyRotationData = await this.prepareKeyRotationForCustomerOrTeamGroup(keyRotation, currentUserGroupKey, currentAdminGroupKey, user)
 			groupKeyUpdates.push(groupKeyRotationData)
 		}
@@ -897,25 +853,6 @@ export class KeyRotationFacade {
 				symEncPrivKyberKey: this.cryptoWrapper.encryptKyberKey(symmmetricEncryptionKey, newPqPairs.kyberKeyPair.privateKey),
 				signature: null, //we create the signature later once we have the correct version
 			},
-		}
-	}
-
-	/**
-	 * @VisibleForTesting
-	 * @private
-	 */
-	setPendingKeyRotations(pendingKeyRotations: PendingKeyRotation) {
-		this.pendingKeyRotations = pendingKeyRotations
-		this.facadeInitializedDeferredObject.resolve()
-	}
-
-	async reset() {
-		await this.facadeInitializedDeferredObject.promise
-		this.pendingKeyRotations = {
-			pwKey: null,
-			adminOrUserGroupKeyRotation: null,
-			teamOrCustomerGroupKeyRotations: [],
-			userAreaGroupsKeyRotations: [],
 		}
 	}
 
@@ -1430,4 +1367,26 @@ function hasNonQuantumSafeKeys(...keys: AesKey[]) {
 
 function makeKeyPair(keyPair: EncryptedPqKeyPairsMaybeWithSignature | null): KeyPair | null {
 	return keyPair != null ? createKeyPair(keyPair) : null
+}
+
+/**
+ * Explicit RolloutAction to trigger key rotation.
+ *
+ * It is easier to test this as a concrete class than it is to capture and execute lambdas getting passed around.
+ */
+export class KeyRotationRolloutAction implements RolloutAction {
+	constructor(
+		private readonly keyRotationFacade: KeyRotationFacade,
+		private readonly userFacade: UserFacade,
+		private readonly rolloutType: RolloutType,
+		private readonly userPassphraseKey: AesKey,
+	) {}
+
+	public async execute() {
+		const user = this.userFacade.getUser()
+		if (user && user.accountType !== AccountType.EXTERNAL) {
+			const requiredPasswordKey = this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation ? this.userPassphraseKey : null
+			await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, requiredPasswordKey)
+		}
+	}
 }
