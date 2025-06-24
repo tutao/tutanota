@@ -1346,9 +1346,11 @@ export function getCurrentDate(fallback = new Date()) {
 	return Const.CURRENT_DATE ?? fallback
 }
 
-export const enum RolloutType {
+export enum RolloutType {
 	UserIdentityKeyCreation = "0",
 	SharedMailboxIdentityKeyCreation = "1",
+	AdminOrUserGroupKeyRotation = "2",
+	OtherGroupKeyRotation = "3",
 }
 
 /**
