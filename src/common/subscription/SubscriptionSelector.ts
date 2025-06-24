@@ -34,7 +34,7 @@ import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
 import { locator } from "../api/main/CommonLocator.js"
-import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils.js"
+import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldShowApplePrices, UpgradeType, shouldHideBusinessPlans } from "./SubscriptionUtils.js"
 import { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
@@ -150,7 +150,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const onlyBusinessPlansAccepted = acceptedPlans.every((plan) => NewBusinessPlans.includes(plan))
 		const onlyPersonalPlansAccepted = acceptedPlans.every((plan) => NewPersonalPlans.includes(plan))
 		// Show the business segmentControl for signup, if both personal & business plans are allowed
-		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !isIOSApp()
+		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !shouldHideBusinessPlans()
 
 		const isApplePrice = shouldShowApplePrices(accountingInfo)
 		const hasCampaign = isApplePrice

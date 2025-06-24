@@ -177,10 +177,13 @@ export function getLoginErrorStateAndMessage(error: Error): { errorMessage: Mayb
 }
 
 export async function showSignupDialog(urlParams: Params) {
+	const { canSubscribeToPlan } = await import("../subscription/SubscriptionUtils")
+
 	const subscriptionParams = getSubscriptionParameters(urlParams)
 	const registrationDataId = getRegistrationDataIdFromParams(urlParams)
 	const referralCode = getReferralCodeFromParams(urlParams)
-	const availablePlans = getAvailablePlansFromSubscriptionParameters(subscriptionParams)
+	const availablePlans = getAvailablePlansFromSubscriptionParameters(subscriptionParams).filter(canSubscribeToPlan)
+
 	await showProgressDialog(
 		"loading_msg",
 		locator.worker.initialized.then(async () => {

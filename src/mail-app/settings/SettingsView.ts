@@ -23,7 +23,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
-import { first, LazyLoaded, noOp, ofClass, partition, promiseMap } from "@tutao/tutanota-utils"
+import { LazyLoaded, noOp, ofClass, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
@@ -77,6 +77,7 @@ import { Icon, IconSize } from "../../common/gui/base/Icon"
 import { MailExportViewer } from "./MailExportViewer"
 import { getSupportUsageTestStage } from "../../common/support/SupportUsageTestUtils.js"
 import { LockedError } from "../../common/api/common/error/RestError"
+import { shouldHideBusinessPlans } from "../../common/subscription/SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -450,7 +451,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				),
 			)
 
-			if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !isIOSApp()) {
+			if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !shouldHideBusinessPlans()) {
 				this._adminFolders.push(
 					new SettingsFolder(
 						() => "whitelabel_label",

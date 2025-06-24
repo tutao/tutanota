@@ -1,12 +1,15 @@
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import {
 	AccountType,
+	AvailablePlans,
 	AvailablePlanType,
 	BookingItemFeatureType,
 	CustomDomainType,
 	CustomDomainTypeCountName,
 	getClientType,
 	getPaymentMethodType,
+	LegacyBusinessPlans,
+	NewBusinessPlans,
 	NewPaidPlans,
 	PaymentMethodType,
 	PlanType,
@@ -393,5 +396,31 @@ export function getFeaturePlaceholderReplacement(
 		case "label": {
 			return { "{amount}": priceAndConfigProvider.getPlanPricesForPlan(subscription).planConfiguration.maxLabels }
 		}
+	}
+}
+
+/**
+ * @return true if the given plan is a business plan
+ */
+export function isBusinessPlan(plan: AvailablePlanType): boolean {
+	return NewBusinessPlans.includes(plan) || LegacyBusinessPlans.includes(plan)
+}
+
+/**
+ * @return true if the current platform should hide business plans from view
+ */
+export function shouldHideBusinessPlans(): boolean {
+	// we cannot currently subscribe iOS users to business plans
+	return isIOSApp()
+}
+
+/**
+ * @return true if the given plan can be subscribed on the current platform
+ */
+export function canSubscribeToPlan(plan: AvailablePlanType): boolean {
+	if (shouldHideBusinessPlans() && isBusinessPlan(plan)) {
+		return false
+	} else {
+		return AvailablePlans.includes(plan)
 	}
 }

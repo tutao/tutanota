@@ -5,7 +5,7 @@ import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import { hasAppleIntroOffer, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
+import { hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
@@ -301,7 +301,7 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 		return false
 	}
 
-	public rightAction = isIOSApp()
+	public rightAction = shouldHideBusinessPlans()
 		? undefined
 		: (update: VoidFunction): ButtonAttrs => {
 				return getPrivateBusinessSwitchButton(this.data.options.businessUse, update)
