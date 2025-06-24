@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Pořiďte fotku nebo video, které chcete přidat jako přílohu.";
 NSPhotoLibraryUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
 NSMicrophoneUsageDescription = "Používáno při nahrávání video přílohy.";
-NSContactsUsageDescription = "1. Vyhledejte adresu příjemců v kontaktech.\n2. Volitelně můžete synchronizovat kontakty Tuta s vaším zařízením.";
+NSContactsUsageDescription = "Tuta vám může zobrazit návrhy příjemců e-mailů z kontaktů uložených v zařízení. Kromě toho můžete povolit, aby Tuta synchronizovala vaše kontakty mezi vaším zařízením a účtem Tuta. Pokud synchronizaci povolíte v nastavení, kontakty ze zařízení se po bezpečném zašifrování nahrají do účtu Tuta a vaše kontakty z Tuty budou k dispozici ostatním aplikacím.";
 NSRemindersUsageDescription = "Zobrazit upozornění při doručení nového e-mailu.";
 TutaoShowCameraAction = "Fotoaparát";
 TutaoChoosePhotosAction = "Fotky";

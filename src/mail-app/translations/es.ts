@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-06-23T08:26:38Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -558,6 +558,7 @@ export default {
 		"editMessage_label": "Editar mensaje",
 		"editTemplate_action": "Editar plantilla",
 		"edit_action": "Editar",
+		"emailAddressFirst_msg": "Selecciona primero una dirección de correo electrónico.",
 		"emailAddressInUse_msg": "La dirección de correo aún está en uso por otro usuario. Por favor desactívala primero.",
 		"emailProcessing_label": "Procesando correos",
 		"emailPushNotification_action": "Añadir la dirección de correo para notificaciones",
@@ -817,6 +818,7 @@ export default {
 		"invalidRecipients_msg": "Por favor, corrige o elimina la dirección de correo errónea en el campo de destinatario.",
 		"invalidRegexSyntax_msg": "Sintaxis regex no válida",
 		"invalidRegistrationCode_msg": "Este código de registro no es válido.",
+		"invalidSignup_msg": "El proceso de registro se ha interrumpido. Por favor, inténtalo de nuevo.",
 		"invalidTimePeriod_msg": "El período de tiempo introducido no es válido.",
 		"invalidURLProtocol_msg": "Protocolo no válido. Proporciona una URL que utilice https.",
 		"invalidURL_msg": "Formato de URL no válido. Por favor, comprueba y modifica la URL.",
@@ -1943,7 +1945,7 @@ export default {
 		"updatePaymentDataBusy_msg": "Verificando la información de pago. Por favor, ten paciencia, esto puedo tomar hasta un minuto.",
 		"update_action": "Actualizar",
 		"upgradeConfirm_msg": "¡Confirma tu pedido!",
-		"upgradeNeeded_msg": "Lo sentimos, actualmente no tienes permitido enviar o recibir correos (excepto al soporte de ventas de Tuta en sales@tutao.de) porque primero debes terminar de pedir una suscripción de pago.",
+		"upgradeNeeded_msg": "Lo sentimos, actualmente no tienes permitido enviar o recibir correos (excepto al soporte de ventas de Tuta en sales@tutao.de) porque primero debes terminar de pedir una suscripción de pago. Puedes completar la reserva en los 14 días siguientes a tu registro; de lo contrario, se desactivará tu cuenta.",
 		"upgradePlan_msg": "Tu suscripción se actualizará a {plan}.",
 		"upgradePremium_label": "Premium",
 		"upgradeReminderCancel_action": "Más tarde",
