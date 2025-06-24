@@ -14,7 +14,7 @@ o.spec("SubscriptionUtilsTest", function () {
 
 	o.spec("getAvailableMatchingPlans", function () {
 		o("no filter returns all plans", async function () {
-			o(await getAvailableMatchingPlans(serviceExecutor, () => true)).deepEquals(NewPaidPlans)
+			o(await getAvailableMatchingPlans(serviceExecutor, () => true)).deepEquals([...NewPaidPlans])
 		})
 		o("filter for whitelabel", async function () {
 			o(await getAvailableMatchingPlans(serviceExecutor, (configuration) => configuration.whitelabel)).deepEquals([PlanType.Unlimited])

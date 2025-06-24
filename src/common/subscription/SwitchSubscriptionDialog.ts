@@ -53,7 +53,7 @@ export async function showSwitchDialog(
 	customer: Customer,
 	accountingInfo: AccountingInfo,
 	lastBooking: Booking,
-	acceptedPlans: AvailablePlanType[],
+	acceptedPlans: readonly AvailablePlanType[],
 	reason: MaybeTranslation | null,
 ): Promise<void> {
 	if (hasRunningAppStoreSubscription(accountingInfo) && !isIOSApp()) {

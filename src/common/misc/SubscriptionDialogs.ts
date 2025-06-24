@@ -12,7 +12,7 @@ import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
  */
-export async function showNotAvailableForFreeDialog(acceptedPlans: AvailablePlanType[] = NewPaidPlans) {
+export async function showNotAvailableForFreeDialog(acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans) {
 	const wizard = await import("../subscription/UpgradeSubscriptionWizard")
 	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
@@ -24,7 +24,11 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: AvailablePlan
 	await wizard.showUpgradeWizard(locator.logins, acceptedPlans, msg)
 }
 
-export function createNotAvailableForFreeClickHandler(acceptedPlans: AvailablePlanType[], click: ClickHandler, available: () => boolean): ClickHandler {
+export function createNotAvailableForFreeClickHandler(
+	acceptedPlans: readonly AvailablePlanType[],
+	click: ClickHandler,
+	available: () => boolean,
+): ClickHandler {
 	return (e, dom) => {
 		if (!available()) {
 			showNotAvailableForFreeDialog(acceptedPlans)
@@ -74,7 +78,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 /**
  * @returns true if the needed plan has been ordered
  */
-export async function showPlanUpgradeRequiredDialog(acceptedPlans: AvailablePlanType[], reason?: MaybeTranslation): Promise<boolean> {
+export async function showPlanUpgradeRequiredDialog(acceptedPlans: readonly AvailablePlanType[], reason?: MaybeTranslation): Promise<boolean> {
 	if (isEmpty(acceptedPlans)) {
 		throw new ProgrammingError("no plans specified")
 	}
@@ -108,7 +112,7 @@ export async function showUpgradeWizardOrSwitchSubscriptionDialog(userController
 	}
 }
 
-async function showSwitchPlanDialog(userController: UserController, acceptedPlans: AvailablePlanType[], reason?: MaybeTranslation): Promise<void> {
+async function showSwitchPlanDialog(userController: UserController, acceptedPlans: readonly AvailablePlanType[], reason?: MaybeTranslation): Promise<void> {
 	let customerInfo = await userController.loadCustomerInfo()
 	const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 	const { showSwitchDialog } = await import("../subscription/SwitchSubscriptionDialog")

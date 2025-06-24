@@ -197,7 +197,7 @@ export async function showSignupDialog(urlParams: Params) {
 	)
 }
 
-function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): AvailablePlanType[] {
+function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): readonly AvailablePlanType[] {
 	// Default to all available plans if the params do not have the needed information
 	if (params == null || params.type == null) return AvailablePlans
 

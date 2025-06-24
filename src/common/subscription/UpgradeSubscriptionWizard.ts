@@ -67,12 +67,16 @@ export type UpgradeSubscriptionData = {
 	featureListProvider: FeatureListProvider
 	referralCode: string | null
 	multipleUsersAllowed: boolean
-	acceptedPlans: AvailablePlanType[]
+	acceptedPlans: readonly AvailablePlanType[]
 	msg: MaybeTranslation | null
 	firstMonthForFreeOfferActive: boolean
 }
 
-export async function showUpgradeWizard(logins: LoginController, acceptedPlans: AvailablePlanType[] = NewPaidPlans, msg?: MaybeTranslation): Promise<void> {
+export async function showUpgradeWizard(
+	logins: LoginController,
+	acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans,
+	msg?: MaybeTranslation,
+): Promise<void> {
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
@@ -160,7 +164,7 @@ export async function loadSignupWizard(
 	subscriptionParameters: SubscriptionParameters | null,
 	registrationDataId: string | null,
 	referralCode: string | null,
-	acceptedPlans: AvailablePlanType[] = AvailablePlans,
+	acceptedPlans: readonly AvailablePlanType[] = AvailablePlans,
 ): Promise<void> {
 	const usageTestModel = locator.usageTestModel
 
