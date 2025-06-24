@@ -1,0 +1,156 @@
+import fs from "node:fs/promises"
+import readline from "node:readline/promises"
+import { pathToFileURL } from "node:url"
+import { $ } from "zx"
+
+const data = JSON.parse(await fs.readFile(process.argv[2], { encoding: "utf8" }))
+
+const rl = readline.createInterface(process.stdin, process.stdout)
+const deps = data[undefined]
+
+const reviewedPath = "reviewed.json"
+/** @type {Record<string, {who: string, when: string}>} */
+let reviewedData = {}
+try {
+	reviewedData = JSON.parse(await fs.readFile(reviewedPath, { encoding: "utf8" }))
+} catch (e) {
+	console.log("Could not read reviewed data")
+}
+
+let reviewers = Object.values(reviewedData).at(-1)?.who
+const reviewersAnswer = await rl.question(`who is reviewing: (${reviewers})`)
+if (reviewersAnswer.trim() !== "") {
+	reviewers = reviewersAnswer
+}
+
+async function markAsReviewed(currentDep) {
+	reviewedData[currentDep] = {
+		who: reviewers,
+		when: new Date().toISOString().slice(0, 10),
+	}
+	await fs.writeFile(reviewedPath, JSON.stringify(reviewedData, null, 4), { encoding: "utf8" })
+}
+
+async function review(currentDep, itsDeps, backtrace) {
+	uiloop: while (true) {
+		console.log(`\nReviewing ${currentDep}`)
+		if (backtrace.length) {
+			console.log(`at ${backtrace.join(", ")}`)
+		}
+		console.log(pathToFileURL(currentDep).href)
+
+		const actions = []
+		actions.push({
+			char: "d",
+			msg: "Mark as reviewed",
+			finalizes: true,
+			action: async () => {
+				console.log(`Marking ${currentDep} as reviewed`)
+				await markAsReviewed(currentDep)
+			},
+		})
+		actions.push({
+			char: "x",
+			msg: "Go up",
+			finalizes: true,
+			action: () => {},
+		})
+		actions.push({
+			char: "o",
+			msg: "Open",
+			action: () => $`/opt/RustRover-2024.3.3/bin/rustrover ${currentDep}`,
+		})
+
+		if (typeof itsDeps === "string") {
+			console.log("CYCLE: ", itsDeps)
+		} else {
+			const depsArray = Object.entries(itsDeps)
+			const depsStats = new Map()
+
+			for (const [i, [key, value]] of depsArray.entries()) {
+				const mark = key.startsWith("node:") || countsAsReviewed(key) ? "✅" : " "
+				const stats = calculateStats(key, value)
+				depsStats.set(key, stats)
+				actions.push({
+					char: String(i),
+					msg: `${mark} ${String(stats.reviewed).padStart(4)}/${String(stats.overall).padStart(4)} ${key}`,
+					action: async () => {
+						const numAnswer = parseInt(answer)
+						if (!isNaN(numAnswer) && numAnswer < depsArray.length) {
+							const [dep, itsDeps] = depsArray[numAnswer]
+							await review(dep, itsDeps, [...backtrace, currentDep])
+						}
+					},
+				})
+			}
+
+			const nextUnreviewed = depsArray.find(([dep, _]) => !countsAsReviewed(dep))
+			const next =
+				nextUnreviewed ??
+				depsArray.find(([dep]) => {
+					const stat = depsStats.get(dep)
+					return stat != null && stat.reviewed < stat.overall
+				})
+			if (next) {
+				actions.push({
+					char: "n",
+					msg: `next unreviewed ${next[0]}`,
+					action: () => review(next[0], next[1], [...backtrace, currentDep]),
+				})
+			}
+		}
+		for (const action of actions) {
+			console.log(`${action.char}: ${action.msg}`)
+		}
+		const answer = await rl.question("What to review?: ")
+		for (const action of actions) {
+			if (answer === action.char) {
+				await action.action()
+				if (action.finalizes) {
+					break uiloop
+				}
+			}
+		}
+	}
+}
+
+function transitiveDeps(currentDep, itsDeps) {
+	if (isBuiltin(currentDep)) {
+		return []
+	}
+	const collectedDeps = Object.entries(itsDeps)
+		.map(([dep, depDeps]) => {
+			if (typeof depDeps === "string") {
+				return []
+			}
+			return transitiveDeps(dep, depDeps, [currentDep])
+		})
+		.flat()
+	return [currentDep, ...collectedDeps]
+}
+
+function isExplicitlyReviewed(dep) {
+	return Object.hasOwn(reviewedData, dep)
+}
+
+function isBuiltin(dep) {
+	return dep.startsWith("node:")
+}
+
+function countsAsReviewed(dep) {
+	return isExplicitlyReviewed(dep) || isBuiltin(dep)
+}
+
+function calculateStats(currentDep, itsDeps) {
+	const collectedTransitiveDeps = transitiveDeps(currentDep, itsDeps)
+	const dedupedDeps = new Set(collectedTransitiveDeps)
+	let reviewed = 0
+	for (const dep of dedupedDeps) {
+		if (isExplicitlyReviewed(dep)) {
+			reviewed += 1
+		}
+	}
+	return { reviewed, overall: dedupedDeps.size }
+}
+
+await review("entry", deps, [])
