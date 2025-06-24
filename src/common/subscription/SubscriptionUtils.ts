@@ -14,7 +14,7 @@ import {
 } from "../api/common/TutanotaConstants"
 import type { AccountingInfo, Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, downcast, isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
+import { downcast, isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentDataService } from "../api/entities/sys/Services"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
@@ -327,9 +327,13 @@ export function getPriceStr({ priceAndConfigProvider, targetPlan, paymentInterva
  * If a discount is applied, `referencePriceStr` will show the normal yearly price instead. Otherwise, `referencePriceStr` will be `undefined`.
  */
 export function getApplePriceStr({ priceAndConfigProvider, targetPlan, paymentInterval }: GetPriceStrProps): GetPriceStrReturn {
-	const { displayYearlyPerYear, displayMonthlyPerMonth, displayOfferYearlyPerYear } = assertNotNull(
-		priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase()),
-	)
+	const applePrices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase())
+	if (!applePrices) {
+		console.warn("Cannot get the apple prices")
+		return { priceStr: "", referencePriceStr: "" }
+	}
+
+	const { displayYearlyPerYear, displayMonthlyPerMonth, displayOfferYearlyPerYear } = applePrices
 	let priceStr: string
 	let referencePriceStr: string | undefined = undefined
 	if (paymentInterval === PaymentInterval.Yearly) {
