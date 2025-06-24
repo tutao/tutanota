@@ -60,7 +60,7 @@ export type SubscriptionSelectorAttr = {
 	allowSwitchingPaymentInterval: boolean
 	featureListProvider: FeatureListProvider
 	priceAndConfigProvider: PriceAndConfigProvider
-	acceptedPlans: AvailablePlanType[]
+	acceptedPlans: readonly AvailablePlanType[]
 	multipleUsersAllowed: boolean
 	msg: MaybeTranslation | null
 	upgradeType?: UpgradeType

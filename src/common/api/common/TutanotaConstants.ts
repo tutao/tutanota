@@ -257,25 +257,37 @@ export enum PlanType {
 
 export type PlanName = keyof typeof PlanType
 export type AvailablePlanType = Exclude<PlanType, PlanType.Premium | PlanType.Pro | PlanType.Teams | PlanType.PremiumBusiness | PlanType.TeamsBusiness>
-export const AvailablePlans: AvailablePlanType[] = [
+export const AvailablePlans: readonly AvailablePlanType[] = Object.freeze([
 	PlanType.Free,
 	PlanType.Revolutionary,
 	PlanType.Legend,
 	PlanType.Essential,
 	PlanType.Advanced,
 	PlanType.Unlimited,
-]
-export const NewPaidPlans: AvailablePlanType[] = [PlanType.Revolutionary, PlanType.Legend, PlanType.Essential, PlanType.Advanced, PlanType.Unlimited]
-export const NewBusinessPlans: AvailablePlanType[] = [PlanType.Essential, PlanType.Advanced, PlanType.Unlimited]
-export const NewPersonalPlans: AvailablePlanType[] = [PlanType.Free, PlanType.Revolutionary, PlanType.Legend]
+])
+export const NewPaidPlans: readonly AvailablePlanType[] = Object.freeze([
+	PlanType.Revolutionary,
+	PlanType.Legend,
+	PlanType.Essential,
+	PlanType.Advanced,
+	PlanType.Unlimited,
+])
+export const NewBusinessPlans: readonly AvailablePlanType[] = Object.freeze([PlanType.Essential, PlanType.Advanced, PlanType.Unlimited])
+export const NewPersonalPlans: readonly AvailablePlanType[] = Object.freeze([PlanType.Free, PlanType.Revolutionary, PlanType.Legend])
 
-export const LegacyPlans = [PlanType.Premium, PlanType.PremiumBusiness, PlanType.Teams, PlanType.TeamsBusiness, PlanType.Pro]
-export const LegacyPrivatePlans = [PlanType.Premium, PlanType.Teams]
-export const LegacyBusinessPlans = [PlanType.Pro, PlanType.TeamsBusiness, PlanType.PremiumBusiness]
-export const HighlightedPlans: AvailablePlanType[] = [PlanType.Revolutionary, PlanType.Advanced]
-export const HighestTierPlans: PlanType[] = [PlanType.Legend, PlanType.Unlimited]
+export const LegacyPlans: readonly PlanType[] = Object.freeze([
+	PlanType.Premium,
+	PlanType.PremiumBusiness,
+	PlanType.Teams,
+	PlanType.TeamsBusiness,
+	PlanType.Pro,
+])
+export const LegacyPrivatePlans: readonly PlanType[] = Object.freeze([PlanType.Premium, PlanType.Teams])
+export const LegacyBusinessPlans: readonly PlanType[] = Object.freeze([PlanType.Pro, PlanType.TeamsBusiness, PlanType.PremiumBusiness])
+export const HighlightedPlans: readonly AvailablePlanType[] = Object.freeze([PlanType.Revolutionary, PlanType.Advanced])
+export const HighestTierPlans: readonly PlanType[] = Object.freeze([PlanType.Legend, PlanType.Unlimited])
 
-export const PlanTypeToName = reverse(PlanType)
+export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverse(PlanType))
 
 export enum SubscriptionType {
 	Personal,
