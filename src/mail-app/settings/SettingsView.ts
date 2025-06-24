@@ -95,8 +95,11 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	private _currentViewer: UpdatableSettingsViewer | null = null
 	private showBusinessSettings: stream<boolean> = stream(false)
 	private showAffiliateSettings: boolean = false
-	private readonly _targetFolder: string
-	private readonly _targetRoute: string
+	/**
+	 * The URL which we want to navigate to once everything is loaded.
+	 * Reset on selecting another settings folder.
+	 */
+	private navTarget: { folder: string; route: string } | null
 	detailsViewer: UpdatableSettingsDetailsViewer | null = null // the component for the details column. can be set by settings views
 
 	_customDomains: LazyLoaded<string[]>
@@ -390,8 +393,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 		this._customDomains.getAsync().then(() => m.redraw())
 
-		this._targetFolder = m.route.param("folder")
-		this._targetRoute = m.route.get()
+		this.navTarget = {
+			folder: m.route.param("folder"),
+			route: m.route.get(),
+		}
 	}
 
 	private async populateAdminFolders() {
@@ -526,8 +531,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			// We have to wait for the folders to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
 			const stillAtDefaultUrl = m.route.get() === this._userFolders[0].url
-			if (stillAtDefaultUrl) {
-				this.onNewUrl({ folder: this._targetFolder }, this._targetRoute)
+			if (stillAtDefaultUrl && this.navTarget) {
+				this.onNewUrl({ folder: this.navTarget.folder }, this.navTarget.route)
 			}
 		})
 	}
@@ -558,7 +563,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			icon: folder.icon,
 			href: folder.url,
 			colors: NavButtonColor.Nav,
-			click: () => this.viewSlider.focus(this._settingsColumn),
+			click: () => {
+				// clear nav target if we navigate away before admin
+				// folders are loaded
+				this.navTarget = null
+				this.viewSlider.focus(this._settingsColumn)
+			},
 			persistentBackground: true,
 		}
 	}
