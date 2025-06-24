@@ -39,7 +39,7 @@ import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
-import { appStorePlanName, hasRunningAppStoreSubscription } from "./SubscriptionUtils.js"
+import { appStorePlanName, hasRunningAppStoreSubscription, canSubscribeToPlan } from "./SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { mailLocator } from "../../mail-app/mailLocator"
 import { client } from "../misc/ClientDetector.js"
@@ -102,7 +102,7 @@ export async function showSwitchDialog(
 					msg: reason,
 					boxWidth: 230,
 					boxHeight: 270,
-					acceptedPlans: acceptedPlans,
+					acceptedPlans: acceptedPlans.filter(canSubscribeToPlan),
 					currentPlanType: currentPlanInfo.planType,
 					accountingInfo,
 					allowSwitchingPaymentInterval: currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,

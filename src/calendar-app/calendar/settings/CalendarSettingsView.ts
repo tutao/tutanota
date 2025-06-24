@@ -42,6 +42,7 @@ import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { showSupportDialog } from "../../../common/support/SupportDialog.js"
 import { getSupportUsageTestStage } from "../../../common/support/SupportUsageTestUtils.js"
+import { shouldHideBusinessPlans } from "../../../common/subscription/SubscriptionUtils"
 
 assertMainOrNode()
 
@@ -307,7 +308,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			),
 		)
 
-		if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !isIOSApp()) {
+		if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && !shouldHideBusinessPlans()) {
 			this.adminFolders.push(
 				new SettingsFolder(
 					() => "whitelabel_label",
