@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { clone, deepEqual, getChangedProps } from "../lib/Utils.js"
-import { arrayEquals, memoized } from "../lib/index.js"
+import { arrayEquals, deepMemoized, memoized } from "../lib/index.js"
 import { func, matchers, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
 
@@ -184,6 +184,48 @@ o.spec("utils", function () {
 			o(memoizedFn(1, 2)).equals(12)
 			verify(fnToMemoize(1, 1), { times: 1 })
 			verify(fnToMemoize(1, 2), { times: 1 })
+		})
+	})
+
+	o.spec("deepMemoized", function () {
+		o.test("when called twice with the same argument it is called once", function () {
+			const fnToMemoize = func<(_: { a: number; b: number }) => number>()
+			when(fnToMemoize(matchers.anything())).thenReturn(42)
+			const memoizedFn = deepMemoized(fnToMemoize)
+			o(memoizedFn({ a: 1, b: 2 })).equals(42)
+			o(memoizedFn({ a: 1, b: 2 })).equals(42)
+			verify(fnToMemoize(matchers.anything()), { times: 1 })
+		})
+
+		o.test("when called twice with the different arguments it is called twice", function () {
+			const fnToMemoize = func<(_: { a: number; b: number }) => number>()
+			when(fnToMemoize({ a: 1, b: 2 })).thenReturn(11)
+			when(fnToMemoize({ a: 2, b: 2 })).thenReturn(12)
+			const memoizedFn = deepMemoized(fnToMemoize)
+			o(memoizedFn({ a: 1, b: 2 })).equals(11)
+			o(memoizedFn({ a: 2, b: 2 })).equals(12)
+			verify(fnToMemoize({ a: 1, b: 2 }), { times: 1 })
+			verify(fnToMemoize({ a: 2, b: 2 }), { times: 1 })
+		})
+
+		o.test("when called twice with the same arguments it is called once", function () {
+			const fnToMemoize = func<(l: { a: number; b: number }, r: { c: number; d: number }) => number>()
+			when(fnToMemoize(matchers.anything(), matchers.anything())).thenReturn(42)
+			const memoizedFn = deepMemoized(fnToMemoize)
+			o(memoizedFn({ a: 1, b: 2 }, { c: 3, d: 4 })).equals(42)
+			o(memoizedFn({ a: 1, b: 2 }, { c: 3, d: 4 })).equals(42)
+			verify(fnToMemoize(matchers.anything(), matchers.anything()), { times: 1 })
+		})
+
+		o.test("when called twice with different arguments it is called twice", function () {
+			const fnToMemoize = func<(l: { a: number; b: number }, r: { c: number; d: number }) => number>()
+			when(fnToMemoize({ a: 1, b: 2 }, { c: 3, d: 4 })).thenReturn(11)
+			when(fnToMemoize({ a: 1, b: 2 }, { c: 5, d: 6 })).thenReturn(12)
+			const memoizedFn = deepMemoized(fnToMemoize)
+			o(memoizedFn({ a: 1, b: 2 }, { c: 3, d: 4 })).equals(11)
+			o(memoizedFn({ a: 1, b: 2 }, { c: 5, d: 6 })).equals(12)
+			verify(fnToMemoize({ a: 1, b: 2 }, { c: 3, d: 4 }), { times: 1 })
+			verify(fnToMemoize({ a: 1, b: 2 }, { c: 5, d: 6 }), { times: 1 })
 		})
 	})
 })

@@ -58,8 +58,8 @@ import { NativeCredentialsFacade } from "../../native/common/generatedipc/Native
 import { CalendarEvent, Contact, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
 import { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
-import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
-import { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import type { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
+import type { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
 import { ThemeController } from "../../gui/ThemeController.js"
@@ -71,6 +71,7 @@ import type { CalendarContactPreviewViewModel } from "../../../calendar-app/cale
 import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { SearchToken } from "../common/utils/QueryTokenUtils"
+import type { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -116,6 +117,8 @@ export interface CommonLocator {
 	mailboxModel: MailboxModel
 
 	calendarModel(): Promise<CalendarModel>
+
+	readonly calendarInviteHandler: () => Promise<CalendarInviteHandler>
 
 	eventController: EventController
 	contactModel: ContactModel

@@ -30,7 +30,7 @@ import { getDateInZone } from "./CalendarTestUtils.js"
 import { Require } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/common/calendar/date/CalendarUtils.js"
-import { EventImportRejectionReason, parseCalendarStringData, sortOutParsedEvents } from "../../../src/common/calendar/import/ImportExportUtils.js"
+import { EventImportRejectionReason, parseCalendarStringData, sortOutParsedEvents } from "../../../src/common/calendar/gui/ImportExportUtils.js"
 
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")

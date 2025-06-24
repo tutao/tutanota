@@ -20,7 +20,6 @@ import { EventController } from "../../../common/api/main/EventController"
 import {
 	createDateWrapper,
 	createMembershipRemoveData,
-	DateWrapper,
 	Group,
 	GroupInfo,
 	GroupInfoTypeRef,
@@ -31,18 +30,14 @@ import {
 	UserAlarmInfoTypeRef,
 } from "../../../common/api/entities/sys/TypeRefs.js"
 import {
-	AdvancedRepeatRule,
 	CalendarEvent,
-	CalendarEventAttendee,
 	CalendarEventTypeRef,
 	CalendarEventUpdate,
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
-	CalendarRepeatRule,
 	createDefaultAlarmInfo,
 	createGroupSettings,
-	EncryptedMailAddress,
 	FileTypeRef,
 	GroupSettings,
 	UserSettingsGroupRootTypeRef,
@@ -50,7 +45,7 @@ import {
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
-import type { ParsedCalendarData, ParsedEvent } from "../../../common/calendar/import/CalendarImporter.js"
+import type { ParsedCalendarData, ParsedEvent } from "../../../common/calendar/gui/CalendarImporter.js"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import type { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -65,7 +60,6 @@ import {
 	listIdPart,
 	POST_MULTIPLE_LIMIT,
 	removeTechnicalFields,
-	Stripped,
 } from "../../../common/api/common/utils/EntityUtils"
 import type { AlarmScheduler } from "../../../common/calendar/date/AlarmScheduler.js"
 import { Notifications, NotificationType } from "../../../common/gui/Notifications"
@@ -104,13 +98,14 @@ import { ExternalCalendarFacade } from "../../../common/native/common/generatedi
 import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
+	eventHasSameFields,
 	EventImportRejectionReason,
 	EventWrapper,
 	parseCalendarStringData,
 	shallowIsSameEvent,
 	sortOutParsedEvents,
 	SyncStatus,
-} from "../../../common/calendar/import/ImportExportUtils.js"
+} from "../../../common/calendar/gui/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
@@ -153,63 +148,6 @@ export function assertEventValidity(event: CalendarEvent) {
 			throw new UserError("pre1970Start_msg")
 		case CalendarEventValidity.Valid:
 		// event is valid, nothing to do
-	}
-}
-
-type StrippedRepeatRule = Stripped<
-	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
-		excludedDates: Stripped<DateWrapper>[]
-		advancedRules: Stripped<AdvancedRepeatRule>[]
-	}
->
-
-function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null): StrippedRepeatRule | null {
-	if (!repeatRule) {
-		return null
-	}
-	return {
-		frequency: repeatRule.frequency ?? "",
-		endType: repeatRule.endType ?? "",
-		endValue: repeatRule.endValue ?? "",
-		interval: repeatRule.interval ?? "",
-		timeZone: repeatRule.timeZone ?? "",
-		excludedDates: repeatRule.excludedDates
-			? repeatRule.excludedDates.map((ex) => ({
-					date: ex.date,
-			  }))
-			: [],
-		advancedRules: repeatRule.advancedRules
-			? repeatRule.advancedRules.map((rule) => ({
-					ruleType: rule.ruleType,
-					interval: rule.interval,
-			  }))
-			: [],
-	}
-}
-
-type StrippedCalendarEventAttendee = Stripped<
-	Omit<CalendarEventAttendee, "address"> & {
-		address: Stripped<EncryptedMailAddress>
-	}
->
-
-function createStrippedAttendees(attendees: CalendarEventAttendee[]): StrippedCalendarEventAttendee[] {
-	return attendees.map((attendee: CalendarEventAttendee) => {
-		return {
-			status: attendee.status,
-			address: createStrippedMailAddress(attendee.address)!,
-		}
-	})
-}
-
-function createStrippedMailAddress(mailAddress: EncryptedMailAddress | null): Stripped<EncryptedMailAddress> | null {
-	if (!mailAddress) {
-		return null
-	}
-
-	return {
-		address: mailAddress.address,
-		name: mailAddress.name,
 	}
 }
 
@@ -529,7 +467,7 @@ export class CalendarModel {
 					return false
 				}
 
-				return !this.eventHasSameFields(event, existingEvent)
+				return !eventHasSameFields(event, existingEvent)
 			})
 
 			const eventsToRemove = existingEventList.filter(
@@ -641,7 +579,7 @@ export class CalendarModel {
 				continue
 			}
 
-			if (this.eventHasSameFields(duplicatedEvent, existingEvent)) {
+			if (eventHasSameFields(duplicatedEvent, existingEvent)) {
 				continue
 			}
 			await this.updateEventWithExternal(existingEvent, duplicatedEvent)
@@ -670,29 +608,6 @@ export class CalendarModel {
 			await this.calendarFacade.saveImportedCalendarEvents(eventsForCreation, 0)
 		}
 		console.log(TAG, `${operationsLog.created} events created`)
-	}
-
-	// visible for testing
-	public eventHasSameFields(a: CalendarEvent, b: CalendarEvent) {
-		const rruleA = createStrippedRepeatRule(a.repeatRule)
-		const rruleB = createStrippedRepeatRule(b.repeatRule)
-		const attendeesA = createStrippedAttendees(a.attendees)
-		const attendeesB = createStrippedAttendees(b.attendees)
-		const organizerA = createStrippedMailAddress(a.organizer)
-		const organizerB = createStrippedMailAddress(b.organizer)
-
-		return (
-			a.startTime.valueOf() === b.startTime.valueOf() &&
-			a.endTime.valueOf() === b.endTime.valueOf() &&
-			deepEqual({ ...attendeesA }, { ...attendeesB }) &&
-			a.summary === b.summary &&
-			a.sequence === b.sequence &&
-			a.location === b.location &&
-			a.description === b.description &&
-			deepEqual(organizerA, organizerB) &&
-			deepEqual(rruleA, rruleB) &&
-			a.recurrenceId?.valueOf() === b.recurrenceId?.valueOf()
-		)
 	}
 
 	private async loadOrCreateCalendarInfo(progressMonitor: IProgressMonitor): Promise<ReadonlyMap<Id, CalendarInfo>> {
@@ -826,7 +741,7 @@ export class CalendarModel {
 			// was already resolved and the entity updated.
 			const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
-			const { parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
+			const { parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
 			return await parseCalendarFile(dataFile)
 		} catch (e) {
 			if (e instanceof SessionKeyNotFoundError) {

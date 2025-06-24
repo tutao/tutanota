@@ -31,7 +31,7 @@ import {
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
-import type { ParsedCalendarData } from "../../../common/calendar/import/CalendarImporter.js"
+import type { ParsedCalendarData } from "../../../common/calendar/gui/CalendarImporter.js"
 import { isMailAddress } from "../../../common/misc/FormatValidator"
 import { CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse } from "../../../common/api/common/TutanotaConstants"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP } from "../../../common/calendar/date/CalendarUtils.js"

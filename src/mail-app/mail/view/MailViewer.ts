@@ -176,6 +176,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderMailSubject(attrs: MailViewerAttrs) {
+		const isEventInvitation = !!attrs.viewModel.getCalendarEventAttachment()
+		if (isEventInvitation) {
+			return null
+		}
+
 		return m(
 			"h4.font-weight-600.mt.mb.text-break.selectable." + responsiveCardHMargin(),
 			{

@@ -2041,6 +2041,10 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"timeOverview_title": "Zeitübersicht",
+		"viewOnCalendar_action": "Im Kalender anzeigen",
+		"noSimultaneousEvents_msg": "Keine gleichzeitigen Ereignisse",
+		"simultaneousEvents_msg": "Simultane Ereignisse"
 	}
 }

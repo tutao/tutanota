@@ -99,6 +99,26 @@ export class CalendarEventsRepository {
 		return await this.logins.getUserController().isNewPaidPlan()
 	}
 
+	async forceLoadEventsAt(daysInMonths: Array<Date>): Promise<void> {
+		for (const dayInMonth of daysInMonths) {
+			const monthRange = getMonthRange(dayInMonth, this.zone)
+			try {
+				let calendarInfos = await this.calendarModel.getCalendarInfos()
+
+				if (!this.loadedMonths.has(monthRange.start)) {
+					this.loadedMonths.set(monthRange.start, Array.from(calendarInfos.keys()))
+				}
+
+				const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
+				this.replaceEvents(eventsMap)
+				this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
+			} catch (e) {
+				this.loadedMonths.delete(monthRange.start)
+				throw e
+			}
+		}
+	}
+
 	async loadMonthsIfNeeded(
 		daysInMonths: Array<Date>,
 		canceled: Stream<boolean>,
@@ -110,7 +130,7 @@ export class CalendarEventsRepository {
 				if (canceled()) return
 
 				const monthRange = getMonthRange(dayInMonth, this.zone)
-				if (!this.loadedMonths.has(monthRange.start) || !this.isCalendarLoadedForRange(monthRange.start, calendarToLoad)) {
+				if (!this.loadedMonths.has(monthRange.start) || (calendarToLoad != null && !this.isCalendarLoadedForRange(monthRange.start, calendarToLoad))) {
 					try {
 						let calendarInfos = await this.calendarModel.getCalendarInfos()
 
@@ -370,6 +390,11 @@ export class CalendarEventsRepository {
 	}
 
 	async loadContactsBirthdays(): Promise<{ valid: ContactWrapper[]; invalid: Contact[] } | undefined> {
+		if (this.clientOnlyEvents.size) {
+			// After a first load we don't need to load it again because we handle contact entity events in the CalendarViewModel
+			console.info("Birthdays already loaded, skipping new load attempt.")
+			return
+		}
 		const listId = await this.contactModel.getContactListId()
 
 		if (listId == null) {
@@ -398,8 +423,7 @@ export class CalendarEventsRepository {
 			this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
 		}
 
-		console.info("Birthday events loaded")
-		console.log({ "Valid contacts": filteredContacts.length, "Invalid contacts": invalidContacts.length })
+		console.info(`Birthday events loaded - ${filteredContacts.length} Valid contacts / ${invalidContacts.length} Invalid contacts`)
 		return { valid: filteredContacts, invalid: invalidContacts }
 	}
 
@@ -412,7 +436,7 @@ export class CalendarEventsRepository {
 			this.removeBirthdayEventsForContact(id.join("/"), null)
 		}
 
-		console.info("Processed contact entity event", operation, "for id", id)
+		console.info("Processed contact entity event, operation type", operation, "for contact id", id)
 	}
 
 	private async loadContactAndUpdateBirthday(contactId: IdTuple, removeIfExists: boolean) {

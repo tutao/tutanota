@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
@@ -6,7 +6,6 @@ import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander
 import { File as TutanotaFile } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/base/InfoBanner.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { EventBanner, EventBannerAttrs } from "./EventBanner.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
@@ -17,7 +16,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
@@ -34,6 +33,8 @@ import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MoveMode } from "../model/MailModel"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
+import { EventBanner, EventBannerAttrs } from "./EventBanner"
+import { getGroupColors } from "../../../common/misc/GroupColors"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -294,17 +295,26 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderBanners(attrs: MailViewerHeaderAttrs): Children {
 		const { viewModel } = attrs
 		if (viewModel.isCollapsed()) return null
+
+		const phishingBanner = this.renderPhishingWarning(viewModel)
+		const externalContentBanner = this.renderExternalContentBanner(attrs)
+
+		const banners: ChildArray = []
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
-		return [
-			m(
-				"." + responsiveCardHMargin(),
-				this.renderPhishingWarning(viewModel) ?? viewModel.isWarningDismissed()
-					? null
-					: this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel),
-			),
-			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
-			m("hr.hr.mt-xs." + responsiveCardHMargin()),
-		].filter(Boolean)
+		if (phishingBanner) {
+			banners.push(m("." + responsiveCardHMargin(), phishingBanner))
+		}
+		if (!!phishingBanner && !viewModel.isWarningDismissed()) {
+			banners.push(
+				m("." + responsiveCardHMargin(), this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel)),
+			)
+		}
+		if (externalContentBanner) {
+			banners.push(m("." + responsiveCardHMargin(), externalContentBanner))
+		}
+
+		const hasEventInvitation = viewModel.getCalendarEventAttachment()
+		return isEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-xs." + responsiveCardHMargin())] : [...banners]
 	}
 
 	private renderConnectionLostBanner(viewModel: MailViewerViewModel): Children {
@@ -331,13 +341,17 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderEventBanner(viewModel: MailViewerViewModel): Children {
 		const eventAttachment = viewModel.getCalendarEventAttachment()
+		const groupColors: Map<Id, string> = getGroupColors(viewModel.logins.getUserController().userSettingsGroupRoot)
+
 		return eventAttachment
 			? m(
 					"." + responsiveCardHMargin(),
 					m(EventBanner, {
-						contents: eventAttachment.contents,
+						iCalContents: eventAttachment.contents,
 						recipient: eventAttachment.recipient,
 						mail: viewModel.mail,
+						eventsRepository: viewModel.eventsRepository,
+						groupColors,
 					} satisfies EventBannerAttrs),
 			  )
 			: null

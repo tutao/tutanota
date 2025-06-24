@@ -17,7 +17,6 @@ import {
 	isNotEmpty,
 	isSameDay,
 	isSameDayOfDate,
-	memoized,
 	numberRange,
 	typedValues,
 } from "@tutao/tutanota-utils"
@@ -68,10 +67,10 @@ import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { AdvancedRepeatRule, CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { AdvancedRepeatRule, CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { size } from "../../../common/gui/size.js"
-import { hslToHex, isColorLight, isValidColorCode, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
+import { hslToHex, isColorLight, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
@@ -831,7 +830,7 @@ function getCalculationEvent(event: CalendarEvent, zone: string, eventLayoutMode
  * There could be a case where they are flipped vertically, but we don't have them because earlier events will be always first. so the "left" top edge will
  * always be "above" the "right" top edge.
  */
-function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
+export function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
 }
 
@@ -900,15 +899,6 @@ export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = O
 	[CalendarAttendeeStatus.DECLINED]: Icons.CircleReject,
 	[CalendarAttendeeStatus.NEEDS_ACTION]: Icons.CircleHelp,
 	[CalendarAttendeeStatus.ADDED]: Icons.CircleHelp,
-})
-export const getGroupColors = memoized((userSettingsGroupRoot: UserSettingsGroupRoot) => {
-	return userSettingsGroupRoot.groupSettings.reduce((acc, { group, color }) => {
-		if (!isValidColorCode("#" + color)) {
-			color = defaultCalendarColor
-		}
-		acc.set(group, color)
-		return acc
-	}, new Map())
 })
 
 export const getClientOnlyColors = (userId: Id, clientOnlyCalendarsInfo: Map<Id, ClientOnlyCalendarsInfo>) => {
