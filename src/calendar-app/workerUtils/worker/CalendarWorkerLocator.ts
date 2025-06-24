@@ -401,7 +401,9 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.publicKeySignatureFacade,
 		locator.adminKeyLoader,
 	)
-	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
+	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor, async (error: Error) => {
+		await worker.sendError(error)
+	})
 
 	const loginListener: LoginListener = {
 		async onPartialLoginSuccess(_sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
