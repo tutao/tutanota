@@ -567,7 +567,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.publicKeySignatureFacade,
 		locator.adminKeyLoader,
 	)
-	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor)
+	locator.rolloutFacade = new RolloutFacade(locator.serviceExecutor, async (error: Error) => {
+		await worker.sendError(error)
+	})
 
 	const loginListener: LoginListener = {
 		async onPartialLoginSuccess(sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
