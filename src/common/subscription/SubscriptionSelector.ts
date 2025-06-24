@@ -34,7 +34,7 @@ import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
 import { locator } from "../api/main/CommonLocator.js"
-import { hasAppleIntroOffer, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils.js"
+import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils.js"
 import { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
@@ -175,10 +175,21 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		const getFootnoteElement: () => Children = () => {
 			if (hasCampaign && !options.businessUse() && isYearly) {
-				const { revoPrice, legendPrice } = this.getReferencePrices({
+				const getRevoPriceStrProps = {
 					priceAndConfigProvider,
-					accountingInfo: vnode.attrs.accountingInfo,
-				})
+					paymentInterval: PaymentInterval.Yearly,
+					targetPlan: PlanType.Revolutionary,
+				}
+				const { referencePriceStr: revoRefPriceStr } = isApplePrice ? getApplePriceStr(getRevoPriceStrProps) : getPriceStr(getRevoPriceStrProps)
+
+				const getLegendPriceStrProps = {
+					priceAndConfigProvider,
+					paymentInterval: PaymentInterval.Yearly,
+					targetPlan: PlanType.Legend,
+				}
+				const { referencePriceStr: legendRefPriceStr } = isApplePrice ? getApplePriceStr(getLegendPriceStrProps) : getPriceStr(getLegendPriceStrProps)
+
+				if (!revoRefPriceStr || !legendRefPriceStr) return
 
 				return m(
 					".flex.column-gap-s",
@@ -186,8 +197,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					m(
 						"span",
 						lang.get(isApplePrice ? "pricing.firstYearDiscountIos_revo_legend_msg" : "pricing.firstYearDiscount_revo_legend_msg", {
-							"{revo-price}": revoPrice,
-							"{legend-price}": legendPrice,
+							"{revo-price}": revoRefPriceStr,
+							"{legend-price}": legendRefPriceStr,
 						}),
 					),
 				)
