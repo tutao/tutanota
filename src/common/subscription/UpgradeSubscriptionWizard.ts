@@ -79,14 +79,19 @@ export type UpgradeSubscriptionData = {
 	isCalledBySatisfactionDialog: boolean
 }
 
-export async function showUpgradeWizard(
-	logins: LoginController,
+export async function showUpgradeWizard({
+	logins,
+	acceptedPlans = NewPaidPlans,
+	msg,
+	useNewPlanSelector,
+}: {
+	logins: LoginController
 	isCalledBySatisfactionDialog: boolean,
-	acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans,
-	msg?: MaybeTranslation,
-): Promise<void> {
+	acceptedPlans?: readonly AvailablePlanType[]
+	msg?: MaybeTranslation
+	useNewPlanSelector?: boolean
+}): Promise<void> {
 	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
-
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
@@ -130,8 +135,13 @@ export async function showUpgradeWizard(
 		isCalledBySatisfactionDialog,
 	}
 
+	let { pageClass: planPageClass, attrs: planPageAttrs } = initPlansPages(upgradeData)
+	if (!useNewPlanSelector) {
+		planPageClass = UpgradeSubscriptionPage
+		planPageAttrs = new UpgradeSubscriptionPageAttrs(upgradeData)
+	}
 	const wizardPages = [
-		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
+		wizardPageWrapper(planPageClass, planPageAttrs),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new UpgradeConfirmSubscriptionPageAttrs(upgradeData)),
 	]

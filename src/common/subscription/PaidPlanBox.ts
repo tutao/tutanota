@@ -15,6 +15,7 @@ import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { isIOSApp } from "../api/common/Env"
 import { getFeaturePlaceholderReplacement } from "./SubscriptionUtils.js"
+import { CurrentPlanLabel } from "./parts/CurrentPlanLabel.js"
 
 type AvailablePlan = PlanType.Revolutionary | PlanType.Legend
 
@@ -26,6 +27,8 @@ type PlanBoxAttrs = {
 	referencePrice?: string
 	selectedPaymentInterval: Stream<PaymentInterval>
 	isSelected: boolean
+	isDisabled: boolean
+	isCurrentPlan: boolean
 	plan: AvailablePlan
 	onclick: Callback<AvailablePlan>
 	priceAndConfigProvider: PriceAndConfigProvider
@@ -36,6 +39,7 @@ type PlanBoxAttrs = {
 	 * Depends on whether the free plan box is rendered under the paid plans, styles for the paid plan boxes will be changed
 	 */
 	hideFreePlan: boolean
+	showMultiUser: boolean
 }
 
 export class PaidPlanBox implements Component<PlanBoxAttrs> {
@@ -59,29 +63,44 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 			referencePrice,
 			selectedPaymentInterval,
 			isSelected,
+			isDisabled,
+			isCurrentPlan,
 			plan,
 			onclick,
 			priceAndConfigProvider,
 			scale,
 			hasCampaign,
 			isApplePrice,
-			hideFreePlan,
+			showMultiUser,
+            hideFreePlan
 		},
 	}: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const strikethroughPrice = isYearly ? referencePrice : undefined
-		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected, hasCampaign)
 		// Only for Go European campaign as the campaign needs to use the blue theme always. This should be removed after the campaign.
 		const localTheme = hasCampaign ? getBlueTheme() : theme
 
+		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected, isDisabled, hasCampaign)
+		const getPriceHintStr = (): String => {
+			if (showMultiUser) {
+				return lang.get("pricing.perUserMonth_label")
+			}
+			if (isApplePrice && isYearly) {
+				return lang.get("pricing.perYear_label")
+			} else {
+				return lang.get("pricing.perMonth_label")
+			}
+		}
+
 		return m(
-			`.cursor-pointer.buyOptionBox-v2${isSelected ? ".selected" : ""}`,
+			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
 				style: {
 					scale,
 					"z-index": isSelected ? "1" : "initial",
 					"transform-origin": isLegendPlan ? "center right" : "center left",
+					"pointer-event": isDisabled ? "none" : "initial",
 				},
 			},
 
@@ -105,7 +124,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				{
 					style: {
 						"background-color": planBoxColors.getBgColor(isSelected),
-						color: planBoxColors.getTextColor(isSelected, hasCampaign),
+						color: planBoxColors.getTextColor(isSelected, isDisabled, hasCampaign),
 						"min-height": px(270),
 						height: "100%",
 						"border-style": "solid",
@@ -120,7 +139,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						overflow: "hidden",
 						padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
 					},
-					onclick: () => onclick?.(plan),
+					onclick: () => !isDisabled && onclick?.(plan),
 				},
 
 				m(
@@ -144,7 +163,9 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						checked: isSelected,
 						style: {
 							"accent-color": localTheme.experimental_on_primary_container,
+							opacity: isDisabled ? "0" : "1",
 						},
+						disabled: isDisabled,
 					}),
 					m(
 						".text-center.flex.col.center-horizontally.m-0.font-mdio",
@@ -157,9 +178,15 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 					),
 				),
 				m(
-					".flex",
-					{ style: { "justify-content": isLegendPlan ? "start" : "end" } },
-					m(".smaller.mt-s", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
+					".flex.mt-s",
+					{
+						style: {
+							"justify-content": isLegendPlan ? "start" : "end",
+							"flex-direction": isLegendPlan ? "row-reverse" : "row",
+							height: px(size.button_height_compact),
+						},
+					},
+					isCurrentPlan ? m(CurrentPlanLabel) : m(".smaller", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
 				),
 				m(".flex-space-between.gap-hpad.mt.mb", { style: { "flex-direction": isLegendPlan ? "row-reverse" : "row" } }, [
 					m(
@@ -216,7 +243,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						m(
 							".small.flex",
 							{ style: { "justify-content": "center", "column-gap": px(1) } },
-							m("span", isApplePrice && isYearly ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")),
+							m("span", getPriceHintStr()),
 							hasCampaign && m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
 					),
@@ -234,7 +261,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 		)
 	}
 
-	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, isSelected: boolean, hasCampaign: boolean) {
+	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, isSelected: boolean, isDisabled: boolean, hasCampaign: boolean) {
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey) => {
 			return m(
 				".flex",
@@ -247,7 +274,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 					icon,
 					size: IconSize.Normal,
 					style: {
-						fill: planBoxColors.getFeatureIconColor(isSelected, planType, hasCampaign),
+						fill: planBoxColors.getFeatureIconColor(isSelected, isDisabled, planType, hasCampaign),
 					},
 				}),
 				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),

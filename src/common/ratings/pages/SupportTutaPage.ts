@@ -141,7 +141,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		const lastBooking = last(bookings)
 
 		const { showSwitchDialog } = await import("../../subscription/SwitchSubscriptionDialog.js")
-		await showSwitchDialog(customer, accountingInfo, assertNotNull(lastBooking), NewPaidPlans, null)
+		await showSwitchDialog({ customer, accountingInfo, lastBooking: assertNotNull(lastBooking), acceptedPlans: NewPaidPlans, reason: null })
 	}
 
 	private async showReferralLinkDialog(): Promise<void> {

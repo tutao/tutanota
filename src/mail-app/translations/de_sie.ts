@@ -2117,6 +2117,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"switchPlan_msg": "Your plan will be switched to {plan} {interval} plan."
 	}
 }
