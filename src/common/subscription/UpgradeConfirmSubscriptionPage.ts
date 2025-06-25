@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, PlanTypeToName } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -14,14 +14,12 @@ import { TextField } from "../gui/base/TextField.js"
 import { base64ExtToBase64, base64ToUint8Array, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePaymentResultType"
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../api/common/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
 import { SubscriptionApp } from "./SubscriptionViewer.js"
 import { DateTime } from "luxon"
@@ -29,13 +27,8 @@ import { formatDate } from "../misc/Formatter.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
-	private __signupPaidTest?: UsageTest
-	private __signupFreeTest?: UsageTest
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
-		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
-
 		this.dom = vnode.dom as HTMLElement
 	}
 
@@ -63,21 +56,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
-			.then(() => {
-				// Order confirmation (click on Buy), send selected payment method as an enum
-				const orderConfirmationStage = this.__signupPaidTest?.getStage(5)
-				orderConfirmationStage?.setMetric({
-					name: "paymentMethod",
-					value: PaymentMethodTypeToName[data.paymentData.paymentMethod],
-				})
-				orderConfirmationStage?.setMetric({
-					name: "switchedFromFree",
-					value: (this.__signupFreeTest?.isStarted() ?? false).toString(),
-				})
-				orderConfirmationStage?.complete()
-
-				return this.close(data, this.dom)
-			})
+			.then(() => this.close(data, this.dom))
 			.catch(
 				ofClass(PreconditionFailedError, (e) => {
 					Dialog.message(

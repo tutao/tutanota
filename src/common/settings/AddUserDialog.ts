@@ -1,6 +1,6 @@
 import m from "mithril"
-import { lang, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
-import { BookingItemFeatureType, NewPaidPlans } from "../api/common/TutanotaConstants.js"
+import { lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
+import { BookingItemFeatureType } from "../api/common/TutanotaConstants.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { PasswordForm, PasswordModel } from "./PasswordForm.js"
 import { SelectMailAddressForm } from "./SelectMailAddressForm.js"
@@ -44,11 +44,10 @@ export async function show(): Promise<void> {
 					availableDomains,
 					onDomainChanged: (domain) => {
 						if (domain.isPaid && !onNewPaidPlan) {
-							showUpgradeWizard(
-								locator.logins,
-								NewPaidPlans,
-								lang.makeTranslation("change_to_new_plan", `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`),
-							)
+							showUpgradeWizard({
+								logins: locator.logins,
+								msg: lang.makeTranslation("change_to_new_plan", `${lang.get("paidEmailDomainLegacy_msg")}\n${lang.get("changePaidPlan_msg")}`),
+							})
 						} else {
 							selectedDomain = domain
 						}

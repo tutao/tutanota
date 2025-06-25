@@ -94,7 +94,7 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 				const message = lang.get("upgradeNeeded_msg")
 				return Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), message).then((confirmed) => {
 					if (confirmed) {
-						import("../subscription/UpgradeSubscriptionWizard").then((m) => m.showUpgradeWizard(logins))
+						import("../subscription/UpgradeSubscriptionWizard").then((m) => m.showUpgradeWizard({ logins }))
 					}
 
 					return false

@@ -72,11 +72,17 @@ export type UpgradeSubscriptionData = {
 	firstMonthForFreeOfferActive: boolean
 }
 
-export async function showUpgradeWizard(
-	logins: LoginController,
-	acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans,
-	msg?: MaybeTranslation,
-): Promise<void> {
+export async function showUpgradeWizard({
+	logins,
+	acceptedPlans = NewPaidPlans,
+	msg,
+	useNewPlanSelector,
+}: {
+	logins: LoginController
+	acceptedPlans?: readonly AvailablePlanType[]
+	msg?: MaybeTranslation
+	useNewPlanSelector?: boolean
+}): Promise<void> {
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
@@ -119,8 +125,13 @@ export async function showUpgradeWizard(
 		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
 	}
 
+	let { pageClass: planPageClass, attrs: planPageAttrs } = initPlansPages(upgradeData)
+	if (!useNewPlanSelector) {
+		planPageClass = UpgradeSubscriptionPage
+		planPageAttrs = new UpgradeSubscriptionPageAttrs(upgradeData)
+	}
 	const wizardPages = [
-		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
+		wizardPageWrapper(planPageClass, planPageAttrs),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 	]
@@ -145,19 +156,6 @@ export function getPlanSelectorTest() {
 	const test = locator.usageTestController.getTest(`signup.paywall.${styles.isMobileLayout() ? "mobile" : "desktop"}`)
 	test.recordTime = true
 	return test
-}
-
-export function resolvePlanSelectorVariant(variant: number) {
-	switch (variant) {
-		case 1:
-			return "A"
-		case 2:
-			return "B"
-		case 3:
-			return "C"
-		default:
-			throw new Error("Encountered invalid variant. Expected 1, 2 or 3.")
-	}
 }
 
 export async function loadSignupWizard(
