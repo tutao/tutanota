@@ -1,18 +1,18 @@
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
 import { getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../../common/api/common/TutanotaConstants.js"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { createCalendarEventAttendee } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { windowFacade } from "../../../common/misc/WindowFacade.js"
 import { RecipientsNotFoundError } from "../../../common/api/common/error/RecipientsNotFoundError.js"
-import { cleanMailAddress, findAttendeeInAddresses, findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 
 import { calendarAttendeeStatusSymbol, formatEventDuration } from "../gui/CalendarGuiUtils.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */
@@ -31,13 +31,13 @@ export class CalendarNotificationSender {
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
-			body: makeInviteEmailBody(sender, event, message),
+			body: makeEventInviteEmailBody(sender, event, message),
 			event,
 			sender,
 		})
 	}
 
-	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel, oldEvent: CalendarEvent): Promise<void> {
 		const message = lang.get("eventUpdated_msg", {
 			"{event}": event.summary,
 		})
@@ -46,7 +46,7 @@ export class CalendarNotificationSender {
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
-			body: makeInviteEmailBody(sender, event, message),
+			body: makeEventInviteEmailBody(sender, event, message, oldEvent),
 			event,
 			sender,
 		})
@@ -61,7 +61,7 @@ export class CalendarNotificationSender {
 			sendMailModel,
 			method: MailMethod.ICAL_CANCEL,
 			subject: message,
-			body: makeInviteEmailBody(sender, event, message),
+			body: makeEventInviteEmailBody(sender, event, message),
 			event,
 			sender,
 		}).catch(
@@ -97,7 +97,7 @@ export class CalendarNotificationSender {
 			"{event}": event.summary,
 		})
 		const organizer = assertOrganizer(event)
-		const body = makeInviteEmailBody(organizer.address, event, message)
+		const body = makeEventInviteEmailBody(organizer.address, event, message)
 		return this.sendCalendarFile({
 			event,
 			sendMailModel,
@@ -155,69 +155,130 @@ export class CalendarNotificationSender {
 	}
 }
 
-function summaryLine(event: CalendarEvent): string {
-	return newLine(lang.get("name_label"), event.summary)
-}
-
-function whenLine(event: CalendarEvent): string {
+function whenLine(event: CalendarEvent, highlightChange: boolean): string {
 	const duration = formatEventDuration(event, getTimeZone(), true)
-	return newLine(lang.get("when_label"), duration)
+	return newLine(getLabel("when_label", highlightChange), duration, false)
 }
 
-function organizerLabel(organizer: EncryptedMailAddress, a: CalendarEventAttendee) {
-	return cleanMailAddress(organizer.address) === cleanMailAddress(a.address.address) ? `(${lang.get("organizer_label")})` : ""
-}
-
-function newLine(label: string, content: string): string {
-	return `<div style="display: flex; margin-top: 8px"><div style="min-width: 120px"><b style="float:right; margin-right:16px">${label}:</b></div>${content}</div>`
-}
-
-function attendeesLine(event: CalendarEvent): string {
+function organizerLine(event: CalendarEvent, highlightChange: boolean): string {
 	const { organizer } = event
-	let attendees = ""
-
-	// If organizer is already in the attendees, we don't have to add them separately.
-	if (organizer && !findAttendeeInAddresses(event.attendees, [organizer.address])) {
-		attendees = makeAttendee(
-			organizer,
-			createCalendarEventAttendee({
-				address: organizer,
-				status: "0",
-			}),
-		)
-	}
-
-	attendees += event.attendees.map((a) => makeAttendee(assertNotNull(organizer), a)).join("\n")
-	return newLine(lang.get("who_label"), `<div>${attendees}</div>`)
+	return newLine(getLabel("organizer_label", highlightChange), `${organizer?.name} <span style="color: #707070">${organizer?.address}</span>`)
 }
 
-function makeAttendee(organizer: EncryptedMailAddress, attendee: CalendarEventAttendee): string {
-	return `<div>
-${attendee.address.name || ""} ${attendee.address.address}
-${organizerLabel(organizer, attendee)}
-${calendarAttendeeStatusSymbol(getAttendeeStatus(attendee))}</div>`
+function attendeesLine(
+	event: CalendarEvent,
+	attendeesChanges: {
+		removed: Array<string>
+		added: Array<string>
+	},
+): string {
+	// FIXME Icon and handle additions and removals correctly
+	const { organizer } = event
+	const hasChanges = !!(attendeesChanges.added.length || attendeesChanges.removed.length)
+	const attendees = event.attendees
+		.map((a) => {
+			if (a.address.address === organizer?.address) {
+				return ""
+			}
+			return makeAttendee(assertNotNull(organizer), a, attendeesChanges.removed.includes(a.address.address))
+		})
+		.join("")
+	return newLine(getLabel("guests_label", hasChanges), `<table style="line-height: 1rem;">${attendees}</table>`)
 }
 
-function locationLine(event: CalendarEvent): string {
-	return event.location ? newLine(lang.get("location_label"), event.location) : ""
+function makeAttendee(organizer: EncryptedMailAddress, attendee: CalendarEventAttendee, removed: boolean = false): string {
+	//FIXME translation for Removed
+	const content = `
+				<span style="${removed ? "text-decoration: line-through" : ""}">
+				${attendee.address.name || ""} <span style="color:#707070;">${attendee.address.address}</span>
+				${removed ? "" : calendarAttendeeStatusSymbol(getAttendeeStatus(attendee))}
+				</span>
+				${removed ? "(Removed)" : ""}
+	`
+
+	return `<tr><td>${content}</td></tr>`
 }
 
-function descriptionLine(event: CalendarEvent): string {
-	return event.description ? newLine(lang.get("description_label"), `<div>${event.description}</div>`) : ""
+function locationLine(event: CalendarEvent, highlightChange: boolean): string {
+	const content = `
+		<span>${event.location}</span><br>
+		<a href=${getLocationUrl(event.location).toString()} target="_blank" referrerpolicy="no-referrer" style="color: #013E85">View on map</a>
+	`
+	return event.location ? newLine(getLabel("location_label", highlightChange), content) : ""
 }
 
-function makeInviteEmailBody(sender: string, event: CalendarEvent, message: string) {
+function descriptionLine(event: CalendarEvent, highlightChange: boolean): string {
+	// We can't actually highlight the description because it can have richtext/html
+	return event.description ? newLine(getLabel("description_label", highlightChange), `<div>${event.description}</div>`) : ""
+}
+
+function getLabel(translationKey: TranslationKey, highlightChange: boolean) {
+	return highlightChange ? highlight(lang.get(translationKey)) : lang.get(translationKey)
+}
+
+function highlight(content: string) {
+	return `<mark style="background-color: #FFECB7; border-radius: 3px; color: #303030; padding: 0 4px">
+				${content}
+			</mark>`
+}
+
+function newLine(label: string, content: string, applyPaddingTop: boolean = true): string {
+	return `<tr>
+				<th style="text-align: left; padding-bottom: 4px; text-transform: uppercase; ${applyPaddingTop ? "padding-top: 28px;" : ""}"><strong>${label}</strong></th>
+			</tr>
+			<tr>
+				<td>${content}</td>
+			</tr>`
+}
+
+function makeEventInviteEmailBody(sender: string, event: CalendarEvent, message: string, oldEvent?: CalendarEvent) {
+	const changedFields = {
+		summary: false,
+		when: false,
+		location: false,
+		description: false,
+		organizer: false,
+		attendee: {
+			removed: [],
+			added: [],
+		},
+	} //FIXME Find changes
+
+	// <div style="padding: 24px 32px; border: 1px solid #ddd; border-radius: 6px;">
+	// 	You have been <strong>invited</strong> to an event.
+	// </div>
+
+	// TODO [colors] Use new material like colors tokens
 	return `
-	<div style="max-width: 685px; margin: 0 auto">
-	  	<h2 style="text-align: center">${message}</h2>
-  		<div style="margin: 0 auto">
-  			${summaryLine(event)}
-    		${whenLine(event)}
-    		${locationLine(event)}
-    		${attendeesLine(event)}
-    		${descriptionLine(event)}
-  		</div>
-	</div>`
+	<div style="padding: 24px 32px; border: 1px solid #ddd; border-radius: 6px; color: #303030;">
+		<table>
+			<tr>
+				<td>
+					<h1 style="font-size: 24px; margin: 0">
+						<strong>${changedFields.summary ? highlight("Event:") : "Event:"}</strong>${" " + event.summary}
+					</h1>
+				</td>
+			</tr>
+		</table>
+		
+		<hr style="border-width: 0; margin: 24px 0; background: #ddd; color: #ddd; height:1px">
+		
+		<table style="width: 100%;">
+			${whenLine(event, changedFields.when)}
+			${locationLine(event, changedFields.location)}
+			${descriptionLine(event, changedFields.description)}
+			${organizerLine(event, changedFields.organizer)}
+			${attendeesLine(event, changedFields.attendee)}
+		</table>
+	</div>
+	<table style="padding: 24px 0">
+		<tr>
+			<td>
+				This invitation was securely sent from <strong><a href="https://tuta.com" target="_blank">Tuta Calendar</a></strong>
+			<ts>
+		</tr>
+	</table>
+	`
 }
 
 function assertOrganizer(event: CalendarEvent): EncryptedMailAddress {
