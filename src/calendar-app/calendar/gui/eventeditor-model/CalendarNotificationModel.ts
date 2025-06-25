@@ -31,7 +31,7 @@ export class CalendarNotificationModel {
 	 *
 	 * will modify the attendee list of newEvent if invites/cancellations are sent.
 	 */
-	async send(event: CalendarEvent, recurrenceIds: Array<Date>, sendModels: CalendarNotificationSendModels): Promise<void> {
+	async send(event: CalendarEvent, recurrenceIds: Array<Date>, sendModels: CalendarNotificationSendModels, oldEvent?: CalendarEvent): Promise<void> {
 		if (sendModels.updateModel == null && sendModels.cancelModel == null && sendModels.inviteModel == null && sendModels.responseModel == null) {
 			return
 		}
@@ -53,7 +53,7 @@ export class CalendarNotificationModel {
 		try {
 			const invitePromise = sendModels.inviteModel != null ? this.sendInvites(event, sendModels.inviteModel) : Promise.resolve()
 			const cancelPromise = sendModels.cancelModel != null ? this.sendCancellation(event, sendModels.cancelModel) : Promise.resolve()
-			const updatePromise = sendModels.updateModel != null ? this.sendUpdates(event, sendModels.updateModel) : Promise.resolve()
+			const updatePromise = sendModels.updateModel != null ? this.sendUpdates(event, sendModels.updateModel, oldEvent) : Promise.resolve()
 			const responsePromise = sendModels.responseModel != null ? this.respondToOrganizer(event, sendModels.responseModel) : Promise.resolve()
 			await Promise.all([invitePromise, cancelPromise, updatePromise, responsePromise])
 		} finally {
@@ -101,12 +101,16 @@ export class CalendarNotificationModel {
 		}
 	}
 
-	private async sendUpdates(event: CalendarEvent, updateModel: SendMailModel): Promise<void> {
+	private async sendUpdates(event: CalendarEvent, updateModel: SendMailModel, oldEvent?: CalendarEvent): Promise<void> {
+		if (!oldEvent) {
+			throw new Error("Trying to send update invitation for an event without its old instance")
+		}
+
 		await updateModel.waitForResolvedRecipients()
 		if (event.invitedConfidentially != null) {
 			updateModel.setConfidential(event.invitedConfidentially)
 		}
-		await this.notificationSender.sendUpdate(event, updateModel)
+		await this.notificationSender.sendUpdate(event, updateModel, oldEvent)
 	}
 
 	/**
