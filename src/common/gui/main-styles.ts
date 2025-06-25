@@ -2644,6 +2644,7 @@ styles.registerStyle("main", () => {
 			},
 			".noscreen": {
 				display: "initial",
+				color: `${lightTheme.content_fg}`,
 			},
 			".print": {
 				color: "black",
@@ -2683,9 +2684,13 @@ styles.registerStyle("main", () => {
 			".view-column": {
 				width: "100% !important",
 			},
-			"#mail-viewer": {
+			".mail-viewer": {
 				overflow: "visible",
 				display: "block",
+			},
+			'.mail-viewer, [data-testid="collapsed-mail-view"]': {
+				color: `${lightTheme.content_fg} !important`,
+				"background-color": `${lightTheme.content_bg}`,
 			},
 			"#mail-body": {
 				overflow: "visible",
