@@ -169,7 +169,10 @@ function organizerLabel(organizer: EncryptedMailAddress, a: CalendarEventAttende
 }
 
 function newLine(label: string, content: string): string {
-	return `<div style="display: flex; margin-top: 8px"><div style="min-width: 120px"><b style="float:right; margin-right:16px">${label}:</b></div>${content}</div>`
+	return `<p style="display: flex; flex-direction: column; gap: 8px; margin: 0;">
+				<strong>${label}</strong>
+				<span>${content}</span>
+			</p>`
 }
 
 function attendeesLine(event: CalendarEvent): string {
@@ -188,14 +191,15 @@ function attendeesLine(event: CalendarEvent): string {
 	}
 
 	attendees += event.attendees.map((a) => makeAttendee(assertNotNull(organizer), a)).join("\n")
-	return newLine(lang.get("who_label"), `<div>${attendees}</div>`)
+	return newLine(lang.get("who_label"), `<ul style="margin: 0; padding-left: 26px">${attendees}</ul>`)
 }
 
 function makeAttendee(organizer: EncryptedMailAddress, attendee: CalendarEventAttendee): string {
-	return `<div>
-${attendee.address.name || ""} ${attendee.address.address}
-${organizerLabel(organizer, attendee)}
-${calendarAttendeeStatusSymbol(getAttendeeStatus(attendee))}</div>`
+	return `<li>
+				${attendee.address.name || ""} ${attendee.address.address}
+				${organizerLabel(organizer, attendee)}
+				${calendarAttendeeStatusSymbol(getAttendeeStatus(attendee))}
+			</li>`
 }
 
 function locationLine(event: CalendarEvent): string {
@@ -208,16 +212,29 @@ function descriptionLine(event: CalendarEvent): string {
 
 function makeInviteEmailBody(sender: string, event: CalendarEvent, message: string) {
 	return `
-	<div style="max-width: 685px; margin: 0 auto">
-	  	<h2 style="text-align: center">${message}</h2>
-  		<div style="margin: 0 auto">
-  			${summaryLine(event)}
-    		${whenLine(event)}
-    		${locationLine(event)}
-    		${attendeesLine(event)}
-    		${descriptionLine(event)}
-  		</div>
-	</div>`
+	<div style="max-width: 100%; background: white; display: flex; flex-direction: column; gap: 16px;">
+		<div style="padding: 24px 32px; border: 1px solid #ddd; border-radius: 6px;">
+			You have been <strong>invited</strong> to an event
+		</div>
+		<div style="display: flex; flex-direction: column; gap: 24px; padding: 24px 32px; border: 1px solid #ddd; border-radius: 6px;">
+			<h1 style="font-size: 24px"><strong>Event:</strong> ${event.summary}</h1>
+			<hr style="border: 1px solid #ddd; margin: 0;"/>
+			<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+				<div style="display: flex; flex-direction: column; gap: 20px; flex: 1;">
+					${whenLine(event)}
+					${locationLine(event)}
+					${descriptionLine(event)}
+				</div>
+				<div style="display: flex; flex-direction: column; gap: 20px; flex: 1;">
+					${attendeesLine(event)}
+				</div>
+			</div>
+		</div>
+		<div style="padding: 24px 0">
+			This invitation was securely sent from <a href="https://tuta.com" target="_blank" style="color: #850122">Tuta Calendar</a>
+		</div>
+	</div>
+	`
 }
 
 function assertOrganizer(event: CalendarEvent): EncryptedMailAddress {
