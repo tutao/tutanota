@@ -21,7 +21,7 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: readonly Avai
 		NewPersonalPlans.includes(downcast(customerInfo.plan))
 	const msg = businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg"
 
-	await wizard.showUpgradeWizard(locator.logins, false, acceptedPlans, msg)
+	await wizard.showUpgradeWizard({ logins: locator.logins, isCalledBySatisfactionDialog: false, acceptedPlans, msg })
 }
 
 export function createNotAvailableForFreeClickHandler(
@@ -58,7 +58,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 	if (confirmed) {
 		if (userController.isFreeAccount()) {
 			const wizard = await import("../subscription/UpgradeSubscriptionWizard")
-			return wizard.showUpgradeWizard(locator.logins, false)
+			return wizard.showUpgradeWizard({ logins: locator.logins })
 		} else {
 			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(userController.user))
 			const { getAvailableMatchingPlans } = await import("../subscription/SubscriptionUtils.js")
@@ -106,7 +106,7 @@ export async function showPlanUpgradeRequiredDialog(acceptedPlans: readonly Avai
 export async function showUpgradeWizardOrSwitchSubscriptionDialog(userController: UserController): Promise<void> {
 	if (userController.isFreeAccount()) {
 		const { showUpgradeWizard } = await import("../subscription/UpgradeSubscriptionWizard")
-		await showUpgradeWizard(locator.logins, false)
+		await showUpgradeWizard({ logins: locator.logins })
 	} else {
 		await showSwitchPlanDialog(userController, NewPaidPlans)
 	}
@@ -116,11 +116,11 @@ async function showSwitchPlanDialog(userController: UserController, acceptedPlan
 	let customerInfo = await userController.loadCustomerInfo()
 	const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
 	const { showSwitchDialog } = await import("../subscription/SwitchSubscriptionDialog")
-	return showSwitchDialog(
-		await userController.loadCustomer(),
-		await userController.loadAccountingInfo(),
-		assertNotNull(bookings[0]),
+	return showSwitchDialog({
+		customer: await userController.loadCustomer(),
+		accountingInfo: await userController.loadAccountingInfo(),
+		lastBooking: assertNotNull(bookings[0]),
 		acceptedPlans,
-		reason ?? null,
-	)
+		reason: reason ?? null,
+	})
 }

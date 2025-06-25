@@ -7,6 +7,7 @@ import { PaymentMethodInput } from "./PaymentMethodInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
+	AvailablePlanType,
 	getClientType,
 	getDefaultPaymentMethod,
 	InvoiceData,
@@ -66,6 +67,10 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
 		this.dom = vnode.dom as HTMLElement
 		const data = vnode.attrs.data
+
+		if (!data.acceptedPlans.includes(data.targetPlanType as AvailablePlanType)) {
+			throw new Error("Invalid plan is selected")
+		}
 
 		// TODO check if correct place to update these
 		if (this._invoiceDataInput && this._paymentMethodInput) {

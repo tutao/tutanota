@@ -5,7 +5,7 @@ import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import { hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
+import { getCurrentPaymentInterval, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
@@ -97,7 +97,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 					priceInfoTextId: data.priceInfoTextId,
 					boxWidth: 230,
 					boxHeight: 270,
-					acceptedPlans: NewBusinessPlans,
+					acceptedPlans: NewBusinessPlans.filter((businessPlan) => acceptedPlans.includes(businessPlan)),
 					allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
 					currentPlanType: data.currentPlan,
 					actionButtons: actionButtons,
@@ -137,10 +137,12 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				actionButtons,
 				priceAndConfigProvider: planPrices,
 				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
-				hidePaidPlans: availablePlans.includes(PlanType.Free) && availablePlans.length === 1,
-				hideFreePlan: !availablePlans.includes(PlanType.Free),
+				availablePlans,
 				isApplePrice,
-				variant: "C",
+				currentPlan: data.currentPlan ?? undefined,
+				currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
+				allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
+				showMultiUser: false,
 			}),
 		])
 	}
@@ -330,15 +332,13 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 	}
 }
 
-export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, update: VoidFunction): ButtonAttrs {
-	const isBusiness = businessUse()
-
+export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, update?: VoidFunction): ButtonAttrs {
 	return {
-		label: isBusiness ? "privateUse_action" : "forBusiness_action",
+		label: businessUse() ? "privateUse_action" : "forBusiness_action",
 		type: ButtonType.Primary,
 		class: ["block"], // Use block class to override the `flex` class, thus allowing the button text to be wrapped using ellipses.
 		icon:
-			isBusiness || styles.isMobileLayout()
+			businessUse() || styles.isMobileLayout()
 				? null
 				: m(Icon, {
 						icon: Icons.Business,
@@ -350,8 +350,8 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, upd
 						},
 					}),
 		click: () => {
-			businessUse(!isBusiness)
-			update()
+			businessUse(!businessUse())
+			update?.()
 		},
 	}
 }

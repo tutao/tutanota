@@ -435,3 +435,7 @@ export function canSubscribeToPlan(plan: AvailablePlanType): boolean {
 		return AvailablePlans.includes(plan)
 	}
 }
+
+export function getCurrentPaymentInterval(accountingInfo: AccountingInfo | null): PaymentInterval | undefined {
+	return accountingInfo ? (parseInt(accountingInfo.paymentInterval) as PaymentInterval) : undefined
+}

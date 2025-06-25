@@ -25,7 +25,6 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../common/gui/theme.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { NewPaidPlans } from "../../../common/api/common/TutanotaConstants.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
@@ -138,7 +137,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		} else {
 			const msg = lang.makeTranslation("upgrade_text", lang.get("newPaidPlanRequired_msg") + " " + lang.get("sharedMailboxesMultiUser_msg"))
 			const wizard = await import("../../../common/subscription/UpgradeSubscriptionWizard")
-			await wizard.showUpgradeWizard(locator.logins, false, NewPaidPlans, msg)
+			await wizard.showUpgradeWizard({ logins: locator.logins, msg })
 		}
 	}
 

@@ -35,7 +35,6 @@ import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./Varia
 import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { ReferralType, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
-import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
 import { windowFacade } from "../misc/WindowFacade"
 
 assertMainOrNode()
@@ -79,14 +78,20 @@ export type UpgradeSubscriptionData = {
 	isCalledBySatisfactionDialog: boolean
 }
 
-export async function showUpgradeWizard(
-	logins: LoginController,
-	isCalledBySatisfactionDialog: boolean,
-	acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans,
-	msg?: MaybeTranslation,
-): Promise<void> {
+export async function showUpgradeWizard({
+	logins,
+	isCalledBySatisfactionDialog = false,
+	acceptedPlans = NewPaidPlans,
+	msg,
+	useNewPlanSelector,
+}: {
+	logins: LoginController
+	isCalledBySatisfactionDialog?: boolean
+	acceptedPlans?: readonly AvailablePlanType[]
+	msg?: MaybeTranslation
+	useNewPlanSelector?: boolean
+}): Promise<void> {
 	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
-
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
@@ -130,8 +135,13 @@ export async function showUpgradeWizard(
 		isCalledBySatisfactionDialog,
 	}
 
+	let { pageClass: planPageClass, attrs: planPageAttrs } = initPlansPages(upgradeData)
+	if (!useNewPlanSelector) {
+		planPageClass = UpgradeSubscriptionPage
+		planPageAttrs = new UpgradeSubscriptionPageAttrs(upgradeData)
+	}
 	const wizardPages = [
-		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
+		wizardPageWrapper(planPageClass, planPageAttrs),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new UpgradeConfirmSubscriptionPageAttrs(upgradeData)),
 	]
@@ -271,8 +281,8 @@ export async function loadSignupWizard(
 }
 
 function initPlansPages(signupData: UpgradeSubscriptionData): {
-	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantBSubscriptionPage> | Class<VariantCSubscriptionPage>
-	attrs: UpgradeSubscriptionPageAttrs | VariantBSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
+	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantCSubscriptionPage>
+	attrs: UpgradeSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
 } {
 	const pricingData = signupData.planPrices.getRawPricingData()
 	const firstYearDiscount = Number(pricingData.legendaryPrices.firstYearDiscount)
