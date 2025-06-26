@@ -305,8 +305,15 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 	serde::forward_to_deserialize_any! {
 	i8 i16 i32 u8 u16 u32 f32 f64 char str bytes
 			unit unit_struct newtype_struct tuple
-			tuple_struct ignored_any
+			tuple_struct
 		}
+
+	fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		visitor.visit_unit()
+	}
 
 	fn deserialize_any<V>(self, _: V) -> Result<V::Value, Self::Error>
 	where
