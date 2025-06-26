@@ -170,7 +170,7 @@ where
 	where
 		V: Visitor<'de>,
 	{
-		log::info!("Custom backtrace: {}", Backtrace::capture());
+		eprintln!("Custom backtrace: {}", Backtrace::capture());
 		let type_name = &self.type_model.name;
 		let key = self.value.map(|(k, _)| k).unwrap_or("NO KEY".to_string());
 		Err(de::Error::custom(format_args!(
@@ -313,17 +313,27 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 			tuple_struct ignored_any
 		}
 
-	fn deserialize_any<V>(self, _: V) -> Result<V::Value, Self::Error>
+	fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
 	where
 		V: Visitor<'de>,
 	{
 		log::info!("Custom backtrace: {}", Backtrace::capture());
 
-		let type_name = self.value.type_variant_name();
-		Err(de::Error::custom(format_args!(
-			"deserialize_any is not supported! key: `{:?}`, value type: `{type_name}`",
-			self.type_model.name
-		)))
+		if let ElementValue::Array(arr) = self.value {
+			let array_deserializer = ArrayDeserializer {
+				attribute_id: self.attribute_id.get_attribute_id().unwrap().clone(),
+				iter: arr.into_iter(),
+				type_model: self.type_model,
+				type_model_provider: self.type_model_provider,
+			};
+			visitor.visit_seq(array_deserializer)
+		} else {
+			let type_name = self.value.type_variant_name();
+			Err(de::Error::custom(format_args!(
+				"deserialize_any is not supported! key: `{:?}`, value type: `{type_name}`",
+				self.type_model.name
+			)))
+		}
 	}
 
 	fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -1518,7 +1528,7 @@ mod tests {
 		// 	"localhost:9000".to_string(),
 		// ));
 		let file_client = NativeFileClient::try_new(PathBuf::from(
-			"/home/map/dev/repositories/tuta/clients/tutanota/tuta-sdk/rust/sdk/test_data",
+			"/home/kib/dev/repositories/tuta/clients/tutanota/tuta-sdk/rust/sdk/test_data",
 		))
 		.unwrap();
 		let type_model_provider = Arc::new(TypeModelProvider::new(
@@ -1529,20 +1539,32 @@ mod tests {
 		type_model_provider
 			.initialize_server_model_from_file()
 			.await;
-		let json = include_str!("../test_data/group_response.json");
-		let parsed_entity = get_parsed_entity::<Group>(json);
-		let mapper = InstanceMapper::new(type_model_provider);
-		let group: Group = mapper.parse_entity(parsed_entity).unwrap();
-		assert_eq!(5_i64, group.r#type);
-		assert_eq!(Some(0_i64), group.adminGroupKeyVersion);
-		assert_eq!(
-			IdTupleGenerated {
-				list_id: GeneratedId("LIopQQI--k-0".to_owned()),
-				element_id: GeneratedId("LIopQQN--c-0".to_owned())
-			},
-			group.groupInfo
-		);
-		assert_eq!("LIopQQI--k-0", group.groupInfo.list_id.as_str());
+		let instance_mapper = InstanceMapper::new(Arc::clone(&type_model_provider));
+		let json_serializer = JsonSerializer::new(Arc::clone(&type_model_provider));
+
+		let (server_hash, server_model) = type_model_provider
+			.server_app_models
+			.read()
+			.unwrap()
+			.as_ref()
+			.clone()
+			.unwrap()
+			.clone();
+		let version_sum = server_model
+			.apps
+			.values()
+			.map(|m| m.version.parse::<u64>().unwrap())
+			.reduce(|a, b| a + b)
+			.unwrap();
+		eprintln!("Current server hash: {server_hash} and sum: {version_sum}");
+
+		let response_entity =
+			serde_json::from_slice::<RawEntity>(include_bytes!("../test_data/group_response.json"))
+				.unwrap();
+		let parsed_group = json_serializer
+			.parse(&Group::type_ref(), response_entity)
+			.unwrap();
+		let typed_group = instance_mapper.parse_entity::<Group>(parsed_group).unwrap();
 	}
 
 	/// Test for IdTupleCustom as LET reference (not as id)

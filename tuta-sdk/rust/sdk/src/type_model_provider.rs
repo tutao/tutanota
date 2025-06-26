@@ -35,17 +35,8 @@ macro_rules! read_type_models {
 }
 
 pub static CLIENT_TYPE_MODEL: std::sync::LazyLock<ApplicationModels> =
-	std::sync::LazyLock::new(|| {
-		read_type_models![
-			"accounting",
-			"base",
-			"gossip",
-			"monitor",
-			"storage",
-			"sys",
-			"tutanota",
-			"usage"
-		]
+	std::sync::LazyLock::new(|| ApplicationModels {
+		apps: HashMap::new(),
 	});
 
 /// Contains a map between backend apps and entity/instance types within them
@@ -77,6 +68,7 @@ impl TypeModelProvider {
 	}
 
 	pub fn resolve_client_type_ref(&self, type_ref: &TypeRef) -> Option<&TypeModel> {
+		panic!();
 		self.client_app_models
 			.apps
 			.get(&type_ref.app)?
