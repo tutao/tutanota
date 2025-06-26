@@ -25,7 +25,9 @@ Instructions here will produce a *release* version of the client. For *debug* ve
 8. Update submodules: `git submodule update`
 9. run `npm ci` to install dependencies.
 10. Build packages: `npm run build-packages`
-11. Build the web part: `node make prod`
+11. Switch to the branch of your choosing (ex. `git switch logging`)
+12. Pull the most recent changes to that branch with `git pull`
+12. Build the web part: `node make prod`
 
 #### MobyPhish Button Specific Steps: 
 12. Navigate to the backend directory with from `sdptutanota` with `cd trusted-senders-backend`. 
