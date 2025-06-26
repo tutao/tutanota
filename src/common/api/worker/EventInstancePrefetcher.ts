@@ -1,6 +1,6 @@
 import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
 import { Mail, MailDetailsBlobTypeRef, MailTypeRef } from "../entities/tutanota/TypeRefs"
-import { elementIdPart, ensureBase64Ext, firstBiggerThanSecond, isSameId, listIdPart } from "../common/utils/EntityUtils"
+import { elementIdPart, ensureBase64Ext, isSameId, listIdPart } from "../common/utils/EntityUtils"
 import { assertNotNull, getTypeString, groupBy, isNotNull, isSameTypeRef, parseTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { parseKeyVersion } from "./facades/KeyLoaderFacade"
 import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
@@ -35,6 +35,7 @@ export class EventInstancePrefetcher {
 		for (const [typeRefString, groupedListIds] of preloadMap.entries()) {
 			const typeRef = parseTypeString(typeRefString) as TypeRef<ListElementEntity>
 			for (const [listId, elementIdsAndIndexes] of groupedListIds.entries()) {
+				// This prevents requests to conversationentries which were always singleRequests
 				if (elementIdsAndIndexes.size > 1) {
 					try {
 						const elementIds = Array.from(elementIdsAndIndexes.keys())

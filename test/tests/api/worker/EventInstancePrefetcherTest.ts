@@ -5,28 +5,19 @@ import { EntityUpdateTypeRef, GroupMembershipTypeRef, User, UserTypeRef } from "
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../TestUtils"
-import {
-	CalendarEvent,
-	CalendarEventTypeRef,
-	MailDetailsBlobTypeRef,
-	MailSetEntry,
-	MailSetEntryTypeRef,
-	MailTypeRef,
-} from "../../../../src/common/api/entities/tutanota/TypeRefs"
+import { CalendarEventTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
 import { matchers, object, verify, when } from "testdouble"
-import { downcast, getTypeString, isSameTypeRef, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { downcast, getTypeString, promiseMap } from "@tutao/tutanota-utils"
 import { EventInstancePrefetcher } from "../../../../src/common/api/worker/EventInstancePrefetcher"
 import { CacheMode, EntityRestClient, EntityRestClientLoadOptions } from "../../../../src/common/api/worker/rest/EntityRestClient"
-import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { elementIdPart, GENERATED_MAX_ID, GENERATED_MIN_ID, listIdPart, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils"
+import { elementIdPart, listIdPart, timestampToGeneratedId } from "../../../../src/common/api/common/utils/EntityUtils"
 import { Entity, ServerModelParsedInstance } from "../../../../src/common/api/common/EntityTypes"
 
 o.spec("EventInstancePrefetcherTest", function () {
 	let cacheStoragex: CacheStorage
-	let entityCacheClientx: EntityRestCache
-	let entityRestClientx: EntityRestClient
-	let customCacheHandlerMock: CustomCacheHandlerMap
+	let entityCacheClient: EntityRestCache
+	let entityRestClient: EntityRestClient
 	let userMock: UserFacade
 	let user: User
 	let typeModelResolver: TypeModelResolver
@@ -42,8 +33,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 	o.beforeEach(async function () {
 		cacheStoragex = object<CacheStorage>()
-		entityRestClientx = object()
-		customCacheHandlerMock = object<CustomCacheHandlerMap>()
+		entityRestClient = object()
 		typeModelResolver = clientInitializedTypeModelResolver()
 		modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 
@@ -57,13 +47,12 @@ o.spec("EventInstancePrefetcherTest", function () {
 		when(userMock.getLoggedInUser()).thenReturn(user)
 		when(userMock.isFullyLoggedIn()).thenReturn(true)
 		when(userMock.createAuthHeaders()).thenReturn({})
-		when(cacheStoragex.getCustomCacheHandlerMap()).thenReturn(customCacheHandlerMock)
-		when(entityRestClientx.mapInstancesToEntity(matchers.anything(), matchers.anything())).thenDo((typeRef, parsedInstances) => {
+		when(entityRestClient.mapInstancesToEntity(matchers.anything(), matchers.anything())).thenDo((typeRef, parsedInstances) => {
 			return promiseMap(parsedInstances, (parsedInstance) => modelMapper.mapToInstance(typeRef, parsedInstance))
 		})
 
-		entityCacheClientx = new DefaultEntityRestCache(entityRestClientx, cacheStoragex, typeModelResolver, object())
-		eventInstancePrefetcher = new EventInstancePrefetcher(cacheStoragex, entityCacheClientx, typeModelResolver)
+		entityCacheClient = new DefaultEntityRestCache(entityRestClient, cacheStoragex, typeModelResolver, object())
+		eventInstancePrefetcher = new EventInstancePrefetcher(cacheStoragex, entityCacheClient, typeModelResolver)
 	})
 
 	async function toStorableInstance(entity: Entity): Promise<ServerModelParsedInstance> {
@@ -71,11 +60,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 	}
 
 	o("When there is at least one element per list - fetch all of em", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const updateTemplate = await entityUpdateToUpdateData(
 			typeModelResolver,
 			createTestEntity(EntityUpdateTypeRef, {
@@ -103,12 +87,12 @@ o.spec("EventInstancePrefetcherTest", function () {
 			instanceId: id2,
 		})
 
-		when(entityRestClientx.loadMultipleParsedInstances(MailTypeRef, "firstListId", Array.of(id1, id2), undefined, fetchInstanceOpt)).thenResolve([])
-		when(entityRestClientx.loadMultipleParsedInstances(MailTypeRef, "secondListId", Array.of(id1, id2), undefined, fetchInstanceOpt)).thenResolve([])
+		when(entityRestClient.loadMultipleParsedInstances(MailTypeRef, "firstListId", Array.of(id1, id2), undefined, fetchInstanceOpt)).thenResolve([])
+		when(entityRestClient.loadMultipleParsedInstances(MailTypeRef, "secondListId", Array.of(id1, id2), undefined, fetchInstanceOpt)).thenResolve([])
 		await eventInstancePrefetcher.preloadEntities(Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate))
 
-		verify(entityRestClientx.loadMultipleParsedInstances(MailTypeRef, "firstListId", Array.of(id1, id2), undefined, fetchInstanceOpt), { times: 1 })
-		verify(entityRestClientx.loadMultipleParsedInstances(MailTypeRef, "secondListId", Array.of(id1, id2), undefined, fetchInstanceOpt), { times: 1 })
+		verify(entityRestClient.loadMultipleParsedInstances(MailTypeRef, "firstListId", Array.of(id1, id2), undefined, fetchInstanceOpt), { times: 1 })
+		verify(entityRestClient.loadMultipleParsedInstances(MailTypeRef, "secondListId", Array.of(id1, id2), undefined, fetchInstanceOpt), { times: 1 })
 	})
 
 	o("Do not prefetch element type", async () => {
@@ -133,11 +117,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 	// make sure instance that are deleted are not fetched otherwise whole request will fail with NotFound
 	o("When an instance is deleted at the end do not try to fetch it", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const updateTemplate: EntityUpdateData = {
 			typeRef: CalendarEventTypeRef,
 			operation: OperationType.CREATE,
@@ -170,11 +149,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 	})
 
 	o("Returns indexes of multiple batches for a single element with multiple updates", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const updateTemplate: EntityUpdateData = {
 			typeRef: CalendarEventTypeRef,
 			operation: OperationType.CREATE,
@@ -206,11 +180,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 	})
 
 	o("When a create event have a instance attached to it do not fetch it", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const firstUpdate = await entityUpdateToUpdateData(
 			typeModelResolver,
 			createTestEntity(EntityUpdateTypeRef, {
@@ -231,11 +200,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 	})
 
 	o("When a update event have a patchList attached to it do not fetch it", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const firstUpdate = await entityUpdateToUpdateData(
 			typeModelResolver,
 			createTestEntity(EntityUpdateTypeRef, {
@@ -255,69 +219,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		o(instancesToFetch).deepEquals(new Map([[id2, [1]]]))
 	})
 
-	o("first check typeref customHandler while checking for range", async () => {
-		const setEntryCacheHandler: CustomCacheHandler<MailSetEntry> = {
-			getElementIdsInCacheRange(storage, listId, elementIds) {
-				return Promise.resolve(elementIds) // everything is in cache
-			},
-		}
-		const calenderCacheHandler: CustomCacheHandler<CalendarEvent> = {
-			getElementIdsInCacheRange(storage, listId, elementIds) {
-				if (elementIds[0] != "cacheElementId") {
-					return Promise.resolve(elementIds)
-				}
-				return Promise.resolve([])
-			},
-		}
-
-		when(customCacheHandlerMock.get(matchers.anything())).thenDo((t: TypeRef<any>) => {
-			if (isSameTypeRef(t, MailSetEntryTypeRef)) return setEntryCacheHandler
-			if (isSameTypeRef(t, CalendarEventTypeRef)) return calenderCacheHandler
-			return null
-		})
-
-		const setEntryUpdate = await entityUpdateToUpdateData(
-			typeModelResolver,
-			createTestEntity(EntityUpdateTypeRef, {
-				operation: OperationType.UPDATE,
-				instanceListId: "listId",
-				instanceId: "elementId",
-				typeId: MailSetEntryTypeRef.typeId.toString(),
-				application: MailSetEntryTypeRef.app,
-			}),
-		)
-		const calendarCreate = await entityUpdateToUpdateData(
-			typeModelResolver,
-			createTestEntity(EntityUpdateTypeRef, {
-				operation: OperationType.CREATE,
-				instanceListId: "listId",
-				instanceId: "elementId",
-				typeId: CalendarEventTypeRef.typeId.toString(),
-				application: CalendarEventTypeRef.app,
-			}),
-		)
-		const calendarUpdate = Object.assign(structuredClone(calendarCreate), {
-			operation: OperationType.UPDATE,
-			instanceId: "cacheElementId",
-		})
-
-		const setEntriesTofetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(Array.of(setEntryUpdate))).get(
-			getTypeString(setEntryUpdate.typeRef),
-		)!
-		const calendarTofetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(Array.of(calendarCreate, calendarUpdate))).get(
-			getTypeString(calendarUpdate.typeRef),
-		)!
-
-		o(calendarTofetch.get("listId")).deepEquals(new Map([["cacheElementId", [1]]]))
-		o(setEntriesTofetch.get("listId")).deepEquals(new Map([["elementId", [0]]]))
-	})
-
 	o("should load mailDetails for create mail event", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const firstMail = createTestEntity(
 			MailTypeRef,
 			{ _id: ["firstMailListId", id1], mailDetails: ["archiveId", "firstBlob"] },
@@ -363,10 +265,10 @@ o.spec("EventInstancePrefetcherTest", function () {
 		})
 
 		when(
-			entityRestClientx.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", matchers.anything(), matchers.anything(), matchers.anything()),
+			entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", matchers.anything(), matchers.anything(), matchers.anything()),
 		).thenResolve([])
 		when(
-			entityRestClientx.loadMultipleParsedInstances(
+			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				firstUpdate.instanceListId,
 				[firstUpdate.instanceId, secondUpdate.instanceId],
@@ -376,7 +278,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		).thenResolve(Array.of(await toStorableInstance(firstMail), await toStorableInstance(secondMail)))
 		// even though thirdMail is also in the same list as fourthMail, we "simulate" some missing instances in server side. and return only one
 		when(
-			entityRestClientx.loadMultipleParsedInstances(
+			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				fourthUpdate.instanceListId,
 				[thirdUpdate.instanceId, fourthUpdate.instanceId],
@@ -389,60 +291,21 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		// Check if there are tests for the loop going correctly (for (const [listId, mails] of mailDetailsByList.entries()) {)
 		verify(
-			entityRestClientx.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["firstBlob", "secondBlob"], matchers.anything(), fetchBlobOpt),
+			entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["firstBlob", "secondBlob"], matchers.anything(), fetchBlobOpt),
 			{
 				times: 1,
 			},
 		)
-		verify(entityRestClientx.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["fourthBlob"], matchers.anything(), fetchBlobOpt), {
+		verify(entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["fourthBlob"], matchers.anything(), fetchBlobOpt), {
 			times: 1,
 		})
 	})
 
-	o("should not load mailDetails for update mail event when mail details is already present in cache", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
-		const firstMail = createTestEntity(
-			MailTypeRef,
-			{ _id: ["firstMailListId", id1], mailDetails: ["archiveId", "firstBlob"] },
-			{ populateAggregates: true },
-		)
-		const sampleBlob = createTestEntity(MailDetailsBlobTypeRef, {}, { populateAggregates: true })
-
-		const firstUpdate: EntityUpdateData = {
-			instanceId: elementIdPart(firstMail._id),
-			instanceListId: listIdPart(firstMail._id),
-			operation: OperationType.CREATE,
-			instance: null,
-			patches: null,
-			isPrefetched: false,
-			typeRef: MailTypeRef,
-		}
-
-		when(cacheStoragex.getParsed(MailDetailsBlobTypeRef, "archiveId", "firstBlob")).thenResolve(await toStorableInstance(sampleBlob))
-		when(
-			entityRestClientx.loadMultipleParsedInstances(MailTypeRef, firstUpdate.instanceListId, [firstUpdate.instanceId], undefined, fetchInstanceOpt),
-		).thenResolve(Array.of(await toStorableInstance(firstMail)))
-
-		await eventInstancePrefetcher.preloadEntities(Array.of(firstUpdate))
-
-		verify(entityRestClientx.loadMultiple(MailDetailsBlobTypeRef, matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
-			times: 0,
-		})
-		o(firstUpdate.isPrefetched).equals(true)
-	})
-
 	o("should ignore all error while fetching", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const firstMail = createTestEntity(MailTypeRef, { _id: ["firstMailListId", id1] })
 		const secondMail = createTestEntity(MailTypeRef, { _id: ["secondMailListId", id2] })
+		const thirdMail = createTestEntity(MailTypeRef, { _id: ["firstMailListId", id3] })
+		const fourthMail = createTestEntity(MailTypeRef, { _id: ["secondMailListId", id4] })
 
 		const firstUpdate: EntityUpdateData = {
 			instanceId: elementIdPart(firstMail._id),
@@ -457,12 +320,19 @@ o.spec("EventInstancePrefetcherTest", function () {
 			instanceListId: listIdPart(secondMail._id),
 			instanceId: elementIdPart(secondMail._id),
 		})
+		const thirdUpdate: EntityUpdateData = Object.assign(structuredClone(firstUpdate), {
+			instanceListId: listIdPart(thirdMail._id),
+			instanceId: elementIdPart(thirdMail._id),
+			operation: OperationType.UPDATE,
+		})
+		const fourthUpdate: EntityUpdateData = Object.assign(structuredClone(firstUpdate), {
+			instanceListId: listIdPart(fourthMail._id),
+			instanceId: elementIdPart(fourthMail._id),
+			operation: OperationType.UPDATE,
+		})
 
-		//when(entityRestClientx.loadMultipleParsedInstances(MailTypeRef, firstUpdate.instanceListId, [firstUpdate.instanceId, secondUpdate.instanceId], matchers.anything(), fetchInstanceOpt)).thenResolve(
-		//             Array.of(await toStorableInstance(firstMail), await toStorableInstance(secondMail))
-		//         )
 		when(
-			entityRestClientx.loadMultipleParsedInstances(
+			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				firstUpdate.instanceListId,
 				[firstUpdate.instanceId],
@@ -471,7 +341,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			),
 		).thenReturn(Promise.reject("first error"))
 		when(
-			entityRestClientx.loadMultipleParsedInstances(
+			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				secondUpdate.instanceListId,
 				[secondUpdate.instanceId],
@@ -480,25 +350,48 @@ o.spec("EventInstancePrefetcherTest", function () {
 			),
 		).thenReturn(Promise.reject("second error"))
 
-		await eventInstancePrefetcher.preloadEntities(Array.of(firstUpdate, secondUpdate))
+		when(
+			entityRestClient.loadMultipleParsedInstances(
+				MailTypeRef,
+				thirdUpdate.instanceListId,
+				[thirdUpdate.instanceId],
+				matchers.anything(),
+				fetchInstanceOpt,
+			),
+		).thenReturn(Promise.reject("third error"))
+
+		when(
+			entityRestClient.loadMultipleParsedInstances(
+				MailTypeRef,
+				fourthUpdate.instanceListId,
+				[fourthUpdate.instanceId],
+				matchers.anything(),
+				fetchInstanceOpt,
+			),
+		).thenReturn(Promise.reject("fourth error"))
+
+		await eventInstancePrefetcher.preloadEntities(Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate))
 
 		o(firstUpdate.isPrefetched).equals(false)
 		o(secondUpdate.isPrefetched).equals(false)
+		o(thirdUpdate.isPrefetched).equals(false)
+		o(fourthUpdate.isPrefetched).equals(false)
+
 		verify(
-			entityRestClientx.loadMultipleParsedInstances(
+			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				firstUpdate.instanceListId,
-				[firstUpdate.instanceId],
+				[firstUpdate.instanceId, thirdUpdate.instanceId],
 				matchers.anything(),
 				matchers.anything(),
 			),
 			{ times: 1 },
 		)
 		verify(
-			entityRestClientx.loadMultipleParsedInstances(
+			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				secondUpdate.instanceListId,
-				[secondUpdate.instanceId],
+				[secondUpdate.instanceId, fourthUpdate.instanceId],
 				matchers.anything(),
 				matchers.anything(),
 			),
@@ -507,13 +400,10 @@ o.spec("EventInstancePrefetcherTest", function () {
 	})
 
 	o("set preFetched flag to true for fetched instances", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const passMail = createTestEntity(MailTypeRef, { _id: ["firstMailListId", id1] }, { populateAggregates: true })
+		const secondPassMail = createTestEntity(MailTypeRef, { _id: ["firstMailListId", id3] }, { populateAggregates: true })
 		const failMail = createTestEntity(MailTypeRef, { _id: ["secondMailListId", id2] }, { populateAggregates: true })
+		const secondFailMail = createTestEntity(MailTypeRef, { _id: ["secondMailListId", id4] }, { populateAggregates: true })
 
 		const passingUpdate: EntityUpdateData = {
 			instanceId: elementIdPart(passMail._id),
@@ -525,30 +415,47 @@ o.spec("EventInstancePrefetcherTest", function () {
 			typeRef: MailTypeRef,
 		}
 
+		const secondPassingUpdate = Object.assign(structuredClone(passingUpdate), {
+			instanceListId: listIdPart(secondPassMail._id),
+			instanceId: elementIdPart(secondPassMail._id),
+		})
 		const failingUpdate = Object.assign(structuredClone(passingUpdate), {
 			instanceListId: listIdPart(failMail._id),
 			instanceId: elementIdPart(failMail._id),
 		})
+		const secondFailingUpdate = Object.assign(structuredClone(passingUpdate), {
+			instanceListId: listIdPart(secondFailMail._id),
+			instanceId: elementIdPart(secondFailMail._id),
+		})
 
 		when(
-			entityRestClientx.loadMultipleParsedInstances(MailTypeRef, passingUpdate.instanceListId, [passingUpdate.instanceId], undefined, fetchInstanceOpt),
-		).thenResolve(Array.of(await toStorableInstance(passMail)))
+			entityRestClient.loadMultipleParsedInstances(
+				MailTypeRef,
+				passingUpdate.instanceListId,
+				[passingUpdate.instanceId, secondPassingUpdate.instanceId],
+				undefined,
+				fetchInstanceOpt,
+			),
+		).thenResolve(Array.of(await toStorableInstance(passMail), await toStorableInstance(secondPassMail)))
 		when(
-			entityRestClientx.loadMultipleParsedInstances(MailTypeRef, failingUpdate.instanceListId, [failingUpdate.instanceId], undefined, fetchInstanceOpt),
+			entityRestClient.loadMultipleParsedInstances(
+				MailTypeRef,
+				failingUpdate.instanceListId,
+				[failingUpdate.instanceId, secondFailingUpdate.instanceId],
+				undefined,
+				fetchInstanceOpt,
+			),
 		).thenResolve([])
 
-		await eventInstancePrefetcher.preloadEntities(Array.of(passingUpdate, failingUpdate))
+		await eventInstancePrefetcher.preloadEntities(Array.of(passingUpdate, failingUpdate, secondPassingUpdate, secondFailingUpdate))
 
 		o(passingUpdate.isPrefetched).equals(true)
+		o(secondPassingUpdate.isPrefetched).equals(true)
 		o(failingUpdate.isPrefetched).equals(false)
+		o(secondFailingUpdate.isPrefetched).equals(false)
 	})
 
 	o("set preFetched flag to false for missing instances", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const firstMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id1] }, { populateAggregates: true })
 		const secondMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id2] }, { populateAggregates: true })
 		const thirdMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id3] }, { populateAggregates: true })
@@ -567,7 +474,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		// only return first & third mail
 		when(
-			entityRestClientx.loadMultipleParsedInstances(
+			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				"mailListId",
 				[firstMailUpdate.instanceId, secondMailUpdate.instanceId, thirdMailUpdate.instanceId],
@@ -583,17 +490,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 	})
 
 	o("Multiple events of same instance are marked as prefetched", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-		const setEntryCacheHandler: CustomCacheHandler<MailSetEntry> = {
-			getElementIdsInCacheRange(storage, listId, elementIds) {
-				return Promise.resolve(elementIds) // everything is in cache
-			},
-		}
-		when(customCacheHandlerMock.get(matchers.anything())).thenDo((t: TypeRef<any>) => (isSameTypeRef(t, MailSetEntryTypeRef) ? setEntryCacheHandler : null))
-
 		const createEvent: EntityUpdateData = {
 			typeRef: MailTypeRef,
 			instanceListId: "mailListId",
@@ -603,7 +499,14 @@ o.spec("EventInstancePrefetcherTest", function () {
 			instance: null,
 			isPrefetched: false,
 		}
+
 		const updateEvent: EntityUpdateData = Object.assign(structuredClone(createEvent), { operation: OperationType.UPDATE })
+		const createSecondEvent: EntityUpdateData = Object.assign(structuredClone(createEvent), {
+			instanceId: id2,
+		})
+		const updateSecondEvent: EntityUpdateData = Object.assign(structuredClone(createSecondEvent), {
+			operation: OperationType.UPDATE,
+		})
 
 		const mail = createTestEntity(
 			MailTypeRef,
@@ -614,29 +517,48 @@ o.spec("EventInstancePrefetcherTest", function () {
 			{ populateAggregates: true },
 		)
 
+		const secondMail = createTestEntity(
+			MailTypeRef,
+			{
+				_id: ["mailListId", id2],
+				mailDetails: ["archiveId", "firstBlob"],
+			},
+			{ populateAggregates: true },
+		)
+
 		when(
-			entityRestClientx.loadMultipleParsedInstances(MailTypeRef, createEvent.instanceListId, [createEvent.instanceId], undefined, fetchInstanceOpt),
-		).thenResolve(Array.of(await toStorableInstance(mail)))
+			entityRestClient.loadMultipleParsedInstances(
+				MailTypeRef,
+				createEvent.instanceListId,
+				[createEvent.instanceId, createSecondEvent.instanceId],
+				undefined,
+				fetchInstanceOpt,
+			),
+		).thenResolve(Array.of(await toStorableInstance(mail), await toStorableInstance(secondMail)))
 		when(
-			entityRestClientx.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", matchers.anything(), matchers.anything(), matchers.anything()),
+			entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", matchers.anything(), matchers.anything(), matchers.anything()),
 		).thenResolve([])
 
-		await eventInstancePrefetcher.preloadEntities(Array.of(createEvent, updateEvent))
+		await eventInstancePrefetcher.preloadEntities(Array.of(createEvent, updateEvent, createSecondEvent, updateSecondEvent))
 		o(createEvent.isPrefetched).equals(true)
 		o(updateEvent.isPrefetched).equals(true)
 	})
 
 	o("prefetched flag is not set to true if mailDetails blob fails to download", async () => {
-		when(cacheStoragex.getRangeForList(matchers.anything(), matchers.anything())).thenResolve({
-			lower: GENERATED_MIN_ID,
-			upper: GENERATED_MAX_ID,
-		})
-
 		const mail = createTestEntity(
 			MailTypeRef,
 			{
 				_id: ["firstMailListId", id1],
 				mailDetails: ["archiveId", "firstBlob"],
+			},
+			{ populateAggregates: true },
+		)
+
+		const secondMail = createTestEntity(
+			MailTypeRef,
+			{
+				_id: ["firstMailListId", id2],
+				mailDetails: ["archiveId", "secondBlob"],
 			},
 			{ populateAggregates: true },
 		)
@@ -651,28 +573,48 @@ o.spec("EventInstancePrefetcherTest", function () {
 			typeRef: MailTypeRef,
 		}
 
+		const secondMailUpdate: EntityUpdateData = Object.assign(structuredClone(mailUpdate), {
+			instanceId: id2,
+		})
+
 		when(
-			entityRestClientx.loadMultipleParsedInstances(MailTypeRef, mailUpdate.instanceListId, [mailUpdate.instanceId], undefined, fetchInstanceOpt),
-		).thenResolve(Array.of(await toStorableInstance(mail)))
-		when(entityRestClientx.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["firstBlob"], matchers.anything(), fetchBlobOpt)).thenReturn(
+			entityRestClient.loadMultipleParsedInstances(
+				MailTypeRef,
+				mailUpdate.instanceListId,
+				[mailUpdate.instanceId, secondMailUpdate.instanceId],
+				undefined,
+				fetchInstanceOpt,
+			),
+		).thenResolve(Array.of(await toStorableInstance(mail), await toStorableInstance(secondMail)))
+		when(entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["firstBlob"], matchers.anything(), fetchBlobOpt)).thenReturn(
 			Promise.reject("second error"),
 		)
 
-		await eventInstancePrefetcher.preloadEntities(Array.of(mailUpdate))
+		await eventInstancePrefetcher.preloadEntities(Array.of(mailUpdate, secondMailUpdate))
 
 		o(mailUpdate.isPrefetched).equals(false)
+		o(secondMailUpdate.isPrefetched).equals(false)
 		verify(
-			entityRestClientx.loadMultipleParsedInstances(
+			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				mailUpdate.instanceListId,
-				[mailUpdate.instanceId],
+				[mailUpdate.instanceId, secondMailUpdate.instanceId],
 				matchers.anything(),
 				matchers.anything(),
 			),
 			{ times: 1 },
 		)
-		verify(entityRestClientx.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["firstBlob"], matchers.anything(), matchers.anything()), {
-			times: 1,
-		})
+		verify(
+			entityRestClient.loadMultipleParsedInstances(
+				MailDetailsBlobTypeRef,
+				"archiveId",
+				["firstBlob", "secondBlob"],
+				matchers.anything(),
+				matchers.anything(),
+			),
+			{
+				times: 1,
+			},
+		)
 	})
 })
