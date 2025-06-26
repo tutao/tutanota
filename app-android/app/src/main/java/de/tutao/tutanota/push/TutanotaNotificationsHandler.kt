@@ -258,45 +258,52 @@ class TutanotaNotificationsHandler(
 
 		val mailId = notificationInfo.mailId?.toSdkIdTupleGenerated()
 			?: throw IllegalArgumentException("Missing mailId for notification ${sseInfo.pushIdentifier}")
+		try {
+			val mail = loggedInSdk.mailFacade().loadEmailByIdEncrypted(mailId)
 
-		val mail = loggedInSdk.mailFacade().loadEmailByIdEncrypted(mailId)
-		if (unencryptedCredentials.databaseKey != null) {
-			Log.d(TAG, "Inserting mail $mailId into offline db")
-			val serializedMail = sdk.serializeMail(mail)
-			val sqlCipherFacade = this.getSqlCipherFacade()
-			try {
-				sqlCipherFacade.openDb(
-					unencryptedCredentials.credentialInfo.userId,
-					unencryptedCredentials.databaseKey!!
-				)
-				// 97 is the Mail typeId
-				sqlCipherFacade.run(
-					"INSERT OR IGNORE INTO list_entities VALUES (?, ?, ?, ?, ?)", listOf(
-						"tutanota/97".sqlTagged(),
-						mailId.listId.sqlTagged(),
-						mailId.elementId.sqlTagged(),
-						(mail.ownerGroup ?: "").sqlTagged(),
-						serializedMail.wrap().sqlTagged(),
+
+			if (unencryptedCredentials.databaseKey != null) {
+				Log.d(TAG, "Inserting mail $mailId into offline db")
+				val serializedMail = sdk.serializeMail(mail)
+				val sqlCipherFacade = this.getSqlCipherFacade()
+				try {
+					sqlCipherFacade.openDb(
+						unencryptedCredentials.credentialInfo.userId,
+						unencryptedCredentials.databaseKey!!
 					)
-				)
-			} catch (e: SQLException) {
-				Log.w(TAG, "Failed to insert mail into offline db: $mailId", e)
-			} finally {
-				sqlCipherFacade.closeDb()
+					// 97 is the Mail typeId
+					sqlCipherFacade.run(
+						"INSERT OR IGNORE INTO list_entities VALUES (?, ?, ?, ?, ?)", listOf(
+							"tutanota/97".sqlTagged(),
+							mailId.listId.sqlTagged(),
+							mailId.elementId.sqlTagged(),
+							(mail.ownerGroup ?: "").sqlTagged(),
+							serializedMail.wrap().sqlTagged(),
+						)
+					)
+				} catch (e: SQLException) {
+					Log.w(TAG, "Failed to insert mail into offline db: $mailId", e)
+				} finally {
+					sqlCipherFacade.closeDb()
+				}
 			}
+
+
+			val senderAddress = mail.sender.address
+			val senderName = mail.sender.name
+			val sender = SenderRecipient(senderAddress, senderName, null)
+
+			val recipientMailAddress = mail.firstRecipient ?: throw Exception("Missing firstRecipient from ${mail.id}")
+			val recipientAddress = recipientMailAddress.address
+			val recipientName = recipientMailAddress.name
+
+			val recipient = SenderRecipient(recipientAddress, recipientName, null)
+
+			return MailMetadata(recipient, sender, mail.subject)
+		} catch (e: Throwable) {
+			Log.d(TAG, ">>>>>>>>>>>>>>>>>>>>>>", e)
 		}
-
-		val senderAddress = mail.sender.address
-		val senderName = mail.sender.name
-		val sender = SenderRecipient(senderAddress, senderName, null)
-
-		val recipientMailAddress = mail.firstRecipient ?: throw Exception("Missing firstRecipient from ${mail.id}")
-		val recipientAddress = recipientMailAddress.address
-		val recipientName = recipientMailAddress.name
-
-		val recipient = SenderRecipient(recipientAddress, recipientName, null)
-
-		return MailMetadata(recipient, sender, mail.subject)
+		return null
 	}
 
 	/**

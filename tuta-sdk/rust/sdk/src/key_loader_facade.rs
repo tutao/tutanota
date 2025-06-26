@@ -227,7 +227,9 @@ impl KeyLoaderFacade {
 		key_pair_group_id: &GeneratedId,
 		requested_version: u64,
 	) -> Result<AsymmetricKeyPair, KeyLoadError> {
+		log::info!(">>>>>>> before entity_client.load");
 		let group: Group = self.entity_client.load(key_pair_group_id).await?;
+		log::info!(">>>>>>> before get_current_sym_group_key");
 		let current_group_key = self
 			.get_current_sym_group_key(group._id.as_ref().expect("no id on group!"))
 			.await?;
@@ -240,6 +242,9 @@ impl KeyLoaderFacade {
 				reason: "not yet implemented".to_string(),
 			});
 		}
+
+		log::info!(">>>>>>> before load_key_pair_impl");
+
 		self.load_key_pair_impl(group, requested_version, current_group_key)
 			.await
 	}

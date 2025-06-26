@@ -142,10 +142,14 @@ impl CryptoEntityClient {
 		id: &ID,
 	) -> Result<T, ApiCallError> {
 		let type_ref = T::type_ref();
+		log::info!(">>>>>>>>>>> before resolve_server_type_ref");
 		let type_model = self.entity_client.resolve_server_type_ref(&type_ref)?;
+		log::info!(">>>>>>>>>>> before self.entity_client.load");
 		let parsed_entity = self.entity_client.load(&type_ref, id).await?;
 
 		if type_model.marked_encrypted() {
+			log::info!(">>>>>>>>>>> before process_encrypted_entity");
+
 			let typed_entity = self
 				.process_encrypted_entity(&type_model, parsed_entity)
 				.await?;

@@ -4,6 +4,7 @@ use serde::de::{
 };
 use serde::ser::{Error, Impossible, SerializeMap, SerializeSeq, SerializeStruct};
 use serde::{de, ser, Deserializer, Serialize, Serializer};
+use std::backtrace::Backtrace;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
@@ -41,7 +42,10 @@ impl InstanceMapper {
 			type_model,
 			self.type_model_provider.as_ref(),
 		);
-		E::deserialize(de)
+		log::info!(">>>>>>>>>>>>>> before dictionary des");
+		let r = E::deserialize(de);
+		log::info!(">>>>>>>>>>>>>> after dictionary des");
+		r
 	}
 
 	pub fn serialize_entity<E: Entity + Serialize>(
@@ -166,6 +170,7 @@ where
 	where
 		V: Visitor<'de>,
 	{
+		log::info!("Custom backtrace: {}", Backtrace::capture());
 		let type_name = &self.type_model.name;
 		let key = self.value.map(|(k, _)| k).unwrap_or("NO KEY".to_string());
 		Err(de::Error::custom(format_args!(
@@ -312,6 +317,8 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 	where
 		V: Visitor<'de>,
 	{
+		log::info!("Custom backtrace: {}", Backtrace::capture());
+
 		let type_name = self.value.type_variant_name();
 		Err(de::Error::custom(format_args!(
 			"deserialize_any is not supported! key: `{:?}`, value type: `{type_name}`",
@@ -1480,6 +1487,7 @@ impl Serializer for MapKeySerializer {
 mod tests {
 	use super::*;
 	use crate::bindings::file_client::MockFileClient;
+	use crate::bindings::native_file_client::NativeFileClient;
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::entities::entity_facade::{
 		FORMAT_FIELD, ID_FIELD, OWNER_GROUP_FIELD, PERMISSIONS_FIELD,
@@ -1498,16 +1506,29 @@ mod tests {
 		create_test_entity, generate_random_group, mock_type_model_provider, HelloUnEncInput,
 	};
 	use crate::GeneratedId;
+	use std::path::PathBuf;
 	use std::sync::Arc;
 	use ElementValue::Array;
 
-	#[test]
-	fn test_de_group() {
-		let type_model_provider = Arc::new(TypeModelProvider::new_test(
+	#[tokio::test]
+	async fn test_de_group() {
+		// let type_model_provider = Arc::new(TypeModelProvider::new_test(
+		// 	Arc::new(MockRestClient::new()),
+		// 	Arc::new(MockFileClient::new()),
+		// 	"localhost:9000".to_string(),
+		// ));
+		let file_client = NativeFileClient::try_new(PathBuf::from(
+			"/home/map/dev/repositories/tuta/clients/tutanota/tuta-sdk/rust/sdk/test_data",
+		))
+		.unwrap();
+		let type_model_provider = Arc::new(TypeModelProvider::new(
 			Arc::new(MockRestClient::new()),
-			Arc::new(MockFileClient::new()),
+			Arc::new(file_client),
 			"localhost:9000".to_string(),
 		));
+		type_model_provider
+			.initialize_server_model_from_file()
+			.await;
 		let json = include_str!("../test_data/group_response.json");
 		let parsed_entity = get_parsed_entity::<Group>(json);
 		let mapper = InstanceMapper::new(type_model_provider);

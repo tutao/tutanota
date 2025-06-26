@@ -67,9 +67,12 @@ impl EntityClient {
 			.prepare_and_fire(type_ref, url)
 			.await?
 			.expect("no body");
+		log::info!(">>>>>>>>>>>>>>>>>> before serde");
 		let response_entity =
 			serde_json::from_slice::<RawEntity>(response_bytes.as_slice()).unwrap();
+		log::info!(">>>>>>>>>>>>>>>>>> after serde");
 		let parsed_entity = self.json_serializer.parse(type_ref, response_entity)?;
+		log::info!(">>>>>>>>>>>>>>>>>> after serializer");
 		Ok(parsed_entity)
 	}
 

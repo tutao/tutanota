@@ -208,10 +208,13 @@ impl AsymmetricCryptoFacade {
 		crypto_protocol_version: &CryptoProtocolVersion,
 		pub_enc_sym_key: &[u8],
 	) -> Result<DecapsulatedAesKey, AsymmetricCryptoError> {
+		log::info!(">>>>>>>>> before load_key_pair");
 		let key_pair = self
 			.key_loader_facade
 			.load_key_pair(recipient_key_pair_group_id, recipient_key_version)
 			.await?;
+		log::info!(">>>>>>>>> before decrypt_sym_key_with_key_pair");
+
 		Self::decrypt_sym_key_with_key_pair(key_pair, crypto_protocol_version, pub_enc_sym_key)
 	}
 

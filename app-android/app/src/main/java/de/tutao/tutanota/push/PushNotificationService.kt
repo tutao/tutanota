@@ -67,7 +67,6 @@ class PushNotificationService : LifecycleJobService() {
 			field = value
 		}
 	private val finishJobThread = LooperThread {}
-
 	override fun onCreate() {
 		super.onCreate()
 		Log.d(TAG, "onCreate")

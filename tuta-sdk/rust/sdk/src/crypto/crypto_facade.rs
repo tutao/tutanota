@@ -90,6 +90,7 @@ impl CryptoFacade {
 		if !model.marked_encrypted() {
 			return Ok(None);
 		}
+		log::info!(">>>>>>>>>>>> before resolve_bucket_keu");
 
 		// Derive the session key from the bucket key
 		if let Ok(bucket_key_attribute_id) =
@@ -110,7 +111,7 @@ impl CryptoFacade {
 				}
 			}
 		}
-
+		log::info!(">>>>>> L113");
 		// Extract the session key data from the owner group of the entity
 		let EntityOwnerKeyData {
 			owner_enc_session_key: Some(owner_enc_session_key),
@@ -123,17 +124,21 @@ impl CryptoFacade {
 			});
 		};
 
+		log::info!(">>>>>> L126");
 		// The user might not be member of the owner group of this entity
 		// example: GroupInfo entity from another customer (Shared Calendars)
 		let has_group = self.user_facade.has_group(owner_group);
 
+		log::info!(">>>>>> L30");
 		if has_group {
 			let group_key: GenericAesKey = self
 				.key_loader_facade
 				.load_sym_group_key(owner_group, owner_key_version, None)
 				.await?;
 
+			log::info!(">>>>>> L138");
 			let session_key = group_key.decrypt_aes_key(owner_enc_session_key)?;
+			log::info!(">>>>>> L140");
 			// TODO: performance: should we reuse owner_enc_session_key?
 			Ok(Some(ResolvedSessionKey {
 				session_key,
@@ -142,6 +147,7 @@ impl CryptoFacade {
 				sender_identity_pub_key: None,
 			}))
 		} else {
+			log::info!(">>>>>> L148");
 			let mut permission_id: Option<GeneratedId> = None;
 
 			if let Ok(permissions_attribute_id) =
@@ -290,6 +296,8 @@ impl CryptoFacade {
 		} = if let (Some(key_group), Some(pub_enc_bucket_key)) =
 			(&bucket_key.keyGroup, &bucket_key.pubEncBucketKey)
 		{
+			log::info!(">>>>>>>>>>>>>>> before load_key_pair_and_decrypt_sym_key");
+
 			self.asymmetric_crypto_facade
 				.load_key_pair_and_decrypt_sym_key(
 					key_group,
@@ -311,6 +319,7 @@ impl CryptoFacade {
 				),
 			});
 		};
+		log::info!(">>>>>>>>>>>>>>> after load_key_pair_and_decrypt_sym_key");
 
 		let mut session_key_for_this_instance = None;
 

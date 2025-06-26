@@ -33,18 +33,35 @@ impl TypedEntityClient {
 		&self,
 		id: &Id,
 	) -> Result<T, ApiCallError> {
+		log::info!(
+			">>>>>>>>>>>> before resolve_server_type_ref {}",
+			T::type_ref()
+		);
 		let type_model = self.entity_client.resolve_server_type_ref(&T::type_ref())?;
+		log::info!(">>>>>>>>>>>> after resolve_server_type_ref");
+
 		Self::check_if_encrypted(&type_model)?;
+		log::info!(">>>>>>>>>>>> before entity_client.load: {}", T::type_ref());
+
 		let parsed_entity = self.entity_client.load::<Id>(&T::type_ref(), id).await?;
+		log::info!(
+			">>>>>>>>>>>> after entity_client.load version {} / pe {:?}",
+			type_model.version,
+			parsed_entity
+		);
+
 		let typed_entity = self
 			.instance_mapper
 			.parse_entity::<T>(parsed_entity)
 			.map_err(|e| {
+				log::info!(">>>>>>>>>>>>>>>> in map_err {e}");
 				let message = format!("Failed to parse entity into proper types: {e}");
 				ApiCallError::InternalSdkError {
 					error_message: message,
 				}
 			})?;
+		log::info!(">>>>>>>>>>>> after typed_entity");
+
 		Ok(typed_entity)
 	}
 
