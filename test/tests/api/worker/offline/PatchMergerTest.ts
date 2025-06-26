@@ -724,7 +724,7 @@ o.spec("PatchMergerTest", () => {
 					attributePath: setsAttributeId.toString(),
 					value: JSON.stringify([
 						["listId", "elementId"],
-						["listId", "elementId2"],
+						["listId", "elementId"],
 					]),
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
@@ -732,10 +732,7 @@ o.spec("PatchMergerTest", () => {
 
 			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
 			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
-			o(testMailPatched.sets).deepEquals([
-				["listId", "elementId"],
-				["listId", "elementId2"],
-			])
+			o(testMailPatched.sets).deepEquals([["listId", "elementId"]])
 		})
 
 		o.test("apply_additem_on_Any_aggregation", async () => {
@@ -922,7 +919,7 @@ o.spec("PatchMergerTest", () => {
 				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
-			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(2)
+			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(2) // only second toRecipient is added
 		})
 
 		o.test("apply_additem_on_Any_aggregation_multiple_duplicates_ignored", async () => {
@@ -968,14 +965,15 @@ o.spec("PatchMergerTest", () => {
 				name: "first name",
 				address: "address@tutao.de",
 			})
+
 			const secondToRecipientToAdd = createTestEntity<MailAddress>(MailAddressTypeRef, {
 				_id: "existingToRecipientId",
 				name: "first name",
 				address: "address@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
 				createPatch({
@@ -992,7 +990,7 @@ o.spec("PatchMergerTest", () => {
 				MailDetailsBlobTypeRef,
 				testMailDetailsBlobPatchedParsed,
 			)
-			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(1)
+			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(1) // nothing is added as both entities are identical to existing toRecipient
 		})
 
 		o.test("apply_additem_on_Any_aggregation_multiple_existing_but_DIFFERENT_attribute_values_throws", async () => {

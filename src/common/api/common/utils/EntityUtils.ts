@@ -614,7 +614,18 @@ export function timestampToGeneratedId(timestamp: number, serverBytes: number = 
 
 export function distinctItems(array: Array<any>) {
 	return array.reduce((acc: Array<any>, current) => {
-		if (!acc.some((item) => deepEqual(item, current))) {
+		if (
+			!acc.some((item) => {
+				// fixme find a nicer way to do this in case of entity comparison maybe?
+				const itemWithoutFinalIvs = structuredClone(item)
+				const currentWithoutFinalIvs = structuredClone(current)
+				if (item._finalIvs !== undefined) {
+					itemWithoutFinalIvs._finalIvs = {}
+					currentWithoutFinalIvs._finalIvs = {}
+				}
+				return deepEqual(itemWithoutFinalIvs, currentWithoutFinalIvs)
+			})
+		) {
 			acc.push(current)
 		}
 		return acc

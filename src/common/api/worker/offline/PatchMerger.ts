@@ -147,18 +147,20 @@ export class PatchMerger {
 					const aggregationsWithCommonIdsButDifferentValues = associationArray.filter((aggregate: ParsedInstance) =>
 						valuesToAdd.some((item: ParsedInstance) => {
 							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
+							const itemWithoutFinalIvs = structuredClone(item)
+							const aggregateWithoutFinalIvs = structuredClone(aggregate)
+							itemWithoutFinalIvs._finalIvs = {}
+							aggregateWithoutFinalIvs._finalIvs = {}
 							return (
-								aggregate[aggregateIdAttributeId] === item[aggregateIdAttributeId] &&
-								// !deepEqual(removeFinalIvs(item), removeFinalIvs(aggregate)) // fixme removeFinalIvs cannot be used as it is in TestUtils, how to compare two aggregated entities with different finalIvs?
-								!deepEqual(item, aggregate)
+								aggregate[aggregateIdAttributeId] === item[aggregateIdAttributeId] && !deepEqual(itemWithoutFinalIvs, aggregateWithoutFinalIvs)
 							)
 						}),
 					)
 					if (!isEmpty(aggregationsWithCommonIdsButDifferentValues)) {
 						throw new PatchOperationError(
-							`PatchMerger attempted to add an existing aggregate with different values. Attempted items: ${JSON.stringify(
-								aggregationsWithCommonIdsButDifferentValues,
-							)}`,
+							`PatchMerger attempted to add an existing aggregate with different values.  
+							existing items: ${JSON.stringify(associationArray)}, 
+							values attempted to be added: ${JSON.stringify(valuesToAdd)}`,
 						)
 					}
 				}
