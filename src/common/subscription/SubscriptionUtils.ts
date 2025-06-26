@@ -11,6 +11,7 @@ import {
 	PaymentMethodType,
 	PlanType,
 	PlanTypeToName,
+	SubscriptionApp,
 } from "../api/common/TutanotaConstants"
 import type { AccountingInfo, Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
 import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
@@ -23,6 +24,7 @@ import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedip
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "./FeatureListProvider.js"
 import { isIOSApp } from "../api/common/Env.js"
+import { client } from "../misc/ClientDetector"
 
 export const enum UpgradeType {
 	/**
@@ -152,10 +154,12 @@ export function getPreconditionFailedPaymentMsg(data: string | null): Translatio
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(async () => {
 		const clientType = getClientType()
+		const subscriptionApp = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 		const result = await locator.serviceExecutor.get(
 			PaymentDataService,
 			createPaymentDataServiceGetData({
 				clientType,
+				subscriptionApp,
 			}),
 		)
 		return result.loginUrl

@@ -10,6 +10,7 @@ import {
 	AccountType,
 	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
 	DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN,
+	SubscriptionApp,
 	TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
 } from "../api/common/TutanotaConstants"
 
@@ -30,7 +31,6 @@ import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
-import { SubscriptionApp } from "./SubscriptionViewer"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */

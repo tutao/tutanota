@@ -16,6 +16,7 @@ import {
 	PaymentMethodType,
 	PlanType,
 	PlanTypeToName,
+	SubscriptionApp,
 	UnsubscribeFailureReason,
 } from "../api/common/TutanotaConstants"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
@@ -43,7 +44,6 @@ import { appStorePlanName, hasRunningAppStoreSubscription } from "./Subscription
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { mailLocator } from "../../mail-app/mailLocator"
 import { client } from "../misc/ClientDetector.js"
-import { SubscriptionApp } from "./SubscriptionViewer.js"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.

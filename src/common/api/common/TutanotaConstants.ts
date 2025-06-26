@@ -1324,3 +1324,11 @@ export const TUTA_CALENDAR_APP_STORE_URL = "https://apps.apple.com/app/tuta-cale
 export function getCurrentDate(fallback = new Date()) {
 	return Const.CURRENT_DATE ?? fallback
 }
+
+/*
+ * Identifies from which app the user subscribed from
+ */
+export enum SubscriptionApp {
+	Mail = "0",
+	Calendar = "1",
+}

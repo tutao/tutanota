@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, PlanTypeToName } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, SubscriptionApp } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -21,9 +21,7 @@ import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePay
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../api/common/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
-import { SubscriptionApp } from "./SubscriptionViewer.js"
 import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
 
@@ -213,7 +211,16 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private buildPriceLabel(isYearly: boolean, { data: { nextYearPrice, planPrices } }: WizardPageAttrs<UpgradeSubscriptionData>): MaybeTranslation {
 		if (planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly) {
-			return lang.getTranslation("priceFrom_label", { "{date}": formatDate(DateTime.now().plus({ month: 1, day: 1 }).toJSDate()) })
+			return lang.getTranslation("priceFrom_label", {
+				"{date}": formatDate(
+					DateTime.now()
+						.plus({
+							month: 1,
+							day: 1,
+						})
+						.toJSDate(),
+				),
+			})
 		}
 
 		if (isYearly && nextYearPrice) {
