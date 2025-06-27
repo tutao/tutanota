@@ -82,7 +82,7 @@ o.spec("TutaNotificationHandler", () => {
 				userId: "user1",
 			})
 
-			await handler.onMailNotification(setupSseInfo(), notificationInfo)
+			await handler.onMailNotification(setupSseInfo(), [notificationInfo])
 
 			verify(
 				notifier.submitGroupedNotification("translated:pushNewMail_msg", notificationInfo.mailAddress, "mailListId,mailElementId", matchers.anything()),
@@ -110,7 +110,7 @@ o.spec("TutaNotificationHandler", () => {
 				userId: "user1",
 			})
 
-			await handler.onMailNotification(setupSseInfo(), notificationInfo)
+			await handler.onMailNotification(setupSseInfo(), [notificationInfo])
 
 			verify(notifier.submitGroupedNotification(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
@@ -131,7 +131,7 @@ o.spec("TutaNotificationHandler", () => {
 				userId: "user1",
 			})
 
-			await handler.onMailNotification(setupSseInfo(), notificationInfo)
+			await handler.onMailNotification(setupSseInfo(), [notificationInfo])
 
 			const listenerCaptor = matchers.captor()
 			verify(
@@ -197,17 +197,17 @@ o.spec("TutaNotificationHandler", () => {
 
 			const requestDefer = mockFetchRequest(
 				fetch,
-				"http://something.com/rest/tutanota/mail/mailListId/mailElementId",
+				"http://something.com/rest/tutanota/mail/mailListId?ids=mailElementId",
 				{
 					v: tutanotaModelInfo.version.toString(),
 					cv: appVersion,
 					accessToken: "accessToken",
 				},
 				200,
-				mailLiteral,
+				[mailLiteral],
 			)
 
-			await handler.onMailNotification(sseInfo, notificationInfo)
+			await handler.onMailNotification(sseInfo, [notificationInfo])
 
 			await requestDefer
 

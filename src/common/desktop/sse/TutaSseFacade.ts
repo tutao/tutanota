@@ -136,10 +136,12 @@ export class TutaSseFacade implements SseEventHandler {
 		await this.sseStorage.recordMissedNotificationCheckTime()
 		const sseInfo = this.currentSseInfo
 		if (sseInfo == null) return
-		for (const notificationInfoUntyped of encryptedMissedNotification.notificationInfos) {
-			const notificationInfo = await this.nativeInstancePipeline.decryptAndMap(NotificationInfoTypeRef, notificationInfoUntyped, null)
-			await this.notificationHandler.onMailNotification(sseInfo, notificationInfo)
-		}
+		const notificationInfos = await Promise.all(
+			encryptedMissedNotification.notificationInfos.map(
+				async (notificationInfoUntyped) => await this.nativeInstancePipeline.decryptAndMap(NotificationInfoTypeRef, notificationInfoUntyped, null),
+			),
+		)
+		await this.notificationHandler.onMailNotification(sseInfo, notificationInfos)
 		await this.handleAlarmNotification(encryptedMissedNotification)
 	}
 
@@ -187,7 +189,7 @@ export class TutaSseFacade implements SseEventHandler {
 		const sseInfo = assertNotNull(this.currentSseInfo)
 		const url = this.makeMissedNotificationUrl(sseInfo)
 
-		log.debug("downloading missed notification")
+		log.debug("downloading missed notification", url)
 		const headers: Record<string, string> = {
 			userIds: sseInfo.userIds[0],
 			v: typeModels[MissedNotificationTypeRef.typeId].version,

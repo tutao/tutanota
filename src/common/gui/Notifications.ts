@@ -9,7 +9,7 @@ export const enum NotificationType {
 
 export class Notifications {
 	showNotification(type: NotificationType, title: string, options?: NotificationOptions, onclick: Notification["onclick"] = noOp): Notification | null {
-		if (!isApp() && typeof window.Notification !== "undefined" && window.Notification.permission === "granted") {
+		if (!isApp() && !isDesktop() && typeof window.Notification !== "undefined" && window.Notification.permission === "granted") {
 			try {
 				const actualOptions: NotificationOptions = Object.assign(
 					{},
