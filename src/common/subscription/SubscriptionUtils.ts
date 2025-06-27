@@ -395,3 +395,7 @@ export function getFeaturePlaceholderReplacement(
 		}
 	}
 }
+
+export function getCurrentPaymentInterval(accountingInfo: AccountingInfo | null): PaymentInterval | undefined {
+	return accountingInfo ? (parseInt(accountingInfo.paymentInterval) as PaymentInterval) : undefined
+}

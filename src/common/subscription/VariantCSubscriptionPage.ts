@@ -5,7 +5,7 @@ import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import { hasAppleIntroOffer, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
+import { getCurrentPaymentInterval, hasAppleIntroOffer, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
@@ -142,6 +142,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				availablePlans,
 				isApplePrice,
 				currentPlan: data.currentPlan ?? undefined,
+				currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 				allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
 				showMultiUser: false,
 			}),

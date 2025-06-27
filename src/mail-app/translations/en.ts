@@ -2042,7 +2042,5 @@ export default {
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"pricing.goEuropeanHeadline_msg": "Go European: One-time offer, save {amount} now!",
-		"pricing.goEuropeanHeadlineIos_msg": "Go European: One-time offer, save now!"
 	}
 }

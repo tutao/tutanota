@@ -25,6 +25,7 @@ type PlanSelectorAttr = {
 	availablePlans: AvailablePlanType[]
 	isApplePrice: boolean
 	currentPlan?: PlanType
+	currentPaymentInterval?: PaymentInterval
 	allowSwitchingPaymentInterval: boolean
 	showMultiUser: boolean
 }
@@ -87,14 +88,12 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			hasCampaign,
 			isApplePrice,
 			currentPlan,
+			currentPaymentInterval,
 			allowSwitchingPaymentInterval,
 			showMultiUser,
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
-		console.log("currentPlan", currentPlan)
-
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
-		const isPaidPlanSelected = this.selectedPlan() === PlanType.Revolutionary || this.selectedPlan() === PlanType.Legend
 		const hidePaidPlans = availablePlans.includes(PlanType.Free) && availablePlans.length === 1
 
 		const renderFootnoteElement = (): Children => {
@@ -159,7 +158,14 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				m(`div.right.full-width${isYearly ? ".font-weight-600" : ""}`, lang.getTranslationText("pricing.yearly_label")),
 				m(PaymentIntervalSwitch, {
 					state: isYearly ? "left" : "right",
-					onclick: (value) => options.paymentInterval(value === "left" ? PaymentInterval.Yearly : PaymentInterval.Monthly),
+					onclick: (value) => {
+						const targetInterval = value === "left" ? PaymentInterval.Yearly : PaymentInterval.Monthly
+						options.paymentInterval(targetInterval)
+						// For iOS, we need to change the selectedPlan to be the one is not currently selected
+						if (targetInterval === currentPaymentInterval && this.selectedPlan() === currentPlan) {
+							this.selectedPlan(currentPlan === PlanType.Revolutionary ? PlanType.Legend : PlanType.Revolutionary)
+						}
+					},
 					ariaLabel: lang.get("emptyString_msg"),
 				}),
 				m(`div.left.full-width${!isYearly ? ".font-weight-600" : ""}`, lang.getTranslationText("pricing.monthly_label")),
@@ -213,6 +219,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 										paymentInterval: options.paymentInterval(),
 									}
 									const { referencePriceStr, priceStr } = isApplePrice ? getApplePriceStr(getPriceStrProps) : getPriceStr(getPriceStrProps)
+									// FIXME: Need to use this condition for iOS
+									const isCurrentPlanAndInterval = currentPlan === plan && currentPaymentInterval === options.paymentInterval()
 
 									return m(PaidPlanBox, {
 										price: priceStr,
