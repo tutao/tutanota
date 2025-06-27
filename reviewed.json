@@ -942,5 +942,25 @@
 	"node_modules/eslint/lib/rules/eol-last.js": {
 		"who": "hrb",
 		"when": "2025-06-27"
+	},
+	"node_modules/eslint/lib/rules/func-call-spacing.js": {
+		"who": "ivk",
+		"when": "2025-06-27"
+	},
+	"node_modules/eslint/lib/rules/function-call-argument-newline.js": {
+		"who": "ivk",
+		"when": "2025-06-27"
+	},
+	"node_modules/eslint/lib/rules/function-paren-newline.js": {
+		"who": "ivk",
+		"when": "2025-06-27"
+	},
+	"node_modules/eslint/lib/rules/generator-star-spacing.js": {
+		"who": "ivk",
+		"when": "2025-06-27"
+	},
+	"node_modules/eslint/lib/rules/implicit-arrow-linebreak.js": {
+		"who": "ivk",
+		"when": "2025-06-27"
 	}
 }
