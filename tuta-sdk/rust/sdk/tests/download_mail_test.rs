@@ -5,6 +5,7 @@ use std::sync::Arc;
 use tutasdk::bindings::rest_client::{HttpMethod, RestClient};
 use tutasdk::bindings::test_file_client::TestFileClient;
 use tutasdk::bindings::test_rest_client::TestRestClient;
+use tutasdk::entities::generated::tutanota::Mail;
 use tutasdk::login::{CredentialType, Credentials};
 use tutasdk::GeneratedId;
 use tutasdk::{IdTupleGenerated, Sdk};
@@ -31,12 +32,18 @@ async fn download_mail_with_logged_in_client() {
 	);
 	let logged_in_sdk = sdk.login(credentials).await.unwrap();
 	let mail_facade = logged_in_sdk.mail_facade();
-	let mail = mail_facade
-		.load_email_by_id_encrypted(&IdTupleGenerated {
+	let mail: Mail = mail_facade
+		.load_untyped_mail(&IdTupleGenerated {
 			list_id: GeneratedId("O1qC705-17-0".to_string()),
 			element_id: GeneratedId("O1qC7an--3-0".to_string()),
 		})
 		.await
+		.map(|decrypted| {
+			logged_in_sdk
+				.instance_mapper
+				.parse_entity(decrypted)
+				.unwrap()
+		})
 		.unwrap();
 
 	assert_eq!("Html email features", mail.subject);

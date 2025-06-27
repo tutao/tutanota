@@ -44,24 +44,29 @@ class NotificationService: UNNotificationServiceExtension {
 		)
 		let sdk = Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession), fileClient: SdkFileClient())
 		let loggedInSdk = try await sdk.login(credentials: sdkCredentials)
-		guard let mail = try await getMail(sdk: loggedInSdk, mailId) else { return }
+		guard let mailServerModelParsed = try await getParsedMail(sdk: loggedInSdk, mailId) else { return }
+		guard let mail = try makeTypedMail(sdk: sdk, mailServerModelParsed) else { return }
 		try await populateNotification(content: content, mail: mail, credentials: credentials)
-		try await insertMail(sdk: sdk, mail: mail, credentials: credentials)
+		try await insertMail(sdk: sdk, credentials, mailServerModelParsed, mail)
 	}
-	private func getMail(sdk: LoggedInSdk, _ mailId: [String]) async throws -> tutasdk.Mail? {
-		try await sdk.mailFacade().loadEmailByIdEncrypted(idTuple: tutasdk.IdTupleGenerated(listId: mailId[0], elementId: mailId[1]))
+
+	private func getParsedMail(sdk: LoggedInSdk, _ mailId: [String]) async throws -> [String: ElementValue]? {
+		try await sdk.mailFacade().loadUntypedMail(idTuple: tutasdk.IdTupleGenerated(listId: mailId[0], elementId: mailId[1]))
 	}
 	private func getSenderOfMail(_ mail: tutasdk.Mail) -> String {
 		if mail.sender.name.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty { return mail.sender.address } else { return mail.sender.name }
 	}
+	private func makeTypedMail(sdk: Sdk, _ mailServerModelParsed: [String: ElementValue]) throws -> Mail? {
+		try sdk.makeTypedMail(mailServerModelParsed: mailServerModelParsed)
+	}
 
 	/// Places a downloaded mail from the SDK into the offline storage
-	private func insertMail(sdk: Sdk, mail: tutasdk.Mail, credentials: UnencryptedCredentials) async throws {
+	private func insertMail(sdk: Sdk, _ credentials: UnencryptedCredentials, _ mailServerModelParsed: [String: ElementValue], _ mail: Mail) async throws {
 		let sqlCipherFacade = IosSqlCipherFacade()
 		guard let databaseKey = credentials.databaseKey else { return }
 
 		try await sqlCipherFacade.openDb(credentials.credentialInfo.userId, databaseKey)
-		let serializedMail = sdk.serializeMail(mail: mail)
+		let serializedMail = sdk.serializeMail(mailServerModelParsed: mailServerModelParsed)
 		do {
 			try await sqlCipherFacade.run(
 				"INSERT OR IGNORE INTO list_entities VALUES (?, ?, ?, ?, ?)",

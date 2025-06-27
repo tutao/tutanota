@@ -393,13 +393,27 @@ impl Sdk {
 		})
 		.await
 	}
+
 	#[must_use]
-	pub fn serialize_mail(&self, mail: Mail) -> Vec<u8> {
-		let entity_map = self.instance_mapper.serialize_entity(mail).unwrap();
+	pub fn serialize_mail(&self, mail_server_model_parsed: ParsedEntity) -> Vec<u8> {
 		let mut vec = Vec::new();
 		let mut encoder = Encoder::new(&mut vec);
-		encoder.encode(&entity_map).unwrap();
+		encoder.encode(&mail_server_model_parsed).unwrap();
 		vec
+	}
+
+	pub fn make_typed_mail(
+		&self,
+		mail_server_model_parsed: ParsedEntity,
+	) -> Result<Mail, ApiCallError> {
+		self.instance_mapper
+			.parse_entity(mail_server_model_parsed)
+			.map_err(|e| {
+				ApiCallError::internal_with_err(
+					e,
+					"Can not deserialize server_model_parsed mail to Mail object",
+				)
+			})
 	}
 }
 
@@ -673,8 +687,7 @@ mod tests {
 	use crate::bindings::file_client::MockFileClient;
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::entities::generated::tutanota::Mail;
-
-	use crate::util::test_utils::create_test_entity;
+	use crate::util::test_utils::create_test_entity_dict;
 	use crate::Sdk;
 
 	#[test]
@@ -685,7 +698,7 @@ mod tests {
 			Arc::new(MockFileClient::default()),
 		);
 
-		let mail = create_test_entity::<Mail>();
-		let _ = sdk.serialize_mail(mail);
+		let parsed_mail = create_test_entity_dict::<Mail>();
+		let _ = sdk.serialize_mail(parsed_mail);
 	}
 }

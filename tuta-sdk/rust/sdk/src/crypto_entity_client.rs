@@ -7,10 +7,11 @@ use crate::crypto::crypto_facade::CryptoFacade;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
 use crate::crypto::public_key_provider::PublicKeyIdentifier;
 use crate::crypto::X25519PublicKey;
-use crate::element_value::ParsedEntity;
+use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::{EntityFacade, ID_FIELD};
 use crate::entities::generated::base::PersistenceResourcePostReturn;
-use crate::entities::generated::tutanota::Mail;
+use crate::entities::generated::sys::BucketKey;
+use crate::entities::generated::tutanota::{Mail, MailAddress};
 use crate::entities::Entity;
 #[cfg_attr(test, mockall_double::double)]
 use crate::entity_client::EntityClient;
@@ -23,8 +24,8 @@ use crate::tutanota_constants::{
 	EncryptionAuthStatus, PublicKeyIdentifierType, SYSTEM_GROUP_MAIL_ADDRESS,
 };
 use crate::util::{convert_version_to_u64, Versioned};
-use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
+use crate::{GeneratedId, TypeRef};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -61,6 +62,67 @@ impl CryptoEntityClient {
 	#[must_use]
 	pub fn get_crypto_facade(&self) -> &Arc<CryptoFacade> {
 		&self.crypto_facade
+	}
+
+	pub async fn load<T: Entity + DeserializeOwned, ID: IdType>(
+		&self,
+		id: &ID,
+	) -> Result<T, ApiCallError> {
+		let type_ref = T::type_ref();
+		let decrypted_parsed_instance = self.load_untyped(&type_ref, id).await?;
+		let typed_entity = self
+			.instance_mapper
+			.parse_entity::<T>(decrypted_parsed_instance)
+			.map_err(|e| {
+				ApiCallError::internal_with_err(e, "Can not map instance to typed struct")
+			})?;
+		Ok(typed_entity)
+	}
+
+	pub async fn load_untyped<ID: IdType>(
+		&self,
+		type_ref: &TypeRef,
+		id: &ID,
+	) -> Result<ParsedEntity, ApiCallError> {
+		let encrypted_entity = self.entity_client.load(type_ref, id).await?;
+
+		let type_model = self.entity_client.resolve_server_type_ref(type_ref)?;
+		if type_model.marked_encrypted() {
+			self.process_encrypted_entity(&type_model, encrypted_entity)
+				.await
+		} else {
+			Ok(encrypted_entity)
+		}
+	}
+
+	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
+	pub async fn load_range<T: Entity + DeserializeOwned, Id: BaseIdType>(
+		&self,
+		list_id: &GeneratedId,
+		start_id: &Id,
+		count: usize,
+		direction: ListLoadDirection,
+	) -> Result<Vec<T>, ApiCallError> {
+		let parsed_entities = self
+			.entity_client
+			.load_range(&T::type_ref(), list_id, start_id, count, direction)
+			.await?;
+
+		self.process_server_response(parsed_entities).await
+	}
+
+	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
+	pub async fn load_all<T: Entity + DeserializeOwned>(
+		&self,
+		list_id: &GeneratedId,
+		direction: ListLoadDirection,
+	) -> Result<Vec<T>, ApiCallError> {
+		let parsed_entities = self
+			.entity_client
+			.load_all(&T::type_ref(), list_id, direction)
+			.await?;
+
+		self.process_server_response(parsed_entities).await
 	}
 
 	pub fn serialize_entity<Instance: Entity + Serialize>(
@@ -137,38 +199,41 @@ impl CryptoEntityClient {
 			.await
 	}
 
-	pub async fn load<T: Entity + DeserializeOwned, ID: IdType>(
+	async fn process_server_response<T: Entity + DeserializeOwned>(
 		&self,
-		id: &ID,
-	) -> Result<T, ApiCallError> {
-		let type_ref = T::type_ref();
-		let type_model = self.entity_client.resolve_server_type_ref(&type_ref)?;
-		let parsed_entity = self.entity_client.load(&type_ref, id).await?;
+		entities: Vec<ParsedEntity>,
+	) -> Result<Vec<T>, ApiCallError> {
+		let type_model = self.entity_client.resolve_server_type_ref(&T::type_ref())?;
+		let mut result = Vec::with_capacity(entities.len());
+		let encrypted_type = type_model.marked_encrypted();
 
-		if type_model.marked_encrypted() {
-			let typed_entity = self
-				.process_encrypted_entity(&type_model, parsed_entity)
-				.await?;
-			Ok(typed_entity)
-		} else {
+		for parsed_entity in entities {
+			let decrypted_entity = if encrypted_type {
+				self.process_encrypted_entity(&type_model, parsed_entity)
+					.await?
+			} else {
+				parsed_entity
+			};
 			let typed_entity = self
 				.instance_mapper
-				.parse_entity::<T>(parsed_entity)
+				.parse_entity::<T>(decrypted_entity)
 				.map_err(|error| ApiCallError::InternalSdkError {
 					error_message: format!(
 						"Failed to parse unencrypted entity into proper types: {}",
 						error
 					),
 				})?;
-			Ok(typed_entity)
+			result.push(typed_entity);
 		}
+
+		Ok(result)
 	}
 
-	async fn process_encrypted_entity<T: Entity + DeserializeOwned>(
+	async fn process_encrypted_entity(
 		&self,
 		type_model: &TypeModel,
 		parsed_entity: ParsedEntity,
-	) -> Result<T, ApiCallError> {
+	) -> Result<ParsedEntity, ApiCallError> {
 		let possible_session_key = self
 			.crypto_facade
 			.resolve_session_key(&parsed_entity, type_model)
@@ -197,24 +262,25 @@ impl CryptoEntityClient {
 		match possible_session_key {
 			Some(session_key) => {
 				let sender_identity_pub_key = session_key.sender_identity_pub_key.clone();
-				let decrypted_entity =
+				let mut decrypted_entity =
 					self.entity_facade
 						.decrypt_and_map(type_model, parsed_entity, session_key)?;
-				let mut typed_entity = self
-					.instance_mapper
-					.parse_entity::<T>(decrypted_entity)
-					.map_err(|e| ApiCallError::InternalSdkError {
-						error_message: format!(
-							"Failed to parse encrypted entity into proper types: {}",
-							e
-						),
-					})?;
-				self.insert_encryption_auth_status_if_needed::<T>(
-					&mut typed_entity,
-					sender_identity_pub_key,
-				)
-				.await;
-				Ok(typed_entity)
+
+				let auth_status = self
+					.get_encryption_auth_status_or_none(
+						&type_model,
+						&mut decrypted_entity,
+						sender_identity_pub_key,
+					)
+					.await?
+					.map(ElementValue::Number)
+					.unwrap_or(ElementValue::Null);
+
+				let encryption_auth_status_id =
+					type_model.get_attribute_id_by_attribute_name("encryptionAuthStatus")?;
+				decrypted_entity.insert(encryption_auth_status_id, auth_status);
+
+				Ok(decrypted_entity)
 			},
 			// `resolve_session_key()` only returns none if the entity is unencrypted, so
 			// no need to handle it
@@ -227,45 +293,72 @@ impl CryptoEntityClient {
 	/// Tries authenticating the given decrypted typed_entity against the provided sender_identity_pub_key
 	/// If authentication is necessary the result will be injected into the typed_entity
 	/// Currently this will not change the typed_entity except for (asymmetrically) encrypted mail instances.
-	async fn insert_encryption_auth_status_if_needed<T: Entity + DeserializeOwned>(
+	async fn get_encryption_auth_status_or_none(
 		&self,
-		typed_entity: &mut T,
+		type_model: &TypeModel,
+		mail: &mut ParsedEntity,
 		sender_identity_pub_key: Option<X25519PublicKey>,
-	) {
-		let Some(mail): Option<&mut Mail> = crate::util::downcast_mut(typed_entity) else {
-			// we only authenticate mail instances currently
-			return;
-		};
+	) -> Result<Option<i64>, ApiCallError> {
+		if !TypeRef::from(type_model).eq(&Mail::type_ref()) {
+			return Ok(None);
+		}
 
-		mail.encryptionAuthStatus =
-			match &mail.bucketKey {
-				None => None,
-				Some(bucket_key) => Some(
-					self.authenticate_main_instance(
-						sender_identity_pub_key.map(|sender_identity_pub_key| Versioned {
-							version: convert_version_to_u64(bucket_key.senderKeyVersion.expect(
-								"sender key version should be set on TutaCrypt bucket key",
-							)),
+		let mail_model = type_model;
+		let bucket_key_id = mail_model.get_attribute_id_by_attribute_name("bucketKey")?;
+		let bucket_key = mail
+			.get(&bucket_key_id.to_string())
+			.expect("Expected buckeyKey aggregation to be an array")
+			.assert_array_ref()
+			.first()
+			.map(ElementValue::assert_dict_ref);
+
+		match bucket_key {
+			None => Ok(None),
+			Some(bucket_key) => {
+				let bucket_key_model = self
+					.entity_client
+					.resolve_server_type_ref(&BucketKey::type_ref())?;
+
+				let bucket_sender_kv_id =
+					bucket_key_model.get_attribute_id_by_attribute_name("senderKeyVersion")?;
+				let bucket_key_group_id =
+					bucket_key_model.get_attribute_id_by_attribute_name("keyGroup")?;
+
+				let bucket_key_group = bucket_key
+					.get(&bucket_key_group_id.to_string())
+					.expect("bucketKey keyGroup association should be present as array")
+					.assert_array_ref()
+					.first()
+					.expect("key group should be set on TutaCrypt bucket key")
+					.assert_generated_id();
+
+				let sender_identity_pub_key =
+					sender_identity_pub_key.map(|sender_identity_pub_key| {
+						let bucket_sender_kv = bucket_key
+							.get(&bucket_sender_kv_id.to_string())
+							.expect("sender key version should be set on TutaCrypt bucket key")
+							.assert_number();
+						Versioned {
+							version: convert_version_to_u64(bucket_sender_kv),
 							object: sender_identity_pub_key,
-						}),
-						mail,
-						bucket_key
-							.keyGroup
-							.as_ref()
-							.expect("key group should be set on TutaCrypt bucket key"),
-					)
-					.await as i64,
-				),
-			};
+						}
+					});
+
+				let auth_status = self
+					.authenticate_main_instance(sender_identity_pub_key, mail, bucket_key_group)
+					.await?;
+				Ok(Some(auth_status as i64))
+			},
+		}
 	}
 
 	/// @return the EncryptionAuthStatus from the asymmetric decryption
 	async fn authenticate_main_instance(
 		&self,
 		sender_identity_pub_key: Option<Versioned<X25519PublicKey>>,
-		mail: &Mail,
+		mail: &ParsedEntity,
 		recipient_group: &GeneratedId,
-	) -> EncryptionAuthStatus {
+	) -> Result<EncryptionAuthStatus, ApiCallError> {
 		match sender_identity_pub_key {
 			None => {
 				// This message was encrypted with RSA. We check if TutaCrypt could have been used instead.
@@ -276,28 +369,58 @@ impl CryptoEntityClient {
 					.expect("loading our own current key pair");
 				match current_key_pair.object {
 					AsymmetricKeyPair::RSAKeyPair(_) | AsymmetricKeyPair::RSAX25519KeyPair(_) => {
-						EncryptionAuthStatus::RSANoAuthentication
+						Ok(EncryptionAuthStatus::RSANoAuthentication)
 					},
 					AsymmetricKeyPair::TutaCryptKeyPairs(_) => {
 						// theoretically we could check that we did not rotate during this session.
 						// However, we currently cannot rotate in the sdk.
 						// So it is not possible and we would depend on keyrotationfacade ddor something else to keep state for us
-						EncryptionAuthStatus::RsaDespiteTutacrypt
+						Ok(EncryptionAuthStatus::RsaDespiteTutacrypt)
 					},
 				}
 			},
 			Some(sender_identity_pub_key) => {
+				let mail_model = self
+					.entity_client
+					.resolve_server_type_ref(&Mail::type_ref())?;
+				let confidential_id =
+					mail_model.get_attribute_id_by_attribute_name("confidential")?;
+				let confidential = mail
+					.get(&confidential_id)
+					.expect("Expected confidential flag to be in mail instance")
+					.assert_bool();
+
 				// TutaCrypt: we try authenticating
-				let sender_verification_address = if mail.confidential {
-					mail.sender.address.clone()
+				let sender_verification_address = if confidential {
+					let mail_address_model = self
+						.entity_client
+						.resolve_server_type_ref(&MailAddress::type_ref())?;
+					let sender_id = mail_model
+						.get_attribute_id_by_attribute_name("sender")
+						.expect("Expected sender attribute to be in mail");
+					let sender = mail
+						.get(&sender_id)
+						.expect("expected sender association to be an array")
+						.assert_array()
+						.first()
+						.expect("Expected sender flag to be in mail instance")
+						.assert_dict();
+					let mail_address_addr_id =
+						mail_address_model.get_attribute_id_by_attribute_name("address")?;
+					let sender_address = sender
+						.get(&mail_address_addr_id)
+						.expect("Expected mailAddress should have address attribute")
+						.assert_string();
+					sender_address
 				} else {
 					SYSTEM_GROUP_MAIL_ADDRESS.to_string()
 				};
-				self.tuta_crypt_authenticate_sender_of_main_instance(
-					sender_verification_address,
-					sender_identity_pub_key,
-				)
-				.await
+				Ok(self
+					.tuta_crypt_authenticate_sender_of_main_instance(
+						sender_verification_address,
+						sender_identity_pub_key,
+					)
+					.await)
 			},
 		}
 	}
@@ -325,80 +448,6 @@ impl CryptoEntityClient {
 				EncryptionAuthStatus::TutacryptAuthenticationFailed
 			},
 			Ok(encryption_auth_status) => encryption_auth_status,
-		}
-	}
-
-	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
-	pub async fn load_range<T: Entity + DeserializeOwned, Id: BaseIdType>(
-		&self,
-		list_id: &GeneratedId,
-		start_id: &Id,
-		count: usize,
-		direction: ListLoadDirection,
-	) -> Result<Vec<T>, ApiCallError> {
-		let type_ref = T::type_ref();
-		let type_model = self.entity_client.resolve_server_type_ref(&type_ref)?;
-		let parsed_entities = self
-			.entity_client
-			.load_range(&type_ref, list_id, start_id, count, direction)
-			.await?;
-
-		if type_model.marked_encrypted() {
-			// StreamExt::collect requires result to be Default. Fall back to plain loop.
-			let mut result_list = Vec::with_capacity(parsed_entities.len());
-			for entity in parsed_entities {
-				let typed_entity = self.process_encrypted_entity(&type_model, entity).await?;
-				result_list.push(typed_entity);
-			}
-			Ok(result_list)
-		} else {
-			let result_list: Vec<T> = parsed_entities
-				.into_iter()
-				.map(|e| self.instance_mapper.parse_entity::<T>(e))
-				.collect::<Result<Vec<T>, _>>()
-				.map_err(|error| ApiCallError::InternalSdkError {
-					error_message: format!(
-						"Failed to parse unencrypted entity into proper types: {}",
-						error
-					),
-				})?;
-			Ok(result_list)
-		}
-	}
-
-	#[allow(dead_code)] // will be used but rustc can't see it in some configurations right now
-	pub async fn load_all<T: Entity + DeserializeOwned>(
-		&self,
-		list_id: &GeneratedId,
-		direction: ListLoadDirection,
-	) -> Result<Vec<T>, ApiCallError> {
-		let type_ref = T::type_ref();
-		let type_model = self.entity_client.resolve_server_type_ref(&type_ref)?;
-		let parsed_entities = self
-			.entity_client
-			.load_all(&type_ref, list_id, direction)
-			.await?;
-
-		if type_model.marked_encrypted() {
-			// StreamExt::collect requires result to be Default. Fall back to plain loop.
-			let mut result_list = Vec::with_capacity(parsed_entities.len());
-			for entity in parsed_entities {
-				let typed_entity = self.process_encrypted_entity(&type_model, entity).await?;
-				result_list.push(typed_entity);
-			}
-			Ok(result_list)
-		} else {
-			let result_list: Vec<T> = parsed_entities
-				.into_iter()
-				.map(|e| self.instance_mapper.parse_entity::<T>(e))
-				.collect::<Result<Vec<T>, _>>()
-				.map_err(|error| ApiCallError::InternalSdkError {
-					error_message: format!(
-						"Failed to parse unencrypted entity into proper types: {}",
-						error
-					),
-				})?;
-			Ok(result_list)
 		}
 	}
 }
@@ -434,7 +483,7 @@ mod tests {
 	};
 	use crate::type_model_provider::TypeModelProvider;
 	use crate::util::entity_test_utils::generate_email_entity;
-	use crate::util::test_utils::{create_test_entity, leak, mock_type_model_provider};
+	use crate::util::test_utils::{create_test_entity_dict, leak, mock_type_model_provider};
 	use crate::util::Versioned;
 	use crate::{GeneratedId, IdTupleGenerated};
 
@@ -445,18 +494,24 @@ mod tests {
 			Arc::new(MockEntityClient::default()),
 			Arc::new(MockEntityFacade::default()),
 			Arc::new(MockCryptoFacade::default()),
-			Arc::new(InstanceMapper::new(type_model_provider)),
+			Arc::new(InstanceMapper::new(type_model_provider.clone())),
 			Arc::new(MockAsymmetricCryptoFacade::default()),
 			Arc::new(MockKeyLoaderFacade::default()),
 		);
-		let accounting_info: AccountingInfo = create_test_entity();
+		let accounting_info = create_test_entity_dict::<AccountingInfo>();
 		let mut accounting_info_input = accounting_info.clone();
-		crypto_entity_client
-			.insert_encryption_auth_status_if_needed::<AccountingInfo>(
+		let accounting_model = type_model_provider
+			.resolve_client_type_ref(&AccountingInfo::type_ref())
+			.unwrap();
+		let auth_status_result = crypto_entity_client
+			.get_encryption_auth_status_or_none(
+				accounting_model,
 				&mut accounting_info_input,
 				Some(X25519PublicKey::from_bytes([0; 32].as_slice()).unwrap()),
 			)
 			.await;
+
+		assert_eq!(Ok(None), auth_status_result);
 		assert_eq!(accounting_info, accounting_info_input);
 	}
 
@@ -621,7 +676,11 @@ mod tests {
 		let mut mock_entity_client = MockEntityClient::default();
 		mock_entity_client
 			.expect_resolve_server_type_ref()
-			.returning(move |_| Ok(mail_type_model.clone()));
+			.returning(move |type_ref| {
+				Ok(type_model_provider
+					.resolve_server_type_ref(type_ref)
+					.unwrap())
+			});
 		mock_entity_client
 			.expect_load()
 			.returning(move |_, _: &IdTupleGenerated| Ok(encrypted_mail.clone()));
@@ -762,7 +821,11 @@ mod tests {
 		let mut mock_entity_client = MockEntityClient::default();
 		mock_entity_client
 			.expect_resolve_server_type_ref()
-			.returning(move |_| Ok(mail_type_model.clone()));
+			.returning(move |type_ref| {
+				Ok(type_model_provider
+					.resolve_server_type_ref(type_ref)
+					.unwrap())
+			});
 		mock_entity_client
 			.expect_load()
 			.returning(move |_, _: &IdTupleGenerated| Ok(encrypted_mail.clone()));
@@ -899,7 +962,9 @@ mod tests {
 		let mut mock_entity_client = MockEntityClient::default();
 		mock_entity_client
 			.expect_resolve_server_type_ref()
-			.returning(move |_| Ok(mail_type_model.clone()));
+			.returning(move |type_ref| {
+				Ok(my_favorite_leak.resolve_server_type_ref(type_ref).unwrap())
+			});
 		mock_entity_client
 			.expect_load()
 			.returning(move |_, _: &IdTupleGenerated| Ok(encrypted_mail.clone()));
@@ -1029,7 +1094,11 @@ mod tests {
 		let mut mock_entity_client = MockEntityClient::default();
 		mock_entity_client
 			.expect_resolve_server_type_ref()
-			.returning(move |_| Ok(mail_type_model.clone()));
+			.returning(move |type_ref| {
+				Ok(type_model_provider
+					.resolve_server_type_ref(type_ref)
+					.unwrap())
+			});
 		mock_entity_client
 			.expect_load()
 			.returning(move |_, _: &IdTupleGenerated| Ok(encrypted_mail.clone()));
@@ -1163,7 +1232,11 @@ mod tests {
 		let mut mock_entity_client = MockEntityClient::default();
 		mock_entity_client
 			.expect_resolve_server_type_ref()
-			.returning(move |_| Ok(mail_type_model.clone()));
+			.returning(move |type_ref| {
+				Ok(type_model_provider
+					.resolve_server_type_ref(type_ref)
+					.unwrap())
+			});
 		mock_entity_client
 			.expect_load()
 			.returning(move |_, _: &IdTupleGenerated| Ok(encrypted_mail.clone()));

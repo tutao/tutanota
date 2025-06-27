@@ -1,6 +1,6 @@
 use crate::date::DateTime;
 use crate::element_value::ElementValue;
-use crate::{CustomId, TypeRef};
+use crate::{ApiCallError, CustomId, TypeRef};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -206,6 +206,12 @@ pub struct TypeModel {
 #[derive(Error, Debug)]
 #[error("Error when accessing type model: {0}")]
 pub struct TypeModelError(String);
+
+impl From<TypeModelError> for ApiCallError {
+	fn from(type_model_err: TypeModelError) -> Self {
+		ApiCallError::internal(format!("{type_model_err}"))
+	}
+}
 
 impl TypeModel {
 	/// Whether entity is marked as encrypted in the metamodel.
