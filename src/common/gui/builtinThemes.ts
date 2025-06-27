@@ -19,6 +19,8 @@ const BLUE_FIGHTER = "#0040FF"
 // Secondary colors
 export const secondary_fixed = "#FFDDB2"
 export const on_secondary_fixed = "#291800"
+export const goEuropeanBlue = "#003E85"
+export const goEuropeanLightBlue = "#ACC7FF"
 
 const dark_lighter_0 = "#232323"
 
@@ -77,7 +79,7 @@ export const themes = (): Themes => {
 		content_accent_secondary_tuta_bday: "#FCBFDE",
 		content_bg_tuta_bday: "#222222",
 		go_european: goEuropeanBlue,
-		on_go_european: light_white,
+		on_go_european: "#FFFFFF",
 	})
 	const darkRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -119,8 +121,8 @@ export const themes = (): Themes => {
 		content_accent_tuta_bday: "#FCBFDE",
 		content_accent_secondary_tuta_bday: "#AC3E80",
 		content_bg_tuta_bday: "#ffffff",
-		go_european: light_blue,
-		on_go_european: dark_darker_0,
+		go_european: goEuropeanLightBlue,
+		on_go_european: "#111111",
 	})
 	const lightBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -163,7 +165,7 @@ export const themes = (): Themes => {
 		content_accent_secondary_tuta_bday: "#FCBFDE",
 		content_bg_tuta_bday: "#222222",
 		go_european: goEuropeanBlue,
-		on_go_european: light_white,
+		on_go_european: "#FFFFFF",
 	})
 	const darkBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -205,8 +207,8 @@ export const themes = (): Themes => {
 		content_accent_tuta_bday: "#FCBFDE",
 		content_accent_secondary_tuta_bday: "#AC3E80",
 		content_bg_tuta_bday: "#ffffff",
-		go_european: light_blue,
-		on_go_european: dark_darker_0,
+		go_european: goEuropeanLightBlue,
+		on_go_european: "#111111",
 	})
 
 	return {

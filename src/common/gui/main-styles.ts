@@ -5,11 +5,10 @@ import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
 import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
-import { goEuropeanBlue } from "./builtinThemes.js"
+import { goEuropeanBlue, on_secondary_fixed, secondary_fixed } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { on_secondary_fixed, secondary_fixed } from "./builtinThemes.js"
 
 assertMainOrNode()
 
@@ -774,8 +773,6 @@ styles.registerStyle("main", () => {
 			"align-items": "center",
 			height: "54px !important",
 			gap: px(size.hpad_button),
-			"background-color": theme.primary,
-			color: theme.on_primary,
 		},
 		".go-european-button-legacy": {
 			"background-color": "#FEDC59",
