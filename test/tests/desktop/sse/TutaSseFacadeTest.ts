@@ -215,7 +215,8 @@ o.spec("TutaSseFacade", () => {
 			verify(
 				notificationHandler.onMailNotification(
 					sseInfo,
-					matchers.argThat((actualNotificationInfo) => {
+					matchers.argThat((actualNotificationInfos) => {
+						let actualNotificationInfo = actualNotificationInfos[0]
 						actualNotificationInfo.mailId._id = null
 						removeOriginals(actualNotificationInfo)
 						return deepEqual(actualNotificationInfo, notificationInfo)
