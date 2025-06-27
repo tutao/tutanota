@@ -25,7 +25,7 @@ import { PatchOperationError } from "../../common/error/PatchOperationError"
 import { AssociationType, Cardinality } from "../../common/EntityConstants"
 import { PatchOperationType, ServerTypeModelResolver } from "../../common/EntityFunctions"
 import { InstancePipeline } from "../crypto/InstancePipeline"
-import { distinctItems, isSameId } from "../../common/utils/EntityUtils"
+import { isSameId, removeTechnicalFields } from "../../common/utils/EntityUtils"
 import { convertDbToJsType } from "../crypto/ModelMapper"
 import { decryptValue } from "../crypto/CryptoMapper"
 import { VersionedEncryptedKey } from "../crypto/CryptoWrapper"
@@ -112,8 +112,7 @@ export class PatchMerger {
 			encryptingKeyVersion: _ownerKeyVersion,
 			key: _ownerEncSessionKey,
 		} as VersionedEncryptedKey
-		const sk = await this.cryptoFacade().decryptSessionKey(_ownerGroup, versionedEncryptedKey)
-		return sk
+		return await this.cryptoFacade().decryptSessionKey(_ownerGroup, versionedEncryptedKey)
 	}
 
 	private async applyPatchOperation(
@@ -134,7 +133,7 @@ export class PatchMerger {
 				}
 				let associationArray = instanceToChange[attributeId] as ParsedAssociation
 				const valuesToAdd = value as ParsedAssociation
-				const commonAssociationItems = associationArray.filter((assocation) => valuesToAdd.some((item) => deepEqual(item, assocation)))
+				const commonAssociationItems = associationArray.filter((association) => valuesToAdd.some((item) => deepEqual(item, association)))
 				if (!isEmpty(commonAssociationItems)) {
 					console.log(
 						`PatchMerger attempted to add an already existing item to an association. Common items: ${JSON.stringify(commonAssociationItems)}`,
@@ -147,10 +146,8 @@ export class PatchMerger {
 					const aggregationsWithCommonIdsButDifferentValues = associationArray.filter((aggregate: ParsedInstance) =>
 						valuesToAdd.some((item: ParsedInstance) => {
 							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
-							const itemWithoutFinalIvs = structuredClone(item)
-							const aggregateWithoutFinalIvs = structuredClone(aggregate)
-							itemWithoutFinalIvs._finalIvs = {}
-							aggregateWithoutFinalIvs._finalIvs = {}
+							const itemWithoutFinalIvs = removeTechnicalFields(structuredClone(item))
+							const aggregateWithoutFinalIvs = removeTechnicalFields(structuredClone(aggregate))
 							return (
 								aggregate[aggregateIdAttributeId] === item[aggregateIdAttributeId] && !deepEqual(itemWithoutFinalIvs, aggregateWithoutFinalIvs)
 							)
@@ -165,7 +162,7 @@ export class PatchMerger {
 					}
 				}
 				const newAssociationValue = associationArray.concat(valuesToAdd)
-				instanceToChange[attributeId] = distinctItems(newAssociationValue)
+				instanceToChange[attributeId] = distinctAssociations(newAssociationValue)
 				this.assertCorrectAssociationCardinality(pathResult, newAssociationValue)
 				break
 			}
@@ -184,7 +181,7 @@ export class PatchMerger {
 								return isSameId(element, item) // use is same id on the ids instead
 							}),
 					)
-					instanceToChange[attributeId] = distinctItems(remainingAssociations)
+					instanceToChange[attributeId] = distinctAssociations(remainingAssociations)
 					this.assertCorrectAssociationCardinality(pathResult, remainingAssociations)
 				} else {
 					const modelAssociation = typeModel.associations[attributeId]
@@ -199,7 +196,7 @@ export class PatchMerger {
 								return isSameId(item as Id, element[aggregateIdAttributeId] as Id)
 							}),
 					)
-					instanceToChange[attributeId] = distinctItems(remainingAggregations)
+					instanceToChange[attributeId] = distinctAssociations(remainingAggregations)
 					this.assertCorrectAssociationCardinality(pathResult, remainingAggregations)
 				}
 				break
@@ -244,7 +241,10 @@ export class PatchMerger {
 				const modelAssociation = typeModel.associations[attributeId]
 				const appName = modelAssociation.dependency ?? typeModel.app
 				const aggregationTypeModel = await this.serverTypeResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
-				return await promiseMap(aggregatedEntities, async (entity) => await this.instancePipeline.typeMapper.applyJsTypes(aggregationTypeModel, entity))
+				return await promiseMap(
+					aggregatedEntities,
+					async (entity: ServerModelUntypedInstance) => await this.instancePipeline.typeMapper.applyJsTypes(aggregationTypeModel, entity),
+				)
 			}
 		}
 
@@ -357,6 +357,24 @@ export class PatchMerger {
 			)
 		}
 	}
+}
+
+export function distinctAssociations(associationArray: ParsedAssociation) {
+	return associationArray.reduce((acc: Array<any>, current) => {
+		if (
+			!acc.some((item) => {
+				if (item._finalIvs !== undefined) {
+					const itemWithoutFinalIvs = removeTechnicalFields(structuredClone(item) as ParsedInstance)
+					const currentWithoutFinalIvs = removeTechnicalFields(structuredClone(current) as ParsedInstance)
+					return deepEqual(itemWithoutFinalIvs, currentWithoutFinalIvs)
+				}
+				return deepEqual(item, current)
+			})
+		) {
+			acc.push(current)
+		}
+		return acc
+	}, [])
 }
 
 export type PathResult = {
