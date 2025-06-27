@@ -872,6 +872,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			// console.log("instanceBeforePatch: ", instanceBeforePatch)
 			const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update.typeRef, update.instanceListId, update.instanceId, update.patches)
 			// await this.assertInstanceOnUpdateIsSameAsPatched(update, patchAppliedInstance)
+			// await this.storage.put(update.typeRef, assertNotNull(update.instance))
 		} else if (!update.isPrefetched) {
 			const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
 			if (cached != null) {
