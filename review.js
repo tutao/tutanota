@@ -1,5 +1,7 @@
 import fs from "node:fs/promises"
 import readline from "node:readline/promises"
+import { pathToFileURL } from "node:url"
+import { $ } from "zx"
 
 const data = JSON.parse(await fs.readFile(process.argv[2], { encoding: "utf8" }))
 
@@ -15,7 +17,11 @@ try {
 	console.log("Could not read reviewed data")
 }
 
-let reviewers = await rl.question("who is reviewing: ")
+let reviewers = Object.values(reviewedData).at(-1)?.who
+const reviewersAnswer = await rl.question(`who is reviewing: (${reviewers})`)
+if (reviewersAnswer.trim() !== "") {
+	reviewers = reviewersAnswer
+}
 
 async function markAsReviewed(currentDep) {
 	reviewedData[currentDep] = {
@@ -28,14 +34,20 @@ async function markAsReviewed(currentDep) {
 async function review(currentDep, itsDeps) {
 	while (true) {
 		console.log(`\nReviewing ${currentDep}`)
+		console.log(pathToFileURL(currentDep).href)
 		const depsArray = Object.entries(itsDeps)
 		for (const [i, [key, value]] of depsArray.entries()) {
-			const mark = key.startsWith("node:") || Object.hasOwn(reviewedData, key) ? "✅" : " "
+			const mark = key.startsWith("node:") || countsAsReviewed(key) ? "✅" : " "
 			const stats = calculateStats(key, value)
 			console.log(`${i}: ${mark} ${String(stats.reviewed).padStart(4)}/${String(stats.overall).padStart(4)} ${key}`)
 		}
 		console.log("d: mark as reviewed")
 		console.log("x: go up")
+		const next = depsArray.find(([dep, _]) => !countsAsReviewed(dep))
+		if (next) {
+			console.log(`n: next unreviewed (${next[0]})`)
+		}
+		console.log("o: open")
 		const answer = await rl.question("What to review?: ")
 		console.log(`(answered: ${answer})`)
 		if (answer === "d") {
@@ -44,12 +56,17 @@ async function review(currentDep, itsDeps) {
 			break
 		} else if (answer === "x") {
 			break
-		}
-		const numAnswer = parseInt(answer)
-		if (!isNaN(numAnswer) && numAnswer < depsArray.length) {
-			const [dep, itsDeps] = depsArray[numAnswer]
-			// console.log(`Reviewing: ${dep}`)
-			await review(dep, itsDeps)
+		} else if (next && answer === "n") {
+			await review(next[0], next[1])
+		} else if (answer === "o") {
+			await $`/opt/RustRover-2024.3.3/bin/rustrover ${currentDep}`
+		} else {
+			const numAnswer = parseInt(answer)
+			if (!isNaN(numAnswer) && numAnswer < depsArray.length) {
+				const [dep, itsDeps] = depsArray[numAnswer]
+				// console.log(`Reviewing: ${dep}`)
+				await review(dep, itsDeps)
+			}
 		}
 	}
 }
@@ -74,12 +91,20 @@ function transitiveDeps(currentDep, itsDeps) {
 	return result
 }
 
+function isExplicitlyReviewed(dep) {
+	return Object.hasOwn(reviewedData, dep)
+}
+
+function countsAsReviewed(dep) {
+	return isExplicitlyReviewed(dep) || dep.startsWith("node:")
+}
+
 function calculateStats(currentDep, itsDeps) {
 	const collectedTransitiveDeps = transitiveDeps(currentDep, itsDeps)
 	const dedupedDeps = new Set(collectedTransitiveDeps)
 	let reviewed = 0
 	for (const dep of dedupedDeps) {
-		if (Object.hasOwn(reviewedData, dep)) {
+		if (isExplicitlyReviewed(dep)) {
 			reviewed += 1
 		}
 	}
