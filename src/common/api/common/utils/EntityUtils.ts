@@ -11,6 +11,7 @@ import {
 	deepEqual,
 	Hex,
 	hexToBase64,
+	isEmpty,
 	isSameTypeRef,
 	pad,
 	repeat,
@@ -441,67 +442,76 @@ export async function computePatches(
 					}),
 			)
 
+			// fixme optimize this, also think about cases where duplicate aggregated entities are actually valid (e.g. contact mail address can have same entries?)
+			const commonItemsWithDifferingIds = originalAggregatedEntities.filter(
+				(element) =>
+					!modifiedAggregatedEntities.some((item) => {
+						return deepEqual(removeTechnicalFields(structuredClone(element)), removeTechnicalFields(structuredClone(item)))
+					}),
+			)
+
 			const commonAggregateIds = commonItems.map((instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id)
-			for (let commonAggregateId of commonAggregateIds) {
-				const commonItemOriginal = assertNotNull(
-					originalAggregatedEntities.find((instance) => {
-						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
-						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
-					}),
-				)
-				const commonItemModified = assertNotNull(
-					modifiedAggregatedEntities.find((instance) => {
-						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
-						return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
-					}),
-				)
-				const commonItemModifiedUntyped = assertNotNull(
-					modifiedAggregatedUntypedEntities.find((instance) => {
-						const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
-						let aggregateIdAttributeIdStr = aggregateIdAttributeId.toString()
-						if (env.networkDebugging) {
-							// keys are in the format attributeId:attributeName when networkDebugging is enabled
-							aggregateIdAttributeIdStr += ":" + "_id"
-						}
-						return isSameId(instance[aggregateIdAttributeIdStr] as Id, commonAggregateId)
-					}),
-				)
-				const fullPath = `${attributeIdStr}/${commonAggregateId}/`
-				const items = await computePatches(
-					commonItemOriginal,
-					commonItemModified,
-					commonItemModifiedUntyped,
-					aggregateTypeModel,
-					typeReferenceResolver,
-					isNetworkDebuggingEnabled,
-				)
-				items.map((item) => {
-					item.attributePath = fullPath + item.attributePath
-				})
-				patches = patches.concat(items)
-			}
+			if (isEmpty(commonItemsWithDifferingIds)) {
+				for (let commonAggregateId of commonAggregateIds) {
+					const commonItemOriginal = assertNotNull(
+						originalAggregatedEntities.find((instance) => {
+							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+							return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
+						}),
+					)
+					const commonItemModified = assertNotNull(
+						modifiedAggregatedEntities.find((instance) => {
+							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+							return isSameId(instance[aggregateIdAttributeId] as Id, commonAggregateId)
+						}),
+					)
+					const commonItemModifiedUntyped = assertNotNull(
+						modifiedAggregatedUntypedEntities.find((instance) => {
+							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+							let aggregateIdAttributeIdStr = aggregateIdAttributeId.toString()
+							if (env.networkDebugging) {
+								// keys are in the format attributeId:attributeName when networkDebugging is enabled
+								aggregateIdAttributeIdStr += ":" + "_id"
+							}
+							return isSameId(instance[aggregateIdAttributeIdStr] as Id, commonAggregateId)
+						}),
+					)
+					const fullPath = `${attributeIdStr}/${commonAggregateId}/`
+					const items = await computePatches(
+						commonItemOriginal,
+						commonItemModified,
+						commonItemModifiedUntyped,
+						aggregateTypeModel,
+						typeReferenceResolver,
+						isNetworkDebuggingEnabled,
+					)
+					items.map((item) => {
+						item.attributePath = fullPath + item.attributePath
+					})
+					patches = patches.concat(items)
+				}
+				if (addedItems.length > 0) {
+					patches.push(
+						createPatch({
+							attributePath: attributeIdStr,
+							value: JSON.stringify(addedItems),
+							patchOperation: PatchOperationType.ADD_ITEM,
+						}),
+					)
+				}
 
-			if (addedItems.length > 0) {
-				patches.push(
-					createPatch({
-						attributePath: attributeIdStr,
-						value: JSON.stringify(addedItems),
-						patchOperation: PatchOperationType.ADD_ITEM,
-					}),
-				)
-			}
-
-			if (removedItems.length > 0) {
-				const removedAggregateIds = removedItems.map(
-					(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
-				)
-				patches.push(
-					createPatch({
-						attributePath: attributeIdStr,
-						value: JSON.stringify(removedAggregateIds),
-						patchOperation: PatchOperationType.REMOVE_ITEM,
-					}),
-				)
+				if (removedItems.length > 0) {
+					const removedAggregateIds = removedItems.map(
+						(instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id,
+					)
+					patches.push(
+						createPatch({
+							attributePath: attributeIdStr,
+							value: JSON.stringify(removedAggregateIds),
+							patchOperation: PatchOperationType.REMOVE_ITEM,
+						}),
+					)
+				}
 			}
 		} else {
 			// non aggregation associations

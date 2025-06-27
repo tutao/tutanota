@@ -566,8 +566,8 @@ export class EventBusClient {
 		let totalExpectedBatches = 0
 		for (const batch of timeSortedEventBatches) {
 			const updates = await promiseMap(batch.events, async (event) => {
-				const instance = await this.getInstanceFromEntityEvent(event)
-				return entityUpdateToUpdateData(this.typeModelResolver, event, instance)
+				// const instance = await this.getInstanceFromEntityEvent(event)
+				return entityUpdateToUpdateData(this.typeModelResolver, event)
 			})
 			const batchWasAddedToQueue = this.addBatch(getElementId(batch), getListId(batch), updates, eventQueue)
 

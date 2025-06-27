@@ -116,6 +116,7 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { getClientOnlyCalendars } from "../gui/CalendarGuiUtils.js"
 import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
+import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -824,7 +825,9 @@ export class CalendarModel {
 		try {
 			// We are not supposed to load files without the key provider, but we hope that the key
 			// was already resolved and the entity updated.
-			const file = await this.entityClient.load(FileTypeRef, fileId)
+			// fixme sending patch with entity update doesn't work if you fail to decrypt the file at this point
+			const file = await this.entityClient.load(FileTypeRef, fileId, { cacheMode: CacheMode.WriteOnly })
+			// const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
 			return await parseCalendarFile(dataFile)
