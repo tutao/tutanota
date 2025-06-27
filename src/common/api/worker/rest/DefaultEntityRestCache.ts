@@ -8,7 +8,7 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, deepEqual, getFirstOrThrow, getTypeString, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, deepEqual, getFirstOrThrow, getTypeString, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -868,15 +868,14 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// already up-to-date
 
 		if (update.patches) {
-			//const instanceBeforePatch = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
-			//console.log("instanceBeforePatch: ", instanceBeforePatch)
 			const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update.typeRef, update.instanceListId, update.instanceId, update.patches)
 			if (patchAppliedInstance == null) {
 				console.warn("PatchAppliedInstance is null! Update:" + JSON.stringify(update))
-				// fixme load from server if the instance to patch is not in cache
+				const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
+				await this.storage.put(update.typeRef, newEntity)
+			} else {
+				await this.assertInstanceOnUpdateIsSameAsPatched(update, patchAppliedInstance)
 			}
-			// await this.assertInstanceOnUpdateIsSameAsPatched(update, patchAppliedInstance)
-			// await this.storage.put(update.typeRef, assertNotNull(update.instance))
 		} else if (!update.isPrefetched) {
 			const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
 			if (cached != null) {
@@ -904,10 +903,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	private async assertInstanceOnUpdateIsSameAsPatched(update: EntityUpdateData, patchAppliedInstance: Nullable<ServerModelParsedInstance>) {
+		// fixme clean console logs (or even remove this function completely before release?)
 		console.log("instance on the update: ", update.instance)
 		console.log("patchAppliedInstance: ", patchAppliedInstance)
 		console.log("patches on the update: ", update.patches)
-		// fixme clean console logs
 		if (update.instance != null && update.patches != null && !deepEqual(update.instance, patchAppliedInstance)) {
 			const instancePipeline = this.patchMerger.instancePipeline
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(update.typeRef)
@@ -934,13 +933,15 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				true,
 			)
 			console.log("Object diff using computePatches: ", patchDiff)
-			// throw new ProgrammingError(
-			// 	"instance with id [" +
-			// 		update.instanceListId +
-			// 		", " +
-			// 		update.instanceId +
-			// 		`] has not been successfully patched. Type: ${getTypeString(update.typeRef)}`,
-			// 		)
+			if (!isEmpty(patchDiff)) {
+				throw new ProgrammingError(
+					"instance with id [" +
+						update.instanceListId +
+						", " +
+						update.instanceId +
+						`] has not been successfully patched. Type: ${getTypeString(update.typeRef)}`,
+				)
+			}
 		}
 	}
 
