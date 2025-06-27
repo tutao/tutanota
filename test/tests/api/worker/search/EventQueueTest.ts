@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
-import { batchMod, EntityModificationType, EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
+import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
 import { GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
-import { ContactTypeRef, MailboxGroupRootTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { MailboxGroupRootTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
@@ -36,7 +36,7 @@ o.spec("EventQueueTest", function () {
 			}
 			return Promise.resolve()
 		})
-		queue = new EventQueue("test!", true, processElement)
+		queue = new EventQueue("test!", processElement)
 	})
 
 	o("pause and resume", async function () {
@@ -93,7 +93,7 @@ o.spec("EventQueueTest", function () {
 			}
 			return Promise.resolve()
 		})
-		let queue = new EventQueue("test 2!", true, (nextElement: QueuedBatch) => {
+		let queue = new EventQueue("test 2!", (nextElement: QueuedBatch) => {
 			if (nextElement.batchId === "2") {
 				return Promise.reject(new ConnectionError("no connection"))
 			} else {
@@ -331,164 +331,5 @@ o.spec("EventQueueTest", function () {
 				isPrefetched: false,
 			}
 		}
-	})
-
-	o.spec("batchMod", function () {
-		const batchId = "batchId"
-		const instanceListId = "instanceListId"
-		const instanceId = "instanceId"
-		o("one entity with the same id and type", async () => {
-			o(
-				batchMod(
-					batchId,
-					[
-						{
-							typeRef: MailTypeRef,
-							instanceId,
-							instanceListId,
-							operation: OperationType.CREATE,
-							...noPatchesAndInstance,
-							isPrefetched: false,
-						},
-					],
-					{
-						typeRef: MailTypeRef,
-						instanceId,
-						instanceListId,
-						operation: OperationType.CREATE,
-						...noPatchesAndInstance,
-						isPrefetched: false,
-					},
-				),
-			).equals(EntityModificationType.CREATE)
-		})
-
-		o("there is another op with the same type but different element id", async () => {
-			o(
-				batchMod(
-					batchId,
-					[
-						{
-							typeRef: MailTypeRef,
-							instanceId: "instanceId2",
-							instanceListId,
-							operation: OperationType.DELETE,
-							...noPatchesAndInstance,
-							isPrefetched: false,
-						},
-						{
-							typeRef: MailTypeRef,
-							instanceId,
-							instanceListId,
-							operation: OperationType.CREATE,
-							...noPatchesAndInstance,
-							isPrefetched: false,
-						},
-					],
-					{
-						typeRef: MailTypeRef,
-						instanceId,
-						instanceListId,
-						operation: OperationType.CREATE,
-						...noPatchesAndInstance,
-						isPrefetched: false,
-					},
-				),
-			).equals(EntityModificationType.CREATE)
-		})
-
-		o("there is another op with the same type but different list id", async () => {
-			o(
-				batchMod(
-					batchId,
-					[
-						{
-							typeRef: MailTypeRef,
-							instanceId,
-							instanceListId: "instanceListId2",
-							operation: OperationType.DELETE,
-							...noPatchesAndInstance,
-							isPrefetched: false,
-						},
-						{
-							typeRef: MailTypeRef,
-							instanceId,
-							instanceListId,
-							operation: OperationType.CREATE,
-							...noPatchesAndInstance,
-							isPrefetched: false,
-						},
-					],
-					{
-						typeRef: MailTypeRef,
-						instanceId,
-						instanceListId,
-						operation: OperationType.CREATE,
-						...noPatchesAndInstance,
-						isPrefetched: false,
-					},
-				),
-			).equals(EntityModificationType.CREATE)
-		})
-
-		o("there is another op with the id but different type", async () => {
-			o(
-				batchMod(
-					batchId,
-					[
-						{
-							typeRef: ContactTypeRef,
-							instanceId,
-							instanceListId,
-							operation: OperationType.DELETE,
-							...noPatchesAndInstance,
-							isPrefetched: false,
-						},
-						{
-							typeRef: MailTypeRef,
-							instanceId,
-							instanceListId,
-							operation: OperationType.CREATE,
-							...noPatchesAndInstance,
-							isPrefetched: false,
-						},
-					],
-					{
-						typeRef: MailTypeRef,
-						instanceId,
-						instanceListId,
-						operation: OperationType.CREATE,
-						...noPatchesAndInstance,
-						isPrefetched: false,
-					},
-				),
-			).equals(EntityModificationType.CREATE)
-		})
-
-		o("modification is based on operation of batch, not the argument", async () => {
-			o(
-				batchMod(
-					batchId,
-					[
-						{
-							typeRef: MailTypeRef,
-							instanceId,
-							instanceListId,
-							operation: OperationType.CREATE,
-							...noPatchesAndInstance,
-							isPrefetched: false,
-						},
-					],
-					{
-						typeRef: MailTypeRef,
-						instanceId,
-						instanceListId,
-						operation: OperationType.DELETE,
-						...noPatchesAndInstance,
-						isPrefetched: false,
-					},
-				),
-			).equals(EntityModificationType.CREATE)
-		})
 	})
 })

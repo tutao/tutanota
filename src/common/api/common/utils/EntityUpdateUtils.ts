@@ -58,19 +58,3 @@ export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdat
 		(update.instanceListId === "" ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
 	)
 }
-
-export function containsEventOfType(events: ReadonlyArray<EntityUpdateData>, operationType: OperationType, elementId: Id): boolean {
-	return events.some((event) => event.operation === operationType && event.instanceId === elementId)
-}
-
-export function getEventOfType<T extends EntityUpdateData | EntityUpdate>(events: ReadonlyArray<T>, type: OperationType, elementId: Id): T | null {
-	return events.find((event) => event.operation === type && event.instanceId === elementId) ?? null
-}
-
-export function getEntityUpdateId(update: EntityUpdateData): Id | IdTuple {
-	if (update.instanceListId !== "") {
-		return [update.instanceListId, update.instanceId]
-	} else {
-		return update.instanceId
-	}
-}
