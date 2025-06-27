@@ -214,21 +214,21 @@ function getColors(buttonColors: NavButtonColor | null | undefined) {
 	switch (buttonColors) {
 		case NavButtonColor.Header:
 			return {
-				button: styles.isDesktopLayout() ? theme.header_button : theme.content_accent,
-				button_selected: styles.isDesktopLayout() ? theme.header_button_selected : theme.content_accent,
+				button: styles.isDesktopLayout() ? theme.on_surface_variant : theme.primary,
+				button_selected: styles.isDesktopLayout() ? theme.primary : theme.primary,
 			}
 
 		case NavButtonColor.Nav:
 			return {
-				button: theme.navigation_button,
-				button_selected: theme.navigation_button_selected,
+				button: theme.on_surface_variant,
+				button_selected: theme.primary,
 			}
 
 		default:
 			// for nav buttons in the more dropdown menu
 			return {
-				button: theme.content_button,
-				button_selected: theme.content_button_selected,
+				button: theme.on_surface_variant,
+				button_selected: theme.primary,
 			}
 	}
 }

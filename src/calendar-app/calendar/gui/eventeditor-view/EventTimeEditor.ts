@@ -37,7 +37,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					m(Icon, {
 						icon: Icons.Time,
 						style: {
-							fill: theme.content_fg,
+							fill: theme.on_surface,
 						},
 						title: lang.get("timeSection_label"),
 						size: IconSize.Medium,
@@ -55,7 +55,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					),
 				]),
 				m(".flex.col.full-width.flex-grow.gap-vpad-s", { style: { paddingLeft: px(size.icon_size_large + size.vpad_small) } }, [
-					m(Divider, { color: theme.button_bubble_bg }),
+					m(Divider, { color: theme.outline_variant }),
 					m(".time-selection-grid.pr-vpad-s", [
 						m("", lang.get("dateFrom_label")),
 						m(
