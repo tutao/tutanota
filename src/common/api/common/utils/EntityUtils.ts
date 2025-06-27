@@ -612,31 +612,8 @@ export function timestampToGeneratedId(timestamp: number, serverBytes: number = 
 	return base64ToBase64Ext(hexToBase64(hex))
 }
 
-export function distinctItems(array: Array<any>) {
-	return array.reduce((acc: Array<any>, current) => {
-		if (
-			!acc.some((item) => {
-				// fixme find a nicer way to do this in case of entity comparison maybe?
-				const itemWithoutFinalIvs = structuredClone(item)
-				const currentWithoutFinalIvs = structuredClone(current)
-				if (item._finalIvs !== undefined) {
-					itemWithoutFinalIvs._finalIvs = {}
-					currentWithoutFinalIvs._finalIvs = {}
-				}
-				return deepEqual(itemWithoutFinalIvs, currentWithoutFinalIvs)
-			})
-		) {
-			acc.push(current)
-		}
-		return acc
-	}, [])
-}
-
 function isDistinctAggregateIds(array: Array<Id>) {
 	const checkSet = new Set(array)
-
-	// Strict equality
-	// Return boolean value
 	return checkSet.size === array.length
 }
 
@@ -695,10 +672,10 @@ export function assertIsEntity2<T extends SomeEntity>(type: TypeRef<T>): (entity
  * Only use for new entities, the {@param entity} won't be usable for updates anymore after this.
  */
 export function removeTechnicalFields<E extends Partial<SomeEntity>>(entity: E) {
-	// we want to restrict outer function to entity types but internally we also want to handle aggregates
+	// we want to restrict outer function to entity types, but internally we also want to handle aggregates
 	function _removeTechnicalFields(erased: Record<string, any>) {
 		for (const key of Object.keys(erased)) {
-			if (key.startsWith("_finalEncrypted") || key.startsWith("_defaultEncrypted") || key.startsWith("_errors")) {
+			if (key.startsWith("_finalIvs") || key.startsWith("_errors")) {
 				delete erased[key]
 			} else {
 				const value = erased[key]
@@ -710,6 +687,7 @@ export function removeTechnicalFields<E extends Partial<SomeEntity>>(entity: E) 
 	}
 
 	_removeTechnicalFields(entity)
+	return entity
 }
 
 /**
