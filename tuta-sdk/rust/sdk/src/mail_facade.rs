@@ -1,9 +1,11 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
+use crate::element_value::ParsedEntity;
 use crate::entities::generated::sys::{Group, GroupInfo};
 use crate::entities::generated::tutanota::{
 	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
 };
+use crate::entities::Entity;
 use crate::folder_system::{FolderSystem, MailSetKind};
 use crate::groups::GroupType;
 use crate::id::id_tuple::IdTupleGenerated;
@@ -126,9 +128,9 @@ impl MailFacade {
 	pub async fn load_email_by_id_encrypted(
 		&self,
 		id_tuple: &IdTupleGenerated,
-	) -> Result<Mail, ApiCallError> {
+	) -> Result<ParsedEntity, ApiCallError> {
 		self.crypto_entity_client
-			.load::<Mail, IdTupleGenerated>(id_tuple)
+			.load_untyped(&Mail::type_ref(), id_tuple)
 			.await
 	}
 
