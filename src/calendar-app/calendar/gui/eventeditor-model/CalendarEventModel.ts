@@ -520,7 +520,8 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
 	newEvent._ownerGroup = existingEvent._ownerGroup
 	newEvent._permissions = existingEvent._permissions
 	newEvent._original = existingEvent._original
-
+	// fixme add some handling for aggregates here to make sure the ids match (or move cardinality assertion on the server to the end of patch applications
+	// newEvent.organizer?._id = existingEvent.organizer?._id
 	return {
 		hasUpdateWorthyChanges: eventHasChanged(newEvent, existingEvent),
 		newEvent,
