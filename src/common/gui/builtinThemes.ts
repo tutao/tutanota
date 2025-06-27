@@ -40,7 +40,7 @@ export const themes = (): Themes => {
 	const isCalendarApp = false
 	const lightRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "light" : "light_secondary",
-		logo: getAppLogo(isCalendarApp ? "#D7C1C1AA" : undefined),
+		logo: getAppLogo("#D7C1C1CC"),
 		// Basic color tokens
 		primary: "#8F4A4E",
 		on_primary: "#FFFFFF",

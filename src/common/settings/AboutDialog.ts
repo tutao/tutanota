@@ -9,7 +9,6 @@ import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { isApp } from "../api/common/Env.js"
 import { px, size } from "../gui/size.js"
-import { client } from "../misc/ClientDetector.js"
 import { getTutaLogo } from "../gui/base/Logo.js"
 
 interface AboutDialogAttrs {
@@ -29,7 +28,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 						margin: px(size.vpad_xl),
 					},
 				},
-				m.trust(getTutaLogo(client.isCalendarApp())),
+				m.trust(getTutaLogo()),
 			),
 			m(".flex.justify-center.flex-wrap", [
 				m(ExternalLink, {

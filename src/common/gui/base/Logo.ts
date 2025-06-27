@@ -5,7 +5,7 @@ import { theme } from "../theme.js"
 
 assertMainOrNodeBoot()
 
-export function getTutaLogo(isCalendarApp: boolean): string {
+export function getTutaLogo(): string {
 	if (isColorLight(theme.surface)) {
 		return getTutaLogoSvg()
 	}
@@ -21,10 +21,6 @@ export function getAppLogo(fillColor?: string) {
 		return getCalendarLogoSvg(fillColor)
 	}
 	return getMailLogoSvg(fillColor)
-}
-
-export function getLogo() {
-	return getTutaLogoSvg()
 }
 
 export function getTutaLogoSvg(fillColor?: string): string {

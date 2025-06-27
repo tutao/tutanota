@@ -32,8 +32,8 @@ export function getFonts(): string {
 }
 
 export const boxShadowHigh = `0 10px 20px rgba(0,0,0,0.10), 0 6px 6px rgba(0,0,0,0.10)`
-const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.12)"
-const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
+export const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.12)"
+export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 
 const scrollbarWidthHeight = px(18)
 styles.registerStyle("main", () => {
