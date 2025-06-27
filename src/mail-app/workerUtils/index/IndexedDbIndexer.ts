@@ -110,7 +110,7 @@ export class IndexedDbIndexer implements Indexer {
 	_indexedGroupIds: Array<Id>
 
 	/** @private visibleForTesting */
-	readonly eventQueue = new EventQueue("indexer", true, (batch) => this._processEntityEvents(batch))
+	readonly eventQueue = new EventQueue("indexer", (batch) => this._processEntityEvents(batch))
 
 	constructor(
 		private readonly serverDateProvider: DateProvider,
@@ -127,7 +127,7 @@ export class IndexedDbIndexer implements Indexer {
 		// correctly initialized during init()
 		this._indexedGroupIds = []
 		this.initiallyLoadedBatchIdsPerGroup = new Map()
-		this._realtimeEventQueue = new EventQueue("indexer_realtime", false, (nextElement: QueuedBatch) => {
+		this._realtimeEventQueue = new EventQueue("indexer_realtime", (nextElement: QueuedBatch) => {
 			// During initial loading we remember the last batch we loaded
 			// so if we get updates from EventBusClient here for things that are already loaded we discard them
 			const loadedIdForGroup = this.initiallyLoadedBatchIdsPerGroup.get(nextElement.groupId)

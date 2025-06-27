@@ -17,10 +17,9 @@ import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { GroupType, OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { GroupType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { aes256RandomKey, fixedIv, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
-import { containsEventOfType, EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 
 o.spec("Index Utils", () => {
@@ -194,20 +193,6 @@ o.spec("Index Utils", () => {
 		})
 
 		o(filterMailMemberships(user)).deepEquals([mailGroup1, mailGroup2])
-	})
-	o("containsEventOfType", function () {
-		function createUpdate(type: OperationType, id: Id): EntityUpdateData {
-			return {
-				operation: type,
-				instanceId: id,
-				instanceListId: "",
-			} as Partial<EntityUpdateData> as EntityUpdateData
-		}
-
-		o(containsEventOfType([], OperationType.CREATE, "1")).equals(false)
-		o(containsEventOfType([createUpdate(OperationType.CREATE, "1")], OperationType.CREATE, "1")).equals(true)
-		o(containsEventOfType([createUpdate(OperationType.DELETE, "1")], OperationType.CREATE, "1")).equals(false)
-		o(containsEventOfType([createUpdate(OperationType.DELETE, "2")], OperationType.DELETE, "1")).equals(false)
 	})
 	o("byteLength", function () {
 		o(byteLength("")).equals(0)
