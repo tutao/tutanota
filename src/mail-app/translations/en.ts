@@ -1036,6 +1036,8 @@ export default {
 		"mobyPhish_sender_trusted_once": "Content loaded; we recommend proceeding with caution",
 		"mobyPhish_trusted_once": "Trust once",
 		"mobyPhish_untrust": "Undo trust once",
+		"mobyPhish_report": "Report",
+		"mobyPhish_report_phishing": "Report as Phishing",
 		"modified_label": "Modified",
 		"months_label": "Months",
 		"month_label": "Month",

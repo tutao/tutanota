@@ -42,6 +42,7 @@ import { MobyPhishConfirmAddSenderModal } from "./MobyPhishConfirmAddSenderModal
 import { MobyPhishNotTrustedModal } from "./MobyPhishNotTrustedModal.js"
 import { MobyPhishRemoveConfirmationModal } from "./MobyPhishRemoveConfirmationModal.js"
 import { MobyPhishInfoModal } from "./MobyPhishInfoModal"
+import { MobyPhishReportModal } from "./MobyPhishReportModal.js"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -805,6 +806,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			modalInstance.setModalHandle?.(handle)
 		}
 
+		const reportAction = () => {
+			console.log(`🔒 MOBYPHISH_LOG: Report button clicked for sender="${viewModel.getSender().address}"`)
+
+			const modalInstance = new MobyPhishReportModal(viewModel)
+			const handle = modal.display(modalInstance)
+			modalInstance.setModalHandle(handle)
+		}
+
 		// --- Banner Buttons ---
 		const confirmButton: BannerButtonAttrs = {
 			label: "mobyPhish_confirm",
@@ -859,27 +868,32 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						width: 220,
 						lazyButtons: async () => [
 							{
-								label: "mobyPhish_confirm",
+								label: "mobyPhish_confirm" as const,
 								icon: Icons.Checkmark,
 								click: confirmAction,
 							},
 							{
-								label: "mobyPhish_add",
+								label: "mobyPhish_add" as const,
 								icon: Icons.Add,
 								click: addAction,
 							},
 							{
-								label: "mobyPhish_trusted_once",
+								label: "mobyPhish_trusted_once" as const,
 								icon: Icons.Unlock,
 								click: trustOnceAction,
 							},
 							{
-								label: "mobyPhish_remove",
+								label: "mobyPhish_remove" as const,
 								icon: Icons.CircleReject,
 								click: removeAction,
 							},
 							{
-								label: "mobyPhish_learn_more",
+								label: "reportPhishing_action",
+								icon: Icons.Warning,
+								click: reportAction,
+							},
+							{
+								label: "mobyPhish_learn_more" as const,
 								icon: Icons.QuestionMark,
 								click: showInfoModal,
 							},
@@ -907,7 +921,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					click: showInfoModal,
 				}
 
-				buttons = [confirmButton, addSenderButton, trustOnceButton, removeButton, learnMoreButton]
+				const reportButton: BannerButtonAttrs = {
+					label: "reportPhishing_action",
+					icon: m(Icon, { icon: Icons.Warning }),
+					click: reportAction,
+				}
+
+				buttons = [confirmButton, addSenderButton, trustOnceButton, removeButton, reportButton, learnMoreButton]
 			}
 		}
 

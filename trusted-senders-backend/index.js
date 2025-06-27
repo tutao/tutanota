@@ -92,6 +92,7 @@ db.run(
     status TEXT NOT NULL CHECK (
       status IN ('confirmed', 'denied', 'added_to_trusted', 'removed_from_trusted', 'reported_phishing', 'trusted_once')
     ),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_email, email_id)
   )
 `,
