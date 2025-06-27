@@ -602,6 +602,9 @@ export class EntityRestClient implements EntityRestInterface {
 		const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
 		const untypedInstance = await this.instancePipeline.mapAndEncrypt(downcast(instance._type), instance, sessionKey)
 		// figure out differing fields and build the PATCH request payload
+		console.log("original instance: ", instance._original)
+		delete instance._original
+		console.log("modified instance: ", instance)
 		const patchList = await computePatchPayload(
 			originalParsedInstance,
 			parsedInstance,
