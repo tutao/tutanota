@@ -14,6 +14,10 @@ import { KyberKeyPair } from "../native/common/generatedipc/KyberKeyPair.js"
 import { KyberPublicKey } from "../native/common/generatedipc/KyberPublicKey.js"
 import { KyberEncapsulation } from "../native/common/generatedipc/KyberEncapsulation.js"
 import { KyberPrivateKey } from "../native/common/generatedipc/KyberPrivateKey.js"
+import { IPCEd25519KeyPair } from "../native/common/generatedipc/IPCEd25519KeyPair"
+import { IPCEd25519Signature } from "../native/common/generatedipc/IPCEd25519Signature"
+import { IPCEd25519PrivateKey } from "../native/common/generatedipc/IPCEd25519PrivateKey"
+import { IPCEd25519PublicKey } from "../native/common/generatedipc/IPCEd25519PublicKey"
 
 type FsExports = typeof FsModule
 
@@ -24,6 +28,16 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		private readonly tfs: TempFs,
 		private readonly argon2: Promise<Argon2IDExports>,
 	) {}
+
+	generateEd25519Keypair(): Promise<IPCEd25519KeyPair> {
+		throw new Error("Method not implemented.")
+	}
+	ed25519Sign(privateKey: IPCEd25519PrivateKey, data: Uint8Array): Promise<IPCEd25519Signature> {
+		throw new Error("Method not implemented.")
+	}
+	ed25519Verify(publicKey: IPCEd25519PublicKey, data: Uint8Array, signature: IPCEd25519Signature): Promise<boolean> {
+		throw new Error("Method not implemented.")
+	}
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | object): string {
 		const serializedObject = JSON.stringify(object)

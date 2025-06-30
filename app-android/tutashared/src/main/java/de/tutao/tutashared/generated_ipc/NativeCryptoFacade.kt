@@ -46,4 +46,15 @@ interface NativeCryptoFacade {
 		privateKey: KyberPrivateKey,
 		ciphertext: DataWrapper,
 	): DataWrapper
+	suspend fun generateEd25519Keypair(
+	): IPCEd25519KeyPair
+	suspend fun ed25519Sign(
+		privateKey: IPCEd25519PrivateKey,
+		data: DataWrapper,
+	): IPCEd25519Signature
+	suspend fun ed25519Verify(
+		publicKey: IPCEd25519PublicKey,
+		data: DataWrapper,
+		signature: IPCEd25519Signature,
+	): Boolean
 }

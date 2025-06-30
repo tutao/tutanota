@@ -59,7 +59,7 @@ import { matchers, object, when } from "testdouble"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/common/api/worker/facades/KyberFacade.js"
 import { loadArgon2WASM, loadLibOQSWASM } from "../WASMTestUtils.js"
-import { Ed25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
+import { Ed25519Facade, WASMEd25519Facade } from "../../../../../src/common/api/worker/facades/Ed25519Facade"
 import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/facades/PublicKeySignatureFacade"
 import { checkKeyVersionConstraints } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
@@ -515,8 +515,8 @@ async function createEd25519Facade(): Promise<Ed25519Facade> {
 	if (typeof process !== "undefined") {
 		const { readFile } = await import("node:fs/promises")
 		const wasmBuffer = await readFile("build/crypto_primitives_bg.wasm")
-		return new Ed25519Facade(wasmBuffer)
+		return new WASMEd25519Facade(wasmBuffer)
 	} else {
-		return new Ed25519Facade()
+		return new WASMEd25519Facade()
 	}
 }

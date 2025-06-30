@@ -31,6 +31,7 @@
 	"devDependencies": {
 		"typescript": "5.8.3",
 		"binaryen": "123.0.0",
-		"@tutao/otest": "299.250725.1"
+		"@tutao/otest": "299.250725.1",
+		"zx": "8.1.5"
 	}
 }

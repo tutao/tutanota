@@ -31,4 +31,13 @@ export class NativeCryptoFacadeSendDispatcher implements NativeCryptoFacade {
 	async kyberDecapsulate(...args: Parameters<NativeCryptoFacade["kyberDecapsulate"]>) {
 		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "kyberDecapsulate", ...args])
 	}
+	async generateEd25519Keypair(...args: Parameters<NativeCryptoFacade["generateEd25519Keypair"]>) {
+		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "generateEd25519Keypair", ...args])
+	}
+	async ed25519Sign(...args: Parameters<NativeCryptoFacade["ed25519Sign"]>) {
+		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "ed25519Sign", ...args])
+	}
+	async ed25519Verify(...args: Parameters<NativeCryptoFacade["ed25519Verify"]>) {
+		return this.transport.invokeNative("ipc", ["NativeCryptoFacade", "ed25519Verify", ...args])
+	}
 }

@@ -150,6 +150,26 @@ class AndroidNativeCryptoFacade(
 
 	}
 
+	override suspend fun generateEd25519Keypair(): IPCEd25519KeyPair {
+		val keyPair = de.tutao.tutasdk.ed25519GenerateKeyPair()
+		val pubKey = IPCEd25519PublicKey(keyPair.publicKey.wrap())
+		val privKey = IPCEd25519PrivateKey(keyPair.privateKey.wrap())
+		return IPCEd25519KeyPair(pubKey, privKey)
+	}
+
+	override suspend fun ed25519Sign(privateKey: IPCEd25519PrivateKey, data: DataWrapper): IPCEd25519Signature {
+		val signature = de.tutao.tutasdk.ed25519Sign(privateKey.raw.data, data.data)
+		return IPCEd25519Signature(signature.wrap())
+	}
+
+	override suspend fun ed25519Verify(
+		publicKey: IPCEd25519PublicKey,
+		data: DataWrapper,
+		signature: IPCEd25519Signature
+	): Boolean {
+		return de.tutao.tutasdk.ed25519Verify(publicKey.raw.data, data.data, signature.signature.data)
+	}
+
 	@Throws(CryptoError::class)
 	override suspend fun argon2idGeneratePassphraseKey(
 		passphrase: String,

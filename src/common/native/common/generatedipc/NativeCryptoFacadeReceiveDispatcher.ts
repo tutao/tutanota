@@ -4,6 +4,9 @@ import { RsaPublicKey } from "./RsaPublicKey.js"
 import { RsaPrivateKey } from "./RsaPrivateKey.js"
 import { KyberPublicKey } from "./KyberPublicKey.js"
 import { KyberPrivateKey } from "./KyberPrivateKey.js"
+import { IPCEd25519PrivateKey } from "./IPCEd25519PrivateKey.js"
+import { IPCEd25519PublicKey } from "./IPCEd25519PublicKey.js"
+import { IPCEd25519Signature } from "./IPCEd25519Signature.js"
 import { NativeCryptoFacade } from "./NativeCryptoFacade.js"
 
 export class NativeCryptoFacadeReceiveDispatcher {
@@ -50,6 +53,20 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				const privateKey: KyberPrivateKey = arg[0]
 				const ciphertext: Uint8Array = arg[1]
 				return this.facade.kyberDecapsulate(privateKey, ciphertext)
+			}
+			case "generateEd25519Keypair": {
+				return this.facade.generateEd25519Keypair()
+			}
+			case "ed25519Sign": {
+				const privateKey: IPCEd25519PrivateKey = arg[0]
+				const data: Uint8Array = arg[1]
+				return this.facade.ed25519Sign(privateKey, data)
+			}
+			case "ed25519Verify": {
+				const publicKey: IPCEd25519PublicKey = arg[0]
+				const data: Uint8Array = arg[1]
+				const signature: IPCEd25519Signature = arg[2]
+				return this.facade.ed25519Verify(publicKey, data, signature)
 			}
 		}
 	}

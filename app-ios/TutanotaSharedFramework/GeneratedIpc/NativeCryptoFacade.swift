@@ -43,4 +43,15 @@ public protocol NativeCryptoFacade {
 		_ privateKey: KyberPrivateKey,
 		_ ciphertext: DataWrapper
 	) async throws -> DataWrapper
+	func generateEd25519Keypair(
+	) async throws -> IPCEd25519KeyPair
+	func ed25519Sign(
+		_ privateKey: IPCEd25519PrivateKey,
+		_ data: DataWrapper
+	) async throws -> IPCEd25519Signature
+	func ed25519Verify(
+		_ publicKey: IPCEd25519PublicKey,
+		_ data: DataWrapper,
+		_ signature: IPCEd25519Signature
+	) async throws -> Bool
 }

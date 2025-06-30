@@ -149,6 +149,14 @@ struct KyberTestData: Decodable {
 	@HexData var sharedSecret: Data
 }
 
+struct Ed25519TestData: Decodable {
+	@HexData var alicePrivateKeyHex: Data
+	@HexData var alicePublicKeyHex: Data
+	@HexData var message: Data
+	@HexData var signature: Data
+	@HexData var seed: Data
+}
+
 struct EncryptedTestData: Decodable {
 	let aes128Tests: [AesTestData]
 	let aes128MacTests: [AesMacTestData]
@@ -156,6 +164,7 @@ struct EncryptedTestData: Decodable {
 	let argon2idTests: [Argon2idTestData]
 	let rsaEncryptionTests: [RsaTestData]
 	let kyberEncryptionTests: [KyberTestData]
+	let ed25519Tests: [Ed25519TestData]
 }
 
 // used for testing Swift code
@@ -231,6 +240,21 @@ struct CryptoCompatibilityTest {
 		for test in testData.kyberEncryptionTests {
 			let decaps = try await facade.kyberDecapsulate(test.privateKey, test.cipherText.wrap())
 			#expect(decaps.data == test.sharedSecret)
+		}
+	}
+
+	@Test func ed25519() async throws {
+		for test in testData.ed25519Tests {
+			let alicePrivateKey = IPCEd25519PrivateKey(raw: DataWrapper(data: test.alicePrivateKeyHex))
+			let alicePublicKey = IPCEd25519PublicKey(raw: DataWrapper(data: test.alicePublicKeyHex))
+			let message = DataWrapper(data: test.message)
+
+			let signature = IPCEd25519Signature(signature: DataWrapper(data: test.signature))
+			let reproducedSignature = try await facade.ed25519Sign(alicePrivateKey, message)
+			#expect(reproducedSignature.signature.data == signature.signature.data)
+
+			let verifyResult = try await facade.ed25519Verify(alicePublicKey, message, signature)
+			#expect(verifyResult == true)
 		}
 	}
 
