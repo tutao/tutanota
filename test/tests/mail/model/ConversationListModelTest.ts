@@ -346,10 +346,14 @@ o.spec("ConversationListModel", () => {
 		const unloadedMail = elementIdPart(makeMailId(1)) // a mail that will be on the bottom of the list
 		const mail = model.getMail(unloadedMail)
 		o.check(mail).equals(null)
+		o.check(model.getSelectedAsArray()).deepEquals([])
 
 		// Should now be loaded
 		const loadedMail = assertNotNull(await model.loadAndSelect(unloadedMail, () => false))
 		o.check(loadedMail).equals(model.getMail(unloadedMail))
+
+		// ...and selected
+		o.check(model.getSelectedAsArray()).deepEquals([loadedMail])
 	})
 
 	o.test("handle create events while already loaded", async () => {

@@ -310,8 +310,11 @@ export class ConversationListModel implements MailSetListModel {
 			// variable so that the conversation can be selected, but then the mail we wanted is actually displayed.
 			if (!isSameId(conversation.getDisplayedMailId(), selectedMailId)) {
 				this.olderDisplayedSelectedMailOverride = selectedMailId
-				this.listModel.onSingleSelection(conversation)
 			}
+
+			// We aren't letting ListModel's loadAndSelect do the actual selection since the above case can happen, so
+			// we'll just select it here (as this is what ListModel would have done if it found it)
+			this.listModel.onSingleSelection(conversation)
 		}
 		return selectedMail
 	}
