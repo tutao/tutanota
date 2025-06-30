@@ -31,64 +31,87 @@ async function markAsReviewed(currentDep) {
 	await fs.writeFile(reviewedPath, JSON.stringify(reviewedData, null, 4), { encoding: "utf8" })
 }
 
-async function review(currentDep, itsDeps) {
-	while (true) {
-		console.log(`\nReviewing ${currentDep}`)
+async function review(currentDep, itsDeps, backtrace) {
+	uiloop: while (true) {
+		console.log(`\nReviewing ${currentDep} (at ${backtrace.join(", ")})`)
 		console.log(pathToFileURL(currentDep).href)
-		const depsArray = Object.entries(itsDeps)
-		for (const [i, [key, value]] of depsArray.entries()) {
-			const mark = key.startsWith("node:") || countsAsReviewed(key) ? "✅" : " "
-			const stats = calculateStats(key, value)
-			console.log(`${i}: ${mark} ${String(stats.reviewed).padStart(4)}/${String(stats.overall).padStart(4)} ${key}`)
-		}
-		console.log("d: mark as reviewed")
-		console.log("x: go up")
-		const next = depsArray.find(([dep, _]) => !countsAsReviewed(dep))
-		if (next) {
-			console.log(`n: next unreviewed (${next[0]})`)
-		}
-		console.log("o: open")
-		const answer = await rl.question("What to review?: ")
-		console.log(`(answered: ${answer})`)
-		if (answer === "d") {
-			console.log(`Marking ${currentDep} as reviewed`)
-			await markAsReviewed(currentDep)
-			break
-		} else if (answer === "x") {
-			break
-		} else if (next && answer === "n") {
-			await review(next[0], next[1])
-		} else if (answer === "o") {
-			await $`/opt/RustRover-2024.3.3/bin/rustrover ${currentDep}`
+
+		const actions = []
+		actions.push({
+			char: "d",
+			msg: "Mark as reviewed",
+			finalizes: true,
+			action: async () => {
+				console.log(`Marking ${currentDep} as reviewed`)
+				await markAsReviewed(currentDep)
+			},
+		})
+		actions.push({
+			char: "x",
+			msg: "Go up",
+			finalizes: true,
+			action: () => {},
+		})
+		actions.push({
+			char: "o",
+			msg: "Open",
+			action: () => $`/opt/RustRover-2024.3.3/bin/rustrover ${currentDep}`,
+		})
+
+		if (typeof itsDeps === "string") {
+			console.log("CYCLE: ", itsDeps)
 		} else {
-			const numAnswer = parseInt(answer)
-			if (!isNaN(numAnswer) && numAnswer < depsArray.length) {
-				const [dep, itsDeps] = depsArray[numAnswer]
-				// console.log(`Reviewing: ${dep}`)
-				await review(dep, itsDeps)
+			const depsArray = Object.entries(itsDeps)
+			const next = depsArray.find(([dep, _]) => !countsAsReviewed(dep))
+			if (next) {
+				actions.push({
+					char: "n",
+					msg: `next unreviewed ${next[0]}`,
+					action: () => review(next[0], next[1], [...backtrace, currentDep]),
+				})
+			}
+
+			for (const [i, [key, value]] of depsArray.entries()) {
+				const mark = key.startsWith("node:") || countsAsReviewed(key) ? "✅" : " "
+				const stats = calculateStats(key, value)
+				actions.push({
+					char: String(i),
+					msg: `${mark} ${String(stats.reviewed).padStart(4)}/${String(stats.overall).padStart(4)} ${key}`,
+					action: async () => {
+						const numAnswer = parseInt(answer)
+						if (!isNaN(numAnswer) && numAnswer < depsArray.length) {
+							const [dep, itsDeps] = depsArray[numAnswer]
+							await review(dep, itsDeps, [...backtrace, currentDep])
+						}
+					},
+				})
+			}
+		}
+		for (const action of actions) {
+			console.log(`${action.char}: ${action.msg}`)
+		}
+		const answer = await rl.question("What to review?: ")
+		for (const action of actions) {
+			if (answer === action.char) {
+				await action.action()
+				if (action.finalizes) {
+					break uiloop
+				}
 			}
 		}
 	}
 }
 
-const transitiveDepsCache = new Map()
-
 function transitiveDeps(currentDep, itsDeps) {
-	const cached = transitiveDepsCache.get(currentDep)
-	if (cached) {
-		return cached
-	}
 	const collectedDeps = Object.entries(itsDeps)
 		.map(([dep, depDeps]) => {
 			if (typeof depDeps === "string") {
 				return []
 			}
-			return transitiveDeps(dep, depDeps)
+			return transitiveDeps(dep, depDeps, [currentDep])
 		})
 		.flat()
-	const result = [currentDep, ...collectedDeps]
-	transitiveDepsCache.set(currentDep, result)
-	return result
+	return [currentDep, ...collectedDeps]
 }
 
 function isExplicitlyReviewed(dep) {
@@ -111,4 +134,4 @@ function calculateStats(currentDep, itsDeps) {
 	return { reviewed, overall: dedupedDeps.size }
 }
 
-await review("entry", deps)
+await review("entry", deps, [])
