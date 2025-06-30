@@ -17,17 +17,24 @@ import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
  *
  * To test:
  * run local server to serve updates
- * run 'node dist -l local' to build initial client
- * run 'cp ./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage ~/tutanota-desktop-snapshot-linux.AppImage'
+ * run 'node desktop local' to build initial client
+ * run 'cp ./artifacts/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage ~/tutanota-desktop-snapshot-linux.AppImage'
  * run '~/tutanota-desktop-snapshot-linux.AppImage'
- * run 'node dist -el local' to build an update when it's needed (takes about 20s)
+ * run 'node run bump-version' and then run 'node desktop local' to build an update when it's needed
  *
  */
 
 const TAG = "[ElectronUpdater]"
 
 type LoggerFn = (_: string, ...args: any) => void
-type UpdaterLogger = { debug: LoggerFn; info: LoggerFn; warn: LoggerFn; error: LoggerFn; silly: LoggerFn; verbose: LoggerFn }
+type UpdaterLogger = {
+	debug: LoggerFn
+	info: LoggerFn
+	warn: LoggerFn
+	error: LoggerFn
+	silly: LoggerFn
+	verbose: LoggerFn
+}
 /** we add the signature to the UpdateInfo when building the client */
 type TutanotaUpdateInfo = UpdateInfo & { signature: string }
 type IntervalID = ReturnType<typeof setTimeout>
@@ -122,33 +129,6 @@ export class ElectronUpdater {
 					this.startPolling()
 				}
 			})
-
-		/**
-		 * this replaces the autoInstallOnAppQuit feature of autoUpdater,
-		 * which causes the app to uninstall itself if it is installed for
-		 * all users on a windows system.
-		 *
-		 * should be removed once https://github.com/electron-userland/electron-builder/issues/4815
-		 * is resolved.
-		 */
-		this.app.once("before-quit", (ev) => {
-			if (this._updateInfo) {
-				ev.preventDefault()
-				this._updateInfo = null
-				if (process.platform !== "win32") {
-					// We don't do auto-update on close on Windows because it launches the installer which is pretty annoying.
-					// We have to start the installer wizard (first argument to install being "false") because without it update for
-					// system-wide installation does not work.
-					// see https://github.com/tutao/tutanota/issues/1413#issuecomment-796737959
-					// see c4b12e9
-
-					// quitAndInstall takes two arguments which are only used for windows and linux updater.
-					// isSilent and isForceRunAfter. If the first one is set to false then the second one is set to true implicitly.
-					// we want a silent install on quit anyway (as we disabled update on quit for windows) and no restart of the application.
-					this.updater.electronUpdater.quitAndInstall(true, false)
-				}
-			}
-		})
 	}
 
 	async start() {
