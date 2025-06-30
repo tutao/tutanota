@@ -90,7 +90,7 @@ import type { BulkMailLoader } from "../index/BulkMailLoader.js"
 import type { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
-import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
+import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import type { Indexer } from "../index/Indexer"
 import type { SearchFacade } from "../index/SearchFacade"
@@ -443,13 +443,13 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	if (isIOSApp() || isAndroidApp()) {
 		locator.kyberFacade = new NativeKyberFacade(new NativeCryptoFacadeSendDispatcher(worker))
+		locator.ed25519Facade = new NativeEd25519Facade(new NativeCryptoFacadeSendDispatcher(worker))
 	} else {
 		locator.kyberFacade = new WASMKyberFacade()
+		locator.ed25519Facade = new WASMEd25519Facade()
 	}
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
-
-	locator.ed25519Facade = new Ed25519Facade()
 
 	locator.publicKeySignatureFacade = new PublicKeySignatureFacade(locator.ed25519Facade, locator.cryptoWrapper)
 

@@ -20,7 +20,7 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 	view(vnode: Vnode<VerificationErrorInfoPageAttrs>) {
 		const title = lang.get("keyManagement.verificationError_title")
 		let subTitle =
-			vnode.attrs.sourceOfTrust == IdentityKeySourceOfTrust.Manual
+			vnode.attrs.sourceOfTrust === IdentityKeySourceOfTrust.Manual
 				? lang.get("keyVerificationErrorManual_msg")
 				: IdentityKeySourceOfTrust.TOFU
 					? lang.get("keyVerificationErrorTofu_msg")

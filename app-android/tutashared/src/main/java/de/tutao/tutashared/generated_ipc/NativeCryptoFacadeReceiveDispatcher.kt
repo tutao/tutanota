@@ -88,6 +88,31 @@ class NativeCryptoFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"generateEd25519Keypair" -> {
+				val result: IPCEd25519KeyPair = this.facade.generateEd25519Keypair(
+				)
+				return json.encodeToString(result)
+			}
+			"ed25519Sign" -> {
+				val privateKey: IPCEd25519PrivateKey = json.decodeFromString(arg[0])
+				val data: DataWrapper = json.decodeFromString(arg[1])
+				val result: IPCEd25519Signature = this.facade.ed25519Sign(
+					privateKey,
+					data,
+				)
+				return json.encodeToString(result)
+			}
+			"ed25519Verify" -> {
+				val publicKey: IPCEd25519PublicKey = json.decodeFromString(arg[0])
+				val data: DataWrapper = json.decodeFromString(arg[1])
+				val signature: IPCEd25519Signature = json.decodeFromString(arg[2])
+				val result: Boolean = this.facade.ed25519Verify(
+					publicKey,
+					data,
+					signature,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for NativeCryptoFacade: $method")
 		}
 	}

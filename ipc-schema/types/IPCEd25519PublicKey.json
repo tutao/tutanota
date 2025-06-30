@@ -1,0 +1,7 @@
+{
+	"name": "IPCEd25519PublicKey",
+	"type": "struct",
+	"fields": {
+		"raw": "bytes"
+	}
+}

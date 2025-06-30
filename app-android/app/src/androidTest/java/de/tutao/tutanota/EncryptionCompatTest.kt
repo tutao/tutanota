@@ -233,6 +233,25 @@ class CompatibilityTest {
 		}
 	}
 
+
+	@Test
+	fun ed25519() = runBlocking {
+		for (td in testData.ed25519Tests) {
+			val alicePrivateKeyBytes = hexToBytes(td.getAlicePrivateKeyHex());
+			val alicePublicKeyBytes = hexToBytes(td.getAlicePublicKeyHex());
+			val signatureBytes = hexToBytes(td.getSignature());
+			val alicePrivateKey = IPCEd25519PrivateKey(alicePrivateKeyBytes.wrap());
+			val alicePublicKey = IPCEd25519PublicKey(alicePublicKeyBytes.wrap());
+			val message = hexToBytes(td.getMessage());
+			val signature = IPCEd25519Signature(signatureBytes.wrap());
+
+			val reproducedSignature = crypto.ed25519Sign(alicePrivateKey, message.wrap());
+			assertArrayEquals(signature.signature.data, reproducedSignature.signature.data);
+			assertTrue(crypto.ed25519Verify(alicePublicKey, message.wrap(), signature));
+		}
+	}
+
+
 	@Test
 	@Throws(CryptoError::class)
 	fun kyber() = runBlocking {

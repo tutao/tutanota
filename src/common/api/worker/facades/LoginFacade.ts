@@ -330,7 +330,7 @@ export class LoginFacade {
 			const rollouts = await this.rolloutFacade.getScheduledRolloutTypes()
 			for (const rolloutType of rollouts) {
 				// the server will schedule either one or the other, but not both at the same time
-				if (rolloutType === RolloutType.AdminOrUserGroupKeyRotation || rolloutType == RolloutType.OtherGroupKeyRotation) {
+				if (rolloutType === RolloutType.AdminOrUserGroupKeyRotation || rolloutType === RolloutType.OtherGroupKeyRotation) {
 					await this.rolloutFacade.configureRollout(
 						rolloutType,
 						new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey),
