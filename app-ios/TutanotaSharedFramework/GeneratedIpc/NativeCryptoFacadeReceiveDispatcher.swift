@@ -76,6 +76,28 @@ public class NativeCryptoFacadeReceiveDispatcher {
 				ciphertext
 			)
 			return toJson(result)
+		case "generateEd25519Keypair":
+			let result = try await self.facade.generateEd25519Keypair(
+			)
+			return toJson(result)
+		case "ed25519Sign":
+			let privateKey = try! JSONDecoder().decode(IPCEd25519PrivateKey.self, from: arg[0].data(using: .utf8)!)
+			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
+			let result = try await self.facade.ed25519Sign(
+				privateKey,
+				data
+			)
+			return toJson(result)
+		case "ed25519Verify":
+			let publicKey = try! JSONDecoder().decode(IPCEd25519PublicKey.self, from: arg[0].data(using: .utf8)!)
+			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
+			let signature = try! JSONDecoder().decode(IPCEd25519Signature.self, from: arg[2].data(using: .utf8)!)
+			let result = try await self.facade.ed25519Verify(
+				publicKey,
+				data,
+				signature
+			)
+			return toJson(result)
 		default:
 			fatalError("licc messed up! \(method)")
 		}
