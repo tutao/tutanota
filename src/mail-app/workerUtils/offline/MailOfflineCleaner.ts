@@ -1,4 +1,4 @@
-import { assertNotNull, groupByAndMap } from "@tutao/tutanota-utils"
+import { assertNotNull, daysToMillis, groupByAndMap } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
 	elementIdPart,
@@ -30,7 +30,7 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 			const user = await offlineStorage.get(UserTypeRef, null, userId)
 			// Free users always have default time range regardless of what is stored
 			const isFreeUser = user?.accountType === AccountType.FREE
-			const cutoffDate = isFreeUser || timeRangeDate == null ? new Date(now - OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS) : timeRangeDate
+			const cutoffDate = isFreeUser || timeRangeDate == null ? new Date(now - daysToMillis(OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS)) : timeRangeDate
 			this.cutOffId = constructMailSetEntryId(new Date(cutoffDate), GENERATED_MAX_ID)
 		}
 		return this.cutOffId
