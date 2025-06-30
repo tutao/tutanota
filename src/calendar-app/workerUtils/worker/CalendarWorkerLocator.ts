@@ -75,7 +75,7 @@ import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyA
 import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
-import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
+import { Ed25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
@@ -281,7 +281,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
 
-	locator.ed25519Facade = new Ed25519Facade()
+	locator.ed25519Facade = new WASMEd25519Facade()
 
 	locator.cryptoWrapper = new CryptoWrapper()
 

@@ -1,0 +1,7 @@
+{
+	"name": "IPCEd25519Signature",
+	"type": "struct",
+	"fields": {
+		"signature": "bytes"
+	}
+}

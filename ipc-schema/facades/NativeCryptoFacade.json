@@ -96,6 +96,35 @@
 				}
 			],
 			"ret": "bytes"
+		},
+		"generateEd25519Keypair": {
+			"arg": [],
+			"ret": "IPCEd25519KeyPair"
+		},
+		"ed25519Sign": {
+			"arg": [
+				{
+					"privateKey": "IPCEd25519PrivateKey"
+				},
+				{
+					"data": "bytes"
+				}
+			],
+			"ret": "IPCEd25519Signature"
+		},
+		"ed25519Verify": {
+			"arg": [
+				{
+					"publicKey": "IPCEd25519PublicKey"
+				},
+				{
+					"data": "bytes"
+				},
+				{
+					"signature": "IPCEd25519Signature"
+				}
+			],
+			"ret": "boolean"
 		}
 	}
 }
