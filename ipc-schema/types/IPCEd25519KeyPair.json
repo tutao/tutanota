@@ -1,0 +1,8 @@
+{
+	"name": "IPCEd25519KeyPair",
+	"type": "struct",
+	"fields": {
+		"publicKey": "IPCEd25519PublicKey",
+		"privateKey": "IPCEd25519PrivateKey"
+	}
+}

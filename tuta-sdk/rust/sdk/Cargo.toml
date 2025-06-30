@@ -35,7 +35,6 @@ zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
 hkdf = "0.12.4"
 argon2 = { version = "0.5.3", features = ["zeroize"] }
 curve25519-dalek = "4.1.2"
-ed25519-dalek = { version = "2", features = ["rand_core", "zeroize"] }
 pqcrypto-mlkem = { version = "0.1.0", default-features = false, features = [
     "std",
 ] }

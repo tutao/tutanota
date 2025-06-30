@@ -20,9 +20,13 @@ pub struct Ed25519SignatureVerificationError(#[from] SignatureError);
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Ed25519Signature(#[serde(with = "BigArray")] [u8; SIGNATURE_SIZE]);
 
-impl From<[u8; SIGNATURE_SIZE]> for Ed25519Signature {
-	fn from(value: [u8; SIGNATURE_SIZE]) -> Self {
-		Ed25519Signature(value)
+impl Ed25519Signature {
+	pub fn from_bytes(bytes: [u8; SIGNATURE_SIZE]) -> Self {
+		Ed25519Signature(bytes)
+	}
+
+	pub fn to_bytes(&self) -> [u8; SIGNATURE_SIZE] {
+		self.0
 	}
 }
 
@@ -42,11 +46,15 @@ impl Ed25519PrivateKey {
 		let signing_key = SigningKey::from_bytes(&self.0);
 		let signature: Signature = signing_key.sign(message);
 
-		Ed25519Signature::from(signature.to_bytes())
+		Ed25519Signature::from_bytes(signature.to_bytes())
 	}
 
 	pub fn from_bytes(bytes: [u8; SECRET_KEY_LENGTH]) -> Self {
 		Ed25519PrivateKey(bytes)
+	}
+
+	pub fn to_bytes(&self) -> [u8; PUBLIC_KEY_LENGTH] {
+		self.0
 	}
 }
 
@@ -76,6 +84,10 @@ impl Ed25519PublicKey {
 
 	pub fn from_bytes(bytes: [u8; PUBLIC_KEY_LENGTH]) -> Self {
 		Ed25519PublicKey(bytes)
+	}
+
+	pub fn to_bytes(&self) -> [u8; PUBLIC_KEY_LENGTH] {
+		self.0
 	}
 }
 
@@ -184,7 +196,7 @@ mod tests {
 			);
 			let message = td.message;
 			let signature_bytes: [u8; SIGNATURE_SIZE] = td.signature.try_into().unwrap();
-			let signature = Ed25519Signature::from(signature_bytes);
+			let signature = Ed25519Signature::from_bytes(signature_bytes);
 
 			let reproduced_signature = key_pair.private_key.sign(&message);
 			assert_eq!(reproduced_signature, signature);

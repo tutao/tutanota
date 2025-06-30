@@ -2629,7 +2629,6 @@ dependencies = [
  "const-hex",
  "crypto-primitives",
  "curve25519-dalek",
- "ed25519-dalek",
  "form_urlencoded",
  "futures",
  "hkdf",

@@ -1,7 +1,7 @@
 mod utils;
 
 pub mod compatibility_test_utils;
-mod ed25519;
+pub mod ed25519;
 pub mod randomizer_facade;
 
 use ed25519::Ed25519KeyPair;

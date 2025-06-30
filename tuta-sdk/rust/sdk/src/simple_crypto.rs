@@ -6,6 +6,7 @@ use crate::crypto::rsa::{RSAPrivateKey, RSAPublicKey, SeedBufferRng};
 use crate::crypto::{argon2_id, kyber};
 use crate::util::{array_cast_slice, ArrayCastingError};
 use base64::prelude::*;
+use crypto_primitives::ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature};
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use zeroize::Zeroizing;
 
@@ -220,4 +221,68 @@ fn argon2id_generate_key_from_passphrase(
 		})?;
 	let passphrase_key = argon2_id::generate_key_from_passphrase(passphrase.as_str(), salt);
 	Ok(passphrase_key.as_bytes().to_vec())
+}
+
+#[derive(uniffi::Record)]
+struct Ed25519KeyPair {
+	public_key: Vec<u8>,
+	private_key: Vec<u8>,
+}
+
+#[derive(thiserror::Error, Debug, uniffi::Error)]
+#[uniffi(flat_error)]
+pub enum Ed25519Error {
+	#[error("InvalidPublicKey")]
+	InvalidPublicKey,
+	#[error("InvalidPrivateKey")]
+	InvalidPrivateKey,
+	#[error("InvalidSignature")]
+	InvalidSignature,
+}
+
+#[uniffi::export]
+fn ed25519_generate_key_pair() -> Ed25519KeyPair {
+	let ed25519_key_pair = crypto_primitives::ed25519_generate_keypair();
+
+	Ed25519KeyPair {
+		public_key: ed25519_key_pair.public_key.to_bytes().to_vec(),
+		private_key: ed25519_key_pair.private_key.to_bytes().to_vec(),
+	}
+}
+
+#[uniffi::export]
+fn ed25519_sign(private_key: Vec<u8>, message: Vec<u8>) -> Result<Vec<u8>, Ed25519Error> {
+	let ed25519_private_key = Ed25519PrivateKey::from_bytes(
+		array_cast_slice(private_key.as_slice(), "")
+			.map_err(|_| Ed25519Error::InvalidPrivateKey)?,
+	);
+	let signature = crypto_primitives::ed25519_sign(ed25519_private_key, &message);
+	Ok(signature.to_bytes().to_vec())
+}
+
+#[uniffi::export]
+fn ed25519_verify(
+	public_key: Vec<u8>,
+	message: Vec<u8>,
+	signature: Vec<u8>,
+) -> Result<bool, Ed25519Error> {
+	let ed25519_public_key = Ed25519PublicKey::from_bytes(
+		array_cast_slice(
+			public_key.as_slice(),
+			"ed25519 public_key to fixed sized array",
+		)
+		.map_err(|_| Ed25519Error::InvalidPublicKey)?,
+	);
+	let ed25519_signature = Ed25519Signature::from_bytes(
+		array_cast_slice(
+			signature.as_slice(),
+			"ed25519 signature to fixed sized array",
+		)
+		.map_err(|_| Ed25519Error::InvalidSignature)?,
+	);
+	Ok(crypto_primitives::ed25519_verify(
+		ed25519_public_key,
+		&message,
+		ed25519_signature,
+	))
 }

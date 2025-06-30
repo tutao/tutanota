@@ -75,7 +75,7 @@ import { KeyAuthenticationFacade } from "../../../common/api/worker/facades/KeyA
 import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { InstancePipeline } from "../../../common/api/worker/crypto/InstancePipeline"
 import { ApplicationTypesFacade } from "../../../common/api/worker/facades/ApplicationTypesFacade"
-import { Ed25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
+import { Ed25519Facade, NativeEd25519Facade, WASMEd25519Facade } from "../../../common/api/worker/facades/Ed25519Facade"
 import { ClientModelInfo, ServerModelInfo, TypeModelResolver } from "../../../common/api/common/EntityFunctions"
 import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { CalendarEventTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
@@ -273,15 +273,16 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new CacheManagementFacade(locator.user, locator.cachingEntityClient, locator.cache as DefaultEntityRestCache)
 	})
 
+	const nativeCryptoFacadeSendDispatcher = new NativeCryptoFacadeSendDispatcher(worker)
 	if (isIOSApp() || isAndroidApp()) {
-		locator.kyberFacade = new NativeKyberFacade(new NativeCryptoFacadeSendDispatcher(worker))
+		locator.kyberFacade = new NativeKyberFacade(nativeCryptoFacadeSendDispatcher)
+		locator.ed25519Facade = new NativeEd25519Facade(nativeCryptoFacadeSendDispatcher)
 	} else {
 		locator.kyberFacade = new WASMKyberFacade()
+		locator.ed25519Facade = new WASMEd25519Facade()
 	}
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
-
-	locator.ed25519Facade = new Ed25519Facade()
 
 	locator.cryptoWrapper = new CryptoWrapper()
 
@@ -424,7 +425,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	let argon2idFacade: Argon2idFacade
 	if (!isBrowser()) {
-		argon2idFacade = new NativeArgon2idFacade(new NativeCryptoFacadeSendDispatcher(worker))
+		argon2idFacade = new NativeArgon2idFacade(nativeCryptoFacadeSendDispatcher)
 	} else {
 		argon2idFacade = new WASMArgon2idFacade()
 	}
@@ -496,7 +497,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.cryptoWrapper,
 		)
 	})
-	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
+	const aesApp = new AesApp(nativeCryptoFacadeSendDispatcher, random)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
 		return new BlobFacade(locator.restClient, suspensionHandler, fileApp, aesApp, locator.instancePipeline, locator.crypto, locator.blobAccessToken)
