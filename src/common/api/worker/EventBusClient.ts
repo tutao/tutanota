@@ -5,7 +5,6 @@ import {
 	ConnectionError,
 	handleRestError,
 	NotAuthorizedError,
-	NotFoundError,
 	ServiceUnavailableError,
 	SessionExpiredError,
 } from "../common/error/RestError"
@@ -20,49 +19,33 @@ import {
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import {
-	AppName,
-	assertNotNull,
-	binarySearch,
-	delay,
-	getTypeString,
-	groupBy,
-	identity,
-	isNotNull,
-	isSameTypeRef,
-	lastThrow,
-	ofClass,
-	promiseMap,
-	randomIntFromInterval,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { AppName, assertNotNull, binarySearch, delay, identity, lastThrow, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
-import { CloseEventBusOption, GroupType, OperationType, SECOND_MS } from "../common/TutanotaConstants"
+import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
 import { EntityClient } from "../common/EntityClient"
 import type { QueuedBatch } from "./EventQueue.js"
 import { EventQueue } from "./EventQueue.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
-import { compareOldestFirst, elementIdPart, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, listIdPart } from "../common/utils/EntityUtils"
+import { compareOldestFirst, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId } from "../common/utils/EntityUtils"
 import { WsConnectionState } from "../main/WorkerClient"
 import { EntityRestCache } from "./rest/DefaultEntityRestCache.js"
 import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { TypeModelResolver } from "../common/EntityFunctions.js"
-import { Mail, MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
+import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
 import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "../common/EntityTypes"
 import { InstancePipeline } from "./crypto/InstancePipeline"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
-import { parseKeyVersion } from "./facades/KeyLoaderFacade"
-import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
 import { CryptoFacade } from "./crypto/CryptoFacade"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { EntityAdapter } from "./crypto/EntityAdapter"
 import { EventInstancePrefetcher } from "./EventInstancePrefetcher"
+import { AttributeModel } from "../common/AttributeModel"
 
 assertWorkerOrNode()
 
@@ -233,7 +216,8 @@ export class EventBusClient {
 			"&accessToken=" +
 			authHeaders.accessToken +
 			(this.lastAntiphishingMarkersId ? "&lastPhishingMarkersId=" + this.lastAntiphishingMarkersId : "") +
-			(env.clientName ? "&clientName=" + env.clientName : "")
+			(env.clientName ? "&clientName=" + env.clientName : "") +
+			(env.networkDebugging ? "&network-debugging=" + "enable-network-debugging" : "")
 		const path = "/event?" + authQuery
 
 		this.unsubscribeFromOldWebsocket()
@@ -308,7 +292,8 @@ export class EventBusClient {
 	}
 
 	private async decodeEntityEventValue<E extends Entity>(messageType: TypeRef<E>, untypedInstance: ServerModelUntypedInstance): Promise<E> {
-		return await this.instancePipeline.decryptAndMap(messageType, untypedInstance, null)
+		const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
+		return await this.instancePipeline.decryptAndMap(messageType, untypedInstanceSanitized, null)
 	}
 
 	private onError(error: any) {
@@ -365,7 +350,8 @@ export class EventBusClient {
 			const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId!))
 			const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 			const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
-			const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstance)
+			const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
+			const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstanceSanitized)
 			const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
 			if (this.userFacade.hasGroup(assertNotNull(entityAdapter._ownerGroup))) {
 				// if the user was just assigned to a new group, it might it is not yet on the user facade,
