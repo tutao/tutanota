@@ -67,6 +67,38 @@ o.spec("EphemeralCacheStorage", function () {
 			o(mailDetailsBlobFromDb).equals(null)
 		})
 
+		o("cache roundtrip: putMultiple, provideMultiple, delete", async function () {
+			storage.init({ userId })
+			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
+				_id: [archiveId, blobElementId],
+				_permissions: "permissionId",
+				details: createTestEntity(MailDetailsTypeRef, {
+					_id: "detailsId1",
+					recipients: createTestEntity(RecipientsTypeRef, { _id: "recipeintsId1" }),
+					body: createTestEntity(BodyTypeRef, { _id: "bodyId1" }),
+				}),
+			})
+
+			let mailDetailsBlobFromDb = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId])
+			o(mailDetailsBlobFromDb).deepEquals([])
+
+			const mailDetailsBlobParsedInstance = (await modelMapper.mapToClientModelParsedInstance(
+				MailDetailsBlobTypeRef,
+				storableMailDetailsBlob,
+			)) as unknown as ServerModelParsedInstance
+
+			await storage.putMultiple(MailDetailsBlobTypeRef, [mailDetailsBlobParsedInstance as ServerModelParsedInstance])
+
+			mailDetailsBlobFromDb = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId])
+			removeOriginals(mailDetailsBlobFromDb[0])
+			o(mailDetailsBlobFromDb[0]).deepEquals(storableMailDetailsBlob)
+
+			await storage.deleteIfExists(MailDetailsBlobTypeRef, archiveId, blobElementId)
+
+			mailDetailsBlobFromDb = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId])
+			o(mailDetailsBlobFromDb).deepEquals([])
+		})
+
 		o("cache roundtrip: put, get, deleteAllOwnedBy", async function () {
 			const _ownerGroup = "owenerGroup"
 			storage.init({ userId })

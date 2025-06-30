@@ -5,7 +5,7 @@ import { TypeRef } from "@tutao/tutanota-utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-import { ModelMapper } from "../crypto/ModelMapper"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
 	type: "ephemeral"
@@ -65,7 +65,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return await this.inner.provideFromRangeParsed(typeRef, listId, start, count, reverse)
 	}
 
-	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: string, elementIds: string[]): Promise<ServerModelParsedInstance[]> {
+	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<string>, elementIds: string[]): Promise<ServerModelParsedInstance[]> {
 		return await this.inner.provideMultipleParsed(typeRef, listId, elementIds)
 	}
 
@@ -172,6 +172,10 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void> {
 		return this.inner.put(typeRef, instance)
+	}
+
+	putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void> {
+		return this.inner.putMultiple(typeRef, instances)
 	}
 
 	putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void> {

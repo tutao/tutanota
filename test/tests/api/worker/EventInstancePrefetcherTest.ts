@@ -264,6 +264,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			instanceListId: listIdPart(fourthMail._id),
 		})
 
+		when(cacheStoragex.provideMultipleParsed(MailDetailsBlobTypeRef, "archiveId", matchers.anything())).thenResolve([])
 		when(
 			entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", matchers.anything(), matchers.anything(), matchers.anything()),
 		).thenResolve([])
@@ -517,6 +518,8 @@ o.spec("EventInstancePrefetcherTest", function () {
 			{ populateAggregates: true },
 		)
 
+		when(cacheStoragex.provideMultipleParsed(MailDetailsBlobTypeRef, "archiveId", matchers.anything())).thenResolve([])
+
 		const secondMail = createTestEntity(
 			MailTypeRef,
 			{
@@ -525,7 +528,6 @@ o.spec("EventInstancePrefetcherTest", function () {
 			},
 			{ populateAggregates: true },
 		)
-
 		when(
 			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
@@ -573,10 +575,10 @@ o.spec("EventInstancePrefetcherTest", function () {
 			typeRef: MailTypeRef,
 		}
 
+		when(cacheStoragex.provideMultipleParsed(MailDetailsBlobTypeRef, "archiveId", matchers.anything())).thenResolve([])
 		const secondMailUpdate: EntityUpdateData = Object.assign(structuredClone(mailUpdate), {
 			instanceId: id2,
 		})
-
 		when(
 			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,

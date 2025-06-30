@@ -18,6 +18,8 @@ import {
 	createEntityUpdate,
 	createPatch,
 	createPatchList,
+	Customer,
+	CustomerTypeRef,
 	ExternalUserReferenceTypeRef,
 	GroupKeyTypeRef,
 	MailAddressToGroupTypeRef,
@@ -186,6 +188,21 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		let createId = function (idText) {
 			//return idText
 			return Array(13 - idText.length).join("-") + idText
+		}
+
+		let createCustomer = function (id): Customer {
+			let customer = createTestEntity(CustomerTypeRef, {
+				_id: createId(id),
+				_ownerGroup: "customer-owner",
+				adminGroup: "adminGroup",
+				customerGroup: "customerGroup",
+				adminGroups: "adminGroups",
+				customerGroups: "customerGroups",
+				userGroups: "userGroups",
+				teamGroups: "teamGroups",
+				customerInfo: ["freeId", "customerInfo"],
+			})
+			return customer
 		}
 
 		let createMailDetailsBlobInstance = function (archiveId, id, bodyText): MailDetailsBlob {
@@ -1035,9 +1052,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const mail3 = createMailInstance(listId1, ids[2], "hello3")
 
 			await storage.setNewRangeForList(MailTypeRef, listId1, ids[0], ids[2])
-			for (const mail of [mail1, mail2, mail3]) {
-				await storage.put(MailTypeRef, await toStorableInstance(mail))
-			}
+			await storage.putMultiple(MailTypeRef, [await toStorableInstance(mail1), await toStorableInstance(mail2), await toStorableInstance(mail3)])
 			const moreMails = new Map()
 			moreMails.set(ids[3], createMailInstance(listId1, ids[3], "hello4"))
 			moreMails.set(ids[4], createMailInstance(listId1, ids[4], "hello5"))
@@ -1078,9 +1093,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			await storage.setNewRangeForList(MailTypeRef, listId1, ids[2], ids[4])
 
-			for (const mail of [mail3, mail4, mail5]) {
-				await storage.put(MailTypeRef, await toStorableInstance(mail))
-			}
+			await storage.putMultiple(MailTypeRef, [await toStorableInstance(mail3), await toStorableInstance(mail4), await toStorableInstance(mail5)])
 
 			const loadRange = spy(async function () {
 				return Promise.resolve([await toStorableInstance(mail2), await toStorableInstance(mail1)])
@@ -1295,7 +1308,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			},
 		)
 
-		o("loadMultiple should load necessary elements from the server, and get the rest from the cache", async function () {
+		o("loadMultiple should load necessary list elements from the server, and get the rest from the cache", async function () {
 			const listId = "listId"
 			const inCache = [createMailInstance(listId, "1", "1"), createMailInstance(listId, "3", "3")]
 
@@ -1315,6 +1328,53 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			)
 			for (const item of inCache.concat(notInCache)) {
 				o(await storage.get(MailTypeRef, listId, getElementId(item))).notEquals(null)("element is in cache " + getElementId(item))
+			}
+			unmockAttribute(mock)
+		})
+
+		o("loadMultiple should load necessary elements from the server, and get the rest from the cache", async function () {
+			const inCache = [createCustomer("customer1"), createCustomer("customer2")]
+
+			const notInCache = [createCustomer("customer3"), createCustomer("customer4")]
+			await Promise.all(inCache.map(async (i) => await storage.put(CustomerTypeRef, await toStorableInstance(i))))
+			const ids = inCache.concat(notInCache).map((c) => c._id)
+
+			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
+			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
+
+			const result = await cache.loadMultiple(CustomerTypeRef, null, ids)
+			result.map(removeOriginals)
+			o(result).deepEquals(notInCache.concat(inCache))("all customers are in cache")
+			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
+			o(loadMultipleParsedInstances.args).deepEquals([CustomerTypeRef, null, notInCache.map((c) => c._id), undefined, {}])(
+				"load multiple is called for customers not in cache",
+			)
+			for (const item of inCache.concat(notInCache)) {
+				o(await storage.get(CustomerTypeRef, null, item._id)).notEquals(null)("element is in cache " + item._id)
+			}
+			unmockAttribute(mock)
+		})
+
+		o("loadMultiple should load necessary blob elements from the server, and get the rest from the cache", async function () {
+			const archiveId = "archiveId"
+			const inCache = [createMailDetailsBlobInstance(archiveId, "1", "1"), createMailDetailsBlobInstance(archiveId, "3", "3")]
+
+			const notInCache = [createMailDetailsBlobInstance(archiveId, "2", "2"), createMailDetailsBlobInstance(archiveId, "5", "5")]
+			await Promise.all(inCache.map(async (i) => await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(i))))
+			const ids = inCache.concat(notInCache).map(getElementId)
+
+			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
+			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
+
+			const result = await cache.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
+			result.map(removeOriginals)
+			o(result).deepEquals(notInCache.concat(inCache))("all mails details are in cache")
+			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
+			o(loadMultipleParsedInstances.args).deepEquals([MailDetailsBlobTypeRef, archiveId, notInCache.map(getElementId), undefined, {}])(
+				"load multiple is called for mails details not in cache",
+			)
+			for (const item of inCache.concat(notInCache)) {
+				o(await storage.get(MailDetailsBlobTypeRef, archiveId, getElementId(item))).notEquals(null)("element is in cache " + getElementId(item))
 			}
 			unmockAttribute(mock)
 		})
