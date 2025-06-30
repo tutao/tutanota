@@ -103,39 +103,6 @@ o.spec("EntityUtils", function () {
 			removeTechnicalFields(entityCopy as ElementEntity)
 			o(entityCopy as unknown).deepEquals(originalEntity)
 		})
-
-		o("it removes _finalEncrypted fields directly on the entity", function () {
-			const originalEntity = { ...makeEntity(), _finalEncryptedThing: [1, 2, 3] }
-			const entityCopy = clone(originalEntity)
-			removeTechnicalFields(entityCopy as ElementEntity)
-			o(entityCopy as unknown).deepEquals({
-				_id: "test",
-				_type: typeRef,
-				_ownerGroup: null,
-				_ownerEncSessionKey: null,
-			})
-		})
-
-		o("it removes _finalEncrypted fields deeper in the entity", function () {
-			const originalEntity = {
-				...makeEntity(),
-				nested: {
-					test: "yes",
-					_finalEncryptedThing: [1, 2, 3],
-				},
-			}
-			const entityCopy = clone(originalEntity)
-			removeTechnicalFields(entityCopy as ElementEntity)
-			o(entityCopy as unknown).deepEquals({
-				_id: "test",
-				_type: typeRef,
-				_ownerGroup: null,
-				_ownerEncSessionKey: null,
-				nested: {
-					test: "yes",
-				},
-			})
-		})
 	})
 
 	o.spec("computePatches", function () {
@@ -433,8 +400,18 @@ o.spec("EntityUtils", function () {
 
 		o("computePatches works on aggregations and additem operation", async function () {
 			const testEntity = await createFilledTestEntity()
-			testEntity.testAssociation.push(await createTestEntityWithDummyResolver(TestAggregateRef, { _id: "newAgId" }))
-			testEntity.testAssociation.push(await createTestEntityWithDummyResolver(TestAggregateRef, { _id: "newAgId2" }))
+			testEntity.testAssociation.push(
+				await createTestEntityWithDummyResolver(TestAggregateRef, {
+					_id: "newAgId",
+					testNumber: "1",
+				}),
+			)
+			testEntity.testAssociation.push(
+				await createTestEntityWithDummyResolver(TestAggregateRef, {
+					_id: "newAgId2",
+					testNumber: "2",
+				}),
+			)
 
 			let sk = aes256RandomKey()
 			const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(

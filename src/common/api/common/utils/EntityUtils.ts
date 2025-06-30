@@ -443,11 +443,12 @@ export async function computePatches(
 			)
 
 			// fixme optimize this, also think about cases where duplicate aggregated entities are actually valid (e.g. contact mail address can have same entries?)
-			const commonItemsWithDifferingIds = originalAggregatedEntities.filter(
-				(element) =>
-					!modifiedAggregatedEntities.some((item) => {
-						return deepEqual(removeTechnicalFields(structuredClone(element)), removeTechnicalFields(structuredClone(item)))
-					}),
+			const commonItemsWithDifferingIds = originalAggregatedEntities.filter((element) =>
+				modifiedAggregatedEntities.some((item) => {
+					const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))
+					const hasSameId = isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeId] as Id)
+					return !hasSameId && deepEqual(removeTechnicalFields(structuredClone(element)), removeTechnicalFields(structuredClone(item)))
+				}),
 			)
 
 			const commonAggregateIds = commonItems.map((instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id)

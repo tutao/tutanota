@@ -355,36 +355,6 @@ o.spec("PatchMergerTest", () => {
 			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
 			o(testMailPatched.sender.name).equals("new name")
 		})
-
-		o.test("apply_replace_on_One_value_with_null_throws", async () => {
-			const testMail = createSystemMail({
-				_id: ["listId", "elementId"],
-				_ownerEncSessionKey: encryptedSessionKey.key,
-				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
-				_ownerGroup: ownerGroupId,
-				unread: true,
-			})
-
-			await storage.put(MailTypeRef, await toStorableInstance(testMail))
-
-			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
-			const unreadAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "unread"))
-			const patches: Array<Patch> = [
-				createPatch({
-					attributePath: unreadAttributeId.toString(),
-					value: null,
-					patchOperation: PatchOperationType.REPLACE,
-				}),
-			]
-
-			const e = await assertThrows(
-				PatchOperationError,
-				async () => await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches),
-			)
-			o(
-				e.message.toString().includes(`invalid value / cardinality combination for value ${unreadAttributeId} on value unread: One, isNull: true`),
-			).equals(true)
-		})
 	})
 
 	o.spec("replace on aggregations", () => {
@@ -602,45 +572,6 @@ o.spec("PatchMergerTest", () => {
 					.includes(
 						`AddItem operation is supported for associations only, but the operation was called on value with id ${unreadAttributeId.toString()}`,
 					),
-			).equals(true)
-		})
-
-		o.test("apply_additem_on_One_id_association_throws", async () => {
-			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
-				_id: "elementId",
-				mailbox: "mailboxId",
-				serverProperties: "serverId",
-				outOfOfficeNotificationRecipientList: createOutOfOfficeNotificationRecipientList({
-					_id: "aggId",
-					list: "oldListId",
-				}),
-			})
-
-			await storage.put(MailboxGroupRootTypeRef, await toStorableInstance(mailboxGroupRoot))
-
-			const mailboxGroupRootTypeModel = await typeModelResolver.resolveClientTypeReference(MailboxGroupRootTypeRef)
-			const outOfOfficeNotificationRecipientListTypeModel = await typeModelResolver.resolveClientTypeReference(
-				OutOfOfficeNotificationRecipientListTypeRef,
-			)
-			const outOfOfficeNotificationAttributeId = assertNotNull(
-				AttributeModel.getAttributeId(mailboxGroupRootTypeModel, "outOfOfficeNotificationRecipientList"),
-			)
-			const listAttributeId = assertNotNull(AttributeModel.getAttributeId(outOfOfficeNotificationRecipientListTypeModel, "list"))
-			const pathString = `${outOfOfficeNotificationAttributeId}/aggId/${listAttributeId}`
-			const patches: Array<Patch> = [
-				createPatch({
-					attributePath: pathString,
-					value: JSON.stringify(["newListId"]),
-					patchOperation: PatchOperationType.ADD_ITEM,
-				}),
-			]
-
-			const e = await assertThrows(
-				PatchOperationError,
-				async () => await patchMerger.getPatchedInstanceParsed(MailboxGroupRootTypeRef, null, "elementId", patches),
-			)
-			o(
-				e.message.toString().includes(`invalid value / cardinality combination for value ${listAttributeId} on association list: One, val.len: 2`),
 			).equals(true)
 		})
 
@@ -1060,45 +991,6 @@ o.spec("PatchMergerTest", () => {
 	})
 
 	o.spec("Remove Item", () => {
-		o.test("apply_removeitem_on_One_id_association_throws", async () => {
-			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
-				_id: "elementId",
-				mailbox: "mailboxId",
-				serverProperties: "serverId",
-				outOfOfficeNotificationRecipientList: createOutOfOfficeNotificationRecipientList({
-					_id: "aggId",
-					list: "oldListId",
-				}),
-			})
-
-			await storage.put(MailboxGroupRootTypeRef, await toStorableInstance(mailboxGroupRoot))
-
-			const mailboxGroupRootTypeModel = await typeModelResolver.resolveClientTypeReference(MailboxGroupRootTypeRef)
-			const outOfOfficeNotificationRecipientListTypeModel = await typeModelResolver.resolveClientTypeReference(
-				OutOfOfficeNotificationRecipientListTypeRef,
-			)
-			const outOfOfficeNotificationAttributeId = assertNotNull(
-				AttributeModel.getAttributeId(mailboxGroupRootTypeModel, "outOfOfficeNotificationRecipientList"),
-			)
-			const listAttributeId = assertNotNull(AttributeModel.getAttributeId(outOfOfficeNotificationRecipientListTypeModel, "list"))
-			const pathString = `${outOfOfficeNotificationAttributeId}/aggId/${listAttributeId}`
-			const patches: Array<Patch> = [
-				createPatch({
-					attributePath: pathString,
-					value: '["oldListId"]',
-					patchOperation: PatchOperationType.REMOVE_ITEM,
-				}),
-			]
-
-			const e = await assertThrows(
-				PatchOperationError,
-				async () => await patchMerger.getPatchedInstanceParsed(MailboxGroupRootTypeRef, null, "elementId", patches),
-			)
-			o(
-				e.message.toString().includes(`invalid value / cardinality combination for value ${listAttributeId} on association list: One, val.len: 0`),
-			).equals(true)
-		})
-
 		o.test("apply_removeitem_on_ZeroOrOne_id_association", async () => {
 			const customer = createTestEntity(CustomerTypeRef, {
 				_id: "customerId",

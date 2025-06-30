@@ -209,13 +209,17 @@ export class ConversationViewModel {
 			// if success, proceed with loading mails
 			// otherwise do the error handling
 			try {
-				const entries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
-				// if the primary mail is not along conversation then only display the primary mail
-				if (!entries.some((entry) => isSameId(entry.mail, this.primaryMail._id))) {
+				if (!this.showFullConversation()) {
 					this.conversation = this.conversationItemsForSelectedMailOnly()
 				} else {
-					const allMails = await this.loadMails(entries)
-					this.conversation = this.createConversationItems(entries, allMails)
+					const entries = await this.entityClient.loadAll(ConversationEntryTypeRef, listIdPart(this.primaryMail.conversationEntry))
+					// if the primary mail is not along conversation then only display the primary mail
+					if (!entries.some((entry) => isSameId(entry.mail, this.primaryMail._id))) {
+						this.conversation = this.conversationItemsForSelectedMailOnly()
+					} else {
+						const allMails = await this.loadMails(entries)
+						this.conversation = this.createConversationItems(entries, allMails)
+					}
 				}
 			} catch (e) {
 				if (e instanceof NotAuthorizedError) {

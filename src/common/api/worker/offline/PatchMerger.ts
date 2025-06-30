@@ -163,7 +163,6 @@ export class PatchMerger {
 				}
 				const newAssociationValue = associationArray.concat(valuesToAdd)
 				instanceToChange[attributeId] = distinctAssociations(newAssociationValue)
-				// this.assertCorrectAssociationCardinality(pathResult, newAssociationValue)
 				break
 			}
 			case PatchOperationType.REMOVE_ITEM: {
@@ -182,7 +181,6 @@ export class PatchMerger {
 							}),
 					)
 					instanceToChange[attributeId] = distinctAssociations(remainingAssociations)
-					// this.assertCorrectAssociationCardinality(pathResult, remainingAssociations)
 				} else {
 					const modelAssociation = typeModel.associations[attributeId]
 					const appName = modelAssociation.dependency ?? typeModel.app
@@ -197,17 +195,14 @@ export class PatchMerger {
 							}),
 					)
 					instanceToChange[attributeId] = distinctAssociations(remainingAggregations)
-					// this.assertCorrectAssociationCardinality(pathResult, remainingAggregations)
 				}
 				break
 			}
 			case PatchOperationType.REPLACE: {
 				if (isValue) {
 					instanceToChange[attributeId] = value as ParsedValue
-					// this.assertCorrectValueCardinality(pathResult, value as ParsedValue)
 				} else if (!isAggregationAssociation) {
 					instanceToChange[attributeId] = value as ParsedAssociation
-					// this.assertCorrectAssociationCardinality(pathResult, value as ParsedAssociation)
 				} else {
 					throw new PatchOperationError("attempted to replace aggregation " + typeModel.associations[attributeId].name + " on " + typeModel.name)
 				}

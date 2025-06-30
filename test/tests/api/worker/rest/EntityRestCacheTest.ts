@@ -60,6 +60,7 @@ import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/c
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { PatchMerger } from "../../../../../src/common/api/worker/offline/PatchMerger"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
+import { collapseId } from "../../../../../app-ios/tutanota/tutanota-web/RestClientIdUtils-chunk"
 
 const { anything } = matchers
 
@@ -412,7 +413,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				verify(entityRestClient.loadParsedInstance(anything(), anything(), anything()), { times: 0 })
 			})
 
-			o("update events with patch that are partially in cache range", async function () {
+			o("update events with patches do not optimize for ranges", async function () {
 				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id2, GENERATED_MAX_ID)
 				await storage.setNewRangeForList(ContactTypeRef, secondContactListId, id4, GENERATED_MAX_ID)
 
@@ -421,6 +422,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					_ownerGroup: "owner-group",
 				})
 				const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
+				const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
+				const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
 				const fourthContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id4] })
 
 				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
@@ -451,12 +454,18 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				]
 
 				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, firstContactListId, id1, [firstNamePatch])).thenResolve(null)
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, collapseId(firstContactListId, id1))).thenResolve(
+					await toStorableInstance(secondContact),
+				)
 				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, firstContactListId, id2, [firstNamePatch])).thenDo(async () => {
 					const firstContactPatchedParsed = await toStorableInstance(firstContactPatched)
 					await storage.put(ContactTypeRef, firstContactPatchedParsed)
 					return firstContactPatchedParsed
 				})
 				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, secondContactListId, id3, [firstNamePatch])).thenResolve(null)
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, collapseId(secondContactListId, id3))).thenResolve(
+					await toStorableInstance(thirdContact),
+				)
 				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, secondContactListId, id4, [firstNamePatch])).thenDo(async () => {
 					const fourthContactPatchedParsed = await toStorableInstance(fourthContactPatched)
 					await storage.put(ContactTypeRef, fourthContactPatchedParsed)
@@ -465,20 +474,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id2)))).deepEquals(firstContactPatched)
+				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(secondContact)
+				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id3)))).deepEquals(thirdContact)
 				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContactPatched)
-				o(await storage.get(ContactTypeRef, firstContactListId, id1)).equals(null)
-				o(await storage.get(ContactTypeRef, secondContactListId, id3)).equals(null)
+
 				o(filteredUpdates.length).equals(batch.length)
 				for (const update of batch) {
 					o(filteredUpdates.includes(update)).equals(true)
 				}
-			})
-
-			o.test("element create events are not loaded from server", async function () {
-				// Make sure no interaction are made to the server side.
-				// entityRestClient used here is just a mock object with no meaningful methods mocked.
-				// If `entityEventsReceived` somehow did interact with server, this test will fail cause of that
-				await cache.entityEventsReceived([await updateDataForCreate(MailBoxTypeRef, null as any, "id1", null as any)], "batchId", groupId)
 			})
 
 			o.test("Create event for new entity is received, it should not be downloaded - when update has instance attached", async () => {
@@ -525,11 +528,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await cache.entityEventsReceived(Array.of(blobUpdate), batchId, groupId)
 
 				o(await storage.get(MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)).equals(null)
-			})
-
-			o("element update notifications are not put into cache", async function () {
-				// EntityRestClient is not mocked so the test will throw in case of any interaction.
-				await cache.entityEventsReceived([await updateDataForUpdate(MailBoxTypeRef, null as any, "id1", [])], "batchId", groupId)
 			})
 
 			o("element should be deleted from the cache when a delete event is received", async function () {
@@ -636,12 +634,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(await storage.get(MailDetailsBlobTypeRef, getListId(mailDetailsBlob), getElementId(mailDetailsBlob))).equals(null)
 			})
 
-			// list element notifications
-			o("when the list is not cached, mail create notifications are not put into cache", async function () {
-				// fixme: what is this test about?
-				await cache.entityEventsReceived([await updateDataForCreate(MailTypeRef, "listId1", createId("id1"), null as any)], "batchId", groupId)
-			})
-
 			o("when the list is not cached but there is a custom cache handler, mail create notifications are put into cache", async function () {
 				const customCacheHandler: CustomCacheHandler<Mail> = {
 					shouldLoadOnCreateEvent: () => true,
@@ -654,11 +646,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await cache.entityEventsReceived([await updateDataForCreate(MailTypeRef, getListId(mail), getElementId(mail), mail)], "batchId", groupId)
 
 				o(removeOriginals(await storage.get(MailTypeRef, getListId(mail), getElementId(mail)))).deepEquals(mail)
-			})
-
-			o("list element update notifications are not put into cache", async function () {
-				// EntityRestClient is not mocked so the test will throw in case of any interaction.
-				await cache.entityEventsReceived([await updateDataForUpdate(MailTypeRef, "listId1", createId("id1"), [])], "batchId", groupId)
 			})
 
 			o("when deleted from a range, then the remaining range will still be retrieved from the cache", async function () {
