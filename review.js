@@ -33,7 +33,10 @@ async function markAsReviewed(currentDep) {
 
 async function review(currentDep, itsDeps, backtrace) {
 	uiloop: while (true) {
-		console.log(`\nReviewing ${currentDep} (at ${backtrace.join(", ")})`)
+		console.log(`\nReviewing ${currentDep}`)
+		if (backtrace.length) {
+			console.log(`at ${backtrace.join(", ")}`)
+		}
 		console.log(pathToFileURL(currentDep).href)
 
 		const actions = []
@@ -62,18 +65,12 @@ async function review(currentDep, itsDeps, backtrace) {
 			console.log("CYCLE: ", itsDeps)
 		} else {
 			const depsArray = Object.entries(itsDeps)
-			const next = depsArray.find(([dep, _]) => !countsAsReviewed(dep))
-			if (next) {
-				actions.push({
-					char: "n",
-					msg: `next unreviewed ${next[0]}`,
-					action: () => review(next[0], next[1], [...backtrace, currentDep]),
-				})
-			}
+			const depsStats = new Map()
 
 			for (const [i, [key, value]] of depsArray.entries()) {
 				const mark = key.startsWith("node:") || countsAsReviewed(key) ? "✅" : " "
 				const stats = calculateStats(key, value)
+				depsStats.set(key, stats)
 				actions.push({
 					char: String(i),
 					msg: `${mark} ${String(stats.reviewed).padStart(4)}/${String(stats.overall).padStart(4)} ${key}`,
@@ -84,6 +81,21 @@ async function review(currentDep, itsDeps, backtrace) {
 							await review(dep, itsDeps, [...backtrace, currentDep])
 						}
 					},
+				})
+			}
+
+			const nextUnreviewed = depsArray.find(([dep, _]) => !countsAsReviewed(dep))
+			const next =
+				nextUnreviewed ??
+				depsArray.find(([dep]) => {
+					const stat = depsStats.get(dep)
+					return stat != null && stat.reviewed < stat.overall
+				})
+			if (next) {
+				actions.push({
+					char: "n",
+					msg: `next unreviewed ${next[0]}`,
+					action: () => review(next[0], next[1], [...backtrace, currentDep]),
 				})
 			}
 		}
@@ -103,6 +115,9 @@ async function review(currentDep, itsDeps, backtrace) {
 }
 
 function transitiveDeps(currentDep, itsDeps) {
+	if (isBuiltin(currentDep)) {
+		return []
+	}
 	const collectedDeps = Object.entries(itsDeps)
 		.map(([dep, depDeps]) => {
 			if (typeof depDeps === "string") {
@@ -118,8 +133,12 @@ function isExplicitlyReviewed(dep) {
 	return Object.hasOwn(reviewedData, dep)
 }
 
+function isBuiltin(dep) {
+	return dep.startsWith("node:")
+}
+
 function countsAsReviewed(dep) {
-	return isExplicitlyReviewed(dep) || dep.startsWith("node:")
+	return isExplicitlyReviewed(dep) || isBuiltin(dep)
 }
 
 function calculateStats(currentDep, itsDeps) {

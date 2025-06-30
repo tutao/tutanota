@@ -64,7 +64,7 @@ export default defineConfig([
 		},
 	},
 	// FIXME
-	// ...typescriptEslint.configs.recommended,
+	...typescriptEslint.configs.recommended,
 	// // this one just disables some rules so it makes sense to put it after
 	// eslintPluginPrettierRecommended,
 	{

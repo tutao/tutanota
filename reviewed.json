@@ -962,5 +962,149 @@
 	"node_modules/eslint/lib/rules/implicit-arrow-linebreak.js": {
 		"who": "ivk",
 		"when": "2025-06-27"
+	},
+	"node_modules/eslint/lib/rules/no-eval.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/no-octal-escape.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/no-implied-eval.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/no-proto.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/no-var.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/prefer-rest-params.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/prefer-spread.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/utils/fix-tracker.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/prefer-const.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/no-new-symbol.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/rules/index.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/rules.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/source-code-fixer.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/source-code-visitor.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/shared/stats.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/timing.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/languages/js/validate-language-options.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/languages/js/index.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/config/default-config.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/config/flat-config-array.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/shared/flags.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/vfile.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/services/parser-service.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/file-context.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/services/processor-service.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/shared/option-utils.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/services/warning-service.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/esquery/dist/esquery.min.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/esquery.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/source-code-traverser.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/linter.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/linter/index.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/ignore/index.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/lib/shared/relative-module-resolver.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/node_modules/brace-expansion/index.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
+	},
+	"node_modules/eslint/node_modules/minimatch/minimatch.js": {
+		"who": "ivk",
+		"when": "2025-06-30"
 	}
 }
