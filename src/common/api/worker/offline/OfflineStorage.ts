@@ -1,4 +1,4 @@
-import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../../common/EntityTypes.js"
+import { BlobElementEntity, ElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import {
 	CUSTOM_MIN_ID,
 	customIdToBase64Url,
@@ -16,6 +16,7 @@ import { EncodeOptions, Token, Type } from "cborg"
 import {
 	assert,
 	assertNotNull,
+	Base64Ext,
 	getFirstOrThrow,
 	getTypeString,
 	groupBy,
@@ -35,7 +36,7 @@ import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "../rest/cacheHandler/CustomCacheHandler.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
-import { FormattedQuery, SqlValue, TaggedSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue.js"
+import { FormattedQuery, SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { sql, SqlFragment } from "./Sql.js"
@@ -43,12 +44,31 @@ import { ModelMapper } from "../crypto/ModelMapper"
 import { AttributeModel } from "../../common/AttributeModel"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
  * it may change if the sqlite version is updated.
  * */
 const MAX_SAFE_SQL_VARS = 32766
+
+type StorableInstance = {
+	typeString: string
+	table: string
+	rowId: Nullable<string>
+	listId: Nullable<Id>
+	elementId: Id
+	encodedElementId: Base64Ext
+	ownerGroup: Id
+	serializedInstance: Uint8Array
+	instance: ServerModelParsedInstance
+}
+
+const tableNameByTypeId: Map<string, string> = new Map([
+	[TypeId.Element, "element_entities"],
+	[TypeId.ListElement, "list_entities"],
+	[TypeId.BlobElement, "blob_element_entities"],
+])
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -353,15 +373,28 @@ export class OfflineStorage implements CacheStorage {
 		const encodedElementIds = elementIds.map((elementId) => ensureBase64Ext(typeModel, elementId))
 
 		const type = getTypeString(typeRef)
-		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.allChunked(
-			MAX_SAFE_SQL_VARS - 2,
-			encodedElementIds,
-			(c) => sql`SELECT entity
-                       FROM list_entities
-                       WHERE type = ${type}
-                         AND listId = ${listId}
-                         AND elementId IN ${paramList(c)}`,
-		)
+		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.allChunked(1000, encodedElementIds, (c) => {
+			if (typeModel.type === TypeId.Element) {
+				return sql`SELECT entity
+                           FROM element_entities
+                           WHERE type = ${type}
+                             AND elementId IN ${paramList(c)}`
+			} else if (typeModel.type === TypeId.ListElement) {
+				return sql`SELECT entity
+                           FROM list_entities
+                           WHERE type = ${type}
+                             AND listId = ${listId}
+                             AND elementId IN ${paramList(c)}`
+			} else if (typeModel.type === TypeId.BlobElement) {
+				return sql`SELECT entity
+                           FROM blob_element_entities
+                           WHERE type = ${type}
+                             AND listId = ${listId}
+                             AND elementId IN ${paramList(c)}`
+			} else {
+				throw new Error(`can't provideMultipleParsed for ${JSON.stringify(typeRef)}`)
+			}
+		})
 		return await this.deserializeList(serializedList.map((r) => r.entity.value as Uint8Array))
 	}
 
@@ -441,93 +474,153 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async put(typeRef: TypeRef<SomeEntity>, instance: ServerModelParsedInstance): Promise<void> {
+		return this.putMultiple(typeRef, [instance])
+	}
+
+	async putMultiple(typeRef: TypeRef<SomeEntity>, instances: ServerModelParsedInstance[]): Promise<void> {
 		const handler = this.getCustomCacheHandlerMap().get(typeRef)
-		if (handler?.onBeforeCacheUpdate) {
-			const typedInstance = await this.modelMapper.mapToInstance(typeRef, instance)
-			await handler.onBeforeCacheUpdate(typedInstance as SomeEntity)
-		}
-
-		const serializedInstance = await this.serialize(instance)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+		const typeString = getTypeString(typeRef)
 
-		const { listId, elementId } = expandId(AttributeModel.getAttribute<IdTuple | Id>(instance, "_id", typeModel))
-		const ownerGroup = AttributeModel.getAttribute<Id>(instance, "_ownerGroup", typeModel)
-		const type = getTypeString(typeRef)
-		const encodedElementId = ensureBase64Ext(typeModel, elementId)
-		let formattedQuery: FormattedQuery
-
-		// Note that we have to also select and re-insert the rowid or else it will not match search index.
-		//
-		// A null rowid (i.e. not found) is fine if this is an insertion.
-		switch (typeModel.type) {
-			case TypeId.Element:
-				formattedQuery = sql`INSERT
-                OR REPLACE INTO element_entities (rowid, type, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowid FROM element_entities WHERE type =
-                ${type}
-                AND
-                elementId
-                =
-                ${encodedElementId}
-                LIMIT
-                1
-                ),
-                ${type},
-                ${encodedElementId},
-                ${ownerGroup},
-                ${serializedInstance}
-                )`
-				break
-			case TypeId.ListElement:
-				formattedQuery = sql`INSERT
-                OR REPLACE INTO list_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowid FROM list_entities WHERE type =
-                ${type}
-                AND
-                listId
-                =
-                ${listId}
-                AND
-                elementId
-                =
-                ${encodedElementId}
-                LIMIT
-                1
-                ),
-                ${type},
-                ${listId},
-                ${encodedElementId},
-                ${ownerGroup},
-                ${serializedInstance}
-                )`
-				break
-			case TypeId.BlobElement:
-				formattedQuery = sql`INSERT
-                OR REPLACE INTO blob_element_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES (
-                (SELECT rowid FROM blob_element_entities WHERE type =
-                ${type}
-                AND
-                listId
-                =
-                ${listId}
-                AND
-                elementId
-                =
-                ${encodedElementId}
-                LIMIT
-                1
-                ),
-                ${type},
-                ${listId},
-                ${encodedElementId},
-                ${ownerGroup},
-                ${serializedInstance}
-                )`
-				break
-			default:
-				throw new Error("must be a persistent type")
+		if (typeModel.type === TypeId.Aggregated || typeModel.type === TypeId.DataTransfer) {
+			throw new Error("must be a persistent type")
 		}
-		await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
+
+		const type = typeModel.type
+		const table = assertNotNull(tableNameByTypeId.get(type))
+		const storables = await this.toStorables(instances, typeModel, typeString, table)
+
+		const groupedByListId = groupBy(storables, (dbRef) => dbRef.listId)
+		for (const [listId, storableInstances] of groupedByListId) {
+			await this.fetchRowIds(typeModel, table, typeString, listId, storableInstances)
+		}
+
+		for (const [listId, storableInstances] of groupedByListId) {
+			for (const storable of storableInstances) {
+				if (handler?.onBeforeCacheUpdate) {
+					const typedInstance = await this.modelMapper.mapToInstance(typeRef, storable.instance)
+					await handler.onBeforeCacheUpdate(typedInstance as SomeEntity)
+				}
+			}
+
+			const chunks = splitInChunks(1000, storableInstances) // respect MAX_SAFE_SQL_VARS
+			for (const chunk of chunks) {
+				let formattedQuery: FormattedQuery
+
+				// Note that we have to also select and re-insert the rowid or else it will not match search index.
+				//
+				// A null rowid (i.e. not found) is fine if this is an insertion.
+				if (typeModel.type === TypeId.Element) {
+					const nestedlistOfParams: Array<Array<SqlValue>> = chunk.map((storable) => {
+						const { rowId, typeString, encodedElementId, ownerGroup, serializedInstance } = storable
+						return [rowId, typeString, encodedElementId, ownerGroup, serializedInstance] as Array<SqlValue>
+					})
+					formattedQuery = this.insertMultipleFormattedQuery(
+						"INSERT OR REPLACE INTO element_entities (rowid, type, elementId, ownerGroup, entity) VALUES ",
+						nestedlistOfParams,
+					)
+				} else if (typeModel.type === TypeId.ListElement) {
+					const nestedlistOfParams: Array<Array<SqlValue>> = chunk.map((storable) => {
+						const { rowId, typeString, encodedElementId, ownerGroup, serializedInstance } = storable
+						return [rowId, typeString, listId, encodedElementId, ownerGroup, serializedInstance] as Array<SqlValue>
+					})
+					formattedQuery = this.insertMultipleFormattedQuery(
+						"INSERT OR REPLACE INTO list_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES ",
+						nestedlistOfParams,
+					)
+				} else if (typeModel.type === TypeId.BlobElement) {
+					const nestedlistOfParams: Array<Array<SqlValue>> = chunk.map((storable) => {
+						const { rowId, typeString, encodedElementId, ownerGroup, serializedInstance } = storable
+						return [rowId, typeString, listId, encodedElementId, ownerGroup, serializedInstance] as Array<SqlValue>
+					})
+					formattedQuery = this.insertMultipleFormattedQuery(
+						"INSERT OR REPLACE INTO blob_element_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES ",
+						nestedlistOfParams,
+					)
+				} else {
+					throw new Error("must be a persistent type")
+				}
+				await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
+			}
+		}
+	}
+
+	private insertMultipleFormattedQuery(query: string, nestedlistOfParams: Array<Array<SqlValue>>): FormattedQuery {
+		const paramLists = nestedlistOfParams.map((param) => paramList(param))
+		let params: TaggedSqlValue[] = []
+		query += paramLists
+			.map((p) => {
+				params.push(...p.params.map(tagSqlValue))
+				return p.text
+			})
+			.join(",")
+		return {
+			query,
+			params,
+		}
+	}
+
+	private async toStorables(
+		instances: Array<ServerModelParsedInstance>,
+		typeModel: TypeModel,
+		typeString: string,
+		table: string,
+	): Promise<Array<StorableInstance>> {
+		const storables = await Promise.all(
+			instances.map(async (instance): Promise<StorableInstance> => {
+				const { listId, elementId } = expandId(AttributeModel.getAttribute<IdTuple | Id>(instance, "_id", typeModel))
+				const ownerGroup = AttributeModel.getAttribute<Id>(instance, "_ownerGroup", typeModel)
+				const serializedInstance = await this.serialize(instance)
+				return {
+					typeString,
+					table,
+					rowId: null,
+					listId,
+					elementId,
+					encodedElementId: ensureBase64Ext(typeModel, elementId),
+					ownerGroup,
+					serializedInstance,
+					instance,
+				}
+			}),
+		)
+		return storables
+	}
+
+	async fetchRowIds(typeModel: TypeModel, table: string, typeString: string, listId: Nullable<Id>, storableInstances: StorableInstance[]): Promise<void> {
+		const ids = storableInstances.map((dbRefs) => dbRefs.encodedElementId)
+		let formattedQuery: FormattedQuery
+		if (typeModel.type === TypeId.Element) {
+			formattedQuery = sql`SELECT elementId, rowid
+                                 FROM element_entities
+                                 WHERE type = ${typeString}
+                                   and elementId IN ${paramList(ids)}`
+		} else if (typeModel.type === TypeId.ListElement) {
+			formattedQuery = sql`SELECT elementId, listId, rowid
+                                 FROM list_entities
+                                 WHERE type = ${typeString}
+                                   and listId = ${listId}
+                                   and elementId IN ${paramList(ids)}`
+		} else if (typeModel.type === TypeId.BlobElement) {
+			formattedQuery = sql`SELECT elementId, listId, rowid
+                                 FROM blob_element_entities
+                                 WHERE type = ${typeString}
+                                   and listId = ${listId}
+                                   and elementId IN ${paramList(ids)}`
+		} else {
+			throw new Error("Can't fetch row ids for invalid type")
+		}
+		const resultRows = await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)
+		type Row = { elementId: Id; listId: Id; rowId: Id }
+		const rows = resultRows.map((row) => untagSqlObject(row) as Row)
+
+		for (const row of rows) {
+			const storable = storableInstances.find(
+				(storableInstance) =>
+					(storableInstance.listId != null ? storableInstance.listId === row.listId : true) && storableInstance.encodedElementId === row.elementId,
+			)
+			assertNotNull(storable).rowId = row.rowId
+		}
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {

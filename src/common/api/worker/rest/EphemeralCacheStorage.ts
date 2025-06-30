@@ -1,7 +1,7 @@
 import { BlobElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import { customIdToBase64Url, ensureBase64Ext, firstBiggerThanSecond } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
-import { assertNotNull, clone, getFromMap, getTypeString, remove, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, filterNull, getFromMap, getTypeString, remove, TypeRef } from "@tutao/tutanota-utils"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -10,6 +10,7 @@ import { ModelMapper } from "../crypto/ModelMapper"
 import { parseTypeString } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ServerTypeModelResolver } from "../../common/EntityFunctions"
 import { expandId } from "./RestClientIdUtils"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 /** Cache for a single list. */
 type ListCache = {
@@ -135,24 +136,13 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return result
 	}
 
-	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: string, elementIds: string[]): Promise<ServerModelParsedInstance[]> {
-		const listCache = this.lists.get(getTypeString(typeRef))?.get(listId)
-
-		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-		elementIds = elementIds.map((el) => ensureBase64Ext(typeModel, el))
-
-		if (listCache == null) {
-			return []
-		}
-		let result: Array<ServerModelParsedInstance> = []
-		for (let a = 0; a < elementIds.length; a++) {
-			const cachedItem = listCache.elements.get(elementIds[a])
-			if (cachedItem) {
-				const clonedItem = clone(cachedItem)
-				result.push(clonedItem)
-			}
-		}
-		return result
+	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<string>, elementIds: string[]): Promise<ServerModelParsedInstance[]> {
+		const result = await Promise.all(
+			elementIds.map((elementId) => {
+				return this.getParsed(typeRef, listId, elementId)
+			}),
+		)
+		return filterNull(result)
 	}
 
 	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<ServerModelParsedInstance[]> {
@@ -254,6 +244,12 @@ export class EphemeralCacheStorage implements CacheStorage {
 		}
 	}
 
+	async putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void> {
+		for (const instance of instances) {
+			await this.put(typeRef, instance)
+		}
+	}
+
 	private async putBlobElement(typeRef: TypeRef<unknown>, listId: Id, elementId: Id, entity: ServerModelParsedInstance) {
 		const cache = this.blobEntities.get(getTypeString(typeRef))?.get(listId)
 		if (cache == null) {
@@ -312,7 +308,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return await this.modelMapper.mapToInstances(typeRef, parsedInstances)
 	}
 
-	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>> {
+	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<T>> {
 		const parsedInstances = await this.provideMultipleParsed(typeRef, listId, elementIds)
 		return await this.modelMapper.mapToInstances(typeRef, parsedInstances)
 	}

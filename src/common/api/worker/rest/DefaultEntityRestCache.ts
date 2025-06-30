@@ -8,7 +8,7 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, deepEqual, getFirstOrThrow, getTypeString, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, deepEqual, downcast, getFirstOrThrow, getTypeString, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -164,9 +164,9 @@ export interface ExposedCacheStorage {
 	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>
 
 	/**
-	 * Load a set of list element entities by id. Missing elements are not returned, no error is thrown.
+	 * Load a set of entities by id. Missing elements are not returned, no error is thrown.
 	 */
-	provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>>
+	provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<T>>
 
 	/**
 	 * retrieve all list elements that are in the cache
@@ -210,9 +210,9 @@ export interface CacheStorage extends ExposedCacheStorage {
 	provideFromRangeParsed(typeRef: TypeRef<unknown>, listId: Id, start: Id, count: number, reverse: boolean): Promise<ServerModelParsedInstance[]>
 
 	/**
-	 * Load a set of list element entities by id. Missing elements are not returned, no error is thrown.
+	 * Load a set of by id. Missing elements are not returned, no error is thrown.
 	 */
-	provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Id, elementIds: Id[]): Promise<Array<ServerModelParsedInstance>>
+	provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<ServerModelParsedInstance>>
 
 	/**
 	 * retrieve all list elements that are in the cache
@@ -230,6 +230,8 @@ export interface CacheStorage extends ExposedCacheStorage {
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
 
 	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void>
+
+	putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void>
 
 	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>
 
@@ -411,15 +413,19 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		let idsToLoad: Id[]
 		if (cachingBehavior.readsFromCache) {
-			idsToLoad = []
-			for (const id of ids) {
-				const cachedEntity = await this.storage.getParsed(typeRef, listId, id)
-				if (cachedEntity != null) {
-					entitiesInCache.push(cachedEntity)
-				} else {
-					idsToLoad.push(id)
-				}
-			}
+			const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+			const cached = await this.storage.provideMultipleParsed(typeRef, listId, ids)
+			entitiesInCache.push(...cached)
+			const loadedIds = new Set(
+				entitiesInCache.map((e) => {
+					if (listId) {
+						return elementIdPart(downcast<IdTuple>(AttributeModel.getAttribute(e, "_id", typeModel)))
+					} else {
+						return downcast<Id>(AttributeModel.getAttribute(e, "_id", typeModel))
+					}
+				}),
+			)
+			idsToLoad = ids.filter((id) => !loadedIds.has(id))
 		} else {
 			idsToLoad = ids
 		}
@@ -427,9 +433,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (idsToLoad.length > 0) {
 			const entitiesFromServer = await this.entityRestClient.loadMultipleParsedInstances(typeRef, listId, idsToLoad, ownerEncSessionKeyProvider, opts)
 			if (cachingBehavior.writesToCache) {
-				for (const entity of entitiesFromServer) {
-					await this.storage.put(typeRef, entity)
-				}
+				await this.storage.putMultiple(typeRef, entitiesFromServer)
 			}
 			entitiesInCache = entitiesFromServer.concat(entitiesInCache)
 		}
@@ -666,8 +670,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				)
 			}
 		}
-
-		await Promise.all(elementsToAdd.map((element) => this.storage.put(typeRef, element)))
+		await this.storage.putMultiple(typeRef, elementsToAdd)
 	}
 
 	/**

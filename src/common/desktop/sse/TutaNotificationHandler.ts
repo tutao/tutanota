@@ -76,7 +76,6 @@ export class TutaNotificationHandler {
 				}
 				const infosToFetch = infos.slice(0, 5) // don't show notifications for more than five mails at a time
 				const mailMetadata = await this.downloadMailMetadata(sseInfo, listId, infosToFetch, credentials)
-				console.log(">>>>>>>>>>>>", mailMetadata)
 				for (const mailMeta of mailMetadata) {
 					this.notifier.submitGroupedNotification(mailMeta.senderAddress, mailMeta.firstRecipientAddress ?? "", mailMeta.id.join(","), (res) =>
 						this.onMailNotificationClick(res, mailMeta.notificationInfo),

@@ -73,7 +73,7 @@ o.spec("Custom calendar events handler", function () {
 			when(entityRestClientMock.loadRange(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, false)).thenResolve(allList)
 			const res = await cacheHandler.loadRange(offlineStorageMock, listId, ids[0], 3, false)
 			o(res.map(toElementId)).deepEquals(allList.map(toElementId).slice(1, 4))("count elements are returned")
-			verify(offlineStorageMock.put(CalendarEventTypeRef, matchers.anything()), { times: allList.length })
+			verify(offlineStorageMock.putMultiple(CalendarEventTypeRef, matchers.anything()), { times: 1 })
 			verify(offlineStorageMock.setNewRangeForList(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID))
 		})
 
@@ -100,7 +100,7 @@ o.spec("Custom calendar events handler", function () {
 				when(entityRestClientMock.mapInstancesToEntity(CalendarEventTypeRef, bigListParsedInstance)).thenResolve(bigList)
 				const res = await cacheHandler.loadRange(offlineStorageMock, bigListId, bigListIds[0], 3, false)
 				o(res.map(toElementId)).deepEquals(allList.map(toElementId).slice(1, 4))("count elements are returned")
-				verify(offlineStorageMock.put(CalendarEventTypeRef, matchers.anything()), { times: bigList.length })
+				verify(offlineStorageMock.putMultiple(CalendarEventTypeRef, matchers.anything()), { times: 1 })
 				verify(offlineStorageMock.setNewRangeForList(CalendarEventTypeRef, bigListId, CUSTOM_MIN_ID, CUSTOM_MAX_ID))
 				verify(entityRestClientMock.loadParsedInstancesRange(CalendarEventTypeRef, bigListId, matchers.anything(), LOAD_MULTIPLE_LIMIT, false), {
 					times: 4,
@@ -124,7 +124,7 @@ o.spec("Custom calendar events handler", function () {
 				when(entityRestClientMock.loadRange(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, LOAD_MULTIPLE_LIMIT, false)).thenResolve(allList)
 				const res = await cacheHandler.loadRange(offlineStorageMock, listId, CUSTOM_MIN_ID, 30, false)
 				o(res.map(toElementId)).deepEquals(allList.map(toElementId))("allList is returned")
-				verify(offlineStorageMock.put(CalendarEventTypeRef, matchers.anything()), { times: allList.length })
+				verify(offlineStorageMock.putMultiple(CalendarEventTypeRef, matchers.anything()), { times: 1 })
 				verify(offlineStorageMock.setNewRangeForList(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID))
 			},
 		)

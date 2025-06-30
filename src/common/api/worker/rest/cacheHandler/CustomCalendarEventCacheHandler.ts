@@ -31,9 +31,7 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 				const lastEvent = chunk[chunk.length - 1]
 				currentMinId = eventElementId(typeModel, lastEvent)
 			}
-			for (const event of rawList) {
-				await storage.put(CalendarEventTypeRef, event)
-			}
+			await storage.putMultiple(CalendarEventTypeRef, rawList)
 
 			// we have all events now
 			await storage.setNewRangeForList(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID)

@@ -313,6 +313,26 @@ o.spec("OfflineStorageDb", function () {
 				verify(userCacheHandler.onBeforeCacheUpdate?.(user))
 			})
 
+			o.test("putMultiple calls the cache handler", async function () {
+				const user = createTestEntity(
+					UserTypeRef,
+					{
+						_id: userId,
+						_ownerGroup: "ownerGroup",
+					},
+					{ populateAggregates: true },
+				)
+				user.userGroup._original = structuredClone(user.userGroup)
+				user._original = structuredClone(user)
+				const storableUser = await toStorableInstance(user)
+
+				const userCacheHandler: CustomCacheHandler<User> = object()
+				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
+
+				await storage.putMultiple(UserTypeRef, [storableUser])
+				verify(userCacheHandler.onBeforeCacheUpdate?.(user))
+			})
+
 			o.test("deleteIfExists calls the cache handler", async function () {
 				const user = createTestEntity(
 					UserTypeRef,
@@ -531,6 +551,49 @@ o.spec("OfflineStorageDb", function () {
 					storedUser = await storage.get(UserTypeRef, null, userId)
 					o.check(storedUser).equals(null)
 				})
+
+				o.test("putMultiple and get", async function () {
+					const userId1 = "id1"
+					const userId2 = "id2"
+					const storableUsers = [
+						createTestEntity(UserTypeRef, {
+							_id: userId1,
+							_ownerGroup: "ownerGroup",
+							_permissions: "permissions",
+							userGroup: createTestEntity(GroupMembershipTypeRef, {
+								group: "groupId",
+								groupInfo: ["groupInfoListId", "groupInfoElementId"],
+								groupMember: ["groupMemberListId", "groupMemberElementId"],
+							}),
+							successfulLogins: "successfulLogins",
+							failedLogins: "failedLogins",
+							secondFactorAuthentications: "secondFactorAuthentications",
+						}),
+						createTestEntity(UserTypeRef, {
+							_id: userId2,
+							_ownerGroup: "ownerGroup",
+							_permissions: "permissions",
+							userGroup: createTestEntity(GroupMembershipTypeRef, {
+								group: "groupId",
+								groupInfo: ["groupInfoListId", "groupInfoElementId"],
+								groupMember: ["groupMemberListId", "groupMemberElementId"],
+							}),
+							successfulLogins: "successfulLogins",
+							failedLogins: "failedLogins",
+							secondFactorAuthentications: "secondFactorAuthentications",
+						}),
+					]
+
+					await storage.init({ userId: userId1, databaseKey, timeRangeDate, forceNewDatabase: false })
+
+					let storedUsers = [await storage.get(UserTypeRef, null, userId1), await storage.get(UserTypeRef, null, userId2)].filter((u) => u != null)
+					o(storedUsers).deepEquals([])
+
+					await storage.putMultiple(UserTypeRef, await Promise.all(storableUsers.map(async (u) => await toStorableInstance(u))))
+
+					storedUsers = [await storage.get(UserTypeRef, null, userId1), await storage.get(UserTypeRef, null, userId2)]
+					o(storedUsers.map(removeOriginals)).deepEquals(storableUsers)
+				})
 			})
 
 			o.spec("ListElementType generatedId", function () {
@@ -570,7 +633,7 @@ o.spec("OfflineStorageDb", function () {
 					o.check(rangeAfter).equals(null)
 				})
 
-				o.test("provideMultiple", async function () {
+				o.test("putMultiple and provideMultiple", async function () {
 					const listId = "listId1"
 					const elementId1 = "id1"
 					const elementId2 = "id2"
@@ -600,13 +663,13 @@ o.spec("OfflineStorageDb", function () {
 					let mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1])
 					o.check(mails).deepEquals([])
 
-					await storage.put(MailTypeRef, await toStorableInstance(storableMail1))
+					await storage.putMultiple(MailTypeRef, [await toStorableInstance(storableMail1)])
 
 					mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1, elementId2])
 					mails.map(removeOriginals)
 					o.check(mails).deepEquals([storableMail1])
 
-					await storage.put(MailTypeRef, await toStorableInstance(storableMail2))
+					await storage.putMultiple(MailTypeRef, [await toStorableInstance(storableMail2)])
 
 					mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1, elementId2])
 					mails.map(removeOriginals)
@@ -645,7 +708,7 @@ o.spec("OfflineStorageDb", function () {
 					o.check(rangeAfter).equals(null)
 				})
 
-				o.test("provideMultiple", async function () {
+				o.test("putMultiple and provideMultiple", async function () {
 					const listId = "listId1"
 					const elementId1 = constructMailSetEntryId(new Date(1724675875113), "mailId1")
 					const elementId2 = constructMailSetEntryId(new Date(1724675899978), "mailId2")
@@ -669,12 +732,12 @@ o.spec("OfflineStorageDb", function () {
 					let mails = await storage.provideMultiple(MailSetEntryTypeRef, listId, [elementId1])
 					o.check(mails).deepEquals([])
 
-					await storage.put(MailSetEntryTypeRef, await toStorableInstance(storableMailSetEntry1))
+					await storage.putMultiple(MailSetEntryTypeRef, [await toStorableInstance(storableMailSetEntry1)])
 
 					mails = await storage.provideMultiple(MailSetEntryTypeRef, listId, [elementId1, elementId2])
 					o.check(mails).deepEquals([storableMailSetEntry1])
 
-					await storage.put(MailSetEntryTypeRef, await toStorableInstance(storableMailSetEntry2))
+					await storage.putMultiple(MailSetEntryTypeRef, [await toStorableInstance(storableMailSetEntry2)])
 
 					mails = await storage.provideMultiple(MailSetEntryTypeRef, listId, [elementId1, elementId2])
 					o.check(mails).deepEquals([storableMailSetEntry1, storableMailSetEntry2])
@@ -710,6 +773,47 @@ o.spec("OfflineStorageDb", function () {
 
 					mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
 					o.check(mailDetailsBlob).equals(null)
+				})
+
+				o.test("putMultiple, provideMultiple and deleteIn", async function () {
+					const archiveId = "archiveId"
+					const blobElementId1 = "id1"
+					const blobElementId2 = "id2"
+					const storableMailDetails = [
+						createTestEntity(MailDetailsBlobTypeRef, {
+							_id: [archiveId, blobElementId1],
+							_ownerGroup: "ownerGroup",
+							_permissions: "permissions",
+							details: createTestEntity(MailDetailsTypeRef, {
+								recipients: createTestEntity(RecipientsTypeRef, {}),
+								body: createTestEntity(BodyTypeRef, {}),
+							}),
+						}),
+						createTestEntity(MailDetailsBlobTypeRef, {
+							_id: [archiveId, blobElementId2],
+							_ownerGroup: "ownerGroup",
+							_permissions: "permissions",
+							details: createTestEntity(MailDetailsTypeRef, {
+								recipients: createTestEntity(RecipientsTypeRef, {}),
+								body: createTestEntity(BodyTypeRef, {}),
+							}),
+						}),
+					]
+
+					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+
+					let mailDetailsBlob = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId1, blobElementId2])
+					o.check(mailDetailsBlob).deepEquals([])
+
+					await storage.putMultiple(MailDetailsBlobTypeRef, await Promise.all(storableMailDetails.map(async (smd) => await toStorableInstance(smd))))
+
+					mailDetailsBlob = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId1, blobElementId2])
+					o.check(mailDetailsBlob.map(removeOriginals)).deepEquals(storableMailDetails)
+
+					await storage.deleteIn(MailDetailsBlobTypeRef, archiveId, [blobElementId1, blobElementId2])
+
+					mailDetailsBlob = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId1, blobElementId2])
+					o.check(mailDetailsBlob).deepEquals([])
 				})
 
 				o.test("put, get and deleteAllOwnedBy", async function () {
