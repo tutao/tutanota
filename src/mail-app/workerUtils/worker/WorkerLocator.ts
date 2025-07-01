@@ -443,17 +443,13 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	if (isIOSApp() || isAndroidApp()) {
 		locator.kyberFacade = new NativeKyberFacade(new NativeCryptoFacadeSendDispatcher(worker))
+		locator.ed25519Facade = new NativeEd25519Facade(new NativeCryptoFacadeSendDispatcher(worker))
 	} else {
 		locator.kyberFacade = new WASMKyberFacade()
+		locator.ed25519Facade = new WASMEd25519Facade()
 	}
 
 	locator.pqFacade = new PQFacade(locator.kyberFacade)
-
-	if (isIOSApp() || isAndroidApp()) {
-		locator.ed25519Facade = new NativeEd25519Facade(new NativeCryptoFacadeSendDispatcher(worker))
-	} else {
-		locator.ed25519Facade = new WASMEd25519Facade()
-	}
 
 	locator.publicKeySignatureFacade = new PublicKeySignatureFacade(locator.ed25519Facade, locator.cryptoWrapper)
 
