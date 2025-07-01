@@ -19,6 +19,7 @@ import org.json.JSONObject
 import java.io.*
 import java.nio.charset.Charset
 import java.security.SecureRandom
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -196,4 +197,17 @@ fun getLogcat(rootDir: File, filePrefix: String = "log"): String {
 	logFile.delete()
 
 	return text
+}
+
+/**
+ * Returns whether two timestamps belong to the same day considering the time zone
+ * @param time1 epoch time 1 in milliseconds
+ * @param time2 epoch time 2 in milliseconds
+ * @param timeZone optional, should only be used for testing! | otherwise the default value is used
+ * @return boolean whether both timestamp are on the same day
+ */
+fun isSameDay(time1: Long, time2: Long, timeZone: TimeZone = TimeZone.getDefault()): Boolean {
+	val customDateFormat = SimpleDateFormat("yyyy-MM-dd")
+	customDateFormat.setTimeZone(timeZone)
+	return customDateFormat.format(time1).equals(customDateFormat.format(time2))
 }
