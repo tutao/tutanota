@@ -454,6 +454,7 @@ o.spec("BlobFacade", function () {
 				]),
 			)
 		})
+
 		o.test("when passed multiple instances of the different archives it downloads and decrypts the data", async function () {
 			const sessionKey = aes256RandomKey()
 			const anothersessionKey = aes256RandomKey()
@@ -569,6 +570,7 @@ o.spec("BlobFacade", function () {
 				]),
 			)
 		})
+
 		o.test("when passed multiple instances of the same archive but one blob is missing it downloads and decrypts the rest", async function () {
 			const sessionKey = aes256RandomKey()
 			const anothersessionKey = aes256RandomKey()
@@ -630,7 +632,12 @@ o.spec("BlobFacade", function () {
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
-			o(result).deepEquals(new Map([[getElementId(file), concat(blobData1, blobData2)]]))
+			o(result).deepEquals(
+				new Map([
+					[getElementId(file), concat(blobData1, blobData2)],
+					[getElementId(anotherFile), null],
+				]),
+			)
 		})
 
 		o.test("when passed multiple instances of the same archive but one blob is corrupted it downloads and decrypts the rest", async function () {
@@ -649,6 +656,8 @@ o.spec("BlobFacade", function () {
 
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
+			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
+			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3, generateIV(), true, true)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -673,7 +682,7 @@ o.spec("BlobFacade", function () {
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
 				// number of blobs
-				new Uint8Array([0, 0, 0, 2]),
+				new Uint8Array([0, 0, 0, 3]),
 				// blob id
 				base64ToUint8Array(base64ExtToBase64(blobId1)),
 				// blob hash
@@ -690,12 +699,24 @@ o.spec("BlobFacade", function () {
 				blobSizeBinary,
 				// blob data
 				encryptedBlobData2,
+				base64ToUint8Array(base64ExtToBase64(blobId3)),
+				// blob hash
+				new Uint8Array([7, 8, 9, 10, 11, 12]),
+				// blob size
+				blobSizeBinary,
+				// blob data
+				encryptedBlobData3,
 			)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
-			o(result).deepEquals(new Map([[getElementId(file), concat(blobData1, blobData2)]]))
+			o(result).deepEquals(
+				new Map([
+					[getElementId(file), null],
+					[getElementId(anotherFile), blobData3],
+				]),
+			)
 		})
 	})
 
