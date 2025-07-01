@@ -4,9 +4,14 @@
 
 use crate::crypto::rsa::{RSAPrivateKey, RSAPublicKey, SeedBufferRng};
 use crate::crypto::{argon2_id, kyber};
+use crate::metamodel::ValueType::Bytes;
+use crate::rest_error::BookingFailureReason;
 use crate::util::{array_cast_slice, ArrayCastingError};
 use base64::prelude::*;
+use crypto_primitives::ed25519::Ed25519Signature;
+use crypto_primitives::ed25519_generate_keypair;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
+use ed25519_dalek::{PUBLIC_KEY_LENGTH, SECRET_KEY_LENGTH};
 use zeroize::Zeroizing;
 
 /// Error occurred from trying to encapsulate/decapsulate with Kyber
@@ -220,4 +225,36 @@ fn argon2id_generate_key_from_passphrase(
 		})?;
 	let passphrase_key = argon2_id::generate_key_from_passphrase(passphrase.as_str(), salt);
 	Ok(passphrase_key.as_bytes().to_vec())
+}
+
+#[derive(uniffi::Record)]
+struct Ed25519KeyPair {
+	public_key: Vec<u8>,
+	private_key: Vec<u8>,
+}
+
+#[uniffi::export]
+fn ed25519_generate_key_pair() -> Ed25519KeyPair {
+	let ed25519_key_pair = crypto_primitives::ed25519_generate_keypair();
+
+	Ed25519KeyPair {
+		public_key: ed25519_key_pair.public_key.to_bytes().to_vec(),
+		private_key: ed25519_key_pair.private_key.to_bytes().to_vec(),
+	}
+}
+
+#[uniffi::export]
+fn ed25519_sign(private_key: Vec<u8>, message: Vec<u8>) -> Vec<u8> {
+	let ed25519_private_key =
+		crypto_primitives::ed25519::Ed25519PrivateKey::from_bytes(private_key.try_into().unwrap());
+	let signature = crypto_primitives::ed25519_sign(ed25519_private_key, &message);
+	signature.try_into().unwrap()
+}
+
+#[uniffi::export]
+fn ed25519_verify(public_key: Vec<u8>, message: Vec<u8>, signature: Vec<u8>) -> bool {
+	let ed25519_public_key =
+		crypto_primitives::ed25519::Ed25519PublicKey::from_bytes(public_key.try_into().unwrap());
+	let ed25519_signature = crypto_primitives::ed25519::Ed25519Signature::from(&signature);
+	crypto_primitives::ed25519_verify(ed25519_public_key, &message, ed25519_signature)
 }

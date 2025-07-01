@@ -48,6 +48,10 @@ impl Ed25519PrivateKey {
 	pub fn from_bytes(bytes: [u8; SECRET_KEY_LENGTH]) -> Self {
 		Ed25519PrivateKey(bytes)
 	}
+
+	pub fn to_bytes(&self) -> [u8; PUBLIC_KEY_LENGTH] {
+		self.0
+	}
 }
 
 #[derive(ZeroizeOnDrop, Clone, PartialEq, Tsify, Serialize, Deserialize)]
@@ -76,6 +80,10 @@ impl Ed25519PublicKey {
 
 	pub fn from_bytes(bytes: [u8; PUBLIC_KEY_LENGTH]) -> Self {
 		Ed25519PublicKey(bytes)
+	}
+
+	pub fn to_bytes(&self) -> [u8; PUBLIC_KEY_LENGTH] {
+		self.0
 	}
 }
 
