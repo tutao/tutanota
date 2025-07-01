@@ -1,5 +1,6 @@
 package de.tutao.tutashared.alarms
 
+import androidx.annotation.VisibleForTesting
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutasdk.ByRuleType
 import de.tutao.tutasdk.DateTime
@@ -13,7 +14,8 @@ import java.util.TimeZone
 import kotlin.math.abs
 
 object AlarmModel {
-	private const val OCCURRENCES_SCHEDULED_AHEAD = 10
+	@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+	const val OCCURRENCES_SCHEDULED_AHEAD = 10
 
 	@JvmStatic
 	fun iterateAlarmOccurrences(
@@ -63,9 +65,8 @@ object AlarmModel {
 		val startTime = calcEventStart.time.toULong()
 
 		while (
-			futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD &&
-			(endType != EndType.COUNT || occurrences < endValue!!) &&
-			intervalOccurrences < OCCURRENCES_SCHEDULED_AHEAD
+			futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && // We have not schedule all future occurrences yet
+			(endType != EndType.COUNT || occurrences < endValue!!) // End type is not COUNT or in case it is, we have not created enough occurrences
 		) {
 			calendar.time = calcEventStart
 
