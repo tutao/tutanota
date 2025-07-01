@@ -5,6 +5,7 @@ use ed25519_dalek::{
 };
 use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
+use std::convert::TryInto;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 use zeroize::ZeroizeOnDrop;
@@ -23,6 +24,19 @@ pub struct Ed25519Signature(#[serde(with = "BigArray")] [u8; SIGNATURE_SIZE]);
 impl From<[u8; SIGNATURE_SIZE]> for Ed25519Signature {
 	fn from(value: [u8; SIGNATURE_SIZE]) -> Self {
 		Ed25519Signature(value)
+	}
+}
+
+impl From<Ed25519Signature> for Vec<u8> {
+	fn from(value: Ed25519Signature) -> Self {
+		let Ed25519Signature(bytes) = value;
+		bytes.to_vec()
+	}
+}
+
+impl From<Vec<u8>> for Ed25519Signature {
+	fn from(value: Vec<u8>) -> Self {
+		Ed25519Signature(value.try_into().unwrap())
 	}
 }
 
