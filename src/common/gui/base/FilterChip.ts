@@ -14,12 +14,13 @@ export interface FilterChipAttrs {
 	selected: boolean
 	chevron: boolean
 	onClick: ClickHandler
+	progress?: number
 }
 
 export class FilterChip implements Component<FilterChipAttrs> {
 	private localdom: HTMLElement | null = null
 
-	view({ attrs: { label, icon, selected, chevron, onClick } }: Vnode<FilterChipAttrs>): Children {
+	view({ attrs: { label, icon, selected, chevron, onClick, progress } }: Vnode<FilterChipAttrs>): Children {
 		let selectors = "button.flex.items-center.border-radius-m.pt-hpad-button.pb-hpad-button.gap-vpad-xs.font-weight-500.state-bg-2.border.smaller"
 		if (icon) {
 			selectors += ".pl-vpad-s"
@@ -37,6 +38,7 @@ export class FilterChip implements Component<FilterChipAttrs> {
 			selectors,
 			{
 				style: {
+					marginRight: px(16),
 					minHeight: px(size.button_icon_bg_size),
 					...(selected
 						? {
@@ -58,21 +60,35 @@ export class FilterChip implements Component<FilterChipAttrs> {
 				},
 				"data-testid": `btn:${lang.getTestId(label)}`,
 			},
+			m("div", {
+				style: {
+					position: "absolute",
+					bottom: "0",
+					left: "0",
+					width: "100%",
+					background: secondary_fixed,
+					transition: "height 0.3s ease",
+					zIndex: "1",
+					height: progress == 1 ? 0 : px((progress ?? 1) * size.button_icon_bg_size),
+				},
+			}),
 			[
-				icon
+				icon && progress != 1
 					? m(Icon, {
 							icon: icon,
 							style: {
 								fill: contentColor,
+								zIndex: "2",
 							},
 					  })
 					: null,
-				m("span.text-ellipsis", lang.getTranslationText(label)),
+				m("span.text-ellipsis", { style: { zIndex: "2" } }, lang.getTranslationText(label)),
 				chevron
 					? m(Icon, {
 							icon: BootIcons.Expand,
 							style: {
 								fill: contentColor,
+								zIndex: "2",
 							},
 					  })
 					: null,

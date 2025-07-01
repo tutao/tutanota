@@ -5,13 +5,15 @@ import { FeatureType } from "../api/common/TutanotaConstants.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
 import { CALENDAR_PREFIX, CONTACTLIST_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX } from "../misc/RouteChange.js"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { OfflineIndicatorViewModel } from "./base/OfflineIndicatorViewModel.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
 import { size as sizes } from "./size"
+import { FilterChip } from "./base/FilterChip"
+import { Icons } from "./base/icons/Icons"
+import { attrToFirstLineLang, OfflineIndicatorState } from "./base/OfflineIndicator"
+import { lang } from "../misc/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -35,7 +37,7 @@ export interface HeaderAttrs extends AppHeaderAttrs {
 export class Header implements ClassComponent<HeaderAttrs> {
 	view({ attrs }: Vnode<HeaderAttrs>): Children {
 		return m(DesktopBaseHeader, { firstColWidth: attrs.firstColWidth ?? sizes.first_col_max_width }, [
-			m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
+			//m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
 			this.renderNavigation(attrs),
 		])
 	}
@@ -48,7 +50,25 @@ export class Header implements ClassComponent<HeaderAttrs> {
 		return [
 			attrs.searchBar ? m(".ml-hpad_small", attrs.searchBar()) : null,
 			m(".flex-grow.flex.justify-end.items-center", [
-				m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
+				m(FilterChip, {
+					label: lang.makeTranslation(
+						"advanced_label",
+						attrs.offlineIndicatorModel.getProgress() != 1
+							? "Syncing " + Math.ceil(attrs.offlineIndicatorModel.getProgress() * 100) + "%"
+							: "🚲 " + attrToFirstLineLang(attrs.offlineIndicatorModel.getCurrentAttrs()),
+					),
+					selected: false,
+					chevron: false,
+					onClick: (_) => {
+						const a = attrs.offlineIndicatorModel.getCurrentAttrs()
+						if (a.state === OfflineIndicatorState.Offline) {
+							a.reconnectAction()
+						}
+					},
+					icon: Icons.Sync,
+					progress: attrs.offlineIndicatorModel.getProgress(),
+				}),
+				//m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				m(".nav-bar-spacer"),
 				m(NavBar, this.renderButtons()),
 			]),

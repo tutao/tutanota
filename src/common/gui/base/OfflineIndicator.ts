@@ -20,7 +20,7 @@ export type OfflineIndicatorAttrs =
  * adds action prompts (if any)
  * it's returned as a span so the consumer can decide how to layout it.
  */
-function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
+export function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
 	const { state } = attr
 	switch (state) {
 		case OfflineIndicatorState.Online:
@@ -30,6 +30,19 @@ function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
 			return m("span", [lang.get("offline_label"), m("span.b.content-accent-fg.mlr-s", lang.get("reconnect_action"))])
 		case OfflineIndicatorState.Connecting:
 			return m("span", lang.get("offline_label"))
+	}
+}
+
+export function attrToFirstLineLang(attr: OfflineIndicatorAttrs): string {
+	const { state } = attr
+	switch (state) {
+		case OfflineIndicatorState.Online:
+		case OfflineIndicatorState.Synchronizing:
+			return lang.get("online_label")
+		case OfflineIndicatorState.Offline:
+			return lang.get("reconnect_action")
+		case OfflineIndicatorState.Connecting:
+			return lang.get("offline_label")
 	}
 }
 

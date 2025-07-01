@@ -14,6 +14,8 @@ import { theme } from "./theme.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 import { ClickHandler } from "./base/GuiUtils.js"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
+import { FilterChip } from "./base/FilterChip"
+import { Icons } from "./base/icons/Icons"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {
 	columnType: "first" | "other"
@@ -43,18 +45,20 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 		const firstVisibleColumn = attrs.columnType === "first" || styles.isSingleColumnLayout()
 		return m(BaseMobileHeader, {
 			left: this.renderLeftAction(attrs),
-			center: firstVisibleColumn
-				? m(MobileHeaderTitle, {
-						title: attrs.title ? lang.getTranslationText(attrs.title) : undefined,
-						bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
-				  })
-				: null,
+			center: m(FilterChip, {
+				label: lang.makeTranslation("advanced_label", "Syncing"),
+				selected: false,
+				chevron: false,
+				onClick: (_) => {},
+				icon: Icons.Sync,
+				progress: attrs.offlineIndicatorModel.getProgress(),
+			}),
 			right: [
 				styles.isSingleColumnLayout() ? null : attrs.multicolumnActions?.(),
 				attrs.actions,
 				styles.isSingleColumnLayout() || attrs.columnType === "other" ? attrs.primaryAction() : null,
 			],
-			injections: firstVisibleColumn ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
+			//injections: firstVisibleColumn ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
 		})
 	}
 
