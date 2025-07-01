@@ -2,6 +2,7 @@ package de.tutao.calendar
 
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmIntervalUnit
+import de.tutao.tutashared.alarms.AlarmModel.OCCURRENCES_SCHEDULED_AHEAD
 import de.tutao.tutashared.alarms.AlarmModel.getAllDayDateUTC
 import de.tutao.tutashared.alarms.AlarmModel.iterateAlarmOccurrences
 import de.tutao.tutashared.alarms.EndType
@@ -17,7 +18,28 @@ class AlarmModelTest {
 	private val timeZone = TimeZone.getTimeZone("Europe/Berlin")
 
 	@Test
-	fun testIterates() {
+	fun testIteratesWithCurrentDateAfter15Occurrences() {
+		val occurrences: MutableList<Date> = ArrayList()
+		val now = getDate(timeZone, 2025, 6, 1, 10, 0)
+		val eventStart = getDate(timeZone, 2025, 5, 16, 12, 0)
+		iterateAlarmOccurrences(
+			now, timeZone, eventStart, eventStart, RepeatPeriod.DAILY,
+			1, EndType.NEVER, 0, AlarmInterval(AlarmIntervalUnit.HOUR, 1), timeZone, emptyList(), emptyList()
+		) { time: Date, _: Int, _: Date? -> occurrences.add(time) }
+
+		Assert.assertEquals(OCCURRENCES_SCHEDULED_AHEAD, occurrences.size)
+		Assert.assertArrayEquals(
+			listOf(
+				getDate(timeZone, 2025, 6, 1, 11, 0),
+				getDate(timeZone, 2025, 6, 2, 11, 0),
+				getDate(timeZone, 2025, 6, 3, 11, 0),
+				getDate(timeZone, 2025, 6, 4, 11, 0)
+			).toTypedArray(), occurrences.subList(0, 4).toTypedArray()
+		)
+	}
+
+	@Test
+	fun testIteratesFutureInstances() {
 		val occurrences: MutableList<Date> = ArrayList()
 		val now = getDate(timeZone, 2019, 4, 2, 0, 0)
 		val eventStart = getDate(timeZone, 2019, 4, 2, 12, 0)
@@ -25,6 +47,8 @@ class AlarmModelTest {
 			now, timeZone, eventStart, eventStart, RepeatPeriod.WEEKLY,
 			1, EndType.NEVER, 0, AlarmInterval(AlarmIntervalUnit.HOUR, 1), timeZone, emptyList(), emptyList()
 		) { time: Date, _: Int, _: Date? -> occurrences.add(time) }
+
+		Assert.assertEquals(OCCURRENCES_SCHEDULED_AHEAD, occurrences.size)
 		Assert.assertArrayEquals(
 			listOf(
 				getDate(timeZone, 2019, 4, 2, 11, 0),
