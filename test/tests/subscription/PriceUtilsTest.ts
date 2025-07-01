@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { asPaymentInterval, formatMonthlyPrice, formatPrice, PaymentInterval, PriceAndConfigProvider } from "../../../src/common/subscription/PriceUtils.js"
+import { asPaymentInterval, formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "../../../src/common/subscription/PriceUtils.js"
 import { clone } from "@tutao/tutanota-utils"
 import { UpgradePriceType } from "../../../src/common/subscription/FeatureListProvider"
 import { lang } from "../../../src/common/misc/LanguageViewModel"

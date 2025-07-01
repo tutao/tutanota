@@ -13,7 +13,7 @@ import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { Keys, NewBusinessPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { UpgradePriceType } from "./FeatureListProvider"
-import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
+import { PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
@@ -43,12 +43,8 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
 
 		if (subscriptionParameters) {
-			const paymentInterval: PaymentInterval = subscriptionParameters.interval
-				? asPaymentInterval(subscriptionParameters.interval)
-				: PaymentInterval.Yearly
 			// We automatically route to the next page; when we want to go back from the second page, we do not want to keep calling nextPage
 			vnode.attrs.data.subscriptionParameters = null
-			vnode.attrs.data.options.paymentInterval = stream(paymentInterval)
 			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
 		}
 	}
@@ -188,6 +184,24 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 
 				case PlanTypeParameter.LEGEND:
 					this.setNonFreeDataAndGoToNextPage(data, PlanType.Legend)
+					break
+
+				default:
+					console.log("Unknown subscription passed: ", subscriptionParameters)
+					break
+			}
+		} else if (subscriptionType === SubscriptionType.Business) {
+			switch (subscriptionParameters.subscription) {
+				case PlanTypeParameter.ESSENTIAL:
+					this.setNonFreeDataAndGoToNextPage(data, PlanType.Essential)
+					break
+
+				case PlanTypeParameter.ADVANCED:
+					this.setNonFreeDataAndGoToNextPage(data, PlanType.Advanced)
+					break
+
+				case PlanTypeParameter.UNLIMITED:
+					this.setNonFreeDataAndGoToNextPage(data, PlanType.Unlimited)
 					break
 
 				default:
