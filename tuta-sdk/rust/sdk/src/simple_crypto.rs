@@ -255,6 +255,6 @@ fn ed25519_sign(private_key: Vec<u8>, message: Vec<u8>) -> Vec<u8> {
 fn ed25519_verify(public_key: Vec<u8>, message: Vec<u8>, signature: Vec<u8>) -> bool {
 	let ed25519_public_key =
 		crypto_primitives::ed25519::Ed25519PublicKey::from_bytes(public_key.try_into().unwrap());
-	let ed25519_signature = crypto_primitives::ed25519::Ed25519Signature::from(&signature);
+	let ed25519_signature = crypto_primitives::ed25519::Ed25519Signature::from(signature);
 	crypto_primitives::ed25519_verify(ed25519_public_key, &message, ed25519_signature)
 }
