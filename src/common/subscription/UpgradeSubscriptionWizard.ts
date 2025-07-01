@@ -10,6 +10,7 @@ import {
 	NewPaidPlans,
 	PaymentData,
 	PlanType,
+	SubscriptionType,
 } from "../api/common/TutanotaConstants"
 import { getByAbbreviation } from "../api/common/CountryList"
 import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
@@ -33,6 +34,7 @@ import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedip
 import { DialogType } from "../gui/base/Dialog.js"
 import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./VariantCSubscriptionPage.js"
 import { styles } from "../gui/styles.js"
+import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -191,10 +193,13 @@ export async function loadSignupWizard(
 		message = null
 	}
 
+	const subscriptionType = stringToSubscriptionType(subscriptionParameters?.type ?? "private")
+	const paymentInterval = asPaymentInterval(subscriptionParameters?.interval ?? PaymentInterval.Yearly)
+
 	const signupData: UpgradeSubscriptionData = {
 		options: {
-			businessUse: stream(prices.business),
-			paymentInterval: stream(PaymentInterval.Yearly),
+			businessUse: stream(subscriptionType === SubscriptionType.Business),
+			paymentInterval: stream(paymentInterval),
 		},
 		invoiceData: {
 			invoiceAddress: "",
@@ -216,8 +221,8 @@ export async function loadSignupWizard(
 		upgradeType: UpgradeType.Signup,
 		planPrices: priceDataProvider,
 		currentPlan: null,
-		subscriptionParameters: subscriptionParameters,
-		featureListProvider: featureListProvider,
+		subscriptionParameters,
+		featureListProvider,
 		referralCode,
 		multipleUsersAllowed: false,
 		acceptedPlans,
