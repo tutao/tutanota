@@ -31,7 +31,7 @@ cors_proxy
 		httpProxyOptions: {
 			xfwd: false,
 		},
-		// ✅ Key Fix: Dynamically set CORS headers
+		// Key Fix: Dynamically set CORS headers
 		setHeaders: function (res, req) {
 			const origin = req.headers.origin
 			if (origin === "http://localhost:9000") {

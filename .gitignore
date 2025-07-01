@@ -3,8 +3,10 @@ cache
 target
 certs
 build-calendar-app
+build-with-emsdk.sh
 dist
 node_modules
+.env
 .idea
 .gradle
 /.run
