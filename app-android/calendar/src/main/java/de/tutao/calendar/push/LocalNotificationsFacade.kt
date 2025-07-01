@@ -15,7 +15,6 @@ import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
-import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.ColorInt
@@ -30,11 +29,10 @@ import de.tutao.calendar.BuildConfig
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.calendar.getMimeType
+import de.tutao.tutashared.isSameDay
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.TimeZone
 import kotlin.math.abs
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
@@ -220,19 +218,6 @@ fun showAlarmNotification(context: Context, timestamp: Long, summary: String, in
 			.setAutoCancel(true)
 			.build()
 	)
-}
-
-/**
- * Returns whether two timestamps belong to the same day considering the time zone
- * @param time1 epoch time 1 in milliseconds
- * @param time2 epoch time 2 in milliseconds
- * @param timeZone optional, should only be used for testing! | otherwise the default value is used
- * @return boolean whether both timestamp are on the same day
- */
-fun isSameDay(time1: Long, time2: Long, timeZone: TimeZone = TimeZone.getDefault()): Boolean {
-	val customDateFormat = SimpleDateFormat("yyyy-MM-dd")
-	customDateFormat.setTimeZone(timeZone)
-	return customDateFormat.format(time1).equals(customDateFormat.format(time2))
 }
 
 private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {

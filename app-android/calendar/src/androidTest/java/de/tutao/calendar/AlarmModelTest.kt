@@ -1,12 +1,12 @@
 package de.tutao.calendar
 
-import de.tutao.calendar.push.isSameDay
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmIntervalUnit
 import de.tutao.tutashared.alarms.AlarmModel.getAllDayDateUTC
 import de.tutao.tutashared.alarms.AlarmModel.iterateAlarmOccurrences
 import de.tutao.tutashared.alarms.EndType
 import de.tutao.tutashared.alarms.RepeatPeriod
+import de.tutao.tutashared.isSameDay
 import org.junit.Assert
 import org.junit.Test
 import java.util.Calendar
