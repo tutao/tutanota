@@ -186,6 +186,21 @@ function deepEqual(a: any, b: any): boolean {
 			return true
 		}
 
+		if (a instanceof Map && b instanceof Map) {
+			for (const key of a.keys()) {
+				if (!deepEqual(a.get(key), b.get(key))) {
+					return false
+				}
+			}
+			for (const key of b.keys()) {
+				if (!deepEqual(a.get(key), b.get(key))) {
+					return false
+				}
+			}
+
+			return true
+		}
+
 		if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
 
 		if (a instanceof Uint8Array && b instanceof Uint8Array) {
