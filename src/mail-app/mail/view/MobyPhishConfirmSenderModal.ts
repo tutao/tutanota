@@ -350,7 +350,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 					},
 					disabled: this.isLoading || !canAddSender,
 				},
-				`Add ${actual?.name} to Trusted List`,
+				`Add ${this.viewModel.getSender().address} to Trusted List`,
 			),
 
 			// Cancel
