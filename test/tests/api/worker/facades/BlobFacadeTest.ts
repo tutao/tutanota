@@ -630,7 +630,12 @@ o.spec("BlobFacade", function () {
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
-			o(result).deepEquals(new Map([[getElementId(file), concat(blobData1, blobData2)]]))
+			o(result).deepEquals(
+				new Map([
+					[getElementId(file), concat(blobData1, blobData2)],
+					[getElementId(anotherFile), null],
+				]),
+			)
 		})
 
 		o.test("when passed multiple instances of the same archive but one blob is corrupted it downloads and decrypts the rest", async function () {
