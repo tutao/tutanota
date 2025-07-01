@@ -30,13 +30,13 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	) {}
 
 	generateEd25519Keypair(): Promise<IPCEd25519KeyPair> {
-		throw new Error("Method not implemented.") // FIXME
+		throw new Error("Method not implemented.")
 	}
 	ed25519Sign(privateKey: IPCEd25519PrivateKey, data: Uint8Array): Promise<IPCEd25519Signature> {
-		throw new Error("Method not implemented.") // FIXME
+		throw new Error("Method not implemented.")
 	}
 	ed25519Verify(publicKey: IPCEd25519PublicKey, data: Uint8Array, signature: IPCEd25519Signature): Promise<boolean> {
-		throw new Error("Method not implemented.") // FIXME
+		throw new Error("Method not implemented.")
 	}
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<unknown> | object): string {

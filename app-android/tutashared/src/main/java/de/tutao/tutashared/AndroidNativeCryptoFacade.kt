@@ -150,6 +150,23 @@ class AndroidNativeCryptoFacade(
 
 	}
 
+	override suspend fun generateEd25519Keypair(): IPCEd25519KeyPair {
+		TODO("Not yet implemented")
+
+	}
+
+	override suspend fun ed25519Sign(privateKey: IPCEd25519PrivateKey, data: DataWrapper): IPCEd25519Signature {
+		TODO("Not yet implemented")
+	}
+
+	override suspend fun ed25519Verify(
+		publicKey: IPCEd25519PublicKey,
+		data: DataWrapper,
+		signature: IPCEd25519Signature
+	): Boolean {
+		TODO("Not yet implemented")
+	}
+
 	@Throws(CryptoError::class)
 	override suspend fun argon2idGeneratePassphraseKey(
 		passphrase: String,
