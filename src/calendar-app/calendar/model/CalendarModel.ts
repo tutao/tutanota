@@ -702,12 +702,16 @@ export class CalendarModel {
 		return (await this.getEventsByUid(assertNotNull(uid, "could not resolve progenitor: no uid")))?.progenitor ?? null
 	}
 
-	private async loadAndProcessCalendarUpdates(): Promise<void> {
+	/**
+	 * Handles updates to event invitations
+	 * @private
+	 */
+	private async loadAndProcessCalendarEventInvitesUpdates(): Promise<void> {
 		const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
 		const { calendarEventUpdates } = mailboxGroupRoot
 		if (calendarEventUpdates == null) return
 
-		console.log("CalendarModel - loadAndProcessCalendarUpdates")
+		console.log("CalendarModel - loadAndProcessCalendarEventInvitesUpdates")
 		const invites = await this.entityClient.loadAll(CalendarEventUpdateTypeRef, calendarEventUpdates.list)
 		for (const invite of invites) {
 			await this.handleCalendarEventUpdate(invite)
@@ -1067,9 +1071,12 @@ export class CalendarModel {
 
 	async init(): Promise<void> {
 		await this.scheduleAlarmsLocally()
-		await this.loadAndProcessCalendarUpdates()
+		await this.loadAndProcessCalendarEventInvitesUpdates()
 	}
 
+	/**
+	 * Schedule alarms for Webapp and Desktop client by loading all info using {@link loadAlarmEvents} and scheduling with {@link scheduleUserAlarmInfo}
+	 */
 	async scheduleAlarmsLocally(): Promise<void> {
 		if (!this.localAlarmsEnabled()) return
 
@@ -1243,6 +1250,13 @@ export class CalendarModel {
 		return !isApp() && !isDesktop() && this.logins.isInternalUserLoggedIn() && !this.logins.isEnabled(FeatureType.DisableCalendar)
 	}
 
+	/**
+	 * Schedule an alarm from its {@link UserAlarmInfo}
+	 * @param event - Event the alarm is being schedule for
+	 * @param userAlarmInfo - UserAlarmInfo for this alarm
+	 * @param scheduler - An instance of {@link AlarmScheduler}
+	 * @private
+	 */
 	private scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo, scheduler: AlarmScheduler): void {
 		this.userAlarmToAlarmInfo.set(getElementId(userAlarmInfo), userAlarmInfo.alarmInfo.alarmIdentifier)
 

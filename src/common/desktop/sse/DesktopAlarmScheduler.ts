@@ -8,7 +8,6 @@ import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { isSameDay } from "@tutao/tutanota-utils"
 import { formatDateWithWeekdayAndTime, formatTime } from "../../misc/Formatter"
 import { ClientModelUntypedInstance } from "../../api/common/EntityTypes"
-import { AesKey } from "@tutao/tutanota-crypto"
 
 export class DesktopAlarmScheduler {
 	constructor(
@@ -37,6 +36,7 @@ export class DesktopAlarmScheduler {
 	 * read all stored alarms and reschedule the notifications
 	 */
 	async rescheduleAll(): Promise<void> {
+		log.info("Rescheduling alarms...")
 		const alarms = await this.alarmStorage.getScheduledAlarms()
 		const decryptedAlarms = await Promise.all(
 			alarms.map((alarm) => this.alarmStorage.decryptAlarmNotification(alarm.untypedInstance as unknown as ClientModelUntypedInstance)),
