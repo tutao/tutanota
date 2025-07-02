@@ -1156,7 +1156,7 @@ mod calendar_facade_unit_tests {
 
 	#[tokio::test]
 	async fn test_fail_to_generate_birthday_from_invalid_contacts() {
-		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+		let mock_crypto_entity_client = MockCryptoEntityClient::default();
 		let mut mock_user_facade = MockUserFacade::default();
 		let mut mock_contact_facade = MockContactFacade::default();
 		let customer_facade = MockCustomerFacade::default();

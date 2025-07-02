@@ -783,6 +783,7 @@ pub fn application_types_response_with_client_model() -> RestResponse {
 	}
 }
 
+#[must_use]
 pub fn create_mock_contact(
 	contact_list: &GeneratedId,
 	contact_id: &GeneratedId,

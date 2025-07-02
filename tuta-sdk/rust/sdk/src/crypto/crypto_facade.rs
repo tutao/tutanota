@@ -878,7 +878,7 @@ mod test {
 		} else {
 			user_facade
 				.expect_has_group()
-				.returning(move |group_id: &GeneratedId| has_groups.contains(&group_id));
+				.returning(move |group_id: &GeneratedId| has_groups.contains(group_id));
 		}
 
 		CryptoFacade {

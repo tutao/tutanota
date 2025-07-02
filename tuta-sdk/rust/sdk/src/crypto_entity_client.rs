@@ -268,7 +268,7 @@ impl CryptoEntityClient {
 
 				let auth_status = self
 					.get_encryption_auth_status_or_none(
-						&type_model,
+						type_model,
 						&mut decrypted_entity,
 						sender_identity_pub_key,
 					)
@@ -813,7 +813,7 @@ mod tests {
 			.assert_tuple_id_generated();
 		let mail_id =
 			IdTupleGenerated::new(raw_mail_id.list_id.clone(), raw_mail_id.element_id.clone());
-		let mail_type_model = type_model_provider
+		let _mail_type_model = type_model_provider
 			.resolve_server_type_ref(&Mail::type_ref())
 			.expect("Error in type_model_provider");
 

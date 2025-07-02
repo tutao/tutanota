@@ -225,6 +225,6 @@ mod contact_facade_integration_tests {
 
 		let contacts = contact_facade.fetch_contacts(&contact_list_id).await;
 
-		assert_eq!(contacts.unwrap().iter().count(), 3);
+		assert_eq!(contacts.unwrap().len(), 3);
 	}
 }

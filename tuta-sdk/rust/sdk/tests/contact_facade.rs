@@ -32,6 +32,6 @@ async fn load_user_contacts() {
 	let contact_facade = create_contact_facade().await;
 	let contacts = contact_facade.load_all_user_contacts().await;
 
-	assert_eq!(contacts.unwrap().iter().count(), 3);
+	assert_eq!(contacts.unwrap().len(), 3);
 	log::info!("Test::Loaded user contacts correctly!");
 }

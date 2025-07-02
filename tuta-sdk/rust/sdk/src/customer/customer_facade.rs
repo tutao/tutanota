@@ -14,6 +14,7 @@ pub struct CustomerFacade {
 
 #[cfg_attr(test, mockall::automock)]
 impl CustomerFacade {
+	#[must_use]
 	pub fn new(
 		crypto_entity_client: Arc<CryptoEntityClient>,
 		user_facade: Arc<UserFacade>,
