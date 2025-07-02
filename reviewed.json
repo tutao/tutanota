@@ -4162,5 +4162,37 @@
 	"node_modules/jsesc/jsesc.js": {
 		"who": "ivk",
 		"when": "2025-07-02"
+	},
+	"node_modules/eslint/lib/rules/indent.js": {
+		"who": "bir, hrb",
+		"when": "2025-07-02"
+	},
+	"node_modules/eslint/lib/rules/jsx-quotes.js": {
+		"who": "bir, hrb",
+		"when": "2025-07-02"
+	},
+	"node_modules/eslint/lib/rules/key-spacing.js": {
+		"who": "bir, hrb",
+		"when": "2025-07-02"
+	},
+	"node_modules/eslint/lib/rules/keyword-spacing.js": {
+		"who": "bir, hrb",
+		"when": "2025-07-02"
+	},
+	"node_modules/@babel/helper-validator-identifier/lib/identifier.js": {
+		"who": "hrb",
+		"when": "2025-07-02"
+	},
+	"node_modules/@babel/helper-validator-identifier/lib/keyword.js": {
+		"who": "hrb",
+		"when": "2025-07-02"
+	},
+	"node_modules/@babel/helper-validator-identifier/lib/index.js": {
+		"who": "hrb",
+		"when": "2025-07-02"
+	},
+	"node_modules/pluralize/pluralize.js": {
+		"who": "hrb",
+		"when": "2025-07-02"
 	}
 }
