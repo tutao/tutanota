@@ -1,6 +1,7 @@
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
 import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
+import { purgeSyncMetrics, syncMetrics } from "../../misc/SyncMetrics"
 
 export type QueuedBatch = {
 	events: readonly EntityUpdateData[]
@@ -106,6 +107,10 @@ export class EventQueue {
 				})
 		} else {
 			this.emptyQueueEventTarget.dispatchEvent(new Event("queueempty"))
+			if (this.tag == "ws_opt" && syncMetrics) {
+				console.log(syncMetrics.getResults())
+				purgeSyncMetrics()
+			}
 		}
 	}
 

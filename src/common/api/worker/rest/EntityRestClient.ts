@@ -44,6 +44,7 @@ import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { PatchListTypeRef } from "../../entities/sys/TypeRefs"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { expandId } from "./RestClientIdUtils"
+import { Category, syncMetrics } from "../../../misc/SyncMetrics"
 
 assertWorkerOrNode()
 
@@ -227,6 +228,7 @@ export class EntityRestClient implements EntityRestInterface {
 		id: PropertyType<T, "_id">,
 		opts: EntityRestClientLoadOptions = {},
 	): Promise<ServerModelParsedInstance> {
+		const tm = syncMetrics?.beginMeasurement(Category.LoadRest)
 		const { listId, elementId } = expandId(id)
 		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
 			typeRef,
@@ -249,11 +251,13 @@ export class EntityRestClient implements EntityRestInterface {
 		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entityAdapter)
 		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, migratedEntity)
-		return await this.instancePipeline.cryptoMapper.decryptParsedInstance(
+		const decrypted = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,
 			migratedEntity.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
 		)
+		tm?.endMeasurement()
+		return decrypted
 	}
 
 	async load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, opts: EntityRestClientLoadOptions = {}): Promise<T> {
@@ -354,6 +358,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		const loadedChunks = await promiseMap(idChunks, async (idChunk) => {
+			const tm = syncMetrics?.beginMeasurement(Category.LoadMultipleRest)
 			let queryParams = {
 				ids: idChunk.join(","),
 			}
@@ -369,6 +374,7 @@ export class EntityRestClient implements EntityRestInterface {
 					suspensionBehavior: opts.suspensionBehavior,
 				})
 			}
+			tm?.endMeasurement()
 			return this._handleLoadResult(typeRef, JSON.parse(json), ownerEncSessionKeyProvider)
 		})
 		return loadedChunks.flat()

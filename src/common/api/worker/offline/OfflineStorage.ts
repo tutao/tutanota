@@ -45,6 +45,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Category, syncMetrics } from "../../../misc/SyncMetrics"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -335,6 +336,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null> {
+		const tm = syncMetrics?.beginMeasurement(Category.GetDb)
 		const type = getTypeString(typeRef)
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementId = ensureBase64Ext(typeModel, id)
@@ -363,11 +365,15 @@ export class OfflineStorage implements CacheStorage {
 			default:
 				throw new Error("must be a persistent type")
 		}
-		const result = await this.sqlCipherFacade.get(formattedQuery.query, formattedQuery.params)
-		return result?.entity ? await this.deserialize(result.entity.value as Uint8Array) : null
+		const dbResult = await this.sqlCipherFacade.get(formattedQuery.query, formattedQuery.params)
+		const result = dbResult?.entity ? await this.deserialize(dbResult.entity.value as Uint8Array) : null
+		tm?.endMeasurement()
+		return result
 	}
 
 	async provideMultipleParsed<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<ServerModelParsedInstance>> {
+		const tm = syncMetrics?.beginMeasurement(Category.ProvideMultipleDb)
+
 		if (elementIds.length === 0) return []
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedElementIds = elementIds.map((elementId) => ensureBase64Ext(typeModel, elementId))
@@ -395,7 +401,10 @@ export class OfflineStorage implements CacheStorage {
 				throw new Error(`can't provideMultipleParsed for ${JSON.stringify(typeRef)}`)
 			}
 		})
-		return await this.deserializeList(serializedList.map((r) => r.entity.value as Uint8Array))
+
+		const result = await this.deserializeList(serializedList.map((r) => r.entity.value as Uint8Array))
+		tm?.endMeasurement()
+		return result
 	}
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
@@ -444,6 +453,7 @@ export class OfflineStorage implements CacheStorage {
 		count: number,
 		reverse: boolean,
 	): Promise<ServerModelParsedInstance[]> {
+		const tm = syncMetrics?.beginMeasurement(Category.ProvideRangeDb)
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const encodedStartId = ensureBase64Ext(typeModel, start)
 		const type = getTypeString(typeRef)
@@ -465,7 +475,9 @@ export class OfflineStorage implements CacheStorage {
 		}
 		const { query, params } = formattedQuery
 		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.sqlCipherFacade.all(query, params)
-		return await this.deserializeList(serializedList.map((r) => r.entity.value as Uint8Array))
+		const result = await this.deserializeList(serializedList.map((r) => r.entity.value as Uint8Array))
+		tm?.endMeasurement()
+		return result
 	}
 
 	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<Array<T>> {
@@ -474,10 +486,13 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async put(typeRef: TypeRef<SomeEntity>, instance: ServerModelParsedInstance): Promise<void> {
-		return this.putMultiple(typeRef, [instance])
+		const tm = syncMetrics?.beginMeasurement(Category.PutDb)
+		await this.putMultiple(typeRef, [instance])
+		tm?.endMeasurement()
 	}
 
 	async putMultiple(typeRef: TypeRef<SomeEntity>, instances: ServerModelParsedInstance[]): Promise<void> {
+		const tm = instances.length > 1 ? syncMetrics?.beginMeasurement(Category.PutMultipleDb) : null
 		const handler = this.getCustomCacheHandlerMap().get(typeRef)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const typeString = getTypeString(typeRef)
@@ -543,6 +558,7 @@ export class OfflineStorage implements CacheStorage {
 				await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 			}
 		}
+		tm?.endMeasurement()
 	}
 
 	private insertMultipleFormattedQuery(query: string, nestedlistOfParams: Array<Array<SqlValue>>): FormattedQuery {

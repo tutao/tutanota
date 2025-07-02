@@ -46,6 +46,7 @@ import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { EntityAdapter } from "./crypto/EntityAdapter"
 import { EventInstancePrefetcher } from "./EventInstancePrefetcher"
 import { AttributeModel } from "../common/AttributeModel"
+import { newSyncMetrics } from "../../misc/SyncMetrics"
 
 assertWorkerOrNode()
 
@@ -424,7 +425,6 @@ export class EventBusClient {
 
 		const existingConnection = connectMode == ConnectMode.Reconnect && this.lastEntityEventIds.size > 0
 		const p = existingConnection ? this.loadMissedEntityEvents(this.eventQueue) : this.initOnNewConnection()
-
 		return p
 			.then(() => {
 				this.entityUpdateMessageQueue.resume()
@@ -541,6 +541,7 @@ export class EventBusClient {
 
 		await this.checkOutOfSync()
 
+		newSyncMetrics()
 		let eventBatches: EntityEventBatch[] = []
 		for (let groupId of this.eventGroups()) {
 			const eventBatchForGroup = await this.loadEntityEventsForGroup(groupId)
