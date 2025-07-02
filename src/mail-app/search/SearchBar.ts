@@ -120,10 +120,10 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		return m(
 			// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
 			// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
-			"form",
+			"form.full-width",
 			{
 				style: {
-					width: styles.isUsingBottomNavigation() ? "" : px(size.second_col_max_width + 50),
+					maxWidth: styles.isUsingBottomNavigation() ? "" : px(size.second_col_max_width + 50),
 				},
 				onsubmit: (e: SubmitEvent) => {
 					e.stopPropagation()
