@@ -3,18 +3,18 @@ import {
 	AesKey,
 	AsymmetricKeyPair,
 	bitArrayToUint8Array,
-	X25519KeyPair,
-	X25519PublicKey,
 	isPqKeyPairs,
-	isRsaX25519KeyPair,
 	isRsaOrRsaX25519KeyPair,
+	isRsaX25519KeyPair,
 	isVersionedPqPublicKey,
-	isVersionedRsaX25519PublicKey,
 	isVersionedRsaOrRsaX25519PublicKey,
+	isVersionedRsaX25519PublicKey,
 	PQPublicKeys,
 	PublicKey,
 	RsaPrivateKey,
 	uint8ArrayToBitArray,
+	X25519KeyPair,
+	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
@@ -37,6 +37,7 @@ import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacad
 import { PublicKeyIdentifier, PublicKeyProvider } from "../facades/PublicKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { TypeId } from "../../common/EntityTypes"
+import { Category, syncMetrics } from "../utils/SyncMetrics"
 
 assertWorkerOrNode()
 
@@ -187,8 +188,13 @@ export class AsymmetricCryptoFacade {
 		pubEncSymKey: Uint8Array,
 		forTypeId: TypeId = -1,
 	): Promise<DecapsulatedAesKey> {
-		const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(recipientKeyPairGroupId, recipientKeyVersion, forTypeId)
-		return await this.decryptSymKeyWithKeyPair(keyPair, cryptoProtocolVersion, pubEncSymKey)
+		const tm = syncMetrics?.beginMeasurement(Category.Decrypt)
+		try {
+			const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(recipientKeyPairGroupId, recipientKeyVersion, forTypeId)
+			return await this.decryptSymKeyWithKeyPair(keyPair, cryptoProtocolVersion, pubEncSymKey)
+		} finally {
+			tm?.endMeasurement()
+		}
 	}
 
 	/**

@@ -3,11 +3,6 @@ import {
 	Aes256Key,
 	aesEncrypt,
 	authenticatedAesDecrypt,
-	x25519Decapsulate,
-	x25519Encapsulate,
-	X25519KeyPair,
-	X25519PublicKey,
-	X25519SharedSecrets,
 	generateX25519KeyPair,
 	hkdf,
 	KEY_LENGTH_BYTES_AES_256,
@@ -17,6 +12,11 @@ import {
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	uint8ArrayToKey,
+	x25519Decapsulate,
+	x25519Encapsulate,
+	X25519KeyPair,
+	X25519PublicKey,
+	X25519SharedSecrets,
 } from "@tutao/tutanota-crypto"
 import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { decodePQMessage, encodePQMessage, PQMessage } from "./PQMessage.js"
@@ -84,7 +84,10 @@ export class PQFacade {
 
 	public async decapsulateEncoded(encodedPQMessage: Uint8Array, recipientKeys: PQKeyPairs): Promise<DecapsulatedSymKey> {
 		const decoded = decodePQMessage(encodedPQMessage)
-		return { decryptedSymKeyBytes: await this.decapsulate(decoded, recipientKeys), senderIdentityPubKey: decoded.senderIdentityPubKey }
+		return {
+			decryptedSymKeyBytes: await this.decapsulate(decoded, recipientKeys),
+			senderIdentityPubKey: decoded.senderIdentityPubKey,
+		}
 	}
 
 	/**
