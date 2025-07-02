@@ -69,36 +69,38 @@ export class LabelsPopup implements ModalComponent {
 			[
 				m(
 					".pb-s.scroll",
-					this.labels.map((labelState) => {
-						const { label, state } = labelState
-						const color = theme.content_button
-						const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.isMaxLabelsReached
-						const opacity = !canToggleLabel ? 0.5 : undefined
+					this.labels
+						.sort((labelA, labelB) => labelA.label.name.localeCompare(labelB.label.name))
+						.map((labelState) => {
+							const { label, state } = labelState
+							const color = theme.content_button
+							const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.isMaxLabelsReached
+							const opacity = !canToggleLabel ? 0.5 : undefined
 
-						return m(
-							"label-item.flex.items-center.plr.state-bg.cursor-pointer",
+							return m(
+								"label-item.flex.items-center.plr.state-bg.cursor-pointer",
 
-							{
-								"data-labelid": getElementId(label),
-								role: AriaRole.MenuItemCheckbox,
-								tabindex: TabIndex.Default,
-								"aria-checked": ariaCheckedForState(state),
-								"aria-disabled": !canToggleLabel,
-								onclick: canToggleLabel ? () => this.toggleLabel(labelState) : noOp,
-							},
-							[
-								m(Icon, {
-									icon: this.iconForState(state),
-									size: IconSize.Medium,
-									style: {
-										fill: getLabelColor(label.color),
-										opacity,
-									},
-								}),
-								m(".button-height.flex.items-center.ml.overflow-hidden", { style: { color, opacity } }, m(".text-ellipsis", label.name)),
-							],
-						)
-					}),
+								{
+									"data-labelid": getElementId(label),
+									role: AriaRole.MenuItemCheckbox,
+									tabindex: TabIndex.Default,
+									"aria-checked": ariaCheckedForState(state),
+									"aria-disabled": !canToggleLabel,
+									onclick: canToggleLabel ? () => this.toggleLabel(labelState) : noOp,
+								},
+								[
+									m(Icon, {
+										icon: this.iconForState(state),
+										size: IconSize.Medium,
+										style: {
+											fill: getLabelColor(label.color),
+											opacity,
+										},
+									}),
+									m(".button-height.flex.items-center.ml.overflow-hidden", { style: { color, opacity } }, m(".text-ellipsis", label.name)),
+								],
+							)
+						}),
 				),
 				this.isMaxLabelsReached && m(".small.center.pb-s", lang.get("maximumLabelsPerMailReached_msg")),
 				m(BaseButton, {
