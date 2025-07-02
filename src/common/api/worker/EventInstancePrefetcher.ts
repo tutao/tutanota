@@ -1,14 +1,11 @@
 import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
 import { Mail, MailDetailsBlobTypeRef, MailTypeRef } from "../entities/tutanota/TypeRefs"
-import { elementIdPart, ensureBase64Ext, isSameId, listIdPart } from "../common/utils/EntityUtils"
+import { elementIdPart, listIdPart } from "../common/utils/EntityUtils"
 import { assertNotNull, getTypeString, groupBy, isNotNull, isSameTypeRef, parseTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { parseKeyVersion } from "./facades/KeyLoaderFacade"
 import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
 import { OperationType } from "../common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../common/error/RestError"
-import { CacheStorage, Range } from "./rest/DefaultEntityRestCache"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { ServerTypeModelResolver } from "../common/EntityFunctions"
 import { ListElementEntity, SomeEntity } from "../common/EntityTypes"
 import { CacheMode, type EntityRestInterface } from "./rest/EntityRestClient"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
@@ -25,6 +22,9 @@ export class EventInstancePrefetcher {
 		console.log("====== PREFETCH ============")
 		const preloadMap = await this.groupedListElementUpdatedInstances(allEventsFromAllBatch, progressMonitor)
 		await this.loadGroupedListElementEntities(allEventsFromAllBatch, preloadMap, progressMonitor)
+
+		// after prefetching is done, we can set the totalWorkDone to the amount of entity events from all batches
+		await progressMonitor.totalWorkDone(allEventsFromAllBatch.length)
 		console.log("====== PREFETCH END ============", new Date().getTime() - start, "ms")
 	}
 
@@ -46,7 +46,7 @@ export class EventInstancePrefetcher {
 						if (isSameTypeRef(MailTypeRef, typeRef)) {
 							await this.fetchMailDetailsBlob(instances)
 						}
-						this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, instances, elementIdsAndIndexes, progressMonitor)
+						await this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, instances, elementIdsAndIndexes, progressMonitor)
 					} catch (e) {
 						if (isExpectedErrorForSynchronization(e)) {
 							console.log(`could not preload, probably lost group membership ( or not added yet ) for list ${typeRefString}/${listId}`)
@@ -64,12 +64,11 @@ export class EventInstancePrefetcher {
 
 		const mailDetailsByList = groupBy(mailsWithMailDetails, (m) => listIdPart(assertNotNull(m.mailDetails)))
 		for (const [listId, mails] of mailDetailsByList.entries()) {
+			const mailDetailsElementIdToMail = mails.reduce((acc: Map<Id, Mail>, current) => {
+				acc.set(elementIdPart(assertNotNull(current.mailDetails)), current)
+				return acc
+			}, new Map())
 			const mailDetailsElementIds = mails.map((m) => elementIdPart(assertNotNull(m.mailDetails)))
-			const initialMap: Map<Id, Mail> = new Map()
-			const mailDetailsElementIdToMail = mails.reduce((previous: Map<Id, Mail>, current) => {
-				previous.set(elementIdPart(assertNotNull(current.mailDetails)), current)
-				return previous
-			}, initialMap)
 			await this.entityCache.loadMultiple(
 				MailDetailsBlobTypeRef,
 				listId,
@@ -86,7 +85,7 @@ export class EventInstancePrefetcher {
 		}
 	}
 
-	private setEventsWithInstancesAsPrefetched(
+	private async setEventsWithInstancesAsPrefetched(
 		allEventsFromAllBatch: Array<EntityUpdateData>,
 		instances: Array<ListElementEntity>,
 		elementIdsAndIndexes: Map<Id, number[]>,
@@ -97,7 +96,7 @@ export class EventInstancePrefetcher {
 			const elementEventBatchIndexes = elementIdsAndIndexes.get(elementId) || []
 			for (const index of elementEventBatchIndexes) {
 				allEventsFromAllBatch[index].isPrefetched = true
-				progressMonitor.workDone(1)
+				await progressMonitor.workDone(1)
 			}
 		}
 	}
@@ -108,7 +107,6 @@ export class EventInstancePrefetcher {
 		progressMonitor: ProgressMonitorDelegate,
 	): Promise<Map<string, Map<Id, Map<Id, number[]>>>> {
 		const prefetchMap: Map<string, Map<Id, Map<Id, number[]>>> = new Map()
-		let total = 0
 		for (const [eventIndexInList, entityUpdateData] of allEventsFromAllBatch.entries()) {
 			const typeIdentifier = getTypeString(entityUpdateData.typeRef)
 
@@ -122,14 +120,12 @@ export class EventInstancePrefetcher {
 			const isListElement = entityUpdateData.instanceListId != ""
 
 			if (isCreateWithInstance || isUpdateWithPatches || !isListElement) {
-				progressMonitor.workDone(1)
-				total += 1
+				await progressMonitor.workDone(1)
 				continue
 			}
 
 			if (entityUpdateData.operation === OperationType.DELETE) {
-				progressMonitor.workDone(1)
-				total += 1
+				await progressMonitor.workDone(1)
 				continue
 			} else {
 				const isTypeIdentifierInitialized = prefetchMap.has(typeIdentifier)
@@ -150,7 +146,6 @@ export class EventInstancePrefetcher {
 
 			const singleEntityUpdateEventIndexes = prefetchMap.get(typeIdentifier)!.get(entityUpdateData.instanceListId)!.get(entityUpdateData.instanceId)!
 			singleEntityUpdateEventIndexes.push(eventIndexInList)
-			total += 1
 		}
 		return prefetchMap
 	}
