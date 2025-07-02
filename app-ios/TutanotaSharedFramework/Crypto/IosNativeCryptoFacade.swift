@@ -4,6 +4,8 @@ import tutasdk
 /// Is an actor because we want to have serial execution for all the cryptogaphic operations, doing them in parallel is usually too
 /// much for the device.
 public actor IosNativeCryptoFacade: NativeCryptoFacade {
+
+
 	public init() {}
 
 	public func aesEncryptFile(_ key: DataWrapper, _ fileUri: String, _ iv: DataWrapper) async throws -> EncryptedFileInfo {
@@ -78,6 +80,23 @@ public actor IosNativeCryptoFacade: NativeCryptoFacade {
 		}
 
 	}
+  
+  
+  
+  public func generateEd25519Keypair() async throws -> IPCEd25519KeyPair {
+	throw CryptoError(message: "not implemented")
+  }
+
+  public func ed25519Sign(_ privateKey: IPCEd25519PrivateKey, _ data: DataWrapper) async throws -> IPCEd25519Signature {
+	throw CryptoError(message: "not implemented")
+  }		
+
+  public func ed25519Verify(_ publicKey: IPCEd25519PublicKey, _ data: DataWrapper, _ signature: IPCEd25519Signature) async throws -> Bool {
+	throw CryptoError(message: "not implemented")
+  }
+
+  
+  
 }
 
 private func CryptoError(message: String) -> Error { TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: message) }
