@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-01T14:54:53Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -134,6 +134,7 @@ export default {
 		"buyGiftCard_label": "یک کارت هدیه بخرید",
 		"buy_action": "خرید",
 		"by_label": "از طرف",
+		"calendarAlarmsTooBigError_msg": "یادآوری‌های جدید قابل تنظیم نیستند. این مشکل به دلیل وجود تعداد زیادی دستگاه با اعلان‌های فعال است. لطفاً برای حذف دستگاه‌های قدیمی از لیست اعلان‌ها، به تنظیمات -> اعلان‌ها بروید.",
 		"calendarCustomName_label": "نام سفارشی شما برای این تقویم:{customName}",
 		"calendarInvitationProgress_msg": "ارسال دعوت نامه",
 		"calendarInvitations_label": "دعوت نامه تقویم",
@@ -1470,6 +1471,7 @@ export default {
 		"when_label": "چه موقع",
 		"whitelabel.custom_title": "برندینگ اختصاصی",
 		"whitelabel.login_title": "ورود با وبسایت شخصی",
+		"whitelabel.login_tooltip": "صفحه ورود توتا را برای کارمندان خود در وب‌سایت شخصی خود قرار دهید.",
 		"whitelabelDomainExisting_msg": "يک دامنه برچسب‌ سفید هنوزوجود دارد. لطفاً  دامنه  برچسب‌ سفید را برداريد.",
 		"whitelabelDomainLinkInfo_msg": "هنگامی که ویژگی «برچسب سفید» را سفارش دهید، می‌توانید ورود Tuta را روی دامنهٔ (یک زیردامنه) خود فعال کنید، ظاهر Tuta را با توجه به نیازهایتان تغییر دهید (مثلاً هویت سازمانی) و برای مشتریان‌تان فرم‌های تماس ایجاد کنید. لطفاً نگاه کنید",
 		"whitelabelDomainNeeded_msg": "لطفا اول دامنه برچسب‌ سفیدتان را  پیکربندی کنید",

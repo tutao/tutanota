@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-06-23T12:53:14Z",
+	"updated_at": "2025-07-01T16:22:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1832,6 +1832,7 @@ export default {
 		"switchDrafts_action": "Växla till utkastkatalog",
 		"switchInbox_action": "Växla till Inkorgen",
 		"switchMonthView_action": "Byt till månadsvy",
+		"switchPlan_msg": "Ditt abonnemang kommer att ändras till {plan} {interval}",
 		"switchSearchInMenu_label": "Du kan växla söktyp i menyn",
 		"switchSentFolder_action": "Växla till skickat-mappen",
 		"switchSpam_action": "Växla till spammapp",

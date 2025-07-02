@@ -1815,6 +1815,7 @@ export type TranslationKeyType =
 	| "switchDrafts_action"
 	| "switchInbox_action"
 	| "switchMonthView_action"
+	| "switchPlan_msg"
 	| "switchSearchInMenu_label"
 	| "switchSentFolder_action"
 	| "switchSpam_action"

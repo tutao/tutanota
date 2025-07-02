@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-06-23T10:39:19Z",
+	"updated_at": "2025-07-01T07:15:32Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1836,6 +1836,7 @@ export default {
 		"switchDrafts_action": "Zum Entwurf-Ordner wechseln",
 		"switchInbox_action": "Zum Inbox-Ordner wechseln",
 		"switchMonthView_action": "Zur Monats-Ansicht wechseln",
+		"switchPlan_msg": "Ihr Abonnement wird umgestellt auf: {plan} {interval}",
 		"switchSearchInMenu_label": "Sie können die Suche im Menü anpassen",
 		"switchSentFolder_action": "Zum Gesendet-Ordner wechseln",
 		"switchSpam_action": "Zum SPAM-Ordner wechseln",

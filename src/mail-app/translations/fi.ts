@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-06-23T12:21:02Z",
+	"updated_at": "2025-07-01T18:45:49Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -974,8 +974,8 @@ export default {
 		"localDataSection_label": "Paikallisten tietojen säilytys",
 		"localDataSection_msg": "Paikallisesti tallennettuja sähköposteja voi lukea ja hakea ilman verkkoyhteyttä. Jos muutat hakunäkymän alkupäivää, sähköpostien tallennusaikaväliä muutetaan.",
 		"location_label": "Sijainti",
-		"lockdownModeNotSupported1_msg": "Olet ottanut Sulkutilan käyttöön, joten Tutan tulevia versioita ei voi käyttää laitteellasi.",
-		"lockdownModeNotSupported2_msg": "Poista Sulkutila käytöstä tai jätä Tuta siitä pois.",
+		"lockdownModeNotSupported1_msg": "Olet ottanut sulkutilan käyttöön, joten Tutan tulevia versioita ei voi käyttää laitteellasi.",
+		"lockdownModeNotSupported2_msg": "Poista sulkutila käytöstä tai jätä Tuta siitä pois.",
 		"loggingOut_msg": "Kirjaudutaan ulos...",
 		"loginAbuseDetected_msg": "Et voi käyttää tiliäsi enää, koska käyttöehtoja on loukattu esimerkiksi lähettämällä roskapostia.",
 		"loginCredentials_label": "Kirjautumistiedot",

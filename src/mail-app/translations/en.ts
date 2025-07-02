@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-06-23T10:39:18Z",
+	"updated_at": "2025-07-01T07:10:54Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1832,6 +1832,7 @@ export default {
 		"switchDrafts_action": "Switch to drafts folder",
 		"switchInbox_action": "Switch to inbox folder",
 		"switchMonthView_action": "Switch to month view",
+		"switchPlan_msg": "Your plan will be switched to: {plan} {interval}",
 		"switchSearchInMenu_label": "You can switch search type in the menu",
 		"switchSentFolder_action": "Switch to sent folder",
 		"switchSpam_action": "Switch to spam folder",
