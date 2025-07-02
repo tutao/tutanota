@@ -1128,7 +1128,7 @@ export class MailViewerViewModel {
 	}
 
 	getLabels(): readonly MailFolder[] {
-		return this.mailModel.getLabelsForMail(this.mail)
+		return this.mailModel.getLabelsForMail(this.mail).sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
 	}
 
 	private updateMail({ mail, showFolder }: { mail: Mail; showFolder?: boolean }) {
