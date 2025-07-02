@@ -219,7 +219,9 @@ export class ModelMapper {
 			}
 		}
 
-		clientInstance._original = structuredClone(clientInstance)
+		if (clientTypeModel.type != Type.DataTransfer) {
+			clientInstance._original = structuredClone(clientInstance)
+		}
 
 		return clientInstance as T
 	}
