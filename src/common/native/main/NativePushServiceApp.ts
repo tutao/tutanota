@@ -48,7 +48,7 @@ export class NativePushServiceApp {
 	) {}
 
 	async register(): Promise<void> {
-		console.log("Registering for push notifications for app", this.app)
+		console.log(`Registering for push notifications for app type ${this.app}`)
 		if (isAndroidApp() || isDesktop()) {
 			try {
 				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.workerFacade.generateSsePushIdentifer())

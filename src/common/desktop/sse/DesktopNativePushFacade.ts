@@ -9,6 +9,7 @@ import { InstancePipeline } from "../../api/worker/crypto/InstancePipeline"
 import { Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
 import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import { AlarmNotificationTypeRef } from "../../api/entities/sys/TypeRefs"
+import { log } from "../DesktopLog"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
@@ -83,6 +84,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 	}
 
 	async resetStoredState() {
+		log.info("Resetting SSE and purging all alarms...")
 		await this.sse.disconnect()
 		await this.alarmScheduler.unscheduleAllAlarms()
 		await this.sseStorage.clear()
