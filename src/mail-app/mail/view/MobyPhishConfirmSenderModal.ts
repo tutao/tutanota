@@ -1,10 +1,12 @@
 import { Icon } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import m, { Children } from "mithril"
-import { Keys } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import type { Shortcut } from "../../../common/misc/KeyManager.js"
 import { MailViewerViewModel, TRUSTED_SENDERS_API_URL, TrustedSenderInfo } from "./MailViewerViewModel.js"
+import { moveMails } from "./MailGuiUtils.js"
+import { assertSystemFolderOfType } from "../model/MailUtils.js"
 
 // Inject primary button style only once
 const styleId = "moby-phish-hover-style"
@@ -281,6 +283,7 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 						const userEmail = this.viewModel.logins.getUserController().loginUsername
 
 						try {
+							// Update MobyPhish API
 							const response = await fetch(`${TRUSTED_SENDERS_API_URL}/update-email-status`, {
 								method: "POST",
 								headers: { "Content-Type": "application/json" },
@@ -294,7 +297,28 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 							})
 
 							if (response.ok) {
-								console.log(`🔒 MOBYPHISH_LOG: Successfully reported phishing attempt for sender="${senderEmail}"`)
+								console.log(`🔒 MOBYPHISH_LOG: Successfully updated MobyPhish API for sender="${senderEmail}"`)
+
+								// Move email to spam folder (without reporting to Tutanota servers)
+								try {
+									const mailboxDetail = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
+									if (mailboxDetail && mailboxDetail.mailbox.folders) {
+										const folders = await this.viewModel.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+										const spamFolder = assertSystemFolderOfType(folders, MailSetKind.SPAM)
+
+										await moveMails({
+											mailboxModel: this.viewModel.mailboxModel,
+											mailModel: this.viewModel.mailModel,
+											mails: [this.viewModel.mail],
+											targetMailFolder: spamFolder,
+											isReportable: false,
+										})
+										console.log(`🔒 MOBYPHISH_LOG: Successfully moved email to spam folder for sender="${senderEmail}"`)
+									}
+								} catch (moveError) {
+									console.error(`🔒 MOBYPHISH_LOG: Failed to move email to spam folder for sender="${senderEmail}":`, moveError)
+								}
+
 								await this.viewModel.fetchSenderData()
 								if (this.modalHandle) {
 									modal.remove(this.modalHandle)
@@ -303,10 +327,10 @@ export class MobyPhishConfirmSenderModal implements ModalComponent {
 								}
 								m.redraw()
 							} else {
-								console.error("🔒 MOBYPHISH_LOG: Failed to report phishing")
+								console.error("🔒 MOBYPHISH_LOG: Failed to update MobyPhish API")
 							}
 						} catch (error) {
-							console.error("🔒 MOBYPHISH_LOG: Error reporting phishing:", error)
+							console.error("🔒 MOBYPHISH_LOG: Error updating MobyPhish API:", error)
 						}
 					},
 					disabled: this.isLoading,

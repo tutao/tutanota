@@ -1,10 +1,12 @@
 import m, { Children } from "mithril"
-import { Keys } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import { modal, ModalComponent } from "../../../common/gui/base/Modal.js"
 import type { Shortcut } from "../../../common/misc/KeyManager.js"
 import { MailViewerViewModel, TRUSTED_SENDERS_API_URL } from "./MailViewerViewModel.js"
 import { Icon } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
+import { moveMails } from "./MailGuiUtils.js"
+import { assertSystemFolderOfType } from "../model/MailUtils.js"
 
 // Inject CSS only once
 const styleId = "moby-phish-report-style"
@@ -362,6 +364,7 @@ export class MobyPhishReportModal implements ModalComponent {
 		const userEmail = this.viewModel.logins.getUserController().loginUsername
 
 		try {
+			// Update MobyPhish API
 			const response = await fetch(`${TRUSTED_SENDERS_API_URL}/update-email-status`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -376,6 +379,27 @@ export class MobyPhishReportModal implements ModalComponent {
 
 			if (response.ok) {
 				console.log(`🔒 MOBYPHISH_LOG: Successfully reported phishing for sender="${senderEmail}"`)
+
+				// Move email to spam folder (without reporting to Tutanota servers)
+				try {
+					const mailboxDetail = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
+					if (mailboxDetail && mailboxDetail.mailbox.folders) {
+						const folders = await this.viewModel.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
+						const spamFolder = assertSystemFolderOfType(folders, MailSetKind.SPAM)
+
+						await moveMails({
+							mailboxModel: this.viewModel.mailboxModel,
+							mailModel: this.viewModel.mailModel,
+							mails: [this.viewModel.mail],
+							targetMailFolder: spamFolder,
+							isReportable: false,
+						})
+						console.log(`🔒 MOBYPHISH_LOG: Successfully moved email to spam folder for sender="${senderEmail}"`)
+					}
+				} catch (moveError) {
+					console.error(`🔒 MOBYPHISH_LOG: Failed to move email to spam folder for sender="${senderEmail}":`, moveError)
+				}
+
 				await this.viewModel.fetchSenderData()
 				this.closeModal()
 			} else {

@@ -233,7 +233,7 @@ export class MailViewerViewModel {
 	}
 
 	setSenderConfirmed(confirmed: boolean): void {
-		console.log(`✅ setSenderConfirmed(${confirmed}) called → viewModelId=${this.viewModelId}`)
+		console.log(`✅ setSenderConfirmed(${confirmed}) called → sender="${this.getSender().address}"`)
 		this.senderConfirmed = confirmed
 	}
 
@@ -716,11 +716,25 @@ export class MailViewerViewModel {
 	}
 
 	async reportMail(reportType: MailReportType): Promise<void> {
+		// Add logging for phishing reports to match MobyPhishConfirmSenderModal pattern
+		if (reportType === MailReportType.PHISHING) {
+			console.log(
+				`🔒 MOBYPHISH_LOG: Report phishing button clicked in three dots menu for sender="${this.getSender().address}", mailId="${
+					this.mail._id[1]
+				}", userEmail="${this.logins.getUserController().loginUsername}"`,
+			)
+		}
+
 		try {
 			await this.mailModel.reportMails(reportType, [this.mail])
 			if (reportType === MailReportType.PHISHING) {
 				this.setPhishingStatus(MailPhishingStatus.SUSPICIOUS)
 				await this.entityClient.update(this.mail)
+				console.log(
+					`🔒 MOBYPHISH_LOG: Successfully reported phishing via three dots menu for sender="${this.getSender().address}", mailId="${
+						this.mail._id[1]
+					}", userEmail="${this.logins.getUserController().loginUsername}", interactionType="interacted"`,
+				)
 			}
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
 			if (mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
@@ -740,6 +754,14 @@ export class MailViewerViewModel {
 			if (e instanceof NotFoundError) {
 				console.log("mail already moved")
 			} else {
+				if (reportType === MailReportType.PHISHING) {
+					console.error(
+						`🔒 MOBYPHISH_LOG: Failed to report phishing via three dots menu for sender="${this.getSender().address}", mailId="${
+							this.mail._id[1]
+						}", error:`,
+						e,
+					)
+				}
 				throw e
 			}
 		}
