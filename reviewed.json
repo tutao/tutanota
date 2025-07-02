@@ -2986,5 +2986,77 @@
 	"node_modules/@typescript-eslint/utils/dist/ts-eslint/ESLint.js": {
 		"who": "ivk",
 		"when": "2025-07-01"
+	},
+	"node_modules/eslint/lib/shared/serialization.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/eslint/lib/rule-tester/rule-tester.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/eslint/lib/rule-tester/index.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/eslint/lib/api.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/Linter.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/Parser.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/ParserOptions.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/Processor.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/Rule.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/RuleTester.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/Scope.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/SourceCode.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-eslint/index.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-utils/isArray.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-utils/NoInfer.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/ts-utils/index.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/utils/dist/index.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
+	},
+	"node_modules/@typescript-eslint/eslint-plugin/dist/util/escapeRegExp.js": {
+		"who": "ivk",
+		"when": "2025-07-02"
 	}
 }
