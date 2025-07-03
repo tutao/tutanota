@@ -9,7 +9,14 @@ import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { EventBanner, EventBannerAttrs } from "./EventBanner.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import {
+	EncryptionAuthStatus,
+	InboxRuleType,
+	Keys,
+	MailAuthenticationStatus,
+	PublicKeyIdentifierType,
+	TabIndex,
+} from "../../../common/api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../../common/api/common/Env.js"
@@ -34,6 +41,8 @@ import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MoveMode } from "../model/MailModel"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
+import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -355,6 +364,35 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					? null
 					: [
 							m(".small.b", lang.get("from_label")),
+							m(IconButton, {
+								title: lang.makeTranslation("placeholder_error", "placeholder_error"),
+								icon: Icons.AlertCircle,
+								click: async (event: MouseEvent, dom: HTMLElement) => {
+									console.log("clicked the sender verification button")
+									// call check service with recipient fingerprint and verify signature again
+									// if success => display ok page from recover dialog but with different translation key
+									// if failure => display recover dialog but with different wording
+
+									let publicKeyProvider: PublicEncryptionKeyProvider = locator.publicEncryptionKeyProvider
+									import("../../../common/settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
+										async ({ showSenderKeyVerificationRecoveryDialog, SenderKeyVerificationRecoveryDialogPages }) => {
+											try {
+												// We are doing this for the implicit key verification. We do not care about the returned key.
+												await publicKeyProvider.loadCurrentPublicEncryptionKey({
+													identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+													identifier: displayedSender.address,
+												})
+
+												// success case
+												showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.SUCCESS)
+											} catch (e) {
+												// failure case
+												showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.INFO)
+											}
+										},
+									)
+								},
+							}),
 							m(RecipientButton, {
 								label: getMailAddressDisplayText(displayedSender.name, displayedSender.address, false),
 								click: createAsyncDropdown({
