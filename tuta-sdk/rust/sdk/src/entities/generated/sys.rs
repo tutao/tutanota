@@ -3411,6 +3411,8 @@ pub struct RegistrationCaptchaServiceGetData {
 	pub paidSubscriptionSelected: bool,
 	#[serde(rename = "1752")]
 	pub businessUseSelected: bool,
+	#[serde(rename = "2619")]
+	pub timelockChallengeSolution: Option<String>,
 }
 
 impl Entity for RegistrationCaptchaServiceGetData {
@@ -6148,6 +6150,46 @@ impl Entity for PatchList {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2614),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct TimelockCaptchaGetIn {
+	#[serde(rename = "2621")]
+	pub _format: i64,
+	#[serde(rename = "2622")]
+	pub signupToken: String,
+}
+
+impl Entity for TimelockCaptchaGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2620),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct TimelockCaptchaGetOut {
+	#[serde(rename = "2624")]
+	pub _format: i64,
+	#[serde(rename = "2625")]
+	pub difficulty: String,
+	#[serde(rename = "2626")]
+	pub modulus: String,
+	#[serde(rename = "2627")]
+	pub base: String,
+}
+
+impl Entity for TimelockCaptchaGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2623),
 		}
 	}
 }
