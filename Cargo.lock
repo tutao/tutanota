@@ -2505,7 +2505,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tuta-sdk"
-version = "294.250702.1"
+version = "296.250703.0"
 dependencies = [
  "aes",
  "android_log",
@@ -2555,7 +2555,7 @@ dependencies = [
 
 [[package]]
 name = "tutao_node-mimimi"
-version = "294.250702.1"
+version = "296.250703.0"
 dependencies = [
  "base64",
  "log 0.4.27",
