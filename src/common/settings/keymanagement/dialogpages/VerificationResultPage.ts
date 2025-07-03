@@ -23,8 +23,8 @@ export class VerificationResultPage implements Component<VerificationResultPageA
 				? null
 				: m(FingerprintRow, {
 						publicKeyFingerprint: publicIdentity.fingerprint,
-						publicKeyVersion: publicIdentity.key.version,
-						publicKeyType: publicIdentity.key.object.type,
+						publicKeyVersion: publicIdentity.trustDbEntry.publicIdentityKey.version,
+						publicKeyType: publicIdentity.trustDbEntry.publicIdentityKey.object.type,
 						mailAddress: publicIdentity.mailAddress,
 					}),
 		)

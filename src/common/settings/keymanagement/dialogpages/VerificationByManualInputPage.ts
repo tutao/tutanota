@@ -13,10 +13,12 @@ import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
+import { BootIcons } from "../../../gui/base/icons/BootIcons"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
+	gotToMismatchPage: () => void
 }
 
 const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationModel, mailAddress: string) => {
@@ -30,6 +32,8 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 
 		const publicIdentity = model.getPublicIdentity()
 		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
+		const doNotTrustTranslationKey: TranslationKey = "keyManagement.doNotTrust_action"
+
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(Card, [
 				m(
@@ -49,7 +53,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					disabled: false,
 					classes: ["flex", "gap-vpad-s", "items-center", "pl-vpad-s"],
 					leadingIcon: {
-						icon: Icons.At,
+						icon: BootIcons.Contacts,
 						color: getColors(ButtonColor.Content).button,
 					},
 					value: model.mailAddressInput,
@@ -71,39 +75,56 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 				}),
 			),
 			publicIdentity
-				? m(
-						Card,
-						{ classes: ["flex", "flex-column", "gap-vpad"] },
-						m(".pl-vpad-s", lang.get("keyManagement.verificationByText_label", { "{button}": lang.get(markAsVerifiedTranslationKey) })),
-						m(MonospaceTextDisplay, {
-							text: publicIdentity.fingerprint,
-							placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
-							chunkSize: 4,
-							border: false,
-							classes: ".mb-s",
-						}),
-					)
-				: null,
-			m(
-				".align-self-center.full-width",
-				m(LoginButton, {
-					label: markAsVerifiedTranslationKey,
-					onclick: async () => {
-						await model.trust(IdentityKeyVerificationMethod.text)
-						goToSuccessPage()
-					},
-					disabled: !publicIdentity,
-					icon: publicIdentity
-						? m(Icon, {
-								icon: Icons.Checkmark,
-								class: "mr-xsm",
+				? [
+						m(
+							Card,
+							{ classes: ["flex", "flex-column", "gap-vpad"] },
+							m(
+								".pl-vpad-s",
+								lang.get("keyManagement.verificationByText_label", {
+									"{button1}": lang.get(markAsVerifiedTranslationKey),
+									"{button2}": lang.get(doNotTrustTranslationKey),
+								}),
+							),
+							m(MonospaceTextDisplay, {
+								text: publicIdentity.fingerprint,
+								placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
+								chunkSize: 4,
+								border: false,
+								classes: ".mb-s",
+							}),
+						),
+						m(LoginButton, {
+							class: "success-bg flex-center row center-vertically",
+							label: markAsVerifiedTranslationKey,
+							onclick: async () => {
+								await model.trust(IdentityKeyVerificationMethod.text)
+								goToSuccessPage()
+							},
+							icon: m(Icon, {
+								icon: Icons.XCheckmark,
+								class: "mr-s flex-center",
 								style: {
-									fill: theme.content_button_icon_selected,
+									fill: theme.success_container,
 								},
-							})
-						: null,
-				}),
-			),
+							}),
+						}),
+						m(LoginButton, {
+							class: "error-bg flex-center row center-vertically",
+							label: doNotTrustTranslationKey,
+							onclick: async () => {
+								vnode.attrs.gotToMismatchPage()
+							},
+							icon: m(Icon, {
+								icon: Icons.XCross,
+								class: "mr-s flex-center",
+								style: {
+									fill: theme.error_container,
+								},
+							}),
+						}),
+					]
+				: null,
 		])
 	}
 }
