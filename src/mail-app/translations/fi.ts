@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-07-01T18:45:49Z",
+	"updated_at": "2025-07-02T16:34:36Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1407,7 +1407,7 @@ export default {
 		"pricing.mailAddressFree_label": "Yksi ilmainen Tuta-sähköpostiosoite",
 		"pricing.management_label": "Käyttäjähallinta",
 		"pricing.management_tooltip": "Nollaa salasana tai toisen asteen tunnistautumiskeino, luo käyttäjille sähköpostiosoitteita, poista käyttäjiä käytöstä, ym.",
-		"pricing.monthly_label": "Kuukausittainen",
+		"pricing.monthly_label": "Kuukausittain",
 		"pricing.months_label": "kuukautta",
 		"pricing.noAds_label": "Ei mainoksia, ei seurantaa",
 		"pricing.notifications_label": "Mukautettu ilmoitusviesti",
@@ -1448,7 +1448,7 @@ export default {
 		"pricing.unlimitedAddresses_label": "Rajattoman monta osoitetta omalla verkkotunnuksella",
 		"pricing.upgradeLater_msg": "Käytä Tutaa ilmaiseksi ja vaihda tilausta myöhemmin. Vain henkilökohtaiseen käyttöön.",
 		"pricing.usability_label": "Käytettävyys",
-		"pricing.yearly_label": "Vuosittainen",
+		"pricing.yearly_label": "Vuosittain",
 		"primaryMailAddress_label": "Pääosoite",
 		"print_action": "Tulosta",
 		"privacyLink_label": "Tietosuojaseloste",
