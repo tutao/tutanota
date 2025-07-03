@@ -6,6 +6,8 @@ function unsupported(e) {
 	img.style.display = "block"
 	img.style.margin = "0 auto"
 	document.body.appendChild(img)
+	document.body.style.backgroundColor = "white"
+	document.body.style.color = "black"
 
 	const h1 = document.createElement("h1")
 	h1.innerText = "Tuta Mail"
@@ -25,15 +27,23 @@ function unsupported(e) {
 	if (isAndroidApp) {
 		text.textContent = "Seems like your system WebView is outdated. Please see FAQ entry for more information"
 	} else {
-		text.textContent = "Seems like your browser is not supported or outdated. Please see FAQ entry for more information"
+		if (e.name === "NoWASMSupport") {
+			text.textContent = "Your browser doesn't support WebAssembly. Please refer to the documentation below to fix this issue: "
+		} else {
+			text.textContent = "Seems like your browser is not supported or outdated. Please see FAQ entry for more information"
+		}
 	}
 	div.appendChild(text)
 
 	const link = document.createElement("a")
 	if (isAndroidApp) {
-		link.href = "https://tuta.com/faq/#webview"
+		link.href = "https://tuta.com/support/#webview"
 	} else {
-		link.href = "https://tuta.com/faq/#browser-support"
+		if (e.name === "NoWASMSupport") {
+			link.href = "https://tuta.com/support/#enable-webassembly"
+		} else {
+			link.href = "https://tuta.com/support/#browser-support"
+		}
 	}
 
 	link.target = "_blank"
