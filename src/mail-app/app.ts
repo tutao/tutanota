@@ -59,6 +59,12 @@ window.tutao = {
 
 client.init(navigator.userAgent, navigator.platform, AppType.Mail)
 
+if (!client.webassembly()) {
+	const webAssemblyError = new Error()
+	webAssemblyError.name = "NoWASMSupport"
+	throw webAssemblyError
+}
+
 if (!client.isSupported()) {
 	throw new Error("Unsupported")
 }
