@@ -44,7 +44,12 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 					},
 					[
 						m(".h4.mb-0.pl-vpad-s", lang.get("keyManagement.selectMethodShort_label")),
-						m("p.mt-xs.mb-s.pl-vpad-s", lang.get("keyManagement.selectMethodLong_label")),
+						m(
+							"p.mt-xs.mb-s.pl-vpad-s",
+							lang.get("keyManagement.selectMethodLong_label", {
+								"{compareVerificationCode}": lang.get("keyManagement.text_label"),
+							}),
+						),
 					],
 				),
 				[

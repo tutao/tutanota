@@ -1,24 +1,25 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextFieldType } from "../../../gui/base/TextField"
-import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
-import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
+import { lang } from "../../../misc/LanguageViewModel"
 import { Card } from "../../../gui/base/Card"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
 import { Icons } from "../../../gui/base/icons/Icons"
 import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel } from "../KeyVerificationModel"
-import { Icon } from "../../../gui/base/Icon"
+import { Icon, IconSize } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 import { BootIcons } from "../../../gui/base/icons/BootIcons"
 import { TitleSection } from "../../../gui/TitleSection"
+import { FingerprintRow } from "../FingerprintRow"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
+	gotToMismatchPage: () => void
 }
 
 const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationModel, mailAddress: string) => {
@@ -31,15 +32,13 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 		const { model, goToSuccessPage } = vnode.attrs
 
 		const publicIdentity = model.getPublicIdentity()
-		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
+
 		return m(".pt.pb.flex.col.gap-vpad", [
-			m(Card, [
-				m(TitleSection, {
-					title: lang.get("keyManagement.textVerification_label"),
-					subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
-					icon: Icons.QuestionMarkOutline,
-				}),
-			]),
+			m(TitleSection, {
+				title: lang.get("keyManagement.textVerification_label"),
+				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
+				icon: publicIdentity ? Icons.QuestionMarkOutline : undefined,
+			}),
 			m(
 				Card,
 				{
@@ -73,44 +72,54 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 				}),
 			),
 			publicIdentity
-				? m(
-						Card,
-						{ classes: ["flex", "flex-column", "gap-vpad"] },
+				? [
 						m(
-							".pl-vpad-s",
-							lang.get("keyManagement.verificationByText_label", {
-								"{button}": lang.get(markAsVerifiedTranslationKey),
+							Card,
+							{ classes: ["flex", "flex-column", "gap-vpad"] },
+							m(
+								".pl-vpad-s",
+								lang.get("keyManagement.verificationByText_label", {
+									"{settings}": lang.get("settings_label"),
+									"{keyManagement}": lang.get("keyManagement_label"),
+								}),
+							),
+							m(FingerprintRow, {
+								mailAddress: publicIdentity.mailAddress,
+								publicKeyType: publicIdentity.trustDbEntry.publicIdentityKey.object.type,
+								publicKeyFingerprint: publicIdentity.fingerprint,
+								publicKeyVersion: publicIdentity.trustDbEntry.publicIdentityKey.version,
 							}),
 						),
-						m(MonospaceTextDisplay, {
-							text: publicIdentity.fingerprint,
-							placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
-							chunkSize: 4,
-							border: false,
-							classes: ".mb-s",
+						m(LoginButton, {
+							class: "flex-center row center-vertically",
+							label: "yes_label",
+							onclick: async () => {
+								await model.trust(IdentityKeyVerificationMethod.text)
+								goToSuccessPage()
+							},
+							icon: m(Icon, {
+								icon: Icons.XCheckmark,
+								size: IconSize.Large,
+								class: "mr-s flex-center",
+							}),
 						}),
-					)
-				: null,
-			m(
-				".align-self-center.full-width",
-				m(LoginButton, {
-					label: markAsVerifiedTranslationKey,
-					onclick: async () => {
-						await model.trust(IdentityKeyVerificationMethod.text)
-						goToSuccessPage()
-					},
-					disabled: !publicIdentity,
-					icon: publicIdentity
-						? m(Icon, {
-								icon: Icons.Checkmark,
-								class: "mr-xsm",
+						m(LoginButton, {
+							class: "flex-center row center-vertically",
+							label: "no_label",
+							onclick: async () => {
+								vnode.attrs.gotToMismatchPage()
+							},
+							icon: m(Icon, {
+								icon: Icons.XCross,
+								size: IconSize.Large,
+								class: "mr-s flex-center",
 								style: {
-									fill: theme.content_button_icon_selected,
+									fill: theme.content_button_icon,
 								},
-							})
-						: null,
-				}),
-			),
+							}),
+						}),
+					]
+				: null,
 		])
 	}
 }
