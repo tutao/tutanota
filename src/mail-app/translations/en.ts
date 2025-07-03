@@ -862,6 +862,7 @@ export default {
         "keyManagement.keyVerification_subtitle_label": "Here you can manage your trusted keys.",
         "keyManagement.mailRecipientsVerificationMismatchError_msg": "This email could not be sent. The recipients' public keys changed. To proceed, please check the recipients:",
         "keyManagement.markAsVerified_action": "Trust contact",
+        "keyManagement.doNotTrust_action": "Do not trust",
         "keyManagement.publicKeyFingerprintQrInfo_msg": "This is the fingerprint of the public key associated with your user account, embedded in a QR code.",
         "keyManagement.publicKeyFingerprintTextInfo_msg": "This is the fingerprint of the public key associated with your user account.",
         "keyManagement.publicKeyFingerprint_label": "Public key",
@@ -878,7 +879,7 @@ export default {
         "keyManagement.unverifiedRecipient_msg": "This recipient's public key does not match the expected one:",
         "keyManagement.verificationByQrCodeScan_label": "Scan the QR code you received from your contact.",
         "keyManagement.verificationByTextMailAdress_label": "Enter the Tuta email address of the contact you would like to verify.",
-        "keyManagement.verificationByText_label": "Compare the fingerprint displayed below to the one you received from the contact. Click only on \"{button}\" if both fingerprints match.",
+        "keyManagement.verificationByText_label": "Compare the fingerprint displayed below to the one you received from the contact. Click only on \"{button1}\" if both fingerprints match. Otherwise click \"{button2}\".",
         "keyManagement.verificationError_title": "Contact verification failed",
         "keyManagement.verificationPool_label": "Verified contacts",
         "keyManagement.verifyMailAddress_action": "Add and verify an email address",
@@ -1149,7 +1150,7 @@ export default {
         "noRecipients_msg": "Please enter the email address of your recipient.",
         "noSelection_msg": "Nothing selected",
         "noSimilarContacts_msg": "No similar contacts found.",
-		"noSimultaneousEvents_msg": "No simultaneous events",
+        "noSimultaneousEvents_msg": "No simultaneous events",
         "noSolution_msg": "Have not found a solution to your problem?",
         "noSubject_msg": "The subject is missing. Send email anyway?",
         "notASubdomain_msg": "This domain is not a subdomain.",
@@ -1725,7 +1726,7 @@ export default {
         "signedOn_msg": "Signed on {date}.",
         "signingNeeded_msg": "Signing needed!",
         "sign_action": "Sign",
-		"simultaneousEvents_msg": "Simultaneous events",
+        "simultaneousEvents_msg": "Simultaneous events",
         "sister_label": "Sister",
         "skip_action": "Skip",
         "social_label": "Social networks",
@@ -1885,7 +1886,7 @@ export default {
         "timeFormatTwentyFourHour_label": "24 hour",
         "timeFormat_label": "Time format",
         "timeOverview_title": "Time Overview",
-		"timeSection_label": "Time selection",
+        "timeSection_label": "Time selection",
         "times_msg": "{amount} times",
         "time_label": "Time",
         "title_placeholder": "Title",
@@ -1987,7 +1988,7 @@ export default {
         "viewEvent_action": "View event",
         "viewInWeb_action": "Open in the browser",
         "viewNextPeriod_action": "View next period",
-		"viewOnCalendar_action": "View on calendar",
+        "viewOnCalendar_action": "View on calendar",
         "viewPrevPeriod_action": "View previous period",
         "viewToday_action": "View current period",
         "view_label": "View",
@@ -2051,8 +2052,10 @@ export default {
         "keyVerificationErrorManual_msg": "The identity key doesn't match the key you manually verified with this contact.",
         "keyVerificationErrorTofu_msg": "The identity key differs from last time you had a conversation with this contact.",
         "keyVerificationErrorGeneric_msg": "The identity key for this contact differs from the one that is saved on this device.",
+        "fingerprintMissmatch_msg": "The fingerprint you received from your contact is different from the one that is saved on your device.",
         "keyVerificationErrorWarning_msg": "This is a potential security risk and it might be that someone attempted to intercept your conversation. It could also be a legitimate change <b>only</b> if the account behind this contact assigned the email address to another user.",
         "keyVerificationErrorRecommendation_msg": "Reject the change and do a manual key verification with the contact. Only accept the change <b>after</b> you verified with the contact that the change is legitimate.",
+        "fingerprintMissmatchRecommendation_msg": "If you are sure that the key has been moved you can remove the trusted key from your local database an retry verification with a fresh key from the server.",
         "keyVerificationErrorRecommendation_title": "Recommendation",
         "keyVerificationLearnMoreAboutContactVerificationLink_msg": "Learn more about contact verification",
         "keyVerificationErrorContactUpdated_msg": "The identity key for the contact <b>{mailAddress}</b> has been updated on your device with the trust level <b>Trust on first use</b>.<br><br>" +
@@ -2060,6 +2063,8 @@ export default {
         "keyVerificationErrorContactNotUpdated_msg": "The  identity key for the contact  <b>{mailAddress}</b> has not been updated on your device  <br><br>" +
             "Please do a manual key verification before you continue the conversation.",
         "keyVerificationErrorAccept_title": "Contact successfully updated",
-        "keyVerificationErrorReject_title": "Contact not updated"
+        "keyVerificationErrorReject_title": "Contact not updated",
+        "deleteKey_action": "Delete key",
+        "keepKey_action": "Keep key"
     }
 }

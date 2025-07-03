@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { TextFieldType } from "../../../gui/base/TextField"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
@@ -13,6 +13,9 @@ import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
+import { GoToErrorPageHandler } from "./VerificationByQrCodeInputPage"
+import { showKeyVerificationErrorRecoveryDialog } from "../KeyVerificationRecoverDialog"
+import { showFingerprintMissmatchRecoveryDialog } from "./FingerprintMissmatchRecoverDialog"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
@@ -30,6 +33,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 
 		const publicIdentity = model.getPublicIdentity()
 		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
+		const doNotTrustTranslationKey: TranslationKey = "keyManagement.doNotTrust_action"
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(Card, [
 				m(
@@ -74,7 +78,13 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 				? m(
 						Card,
 						{ classes: ["flex", "flex-column", "gap-vpad"] },
-						m(".pl-vpad-s", lang.get("keyManagement.verificationByText_label", { "{button}": lang.get(markAsVerifiedTranslationKey) })),
+						m(
+							".pl-vpad-s",
+							lang.get("keyManagement.verificationByText_label", {
+								"{button1}": lang.get(markAsVerifiedTranslationKey),
+								"{button2}": lang.get(doNotTrustTranslationKey),
+							}),
+						),
 						m(MonospaceTextDisplay, {
 							text: publicIdentity.fingerprint,
 							placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
@@ -96,6 +106,25 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					icon: publicIdentity
 						? m(Icon, {
 								icon: Icons.Checkmark,
+								class: "mr-xsm",
+								style: {
+									fill: theme.content_button_icon_selected,
+								},
+						  })
+						: null,
+				}),
+			),
+			m(
+				".align-self-center.full-width",
+				m(LoginButton, {
+					label: doNotTrustTranslationKey,
+					onclick: async () => {
+						showFingerprintMissmatchRecoveryDialog(model.mailAddressInput)
+					},
+					disabled: !publicIdentity,
+					icon: publicIdentity
+						? m(Icon, {
+								icon: Icons.X,
 								class: "mr-xsm",
 								style: {
 									fill: theme.content_button_icon_selected,
