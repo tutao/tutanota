@@ -46,7 +46,7 @@ export class EventInstancePrefetcher {
 						if (isSameTypeRef(MailTypeRef, typeRef)) {
 							await this.fetchMailDetailsBlob(instances)
 						}
-						await this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, instances, elementIdsAndIndexes, progressMonitor)
+						await this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, elementIdsAndIndexes, progressMonitor)
 					} catch (e) {
 						if (isExpectedErrorForSynchronization(e)) {
 							console.log(`could not preload, probably lost group membership ( or not added yet ) for list ${typeRefString}/${listId}`)
@@ -87,15 +87,12 @@ export class EventInstancePrefetcher {
 
 	private async setEventsWithInstancesAsPrefetched(
 		allEventsFromAllBatch: Array<EntityUpdateData>,
-		instances: Array<ListElementEntity>,
 		elementIdsAndIndexes: Map<Id, number[]>,
 		progressMonitor: ProgressMonitorDelegate,
 	) {
-		for (const { _id } of instances) {
-			const elementId = elementIdPart(_id)
-			const elementEventBatchIndexes = elementIdsAndIndexes.get(elementId) || []
-			for (const index of elementEventBatchIndexes) {
-				allEventsFromAllBatch[index].isPrefetched = true
+		for (const [_, indices] of elementIdsAndIndexes) {
+			for (const i of indices) {
+				allEventsFromAllBatch[i].isPrefetched = true
 				await progressMonitor.workDone(1)
 			}
 		}

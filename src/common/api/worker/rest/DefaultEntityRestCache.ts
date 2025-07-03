@@ -810,16 +810,24 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 			const id = collapseId(update.instanceListId, update.instanceId)
 
-			switch (operation) {
-				case OperationType.CREATE:
-					await handler.onEntityEventCreate?.(id)
-					break
-				case OperationType.UPDATE:
-					await handler.onEntityEventUpdate?.(id)
-					break
-				case OperationType.DELETE:
-					await handler.onEntityEventDelete?.(id)
-					break
+			try {
+				switch (operation) {
+					case OperationType.CREATE:
+						await handler.onEntityEventCreate?.(id)
+						break
+					case OperationType.UPDATE:
+						await handler.onEntityEventUpdate?.(id)
+						break
+					case OperationType.DELETE:
+						await handler.onEntityEventDelete?.(id)
+						break
+				}
+			} catch (e) {
+				if (isExpectedErrorForSynchronization(e)) {
+					continue
+				} else {
+					throw e
+				}
 			}
 		}
 

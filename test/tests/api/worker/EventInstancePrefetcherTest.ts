@@ -442,7 +442,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		)
 	})
 
-	o("set preFetched flag to true for fetched instances", async () => {
+	o("set preFetched flag to true for every entityUpdate for instance in loadMultiple request payload", async () => {
 		const passMail = createTestEntity(MailTypeRef, { _id: ["firstMailListId", id1] }, { populateAggregates: true })
 		const secondPassMail = createTestEntity(MailTypeRef, { _id: ["firstMailListId", id3] }, { populateAggregates: true })
 		const failMail = createTestEntity(MailTypeRef, { _id: ["secondMailListId", id2] }, { populateAggregates: true })
@@ -494,42 +494,8 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		o(passingUpdate.isPrefetched).equals(true)
 		o(secondPassingUpdate.isPrefetched).equals(true)
-		o(failingUpdate.isPrefetched).equals(false)
-		o(secondFailingUpdate.isPrefetched).equals(false)
-	})
-
-	o("set preFetched flag to false for missing instances", async () => {
-		const firstMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id1] }, { populateAggregates: true })
-		const secondMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id2] }, { populateAggregates: true })
-		const thirdMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id3] }, { populateAggregates: true })
-
-		const firstMailUpdate: EntityUpdateData = {
-			typeRef: MailTypeRef,
-			instanceListId: "mailListId",
-			instanceId: elementIdPart(firstMail._id),
-			operation: OperationType.CREATE,
-			instance: null,
-			patches: null,
-			isPrefetched: false,
-		}
-		const secondMailUpdate: EntityUpdateData = Object.assign(structuredClone(firstMailUpdate), { instanceId: elementIdPart(secondMail._id) })
-		const thirdMailUpdate: EntityUpdateData = Object.assign(structuredClone(firstMailUpdate), { instanceId: elementIdPart(thirdMail._id) })
-
-		// only return first & third mail
-		when(
-			entityRestClient.loadMultipleParsedInstances(
-				MailTypeRef,
-				"mailListId",
-				[firstMailUpdate.instanceId, secondMailUpdate.instanceId, thirdMailUpdate.instanceId],
-				undefined,
-				fetchInstanceOpt,
-			),
-		).thenResolve(Array.of(await toStorableInstance(firstMail), await toStorableInstance(thirdMail)))
-		await eventInstancePrefetcher.preloadEntities(Array.of(firstMailUpdate, secondMailUpdate, thirdMailUpdate), progressMonitorMock)
-
-		o(firstMailUpdate.isPrefetched).equals(true)
-		o(thirdMailUpdate.isPrefetched).equals(true)
-		o(secondMailUpdate.isPrefetched).equals(false)
+		o(failingUpdate.isPrefetched).equals(true) // we prefetch everything
+		o(secondFailingUpdate.isPrefetched).equals(true)
 	})
 
 	o("Multiple events of same instance are marked as prefetched", async () => {
