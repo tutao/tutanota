@@ -248,16 +248,16 @@ struct CryptoCompatibilityTest {
 
 	@Test func ed25519() async throws {
 		for test in testData.ed25519Tests {
-			let alicePrivateKey = IPCEd25519PrivateKey( raw: DataWrapper(data: test.alicePrivateKeyHex));
-			let alicePublicKey = IPCEd25519PublicKey( raw: DataWrapper(data: test.alicePublicKeyHex ));
-			let message = DataWrapper(data: test.message);
+			let alicePrivateKey = IPCEd25519PrivateKey( raw: DataWrapper(data: test.alicePrivateKeyHex))
+			let alicePublicKey = IPCEd25519PublicKey( raw: DataWrapper(data: test.alicePublicKeyHex ))
+			let message = DataWrapper(data: test.message)
 
-			let signature = IPCEd25519Signature(signature: DataWrapper(data: test.signature));
-			let reproducedSignature = try await facade.ed25519Sign( alicePrivateKey, message);
+			let signature = IPCEd25519Signature(signature: DataWrapper(data: test.signature))
+			let reproducedSignature = try await facade.ed25519Sign( alicePrivateKey, message)
 			#expect(reproducedSignature.signature.data == signature.signature.data)
 
-			let verifyResult = try await facade.ed25519Verify(alicePublicKey, message, signature);
-			#expect(verifyResult == false);
+			let verifyResult = try await facade.ed25519Verify(alicePublicKey, message, signature)
+			#expect(verifyResult == true)
 		}
 	}
 
