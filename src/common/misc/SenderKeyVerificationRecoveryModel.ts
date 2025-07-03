@@ -1,21 +1,25 @@
 import type { KeyVerificationFacade } from "../api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicIdentityKeyProvider } from "../api/worker/facades/PublicIdentityKeyProvider"
+import { MailAddressAndName } from "../api/common/CommonMailUtils"
 import { IdentityKeySourceOfTrust, PublicKeyIdentifierType } from "../api/common/TutanotaConstants"
-import { ResolvableRecipient } from "../api/main/RecipientsModel"
 
 /**
- * Handles the high level logic of how to deal with key verification errors.
+ * Handles the high level logic of how to deal with key verification errors for senders.
  */
-export class KeyVerificationErrorModel {
+export class SenderKeyVerificationRecoveryModel {
 	constructor(
 		private readonly keyVerificationFacade: KeyVerificationFacade,
 		private readonly publicIdentityKeyProvider: PublicIdentityKeyProvider,
-		private readonly recipient: ResolvableRecipient,
+		private readonly sender: MailAddressAndName,
 	) {}
 
-	async getSourceOfTrust(): Promise<IdentityKeySourceOfTrust> {
+	getSenderAddress() {
+		return this.sender.address
+	}
+
+	async getSourceOfTrust() {
 		const identityKey = await this.publicIdentityKeyProvider.loadPublicIdentityKey({
-			identifier: this.recipient.address,
+			identifier: this.sender.address,
 			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 		})
 		if (identityKey) {
@@ -26,8 +30,11 @@ export class KeyVerificationErrorModel {
 	}
 
 	async acceptAndLoadNewKey() {
-		await this.keyVerificationFacade.untrust(this.recipient.address)
-		this.recipient.reset()
-		await this.recipient.resolve()
+		await this.keyVerificationFacade.untrust(this.sender.address)
+		// reload identity public key and store it as TOFU
+		const identityKey = await this.publicIdentityKeyProvider.loadPublicIdentityKey({
+			identifier: this.sender.address,
+			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+		})
 	}
 }
