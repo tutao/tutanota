@@ -59,6 +59,8 @@ export async function runCaptchaFlow(
 				signupToken: deviceConfig.getSignupToken(),
 				businessUseSelected: isBusinessUse,
 				paidSubscriptionSelected: isPaidSubscription,
+				// FIXME: Put actual solution
+				timelockChallengeSolution: "something",
 			}),
 		)
 		if (captchaReturn.challenge) {
