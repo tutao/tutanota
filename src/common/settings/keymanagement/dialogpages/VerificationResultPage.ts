@@ -18,17 +18,15 @@ export class VerificationResultPage implements Component<VerificationResultPageA
 				title: lang.get("keyManagement.contactVerificationConfirmationTitle_label"),
 				subTitle: lang.get("keyManagement.contactVerificationConfirmation_label"),
 				icon: Icons.CheckCircleOutline,
-				iconOptions: {
-					color: theme.success,
-				},
+				iconOptions: { color: theme.success },
 			}),
 			m(".mb"),
 			publicIdentity === null
 				? null
 				: m(FingerprintRow, {
 						publicKeyFingerprint: publicIdentity.fingerprint,
-						publicKeyVersion: publicIdentity.key.version,
-						publicKeyType: publicIdentity.key.object.type,
+						publicKeyVersion: publicIdentity.trustDbEntry.publicIdentityKey.version,
+						publicKeyType: publicIdentity.trustDbEntry.publicIdentityKey.object.type,
 						mailAddress: publicIdentity.mailAddress,
 					}),
 		)

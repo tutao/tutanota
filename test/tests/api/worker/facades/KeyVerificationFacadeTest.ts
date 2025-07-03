@@ -75,12 +75,12 @@ o.spec("KeyVerificationFacadeTest", function () {
 			when(publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)).thenResolve(null)
 			await assertThrows(KeyVerificationMismatchError, async () => await keyVerification.verify(publicKeyIdentifier, maybeSignedPublicKey))
 		})
-		o("idenity key but no signature results in KeyVerificationMissmatch", async function () {
+		o("idenity key but no signature results in KeyVerificationMismatch", async function () {
 			when(publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)).thenResolve(trustDBEntry)
 			maybeSignedPublicKey.signature = null
 			await assertThrows(KeyVerificationMismatchError, async () => await keyVerification.verify(publicKeyIdentifier, maybeSignedPublicKey))
 		})
-		o("invalid signature results in KeyVerificationMissmatch", async function () {
+		o("invalid signature results in KeyVerificationMismatch", async function () {
 			when(publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)).thenResolve(trustDBEntry)
 			when(
 				publicKeySignatureFacade.verifyPublicKeySignature(

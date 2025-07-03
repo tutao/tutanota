@@ -8,7 +8,6 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
 import { KeyVerificationFacade, TrustedIdentity } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { showKeyVerificationDialog } from "./KeyVerificationDialog"
-import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
 import { TitleSection } from "../../gui/TitleSection"
@@ -21,15 +20,23 @@ import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtil
 import { ThemeController } from "../../gui/ThemeController"
 import { PublicIdentity } from "./KeyVerificationModel"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
+import { Versioned } from "@tutao/tutanota-utils"
+import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
+import { showSnackBar } from "../../gui/base/SnackBar"
+import { copyToClipboard } from "../../misc/ClipboardUtils"
+
+/**
+ * Our own identity key, which is not stored on the trust DB.
+ */
+type OwnPublicIdentity = Omit<PublicIdentity, "trustDbEntry"> & { publicKey: Versioned<SigningPublicKey> }
 
 /**
  * Section in user settings to deal with everything related to key verification.
  *
  * It can display the user's own fingerprint, list trusted identities, and start the key verification process.
  */
-
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
-	ownIdentity: PublicIdentity | null
+	ownIdentity: OwnPublicIdentity | null
 
 	trustedIdentities: Map<string, TrustedIdentity>
 
@@ -50,9 +57,9 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		const ownIdentityKey = await this.publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(this.userController.userGroupInfo.group)
 		if (ownIdentityKey != null) {
 			this.ownIdentity = {
-				key: ownIdentityKey,
 				fingerprint: await this.keyVerificationFacade.calculateFingerprint(ownIdentityKey),
 				mailAddress: getDefaultSenderFromUser(this.userController),
+				publicKey: ownIdentityKey,
 			}
 		} else {
 			this.ownIdentity = null
@@ -81,9 +88,13 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 				publicKeyType: trustedIdentity.publicIdentityKey.object.type,
 				publicKeyFingerprint: trustedIdentity.fingerprint,
 				publicKeyVersion: trustedIdentity.publicIdentityKey.version,
-				onRemoveFingerprint: async (mailAddress: string) => {
-					await this.keyVerificationFacade.untrust(mailAddress)
-					await this.reload()
+				action: {
+					onClick: async (mailAddress: string) => {
+						await this.keyVerificationFacade.untrust(mailAddress)
+						await this.reload()
+					},
+					icon: Icons.Trash,
+					tooltip: "delete_action",
 				},
 			})
 		})
@@ -134,11 +145,12 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	private renderOwnIdentity(ownIdentity: PublicIdentity): Children {
+	private renderOwnIdentity(ownIdentity: OwnPublicIdentity): Children {
 		const isLightTheme = this.themeController.isLightTheme()
 
 		const qrCodeGraphic = m.trust(renderFingerprintAsQrCode(ownIdentity.mailAddress, ownIdentity.fingerprint))
 		return m(Card, {}, [
+			m("center.h5", lang.get("keyVerificationVerificationCode_title")),
 			// QR code
 			m(
 				".pb.pt",
@@ -158,17 +170,26 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 							qrCodeGraphic,
 						),
 			),
-			// mail address
-			m(".b.center.mt-s.mb-s", ownIdentity.mailAddress),
-			// text
-			// specifying chunksPerLine: 8 is possible, but breaks on very narrow display sizes, so we don't
-			m(MonospaceTextDisplay, {
-				text: ownIdentity.fingerprint,
-				chunkSize: 4,
-				classes: ".center.lh",
-				border: false,
+			m(FingerprintRow, {
+				mailAddress: ownIdentity.mailAddress,
+				publicKeyVersion: ownIdentity.publicKey.version,
+				publicKeyType: ownIdentity.publicKey.object.type,
+				publicKeyFingerprint: ownIdentity.fingerprint,
+				action: {
+					onClick: async () => {
+						await copyToClipboard(ownIdentity.fingerprint)
+						await showSnackBar({
+							message: "copied_msg",
+							button: {
+								label: "close_alt",
+								click: () => {},
+							},
+						})
+					},
+					icon: Icons.Copy,
+					tooltip: "copyToClipboard_action",
+				},
 			}),
-			m(".mb"),
 		])
 	}
 }
