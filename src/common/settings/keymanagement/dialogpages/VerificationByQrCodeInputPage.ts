@@ -5,7 +5,7 @@ import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel, PublicIdentity } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import jsQR from "jsqr"
-import { IdentityKeyVerificationMethod, IdentityKeyQrVerificationResult } from "../../../api/common/TutanotaConstants"
+import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { isApp } from "../../../api/common/Env"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
@@ -15,14 +15,7 @@ import { TextFieldType } from "../../../gui/base/TextField"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 
-export type QrCodePageErrorType =
-	| "camera_permission_denied"
-	| "malformed_qr"
-	| "email_not_found"
-	| "qr_code_mismatch"
-	| "camera_not_found"
-	| "video_source_error"
-	| "unknown"
+export type QrCodePageErrorType = "camera_permission_denied" | "malformed_qr" | "email_not_found" | "camera_not_found" | "video_source_error" | "unknown"
 
 export type GoToErrorPageHandler = (et: QrCodePageErrorType) => void
 
@@ -228,7 +221,11 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 					// at this point, a QR code has been detected and decoded
 					const verificationResult = await model.validateQrCodeAddress(code)
 					if (verificationResult !== IdentityKeyQrVerificationResult.QR_OK) {
-						this.goToErrorPage?.(this.resultToErrorType(verificationResult))
+						if (verificationResult === IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH) {
+							//Implement same behavior as for when user clicks "do not trust"
+						} else {
+							this.goToErrorPage?.(this.resultToErrorType(verificationResult))
+						}
 					}
 
 					this.cleanupVideo()
@@ -246,9 +243,6 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 
 	resultToErrorType(kr: IdentityKeyQrVerificationResult | undefined): QrCodePageErrorType {
 		switch (kr) {
-			case IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH: {
-				return "qr_code_mismatch"
-			}
 			case IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND: {
 				return "email_not_found"
 			}
