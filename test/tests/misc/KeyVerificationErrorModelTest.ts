@@ -1,4 +1,4 @@
-import { KeyVerificationErrorModel } from "../../../src/common/misc/KeyVerificationErrorModel"
+import { RecipientKeyVerificationRecoveryModel } from "../../../src/common/misc/RecipientKeyVerificationRecoveryModel"
 import { KeyVerificationFacade } from "../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicIdentityKeyProvider } from "../../../src/common/api/worker/facades/PublicIdentityKeyProvider"
 import { ResolvableRecipient } from "../../../src/common/api/main/RecipientsModel"
@@ -14,7 +14,7 @@ o.spec("KeyVerificationErrorModelTest", function () {
 	let publicIdentityKeyProvider: PublicIdentityKeyProvider
 	let recipient: ResolvableRecipient
 
-	let keyVerificationErrorModel: KeyVerificationErrorModel
+	let keyVerificationErrorModel: RecipientKeyVerificationRecoveryModel
 
 	o.beforeEach(function () {
 		keyVerificationFacade = object()
@@ -22,7 +22,7 @@ o.spec("KeyVerificationErrorModelTest", function () {
 		recipient = object()
 		// @ts-ignore
 		recipient.address = RECIPIENT_ADDRESS
-		keyVerificationErrorModel = new KeyVerificationErrorModel(keyVerificationFacade, publicIdentityKeyProvider, recipient)
+		keyVerificationErrorModel = new RecipientKeyVerificationRecoveryModel(keyVerificationFacade, publicIdentityKeyProvider, recipient)
 	})
 
 	o.spec("test getSourceOfTrust", function () {
