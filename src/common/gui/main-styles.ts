@@ -880,6 +880,14 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_accent,
 			color: theme.content_button_icon_selected,
 		},
+		".error-bg": {
+			"background-color": theme.on_error_container,
+			color: theme.error_container,
+		},
+		".success-bg": {
+			"background-color": theme.on_success_container,
+			color: theme.success_container,
+		},
 		".go-european-button": {
 			"background-color": "#FEDC59",
 			color: theme.themeId === "light" || theme.themeId === "light_secondary" ? goEuropeanBlue : "#232323",

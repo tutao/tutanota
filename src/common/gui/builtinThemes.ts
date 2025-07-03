@@ -117,6 +117,37 @@ export const goEuropeanBlue = blue
 
 type Themes = Record<ThemeId, Theme>
 
+const semanticColorsLight = {
+	// Semantic colors
+	error: "#DE3730",
+	on_error: "#FFFFFF",
+	error_container: "#FFEDEA",
+	on_error_container: "#A80710",
+	warning: "#8D7426",
+	on_warning: "#FFFFFF",
+	warning_container: "#FFEFCC",
+	on_warning_container: "#655000",
+	success: "#44845E",
+	on_success: "#FFFFFF",
+	success_container: "#E9FFED",
+	on_success_container: "#2B5E3C",
+}
+const semanticColorsDark = {
+	// Semantic colors
+	error: "#FF5449",
+	on_error: "#2D0001",
+	error_container: "#690005",
+	on_error_container: "#FFB4AB",
+	warning: "#FFE089",
+	on_warning: "#171000",
+	warning_container: "#655000",
+	on_warning_container: "#FFEFCC",
+	success: "#5E9E77",
+	on_success: "#001509",
+	success_container: "#003920",
+	on_success_container: "#93D5AA",
+}
+
 const getLogo = (isDark: boolean, isDefault: boolean) => {
 	const isDarkOrDefault = isDark || !isDefault
 	if (!isApp()) {
@@ -135,6 +166,7 @@ const getLogo = (isDark: boolean, isDefault: boolean) => {
 export const themes = (): Themes => {
 	const isCalendarApp = client.isCalendarApp()
 	const lightRed = Object.freeze<Theme>({
+		...semanticColorsLight,
 		themeId: !isCalendarApp ? "light" : "light_secondary",
 		logo: getLogo(false, !isCalendarApp),
 		button_bubble_bg: grey_lighter_3,
@@ -182,22 +214,9 @@ export const themes = (): Themes => {
 		success_color: GREEN,
 		success_container_color: GREEN_GHOST_70,
 		on_success_container_color: dark_lighter_0,
-
-		// Semantic colors
-		error: "#DE3730",
-		on_error: "#FFFFFF",
-		error_container: "#FFEDEA",
-		on_error_container: "#A80710",
-		warning: "#8D7426",
-		on_warning: "#FFFFFF",
-		warning_container: "#FFEFCC",
-		on_warning_container: "#655000",
-		success: "#44845E",
-		on_success: "#FFFFFF",
-		success_container: "#99D2C5E5",
-		on_success_container: "#232323",
 	})
 	const darkRed = Object.freeze<Theme>({
+		...semanticColorsDark,
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
 		logo: getLogo(true, !isCalendarApp),
 		button_bubble_bg: dark_lighter_2,
@@ -247,22 +266,9 @@ export const themes = (): Themes => {
 		success_color: GREEN_70,
 		success_container_color: GREEN_GHOST_70,
 		on_success_container_color: dark_lighter_0,
-
-		// Semantic colors
-		error: "#FF5449",
-		on_error: "#2D0001",
-		error_container: "#690005",
-		on_error_container: "#FFB4AB",
-		warning: "#FFE089",
-		on_warning: "#171000",
-		warning_container: "#655000",
-		on_warning_container: "#FFEFCC",
-		success: "#5E9E77",
-		on_success: "#001509",
-		success_container: "#00391D",
-		on_success_container: "#95D5A7",
 	})
 	const lightBlue = Object.freeze<Theme>({
+		...semanticColorsLight,
 		themeId: isCalendarApp ? "light" : "light_secondary",
 		// blue is not really our brand color, treat blue like whitelabel color
 		logo: getLogo(false, isCalendarApp),
@@ -311,22 +317,9 @@ export const themes = (): Themes => {
 		success_color: GREEN,
 		success_container_color: GREEN_GHOST,
 		on_success_container_color: dark_lighter_0,
-
-		// Semantic colors
-		error: "#FF5449",
-		on_error: "#2D0001",
-		error_container: "#690005",
-		on_error_container: "#FFB4AB",
-		warning: "#FFE089",
-		on_warning: "#171000",
-		warning_container: "#655000",
-		on_warning_container: "#FFEFCC",
-		success: "#5E9E77",
-		on_success: "#001509",
-		success_container: "#00391D",
-		on_success_container: "#95D5A7",
 	})
 	const darkBlue = Object.freeze<Theme>({
+		...semanticColorsDark,
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
 		logo: getLogo(true, isCalendarApp),
 		button_bubble_bg: dark_lighter_2,
@@ -376,20 +369,6 @@ export const themes = (): Themes => {
 		success_color: GREEN_70,
 		success_container_color: GREEN_GHOST_70,
 		on_success_container_color: dark_lighter_0,
-
-		// Semantic colors
-		error: "#FF5449",
-		on_error: "#2D0001",
-		error_container: "#690005",
-		on_error_container: "#FFB4AB",
-		warning: "#FFE089",
-		on_warning: "#171000",
-		warning_container: "#655000",
-		on_warning_container: "#FFEFCC",
-		success: "#5E9E77",
-		on_success: "#001509",
-		success_container: "#00391D",
-		on_success_container: "#95D5A7",
 	})
 
 	return {

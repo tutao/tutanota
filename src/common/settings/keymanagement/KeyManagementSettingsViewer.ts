@@ -23,13 +23,17 @@ import { PublicIdentity } from "./KeyVerificationModel"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
 
 /**
+ * Our own identity key, which is not stored on the trust DB.
+ */
+type OwnPublicIdentity = Omit<PublicIdentity, "trustDbEntry">
+
+/**
  * Section in user settings to deal with everything related to key verification.
  *
  * It can display the user's own fingerprint, list trusted identities, and start the key verification process.
  */
-
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
-	ownIdentity: PublicIdentity | null
+	ownIdentity: OwnPublicIdentity | null
 
 	trustedIdentities: Map<string, TrustedIdentity>
 
@@ -50,7 +54,6 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		const ownIdentityKey = await this.publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(this.userController.userGroupInfo.group)
 		if (ownIdentityKey != null) {
 			this.ownIdentity = {
-				key: ownIdentityKey,
 				fingerprint: await this.keyVerificationFacade.calculateFingerprint(ownIdentityKey),
 				mailAddress: getDefaultSenderFromUser(this.userController),
 			}
@@ -134,7 +137,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	private renderOwnIdentity(ownIdentity: PublicIdentity): Children {
+	private renderOwnIdentity(ownIdentity: OwnPublicIdentity): Children {
 		const isLightTheme = this.themeController.isLightTheme()
 
 		const qrCodeGraphic = m.trust(renderFingerprintAsQrCode(ownIdentity.mailAddress, ownIdentity.fingerprint))
