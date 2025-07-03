@@ -5,18 +5,18 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { theme } from "../../../gui/theme"
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
-import { KeyVerificationErrorModel } from "../../../misc/KeyVerificationErrorModel"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
+import { SenderKeyVerificationRecoveryModel } from "../../../misc/SenderKeyVerificationRecoveryModel"
 
 type VerificationErrorInfoPageAttrs = {
-	model: KeyVerificationErrorModel
+	model: SenderKeyVerificationRecoveryModel
 	sourceOfTrust: IdentityKeySourceOfTrust
 	goToAcceptPage: () => void
 	goToRejectPage: () => void
 }
 
-export class VerificationErrorInfoPage implements Component<VerificationErrorInfoPageAttrs> {
+export class SenderKeyVerificationRecoveryInfoPage implements Component<VerificationErrorInfoPageAttrs> {
 	view(vnode: Vnode<VerificationErrorInfoPageAttrs>) {
 		const title = lang.get("keyManagement.verificationError_title")
 		let subTitle =
