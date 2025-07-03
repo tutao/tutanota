@@ -36,10 +36,6 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 				subTitle = lang.get("keyManagement.qrCodeInvalid_msg")
 				break
 			}
-			case "qr_code_mismatch": {
-				subTitle = lang.get("keyManagement.qrFingerprintMismatch_msg")
-				break
-			}
 			case "video_source_error": {
 				subTitle = lang.get("keyManagement.videoSourceError_msg")
 				break
@@ -54,7 +50,7 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 				title,
 				subTitle,
 				icon: Icons.CloseCircleOutline,
-				iconOptions: { color: theme.error },
+				iconOptions: { color: theme.content_accent },
 			}),
 			m(LoginButton, {
 				label: "retry_action",

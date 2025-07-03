@@ -6,7 +6,7 @@ export type SettingsTitleSectionAttrsType = {
 	icon?: AllIcons
 	iconOptions?: { color: string }
 	title: string
-	subTitle: string
+	subTitle: Children
 }
 
 export class TitleSection implements Component<SettingsTitleSectionAttrsType> {

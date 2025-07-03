@@ -24,9 +24,7 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 		let subTitle =
 			vnode.attrs.sourceOfTrust == IdentityKeySourceOfTrust.Manual
 				? lang.get("keyVerificationErrorManual_msg")
-				: IdentityKeySourceOfTrust.TOFU
-					? lang.get("keyVerificationErrorTofu_msg")
-					: lang.get("keyVerificationErrorGeneric_msg")
+				: lang.get("keyVerificationErrorGeneric_msg")
 
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(TitleSection, {

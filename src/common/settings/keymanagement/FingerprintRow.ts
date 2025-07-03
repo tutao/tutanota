@@ -5,15 +5,21 @@ import { Icons } from "../../gui/base/icons/Icons"
 import { ButtonSize } from "../../gui/base/ButtonSize"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 
-import { Icon, IconSize } from "../../gui/base/Icon"
+import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
 import { Hex } from "@tutao/tutanota-utils"
+import { MaybeTranslation } from "../../misc/LanguageViewModel"
 
+type Action = {
+	onClick: (mailAddress: string) => void
+	icon: AllIcons
+	tooltip: MaybeTranslation
+}
 type FingerprintRowAttrs = {
 	mailAddress: string
 	publicKeyVersion: number
 	publicKeyType: number
 	publicKeyFingerprint: Hex
-	onRemoveFingerprint?: (mailAddress: string) => void
+	action?: Action
 }
 
 /**
@@ -32,23 +38,23 @@ function getProtocolName(keyPairType: number): string {
 
 export class FingerprintRow implements Component<FingerprintRowAttrs> {
 	view(vnode: Vnode<FingerprintRowAttrs>): Children {
-		const { mailAddress, publicKeyFingerprint, onRemoveFingerprint, publicKeyVersion, publicKeyType } = vnode.attrs
+		const { mailAddress, publicKeyFingerprint, action, publicKeyVersion, publicKeyType } = vnode.attrs
 
 		return m(Card, [
 			m(".flex.items-center.selectable.pl-vpad-s.mb-s.gap-vpad-xs", [
 				m(Icon, {
-					icon: Icons.Shield,
+					icon: Icons.NeutralShield,
 					size: IconSize.Large,
 				}),
 				m(".text-break.b.selectable", mailAddress),
 				m(".flex-grow"),
-				onRemoveFingerprint
+				action
 					? m(IconButton, {
-							title: "keyManagement.verifyMailAddress_action",
+							title: action.tooltip,
 							click: async () => {
-								onRemoveFingerprint(mailAddress)
+								action.onClick(mailAddress)
 							},
-							icon: Icons.Trash,
+							icon: action.icon,
 							size: ButtonSize.Compact,
 						})
 					: null,
