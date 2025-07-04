@@ -662,7 +662,7 @@ function reverseCompareMailSetId(id1: Id, id2: Id): number {
 export class LoadedConversation {
 	readonly conversationMails: LoadedMail[] = []
 
-	// the mainMail is the mail this is show in preview in the list, and is the mail shown when the list entry is clicked
+	// the mainMail is the mail this is shown in preview in the list, and is the mail shown when the list entry is clicked
 	private mainMail: LoadedMail | null = null
 	private listFilter: ListFilter<Mail> | null = null
 
