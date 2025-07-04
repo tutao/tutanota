@@ -31,9 +31,9 @@ export type Theme = {
 	tertiary_container: string
 	on_tertiary_container: string
 	error: string
+	success: string
 	surface: string
 	surface_dim: string
-	surface_container_low: string
 	surface_container: string
 	surface_container_high: string
 	surface_container_highest: string
