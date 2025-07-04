@@ -5,7 +5,7 @@ set -exu
 # clone OpenSSL, needed as part of the build of both old and new sqlcipher
 git clone https://github.com/openssl/openssl
 pushd openssl
-git checkout openssl-3.5.0
+git checkout openssl-3.5.1
 popd
 
 # Clone the main SQLCipher repo

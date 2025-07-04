@@ -23,5 +23,5 @@ podman run --rm \
   -it android-sqlcipher
 # This will produce the artifact at build-sqlcipher/sqlcipher-android-4.7.2-release.aar
 # Move it to its final destination
-mv build-sqlcipher/sqlcipher-android-${SQLCIPHER_ANDROID_VERSION}-release.aar app-android/libs/sqlcipher-android.aar
+mv build-sqlcipher/sqlcipher-android-${SQLCIPHER_ANDROID_VERSION}-release.aar ../../app-android/libs/sqlcipher-android.aar
 ```
