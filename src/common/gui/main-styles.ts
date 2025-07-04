@@ -2678,11 +2678,8 @@ styles.registerStyle("main", () => {
 				display: "initial",
 				position: "initial",
 			},
-			".view-column:nth-child(1), .view-column:nth-child(2)": {
-				display: "none",
-			},
 			".view-column": {
-				width: "100% !important",
+				display: "none",
 			},
 			".mail-viewer": {
 				overflow: "visible",
@@ -2714,7 +2711,7 @@ styles.registerStyle("main", () => {
 			".bottom-nav": {
 				display: "none",
 			},
-			".mobile .view-column:nth-child(2)": {
+			".view-column:nth-last-child(1)": {
 				display: "initial",
 			},
 			".folder-column": {
