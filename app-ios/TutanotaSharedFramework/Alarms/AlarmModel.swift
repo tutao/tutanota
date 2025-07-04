@@ -26,7 +26,7 @@ public protocol AlarmCalculator {
 
 	/// Calculate upcoming alarm occurences for a single alarm
 	/// - Returns: lazy sequence of alarm occurences. It might be infinite if alarm repeats indefinitely!
-	func futureOccurrences(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence>
+	func futureAlarmOccurrencesSequence(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence>
 }
 
 /// A helper to magically unbox any Sequence to call prefix() on it because
@@ -41,17 +41,21 @@ public class AlarmModel: AlarmCalculator {
 
 	public func futureOccurrences(acrossAlarms alarms: [AlarmNotification], upToForEach: Int, upToOverall: Int) -> any BidirectionalCollection<AlarmOccurence> {
 		var occurrences = [AlarmOccurence]()
-
-		for alarm in alarms {
-			let a = prefix(self.futureOccurrences(ofAlarm: alarm), upToForEach)
-			occurrences += a
+		let (singleEventAlarms, repeatingEventAlarms): (Array<AlarmNotification>, Array<AlarmNotification>) = alarms.reduce(into: ([], [])) { result, alarm in
+			if alarm.repeatRule == nil { return result.0.append(alarm) }
+			result.1.append(alarm)
+		}
+		printLog("Handling \(singleEventAlarms.count) single event alarms and \(repeatingEventAlarms.count) repeating event alarms.")
+		for alarm in singleEventAlarms { occurrences += self.futureAlarmOccurrencesSequence(ofAlarm: alarm) }
+		for alarm in repeatingEventAlarms {
+			occurrences += prefix(self.futureAlarmOccurrencesSequence(ofAlarm: alarm), upToForEach)  // Get the first N future occurences. (N = uptoForEach)
 		}
 
 		occurrences.sort(by: { $0.eventOccurrenceTime < $1.eventOccurrenceTime })
 		return occurrences.prefix(upToOverall)
 	}
 
-	public func futureOccurrences(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence> {
+	public func futureAlarmOccurrencesSequence(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence> {
 		if let repeatRule = alarm.repeatRule {
 			return self.futureOccurences(ofAlarm: alarm, withRepeatRule: repeatRule)
 		} else {
@@ -71,7 +75,6 @@ public class AlarmModel: AlarmCalculator {
 		.filter { self.shouldScheduleAlarmAt(ocurrenceTime: $0.occurenceDate) }
 		.map { occurrence in AlarmOccurence(occurrenceNumber: occurrence.occurrenceNumber, eventOccurrenceTime: occurrence.occurenceDate, alarm: alarm) }
 		.filter { self.shouldScheduleAlarmAt(ocurrenceTime: $0.alarmOccurenceTime()) }
-
 		return occurencesAfterNow
 	}
 
@@ -125,11 +128,11 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 
 	fileprivate var intervalNumber = 0
 	fileprivate var occurrenceNumber = 0
+	fileprivate var occurrencesAfterNow = 0
 	fileprivate var exclusionNumber = 0
 
 	mutating func next() -> EventOccurrence? {
 		if case let .count(n) = repeatRule.endCondition, occurrenceNumber >= n { return nil }
-		if intervalNumber > EVENTS_SCHEDULED_AHEAD { return nil }
 
 		if expandedEvents.isEmpty {
 			let nextExpansionProgenitor = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * intervalNumber, to: calcEventStart)!
@@ -174,7 +177,7 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			if let endDate, dateInSeconds >= UInt64(endDate.timeIntervalSince1970) { return nil }
 
 			while exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) < dateInSeconds {
-				exclusionNumber += 1
+				exclusionNumber += 1  // Skipping excluded dates before current occurence
 			}
 
 			if exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) == dateInSeconds {
