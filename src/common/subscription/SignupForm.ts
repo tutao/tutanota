@@ -15,8 +15,7 @@ import {
 
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import type { lazy } from "@tutao/tutanota-utils"
-import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import { defer, getFirstOrThrow, lazy, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -32,6 +31,9 @@ import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
 import { SubscriptionApp } from "./SubscriptionViewer"
 import { deviceConfig } from "../misc/DeviceConfig"
+import { createTimelockCaptchaGetIn } from "../api/entities/sys/TypeRefs.js"
+import { TimelockCaptchaService } from "../api/entities/sys/Services.js"
+import { PowChallengeParameters } from "./ProofOfWorkCaptchaUtils.js"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -58,6 +60,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly __lastMailValidationError: Stream<TranslationKey | null>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
+	private powChallegeSolution: Promise<bigint>
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
@@ -94,6 +97,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this._code = stream("")
 		this._isMailVerificationBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
+		this.powChallegeSolution = this.runPowChallenge(deviceConfig.getSignupToken())
 	}
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {
@@ -161,26 +165,33 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			}
 
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
-			ageConfirmPromise.then((confirmed) => {
-				if (confirmed) {
-					this.__completePreviousStages()
+			ageConfirmPromise
+				.then((confirmed) => {
+					return showProgressDialog("captchaChecking_msg", this.powChallegeSolution)
+				})
+				.then((powSolution) => {
+					if (powSolution) {
+						this.__completePreviousStages()
 
-					return signup(
-						this._mailAddress,
-						this.passwordModel.getNewPassword(),
-						this._code(),
-						a.isBusinessUse(),
-						a.isPaidSubscription(),
-						a.campaign(),
-					).then((newAccountData) => {
-						if (newAccountData != null) {
-							a.onComplete({ type: "success", newAccountData })
-						} else {
-							a.onComplete({ type: "failure" })
-						}
-					})
-				}
-			})
+						console.log("solution:", powSolution)
+
+						return signup(
+							this._mailAddress,
+							this.passwordModel.getNewPassword(),
+							this._code(),
+							a.isBusinessUse(),
+							a.isPaidSubscription(),
+							a.campaign(),
+							powSolution,
+						).then((newAccountData) => {
+							if (newAccountData != null) {
+								a.onComplete({ type: "success", newAccountData })
+							} else {
+								a.onComplete({ type: "failure" })
+							}
+						})
+					}
+				})
 		}
 
 		return m(
@@ -247,6 +258,28 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			await this.__signupPaidTest.getStage(3).complete()
 		}
 	}
+
+	private async runPowChallenge(signupToken: string): Promise<bigint> {
+		const data = createTimelockCaptchaGetIn({
+			signupToken: deviceConfig.getSignupToken(),
+		})
+		const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
+		const challenge: PowChallengeParameters = { base: BigInt(ret.base), difficulty: Number(ret.difficulty), modulus: BigInt(ret.modulus) }
+
+		const { prefixWithoutFile } = window.tutao.appState
+		const worker = new Worker(prefixWithoutFile + "/pow.js", { type: "module" })
+		const { promise, resolve } = defer<bigint>()
+
+		worker.onmessage = (msg) => {
+			if (msg.data === "ready") {
+				worker.postMessage(challenge)
+			} else {
+				resolve(msg.data)
+			}
+		}
+
+		return promise
+	}
 }
 
 function renderTermsLabel(): Children {
@@ -263,13 +296,14 @@ function signup(
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
 	campaign: string | null,
+	powChallengeSolution: bigint,
 ): Promise<NewAccountData | void> {
 	const { customerFacade } = locator
 	const operation = locator.operationProgressTracker.startNewOperation()
 	return showProgressDialog(
 		"createAccountRunning_msg",
 		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {
-			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(async (regDataId) => {
+			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign, powChallengeSolution).then(async (regDataId) => {
 				if (regDataId) {
 					const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 					return customerFacade

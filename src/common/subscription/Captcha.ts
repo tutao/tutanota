@@ -49,6 +49,7 @@ export async function runCaptchaFlow(
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
 	campaignToken: string | null,
+	powChallengeSolution: bigint,
 ): Promise<string | null> {
 	try {
 		const captchaReturn = await locator.serviceExecutor.get(
@@ -59,8 +60,7 @@ export async function runCaptchaFlow(
 				signupToken: deviceConfig.getSignupToken(),
 				businessUseSelected: isBusinessUse,
 				paidSubscriptionSelected: isPaidSubscription,
-				// FIXME: Put actual solution
-				timelockChallengeSolution: "something",
+				timelockChallengeSolution: powChallengeSolution.toString(),
 			}),
 		)
 		if (captchaReturn.challenge) {
@@ -69,8 +69,9 @@ export async function runCaptchaFlow(
 			} catch (e) {
 				if (e instanceof InvalidDataError) {
 					await Dialog.message("createAccountInvalidCaptcha_msg")
-					return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken)
+					return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
 				} else if (e instanceof AccessExpiredError) {
+					// FIXME: handle pow error
 					await Dialog.message("createAccountAccessDeactivated_msg")
 					return null
 				} else {
