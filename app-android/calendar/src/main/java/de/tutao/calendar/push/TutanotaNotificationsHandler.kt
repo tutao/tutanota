@@ -2,7 +2,6 @@ package de.tutao.calendar.push
 
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
-import de.tutao.calendar.BuildConfig
 import de.tutao.calendar.R
 import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.base64ToBase64Url
@@ -122,6 +121,8 @@ class TutanotaNotificationsHandler(
 			} catch (e: HttpException) { // other HTTP exceptions, client ones
 				Log.w(TAG, e)
 				return null
+			} catch (e: Exception) {
+				Log.w(TAG, "Failed to download missed notifications with an unknown exception!", e)
 			}
 		}
 		return null

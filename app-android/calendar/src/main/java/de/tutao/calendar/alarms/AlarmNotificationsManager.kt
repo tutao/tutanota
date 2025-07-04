@@ -10,8 +10,8 @@ import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.alarms.AlarmInterval
 import de.tutao.tutashared.alarms.AlarmModel
 import de.tutao.tutashared.alarms.AlarmNotification
-import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
+import de.tutao.tutashared.alarms.EncryptedAlarmNotificationEntity
 import de.tutao.tutashared.alarms.decrypt
 import de.tutao.tutashared.alarms.toEntity
 import de.tutao.tutashared.base64ToBytes
@@ -213,6 +213,7 @@ class AlarmNotificationsManager(
 					return
 				}
 
+				Log.d(TAG, "Attempting to cancel alarm ${alarmNotification.alarmInfo.alarmIdentifier}")
 				iterateAlarmOccurrences(alarmNotification) { _, occurrence, _ ->
 					Log.d(
 						TAG,

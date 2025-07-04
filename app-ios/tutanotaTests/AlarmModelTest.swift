@@ -121,7 +121,7 @@ struct AlarmModelTest {
 
 		let repeatRule = RepeatRule(frequency: .weekly, interval: 1, timeZone: timeZone, endCondition: .never, excludedDates: [], advancedRules: [])
 
-		let seq = alarmModel.futureOccurrences(
+		let seq = alarmModel.futureAlarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "summary",
@@ -157,7 +157,7 @@ struct AlarmModelTest {
 			advancedRules: [AdvancedRule(ruleType: ByRuleType.byday, interval: "MO"), AdvancedRule(ruleType: ByRuleType.byday, interval: "TU")]
 		)
 
-		let seq = alarmModel.futureOccurrences(
+		let seq = alarmModel.futureAlarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "summary",
@@ -194,7 +194,7 @@ struct AlarmModelTest {
 			advancedRules: []
 		)
 
-		let seq = alarmModel.futureOccurrences(
+		let seq = alarmModel.futureAlarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "summary",
@@ -231,7 +231,7 @@ struct AlarmModelTest {
 			advancedRules: []
 		)
 
-		let seq: any Sequence<AlarmOccurence> = alarmModel.futureOccurrences(
+		let seq: any Sequence<AlarmOccurence> = alarmModel.futureAlarmOccurrencesSequence(
 			ofAlarm: AlarmNotification(
 				operation: .Create,
 				summary: "summary",
@@ -246,6 +246,46 @@ struct AlarmModelTest {
 		let occurrences = prefix(seq: seq, 4).map { $0.eventOccurrenceTime }
 
 		let expected = [date(2019, 5, 1, 0, 0, timeZone), date(2019, 5, 2, 0, 0, timeZone)]
+		#expect(occurrences == expected)
+	}
+
+	@Test func testOldEventIteratedRepeatAlarmWithByRule() {
+		let timeZone = "Europe/Berlin"
+		dateProvider.timeZone = TimeZone(identifier: timeZone)!
+		dateProvider.now = date(2025, 7, 1, 10, 0, timeZone)
+
+		let eventStart = date(2024, 2, 2, 12, 0, timeZone)
+		let eventEnd = date(2024, 2, 2, 15, 0, timeZone)
+
+		let repeatRule = RepeatRule(
+			frequency: .weekly,
+			interval: 1,
+			timeZone: timeZone,
+			endCondition: .never,
+			excludedDates: [],
+			advancedRules: [
+				AdvancedRule(ruleType: ByRuleType.byday, interval: "MO"), AdvancedRule(ruleType: ByRuleType.byday, interval: "TU"),
+				AdvancedRule(ruleType: ByRuleType.byday, interval: "WE"),
+			]
+		)
+
+		let seq = alarmModel.futureAlarmOccurrencesSequence(
+			ofAlarm: AlarmNotification(
+				operation: .Create,
+				summary: "Old Event",
+				eventStart: eventStart,
+				eventEnd: eventEnd,
+				alarmInfo: AlarmInfo(alarmIdentifer: "id", trigger: AlarmInterval(unit: .hour, value: 1)),
+				repeatRule: repeatRule,
+				user: "user"
+			)
+		)
+		let occurrences = prefix(seq: seq, 5).map { $0.eventOccurrenceTime }
+
+		let expected = [
+			date(2025, 7, 1, 12, 0, timeZone), date(2025, 7, 2, 12, 0, timeZone), date(2025, 7, 7, 12, 0, timeZone), date(2025, 7, 8, 12, 0, timeZone),
+			date(2025, 7, 9, 12, 0, timeZone),
+		]
 		#expect(occurrences == expected)
 	}
 }
