@@ -148,7 +148,7 @@ platform :ios do
 		# Create tutanota-3/build-calendar-app if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build-calendar-app"
 
- 		sh "if xcrun simctl list | grep iphone-15-ios-18-2; then echo 'Using existing simulator'; else xcrun simctl create iphone-15-ios-18-2 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-18-2; fi"
+ 		sh "if xcrun simctl list | grep iphone-15-ios-18-2; then echo 'Using existing simulator'; else xcodebuild -downloadPlatform iOS -buildVersion 18.2 && xcrun simctl create iphone-15-ios-18-2 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-18-2; fi"
 
  		clear_derived_data
 
