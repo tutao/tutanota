@@ -1,6 +1,6 @@
 import { locator } from "../api/main/CommonLocator.js"
-import { RegistrationCaptchaService } from "../api/entities/sys/Services.js"
-import { createRegistrationCaptchaServiceData, createRegistrationCaptchaServiceGetData } from "../api/entities/sys/TypeRefs.js"
+import { RegistrationCaptchaService, TimelockCaptchaService } from "../api/entities/sys/Services.js"
+import { createRegistrationCaptchaServiceData, createRegistrationCaptchaServiceGetData, createTimelockCaptchaGetIn } from "../api/entities/sys/TypeRefs.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { AccessDeactivatedError, AccessExpiredError, InvalidDataError } from "../api/common/error/RestError.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
@@ -9,11 +9,13 @@ import { ButtonType } from "../gui/base/Button.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import m, { Children } from "mithril"
 import { TextField } from "../gui/base/TextField.js"
-import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { defer, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { theme } from "../gui/theme"
 import { getColorLuminance, isMonochrome } from "../gui/base/Color"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { PowChallengeParameters } from "./ProofOfWorkCaptchaUtils.js"
 
 /**
  * Accepts multiple formats for a time of day and always returns 12h-format with leading zeros.
@@ -49,10 +51,14 @@ export async function runCaptchaFlow(
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
 	campaignToken: string | null,
-	powChallengeSolution: bigint,
+	powChallengeSolution: Promise<bigint>,
 ): Promise<string | null> {
+	const solution = await showProgressDialog("captchaChecking_msg", powChallengeSolution)
+	console.log("solution", solution)
+
+	let captchaReturn
 	try {
-		const captchaReturn = await locator.serviceExecutor.get(
+		captchaReturn = await locator.serviceExecutor.get(
 			RegistrationCaptchaService,
 			createRegistrationCaptchaServiceGetData({
 				campaignToken: campaignToken,
@@ -60,9 +66,21 @@ export async function runCaptchaFlow(
 				signupToken: deviceConfig.getSignupToken(),
 				businessUseSelected: isBusinessUse,
 				paidSubscriptionSelected: isPaidSubscription,
-				timelockChallengeSolution: powChallengeSolution.toString(),
+				timelockChallengeSolution: solution.toString(),
 			}),
 		)
+	} catch (e) {
+		if (e instanceof AccessExpiredError) {
+			const powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken())
+			console.log("solution after AccessExpiredError", solution)
+
+			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
+		} else {
+			throw e
+		}
+	}
+
+	try {
 		if (captchaReturn.challenge) {
 			try {
 				return await showCaptchaDialog(captchaReturn.challenge, captchaReturn.token)
@@ -91,6 +109,28 @@ export async function runCaptchaFlow(
 	}
 }
 
+export async function runPowChallenge(signupToken: string): Promise<bigint> {
+	const data = createTimelockCaptchaGetIn({
+		signupToken: deviceConfig.getSignupToken(),
+	})
+	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
+	const challenge: PowChallengeParameters = { base: BigInt(ret.base), difficulty: Number(ret.difficulty), modulus: BigInt(ret.modulus) }
+
+	const { prefixWithoutFile } = window.tutao.appState
+	const worker = new Worker(prefixWithoutFile + "/pow.js", { type: "module" })
+	const { promise, resolve } = defer<bigint>()
+
+	worker.onmessage = (msg) => {
+		if (msg.data === "ready") {
+			worker.postMessage(challenge)
+		} else {
+			resolve(msg.data)
+		}
+	}
+
+	return promise
+}
+
 function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string | null> {
 	return newPromise<string | null>((resolve, reject) => {
 		let dialog: Dialog
@@ -110,12 +150,13 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 				return
 			}
 
-			// The user entered a correctly formatted time, but not one that our captcha will ever give out (i.e. not *0 or *5)
-			const minuteOnesPlace = parsedInput[parsedInput.length - 1]
-			if (minuteOnesPlace !== "0" && minuteOnesPlace !== "5") {
-				Dialog.message("createAccountInvalidCaptcha_msg")
-				return
-			}
+			// FIXME
+			// // The user entered a correctly formatted time, but not one that our captcha will ever give out (i.e. not *0 or *5)
+			// const minuteOnesPlace = parsedInput[parsedInput.length - 1]
+			// if (minuteOnesPlace !== "0" && minuteOnesPlace !== "5") {
+			// 	Dialog.message("createAccountInvalidCaptcha_msg")
+			// 	return
+			// }
 
 			dialog.close()
 			locator.serviceExecutor
